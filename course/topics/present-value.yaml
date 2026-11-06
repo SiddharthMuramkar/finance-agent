@@ -28,6 +28,122 @@ cases:
       roughly what the lottery would have had to spend on bonds to fund the 30 payments,
       that is, the present value of the annuity at the interest rates of the time.
 
+exampleCurrency: INR
+runningExample:
+  text: A friend offers you ₹1,000 next year, or ₹950 today.
+  numbers: [1000, 950]
+  scene:
+    cast:
+      - { id: asha, emoji: woman, name: Asha }
+      - { id: ravi, emoji: man, name: Ravi }
+    beats:
+      - { who: narrator, says: "Ravi owes Asha money and offers two ways to pay.", emoji: money-bag }
+      - { who: ravi, says: "Either ₹1,000 next year, or ₹950 today.", emoji: calendar }
+      - { who: asha, says: "If I take it today I can invest it meanwhile.", emoji: seedling }
+      - { who: narrator, says: "Waiting costs something. Present value says how much." }
+
+terms:
+  - term: present value
+    means: What a future payment is worth in today's money, after allowing for the cost of waiting.
+    pro: We discount the cash flows to get their present value.
+    example: "₹1,000 promised in a year is worth less than ₹1,000 in your hand today."
+    emoji: hourglass-not-done
+    inStory: In the story, the lottery offers money now or money spread over 30 years.
+  - term: lump sum
+    means: One single payment of the whole amount, all at once.
+    pro: She asked for the lump sum, not instalments.
+    example: Taking a retirement payout as one ₹50 lakh cheque, not a monthly pension.
+    emoji: money-bag
+    inStory: In the story, one cash payment is offered instead of 30 yearly ones.
+  - term: annuity
+    means: A stream of payments made at regular times, such as once a year.
+    pro: The prize is paid as a thirty-year annuity.
+    example: "A pension of ₹30,000 a month is an annuity: money arrives on a schedule."
+    emoji: calendar
+    inStory: In the story, the advertised jackpot is 30 yearly payments.
+  - term: discount rate
+    means: The yearly rate used to shrink a later payment into today's money.
+    pro: What discount rate are you using for those payments?
+    example: If your bank pays 6 percent a year, ₹106 next year is worth ₹100 today.
+    emoji: chart-decreasing
+    inStory: In the story, a higher discount rate makes the later payments worth less.
+  - term: cash option
+    means: The choice to take a smaller lump sum today instead of the advertised annuity.
+    pro: Do you want the annuity or the cash option?
+    example: "A shop offers ₹90,000 now or ₹1 lakh in a year: that is a cash option."
+    emoji: coin
+    inStory: In the story, the winner has 180 days to come forward and choose.
+
+scenes:
+  - id: jackpot-opening
+    step: story
+    recipe: story_scene
+    title: A record jackpot, two ways to take it
+    inputs:
+      cast:
+        - { id: lottery, emoji: ticket, name: The lottery, role: pays the prize }
+        - { id: analyst, emoji: thinking-face, name: An analyst, role: compares the offers }
+      beats:
+        - { who: narrator, says: "One ticket sold in South Carolina matches all six numbers.", emoji: ticket }
+        - { who: lottery, says: "The advertised jackpot is $1.537 billion, paid over 30 years.", emoji: trophy }
+        - { who: lottery, says: "Or take one cash payment of about $877.8 million now.", emoji: money-bag }
+        - { who: analyst, says: "Why is the cash so much smaller than the jackpot?", emoji: thinking-face }
+        - { who: narrator, says: "Nobody yet knows who holds the ticket, or which they will pick." }
+      caption: 24 October 2018, before the winner comes forward
+      date: "2018-10-24"
+  - id: now-or-later
+    step: concept
+    check: pv-quiz-discounting
+    recipe: two_paths
+    title: Money now or money later
+    inputs:
+      question: Two friends are owed the same rupees. What happens to the one who waits?
+      left:
+        emoji: woman
+        name: Asha
+        choice: Took the money today
+        outcome: [money-bag, seedling]
+        outcomeLine: She invested it, so it grew while she waited.
+      right:
+        emoji: man
+        name: Ravi
+        choice: Waited five years
+        outcome: [hourglass-not-done, worried-face]
+        outcomeLine: He got the same rupees, but they bought less value.
+  - id: two-ways-to-be-paid
+    step: concept
+    check: pv-jackpot-choice
+    recipe: who_pays_whom
+    title: Two ways the lottery pays
+    inputs:
+      actors:
+        - { id: lottery, emoji: ticket, name: The lottery }
+        - { id: winner, emoji: person, name: The winner }
+      flows:
+        - { from: lottery, to: winner, what: one cash payment now, emoji: money-bag }
+        - { from: lottery, to: winner, what: a payment each year, emoji: calendar }
+  - id: winner-front-page
+    step: reveal
+    recipe: headline
+    title: The day the winner stepped forward
+    inputs:
+      paper: The morning paper
+      date: "2019-03-04"
+      headline: Record Mega Millions jackpot claimed, winner takes the cash option
+      deck: An imagined front page. A one-time payment of $877,784,124, before tax.
+      source: https://www.reuters.com/article/lifestyle/south-carolina-lottery-winner-claims-record-877-million-cash-prize-idUSKCN1QM09L/
+  - id: compare-after-moving
+    step: principle
+    recipe: lingo_card
+    title: Present value
+    inputs:
+      term: Present value
+      pro: We discount the cash flows to get their present value.
+      means: What a future payment is worth in today's money, after allowing for the cost of waiting.
+      example: ₹1,000 promised in a year is worth less than ₹1,000 in your hand today.
+      emoji: hourglass-not-done
+      inStory: An advertised total of payments over many years is not worth that much today.
+
 concept: >
   Money available today is worth more than the same amount later, because today's money
   can be invested to grow. Present value turns a future amount into today's money by
@@ -129,11 +245,11 @@ connections:
 questions:
   - id: pv-q-today-vs-later
     prompt: >
-      You are offered $1,000 today or $1,000 in five years. If you can earn a positive interest rate, which is worth more to you today?
+      Ravi offers Asha ₹1,000 today or ₹1,000 in five years. She could earn a positive interest rate on money she holds. Which is worth more to her today?
     choices:
-      - { id: a, text: "The $1,000 offered today" }
-      - { id: b, text: "The $1,000 offered in five years" }
-      - { id: c, text: "They are worth the same today" }
+      - { id: a, text: "The ₹1,000 offered today" }
+      - { id: b, text: "The ₹1,000 offered in five years", mistake: { tag: later_is_bigger, fix: "Same rupees later is worth less: the money in hand could have been earning for five years." } }
+      - { id: c, text: "They are worth the same today", mistake: { tag: ignores_waiting, fix: "Waiting has a cost. Money today can be invested and grow, so it is worth more." } }
     answer: a
     explanation: >
       Money you hold today can be invested and grow, so a future amount is worth less today. Discounting expresses exactly that.
@@ -142,12 +258,12 @@ questions:
 
   - id: pv-q-one-year
     prompt: >
-      What is the present value of $1,100 received in one year, discounted at 10% a year?
+      Asha is promised ₹1,100 in a year, and her bank pays 10 percent a year. Finance people call the ₹1,000 that would grow into that ₹1,100 its:
     choices:
-      - { id: a, text: "$1,000" }
-      - { id: b, text: "$990" }
-      - { id: c, text: "$1,010" }
-      - { id: d, text: "$1,100" }
+      - { id: a, text: "Present value" }
+      - { id: b, text: "Future value", mistake: { tag: mixed_up_terms, fix: "The future value is the ₹1,100 itself. The sum today that grows into it is the present value." } }
+      - { id: c, text: "Lump sum", mistake: { tag: mixed_up_terms, fix: "A lump sum is a single payment. Here we name the worth today of a later payment." } }
+      - { id: d, text: "Discount rate", mistake: { tag: mixed_up_terms, fix: "The discount rate is the 10 percent. The ₹1,000 it produces is the present value." } }
     answer: a
     explanation: >
       Waiting one year at 10% means dividing by 1.10 once. {{formula:present-value amount=1100 ratePercent=10 years=1}}
@@ -156,15 +272,15 @@ questions:
 
   - id: pv-q-two-years
     prompt: >
-      What is the present value of $1,210 received in two years, discounted at 10% a year?
+      A payment of ₹1,210 is due in two years and the discount rate is 10 percent. How does its present value reflect the two years of waiting?
     choices:
-      - { id: a, text: "$1,100" }
-      - { id: b, text: "$1,000" }
-      - { id: c, text: "$1,210" }
-      - { id: d, text: "$990" }
-    answer: b
+      - { id: a, text: "It is discounted twice, once for each year of waiting" }
+      - { id: b, text: "It is discounted once, however long the wait", mistake: { tag: discounted_once, fix: "Each year of waiting adds a discount. Two years means two discounts." } }
+      - { id: c, text: "It is not discounted, because the amount is fixed", mistake: { tag: ignores_waiting, fix: "A fixed amount later is still worth less today, because today's money could be earning." } }
+      - { id: d, text: "It is made bigger, because it is paid later", mistake: { tag: later_is_bigger, fix: "Waiting makes the payment worth less today, not more." } }
+    answer: a
     explanation: >
-      Two years at 10% means dividing by 1.10 twice. {{formula:present-value amount=1210 ratePercent=10 years=2}} Dividing by 1.10 only once ($1,100) discounts for one year instead of two.
+      Two years at 10% means dividing by 1.10 twice. {{formula:present-value amount=1210 ratePercent=10 years=2}} Dividing by 1.10 only once discounts for one year instead of two.
     source: >
       CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
 
@@ -172,10 +288,10 @@ questions:
     prompt: >
       A payment is due in ten years. If the discount rate rises, what happens to its present value?
     choices:
-      - { id: a, text: "It rises" }
+      - { id: a, text: "It rises", mistake: { tag: rate_direction, fix: "A higher rate shrinks a later payment more, so its worth today falls." } }
       - { id: b, text: "It falls" }
-      - { id: c, text: "It does not change" }
-      - { id: d, text: "It depends only on the size of the payment" }
+      - { id: c, text: "It does not change", mistake: { tag: ignores_rate, fix: "The rate is the price of waiting. When it changes, the worth today changes." } }
+      - { id: d, text: "It depends only on the size of the payment", mistake: { tag: ignores_rate, fix: "The size matters, but so do the rate and the years of waiting." } }
     answer: b
     explanation: >
       Each year of waiting divides the payment by one plus the rate. A higher rate means a bigger divisor every year, so the present value is smaller.
@@ -186,8 +302,8 @@ questions:
     prompt: >
       A prize is advertised as the total of 30 yearly payments, the first paid today and the others over the next 29 years. At a positive discount rate, how does its present value compare with the advertised total?
     choices:
-      - { id: a, text: "It is more than the total" }
-      - { id: b, text: "It equals the total" }
+      - { id: a, text: "It is more than the total", mistake: { tag: later_is_bigger, fix: "Discounting only ever shrinks a later payment, so the sum can only get smaller." } }
+      - { id: b, text: "It equals the total", mistake: { tag: ignores_waiting, fix: "Only the first payment is paid today. Every later one is worth less than its face amount." } }
       - { id: c, text: "It is less than the total" }
     answer: c
     explanation: >
@@ -197,17 +313,59 @@ questions:
 
   - id: pv-q-five-percent
     prompt: >
-      What is the present value of $5,000 received in two years, discounted at 5% a year?
+      Asha is owed ₹5,000 in two years. Compared with a 10 percent discount rate, what does a lower rate of 5 percent do to what that payment is worth today?
     choices:
-      - { id: a, text: "$4,500" }
-      - { id: b, text: "$4,762" }
-      - { id: c, text: "$4,535" }
-      - { id: d, text: "$5,500" }
-    answer: c
+      - { id: a, text: "It makes it worth more today: a lower rate shrinks the payment less" }
+      - { id: b, text: "It makes it worth less today", mistake: { tag: rate_direction, fix: "A lower rate means a smaller price for waiting, so the payment keeps more of its worth." } }
+      - { id: c, text: "It makes no difference", mistake: { tag: ignores_rate, fix: "The rate is the price of waiting, so changing it changes the worth today." } }
+      - { id: d, text: "It makes it worth the full ₹5,000", mistake: { tag: ignores_waiting, fix: "Two years of waiting still cost something at 5 percent, so it is worth less than ₹5,000." } }
+    answer: a
     explanation: >
-      Two years at 5% means dividing by 1.05 twice. {{formula:present-value amount=5000 ratePercent=5 years=2}} $4,762 discounts for one year only.
+      Two years at 5% means dividing by 1.05 twice. {{formula:present-value amount=5000 ratePercent=5 years=2}} At 10% the same payment would shrink more.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: pv-q-lingo-annuity
+    prompt: >
+      The advertised jackpot was paid as 30 yearly instalments. What do finance people call a prize paid that way?
+    choices:
+      - { id: a, text: "An annuity" }
+      - { id: b, text: "A lump sum", mistake: { tag: mixed_up_terms, fix: "A lump sum is one payment, all at once. This prize came in 30 instalments." } }
+      - { id: c, text: "A discount rate", mistake: { tag: mixed_up_terms, fix: "A discount rate is a yearly percentage used to shrink later payments." } }
+      - { id: d, text: "A cash option", mistake: { tag: mixed_up_terms, fix: "The cash option is the lump sum taken instead of the annuity." } }
+    answer: a
+    explanation: >
+      An annuity is a stream of payments made at regular times, here once a year for 30 years.
+    source: >
+      Mega Millions, Record jackpot won in South Carolina: https://www.megamillions.com/News/2018/Record-Mega-Millions-Jackpot-Won-in-South-Carolina.aspx
+
+  - id: pv-q-lingo-discount-rate
+    prompt: >
+      What do analysts call the yearly rate used to turn a payment that arrives later into today's money?
+    choices:
+      - { id: a, text: "The discount rate" }
+      - { id: b, text: "The jackpot rate", mistake: { tag: mixed_up_terms, fix: "There is no jackpot rate. The prize size is not a rate." } }
+      - { id: c, text: "The lump sum", mistake: { tag: mixed_up_terms, fix: "A lump sum is a single payment, not a rate." } }
+      - { id: d, text: "The annuity", mistake: { tag: mixed_up_terms, fix: "An annuity is the stream of payments. The rate is what shrinks each of them." } }
+    answer: a
+    explanation: >
+      The discount rate is the price of waiting, per year. Each year of waiting divides a payment by one plus that rate.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-lingo-cash-option
+    prompt: >
+      The lottery let the winner take one smaller payment today instead of the 30 yearly ones. What is that choice called?
+    choices:
+      - { id: a, text: "The cash option" }
+      - { id: b, text: "The annuity", mistake: { tag: mixed_up_terms, fix: "The annuity is the 30 yearly payments. The cash option is the one-off alternative." } }
+      - { id: c, text: "The discount rate", mistake: { tag: mixed_up_terms, fix: "The discount rate is a percentage. The cash option is a payment." } }
+      - { id: d, text: "The present value", mistake: { tag: mixed_up_terms, fix: "Present value is a worth in today's money. The cash option is the offer itself." } }
+    answer: a
+    explanation: >
+      The cash option is a lump sum offered in place of the annuity. It is smaller because it is paid now.
+    source: >
+      Mega Millions, Record jackpot won in South Carolina: https://www.megamillions.com/News/2018/Record-Mega-Millions-Jackpot-Won-in-South-Carolina.aspx
 
 
 checks:
@@ -220,6 +378,9 @@ checks:
       - pv-q-rate-rises
       - pv-q-annuity-total
       - pv-q-five-percent
+      - pv-q-lingo-annuity
+      - pv-q-lingo-discount-rate
+      - pv-q-lingo-cash-option
     perAttempt: 3
     passRule:
       correct: 2
