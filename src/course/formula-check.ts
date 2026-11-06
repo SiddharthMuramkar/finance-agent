@@ -42,7 +42,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "fol-sov-ratings",
   "fol-erp",
   "jud-assumptions",
-  "jud-predicted-outcomes",
   "jud-units-periods",
   "jud-filing-vs-claim",
   "ana-build-valuation",
