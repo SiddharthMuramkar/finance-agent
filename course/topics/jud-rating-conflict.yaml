@@ -127,17 +127,17 @@ youllLearn:
 questions:
   - id: jrc-q-notches-line
     prompt: >
-      On the Fitch and KBRA ladder, BBB- is the last investment-grade notch. A writer calls a company rated BB+ "deep in junk". Which description is fairer?
+      Monday 2 March 2026: Priya, a made-up pension-fund trainee, briefs her boss at 9 am. A blog calls a BB+ company "deep in junk". BBB- is the last investment-grade notch. What does BB+ mean here?
     choices:
-      - { id: a, text: "Speculative, but the first notch below the investment-grade line, as close to it as a junk rating gets" }
-      - { id: b, text: "Deep in junk, because any rating below investment grade is equally bad", mistake: { tag: deep_in_junk_because_any_rat, fix: "The ladder has many notches below the line. BB+ is the nearest one." } }
+      - { id: a, text: "Junk, but only just: the first notch below investment grade" }
+      - { id: b, text: "Deep in junk: every rating below the line is equally bad", mistake: { tag: deep_in_junk_because_any_rat, fix: "The ladder has many notches below the line. BB+ is the nearest one." } }
       - { id: c, text: "Still investment grade, because it starts with a B", mistake: { tag: still_investment_grade_becau, fix: "The line falls between BBB- and BB+. BB+ is already speculative." } }
-      - { id: d, text: "Neither: ratings only matter for bonds, not for companies", mistake: { tag: neither_ratings_only_matter, fix: "Companies carry ratings too, and the line still separates the two grades." } }
+      - { id: d, text: "Nothing for a company: only bonds carry ratings", mistake: { tag: neither_ratings_only_matter, fix: "Companies carry ratings too, and the same line separates the two grades." } }
     answer: a
     explanation: >
-      The line runs between BBB- and BB+. BB+ is speculative grade, but it is the first notch below the line, so "deep in junk" overstates where it sits.
+      The line runs between BBB- and BB+. BB+ is speculative grade, or junk, but it is the first notch below the line, so "deep in junk" overstates where it sits. Priya can tell her boss: junk, but only just.
     source: >
-      Fitch Ratings, rating definitions (scale from AAA to D with plus and minus modifiers): https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; counting is arithmetic on that list.
+      Fitch Ratings, rating definitions (scale from AAA to D with plus and minus modifiers): https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; Priya, the fund, the blog and the company are made up.
   - id: jrc-q-notches-apart
     prompt: >
       Why does describing the distance between two ratings by letter class alone mislead?
@@ -168,17 +168,17 @@ questions:
 
   - id: jrc-q-own-consistency
     prompt: >
-      A writer's section heading says a company would be rated "between B+ and CCC+", while the text under it says "between a B and a CCC+". What should a careful judge do?
+      Sunday 15 March 2026, the night before his club's debate, Leo checks a made-up newsletter. Its heading rates a company "B+ to CCC+"; the paragraph below says "B to CCC+". Which would you pick, and why?
     choices:
-      - { id: a, text: "Note that the heading and the text name different top ends, and say which one is being tested" }
-      - { id: b, text: "Treat them as the same, since B+ and B are the same grade", mistake: { tag: treat_them_as_the_same_since, fix: "B+ and B are different notches. The two ranges are not identical." } }
-      - { id: c, text: "Pick the wider range and ignore the other", mistake: { tag: pick_the_wider_range_and_ign, fix: "The judge should say which range they test, not quietly choose." } }
-      - { id: d, text: "Discard the whole piece as unreliable", mistake: { tag: discard_the_whole_piece_as_u, fix: "One inconsistency does not make the whole piece wrong. Report it and carry on." } }
+      - { id: a, text: "Flag the gap, and say which of the two ranges he tests" }
+      - { id: b, text: "Treat them as one range, since B+ and B are the same grade", mistake: { tag: treat_them_as_the_same_since, fix: "B+ and B are different notches. The two ranges are not identical." } }
+      - { id: c, text: "Quietly test the wider range and skip the other", mistake: { tag: pick_the_wider_range_and_ign, fix: "Choosing quietly hides the gap. Say which range is tested, and why." } }
+      - { id: d, text: "Throw out the whole newsletter as unreliable", mistake: { tag: discard_the_whole_piece_as_u, fix: "One inconsistency does not sink a whole piece. Report it and keep checking." } }
     answer: a
     explanation: >
-      B sits one notch below B+, and both ranges end at CCC+. So the two statements differ, and a careful judge notes the inconsistency and says which one they are testing.
+      B sits one notch below B+, and both ranges end at CCC+. So the heading and the paragraph differ, and Leo should point out the gap in the debate and say which range he is testing.
     source: >
-      Fitch Ratings, rating definitions (plus and minus modifiers as separate notches): https://www.fitchratings.com/products/rating-definitions ; the writer and sentences are hypothetical.
+      Fitch Ratings, rating definitions (plus and minus modifiers as separate notches): https://www.fitchratings.com/products/rating-definitions ; Leo, the newsletter, its writer and its sentences are made up.
   - id: jrc-q-issuer-vs-bond
     prompt: >
       An agency's report gives a company an issuer rating of X. A writer says "the company's bond

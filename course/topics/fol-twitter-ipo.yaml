@@ -71,42 +71,37 @@ youllLearn:
 questions:
   - id: ftw-q-proceeds
     prompt: >
-      A company announces a price range of $10 to $12 a share for 40 million shares, with an option
-      to sell a further 6 million. What is the most it could raise if the option is used and the
-      shares are sold at the top of the range?
+      Twitter set a price range of $17 to $20 a share for 70 million shares, with an option to sell 10.5 million more. A headline gives the most the listing could raise. Which shares, at which price, is that headline counting?
     choices:
-      - { id: a, text: "$400 million" }
-      - { id: b, text: "$480 million" }
-      - { id: c, text: "$552 million" }
-      - { id: d, text: "$660 million" }
+      - { id: a, text: "The bottom of the price range on the main block of shares", mistake: { tag: used_low_end, fix: "That is the bottom of the range. The most uses the top price and the extra shares." } }
+      - { id: b, text: "The top of the price range on the main block, with the extra option left out", mistake: { tag: left_out_option, fix: "That has the top price but leaves out the extra shares on offer." } }
+      - { id: c, text: "The top of the price range on every share on offer, the main block plus the extra option" }
+      - { id: d, text: "A price above the range, because demand can push it higher", mistake: { tag: above_range, fix: "The announced range is the plan. The headline maximum uses its top, not a hope above it." } }
     answer: c
     explanation: >
-      The most shares sold is 40 + 6 = 46 million, and the highest price is $12, so the most raised is
-      46 million x $12 = $552 million. The low end, 40 million at $10, is $400 million.
+      The most it can raise uses the highest price in the range on the most shares on offer: the main block plus the extra option. The bottom of the range on the main block gives the least.
     source: >
       Arithmetic as in Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets,
       28 October 2013 (shares x price at each end of the range, with and without the extra option).
   - id: ftw-q-owners-cost
     prompt: >
-      A company is fairly worth $10 billion. It sells 8% of its shares to the public at a price 20%
-      below fair value. About how much value do the existing owners give up?
+      Suppose Twitter's bankers price the listing a little below fair value, as bankers often do. Twitter is selling only a small slice of the company to the public. What do its existing owners actually give up?
     choices:
-      - { id: a, text: "$2 billion" }
-      - { id: b, text: "$800 million" }
-      - { id: c, text: "$160 million" }
-      - { id: d, text: "$16 million" }
+      - { id: a, text: "The discount applied to the whole company", mistake: { tag: discount_on_whole, fix: "The discount applies only to the shares sold, not to the whole company." } }
+      - { id: b, text: "The full worth of the shares sold, as if they were given away", mistake: { tag: gave_away_all, fix: "Buyers still pay most of what those shares are worth. Owners lose only the discount." } }
+      - { id: c, text: "Only the discount, and only on the part of the company that was sold" }
+      - { id: d, text: "Nothing, because the buyers paid a price", mistake: { tag: cost_ignored, fix: "A discount is a real cost to the owners, even if small beside the whole company." } }
     answer: c
     explanation: >
-      The shares sold are worth $800 million at fair value but are sold for 80% of that, $640
-      million, so the owners give up $160 million, or 1.6% of the company's value. Underpricing 20%
-      of the whole company would have cost $2 billion; selling only a small part limits the cost.
+      The owners lose the gap between fair value and the price paid, on the shares sold only. Selling only a small slice limits the cost; discounting the whole company would have cost far more.
     source: >
       The reasoning of Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", 28 October 2013
-      (underpricing costs the owners only on the part sold); numbers here are hypothetical.
+      (underpricing costs the owners only on the part sold).
   - id: ftw-q-underwriting-skew
     prompt: >
-      An investment bank guarantees to its client that all the shares in an offering will be sold at
-      the agreed offer price. Why does that guarantee push the bank towards a lower offer price?
+      Damodaran asks what Twitter's bankers were doing when they set the range. Bankers who
+      underwrite a listing guarantee that all the shares will be sold at the agreed offer price.
+      Why does that promise push them towards a lower price?
     choices:
       - { id: a, text: "A price set above what buyers will pay leaves the bank holding unsold shares at a loss, while a price set a little low costs it little" }
       - { id: b, text: "Regulators require the offer price to be below the company's book value" }
@@ -123,9 +118,9 @@ questions:
       2013 ("the underwriting skew").
   - id: ftw-q-close-values
     prompt: >
-      An analyst's discounted cash flow value for a company about to list is $18 a share, and the
-      price range announced for the offering is $17 to $19. What does the closeness of the two
-      numbers tell you?
+      Damodaran's value for Twitter was $17.84 a share, and the bankers' range was $17 to $20. He
+      refused to read the match as proof that he was right. What does the closeness of the two
+      really tell you?
     choices:
       - { id: a, text: "That the model is confirmed, since the market agrees with it" }
       - { id: b, text: "Very little by itself: the range is set from demand and the bankers' reading of buyers, so the match may be coincidence" }
