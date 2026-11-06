@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ProgressView } from "../course/course-map-view";
+import { CourseMapView } from "../course/course-map-view";
 import { PROFILE_PRIVACY, ProfileForm } from "./profile-form";
 
 const empty = { work: "", location: "", loan: "", savingFor: "" };
@@ -30,8 +30,8 @@ describe("the Learner Profile form", () => {
     expect(html).not.toContain("Not now");
   });
 
-  it("the Progress page no longer links to About you, which lives on Settings", () => {
-    const html = renderToStaticMarkup(<ProgressView topics={[]} />);
+  it("the Course Map no longer links to About you, which lives on Settings", () => {
+    const html = renderToStaticMarkup(<CourseMapView topics={[]} recommended={null} />);
     expect(html).not.toContain("About you");
     expect(html).not.toContain('href="/profile"');
   });
