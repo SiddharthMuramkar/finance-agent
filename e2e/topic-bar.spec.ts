@@ -1,5 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { seed } from "./support/app";
+
+/**
+ * The strip is visible in the server's HTML before it hydrates, but its centring, fade and wheel handler exist only once
+ * its effects ran, which a data-more-* attribute (set by those effects) proves. A test that moves the strip or wheels
+ * over it first waits for that, or on a slow CI the centring effect can undo its scrollLeft = 0 and a wheel can land
+ * before the handler (on Linux Chromium the unhandled wheel then scrolls the strip, not the box): main CI 42219779094.
+ */
+async function stripReady(strip: Locator) {
+  await expect
+    .poll(() => strip.evaluate((ol) => ol.hasAttribute("data-more-left") || ol.hasAttribute("data-more-right")), { message: "the strip's effects ran" })
+    .toBe(true);
+}
 
 /**
  * #313: the compact Topic bar. On the Percent Topic (four Checks) the bar is two rows, about 80 px tall (it was
@@ -141,6 +153,7 @@ test("[#313] a strip with steps out of view shows it with a fade, and a plain mo
   const strip = page.getByTestId("topic-bar").locator('ol[aria-label="Steps in this Topic"]');
   await expect(strip).toBeVisible();
   // Scroll to the start, so the hidden steps are all on the right.
+  await stripReady(strip);
   await strip.evaluate((ol) => { ol.scrollLeft = 0; ol.dispatchEvent(new Event("scroll")); });
   await expect(strip).toHaveAttribute("data-more-right", "true");
   await expect(strip).not.toHaveAttribute("data-more-left", "true");
@@ -163,6 +176,7 @@ test("[#313] the edge fade follows the strip's content, not only its box (T313-F
   await seed(page, "your-turn");
   await page.goto("/study");
   const strip = page.getByTestId("topic-bar").locator('ol[aria-label="Steps in this Topic"]');
+  await stripReady(strip);
   await strip.evaluate((ol) => { ol.scrollLeft = 0; ol.dispatchEvent(new Event("scroll")); });
   await expect(strip).toHaveAttribute("data-more-right", "true");
   // The content shrinks to fit while the strip's own box and scroll position stay put (as when the next Topic has
@@ -182,6 +196,8 @@ test("[#313] a wheel over the strip scrolls the capped box around it first, and 
   const box = page.getByTestId("above-widgets");
   const strip = page.getByTestId("topic-bar").locator('ol[aria-label="Steps in this Topic"]');
   await expect(strip).toBeVisible();
+  // Hydrate first: a node added before React hydrates the box would be thrown away with the server's markup.
+  await stripReady(strip);
   // Make the capped box overflow (as with Review open or a pinned explore Widget): a tall block below the bar.
   await box.evaluate((el) => {
     const pad = document.createElement("div");
@@ -192,10 +208,6 @@ test("[#313] a wheel over the strip scrolls the capped box around it first, and 
     el.scrollTop = 0;
   });
   await strip.evaluate((ol) => { ol.scrollLeft = 0; ol.dispatchEvent(new Event("scroll")); });
-  // The strip is visible in the server's HTML before it hydrates; its wheel handler exists only once its effects ran,
-  // which data-more-right (set by those effects) proves. Without this wait a wheel can land before the handler, and on
-  // Linux Chromium the unhandled wheel scrolls the sideways-only strip instead of the box (main CI 42219779094).
-  await expect(strip).toHaveAttribute("data-more-right", "true");
   const r = (await strip.boundingBox())!;
   await page.mouse.move(r.x + r.width / 2, r.y + r.height / 2);
   await page.mouse.wheel(0, 120);
