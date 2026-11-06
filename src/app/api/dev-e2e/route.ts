@@ -1,5 +1,9 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import type { TestHelpers } from "better-auth/plugins";
+import { getAuth } from "@/auth/better-auth";
+import { learnerForAuthUser } from "@/auth/google-learner";
+import { addInvite } from "@/auth/invites";
 import { startOver } from "@/auth/learners";
 import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, TOOLS_NAME, learnerToken } from "@/auth/passcode";
 import { currentLearner } from "@/auth/session";
@@ -7,7 +11,7 @@ import { type CourseMap, loadCourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
 import { finishForPlacement } from "@/behaviour/place";
 import { getDb } from "@/db/client";
-import { insightAttempts, reviewCards } from "@/db/schema";
+import { insightAttempts, reviewCards, user } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
@@ -158,11 +162,45 @@ export async function GET() {
   return NextResponse.json({ db: "pglite" });
 }
 
+/**
+ * The Google-linked fixture (C1b): one invited Better Auth `user`, its Learner (made by the real
+ * `learnerForAuthUser`) opened on Percent's Story step, and a real session cookie from Better Auth's
+ * test helpers (mounted only in the test bed). Idempotent: the same user and Learner come back.
+ */
+async function googleLearner() {
+  const db = getDb();
+  const auth = getAuth();
+  if (!auth) return NextResponse.json({ error: "Google sign-in is off in this test bed (set its fake secrets)." }, { status: 500 });
+  const test = ((await auth.$context) as unknown as { test?: TestHelpers }).test;
+  if (!test) return NextResponse.json({ error: "Better Auth test helpers are not mounted (the test bed mounts them)." }, { status: 500 });
+  const googleUser = { id: "e2e-google-asha", email: "asha@e2e.example", name: "Asha E2E" };
+  await addInvite(db, googleUser.email);
+  const [existing] = await db.select().from(user).where(eq(user.email, googleUser.email)).limit(1);
+  if (!existing) await test.saveUser(test.createUser({ ...googleUser, emailVerified: true }));
+  const learner = await learnerForAuthUser(db, googleUser);
+  if (!learner) return NextResponse.json({ error: "The Google fixture user got no Learner." }, { status: 500 });
+  await story(db, loadCourseMap(), learner.id, new Date());
+  const { cookies } = await test.login({ userId: googleUser.id });
+  const response = NextResponse.json({ googleLearner: true, learnerId: learner.id, email: googleUser.email });
+  for (const cookie of cookies) {
+    response.cookies.set(cookie.name, cookie.value, {
+      path: cookie.path || "/",
+      httpOnly: cookie.httpOnly ?? true,
+      sameSite: "lax",
+      secure: cookie.secure ?? false,
+      expires: cookie.expires ? new Date(cookie.expires * 1000) : undefined,
+    });
+  }
+  return response;
+}
+
 export async function POST(request: Request) {
   if (!open()) return notFound();
   const learner = await currentLearner();
   if (!learner || learner.name !== TOOLS_NAME) return NextResponse.json({ error: "Only the tools Learner may seed the test bed." }, { status: 403 });
-  const body = (await request.json().catch(() => ({}))) as { state?: unknown; script?: unknown; reset?: unknown };
+  const body = (await request.json().catch(() => ({}))) as { state?: unknown; script?: unknown; reset?: unknown; googleLearner?: unknown };
+
+  if (body.googleLearner === true) return googleLearner();
 
   if (body.script !== undefined) {
     if (!isE2eScript(body.script)) return NextResponse.json({ error: `No script "${String(body.script)}".`, scripts: Object.keys(E2E_SCRIPTS) }, { status: 400 });
