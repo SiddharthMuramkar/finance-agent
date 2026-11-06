@@ -51,16 +51,16 @@ scenes:
   - id: opening-story
     step: story
     recipe: story_scene
-    title: The day the bond market panicked
+    title: The day before the decision
     inputs:
       cast:
         - { id: fed, emoji: bank, name: The central bank, role: sets the rate }
         - { id: saver, emoji: woman, name: Asha, role: owns bonds }
       beats:
         - { who: narrator, says: "It is February, and everyone expects calm.", emoji: calendar }
-        - { who: fed, says: "We are raising the rate, a little." }
-        - { who: saver, says: "My old bonds just got less attractive!", emoji: worried-face }
-      caption: A small rate move, a big surprise
+        - { who: narrator, says: "Tomorrow, the central bank gives its decision." }
+        - { who: saver, says: "If the rate rises, my old bonds lose their shine.", emoji: worried-face }
+      caption: Everyone waits for tomorrow's decision
       date: "1994-02-03"
   - id: yield-word
     step: concept
@@ -138,13 +138,13 @@ scenes:
   - id: fed-front-page
     step: reveal
     recipe: headline
-    title: The day the bond market fell
+    title: The morning rates moved
     inputs:
-      paper: The Daily Ledger
+      paper: The morning paper
       date: "1994-02-04"
-      headline: Central bank lifts rates for the first time in five years
-      deck: Bond traders were caught off guard by the move.
-      source: https://www.federalreserve.gov/monetarypolicy/fomchronology.htm
+      headline: Central bank tightens pressure on reserve positions
+      deck: An imagined front page. No number was announced; traders read one in.
+      source: https://www.federalreserve.gov/fomc/19940204default.htm
   - id: the-year-unfolds
     step: principle
     recipe: timeline

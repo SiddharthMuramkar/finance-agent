@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { widgetProblems, widgetRuleProblems } from "@/widgets/check";
 import { loadCourseMap, type Topic } from "./map";
@@ -75,5 +77,23 @@ describe("Topic scenes", () => {
     expect(built?.ok).toBe(true);
     if (built?.ok) expect(widgetProblems(built.code)).toEqual([]);
     expect(buildTermCard(topic, { term: "Yield", means: "Income for lending." })).toBeNull();
+  });
+
+  // Historian (E3 fix round 1, H1 and H4): the fixture copies the recipe examples, so its story scene must
+  // hold to the as-of date and its front page must invent no paper and cite a real outline source.
+  it("keeps the fixture's opening story true on its as-of date and its front page honest", () => {
+    const topic = sceneFixtureTopic();
+    const outline = readFileSync(join(process.cwd(), "course/outline.yaml"), "utf8");
+    const opening = topic.scenes.find((s) => s.id === "opening-story")!;
+    const beats = (opening.inputs as { beats: { says: string }[] }).beats;
+    const seen = [opening.title ?? "", ...beats.map((b) => b.says), String((opening.inputs as { caption?: string }).caption ?? "")].join("\n");
+    expect((opening.inputs as { date?: string }).date).toBe("1994-02-03");
+    expect(seen).not.toMatch(/panicked|raising the rate|less attractive/i);
+
+    const front = topic.scenes.find((s) => s.id === "fed-front-page")!;
+    const inputs = front.inputs as { paper: string; deck?: string; source: string };
+    expect(inputs.paper).not.toBe("The Daily Ledger");
+    expect(inputs.deck ?? "").toMatch(/imagined/i);
+    expect(outline).toContain(inputs.source);
   });
 });

@@ -141,7 +141,7 @@ export const storyScene = defineRecipe({
   budget: { ...BUDGET },
   examples: [
     {
-      title: "The day the bond market panicked",
+      title: "The day before the decision",
       inputs: {
         cast: [
           { id: "fed", emoji: "bank", name: "The central bank", role: "sets the rate" },
@@ -149,10 +149,10 @@ export const storyScene = defineRecipe({
         ],
         beats: [
           { who: "narrator", says: "It is February, and everyone expects calm.", emoji: "calendar" },
-          { who: "fed", says: "We are raising the rate, a little." },
-          { who: "saver", says: "My old bonds just got less attractive!", emoji: "worried-face" },
+          { who: "narrator", says: "Tomorrow, the central bank gives its decision." },
+          { who: "saver", says: "If the rate rises, my old bonds lose their shine.", emoji: "worried-face" },
         ],
-        caption: "A small rate move, a big surprise",
+        caption: "Everyone waits for tomorrow's decision",
         date: "1994-02-03",
       },
       refs: {},
@@ -219,7 +219,7 @@ export const timeline = defineRecipe({
       inputs: {
         beats: [
           { date: "1993-12-01", label: "Calm markets", emoji: "sun" },
-          { date: "1994-02-03", label: "The rate goes up", emoji: "bank" },
+          { date: "1994-02-04", label: "The rate goes up", emoji: "bank" },
           { date: "1994-05-09", label: "Prices keep falling", emoji: "chart-decreasing" },
         ],
         hideAfter: "1994-02-03",
@@ -391,13 +391,13 @@ export const headline = defineRecipe({
   budget: { ...BUDGET },
   examples: [
     {
-      title: "The day the bond market fell",
+      title: "The morning rates moved",
       inputs: {
-        paper: "The Daily Ledger",
+        paper: "The morning paper",
         date: "1994-02-04",
-        headline: "Central bank lifts rates for the first time in five years",
-        deck: "Bond traders were caught off guard by the move.",
-        source: "https://www.federalreserve.gov/monetarypolicy/fomchronology.htm",
+        headline: "Central bank tightens pressure on reserve positions",
+        deck: "An imagined front page. No number was announced; traders read one in.",
+        source: "https://www.federalreserve.gov/fomc/19940204default.htm",
       },
       refs: {},
       facts: {},

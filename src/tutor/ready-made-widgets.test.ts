@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RECIPE_IDS, recipeById } from "@/widgets/recipes";
+import { ARCHETYPES } from "@/widgets/recipes/define";
+import { STORY_RECIPE_IDS } from "@/widgets/recipes/set-story";
 import { fallbackCandidates } from "./compose";
 import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
 import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, TUTOR_RECIPE_IDS, tutorRecipeSignatures, widgetValidator } from "./ready-made-widgets";
@@ -46,6 +48,18 @@ describe("the Tutor's catalogue", () => {
     expect(ENGINE_INSTRUCTIONS).toContain("For a story moment, a word or a who-pays-whom, show the story recipe that fits; never write a fact the Case does not give.");
     // A front page is written ahead: no compose fallback may show the headline recipe's example in a random Topic.
     expect(fallbackCandidates("History").map((c) => c.recipe)).not.toContain("headline");
+  });
+
+  // E3 fix round 1, H6: every story recipe's example is written for one Case and date, and the compose lane
+  // builds its fallbacks with no Topic or step in hand, so no story example is ever a Learner fallback.
+  it("never offers a story recipe's example as a compose fallback, for any archetype", () => {
+    for (const archetype of ARCHETYPES) {
+      const offered = fallbackCandidates(archetype).map((c) => c.recipe);
+      expect(offered.filter((id) => STORY_RECIPE_IDS.includes(id)), archetype).toEqual([]);
+    }
+    const given = fallbackCandidates("Story", { recipe: "story_scene", params: recipeById("story_scene")!.examples[0] });
+    expect(given.map((c) => c.recipe)).not.toContain("story_scene");
+    expect(given.length).toBeGreaterThan(0);
   });
 
   it("accepts a headline scene reference and a stored, resolved headline in the Widget validator", () => {

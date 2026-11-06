@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { widgetProblems, widgetRuleProblems } from "@/widgets/check";
 import { buildStoryRecipe, headlineParamsForScene, parseHeadlineRef, SET_STORY, STORY_RECIPE_IDS, storyChecks, type StoryContext } from "./set-story";
@@ -214,5 +216,40 @@ describe("story recipes", () => {
         expect(widgetRuleProblems(built.code), recipe.id).toEqual([]);
       }
     }
+  });
+});
+
+// Historian (E3 fix round 1, findings H1, H2, H4): the dated examples tell the February 1994 Case of
+// num-percent-bps (as-of 1994-02-03; the Fed tightened on 1994-02-04, course/outline.yaml). Nothing the
+// Learner can see before the reveal may show that outcome, and a front page may not invent a paper.
+describe("the story examples against the February 1994 Case (Historian)", () => {
+  const outline = readFileSync(join(process.cwd(), "course/outline.yaml"), "utf8");
+  const exampleInputs = (id: string) => (byId(id).examples[0] as { title: string; inputs: Record<string, unknown> });
+
+  it("the story_scene example, stamped with the as-of date, never shows the next day's rate rise", () => {
+    const example = exampleInputs("story_scene");
+    const beats = example.inputs.beats as { says: string }[];
+    const seen = [example.title, ...beats.map((b) => b.says), String(example.inputs.caption ?? "")].join("\n");
+    expect(example.inputs.date).toBe("1994-02-03");
+    expect(seen).not.toMatch(/panicked|raising the rate|less attractive/i);
+    expect(buildStoryRecipe(byId("story_scene"), byId("story_scene").examples[0], { asOf: "1994-02-03", step: "story" }).ok).toBe(true);
+  });
+
+  it("the timeline example dates the rate rise to 4 February and locks it behind the as-of date", () => {
+    const inputs = exampleInputs("timeline").inputs as { beats: { date: string; label: string }[]; hideAfter?: string };
+    const rise = inputs.beats.find((b) => /rate goes up/i.test(b.label));
+    expect(rise?.date).toBe("1994-02-04");
+    expect(inputs.hideAfter).toBe("1994-02-03");
+    for (const beat of inputs.beats) {
+      if (inputs.hideAfter && beat.date <= inputs.hideAfter) expect(beat.label, beat.date).not.toMatch(/rate goes up|rates rise/i);
+    }
+  });
+
+  it("the headline example invents no paper and cites one of the Topic's outline sources", () => {
+    const inputs = exampleInputs("headline").inputs as { paper: string; date: string; headline: string; deck?: string; source: string };
+    expect(inputs.date).toBe("1994-02-04");
+    expect(inputs.paper).not.toBe("The Daily Ledger");
+    expect(inputs.deck ?? "").toMatch(/imagined/i);
+    expect(outline).toContain(inputs.source);
   });
 });
