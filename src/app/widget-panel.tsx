@@ -602,8 +602,8 @@ export function WidgetPanel({
         <section ref={card} data-testid="widget-card" className="relative rounded-lg border border-[var(--border)] p-3">
           {/* A ring that breathes once (600ms) on every switch; the key restarts it, and it never remounts the Widget. */}
           {seen.pulse > 0 && <span key={seen.pulse} aria-hidden="true" data-testid="widget-pulse" className="animate-ring-pulse pointer-events-none absolute inset-0 rounded-lg" />}
-          {/* Remounts per Widget, so each one fades in (150ms) with a 4px rise. */}
-          <div key={shown.key} className="animate-fade-rise">
+          {/* Remounts per Widget, so each one takes the stage: opacity, a 12px rise and scale 0.98 over 240ms (E5). */}
+          <div key={shown.key} className="animate-widget-stage-in">
             {shown.complete ? (
               <>
                 <Eyebrow className="mb-1">{eyebrowFor(shown, topicTitle)}</Eyebrow>

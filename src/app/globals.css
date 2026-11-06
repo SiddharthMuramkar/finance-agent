@@ -411,6 +411,21 @@ body {
   animation: fade-rise var(--dur-ui) var(--ease-out) both;
 }
 
+/* A Widget taking the stage (E5): fades in as it rises 12px and settles from 0.98, over 240ms. Reduced motion turns it off below. */
+@keyframes widget-stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility animate-widget-stage-in {
+  animation: widget-stage-in 240ms var(--ease-out) both;
+}
+
 /* Story parts (wave 3 Widget parts, ticket E2a). Motion is transform and opacity only: feedback 100 to 150 ms, entrances
    200 to 300 ms, nothing over 400 ms. The reduced-motion rule below turns every animation and transition off. */
 @keyframes story-bubble-in {

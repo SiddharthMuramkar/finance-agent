@@ -114,7 +114,7 @@ describe("the Widget panel's pager", () => {
     const pulse = q('[data-testid="widget-pulse"]');
     expect(pulse.className).toContain("animate-ring-pulse");
     expect(q('[data-testid="widget-card"]').className).not.toMatch(/border-\[var\(--brand\)\]/);
-    expect(q('[data-testid="widget-card"] > div:not([data-testid])').className).toContain("animate-fade-rise");
+    expect(q('[data-testid="widget-card"] > div:not([data-testid])').className).toContain("animate-widget-stage-in");
   });
 
   it("scrolls the panel to the top on a switch", async () => {
