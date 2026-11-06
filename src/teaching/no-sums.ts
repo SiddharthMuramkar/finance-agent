@@ -60,8 +60,15 @@ const HAS_NUMBER = /\d/;
 
 const HOW_MANY = /\bhow\s+(?:much|many)\b/i;
 
-/** The phrase that makes `text` ask for a sum, or null when it asks a story or lingo question. */
-export function sumAsk(text: string): string | null {
+/** What the text sits in. `numbers`: the message it belongs to gives numbers, even if `text` itself has none. */
+export type SumAskContext = { numbers?: boolean };
+
+/**
+ * The phrase that makes `text` ask for a sum, or null when it asks a story or lingo question. V8 reads a reply one ask
+ * sentence at a time, so it passes `{ numbers: true }` when the reply's statements give numbers ("Infosys earned ₹30 on
+ * ₹100 of sales. What is its margin?"): pattern 8 then fires on the ask alone.
+ */
+export function sumAsk(text: string, context: SumAskContext = {}): string | null {
   for (const pattern of ANYWHERE) {
     const hit = pattern.exec(text);
     if (hit) return hit[0];
@@ -71,8 +78,8 @@ export function sumAsk(text: string): string | null {
     const hit = HOW_MANY.exec(sentence);
     if (hit && UNIT_WORD.test(sentence)) return hit[0];
   }
-  // 8. A question for a figure ("What is its operating margin?") in text that gives numbers to work it out from.
-  if (HAS_NUMBER.test(text)) {
+  // 8. A question for a figure ("What is its operating margin?") in text, or a message, that gives numbers to work it out from.
+  if (context.numbers || HAS_NUMBER.test(text)) {
     for (const sentence of text.split(/(?<=[.?!])\s+/)) {
       if (!sentence.includes("?")) continue;
       const hit = QUANTITY_ASK.exec(sentence);

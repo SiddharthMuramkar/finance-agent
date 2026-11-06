@@ -61,4 +61,10 @@ describe("sumAsk", () => {
   ])("passes a story or lingo ask: %s", (text) => {
     expect(sumAsk(text)).toBeNull();
   });
+
+  it("reads a figure asked for with no digit as a sum when its message gives numbers (V8's context)", () => {
+    expect(sumAsk("What is its margin?")).toBeNull();
+    expect(sumAsk("What is its margin?", { numbers: true })).toBe("What is its margin");
+    expect(sumAsk("What do traders call this move?", { numbers: true })).toBeNull();
+  });
 });

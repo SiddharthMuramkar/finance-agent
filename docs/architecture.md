@@ -1959,7 +1959,11 @@ Learner must never read. The eight checks are:
   detector) runs on every prose line that ends in "?" and on the ask line; statements are not checked, so "1 point
   times 100 is 100 bp." stays allowed while "0.4 times 100 is how many basis points?" fails. It costs one retry, like
   V2; if the retry still asks a sum, the fallback (`trimmedFallback`) drops the flagged lines and the Choices carry
-  the next move.
+  the next move. Each ask is read with the reply's numbers as context (`sumAsk(ask, { numbers })`, F2): "Infosys
+  earned ₹30 profit on ₹100 of sales. What is its margin?" fails although the question itself holds no digit, while
+  the same question in a reply with no numbers is a words question and passes. Trade-off: a figure word in a
+  question ("What is the price telling you?") after any number in the reply is flagged too, which costs a retry,
+  accepted because ADR 0009's no-sum rule is enforced by code.
 
 `fixReply` makes the fixes that cost no retry first (emoji and arrows out, headings flattened, only the first bold
 span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line

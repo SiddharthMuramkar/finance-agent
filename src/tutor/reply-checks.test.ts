@@ -5,8 +5,10 @@ import {
   checkReply,
   correctionText,
   countWords,
+  dropSumAsks,
   fixReply,
   splitAsk,
+  sumAsked,
   trimToCap,
   type OpenItem,
   type ReplyCheckContext,
@@ -424,6 +426,23 @@ describe("V8: no sum asked of the Learner", () => {
 
   it("leaves a statement alone: a short sum said as a fact is not asked", () => {
     expect(v8s("1 point times 100 is 100 bp.")).toEqual([]);
+  });
+
+  // The ask sentence is read with the reply's numbers as context (ADR 0009): the numbers to work the figure out from
+  // may sit in a statement before the question, on its line or the line above.
+  it.each([
+    ["on the ask's line", "Infosys earned ₹30 profit on ₹100 of sales. What is its margin?"],
+    ["on the line above", "Infosys earned ₹30 profit on ₹100 of sales.\nWhat is its margin?"],
+  ])("finds a figure asked for when the reply gives the numbers %s", (_where, reply) => {
+    expect(sumAsked(reply)).toBe("What is its margin");
+    expect(v8s(reply)).toHaveLength(1);
+    expect(dropSumAsks(reply)).toBe("Infosys earned ₹30 profit on ₹100 of sales.");
+  });
+
+  it("leaves a words question for a figure alone when the reply gives no numbers", () => {
+    const reply = "Infosys sells software and keeps part of each sale as profit.\nWhat is its margin telling you about the business?";
+    expect(sumAsked(reply)).toBeNull();
+    expect(dropSumAsks(reply)).toBe(reply);
   });
 
   it("lists V8 beside V2 when the reply breaks both", () => {
