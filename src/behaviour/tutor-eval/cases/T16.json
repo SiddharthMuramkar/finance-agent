@@ -1,0 +1,24 @@
+{
+  "id": "T16",
+  "title": "Lingo on first use: what a basis point is, in everyday words",
+  "source": "Spec 2026-11-05, D3b (T16), Appendix D.1 D01",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "story",
+    "check": 1
+  },
+  "message": "what even is a basis point lol",
+  "minPasses": 2,
+  "pass": [
+    {
+      "kind": "noSum"
+    }
+  ],
+  "graderChecks": [
+    "Does the reply give the plain, everyday meaning of \"basis point\" in the same sentence as the term?",
+    "Does it have one line on how pros say it (for example \"traders call that 25 bps\")?",
+    "Does it ask the Learner for no conversion between points and basis points?"
+  ],
+  "notes": "Pass when (2 of 3 runs): no sum asked, and the grader finds the plain meaning in the same sentence as the term, one how-pros-say-it line, and no conversion asked."
+}

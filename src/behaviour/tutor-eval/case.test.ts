@@ -97,9 +97,9 @@ describe("the D3b case shapes", () => {
 describe("the suite's own cases", () => {
   const { cases, errors } = loadCases(CASES_DIR);
 
-  it("are T1 to T11, every file valid, in order", () => {
+  it("are T1 to T16, every file valid, in order", () => {
     expect(errors).toEqual([]);
-    expect(cases.map((c) => c.id)).toEqual(["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11"]);
+    expect(cases.map((c) => c.id)).toEqual(["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "T13", "T14", "T15", "T16"]);
   });
 
   it("encode the spec's pass conditions in code where code can tell", () => {
@@ -136,5 +136,46 @@ describe("the suite's own cases", () => {
     for (const id of ["T1", "T11"]) expect(state(id)).toMatchObject({ step: "check", check: 1, quiz: { state: "open" } });
     expect(state("T2")).toMatchObject({ step: "check", check: 1, quiz: { state: "missed", correct: 0 } });
     expect(state("T3")?.skills?.[0]).toMatchObject({ skill: "pts-to-bp", methodsUsed: ["restate", "worked"] });
+  });
+
+  it("rewrite T3 for Choices: the Learner picks the label 0.3 bp, and the new method is a half-done choice (D3b)", () => {
+    const t3 = cases.find((c) => c.id === "T3")!;
+    expect(t3.kind === "live" && t3.message).toBe("0.3 bp");
+    expect(t3.kind === "live" && t3.graderChecks?.join(" ")).toMatch(/a half-done choice/);
+    expect(JSON.stringify(t3)).not.toMatch(/fill-in boxes/);
+  });
+
+  it("encode T12 to T16 as the D3b table gives them", () => {
+    const get = (id: string) => cases.find((c) => c.id === id)!;
+    const t12 = get("T12");
+    expect(t12).toMatchObject({ kind: "live", topic: "num-probability", opener: true, state: { step: "story" }, minPasses: 2 });
+    expect(t12.kind === "live" && t12.pass).toEqual([{ kind: "maxWords", value: 120 }, { kind: "noSum" }]);
+    expect(t12.kind === "live" && t12.graderChecks?.join(" ")).toMatch(/1998-08-01|1 August 1998/);
+
+    // Appendix D.1's ten persona lines for Percent and Compounding (D01 to D10), twice, in order.
+    const D = [
+      "what even is a basis point lol",
+      "why did the bank change the rate",
+      "show me",
+      "is this like my credit card?",
+      "just tell me the answer pls",
+      "explain like I'm 5",
+      "why does money grow faster later on",
+      "my dad keeps saying CAGR, what is that",
+      "quiz me but make it fun",
+      "wait did people lose money in 1992??",
+    ];
+    expect(get("T13")).toMatchObject({ kind: "dialogue", topic: "num-percent-bps", state: { step: "your_turn" }, messages: [...D, ...D], runs: 1, pass: [{ kind: "noSum" }] });
+
+    const t14 = get("T14");
+    expect(t14).toMatchObject({ kind: "live", topic: "num-compounding", state: { step: "concept" }, message: "ok and?", minPasses: 2, pass: [{ kind: "choicesStored" }] });
+    expect(t14.kind === "live" && t14.graderChecks?.join(" ")).toMatch(/menu/);
+
+    const t15 = get("T15");
+    expect(t15).toMatchObject({ kind: "live", topic: "num-percent-bps", state: { step: "your_turn" }, message: "honestly I'm so bad at maths lol", minPasses: 2 });
+    expect(t15.kind === "live" && t15.pass).toEqual([{ kind: "noSum" }, { kind: "maxWords", value: 80 }]);
+
+    const t16 = get("T16");
+    expect(t16).toMatchObject({ kind: "live", topic: "num-percent-bps", state: { step: "story" }, message: "what even is a basis point lol", minPasses: 2, pass: [{ kind: "noSum" }] });
   });
 });

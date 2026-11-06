@@ -7,18 +7,38 @@
   "state": {
     "step": "your_turn",
     "check": 1,
-    "skills": [{ "skill": "pts-to-bp", "answers": ["wrong", "wrong", "right", "wrong"], "methodsUsed": ["restate", "worked"] }],
-    "history": [{ "learner": "ok, give me one", "tutor": "A rate falls from 7.5% to 7.2%. How many basis points did it fall?" }],
+    "skills": [
+      {
+        "skill": "pts-to-bp",
+        "answers": ["wrong", "wrong", "right", "wrong"],
+        "methodsUsed": ["restate", "worked"]
+      }
+    ],
+    "history": [
+      {
+        "learner": "ok, give me one",
+        "tutor": "A rate falls from 7.5% to 7.2%. How many basis points did it fall?"
+      }
+    ],
     "replyKind": "reteach"
   },
-  "message": "0.3",
-  "answer": { "skill": "pts-to-bp", "verdict": "wrong", "try": "pb-try-a3" },
-  "pass": [{ "kind": "maxWords", "value": 60 }],
+  "message": "0.3 bp",
+  "answer": {
+    "skill": "pts-to-bp",
+    "verdict": "wrong",
+    "try": "pb-try-a3"
+  },
+  "pass": [
+    {
+      "kind": "maxWords",
+      "value": 60
+    }
+  ],
   "graderChecks": [
-    "Does it use a method other than restating the rule or a worked example (for example fill-in boxes)?",
+    "Does it use a method other than restating the rule or a worked example (for example a half-done choice)?",
     "Does it name the slip in one sentence?",
     "Does it set one similar item with new numbers?",
     "Does it leave percent change alone (no re-explaining it)?"
   ],
-  "notes": "Pass when: uses a method not in methods_used (for example fill-in boxes). Names the slip in one sentence. One similar item with new numbers. 60 words or fewer. Does not re-explain percent change. The Skill has three misses before this answer, but a right answer broke the run, so 0.3 is the second miss in a row: under the decided ladder that brings the next unused method, where a third miss in a row would offer to park (T7). Code shows the Quick try the earlier turn talks about (7.5% to 7.2%, answer 30 bp), so the Learner's 0.3 is that try's Known mistake (stopped at points)."
+  "notes": "Pass when: uses a method not in methods_used (for example a half-done choice). Names the slip in one sentence. One similar item with new numbers. 60 words or fewer. Does not re-explain percent change. The Skill has three misses before this answer, but a right answer broke the run, so 0.3 is the second miss in a row: under the decided ladder that brings the next unused method, where a third miss in a row would offer to park (T7). Code shows the Quick try the earlier turn talks about (7.5% to 7.2%, answer 30 bp), so the Learner's pick, the label 0.3 bp, is that try's Known mistake (stopped at points). Since D3b the Learner taps a labelled choice, so the message is the picked label \"0.3 bp\"."
 }
