@@ -7,7 +7,6 @@ import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import { MarkedText } from "@/widgets/marked-text";
 import type { SessionItemData } from "./session-item-view";
 import { PrimaryButton, SecondaryButton } from "./ui";
-import { useClaimPrimary } from "./workspace-parts";
 
 /** A marking on screen, with the Check's number for Try Check <k> again. */
 type Result = Marking & { attemptNo: number; checkNumber: number };
@@ -130,9 +129,9 @@ export function QuizPanel({
   }
 
   const complete = !!active && active.questions.every((q) => picked[q.id]?.trim());
-  // Submit (once every answer is picked) and Try again are the view's one primary while they show, so the Next chip
-  // steps back. A passed Check's Done is secondary: Next in the conversation is the main move then (Appendix B.7, #478).
-  useClaimPrimary(result ? !result.passed : complete);
+  // No primary claim here: while a Check is open, or after a miss, the Course Navigator offers no Next (nextOfferNow is
+  // null), so Submit and Try again are already the view's one primary. A passed Check's Done is secondary: Next in the
+  // conversation is the main move then (Appendix B.7, #478).
 
   if (result) {
     return (

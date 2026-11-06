@@ -2490,10 +2490,11 @@ is skipped. The old Session page draws the divider between the parts too.
   is the cut-off reply's Continue (see "Finish this reply, and old Continue as a divider").
 - **One primary per view (#478, Appendix B.7).** The Next chip is the view's one raised primary, with two
   exceptions where the Learner's next move is elsewhere: while words are in the message box (Send is the
-  primary), and while a panel shows an enabled primary of its own. A Check's Submit or Try again, and a Spaced
-  review's Submit answer (once a choice is picked) or its Next review / Done (once marked), claim the primary
-  through `useClaimPrimary` (`PrimaryClaims` in `workspace-parts.tsx` wraps the workspace), and the Next chip
-  steps back to secondary until no claim stands. A passed Check's Done is secondary: its note already says
+  primary), and while a panel shows an enabled primary of its own. A Spaced review's Submit answer (once a
+  choice is picked) or its Next review / Done (once marked) claim the primary through `useClaimPrimary`
+  (`PrimaryClaims` in `workspace-parts.tsx` wraps the workspace), and the Next chip steps back to secondary until
+  no claim stands. A Check needs no claim: while it is open or just missed, the Navigator offers no Next, so its
+  Submit or Try again is already the one primary; a passed Check's Done is secondary, since its note already says
   "Press Next in the conversation to carry on". Scenario: the Learner picks a review answer at the top; Submit
   answer turns primary and the Next chip under the reply goes plain until they move on. Trade-off: a claim is
   per panel state, not per pixel, so a marked review folded shut by hand still keeps the chip secondary.

@@ -136,7 +136,8 @@ describe("one primary on /study (Appendix B.7, #478)", () => {
   });
 
   it("with a Check open (no Next offered while it is open), Submit is the one primary; once passed and Next arrives, the Next chip is (Done steps back)", async () => {
-    // While a Check is open the Course Navigator offers no Next (conversation.tsx `next`: null while a Check is open).
+    // While a Check is open, or after a miss, the Course Navigator offers no Next (nextOfferNow is null; check-results.test.ts),
+    // so the Check's own buttons need no primary claim.
     await openStoryStep({ quiz: QUIZ, scene: false, next: null });
     expect(host.querySelector('[data-testid="next-chip"]')).toBeNull();
     await click(host.querySelector<HTMLInputElement>('[data-testid="quiz"] input[type="radio"]')!);
