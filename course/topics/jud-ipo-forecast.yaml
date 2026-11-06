@@ -150,8 +150,9 @@ questions:
       capitalization table in Twitter, Inc., Form S-1 (3 October 2013).
   - id: jip-q-pro-forma
     prompt: >
-      5 October 2013: Rohan, a made-up investor, will buy Twitter only if a blog's value per share
-      beats the listing price. The blog divides by the S-1's "pro forma" count. Should he trust it?
+      5 October 2013: Rohan, a made-up investor, buys Twitter only if a blog's value per share beats
+      the listing price. The blog adds the cash the sale will raise, then divides by the S-1's "pro
+      forma" count. Should he trust it?
     choices:
       - { id: a, text: "Yes: pro forma already counts the shares sold at the listing", mistake: { tag: pro_forma_as_adjusted, fix: "Pro forma adds only the preferred stock turning into common; the sale comes in \"as adjusted\"." } }
       - { id: b, text: "No: pro forma leaves out the preferred stock, so the value runs low", mistake: { tag: preferred_left_out, fix: "Pro forma already counts the preferred stock as common; what it lacks is the new shares." } }
@@ -161,8 +162,9 @@ questions:
     explanation: >
       "Pro forma" changes the count only for the preferred stock turning into common shares. The
       shares sold in the listing join only in "pro forma as adjusted", which Twitter's first S-1 had
-      not filled in: neither the number of shares nor the price was set yet. Divide by too few
-      shares and each share looks worth more, so Rohan could pay more than his own test allows.
+      not filled in: neither the number of shares nor the price was set yet. The blog counts the
+      sale's cash but not the shares sold to raise it, so each share looks worth more, and Rohan
+      could pay more than his own test allows.
     source: >
       Made-up story (Rohan and the blog are invented); the share counts follow the capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted, the last not filled in; Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-growth
