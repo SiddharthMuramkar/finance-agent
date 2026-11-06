@@ -1,9 +1,10 @@
 // Shared look pieces of the design system (finance-agent-ui-spec.md, issue #43). Colours come only from
 // the tokens in globals.css, so light and dark mode need no per-piece variants. Server-safe: no
-// "use client" here; the only client piece rendered is ThemeMenu.
+// "use client" here; the only client pieces rendered are ThemeMenu, AccountMenu and NavLink.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AccountMenu } from "./account-menu";
 import { NavLink } from "./nav-link";
 import { Button, Tag } from "./primitives";
 import type { ThemePref } from "./theme";
@@ -97,15 +98,15 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
   );
 }
 
-export type HeaderPage = "workspace" | "course" | "progress" | "sessions" | "notes" | "settings";
+export type HeaderPage = "workspace" | "course" | "notebook" | "settings";
+
+/** Who the header's account menu names: the signed-in Learner, with their Google email when linked (see accountFor). */
+export type HeaderAccount = { name: string; email?: string };
 
 const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
-  { page: "workspace", href: "/study", label: "Study Workspace" },
+  { page: "workspace", href: "/study", label: "Study" },
   { page: "course", href: "/course", label: "Course Map" },
-  { page: "progress", href: "/progress", label: "Progress" },
-  { page: "sessions", href: "/sessions", label: "Past Sessions" },
-  { page: "notes", href: "/notes", label: "Notes" },
-  { page: "settings", href: "/settings", label: "Settings" },
+  { page: "notebook", href: "/notebook", label: "Notebook" },
 ];
 
 // The page links are chips (NavLink adds the raised look); here only their size changes with the window.
@@ -137,14 +138,25 @@ function BrandMark() {
   );
 }
 
-/**
- * App header (spec #77): h1 "Finance Agent" (a mark and the words) linking to Home, the page links as pills (the current one
- * filled and aria-current; each shows a dot while its page loads), a divider, the Theme menu, and Sign out as a small
- * outlined button. current = the page showing; theme from readTheme(). Sizes tighten below 1024px to keep one line from 768px.
- */
-export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: ThemePref; className?: string }) {
+/** A gear, for the Settings icon link: decorative (the link's name is Settings). */
+function GearMark() {
   return (
-    <header className={`flex h-[var(--header-h)] shrink-0 items-center justify-between gap-2 border-b border-[var(--hairline)] lg:gap-4 ${className}`}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
+/**
+ * App header (spec #77, A5): h1 "Finance Agent" (a mark and the words) linking to Home, three page pills (Study, Course Map,
+ * Notebook; the current one filled and aria-current, each with a dot while its page loads), then pushed right three round
+ * icons: the Theme menu, a gear to Settings and the account menu. current = the page showing; theme from readTheme();
+ * account names the signed-in Learner (left out only by the loading skeleton and the signed-out 404). One line from 1024px.
+ */
+export function AppHeader({ current, theme, account, className = "" }: { current?: HeaderPage; theme: ThemePref; account?: HeaderAccount; className?: string }) {
+  return (
+    <header className={`flex h-[var(--header-h)] shrink-0 items-center gap-2 border-b border-[var(--hairline)] lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
         <Link href="/" title="Home" data-affordance="nav" className="chip gap-1.5 px-3 text-base font-semibold">
           <BrandMark />
@@ -158,10 +170,14 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
             {label}
           </NavLink>
         ))}
-        <span aria-hidden="true" className="mx-2 hidden h-5 w-px bg-[var(--border)] lg:block" />
-        <ThemeMenu initial={theme} />
-        <SignOutButton className="lg:ml-1" />
       </nav>
+      <div className="ml-auto flex items-center gap-1 lg:gap-2">
+        <ThemeMenu initial={theme} />
+        <Link href="/settings" aria-label="Settings" title="Settings" aria-current={current === "settings" ? "page" : undefined} data-affordance="icon" className="btn btn-icon">
+          <GearMark />
+        </Link>
+        {account && <AccountMenu name={account.name} email={account.email} />}
+      </div>
     </header>
   );
 }
@@ -171,10 +187,10 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
  * content share the workspace's one box (the page's gutters, up to --page-max), so the title and nav stay put between
  * pages and the content uses the whole window. Running paragraphs inside cards cap themselves with `measure`.
  */
-export function ReadingPage({ current, theme, children }: { current?: HeaderPage; theme: ThemePref; children: ReactNode }) {
+export function ReadingPage({ current, theme, account, children }: { current?: HeaderPage; theme: ThemePref; account?: HeaderAccount; children: ReactNode }) {
   return (
     <main className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-12 pt-3">
-      <AppHeader current={current} theme={theme} />
+      <AppHeader current={current} theme={theme} account={account} />
       <div data-testid="reading-column" className="w-full pt-3">
         {children}
       </div>

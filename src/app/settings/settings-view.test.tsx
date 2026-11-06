@@ -3,21 +3,50 @@ import { describe, expect, it } from "vitest";
 import { SettingsView } from "./settings-view";
 
 const empty = { work: "", location: "", loan: "", savingFor: "" };
+const account = { name: "Asha" };
+const view = (props: Partial<Parameters<typeof SettingsView>[0]> = {}) =>
+  renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} account={account} {...props} />);
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the Settings page", () => {
-  it("has a title and four sections in order: About you, Appearance, Developer details and Start over", () => {
-    const html = text(renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} />));
-    const at = (words: string) => html.indexOf(words);
-    expect(at("Settings")).toBeGreaterThanOrEqual(0);
-    expect(at("About you")).toBeGreaterThan(at("Settings"));
-    expect(at("Show developer details")).toBeGreaterThan(at("About you"));
-    expect(at("Start over")).toBeGreaterThan(at("Show developer details"));
-    expect(html).not.toMatch(/Dark mode/);
+  it("five cards in order: Account, Appearance, About you, Developer details, Start over (B3b inserts Your Topics)", () => {
+    const html = view();
+    const ids = [...html.matchAll(/<section[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
+    expect(ids).toEqual(["account", "appearance", "about-you", "developer-details", "start-over"]);
+    const t = text(html);
+    expect(t.indexOf("Settings")).toBeGreaterThanOrEqual(0);
+    expect(t).not.toMatch(/Dark mode/);
+    // Start over: a danger button under a Start over heading, in the last card, spanning the grid.
+    expect(html).toMatch(/<h2[^>]*id="start-over-heading"[^>]*>Start over<\/h2>/);
+    expect(html).toMatch(/<button[^>]*class="btn btn-danger[^"]*"[^>]*>Start over as a new learner/);
+    expect(html).toMatch(/<section[^>]*class="[^"]*col-span-full[^"]*"[^>]*id="start-over"|<section[^>]*id="start-over"[^>]*class="[^"]*col-span-full/);
+  });
+
+  it("leaves the empty Your Topics slot (id=\"your-topics\") between About you and Developer details for B3b", () => {
+    const html = view();
+    const slot = html.match(/<(\w+)[^>]*\bid="your-topics"[^>]*>(.*?)<\/\1>/);
+    expect(slot).not.toBeNull();
+    expect(slot![1]).not.toBe("section"); // a slot, not a card: still five cards until B3b fills it
+    expect(slot![2]).toBe("");
+    expect(html.indexOf('id="your-topics"')).toBeGreaterThan(html.indexOf('id="about-you"'));
+    expect(html.indexOf('id="your-topics"')).toBeLessThan(html.indexOf('id="developer-details"'));
+  });
+
+  it("Account names the Learner, says Signed in with a passcode until an email exists, and signs out by form post", () => {
+    const html = view();
+    const card = html.slice(html.indexOf('id="account"'), html.indexOf('id="appearance"'));
+    expect(text(card)).toContain("Asha");
+    expect(text(card)).toContain("Signed in with a passcode");
+    expect(card).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
+
+    const withEmail = view({ account: { name: "Asha", email: "asha@example.com" } });
+    const emailCard = withEmail.slice(withEmail.indexOf('id="account"'), withEmail.indexOf('id="appearance"'));
+    expect(text(emailCard)).toContain("asha@example.com");
+    expect(text(emailCard)).not.toContain("Signed in with a passcode");
   });
 
   it("has an Appearance section with three tiles: Light, Dark and Match my Mac", () => {
-    const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} />);
+    const html = view();
     const t = text(html);
     expect(t).toContain("Appearance");
     for (const w of ["Match my Mac", "Light", "Dark"]) expect(t).toContain(w);
@@ -27,33 +56,33 @@ describe("the Settings page", () => {
   });
 
   it("checks the pinned theme's tile", () => {
-    const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} theme={{ mode: "single", theme: "dark" }} />);
+    const html = view({ theme: { mode: "single", theme: "dark" } });
     expect(html.match(/type="radio"/g)).toHaveLength(3);
     expect(html).toMatch(/name="theme"[^>]*checked/);
   });
 
   it("fills About you with what was saved, says it is private and never that changes wait for the next Session", () => {
-    const html = renderToStaticMarkup(<SettingsView profile={{ ...empty, work: "Nurse" }} developerDetails={false} />);
+    const html = view({ profile: { ...empty, work: "Nurse" } });
     expect(html).toContain('value="Nurse"');
     expect(html).toContain("This is private.");
     expect(html).not.toMatch(/next Session/i);
   });
 
   it("shows the Show developer details switch off by default, and on when the Learner turned it on", () => {
-    const box = (on: boolean) => renderToStaticMarkup(<SettingsView profile={empty} developerDetails={on} />).match(/<input type="checkbox"[^>]*>/)![0];
+    const box = (on: boolean) => view({ developerDetails: on }).match(/<input type="checkbox"[^>]*>/)![0];
     expect(box(false)).not.toContain("checked");
     expect(box(true)).toContain("checked");
   });
 
   it("offers Start over as a button that asks for confirmation before anything is posted", () => {
-    const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} />);
+    const html = view();
     expect(html).toContain("Start over as a new learner");
     expect(html).not.toContain("Yes, start over");
     expect(html).not.toContain('action="/api/start-over"');
   });
 
   it("credits Fluent Emoji at the foot of the page, under Start over (E1)", () => {
-    const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} />);
+    const html = view();
     const t = text(html);
     expect(t).toContain("Emoji artwork: Fluent Emoji by Microsoft, MIT License,");
     expect(html).toContain('href="https://github.com/microsoft/fluentui-emoji"');
