@@ -40,7 +40,7 @@ describe("the rules tuned against the live tests", () => {
       it("simpler means the first idea only, with nothing new, and an open question asked again rather than answered", () => {
         expect(text).toContain("Simpler means less: the first idea only");
         expect(text).toContain("no analogy, not even the Topic's, and no new example");
-        expect(text).toContain("Do not answer a question you left open: ask it again in plainer words, on the running example's own numbers (never switch to new ones), and never give its answer.");
+        expect(text).toContain("Do not answer a question you left open: ask it again in plainer words, on the running example's own numbers (never switch to new ones), and never give its answer, not even as the worked line");
       });
 
       it("a quiz-me ask gets one choice question in words, in 40 words or fewer, with nothing after it", () => {
