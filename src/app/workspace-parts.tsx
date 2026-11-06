@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Topic } from "@/course/map";
-import {
-  STEP_NAMES,
-  type NextOffer,
-  type StepPosition,
-  type StepSequence,
-} from "@/course/navigator";
+import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from "@/course/navigator";
 import { Emoji } from "@/emoji/emoji";
 import { isEmojiName } from "@/emoji/registry";
 import { JUST_TELL_ME } from "@/tutor/chips";
@@ -17,12 +12,7 @@ import { Button, Chevron, Chip, Tag } from "./ui";
 // Small presentational pieces of the workspace's left column (issue #44).
 
 /** Where the Learner is on the Course Map: their current Topic and its Stage. Null before any Topic. */
-export type Place = {
-  stage: Topic["stage"];
-  title: string;
-  /** The Topic's id: the ⋯ menu's Start this Topic over posts it. */ topicId?: string;
-  /** The Topic's one-line goal, if it has one. */ goal?: string;
-} | null;
+export type Place = { stage: Topic["stage"]; title: string; /** The Topic's id: the ⋯ menu's Start this Topic over posts it. */ topicId?: string; /** The Topic's one-line goal, if it has one. */ goal?: string } | null;
 
 /**
  * A Topic passed in a turn, whose Session stays on screen until the Learner chooses where to go: its title,
@@ -34,10 +24,7 @@ export type PassedTopic = { title: string; next: string | null } | null;
 export const stepAnchor = (number: number) => `step-${number}`;
 
 /** Where a finished step on the strip scrolls to: the Story to the Topic Start card, any other to its divider, if this Session has one. */
-function targetOf(
-  step: StepPosition,
-  marked: ReadonlySet<number>,
-): string | null {
+function targetOf(step: StepPosition, marked: ReadonlySet<number>): string | null {
   if (step.step === "story") return TOPIC_START_ANCHOR;
   return marked.has(step.number) ? stepAnchor(step.number) : null;
 }
@@ -47,31 +34,13 @@ function targetOf(
  * Course Navigator's step sequence. Steps are grouped by Check, the current one highlighted; a finished step
  * scrolls the chat back to where it began (`marked`: the step numbers whose divider is in the thread).
  */
-export function TopicBar({
-  topicId,
-  title,
-  goal,
-  strip,
-  marked,
-}: {
-  topicId?: string;
-  title: string;
-  goal?: string;
-  strip: StepSequence | null;
-  marked: ReadonlySet<number>;
-}) {
-  const finished = (s: StepPosition) =>
-    strip !== null && (strip.current === null || s.number - 1 < strip.current);
+export function TopicBar({ topicId, title, goal, strip, marked }: { topicId?: string; title: string; goal?: string; strip: StepSequence | null; marked: ReadonlySet<number> }) {
+  const finished = (s: StepPosition) => strip !== null && (strip.current === null || s.number - 1 < strip.current);
   const step = (s: StepPosition) => {
     const target = finished(s) ? targetOf(s, marked) : null;
     if (strip?.current === s.number - 1) {
       return (
-        <span
-          aria-current="step"
-          data-step-number={s.number}
-          title={s.label}
-          className="font-semibold"
-        >
+        <span aria-current="step" data-step-number={s.number} title={s.label} className="font-semibold">
           <Tag tone="brand">{STEP_NAMES[s.step]}</Tag>
         </span>
       );
@@ -82,11 +51,7 @@ export function TopicBar({
           data-step-number={s.number}
           data-scroll-to={target}
           title={`Back to ${s.label}`}
-          onClick={() =>
-            document
-              .getElementById(target)
-              ?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
+          onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
           className="!px-2"
         >
           {STEP_NAMES[s.step]}
@@ -100,51 +65,31 @@ export function TopicBar({
     );
   };
   return (
-    <nav
-      aria-label="Topic progress"
-      data-testid="topic-bar"
-      className="rounded-lg border border-[var(--border)] px-3 py-2"
-    >
+    <nav aria-label="Topic progress" data-testid="topic-bar" className="rounded-lg border border-[var(--border)] px-3 py-2">
       {/* Two rows (#313): the title with the goal muted beside it, cut short (full text on hover), then the strip. */}
-      <div
-        data-topic-title-row
-        className="flex items-center justify-between gap-2"
-      >
+      <div data-topic-title-row className="flex items-center justify-between gap-2">
         <p className="flex min-w-0 flex-1 items-baseline gap-2 text-sm leading-5">
-          <span className="min-w-0 max-w-full shrink-0 truncate font-semibold">
-            {title}
-          </span>
+          <span className="min-w-0 max-w-full shrink-0 truncate font-semibold">{title}</span>
           {goal && (
-            <span
-              data-testid="topic-goal"
-              title={goal}
-              className="min-w-0 truncate text-xs text-[var(--muted)]"
-            >
+            <span data-testid="topic-goal" title={goal} className="min-w-0 truncate text-xs text-[var(--muted)]">
               {goal}
             </span>
           )}
         </p>
         {topicId && <TopicOptions topicId={topicId} />}
       </div>
-      {strip && <StepStrip strip={strip} current={strip.current} step={step} />}
+      {strip && <StepStrip strip={strip} step={step} />}
     </nav>
   );
 }
 
 /**
- * The Topic bar's step strip on one line (#313): a Topic with four Checks scrolls sideways instead of wrapping, and the
- * strip scrolls itself (never the page) so the current step is in view.
+ * The Topic bar's step strip on one line (#313): a Topic with four Checks scrolls sideways instead of wrapping, and
+ * the strip scrolls only itself (never the page or the column) so the current step is in view.
  */
-function StepStrip({
-  strip,
-  current,
-  step,
-}: {
-  strip: StepSequence;
-  current: number | null;
-  step: (s: StepPosition) => ReactNode;
-}) {
+function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPosition) => ReactNode }) {
   const list = useRef<HTMLOListElement>(null);
+  const current = strip.current;
   useEffect(() => {
     const ol = list.current;
     const here = ol?.querySelector<HTMLElement>('[aria-current="step"]');
@@ -154,34 +99,18 @@ function StepStrip({
     ol.scrollLeft += b.left - a.left - (a.width - b.width) / 2;
   }, [current]);
   return (
-    <ol
-      ref={list}
-      aria-label="Steps in this Topic"
-      className="mt-1 flex flex-nowrap items-center gap-x-3 overflow-x-auto whitespace-nowrap text-xs leading-5"
-    >
+    <ol ref={list} aria-label="Steps in this Topic" className="mt-1 flex flex-nowrap items-center gap-x-3 overflow-x-auto whitespace-nowrap text-xs leading-5">
       {/* Steps outside any Check (Story, Reveal, Principle) stand alone: "Story · Check 1: Concept, Your turn, Check · … · Reveal · Principle". */}
-      {strip.groups
-        .flatMap((g) =>
-          g.check ? [g] : g.steps.map((s) => ({ check: null, steps: [s] })),
-        )
-        .map((g) => (
-          <li
-            key={g.steps[0].number}
-            data-strip-group
-            className="flex shrink-0 items-center gap-0.5"
-          >
-            {g.check && (
-              <span className="mr-0.5 font-medium text-[var(--muted)]">
-                Check {g.check.number}:
-              </span>
-            )}
-            <ol className="flex flex-nowrap items-center gap-0.5">
-              {g.steps.map((s) => (
-                <li key={s.number}>{step(s)}</li>
-              ))}
-            </ol>
-          </li>
-        ))}
+      {strip.groups.flatMap((g) => (g.check ? [g] : g.steps.map((s) => ({ check: null, steps: [s] })))).map((g) => (
+        <li key={g.steps[0].number} data-strip-group className="flex shrink-0 items-center gap-0.5">
+          {g.check && <span className="mr-0.5 font-medium text-[var(--muted)]">Check {g.check.number}:</span>}
+          <ol className="flex flex-nowrap items-center gap-0.5">
+            {g.steps.map((s) => (
+              <li key={s.number}>{step(s)}</li>
+            ))}
+          </ol>
+        </li>
+      ))}
     </ol>
   );
 }
@@ -220,18 +149,9 @@ export function Chips({
   };
   return (
     // The Next chip is the main move, so it gets its own row at full size; the Choices are smaller, grouped below it.
-    <div
-      className="measure mt-3 flex flex-col items-start gap-2"
-      data-testid="choices"
-    >
+    <div className="measure mt-3 flex flex-col items-start gap-2" data-testid="choices">
       {offer && (
-        <Button
-          variant="secondary"
-          data-testid="next-chip"
-          loading={pressed === "next"}
-          disabled={pressed !== null}
-          onClick={() => press(offer)}
-        >
+        <Button variant="secondary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →
         </Button>
       )}
@@ -250,9 +170,7 @@ export function Chips({
                 onChoice(index);
               }}
             >
-              {isEmojiName(choice.emoji) && pressed !== choice.says && (
-                <Emoji name={choice.emoji} size={16} />
-              )}
+              {isEmojiName(choice.emoji) && pressed !== choice.says && <Emoji name={choice.emoji} size={16} />}
               {choice.label}
             </Button>
           ))}
@@ -263,20 +181,9 @@ export function Chips({
 }
 
 /** One folded row ("Spaced review · 2 due · Show") that opens in place. `open` starts it open. */
-export function FoldedRow({
-  label,
-  open,
-  children,
-  ...rest
-}: { label: ReactNode; open?: boolean; children: ReactNode } & {
-  "data-testid"?: string;
-}) {
+export function FoldedRow({ label, open, children, ...rest }: { label: ReactNode; open?: boolean; children: ReactNode } & { "data-testid"?: string }) {
   return (
-    <details
-      open={open}
-      className="group rounded-lg border border-[var(--border)]"
-      {...rest}
-    >
+    <details open={open} className="group rounded-lg border border-[var(--border)]" {...rest}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm leading-5 [&::-webkit-details-marker]:hidden">
         <span>{label}</span>
         <span className="flex items-center gap-1.5 text-xs leading-4 text-[var(--muted)]">
