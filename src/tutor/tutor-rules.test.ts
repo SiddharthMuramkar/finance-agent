@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ENGINE_INSTRUCTIONS, REPLY_WORD_LIMIT, TUTOR_EXAMPLES, TUTOR_INSTRUCTIONS } from "./instructions";
 import { sumAsk } from "@/teaching/no-sums";
-import { checkReply, fixReply, type ReplyCheckContext } from "./reply-checks";
+import { checkReply, countWords, fixReply, splitAsk, type ReplyCheckContext } from "./reply-checks";
 
 /**
  * The Tutor's teaching rules (spec #229, ticket #238): written for a beginner, one idea and one ask, capped by step,
@@ -121,6 +121,15 @@ describe("Appendix A's examples", () => {
   it("name the blocked numbers of an open quiz, and the Widget the reply shows", () => {
     expect(TUTOR_INSTRUCTIONS).toContain("Context: a quiz is open; blocked numbers: 4, 4.6, 60.");
     expect(ENGINE_INSTRUCTIONS).toContain("show_widget with recipe rate_move");
+  });
+
+  // Run 11: T11's ask ran to 26 words against the 25-word V2 cap; the examples model a 20-word ask, a margin under it.
+  it("end on one short ask of 20 words or fewer (T11)", () => {
+    for (const e of TUTOR_EXAMPLES) {
+      const { ask } = splitAsk(e.reply);
+      expect({ reply: e.reply, words: ask ? countWords(ask) : 0 }).toEqual({ reply: e.reply, words: expect.any(Number) });
+      expect({ ask, short: (ask ? countWords(ask) : 0) <= 20 }).toEqual({ ask, short: true });
+    }
   });
 
   it("each pass every reply check", () => {

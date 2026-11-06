@@ -114,6 +114,13 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain("then one ask on that idea, in 50 words or fewer in all");
       });
 
+      // Run 11: with a quiz open on "which would you use to tell a friend how far the rate moved", T4's simpler reply said "Points tell you how far the rate moved".
+      it("keep a simpler reply off the open quiz's own words, and the closing ask within 20 words (T4, T11)", () => {
+        expect(text).toContain("never describe an option in the open question's own words");
+        expect(text).toContain("never say which option fits its situation");
+        expect(text).toContain("one short sentence of 20 words or fewer");
+      });
+
       it("keep the running example's numbers when asked for something simpler (T4)", () => {
         expect(text).toContain("on the running example's own numbers (never switch to new ones)");
       });
