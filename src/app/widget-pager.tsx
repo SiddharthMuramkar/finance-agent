@@ -65,9 +65,10 @@ export function WidgetPager({
   const next = at < 0 ? 0 : at + 1;
 
   // Roving tabindex: the thumbnail Tab lands on. It follows the showing Widget, and the arrow keys move it.
-  const [cursor, setCursor] = useState<string | undefined>(current);
-  useEffect(() => setCursor(current), [current]);
-  const tabbable = entries.some((e) => e.key === cursor) ? cursor : (current ?? entries[0]?.key);
+  const [cursor, setCursorState] = useState<{ current: string | undefined; key: string | undefined }>({ current, key: current });
+  if (cursor.current !== current) setCursorState({ current, key: current });
+  const setCursor = (key: string) => setCursorState({ current, key });
+  const tabbable = entries.some((e) => e.key === cursor.key) ? cursor.key : (current ?? entries[0]?.key);
 
   const thumbs = () => [...(strip.current?.querySelectorAll<HTMLElement>("[data-thumb-key]") ?? [])].filter((b) => getComputedStyle(b).display !== "none");
 
@@ -75,7 +76,6 @@ export function WidgetPager({
   useEffect(() => {
     const el = thumbs().find((b) => b.dataset.thumbKey === current);
     el?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- thumbs() reads the strip as rendered for `current`
   }, [current]);
 
   const onStripKey = (e: KeyboardEvent<HTMLDivElement>) => {
