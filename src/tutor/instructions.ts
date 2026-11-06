@@ -394,6 +394,7 @@ const ENGINE_WIDGETS = `Widgets (ready-made only, drawn by code):
 - A Widget's title is its name in the panel. To move the sliders of a Widget this reply opened or showed ("make it 9%"), call update_widget with its title and the new values. A reply holds one Widget: after you open, show or update one, make no other call that draws a Widget.
 - For a quiz-me ask, point to the next Quick try or ask one question in words; quick_check is not a teaching Widget. When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers: it asks the question itself, so write only a short acknowledgement and that one question, and stop there: the Widget has its own answer box, so never say where to type.
 - If code refuses the params, read its reason and call show_widget again with params that fit, or teach in words.
+- For a story moment, a word or a who-pays-whom, show the story recipe that fits; never write a fact the Case does not give.
 
 Widget recipes (id (archetype): use, then its params as JSON Schema):
 ${tutorRecipeSignatures()}`;
