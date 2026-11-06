@@ -90,7 +90,7 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
 function Group({ label, topics, open, attrs, children }: { label: React.ReactNode; topics: TopicOverview[]; open: boolean; attrs?: Record<string, string>; children: React.ReactNode }) {
   return (
     <details open={open} className="group mb-3" {...attrs}>
-      <summary className="flex cursor-pointer items-center justify-between gap-3 rounded border border-[var(--border)] px-3 py-2 text-sm leading-5 hover:bg-[var(--brand-tint)]">
+      <summary className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[var(--edge)] bg-[var(--field)] px-3 py-2 text-sm leading-5 shadow-[0_2px_0_var(--edge)] hover:bg-[var(--brand-tint)] active:translate-y-px active:shadow-none">
         <span className="flex items-center gap-2 font-medium">
           <Chevron />
           {label}
@@ -190,7 +190,7 @@ export function CourseMapView({
       })}
       {coming.length > 0 && (
         <details className="group mt-4 text-sm">
-          <summary className="flex cursor-pointer items-center gap-2 rounded border border-[var(--border)] px-3 py-2 font-medium hover:bg-[var(--brand-tint)]">
+          <summary className="flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--edge)] bg-[var(--field)] px-3 py-2 font-medium shadow-[0_2px_0_var(--edge)] hover:bg-[var(--brand-tint)] active:translate-y-px active:shadow-none">
             <Chevron />
             Coming ({coming.length} more Topics, in path order)
           </summary>
