@@ -13,8 +13,12 @@ export function WorkspaceFrame({ left, top, right }: { left: ReactNode; top: Rea
       {left}
       <div className="flex min-h-0 min-w-0 flex-col gap-3">
         {top}
-        <aside aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll relative min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip overscroll-contain [scrollbar-gutter:stable]">
-          {right}
+        {/* A size container named pane (#528), so a Widget's stage can grow with the panel's height (cqh, height queries).
+            Its content is a column at least the panel's height, so the Widget card (flex-1) reaches the panel bottom. */}
+        <aside aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll @container-size/pane relative min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip overscroll-contain [scrollbar-gutter:stable]">
+          <div data-testid="widget-pane-column" className="flex min-h-full flex-col">
+            {right}
+          </div>
         </aside>
       </div>
     </div>

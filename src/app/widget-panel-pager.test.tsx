@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WidgetChip, WidgetPanel, leadEmojiOf, type CheckTab, type WidgetItem } from "./widget-panel";
+import { WorkspaceFrame } from "./workspace-frame";
 
 // The Widget panel's pager (spec: REPORT 5.1, 5.2, 8.5): ‹ › and "3 of 11 · title", an All listbox, ← and → paging,
 // a ring pulse and a scroll to the top on every switch, the chat chip's three states, and a skeleton while a Widget draws.
@@ -115,6 +116,16 @@ describe("the Widget panel's pager", () => {
     expect(pulse.className).toContain("animate-ring-pulse");
     expect(q('[data-testid="widget-card"]').className).not.toMatch(/border-\[var\(--brand\)\]/);
     expect(q('[data-testid="widget-card"] > div:not([data-testid])').className).toContain("animate-widget-stage-in");
+  });
+
+  // #528: the card fills the panel's height. The frame's pane is a size container named pane holding a column at least
+  // the panel's height, and the card grows in it to the panel's bottom.
+  it("fills the panel's height: the pane is a size container with a full-height column, and the card grows in it", async () => {
+    await render();
+    expect(q('[data-testid="widget-card"]').className).toContain("flex-1");
+    const frame = renderToStaticMarkup(<WorkspaceFrame left={null} top={null} right={<p>panel</p>} />);
+    expect(frame).toMatch(/data-testid="widget-pane" class="[^"]*@container-size\/pane[^"]*"/);
+    expect(frame).toMatch(/<div data-testid="widget-pane-column" class="flex min-h-full flex-col"><p>panel<\/p><\/div>/);
   });
 
   it("scrolls the panel to the top on a switch", async () => {

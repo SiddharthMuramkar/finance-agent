@@ -64,3 +64,26 @@ test("Widget panel width, filmstrip and reduced motion: the stage fills the pane
   expect(showing.face, "the showing thumbnail has its own face").not.toBe(focused.face);
   expect(showing.rim, "the showing thumbnail has its own rim").not.toBe(focused.rim);
 });
+
+// #528: the stage fills the panel's height too. A Story reply's scene card reaches the panel's bottom, and its cast
+// grows past the 80 px floor, at 1512×982 (mbp14) and 1920×1080 (w1920), in Light and Dark.
+const TALL_PROJECTS = ["mbp14", "mbp14-dark", "w1920", "w1920-dark"];
+
+test("Widget panel height: a Story scene's card reaches the panel bottom and its cast grows", async ({ page }, testInfo) => {
+  test.skip(!TALL_PROJECTS.includes(testInfo.project.name), "the stage height is measured at 1512×982 and 1920×1080");
+  await seed(page, "story-scene");
+  await page.goto("/study");
+  await expect(page.getByTestId("topic-bar")).toBeVisible();
+  await settled(page);
+  await expect(page.getByTestId("widget-card").getByTestId("story-scene")).toBeVisible();
+
+  const got = await page.evaluate(() => {
+    const pane = document.querySelector('[data-testid="widget-pane"]')!;
+    const card = document.querySelector('[data-testid="widget-card"]')!;
+    const img = card.querySelector('[data-testid="story-scene"] ul[aria-label="Cast"] img')!;
+    const top = pane.getBoundingClientRect().top;
+    return { reach: (card.getBoundingClientRect().bottom - top) / pane.clientHeight, cast: img.getBoundingClientRect().height };
+  });
+  expect(got.reach, "Widget card bottom ≥ 0.9 × the panel's inner height").toBeGreaterThanOrEqual(0.9);
+  expect(got.cast, "the cast grows past the 80 px floor, to 112 px in a panel 640 px tall").toBe(112);
+});

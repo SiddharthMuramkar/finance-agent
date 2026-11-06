@@ -24,6 +24,17 @@ export const storySceneProps = z.object({
 
 type Props = z.infer<typeof storySceneProps>;
 
+/**
+ * #528: in the Widget panel (the size container named pane, src/app/workspace-frame.tsx) the stage grows with the
+ * panel's height: at least 55% of it once the panel is 480 px tall, its cast and bubble centred. Anywhere else (the
+ * dev harness, the conversation column) no pane matches, so the stage keeps its own height.
+ */
+export const STAGE_GROW = "flex flex-col justify-center [@container_pane_(min-height:480px)]:min-h-[55cqh]";
+
+/** The cast's size: 64 px, 80 px on a wide stage (the floor), 96 px in a 480 px tall panel and 112 px from 640 px. */
+export const CAST_SIZE =
+  "[&_img]:size-16 @min-[720px]:[&_img]:size-20 [@container_pane_(min-height:480px)]:[&_img]:size-24 [@container_pane_(min-height:640px)]:[&_img]:size-28";
+
 export function StorySceneView({ cast, beats, caption, date }: Props) {
   const reduced = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
@@ -55,12 +66,12 @@ export function StorySceneView({ cast, beats, caption, date }: Props) {
       <div
         data-testid="story-stage"
         onClick={() => !last && next()}
-        className="relative rounded-xl border border-[var(--sun)] bg-[var(--sun-tint)] px-3 pb-3 pt-4"
+        className={`relative rounded-xl border border-[var(--sun)] bg-[var(--sun-tint)] px-3 pb-3 pt-4 ${STAGE_GROW}`}
       >
         {stamp && (
           <p
             data-testid="story-date"
-            className="mb-2 inline-block -rotate-2 rounded-md border border-dashed border-[var(--sun-ink)] bg-[var(--sun-tag)] px-2 py-0.5 text-xs font-semibold tracking-wide text-[var(--sun-ink)]"
+            className="mb-2 inline-block self-start -rotate-2 rounded-md border border-dashed border-[var(--sun-ink)] bg-[var(--sun-tag)] px-2 py-0.5 text-xs font-semibold tracking-wide text-[var(--sun-ink)]"
           >
             {stamp}
           </p>
@@ -73,7 +84,7 @@ export function StorySceneView({ cast, beats, caption, date }: Props) {
                 <span
                   key={talking ? `${p.id}-${at}` : p.id}
                   data-speaking={talking ? "true" : undefined}
-                  className={`block [&_img]:size-16 @min-[720px]:[&_img]:size-20 ${talking && !reduced ? "story-bounce" : ""}`}
+                  className={`block ${CAST_SIZE} ${talking && !reduced ? "story-bounce" : ""}`}
                 >
                   <Pic name={p.emoji} size={64} />
                 </span>
