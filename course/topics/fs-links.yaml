@@ -6,7 +6,7 @@ title: How the three statements link (accrual accounting)
 
 cases:
   - id: satyam-links-2008
-    title: Satyam's forged invoices and bank statements
+    title: Satyam's reported profit and cash (December 2008)
     data: [q2-revenue-reported, q2-operating-profit-reported, q2-revenue-actual, q2-operating-profit-actual]
     asOf: 2008-12-31
     story: >
@@ -83,12 +83,12 @@ terms:
     example: "Your marks, attendance and fee receipt must all tell one story about you."
     emoji: notebook
     inStory: The analyst asks where Satyam's profit would show up on all three statements.
-  - term: cooking the books
-    means: Faking a company's accounts to show profits or cash that are not real.
-    pro: Auditors worry about cooked books.
-    example: "A shopkeeper who writes down ₹5,000 of sales that never happened."
-    emoji: warning
-    inStory: In the story, an analyst asks whether Satyam's reported profit could be real.
+  - term: operating margin
+    means: Operating profit as a share of revenue, showing how much of each rupee of sales is left after running costs.
+    pro: Analysts compare operating margins across companies.
+    example: "A tea stall keeps ₹20 of every ₹100 of sales after paying for milk, tea and rent."
+    emoji: bar-chart
+    inStory: Satyam reported an operating margin of 24 per cent for the September quarter.
   - term: general ledger
     means: The company's master record of every entry, from which the three statements are built.
     pro: Everything flows from the general ledger.
@@ -210,15 +210,15 @@ questions:
 
   - id: fl-q-error-all-three
     prompt: >
-      By mistake, a company books a sale that never happened, and books the cash receipt with it. Which statement is true as a result?
+      By mistake, a clerk leaves out a real cash sale, paid for in full that day. Which statement is true as a result?
     choices:
-      - { id: a, text: "All three statements are off: profit, cash and operating cash flow are each too high" }
-      - { id: b, text: "Only the income statement is affected", mistake: { tag: error_in_one_statement, fix: "The false profit flows into retained earnings and the false cash into assets and cash flow too." } }
-      - { id: c, text: "Only the balance sheet is affected", mistake: { tag: error_balance_only, fix: "The false revenue also raises profit on the income statement." } }
-      - { id: d, text: "Only the cash flow statement is affected", mistake: { tag: error_cash_only, fix: "The false revenue also raises profit, and the false cash sits on the balance sheet." } }
+      - { id: a, text: "All three statements are off: profit, cash and operating cash flow are each too low" }
+      - { id: b, text: "Only the income statement is affected", mistake: { tag: error_in_one_statement, fix: "The left-out sale also leaves retained earnings and cash too low on the balance sheet, and operating cash flow too low." } }
+      - { id: c, text: "Only the balance sheet is affected", mistake: { tag: error_balance_only, fix: "The left-out revenue also leaves profit too low on the income statement." } }
+      - { id: d, text: "Only the cash flow statement is affected", mistake: { tag: error_cash_only, fix: "The left-out revenue also leaves profit too low, and the cash it brought in is left off the balance sheet." } }
     answer: a
     explanation: >
-      The false revenue raises net income (income statement). That profit flows into retained earnings and the false cash sits in assets (balance sheet). The same cash appears as an operating inflow (cash flow statement). One entry spreads through the whole system.
+      The left-out revenue leaves net income too low (income statement). Retained earnings and cash in assets are too low by the same profit and cash (balance sheet). Operating inflows are too low by that cash (cash flow statement). One left-out entry spreads through the whole system.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.3 The Relationship between the Balance Sheet and the Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-3-the-relationship-between-the-balance-sheet-and-the-income-statement
 
@@ -243,7 +243,7 @@ questions:
       - { id: a, text: "Accrual accounting" }
       - { id: b, text: "Cash accounting", mistake: { tag: cash_for_accrual, fix: "Cash accounting records revenue only when the money arrives." } }
       - { id: c, text: "Depreciation", mistake: { tag: depreciation_for_accrual, fix: "Depreciation spreads the price of a big purchase over its life." } }
-      - { id: d, text: "Cooking the books", mistake: { tag: cooking_for_accrual, fix: "That means faking the accounts. Accrual accounting is a standard, honest method." } }
+      - { id: d, text: "Operating margin", mistake: { tag: margin_for_accrual, fix: "Operating margin is operating profit as a share of revenue, not a way of recording sales." } }
     answer: a
     explanation: >
       Accrual accounting records revenue when it is earned and costs when they are incurred, whether or not cash moves.
@@ -266,17 +266,17 @@ questions:
 
   - id: fl-q-cooked
     prompt: >
-      What do people call it when a company fakes its accounts to show profit or cash that is made up?
+      What do analysts call operating profit as a share of revenue?
     choices:
-      - { id: a, text: "Cooking the books" }
-      - { id: b, text: "Accrual accounting", mistake: { tag: accrual_for_cooking, fix: "Accrual accounting is a standard, honest method. Faking the accounts is something else." } }
-      - { id: c, text: "Depreciation", mistake: { tag: depreciation_for_cooking, fix: "Depreciation is an ordinary expense that spreads out a big purchase." } }
-      - { id: d, text: "Capital spending", mistake: { tag: capex_for_cooking, fix: "Capital spending is money spent on long-term assets, which is legitimate." } }
+      - { id: a, text: "Operating margin" }
+      - { id: b, text: "Accrual accounting", mistake: { tag: accrual_for_margin, fix: "Accrual accounting is about when revenue and costs are recorded, not how much of the revenue is profit." } }
+      - { id: c, text: "Depreciation", mistake: { tag: depreciation_for_margin, fix: "Depreciation is an ordinary expense that spreads out a big purchase." } }
+      - { id: d, text: "Capital spending", mistake: { tag: capex_for_margin, fix: "Capital spending is money spent on long-term assets such as machines." } }
     answer: a
     explanation: >
-      "Cooking the books" means falsifying a company's accounts. One false entry has to show up on more than one statement, which is how careful readers catch it.
+      Operating margin is operating profit as a share of revenue: how much of each rupee of sales is left after running costs. A profit reported on the income statement should also show up on the balance sheet and the cash flow statement.
     source: >
-      Plain meaning of the term; the Satyam case is in the US SEC Litigation Release LR-21915: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
 checks:
   - id: fl-quiz-links

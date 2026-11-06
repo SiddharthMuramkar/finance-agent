@@ -23,7 +23,9 @@ describe("the Satyam Topics before the reveal", () => {
       const quizIds = new Set((topic?.checks ?? []).flatMap((c) => (c.kind === "quiz" ? c.questions : [])));
       const questions = (topic?.questions ?? []).filter((q) => quizIds.has(q.id));
       expect(questions.length).toBeGreaterThan(0);
-      expect(questions.filter((q) => HINTS.test(JSON.stringify(q))).map((q) => q.id)).toEqual([]);
+      // Ids are stable keys for stored attempts, so only the words the Learner and the Tutor read are checked.
+      const words = (q: (typeof questions)[number]) => JSON.stringify({ ...q, id: undefined });
+      expect(questions.filter((q) => HINTS.test(words(q))).map((q) => q.id)).toEqual([]);
     });
 
     it(`${id}: scenes before the reveal carry no outcome hint`, () => {
