@@ -35,10 +35,12 @@ export type Affordances = {
  * every visible element the selector matches instead: the full lines (all but each element's last) of all of them, median,
  * and `proseMeasured` says how many elements had a full line. Not running prose, so skipped: an element that is itself a
  * flex or grid row, and one inside a card that sits beside others (an ancestor is a grid of 2+ columns or a flex row of
- * 2+ items). Nothing else changes.
+ * 2+ items). With `cardsAsColumns` (Settings: A1 says "Running paragraphs inside cards use `measure`"), each card of a
+ * multi-column grid is its own column: the walk up stops at that grid, so a card's paragraphs are measured inside it,
+ * and only a side-by-side row inside the card is skipped. Nothing else changes.
  */
-export function measureLayout(page: Page, opts: { prose?: string } = {}): Promise<Layout> {
-  return page.evaluate((prose) => {
+export function measureLayout(page: Page, opts: { prose?: string; cardsAsColumns?: boolean } = {}): Promise<Layout> {
+  return page.evaluate(([prose, cardsAsColumns]) => {
     const doc = document.documentElement;
     const vw = doc.clientWidth, vh = window.innerHeight;
     const box = (sel: string) => { const el = document.querySelector(sel); return el ? el.getBoundingClientRect() : null; };
@@ -72,10 +74,11 @@ export function measureLayout(page: Page, opts: { prose?: string } = {}): Promis
       return counts[Math.floor(counts.length / 2)];
     };
     // Does any ancestor lay its children side by side: a grid of 2+ column tracks, or a flex row of 2+ visible items?
+    // With cardsAsColumns a multi-column grid ends the walk instead: the element's card is its own column.
     const besideOthers = (el: Element) => {
       for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
         const s = getComputedStyle(a);
-        if (/grid/.test(s.display) && s.gridTemplateColumns.split(/\s+/).filter((t) => /^[\d.]+px$/.test(t)).length > 1) return true;
+        if (/grid/.test(s.display) && s.gridTemplateColumns.split(/\s+/).filter((t) => /^[\d.]+px$/.test(t)).length > 1) return !cardsAsColumns;
         if (/flex/.test(s.display) && s.flexDirection.startsWith("row")) {
           const items = [...a.children].filter((c) => { const r = c.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
           if (items.length > 1) return true;
@@ -113,7 +116,7 @@ export function measureLayout(page: Page, opts: { prose?: string } = {}): Promis
       horizontalScroll: doc.scrollWidth > doc.clientWidth + 1,
       ...(prose ? { proseMeasured } : {}),
     };
-  }, opts.prose ?? null);
+  }, [opts.prose ?? null, opts.cardsAsColumns ?? false] as const);
 }
 
 /** Appendix C.3: what can be pressed looks pressable, and what cannot does not. A clean page returns four empty lists. */

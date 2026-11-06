@@ -150,8 +150,9 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
     out.scrollWidth = dims.scrollWidth;
     out.innerWidth = dims.innerWidth;
     // Reading pages (the ReadingPage shell) are measured on their running prose: the column's paragraphs, minus the
-    // blurbs of cards that sit beside other cards (measureLayout skips those).
-    out.layout = await measureLayout(page, p.prose ? { prose: '[data-testid="reading-column"] p' } : {});
+    // blurbs of cards that sit beside other cards (measureLayout skips those), except on a page whose cards are its
+    // columns (Settings): there each card's paragraphs are measured inside the card.
+    out.layout = await measureLayout(page, p.prose ? { prose: '[data-testid="reading-column"] p', cardsAsColumns: p.cardsAsColumns === true } : {});
     out.affordances = await auditAffordances(page);
     if (p.id === "study-concept-widget") {
       const a = await accentFamilies(page);
@@ -203,7 +204,7 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
       if (l.headerHeight !== null && l.headerHeight > headerMax) failing.push(`${r.cell}: header ${l.headerHeight} > ${headerMax}`);
     }
     if (id === "study-concept-widget" && (l.panelWidthPct === null || l.panelWidthPct < panelMinPct)) failing.push(`${r.cell}: panelWidthPct ${l.panelWidthPct} < ${panelMinPct}`);
-    // Notebook and Settings have running paragraphs: measuring none is a failure. Course Map is cards and panels.
+    // Notebook and Settings (per card) have running paragraphs: measuring none is a failure. Course Map is cards and panels.
     if (cell.page.prose === "required" && l.charsPerLine === null) failing.push(`${r.cell}: chars per line not measured (${l.proseMeasured ?? 0} prose paragraphs of 2+ lines)`);
     if (l.charsPerLine !== null && (l.charsPerLine < lineMin || l.charsPerLine > lineMax)) failing.push(`${r.cell}: chars per line ${l.charsPerLine} outside ${lineMin}-${lineMax}`);
     if (l.horizontalScroll) failing.push(`${r.cell}: horizontal scroll`);

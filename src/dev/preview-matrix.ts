@@ -23,7 +23,11 @@ export type MatrixKind = "study" | "reading" | "login";
  */
 export type MatrixProse = "required" | "if-any";
 
-export type MatrixPage = { id: string; path: string; seed: MatrixSeed | null; kind: MatrixKind; signedOut: boolean; prose?: MatrixProse };
+export type MatrixPage = {
+  id: string; path: string; seed: MatrixSeed | null; kind: MatrixKind; signedOut: boolean; prose?: MatrixProse;
+  /** Each card of a multi-column grid is its own column: its paragraphs are measured inside it (measureLayout's `cardsAsColumns`). */
+  cardsAsColumns?: true;
+};
 
 /** The nine pages and states of the spec, in the order they are shot. Login pages run last (they sign the Learner out). */
 export const MATRIX_PAGES: readonly MatrixPage[] = [
@@ -34,7 +38,9 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "study-topic-complete", path: "/study", seed: "topic-complete", kind: "study", signedOut: false },
   { id: "course-map", path: "/course", seed: "many-topics", kind: "reading", signedOut: false, prose: "if-any" },
   { id: "notebook", path: "/notebook", seed: "story", kind: "reading", signedOut: false, prose: "required" },
-  { id: "settings", path: "/settings", seed: "story", kind: "reading", signedOut: false, prose: "required" },
+  // Settings (A5) is all cards in a card-grid of 2+ columns at every matrix viewport; A1: "Running paragraphs inside
+  // cards use `measure`", so card text is running prose, measured per card (each card is its own column).
+  { id: "settings", path: "/settings", seed: "story", kind: "reading", signedOut: false, prose: "required", cardsAsColumns: true },
   { id: "login", path: "/login", seed: null, kind: "login", signedOut: true },
 ];
 

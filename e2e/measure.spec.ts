@@ -40,6 +40,20 @@ test("[F1] prose: a one-column grid or a flex column is still running prose", as
   expect(l.charsPerLine).toBeGreaterThanOrEqual(60);
 });
 
+// Settings (A5) is all cards, and A1 says "Running paragraphs inside cards use `measure`": with `cardsAsColumns` each
+// card of a multi-column grid is its own column, so its paragraphs are measured inside it. A side-by-side row inside a
+// card is still not running prose.
+test("[F1] prose: with cardsAsColumns, each card's paragraphs are measured inside their card", async ({ page }) => {
+  const sideBySide = `<li><div style="display:flex;gap:8px"><p style="max-width:12ch">${words(20)}</p><p style="max-width:12ch">${words(20)}</p></div></li>`;
+  await column(page, `<ol style="display:grid;grid-template-columns:repeat(2,340px);list-style:none;padding:0">${Array.from({ length: 3 }, () => `<li><p style="max-width:30ch">${words(40)}</p></li>`).join("")}${sideBySide}</ol>`);
+  const l = await measureLayout(page, { prose: PROSE, cardsAsColumns: true });
+  expect(l.proseMeasured).toBe(3);
+  expect(l.charsPerLine).toBeGreaterThanOrEqual(25);
+  expect(l.charsPerLine).toBeLessThanOrEqual(30);
+  // Without the option the same page is "only cards": nothing measured (Course Map's rule).
+  expect((await measureLayout(page, { prose: PROSE })).proseMeasured).toBe(0);
+});
+
 test("[F1] prose: a narrow paragraph fails the bound, and a column of only cards measures nothing", async ({ page }) => {
   await column(page, prose(40));
   expect((await measureLayout(page, { prose: PROSE })).charsPerLine).toBeLessThan(45);

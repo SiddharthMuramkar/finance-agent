@@ -35,5 +35,8 @@ describe("preview matrix [S3]", () => {
       "course-map": "if-any", notebook: "required", settings: "required", login: null,
     });
     expect(LOGIN_NOT_INVITED.prose ?? null).toBeNull();
+    // Settings (A5) is a card-grid at every matrix viewport and A1 says "Running paragraphs inside cards use `measure`":
+    // each card is its own column, so its paragraphs are measured inside it. Only Settings reads its cards that way.
+    expect(MATRIX_PAGES.filter((p) => p.cardsAsColumns).map((p) => p.id)).toEqual(["settings"]);
   });
 });
