@@ -64,7 +64,7 @@ youllLearn:
 questions:
   - id: rp-q-expected
     prompt: >
-      A portfolio puts 40% in asset A, which has the higher expected return, and 60% in asset B, which has the lower one. Where does the portfolio's expected return fall?
+      Zoya splits her savings: 40% in asset A, which has the higher expected return, and 60% in asset B, which has the lower one. Where does her portfolio's expected return fall?
     choices:
       - { id: a, text: "Between the two, nearer B, because B has the bigger weight" }
       - { id: b, text: "Exactly halfway, whatever the weights", mistake: { tag: ignored_weights, fix: "The weights matter: the portfolio sits nearer the asset that holds more of the money." } }

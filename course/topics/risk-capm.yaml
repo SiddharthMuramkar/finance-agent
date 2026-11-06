@@ -19,7 +19,7 @@ cases:
       market (from Bloomberg) gives a beta of 2.29, but with a standard error of 0.50, which is large because the
       company has a short history. The average beta of internet firms is about 1.60, and of retailers close to
       1.0. He chooses 1.60 for the first five years, fading to 1.00 by year ten as the company matures. Which beta
-      would you use for the cost of equity, and how much should the choice matter to the value?
+      would you use for the cost of equity, and why does the choice matter to the value?
     reveal: >
       Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00).
       The regression beta of 2.29 would have implied 15.66%. Combined with forecasts of rapid revenue growth and rising margins,
@@ -73,7 +73,7 @@ questions:
 
   - id: cm-q-beta
     prompt: >
-      What does a beta of 2 say about a share?
+      Meera hears that a start-up's share has a beta of 2 and wonders if it is a calm one. What does a beta of 2 say about a share?
     choices:
       - { id: a, text: "It tends to move about twice as far as the market, in the same direction" }
       - { id: b, text: "It tends to move about half as far as the market", mistake: { tag: beta_inverted, fix: "A beta above 1 means the share swings more than the market, not less." } }
@@ -101,7 +101,7 @@ questions:
 
   - id: cm-q-stderr
     prompt: >
-      Rohan is valuing a delivery start-up whose share has traded for only two years. His spreadsheet says the share swings 1.8 times as much as the market (its beta), but warns the figure could easily be off by 0.6 either way. Rohan wants to use 1.8 as if it were certain. What should his colleague tell him?
+      Rohan is valuing a delivery start-up listed only two years. His spreadsheet says its beta (the share's tendency to swing with the market) is 1.8, but warns it could be off by 0.6 either way. Rohan wants to treat 1.8 as certain. What should his colleague tell him?
     choices:
       - { id: a, text: "The real figure could be far from 1.8, so lean on similar firms' betas rather than this one number" }
       - { id: b, text: "Use 1.8: the spreadsheet worked it out, so it is exact", mistake: { tag: false_precision, fix: "Two years of prices give only an estimate, and the warning shows how far off it could be." } }

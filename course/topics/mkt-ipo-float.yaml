@@ -86,13 +86,13 @@ questions:
       - { id: d, text: "The number of bidders in the book", mistake: { tag: mixed_up_terms, fix: "The number of bidders says nothing about how much of the company is being sold." } }
     answer: a
     explanation: >
-      The share of the company sold is the new shares divided by the shares after the issue: 30 million / 200 million = 15 percent. The coffee-chain prospectus states the share the same way: the issue as a percentage of post-issue paid-up capital.
+      The share of the company sold is the new shares divided by the shares after the issue: 30 million / 200 million = 15 percent (made-up numbers; the real Coffee Day prospectus gives 17.02 percent). It states the share the same way: the issue as a percentage of post-issue paid-up capital.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), cover page: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
   - id: ip-q-proceeds
     prompt: >
-      Asha reads that a coffee chain's IPO "raised Rs 750 crore". Her friend says the company will keep less than that. Why is the friend right?
+      Asha reads that some company's IPO (an imagined one) "raised Rs 750 crore". Her friend says the company will keep less than that. Why is the friend right?
     choices:
       - { id: a, text: "The headline counts the money before costs, so fees and other costs still come out of it" }
       - { id: b, text: "The headline is already after costs, so the company keeps even more", mistake: { tag: costs_already_out, fix: "The headline figure is the money before costs; the costs are still to come out." } }
@@ -100,7 +100,7 @@ questions:
       - { id: d, text: "The headline counts only the shares that can trade freely", mistake: { tag: mixed_up_terms, fix: "The free float is the part of the company that can trade, not the money raised." } }
     answer: a
     explanation: >
-      The money raised before costs is the gross proceeds: the shares sold times the issue price, such as 30 million x Rs 250 = Rs 7,500 million, or Rs 750 crore. Net proceeds are what remains after costs.
+      The money raised before costs is the gross proceeds: the shares sold times the issue price, as in this made-up example: 30 million shares x Rs 250 = Rs 7,500 million, or Rs 750 crore (the real Coffee Day IPO was Rs 1,150 crore). Net proceeds are what remains after costs.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015): 35,060,975 shares at Rs 328 aggregating to Rs 11,500 million, shown as Rs 1,150 crore: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 

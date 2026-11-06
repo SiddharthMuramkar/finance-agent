@@ -71,7 +71,7 @@ questions:
 
   - id: eh-q-up-down
     prompt: >
-      A portfolio gains 50% in one year and loses 50% the next. The plain average of those two years is zero. Which headline gets it right?
+      A portfolio gains 50% in one year and loses 50% the next. The plain average of those two years is zero. Which statement gets it right?
     choices:
       - { id: a, text: "The investor ended below the start, because the loss applied to a bigger amount" }
       - { id: b, text: "The investor broke even, because the gain and the loss cancel", mistake: { tag: averaged_returns, fix: "Gains and losses of the same size do not cancel; the loss falls on a bigger base." } }

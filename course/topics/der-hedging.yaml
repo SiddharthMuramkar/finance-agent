@@ -119,7 +119,7 @@ questions:
 
   - id: hr-q-hedge-ratio
     prompt: >
-      Priya makes mango jam and fears mango prices will jump before summer. Nobody trades mango futures, so she protects herself with orange-juice futures, whose price moves roughly in step with mangoes. Her adviser says, "Buy one unit of orange juice for every unit of mango." Her colleague says, "Size it by how big each price's swings are and how closely the two move together." What is the colleague's way of sizing trying to do?
+      Priya makes mango jam and fears mango prices will jump. Nobody trades mango futures, so she hedges with orange-juice futures, which move roughly in step. Her colleague says to size the hedge by how big each price's swings are and how closely they move together. What is that sizing trying to do?
     choices:
       - { id: a, text: "Leave Priya with the smallest leftover swing in her costs" }
       - { id: b, text: "Match the hedge one-for-one to her mangoes", mistake: { tag: one_for_one, fix: "One-for-one ignores how the two prices differ in size of swing and in how closely they move." } }
