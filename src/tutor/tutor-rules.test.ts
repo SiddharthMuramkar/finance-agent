@@ -192,4 +192,19 @@ describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", ()
       expect(e.reply.split("\n")).toHaveLength(1);
     }
   });
+
+  // F2-T-2: the heading above the examples must not tell the Tutor that every example ends with an ask while the
+  // half-done choice example ends with none.
+  for (const [name, text] of [
+    ["widget engine off", TUTOR_INSTRUCTIONS],
+    ["widget engine on", ENGINE_INSTRUCTIONS],
+  ] as const) {
+    it(`${name}: the examples heading carves out the half-done choice, whose example has no ask`, () => {
+      const heading = text.split("\n").find((l) => l.startsWith("Examples of good replies"));
+      expect(heading).toBeDefined();
+      const claimsEveryAsk = /each reply's last line is its one ask/.test(heading!);
+      const anyWithoutAsk = TUTOR_EXAMPLES.some((e) => splitAsk(e.reply).ask === null);
+      if (claimsEveryAsk && anyWithoutAsk) expect(heading).toMatch(/half-done choice[^)]*write no ask of your own/);
+    });
+  }
 });
