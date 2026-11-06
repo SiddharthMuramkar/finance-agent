@@ -37,12 +37,44 @@ export type ExampleCurrency = (typeof EXAMPLE_CURRENCIES)[number];
 const skillSchema = z.object({ id, rule: z.string().trim().min(1), analogy: z.string().trim().min(1).optional() });
 export type Skill = z.infer<typeof skillSchema>;
 
-/** A term the Topic introduces, and what it means in plain words. */
-const termSchema = z.object({ term: z.string().trim().min(1), means: z.string().trim().min(1) });
+/**
+ * A term the Topic introduces, and what it means in plain words. E3 adds how pros say it (`pro`), an everyday
+ * example, its emoji name and where it showed up in the story: the making of a Lingo card, all optional so a
+ * term written before them still loads.
+ */
+const termSchema = z.object({
+  term: z.string().trim().min(1),
+  means: z.string().trim().min(1),
+  pro: z.string().trim().min(1).optional(),
+  example: z.string().trim().min(1).optional(),
+  emoji: z.string().trim().min(1).optional(),
+  inStory: z.string().trim().min(1).optional(),
+});
 export type Term = z.infer<typeof termSchema>;
 
-/** The Topic's one Running example, and its numbers: "A savings rate goes from 4% to 5%.", [4, 5]. */
-const runningExampleSchema = z.object({ text: z.string().trim().min(1), numbers: z.array(z.number()).min(1) });
+/**
+ * A Story scene's inputs as a Topic file holds them (E3): the cast and beats of the `story_scene` recipe. The
+ * shape is kept beside the Topic file so this module stays loadable by plain Node; the recipe itself holds the
+ * word caps and story checks, and src/course/scenes.ts builds it under vitest.
+ */
+const storySceneInputsSchema = z
+  .object({
+    cast: z
+      .array(z.object({ id, emoji: z.string().min(1), name: z.string().trim().min(1), role: z.string().trim().min(1).optional() }).strict())
+      .min(1)
+      .max(4),
+    beats: z
+      .array(z.object({ who: z.string().trim().min(1), says: z.string().trim().min(1), emoji: z.string().min(1).optional() }).strict())
+      .min(2)
+      .max(5),
+    caption: z.string().trim().min(1).optional(),
+    date: z.string().min(1).optional(),
+  })
+  .strict();
+export type StorySceneInputs = z.infer<typeof storySceneInputsSchema>;
+
+/** The Topic's one Running example, and its numbers: "A savings rate goes from 4% to 5%.", [4, 5]. Its `scene` (E3) is the same example as a Story scene. */
+const runningExampleSchema = z.object({ text: z.string().trim().min(1), numbers: z.array(z.number()).min(1), scene: storySceneInputsSchema.optional() });
 export type RunningExample = z.infer<typeof runningExampleSchema>;
 
 /**
@@ -318,6 +350,42 @@ const foundSchema = z.object({ when: widgetConditionSchema, text: z.string().tri
 export type StepSetting = z.infer<typeof stepSettingSchema>;
 export type FoundSpec = z.infer<typeof foundSchema>;
 
+/**
+ * A written-ahead story Widget for one Teaching Step (E3): a story recipe and the inputs written in the Topic
+ * file, built by src/course/scenes.ts and shown by code or the Tutor. `check` limits it to that Check's steps;
+ * `title` names it in the Widget panel. At most one Scene sits on each (step, check) pair.
+ */
+const sceneSchema = z
+  .object({
+    id,
+    step: z.enum(STEP_KEYS),
+    check: id.optional(),
+    recipe: z.string().trim().min(1),
+    title: z.string().trim().min(1).optional(),
+    inputs: z.record(z.string(), z.unknown()),
+    refs: z.record(z.string(), z.unknown()).optional(),
+    facts: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
+export type Scene = z.infer<typeof sceneSchema>;
+
+/** Repeated scene ids, two Scenes on one (step, check) pair, and Checks no Topic has. Whether a recipe exists and builds is scenes.ts's: plain Node cannot load the recipes (the lesson-presets precedent). */
+function sceneProblems(topic: { id: string; scenes?: Scene[]; checks: { id: string }[] }): string[] {
+  const problems: string[] = [];
+  const ids = new Set<string>();
+  const pairs = new Set<string>();
+  for (const s of topic.scenes ?? []) {
+    const where = `Topic "${topic.id}" Scene "${s.id}"`;
+    if (ids.has(s.id)) problems.push(`${where} repeats its id`);
+    ids.add(s.id);
+    if (s.check && !topic.checks.some((c) => c.id === s.check)) problems.push(`${where} names "${s.check}", but the Topic has no Check "${s.check}"`);
+    const pair = `${s.step}/${s.check ?? ""}`;
+    if (pairs.has(pair)) problems.push(`Topic "${topic.id}" has two Scenes for step ${s.step}${s.check ? ` of Check "${s.check}"` : ""}`);
+    pairs.add(pair);
+  }
+  return problems;
+}
+
 /** Problems in a Topic's step settings and found lines: Widgets and Checks that do not exist, and conditions that cannot be met. */
 function stepSettingProblems(topic: {
   steps?: StepSetting[];
@@ -412,6 +480,8 @@ const topicSchema = z.object({
   runningExample: runningExampleSchema.optional(),
   /** The terms the Topic introduces (converted Topics list them). */
   terms: z.array(termSchema).default([]),
+  /** Written-ahead story Widgets for its Teaching Steps (E3), built through their recipes in scenes.ts. */
+  scenes: z.array(sceneSchema).default([]),
   /** The Topic's Skills. A Topic with any is converted: its Concept steps show cards. */
   skills: z.array(skillSchema).default([]),
   /** Question templates its Quick tries and quiz Checks draw from. */
@@ -594,7 +664,7 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
   for (const t of topics) {
     errors.push(...connectionProblems(t, titles));
     if (t.checks.length === 0) errors.push(`Topic "${t.id}" has no Checks`);
-    errors.push(...quizProblems(t), ...insightProblems(t), ...writtenAheadProblems(t), ...revealWidgetProblems(t));
+    errors.push(...quizProblems(t), ...insightProblems(t), ...writtenAheadProblems(t), ...revealWidgetProblems(t), ...sceneProblems(t));
     for (const p of t.prerequisites) {
       if (!byId.has(p)) errors.push(`Topic "${t.id}" requires "${p}", which is not on the Course Map`);
     }
