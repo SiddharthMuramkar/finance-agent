@@ -156,3 +156,20 @@ test("[#313] a strip with steps out of view shows it with a fade, and a plain mo
   await strip.evaluate((ol) => { ol.scrollLeft = ol.scrollWidth; ol.dispatchEvent(new Event("scroll")); });
   await expect(strip).not.toHaveAttribute("data-more-right", "true");
 });
+
+test("[#313] the edge fade follows the strip's content, not only its box (T313-F1)", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "sizes its own viewport");
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await seed(page, "your-turn");
+  await page.goto("/study");
+  const strip = page.getByTestId("topic-bar").locator('ol[aria-label="Steps in this Topic"]');
+  await strip.evaluate((ol) => { ol.scrollLeft = 0; ol.dispatchEvent(new Event("scroll")); });
+  await expect(strip).toHaveAttribute("data-more-right", "true");
+  // The content shrinks to fit while the strip's own box and scroll position stay put (as when the next Topic has
+  // fewer Checks, or a font loads): no scroll event and no resize of the <ol>, yet the fade must go.
+  await page.addStyleTag({ content: '[data-strip-group]:nth-child(n+2) { display: none !important; }' });
+  await expect(strip).not.toHaveAttribute("data-more-right", "true");
+  // And back: the content grows past the box again, so the fade returns.
+  await page.addStyleTag({ content: '[data-strip-group]:nth-child(n+2) { display: flex !important; }' });
+  await expect(strip).toHaveAttribute("data-more-right", "true");
+});

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Topic } from "@/course/map";
 import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from "@/course/navigator";
 import { Emoji } from "@/emoji/emoji";
@@ -103,14 +103,16 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
   // of view with a fade on that edge (data-more-left / data-more-right), and a plain mouse wheel scrolls it sideways
   // while it can still move that way; at an end the wheel is the page's again.
   const [more, setMore] = useState({ left: false, right: false });
+  const measure = useCallback(() => {
+    const ol = list.current;
+    if (!ol) return;
+    const left = ol.scrollLeft > 1;
+    const right = ol.scrollLeft + ol.clientWidth < ol.scrollWidth - 1;
+    setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
+  }, []);
   useEffect(() => {
     const ol = list.current;
     if (!ol) return;
-    const measure = () => {
-      const left = ol.scrollLeft > 1;
-      const right = ol.scrollLeft + ol.clientWidth < ol.scrollWidth - 1;
-      setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
-    };
     const onWheel = (e: WheelEvent) => {
       if (e.shiftKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
       const max = ol.scrollWidth - ol.clientWidth;
@@ -120,17 +122,25 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
       e.preventDefault();
       ol.scrollLeft = next;
     };
-    measure();
     ol.addEventListener("scroll", measure, { passive: true });
     ol.addEventListener("wheel", onWheel, { passive: false });
-    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
-    ro?.observe(ol);
     return () => {
       ol.removeEventListener("scroll", measure);
       ol.removeEventListener("wheel", onWheel);
-      ro?.disconnect();
     };
-  }, []);
+  }, [measure]);
+  // Re-measure whenever the box OR its content changes size: a new strip (the bar stays mounted across Topics), a Tag
+  // that becomes a Chip as a step finishes, a web font loading. Observing the <ol> alone misses those (T313-F1).
+  useEffect(() => {
+    const ol = list.current;
+    if (!ol) return;
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(ol);
+    for (const child of ol.children) ro.observe(child);
+    return () => ro.disconnect();
+  }, [strip, measure]);
   const fade = more.left && more.right
     ? "[mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]"
     : more.left
