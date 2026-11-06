@@ -31,7 +31,7 @@ cases:
       30 June 2019 WeWork had 604,000 workstations and IWG 602,535. In the first half of 2019
       IWG made an operating profit of 50.6 million pounds on revenue of $1.59 billion, and its
       stock market value was $4.45 billion (that figure counts the shares only, not IWG's
-      debt). It is 20 August 2019. You are asked how much WeWork's shares might be worth if
+      debt). It is 20 August 2019. You are asked what traders would say about WeWork's shares if
       investors priced them the way they price its rivals, and what would have to be true for
       a much higher price to hold.
     reveal: >
@@ -75,29 +75,41 @@ youllLearn:
 questions:
   - id: vm-q-apply
     prompt: >
-      Listed companies in a business trade at 2.0 times revenue. A private company in the same business, with similar growth, margins and risk, has revenue of $150 million. What equity value does the relative method suggest?
+      Listed companies in a business trade at 2.0 times revenue. A private company in the same business, with similar growth, margins and risk, has revenue of $150 million. Which headline about its value gets it right?
     choices:
-      - { id: a, text: "$75 million" }
-      - { id: b, text: "$150 million" }
-      - { id: c, text: "$300 million" }
-      - { id: d, text: "$600 million" }
+      - id: a
+        text: "About half its revenue, because a multiple below 1 means a discount"
+        mistake: { tag: multiple_inverted, fix: "A multiple of 2.0 means two times revenue, not half." }
+      - id: b
+        text: "About its revenue, because the multiple only describes the listed companies"
+        mistake: { tag: multiple_not_applied, fix: "The multiple borrowed from comparables is applied to the private company's revenue." }
+      - { id: c, text: "About twice its revenue, and only if the comparables truly resemble the company" }
+      - id: d
+        text: "About four times its revenue, to allow for being private"
+        mistake: { tag: private_premium, fix: "Being private usually calls for a discount. The method uses the same multiple." }
     answer: c
     explanation: >
-      Value = multiple x measure = 2.0 x $150 million = $300 million. The method only works if the comparables really resemble the company being valued.
+      Value = multiple x measure, here 2.0 x $150 million = $300 million. The method only works if the comparables really resemble the company being valued.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation: https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
 
   - id: vm-q-annualised
     prompt: >
-      A company is valued at $6,000 million. Its revenue last year was $300 million, and in the first half of this year it was $200 million. What is the value as a multiple of last year's revenue, and as a multiple of this year's first-half revenue doubled?
+      A fast-growing company has last year's full revenue and only half of this year's so far. Analysts compare its value with revenue. How should they handle the half year?
     choices:
-      - { id: a, text: "20 times, and 15 times" }
-      - { id: b, text: "20 times, and 30 times" }
-      - { id: c, text: "15 times, and 20 times" }
-      - { id: d, text: "20 times, and 10 times" }
+      - { id: a, text: "Scale it up to a full year, and say which revenue the multiple uses" }
+      - id: b
+        text: "Use the half-year revenue as it is, since it is the newest"
+        mistake: { tag: half_year_as_is, fix: "Half a year of revenue is not comparable with a full year. Annualise it first." }
+      - id: c
+        text: "Always use last year's revenue, because newer figures are unreliable"
+        mistake: { tag: stale_revenue, fix: "For a fast-growing firm last year's revenue is stale and makes the multiple look inflated." }
+      - id: d
+        text: "It makes no difference, so no need to say which revenue"
+        mistake: { tag: revenue_unstated, fix: "Different revenue gives different multiples, so say which one you used." }
     answer: a
     explanation: >
-      6,000 / 300 = 20 times last year's revenue. First-half revenue doubled is $400 million, and 6,000 / 400 = 15 times. For a fast-growing company the multiple looks smaller on the newer revenue, so always say which revenue a multiple uses.
+      Half a year is not comparable with a full one, so double it first. For a fast-growing company the multiple looks smaller on the newer revenue: for example, $6,000 million of value is 20 times $300 million of last year's revenue but 15 times $400 million of annualised revenue. Always say which revenue a multiple uses.
     source: >
       Damodaran, Relative Valuation (Investment Valuation, chapter on multiples; Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/multiples.pdf
 

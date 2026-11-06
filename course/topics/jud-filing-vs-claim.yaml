@@ -184,17 +184,17 @@ questions:
 
   - id: jfc-q-ties-out
     prompt: >
-      A writer says marketing fell "from 90% of revenue to 30%". The Learner redoes each ratio from the filing's own marketing and revenue lines, and both percentages match. How should a careful judge mark the claim?
+      Friday 6 March 2026, an hour before a made-up newsletter reaches 40,000 readers. Fact-checker Meera reads: Corvane's marketing fell "from 90% of revenue to 30%". Both figures match the filing. What does she send back?
     choices:
-      - { id: a, text: "As checked: it ties out, and say so" }
-      - { id: b, text: "As a mislabel, because writers always round", mistake: { tag: as_a_mislabel_because_writer, fix: "Matching figures are not a mislabel. Mark a claim that recomputes as checked." } }
-      - { id: c, text: "As more than the text says, because the filing prints no percentages", mistake: { tag: as_more_than_the_text_says_b, fix: "A ratio of two printed lines is an ordinary reading, not an addition." } }
-      - { id: d, text: "As unconfirmed until the writer shows the spreadsheet", mistake: { tag: as_unconfirmed_until_the_wri, fix: "The filing's own lines settle it. No spreadsheet is needed." } }
+      - { id: a, text: "\"Checked, it matches the filing. Run it.\"" }
+      - { id: b, text: "\"Hold it. Writers always round, so something must be off.\"", mistake: { tag: assumed_rounding_means_error, fix: "Matching figures leave nothing to fix. A line that traces back gets marked checked." } }
+      - { id: c, text: "\"Cut it. The filing never prints those percentages.\"", mistake: { tag: ratio_seen_as_invented, fix: "Setting marketing against revenue is a fair reading of two printed lines, not an invention." } }
+      - { id: d, text: "\"Hold it until the writer sends me the spreadsheet.\"", mistake: { tag: asked_for_proof_already_held, fix: "The filing's own lines settle it. Once they match, no spreadsheet is needed." } }
     answer: a
     explanation: >
-      Each percentage is an expense divided by that quarter's revenue, and both match. A claim that recomputes should be marked as checked; the writer's percentages are an ordinary way to read two lines of the filing.
+      Each percentage sets Corvane's marketing line against its revenue line for the same period, and both match the filing. A claim that traces back should be marked as checked, and saying so is as much part of fair judging as catching a slip.
     source: >
-      SEC Office of the Advocate for Small Business Capital Formation, "What is an income statement?" (revenue and expense lines; a ratio to revenue is expense divided by revenue): https://www.sec.gov/files/income-statement-building-blocks.pdf
+      SEC Office of the Advocate for Small Business Capital Formation, "What is an income statement?" (revenue and expense lines; a ratio to revenue is expense divided by revenue): https://www.sec.gov/files/income-statement-building-blocks.pdf ; Meera, the newsletter and Corvane are made up.
   - id: jfc-q-ttm
     prompt: >
       Halloran Inc. reports a full year 2025, the first half of 2025 and the first half of 2026. Analysts call revenue for the latest twelve months "trailing twelve months". Which pieces make up Halloran's twelve months to 30 June 2026?
@@ -266,17 +266,17 @@ questions:
 
   - id: jfc-q-ratio-vs-change
     prompt: >
-      A filing shows annual revenue of 200 one year and 700 the next. A writer says revenue "grew 350%". What do you find?
+      Thursday 14 May 2026, 8 pm; reporter Tomás files at 9. A made-up firm's filing says revenue rose from $200m to $700m, "3.5 times last year". The headline reads "Revenue grew 350%". What should he say?
     choices:
-      - { id: a, text: "A slip: 350% is the ratio of the two amounts, while growth counts only the extra on top, which is less" }
-      - { id: b, text: "It ties out: a ratio and a growth rate are the same thing", mistake: { tag: it_ties_out_a_ratio_and_a_gr, fix: "They are not. The ratio is the whole new figure; growth is only the extra." } }
-      - { id: c, text: "A period mismatch: the years should not be compared", mistake: { tag: a_period_mismatch_the_years, fix: "Both figures are annual. The slip is between a ratio and a change." } }
-      - { id: d, text: "More than the text says: the filing never mentions growth", mistake: { tag: more_than_the_text_says_the, fix: "The filing's two figures give the growth. The writer read it as a ratio." } }
+      - { id: a, text: "\"Make it '3.5 times last year'. 'Grew 350%' claims a bigger jump.\"" }
+      - { id: b, text: "\"Run it. 'Times' and 'grew by a percent' mean the same.\"", mistake: { tag: multiple_read_as_growth, fix: "'Times' sets the whole new figure against the old; 'grew' counts only the extra on top." } }
+      - { id: c, text: "\"Drop it. Two different years should never be compared.\"", mistake: { tag: year_on_year_seen_as_mismatch, fix: "Comparing this year with last year is what growth means. Only the wording slipped." } }
+      - { id: d, text: "\"Cut the figure. The filing never talks about growth.\"", mistake: { tag: growth_seen_as_beyond_text, fix: "Two years of revenue is what growth is read from. Keep the figure, fix the word." } }
     answer: a
     explanation: >
-      Growth is the change divided by the starting value, 500 / 200 = 2.5, or 250%. The figure 350% is the ratio of the two amounts (700 is 350% of 200), not the increase. Reading a ratio as a change is a frequent slip.
+      "3.5 times" sets the whole new revenue against the old. "Grew 350%" would count only the extra on top, so it describes a bigger jump than the filing shows. The safe headline keeps the filing's own comparison: a multiple stays a multiple.
     source: >
-      OpenStax, Prealgebra 2e (CC BY 4.0), 6.2 Solve General Applications of Percent, percent increase (the amount of increase as a percent of the original amount): https://openstax.org/books/prealgebra-2e/pages/6-2-solve-general-applications-of-percent
+      OpenStax, Prealgebra 2e (CC BY 4.0), 6.2 Solve General Applications of Percent, percent increase (the amount of increase as a percent of the original amount): https://openstax.org/books/prealgebra-2e/pages/6-2-solve-general-applications-of-percent ; Tomás, his editor and the firm are made up.
 
 checks:
   - id: jfc-quiz-judging
