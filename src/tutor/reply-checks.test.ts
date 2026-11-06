@@ -439,6 +439,21 @@ describe("V8: no sum asked of the Learner", () => {
     expect(dropSumAsks(reply)).toBe("Infosys earned ₹30 profit on ₹100 of sales.");
   });
 
+  // T1: a lingo ask stays a lingo ask in a reply that gives numbers (a %, a date, "Check 1").
+  it.each([
+    "RBI held the repo rate at 6.5%.\nWhat is a yield?",
+    "RBI held the repo rate at 6.5% in June 2024.\nWhat is a margin?",
+    "That is Check 1 done.\nWhat is the difference between the repo rate and the reverse repo rate?",
+  ])("leaves a lingo ask alone in a reply that gives numbers: %s", (reply) => {
+    expect(sumAsked(reply)).toBeNull();
+    expect(v8s(reply)).toEqual([]);
+    expect(dropSumAsks(reply)).toBe(reply);
+  });
+
+  it("still finds a figure asked of the story in a reply that gives the numbers", () => {
+    expect(sumAsked("Infosys earned 30 on 100 of sales. What is its margin?")).toBe("What is its margin");
+  });
+
   it("leaves a words question for a figure alone when the reply gives no numbers", () => {
     const reply = "Infosys sells software and keeps part of each sale as profit.\nWhat is its margin telling you about the business?";
     expect(sumAsked(reply)).toBeNull();

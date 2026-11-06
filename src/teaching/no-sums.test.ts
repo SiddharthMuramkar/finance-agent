@@ -65,6 +65,24 @@ describe("sumAsk", () => {
   it("reads a figure asked for with no digit as a sum when its message gives numbers (V8's context)", () => {
     expect(sumAsk("What is its margin?")).toBeNull();
     expect(sumAsk("What is its margin?", { numbers: true })).toBe("What is its margin");
-    expect(sumAsk("What do traders call this move?", { numbers: true })).toBeNull();
+    expect(sumAsk("What is the margin here?", { numbers: true })).toBe("What is the margin");
+  });
+
+  // T1: a lingo ask names a word, not a figure, so numbers elsewhere in the message don't make it a sum.
+  it.each([
+    "What is a yield?",
+    "What is a margin?",
+    "What's an operating margin, in plain words?",
+    "What is the difference between the repo rate and the reverse repo rate?",
+    "What does the yield mean here?",
+  ])("passes a lingo ask whose message gives numbers: %s", (text) => {
+    expect(sumAsk(text, { numbers: true })).toBeNull();
+  });
+
+  it.each([
+    ["What is its margin?", "What is its margin"],
+    ["What is the difference between its revenue and its costs?", "What is the difference"],
+  ])("still reads a figure asked of the story as a sum when its message gives numbers: %s", (text, phrase) => {
+    expect(sumAsk(text, { numbers: true })).toBe(phrase);
   });
 });

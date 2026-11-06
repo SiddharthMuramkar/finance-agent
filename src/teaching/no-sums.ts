@@ -58,6 +58,15 @@ const QUANTITY_ASK = new RegExp(
 );
 const HAS_NUMBER = /\d/;
 
+/**
+ * A lingo ask names a word rather than a figure: "What is a yield?", "What does the yield mean?", "What is the difference
+ * between the repo rate and the reverse repo rate?". It points at nothing in the story ("its", "their", "Infosys's"), so
+ * numbers elsewhere in the message don't turn it into a sum. Only used when the context, not the ask, gives the numbers.
+ */
+const DEFINITION_ASK = /\bwhat(?:['’]s|\s+is|\s+are)\s+an?\s|\bwhat\s+(?:does|do)\b[^.?!]*\bmean\b|\bdifference\s+between\b/i;
+const STORY_REFERENCE = /\b(?:its|their|his|her|our)\b|\b(?!(?:what|it|that|there|here|let|who|where|how|he|she)['’]s\b)\w+['’]s\b/i;
+const lingoAsk = (sentence: string) => DEFINITION_ASK.test(sentence) && !STORY_REFERENCE.test(sentence);
+
 const HOW_MANY = /\bhow\s+(?:much|many)\b/i;
 
 /** What the text sits in. `numbers`: the message it belongs to gives numbers, even if `text` itself has none. */
@@ -66,7 +75,7 @@ export type SumAskContext = { numbers?: boolean };
 /**
  * The phrase that makes `text` ask for a sum, or null when it asks a story or lingo question. V8 reads a reply one ask
  * sentence at a time, so it passes `{ numbers: true }` when the reply's statements give numbers ("Infosys earned ₹30 on
- * ₹100 of sales. What is its margin?"): pattern 8 then fires on the ask alone.
+ * ₹100 of sales. What is its margin?"): pattern 8 then fires on the ask alone, unless the ask is lingo ("What is a yield?").
  */
 export function sumAsk(text: string, context: SumAskContext = {}): string | null {
   for (const pattern of ANYWHERE) {
@@ -79,9 +88,12 @@ export function sumAsk(text: string, context: SumAskContext = {}): string | null
     if (hit && UNIT_WORD.test(sentence)) return hit[0];
   }
   // 8. A question for a figure ("What is its operating margin?") in text, or a message, that gives numbers to work it out from.
-  if (context.numbers || HAS_NUMBER.test(text)) {
+  // When only the message gives the numbers, a lingo ask ("What is a yield?") stays a lingo ask.
+  const ownNumbers = HAS_NUMBER.test(text);
+  if (context.numbers || ownNumbers) {
     for (const sentence of text.split(/(?<=[.?!])\s+/)) {
       if (!sentence.includes("?")) continue;
+      if (!ownNumbers && lingoAsk(sentence)) continue;
       const hit = QUANTITY_ASK.exec(sentence);
       if (hit) return hit[0];
     }
