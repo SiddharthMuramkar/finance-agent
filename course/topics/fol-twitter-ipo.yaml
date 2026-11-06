@@ -71,25 +71,25 @@ youllLearn:
 questions:
   - id: ftw-q-proceeds
     prompt: >
-      Twitter set a price range of $17 to $20 a share for 70 million shares, with an option to sell 10.5 million more. A headline gives the most the listing could raise. Which shares, at which price, is that headline counting?
+      28 October 2013: Damodaran notes Twitter plans to sell 70 million shares at $17 to $20, with an option for 10.5 million more. A headline gives the most it could raise. Which figures is it using?
     choices:
-      - { id: a, text: "The bottom of the price range on the main block of shares", mistake: { tag: used_low_end, fix: "That is the bottom of the range. The most uses the top price and the extra shares." } }
-      - { id: b, text: "The top of the price range on the main block, with the extra option left out", mistake: { tag: left_out_option, fix: "That has the top price but leaves out the extra shares on offer." } }
-      - { id: c, text: "The top of the price range on every share on offer, the main block plus the extra option" }
-      - { id: d, text: "A price above the range, because demand can push it higher", mistake: { tag: above_range, fix: "The announced range is the plan. The headline maximum uses its top, not a hope above it." } }
+      - { id: a, text: "The bottom of the range on the main block of shares", mistake: { tag: used_low_end, fix: "That gives the least. The most uses the top price on every share on offer." } }
+      - { id: b, text: "The top of the range on the main block only", mistake: { tag: left_out_option, fix: "Right price, but the 10.5 million extra shares are left out." } }
+      - { id: c, text: "The top of the range on every share, extra option included" }
+      - { id: d, text: "A price above the range, since demand may push it up", mistake: { tag: above_range, fix: "The headline uses the announced range. A hoped-for higher price is not in it." } }
     answer: c
     explanation: >
-      The most it can raise uses the highest price in the range on the most shares on offer: the main block plus the extra option. The bottom of the range on the main block gives the least.
+      The most the listing can raise uses the highest price in the range on the most shares on offer: the main block plus the extra option. The bottom of the range on the main block gives the least.
     source: >
       Arithmetic as in Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets,
       28 October 2013 (shares x price at each end of the range, with and without the extra option).
   - id: ftw-q-owners-cost
     prompt: >
-      Suppose Twitter's bankers price the listing a little below fair value, as bankers often do. Twitter is selling only a small slice of the company to the public. What do its existing owners actually give up?
+      October 2013: Twitter is selling only a small slice of the company to the public. Say its bankers price the listing a bit below fair value, as bankers often do. What do Twitter's existing owners give up?
     choices:
-      - { id: a, text: "The discount applied to the whole company", mistake: { tag: discount_on_whole, fix: "The discount applies only to the shares sold, not to the whole company." } }
-      - { id: b, text: "The full worth of the shares sold, as if they were given away", mistake: { tag: gave_away_all, fix: "Buyers still pay most of what those shares are worth. Owners lose only the discount." } }
-      - { id: c, text: "Only the discount, and only on the part of the company that was sold" }
+      - { id: a, text: "The discount on the whole company", mistake: { tag: discount_on_whole, fix: "The discount applies only to the shares sold, not to the whole company." } }
+      - { id: b, text: "The full worth of the shares sold", mistake: { tag: gave_away_all, fix: "Buyers still pay most of what those shares are worth. Owners lose only the discount." } }
+      - { id: c, text: "Only the discount, and only on the slice sold" }
       - { id: d, text: "Nothing, because the buyers paid a price", mistake: { tag: cost_ignored, fix: "A discount is a real cost to the owners, even if small beside the whole company." } }
     answer: c
     explanation: >
@@ -99,38 +99,29 @@ questions:
       (underpricing costs the owners only on the part sold).
   - id: ftw-q-underwriting-skew
     prompt: >
-      Damodaran asks what Twitter's bankers were doing when they set the range. Bankers who
-      underwrite a listing guarantee that all the shares will be sold at the agreed offer price.
-      Why does that promise push them towards a lower price?
+      28 October 2013: Damodaran asks what Twitter's bankers are up to. They "underwrite" the listing, guaranteeing every share sells at the offer price. Why does that promise push them to price low?
     choices:
-      - { id: a, text: "A price set above what buyers will pay leaves the bank holding unsold shares at a loss, while a price set a little low costs it little" }
-      - { id: b, text: "Regulators require the offer price to be below the company's book value" }
-      - { id: c, text: "Lower prices raise the bank's percentage fee" }
-      - { id: d, text: "Banks are paid only when the share price falls" }
+      - { id: a, text: "Too high leaves them stuck with unsold shares; a bit low costs little" }
+      - { id: b, text: "Regulators make offer prices sit below book value", mistake: { tag: regulator_rule, fix: "No rule ties the offer to book value. The bank's own guarantee drives it." } }
+      - { id: c, text: "A lower price raises the bank's percentage fee", mistake: { tag: fee_rises, fix: "A percentage fee shrinks with a lower price. The guarantee is what pulls the price down." } }
+      - { id: d, text: "Banks get paid only when the share price falls", mistake: { tag: paid_on_fall, fix: "Banks earn a fee on the sale. They gain nothing from a falling price." } }
     answer: a
     explanation: >
-      With the guarantee, the bank bears the loss if it cannot place the shares at the agreed price.
-      Setting the price too high is costly to the bank; setting it somewhat low is cheap, and it also
-      makes the offering easy to sell. This skew is one reason offerings tend to be priced below what
-      the first buyers then pay.
+      With the guarantee, the bank bears the loss if it cannot place the shares at the agreed price. Setting the price too high is costly to the bank; setting it somewhat low is cheap, and it also makes the offering easy to sell. This skew is one reason offerings tend to be priced below what the first buyers then pay.
     source: >
       Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets, 28 October
       2013 ("the underwriting skew").
   - id: ftw-q-close-values
     prompt: >
-      Damodaran's value for Twitter was $17.84 a share, and the bankers' range was $17 to $20. He
-      refused to read the match as proof that he was right. What does the closeness of the two
-      really tell you?
+      October 2013: Damodaran values Twitter at $17.84 a share, and the bankers' range is $17 to $20. Your friend cheers: "His model is proven!" Damodaran disagrees. What does the match really tell you?
     choices:
-      - { id: a, text: "That the model is confirmed, since the market agrees with it" }
-      - { id: b, text: "Very little by itself: the range is set from demand and the bankers' reading of buyers, so the match may be coincidence" }
-      - { id: c, text: "That the offering will be sold below its true value" }
-      - { id: d, text: "That the company's cash flows are certain" }
+      - { id: a, text: "The model is confirmed, since the market agrees with it", mistake: { tag: match_proves, fix: "Bankers set the range by testing demand, not from his model, so a match proves little." } }
+      - { id: b, text: "Very little: the range reflects demand, so the match may be luck" }
+      - { id: c, text: "The shares will be sold below their true value", mistake: { tag: match_means_discount, fix: "A match between his value and the range says nothing about a discount either way." } }
+      - { id: d, text: "Twitter's future cash flows are now certain", mistake: { tag: match_means_certain, fix: "No price range makes cash flows certain. Value rests on a story about the future." } }
     answer: b
     explanation: >
-      A value comes from a story about growth, margins and risk; an offer price comes from bankers
-      testing demand. They can coincide by chance, so agreement is not a test of the model, and a
-      gap between them would not by itself prove either is wrong.
+      A value comes from a story about growth, margins and risk; an offer price comes from bankers testing demand. They can coincide by chance, so agreement is not a test of the model, and a gap between them would not by itself prove either is wrong.
     source: >
       Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets, 28 October
       2013 (price versus value).

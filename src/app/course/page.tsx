@@ -1,10 +1,11 @@
 import { isConverted, loadCourseMap } from "@/course/map";
 import { courseOverview, whatComesNext } from "@/course/navigator";
-import { currentLearnerId } from "@/auth/session";
+import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { parkedSkills } from "@/learner/skill-state";
 import { topicSessions } from "@/tutor/session-log";
+import { accountFor } from "../account";
 import { readTheme } from "../theme-cookie";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { CourseMapView } from "./course-map-view";
@@ -16,14 +17,15 @@ export const dynamic = "force-dynamic";
 export default async function CourseMapPage() {
   const map = loadCourseMap();
   const db = getDb();
-  const learnerId = await currentLearnerId();
+  const learner = await signedInLearner();
+  const learnerId = learner.id;
   const [progress, sessions, theme] = await Promise.all([loadProgress(db, learnerId), topicSessions(db, learnerId), readTheme()]);
   // Only converted Topics have Skill state; with none, the skill_state table is never read.
   const parked = await parkedSkills(db, learnerId, map.topics.filter(isConverted).map((t) => t.id));
   const next = whatComesNext(map, progress);
   return (
     <SignedInFrame>
-      <ReadingPage current="course" theme={theme}>
+      <ReadingPage current="course" theme={theme} account={await accountFor(db, learner)}>
         <CourseMapView
           topics={courseOverview(map, progress, parked)}
           coming={map.coming}

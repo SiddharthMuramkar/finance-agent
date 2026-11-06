@@ -63,12 +63,12 @@ youllLearn:
 questions:
   - id: fsv-q-riskfree
     prompt: >
-      After the Moody's cut, Damodaran asks whether a government bond's yield is still all riskfree. Part of it may be a default spread, the extra the market charges in case the government fails to pay. An analyst agrees and needs a riskfree rate for her valuations. What should she do with the yield?
+      After Moody's cut the US on 16 May 2025, Damodaran says a Treasury yield may hold a "default spread", the charge for default risk. Your aunt values firms. Which riskfree rate should she use?
     choices:
-      - { id: a, text: "Take the default spread off the yield: what is left is the riskfree rate" }
-      - { id: b, text: "Use the yield as quoted, because a government bond is riskfree", mistake: { tag: yield_as_riskfree, fix: "Part of the yield pays for default risk, so the quoted yield is not riskfree." } }
-      - { id: c, text: "Add the spread to the yield, to be safe", mistake: { tag: added_spread, fix: "Adding the spread counts default risk twice. It has to come off." } }
-      - { id: d, text: "Use the spread on its own as the riskfree rate", mistake: { tag: spread_as_rate, fix: "The spread is only the default part. The riskfree rate is what is left of the yield." } }
+      - { id: a, text: "The yield with the default spread taken off" }
+      - { id: b, text: "The yield as quoted, since Treasuries are riskfree", mistake: { tag: yield_as_riskfree, fix: "Part of the yield pays for default risk, so the quoted yield is not riskfree." } }
+      - { id: c, text: "The yield plus the spread, to be safe", mistake: { tag: added_spread, fix: "Adding the spread counts default risk twice. It has to come off." } }
+      - { id: d, text: "The default spread on its own", mistake: { tag: spread_as_rate, fix: "The spread is only the default part. The riskfree rate is what is left of the yield." } }
     answer: a
     explanation: >
       The bond yield is the riskfree rate plus the default spread, so the riskfree rate is the yield with the spread taken off. Adding the spread would count default risk twice.
@@ -77,12 +77,12 @@ questions:
       Musings on Markets, 2 June 2025 (riskfree rate = government bond rate minus default spread).
   - id: fsv-q-erp
     prompt: >
-      After the Moody's cut, an analyst lowers her riskfree rate a little, because she takes the default spread out of the Treasury yield. Stock prices stay where they are. What happens to the equity risk premium she measures, and to the stock market's expected return?
+      June 2025: your aunt trims her riskfree rate a little, taking the default spread out of the Treasury yield. Stock prices don't move. What happens to the equity risk premium she measures?
     choices:
-      - { id: a, text: "The premium widens; the expected return stays put, since prices set it" }
-      - { id: b, text: "The premium narrows, because the riskfree rate fell", mistake: { tag: premium_narrows, fix: "The premium is the expected return minus the riskfree rate. A lower riskfree rate widens it." } }
-      - { id: c, text: "The premium widens and the expected return rises with it", mistake: { tag: return_moves_too, fix: "The expected return is what prices imply. Only its split between riskfree rate and premium moves." } }
-      - { id: d, text: "The premium stays put and the expected return falls", mistake: { tag: premium_fixed, fix: "Prices set the expected return, so it holds. The premium is what absorbs the change." } }
+      - { id: a, text: "It widens; the market's expected return stays put" }
+      - { id: b, text: "It narrows, because the riskfree rate fell", mistake: { tag: premium_narrows, fix: "The premium is the expected return minus the riskfree rate. A lower riskfree rate widens it." } }
+      - { id: c, text: "It widens, and the expected return rises with it", mistake: { tag: return_moves_too, fix: "Prices set the expected return, so it holds. Only its split between the two parts moves." } }
+      - { id: d, text: "It stays put, and the expected return falls", mistake: { tag: premium_fixed, fix: "Prices set the expected return, so it holds. The premium is what absorbs the change." } }
     answer: a
     explanation: >
       The premium is the expected return minus the riskfree rate, so a lower riskfree rate widens it. The expected return is what stock prices imply, so it does not change; only how it is split between riskfree rate and premium does.
@@ -91,35 +91,30 @@ questions:
       Musings on Markets, 2 June 2025 (premium measured against the adjusted riskfree rate).
   - id: fsv-q-grade-line
     prompt: >
-      Moody's moved the United States from Aaa to Aa1, still far inside "investment grade". Where on Moody's long-term scale does investment grade end?
+      16 May 2025: Moody's cuts the US from Aaa to Aa1. Your uncle panics at dinner: "Is America junk now?" What do you tell him?
     choices:
-      - { id: a, text: "Baa3" }
-      - { id: b, text: "Baa1" }
-      - { id: c, text: "Ba1" }
-      - { id: d, text: "A3" }
+      - { id: a, text: "No: Aa1 is the second-best grade; junk starts below Baa3" }
+      - { id: b, text: "Yes: losing the top grade makes it junk", mistake: { tag: top_or_junk, fix: "Junk starts only below Baa3. Aa1 is still the second-best grade." } }
+      - { id: c, text: "Almost: Aa1 is the last grade before junk", mistake: { tag: aa1_last_investment, fix: "The A and Baa grades all sit below Aa1. Junk starts at Ba1." } }
+      - { id: d, text: "No, because a government can never be rated junk", mistake: { tag: sovereigns_never_junk, fix: "Agencies do rate some governments junk. America is just far above that line." } }
     answer: a
     explanation: >
-      Moody's investment grades run from Aaa down to Baa3. Ba1 is the first speculative (non-investment)
-      grade. Baa1 and Baa2 are still investment grade.
+      Moody's investment grades run from Aaa down to Baa3. Ba1 is the first speculative (non-investment, or junk) grade. Aa1 is the second-highest grade, so America is nowhere near junk.
     source: >
       Moody's, global rating scale, "Understanding Ratings"
       (https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html) and the
       Moody's global scale reference card (https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf).
   - id: fsv-q-surprise
     prompt: >
-      Damodaran points out that Moody's warns before it cuts, by putting a borrower on "negative
-      outlook". Suppose a one-grade cut comes some months after such a warning. Why is the price
-      reaction likely to be smaller than if the same cut had come out of the blue?
+      Long before its 16 May 2025 cut, Moody's had put the US on "negative outlook". Damodaran says that took away the surprise. Why does a cut that follows a warning move prices less?
     choices:
-      - { id: a, text: "Investors had already priced in a likely cut when the outlook turned negative" }
-      - { id: b, text: "A one-grade cut never changes default risk" }
-      - { id: c, text: "Bond prices only react to the borrower's own announcements" }
-      - { id: d, text: "Outlooks are legally binding on the agency" }
+      - { id: a, text: "Investors priced in a likely cut when the warning came" }
+      - { id: b, text: "A one-grade cut never changes default risk", mistake: { tag: cut_changes_nothing, fix: "A cut does signal a bit more risk. The warning had already moved prices." } }
+      - { id: c, text: "Bond prices react only to the borrower's own news", mistake: { tag: own_news_only, fix: "Prices react to any news about default risk, including an agency's warning." } }
+      - { id: d, text: "Outlooks legally bind the agency to cut", mistake: { tag: outlook_binding, fix: "An outlook is an opinion, not a promise. Prices move because it is news." } }
     answer: a
     explanation: >
-      Prices move on news. An outlook change tells investors a cut is possible, so part of the
-      effect arrives then, and the cut itself adds less. Choice b is too strong: a cut does signal
-      somewhat higher risk, only not by much for a single grade at the top of the scale.
+      Prices move on news. An outlook change tells investors a cut is possible, so part of the effect arrives then, and the cut itself adds less. A cut does signal somewhat higher risk, only not by much for a single grade at the top of the scale.
     source: >
       Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!",
       Musings on Markets, 2 June 2025 (lack of surprise: Moody's discloses outlooks before changes).
