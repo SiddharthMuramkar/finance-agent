@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { say, seed, settled, type Script, type State } from "./support/app";
+import { replyLanded, say, seed, type Script, type State } from "./support/app";
 
 /**
  * A Widget with every reply (spec 2026-11-05, E4a, §6.2 "Widget on 100 % of replies (scripted)"): six scripted
@@ -12,16 +12,15 @@ test.beforeEach(async ({}, info) => {
   test.skip(info.project.name !== "mbp14", "measured at 1512×982");
 });
 
-/** Seeds the state, opens the Study Workspace and waits for the Topic's opener, so it is not counted as a reply below. */
+/**
+ * Seeds the state, opens the Study Workspace and waits for the Topic's opener to land, its Widget with it, so neither
+ * is counted as a reply's below (main CI run 42251293052 read the chips while the opener was still running).
+ */
 async function study(page: Page, state: State | "reveal") {
   await seed(page, state as State);
   await page.goto("/study");
   await expect(page.getByTestId("workspace-frame")).toBeVisible();
-  await settled(page);
-  if ((await page.getByTestId("assistant-message").count()) === 0) {
-    await expect(page.getByTestId("assistant-message")).not.toHaveCount(0, { timeout: 30_000 }).catch(() => {});
-    await settled(page);
-  }
+  await replyLanded(page);
 }
 
 const chipNames = async (page: Page) => page.getByTestId("widget-chip").evaluateAll((els) => els.map((e) => e.getAttribute("title") ?? e.textContent ?? ""));

@@ -43,18 +43,33 @@ export async function script(page: Page, name: Script) {
 /** Sends `text` in the Study Workspace with the scripted Tutor set to `name`, and waits for the reply to finish. */
 export async function say(page: Page, name: Script, text: string) {
   await script(page, name);
-  // The Study Workspace may still be playing the Topic's opener: wait until no reply is being written.
+  // The Study Workspace may still be playing the Topic's opener, or not have started it yet: let it land first, so it
+  // is not counted as ours. A page with no reply and no opener goes on after the wait, as it always did.
+  await replyLanded(page).catch(() => {});
   await settled(page);
-  // An empty Session starts its opener once the page hydrates, which can come after the page looks quiet (a slow
-  // CPU or a cold dev compile on CI). Wait for the opener's reply to land first, so it is not counted as ours.
-  if ((await page.getByTestId("assistant-message").count()) === 0) {
-    await expect(page.getByTestId("assistant-message")).not.toHaveCount(0, { timeout: 30_000 }).catch(() => {});
-    await settled(page);
-  }
   const before = await page.getByTestId("assistant-message").count();
   await page.getByRole("textbox", { name: "Message" }).fill(text);
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(page.getByTestId("assistant-message")).toHaveCount(before + 1, { timeout: 30_000 });
+  await settled(page);
+}
+
+/**
+ * Waits until a Tutor reply has landed: one is on the page and no turn is running, both read in one look at the page.
+ * An empty Session starts its opener once the page hydrates, which can come after the page looks quiet (a slow CPU or
+ * a cold dev compile on CI), and the opener draws its reply line, still empty, the moment it starts. So "no Stop" read
+ * at one moment and "a reply is there" read at the next can be an opener that started in between and is still running,
+ * its Widget not in yet (main CI run 42251293052). Then waits for the page's own re-read after the turn.
+ */
+export async function replyLanded(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const on = (testId: string) => document.querySelector(`[data-testid="${testId}"]`) !== null;
+      return on("assistant-message") && !on("stop-reply") && !on("writing-indicator");
+    },
+    null,
+    { timeout: 30_000, polling: 50 },
+  );
   await settled(page);
 }
 
