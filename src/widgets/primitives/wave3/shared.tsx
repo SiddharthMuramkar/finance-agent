@@ -41,3 +41,15 @@ export function isAfter(a: string, b: string): boolean {
   const pad = (s: string) => `${s.trim()}${"0000-01-01".slice(s.trim().length)}`;
   return pad(a) > pad(b);
 }
+
+const LONG_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** "1994-02-03" as "3 February 1994" (the front page's date line); a bare year or month stays as written; null if not a date. */
+export function longDayLabel(iso: unknown): string | null {
+  if (typeof iso !== "string") return null;
+  const m = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/.exec(iso.trim());
+  if (!m) return null;
+  const month = m[2] ? LONG_MONTHS[Number(m[2]) - 1] : undefined;
+  if (m[2] && !month) return null;
+  return [m[3] ? String(Number(m[3])) : undefined, month, m[1]].filter(Boolean).join(" ");
+}

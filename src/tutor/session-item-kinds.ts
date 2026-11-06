@@ -65,3 +65,12 @@ export const QUICK_TRY_RESULT = "quick_try_result";
 
 /** A Quick try result's data. The line is "Right.", the Known mistake's fix, or "Not quite.". */
 export type QuickTryResultData = { key: string; verdict: "right" | "known_mistake" | "wrong"; line: string };
+
+/**
+ * The kind of a reply's Choices (spec 2026-11-05, D3a): the two or three tap-to-answer buttons code puts under every
+ * Tutor reply, stored after it so a reload draws the same ones and a press can be resolved on the server.
+ */
+export const REPLY_CHOICES = "reply_choices";
+
+/** A reply's Choices: what each button reads, the words its press posts, and its decorative emoji's registry name. */
+export type ReplyChoicesData = { choices: { id: string; label: string; says: string; emoji: string }[]; dropped?: string };

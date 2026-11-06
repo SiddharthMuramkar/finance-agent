@@ -2,11 +2,15 @@
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { byId, click, draw, key, stubReducedMotion, type Page } from "../wave1/test-kit";
+import { ChoiceCardsView } from "./choice-cards";
+import { HeadlineView } from "./headline";
 import { LingoCardView } from "./lingo-card";
 import { MoneyJarView } from "./money-jar";
+import { MythOrFactView } from "./myth-or-fact";
 import { StorySceneView } from "./story-scene";
 import { TimelineStripView } from "./timeline-strip";
 import { TwoPathsView } from "./two-paths";
+import { WhoPaysWhomView } from "./who-pays-whom";
 
 // Story parts (wave 3), ticket E2a: each part's behaviour, reduced motion and keyboard.
 
@@ -48,6 +52,39 @@ const paths = (
   />
 );
 const jar = <MoneyJarView label="Savings" start={3} end={6} unit="coin" words="about twice as full" each="each coin is ₹1 lakh" />;
+
+const payers = (
+  <WhoPaysWhomView
+    actors={[
+      { id: "bank", emoji: "bank", name: "The bank" },
+      { id: "saver", emoji: "woman", name: "The saver" },
+    ]}
+    flows={[
+      { from: "bank", to: "saver", what: "interest", emoji: "money-bag" },
+      { from: "saver", to: "bank", what: "a deposit", emoji: "coin" },
+    ]}
+  />
+);
+const cards = [
+  { claim: "Bond prices fall when rates rise.", isFact: true, why: "Old bonds pay less than new ones.", emoji: "chart-decreasing" },
+  { claim: "A bank never fails.", isFact: false, why: "Some banks have failed." },
+];
+const MythOrFactTest = ({ picks = [] as (string | null)[], onPick = () => {} }) => <MythOrFactView cards={cards} picks={picks} onPick={onPick} />;
+const myth = <MythOrFactTest />;
+const headline = <HeadlineView paper="The Daily Ledger" date="1994-02-03" headline="Central bank lifts rates for the first time in five years" deck="Bond traders were caught off guard." source="https://example.com/1994" />;
+const choiceCards = (picked: string | null, onPick: (id: string) => void = () => {}) => (
+  <ChoiceCardsView
+    question="Why did the bonds lose value?"
+    choices={[
+      { id: "a", text: "Rates rose", emoji: "chart-increasing" },
+      { id: "b", text: "Rates fell", fix: "When rates fall, old bonds gain value." },
+    ]}
+    answer="a"
+    picked={picked}
+    onPick={onPick}
+  />
+);
+const choice = choiceCards(null);
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame"] });
@@ -151,6 +188,91 @@ describe("MoneyJar", () => {
   });
 });
 
+describe("WhoPaysWhom", () => {
+  it("lists one li per flow, as the screen-reader text", () => {
+    show(payers);
+    const items = [...page!.host.querySelectorAll("ol li")];
+    expect(items).toHaveLength(2);
+    expect(items[0].textContent).toBe("The bank pays the saver: interest");
+  });
+
+  it("each row carries a visible Replay cue", () => {
+    show(payers);
+    const cues = [...page!.host.querySelectorAll('[data-testid="flow-replay"]')];
+    expect(cues).toHaveLength(2);
+    expect(cues[0].textContent).toContain("Replay");
+  });
+
+  it("a tap on a flow replays it", () => {
+    show(payers);
+    const flow = page!.host.querySelector<HTMLElement>('[data-testid="flow"]')!;
+    const before = flow.getAttribute("data-run");
+    click(flow);
+    expect(flow.getAttribute("data-run")).not.toBe(before);
+  });
+
+  it("says what is wrong when a flow names an actor that is not there", () => {
+    show(<WhoPaysWhomView actors={[{ id: "a", emoji: "bank", name: "Bank" }, { id: "b", emoji: "man", name: "Man" }]} flows={[{ from: "a", to: "zzz", what: "x", emoji: "coin" }]} />);
+    expect(byId(page!, "who-pays-whom-problem")).not.toBeNull();
+  });
+});
+
+describe("MythOrFact", () => {
+  it("a tap on Myth for a fact card shows Fact and the why", () => {
+    const onPick = vi.fn();
+    show(<MythOrFactTest onPick={onPick} />);
+    click(page!.host.querySelectorAll<HTMLElement>('[data-testid="myth-button"]')[0]);
+    expect(onPick).toHaveBeenCalledWith(0, "myth");
+    page!.cleanup();
+    show(<MythOrFactTest picks={["myth", null]} />);
+    const first = page!.host.querySelectorAll<HTMLElement>('[data-testid="myth-card"]')[0];
+    expect(first.dataset.verdict).toBe("wrong");
+    expect(first.textContent).toContain("Fact");
+    expect(first.textContent).toContain("Old bonds pay less than new ones.");
+  });
+
+  it("a right pick is mint, and the second card stays open", () => {
+    show(<MythOrFactTest picks={["myth", "myth"]} />);
+    const all = [...page!.host.querySelectorAll<HTMLElement>('[data-testid="myth-card"]')];
+    expect(all.map((c) => c.dataset.verdict)).toEqual(["wrong", "right"]);
+  });
+});
+
+describe("Headline", () => {
+  it("renders the date in full and links the source", () => {
+    show(headline);
+    expect(text()).toContain("3 February 1994");
+    expect(text()).toContain("The Daily Ledger");
+    const link = page!.host.querySelector<HTMLAnchorElement>("a")!;
+    expect(link.textContent).toBe("Source");
+    expect(link.getAttribute("href")).toBe("https://example.com/1994");
+  });
+
+  it("does not link a source that is not an http address", () => {
+    show(<HeadlineView paper="Paper" date="1994-02-03" headline="Rates rise" source="javascript:alert(1)" />);
+    expect(page!.host.querySelector("a")).toBeNull();
+  });
+});
+
+describe("ChoiceCards", () => {
+  it("a wrong pick shows the fix in a status region", () => {
+    show(choiceCards("b"));
+    expect(page!.host.querySelector('[role="status"]')!.textContent).toContain("When rates fall, old bonds gain value.");
+  });
+
+  it("a right pick says Yes", () => {
+    show(choiceCards("a"));
+    expect(page!.host.querySelector('[role="status"]')!.textContent).toContain("Yes");
+  });
+
+  it("a wrong pick may be followed by another", () => {
+    const onPick = vi.fn();
+    show(choiceCards("b", onPick));
+    click(page!.host.querySelectorAll<HTMLElement>('[data-testid="choice"]')[0]);
+    expect(onPick).toHaveBeenCalledWith("a");
+  });
+});
+
 describe("reduced motion", () => {
   const cases: [string, ReactElement, string][] = [
     ["story-scene", scene, "story-scene"],
@@ -158,6 +280,10 @@ describe("reduced motion", () => {
     ["timeline-strip", timeline, "timeline-strip"],
     ["two-paths", paths, "two-paths"],
     ["money-jar", jar, "money-jar"],
+    ["who-pays-whom", payers, "who-pays-whom"],
+    ["myth-or-fact", myth, "myth-or-fact"],
+    ["headline", headline, "headline"],
+    ["choice-cards", choice, "choice-cards"],
   ];
   for (const [name, element, testId] of cases) {
     it(`${name} sets data-motion off and starts no animation`, () => {
@@ -183,7 +309,7 @@ describe("reduced motion", () => {
 
 describe("keyboard", () => {
   it("every control is a button that Tab reaches", () => {
-    for (const element of [scene, lingo, paths, jar]) {
+    for (const element of [scene, lingo, paths, jar, payers, myth, choice]) {
       show(element);
       const controls = [...page!.host.querySelectorAll<HTMLElement>("button, [role=button], a, input")];
       expect(controls.length).toBeGreaterThan(0);
@@ -194,6 +320,13 @@ describe("keyboard", () => {
       page!.cleanup();
       page = null;
     }
+  });
+
+  it("Headline has one control, a link reachable by Tab", () => {
+    show(headline);
+    const controls = [...page!.host.querySelectorAll<HTMLElement>("button, [role=button], a, input")];
+    expect(controls.map((c) => c.tagName)).toEqual(["A"]);
+    expect(controls[0].tabIndex).toBeGreaterThanOrEqual(0);
   });
 
   it("TimelineStrip is one tab stop that moves with the arrow keys", () => {

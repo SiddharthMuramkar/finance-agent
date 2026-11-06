@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ENGINE_INSTRUCTIONS, REPLY_WORD_LIMIT, TUTOR_EXAMPLES, TUTOR_INSTRUCTIONS } from "./instructions";
+import { sumAsk } from "@/teaching/no-sums";
 import { checkReply, fixReply, type ReplyCheckContext } from "./reply-checks";
 
 /**
@@ -107,8 +108,18 @@ describe("Appendix A's examples", () => {
     }
   });
 
+  it("show an open quiz that asks for an idea, not a sum (ADR 0009, critic MP-3)", () => {
+    for (const e of TUTOR_EXAMPLES) {
+      for (const item of e.openItems ?? []) {
+        expect(sumAsk(item.prompt)).toBeNull();
+        // A choice set the idea separates: no option is a bare number.
+        for (const choice of item.choices ?? []) expect(choice).not.toMatch(/^[\d.,%\s]+$/);
+      }
+    }
+  });
+
   it("name the blocked numbers of an open quiz, and the Widget the reply shows", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("Context: a quiz is open; blocked numbers: 4, 4.6, 0.6, 6, 60, 120.");
+    expect(TUTOR_INSTRUCTIONS).toContain("Context: a quiz is open; blocked numbers: 4, 4.6, 60.");
     expect(ENGINE_INSTRUCTIONS).toContain("show_widget with recipe rate_move");
   });
 

@@ -224,8 +224,10 @@ export function QuizPanel({
                     <label
                       key={c.id}
                       data-selected={on || undefined}
+                      data-affordance="chip"
+                      data-state={on ? "showing" : "idle"}
                       data-allow-pointer
-                      className={`pressable flex min-h-11 cursor-pointer items-center gap-3 rounded border px-3 py-2 text-sm leading-5 ${on ? "border-[var(--brand)] bg-[var(--brand-tint)]" : "border-[var(--border)] hover:bg-[var(--hairline)]"}`}
+                      className="chip pressable min-h-11 cursor-pointer !justify-start gap-3 !rounded-2xl !px-3 !py-2 text-left text-sm leading-5 font-normal"
                     >
                       <input
                         type="radio"

@@ -14,6 +14,7 @@ import { loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { stepContext } from "./context";
 import { navigate } from "@/course/navigator";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * The lesson additions on a real (in-memory) database: a step opens its Widget by itself when it begins, a step
@@ -84,7 +85,8 @@ async function turn(db: Db, input: TurnInput, reply: string) {
   return events;
 }
 const sessionOf = (events: TurnEvent[]) => (events.at(-1) as Extract<TurnEvent, { type: "done" }>).ref.sessionId;
-const items = async (db: Db, sessionId: number) => (await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item");
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const items = async (db: Db, sessionId: number) => withoutChoices(await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item");
 
 describe("a step that opens its Widget by itself", () => {
   it("stores the Widget opened item after the divider when the step begins, once", async () => {
@@ -92,7 +94,7 @@ describe("a step that opens its Widget by itself", () => {
     const first = await turn(db, "Hi", "The story.");
     const next = await turn(db, { next: "concept" }, "The concept.");
     // The browser hears the divider, then the Widget chip, before the new reply.
-    expect(next.filter((e) => e.type === "item").map((e) => (e as Extract<TurnEvent, { type: "item" }>).item.kind)).toEqual(["step", "widget_opened"]);
+    expect(withoutChoices(next).filter((e) => e.type === "item").map((e) => (e as Extract<TurnEvent, { type: "item" }>).item.kind)).toEqual(["step", "widget_opened"]);
     expect(await items(db, sessionOf(first))).toEqual([
       expect.objectContaining({ kind: "step" }),
       expect.objectContaining({ kind: "widget_opened", data: { id: WIDGET, title: "One rate change, said three ways" } }),

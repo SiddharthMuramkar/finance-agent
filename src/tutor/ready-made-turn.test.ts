@@ -15,6 +15,7 @@ import { ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
 import { fingerprint, frozenNow, readSettings, refreezeIfChanged } from "./session-log";
 import { toolCode } from "./tools";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
+import { withoutChoices } from "@/test/choices";
 
 // Seam 1, the Tutor Turn (spec #229, ticket #242, ADR 0007): ready-made Widgets only, opened already set, one a reply.
 // present-value's annuity-worth-today Widget has a $rate slider (0 to 10, in 0.01 steps) and a $years-less program.
@@ -43,7 +44,8 @@ async function run(db: Db, replies: ScriptedReply[], input: TurnInput = "Show me
   return { events, requests, sessionId: done.ref?.sessionId as number };
 }
 const say = (t: string): ScriptedReply => ({ content: [text(t)] });
-const items = (events: TurnEvent[]) => events.flatMap((e) => (e.type === "item" ? [e.item] : []));
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const items = (events: TurnEvent[]) => withoutChoices(events).flatMap((e) => (e.type === "item" ? [e.item] : []));
 
 describe("a new Session's tools", () => {
   it("freezes show_widget, open_widget and update_widget, without compose_widget and without quick_check", async () => {

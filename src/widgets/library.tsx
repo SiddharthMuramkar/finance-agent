@@ -726,6 +726,10 @@ const BRIEF: Record<string, string> = {
   TimelineStrip: "Emoji moments on a line, oldest first: beats {date (ISO), label, emoji}; beats after hideAfter are locked.",
   TwoPaths: "Two characters, two choices; each reveals its outcome as 1 to 6 emoji and a line with no digits.",
   MoneyJar: "A jar that fills or drains 0 to 20 objects (unit: an emoji name), sized in words; numerals only in each.",
+  WhoPaysWhom: "Money moving between 2 to 4 actors {id, emoji, name}: 1 to 4 flows {from, to, what (6 words), emoji}; a tap replays one.",
+  MythOrFact: "2 to 4 cards {claim, isFact, why, emoji?}; each has Myth and Fact buttons and turns to the verdict and why. Not marked.",
+  Headline: "A period front page: paper, ISO date, headline (12 words), deck?, source URL.",
+  ChoiceCards: "Tap to choose: question, 2 to 4 choices {id, text, emoji?, fix?}, answer is the right id. Not marked.",
 };
 
 /** A v2 part with its brief description (defineComponent's result is a plain object, so a copy is the same part). */
@@ -966,7 +970,7 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
   },
   {
     name: "Story",
-    components: ["StoryScene", "LingoCard", "TimelineStrip", "TwoPaths", "MoneyJar"],
+    components: ["StoryScene", "LingoCard", "TimelineStrip", "TwoPaths", "MoneyJar", "WhoPaysWhom", "MythOrFact", "Headline", "ChoiceCards"],
     notes: ["- Story parts tell it with pictures and words, never a sum: emoji are names like bank or coin, and no part asks for a number."],
   },
   {
