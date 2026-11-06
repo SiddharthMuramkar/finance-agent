@@ -124,4 +124,26 @@ describe("a finished step on the Topic bar", () => {
     // A finished step is a small raised Chip (spec A3b), so it reads as a button.
     expect(bar.querySelector('button[data-step-number="1"]')?.getAttribute("data-affordance")).toBe("chip");
   });
+
+  it("the Study page's Topic bar carries the shown Topic's ⋯ Topic options button (B3b)", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+    await act(async () => {
+      root.render(
+        <Conversation
+          initial={[{ role: "assistant", text: "Hello." }]}
+          quiz={null}
+          pending={null}
+          review={noReview}
+          place={{ stage: "foundation", topicId: "present-value", title: "Present value" }}
+        />,
+      );
+    });
+    const bar = host.querySelector('[data-testid="topic-bar"]')!;
+    expect(bar.getAttribute("aria-label")).toBe("Topic progress");
+    const options = bar.querySelector<HTMLButtonElement>('button[aria-label="Topic options"]');
+    expect(options).not.toBeNull();
+    await act(async () => options!.click());
+    await act(async () => host.querySelector<HTMLButtonElement>('[role="menuitem"]')!.click());
+    expect(host.querySelector('[data-testid="restart-confirm"]')?.getAttribute("action")).toBe("/api/topics/present-value/restart");
+  });
 });

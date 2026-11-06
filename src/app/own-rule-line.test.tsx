@@ -84,7 +84,7 @@ describe("the Notes page with the Learner's own rule", () => {
       saved: [],
     },
   ];
-  const html = renderToStaticMarkup(<NotebookView notebook={{ rows: notes.map((n) => ({ topicId: n.topicId, title: n.title, stage: n.stage, status: "not_started" as const, sessionId: null, lastActive: null, action: null, found: [], note: n })), older: [] }} showAll={false} />);
+  const html = renderToStaticMarkup(<NotebookView notebook={{ rows: notes.map((n) => ({ topicId: n.topicId, title: n.title, stage: n.stage, status: "not_started" as const, sessionId: null, lastActive: null, action: null, found: [], earlier: [], note: n })), older: [] }} showAll={false} />);
 
   it("shows the rule under its Topic, labelled Your rule, and only that line is labelled", () => {
     expect(html).toContain("change × 100 then divide by original");

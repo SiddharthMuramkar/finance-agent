@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Learner, signInAs } from "@/auth/learners";
-import { learners, sessions } from "@/db/schema";
+import { learners, noteItems, reviewCards, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
@@ -88,5 +88,11 @@ describe("the fixture route", () => {
     const many = Object.values((await seed("many-topics")).progress.topics);
     expect(many.filter((t) => t.status === "passed")).toHaveLength(3);
     expect(many.filter((t) => t.status === "in_progress")).toHaveLength(2);
+    const restart = await seed("restart-topics");
+    const topics = Object.entries(restart.progress.topics);
+    expect(topics.filter(([, t]) => t.status === "passed").map(([id]) => id)).toEqual(["num-percent-bps"]);
+    expect(topics.filter(([, t]) => t.status === "in_progress")).toHaveLength(1);
+    expect(await as.db.select().from(noteItems).where(eq(noteItems.learnerId, restart.learnerId))).toHaveLength(2);
+    expect(await as.db.select().from(reviewCards).where(eq(reviewCards.learnerId, restart.learnerId))).not.toHaveLength(0);
   });
 });
