@@ -86,15 +86,15 @@ questions:
 
   - id: rbi-q-target
     prompt: >
-      Asha's aunt, a banker, explains how the RBI steers prices today: it works to a goal for consumer inflation, agreed with the government. Asha asks what that goal is. What should her aunt say?
+      August 2013. Inflation is high and the rupee is sliding. Asha's aunt, a banker, says the RBI chases too many goals. Her fix: one number for consumer inflation, agreed with the government. What is that called?
     choices:
-      - { id: a, text: "4 per cent, with room of 2 points either side" }
-      - { id: b, text: "2 per cent, with room of 4 points either side", mistake: { tag: target_band_swapped, fix: "Swapped: 4 per cent is the target, and 2 points is the room on either side." } }
-      - { id: c, text: "Zero inflation, so prices never rise", mistake: { tag: zero_inflation, fix: "The goal is low, steady inflation, not zero. The agreement sets 4 per cent." } }
-      - { id: d, text: "Whatever keeps the rupee steady", mistake: { tag: target_as_currency, fix: "The agreement targets consumer inflation. The rupee is handled with other tools, such as swaps." } }
+      - { id: a, text: "Inflation targeting: the RBI is judged on hitting that number" }
+      - { id: b, text: "A currency peg: the RBI holds the rupee at a fixed rate", mistake: { tag: target_as_peg, fix: "A peg fixes the exchange rate. Her plan sets a goal for consumer inflation instead." } }
+      - { id: c, text: "Price controls: the government caps what shops may charge", mistake: { tag: target_as_price_caps, fix: "Caps set prices by law. Her plan leaves prices free and gives the RBI a goal." } }
+      - { id: d, text: "Monetising the deficit: the RBI prints money for the government", mistake: { tag: target_as_monetising, fix: "Printing for the government tends to raise prices. Her plan holds the RBI to an inflation goal." } }
     answer: a
     explanation: >
-      The Monetary Policy Framework Agreement between the government and the RBI sets a medium-term target of 4 per cent consumer inflation, with a band of 2 percentage points on either side.
+      Inflation targeting gives the central bank one number for inflation, agreed with the government, and judges it on how close prices stay to that number. The policy rate is its main tool for steering towards it.
     source: >
       Reserve Bank of India, press release of 4 March 2015 on the Monetary Policy Framework Agreement: http://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1847POLF040315.pdf
 

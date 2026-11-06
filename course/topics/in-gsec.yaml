@@ -82,15 +82,15 @@ questions:
 
   - id: gs-q-sdl
     prompt: >
-      Today, Arjun's bank offers him a State Development Loan paying a fixed coupon for ten years. Before he locks in his wedding savings, he wants to know who he is really lending to. Who issues it?
+      Early 1992. A broker sells Arjun's bank a ten-year Gujarat state loan. "The RBI handles it," he says. Arjun's trainee asks who actually owes the bank this money. What should Arjun say?
     choices:
-      - { id: a, text: "A state government, through an auction the RBI runs" }
-      - { id: b, text: "The central government, as a Treasury bill", mistake: { tag: sdl_as_tbill, fix: "T-bills are the centre's short-term loans. SDLs are dated loans that states borrow." } }
-      - { id: c, text: "A state-owned company, as a corporate bond", mistake: { tag: sdl_as_psu_bond, fix: "The state government itself borrows through an SDL, not a company it owns." } }
-      - { id: d, text: "The RBI, lending out its own money", mistake: { tag: rbi_as_issuer, fix: "The RBI runs the auction, but the state government is the borrower." } }
+      - { id: a, text: "The Gujarat state government, which borrowed it" }
+      - { id: b, text: "The central government, as with a Treasury bill", mistake: { tag: sdl_as_tbill, fix: "Treasury bills are the centre's short-term loans. This is a dated loan the state itself owes." } }
+      - { id: c, text: "The broker who sold it to the bank", mistake: { tag: broker_as_borrower, fix: "The broker only arranged the sale. The state government borrowed the money and owes it." } }
+      - { id: d, text: "The RBI, out of its own funds", mistake: { tag: rbi_as_issuer, fix: "The RBI is not the borrower here. The state government owes the coupons and the repayment." } }
     answer: a
     explanation: >
-      Today, state governments issue only dated securities, called State Development Loans (SDLs), through auctions the RBI runs, much like the central government's. SDLs, like central G-secs, count towards the SLR.
+      A state government borrows in its own name, so it pays the coupons and repays the loan; the central government's loans are separate. The RBI's primer calls these dated state loans State Development Loans (SDLs).
     source: >
       Reserve Bank of India, Government Securities Market in India - A Primer, 1.2 and 1.7: https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
 
