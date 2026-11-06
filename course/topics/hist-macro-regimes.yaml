@@ -158,14 +158,13 @@ checks:
   - id: hmr-central-bank-choice
     kind: conversation
     prompt: >
-      Imagine a central bank facing inflation of about 9% a year with a policy rate of 10%. It says it will
-      stop defending any particular level of the policy rate and will control bank reserves instead. In your own
-      words: is money tight or easy here, and why? Why does this change let the policy rate move much more than
-      before? Who gains and who loses if rates rise and inflation falls, and what is the central bank trading off?
+      Imagine a central bank whose policy rate looks high, but prices are rising almost as fast, so savers
+      barely come out ahead once inflation is counted. The bank stops defending a set rate and holds bank
+      reserves fixed instead, ready to let rates jump until inflation breaks. In your own words, what is the
+      bank trading off when it does this?
     passCriteria: >
-      The Learner says the real rate is only slightly above zero, because inflation is nearly as high as the
-      policy rate, so policy is not very tight even though the nominal rate looks high. They explain that with reserves held fixed, the price of reserves is set by
-      demand, so the rate can move sharply. They say that lenders, savers and holders of newly issued
-      bonds gain from higher real rates while borrowers (and those facing job losses in a slowdown)
-      lose, and that the central bank is trading short-term output and jobs for lower inflation and
-      credibility. Any mention of stagflation (inflation and weak growth together) is a plus.
+      The Learner says the bank is giving up short-term output and jobs to bring inflation down and win back
+      credibility. They say who bears it: borrowers, and people who lose jobs in the slowdown, while lenders
+      and savers gain once rates clearly beat inflation. A plus: noting that money was not really tight
+      before, since inflation nearly matched the rate, or that with reserves held fixed, demand sets the rate,
+      so it can swing sharply. Any mention of stagflation (inflation and weak growth together) is a plus.
