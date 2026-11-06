@@ -114,11 +114,11 @@ questions:
 
   - id: by-q-leverage
     prompt: >
-      A county pool holds depositors' money, borrows an equal amount overnight, then buys twice as many bonds as it has deposits. Bond prices dip 5%. Who feels it, and how hard?
+      A county pool borrows heavily to buy far more bonds than its depositors' money alone could. Traders call this a leveraged pool. Bond prices dip a little. Who feels it, and how hard?
     choices:
       - { id: a, text: "The depositors, harder than the bonds fell" }
-      - { id: b, text: "The depositors, by the same 5% as the bonds", mistake: { tag: ignored_leverage, fix: "The depositors' $100 carries the whole loss, so the percentage is magnified, not matched." } }
-      - { id: c, text: "Both sides, so the depositors lose under 5%", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The whole loss lands on the depositors' money." } }
+      - { id: b, text: "The depositors, by the same share as the bonds", mistake: { tag: ignored_leverage, fix: "The depositors' money carries the whole loss, so the percentage is magnified, not matched." } }
+      - { id: c, text: "Both sides, so the depositors lose less than the bonds", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The whole loss lands on the depositors' money." } }
       - { id: d, text: "Nobody: the bonds are held to maturity", mistake: { tag: held_to_maturity_safe, fix: "Lenders can demand collateral or repayment sooner, so holding to maturity may not be possible." } }
     answer: a
     explanation: >

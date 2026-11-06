@@ -77,15 +77,15 @@ questions:
 
   - id: hmr-q-tight-or-easy
     prompt: >
-      Two central banks both set their policy rate at 12%. In country A prices rise 4% a year; in country B, 15%. Traders count inflation before judging each stance. Which bank are they calling tight, and which easy?
+      Two central banks hold the same policy rate. In country A prices barely move; in country B they race ahead of that rate. Traders count inflation before judging each stance. Which bank are they calling tight, and which easy?
     choices:
       - { id: a, text: "A is tight, B is easy" }
-      - { id: b, text: "B is tighter: more inflation, same rate", mistake: { tag: inflation_as_tightness, fix: "When inflation tops the policy rate, borrowers repay in cheaper money. That is easy money, not tight." } }
+      - { id: b, text: "B is tight: prices racing ahead means money is dear", mistake: { tag: inflation_as_tightness, fix: "When inflation outruns the policy rate, borrowers repay in cheaper money. That is easy money, not tight." } }
       - { id: c, text: "Both equally tight: the rates match", mistake: { tag: nominal_as_stance, fix: "Equal headline rates can hide very different real rates once inflation is taken off." } }
-      - { id: d, text: "A is easy, B is tight", mistake: { tag: low_inflation_easy, fix: "A high rate with low inflation is a high real rate, which is tight, not easy." } }
+      - { id: d, text: "A is easy: calm prices mean little pressure", mistake: { tag: low_inflation_easy, fix: "A policy rate well above calm inflation is a high real rate, which is tight, not easy." } }
     answer: a
     explanation: >
-      A's real rate is clearly positive, about +8%, so money is dear. B's is negative, about -3%, which is easy money despite the high nominal rate. Equal nominal rates can mean very different stances.
+      With calm prices, A's rate sits well above inflation, so its real rate is clearly positive and money is dear. B's rate sits below its inflation, so its real rate is negative: easy money despite the same headline rate. Equal nominal rates can mean very different stances.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
 
