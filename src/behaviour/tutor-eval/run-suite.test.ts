@@ -127,4 +127,51 @@ describe("the D3b cases", () => {
     expect(t13.runs[0].transcript?.map((t) => t.learner)).toEqual(["hi", "show me", "ok"]);
     expect(t13.runs[0].transcript?.[2].reply.text).toBe(replies[2]);
   });
+
+  // Round 10 (F1-cutoff): runLive fails a cut-off reply, but runDialogue dropped cut_off and cut_short, so a truncated
+  // T13 reply counted as clean and could pass noSum only because it stopped early.
+  it("fails a dialogue turn whose reply was cut short, as a live run does", async () => {
+    const c: EvalCase = { ...base, id: "T13", kind: "dialogue", messages: ["hi", "show me"], runs: 1, pass: [{ kind: "noSum" }] };
+    const { client } = scriptedClient([
+      { content: [{ type: "text", text: STORY }] },
+      { content: [{ type: "text", text: "Points are the gap between" }], stop_reason: "max_tokens" },
+    ]);
+    const report = await runSuite([c], deps({ tutorClient: () => client }));
+    const [t13] = report.cases;
+    expect(t13.status).toBe("fail");
+    expect(t13.runs[0].reasons).toEqual([expect.stringMatching(/^Turn 2 \("show me"\): the Tutor Turn sent "cut_short"/)]);
+  });
+
+  // Round 10 (F1-budget): each dialogue turn held the per-run mean (a Tutor Turn and a grade) but settled one turn's cost,
+  // so the dialogue over-held and pulled the live runs' mean down. A dialogue turn holds and settles its own estimate.
+  it("holds each dialogue turn on its own per-turn estimate and keeps the live runs' estimate apart", async () => {
+    class Watched extends Budget {
+      holds: number[] = [];
+      override hold(amount: number): boolean {
+        this.holds.push(amount);
+        return super.hold(amount);
+      }
+    }
+    const budget = new Watched(5);
+    const usage = { input_tokens: 2000, output_tokens: 100 };
+    const live: EvalCase = { ...base, id: "T15", kind: "live", message: "honestly I'm so bad at maths lol", minPasses: 2, pass: [{ kind: "noSum" }] };
+    const dialogue: EvalCase = { ...base, id: "T13", kind: "dialogue", messages: ["hi", "ok", "and?"], runs: 1, pass: [{ kind: "noSum" }] };
+    const { client: talk } = scriptedClient([STORY, STORY, STORY].map((text) => ({ content: [{ type: "text", text }], usage })));
+    const report = await runSuite(
+      [live, dialogue],
+      deps({ budget, graderCost: 0.2, tutorClient: (c) => (c.kind === "dialogue" ? talk : scriptedClient([{ content: [{ type: "text", text: STORY }], usage }]).client) }),
+    );
+    expect(report.cases.map((c) => c.status)).toEqual(["pass", "pass"]);
+    const runCost = report.cases[0].runs[0].costUsd;
+    const turnCost = (report.cases[1].runs[0].costUsd ?? 0) / 3;
+    expect(runCost).toBeGreaterThan(turnCost);
+    // Three live runs, then three dialogue turns: the first turn holds the first-turn estimate, the next ones the turns' mean.
+    const turnHolds = budget.holds.slice(3);
+    expect(turnHolds).toHaveLength(3);
+    expect(turnHolds[1]).toBeCloseTo(turnCost);
+    expect(turnHolds[2]).toBeCloseTo(turnCost);
+    // The live runs' mean is untouched by the cheaper turns.
+    expect(budget.estimate("run")).toBeCloseTo(runCost);
+    expect(budget.estimate("dialogue_turn")).toBeCloseTo(turnCost);
+  });
 });

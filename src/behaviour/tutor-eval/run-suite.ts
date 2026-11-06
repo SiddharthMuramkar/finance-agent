@@ -38,6 +38,9 @@ export type SuiteDeps = {
   log?: (line: string) => void;
 };
 
+/** The Tutor Turn events that fail a run or a dialogue turn: anything but a finished, whole reply. */
+const TURN_TROUBLES: ReadonlySet<string> = new Set(["error", "refusal", "cut_off", "cut_short", "busy", "stale", "not_allowed", "save_failed"]);
+
 /** A live run, with the app words its reply was checked against (kept for the aggregates, left out of the report). */
 type LiveRun = RunResult & { reply?: SeenReply; words?: string[] };
 
@@ -73,7 +76,7 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
         cost += e.usage.costUsd ?? 0;
         note = `Turn: ${((performance.now() - started) / 1000).toFixed(1)} s, ${e.usage.steps.length} loop step(s), tools ${e.usage.tools.join(", ") || "none"}, stop ${e.stopReason ?? "?"}, $${(e.usage.costUsd ?? 0).toFixed(4)}.`;
       }
-      if (e.type === "error" || e.type === "refusal" || e.type === "cut_off" || e.type === "cut_short" || e.type === "busy" || e.type === "stale" || e.type === "not_allowed" || e.type === "save_failed")
+      if (TURN_TROUBLES.has(e.type))
         troubles.push(`The Tutor Turn sent "${e.type}"${"message" in e ? `: ${e.message}` : ""}.`);
     }
     if (!done) return { run, status: "fail", reasons: [...troubles, "The Tutor Turn did not finish."], costUsd: cost, note };
@@ -109,7 +112,8 @@ async function runDialogue(c: DialogueCase, run: number, deps: SuiteDeps, map: C
     const db = await deps.newDb();
     const p = await prepareCase(db, c, { map, settings: deps.settings });
     for (const [i, message] of c.messages.entries()) {
-      const held = deps.budget.estimate();
+      // A dialogue turn is one Tutor Turn with no grade: it holds the dialogue turns' own mean, never a live run's (round 10, F1).
+      const held = deps.budget.estimate("dialogue_turn");
       if (!deps.budget.hold(held)) {
         reasons.push(`Not run past turn ${i}: ${deps.budget.stopped}`);
         return { run, status: transcript.length ? "fail" : "skipped", reasons, costUsd: cost, transcript };
@@ -127,8 +131,8 @@ async function runDialogue(c: DialogueCase, run: number, deps: SuiteDeps, map: C
             spent = e.usage.costUsd ?? 0;
             if (e.usage.costUsd === null) reasons.push(`Turn ${i + 1}: the Tutor Turn's cost is unknown (no price for ${deps.settings.model}).`);
           }
-          if (e.type === "error" || e.type === "refusal" || e.type === "busy" || e.type === "stale" || e.type === "not_allowed" || e.type === "save_failed")
-            reasons.push(`Turn ${i + 1} ("${message}"): the Tutor Turn sent "${e.type}"${"message" in e ? `: ${e.message}` : ""}.`);
+          // The same troubles as a live run: a cut-off or cut-short reply is a failure, not a clean reply that stopped early (round 10, F1).
+          if (TURN_TROUBLES.has(e.type)) reasons.push(`Turn ${i + 1} ("${message}"): the Tutor Turn sent "${e.type}"${"message" in e ? `: ${e.message}` : ""}.`);
         }
         if (!done) {
           reasons.push(`Turn ${i + 1} ("${message}"): the Tutor Turn did not finish.`);
@@ -139,7 +143,7 @@ async function runDialogue(c: DialogueCase, run: number, deps: SuiteDeps, map: C
         reasons.push(...codedFailures(c.pass, reply, p.ctx).map((f) => `Turn ${i + 1} ("${message}"): ${f}`));
       } finally {
         cost += spent;
-        deps.budget.settle(held, spent);
+        deps.budget.settle(held, spent, "dialogue_turn");
       }
     }
   } catch (err) {

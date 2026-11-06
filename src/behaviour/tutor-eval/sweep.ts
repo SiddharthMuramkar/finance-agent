@@ -49,7 +49,7 @@ export type PairStats = Pair & {
   casesTotal: number;
   pending: string[];
   spentUsd: number;
-  /** Tutor turns started (live runs not skipped). */
+  /** Tutor turns started: live runs not skipped, and every turn a dialogue ran. */
   turns: number;
   /** Tutor and grader spend together, per turn. */
   costPerTurn: number;
@@ -62,12 +62,16 @@ export function summarisePair(r: PairResult): PairStats {
   if (!r.report) return { ...base, passed: false, runsPassed: 0, runsTotal: 0, casesPassed: 0, casesTotal: 0, pending: [], spentUsd: 0, turns: 0, costPerTurn: 0, budgetStop: null, error: r.error ?? "The pair did not run." };
   const cases = r.report.cases;
   const ran = cases.filter((c) => c.status !== "pending");
-  const turns = cases.filter((c) => c.kind === "live").flatMap((c) => c.runs).filter((run) => run.status !== "skipped").length;
+  // A dialogue has its own number of runs (T13: one) and many turns a run; every other case three runs of one turn (round 10, F2).
+  const started = (c: (typeof cases)[number]) => c.runs.filter((run) => run.status !== "skipped");
+  const turns =
+    cases.filter((c) => c.kind === "live").flatMap(started).length +
+    cases.filter((c) => c.kind === "dialogue").flatMap(started).reduce((n, run) => n + (run.transcript?.length ?? 0), 0);
   return {
     ...base,
     passed: r.report.budgetStop === null && cases.every((c) => c.status === "pass"),
     runsPassed: ran.flatMap((c) => c.runs).filter((run) => run.status === "pass").length,
-    runsTotal: ran.length * RUNS_PER_CASE,
+    runsTotal: ran.reduce((n, c) => n + (c.bar?.runs ?? RUNS_PER_CASE), 0),
     casesPassed: ran.filter((c) => c.status === "pass").length,
     casesTotal: ran.length,
     pending: cases.filter((c) => c.status === "pending").map((c) => c.id),

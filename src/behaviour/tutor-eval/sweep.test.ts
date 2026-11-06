@@ -140,6 +140,36 @@ describe("a sweep", () => {
     expect(text).not.toMatch(/Chosen setting/);
   });
 
+  // Round 10 (F2-sweep): the sweep loads the T13 dialogue (one run of 20 turns) but counted three runs for every case and
+  // turns only from live cases, so runsTotal was 2 too high and the cost per turn left out the dialogue's 20 turns.
+  it("counts a dialogue's one run and every one of its turns", () => {
+    const reply = { text: "x", raw: "x", fixed: [], widgets: [], savedRule: null, parkOffer: false, alsoShown: [], choices: [] };
+    const report: EvalReport = {
+      startedAt: "2026-11-06T10:00:00.000Z",
+      finishedAt: "2026-11-06T10:05:00.000Z",
+      tutor: { model: "claude-opus-5-5", effort: "medium", widgetEngine: "on" },
+      graderModel: "claude-opus-5-5",
+      fingerprint: "x",
+      capUsd: 8,
+      spentUsd: 0.46,
+      budgetStop: null,
+      cases: [
+        { id: "T15", title: "a", kind: "live", status: "pass", runs: [1, 2, 3].map((run) => ({ run, status: "pass" as const, reasons: [], costUsd: 0.02 })), bar: { runs: 3, passes: 2 } },
+        {
+          id: "T13",
+          title: "b",
+          kind: "dialogue",
+          status: "pass",
+          runs: [{ run: 1, status: "pass", reasons: [], costUsd: 0.4, transcript: Array.from({ length: 20 }, (_, i) => ({ learner: `m${i}`, reply })) }],
+          bar: { runs: 1, passes: 1 },
+        },
+      ],
+    };
+    const s = summarisePair({ pair: { model: "claude-opus-5-5", effort: "medium" }, report });
+    expect(s).toMatchObject({ runsPassed: 4, runsTotal: 4, casesPassed: 2, casesTotal: 2, turns: 23, passed: true });
+    expect(s.costPerTurn).toBeCloseTo(0.46 / 23);
+  });
+
   it("writes a dated report and a latest copy, in Markdown and JSON", async () => {
     const report = await runSweep(pick("T1"), parsePairs("claude-sonnet-5-5:medium"), { capUsd: 5, suiteDeps: (p, b) => suiteDeps(p, b, T1_REPLY, 0.01) });
     expect(Object.keys(sweepFiles(report)).sort()).toEqual(["sweep-latest.json", "sweep-latest.md", expect.stringMatching(/^sweep-.*\.json$/), expect.stringMatching(/^sweep-.*\.md$/)].sort());

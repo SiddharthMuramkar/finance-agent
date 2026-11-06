@@ -46,6 +46,23 @@ describe("the spend cap", () => {
     expect(b.estimate()).toBeCloseTo(0.2);
   });
 
+  // Round 10 (F1-budget): a dialogue turn (one Tutor Turn, no grader) settled into the same mean as a live run (a Tutor Turn
+  // and a grade), so the dialogue held too much and the live runs after it held too little. Each kind keeps its own mean.
+  it("keeps a dialogue turn's estimate apart from a live run's, so neither pulls the other's mean", () => {
+    const b = new Budget(5);
+    b.hold(b.estimate("run"));
+    b.settle(FIRST_RUN_ESTIMATE_USD, 0.3, "run");
+    for (const cost of [0.02, 0.04]) {
+      const held = b.estimate("dialogue_turn");
+      b.hold(held);
+      b.settle(held, cost, "dialogue_turn");
+    }
+    expect(b.estimate("run")).toBeCloseTo(0.3);
+    expect(b.estimate()).toBeCloseTo(0.3);
+    expect(b.estimate("dialogue_turn")).toBeCloseTo(0.03);
+    expect(b.spent).toBeCloseTo(0.36);
+  });
+
   it("counts spend that reaches the cap as a stop", () => {
     const b = new Budget(0.5);
     expect(b.hold(0.2)).toBe(true);
