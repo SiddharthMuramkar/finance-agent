@@ -66,6 +66,15 @@ describe("[S3] the judge runner", () => {
     expect(spend.spent).toBe(0);
   });
 
+  it("starts no judge once the round's spend is no longer known, however much of the cap is left (E4b-C1)", async () => {
+    const client = fake([persona, math, fit, historian], { input_tokens: 10_000, output_tokens: 1000 });
+    const spend = new Spend(13);
+    spend.uncounted = "the Tutor turns of Learner 7 could not be charged: Connection terminated unexpectedly";
+    const r = await judgePrompt({ client, spend, evidence, screenshot: null });
+    expect(client.calls).toHaveLength(0);
+    expect(r.skipped).toEqual(["persona", "math", "fit", "historian"]);
+  });
+
   it("shares the cap with the Tutor's turns without letting their spend inflate a judge call's estimate", async () => {
     const client = fake([persona, math, fit, historian], { input_tokens: 10_000, output_tokens: 1000 });
     const spend = new Spend(5.2);

@@ -181,9 +181,14 @@ export class Spend {
   readonly tutor = { usd: 0, prompts: 0, costliest: 0 };
   /** The judges' part of `spent`, and the calls that made it. */
   readonly judges = { usd: 0, calls: 0 };
+  /**
+   * Why the round's spend is no longer known, once a try's turns could not be charged (their usage read failed, or a
+   * model has no price). From then on `allows` refuses everything, so no further paid turn or judge call starts.
+   */
+  uncounted: string | null = null;
   constructor(readonly cap: number) {}
   allows(next: number): boolean {
-    return this.spent + next <= this.cap;
+    return this.uncounted === null && this.spent + next <= this.cap;
   }
   charge(model: string, usage: TokenUse): number {
     const cost = priceOf(model, usage);
@@ -223,7 +228,8 @@ export type PromptTry<R> = (seen: { learnerId: number | null }) => Promise<R>;
  * Runs one prompt under the round's cap, tried at most twice (only an infrastructure failure is retried; the caller's
  * try throws for that alone). Before each try it refuses to start when the prompt's turns would pass the cap
  * (`refused`, with the last error if a try failed first); after each try, a failed one too, it charges the steps the
- * app recorded for the Learner the try ran as. With no Spend (the built-in Widget eval) it runs uncapped and reads
+ * app recorded for the Learner the try ran as. A charge that fails (the usage read, or an unpriced model) keeps the try's
+ * outcome and sets `spend.uncounted`, which refuses every later prompt and judge call. With no Spend (the built-in Widget eval) it runs uncapped and reads
  * nothing.
  */
 export async function runUnderCap<R>(o: {
@@ -242,7 +248,16 @@ export async function runUnderCap<R>(o: {
     } catch (error) {
       failed = { error };
     } finally {
-      if (o.spend && seen.learnerId !== null) o.spend.chargeTurns(await o.usageOf(seen.learnerId));
+      if (o.spend && seen.learnerId !== null) {
+        // A failed charge must not replace the try's row or error, nor escape to the runner (which would abort the
+        // round with no report for the prompts already paid for, finding E4b-C1). The spend is then unknown, so the
+        // Spend fails closed: nothing more starts, and the report says why.
+        try {
+          o.spend.chargeTurns(await o.usageOf(seen.learnerId));
+        } catch (e) {
+          o.spend.uncounted ??= `the Tutor turns of Learner ${seen.learnerId} could not be charged: ${String((e as Error)?.message ?? e).split("\n")[0]}`;
+        }
+      }
     }
   }
   return failed!;

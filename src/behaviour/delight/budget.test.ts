@@ -99,3 +99,28 @@ describe("[S3] the runner refuses a prompt whose turns would pass the cap", () =
     expect(asked).toBe(0);
   });
 });
+
+describe("[S3] a try whose turns cannot be charged keeps its result and stops the paid round (E4b-C1, E4b-T4)", () => {
+  it("keeps the try's row when reading its usage fails, then starts no further prompt or judge call", async () => {
+    const s = new Spend(13);
+    const r = await runUnderCap({ spend: s, attempt: tryOf(7, "row"), usageOf: async () => { throw new Error("Connection terminated unexpectedly"); } });
+    expect(r).toEqual({ row: "row" });
+    expect(s.uncounted).toMatch(/Connection terminated unexpectedly/);
+    expect(s.allows(0)).toBe(false);
+    let started = 0;
+    const next = await runUnderCap({ spend: s, attempt: async () => (started++, "row"), usageOf: async () => [] });
+    expect(next).toEqual({ refused: true });
+    expect(started).toBe(0);
+  });
+
+  it("keeps the try's error, and does not retry, when its turns ran on a model with no price", async () => {
+    const s = new Spend(13);
+    let tries = 0;
+    const r = await runUnderCap({ spend: s, attempt: async (seen) => (tries++, tryOf(7, new Error("server down"))(seen)), usageOf: async () => [{ ...step, model: "claude-unknown" }] });
+    expect(tries).toBe(1);
+    expect(r).toMatchObject({ refused: true });
+    expect(String((r as { error?: Error }).error?.message)).toBe("server down");
+    expect(s.uncounted).toMatch(/no price/);
+    expect(s.spent).toBe(0);
+  });
+});

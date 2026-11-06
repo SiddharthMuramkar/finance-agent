@@ -557,7 +557,7 @@ async function finishDelight(rows, spend, problems) {
         const r = await judgePrompt({ client, spend, evidence, screenshot: row.screenshot });
         row.judgements = r.judgements;
         for (const e of r.errors) problems.push(`${row.id} ${e}`);
-        if (r.skipped.length) problems.push(`${row.id}: not judged by ${r.skipped.join(", ")} (the $${spend.cap} cap)`);
+        if (r.skipped.length) problems.push(`${row.id}: not judged by ${r.skipped.join(", ")} (${spend.uncounted ? "the round's spend is no longer known" : `the $${spend.cap} cap`})`);
       } catch (e) {
         problems.push(`${row.id}: judging failed: ${String(e?.message ?? e).split("\n")[0]}`);
       }
@@ -569,9 +569,10 @@ async function finishDelight(rows, spend, problems) {
   const bars = computeBars(results, total, judge);
   const also = alsoReported(results);
   const usd = (x) => Math.round(x * 100) / 100;
-  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: usd(spend.spent), tutorSpendUsd: usd(spend.tutor.usd), judgeSpendUsd: usd(spend.judges.usd), capUsd: spend.cap, bars, alsoReported: also, problems, prompts: rows };
+  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: usd(spend.spent), tutorSpendUsd: usd(spend.tutor.usd), judgeSpendUsd: usd(spend.judges.usd), capUsd: spend.cap, spendUncounted: spend.uncounted, bars, alsoReported: also, problems, prompts: rows };
   writeFileSync(join(out, `${reportName}.json`), JSON.stringify(report, null, 2));
   const md = [`# Delight eval: ${total} prompt${total === 1 ? "" : "s"}`, "", `Run ${report.ranAt} against ${BASE}. Spend $${report.spendUsd.toFixed(2)} of the $${spend.cap} cap: $${report.tutorSpendUsd.toFixed(2)} of Tutor turns and $${report.judgeSpendUsd.toFixed(2)} of judges. ${judge ? "Judged by Opus." : "Not judged (no --judge): the judged bars read \"not judged\"."}`, ""];
+  if (spend.uncounted) md.push(`**The spend above is a floor, not the total:** ${spend.uncounted}. Nothing more was started after that.`, "");
   md.push("## Bars (spec Appendix D.3)", "", "| Bar | Target | Actual | Result |", "|---|---|---|---|");
   for (const b of bars) md.push(`| ${b.name} | ${b.target} | ${b.actual} | ${b.pass == null ? "n/a" : b.pass ? "pass" : "FAIL"} |`);
   md.push("", "## Also reported", "");
@@ -613,13 +614,19 @@ try {
     let row;
     if ("row" in r) row = r.row;
     else if ("refused" in r) {
-      const why = `not run: its Tutor turns (about $${spend.nextPrompt().toFixed(2)}) would pass the $${spend.cap} cap, $${spend.spent.toFixed(2)} spent`;
+      const why = spend.uncounted
+        ? `not run: the round's spend is no longer known (${spend.uncounted}), so no more paid turns start`
+        : `not run: its Tutor turns (about $${spend.nextPrompt().toFixed(2)}) would pass the $${spend.cap} cap, $${spend.spent.toFixed(2)} spent`;
       row = failedRow(p, r.error ? `run failed: ${firstLine(r.error)}; ${why}` : why);
       problems.push(`${p.id ?? p.n}: ${why}`);
     } else row = failedRow(p, `run failed: ${firstLine(r.error)}`);
     rows.push(row);
     console.log(`${pad(p.n)} ${row.lane.padEnd(8)} ${String(row.recipe ?? "").padEnd(18)} px ${sec(row.firstPixelMs)} int ${sec(row.interactiveMs)} done ${sec(row.doneMs)} ${row.archetype ?? "-"}${row.error ? `  ERROR ${row.error}` : ""}${spend ? `  spent $${spend.spent.toFixed(2)} of $${spend.cap}` : ""}`);
   }
+} catch (e) {
+  // The Delight round has already paid for the prompts in `rows`: stop here but still write their report (E4b-C1).
+  if (!DELIGHT) throw e;
+  problems.push(`round stopped after ${rows.length} prompt${rows.length === 1 ? "" : "s"}: ${firstLine(e)}`);
 } finally {
   await browser.close();
   await pool.end();

@@ -135,6 +135,9 @@ describe("[S3] the Widget the prompt's own turn showed (bar 1, A Widget with eve
       { sessionId, seq: 4, role: "assistant", content: text("Here is a basis point on a ruler.") },
     ]);
     await db.insert(sessionItems).values({ learnerId: me, sessionId, afterSeq: 3, kind: "widget_shown", data: { code: "root = Ruler()", title: "Basis point ruler", recipe: "lingo" } });
+    // A branch from before E4a's migration: drop the column here, so the test holds whether or not the real migrations
+    // have added it yet (E4b-T3).
+    await pool.exec("alter table reply_checks drop column if exists widget_source");
     const lane = await readLane(pool, me, promptSeq);
     const d = await readDelight(pool, sessionId, promptSeq, lane.lane);
     expect(d.widgetSource).toBe("recipe");
