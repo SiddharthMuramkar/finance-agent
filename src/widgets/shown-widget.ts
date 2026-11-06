@@ -50,6 +50,8 @@ export type ShownWidget = {
   companion?: CompanionRule;
   /** A Companion Widget only: what it shows, the scene id or the term, so a Session shows each once. */
   companionKey?: string;
+  /** The Topic scene it shows, by id, when the Tutor showed a written-ahead headline scene, so a Session shows each scene once. */
+  scene?: string;
 };
 
 /** The item's data as a ShownWidget, or null when it is not one (an older or broken row). */
@@ -65,6 +67,7 @@ export function shownWidgetOf(data: Record<string, unknown> | undefined): ShownW
     ...(data.timings && typeof data.timings === "object" ? { timings: data.timings as ComposeTimings } : {}),
     ...(COMPANION_RULES.includes(data.companion as CompanionRule) ? { companion: data.companion as CompanionRule } : {}),
     ...(typeof data.companionKey === "string" ? { companionKey: data.companionKey } : {}),
+    ...(typeof data.scene === "string" ? { scene: data.scene } : {}),
   };
 }
 

@@ -198,6 +198,7 @@ describe("story recipes", () => {
     const resolved = headlineParamsForScene(scenes, { title: "Rates up", inputs: { scene: "fed-front-page" }, refs: {}, facts: {} });
     expect(resolved.ok).toBe(true);
     if (resolved.ok) {
+      expect(resolved.scene).toBe("fed-front-page");
       expect(resolved.params.inputs).toMatchObject({ headline: "Central bank tightens pressure" });
       expect(byId("headline").build(resolved.params).ok).toBe(true);
     }

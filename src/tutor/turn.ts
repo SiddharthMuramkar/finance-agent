@@ -968,7 +968,8 @@ async function* runLockedTurn(
       place: { step: at?.step ?? "principle", check: at?.check?.id ?? null },
       replyText: await shownText(),
       shownThisSession: {
-        scenes: shown.flatMap((w) => (w.companion === "scene" && w.companionKey ? [w.companionKey] : [])),
+        // A scene counts once shown, whoever showed it: a Companion scene, or a headline scene the Tutor named.
+        scenes: shown.flatMap((w) => (w.scene ? [w.scene] : w.companion === "scene" && w.companionKey ? [w.companionKey] : [])),
         terms: shown.flatMap((w) => (w.recipe === "lingo_card" ? [lingoTerm(w)] : [])),
       },
       blocked: gateFacts.blockedNumbers,

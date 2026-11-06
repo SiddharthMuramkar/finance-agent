@@ -733,6 +733,7 @@ export function toolCode(
           // A front page is written ahead (E3): the Tutor names a headline scene of this Topic and code
           // swaps in the scene's own text, so the stored Widget and every later check see that text.
           let showParams: unknown = params;
+          let scene: string | undefined;
           if (id === "headline") {
             const where = await replyScope(tx);
             const topicId = where?.topicId ?? navigate(map, await loadProgress(tx, learnerId))?.topic.id;
@@ -740,6 +741,7 @@ export function toolCode(
             const resolved = headlineParamsForScene(topic?.scenes ?? [], params);
             if (!resolved.ok) return { ok: false, text: `Not shown: ${resolved.error}` };
             showParams = resolved.params;
+            scene = resolved.scene;
           }
           const built = recipe.build(showParams);
           if (!built.ok) return { ok: false, text: `Not shown: these params do not fit the ${id} recipe. ${built.error}. Call show_widget again with params that fit, or teach this in words.` };
@@ -770,7 +772,7 @@ export function toolCode(
           // An open quiz keeps its numbers: the recipe's inputs may not use them.
           const blocked = await openQuizProblems(tx, { kind: "recipe", id, params: built.params });
           if (blocked.length) return { ok: false, text: `Not shown: ${blocked.join(" ")}` };
-          const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe" };
+          const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe", ...(scene && { scene }) };
           // A practice-mode Widget asks its own question and marks the typed answer, so the reply only asks it (ticket #248, T5).
           const practice = (built.params as { inputs?: { mode?: unknown } } | undefined)?.inputs?.mode === "practice";
           const talk = practice ? `${TALK_ABOUT_IT} ${PRACTICE_ASK}` : TALK_ABOUT_IT;

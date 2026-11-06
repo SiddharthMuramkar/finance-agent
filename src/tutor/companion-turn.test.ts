@@ -180,6 +180,7 @@ describe("a Widget with every reply", () => {
     const shownByTutor = await turn(db, "Show me the paper", [tool("toolu_front", "show_widget", { recipe: "headline", params: { inputs: { scene: "fed-front-page" } } }), say(CONCEPT)], front);
     const tutors = await widgetsOfTurn(db, shownByTutor.sessionId, shownByTutor.turnSeq);
     expect(tutors.map((w) => w.source)).toEqual(["recipe"]);
+    expect(tutors[0].scene).toBe("fed-front-page");
     expect((await sources(db)).at(-1)).toBe("tutor");
     // The next bare reply at the same Check gets a Widget, never that front page again.
     const after = await turn(db, "Tell me more", [say(CONCEPT)], front);
