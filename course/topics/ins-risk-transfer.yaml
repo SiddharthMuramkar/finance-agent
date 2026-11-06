@@ -77,15 +77,15 @@ youllLearn:
 questions:
   - id: ins-q-fair-premium
     prompt: >
-      A policy pays Rs 10,00,000 if a particular event happens, which has a 1 in 200 chance each year. Ignoring costs and profit, what is the actuarially fair annual premium?
+      Most of AIG's business was plain insurance: a family pays a premium, and the insurer pays a large sum if a rare event happens, say one with a 1 in 200 chance each year. Insurers talk of an "actuarially fair" premium. Leaving out costs and profit, what does that phrase mean?
     choices:
-      - { id: a, text: "Rs 2,000" }
-      - { id: b, text: "Rs 5,000" }
-      - { id: c, text: "Rs 10,000" }
-      - { id: d, text: "Rs 50,000" }
+      - { id: a, text: "The full payout, because the insurer might have to pay all of it", mistake: { tag: ignored_probability, fix: "Fair pricing weighs the payout by its chance. It is not the whole payout." } }
+      - { id: b, text: "The average payout per policy: the payout weighed by its small chance, so a small fraction of the full sum" }
+      - { id: c, text: "A price high enough that the insurer never loses in any single year", mistake: { tag: fair_means_safe, fix: "Fair means the average payout. A bad year can still cost more." } }
+      - { id: d, text: "The average payout plus a margin for the insurer's costs and profit", mistake: { tag: added_loading, fix: "That is a real price. Fair means the bare average payout, with no margin." } }
     answer: b
     explanation: >
-      An actuarially fair premium equals the average benefit paid: probability times payout = (1 / 200) x Rs 10,00,000 = Rs 5,000. A real insurer charges more to cover costs, profit and the uncertainty of the pool.
+      An actuarially fair premium equals the average benefit paid: the payout weighed by its chance, which for a rare event is a small fraction of the full sum. A real insurer charges more to cover costs, profit and the uncertainty of the pool.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 16.2 Insurance and Imperfect Information (an actuarially fair policy charges the average amount of benefits): https://openstax.org/books/principles-economics/pages/16-2-insurance-and-imperfect-information
 
@@ -105,17 +105,17 @@ questions:
 
   - id: ins-q-correlated
     prompt: >
-      Insurer X covers 10,000 homes in different towns against fire: each has a 1% chance of a Rs 1,00,000 loss in a year, and fires are independent. Insurer Y covers 10,000 homes in one town against flood: with a 1% chance the whole town floods and each home loses Rs 1,00,000. Both have the same expected claims. What is the difference in the worst case?
+      Two insurers expect the same claims on average. Insurer X covers homes in many different towns against fire. Insurer Y covers every home in one town against flood. Which one is in more danger in a bad year, and why?
     choices:
-      - { id: a, text: "None: the same expected claims mean the same risk" }
-      - { id: b, text: "Y could face claims of Rs 100 crore in one year; X's claims would almost never be far above its expected Rs 1 crore" }
-      - { id: c, text: "X could face claims of Rs 100 crore; Y's would never be far above Rs 1 crore" }
-      - { id: d, text: "Both face a worst case of Rs 1 crore" }
+      - { id: a, text: "Neither: the same expected claims mean the same risk", mistake: { tag: same_average_same_risk, fix: "Same average, different spread. One flood hits every home in Y at once." } }
+      - { id: b, text: "Y: one flood makes every home claim at once, while X's fires stay close to their usual number" }
+      - { id: c, text: "X: its homes are spread over many towns, so it has more ways to lose", mistake: { tag: swapped_insurers, fix: "Fires in different towns are independent. It is Y's one-town flood that hits together." } }
+      - { id: d, text: "Both face the same worst case, since each home is as likely to claim", mistake: { tag: worst_case_is_average, fix: "Same chance per home, but in the flood year every home in Y claims together." } }
     answer: b
     explanation: >
-      Expected claims are 1% x Rs 100 crore = Rs 1 crore for both. For X, about 100 homes burn in a typical year and the number is very predictable. For Y the outcome is all or nothing: 99% of the time nothing, 1% of the time Rs 100 crore (10,000 x Rs 1,00,000). Correlation defeats pooling.
+      Both expect the same claims on average. Fires in different towns are independent, so in a typical year about the usual number of homes burn and X's total is predictable. Y's flood is all or nothing: most years nothing, but in the flood year every home claims at once. When losses move together, pooling stops protecting the insurer, which is the risk the swaps carried.
     source: >
-      Arithmetic from the stated figures; the pooling argument rests on independent trials, OpenStax, Statistics (CC BY), 4.2: https://openstax.org/books/statistics/pages/4-2-mean-or-expected-value-and-standard-deviation
+      The pooling argument rests on independent trials, OpenStax, Statistics (CC BY), 4.2: https://openstax.org/books/statistics/pages/4-2-mean-or-expected-value-and-standard-deviation
 
   - id: ins-q-moral-hazard
     prompt: >
@@ -133,21 +133,21 @@ questions:
 
   - id: ins-q-adverse-selection
     prompt: >
-      A life insurer pays Rs 1,00,000 on a death in the year. In a group, 20% have a 1 in 50 chance of dying and 80% have a 1 in 200 chance. The insurer cannot tell them apart and charges the group average, Rs 800. The low-risk people see that a fair price for them is Rs 500 and many drop out. What happens?
+      A life insurer cannot tell its healthier customers from its riskier ones, so it charges everyone one price, set from the group average. The healthy customers notice they are paying more than their own risk is worth, and many of them leave. What happens to the insurer?
     choices:
-      - { id: a, text: "The remaining pool is riskier, so Rs 800 no longer covers expected claims (adverse selection)" }
+      - { id: a, text: "The people left are riskier, so the old price no longer covers expected claims (adverse selection)" }
       - { id: b, text: "The insurer's expected claims fall, so it makes more profit" }
       - { id: c, text: "Nothing changes, because the average risk is the same" }
       - { id: d, text: "The high-risk group also drops out" }
     answer: a
     explanation: >
-      Average risk: 0.2 x 1/50 + 0.8 x 1/200 = 0.008, so Rs 800 on a Rs 1,00,000 payout. Fair prices are Rs 2,000 for the high-risk group and Rs 500 for the low-risk group. When low-risk people leave, the pool tilts to the high-risk group, whose expected claims are Rs 2,000, well above Rs 800.
+      The people who leave are the ones the average price overcharged, so those who stay are riskier than the average the price was set on. Claims now run above what the premiums bring in, and raising the price drives out the next-healthiest group. That is adverse selection: the price itself chooses who buys.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), Chapter 16 Problems (the life insurance example) and 16.2: https://openstax.org/books/principles-economics/pages/16-problems
 
   - id: ins-q-collateral
     prompt: >
-      A protection seller's contracts say: post collateral when the market value of the protection you sold has moved against you by more than a threshold, and the threshold is lowered if your credit rating falls. What happens to the seller's cash needs if its rating is cut?
+      Many of AIG's swap contracts said: hand over collateral when the market value of the protection you sold has moved against you by more than a threshold, and the threshold is lower if your credit rating falls. What happens to AIG's cash needs if its rating is cut?
     choices:
       - { id: a, text: "They can jump at once, because more of the market-value loss must now be covered with collateral, even though no claim has been settled" }
       - { id: b, text: "They fall, because a lower rating means lower risk" }

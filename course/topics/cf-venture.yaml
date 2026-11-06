@@ -72,43 +72,43 @@ youllLearn:
 questions:
   - id: cv-q-ownership
     prompt: >
-      An investor puts $5 million into a company at a pre-money valuation of $20 million. What share of the company does the investor own after the round?
+      An investor puts $5 million into a company at a pre-money valuation of $20 million. Against which value is the investor's new stake measured?
     choices:
-      - { id: a, text: "25 percent" }
-      - { id: b, text: "20 percent" }
-      - { id: c, text: "5 percent" }
-      - { id: d, text: "10 percent" }
-    answer: b
+      - { id: a, text: "Against the post-money value: the pre-money value plus the new cash" }
+      - { id: b, text: "Against the pre-money value alone", mistake: { tag: used_pre_money, fix: "Pre-money is the value before the cash arrives. The stake is measured against the value after it." } }
+      - { id: c, text: "Against what the founders paid in earlier", mistake: { tag: used_founder_cost, fix: "Past payments do not set the stake. The post-money value does." } }
+      - { id: d, text: "Against the cash the company holds in the bank", mistake: { tag: used_cash, fix: "Cash alone is not the company's value. Use the post-money valuation." } }
+    answer: a
     explanation: >
-      Post-money valuation = 20 + 5 = $25 million. Ownership = new money / post-money = 5 / 25 = 20 percent. Dividing by the pre-money value (25 percent) is the usual mistake.
+      Post-money value is the pre-money $20 million plus the $5 million of new cash, $25 million. The investor's stake is the new money over that, 5 / 25, which is 20 percent. Measuring against the pre-money value (25 percent) is the usual mistake.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), the venture capital approach, pre-money and post-money value: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
   - id: cv-q-pre-money
     prompt: >
-      A company announces a post-money valuation of $50 million after investors put in $10 million of new money. What was the pre-money valuation?
+      A company announces a post-money valuation of $50 million after investors put in $10 million of new money. Which line about its pre-money valuation is right?
     choices:
-      - { id: a, text: "$60 million" }
-      - { id: b, text: "$40 million" }
-      - { id: c, text: "$50 million" }
-      - { id: d, text: "$10 million" }
+      - { id: a, text: "Pre-money includes the new cash, so it is higher than the $50 million headline", mistake: { tag: swapped_pre_post, fix: "Post-money includes the new cash. Pre-money is the value before it." } }
+      - { id: b, text: "Post-money includes the new cash, so the pre-money value is lower than the $50 million headline" }
+      - { id: c, text: "The two are the same figure", mistake: { tag: same_figure, fix: "Post-money includes the new cash; pre-money does not." } }
+      - { id: d, text: "Pre-money is the cash the investors put in", mistake: { tag: pre_money_is_cash, fix: "Pre-money is the company's value before the round, not the cash put in." } }
     answer: b
     explanation: >
-      Post-money = pre-money + new money, so pre-money = 50 - 10 = $40 million. The new investors own 10 / 50 = 20 percent.
+      Post-money = pre-money + new money, so the pre-money value here is $40 million, below the $50 million headline. The new investors own 10 / 50 = 20 percent.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
   - id: cv-q-price
     prompt: >
-      A company has 8 million shares and a pre-money valuation of $32 million. New investors put in $10 million. At what price per share do they buy, and how many new shares do they receive?
+      A start-up raises a new round. New investors put in money and receive newly issued shares at a price set from the pre-money value. What happens to the founders' and earlier holders' stake?
     choices:
-      - { id: a, text: "$4 a share, and 2.5 million shares" }
-      - { id: b, text: "$5 a share, and 2 million shares" }
-      - { id: c, text: "$4 a share, and 10 million shares" }
-      - { id: d, text: "$3.20 a share, and 3.1 million shares" }
+      - { id: a, text: "It is diluted: they keep the same number of shares but own a smaller slice of a bigger total" }
+      - { id: b, text: "It is untouched, because the new money goes into the company", mistake: { tag: no_dilution, fix: "New shares are added, so every earlier holder's slice gets smaller." } }
+      - { id: c, text: "It is wiped out, because new investors rank first", mistake: { tag: wiped_out, fix: "Earlier holders keep their shares. Only their percentage shrinks." } }
+      - { id: d, text: "It grows, because the company now holds more cash", mistake: { tag: cash_raises_stake, fix: "More cash does not raise a percentage. More shares dilute it." } }
     answer: a
     explanation: >
-      Price = pre-money / shares before = 32 / 8 = $4. New shares = 10 / 4 = 2.5 million. They then own 2.5 / 10.5 = 23.8 percent, which equals 10 / 42, the money over the post-money value.
+      The round creates new shares. Earlier holders keep every share they had, but the total number of shares grows, so their slice of the company shrinks. That is dilution. They accept it because the new money should make the whole company worth more.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
@@ -117,9 +117,9 @@ questions:
       A start-up announces a "$100 million valuation" after investors put in $10 million for new preferred shares. What does the $100 million most directly mean?
     choices:
       - { id: a, text: "The new share price multiplied by all shares outstanding; it is not a price at which the whole company could be bought for cash" }
-      - { id: b, text: "The amount of cash the company has in the bank" }
-      - { id: c, text: "The price at which any investor can buy the whole company today" }
-      - { id: d, text: "The amount the founders received personally" }
+      - { id: b, text: "The amount of cash the company has in the bank", mistake: { tag: valuation_is_cash, fix: "A valuation is not cash on the balance sheet. Only the new money changed hands." } }
+      - { id: c, text: "The price at which any investor can buy the whole company today", mistake: { tag: buyable_price, fix: "A round prices only the newest shares. Nobody is offered the whole company at that price." } }
+      - { id: d, text: "The amount the founders received personally", mistake: { tag: founders_payout, fix: "Founders do not receive the valuation. It is a figure for the company." } }
     answer: a
     explanation: >
       Post-money valuation is the price paid for the newest shares scaled up to every share. Only $10 million of new money changed hands; the rest is an implied figure that depends on the terms of that one deal.
@@ -128,15 +128,15 @@ questions:
 
   - id: cv-q-vc-method
     prompt: >
-      A venture investor puts in $2 million and wants the stake to be worth ten times that at exit. The company is expected to be worth $50 million at exit. What ownership does the investor need (ignoring later dilution)?
+      A venture investor puts money into a young start-up with little profit yet. The investor wants the stake to be worth many times the money at exit, when the company is sold or lists. In the venture capital method, how does the investor reason?
     choices:
-      - { id: a, text: "4 percent" }
-      - { id: b, text: "20 percent" }
-      - { id: c, text: "40 percent" }
-      - { id: d, text: "100 percent" }
+      - { id: a, text: "Forward from today's profits, as for a share on the stock market", mistake: { tag: forward_from_profits, fix: "A start-up has little profit yet. The method works back from the exit." } }
+      - { id: b, text: "From the founders' wish for a high valuation", mistake: { tag: founders_ask, fix: "The investor's target return sets the stake, not the founders' wish." } }
+      - { id: c, text: "Backward from the exit: what the stake must be worth, then what share of the company that takes" }
+      - { id: d, text: "From the headline valuation of the last round", mistake: { tag: last_round_headline, fix: "The last round's headline is not the starting point. The exit and target return are." } }
     answer: c
     explanation: >
-      The investor needs $20 million at exit (10 x $2 million). Ownership = 20 / 50 = 40 percent. This is the venture capital approach: work backward from the exit value and the target return to the stake required.
+      The investor starts at the end: what the company might be worth at exit, and how much the stake must be worth by then. Working back from those gives the share of the company the money must buy today. That is the venture capital approach.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), the venture capital approach: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
@@ -159,14 +159,15 @@ checks:
     prompt: >
       On 8 January 2019 WeWork announced a $2 billion investment from SoftBank, with most of it
       at a post-money valuation of $47 billion and $1 billion of it at a pre-money valuation of
-      $20 billion. Explain what pre-money and post-money mean, how you would work out the share of
-      the company that $1 billion bought at each valuation, and why a $47 billion headline is not
-      the same as a $47 billion cash price for the company.
+      $20 billion. Say in your own words what pre-money and post-money mean, why $1 billion buys a
+      different slice of the company at a $20 billion pre-money valuation than at a $47 billion
+      post-money one, and why a $47 billion headline is not the same as a $47 billion cash price
+      for the company.
     passCriteria: >
-      The Learner defines post-money as pre-money plus the new money, and ownership as new money
-      divided by post-money. They compute that $1 billion at a $20 billion pre-money valuation
-      buys 1 / 21, about 4.8 percent, and $1 billion at a $47 billion post-money valuation buys
-      about 2.1 percent (and $2 billion about 4.3 percent). They explain that the headline is the
+      The Learner defines post-money as pre-money plus the new money, and says a stake is the new
+      money measured against post-money. They say a higher valuation means the same cheque buys a
+      smaller slice (about 4.8 percent at a $20 billion pre-money valuation, about 2.1 percent at
+      a $47 billion post-money one), and need not give exact figures. They explain that the headline is the
       price of the newest shares scaled to all shares, set in one negotiation by one investor and
       with specific terms, so it does not mean anyone could buy the whole company for that amount;
       they may also mention preferences or other rights the new shares carry.
