@@ -3,9 +3,10 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadCourseMap } from "@/course/map";
-import { stepSequence } from "@/course/navigator";
+import { stepSequence, type StepSequence } from "@/course/navigator";
 import { topicStart } from "@/course/topic-start";
 import { Conversation, type Line } from "./conversation";
+import { TopicBar } from "./workspace-parts";
 
 // The Topic Start card (spec #119) stays the first item of the conversation while the Tutor's opener streams in,
 // even when the reply is replayed whole (a resume or a refusal replaces the reply and the items inside it); and a
@@ -157,6 +158,38 @@ describe("a finished step on the Topic bar", () => {
     // The strip scrolls only itself to the current step: scrollIntoView would also move the page and the column.
     expect(scrolled).toEqual([]);
     expect(list.querySelector('[aria-current="step"]')).not.toBeNull();
+  });
+
+  it("centres the current step in the strip on mount, and again when the current step moves (#313)", async () => {
+    const map = loadCourseMap();
+    const id = "num-percent-bps";
+    const at = (step: "concept" | "your_turn") =>
+      stepSequence(map, { currentTopicId: id, topics: { [id]: { step, passedChecks: [], revealShown: false, status: "in_progress" as const } } }, id)!;
+    const first = at("concept");
+    const second = at("your_turn");
+    expect(second.current).not.toBe(first.current);
+    // A fake layout (happy-dom lays nothing out): the strip is 200 px wide at x = 10; step n sits 60·n px into
+    // its content, 40 px wide, and moves left as the strip scrolls. Centred means scrollLeft = 60·n − (200 − 40) / 2.
+    const original = Element.prototype.getBoundingClientRect;
+    const rect = (left: number, width: number) => ({ left, width, top: 0, height: 20, right: left + width, bottom: 20, x: left, y: 0, toJSON: () => ({}) }) as DOMRect;
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      if (this.getAttribute("aria-label") === "Steps in this Topic") return rect(10, 200);
+      if (this.getAttribute("aria-current") === "step") {
+        const ol = this.closest('ol[aria-label="Steps in this Topic"]')!;
+        return rect(10 + 60 * Number(this.getAttribute("data-step-number")) - ol.scrollLeft, 40);
+      }
+      return rect(0, 0);
+    };
+    try {
+      const draw = (strip: StepSequence) => act(() => root.render(<TopicBar title="Percent, percentage points and basis points" strip={strip} marked={new Set()} />));
+      const list = () => host.querySelector<HTMLOListElement>('ol[aria-label="Steps in this Topic"]')!;
+      await draw(first);
+      expect(list().scrollLeft).toBe(60 * (first.current! + 1) - 80);
+      await draw(second);
+      expect(list().scrollLeft).toBe(60 * (second.current! + 1) - 80);
+    } finally {
+      Element.prototype.getBoundingClientRect = original;
+    }
   });
 
   it("the Study page's Topic bar carries the shown Topic's ⋯ Topic options button (B3b)", async () => {
