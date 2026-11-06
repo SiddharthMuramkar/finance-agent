@@ -75,12 +75,12 @@ youllLearn:
 questions:
   - id: bop-q-identity
     prompt: >
-      A country is running short of dollars: it spends more abroad than it earns there (a current account deficit), and the foreign money coming in on the capital account covers only part of the gap. Where does the rest have to come from?
+      Arun, a finance minister, runs a current account deficit: his country spends more abroad than it earns. Foreign money coming in covers only part of the gap. Where must the rest come from?
     choices:
       - { id: a, text: "Its reserves, or a loan from the IMF" }
-      - { id: b, text: "Nothing: the accounts balance on their own", mistake: { tag: forgot_reserves, fix: "The accounts always net to zero, so reserves or IMF credit take up what is left." } }
-      - { id: c, text: "A rise in its reserves", mistake: { tag: reserves_wrong_way, fix: "Reserves are what pays the gap, so they fall; they do not rise." } }
-      - { id: d, text: "The merchandise trade balance", mistake: { tag: trade_is_the_gap, fix: "Trade is part of the current account, which is the gap itself." } }
+      - { id: b, text: "Nowhere: the accounts balance on their own", mistake: { tag: forgot_reserves, fix: "The accounts always net to zero, so reserves or IMF credit take up what is left." } }
+      - { id: c, text: "A fresh rise in its reserves", mistake: { tag: reserves_wrong_way, fix: "Reserves are what pays the gap, so they fall; they do not rise." } }
+      - { id: d, text: "Its merchandise trade balance", mistake: { tag: trade_is_the_gap, fix: "Trade is part of the current account, which is the gap itself." } }
     answer: a
     explanation: >
       The current account, the capital account and the change in reserves and IMF credit net to zero. A deficit that foreign money covers only in part leaves the rest to be met from reserves or IMF credit.
@@ -117,15 +117,15 @@ questions:
 
   - id: bop-q-share-gdp
     prompt: >
-      Two finance ministers meet: one runs a small island economy, the other a giant. Both report the same current account deficit in dollars, yet the island's minister looks far more worried. Reporters write each deficit as a share of GDP (CAD/GDP). Why does that help?
+      Two finance ministers report the same current account deficit in dollars, yet the small island's minister looks far more worried than the giant economy's. Why do reporters write each as a share of GDP?
     choices:
-      - { id: a, text: "GDP is the pot the deficit has to be repaid from in one year", mistake: { tag: gdp_is_repayment_pot, fix: "GDP is a yardstick for size. It is not a repayment rule." } }
-      - { id: b, text: "Dollar amounts cannot be compared between countries", mistake: { tag: dollars_cannot_compare, fix: "Dollars can be compared. A share also lets a small and a large economy be compared by size." } }
-      - { id: c, text: "It shows how fast the deficit is growing", mistake: { tag: share_is_growth, fix: "A share shows the deficit against the economy's size. It says nothing about growth." } }
-      - { id: d, text: "It shows the gap relative to the size of the economy" }
+      - { id: a, text: "GDP is the pot the deficit must be repaid from in a year", mistake: { tag: gdp_is_repayment_pot, fix: "GDP is a yardstick for size. It is not a repayment rule." } }
+      - { id: b, text: "Dollar amounts can never be compared between countries", mistake: { tag: dollars_cannot_compare, fix: "Dollars can be compared. A share also lets a small and a large economy be compared by size." } }
+      - { id: c, text: "It shows how fast each deficit is growing", mistake: { tag: share_is_growth, fix: "A share shows the deficit against the economy's size. It says nothing about growth." } }
+      - { id: d, text: "It measures each gap against the size of its economy" }
     answer: d
     explanation: >
-      A deficit of $6 billion is large for a $240 billion economy (2.5% of GDP) but small for a much larger one. Central banks report the current account deficit in just this way.
+      The same dollar gap is heavy for a small economy and light for a giant one. Writing it as a share of GDP, the economy's yearly output, puts both on one scale. Central banks report the current account deficit in just this way.
     source: >
       RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.3 (CAD/GDP): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
 
