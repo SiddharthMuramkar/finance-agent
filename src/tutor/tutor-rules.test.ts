@@ -218,3 +218,53 @@ describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", ()
     });
   }
 });
+
+/**
+ * Round 9 (critic DA-1): the maths-worry rule said "one choice ask about the word ... the Quick try on screen uses",
+ * while the one-ask rule said there is nothing to ask when code posts the try after the reply. In every T15 run the
+ * reply ended on its own question and code then posted Quick try pb-try-a1 below it: two things to answer, and the
+ * reply's question had nothing to tap. Whenever a Quick try is the ask, the reply names the word or the slip and asks
+ * nothing of its own.
+ */
+describe("a Quick try on screen, or a try code posts after the reply, is the reply's one ask (DA-1)", () => {
+  const sentences = (text: string) => text.split(/(?<=[.!?])\s+(?=[A-Z"(])/);
+  /** A sentence about a Quick try that is on screen, or a try code posts after (or under) the reply. */
+  const QUICK_TRY_IS_THERE = /Quick tr(?:y|ies) (?:is |are )?on screen|\btr(?:y|ies)\b[^.]*\b(?:after|under|below) (?:your|the) reply/i;
+  const NO_ASK_OF_ITS_OWN = /write no (?:ask|question)(?: or (?:ask|question))? of your own/;
+  /** A sentence that sets an ask or a question for the reply to end on. */
+  const PRESCRIBES_AN_ASK = /\b(?:end (?:on|with)|ends? on)\b|\b(?:choice|story or lingo|one) (?:ask|question|choice)\b|\bask about\b/i;
+
+  for (const [name, text] of [
+    ["widget engine off", TUTOR_INSTRUCTIONS],
+    ["widget engine on", ENGINE_INSTRUCTIONS],
+  ] as const) {
+    const rules = sentences(text).filter((s) => !s.startsWith("Context:"));
+
+    it(`${name}: every rule about a Quick try on screen or a try code posts after the reply says the reply writes no ask of its own`, () => {
+      const about = rules.filter((s) => QUICK_TRY_IS_THERE.test(s));
+      expect(about.length).toBeGreaterThanOrEqual(4);
+      for (const s of about) expect({ s, noAsk: NO_ASK_OF_ITS_OWN.test(s) }).toEqual({ s, noAsk: true });
+    });
+
+    it(`${name}: no rule sets an ask about the Quick try's word, or any ask beside a Quick try`, () => {
+      expect(text).not.toContain("the one the Quick try on screen uses");
+      const askBesideTry = rules.filter((s) => /Quick try/.test(s) && PRESCRIBES_AN_ASK.test(s) && !NO_ASK_OF_ITS_OWN.test(s));
+      expect(askBesideTry).toEqual([]);
+    });
+
+    it(`${name}: the maths-worry rule names the word and asks nothing when a Quick try is the ask`, () => {
+      const worry = rules.filter((s) => /\bQuick try\b/.test(s) && /\bworry\b|name the word/i.test(s));
+      expect(worry.length).toBeGreaterThan(0);
+      expect(text).toMatch(/When a Quick try is on screen or code posts a try after your reply, name the word that try uses and stop there: write no ask of your own/);
+    });
+  }
+
+  it("every example with a Quick try on screen, or a try code posts after the reply, ends with no ask of its own", () => {
+    const withTry = TUTOR_EXAMPLES.filter((e) => /Quick try[^;]*on screen|code posts (?:a|the) [^;]*\btry\b[^;]*after the reply/.test(e.situation));
+    expect(withTry.length).toBeGreaterThanOrEqual(3);
+    for (const e of withTry) {
+      expect({ situation: e.situation, ask: splitAsk(e.reply).ask }).toEqual({ situation: e.situation, ask: null });
+      expect(e.reply).not.toContain("?");
+    }
+  });
+});

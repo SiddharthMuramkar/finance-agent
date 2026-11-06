@@ -754,7 +754,7 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
             : []),
           "Teach it again this way only, in a few short lines. The last step is the Learner's tap: write no practice question of your own.",
         ]
-      : ["Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply."]),
+      : ["Teach it again this way only, in a few short lines with numbers other than the try's. Code shows the next Quick try after your reply, and that try is the ask: write no ask or practice question of your own."]),
   ].join("\n");
 }
 

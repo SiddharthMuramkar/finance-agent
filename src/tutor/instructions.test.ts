@@ -47,8 +47,10 @@ describe("the Tutor's frozen instructions", () => {
       // Run 3 (critics BP-2, EV-2): "bad at maths" got "mostly subtraction", a worked sum and a Quick try that asks for a number.
       it("keep a reply to a maths worry all words: no sum, not even said as a fact, and no Quick try (T15)", () => {
         expect(text).toContain("When the worry is maths, keep that reply all words");
-        // Run 4: an ask about basis points competed with the Quick try on points.
-        expect(text).toContain("one choice ask about the word the step teaches (the one the Quick try on screen uses, if there is one)");
+        // Run 4: an ask about basis points competed with the Quick try on points. Round 9 (DA-1): any ask competed with
+        // it, so with a Quick try on screen or posted after the reply the reply names the word and asks nothing.
+        expect(text).toContain("When a Quick try is on screen or code posts a try after your reply, name the word that try uses and stop there: write no ask of your own, because the try is the ask.");
+        expect(text).toContain("Otherwise, end on one choice ask about that word;");
         expect(text).toContain("with no sum in it, not even said as a fact, and no pointer to a Quick try");
         expect(text).toContain('The Learner writes: "ugh I\'m terrible with numbers".');
       });

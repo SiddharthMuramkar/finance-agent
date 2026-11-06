@@ -61,6 +61,8 @@ describe("a converted Your turn", () => {
     const { events, sent } = await turn(db, "Ready.");
     expect(itemKinds(events)).toEqual([QUICK_TRY]);
     expect(sent).toContain("Write no practice questions of your own");
+    // Round 9 (DA-1): the Quick try on screen or under the reply is the reply's one ask.
+    expect(sent).toContain("The Quick try on screen or under your reply is the ask: write no ask of your own.");
     expect(sent).toContain("Do not call finish_teaching_step for your_turn");
   });
 

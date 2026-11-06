@@ -34,7 +34,7 @@ const CARD_SHOWN = "Code has shown this Concept card and its Widget in the conve
 
 /** What the Tutor is told at a converted Your turn: code shows and marks the Quick tries, and finishes the step. */
 const QUICK_TRIES =
-  "Your turn: code shows Quick tries one at a time under your reply and marks each answer at once. Write no practice questions of your own and never mark an answer. Code finishes this step once every idea of the Check has two right answers in a row; you cannot finish it.";
+  "Your turn: code shows Quick tries one at a time under your reply and marks each answer at once. Write no practice questions of your own and never mark an answer. The Quick try on screen or under your reply is the ask: write no ask of your own. Code finishes this step once every idea of the Check has two right answers in a row; you cannot finish it.";
 
 /**
  * The note code writes for an opener (no Learner message comes with it): teach the Learner's saved step.
