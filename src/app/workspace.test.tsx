@@ -315,12 +315,12 @@ describe("the Topic complete card", () => {
   const complete = (next: string | null): Line => ({ role: "item", kind: "topic_complete", data: { topicId: "present-value", title: "Present value", principle, next } });
   const cardOf = (html: string) => html.match(/<section[^>]*data-testid="topic-complete-card"[^>]*>.*?<\/section>/)?.[0] ?? "";
 
-  it("ends the conversation with the principle, Saved to your Notes ✓, Next Topic and the Course Map", () => {
+  it("ends the conversation with the principle, Saved to your Notebook ✓, Next Topic and the Course Map", () => {
     const html = workspace({ initial: [...closing, complete("Next Topic: Bond prices")], passed: { title: "Present value", next: "Next Topic: Bond prices" } });
     const card = cardOf(html);
     expect(text(card)).toContain("Topic complete");
     expect(text(card)).toContain(principle);
-    expect(text(card)).toContain("Saved to your Notes ✓");
+    expect(text(card)).toContain("Saved to your Notebook ✓");
     expect(card).toMatch(/<button[^>]*data-what-comes-next[^>]*>Next Topic: Bond prices →<\/button>/);
     expect(card).toMatch(/<a[^>]*href="\/course"[^>]*>Course Map<\/a>/);
     expect(html.indexOf("topic-complete-card")).toBeGreaterThan(html.indexOf("That closes the Topic."));
