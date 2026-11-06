@@ -17,6 +17,13 @@ describe("review panel", () => {
     expect(html).toContain("Up to 10 a day; 2 done so far.");
     expect(html).not.toMatch(/Session/);
   });
+
+  it("stacks the choices as chips in a column, one per row", () => {
+    const html = renderToStaticMarkup(<ReviewPanel review={review} />);
+    expect(html).toMatch(/<label[^>]*data-affordance="chip"[^>]*class="[^"]*\bchip\b[^"]*"/);
+    expect(html).toMatch(/<div class="flex flex-col gap-2"><label/);
+    expect(html).not.toMatch(/<label[^>]*\bmb-2\b/);
+  });
 });
 
 describe("a marked review", () => {
