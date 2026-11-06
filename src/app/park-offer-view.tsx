@@ -8,7 +8,7 @@ import { ONE_MORE_BUTTON, PARK_BUTTON, type ParkedData, type ParkOfferData } fro
 /**
  * The park offer and the parked line in the conversation (spec #229, "Parking"; ticket #245). After a third miss in a
  * row code shows its own line and two buttons; each works once. The page provides the actions; with none (an old
- * Session, Past Sessions) the offer draws read-only.
+ * Session, Notebook) the offer draws read-only.
  */
 
 export type ParkChoice = { park: string } | { oneMore: string };

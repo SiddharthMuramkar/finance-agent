@@ -35,7 +35,7 @@ export type ThreadLine = Line & { id: string };
 
 /**
  * Before Next and Finish this reply replaced it, moving on posted a "Continue." message as if the Learner typed it.
- * Old Sessions still hold them: in the Study Workspace and on Past Sessions pages each one draws as a small
+ * Old Sessions still hold them: in the Study Workspace and on Session pages each one draws as a small
  * "→ next step" divider in its place, never as a Learner bubble.
  */
 export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)[] {

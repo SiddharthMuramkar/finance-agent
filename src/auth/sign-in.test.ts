@@ -48,8 +48,7 @@ vi.mock("next/navigation", async (original) => ({
 
 const { POST: login } = await import("@/app/api/login/route");
 const session = await import("@/auth/session");
-const { default: NotesPage } = await import("@/app/notes/page");
-const { default: SessionsPage } = await import("@/app/sessions/page");
+const { default: NotebookPage } = await import("@/app/notebook/page");
 const { default: ProfilePage } = await import("@/app/profile/page");
 const { default: StudyPage } = await import("@/app/study/page");
 const { default: WelcomePage } = await import("@/app/welcome/page");
@@ -173,7 +172,7 @@ describe("Cookies that no longer sign in", () => {
     await as.db.update(learners).set({ archivedAt: new Date() }).where(eq(learners.id, test));
     expect(await session.isSignedIn()).toBe(false);
     await expect(session.currentLearnerId()).rejects.toMatchObject(toLogin);
-    await expect(NotesPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(toLogin);
+    await expect(NotebookPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(toLogin);
   });
 
   it("a cookie for a name taken off the list is treated as signed out", async () => {
@@ -200,8 +199,8 @@ describe("The owner and a second Learner", () => {
     await ownersRows();
     await signIn(OWNER_PASSCODE);
 
-    expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s own note line");
-    expect(await html(SessionsPage())).not.toContain("No Sessions yet.");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s own note line");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({}) }))).not.toContain("Nothing here yet.");
     expect(await html(CourseMapPage())).toMatch(/In progress/i);
     expect(await html(StudyPage())).toContain("The owner&#x27;s reply about the annuity.");
     expect(await json(profileRoute.GET())).toMatchObject({ work: "a teacher in Mumbai" });
@@ -214,9 +213,9 @@ describe("The owner and a second Learner", () => {
     as.db = db;
     await signIn(OWNER_PASSCODE);
 
-    expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).toContain("my line");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({}) }))).toContain("my line");
     expect(await html(CourseMapPage())).toContain('data-status="in_progress"');
-    expect(await html(SessionsPage())).toContain("Older sessions");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({}) }))).toContain("Older sessions");
     expect(await html(CourseMapPage())).toMatch(/>In progress\b/);
     expect(await loadHomeButton()).toEqual({ kind: "resume", topic: as.map!.topic("present-value")!.title });
     expect(await json(profileRoute.GET())).toMatchObject({ work: "teacher" });
@@ -226,8 +225,8 @@ describe("The owner and a second Learner", () => {
     await ownersRows();
     await signIn(TEST_PASSCODE);
 
-    expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).not.toContain("The owner&#x27;s own note line");
-    expect(await html(SessionsPage())).toContain("No Sessions yet.");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({}) }))).not.toContain("The owner&#x27;s own note line");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({}) }))).toContain("Nothing here yet.");
     expect(await html(CourseMapPage())).toContain("0 in progress · 0 passed");
     expect(await html(CourseMapPage())).not.toContain('data-status="in_progress"');
     expect(await html(SettingsPage())).not.toContain("Mumbai");
@@ -359,8 +358,8 @@ describe("Start over", () => {
     expect(fresh).toMatchObject({ name: "test", archivedAt: null, showDeveloperDetails: false });
     expect(fresh!.id).not.toBe(old);
     // The fresh Learner starts empty.
-    expect(await html(SessionsPage())).toContain("No Sessions yet.");
-    expect(await html(NotesPage({ searchParams: Promise.resolve({ all: "1" }) }))).not.toContain("note line");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({}) }))).toContain("Nothing here yet.");
+    expect(await html(NotebookPage({ searchParams: Promise.resolve({ all: "1" }) }))).not.toContain("note line");
     expect(await html(CourseMapPage())).toContain("0 in progress · 0 passed");
     expect(await html(CourseMapPage())).not.toContain('data-status="in_progress"');
     expect(await json(profileRoute.GET())).toMatchObject({ work: null });
