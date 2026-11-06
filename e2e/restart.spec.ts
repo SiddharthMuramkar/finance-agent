@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { hydrated, seed, settled } from "./support/app";
+import { hydrated, say, seed, settled } from "./support/app";
 
 /**
  * B3b (spec 2026-11-05): a Learner starts one Topic over from the Topic bar or from Settings, the old attempt stays in the
@@ -8,6 +8,8 @@ import { hydrated, seed, settled } from "./support/app";
  */
 
 const P = "num-percent-bps";
+/** What the Learner says in Q's first attempt, so the fresh attempt can be shown not to carry it. */
+const FIRST_TRY = "This is my first try at this Topic.";
 
 test.beforeEach(async ({ page }) => {
   await seed(page, "restart-topics");
@@ -26,6 +28,10 @@ test("restart from the Topic bar and from Settings", async ({ page }) => {
   await hydrated(page);
   const bar = page.getByTestId("topic-bar");
   const title = ((await bar.locator("p").first().innerText()) ?? "").trim();
+  // Q's first attempt has a conversation: the Tutor's opener, the Learner's message and the Tutor's reply.
+  await say(page, "plain-reply", FIRST_TRY);
+  await expect(page.getByText(FIRST_TRY, { exact: true })).toHaveCount(1);
+  await expect(page.getByTestId("assistant-message")).toHaveCount(2);
   await bar.getByRole("button", { name: "Topic options" }).click();
   await page.getByRole("menuitem", { name: "Start this Topic over…" }).click();
   await confirmRestart(page);
@@ -35,6 +41,12 @@ test("restart from the Topic bar and from Settings", async ({ page }) => {
   await expect(page.getByTestId("topic-bar")).toContainText(title);
   await expect(page.getByTestId("topic-bar").locator('[aria-current="step"]')).toHaveText("Story");
   await expect(page.getByTestId("topic-bar").locator("button[data-step-number]")).toHaveCount(0);
+  // An empty chat: none of the first attempt's messages; only the fresh attempt's own opener, which starts by itself.
+  await expect(page.getByText(FIRST_TRY, { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("assistant-message")).toHaveCount(1, { timeout: 30_000 });
+  await settled(page);
+  await expect(page.getByTestId("assistant-message")).toHaveCount(1);
+  await expect(page.getByText(FIRST_TRY, { exact: true })).toHaveCount(0);
 
   await page.goto("/notebook");
   const row = page.locator("[data-notebook-row]").filter({ hasText: title });
