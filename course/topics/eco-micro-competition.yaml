@@ -60,12 +60,12 @@ youllLearn:
 questions:
   - id: mc-q-studios
     prompt: >
-      January 2016. Isha sinks her savings into a yoga studio in Pune, among dozens of gyms and studios that open and close every year. Her brother says she can charge anything. Who's right?
+      January 2016. Isha quits her job to open a yoga studio in Pune, where dozens of studios open and close every year. Her brother says she can charge whatever she likes. Who's right?
     choices:
       - { id: a, text: "She can charge a bit extra for her style, but not much" }
-      - { id: b, text: "Her brother: her classes are unique, so she sets any price", mistake: { tag: overstated_power, fix: "Dozens of nearby studios are close rivals; push the price too far and members walk." } }
-      - { id: c, text: "Neither: with so many studios, every class must cost the same", mistake: { tag: missed_differentiation, fix: "Studios differ in classes and place, so each can charge a little more." } }
-      - { id: d, text: "Neither: a few big gym chains will set her price for her", mistake: { tag: miscounted_sellers, fix: "Dozens of small studios is many sellers; no few giants set her price." } }
+      - { id: b, text: "Her brother: her classes are unique, so any price works", mistake: { tag: overstated_power, fix: "Dozens of nearby studios are close rivals; push the price too far and members walk." } }
+      - { id: c, text: "Neither: with so many studios, every class costs the same", mistake: { tag: missed_differentiation, fix: "Studios differ in classes and place, so each can charge a little more." } }
+      - { id: d, text: "Neither: a few big gym chains will set her price", mistake: { tag: miscounted_sellers, fix: "Dozens of small studios is many sellers; no few giants set her price." } }
     answer: a
     explanation: >
       Many sellers, slightly different products and easy entry make monopolistic competition. Isha can charge a bit more for her own style or a handy location, but if she pushes too far, members walk to the studio down the road, and new ones keep opening.
@@ -73,12 +73,12 @@ questions:
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0013, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
   - id: mc-q-empty-threat
     prompt: >
-      March 2016. Zoya bets her family's savings on a new ice-cream brand. The leader's boss vows to "fight any newcomer to the last rupee", but a price war would cost him more than sharing. Should she launch?
+      March 2016. Zoya bets her family's savings on a new ice-cream brand. The market leader's boss vows to "fight any newcomer to the last rupee", but a price war would cost him more than sharing. Should she launch?
     choices:
       - { id: a, text: "Launch: fighting her would hurt him more, so it's a bluff" }
       - { id: b, text: "Stay out: he said it in public, so he must mean it", mistake: { tag: believed_cheap_talk, fix: "Words cost nothing; ask whether fighting would pay him once Zoya has arrived." } }
-      - { id: c, text: "Launch, but plan for a long price war that he'll start", mistake: { tag: assumed_follow_through, fix: "Once she's in, he picks what pays best, and sharing pays better than fighting." } }
-      - { id: d, text: "Wait a year and see whether he calms down first", mistake: { tag: waited_it_out, fix: "Waiting changes nothing: after entry, sharing still beats fighting for him, so the threat is empty." } }
+      - { id: c, text: "Launch, but brace for the long price war he'll start", mistake: { tag: assumed_follow_through, fix: "Once she's in, he picks what pays best, and sharing pays better than fighting." } }
+      - { id: d, text: "Wait a year and see whether he calms down", mistake: { tag: waited_it_out, fix: "Waiting changes nothing: after entry, sharing still beats fighting for him, so the threat is empty." } }
     answer: a
     explanation: >
       A threat is credible only if carrying it out pays when the moment comes. After entry, the leader does better sharing the market than fighting, so a rational newcomer treats the vow as cheap talk and enters. Economists find this by reasoning backwards from the last move.
@@ -86,15 +86,15 @@ questions:
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0019, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
   - id: mc-q-commitment
     prompt: >
-      May 2016. Zoya launched anyway, and the ice-cream leader's boss is stung. Before the next newcomer turns up, he wants his price-war threat believed. Which move would actually scare them off?
+      May 2016. Zoya launched anyway, and the ice-cream leader's boss is stung. Before the next newcomer turns up, he wants his price-war threat taken seriously. Which move would actually scare them off?
     choices:
-      - { id: a, text: "Build a low-cost plant now, so fighting would pay" }
+      - { id: a, text: "Build a cheaper-to-run plant now, so fighting would pay" }
       - { id: b, text: "Repeat the threat in a full-page newspaper ad", mistake: { tag: louder_cheap_talk, fix: "An ad changes no costs or profits, so fighting still pays worse than sharing." } }
       - { id: c, text: "Hire a famously ruthless new boss to sound tougher", mistake: { tag: swapped_the_boss, fix: "Same costs and profits after entry mean the same choice: sharing still pays better." } }
-      - { id: d, text: "Sign long fixed-price deals with shops, so he can't cut prices", mistake: { tag: tied_hands_wrong_way, fix: "Locking prices stops him cutting them, which makes a price war less believable." } }
+      - { id: d, text: "Sign long fixed-price deals with shops, so prices can't move", mistake: { tag: tied_hands_wrong_way, fix: "Locking prices stops him cutting them, which makes a price war less believable." } }
     answer: a
     explanation: >
-      A threat becomes credible when the threatener changes its own payoffs so that carrying it out pays. A plant that lowers its costs, built before anyone enters and impossible to undo, makes fighting the better choice after entry, so a newcomer expects a price war and stays out. This is a commitment device.
+      A threat becomes credible when the threatener changes its own payoffs so that carrying it out pays. A plant that lowers its costs, built before anyone enters and impossible to undo, makes fighting the better choice after entry, so a newcomer expects a price war and stays out. Economists call this a commitment device.
     source: >
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0020, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
   - id: mc-q-charity-price
