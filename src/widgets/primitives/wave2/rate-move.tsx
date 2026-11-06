@@ -24,9 +24,11 @@ type Props = { oldRate: number; newRate: number; mode?: "show" | "practice" };
 /** A rate as the part writes it: to two decimals, no trailing zeros ("5.2", "5"). */
 const rateText = (percent: number) => String(Math.round(percent * 100) / 100);
 
-// The number line's drawing box: the axis runs between the margins, which leave room for the end labels.
+// The number line's drawing box: the axis runs between the margins, which leave room for the end labels. The widest
+// end label the 0-20 sliders make is 6 characters ("10.25%", "24.99%"): about 3.8em, since "%" is ~0.95em, so 38 units
+// at font size 10. Each end label sits 20 units outside the axis, so MARGIN 64 leaves 44 units: about 6 to spare.
 const WIDTH = 320;
-const MARGIN = 44;
+const MARGIN = 64;
 const AXIS_Y = 38;
 const HEAD = 8;
 

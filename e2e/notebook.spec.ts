@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Request } from "@playwright/test";
 import { say, seed } from "./support/app";
 
 /** B2a (spec 2026-11-05): one Notebook for notes and past Sessions; the old addresses redirect to it. */
@@ -28,19 +28,26 @@ test("a Session still opens read-only, with Resume and a way back", async ({ pag
   test.setTimeout(180_000);
   // Seeded Sessions hold no messages (their page is a 404 by design), so talk once to give one a message.
   await seed(page, "story");
+  // The Notebook has no link to an unfinished Topic's Session, so read its id off our own turn request: the page sends
+  // `shown: { sessionId }` with every turn (set from the opener's `done`), and the reply is saved to that Session.
+  // (Probing /sessions/1…N for the one that answers 200 fired hundreds of page renders at the dev server as ids grew,
+  // and it reset connections. Reading the streamed /api/turn body back through Playwright came back empty in 1 of 20
+  // runs.) A request's body is read synchronously, as it is sent, so nothing can be missed.
+  const sent: number[] = [];
+  const onRequest = (r: Request) => {
+    if (r.method() !== "POST" || new URL(r.url()).pathname !== "/api/turn") return;
+    const body = r.postDataJSON() as { message?: string; shown?: { sessionId?: number } } | null;
+    if (body?.message === "Tell me more." && body.shown?.sessionId) sent.push(body.shown.sessionId);
+  };
+  page.on("request", onRequest);
   await page.goto("/study");
   await say(page, "plain-reply", "Tell me more.");
+  page.off("request", onRequest);
+  expect(sent, "one message sent, from a shown Session").toHaveLength(1);
+  const id = sent[0];
   await page.goto("/notebook");
   await expect(page.locator("[data-notebook-row]").getByRole("button", { name: "Resume" }).first()).toBeVisible();
-  // Find the Session's page: the Notebook has no link to an unfinished Topic's Session, so probe the ids this run made.
-  // Session ids keep growing across the whole run, so probe in batches until one answers 200.
-  let id = 0;
-  for (let from = 1; from <= 1000 && !id; from += 50) {
-    const batch = Array.from({ length: 50 }, (_, i) => from + i);
-    const codes = await Promise.all(batch.map(async (n) => (await page.request.get(`/sessions/${n}`, { maxRedirects: 0 })).status()));
-    id = batch[codes.findIndex((c) => c === 200)] ?? 0;
-  }
-  expect(id, "a Session page that answers 200").toBeGreaterThan(0);
+  expect((await page.request.get(`/sessions/${id}`, { maxRedirects: 0 })).status(), "a Session page that answers 200").toBe(200);
   await page.goto(`/sessions/${id}`);
   await expect(page.getByTestId("old-session")).toBeVisible();
   await expect(page.getByRole("button", { name: "Resume this Topic" })).toBeVisible();
@@ -49,6 +56,9 @@ test("a Session still opens read-only, with Resume and a way back", async ({ pag
 });
 
 const firstLine = async (page: import("@playwright/test").Page) => {
+  // The page streams in behind loading.tsx: until the swap, its rows sit in a hidden holder with every box at 0 (all
+  // "in the first line"). Measure only once the last row has a box of its own.
+  await expect(page.locator("[data-notebook-row]").last()).toBeVisible();
   const tops = await page.locator("[data-notebook-row]").evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
   return tops.filter((t) => t === tops[0]).length;
 };
