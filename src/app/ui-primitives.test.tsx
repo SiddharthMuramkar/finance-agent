@@ -8,7 +8,6 @@ vi.mock("./theme-cookie", () => ({ readTheme: async () => ({ mode: "single", the
 
 import Loading from "./course/loading";
 import NotesLoading from "./notes/loading";
-import ProgressLoading from "./progress/loading";
 import SessionsLoading from "./sessions/loading";
 import SettingsLoading from "./settings/loading";
 import StudyLoading from "./study/loading";
@@ -104,7 +103,6 @@ describe("route skeletons", () => {
   it.each([
     ["study", StudyLoading],
     ["course", Loading],
-    ["progress", ProgressLoading],
     ["sessions", SessionsLoading],
     ["notes", NotesLoading],
     ["settings", SettingsLoading],
