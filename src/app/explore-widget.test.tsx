@@ -36,7 +36,7 @@ describe("the explore Widget in the workspace", () => {
     const pane = html.slice(paneStart(html));
     expect(pane).toContain('data-testid="explore-chip"');
     expect(pane).toContain(">Explore<");
-    expect(pane).toMatch(/aria-selected="true"[^>]*data-testid="explore-chip"/);
+    expect(pane).toMatch(/data-testid="explore-chip"[^>]*aria-current="true"/);
     expect(pane).toContain("Interest rate (discount rate)");
   });
 

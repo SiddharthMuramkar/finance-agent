@@ -81,9 +81,9 @@ export function WaffleView({ label, percent, compareTo, zoom = false }: z.infer<
   };
 
   return (
-    <figure data-testid="waffle" data-motion={reduced ? "reduced" : "full"} role="img" aria-label={`${label}. ${caption}`} className="my-3">
+    <figure data-testid="waffle" data-motion={reduced ? "reduced" : "full"} role="img" aria-label={`${label}. ${caption}`} className="@container my-3">
       <figcaption className="mb-1 text-sm font-medium">{label}</figcaption>
-      <div className="grid max-w-72 grid-cols-10 gap-0.5" data-testid="waffle-grid">
+      <div className="grid max-w-72 grid-cols-10 gap-0.5 @min-[720px]:max-w-none" data-testid="waffle-grid">
         {Array.from({ length: 100 }, (_, i) => {
           const { look, part, steady } = squareLook(i, now, before);
           return <Square key={i} look={look} part={part} steady={steady} testId="waffle-square" />;
