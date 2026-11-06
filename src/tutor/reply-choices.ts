@@ -52,16 +52,21 @@ export function suggestionAfter(rows: readonly Row[], fromSeq: number): string |
 
 /**
  * Picks and stores the Choices for the reply of the turn at `turnSeq`: the Learner's step after the turn, the Tutor's
- * suggestion, and the Choice pressed to start the turn (skipped). Returns the item, and the suggestion code dropped.
+ * suggestion, and the Choice pressed to start the turn (skipped). Returns the item, and the suggestion code dropped;
+ * or null when the turn closed the Session's Topic, whose conversation ends at its Topic complete card.
  */
 export async function storeReplyChoices(
   db: Db,
   map: CourseMap,
-  o: { learnerId: number; sessionId: number; turnSeq: number; input: string | null; rows: readonly Row[]; now: Date },
-): Promise<{ item: { kind: string; data: Record<string, unknown> }; dropped: string | null }> {
+  o: { learnerId: number; sessionId: number; topicId: string | null; turnSeq: number; input: string | null; rows: readonly Row[]; now: Date },
+): Promise<{ item: { kind: string; data: Record<string, unknown> }; dropped: string | null } | null> {
+  const progress = await loadProgress(db, o.learnerId);
+  const place = navigate(map, progress);
+  // Passed and not reopened for a Due Check: the Topic is closed, and the page offers What comes next instead.
+  if (o.topicId && progress.topics[o.topicId]?.status === "passed" && place?.topic.id !== o.topicId) return null;
   const items = await loadSessionItems(db, o.sessionId, o.learnerId);
   const pressed = latestChoicesIn(items, o.turnSeq).find((c) => c.says === o.input?.trim())?.id ?? null;
-  const step = navigate(map, await loadProgress(db, o.learnerId))?.step ?? "none";
+  const step = place?.step ?? "none";
   const suggestion = suggestionAfter(o.rows, o.turnSeq);
   const dropped = suggestion !== null && suggestedChoice(suggestion) === null ? suggestion : null;
   const data: ReplyChoicesData = { choices: choicesFor(step, suggestion, pressed), ...(dropped !== null && { dropped }) };

@@ -14,6 +14,7 @@ import { listSessions, loadThread } from "./transcript";
 import { NOT_THE_LEARNERS_ATTEMPT } from "./tools";
 import { latestTurn, runTutorTurn, type TurnDeps, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: what the Tutor sees of the Learner's Widgets (spec #119, "Widgets › What the Tutor sees").
@@ -197,7 +198,7 @@ describe("Tell the Tutor what I found", () => {
     expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("widget_report");
     const thread = await loadThread(db, await sessionId(db), map, OWNER_LEARNER_ID);
     expect(thread.filter((e) => e.role === "user").map((e) => e.role === "user" && e.text)).toEqual(["Show me a rate."]);
-    expect(thread.at(-1)).toMatchObject({ role: "assistant", text: "You found it." });
+    expect(withoutChoices(thread).at(-1)).toMatchObject({ role: "assistant", text: "You found it." });
   });
 
   it("is refused as an Insight attempt", async () => {

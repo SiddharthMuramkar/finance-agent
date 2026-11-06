@@ -81,10 +81,10 @@ describe("the rules tuned against the live tests", () => {
     expect(tool.description).toContain("whenever they state a correct rule in their own words. Call it before you write your reply, and let code check the rest");
   });
 
-  it("the repeat-miss example sets fill-in boxes on new numbers, with Box 2 left blank as its ask", () => {
+  it("the repeat-miss example sets fill-in boxes on new numbers, with Box 2 a choice of two readings as its ask", () => {
     const boxes = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
     expect(boxes.reply).not.toContain("7.5%");
-    expect(boxes.reply.split("\n").at(-1)).toBe("Box 2: 0.4 times 100 is how many basis points?");
+    expect(boxes.reply.split("\n").at(-1)).toBe("Box 2: in basis points, is that 4 bp or 40 bp?");
   });
 
   it("the start-from-the-beginning example says what a savings rate is, inside its one worked example", () => {
@@ -96,7 +96,7 @@ describe("the rules tuned against the live tests", () => {
     const own = TUTOR_EXAMPLES.find((e) => e.learner.startsWith("so its basically"))!;
     expect(own.situation).toContain("the reply first calls save_learner_rule with the Learner's words");
     expect(own.reply.split("\n")[0]).toBe("Yes: **change times 100, then divide by the original.**");
-    expect(own.reply.split("\n").at(-1)).toBe("What is the percent change when a price goes from ₹50 to ₹60?");
+    expect(own.reply.split("\n").at(-1)).toBe("When a price goes from ₹50 to ₹60, which price is the original?");
   });
 
   it("the request-for-the-answer example names the idea the question tests, and teaches only that idea", () => {
