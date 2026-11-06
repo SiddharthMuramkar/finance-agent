@@ -5,13 +5,15 @@ import { useId, useMemo, useState } from "react";
 import { z } from "zod/v4";
 import { rateMoveLines } from "@/finance/rate-change";
 import { useChangeFlash, usePrefersReducedMotion } from "../wave1/motion";
-import { markReading, moveReadings, RATE_MOVE_LABELS, RATE_MOVE_MAX, type ReadingMark } from "./rate-move-marking";
+import { Pic } from "../wave3/shared";
+import { markReading, moveReadings, RATE_MOVE_LABELS, RATE_MOVE_MAX, RATE_MOVE_SPEAKERS, type ReadingMark } from "./rate-move-marking";
 
 // RateMove: one rate moving from old to new. A number line draws the move as an arrow, and three worked lines say it
 // in points, in basis points and as a percent of the old rate, all written by the tested rateMoveLines. In practice
 // mode the lines stay hidden until the Learner taps the right reading of the move (the right one, the x10 slip and
 // the percent mix-up, ADR 0009) and code marks the tap; only then do the lines show, with sliders for play that move
-// the lines, never the marked question. Nothing is typed. Rates only: no currency.
+// the lines, never the marked question. Nothing is typed. Rates only: no currency. Each line has a speaker (a reporter,
+// a trader, a headline) and a chart emoji sits by the arrow (#480), so the Widget is never chart-only.
 
 export const rateMoveProps = z.object({
   oldRate: z.number().describe("The old rate in percent: a number, or a $variable bound to a Slider"),
@@ -57,43 +59,51 @@ function NumberLine({ oldRate, newRate }: { oldRate: number; newRate: number }) 
   const label = moved
     ? `A number line: the rate moves from ${rateText(oldRate)}% ${dir > 0 ? "up" : "down"} to ${rateText(newRate)}%.`
     : `A number line: the rate stays at ${rateText(oldRate)}%.`;
+  // #480: a chart emoji by the arrow says the direction at a glance (a bar chart when nothing moved). Decorative: the
+  // number line's own label says the move.
+  const directionEmoji = moved ? (dir > 0 ? "chart-increasing" : "chart-decreasing") : "bar-chart";
   return (
-    <svg
-      data-testid="rate-move-line"
-      data-direction={moved ? (dir > 0 ? "rise" : "fall") : "none"}
-      role="img"
-      aria-label={label}
-      viewBox={`0 0 ${WIDTH} 72`}
-      className="block h-auto w-full max-w-md @min-[720px]:max-w-none"
-    >
-      <line x1={MARGIN - 16} x2={WIDTH - MARGIN + 16} y1={AXIS_Y} y2={AXIS_Y} stroke="var(--border)" strokeWidth={1.5} />
-      <text x={MARGIN - 20} y={AXIS_Y + 4} textAnchor="end" fontSize={10} fill="var(--muted)">
-        {rateText(start)}%
-      </text>
-      <text x={WIDTH - MARGIN + 20} y={AXIS_Y + 4} textAnchor="start" fontSize={10} fill="var(--muted)">
-        {rateText(end)}%
-      </text>
-      <line data-testid="rate-move-old-tick" x1={from} x2={from} y1={AXIS_Y - 5} y2={AXIS_Y + 5} stroke="var(--sun-ink)" strokeWidth={1.5} />
-      <line x1={to} x2={to} y1={AXIS_Y - 5} y2={AXIS_Y + 5} stroke="var(--ink)" strokeWidth={1.5} />
-      {moved ? (
-        <>
-          <line data-testid="rate-move-arrow" x1={from} x2={to - dir * HEAD} y1={AXIS_Y - 12} y2={AXIS_Y - 12} stroke={moveInk} strokeWidth={2.5} strokeLinecap="round" />
-          <polygon
-            data-testid="rate-move-head"
-            points={`${to},${AXIS_Y - 12} ${to - dir * HEAD},${AXIS_Y - 17} ${to - dir * HEAD},${AXIS_Y - 7}`}
-            fill={moveInk}
-          />
-        </>
-      ) : (
-        <circle cx={from} cy={AXIS_Y - 12} r={4} fill="var(--brand)" />
-      )}
-      <text data-testid="rate-move-old" x={clampLabel(from)} y={AXIS_Y + 20} textAnchor="middle" fontSize={11} fill="var(--sun-ink)">
-        Old {rateText(oldRate)}%
-      </text>
-      <text data-testid="rate-move-new" x={clampLabel(to)} y={AXIS_Y - 24} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--ink)">
-        New {rateText(newRate)}%
-      </text>
-    </svg>
+    <div className="flex items-center gap-2">
+      <span data-testid="rate-move-direction" data-emoji={directionEmoji} className="shrink-0">
+        <Pic name={directionEmoji} size={32} />
+      </span>
+      <svg
+        data-testid="rate-move-line"
+        data-direction={moved ? (dir > 0 ? "rise" : "fall") : "none"}
+        role="img"
+        aria-label={label}
+        viewBox={`0 0 ${WIDTH} 72`}
+        className="block h-auto w-full min-w-0 flex-1 max-w-md @min-[720px]:max-w-none"
+      >
+        <line x1={MARGIN - 16} x2={WIDTH - MARGIN + 16} y1={AXIS_Y} y2={AXIS_Y} stroke="var(--border)" strokeWidth={1.5} />
+        <text x={MARGIN - 20} y={AXIS_Y + 4} textAnchor="end" fontSize={10} fill="var(--muted)">
+          {rateText(start)}%
+        </text>
+        <text x={WIDTH - MARGIN + 20} y={AXIS_Y + 4} textAnchor="start" fontSize={10} fill="var(--muted)">
+          {rateText(end)}%
+        </text>
+        <line data-testid="rate-move-old-tick" x1={from} x2={from} y1={AXIS_Y - 5} y2={AXIS_Y + 5} stroke="var(--sun-ink)" strokeWidth={1.5} />
+        <line x1={to} x2={to} y1={AXIS_Y - 5} y2={AXIS_Y + 5} stroke="var(--ink)" strokeWidth={1.5} />
+        {moved ? (
+          <>
+            <line data-testid="rate-move-arrow" x1={from} x2={to - dir * HEAD} y1={AXIS_Y - 12} y2={AXIS_Y - 12} stroke={moveInk} strokeWidth={2.5} strokeLinecap="round" />
+            <polygon
+              data-testid="rate-move-head"
+              points={`${to},${AXIS_Y - 12} ${to - dir * HEAD},${AXIS_Y - 17} ${to - dir * HEAD},${AXIS_Y - 7}`}
+              fill={moveInk}
+            />
+          </>
+        ) : (
+          <circle cx={from} cy={AXIS_Y - 12} r={4} fill="var(--brand)" />
+        )}
+        <text data-testid="rate-move-old" x={clampLabel(from)} y={AXIS_Y + 20} textAnchor="middle" fontSize={11} fill="var(--sun-ink)">
+          Old {rateText(oldRate)}%
+        </text>
+        <text data-testid="rate-move-new" x={clampLabel(to)} y={AXIS_Y - 24} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--ink)">
+          New {rateText(newRate)}%
+        </text>
+      </svg>
+    </div>
   );
 }
 
@@ -104,9 +114,14 @@ function Readouts({ oldRate, newRate }: { oldRate: number; newRate: number }) {
   return (
     <ol className="mt-2 space-y-1" style={{ opacity: fresh ? 0.35 : 1, transition: reduced ? undefined : "opacity 160ms var(--ease-out, ease-out)" }}>
       {lines.map((line, i) => (
-        <li key={RATE_MOVE_LABELS[i]} data-testid="rate-move-readout" className="text-sm leading-6">
-          <span className="block text-xs text-[var(--violet-ink)]">{RATE_MOVE_LABELS[i]}</span>
-          <span className="tabular-nums">{line}</span>
+        <li key={RATE_MOVE_LABELS[i]} data-testid="rate-move-readout" className="flex items-start gap-2 text-sm leading-6">
+          <span className="shrink-0 pt-0.5">
+            <Pic name={RATE_MOVE_SPEAKERS[i].emoji} size={32} label={RATE_MOVE_SPEAKERS[i].who} />
+          </span>
+          <span className="min-w-0">
+            <span data-testid="rate-move-label" className="block text-xs text-[var(--violet-ink)]">{RATE_MOVE_LABELS[i]}</span>
+            <span className="tabular-nums">{line}</span>
+          </span>
         </li>
       ))}
     </ol>

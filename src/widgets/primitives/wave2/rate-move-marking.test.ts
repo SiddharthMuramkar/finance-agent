@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { moveReadings, markReading } from "./rate-move-marking";
+import { isEmojiName } from "@/emoji/registry";
+import { moveReadings, markReading, RATE_MOVE_LABELS, RATE_MOVE_SPEAKERS } from "./rate-move-marking";
 
 const byText = (set: ReturnType<typeof moveReadings>) => Object.fromEntries(set.choices.map((c) => [c.text, c.mistake?.tag ?? "right"]));
 
@@ -59,5 +60,18 @@ describe("marking a tapped reading", () => {
     const mix = set.choices.find((c) => c.mistake?.tag === "mixed_percent_points")!;
     expect(markReading(set, mix.id).status).toBe("wrong");
     expect(markReading(set, mix.id).fix).toMatch(/percent/i);
+  });
+});
+
+// #480: each worked line has a speaker, a vendored Fluent Emoji 3D character, so the Widget is never chart-only.
+describe("the speakers of the three worked lines", () => {
+  it("names one registry emoji per line: the reporter's points, the trader's basis points, the headline's percent", () => {
+    expect(RATE_MOVE_SPEAKERS.map((s) => [s.who, s.emoji])).toEqual([
+      ["reporter", "woman"],
+      ["trader", "man-office-worker"],
+      ["headline", "newspaper"],
+    ]);
+    expect(RATE_MOVE_SPEAKERS).toHaveLength(RATE_MOVE_LABELS.length);
+    for (const s of RATE_MOVE_SPEAKERS) expect(isEmojiName(s.emoji)).toBe(true);
   });
 });
