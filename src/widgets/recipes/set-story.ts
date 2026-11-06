@@ -203,7 +203,8 @@ export const timeline = defineRecipe({
       .object({
         beats: z
           .array(z.object({ date: isoDate, label: capped(8, 80), emoji: short(40) }).strict())
-          .min(2)
+          // One beat is the Companion Widget's Case card (E4a): the Case's date and title, nothing invented.
+          .min(1)
           .max(7),
         hideAfter: isoDate.optional(),
       })

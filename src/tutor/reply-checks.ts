@@ -466,7 +466,7 @@ function confirmsNumber(text: string, answerNumbers: string[]): boolean {
 }
 
 /** Every number in a Widget's params, normalised: numbers as they are, and any numbers written in strings. */
-function paramNumbers(value: unknown): string[] {
+export function paramNumbers(value: unknown): string[] {
   if (typeof value === "number") return Number.isFinite(value) ? [normalNumber(String(Math.abs(value)))] : [];
   if (typeof value === "string") return numbersIn(value);
   if (Array.isArray(value)) return value.flatMap(paramNumbers);

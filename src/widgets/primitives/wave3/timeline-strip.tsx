@@ -36,7 +36,7 @@ export function TimelineStripView({ beats, hideAfter }: Props) {
     .slice(0, 7)
     .map((b, order) => ({ ...b, order, locked: !!hideAfter && isAfter(b.date, hideAfter) }))
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.order - b.order));
-  if (marks.length < 2) return <p className="py-2 text-sm text-[var(--muted)]">The timeline is still arriving.</p>;
+  if (marks.length < 1) return <p className="py-2 text-sm text-[var(--muted)]">The timeline is still arriving.</p>;
 
   const move = (to: number) => {
     const clamped = Math.max(0, Math.min(marks.length - 1, to));
