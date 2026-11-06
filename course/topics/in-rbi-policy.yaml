@@ -86,7 +86,7 @@ questions:
 
   - id: rbi-q-target
     prompt: >
-      March 2015. Asha's aunt, a banker, reads that the government and the RBI have agreed on a goal for consumer inflation. Asha asks what the RBI must now aim for. What should her aunt say?
+      Asha's aunt, a banker, says that today the RBI works to a goal for consumer inflation that it agreed with the government. Asha asks what the RBI must aim for. What should her aunt say?
     choices:
       - { id: a, text: "4 per cent, with room of 2 points either side" }
       - { id: b, text: "2 per cent, with room of 4 points either side", mistake: { tag: target_band_swapped, fix: "Swapped: 4 per cent is the target, and 2 points is the room on either side." } }
@@ -100,7 +100,7 @@ questions:
 
   - id: rbi-q-swap
     prompt: >
-      September 2013. The rupee hit a record low near Rs 69 to the dollar in August. Suppose Vikram's bank swaps new three-year dollar deposits with the RBI at a rate fixed today. Which risk leaves his bank?
+      Vikram's bank takes three-year dollar deposits and must repay them in dollars, while its own money is in rupees, which keep sliding. Suppose a central bank swaps those dollars at a rate fixed today. Which risk leaves his bank?
     choices:
       - { id: a, text: "The rupee weakening before the dollars must be repaid" }
       - { id: b, text: "Depositors pulling their money out early", mistake: { tag: withdrawal_risk, fix: "The swap fixes the exchange rate for repayment. It does nothing about depositors leaving." } }
