@@ -88,7 +88,7 @@ const card = () => host.querySelector('[data-testid="widget-card"]')!;
 const slider = () => card().querySelector<HTMLInputElement>('input[type="range"][aria-label="Interest rate"]')!;
 const ticks = () => [...card().querySelectorAll("[data-state]")].map((li) => li.getAttribute("data-state"));
 const title = () => card().querySelector("h3")?.textContent;
-const tab = (name: string) => [...host.querySelectorAll<HTMLElement>('[aria-label="Widgets in this Session"] [role=option]')].find((o) => o.querySelector(".truncate")?.textContent === name)!;
+const tab = (name: string) => [...host.querySelectorAll<HTMLElement>('[data-testid="widget-filmstrip"] [data-thumb-key]')].find((o) => o.getAttribute("title") === name)!;
 
 async function click(button: HTMLElement) {
   await act(async () => button.click());
