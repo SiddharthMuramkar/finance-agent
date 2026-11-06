@@ -409,7 +409,7 @@ describe("a quiz Check in the right panel", () => {
 
   it("opens as a tab named Check k of N, selected automatically, showing the questions", () => {
     const html = pane(workspace({ quiz }));
-    expect(html).toMatch(/aria-selected="true"[^>]*data-testid="check-tab"/);
+    expect(html).toMatch(/data-testid="check-tab"[^>]*aria-current="true"/);
     expect(text(html)).toContain("How many basis points?");
     expect(text(html)).toContain("Submit answers");
   });
@@ -417,8 +417,10 @@ describe("a quiz Check in the right panel", () => {
   it("stays the selected tab when the Tutor has drawn Widgets, which keep their own tabs", () => {
     const initial: Line[] = [{ role: "assistant", text: fence(ANNUITY) }];
     const html = pane(workspace({ quiz, initial }));
-    expect(html).toMatch(/aria-selected="true"[^>]*data-testid="check-tab"/);
-    expect(html).toMatch(/<li[^>]*aria-selected="false"[^>]*>.*?What the annuity is worth today/);
+    expect(html).toMatch(/data-testid="check-tab"[^>]*aria-current="true"/);
+    const annuityThumb = html.match(/<button[^>]*title="What the annuity is worth today"[^>]*>/)?.[0] ?? "";
+    expect(annuityThumb).toContain('data-testid="filmstrip-thumb"');
+    expect(annuityThumb).not.toContain("aria-current");
     expect(text(html)).toContain("How many basis points?");
     expect(text(html)).not.toContain("Discount rate");
   });
@@ -495,7 +497,7 @@ describe("Check results in the conversation", () => {
     };
     const html = workspace({ initial: conversation, missed });
     const pane = html.slice(html.indexOf('data-testid="widget-pane"'));
-    expect(pane).toMatch(/aria-selected="true"[^>]*data-testid="check-tab"/);
+    expect(pane).toMatch(/data-testid="check-tab"[^>]*aria-current="true"/);
     expect(text(pane)).toContain("Your answer: Zero point two five");
     expect(text(pane)).toContain("Try Check 1 again →");
     expect(text(pane)).not.toContain("Submit answers");
@@ -530,9 +532,9 @@ describe("the Widget panel", () => {
     ];
     const html = workspace({ initial });
     const panel = html.slice(html.indexOf('data-testid="widget-pane"'));
-    const row = panel.slice(panel.indexOf('aria-label="Widgets in this Session"'), panel.indexOf("</div>", panel.indexOf('aria-label="Widgets in this Session"')));
-    // Two tabs, the updated Widget still first, where "Pick a rate" was.
-    expect([...row.matchAll(/<span class="block truncate">([^<]*)<\/span>/g)].map((m) => m[1])).toEqual(["Pick a rate", "What a home loan costs"]);
+    const row = panel.slice(panel.indexOf('data-testid="widget-filmstrip"'), panel.indexOf('data-testid="widget-card"'));
+    // Two thumbnails, the updated Widget still first, where "Pick a rate" was.
+    expect([...row.matchAll(/data-testid="filmstrip-thumb"[^>]*title="([^"]*)"/g)].map((m) => m[1])).toEqual(["Pick a rate", "What a home loan costs"]);
     // The newest drawing shows, in the updated Widget's tab.
     expect(text(panel)).toContain("Loan rate");
     expect(text(panel)).not.toContain("Discount rate");
@@ -550,19 +552,21 @@ describe("the Widget panel", () => {
     expect(text(one)).not.toContain("Long-term interest rates");
   });
 
-  it("pages through its Widgets with a header (3 of 11 · title) instead of a strip of tabs, the long title shortened", () => {
+  it("pages through its Widgets with a header (1 of 6 · title) and a filmstrip of thumbnails, the long title cut to two lines (E5)", () => {
     const long = `root = Widget("A very long title for a Widget that would never fit on one tab in the right panel", [history])
 history = HistoryChart("mega-millions-2018/treasury-30-year")`;
     const many: WidgetItem[] = [...items, ...[3, 4, 5, 6].map((n) => ({ key: `m:${n}`, number: n, code: n === 6 ? long : CALC, complete: true }))];
     const html = renderToStaticMarkup(<WidgetPanel widgets={many} shown={many[0]} onPick={() => {}} />);
-    const row = html.match(/<div[^>]*aria-label="Widgets in this Session"[^>]*>/)?.[0] ?? "";
-    expect(row).not.toMatch(/\boverflow-x-auto\b/);
-    expect(html).not.toMatch(/\bflex-nowrap\b/);
+    // The filmstrip scrolls inside itself and carries one thumbnail per Widget.
+    const strip = html.match(/<div[^>]*data-testid="widget-filmstrip"[^>]*>/)?.[0] ?? "";
+    expect(strip).toMatch(/\boverflow-x-auto\b/);
+    expect([...html.matchAll(/data-testid="filmstrip-thumb"/g)]).toHaveLength(6);
     expect(text(html)).toContain("1 of 6 · Long-term interest rates");
     const position = html.match(/<p[^>]*data-testid="pager-position"[^>]*>/)?.[0] ?? "";
     expect(position).toMatch(/\btruncate\b/);
-    // The long title is in the All menu, cut short there too, with its full text on hover in the header when it is the current one.
-    expect(html).toMatch(/<span class="block truncate">A very long title for a Widget/);
+    // The long title sits on its thumbnail cut to two lines, with its full text on hover (the button's title).
+    expect(html).toMatch(/<span class="line-clamp-2[^"]*">A very long title for a Widget/);
+    expect(html).toContain('title="A very long title for a Widget that would never fit on one tab in the right panel"');
     expect(text(html)).not.toMatch(/Widget \d/);
   });
 
