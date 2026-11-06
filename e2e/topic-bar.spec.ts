@@ -92,3 +92,27 @@ test("[#313] the strip keeps room for a Chip's focus ring and shadow, and never 
   await page.mouse.up();
   expect(pressed.scroll).toBeLessThanOrEqual(pressed.client);
 });
+
+test("[#313] a narrow bar never squeezes the goal away: it keeps 12rem or drops to its own line", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "forces its own bar width");
+  await seed(page, "your-turn");
+  await page.goto("/study");
+  const bar = page.getByTestId("topic-bar");
+  await expect(bar.getByTestId("topic-goal")).toBeVisible();
+  // A phone-wide bar: the Percent title alone nearly fills the row, so a goal that only gets what the title leaves
+  // would shrink to nothing (T313-R1).
+  await bar.evaluate((nav) => { (nav as HTMLElement).style.width = "360px"; });
+  const m = await bar.evaluate((nav) => {
+    const row = nav.querySelector<HTMLElement>("[data-topic-title-row]")!;
+    const goal = nav.querySelector<HTMLElement>('[data-testid="topic-goal"]')!;
+    const title = goal.previousElementSibling as HTMLElement;
+    const r = row.getBoundingClientRect();
+    const g = goal.getBoundingClientRect();
+    const t = title.getBoundingClientRect();
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    return { goalWidth: g.width, rem, ownLine: g.top >= t.bottom - 1, spill: Math.max(0, g.right - r.right, t.right - r.right), rowScroll: row.scrollWidth - row.clientWidth };
+  });
+  expect(m.goalWidth, "the goal keeps room to be read").toBeGreaterThanOrEqual(Math.min(12 * m.rem, 360 - 40));
+  expect(m.spill, "nothing spills past the title row").toBeLessThanOrEqual(0.5);
+  expect(m.rowScroll, "the title row does not overflow").toBeLessThanOrEqual(0);
+});

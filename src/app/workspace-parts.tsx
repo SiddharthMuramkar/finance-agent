@@ -66,12 +66,13 @@ export function TopicBar({ topicId, title, goal, strip, marked }: { topicId?: st
   };
   return (
     <nav aria-label="Topic progress" data-testid="topic-bar" className="rounded-lg border border-[var(--border)] px-3 py-2">
-      {/* Two rows (#313): the title with the goal muted beside it, cut short (full text on hover), then the strip. */}
+      {/* Two rows (#313): the title with the goal muted beside it, cut short (full text on hover), then the strip. The
+          goal never gets less than 12rem: when the title leaves less, the goal wraps to its own line (T313-R1). */}
       <div data-topic-title-row className="flex items-center justify-between gap-2">
-        <p className="flex min-w-0 flex-1 items-baseline gap-2 text-sm leading-5">
-          <span className="min-w-0 max-w-full shrink-0 truncate font-semibold">{title}</span>
+        <p className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 text-sm leading-5">
+          <span className="min-w-0 max-w-full truncate font-semibold">{title}</span>
           {goal && (
-            <span data-testid="topic-goal" title={goal} className="min-w-0 truncate text-xs text-[var(--muted)]">
+            <span data-testid="topic-goal" title={goal} className="min-w-[min(12rem,100%)] flex-1 basis-48 truncate text-xs text-[var(--muted)]">
               {goal}
             </span>
           )}
