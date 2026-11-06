@@ -30,13 +30,14 @@ describe("#507 fx-regimes-crises pre-reveal Check keeps the Case's outcome hidde
     for (const c of q.choices) expect(c.text, `choice ${c.id}`).not.toMatch(/baht/i);
   });
 
-  it("no Check question links the baht to a float before the reveal", () => {
+  it("no Check question links the baht to a float before the reveal (prompt and choices read together)", () => {
+    // The #507 leak was split across texts: the prompt said "managed float" and a choice said "the baht's value".
     for (const id of check?.questions ?? []) {
       const q = doc.questions.find((x) => x.id === id);
       if (!q) throw new Error(`no question ${id}`);
-      for (const text of [q.prompt, ...q.choices.map((c) => c.text)]) {
-        expect(text, `${id}: ${text}`).not.toMatch(/baht[^.]*\bfloat|float[^.]*\bbaht/i);
-      }
+      const whole = [q.prompt, ...q.choices.map((c) => c.text)].join(" \n ");
+      const linked = /baht/i.test(whole) && /\bfloat/i.test(whole);
+      expect({ id, linked }).toEqual({ id, linked: false });
     }
   });
 });
