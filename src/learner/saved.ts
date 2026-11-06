@@ -15,7 +15,7 @@ import { loadProgress } from "./memory";
 import { loadWidgetState } from "./widget-state";
 
 /**
- * "Save to notes": a Tutor reply, or a Widget, kept on a Topic Note. Only a pointer is stored (table
+ * "Save to Notebook": a Tutor reply, or a Widget, kept on a Topic Note. Only a pointer is stored (table
  * note_items): the Session and turn of the reply, and for a Widget its number in the reply and the
  * settings the Learner had. What is shown is rebuilt on read from the stored Session, so a saved reply
  * is drawn like an old Session (sources folded, the as-of rule applied now) and a Widget's code always

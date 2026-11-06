@@ -13,51 +13,51 @@ const EXPLORE = { id: "cash-now-or-later", code: 'root = Widget("Cash now or lat
 const reply = { role: "assistant" as const, text: `Here you go.\n\n${fence(WIDGET)}`, ref: { sessionId: 3, turnSeq: 0 } };
 const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
 
-describe("Save to notes in a Topic", () => {
+describe("Save to Notebook in a Topic", () => {
   it("is offered under a finished reply and under its Widget, also in an old Session", () => {
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "user", text: "Show me." }, reply]} />);
-    expect(html).toContain('aria-label="Save this reply to notes"');
-    expect(html).toContain('aria-label="Save this Widget to notes"');
+    expect(html).toContain('aria-label="Save this reply to Notebook"');
+    expect(html).toContain('aria-label="Save this Widget to Notebook"');
   });
 
   it("is offered under the workspace's replies too", () => {
     const html = renderToStaticMarkup(<Conversation initial={[reply]} quiz={null} pending={null} review={noReview} />);
-    expect(html).toContain('aria-label="Save this reply to notes"');
+    expect(html).toContain('aria-label="Save this reply to Notebook"');
   });
 
   it("is not offered on a reply with no place in a Session (a reply still arriving, or the landing page sample)", () => {
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text: `Hi.\n\n${fence(WIDGET)}` }]} />);
-    expect(html).not.toContain("Save to notes");
+    expect(html).not.toContain("Save to Notebook");
   });
 
   it("is offered on the explore Widget wherever it stands", () => {
     const page = <Conversation initial={[]} quiz={null} pending={null} review={noReview} explore={EXPLORE} />;
     // In the panel at a laptop width, in its card below it: the Widget is mounted once either way.
-    expect(renderToStaticMarkup(page).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);
-    expect(renderToStaticMarkup(<NarrowScreen>{page}</NarrowScreen>).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);
+    expect(renderToStaticMarkup(page).match(/aria-label="Save this Widget to Notebook"/g)).toHaveLength(1);
+    expect(renderToStaticMarkup(<NarrowScreen>{page}</NarrowScreen>).match(/aria-label="Save this Widget to Notebook"/g)).toHaveLength(1);
   });
 });
 
-describe("after Save to notes", () => {
+describe("after Save to Notebook", () => {
   const noop = () => {};
   const saved = renderToStaticMarkup(<SaveToNotesView state={{ status: "saved", id: 4, topicId: "present-value" }} what="reply" onSave={noop} onUndo={noop} />);
 
-  it('reads "Saved ✓ · Undo · Open notes", with Open notes going to that Topic\'s note', () => {
+  it('reads "Saved to Notebook ✓ · Undo · Open Notebook", with Open Notebook going to that Topic\'s Notebook row', () => {
     const text = saved.replace(/<[^>]+>/g, "").replace("Saved to notes", "");
-    expect(text).toMatch(/Saved ✓\s*·\s*Undo\s*·\s*Open notes/);
+    expect(text).toMatch(/Saved to Notebook ✓\s*·\s*Undo\s*·\s*Open Notebook/);
     expect(saved).toMatch(/<button[^>]*data-undo-save[^>]*>Undo<\/button>/);
-    expect(saved).toContain('href="/notes#note-present-value"');
+    expect(saved).toContain('href="/notebook#note-present-value"');
   });
 
   it("offers no second Save while it is saved, so the same reply is not saved twice", () => {
-    expect(saved).not.toContain("Save to notes</button>");
+    expect(saved).not.toContain("Save to Notebook</button>");
   });
 
-  it("is the plain Save to notes button before a save and after Undo", () => {
+  it("is the plain Save to Notebook button before a save and after Undo", () => {
     const idle = renderToStaticMarkup(<SaveToNotesView state={{ status: "idle" }} what="Widget" onSave={noop} onUndo={noop} />);
-    expect(idle).toMatch(/<button[^>]*aria-label="Save this Widget to notes"[^>]*>(<svg.*<\/svg>)?Save to notes<\/button>/);
+    expect(idle).toMatch(/<button[^>]*aria-label="Save this Widget to Notebook"[^>]*>(<svg.*<\/svg>)?Save to Notebook<\/button>/);
     expect(idle).not.toContain("Undo");
-    expect(idle).toMatch(/<button[^>]*data-affordance="button"[^>]*aria-label="Save this Widget to notes"/);
+    expect(idle).toMatch(/<button[^>]*data-affordance="button"[^>]*aria-label="Save this Widget to Notebook"/);
     expect(idle).toMatch(/class="[^"]*\bbtn\b[^"]*\bbtn-secondary\b/);
   });
 });

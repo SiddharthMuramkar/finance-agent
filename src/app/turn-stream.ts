@@ -293,7 +293,7 @@ export function useTurnStream({
               if (usage) setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, usage } : x)));
               // What the next turn request says the page shows.
               if (event.shown) shownRef.current = event.shown;
-              // The finished reply can now be saved to notes (every part of it: its Widgets are saved by the whole reply's count).
+              // The finished reply can now be saved to the Notebook (every part of it: its Widgets are saved by the whole reply's count).
               if (ref) {
                 setMessages((m) => m.map((x) => (partIds.includes(x.id) && x.role === "assistant" ? { ...x, ref } : x)));
               }

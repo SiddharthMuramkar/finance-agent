@@ -107,14 +107,14 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   ),
   // Stored after a Tutor answer that left the Topic: "Off-Topic answer · ↩ Back to <Topic>".
   [OFF_TOPIC]: (data) => (typeof data.title === "string" && typeof data.topicId === "string" ? <OffTopicBlock data={data as OffTopicData} /> : null),
-  // Stored when the Tutor saves the Learner's own rule to their Topic Note: "Saved to your notes · Undo · Open notes".
+  // Stored when the Tutor saves the Learner's own rule to their Topic Note: "Saved to your Notebook · Undo · Open Notebook".
   [OWN_RULE_SAVED]: (data) => {
     const rule = ownRuleOf({ kind: OWN_RULE_SAVED, data });
     return rule ? <OwnRuleLine data={rule} /> : null;
   },
   // Never stored: an old "Continue." message, drawn in the thread and on Session pages as where the next step began.
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
-  // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.
+  // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notebook ✓, What comes next and the Course Map.
   [TOPIC_COMPLETE]: (data) => (typeof data.title === "string" && typeof data.principle === "string" ? <TopicCompleteCard card={data as TopicCompleteData} /> : null),
   // After a third miss in a row: code's park offer, "Park it, review tomorrow" and "One more short try".
   [PARK_OFFER]: (data) => (typeof data.skillId === "string" && typeof data.line === "string" ? <ParkOfferView data={data as ParkOfferData} /> : null),

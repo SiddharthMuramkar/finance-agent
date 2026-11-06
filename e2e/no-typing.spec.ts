@@ -27,14 +27,14 @@ test.beforeEach(async ({}, info) => {
 test("the Learner at Percent's Your turn taps a wrong choice and sees its fix", async ({ page }) => {
   await study(page, "your-turn");
   const card = page.getByTestId("quick-try");
-  await expect(card).toContainText("A rate goes from 3% to 3.5%. How many points did it move?");
+  await expect(card).toContainText("A reporter sees a rate go from 3% to 3.5%. What gap would the story report?");
   // The order is the seed's choice (it differs between Sessions), so compare the set.
-  await expect(card.getByTestId("quick-try-choice")).toHaveCount(2);
-  expect((await card.getByTestId("quick-try-choice").allInnerTexts()).sort()).toEqual(["0.5 points", "50 points"]);
+  await expect(card.getByTestId("quick-try-choice")).toHaveCount(3);
+  expect((await card.getByTestId("quick-try-choice").allInnerTexts()).sort()).toEqual(["3.5 percentage points", "50 percentage points", "Half a percentage point"]);
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
   await expect(page.getByTestId("quick-try-input")).toHaveCount(0);
 
-  await card.getByTestId("quick-try-choice").filter({ hasText: "50 points" }).click();
+  await card.getByTestId("quick-try-choice").filter({ hasText: /^50 percentage points$/ }).click();
   const result = page.getByTestId("quick-try-result").first();
   await expect(result).toHaveAttribute("data-verdict", "known_mistake");
   await expect(result).toHaveText("That is basis points. Points are the new rate minus the old rate.");

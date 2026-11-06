@@ -1,6 +1,6 @@
 /**
  * The Session item the Tutor's save_learner_rule stores (spec #229, "The Learner's own words"): a quiet line, "Saved to
- * your notes · Undo · Open notes", under the reply that confirmed the Learner's own rule. No server imports, so the
+ * your Notebook · Undo · Open Notebook", under the reply that confirmed the Learner's own rule. No server imports, so the
  * browser can match on the kind (session-item-view.tsx), like shown-widget.ts.
  */
 

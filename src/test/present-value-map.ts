@@ -23,7 +23,10 @@ export function presentValueOnly(
     subject: undefined,
     // Tests written before the explore step run the Topic without its Insight, so their steps are unchanged.
     ...(options.withoutInsight ? { insight: undefined, explore: undefined } : {}),
-    ...(options.withoutQuiz ? { checks: t.checks.filter((c) => c.kind !== "quiz"), questions: undefined } : {}),
+    // A scene tied to the dropped quiz Check goes with it (E6a gave this Topic a scene per Check).
+    ...(options.withoutQuiz
+      ? { checks: t.checks.filter((c) => c.kind !== "quiz"), questions: undefined, scenes: t.scenes.filter((s) => !t.checks.some((c) => c.kind === "quiz" && c.id === s.check)) }
+      : {}),
   };
   if (options.withConnections) {
     const planned = parseOutline(readOutlineText());

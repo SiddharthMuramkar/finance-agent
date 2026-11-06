@@ -65,7 +65,7 @@ export function StartOverButton({ confirmValue }: { confirmValue: string }) {
         Start over as a new learner?
       </p>
       <p className="mt-1 leading-5 text-[var(--muted)]">
-        You begin again at the Welcome with no progress, Notes or Sessions. Nothing is deleted: your current progress is kept, but you won&rsquo;t see it here again.
+        You begin again at the Welcome with no progress, Notebook or Sessions. Nothing is deleted: your current progress is kept, but you won&rsquo;t see it here again.
         Any other device signed in as you is signed out.
       </p>
       <form action="/api/start-over" method="post" className="mt-3 flex items-center gap-2">

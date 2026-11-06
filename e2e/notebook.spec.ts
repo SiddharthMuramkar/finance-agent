@@ -81,6 +81,40 @@ test("notebook is wide", async ({ page }, info) => {
   expect(gutters.right).toBeLessThanOrEqual(32);
 });
 
+test("save, then find it", async ({ page }) => {
+  test.setTimeout(180_000); // the dev server compiles each page on first visit
+  // Seventeen Topic rows, the current Topic's near the bottom: its row starts well below the fold at 1512×982, so only
+  // the deep link's scroll can bring it into view.
+  await seed(page, "notebook-long");
+  await page.goto("/study");
+  await say(page, "plain-reply", "What is a basis point?");
+  const savedText = "A basis point is one hundredth of a percentage point.";
+  await expect(page.getByTestId("assistant-message").last()).toContainText(savedText);
+
+  await page.getByRole("button", { name: "Save this reply to Notebook" }).last().click();
+  const open = page.getByRole("link", { name: "Open Notebook" }).last();
+  await expect(open).toBeVisible();
+  const href = await open.getAttribute("href");
+  expect(href, "the saved line links to its Notebook row").toMatch(/^\/notebook#note-[a-z0-9-]+$/);
+  const topicId = href!.replace("/notebook#note-", "");
+
+  await open.click();
+  await expect(page).toHaveURL(new RegExp(`/notebook#note-${topicId}$`));
+  const row = page.locator(`[data-notebook-row="${topicId}"]`);
+  await expect(row).toContainText(savedText);
+  // The page streams in behind loading.tsx; the scroll may land a moment after the rows do, so poll for it.
+  const where = () =>
+    row.evaluate((el) => {
+      const top = el.getBoundingClientRect().top;
+      return { top, scrollY: window.scrollY, pageTop: top + window.scrollY, height: window.innerHeight };
+    });
+  await expect.poll(async () => (await where()).scrollY, { message: "the page scrolled to the row", timeout: 10_000 }).toBeGreaterThan(0);
+  const at = await where();
+  expect(at.pageTop, "the row starts below the fold, so the check means something").toBeGreaterThan(at.height);
+  expect(at.top, "the row's top is in the viewport").toBeGreaterThanOrEqual(0);
+  expect(at.top, "the row's top is in the viewport").toBeLessThan(at.height);
+});
+
 test("older sessions are listed below the rows", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "measured at 1512×982");
   await seed(page, "notebook-older");

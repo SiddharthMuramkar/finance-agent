@@ -71,10 +71,13 @@ describe("the scenes dev page", () => {
     await done();
   });
 
-  it("draws present-value with an honest empty state until E6a writes its scenes", async () => {
+  it("draws present-value's story, concept, reveal and principle scenes, its terms and its Running example (E6a)", async () => {
     const { host, done } = await draw({ topic: "present-value" });
     expect(host.querySelector("h1")?.textContent).toContain("Present value");
-    expect(host.querySelector("[data-testid='no-scenes']")).not.toBeNull();
+    expect(host.querySelector("[data-testid='no-scenes']")).toBeNull();
+    const scenes = [...host.querySelectorAll("[data-testid='dev-scene']")].map((s) => s.getAttribute("data-recipe"));
+    expect(scenes).toEqual(["story_scene", "two_paths", "who_pays_whom", "headline", "lingo_card"]);
+    expect(host.textContent).not.toContain("could not be drawn");
     await done();
   });
 });

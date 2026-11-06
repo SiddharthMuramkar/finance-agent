@@ -34,7 +34,7 @@ export const storeOf = (all: (() => WidgetStates) | undefined): WidgetStore | un
 
 const WidgetStatesContext = createContext<WidgetStore | null>(null);
 
-/** The page's Widget state, or null outside the Study Workspace (Notes, Older sessions, Home), where nothing is saved. */
+/** The page's Widget state, or null outside the Study Workspace (the Notebook, Older sessions, Home), where nothing is saved. */
 export const useWidgetStore = () => useContext(WidgetStatesContext);
 
 /** How long after the last change the Widget's state is posted: a slider drag makes one save, not dozens. */
