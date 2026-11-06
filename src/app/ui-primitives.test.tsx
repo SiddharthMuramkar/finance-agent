@@ -7,8 +7,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/course" }));
 vi.mock("./theme-cookie", () => ({ readTheme: async () => ({ mode: "single", theme: "light" }) }));
 
 import Loading from "./course/loading";
-import NotesLoading from "./notes/loading";
-import SessionsLoading from "./sessions/loading";
+import NotebookLoading from "./notebook/loading";
 import SettingsLoading from "./settings/loading";
 import StudyLoading from "./study/loading";
 import { Button, Chip, IconButton, NavLink, Spinner } from "./ui";
@@ -103,8 +102,7 @@ describe("route skeletons", () => {
   it.each([
     ["study", StudyLoading],
     ["course", Loading],
-    ["sessions", SessionsLoading],
-    ["notes", NotesLoading],
+        ["notebook", NotebookLoading],
     ["settings", SettingsLoading],
   ])("%s shows the route-skeleton under the real header", async (_name, Page) => {
     // Each loading.tsx returns an async server component; resolve it by hand, as the server would.

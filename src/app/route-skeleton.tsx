@@ -21,7 +21,7 @@ export function SkeletonLines({ count = 3, className = "" }: { count?: number; c
   );
 }
 
-/** A reading page's frame (Course Map, Progress, Past Sessions, Notes, Settings): same box and header as ReadingPage. */
+/** A reading page's frame (Course Map, Notebook, Settings): same box and header as ReadingPage. */
 export async function ReadingSkeleton({ current, children }: { current: HeaderPage; children: ReactNode }) {
   return (
     <main data-testid="route-skeleton" aria-busy="true" className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-12 pt-3">

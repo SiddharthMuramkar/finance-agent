@@ -5,7 +5,7 @@ An AI tutor that teaches an adult learner finance and economics seriously, from 
 ## Language
 
 **Learner**:
-A person the Tutor teaches, signed in with their own passcode. Each Learner's Learner Profile, progress, Topic Notes and Sessions are theirs alone. Starting over archives a Learner and gives their passcode a fresh one; nothing is deleted. The owner's test tools play their own Learner, the tools Learner, started over before each run.
+A person the Tutor teaches, signed in with their own passcode. Each Learner's Learner Profile, progress, Notebook (Topic Notes and Sessions) are theirs alone. Starting over archives a Learner and gives their passcode a fresh one; nothing is deleted. The owner's test tools play their own Learner, the tools Learner, started over before each run.
 _Avoid_: User, student, account
 
 **Invite list**:
@@ -93,7 +93,7 @@ The Tutor's answer to a question that leaves the current Topic. It is marked by 
 _Avoid_: Detour, tangent, side quest
 
 **What the Learner found**:
-One line, worked out by code from the Learner's saved Widget state, saying what they found or guessed in a Topic ("You guessed 12%", "You found where the annuity is worth the same as the cash"). It is shown on Past Sessions and on the Topic complete card.
+One line, worked out by code from the Learner's saved Widget state, saying what they found or guessed in a Topic ("You guessed 12%", "You found where the annuity is worth the same as the cash"). It is shown in the Notebook and on the Topic complete card.
 _Avoid_: Score, result
 
 **Insight**:
@@ -104,8 +104,12 @@ _Avoid_: Aha, takeaway, novelty, X factor
 A written link from a Topic's idea to another idea or Topic, given when the Topic ends.
 _Avoid_: Related topic, see also
 
+**Notebook**:
+The page where a Learner finds, for each Topic, its Session, what they found and their Topic Note.
+_Avoid_: Notes page, Past Sessions
+
 **Topic Note**:
-The page kept for one Topic: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote, and any rule the Learner put more simply in their own words, which the Tutor saves for them.
+The page kept for one Topic, in the Notebook: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote, and any rule the Learner put more simply in their own words, which the Tutor saves for them.
 _Avoid_: Summary, recap, cheat sheet
 
 **Own rule**:

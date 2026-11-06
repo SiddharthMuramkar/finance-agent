@@ -167,7 +167,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
 }
 
 /**
- * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Settings, Passage): the header and the
+ * Page shell for the reading pages (Course Map, Notebook, Settings, Passage): the header and the
  * content share the workspace's one box (the page's gutters, up to --page-max), so the title and nav stay put between
  * pages and the content uses the whole window. Running paragraphs inside cards cap themselves with `measure`.
  */

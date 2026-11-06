@@ -2793,37 +2793,15 @@ reply opens with a small navy "Tutor", then "Present value is **today's worth** 
 of blue), but the Tutor has to bold sparingly for the navy to mean "key term". The "never lesson" rule is
 held by tests on the screens we render, not by a site-wide scan, so a new screen needs its own check.
 
-## Past Sessions (`src/app/sessions/`, `src/app/past-sessions.tsx`, `old-session.tsx`, `src/tutor/past-sessions.ts`)
+## Notebook (`src/app/notebook/`, `src/learner/notebook.ts`, `src/app/past-sessions.tsx`, `old-session.tsx`, `src/tutor/past-sessions.ts`, `next.config.ts` (`redirects`), spec 2026-11-05, ticket B2a)
 
-**What it does.** Since each Topic has one Session (ADR 0004), Past Sessions lists one row per Topic
-Session: the Topic's title and "Last worked on 24 Oct 2026", the one worked on most recently first.
-Last activity is the newest saved message in the Session (or its start, before any). The every-Topic-passed
-Session, which has no Topic, is a row of its own called "Free questions". Every Session from before the
-change is Older (the `older` flag the expand migration set), and they sit apart under an **Older sessions**
-heading, newest first, each with its date and the Topics it touched. Older Sessions have no Topic column
-worth trusting (one could hold several Topics), so their Topics are still read from the "Topic: ..." lines
-the Tutor context left in their messages; with none found the row says "No Topic".
+**What it does.** Past Sessions and Notes were two pages that both listed Topics, and a saved reply on a note is only a pointer into a Session, so they felt like one page. They are one now: `/notebook`. `loadNotebook(db, map, learnerId, { all })` joins `loadPastSessions`, `loadNotes` and the Learner's progress into one row per Topic, in course order. A Topic has a row when it has a Session, or a note (it is passed, or the Learner wrote or saved something on it); `?all=1` ("Show all Topics") lists every Topic, so a line can be added to one not reached yet. A row shows the Topic's title, a status Tag (Not started, In progress, Passed), "Last worked on" and one action: **Resume** (a form post to `/api/open`) for an in-progress Topic, or **Read** (a link to `/sessions/<id>`) for a passed Topic that has a Session. Below that: **What you found** (the code-written lines from the Learner's saved Widget state), the Topic Note (the filled part, saved replies and Widgets, Own rules, the line editor) and an empty slot for Earlier attempts, which a Topic started over fills later. The row keeps the id `note-<topicId>`, so old `#note-...` links still land. Under the rows, **Older sessions** (Sessions from before one Session per Topic, ADR 0004) are listed newest first, each linking to its Session. Rows sit in a grid of columns at least 420 px wide: three across at 1512 px. The page prints; controls are hidden and a Topic with nothing on it is left out.
 
-A row opens the Session's page: a "← Past Sessions" back link at the top, then a header, then the
-workspace's two columns, read-only, with chat chips (the widget's title and "View widget →") and the Widget panel. A Topic Session's
-header shows the Topic, the date last worked on and **Resume this Topic**, a plain form post to `/api/open`
-that makes it the current Topic and opens the Study Workspace; once the Topic is passed it shows Passed ✓
-instead. An Older session's header shows its date, its Topics (or No Topic) and "Older session · read-only",
-with no Resume. Old stored "Continue." messages, from when moving on posted one as if the Learner typed it,
-draw on these pages (and in the Study Workspace's thread, see "Finish this reply, and old Continue as a
-divider") as a small "→ next step" divider in their place, never as a Learner bubble; nothing
-stored changes. Another Learner's Session id answers 404. No model call anywhere.
+`/sessions` and `/notes` answer 308 to `/notebook` (`/notes?all=1` to `/notebook?all=1`), set in `next.config.ts`. `/sessions/[id]` stays as the read view: the workspace's two columns, read-only, with a "← Notebook" back link (to the Topic's row, or the plain Notebook for an Older session), the Topic, the date last worked on and **Resume this Topic** (Passed ✓ once passed). `/api/open` sends a passed Topic that has no Session of its own to `/notebook`. Old stored "Continue." messages draw as a small "→ next step" divider, never as a Learner bubble. Another Learner's Session id answers 404. No model call anywhere. `note_items`, the `/api/notes` routes and how a saved reply is redrawn did not change.
 
-**Scenario.** The Learner studied Present value last week, Bond prices yesterday and went back to Present
-value this morning. Past Sessions shows Present value first, then Bond prices, then under Older sessions
-the mixed Session from September with pills for Present value and Annuities. They open Bond prices, read the
-conversation, and press Resume this Topic to carry on where they left off.
+**Scenario.** The Learner passed Percent last week and is halfway through Bond prices. They open the Notebook: Percent's row says Passed, lists what they found, shows the reply they saved and a Read button; Bond prices' row has a Resume button. An old bookmark to `/notes#note-percent` lands on the same row.
 
-**Trade-off.** Ordering by the newest message means one extra grouped query instead of reading a stored
-"last active" column, which would need a migration and keeping in step with every write. Older Sessions keep
-the read-the-text approach, so one whose messages were compacted away shows No Topic. The "→ next step"
-divider is drawn at read time from the message text rather than rewriting history, so the stored log stays
-exactly as it was sent.
+**Trade-off.** One longer page instead of two short ones, and a row that does several jobs. Rows are only the Topics with something in them, so it stays short until the Learner has done a lot. Ordering is by course order now, not by what was worked on most recently; the "Last worked on" date is on each row. The header link still says "Notes" until the header ticket (A5) changes it.
 
 ## Spaced review (`src/course/review.ts`, `reviewsDue` in `navigator.ts`, `src/learner/review.ts`, `/api/review`, `src/app/review-panel.tsx`)
 
@@ -3932,6 +3910,8 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 
 *Trade-off.* The lint reads only the Topic files. Question Bank items live in the database, so it cannot see them, and `sumAsk` is a set of patterns, so a sum phrased in an unusual way slips through; the Math police critic samples Topics the list leaves out to catch those, and each miss becomes a new pattern. The gain is that "no typed numbers, no sums" holds for every future edit without anyone re-reading 95 Topics.
 
+> Since spec 2026-11-05 B2a the Notes page is the Notebook (see "Notebook"); the notes below are its rows.
+
 ## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
 
 **What it does.** A fifth header link, "Notes", opens a page titled "Notes" that lists the Topics in course order, each as a Topic Note (since spec #119 only the Topics that have a note, with "Show all Topics" for the rest: see "The Notes filter and Undo" below). When a Topic is passed, code fills in its note with no model call: its Formula Cards drawn with example numbers (the numbers from the first marker in the Topic's own text that names the formula, else the registry's working example, with results from the formula's calculator), the Insight in the Learner's own words (beside the written Insight only when the Tutor had to tell it), the principle, the Connections and the mistakes the Tutor noticed. Nothing of that part is stored: it is built from the current Topic file and the Learner's records every time the page opens. What is stored is only the Learner's own lines, in `note_items` (kind "line"), which they can add, edit and delete on any Topic, passed or not, through `/api/notes` behind the passcode. The table also has empty columns for the saved replies and Widgets of the next ticket. The page prints: the header, buttons and boxes for typing are hidden on paper, a Topic with nothing on it is left out, and the light look is forced onto white.
@@ -3950,7 +3930,7 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 
 **Trade-off.** Storing a pointer instead of a copy means a saved reply always follows today's as-of rule and sources, and cannot go stale or leak an outcome from a frozen copy; but it depends on the Session's messages staying (they are add-only) and a reply saved from a Session cannot be edited. Settings are only slider numbers, so a Widget whose state is anything else reopens at its starting values. Since spec #119 a save from the Study Workspace names the Widget's key too, and the note keeps the values saved under that key with the Session (see "Widget state"). A static page render cannot show the slider numbers, because the Widget library fills them in after the first browser render, so the test checks the code the numbers are written into.
 
-## The Notes filter and Undo (`src/app/notes/notes-view.tsx`, `src/app/notes/undo.tsx`, `src/app/save-to-notes.tsx`, `src/learner/saved.ts`, spec #119, ticket #152)
+## The Notes filter and Undo (`src/app/notebook/notebook-view.tsx`, `src/app/notebook/undo.tsx`, `src/app/save-to-notes.tsx`, `src/learner/saved.ts`, spec #119, ticket #152)
 
 **What it does.** Notes has a visible title and, by default, lists only the Topics that have a Topic Note: a passed Topic (code fills its note in), or one where the Learner wrote a line or saved a reply or Widget. A Learner with none sees one short line instead of a column of empty cards. "Show all Topics" is a plain link to `/notes?all=1`, which lists every Topic so a line can be added to one not reached yet; on that view the link reads "Show only Topics with notes" and goes back to `/notes`. The filter runs on the server from the same notes, so there is no state in the browser to lose. Saving is safe both ways. After **Save to notes** in the Study Workspace or an old Session, the control reads "Saved ✓ · Undo · Open notes": there is no button to save the same thing again, Undo deletes that saved item (by the id the save answered with), and Open notes goes to `/notes#note-<Topic>`, the anchor on that Topic's card. On Notes, **Remove from notes** and a line's **Delete** take the item off at once and show one Undo toast at the bottom of the screen for eight seconds. Undo puts it back through the ordinary routes: a line is added again with its words, and a saved item is saved again from what the page was given with it (`again`: its Session, turn, Widget number and slider numbers, and for the explore Widget its Topic, so it goes back on that Topic even after the Learner has moved on), so the server checks it exactly as a fresh save, Learner ownership included. The item reappears where it was. A second removal replaces the toast, and neither the toast nor the toggle prints.
 

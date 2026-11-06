@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { Redirect } from "next/dist/lib/load-custom-routes";
 import nextConfig from "../../next.config";
 
 describe("/progress is a permanent redirect", () => {
@@ -11,11 +12,11 @@ describe("/progress is a permanent redirect", () => {
 describe("old pages redirect to the Notebook", () => {
   it("sends /sessions and /notes to /notebook, and /notes?all=1 to /notebook?all=1 (listed first)", async () => {
     const redirects = await nextConfig.redirects!();
-    const notesAll = { source: "/notes", has: [{ type: "query", key: "all", value: "1" }], destination: "/notebook?all=1", permanent: true };
+    const notesAll: Redirect = { source: "/notes", has: [{ type: "query" as const, key: "all", value: "1" }], destination: "/notebook?all=1", permanent: true };
     expect(redirects).toContainEqual(notesAll);
     expect(redirects).toContainEqual({ source: "/sessions", destination: "/notebook", permanent: true });
     expect(redirects).toContainEqual({ source: "/notes", destination: "/notebook", permanent: true });
-    expect(redirects.indexOf(notesAll)).toBeLessThan(redirects.findIndex((r) => r.source === "/notes" && !("has" in r)));
+    expect(redirects.findIndex((r) => r.source === "/notes" && "has" in r)).toBeLessThan(redirects.findIndex((r) => r.source === "/notes" && !("has" in r)));
     expect(redirects.every((r) => r.permanent === true)).toBe(true);
   });
 });

@@ -6,7 +6,7 @@ import { loadProgress } from "./memory";
 import { loadNotes, type TopicNote } from "./notes";
 
 /**
- * The Notebook (spec 2026-11-05 B2a): one row per Topic, in course order, joining what Past Sessions and Notes listed
+ * The Notebook (spec 2026-11-05 B2a): one row per Topic, in course order, joining what two pages listed
  * apart. A Topic has a row when it has a Session or a note (a passed Topic, a line or a saved item), or when `all` asks
  * for every Topic. Worked out by code from the Learner's own records; no model call.
  */
