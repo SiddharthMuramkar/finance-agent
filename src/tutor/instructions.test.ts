@@ -125,6 +125,8 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain("Traders measure such moves in basis points: a hundredth of one percent.");
         expect(text).not.toContain("Traders measure such moves in basis points: one hundredth");
         expect(text).toContain("Never state the number or answer your ask is after");
+        // Targeted run t6: T4 said "1 percentage point. That is how far the rate moved." while that question was still open.
+        expect(text).toContain("While a question you asked is still open, work the running example only up to its last step");
       });
     });
   }
