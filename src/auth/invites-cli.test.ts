@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { invites, learners, user as authUser } from "@/db/schema";
 import { testDb } from "@/test/pglite";
+import { learnerForAuthUser } from "./google-learner";
 import { isInvited, runInvites, signupOpen } from "./invites";
 
 function capture() {
@@ -62,6 +63,21 @@ describe("npm run invites", () => {
     await runInvites(db, ["add", "O@x.com"], plain.log);
     expect(plain.lines).toEqual(["o@x.com was already invited: nothing changed."]);
     expect((await db.select().from(invites))[0].learnerName).toBe("owner");
+  });
+
+  // F2p2: once the email has signed up through its open invite, learnerForAuthUser returns that user's own Learner
+  // first and never reads invite.learnerName, so a --learner re-add could never link it. Refuse and say why.
+  it("refuses --learner on an invite whose email already signed up, and changes nothing", async () => {
+    const db = await testDb();
+    await db.insert(learners).values({ name: "Bob" });
+    await runInvites(db, ["add", "a@x.com"], capture().log);
+    await db.insert(authUser).values({ id: "ua", name: "Asha", email: "a@x.com", emailVerified: true });
+    const made = await learnerForAuthUser(db, { id: "ua", email: "a@x.com", name: "Asha" });
+    await expect(runInvites(db, ["add", "A@x.com", "--learner", "Bob"], capture().log)).rejects.toThrow(
+      `a@x.com already signed up as Learner ${made!.id} ("${made!.name}"): the invite cannot link it to "Bob". Nothing was changed.`,
+    );
+    expect((await db.select().from(invites))[0].learnerName).toBeNull();
+    expect((await learnerForAuthUser(db, { id: "ua", email: "a@x.com", name: "Asha" }))!.id).toBe(made!.id);
   });
 
   it("refuses to relink an invite already linked to another Learner, and changes nothing", async () => {
