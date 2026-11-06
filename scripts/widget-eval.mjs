@@ -46,7 +46,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { openAtStep, openStudy, waitForOpener } from "./delight-study.mjs";
-import { readDelight, readLane, tutorSteps } from "./eval-reads.mjs";
+import { openTurns, readDelight, readLane, tutorSteps } from "./eval-reads.mjs";
 import { assertLocalBase, assertTestDatabase, assertToolsLearner } from "./script-guards.mjs";
 
 const args = process.argv.slice(2);
@@ -497,7 +497,11 @@ async function evalPrompt(browser, pool, p, seen = { learnerId: null }) {
       if (state.doneMs != null || Date.now() > until) break;
       await page.waitForTimeout(500);
     }
-    if (state.doneMs == null) row.error = `the turn did not finish in ${TURN_TIMEOUT_MS / 1000}s`;
+    if (state.doneMs == null) {
+      row.error = `the turn did not finish in ${TURN_TIMEOUT_MS / 1000}s`;
+      // The server keeps running the turn after the page closes: its usage is charged once it settles (E4b-C2).
+      row.turnUnfinished = true;
+    }
     // A last moment for the Widget to settle before it is measured and photographed.
     await page.waitForTimeout(800);
     state = await page.evaluate(() => window.__eval);
@@ -509,6 +513,7 @@ async function evalPrompt(browser, pool, p, seen = { learnerId: null }) {
     row.prodEq = await prodEquivalent(pool, lane.sessionId, row);
     if (lane.turn?.error && !row.error) row.error = lane.turn.error;
     if (lane.turn?.status && lane.turn.status !== "done" && lane.turn.status !== "finished") row.turnStatus = lane.turn.status;
+    if (lane.turn?.status === "running") row.turnUnfinished = true;
     if (lane.lane !== "none" && row.firstPixelMs == null) row.firstPixelNote = "the Widget on screen did not change, so no arrival was seen (the Tutor showed the one already open again)";
     const { archetype, checks } = codeChecks(lane.lane, lane.code, lane.title, p.expectedSet);
     row.archetype = archetype;
@@ -565,14 +570,18 @@ async function finishDelight(rows, spend, problems) {
     }
   }
   const results = rows.map((r) => ({ id: r.id, widgetSource: r.delight?.widgetSource ?? null, choicesCount: r.delight?.choicesCount ?? null, persona: r.judgements?.persona, math: r.judgements?.math, fit: r.judgements?.fit, historian: r.judgements?.historian }));
+  // One row per planned prompt (E4b-B1): a prompt that never ran is a failed row, so the bars count all of them.
   const total = rows.length;
   const bars = computeBars(results, total, judge);
   const also = alsoReported(results);
   const usd = (x) => Math.round(x * 100) / 100;
-  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: usd(spend.spent), tutorSpendUsd: usd(spend.tutor.usd), judgeSpendUsd: usd(spend.judges.usd), capUsd: spend.cap, spendUncounted: spend.uncounted, bars, alsoReported: also, problems, prompts: rows };
+  // "floor-with-reserve": a try's turns never settled, so a reserve stands in for what was not read (E4b-C2).
+  const spendIs = spend.uncounted ? "floor" : spend.reserve.usd > 0 ? "floor-with-reserve" : "exact";
+  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: usd(spend.spent), tutorSpendUsd: usd(spend.tutor.usd), judgeSpendUsd: usd(spend.judges.usd), capUsd: spend.cap, spendIs, reserveUsd: usd(spend.reserve.usd), reserveWhy: spend.reserve.why, spendUncounted: spend.uncounted, bars, alsoReported: also, problems, prompts: rows };
   writeFileSync(join(out, `${reportName}.json`), JSON.stringify(report, null, 2));
   const md = [`# Delight eval: ${total} prompt${total === 1 ? "" : "s"}`, "", `Run ${report.ranAt} against ${BASE}. Spend $${report.spendUsd.toFixed(2)} of the $${spend.cap} cap: $${report.tutorSpendUsd.toFixed(2)} of Tutor turns and $${report.judgeSpendUsd.toFixed(2)} of judges. ${judge ? "Judged by Opus." : "Not judged (no --judge): the judged bars read \"not judged\"."}`, ""];
   if (spend.uncounted) md.push(`**The spend above is a floor, not the total:** ${spend.uncounted}. Nothing more was started after that.`, "");
+  else if (spend.reserve.usd > 0) md.push(`**The spend above is a floor-with-reserve:** it includes $${report.reserveUsd.toFixed(2)} reserved for ${spend.reserve.why.length} tr${spend.reserve.why.length === 1 ? "y" : "ies"} whose Tutor turns never settled (${spend.reserve.why.join("; ")}).`, "");
   md.push("## Bars (spec Appendix D.3)", "", "| Bar | Target | Actual | Result |", "|---|---|---|---|");
   for (const b of bars) md.push(`| ${b.name} | ${b.target} | ${b.actual} | ${b.pass == null ? "n/a" : b.pass ? "pass" : "FAIL"} |`);
   md.push("", "## Also reported", "");
@@ -596,19 +605,23 @@ const pool = new Pool({ connectionString: DATABASE_URL });
 const browser = await chromium.launch();
 const rows = [];
 // The Delight round's one budget (spec D.3): the Tutor's turns are charged here as each prompt runs, the judges after.
-const { delightBudget, runUnderCap, Spend } = await import("../src/behaviour/delight/judges.ts");
+const { delightBudget, everyPlanned, runUnderCap, Spend } = await import("../src/behaviour/delight/judges.ts");
 const spend = DELIGHT ? new Spend(delightBudget(process.env)) : null;
 const problems = [];
 const failedRow = (p, error) => ({ n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}), lane: "none", archetype: null, firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stopped: null, error, checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null, toolsUsed: [] });
 const firstLine = (e) => String(e?.message ?? e).split("\n")[0];
+const planned = PROMPTS.filter((p) => !only || only.has(p.n));
+let stoppedBy = null;
 try {
-  for (const p of PROMPTS) {
-    if (only && !only.has(p.n)) continue;
+  for (const p of planned) {
     // Only an infrastructure failure (server down, sign-in failed) is retried, once. A slow or poor answer never is.
     const r = await runUnderCap({
       spend,
       attempt: (seen) => evalPrompt(browser, pool, p, seen),
       usageOf: (learnerId) => tutorSteps(pool, learnerId),
+      // A try that timed out or threw may leave its turn running: it is charged once its usage settles (E4b-C2).
+      finished: (row) => !row.turnUnfinished,
+      openTurns: (learnerId) => openTurns(pool, learnerId),
       onRetry: (e) => console.error(`prompt ${p.n}: ${firstLine(e)}; retrying once`),
     });
     let row;
@@ -626,13 +639,16 @@ try {
 } catch (e) {
   // The Delight round has already paid for the prompts in `rows`: stop here but still write their report (E4b-C1).
   if (!DELIGHT) throw e;
-  problems.push(`round stopped after ${rows.length} prompt${rows.length === 1 ? "" : "s"}: ${firstLine(e)}`);
+  stoppedBy = firstLine(e);
+  problems.push(`round stopped after ${rows.length} prompt${rows.length === 1 ? "" : "s"}: ${stoppedBy}`);
 } finally {
   await browser.close();
   await pool.end();
 }
 if (DELIGHT) {
-  await finishDelight(rows, spend, problems);
+  // Every planned prompt gets a row (E4b-B1): one the loop never reached is a failed row with its reason.
+  const all = everyPlanned(planned, rows, (p) => failedRow(p, `not run: the round stopped after ${rows.length} prompt${rows.length === 1 ? "" : "s"} (${stoppedBy ?? "unknown reason"})`));
+  await finishDelight(all, spend, problems);
   process.exit(0);
 }
 if (scoresFile) mergeScores(rows, readJson(scoresFile));

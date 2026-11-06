@@ -159,6 +159,19 @@ export const FIRST_JUDGE_CALL_USD = 0.15;
  */
 export const FIRST_PROMPT_TURNS_USD = 0.6;
 
+/**
+ * The most output one Tutor step can write (src/tutor/turn.ts MAX_TOKENS; compose_widget's is 4 000, so this bounds it
+ * too). The reserve for a try whose usage never settled prices each step at this.
+ */
+export const TUTOR_MAX_OUTPUT_TOKENS = 16_000;
+/**
+ * How far apart the two matching usage reads of a settled try are: longer than compose_widget's 12 s cap
+ * (COMPOSE_LIMIT_MS), so a compose call in flight when its turn was cut off has saved its step by the second read.
+ */
+export const SETTLE_POLL_MS = 15_000;
+/** How long an unfinished try's usage is watched before the reserve is charged instead. */
+export const SETTLE_TIMEOUT_MS = 240_000;
+
 export type TokenUse = { inputTokens: number; outputTokens: number; cacheReadTokens?: number; cacheWriteTokens?: number };
 /** One model call the app recorded for a Tutor turn (a `usage` step row). */
 export type TurnStep = TokenUse & { model: string };
@@ -186,6 +199,15 @@ export class Spend {
    * model has no price). From then on `allows` refuses everything, so no further paid turn or judge call starts.
    */
   uncounted: string | null = null;
+  /**
+   * The part of `spent` that is a reserve, not a read (E4b-C2): a try whose turn was still running when it ended and
+   * whose usage never settled is charged what was read plus `turnCeiling()`, so `allows` still fails closed before the
+   * cap. With any reserve the report's spend is a floor-with-reserve, not an exact total.
+   */
+  readonly reserve = { usd: 0, why: [] as string[] };
+  /** The steps of the costliest prompt read so far (no reserve in it), which `turnCeiling` reprices at max output. */
+  private costliestSteps: readonly TurnStep[] = [];
+  private costliestRead = 0;
   constructor(readonly cap: number) {}
   allows(next: number): boolean {
     return this.uncounted === null && this.spent + next <= this.cap;
@@ -195,9 +217,21 @@ export class Spend {
     this.spent += cost;
     return cost;
   }
-  /** Charges one prompt's Tutor turns (every step the app recorded for them) and returns what they cost. */
-  chargeTurns(steps: readonly TurnStep[]): number {
-    const cost = steps.reduce((sum, st) => sum + priceOf(st.model, st), 0);
+  /**
+   * Charges one prompt's Tutor turns (every step the app recorded for them) and returns what they cost. A `reserve`
+   * (with why) is added on top when the steps are only what was read before the try's usage stopped being watched.
+   */
+  chargeTurns(steps: readonly TurnStep[], reserve?: { usd: number; why: string }): number {
+    const read = steps.reduce((sum, st) => sum + priceOf(st.model, st), 0);
+    if (read > this.costliestRead) {
+      this.costliestRead = read;
+      this.costliestSteps = steps;
+    }
+    const cost = read + (reserve?.usd ?? 0);
+    if (reserve) {
+      this.reserve.usd += reserve.usd;
+      this.reserve.why.push(reserve.why);
+    }
     this.spent += cost;
     this.tutor.usd += cost;
     this.tutor.prompts += 1;
@@ -210,6 +244,14 @@ export class Spend {
     this.judges.usd += cost;
     this.judges.calls += 1;
     return cost;
+  }
+  /**
+   * The reserve for one try whose usage never settled: the most expensive prompt's turns read so far with every step's
+   * output raised to TUTOR_MAX_OUTPUT_TOKENS, and never less than FIRST_PROMPT_TURNS_USD.
+   */
+  turnCeiling(): number {
+    const atMax = this.costliestSteps.reduce((sum, st) => sum + priceOf(st.model, { ...st, outputTokens: Math.max(st.outputTokens, TUTOR_MAX_OUTPUT_TOKENS) }), 0);
+    return Math.max(FIRST_PROMPT_TURNS_USD, atMax);
   }
   /** What the next prompt's turns are expected to cost: the costliest prompt so far, or FIRST_PROMPT_TURNS_USD before one is known. */
   nextPrompt(): number {
@@ -224,18 +266,51 @@ export class Spend {
 /** One try at a prompt. It sets `seen.learnerId` as soon as it knows the Learner it runs as, so a failed try is charged too. */
 export type PromptTry<R> = (seen: { learnerId: number | null }) => Promise<R>;
 
+/** A clock for the settle wait; the real one by default, a fake in tests. */
+export type SettleClock = { now?: () => number; sleep?: (ms: number) => Promise<void>; pollMs?: number; timeoutMs?: number };
+
+/**
+ * Reads a Learner's usage until it settles (E4b-C2): two consecutive reads, `pollMs` apart, that match while no turn of
+ * the Learner is running. `settled: false` (with the last read) when that does not happen within `timeoutMs`.
+ */
+export async function settleUsage(o: { learnerId: number; usageOf: (learnerId: number) => Promise<TurnStep[]>; openTurns: (learnerId: number) => Promise<number> } & SettleClock): Promise<{ steps: TurnStep[]; settled: boolean }> {
+  const now = o.now ?? Date.now;
+  const sleep = o.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const pollMs = o.pollMs ?? SETTLE_POLL_MS;
+  const timeoutMs = o.timeoutMs ?? SETTLE_TIMEOUT_MS;
+  const start = now();
+  let previous: string | null = null;
+  for (;;) {
+    const open = await o.openTurns(o.learnerId);
+    const steps = await o.usageOf(o.learnerId);
+    const key = JSON.stringify(steps);
+    if (open === 0 && key === previous) return { steps, settled: true };
+    previous = open === 0 ? key : null;
+    if (now() - start + pollMs > timeoutMs) return { steps, settled: false };
+    await sleep(pollMs);
+  }
+}
+
 /**
  * Runs one prompt under the round's cap, tried at most twice (only an infrastructure failure is retried; the caller's
  * try throws for that alone). Before each try it refuses to start when the prompt's turns would pass the cap
  * (`refused`, with the last error if a try failed first); after each try, a failed one too, it charges the steps the
- * app recorded for the Learner the try ran as. A charge that fails (the usage read, or an unpriced model) keeps the try's
- * outcome and sets `spend.uncounted`, which refuses every later prompt and judge call. With no Spend (the built-in Widget eval) it runs uncapped and reads
+ * app recorded for the Learner the try ran as. A try that threw, or whose row `finished` says did not finish (the
+ * turn timed out), may leave a turn running on the server, so it is charged only once its usage settles
+ * (settleUsage); if it never does, it is charged what was read plus `spend.turnCeiling()` as a reserve (E4b-C2). A
+ * charge that fails (the usage read, or an unpriced model) keeps the try's outcome and sets `spend.uncounted`, which
+ * refuses every later prompt and judge call. With no Spend (the built-in Widget eval) it runs uncapped and reads
  * nothing.
  */
 export async function runUnderCap<R>(o: {
   spend: Spend | null;
   attempt: PromptTry<R>;
   usageOf: (learnerId: number) => Promise<TurnStep[]>;
+  /** Whether a try's row ended with its turns finished; a row counts as finished when this is left out. */
+  finished?: (row: R) => boolean;
+  /** How many of the Learner's turns are still running; none when left out. */
+  openTurns?: (learnerId: number) => Promise<number>;
+  settle?: SettleClock;
   onRetry?: (error: unknown) => void;
 }): Promise<{ row: R } | { error: unknown } | { refused: true; error?: unknown }> {
   let failed: { error: unknown } | null = null;
@@ -243,24 +318,43 @@ export async function runUnderCap<R>(o: {
     if (o.spend && !o.spend.allows(o.spend.nextPrompt())) return failed ? { refused: true, error: failed.error } : { refused: true };
     if (failed) o.onRetry?.(failed.error);
     const seen: { learnerId: number | null } = { learnerId: null };
+    let done = false;
     try {
-      return { row: await o.attempt(seen) };
+      const row = await o.attempt(seen);
+      done = o.finished ? o.finished(row) : true;
+      return { row };
     } catch (error) {
       failed = { error };
     } finally {
       if (o.spend && seen.learnerId !== null) {
+        const learnerId = seen.learnerId;
         // A failed charge must not replace the try's row or error, nor escape to the runner (which would abort the
         // round with no report for the prompts already paid for, finding E4b-C1). The spend is then unknown, so the
         // Spend fails closed: nothing more starts, and the report says why.
         try {
-          o.spend.chargeTurns(await o.usageOf(seen.learnerId));
+          if (done) o.spend.chargeTurns(await o.usageOf(learnerId));
+          else {
+            const { steps, settled } = await settleUsage({ learnerId, usageOf: o.usageOf, openTurns: o.openTurns ?? (async () => 0), ...o.settle });
+            const why = `the Tutor turns of Learner ${learnerId} were still running or still saving after ${(o.settle?.timeoutMs ?? SETTLE_TIMEOUT_MS) / 1000}s, so a reserve was charged for them`;
+            o.spend.chargeTurns(steps, settled ? undefined : { usd: o.spend.turnCeiling(), why });
+          }
         } catch (e) {
-          o.spend.uncounted ??= `the Tutor turns of Learner ${seen.learnerId} could not be charged: ${String((e as Error)?.message ?? e).split("\n")[0]}`;
+          o.spend.uncounted ??= `the Tutor turns of Learner ${learnerId} could not be charged: ${String((e as Error)?.message ?? e).split("\n")[0]}`;
         }
       }
     }
   }
   return failed!;
+}
+
+/**
+ * The round's rows in plan order, exactly one per planned prompt (E4b-B1): a prompt with no row (the loop stopped
+ * early) gets `missing(prompt)`, a failed row with its reason, so the bars' total is always every planned prompt and
+ * an early stop can never read as a pass.
+ */
+export function everyPlanned<P extends { n: number }, Row extends { n: number }>(planned: readonly P[], rows: readonly Row[], missing: (prompt: P) => Row): Row[] {
+  const byN = new Map(rows.map((r) => [r.n, r]));
+  return planned.map((p) => byN.get(p.n) ?? missing(p));
 }
 
 /** Everything the bars read, one entry per prompt (a judge that failed twice is missing). */

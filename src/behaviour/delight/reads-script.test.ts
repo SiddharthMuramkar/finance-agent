@@ -1,8 +1,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error the eval's reads are a plain .mjs script with no types
-import { readDelight, readLane, tutorSteps } from "../../../scripts/eval-reads.mjs";
-import { learners, messages, OWNER_LEARNER_ID, replyChecks, sessionItems, sessions, usageRows } from "@/db/schema";
+import { openTurns, readDelight, readLane, tutorSteps } from "../../../scripts/eval-reads.mjs";
+import { learners, messages, OWNER_LEARNER_ID, replyChecks, sessionItems, sessions, turns, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 
@@ -179,5 +179,20 @@ describe("[S3] the Delight eval reads what a prompt's Tutor turns cost", () => {
     const steps = await tutorSteps(pool, me);
     expect(steps.map((s: { inputTokens: number }) => s.inputTokens).sort((a: number, b: number) => a - b)).toEqual([1000, 2000, 4000]);
     expect(steps[0]).toEqual({ model: "claude-opus-5-5", inputTokens: expect.any(Number), outputTokens: 100, cacheReadTokens: 50, cacheWriteTokens: 25 });
+  });
+});
+
+describe("[S3] the Delight eval sees a Learner's turn still running (E4b-C2)", () => {
+  it("counts only the Learner's running turns, not ended ones or another Learner's", async () => {
+    const { db, pool } = await opened();
+    const [other] = await db.insert(learners).values({ name: "someone else" }).returning({ id: learners.id });
+    await db.insert(turns).values([
+      { learnerId: me, status: "finished", finishedAt: new Date() },
+      { learnerId: me, status: "cut_off" },
+      { learnerId: other.id, status: "running" },
+    ]);
+    expect(await openTurns(pool, me)).toBe(0);
+    await db.insert(turns).values({ learnerId: me, status: "running" });
+    expect(await openTurns(pool, me)).toBe(1);
   });
 });

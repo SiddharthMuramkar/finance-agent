@@ -72,3 +72,12 @@ export async function tutorSteps(pool, learnerId) {
   );
   return rows.map((r) => ({ model: r.model, inputTokens: r.input_tokens, outputTokens: r.output_tokens, cacheReadTokens: r.cache_read_tokens, cacheWriteTokens: r.cache_write_tokens }));
 }
+
+/**
+ * Delight set: how many of a Learner's turns are still running (E4b-C2). /api/turn keeps going after the eval's
+ * browser closes, so a try that timed out or threw is charged only once this is 0 and its usage has stopped changing.
+ */
+export async function openTurns(pool, learnerId) {
+  const { rows } = await pool.query(`select count(*)::int as n from turns where learner_id = $1 and status = 'running'`, [learnerId]);
+  return rows[0].n;
+}

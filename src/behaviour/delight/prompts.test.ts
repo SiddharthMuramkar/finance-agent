@@ -3,7 +3,7 @@ import { TEACHING_STEPS } from "@/course/navigator";
 import { loadCourseMap } from "@/course/map";
 import prompts from "./prompts.json";
 import { readOutlineText } from "@/course/map";
-import { alsoReported, caseOf, computeBars, delightBudget, judgeInput, parseJudge, Spend, type PromptResult } from "./judges";
+import { alsoReported, caseOf, computeBars, delightBudget, everyPlanned, judgeInput, parseJudge, Spend, type PromptResult } from "./judges";
 
 // Appendix D.1, row by row.
 const TABLE: [string, string, string, string][] = [
@@ -123,6 +123,18 @@ describe("[S3] the report lists every Appendix D.3 bar with its number", () => {
     const r = passing().map((x) => ({ ...x, persona: undefined, math: undefined, fit: undefined, historian: undefined }));
     const bars = computeBars(r, r.length, false);
     for (const name of JUDGED_BARS) expect(bars.find((b) => b.name === name)).toMatchObject({ pass: null, actual: "not judged" });
+  });
+  it("counts the bars over all 20 planned prompts when the round stopped after 5 good ones (E4b-B1)", () => {
+    const planned = TABLE.map(([id], i) => ({ n: i + 1, id }));
+    const good = passing().slice(0, 5).map((result, i) => ({ n: i + 1, result }));
+    // The old count, over the rows actually run, read every bar as a pass.
+    expect(computeBars(good.map((g) => g.result), good.length).every((b) => b.pass === true)).toBe(true);
+    const all = everyPlanned(planned, good, (p) => ({ n: p.n, result: { id: p.id, widgetSource: null, choicesCount: null } as PromptResult, notRun: true }));
+    expect(all.map((r) => r.n)).toEqual(planned.map((p) => p.n));
+    expect(all.filter((r) => "notRun" in r)).toHaveLength(15);
+    const bars = computeBars(all.map((r) => r.result), planned.length);
+    expect(bars[0]).toMatchObject({ target: "20 of 20", actual: "5 of 20", pass: false });
+    expect(bars.some((b) => b.pass === true)).toBe(false);
   });
   it("reports the also-reported rows", () => {
     const r = passing();
