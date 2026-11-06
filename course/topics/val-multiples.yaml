@@ -75,37 +75,37 @@ youllLearn:
 questions:
   - id: vm-q-apply
     prompt: >
-      Listed companies in a business trade at 2.0 times revenue. A private company in the same business, with similar growth, margins and risk, has revenue of $150 million. Which headline about its value gets it right?
+      Aarav plans to sell his private gym chain. Listed gym chains trade at 2.0 times revenue, so he wants to value his the same way. When does that shortcut work?
     choices:
       - id: a
-        text: "About half its revenue, because a multiple below 1 means a discount"
-        mistake: { tag: multiple_inverted, fix: "A multiple of 2.0 means two times revenue, not half." }
+        text: "Always: one multiple fits every firm in the same industry"
+        mistake: { tag: one_size_fits_all, fix: "A multiple fits only truly similar firms. Growth, margins and risk must match." }
       - id: b
-        text: "About its revenue, because the multiple only describes the listed companies"
-        mistake: { tag: multiple_not_applied, fix: "The multiple borrowed from comparables is applied to the private company's revenue." }
-      - { id: c, text: "About twice its revenue, and only if the comparables truly resemble the company" }
+        text: "Only once his revenue matches theirs exactly"
+        mistake: { tag: size_match, fix: "Size need not match: the multiple scales with revenue. Growth, margins and risk must match." }
+      - { id: c, text: "When his chain truly resembles them in growth, margins and risk" }
       - id: d
-        text: "About four times its revenue, to allow for being private"
-        mistake: { tag: private_premium, fix: "Being private usually calls for a discount. The method uses the same multiple." }
+        text: "If he bumps the multiple up for being private"
+        mistake: { tag: private_premium, fix: "Being private usually calls for a discount, never a premium." }
     answer: c
     explanation: >
-      Value = multiple x measure, here 2.0 x $150 million = $300 million. The method only works if the comparables really resemble the company being valued.
+      A multiple borrowed from listed rivals works only if they really resemble the firm being valued. If they do, a chain with $150 million of revenue at 2.0 times revenue would be valued at about $300 million.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation: https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
 
   - id: vm-q-annualised
     prompt: >
-      A fast-growing company has last year's full revenue and only half of this year's so far. Analysts compare its value with revenue. How should they handle the half year?
+      It is July, and a fast-growing start-up has only six months of this year's revenue so far. Analysts compare its value with revenue. What should they do with the half year?
     choices:
-      - { id: a, text: "Scale it up to a full year, and say which revenue the multiple uses" }
+      - { id: a, text: "Scale it to a full year, and say which revenue they used" }
       - id: b
-        text: "Use the half-year revenue as it is, since it is the newest"
+        text: "Use the six months as they are, since newest is best"
         mistake: { tag: half_year_as_is, fix: "Half a year of revenue is not comparable with a full year. Annualise it first." }
       - id: c
-        text: "Always use last year's revenue, because newer figures are unreliable"
+        text: "Stick to last year's revenue; new figures can't be trusted"
         mistake: { tag: stale_revenue, fix: "For a fast-growing firm last year's revenue is stale and makes the multiple look inflated." }
       - id: d
-        text: "It makes no difference, so no need to say which revenue"
+        text: "Pick any revenue; nobody needs to say which"
         mistake: { tag: revenue_unstated, fix: "Different revenue gives different multiples, so say which one you used." }
     answer: a
     explanation: >
