@@ -1959,11 +1959,16 @@ Learner must never read. The eight checks are:
   detector) runs on every prose line that ends in "?" and on the ask line; statements are not checked, so "1 point
   times 100 is 100 bp." stays allowed while "0.4 times 100 is how many basis points?" fails. It costs one retry, like
   V2; if the retry still asks a sum, the fallback (`trimmedFallback`) drops the flagged lines and the Choices carry
-  the next move. Each ask is read with the reply's numbers as context (`sumAsk(ask, { numbers })`, F2): "Infosys
-  earned ₹30 profit on ₹100 of sales. What is its margin?" fails although the question itself holds no digit, while
-  the same question in a reply with no numbers is a words question and passes. Trade-off: a figure word in a
-  question ("What is the price telling you?") after any number in the reply is flagged too, which costs a retry,
-  accepted because ADR 0009's no-sum rule is enforced by code.
+  the next move. Each ask is read with the numbers on its own line and the line above as context
+  (`sumAsk(ask, { numbers })`, F2): "Infosys earned ₹30 profit on ₹100 of sales. What is its margin?" fails although
+  the question itself holds no digit, while the same question in a reply with no numbers nearby is a words question
+  and passes. With only that context, pattern 8 needs the ask to name a figure of something and end on it ("its
+  margin?", "the margin here?", "Infosys's revenue?"); a lingo ask ("What is a yield?") and a story question that only
+  mentions a figure word ("What is the main reason the price fell?", "What is the big risk to their profit?") pass,
+  so a year, "Q3" or "Nifty 50" in the reply never trips it. Trade-off: a false hit costs a paid retry, and if the
+  retry trips too the fallback deletes the Learner's question, so the context rule is kept narrow; a figure asked two
+  lines below its numbers ("…9% and 4%.\nBanks keep the gap.\nWhat is their spread?") is missed, accepted because
+  Tutor replies are two or three lines and a false hit costs the Learner their question.
 
 `fixReply` makes the fixes that cost no retry first (emoji and arrows out, headings flattened, only the first bold
 span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line

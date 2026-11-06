@@ -460,6 +460,17 @@ describe("V8: no sum asked of the Learner", () => {
     expect(dropSumAsks(reply)).toBe(reply);
   });
 
+  // F2p2-V8: the context is the ask's own line and the line above, not any digit anywhere in the reply.
+  it.each([
+    "Infosys reported its Q3 2024 results.\nIt sells software to banks.\nWhat is its margin?",
+    "The Nifty 50 fell in 2024.\nWhat is the main reason the price fell?",
+    "RBI held the repo rate at 6.5%.\nWhat is the story telling you about the rate?",
+  ])("leaves a story ask alone when the reply's numbers are not the ask's to work from: %s", (reply) => {
+    expect(sumAsked(reply)).toBeNull();
+    expect(v8s(reply)).toEqual([]);
+    expect(dropSumAsks(reply)).toBe(reply);
+  });
+
   it("lists V8 beside V2 when the reply breaks both", () => {
     const found = rules(draft("Is that a big move? Is it points or percent?\nWhat is 0.25% in basis points?"), ctx(V8_CTX));
     expect(found).toEqual(expect.arrayContaining(["V2", "V8"]));
