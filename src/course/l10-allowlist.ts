@@ -2,8 +2,4 @@
 // rewrite them and delete their ids. The list can only shrink: a Topic on it with no L10 hit must come off, and a
 // Topic off it with a hit fails. One id per line, sorted, so batch PRs merge cleanly. Never add an id.
 export const L10_NOT_YET_STORY: readonly string[] = [
-  "num-compounding",
-  "num-percent-bps",
-  "num-probability",
-  "present-value",
 ];

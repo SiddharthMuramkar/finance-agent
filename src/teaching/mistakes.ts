@@ -24,6 +24,8 @@ export type MistakeFnId = (typeof MISTAKE_FNS)[number];
 export interface KnownMistakeSpec {
   tag: MistakeFnId;
   fix: string;
+  /** How this mistake's choice reads, with {value} ("About {value}: 100 over the rate"), so the idea and not a sum tells it from the answer; the template's label when left out. */
+  label?: string;
 }
 
 /**

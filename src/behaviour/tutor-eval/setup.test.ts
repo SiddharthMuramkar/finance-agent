@@ -35,11 +35,11 @@ describe("setting a case's state up", () => {
     expect(p.place).toMatchObject({ step: "check", check: { id: "pb-quiz-language" } });
     const tab = await checkTabNow(db, oldMap, new Date(), p.learnerId);
     expect(tab.quiz?.questions.map((q) => q.id)).toEqual(["pb-q-bp-definition", "pb-q-wrong-description", "pb-q-bond-140"]);
-    expect(p.openItems.map((i) => i.answer)).toEqual(["60", "The rate is up 50 basis points, which is 6.25 percent of its old level", "1.2 percentage points"]);
+    expect(p.openItems.map((i) => i.answer)).toEqual(["Six tenths of a percentage point", "Rate up 50 basis points", "Up 1.2 percentage points"]);
     expect(p.ctx).toMatchObject({ step: "check", exampleCurrency: "INR", caseCurrencies: [] });
     expect(p.ctx.internalWords).toEqual(expect.arrayContaining(["num-percent-bps", "pb-quiz-language", "pb-q-bond-140", "rate-change-three-ways", "open_widget"]));
     expect(p.stateNote).toMatch(/quiz is open/);
-    expect(p.stateNote).toMatch(/keep back: 60/);
+    expect(p.stateNote).toMatch(/keep back: Six tenths of a percentage point/);
     expect(await readSettings(db)).toMatchObject({ model: "claude-sonnet-5-5", effort: "low", widgetEngine: "off" });
   });
 
