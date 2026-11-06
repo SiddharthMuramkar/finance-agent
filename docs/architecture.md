@@ -4700,3 +4700,11 @@ A headline is never written by the Tutor. Its recipe takes the front page's text
 **Scenario.** The Learner opens the Course Map and sees "3 of 7" under Bond prices, with three filled segments, without opening another page. An old bookmark to `/progress` lands on the same map.
 
 **Trade-off.** One page holds both the choosing and the progress, so it is longer than either was. Collapsible Subject groups (open only where the Learner's place is) keep it short, at the price of one click to see a closed Subject's cards.
+
+## Foundation Topics, story-first batch E6c (`course/topics/`, issue #364)
+
+**What it does.** `fs-ratios`, `fs-revenue-runrate`, `fs-capex-dep` and `fs-leases-debt` now open with a story, teach the lingo and quiz with taps. Each file gains five written-ahead scenes (a story, two concept scenes, a reveal and a principle), five Lingo-card terms, a Running example with a rupee Story scene, three new lingo choice questions and a mix-up fix on every wrong choice. Every sum-stem question became a story or lingo choice, the conversation Checks no longer ask the Learner to work a ratio out, and the four ids leave `L10_NOT_YET_STORY` (and three leave the ADR 0002 list in `formula-check.ts`).
+
+**Scenario.** A Learner opens Revenue recognition and run rates. The story scene shows WeWork's boast of $3 billion of run-rate revenue beside the $1.54 billion actually recorded; the quiz asks what "run-rate" means, not what twice $1.54 billion is; and the reveal is a timeline from the S-1 to the withdrawn IPO.
+
+**Trade-off.** Ratios were taught by working them, and a tap quiz cannot check that the Learner can. We accept that: the idea (which part of the return is borrowed, what a run rate leaves out) is what the course keeps, and the numbers stay as story facts.
