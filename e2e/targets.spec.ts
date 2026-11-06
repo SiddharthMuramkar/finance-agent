@@ -71,7 +71,6 @@ test("[B1] old page redirects: GET /progress answers 308 to /course", async ({ p
 });
 
 test("[B2a] /notebook renders", async ({ page }) => {
-  test.fail(true, "[B2a] Notebook");
   await seed(page, "many-topics");
   const response = await page.goto("/notebook");
   expect(response?.status()).toBe(200);

@@ -11,7 +11,7 @@ import { type CourseMap, loadCourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
 import { finishForPlacement } from "@/behaviour/place";
 import { getDb } from "@/db/client";
-import { insightAttempts, reviewCards, user } from "@/db/schema";
+import { insightAttempts, messages, reviewCards, sessions, user } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
@@ -140,6 +140,20 @@ const STATES: Record<string, Build> = {
       await sessionForTurn(db, now, learnerId, id);
     }
     await openCurrentTopic(db, learnerId);
+  },
+  /** many-topics plus one Older session, so the Notebook's Older sessions section shows (B2a fix round). */
+  "notebook-older": async (db, map, learnerId, now) => {
+    await STATES["many-topics"](db, map, learnerId, now);
+    const at = new Date(now.getTime() - 30 * 86_400_000);
+    const [older] = await db
+      .insert(sessions)
+      .values({ learnerId, topicId: null, older: true, instructions: "Test bed fixture.", tools: [], model: "test-bed", effort: "medium", fingerprint: "test-bed", createdAt: at })
+      .returning();
+    const title = map.topics[0]?.title ?? "Percent";
+    await db.insert(messages).values([
+      { sessionId: older.id, seq: 0, role: "user", content: [{ type: "text", text: `Topic: ${title} (Foundation Stage).\nTeaching Step: concept` }, { type: "text", text: "Explain it." }], createdAt: at },
+      { sessionId: older.id, seq: 1, role: "assistant", content: [{ type: "text", text: "Here is the idea." }], createdAt: at },
+    ]);
   },
 };
 

@@ -312,7 +312,7 @@ const stepSettingSchema = z
   .object({ step: z.enum(STEP_KEYS), check: id.optional(), opens: id.optional(), doneWhen: widgetConditionSchema.optional() })
   .refine((s) => s.opens !== undefined || s.doneWhen !== undefined, "A step setting needs opens or doneWhen");
 
-/** One line of what the Learner found, shown on Past Sessions and the Topic complete card once `when` holds. `{value}` in `text` is the saved value. */
+/** One line of what the Learner found, shown in the Notebook and the Topic complete card once `when` holds. `{value}` in `text` is the saved value. */
 const foundSchema = z.object({ when: widgetConditionSchema, text: z.string().trim().min(1) });
 
 export type StepSetting = z.infer<typeof stepSettingSchema>;
@@ -397,7 +397,7 @@ const topicSchema = z.object({
   widgets: z.array(writtenAheadSchema).default([]),
   /** What a Teaching Step does by itself: opens a Widget when it begins, and is done once the Learner's Widget state says so. */
   steps: z.array(stepSettingSchema).optional(),
-  /** What the Learner found, one line each once their saved Widget state shows it (Past Sessions, Topic complete card). */
+  /** What the Learner found, one line each once their saved Widget state shows it (Notebook, Topic complete card). */
   found: z.array(foundSchema).optional(),
   /** Two or three Connections the Tutor gives at the principle step. Optional. */
   connections: z
