@@ -36,6 +36,7 @@ function SendButton() {
       <Button
         variant="primary"
         title={empty ? "Type a message to send" : "Send (Enter)"}
+        className="shrink-0 whitespace-nowrap"
       >
         Send
       </Button>
@@ -90,6 +91,7 @@ export function MessageBox({
   onStop?: () => void;
 }) {
   const open = passage !== null;
+  const label = open ? "Remove passage" : "Attach a passage";
   // Send and Stop are one place in the row: focus on either stays when they swap. Send is off on the empty box that comes
   // back after a turn, so focus then goes to the message box instead of being lost with the button.
   const box = useRef<HTMLDivElement>(null);
@@ -137,23 +139,30 @@ export function MessageBox({
           />
         </div>
       )}
-      <ComposerPrimitive.Root className="measure flex gap-2">
+      {/* A size container: Attach shows its words only when the row itself is 28rem or wider, whatever the window or font,
+          so a wide fallback font (Linux Chromium) folds it to the icon before the message box gets squeezed. */}
+      <ComposerPrimitive.Root className="measure @container flex gap-2">
         <Button
           type="button"
           variant="secondary"
           pressed={open}
           onClick={() => onPassage(open ? null : "")}
-          className={open ? "bg-[var(--brand-tint)] text-[var(--brand)]" : ""}
+          aria-label={label}
+          title={label}
+          className={`shrink-0 whitespace-nowrap ${open ? "bg-[var(--brand-tint)] text-[var(--brand)]" : ""}`}
         >
           <Paperclip />
-          {open ? "Remove passage" : "Attach a passage"}
+          <span className="hidden @md:inline">{label}</span>
         </Button>
         <ComposerPrimitive.Input
           placeholder="Ask the Tutor"
           aria-label="Message"
+          // One row in the server's markup too: auto-grow only sets the height once the page's script runs, and a
+          // textarea with no rows is two rows tall until then (#317: CI measured the row before that).
+          rows={1}
           minRows={1}
           maxRows={6}
-          className="flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-[15px] leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-hidden focus:ring-1 focus:ring-[var(--brand)]"
+          className="min-w-0 flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-[15px] leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-hidden focus:ring-1 focus:ring-[var(--brand)]"
         />
         <span
           className="contents"
@@ -170,6 +179,7 @@ export function MessageBox({
               disabled={stopping}
               onClick={onStop}
               title="Stop the reply"
+              className="shrink-0 whitespace-nowrap"
             >
               <Spinner />
               {stopping ? "Stopping…" : "Stop"}
