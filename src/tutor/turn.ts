@@ -16,7 +16,7 @@ import { coveredParts, WIDGET_OPENED, writtenAheadWidgets } from "@/course/writt
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
-import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
+import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, turnItems, type SessionItem } from "./session-items";
 import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
 import { afterReteachItems, drillIsDue, enterStepItems, methodInNote, pendingQuickTryNote, quickTryFollowUpNote, quizLadderNote } from "./practice";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
@@ -955,7 +955,8 @@ async function* runLockedTurn(
    */
   const companionWidget = async (): Promise<{ source: string; item?: SessionItem }> => {
     const items = await loadSessionItems(db, session.id, learnerId);
-    if (items.some((i) => i.afterSeq >= turnSeq && (i.kind === WIDGET_SHOWN || i.kind === WIDGET_OPENED))) {
+    // A Next's own items (the step's Widget, the Concept card's preset) sit just before the turn's message (turnItems).
+    if (turnItems(items, turnSeq, turnKind(turn) === "next").some((i) => i.kind === WIDGET_SHOWN || i.kind === WIDGET_OPENED)) {
       return { source: toolWidgets(log.rows, turnSeq, items).length ? "tutor" : "step" };
     }
     if (stoppedNow() || !covering) return { source: "none" };

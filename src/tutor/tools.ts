@@ -37,7 +37,7 @@ import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library
 import { stepContext, topicCompleteContext } from "./context";
 import { verdictCard } from "./check-results";
 import { pasteSummary } from "./pasted";
-import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type ReplyText, type SessionItem, type StoredItem } from "./session-items";
+import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, turnItems, type ReplyText, type SessionItem, type StoredItem } from "./session-items";
 import { enterStepItems, startAgainItems } from "./practice";
 import { openWidgetsForTurn } from "./widget-context";
 import { textOf } from "./transcript";
@@ -347,9 +347,7 @@ export function toolCode(
   async function replyWidgets(tx: Db, scope: ReplyScope): Promise<{ slots: number; keys: Set<string> }> {
     const keys = new Set<string>();
     let slots = 0;
-    for (const i of scope.items) {
-      const mine = i.afterSeq >= scope.turnSeq || (scope.next && i.afterSeq === scope.turnSeq - 1);
-      if (!mine) continue;
+    for (const i of turnItems(scope.items, scope.turnSeq, scope.next)) {
       if (i.kind === WIDGET_OPENED && typeof i.data.id === "string") {
         keys.add(i.data.id);
         slots++;

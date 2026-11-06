@@ -7,6 +7,7 @@ import type { Db } from "@/db/types";
 import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
+import { WIDGET_OPENED } from "@/course/written-ahead";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
@@ -30,16 +31,68 @@ function percentOnly(): CourseMap {
 }
 
 const map = percentOnly();
+
+/** Percent with its front page written ahead for the first Concept Check, in place of that Check's own scene. */
+function percentFrontPageAtConcept(): CourseMap {
+  const t = loadCourseMap().topic(PERCENT)!;
+  const front = t.scenes!.find((s) => s.id === "fed-front-page")!;
+  const scenes = [{ ...front, step: "concept", check: "pb-quiz-language", inputs: { ...front.inputs, date: "1994-02-03" } }, ...t.scenes!.filter((s) => s.id !== front.id && s.id !== "two-ways-to-say-it")];
+  const body = { ...t, path: 1, prerequisites: [], subject: undefined, connections: undefined, scenes };
+  const { map, errors } = parseCourseMap([{ name: `${PERCENT}.yaml`, text: stringify(body) }]);
+  if (!map) throw new Error(errors.join("\n"));
+  return map;
+}
+
+const STEP_WIDGET = "rate-change-three-ways";
+
+/** Percent taught the old way, whose Concept step opens a written-ahead Widget by itself (as src/tutor/lesson.test.ts). */
+function percentOpensAtConcept(): CourseMap {
+  const t = loadCourseMap().topic(PERCENT)!;
+  const fed = t.checks.find((c) => c.id === "pb-fed-language")!;
+  const widget = {
+    id: STEP_WIDGET,
+    parts: ["cagr"],
+    rateChange: { old: "$old", new: "$new" },
+    code: [
+      'root = Widget("One rate change, said three ways", [old, new, points])',
+      "$old = 5",
+      "$new = 5.2",
+      'old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")',
+      'new = Slider("new", "New rate", 0, 10, 0.01, $new, "percent")',
+      'points = TextContent("In percentage points: " + @Round($new - $old, 2) + " points")',
+    ].join("\n"),
+  };
+  const body = {
+    ...t,
+    path: 1,
+    prerequisites: [],
+    subject: undefined,
+    connections: undefined,
+    restructure: undefined,
+    runningExample: undefined,
+    skills: [],
+    templates: [],
+    terms: [],
+    scenes: [],
+    questions: [],
+    checks: [{ id: fed.id, kind: "conversation", prompt: fed.kind === "conversation" ? fed.prompt : "", passCriteria: fed.kind === "conversation" ? fed.passCriteria : "" }],
+    widgets: [widget],
+    steps: [{ step: "concept", opens: STEP_WIDGET }],
+  };
+  const { map, errors } = parseCourseMap([{ name: `${PERCENT}.yaml`, text: stringify(body) }]);
+  if (!map) throw new Error(errors.join("\n"));
+  return map;
+}
 const me = OWNER_LEARNER_ID;
 const say = (text: string): ScriptedReply => ({ content: [{ type: "text", text }] });
 const tool = (id: string, name: string, input: Record<string, unknown>): ScriptedReply => ({ content: [{ type: "tool_use", id, name, input }] });
 const RATE_MOVE = { recipe: "rate_move", params: { title: "A savings rate from 4% to 5%", inputs: { old: 4, new: 5, mode: "show" }, refs: {}, facts: {} } };
 const CONCEPT = "A basis point is one hundredth of a percentage point. Traders use it because small moves matter on big loans.\n\nWhich word would you use for a tiny rate move?";
 
-async function turn(db: Db, input: TurnInput, replies: ScriptedReply[]) {
+async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], on: CourseMap = map) {
   const { client } = scriptedClient(replies);
   const events: TurnEvent[] = [];
-  for await (const e of runTutorTurn({ db, client, map, learnerId: me }, input)) events.push(e);
+  for await (const e of runTutorTurn({ db, client, map: on, learnerId: me }, input)) events.push(e);
   const done = events.find((e) => e.type === "done") as Extract<TurnEvent, { type: "done" }>;
   return { events, sessionId: done.ref.sessionId, turnSeq: done.ref.turnSeq };
 }
@@ -54,6 +107,10 @@ async function atConcept(db: Db) {
 async function widgetsOfTurn(db: Db, sessionId: number, turnSeq: number) {
   return (await loadSessionItems(db, sessionId, me)).filter((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= turnSeq).map((i) => i.data as ShownWidget);
 }
+
+/** The Widgets the Learner got with a turn, in the order the browser heard them: shown and opened, by code or the Tutor. */
+const widgetEvents = (events: TurnEvent[]) =>
+  events.flatMap((e) => (e.type === "item" && (e.item.kind === WIDGET_SHOWN || e.item.kind === WIDGET_OPENED) ? [e.item] : []));
 
 async function sources(db: Db): Promise<(string | null)[]> {
   const { rows } = (await db.execute(sql`select widget_source from reply_checks order by id`)) as unknown as { rows: { widget_source: string | null }[] };
@@ -94,6 +151,42 @@ describe("a Widget with every reply", () => {
     const db = await testDb();
     await atConcept(db);
     expect((await sources(db)).at(-1)).toBe("step");
+  });
+
+  it("adds none on a Next into a converted Concept step: the card's Widget is the reply's one, and widget_source is step", async () => {
+    const db = await testDb();
+    await turn(db, { opener: true }, [say("Picture February 1994. Bond traders are waiting for news.")]);
+    const next = await turn(db, { next: "concept" }, [say(CONCEPT)]);
+    const widgets = widgetEvents(next.events);
+    expect(widgets).toHaveLength(1);
+    expect(widgets[0].data).not.toMatchObject({ source: "companion" });
+    expect((await sources(db)).at(-1)).toBe("step");
+  });
+
+  it("adds none on a Next into a step that opens its Widget by itself, and widget_source is step", async () => {
+    const db = await testDb();
+    const opens = percentOpensAtConcept();
+    await turn(db, "Hi", [say("The story.")], opens);
+    const next = await turn(db, { next: "concept" }, [say("The concept.")], opens);
+    expect(widgetEvents(next.events)).toEqual([{ kind: WIDGET_OPENED, data: { id: STEP_WIDGET, title: "One rate change, said three ways" } }]);
+    expect((await sources(db)).at(-1)).toBe("step");
+  });
+
+  it("never re-shows a written-ahead scene the Tutor already showed with show_widget headline in this Session", async () => {
+    const db = await testDb();
+    const front = percentFrontPageAtConcept();
+    await turn(db, { opener: true }, [say("Picture February 1994. Bond traders are waiting for news.")], front);
+    await turn(db, "Go on", [tool("f-1", "finish_teaching_step", { step: "story" }), say("Here is the idea.")], front);
+    const shownByTutor = await turn(db, "Show me the paper", [tool("toolu_front", "show_widget", { recipe: "headline", params: { inputs: { scene: "fed-front-page" } } }), say(CONCEPT)], front);
+    const tutors = await widgetsOfTurn(db, shownByTutor.sessionId, shownByTutor.turnSeq);
+    expect(tutors.map((w) => w.source)).toEqual(["recipe"]);
+    expect((await sources(db)).at(-1)).toBe("tutor");
+    // The next bare reply at the same Check gets a Widget, never that front page again.
+    const after = await turn(db, "Tell me more", [say(CONCEPT)], front);
+    const again = await widgetsOfTurn(db, after.sessionId, after.turnSeq);
+    expect(again).toHaveLength(1);
+    expect(again[0]).not.toMatchObject({ companion: "scene", companionKey: "fed-front-page" });
+    expect(again[0].recipe).not.toBe("headline");
   });
 
   it("still adds a companion to a fallback reply", async () => {
