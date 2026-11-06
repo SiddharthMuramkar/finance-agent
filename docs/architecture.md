@@ -1336,6 +1336,29 @@ return no theme can silently pick up another's colour, and the contrast numbers 
 sweep (A3b) moves every fill to `--brand-main`, a small bridge rule in `globals.css` gives Dark's `bg-[var(--brand)]` fills the
 main blue, since in Dark `--brand` is a light blue meant for text.
 
+### Accent fills and the 3:1 rule (`scripts/check-theme-contrast.mjs` (`COLOUR_ONLY`), `src/dev/accent-fill-uses.test.ts`, `src/widgets/primitives/wave1/stat.tsx`, `src/widgets/genui-theme.tsx` (`CHART_SERIES`), issue #457)
+
+**What it does.** An accent fill (`--mint`, `--coral`, `--sun`, `--violet`, and `--you-line` and `--src-line`, which are mint
+and sunflower under older names) needs 3:1 against the surface under it only when colour alone carries its meaning (WCAG 2.2
+SC 1.4.11). A fill that is decorative, or always sits beside a word or an icon that says the same thing, is exempt. The
+contrast script holds a `COLOUR_ONLY` list of `[fill, surface]` pairs and checks each at 3:1 in both themes, and prints the
+list. `src/dev/accent-fill-uses.test.ts` keeps an inventory of every place `src/` paints a fill, with a count and a verdict, so
+a new use fails the test until someone decides what it is; it counts `var(--mint)`, the `bg-(--mint)` shorthand and Tailwind
+utilities such as `bg-coral` or `border-you-line`. Reviewing the 21 files found two kinds of use where colour alone spoke. A
+Stat's provenance rule: a "you" or "src" Stat now also shows the "Your assumption" or "Sourced" Tag. And charts: a series'
+line, bar or slice is what the Learner reads, and a legend does not exempt it, so charts are checked. The kit's chart series
+(`CHART_SERIES`) draw Light's mint, sunflower and coral in their `-ink` tokens (Light sunflower was 1.5:1), and every series
+token is on `COLOUR_ONLY` against `--bg` and `--field`; Dark's chart colours did not change, since each Dark `-ink` is its fill.
+
+**Scenario.** Someone adds a coral dot to a Topic row to mean "overdue", with no word beside it. The inventory test fails
+because the row's file now has one more fill. They either add the word "Overdue" (and update the count) or list
+`["coral", "field"]` in `COLOUR_ONLY`, and then the script fails because Light coral is 2.8:1 on a card. Either way the
+Learner who cannot tell coral from grey is not left guessing.
+
+**Trade-off.** The owner's Light hexes stay (sunflower is 1.5:1 on the page) wherever a word or icon carries the meaning, so
+the look the design is built on does not change; only Light charts are darker, since there the colour is the data. The price is a hand-kept inventory: its counts have to be updated whenever a fill
+is added or removed, and its verdicts are a person's reading of the component, not a measurement.
+
 ## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
 
 **What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
