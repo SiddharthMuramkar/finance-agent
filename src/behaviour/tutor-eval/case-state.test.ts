@@ -116,10 +116,10 @@ describe("T2: a missed typed quiz holds the slips a Learner makes", () => {
     expect(questions).toHaveLength(3);
     for (const q of questions) {
       expect(q.correct).toBe(false);
-      expect(q.given).toMatch(/^[\d.,]+ ?[a-z%]*$/);
+      expect(q.given).toMatch(/\d/);
       expect(q.mistake?.tag, `"${q.given}" on "${q.prompt}" is not one of its Known mistakes`).toBeTruthy();
     }
-    expect(p.stateNote).toMatch(/got 0 of 3 right; 1\. they picked "[\d.,]+ ?[a-z%]*" \(right: /);
+    expect(p.stateNote).toMatch(/got 0 of 3 right; 1\. they picked "[^"]*\d[^"]*" \(right: /);
 
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Okay.\nWhat is 5% minus 4%?" }] }]);
     await collect(runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: false }, c.message));

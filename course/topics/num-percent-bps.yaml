@@ -413,7 +413,7 @@ questions:
       Federal Reserve Board, Regulatory Reform glossary, Basis point: https://federalreserve.gov/regreform/reform-glossary.htm ; the 17% is the arithmetic of 1 point on a start of 6%.
 
   - id: pb-q-lingo-basis-point
-    skill: pts-to-bp
+    skill: wording
     prompt: >
       What do bond traders call one hundredth of a percentage point?
     choices:
@@ -428,7 +428,7 @@ questions:
       Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
   - id: pb-q-lingo-quarter-point
-    skill: pts-to-bp
+    skill: wording
     prompt: >
       When a central bank raises its rate by 25 basis points, what do traders call that step?
     choices:
@@ -461,7 +461,6 @@ checks:
   # Check 1: points and basis points, typed answers only, with new numbers each attempt: one of each Skill a try.
   - id: pb-quiz-language
     kind: quiz
-    questions: [pb-q-lingo-basis-point, pb-q-lingo-quarter-point]
     templates: [pb-t-points-from-move, pb-t-bp-from-move, pb-t-points-from-bp]
     perAttempt: 3
     passRule:
@@ -499,7 +498,7 @@ checks:
         halfDone: "First step, done for you: the move is 0.5 points."
       - id: pb-try-a3
         skill: pts-to-bp
-        ask: "A lender's rate falls from 7.5% to 7.2%. A trader would call that a fall of:"
+        ask: "A rate falls from 7.5% to 7.2%. A trader would call that a fall of:"
         kind: choice
         answer: a
         choices:
@@ -560,30 +559,30 @@ checks:
     quickTries:
       - id: pb-try-b1
         skill: pct-change
-        ask: "A rate goes from 2% to 3%. A headline writer, measuring against the old rate, writes that it rose:"
+        ask: "A rate goes from 2% to 3%. A headline writer measures the move against the old rate and writes that it rose:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "50 percent" }
-          - { id: b, text: "1 percent", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 2%." } }
-          - { id: c, text: "33 percent", mistake: { tag: used_end_as_base, fix: "Compare the move with the start, 2%, not with the end, 3%." } }
+          - { id: a, text: "50%" }
+          - { id: b, text: "1%", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 2%." } }
+          - { id: c, text: "33%", mistake: { tag: used_end_as_base, fix: "Compare the move with the start, 2%, not with the end, 3%." } }
         halfDone: "First step, done for you: the move is 1 point, on a start of 2%."
       - id: pb-try-b2
         skill: pct-change
-        ask: "A rate goes from 4% to 4.5%. A headline writer, measuring against the old rate, writes that it rose:"
+        ask: "A rate goes from 4% to 4.5%. A headline writer measures the move against the old rate and writes that it rose:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "12.5 percent" }
-          - { id: b, text: "0.5 percent", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 4%." } }
-          - { id: c, text: "11 percent", mistake: { tag: used_end_as_base, fix: "Compare the move with the start, 4%, not with the end, 4.5%." } }
+          - { id: a, text: "12.5%" }
+          - { id: b, text: "0.5%", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 4%." } }
+          - { id: c, text: "11%", mistake: { tag: used_end_as_base, fix: "Compare the move with the start, 4%, not with the end, 4.5%." } }
       - { template: pb-t-pct-change, halfDone: true }
       - { template: pb-t-pct-change }
 
   # Check 3: how a move is worded. "Which one is true?" items on the three sizes of one move.
   - id: pb-quiz-wording
     kind: quiz
-    questions: [pb-q-newspaper, pb-q-wrong-description, pb-q-up-one-percent, pb-q-lingo-rate-hike]
+    questions: [pb-q-newspaper, pb-q-wrong-description, pb-q-up-one-percent, pb-q-lingo-rate-hike, pb-q-lingo-basis-point, pb-q-lingo-quarter-point]
     # One a try from three, so three tries never repeat a question.
     perAttempt: 1
     passRule:
