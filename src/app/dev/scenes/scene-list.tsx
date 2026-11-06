@@ -13,7 +13,7 @@ function Piece({ piece, testId, recipe, step, mounted }: { piece: ScenePiece; te
   return (
     <section data-testid={testId} data-recipe={recipe} data-step={step} className="rounded-lg border border-[var(--border)] p-4">
       <Eyebrow className="mb-1">{piece.eyebrow}</Eyebrow>
-      <h2 className="mb-2 text-base font-semibold leading-6">{piece.title}</h2>
+      {piece.code ? null : <h2 className="mb-2 text-base font-semibold leading-6">{piece.title}</h2>}
       {!mounted ? (
         <p className="text-sm leading-5 text-[var(--muted)]">Drawing…</p>
       ) : piece.code ? (
