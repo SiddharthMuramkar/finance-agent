@@ -50,9 +50,9 @@ describe("turn facts", () => {
     expect(facts.openItems.map((i) => i.prompt)).toEqual(
       ["pv-q-today-vs-later", "pv-q-one-year", "pv-q-two-years", "pv-q-rate-rises", "pv-q-annuity-total", "pv-q-five-percent"].map(prompt),
     );
-    expect(facts.openItems[1]).toEqual({ prompt: prompt("pv-q-one-year"), choices: ["$1,000", "$990", "$1,010", "$1,100"], answer: "$1,000" });
+    expect(facts.openItems[1]).toEqual({ prompt: prompt("pv-q-one-year"), choices: ["Present value", "Future value", "Lump sum", "Discount rate"], answer: "Present value" });
     // The open attempt's numbers and the next attempt's.
-    expect(facts.blockedNumbers).toEqual(expect.arrayContaining(["1100", "10", "1210", "5000", "4535"]));
+    expect(facts.blockedNumbers).toEqual(expect.arrayContaining(["1100", "10", "1210", "5000"]));
     // Reading the facts never makes an attempt.
     expect((await checkTabNow(db, map, new Date(), OWNER_LEARNER_ID)).quiz!.attemptId).toBe(quiz.attemptId);
   });
@@ -64,7 +64,7 @@ describe("turn facts", () => {
     await submitQuizAnswers(db, map, quiz.attemptId, wrong, new Date(), OWNER_LEARNER_ID);
     const items = await openQuizItems(db, map, OWNER_LEARNER_ID, check);
     expect(items.map((i) => i.prompt)).toEqual(["pv-q-rate-rises", "pv-q-annuity-total", "pv-q-five-percent"].map(prompt));
-    expect(items[2].answer).toBe("$4,535");
+    expect(items[2].answer).toBe("It makes it worth more today: a lower rate shrinks the payment less");
     // Still nothing made: the Check tab shows the missed attempt until Try again.
     expect((await checkTabNow(db, map, new Date(), OWNER_LEARNER_ID)).quiz).toBeNull();
   });

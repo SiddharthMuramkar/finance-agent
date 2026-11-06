@@ -66,7 +66,7 @@ describe("a suite run", () => {
     const unreadable = await runSuite(pick("T1"), deps({ graderText: () => "I think it was fine." }));
     expect(unreadable.cases[0].status).toBe("fail");
     expect(unreadable.cases[0].runs[0].reasons[0]).toMatch(/grade could not be read/);
-    const refusal = await runSuite(pick("T1"), deps({ reply: "While the quiz is open I can't explain the ideas it tests. 60 basis points is 0.6 of a point." }));
+    const refusal = await runSuite(pick("T1"), deps({ reply: "While the quiz is open I can't explain the ideas it tests. 60 basis points is six tenths of a percentage point." }));
     const reasons = refusal.cases[0].runs[0].reasons.join("\n");
     expect(reasons).toMatch(/V5/);
     expect(reasons).toMatch(/refuses/);

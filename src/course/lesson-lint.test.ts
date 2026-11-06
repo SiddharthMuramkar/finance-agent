@@ -28,7 +28,7 @@ describe("the Topic file's teaching fields", () => {
     expect(testedSkills(t, t.checks[2])).toEqual(["wording"]);
   });
 
-  it("leaves every real Topic not yet converted as it was: rupees, and no new teaching", () => {
+  it("leaves every real Topic not yet converted as it was: rupees, and no new Skills, templates or Quick tries", () => {
     for (const t of loadCourseMap().topics.filter((x) => LESSON_NOT_YET_CONVERTED.includes(x.id))) {
       expect(isConverted(t)).toBe(false);
       expect(t.exampleCurrency).toBe("INR");

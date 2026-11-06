@@ -208,7 +208,7 @@ function useWidgetNumber(code: string): number {
  * One generated widget. Controls change state in the browser only: moving a slider never calls the model,
  * and a Query re-runs one of our Widget tools. A finished widget that fails the check shows a
  * plain fallback instead. `bare` drops the Widget's own border, for a card that already frames it.
- * `onSettings` hears the numbers on the Widget's sliders each time the Learner moves one (for "Save to notes").
+ * `onSettings` hears the numbers on the Widget's sliders each time the Learner moves one (for "Save to Notebook").
  * `loadCase` shares the Widget's Case Data loads with whatever else reads them beside it (its Sourced strip).
  * `initialValues` are the slider values it starts at instead of the ones its code declares (its saved Widget state).
  */
