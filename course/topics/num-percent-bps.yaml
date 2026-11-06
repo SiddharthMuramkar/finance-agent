@@ -75,7 +75,7 @@ scenes:
       beats:
         - { who: narrator, says: "It is 3 February 1994. The US central bank's rate stands at 3 percent.", emoji: calendar }
         - { who: trader, says: "Cheap loans let many of us hold long-term bonds.", emoji: chart-increasing }
-        - { who: narrator, says: "Tomorrow the Fed's committee announces its next decision.", emoji: bank }
+        - { who: narrator, says: "Its committee is meeting. Tomorrow it decides its next step.", emoji: bank }
         - { who: reporter, says: "If it moves, I will write it in fractions of a point.", emoji: newspaper }
         - { who: trader, says: "I will say the same move in basis points.", emoji: megaphone }
       caption: Nobody yet knows whether the Fed will move
@@ -197,8 +197,8 @@ cases:
     story: >
       On 3 February 1994 the overnight federal funds rate, the interest rate the US Federal
       Reserve steers, stands at 3%. Short-term rates have been low for some time, many investors
-      have borrowed cheaply to hold long-term bonds, and the Fed's policy committee is about to
-      announce its next decision. If it acts, the move will be reported in three different ways:
+      have borrowed cheaply to hold long-term bonds, and the Fed's policy committee is meeting,
+      due to decide its next step on 4 February. If it acts, the move will be reported in three different ways:
       a bond trader would say it in basis points, a newspaper in fractions of a point, and a
       headline writer might use percent of the old rate. As of this date nobody knows whether the
       Fed will move, by how much, or how the market for long-term bonds will react.
@@ -563,9 +563,9 @@ checks:
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "50%" }
-          - { id: b, text: "1%", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 2%." } }
-          - { id: c, text: "33%", mistake: { tag: used_end_as_base, fix: "Compare the move with the start, 2%, not with the end, 3%." } }
+          - { id: a, text: "50%: the 1-point move set against the old 2%" }
+          - { id: b, text: "1%: the move in points", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 2%." } }
+          - { id: c, text: "3%: the new rate", mistake: { tag: gave_the_new_level, fix: "3% is where the rate ended. The headline compares the move with the start, 2%." } }
         halfDone: "First step, done for you: the move is 1 point, on a start of 2%."
       - id: pb-try-b2
         skill: pct-change
@@ -573,9 +573,9 @@ checks:
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "12.5%" }
-          - { id: b, text: "0.5%", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 4%." } }
-          - { id: c, text: "11%", mistake: { tag: used_end_as_base, fix: "Compare the move with the start, 4%, not with the end, 4.5%." } }
+          - { id: a, text: "12.5%: the half-point move set against the old 4%" }
+          - { id: b, text: "0.5%: the move in points", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 4%." } }
+          - { id: c, text: "4.5%: the new rate", mistake: { tag: gave_the_new_level, fix: "4.5% is where the rate ended. The headline compares the move with the start, 4%." } }
       - { template: pb-t-pct-change, halfDone: true }
       - { template: pb-t-pct-change }
 
@@ -600,19 +600,19 @@ checks:
     quickTries:
       - id: pb-try-b3
         skill: wording
-        ask: "A rate goes from 2% to 3%. True or false: rates rose 50%."
+        ask: "A rate goes from 2% to 3%. True or false: a headline saying \"rates up 1%\" tells readers exactly which size of move it means."
         kind: truth
-        answer: true
+        answer: false
         halfDone: "First step, done for you: the move is 1 point, on a start of 2%."
         mistakes:
-          - { answer: false, fix: "Compared with the start of 2%, a move of 1 point is 50%. Up 1 point is true too.", tag: mixed_percent_points }
+          - { answer: true, fix: "Up 1% could mean up 1 point, or up 1% of the old 2%. Say up 1 point or up 100 bp.", tag: mixed_percent_points }
       - id: pb-try-b4
         skill: wording
-        ask: "A rate goes from 4% to 6%. True or false: rates rose 200%."
+        ask: "A rate goes from 4% to 6%, and a headline says rates rose 50%. True or false: the headline means the rate went up 50 points."
         kind: truth
         answer: false
         mistakes:
-          - { answer: true, fix: "The move is 2 points, on a start of 4%. That is 50%, not 200%.", tag: mixed_percent_points }
+          - { answer: true, fix: "Rose 50% compares the move with the old rate, 4%. The move itself is 2 points, or 200 bp.", tag: mixed_percent_points }
       - id: pb-try-word-3
         skill: wording
         ask: "A rate goes from 7% to 8%. True or false: it rose 100 basis points."

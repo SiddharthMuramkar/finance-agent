@@ -407,7 +407,7 @@ questions:
   - id: cp-q-log-return
     skill: log-return
     prompt: >
-      What do analysts call the natural log of end price over start price, used because back-to-back periods simply add?
+      A share rises one year and rises again the next. An analyst wants a score for each year, so that the two years' scores simply join into one score for both. What do analysts call that score?
     choices:
       - { id: a, text: "A log return" }
       - id: b
@@ -924,13 +924,12 @@ checks:
       would honestly describe the climb. Then use the July 1990 level of about 1,000 to say
       whether the pace looks steady over those 13 years.
     passCriteria: >
-      The Learner explains that growth compounds, so the total gain cannot be spread evenly
-      over the years. They say the honest yearly rate is a steady compound rate, far lower, near
-      a third a year (accept 30% to 36%), found with the steady-rate Formula Card, a calculator
-      or logarithms. They note that going from about 1,000 (July 1990) to 4,285 (March 1992) is
-      more than a four-fold rise in under two years, far above the long-run rate, so the pace was
-      not steady and the early years must have been slower (about 22% a year by the same method).
-      A rough answer is fine if the idea is right.
+      The Learner explains, in their own words, that growth compounds, so the total gain cannot be
+      spread evenly over the years, and that the honest yearly rate is one steady compound rate (a
+      CAGR), far lower than the friend's 322%. They note that going from about 1,000 (July 1990) to
+      4,285 (March 1992) is more than a four-fold rise in under two years, far faster than the
+      long-run pace, so the pace was not steady and the early years must have been slower. The
+      Learner does not need to give any rate as a number; the idea is what passes.
     card:
       title: "Is the pace steady?"
       lines:
