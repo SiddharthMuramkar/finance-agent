@@ -7,6 +7,8 @@ import { textOf } from "./script-guards.mjs";
 /**
  * Which lane served the Widget, and its code, from the Session's rows after the prompt. An item stored at `promptSeq`
  * itself follows the opener's last message, so it is the opener's (session-items.ts saves after the latest message).
+ * A Companion Widget (source "companion", E4a) is code's, not the Tutor's choice: it is never a lane, so a reply with
+ * only a Companion has lane "none". It comes back as `companion`, so the Delight judges still see the Widget on screen.
  */
 export async function readLane(pool, learnerId, promptSeq) {
   const sessions = (await pool.query(`select id from sessions where learner_id = $1 order by id desc limit 1`, [learnerId])).rows;
@@ -15,9 +17,13 @@ export async function readLane(pool, learnerId, promptSeq) {
   const messages = (await pool.query(`select seq, role, content from messages where session_id = $1 order by seq`, [sessionId])).rows;
   const after = messages.filter((m) => m.seq > promptSeq);
   const toolsUsed = after.flatMap((m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === "tool_use").map((b) => b.name) : []));
-  const items = (await pool.query(`select kind, data, after_seq from session_items where session_id = $1 and kind = 'widget_shown' and after_seq > $2 order by id`, [sessionId, promptSeq])).rows;
+  const shown = (await pool.query(`select kind, data, after_seq from session_items where session_id = $1 and kind = 'widget_shown' and after_seq > $2 order by id`, [sessionId, promptSeq])).rows;
+  const isCompanion = (i) => i.data?.source === "companion";
+  const items = shown.filter((i) => !isCompanion(i));
+  const c = shown.findLast(isCompanion)?.data;
+  const companion = c ? { kind: c.companion ?? null, code: c.code, title: c.title, recipe: c.recipe || null } : null;
   const turn = (await pool.query(`select status, stop_reason, error from turns where session_id = $1 order by id desc limit 1`, [sessionId])).rows[0] ?? null;
-  const base = { sessionId, toolsUsed, turn };
+  const base = { sessionId, toolsUsed, turn, companion };
   if (items.length) {
     const d = items[items.length - 1].data;
     const source = typeof d.source === "string" ? d.source : "recipe";
