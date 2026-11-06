@@ -4645,6 +4645,14 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Trade-off.** A choice question is easier to guess than a typed number. Skill state still needs two right in a row and a Check still has its pass rule, so one lucky tap passes nothing, and the owner prefers the lingo to the arithmetic.
 
+## Questions in 9 Topics ask about the story and the words (`course/topics/der-rates-fx.yaml` and eight more, spec 2026-11-05, ticket D2d)
+
+**What it does.** Nine Foundation Topics (`der-rates-fx`, `der-hedging`, `eq-markets`, `eq-history`, `risk-portfolio`, `risk-capm`, `mkt-efficiency`, `mkt-behavioural`, `mkt-ipo-float`) no longer ask the Learner for a sum. Each old "what is the net payment, the CAPM return, the first-day return?" question is now a pick of the right word or the right reading of the story, and every wrong choice carries a `mistake: {tag, fix}` in one short line. Two conversation Checks (`eh-judge-boom`, `cm-choose-beta`) ask the Learner to say it in their own words. Five ids came off `L10_NOT_YET_STORY`, so lint L10 now guards them.
+
+**Scenario.** A Learner in Risk and the CAPM used to be asked for a share's expected return given three rates. Now Neha holds a steady share and a jumpy one, the question asks what the model adds on top of the safe rate, and picking "the market's average return, the same for both shares" shows the Tutor a Known mistake with a one-line fix. The numbers stay in the explanation, where they teach.
+
+**Trade-off.** Recognising a word is easier than working out a figure, so a Learner can pass without being able to compute. That is the owner's choice (ADR 0009): comprehension first, the sum is never asked. The Case stories keep their facts; only the closing ask of two Cases was reworded from "work out" to "think about".
+
 ## Foundation Topics, story-first questions, batch D2a (`course/topics/`, spec 2026-11-05, ticket D2a)
 
 **What it does.** Twelve Topics (`num-statistics`, `num-econometrics`, `fs-filings`, `fs-earnings-quality`, `fs-tax`, `eco-supply-demand`, `eco-micro-competition`, `eco-money-banking`, `eco-central-banks`, `eco-inflation-real`, `eco-gdp-cycles`, `eco-fiscal-debt`) leave the L10 not-yet-story list. Stems and passCriteria that asked for a sum now ask what a word means, which headline gets it right, or what happened in the story. Each wrong choice of a rewritten question carries a one-line Known mistake fix. Five Topics also left the old typed-formula list in `formula-check.ts`.
