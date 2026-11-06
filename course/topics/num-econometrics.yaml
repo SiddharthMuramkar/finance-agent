@@ -58,18 +58,96 @@ youllLearn:
   - "Recognise samples and methods that mislead."
   - "Ask whether a published result could be reproduced from its data."
 
-questions: []
+questions:
+  - id: ec-q-ice-cream
+    prompt: >
+      July 2009. Neha, a city health officer, notices that on days when ice-cream sales jump, swimming accidents jump too. A councillor wants to ban ice-cream near the beach. Which headline gets it right?
+    choices:
+      - { id: a, text: "Hot weather drives both, so a ban would change little" }
+      - { id: b, text: "Ice-cream makes swimmers careless, so the ban will save lives", mistake: { tag: correlation_as_cause, fix: "Moving together proves no cause; a third factor, hot weather, can drive both." } }
+      - { id: c, text: "Swimming accidents make people buy ice-cream", mistake: { tag: reversed_wrongly, fix: "The simpler story is a common cause: hot, sunny days bring buyers and swimmers." } }
+      - { id: d, text: "The pattern must be a fluke in the data", mistake: { tag: dismissed_pattern, fix: "The link is real; the question is what causes it, and the heat explains both." } }
+    answer: a
+    explanation: >
+      When two things rise together, a hidden third factor (a confounder) may move both. Hot days bring more ice-cream buyers and more swimmers, so more accidents. Banning ice-cream would leave the heat, and the swimmers, in place.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0029, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: ec-q-reverse
+    prompt: >
+      In 2010 Carmen Reinhart and Kenneth Rogoff report that countries with public debt above 90 per cent of GDP have grown more slowly. A minister says debt clearly slows growth. Which other story could fit the same pattern?
+    choices:
+      - { id: a, text: "Slow growth can raise debt, as tax revenue falls and spending rises" }
+      - { id: b, text: "None: a pattern like that proves debt causes slow growth", mistake: { tag: correlation_as_cause, fix: "The pattern shows high debt and slow growth together; the cause could run either way." } }
+      - { id: c, text: "Fast-growing countries borrow the most", mistake: { tag: flipped_pattern, fix: "The pattern pairs high debt with slow growth, the opposite of this story." } }
+      - { id: d, text: "Debt and growth are unrelated, so the study is meaningless", mistake: { tag: dismissed_pattern, fix: "The link may be real; the open question is which way the cause runs." } }
+    answer: a
+    explanation: >
+      Correlation alone cannot show which way cause runs. In a slump, tax revenue falls and spending on support rises, so slow growth itself pushes debt up (reverse causality). That is one reason to be careful before cutting spending on the strength of the pattern.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0030, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the 2010 finding is from this Topic's Case (Reinhart and Rogoff, 2010) and the minister is made up.
+  - id: ec-q-survivors
+    prompt: >
+      March 2009. Arjun's consultancy studies 50 firms that have lasted over a century and finds almost all kept their debt low. He tells a client to cut its debt to last longer. What do statisticians call the flaw?
+    choices:
+      - { id: a, text: "Survivorship bias: the low-debt firms that failed are missing from the study" }
+      - { id: b, text: "Too small a sample: 50 firms prove nothing", mistake: { tag: blamed_sample_size, fix: "Even 5,000 survivors would mislead; the problem is that the firms that failed are missing." } }
+      - { id: c, text: "Non-response bias: some firms refused to answer", mistake: { tag: mixed_up_biases, fix: "Nobody refused here; the study only ever looked at the firms that survived." } }
+      - { id: d, text: "No flaw: low debt clearly causes a long life", mistake: { tag: correlation_as_cause, fix: "Without the failed firms, you cannot tell whether low debt helped at all." } }
+    answer: a
+    explanation: >
+      Looking only at winners hides the comparison. If plenty of low-debt firms also went bust, or high-debt firms lasted just as long, the pattern among survivors says nothing about debt. A fair study starts with every firm alive at the beginning, including those that later vanished.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0046, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: ec-q-survey
+    prompt: >
+      October 2009. Sara's software firm emails a survey to all 40,000 customers. Only 12% reply, and 85% of those say "excellent". She tells the board 85% of customers love the product. Which would you pick as the main worry?
+    choices:
+      - { id: a, text: "Happy, keen users are likelier to reply, so the 85% may be inflated" }
+      - { id: b, text: "Too few replies to say anything precise", mistake: { tag: blamed_sample_size, fix: "Thousands of replies give a precise figure; the worry is who chose to reply." } }
+      - { id: c, text: "Survivorship bias, because customers who already left were never asked", mistake: { tag: mixed_up_biases, fix: "The claim is about current customers, all of whom were asked; the gap is who chose to answer." } }
+      - { id: d, text: "Customers act differently when they know they are watched", mistake: { tag: hawthorne_effect, fix: "That is the Hawthorne effect, about behaviour under observation; this is about who replied." } }
+    answer: a
+    explanation: >
+      This is non-response bias: the people who answer a survey choose themselves. If unhappy or busy customers skip it, the 85% describes keen repliers, and the board hears too rosy a story. Checks include comparing repliers with the rest, chasing a random few who stayed silent, or watching renewals.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0047, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: ec-q-many-tests
+    prompt: >
+      November 2009. Dev's team tests a new checkout page and also tracks 20 extra measures nobody planned to test. One, wish-list clicks, shows a "significant" win. Dev wants to announce it. Which would you pick, and why?
+    choices:
+      - { id: a, text: "Retest it first: check enough measures and one will look like a win by luck" }
+      - { id: b, text: "Announce it: a significant result is a confirmed win", mistake: { tag: one_hit_as_proof, fix: "With 20 unplanned measures, one fluke win is expected even when nothing changed." } }
+      - { id: c, text: "Scrap every extra measure as useless", mistake: { tag: threw_out_all, fix: "Extra measures can give ideas; they just need a fresh, planned test to confirm them." } }
+      - { id: d, text: "Keep rerunning until wish-list clicks look significant again", mistake: { tag: kept_rerunning, fix: "Rerunning until you like the answer manufactures flukes; plan one test and stick to it." } }
+    answer: a
+    explanation: >
+      This is the multiple-comparisons trap. Each measure has about a 1-in-20 chance of looking significant by luck alone, so checking 20 at once makes a fluke likely. Treat the wish-list result as an idea and confirm it in a new test planned around it.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0027, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: ec-q-overfit
+    prompt: >
+      February 2010. Priya's team builds a model to forecast demand. It is 99% accurate on the months it learned from, but only 71% on months it never saw. The board meets tomorrow. What do data scientists call this?
+    choices:
+      - { id: a, text: "Overfitting: the model memorised noise in its own data" }
+      - { id: b, text: "Underfitting: the model is too simple", mistake: { tag: flipped_fit, fix: "Too simple would do badly on both; a big gap means it fits its own data too closely." } }
+      - { id: c, text: "Bad test months: retrain on everything and report 99%", mistake: { tag: blamed_holdout, fix: "The unseen months are the honest test; 99% on familiar data says little about the future." } }
+      - { id: d, text: "A normal gap, so 99% is the figure for the board", mistake: { tag: reported_training_score, fix: "Decisions run on new data, so the 71% from unseen months is the figure that counts." } }
+    answer: a
+    explanation: >
+      A model that scores far better on the data it was built from than on new data is overfitting: it has learned quirks of its sample that do not repeat. Judge it only on data it has never seen, and simplify it or give it more data to close the gap.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0048, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
 
 checks:
   - id: eco-econ-quiz-claims
     kind: quiz
     questions:
-      - bank:eab:MBA-STAT-0029
-      - bank:eab:MBA-STAT-0030
-      - bank:eab:MBA-STAT-0046
-      - bank:eab:MBA-STAT-0047
-      - bank:eab:MBA-STAT-0027
-      - bank:eab:MBA-STAT-0048
+      - ec-q-ice-cream
+      - ec-q-reverse
+      - ec-q-survivors
+      - ec-q-survey
+      - ec-q-many-tests
+      - ec-q-overfit
     perAttempt: 3
     passRule:
       correct: 2
