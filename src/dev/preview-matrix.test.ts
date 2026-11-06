@@ -1,17 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { LOGIN_NOT_INVITED, MATRIX_PAGES, matrixCells, matrixThresholds } from "./preview-matrix";
+import { LOGIN_NOT_INVITED, MATRIX_PAGES, MATRIX_VIEWPORTS, matrixCells, matrixThresholds } from "./preview-matrix";
 
 describe("preview matrix [S3]", () => {
   it("the matrix lists every cell", () => {
     const cells = matrixCells();
     const main = cells.filter((c) => c.page.id !== LOGIN_NOT_INVITED.id);
-    expect(MATRIX_PAGES).toHaveLength(9);
-    expect(main).toHaveLength(4 * 2 * 9); // 72
+    expect(MATRIX_PAGES).toHaveLength(12);
+    expect(main).toHaveLength(4 * 2 * 12); // 96
     expect(cells.filter((c) => c.page.id === LOGIN_NOT_INVITED.id)).toHaveLength(8); // one per project
-    expect(cells).toHaveLength(80);
+    expect(cells).toHaveLength(104);
     expect(new Set(cells.map((c) => c.project)).size).toBe(8);
     expect(new Set(cells.map((c) => c.file)).size).toBe(cells.length); // no duplicates
     for (const c of cells) expect(c.file, c.file).not.toMatch(/\s/);
+  });
+
+  // Spec §8.3 (colour-liveliness) "Inputs: screenshots of 6 states (reply with Story scene, Lingo card, Choices, Course
+  // Map, Notebook, a wrong-choice mix-up fix), Light and Dark" (#481): each state is a cell, in both themes at every viewport.
+  it("shoots the 6 §8.3 states in Light and Dark", () => {
+    const states = {
+      "reply with Story scene": { id: "study-story-scene", path: "/study", seed: "story-scene" },
+      "Lingo card": { id: "study-lingo", path: "/study", seed: "lingo" },
+      Choices: { id: "study-quiz-open", path: "/study", seed: "quiz-open" },
+      "Course Map": { id: "course-map", path: "/course", seed: "many-topics" },
+      Notebook: { id: "notebook", path: "/notebook", seed: "story" },
+      "a wrong-choice mix-up fix": { id: "study-mixup-fix", path: "/study", seed: "mix-up" },
+    };
+    const cells = matrixCells();
+    for (const [state, want] of Object.entries(states)) {
+      expect(MATRIX_PAGES.find((p) => p.id === want.id), state).toMatchObject(want);
+      for (const viewport of MATRIX_VIEWPORTS) {
+        const themes = cells.filter((c) => c.viewport.id === viewport.id && c.page.id === want.id).map((c) => c.theme);
+        expect(themes.sort(), `${state} at ${viewport.id}`).toEqual(["dark", "light"]);
+      }
+    }
   });
 
   // Spec §6.2: side gutter <= 32 px at 1280, 1512 and 1920, and no gutter row at 1024, so F1's "the same except where
@@ -31,7 +52,8 @@ describe("preview matrix [S3]", () => {
   it("says where running prose must be measured", () => {
     const prose = Object.fromEntries(MATRIX_PAGES.map((p) => [p.id, p.prose ?? null]));
     expect(prose).toEqual({
-      home: null, "study-story": null, "study-concept-widget": null, "study-quiz-open": null, "study-topic-complete": null,
+      home: null, "study-story": null, "study-story-scene": null, "study-lingo": null, "study-concept-widget": null, "study-quiz-open": null,
+      "study-mixup-fix": null, "study-topic-complete": null,
       "course-map": "if-any", notebook: "required", settings: "required", login: null,
     });
     expect(LOGIN_NOT_INVITED.prose ?? null).toBeNull();
