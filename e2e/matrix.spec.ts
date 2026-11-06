@@ -23,8 +23,9 @@ type Result = {
   focus: FocusWalk | null;
   /**
    * Which accent families (mint, coral, sun, violet, each with every variant its theme defines) the whole /study page
-   * paints, anywhere: header, chat, Topic bar, Widget panel (concept-with-Widget cell only). `accentVia` says, per family,
-   * the first variant and paint that matched ("--sun-tag as background").
+   * paints, anywhere: header, chat, Topic bar, Widget panel. `accentVia` says, per family,
+   * the first variant and paint that matched ("--sun-tag as background"). Measured on every /study cell (so the Story
+   * scene, Lingo card and mix-up fix cells of #481 show their sunflower, violet and coral); the ≥ 3 test reads concept-widget.
    */
   accents: string[] | null;
   accentVia?: Record<string, string>;
@@ -162,7 +163,7 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
     // columns (Settings): there each card's paragraphs are measured inside the card.
     out.layout = await measureLayout(page, p.prose ? { prose: '[data-testid="reading-column"] p', cardsAsColumns: p.cardsAsColumns === true } : {});
     out.affordances = await auditAffordances(page);
-    if (p.id === "study-concept-widget") {
+    if (p.kind === "study") {
       const a = await accentFamilies(page);
       out.accents = a.families;
       out.accentVia = a.via;
