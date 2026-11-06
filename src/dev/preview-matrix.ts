@@ -16,7 +16,14 @@ export const MATRIX_THEMES = ["light", "dark"] as const;
 export type MatrixSeed = "story" | "concept-widget" | "quiz-open" | "topic-complete" | "many-topics";
 export type MatrixKind = "study" | "reading" | "login";
 
-export type MatrixPage = { id: string; path: string; seed: MatrixSeed | null; kind: MatrixKind; signedOut: boolean };
+/**
+ * Running prose on a reading page (§2: "panels and Widgets span the width, running prose caps at 70ch"): `required`
+ * means the page has paragraphs, so measuring none is a failure; `if-any` means the page is cards and panels, so its
+ * prose is measured only when it has some (Course Map's only prose is the one-line progress summary).
+ */
+export type MatrixProse = "required" | "if-any";
+
+export type MatrixPage = { id: string; path: string; seed: MatrixSeed | null; kind: MatrixKind; signedOut: boolean; prose?: MatrixProse };
 
 /** The nine pages and states of the spec, in the order they are shot. Login pages run last (they sign the Learner out). */
 export const MATRIX_PAGES: readonly MatrixPage[] = [
@@ -25,9 +32,9 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "study-concept-widget", path: "/study", seed: "concept-widget", kind: "study", signedOut: false },
   { id: "study-quiz-open", path: "/study", seed: "quiz-open", kind: "study", signedOut: false },
   { id: "study-topic-complete", path: "/study", seed: "topic-complete", kind: "study", signedOut: false },
-  { id: "course-map", path: "/course", seed: "many-topics", kind: "reading", signedOut: false },
-  { id: "notebook", path: "/notebook", seed: "story", kind: "reading", signedOut: false },
-  { id: "settings", path: "/settings", seed: "story", kind: "reading", signedOut: false },
+  { id: "course-map", path: "/course", seed: "many-topics", kind: "reading", signedOut: false, prose: "if-any" },
+  { id: "notebook", path: "/notebook", seed: "story", kind: "reading", signedOut: false, prose: "required" },
+  { id: "settings", path: "/settings", seed: "story", kind: "reading", signedOut: false, prose: "required" },
   { id: "login", path: "/login", seed: null, kind: "login", signedOut: true },
 ];
 
@@ -63,3 +70,17 @@ export function matrixCells(): MatrixCell[] {
 
 /** The cells of one project, in shooting order. */
 export const cellsOfProject = (project: string) => matrixCells().filter((c) => c.project === project);
+
+export type MatrixThresholds = { gutterMax: number; headerMax: number; panelMinPct: number; lineMin: number; lineMax: number };
+
+/**
+ * The §6.2 thresholds a project's cells are held to. Side gutter <= 32 px (§6.2 names 1280, 1512 and 1920 and no
+ * looser bound at 1024, so 32 holds there too; A1's 17 px is its own /study test, not a §6 threshold). Prose line
+ * length 45-80, 60-75 from 1280 up. Header <= 56 px. Widget panel >= 55 % of the viewport.
+ */
+export function matrixThresholds(project: string): MatrixThresholds {
+  const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id || project === `${v.id}-dark`);
+  if (!viewport) throw new Error(`unknown matrix project: ${project}`);
+  const [lineMin, lineMax] = viewport.width >= 1280 ? [60, 75] : [45, 80];
+  return { gutterMax: 32, headerMax: 56, panelMinPct: 55, lineMin, lineMax };
+}
