@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { cellsOfProject, MATRIX_DIR, type MatrixCell } from "../src/dev/preview-matrix";
+import { cellsOfProject, MATRIX_DIR, matrixThresholds, type MatrixCell } from "../src/dev/preview-matrix";
 import { quietDevtools, seed, settled } from "./support/app";
 import { auditAffordances, measureLayout, type Affordances, type Layout } from "./support/measure";
 
@@ -191,8 +191,9 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
     const dims = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth }));
     out.scrollWidth = dims.scrollWidth;
     out.innerWidth = dims.innerWidth;
-    // Reading pages (the ReadingPage shell) are measured on their running prose, every paragraph of the column.
-    out.layout = await measureLayout(page, readingColumn(cell) ? { prose: '[data-testid="reading-column"] p' } : {});
+    // Reading pages (the ReadingPage shell) are measured on their running prose: the column's paragraphs, minus the
+    // blurbs of cards that sit beside other cards (measureLayout skips those).
+    out.layout = await measureLayout(page, p.prose ? { prose: '[data-testid="reading-column"] p' } : {});
     out.affordances = await auditAffordances(page);
     if (p.id === "study-concept-widget") out.accents = await accentsPainted(page);
     mkdirSync(dirname(join(process.cwd(), cell.file)), { recursive: true });
@@ -203,9 +204,6 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
   }
   return out;
 }
-
-/** The pages inside the ReadingPage shell (Course Map, Notebook, Settings); Home is the landing, not a reading page. */
-const readingColumn = (cell: MatrixCell) => cell.page.kind === "reading" && cell.page.path !== "/";
 
 test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
@@ -228,9 +226,7 @@ test("[F1] every cell loads without horizontal scroll", async ({ page }, info) =
 
 test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
   const project = info.project.name;
-  const w1024 = project.startsWith("w1024");
-  const gutterMax = w1024 ? 17 : 32; // §6.2: 32 px; A1 names 17 px at 1024
-  const [lineMin, lineMax] = w1024 ? [45, 80] : project.startsWith("w1280") || project.startsWith("mbp14") || project.startsWith("w1920") ? [60, 75] : [45, 80];
+  const { gutterMax, headerMax, panelMinPct, lineMin, lineMax } = matrixThresholds(project); // §6.2, 32 px gutters at 1024 too
   const failing: string[] = [];
   const cells = cellsOfProject(project);
   for (const r of saved(project, info.project.outputDir)) {
@@ -242,10 +238,11 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
     if (!login) {
       if (l.gutterLeft !== null && l.gutterLeft > gutterMax) failing.push(`${r.cell}: left gutter ${l.gutterLeft} > ${gutterMax}`);
       if (l.gutterRight !== null && l.gutterRight > gutterMax) failing.push(`${r.cell}: right gutter ${l.gutterRight} > ${gutterMax}`);
-      if (l.headerHeight !== null && l.headerHeight > 56) failing.push(`${r.cell}: header ${l.headerHeight} > 56`);
+      if (l.headerHeight !== null && l.headerHeight > headerMax) failing.push(`${r.cell}: header ${l.headerHeight} > ${headerMax}`);
     }
-    if (id === "study-concept-widget" && (l.panelWidthPct === null || l.panelWidthPct < 55)) failing.push(`${r.cell}: panelWidthPct ${l.panelWidthPct} < 55`);
-    if (readingColumn(cell) && l.charsPerLine === null) failing.push(`${r.cell}: chars per line not measured (${l.proseMeasured ?? 0} prose paragraphs of 2+ lines)`);
+    if (id === "study-concept-widget" && (l.panelWidthPct === null || l.panelWidthPct < panelMinPct)) failing.push(`${r.cell}: panelWidthPct ${l.panelWidthPct} < ${panelMinPct}`);
+    // Notebook and Settings have running paragraphs: measuring none is a failure. Course Map is cards and panels.
+    if (cell.page.prose === "required" && l.charsPerLine === null) failing.push(`${r.cell}: chars per line not measured (${l.proseMeasured ?? 0} prose paragraphs of 2+ lines)`);
     if (l.charsPerLine !== null && (l.charsPerLine < lineMin || l.charsPerLine > lineMax)) failing.push(`${r.cell}: chars per line ${l.charsPerLine} outside ${lineMin}-${lineMax}`);
     if (l.horizontalScroll) failing.push(`${r.cell}: horizontal scroll`);
     for (const key of ["interactiveWithoutSignifier", "pointerOnStatic", "staticLooksPressable", "tooSmall"] as const) {

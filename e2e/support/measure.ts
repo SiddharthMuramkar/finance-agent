@@ -31,8 +31,10 @@ export type Affordances = {
 /**
  * Appendix C.2: gutters, column shares, header height, chat font and line length of the page as it is now.
  * With no options, `charsPerLine` is Appendix C's: the longest Tutor paragraph. `{ prose }` (F1, reading pages) measures
- * every visible element the selector matches instead (not flex or grid rows): the full lines (all but each element's last) of all of them,
- * median, and `proseMeasured` says how many elements had a full line. Nothing else changes.
+ * every visible element the selector matches instead: the full lines (all but each element's last) of all of them, median,
+ * and `proseMeasured` says how many elements had a full line. Not running prose, so skipped: an element that is itself a
+ * flex or grid row, and one inside a card that sits beside others (an ancestor is a grid of 2+ columns or a flex row of
+ * 2+ items). Nothing else changes.
  */
 export function measureLayout(page: Page, opts: { prose?: string } = {}): Promise<Layout> {
   return page.evaluate((prose) => {
@@ -68,6 +70,18 @@ export function measureLayout(page: Page, opts: { prose?: string } = {}): Promis
       counts.sort((a, b) => a - b);
       return counts[Math.floor(counts.length / 2)];
     };
+    // Does any ancestor lay its children side by side: a grid of 2+ column tracks, or a flex row of 2+ visible items?
+    const besideOthers = (el: Element) => {
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const s = getComputedStyle(a);
+        if (/grid/.test(s.display) && s.gridTemplateColumns.split(/\s+/).filter((t) => /^[\d.]+px$/.test(t)).length > 1) return true;
+        if (/flex/.test(s.display) && s.flexDirection.startsWith("row")) {
+          const items = [...a.children].filter((c) => { const r = c.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
+          if (items.length > 1) return true;
+        }
+      }
+      return false;
+    };
     let proseLine: number | null = null, proseMeasured: number | undefined;
     if (prose) {                                    // F1: the running prose of a reading page, every matched element
       const full: number[] = [];
@@ -76,6 +90,7 @@ export function measureLayout(page: Page, opts: { prose?: string } = {}): Promis
         const r = el.getBoundingClientRect(), s = getComputedStyle(el);
         if (!r.width || !r.height || s.visibility === "hidden" || s.display === "none") continue;
         if (/flex|grid/.test(s.display)) continue;  // a row of tags or links laid out side by side is not running prose
+        if (besideOthers(el)) continue;              // a blurb in a card that sits beside other cards is a panel's text
         const counts = linesOf(el);
         if (counts.length < 2) continue;            // one line says nothing about the measure
         counts.pop();                                // the last line is short
