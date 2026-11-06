@@ -268,3 +268,50 @@ describe("a Quick try on screen, or a try code posts after the reply, is the rep
     }
   });
 });
+
+/**
+ * Round 10 (run 23, T13 and T15). BP-1: "quiz me but make it fun" got a framing line and no question, since no try came
+ * after that reply. BP-2 and MP-1: "just tell me the answer pls" got "I can't see that try's numbers", then the /100 and
+ * x100 steps for the Learner to do. G-T15: a maths-worry reply taught points and basis points at once. MP-3: a CAGR example
+ * whose figures no critic could trace to the story or a calculator.
+ */
+describe("round 10: quiz-me, the screen, the answer in words, one idea, numbers with a source", () => {
+  const sentences = (text: string) => text.split(/(?<=[.!?])\s+(?=[A-Z"(])/);
+  for (const [name, text] of [
+    ["widget engine off", TUTOR_INSTRUCTIONS],
+    ["widget engine on", ENGINE_INSTRUCTIONS],
+  ] as const) {
+    it(`${name}: a quiz-me request with no try coming gets one fun choice question, never a framing line alone (BP-1)`, () => {
+      expect(text).toContain(
+        '"Quiz me", even "make it fun", always gets something to tap: when this turn\'s context says code posts a Quick try with this reply, or names one on the Learner\'s screen, name that try and what it asks in one fun line and write no ask of your own; otherwise ask one fun choice question in words, a story beat with two or three options',
+      );
+      expect(text).toContain("never a framing line alone");
+    });
+
+    it(`${name}: a Quick try is the ask only when code posts it with this reply, or the reply names the one open on screen (BP-1)`, () => {
+      expect(text).toContain("A try already on the Learner's screen is the ask only when your reply names it and what it asks; a reply that names no try ends as the rules above say.");
+      expect(text).not.toContain("whenever a Quick try is on screen or code posts a try after your reply");
+    });
+
+    it(`${name}: never says it cannot see the Learner's screen (BP-2)`, () => {
+      expect(text).toContain("Never say you cannot see something on the Learner's screen: code tells you each Quick try on it, with its words and its choices.");
+      expect(sentences(text).filter((s) => /\bcan(?:no|')t see\b/i.test(s) && !/^Never say/.test(s))).toEqual([]);
+    });
+
+    it(`${name}: asked for a Quick try's answer, gives it in words and stops, with no conversion steps for the Learner (MP-1)`, () => {
+      expect(text).toContain(
+        'Asked for a Quick try\'s answer, say it in words as a story fact and stop: no conversion steps for the Learner to apply (no "divide by 100" or "times 100" for them), and never "whichever way the try asks".',
+      );
+    });
+
+    it(`${name}: teaches one idea a reply: points or basis points, never both, the other waits (G-T15)`, () => {
+      expect(text).toContain("One idea means one word or one move: a reply that explains points never also explains basis points; the other waits for its own reply.");
+    });
+
+    it(`${name}: takes every number in an example from the story, its Case Data or a calculate result (MP-3)`, () => {
+      expect(text).toContain(
+        "Every number in an example comes from the Topic's story, its Running example or Case Data, or a calculate result in this reply; for any other figure (a growth rate, a CAGR), call calculate first and quote its answer.",
+      );
+    });
+  }
+});
