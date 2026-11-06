@@ -99,8 +99,8 @@ describe("the Tutor's rules", () => {
 });
 
 describe("Appendix A's examples", () => {
-  it("are all seven (Appendix A's six and D3b's maths worry) in the instructions, with no typed sums and no refusal", () => {
-    expect(TUTOR_EXAMPLES).toHaveLength(7);
+  it("are all nine (Appendix A's six, and D3b's maths worry, story opener and nudge) in the instructions, with no typed sums and no refusal", () => {
+    expect(TUTOR_EXAMPLES).toHaveLength(9);
     for (const e of TUTOR_EXAMPLES) expect(TUTOR_INSTRUCTIONS).toContain(e.reply);
     for (const e of TUTOR_EXAMPLES) {
       expect(e.reply).not.toMatch(/[−×÷=]|\d\s*-\s*\d/);

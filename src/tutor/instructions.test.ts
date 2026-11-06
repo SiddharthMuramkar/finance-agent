@@ -26,7 +26,7 @@ describe("the Tutor's frozen instructions", () => {
 
       // Run 3 (critics BP-5, EV-1): T12 failed 3 of 3 on no place, an unexplained backstory firm, and an ask off the idea.
       it("put who, where, when and the stakes in an opener's first two sentences, with no backstory, and ask about its idea (T12)", () => {
-        expect(text).toContain("its first two sentences name who, where (a city, a firm or a market the Case names), when and what is at stake");
+        expect(text).toContain("where (a city, a firm or a market the Case names), when and what is at stake");
         expect(text).toContain("Leave out backstory: no one's past jobs or earlier firms");
         expect(text).toContain("The opener's ask is about the one idea it states");
       });
@@ -58,6 +58,30 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain("Never put the same question to the Learner twice in a Session");
         // Run 4: a new ask turned into "how many basis points is that?", a sum.
         expect(text).toContain('never a conversion ("how many basis points is that?" is a sum)');
+      });
+
+      // Run 6 (critic BP-2, median fun 3 of 5): T14 had no story, T13 and T15 turned into number drills, T12 was dense.
+      it("name a person or a role in an opener, lead with the people, and ask in plain words (T12)", () => {
+        expect(text).toContain("who (a person or a role the Case names, such as \"the fund's partners\")");
+        expect(text).toContain("Lead with the people and what they hope for or fear, and explain at most one word besides the idea.");
+        expect(text).toContain('never "work out" or "calculate"');
+        expect(text).toContain("The Learner has written nothing: the page opened the Session.");
+      });
+
+      it("keep the story alive after the opener, and answer a nudge with the story's stakes (T14)", () => {
+        expect(text).toContain("Keep the story alive:");
+        expect(text).toContain('A nudge with no question ("ok and?", "so?", "and then?") asks why the idea matters');
+        expect(text).toContain('The Learner writes: "so?".');
+      });
+
+      it("keep sums rare: one at most, never in a reply about meaning, a reason or the Learner's life (T13)", () => {
+        expect(text).toContain("Sums are rare: a reply says at most one short sum");
+        expect(text).toContain('("is this like my credit card?") gets words and the story, with no numbers worked');
+        expect(text).toContain('"Explain like I\'m 5" gets one tiny everyday picture in words');
+      });
+
+      it("tie a maths-worry reply to the story's people (T15)", () => {
+        expect(text).toContain("say what the people in the story call it");
       });
 
       it("answer a word question with the word only, within 70 words (T16)", () => {
