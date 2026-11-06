@@ -6,6 +6,7 @@ import { revealMove, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written
 import { loadCaseData } from "@/case-data/case-data";
 import { messages, practiceAnswers, sessionItems, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { fixLineFor } from "@/learner/known-mistakes";
 import { loadProgress } from "@/learner/memory";
 import { noteMethodUsed, parkedSkills, parkSkill, recordAnswerLogged, skillStates, unparkSkill } from "@/learner/skill-state";
 import { loadWidgetStates, saveWidgetState } from "@/learner/widget-state";
@@ -962,20 +963,6 @@ export type LadderFacts = { replyKind?: "feedback" | "offer_park" | RungKind; me
 
 const METHOD_NAMES: Record<Method, string> = { restate: "restate the rule", worked: "a worked example", boxes: "a half-done choice", widget: "the Widget in practice mode", drill5: "a choice drill of five" };
 
-/** A Known mistake's fix line, by its tag, from the Topic file: never the tag itself, which the Tutor must not repeat. */
-function mistakeWords(topic: Topic, tag: string): string | undefined {
-  for (const t of topic.templates) for (const m of t.mistakes) if (m.tag === tag) return m.fix;
-  for (const c of topic.checks) {
-    for (const q of c.quickTries) {
-      if (!isFixed(q)) continue;
-      for (const m of q.mistakes ?? []) if (m.tag === tag) return m.fix;
-      for (const ch of q.choices ?? []) if (ch.mistake?.tag === tag) return ch.mistake.fix;
-    }
-  }
-  for (const q of topic.questions) for (const c of q.choices) if (c.mistake?.tag === tag) return c.mistake.fix;
-  return undefined;
-}
-
 /**
  * The ladder's facts for this turn (spec #229, ticket #245): the Reply kind and method a code-written re-teach note
  * named; the frustration count; at a converted Your turn or Check, each Skill's state in one plain line; and, while a
@@ -1001,9 +988,19 @@ export async function ladderFacts(db: Db, map: CourseMap, learnerId: number, bar
     if (count > 0) out.frustration = count;
   }
   const ruleOf = (id: string) => (place.topic.skills.find((s) => s.id === id)?.rule ?? "this idea").replace(/\.$/, "");
+  // Round 12 (F1): the last Known mistake reads the fix of the item it was made on, so a tag two items share never
+  // borrows another item's fix (Percent's "half a percent" once read the percent-change template's reverse slip).
+  const slips = skills.some((id) => states[id]?.lastMistake)
+    ? await db
+        .select({ skillId: practiceAnswers.skillId, tag: practiceAnswers.mistakeTag, itemId: practiceAnswers.itemId, templateId: practiceAnswers.templateId })
+        .from(practiceAnswers)
+        .where(and(eq(practiceAnswers.learnerId, learnerId), eq(practiceAnswers.topicId, place.topic.id), eq(practiceAnswers.verdict, "known_mistake")))
+        .orderBy(sql`${practiceAnswers.id} desc`)
+    : [];
   out.skillLines = skills.map((id) => {
     const s = states[id] ?? freshSkillState();
-    const mistake = s.lastMistake ? mistakeWords(place.topic, s.lastMistake) : undefined;
+    const made = slips.find((r) => r.skillId === id && r.tag === s.lastMistake);
+    const mistake = s.lastMistake ? (fixLineFor(place.topic, s.lastMistake, { skillId: id, itemId: made?.itemId, templateId: made?.templateId }) ?? undefined) : undefined;
     const how = isFluent(s) ? "fluent" : `not fluent yet, ${s.missesInRow} ${s.missesInRow === 1 ? "miss" : "misses"} in a row`;
     return `- ${ruleOf(id)}: ${how}${mistake ? `; last Known mistake: ${mistake}` : ""}.`;
   });

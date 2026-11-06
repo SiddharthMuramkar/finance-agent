@@ -65,8 +65,11 @@ describe("a converted Your turn", () => {
     const { events, sent } = await turn(db, "Ready.");
     expect(itemKinds(events)).toEqual([QUICK_TRY]);
     expect(sent).toContain("Write no practice questions of your own");
-    // Round 9 (DA-1): the Quick try on screen or under the reply is the reply's one ask.
-    expect(sent).toContain("The Quick try on screen or under your reply is the ask: write no ask of your own.");
+    // Round 9 (DA-1), narrowed in round 10 and matched here in round 12 (premerge F3): a try code posts after the reply is
+    // its one ask; a try already on screen is the ask only when the reply names it.
+    expect(sent).toContain("When code posts a try after your reply, that try is the reply's one ask: write no ask of your own.");
+    expect(sent).toContain("A try already on the Learner's screen is the ask only when your reply names it and what it asks");
+    expect(sent).not.toContain("The Quick try on screen or under your reply is the ask");
     expect(sent).toContain("Do not call finish_teaching_step for your_turn");
   });
 

@@ -487,6 +487,8 @@ checks:
       skills: [pts, pts-to-bp, bp-to-pts]
       widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }
     quickTries:
+      # Round 12 (premerge F1): Check 1's "half a percent for a gap in points" slips are tagged percent_for_points, not
+      # mixed_percent_points, which the percent-change template owns for the reverse slip (the move in points for a percent).
       - id: pb-try-a1
         skill: pts
         # Run 16 (critics MP-3, BP-3): the gap is a story fact, so the words tell the choices apart, not 3.5 minus 3.
@@ -496,7 +498,7 @@ checks:
         answer: a
         choices:
           - { id: a, text: "Rates rose half a percentage point" }
-          - { id: b, text: "Rates rose half a percent", mistake: { tag: mixed_percent_points, fix: "Half a percent is a share of the old rate. The gap between two rates is in points." } }
+          - { id: b, text: "Rates rose half a percent", mistake: { tag: percent_for_points, fix: "Half a percent is a share of the old rate. The gap between two rates is in points." } }
           - { id: c, text: "Rates rose 50 percent", mistake: { tag: bp_as_percent, fix: "The 50 is basis points, a gap. Percent would compare the rise with the old 3%." } }
         halfDone: "First step, done for you: a reporter writes the gap between two rates in percentage points."
       - id: pb-try-a2
@@ -507,7 +509,7 @@ checks:
         answer: a
         choices:
           - { id: a, text: "Up 50 basis points" }
-          - { id: b, text: "Up 50 percent", mistake: { tag: mixed_percent_points, fix: "Percent compares the rise with the old 3%. Traders count the gap in basis points." } }
+          - { id: b, text: "Up 50 percent", mistake: { tag: percent_for_points, fix: "Percent compares the rise with the old 3%. Traders count the gap in basis points." } }
           - { id: c, text: "Up 50 percentage points", mistake: { tag: wrong_unit, fix: "Half a point is 50 basis points, not 50 points. Basis points are hundredths of a point." } }
         halfDone: "First step, done for you: traders count a move in hundredths of a point."
       - id: pb-try-a3
@@ -528,7 +530,7 @@ checks:
         answer: a
         choices:
           - { id: a, text: "1.2 percentage points" }
-          - { id: b, text: "1.2 percent", mistake: { tag: mixed_percent_points, fix: "1.2 percent would be a share of the old rate. The gap itself is in points." } }
+          - { id: b, text: "1.2 percent", mistake: { tag: percent_for_points, fix: "1.2 percent would be a share of the old rate. The gap itself is in points." } }
           - { id: c, text: "120 percent", mistake: { tag: bp_as_percent, fix: "Basis points are a gap between rates, not a share of the old rate." } }
         halfDone: "First step, done for you: 100 basis points make 1 point."
       # Round 7 (critics MP-R6-2, MP-R6-3): as pb-try-a1, the move is a story fact, so the words tell the choices apart.
@@ -542,7 +544,7 @@ checks:
         answer: a
         choices:
           - { id: a, text: "Savings rates rose 0.4 of a percentage point" }
-          - { id: b, text: "Savings rates rose 0.4 percent", mistake: { tag: mixed_percent_points, fix: "0.4 percent is a share of the old rate. The gap between two rates is in points." } }
+          - { id: b, text: "Savings rates rose 0.4 percent", mistake: { tag: percent_for_points, fix: "0.4 percent is a share of the old rate. The gap between two rates is in points." } }
           - { id: c, text: "Savings rates rose 40 percent", mistake: { tag: bp_as_percent, fix: "The 40 is basis points, a gap. Percent would compare the rise with the old 9%." } }
       - id: pb-try-pts-3
         skill: pts
@@ -551,7 +553,7 @@ checks:
         answer: a
         choices:
           - { id: a, text: "Loan rates fell 0.6 of a percentage point" }
-          - { id: b, text: "Loan rates fell 0.6 percent", mistake: { tag: mixed_percent_points, fix: "0.6 percent is a share of the old rate. The gap between two rates is in points." } }
+          - { id: b, text: "Loan rates fell 0.6 percent", mistake: { tag: percent_for_points, fix: "0.6 percent is a share of the old rate. The gap between two rates is in points." } }
           - { id: c, text: "Loan rates fell 60 percent", mistake: { tag: bp_as_percent, fix: "The 60 is basis points, a gap. Percent would compare the fall with the old 6.5%." } }
       - { template: pb-t-bp-from-move }
       - { template: pb-t-points-from-bp }

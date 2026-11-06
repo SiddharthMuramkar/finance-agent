@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { checkResults, learnerState, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { fixLineFor } from "@/learner/known-mistakes";
 import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
+import { recordAnswer } from "@/learner/skill-state";
 import { testDb } from "@/test/pglite";
 import { isConverted, loadCourseMap, testedSkills, type FixedQuickTry } from "./map";
 import { sumAsk } from "@/teaching/no-sums";
 import { choiceSet, drawTemplate } from "@/teaching";
 import { indirectSumAsk } from "@/behaviour/tutor-eval/grading";
-import { cardForFacts, nextQuickTry } from "@/tutor/practice";
+import { cardForFacts, ladderFacts, nextQuickTry } from "@/tutor/practice";
 import { courseOverview, finishStep, navigate, practiceStep, type Progress, type TeachingStep } from "./navigator";
 
 // Percent's conversion is a content-only restructure (spec #229, "Restructured Topics"): the old Checks keep their ids,
@@ -438,5 +440,79 @@ describe("Percent's content-only restructure", () => {
     expect(place).toMatchObject({ step: "your_turn", check: { id: "pb-fed-language" } });
     expect(practiceStep(place.topic, place.step, place.check)).toBe(false);
     expect(finishStep(map, progress, "your_turn")).toMatchObject({ ok: true });
+  });
+
+  // Round 12 (premerge F1): Check 1's tries tagged "half a percent" for a gap in points `mixed_percent_points`, the tag
+  // the percent-change template owns for the reverse slip, and the skill line took the first fix with that tag
+  // (templates first): a Learner who picked "Rates rose half a percent" was told "That is the move in points. Divide it
+  // by the old rate, then times 100." Check 1's percent mix-up has its own tag now, and the line reads the answered
+  // item's own fix.
+  describe("a Quick try's mix-up names its own slip in the Tutor's skill line (round 12, F1)", () => {
+    const check1 = percent.checks[0];
+    const tries = check1.quickTries.filter((q): q is FixedQuickTry => "id" in q);
+    const picks = tries.flatMap((q) => (q.choices ?? []).filter((c) => c.mistake).map((c) => ({ q, c, mistake: c.mistake! })));
+
+    it("tags Check 1's percent mix-ups percent_for_points, a tag no template uses, never the percent-change template's mixed_percent_points", () => {
+      // The gap said as a share of the old rate ("half a percent" for half a point); "50 percent" for 50 bp stays bp_as_percent.
+      const percentForPoints = [
+        ["pb-try-a1", "Rates rose half a percent"],
+        ["pb-try-a2", "Up 50 percent"],
+        ["pb-try-a4", "1.2 percent"],
+        ["pb-try-pts-2", "Savings rates rose 0.4 percent"],
+        ["pb-try-pts-3", "Loan rates fell 0.6 percent"],
+      ];
+      for (const [id, text] of percentForPoints) expect({ id, text, tag: picks.find((p) => p.q.id === id && p.c.text === text)?.mistake.tag }).toEqual({ id, text, tag: "percent_for_points" });
+      for (const { mistake } of picks) expect(mistake.tag).not.toBe("mixed_percent_points");
+      expect(percent.templates.flatMap((t) => t.mistakes.map((m) => m.tag))).not.toContain("percent_for_points");
+    });
+
+    it.each(picks.map((p) => [`${p.q.id} "${p.c.text}"`, p] as const))("the skill line after %s names that pick's own fix", async (_name, { q, c, mistake }) => {
+      const db = await testDb();
+      await saved(db, inPercent("your_turn", []));
+      await recordAnswer(db, { learnerId, topicId: PERCENT, skillId: q.skill, itemKey: `qt:1:${q.id}`, itemId: q.id, input: c.text, verdict: "known_mistake", mistakeTag: mistake.tag, source: "quick_try" });
+      const place = navigate(map, await loadProgress(db, learnerId))!;
+      expect(place).toMatchObject({ step: "your_turn", check: { id: check1.id } });
+      const { skillLines } = await ladderFacts(db, map, learnerId, place);
+      const rule = percent.skills.find((s) => s.id === q.skill)!.rule.replace(/\.$/, "");
+      const line = skillLines.find((l) => l.startsWith(`- ${rule}:`))!;
+      expect(line).toContain(`last Known mistake: ${mistake.fix}`);
+      expect(line).not.toContain("Divide it by the old rate");
+    });
+  });
+
+  // The same lookup, for every Topic: a Known mistake's fix line is the answered item's own, and without the item it is
+  // one written for the same Skill, so a tag two Skills share never borrows the other Skill's fix.
+  describe("every Known mistake reads its own fix line (round 12, F1)", () => {
+    type Slip = { topic: string; skill?: string; itemId?: string; templateId?: string; tag: string; fix: string };
+    const slips: Slip[] = map.topics.flatMap((t) => [
+      ...t.templates.flatMap((x) => x.mistakes.map((m) => ({ topic: t.id, skill: x.skill, templateId: x.id, tag: m.tag, fix: m.fix }))),
+      ...t.checks.flatMap((ch) =>
+        ch.quickTries
+          .filter((q): q is FixedQuickTry => "id" in q)
+          .flatMap((q) => [
+            ...(q.mistakes ?? []).flatMap((m) => (m.tag ? [{ topic: t.id, skill: q.skill, itemId: q.id, tag: m.tag, fix: m.fix }] : [])),
+            ...(q.choices ?? []).flatMap((c) => (c.mistake ? [{ topic: t.id, skill: q.skill, itemId: q.id, tag: c.mistake.tag, fix: c.mistake.fix }] : [])),
+          ]),
+      ),
+      ...t.questions.flatMap((q) => q.choices.flatMap((c) => (c.mistake?.tag ? [{ topic: t.id, skill: q.skill, itemId: q.id, tag: c.mistake.tag, fix: c.mistake.fix }] : []))),
+    ]);
+
+    it("finds the answered item's own fix for every Known mistake in the Course Map", () => {
+      expect(slips.length).toBeGreaterThan(100);
+      const wrong = slips.filter((s) => {
+        const own = slips.filter((o) => o.topic === s.topic && o.tag === s.tag && o.itemId === s.itemId && o.templateId === s.templateId).map((o) => o.fix);
+        return !own.includes(fixLineFor(map.topic(s.topic)!, s.tag, { skillId: s.skill, itemId: s.itemId, templateId: s.templateId }) ?? "");
+      });
+      expect(wrong.map((s) => `${s.topic} ${s.itemId ?? s.templateId} ${s.tag}`)).toEqual([]);
+    });
+
+    it("without the item, gives a fix written for the same Skill whenever that Skill has one", () => {
+      const borrowed = slips.filter((s) => {
+        if (!s.skill) return false;
+        const sameSkill = slips.filter((o) => o.topic === s.topic && o.tag === s.tag && o.skill === s.skill).map((o) => o.fix);
+        return !sameSkill.includes(fixLineFor(map.topic(s.topic)!, s.tag, { skillId: s.skill }) ?? "");
+      });
+      expect(borrowed.map((s) => `${s.topic} ${s.skill} ${s.tag}`)).toEqual([]);
+    });
   });
 });

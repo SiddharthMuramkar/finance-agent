@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCourseMap } from "@/course/map";
+import { QUICK_TRIES } from "./context";
 import { ENGINE_INSTRUCTIONS, TUTOR_INSTRUCTIONS } from "./instructions";
 
 /**
@@ -167,6 +168,24 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain("While a question you asked is still open, work the running example only up to its last step");
         // Targeted run t7: T4 still wrote "5% minus 4% is 1 percentage point" under the open "how far the rate moved?".
         expect(text).toContain('and never give its answer, not even as the worked line ("5% minus 4% is 1 point" answers "how far did it move?")');
+      });
+
+      // Round 12 (premerge F3): round 10 narrowed the rule (a try already on screen is the ask only when the reply names
+      // it), but the Your-turn context still said "The Quick try on screen or under your reply is the ask", on every turn.
+      // The context line now states the instructions' rule in the instructions' own words.
+      it("state the same Quick-try ask rule as the Your-turn context line (F3)", () => {
+        for (const phrase of [
+          "code posts a try after your reply",
+          "that try is the reply's one ask",
+          "A try already on the Learner's screen is the ask only when your reply names it and what it asks",
+        ]) {
+          expect(text).toContain(phrase);
+          expect(QUICK_TRIES).toContain(phrase);
+        }
+        for (const broad of [/on screen or under your reply is the ask/i, /\bThe Quick try on screen\b[^.]*\bis the ask\b/i]) {
+          expect(QUICK_TRIES).not.toMatch(broad);
+          expect(text).not.toMatch(broad);
+        }
       });
 
       // Round 11 (critic C1): round 10's Lingo rule made the Tutor say a basis point is "a hundredth of one percent" and

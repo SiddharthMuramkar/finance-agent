@@ -32,9 +32,13 @@ function shownCard(place: Pick<Place, "topic" | "step" | "check">): ConceptCard 
 /** What the Tutor is told at a converted Concept step: code showed the card and its Widget; the Tutor adds one sentence and one ask. */
 const CARD_SHOWN = "Code has shown this Concept card and its Widget in the conversation, already set to the card's numbers. Add one sentence and one ask; never write your own version of the card.";
 
-/** What the Tutor is told at a converted Your turn: code shows and marks the Quick tries, and finishes the step. */
-const QUICK_TRIES =
-  "Your turn: code shows Quick tries one at a time under your reply and marks each answer at once. Write no practice questions of your own and never mark an answer. The Quick try on screen or under your reply is the ask: write no ask of your own. Code finishes this step once every idea of the Check has two right answers in a row; you cannot finish it.";
+/**
+ * What the Tutor is told at a converted Your turn: code shows and marks the Quick tries, and finishes the step. The ask
+ * rule is the instructions' own (round 10; matched here in round 12, premerge F3): a try code posts after the reply is
+ * its one ask, and a try already on screen is the ask only when the reply names it.
+ */
+export const QUICK_TRIES =
+  "Your turn: code shows Quick tries one at a time under your reply and marks each answer at once. Write no practice questions of your own and never mark an answer. When code posts a try after your reply, that try is the reply's one ask: write no ask of your own. A try already on the Learner's screen is the ask only when your reply names it and what it asks; a reply that names no try ends as your rules say. Code finishes this step once every idea of the Check has two right answers in a row; you cannot finish it.";
 
 /**
  * The note code writes for an opener (no Learner message comes with it): teach the Learner's saved step.
