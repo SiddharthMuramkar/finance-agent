@@ -13,8 +13,9 @@ describe("the rules tuned against the live tests", () => {
     ["widget engine on", ENGINE_INSTRUCTIONS],
   ] as const) {
     describe(name, () => {
-      it("an ask is about the numbers, never about what a trader or a newspaper would say", () => {
-        expect(text).toContain("Never ask what a bond trader, a newspaper or anyone else would say: ask about the numbers in front of the Learner.");
+      it("an ask is about the words, the people in the story and the right choice, never a number to work out (D3b)", () => {
+        expect(text).toContain("Ask what the words mean, what people in the story did or would do, and which choice is right; never ask the Learner to work out a number.");
+        expect(text).not.toContain("Never ask what a bond trader");
       });
 
       it("everyday finance words get a few plain words too, such as what a savings rate is", () => {
@@ -33,8 +34,7 @@ describe("the rules tuned against the live tests", () => {
         expect(text).toContain("After a wrong answer, in 60 words or fewer: name the slip in one sentence");
         expect(text).toContain("even when code has already shown a fix; only a short acknowledgement may come before it.");
         expect(text).toContain("Then one similar item with new numbers");
-        expect(text).toContain("Fill-in boxes leave the last box blank for the Learner: boxes you fill in are a worked example.");
-        expect(text).toContain("The blank box is the reply's one ask, not a practice question of your own.");
+        expect(text).toContain("The methods, in order, are restate the rule, a worked example, a half-done choice, the Widget and a choice drill.");
       });
 
       it("simpler means the first idea only, with nothing new, and an open question asked again rather than answered", () => {
@@ -43,8 +43,8 @@ describe("the rules tuned against the live tests", () => {
         expect(text).toContain("Do not answer a question you left open: ask it again, in plainer words and on new numbers, so the reply never gives its answer.");
       });
 
-      it("a quiz-me ask gets one question in 40 words or fewer, with nothing after it", () => {
-        expect(text).toContain('"Ask me a question" gets one question, in 40 words or fewer, with nothing after it: not even "Type your answer in the Widget".');
+      it("a quiz-me ask gets one choice question in words, in 40 words or fewer, with nothing after it", () => {
+        expect(text).toContain('"Ask me a question" gets one choice question in words, in 40 words or fewer, with nothing after it: not even "Type your answer in the Widget".');
       });
 
       it("the Learner's own rule is saved before any prose, then confirmed in one sentence with nothing before the ask", () => {
@@ -64,7 +64,9 @@ describe("the rules tuned against the live tests", () => {
 
   it("with the engine, a quiz-me ask that also asks for a Widget gets the rate Widget in practice mode", () => {
     expect(ENGINE_INSTRUCTIONS).toContain("When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers");
-    expect(ENGINE_INSTRUCTIONS).toContain("write only a short acknowledgement and that one question, and stop there: the Widget has its own answer box, so never say where to type.");
+    expect(ENGINE_INSTRUCTIONS).toContain("it asks the Learner to pick the right reading, so write only a short acknowledgement and that one question, and stop there");
+    expect(ENGINE_INSTRUCTIONS).toContain("For a quiz-me ask, point to the next Quick try, or ask one story or lingo question as a choice in words;");
+    expect(ENGINE_INSTRUCTIONS).not.toContain("own answer box");
     expect(TUTOR_INSTRUCTIONS).not.toContain("show rate_move in practice mode");
   });
 
@@ -81,10 +83,11 @@ describe("the rules tuned against the live tests", () => {
     expect(tool.description).toContain("whenever they state a correct rule in their own words. Call it before you write your reply, and let code check the rest");
   });
 
-  it("the repeat-miss example sets fill-in boxes on new numbers, with Box 2 a choice of two readings as its ask", () => {
-    const boxes = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
-    expect(boxes.reply).not.toContain("7.5%");
-    expect(boxes.reply.split("\n").at(-1)).toBe("Box 2: in basis points, is that 4 bp or 40 bp?");
+  it("the repeat-miss example names the slip and leaves the last step to the half-done choice code posts (D3b)", () => {
+    const halfDone = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
+    expect(halfDone.situation).toContain("method a half-done choice");
+    expect(halfDone.reply).not.toMatch(/Box/);
+    expect(halfDone.reply.split("\n").at(-1)).toBe("The try below has its first step done: tap the way a trader would say it.");
   });
 
   it("the start-from-the-beginning example says what a savings rate is, inside its one worked example", () => {

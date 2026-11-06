@@ -33,10 +33,10 @@ describe("the Tutor's rules", () => {
         expect(text).not.toMatch(/an Accordion for detail/);
       });
 
-      it("say what Go deeper, simpler and Show me in a widget get", () => {
+      it("say what Go deeper, simpler and Show me get", () => {
         expect(text).toContain('"Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy.');
         expect(text).toContain("A request for something simpler gets the rule in four lines or fewer, with the same example.");
-        expect(text).toContain('"Show me in a widget" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words.');
+        expect(text).toContain('"Show me" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words.');
       });
 
       it("answer frustration with a short acknowledgement and a smaller step", () => {
