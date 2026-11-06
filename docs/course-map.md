@@ -72,7 +72,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 - ID: `fs-links` · Written · Subject: Financial statements
 - Needs first: The cash flow statement
-- Case: **Satyam's forged invoices and bank statements** (as of 2008-12-31)
+- Case: **Satyam's reported profit and cash (as of December 2008)** (as of 2008-12-31)
   - Outcome: On 7 Jan 2009 Raju wrote that for the September 2008 quarter Satyam had reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (24%) against actual revenue of Rs 2,112 crore and operating profit of Rs 61 crore (3%); the Rs 588 crore difference showed up as 'artificial cash and bank balances'. The SEC later said managers created more than 6,000 phony invoices and bogus bank statements, giving more than $1bn of fictitious cash, about half of total assets; Satyam paid a $10m penalty to settle. The false profit had to appear in the general ledger and the financial statements.
   - Sources: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915 https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
 
