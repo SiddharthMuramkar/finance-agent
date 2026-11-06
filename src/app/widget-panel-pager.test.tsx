@@ -3,7 +3,7 @@ import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WidgetChip, WidgetPanel, type CheckTab, type WidgetItem } from "./widget-panel";
+import { WidgetChip, WidgetPanel, leadEmojiOf, type CheckTab, type WidgetItem } from "./widget-panel";
 
 // The Widget panel's pager (spec: REPORT 5.1, 5.2, 8.5): ‹ › and "3 of 11 · title", an All listbox, ← and → paging,
 // a ring pulse and a scroll to the top on every switch, the chat chip's three states, and a skeleton while a Widget draws.
@@ -88,50 +88,22 @@ describe("the Widget panel's pager", () => {
     expect(position()).toBe("1 of 3 · Title 1");
   });
 
-  it("opens an All listbox of rows with the eyebrow, the title and 'from message N', the current one checked", async () => {
+  it("has no All menu any more: every Widget is one press away in the filmstrip (E5)", async () => {
     await render();
-    const menu = q('[data-testid="pager-menu"]');
-    expect(menu.hasAttribute("hidden")).toBe(true);
-    const all = q('[data-testid="pager-all"]');
-    expect(all.getAttribute("aria-haspopup")).toBe("listbox");
-    await click(all);
-    expect(menu.hasAttribute("hidden")).toBe(false);
-    expect(all.getAttribute("aria-expanded")).toBe("true");
-    const rows = [...menu.querySelectorAll('[role="option"]')];
-    expect(rows.map((r) => r.getAttribute("aria-selected"))).toEqual(["false", "true", "false"]);
-    expect(rows[2].textContent).toContain("Title 3");
-    expect(rows[2].textContent).toContain("from message 6");
-    expect(rows[1].textContent).toContain("✓");
-    expect(rows[1].textContent).toMatch(/Title 2/);
-    // The eyebrow is the concept the Widget shows (here its Topic fallback, "Widget").
-    expect(rows[0].textContent).toMatch(/^\s*Widget/);
-    await click(rows[2]);
-    expect(position()).toBe("3 of 3 · Title 3");
-    expect(menu.hasAttribute("hidden")).toBe(true);
+    expect(host.querySelector('[data-testid="pager-all"]')).toBeNull();
+    expect(host.querySelector('[data-testid="pager-menu"]')).toBeNull();
+    expect(host.querySelector('[role="listbox"]')).toBeNull();
   });
 
-  it("closes the listbox on Escape and returns focus to its button", async () => {
-    await render();
-    const all = q('[data-testid="pager-all"]');
-    await click(all);
-    const rows = [...q('[data-testid="pager-menu"]').querySelectorAll<HTMLElement>('[role="option"]')];
-    expect(document.activeElement).toBe(rows[1]);
-    await press(rows[1], "ArrowDown");
-    expect(document.activeElement).toBe(rows[2]);
-    await press(rows[2], "Escape");
-    expect(q('[data-testid="pager-menu"]').hasAttribute("hidden")).toBe(true);
-    expect(document.activeElement).toBe(all);
-    expect(all.getAttribute("aria-expanded")).toBe("false");
-  });
-
-  it("lists the open quiz's Check first, and keeps the Explore row in the menu with its explore-chip", async () => {
+  it("keeps the open quiz's Check tab first in the strip, and the Explore thumbnail with its explore-chip", async () => {
     const widgets = [item(1, { key: "explore", explore: true, writtenAhead: "x" }), item(2)];
     await render(<Harness widgets={widgets} start={1} check={(selected, pick) => ({ name: "Check 1 of 2", selected, onPick: pick, body: <p>quiz</p> })} />);
     expect(position()).toMatch(/Check 1 of 2|Title 2/);
-    const rows = [...q('[data-testid="pager-menu"]').querySelectorAll("[role=option]")];
-    expect(rows.map((r) => r.getAttribute("data-testid"))).toEqual(["check-tab", "explore-chip", null]);
-    expect(rows[1].className).toContain("max-lg:hidden");
-    await click(rows[0]);
+    const buttons = [...q('[data-testid="widget-filmstrip"]').querySelectorAll("button")];
+    expect(buttons.map((b) => b.getAttribute("data-testid"))).toEqual(["check-tab", "explore-chip", "filmstrip-thumb"]);
+    expect(buttons[0].textContent).toContain("Check 1 of 2");
+    expect(buttons[1].className).toContain("max-lg:hidden");
+    await click(buttons[0]);
     expect(picked.at(-1)).toBe("check");
   });
 
@@ -142,7 +114,7 @@ describe("the Widget panel's pager", () => {
     const pulse = q('[data-testid="widget-pulse"]');
     expect(pulse.className).toContain("animate-ring-pulse");
     expect(q('[data-testid="widget-card"]').className).not.toMatch(/border-\[var\(--brand\)\]/);
-    expect(q('[data-testid="widget-card"] > div:not([data-testid])').className).toContain("animate-fade-rise");
+    expect(q('[data-testid="widget-card"] > div:not([data-testid])').className).toContain("animate-widget-stage-in");
   });
 
   it("scrolls the panel to the top on a switch", async () => {
@@ -195,6 +167,65 @@ describe("the Widget panel's pager", () => {
     await render(<Harness widgets={[item(1)]} start={0} />);
     expect(host.querySelector('[data-testid="widget-skeleton"]')).toBeNull();
     expect(host.querySelector('input[type="range"]')).not.toBeNull();
+  });
+});
+
+describe("the filmstrip (E5)", () => {
+  const thumbs = () => [...host.querySelectorAll<HTMLElement>('[data-testid="filmstrip-thumb"]')];
+
+  it("shows one 96×64 thumbnail per Widget, oldest first, the latest current, each with a 24px lead emoji and its title", async () => {
+    await render(<Harness start={2} />);
+    const strip = q('[data-testid="widget-filmstrip"]');
+    expect(strip.className).toMatch(/\boverflow-x-auto\b/);
+    const list = thumbs();
+    expect(list).toHaveLength(3);
+    expect(list.map((t) => t.getAttribute("aria-current"))).toEqual([null, null, "true"]);
+    expect(list[0].textContent).toContain("Title 1");
+    expect(list[2].textContent).toContain("Title 3");
+    for (const t of list) {
+      expect(t.className).toMatch(/\bw-24\b/);
+      expect(t.className).toMatch(/\bh-16\b/);
+      const img = t.querySelector("img");
+      expect(img?.getAttribute("width")).toBe("24");
+      expect(img?.getAttribute("src")).toMatch(/^\/emoji\/.+\.webp$/);
+    }
+    expect(list[2].className).toMatch(/ring-\[var\(--ring\)\]|outline-\[var\(--ring\)\]/);
+  });
+
+  it("pressing thumbnail 1 shows Widget 1 and Back to latest; Back to latest returns to the newest", async () => {
+    await render(<Harness start={2} />);
+    expect(host.querySelector('[data-testid="back-to-latest"]')).toBeNull();
+    await click(thumbs()[0]);
+    expect(position()).toBe("1 of 3 · Title 1");
+    expect(thumbs().map((t) => t.getAttribute("aria-current"))).toEqual(["true", null, null]);
+    const back = q('[data-testid="back-to-latest"]');
+    expect(back.textContent).toContain("Back to latest");
+    await click(back);
+    expect(position()).toBe("3 of 3 · Title 3");
+    expect(host.querySelector('[data-testid="back-to-latest"]')).toBeNull();
+  });
+
+  it("Tab enters the strip once (roving tabindex), ← and → move focus without selecting, Enter opens", async () => {
+    await render(<Harness start={2} />);
+    expect(thumbs().map((t) => t.tabIndex)).toEqual([-1, -1, 0]);
+    thumbs()[2].focus();
+    await press(thumbs()[2], "ArrowLeft");
+    expect(document.activeElement).toBe(thumbs()[1]);
+    expect(position()).toBe("3 of 3 · Title 3");
+    await press(thumbs()[1], "ArrowLeft");
+    expect(document.activeElement).toBe(thumbs()[0]);
+    await press(thumbs()[0], "ArrowRight");
+    expect(document.activeElement).toBe(thumbs()[1]);
+    await press(thumbs()[1], "Enter");
+    expect(position()).toBe("2 of 3 · Title 2");
+  });
+
+  it("lead emoji: the first emoji in the Widget's params, else its archetype's, else sparkles", () => {
+    const story = `root = Widget("T", [s])\ns = StoryScene([{id: "a", emoji: "bank", name: "The bank"}], [{who: "a", says: "Hello there"}])`;
+    expect(leadEmojiOf(story)).toBe("bank");
+    const versus = `root = Widget("T", [v])\nv = Versus("Cash", 5, "Card", 4, "usd")`;
+    expect(leadEmojiOf(versus)).toBe("balance-scale");
+    expect(leadEmojiOf(code("Title 1"))).toBe("sparkles");
   });
 });
 
