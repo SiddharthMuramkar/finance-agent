@@ -7,9 +7,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/course" }));
 vi.mock("./theme-cookie", () => ({ readTheme: async () => ({ mode: "single", theme: "light" }) }));
 
 import Loading from "./course/loading";
-import NotesLoading from "./notes/loading";
-import ProgressLoading from "./progress/loading";
-import SessionsLoading from "./sessions/loading";
+import NotebookLoading from "./notebook/loading";
 import SettingsLoading from "./settings/loading";
 import StudyLoading from "./study/loading";
 import { Button, Chip, IconButton, NavLink, Spinner } from "./ui";
@@ -88,6 +86,12 @@ describe("NavLink", () => {
     expect(renderToStaticMarkup(<NavLink href="/notes">Notes</NavLink>)).not.toContain("aria-current");
   });
 
+  it("is a raised chip that says it is a nav control and keeps the caller's size classes", () => {
+    const html = renderToStaticMarkup(<NavLink href="/notes" className="px-2">Notes</NavLink>);
+    expect(html).toContain('data-affordance="nav"');
+    expect(html).toMatch(/class="chip px-2"/);
+  });
+
   it("flags the link while its page is loading", () => {
     link.pending = true;
     expect(renderToStaticMarkup(<NavLink href="/notes">Notes</NavLink>)).toContain('data-link-pending="true"');
@@ -98,9 +102,7 @@ describe("route skeletons", () => {
   it.each([
     ["study", StudyLoading],
     ["course", Loading],
-    ["progress", ProgressLoading],
-    ["sessions", SessionsLoading],
-    ["notes", NotesLoading],
+        ["notebook", NotebookLoading],
     ["settings", SettingsLoading],
   ])("%s shows the route-skeleton under the real header", async (_name, Page) => {
     // Each loading.tsx returns an async server component; resolve it by hand, as the server would.
@@ -109,5 +111,19 @@ describe("route skeletons", () => {
     expect(html).toContain('data-testid="route-skeleton"');
     expect(html).toContain("Finance Agent");
     expect(html).toContain("skeleton");
+  });
+});
+
+describe("Card and heading sizes (A2)", () => {
+  it("Card pads with p-3 and the page h1 is text-lg", async () => {
+    const { Card } = await import("./ui");
+    expect(renderToStaticMarkup(<Card>x</Card>)).toMatch(/\bp-3\b/);
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    for (const file of ["course/course-map-view.tsx", "settings/settings-view.tsx", "notebook/notebook-view.tsx"]) {
+      const h1 = readFileSync(join(__dirname, file), "utf8").match(/<h1 className="([^"]*)"/)![1]!;
+      expect(h1, file).toContain("text-lg");
+      expect(h1, file).not.toContain("text-xl");
+    }
   });
 });

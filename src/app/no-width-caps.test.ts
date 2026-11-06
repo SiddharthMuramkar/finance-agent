@@ -22,3 +22,12 @@ describe("no page-level width cap in the app", () => {
     expect(offenders.map((f) => f.slice(ROOT.length + 1))).toEqual([]);
   });
 });
+
+// A2: the chat is 15/24 (--text-chat, --lh-chat); `text-base` is 16 px and has no place in the chat files.
+describe("no text-base in chat files", () => {
+  it("thread.tsx and message-box.tsx contain no text-base", () => {
+    for (const file of ["thread.tsx", "message-box.tsx"]) {
+      expect(readFileSync(join(ROOT, file), "utf8"), file).not.toMatch(/\btext-base\b/);
+    }
+  });
+});

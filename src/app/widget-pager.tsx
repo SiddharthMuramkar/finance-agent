@@ -145,7 +145,7 @@ export function WidgetPager({
                   choose(e.key);
                 }
               }}
-              className={`pressable flex min-h-11 cursor-pointer items-start gap-2 rounded px-2 py-1.5 text-sm leading-5 hover:bg-[var(--hairline)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--ring)] ${selected ? "bg-[var(--brand-tint)]" : ""} ${e.explore ? "max-lg:hidden" : ""}`}
+              className={`pressable flex min-h-9 cursor-pointer items-start gap-2 rounded px-2 py-1.5 text-sm leading-5 hover:bg-[var(--hairline)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--ring)] ${selected ? "bg-[var(--brand-tint)]" : ""} ${e.explore ? "max-lg:hidden" : ""}`}
               data-testid={e.explore ? "explore-chip" : e.check ? "check-tab" : undefined}
             >
               <span aria-hidden="true" className="mt-0.5 w-4 shrink-0 text-[var(--brand)]">

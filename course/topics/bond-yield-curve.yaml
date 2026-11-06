@@ -66,25 +66,25 @@ questions:
 
   - id: yc-q-spread
     prompt: >
-      On 3 February 1994 the 2-year Treasury yield was 4.28% and the 10-year yield 5.81%. How far above the 2-year yield was the 10-year yield?
+      On 3 February 1994, lending to the US government for 2 years paid 4.28% a year, and lending for 10 years paid 5.81%. A trader at her desk draws a line between those two points, and a junior asks what the shape is called. What does she tell him?
     choices:
-      - { id: a, text: "1.53 percentage points (153 basis points)" }
-      - { id: b, text: "1.53 basis points" }
-      - { id: c, text: "10.09 percentage points" }
-      - { id: d, text: "26.8 percentage points" }
+      - { id: a, text: "Normal: it slopes up, longer pays more" }
+      - { id: b, text: "Inverted: the 2-year paid more", mistake: { tag: slope_backwards, fix: "The 10-year yield was higher, so the curve sloped up, not down." } }
+      - { id: c, text: "Flat: the two yields were about equal", mistake: { tag: missed_gap, fix: "5.81% is clearly above 4.28%, so the line climbs. It is not flat." } }
+      - { id: d, text: "Humped: the middle paid the most", mistake: { tag: invented_hump, fix: "Only two maturities are given, and the longer paid more, so the slope is simply upward." } }
     answer: a
     explanation: >
-      5.81 - 4.28 = 1.53 percentage points, which is 153 basis points. A basis point is one hundredth of a percentage point.
+      The 10-year paid 5.81% against 4.28% for the 2-year, a gap of about 153 basis points (1.53 percentage points). Longer bonds paying more is the normal, upward-sloping shape.
     source: >
       US Department of the Treasury, Daily Treasury Par Yield Curve Rates, 3 February 1994: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
 
   - id: yc-q-flattening
     prompt: >
-      A central bank starts raising its policy rate repeatedly. Short-term yields rise by 3 percentage points, long-term yields by 2. What happens to the shape of the curve?
+      A central bank starts raising its policy rate, again and again. Short-term yields jump. Long-term yields rise too, but by less. What do traders say the curve is doing?
     choices:
-      - { id: a, text: "It flattens: the gap between long and short yields narrows" }
-      - { id: b, text: "It steepens: the gap widens" }
-      - { id: c, text: "It does not change shape" }
+      - { id: a, text: "Flattening: the gap narrows" }
+      - { id: b, text: "Steepening: the gap widens", mistake: { tag: steepen_flatten_swap, fix: "Short yields rose more, so they caught up with long yields. The gap shrank, not grew." } }
+      - { id: c, text: "Nothing: both rose, so the shape holds", mistake: { tag: both_rose_no_change, fix: "Shape is about the gap. Unequal rises change the gap, so the shape changes." } }
     answer: a
     explanation: >
       The short end moves with the policy rate. The long yield, which averages expected future short rates with other factors, rises by less, so the gap shrinks.

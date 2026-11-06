@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from "react";
 import type { Topic } from "@/course/map";
 import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from "@/course/navigator";
-import { HELP_CHIPS, JUST_TELL_ME } from "@/tutor/chips";
+import { Emoji } from "@/emoji/emoji";
+import { isEmojiName } from "@/emoji/registry";
+import { JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
-import { Button, Chevron } from "./ui";
+import { Button, Chevron, Chip, Tag } from "./ui";
 
 // Small presentational pieces of the workspace's left column (issue #44).
 
@@ -37,28 +39,27 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
     const target = finished(s) ? targetOf(s, marked) : null;
     if (strip?.current === s.number - 1) {
       return (
-        <span aria-current="step" data-step-number={s.number} title={s.label} className="rounded bg-[var(--brand-tint)] px-1.5 font-semibold text-[var(--brand)]">
-          {STEP_NAMES[s.step]}
+        <span aria-current="step" data-step-number={s.number} title={s.label} className="font-semibold">
+          <Tag tone="brand">{STEP_NAMES[s.step]}</Tag>
         </span>
       );
     }
     if (target) {
       return (
-        <button
-          type="button"
+        <Chip
           data-step-number={s.number}
           data-scroll-to={target}
           title={`Back to ${s.label}`}
           onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="pressable inline-block rounded px-1 underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--brand)]"
+          className="!px-2"
         >
           {STEP_NAMES[s.step]}
-        </button>
+        </Chip>
       );
     }
     return (
-      <span data-step-number={s.number} title={s.label} className={finished(s) ? "px-1" : "px-1 text-[var(--muted)]"}>
-        {STEP_NAMES[s.step]}
+      <span data-step-number={s.number} title={s.label}>
+        <Tag>{STEP_NAMES[s.step]}</Tag>
       </span>
     );
   };
@@ -89,44 +90,67 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
   );
 }
 
+/** One Choice as the Study Workspace draws it: the stored item's entry (reply_choices) or code's set. */
+export type ChoiceButton = { label: string; says: string; emoji: string };
+
 /**
  * The chips under the latest Tutor reply or card. First the Next chip from the Course Navigator's offer (none
  * while a Check is open): "Next: <step> →", "Complete this Topic →", or "Just tell me →" at an unsettled
  * Explore (which posts "Just tell me." as the Learner's message). Next and Complete send no Learner message:
- * code writes the turn's note. Then the two help chips, which stay during a Check and post their words
- * ("Go deeper.", "Show me in a widget.") as the Learner's message.
+ * code writes the turn's note. Then the reply's two or three Choices (D3a), which stay during a Check: raised
+ * buttons with a decorative emoji before the label; a press sends the Choice's index and the server posts its words.
  */
-export function Chips({ offer, onNext, onSay }: { offer: NextOffer | null; onNext: (named: NextName) => void; onSay: (words: string) => void }) {
+export function Chips({
+  offer,
+  choices,
+  onNext,
+  onSay,
+  onChoice,
+}: {
+  offer: NextOffer | null;
+  choices: readonly ChoiceButton[];
+  onNext: (named: NextName) => void;
+  /** Posts words as the Learner's message: the Just tell me chip. */
+  onSay?: (words: string) => void;
+  onChoice: (index: number) => void;
+}) {
   // The chip pressed shows a spinner at once and the others wait, until the turn takes the chips away (or, if the turn
   // could not start, they come back fresh).
   const [pressed, setPressed] = useState<string | null>(null);
   const press = (offer: NextOffer) => {
     setPressed("next");
-    if (offer.kind === "just_tell_me") onSay(JUST_TELL_ME);
+    if (offer.kind === "just_tell_me") onSay?.(JUST_TELL_ME);
     else onNext(offer.kind === "complete" ? "complete" : offer.step);
   };
   return (
-    <div className="measure mt-3 flex flex-wrap gap-2">
+    // The Next chip is the main move, so it gets its own row at full size; the Choices are smaller, grouped below it.
+    <div className="measure mt-3 flex flex-col items-start gap-2" data-testid="choices">
       {offer && (
         <Button variant="secondary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →
         </Button>
       )}
-      {HELP_CHIPS.map((words) => (
-        <Button
-          variant="secondary"
-          key={words}
-          data-testid="help-chip"
-          loading={pressed === words}
-          disabled={pressed !== null}
-          onClick={() => {
-            setPressed(words);
-            onSay(words);
-          }}
-        >
-          {words.replace(/\.$/, "")}
-        </Button>
-      ))}
+      {choices.length > 0 && (
+        <div role="group" aria-label="Choices" className="flex flex-wrap gap-2">
+          {choices.map((choice, index) => (
+            <Button
+              variant="secondary"
+              size="sm"
+              key={choice.says}
+              data-testid="choice"
+              loading={pressed === choice.says}
+              disabled={pressed !== null}
+              onClick={() => {
+                setPressed(choice.says);
+                onChoice(index);
+              }}
+            >
+              {isEmojiName(choice.emoji) && pressed !== choice.says && <Emoji name={choice.emoji} size={16} />}
+              {choice.label}
+            </Button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

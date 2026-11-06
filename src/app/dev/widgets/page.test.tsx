@@ -57,6 +57,21 @@ describe("the Widget harness page", () => {
     await done();
   });
 
+  it("shows the button sheet: every variant at rest, hover, pressed, focus and disabled", async () => {
+    const { host, done } = await draw({});
+    const sheet = host.querySelector<HTMLElement>("section#buttons")!;
+    expect(sheet).not.toBeNull();
+    for (const variant of ["primary", "secondary", "danger", "small", "icon", "chip", "link", "tag"]) {
+      const row = sheet.querySelector<HTMLElement>(`[data-variant="${variant}"]`);
+      expect(row, variant).not.toBeNull();
+      const states = [...row!.querySelectorAll("[data-state-cell]")].map((c) => c.getAttribute("data-state-cell"));
+      expect(states, variant).toEqual(["rest", "hover", "pressed", "focus", "disabled"]);
+    }
+    expect(sheet.querySelectorAll('[data-variant="primary"] [data-force="pressed"]')).toHaveLength(1);
+    expect(sheet.querySelector('[data-variant="primary"] button:disabled')).not.toBeNull();
+    await done();
+  });
+
   it("draws a fixture in a frame with the Study aside's and card's test ids, at the asked width", async () => {
     const { host, done } = await draw({ fixture: "08-inflation-vada-pav.openui", width: "360", theme: "dark" });
     const pane = host.querySelector<HTMLElement>('aside[data-testid="widget-pane"]')!;

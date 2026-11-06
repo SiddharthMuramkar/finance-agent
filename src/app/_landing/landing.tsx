@@ -3,15 +3,14 @@ import { whatComesNext, type Progress } from "@/course/navigator";
 import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
-import { Eyebrow, Pill, SignOutButton } from "../ui";
+import { Button, ButtonLink, Eyebrow, Pill, SignOutButton } from "../ui";
 import { copy } from "./copy";
 import { HomeWidget } from "./home-widget";
 import { homeWidget, type HomeWidgetData } from "./home-widget-data";
 import { landingStats, type LandingStats } from "./stats";
 
-const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
-
-const topBarLink = "text-sm text-[var(--muted)] hover:text-[var(--ink)]";
+// The Home page keeps its own layout; its buttons are the app's raised buttons, in the big size.
+const topBarLink = "link text-sm";
 
 /**
  * The signed-in Learner's main button: what it says and, for Resume, Start and What comes next, which Topic it
@@ -45,20 +44,19 @@ const buttonLabel = (b: HomeButton) =>
 export function LandingView({ stats, button, widget }: { stats: LandingStats; button?: HomeButton; widget?: HomeWidgetData | null }) {
   // Signed out, the main button is Start learning, to the passcode page; signed in, the Learner's own button.
   const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.startLearning };
-  const heroClass = `${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`;
   // Resume, Start and What comes next open the Learner's current Topic, so its Session shows at once (a passed Topic left on
   // screen gives way): a form posting to /api/open, which goes on to /study.
   const mainButton =
     button && button.kind !== "open" ? (
       <form action="/api/open" method="post" className="contents">
-        <button type="submit" className={heroClass}>
+        <Button type="submit" className="btn-lg">
           {hero.label}
-        </button>
+        </Button>
       </form>
     ) : (
-      <a href={hero.href} className={heroClass}>
+      <ButtonLink href={hero.href} className="btn-lg">
         {hero.label}
-      </a>
+      </ButtonLink>
     );
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
@@ -67,13 +65,13 @@ export function LandingView({ stats, button, widget }: { stats: LandingStats; bu
           <span className="text-base font-semibold">{copy.brand}</span>
           {button ? (
             <div className="flex items-center gap-4">
-              <a href="/study" className={topBarLink}>
+              <a href="/study" data-affordance="link" className={topBarLink}>
                 {copy.studyWorkspace}
               </a>
-              <SignOutButton unstyled className={topBarLink}>{copy.signOut}</SignOutButton>
+              <SignOutButton>{copy.signOut}</SignOutButton>
             </div>
           ) : (
-            <a href="/login" className={topBarLink}>
+            <a href="/login" data-affordance="link" className={topBarLink}>
               {copy.signIn}
             </a>
           )}
@@ -96,9 +94,9 @@ export function LandingView({ stats, button, widget }: { stats: LandingStats; bu
             <p className="mt-6 max-w-2xl text-lg leading-7 text-[var(--muted)]">{copy.subtext}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               {mainButton}
-              <a href="#how" className={`${bigButton} border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--hairline)]`}>
+              <ButtonLink href="#how" variant="secondary" className="btn-lg">
                 {copy.howItWorks}
-              </a>
+              </ButtonLink>
             </div>
 
             <div className="mt-14">
@@ -106,7 +104,7 @@ export function LandingView({ stats, button, widget }: { stats: LandingStats; bu
                 <div className="mx-auto max-w-2xl rounded-xl bg-[var(--bg)]">
                   <HomeWidget code={widget.code} cases={widget.cases} />
                   {!button && (
-                    <a href="/login" className="mt-3 inline-block text-sm font-medium text-[var(--brand)] hover:underline">
+                    <a href="/login" data-affordance="link" className="link mt-3 inline-block text-sm font-medium">
                       {copy.widget.signIn}
                     </a>
                   )}
