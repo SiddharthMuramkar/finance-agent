@@ -50,32 +50,147 @@ youllLearn:
   - "Follow a profit around all three statements."
   - "Spot a profit that never turns into collected cash."
 
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+exampleCurrency: INR
+runningExample:
+  text: "A tailor sells ₹8,000 of suits on credit this month."
+  numbers: [8000]
+  scene:
+    cast:
+      - { id: ravi, emoji: man, name: Ravi, role: tailor }
+      - { id: asha, emoji: woman, name: Asha, role: customer }
+    beats:
+      - { who: narrator, says: "Ravi sews suits for Asha and writes ₹8,000 of sales today.", emoji: receipt }
+      - { who: asha, says: "I will pay you next month.", emoji: calendar }
+      - { who: narrator, says: "Sales are up and receivables are up. No cash has come in yet.", emoji: hourglass-not-done }
+
+terms:
+  - term: accrual accounting
+    means: Recording revenue when it is earned and costs when they are incurred, whether or not cash moves.
+    pro: Companies report on an accrual basis.
+    example: "You teach a class in March; the ₹5,000 fee arrives in April, but March still counts it."
+    emoji: calendar
+    inStory: Satyam's quarter showed revenue of Rs 2,700 crore and debtors of Rs 2,651 crore.
+  - term: receivables
+    means: Money customers owe the company for sales already made but not yet paid.
+    pro: Indian companies call receivables debtors.
+    example: "A tailor's ₹8,000 of suits that customers will pay for next month."
+    emoji: receipt
+    inStory: Satyam's balance sheet showed debtors of Rs 2,651 crore.
+  - term: the three statements
+    means: "The income statement, balance sheet and cash flow statement: three views of one set of accounts."
+    pro: Analysts check that the three statements tie together.
+    example: "Your marks, attendance and fee receipt must all tell one story about you."
+    emoji: notebook
+    inStory: The analyst asks where Satyam's profit would show up on all three statements.
+  - term: cooking the books
+    means: Faking a company's accounts to show profits or cash that are not real.
+    pro: Auditors worry about cooked books.
+    example: "A shopkeeper who writes down ₹5,000 of sales that never happened."
+    emoji: warning
+    inStory: In the story, an analyst asks whether Satyam's reported profit could be real.
+  - term: general ledger
+    means: The company's master record of every entry, from which the three statements are built.
+    pro: Everything flows from the general ledger.
+    example: "A household notebook where every rupee in and out is written down once."
+    emoji: ledger
+    inStory: Any profit Satyam reported would be written in its ledger first.
+
+scenes:
+  - id: fl-s-story
+    step: story
+    recipe: story_scene
+    title: "Satyam's profit, December 2008"
+    inputs:
+      cast:
+        - { id: satyam, emoji: office-building, name: Satyam, role: software services company in Hyderabad }
+        - { id: analyst, emoji: woman-office-worker, name: An analyst, role: reads all three statements }
+      beats:
+        - { who: narrator, says: "December 2008: investors force Satyam to call off a planned purchase.", emoji: calendar }
+        - { who: satyam, says: "Our September quarter: revenue Rs 2,700 crore, operating profit Rs 649 crore.", emoji: bar-chart }
+        - { who: narrator, says: "Cash and bank balances: Rs 5,361 crore. Debtors: Rs 2,651 crore.", emoji: ledger }
+        - { who: analyst, says: "If that profit is real, it must show up on all three statements.", emoji: thinking-face }
+      caption: Where would a mismatch show up?
+      date: "2008-12-31"
+  - id: fl-s-credit
+    step: concept
+    check: fl-quiz-links
+    recipe: two_paths
+    title: "Cash sale or credit sale"
+    inputs:
+      question: Two tailors each sell a suit this month. How do their statements differ?
+      left:
+        emoji: man
+        name: Ravi
+        choice: Is paid in cash today
+        outcome: [money-bag, check-mark-button]
+        outcomeLine: Sales and cash both go up this month.
+      right:
+        emoji: woman
+        name: Meera
+        choice: Sells on credit, paid next month
+        outcome: [receipt, hourglass-not-done]
+        outcomeLine: Sales go up now, but the cash comes later.
+  - id: fl-s-trace
+    step: concept
+    check: fl-satyam-trace
+    recipe: who_pays_whom
+    title: "How a profit travels between the statements"
+    inputs:
+      actors:
+        - { id: income, emoji: scroll, name: Income statement }
+        - { id: balance, emoji: balance-scale, name: Balance sheet }
+        - { id: cash, emoji: money-bag, name: Cash flow statement }
+      flows:
+        - { from: income, to: balance, what: profit joins retained earnings, emoji: coin }
+        - { from: income, to: cash, what: profit is the first line, emoji: memo }
+        - { from: cash, to: balance, what: ending cash must match, emoji: link }
+  - id: fl-s-reveal
+    step: reveal
+    recipe: timeline
+    title: "From the quarter to the letter"
+    inputs:
+      beats:
+        - { date: "2008-09-30", label: Satyam's September quarter ends, emoji: calendar }
+        - { date: "2009-01-07", label: Chairman Raju writes to the board, emoji: envelope }
+  - id: fl-s-principle
+    step: principle
+    recipe: lingo_card
+    title: "Tie out the statements"
+    inputs:
+      term: tie out
+      pro: Analysts check that the three statements tie out.
+      means: Every profit must show up on all three statements, and ending cash must match.
+      example: "Your marks, attendance and fee receipt must all agree with each other."
+      emoji: link
+      inStory: Satyam's false profit had to appear in the ledger and the statements.
+
 questions:
   - id: fl-q-credit-sale
     prompt: >
-      A company makes a sale of Rs 100 crore on credit, to be paid next quarter. What do the statements show this quarter?
+      A company makes a sale on credit, to be paid next quarter. What do the statements show this quarter?
     choices:
-      - { id: a, text: "Revenue up 100 and receivables up 100; operating cash flow unchanged" }
-      - { id: b, text: "Revenue up 100 and cash up 100" }
-      - { id: c, text: "Only the balance sheet changes, with cash up 100" }
-      - { id: d, text: "Nothing, until the customer pays" }
+      - { id: a, text: "Revenue and receivables go up; operating cash flow is unchanged" }
+      - { id: b, text: "Revenue and cash both go up", mistake: { tag: credit_sale_cash_now, fix: "On credit, the customer has not paid yet, so no cash has come in." } }
+      - { id: c, text: "Only the balance sheet changes, with cash up", mistake: { tag: only_balance_sheet, fix: "The sale is revenue now, so the income statement changes too, and cash has not moved." } }
+      - { id: d, text: "Nothing, until the customer pays", mistake: { tag: wait_for_cash, fix: "That is cash accounting. Accrual accounting records the sale when it is earned." } }
     answer: a
     explanation: >
-      Under accrual accounting the sale is revenue now. The customer owes the money, so receivables rise by 100; no cash has arrived, so operating cash flow does not rise.
+      Under accrual accounting the sale is revenue now. The customer owes the money, so receivables rise; no cash has arrived, so operating cash flow does not rise.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 4.1 Cash versus Accrual Accounting: https://openstax.org/books/principles-finance-2e/pages/4-1-cash-versus-accrual-accounting
 
   - id: fl-q-cash-change
     prompt: >
-      A company starts the year with cash of 200 and ends it with 260. Operating cash flow was 90 and investing cash flow was minus 70. What was its financing cash flow?
+      Cash at the start and the end of a year both sit on the balance sheet. Which three kinds of cash flow on the cash flow statement explain the change?
     choices:
-      - { id: a, text: "Plus 40" }
-      - { id: b, text: "Plus 60" }
-      - { id: c, text: "Minus 40" }
-      - { id: d, text: "Plus 220" }
+      - { id: a, text: "Operating, investing and financing" }
+      - { id: b, text: "Revenue, costs and tax", mistake: { tag: income_lines_for_cash, fix: "Those are income statement lines. The cash flow statement groups cash into operating, investing and financing." } }
+      - { id: c, text: "Assets, liabilities and equity", mistake: { tag: balance_sheet_for_cash, fix: "Those are the balance sheet's three parts, not the cash flow statement's sections." } }
+      - { id: d, text: "Receivables, inventory and payables", mistake: { tag: adjustments_for_sections, fix: "Those are adjustments inside operating cash flow, not the three sections." } }
     answer: a
     explanation: >
-      The change in cash is 260 - 200 = 60 = operating + investing + financing = 90 - 70 + financing. So financing = 60 - 20 = 40.
+      The change in cash is the total of operating, investing and financing cash flows. The ending cash must equal the cash on the balance sheet.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
 
@@ -84,9 +199,9 @@ questions:
       On the indirect method, which of these is added back to net income to reach operating cash flow?
     choices:
       - { id: a, text: "Depreciation expense" }
-      - { id: b, text: "Dividends paid" }
-      - { id: c, text: "Purchases of equipment" }
-      - { id: d, text: "Repayment of a loan" }
+      - { id: b, text: "Dividends paid", mistake: { tag: dividends_in_operating, fix: "Dividends are financing, not an add-back in operating cash flow." } }
+      - { id: c, text: "Purchases of equipment", mistake: { tag: capex_in_operating, fix: "Equipment purchases are investing outflows." } }
+      - { id: d, text: "Repayment of a loan", mistake: { tag: loan_in_operating, fix: "Loan repayments are financing outflows." } }
     answer: a
     explanation: >
       Depreciation reduced net income but cost no cash in the period, so it is added back. Dividends and loan repayments are financing; equipment purchases are investing.
@@ -95,12 +210,12 @@ questions:
 
   - id: fl-q-error-all-three
     prompt: >
-      By mistake, a company books a sale of 100 that never happened, and books the cash receipt of 100 with it. Which statement is true as a result?
+      By mistake, a company books a sale that never happened, and books the cash receipt with it. Which statement is true as a result?
     choices:
-      - { id: a, text: "All three: revenue and profit are 100 too high, cash and retained earnings are 100 too high, and operating cash flow is 100 too high" }
-      - { id: b, text: "Only the income statement is affected" }
-      - { id: c, text: "Only the balance sheet is affected" }
-      - { id: d, text: "Only the cash flow statement is affected" }
+      - { id: a, text: "All three statements are off: profit, cash and operating cash flow are each too high" }
+      - { id: b, text: "Only the income statement is affected", mistake: { tag: error_in_one_statement, fix: "The false profit flows into retained earnings and the false cash into assets and cash flow too." } }
+      - { id: c, text: "Only the balance sheet is affected", mistake: { tag: error_balance_only, fix: "The false revenue also raises profit on the income statement." } }
+      - { id: d, text: "Only the cash flow statement is affected", mistake: { tag: error_cash_only, fix: "The false revenue also raises profit, and the false cash sits on the balance sheet." } }
     answer: a
     explanation: >
       The false revenue raises net income (income statement). That profit flows into retained earnings and the false cash sits in assets (balance sheet). The same cash appears as an operating inflow (cash flow statement). One entry spreads through the whole system.
@@ -109,17 +224,59 @@ questions:
 
   - id: fl-q-depreciation
     prompt: >
-      A company pays 600 in cash for a machine with a five-year life and no residual value, using straight-line depreciation. In year 1 (ignoring tax), what is the effect on net income and on operating cash flow?
+      A company pays cash for a machine with a five-year life, using straight-line depreciation. In the first year, which statement is true?
     choices:
-      - { id: a, text: "Net income falls by 120; operating cash flow is not reduced by the depreciation; the 600 is an investing outflow" }
-      - { id: b, text: "Net income falls by 600; operating cash flow falls by 600" }
-      - { id: c, text: "Net income falls by 120; operating cash flow falls by 120" }
-      - { id: d, text: "Net income is unchanged; operating cash flow falls by 600" }
+      - { id: a, text: "Depreciation lowers net income but costs no cash that year; the purchase is an investing outflow" }
+      - { id: b, text: "The whole price lowers net income in the first year", mistake: { tag: all_expensed_year_one, fix: "Depreciation spreads the price over the machine's life, one share each year." } }
+      - { id: c, text: "Depreciation lowers operating cash flow each year", mistake: { tag: depreciation_costs_cash, fix: "Depreciation costs no cash that year. The cash went out at purchase, under investing." } }
+      - { id: d, text: "Nothing changes on the income statement", mistake: { tag: no_income_effect, fix: "Depreciation is an expense each year, so it lowers net income." } }
     answer: a
     explanation: >
-      Straight-line depreciation is 600 / 5 = 120 a year, an expense that lowers net income. It costs no cash in the year, so it is added back in operating cash flow. The cash was paid at purchase and shows under investing activities.
+      Straight-line depreciation spreads the price evenly over the machine's life, an expense that lowers net income. It costs no cash in the year, so it is added back in operating cash flow. The cash was paid at purchase and shows under investing activities.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 4.4 When Should a Company Capitalize or Expense an Item: https://openstax.org/books/principles-finance-2e/pages/4-4-when-should-a-company-capitalize-or-expense-an-item and 5.5 The Statement of Cash Flows.
+
+  - id: fl-q-accrual
+    prompt: >
+      What do accountants call recording revenue when it is earned, even if the cash comes later?
+    choices:
+      - { id: a, text: "Accrual accounting" }
+      - { id: b, text: "Cash accounting", mistake: { tag: cash_for_accrual, fix: "Cash accounting records revenue only when the money arrives." } }
+      - { id: c, text: "Depreciation", mistake: { tag: depreciation_for_accrual, fix: "Depreciation spreads the price of a big purchase over its life." } }
+      - { id: d, text: "Cooking the books", mistake: { tag: cooking_for_accrual, fix: "That means faking the accounts. Accrual accounting is a standard, honest method." } }
+    answer: a
+    explanation: >
+      Accrual accounting records revenue when it is earned and costs when they are incurred, whether or not cash moves.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.1 Cash versus Accrual Accounting: https://openstax.org/books/principles-finance-2e/pages/4-1-cash-versus-accrual-accounting
+
+  - id: fl-q-receivables
+    prompt: >
+      A customer buys on credit and will pay later. What do analysts call the money owed?
+    choices:
+      - { id: a, text: "Receivables, or debtors" }
+      - { id: b, text: "Payables", mistake: { tag: payables_for_receivables, fix: "Payables are what the company owes its suppliers." } }
+      - { id: c, text: "Retained earnings", mistake: { tag: retained_for_receivables, fix: "Retained earnings is profit kept in the business, not money owed by a customer." } }
+      - { id: d, text: "Revenue", mistake: { tag: revenue_for_receivables, fix: "Revenue is the sale itself. The unpaid amount sits on the balance sheet as a receivable." } }
+    answer: a
+    explanation: >
+      Money customers owe for sales already made is a receivable, which Indian companies often call debtors. It is a current asset.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.1 Cash versus Accrual Accounting: https://openstax.org/books/principles-finance-2e/pages/4-1-cash-versus-accrual-accounting
+
+  - id: fl-q-cooked
+    prompt: >
+      What do people call it when a company fakes its accounts to show profit or cash that is made up?
+    choices:
+      - { id: a, text: "Cooking the books" }
+      - { id: b, text: "Accrual accounting", mistake: { tag: accrual_for_cooking, fix: "Accrual accounting is a standard, honest method. Faking the accounts is something else." } }
+      - { id: c, text: "Depreciation", mistake: { tag: depreciation_for_cooking, fix: "Depreciation is an ordinary expense that spreads out a big purchase." } }
+      - { id: d, text: "Capital spending", mistake: { tag: capex_for_cooking, fix: "Capital spending is money spent on long-term assets, which is legitimate." } }
+    answer: a
+    explanation: >
+      "Cooking the books" means falsifying a company's accounts. One false entry has to show up on more than one statement, which is how careful readers catch it.
+    source: >
+      Plain meaning of the term; the Satyam case is in the US SEC Litigation Release LR-21915: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
 
 checks:
   - id: fl-quiz-links
@@ -130,6 +287,9 @@ checks:
       - fl-q-addback
       - fl-q-error-all-three
       - fl-q-depreciation
+      - fl-q-accrual
+      - fl-q-receivables
+      - fl-q-cooked
       - bank:eab:MBA-ACC-FA-0024
     perAttempt: 3
     passRule:

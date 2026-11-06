@@ -53,88 +53,178 @@ youllLearn:
   - "Split it into margin, asset turnover and leverage."
   - "Tell a return earned by the business from one borrowed through leverage."
 
+
+exampleCurrency: INR
+runningExample:
+  text: A juice-shop owner puts in Rs 5 lakh of her own money and borrows Rs 15 lakh more.
+  numbers: [5, 15]
+  scene:
+    cast:
+      - { id: meera, emoji: woman, name: Meera, role: opens a juice shop }
+      - { id: bank, emoji: bank, name: The bank, role: lends the rest }
+    beats:
+      - { who: narrator, says: "Meera opens a juice shop with ₹5 lakh of her own money.", emoji: shopping-bags }
+      - { who: bank, says: "I will lend you ₹15 lakh more, for the machines.", emoji: coin }
+      - { who: meera, says: "Now I run a ₹20 lakh shop, but only ₹5 lakh is mine." }
+      - { who: narrator, says: "A good year pays her well. A bad year hits her own money first." }
+    caption: Whose money runs the shop?
+
+terms:
+  - term: return on equity
+    means: The profit owners earn on their own money put into a business.
+    pro: Analysts quote ROE to judge how hard the owners' money is working.
+    example: You put ₹5 lakh into a shop. ROE is the profit you earn on that ₹5 lakh.
+    emoji: money-bag
+    inStory: Coffee Day's owners had only Rs 532 crore of their own money in it.
+  - term: DuPont
+    means: A way to split return on equity into margin, turnover and leverage.
+    pro: Analysts run a DuPont breakdown to see where the return comes from.
+    example: Splitting a cricket team's win into batting, bowling and fielding.
+    emoji: puzzle-piece
+    inStory: Splitting Coffee Day's return shows margin, turnover and debt each pulling its own way.
+  - term: profit margin
+    means: How many paise of profit stay from each rupee of sales.
+    pro: Net margin is the share of every sale that is left as profit.
+    example: A chai stall sells ₹100 of tea and keeps ₹10 as profit.
+    emoji: receipt
+    inStory: Coffee Day sold a lot of coffee yet ended the year with a net loss.
+  - term: leverage
+    means: Using borrowed money, so the same business swings the owners' return more.
+    pro: A highly levered company has debt sitting under thin equity.
+    example: Buying a ₹1 crore flat with ₹10 lakh of your own and a loan for the rest.
+    emoji: balance-scale
+    inStory: Coffee Day's assets were mostly paid for with borrowings, not the owners' money.
+  - term: asset turnover
+    means: How much sales a business makes from each rupee of assets it owns.
+    pro: Asset turnover shows how hard the assets are working.
+    example: A rickshaw that runs all day earns more from its price than one parked.
+    emoji: gear
+    inStory: Coffee Day's big pile of assets made only a modest amount of sales.
+
 questions:
   - id: fr-q-roe
     prompt: >
-      A company earns a net income of 90 on equity of 600. What is its return on equity?
+      A shop owner says: "I put in my own money, and the shop earned a profit on it." Analysts have a name for the profit the owners earn on their own money. What is it?
     choices:
-      - { id: a, text: "15%" }
-      - { id: b, text: "6.7%" }
-      - { id: c, text: "1.5%" }
-      - { id: d, text: "150%" }
+      - { id: a, text: "Return on equity" }
+      - { id: b, text: "Profit margin", mistake: { tag: mixed_margin_with_roe, fix: "Margin is profit as a share of sales. Return on equity is profit as a share of the owners' own money." } }
+      - { id: c, text: "Asset turnover", mistake: { tag: mixed_turnover_with_roe, fix: "Asset turnover is how much sales the assets make. It says nothing yet about profit on the owners' money." } }
+      - { id: d, text: "Leverage", mistake: { tag: mixed_leverage_with_roe, fix: "Leverage is the borrowing under the owners' money, not the return they earn." } }
     answer: a
     explanation: >
-      ROE = net income / equity = 90 / 600 = 0.15, or 15%.
+      Return on equity (ROE) is net income against the owners' equity: the profit earned on each rupee the owners put in.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
   - id: fr-q-dupont
     prompt: >
-      A company has a net profit margin of 5%, an asset turnover of 2.0 and an equity multiplier of 3.0. What is its ROE?
+      Analysts split return on equity into three parts. Which trio is the DuPont split?
     choices:
-      - { id: a, text: "30%" }
-      - { id: b, text: "10%" }
-      - { id: c, text: "13%" }
-      - { id: d, text: "3%" }
+      - { id: a, text: "Profit margin, asset turnover and leverage (the equity multiplier)" }
+      - { id: b, text: "Revenue, cost and tax", mistake: { tag: named_income_lines, fix: "Those are lines on the income statement. DuPont's three parts are margin, turnover and leverage." } }
+      - { id: c, text: "Assets, liabilities and equity", mistake: { tag: named_balance_blocks, fix: "Those are the balance sheet's three blocks. DuPont's parts are margin, turnover and leverage." } }
+      - { id: d, text: "Cash, debt and dividends", mistake: { tag: named_cash_items, fix: "Those are money items, not ratios. DuPont's parts are margin, turnover and leverage." } }
     answer: a
     explanation: >
-      ROE = 0.05 x 2.0 x 3.0 = 0.30, or 30%.
+      Return on equity is the net profit margin, times asset turnover, times the equity multiplier. Each part answers a different question: how much is kept from each sale, how hard the assets work, and how much is borrowed.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
   - id: fr-q-same-roe
     prompt: >
-      Company A has a margin of 10%, an asset turnover of 0.75 and an equity multiplier of 2.0. Company B has a margin of 3%, an asset turnover of 1.0 and an equity multiplier of 5.0. Both earn an ROE of 15%. Which statement is right?
+      Two cafe chains both show a 15% return on equity. Chain A keeps a fat margin on every coffee. Chain B keeps a thin margin but borrows heavily. Which statement is right?
     choices:
-      - { id: a, text: "B's return relies much more on borrowing than A's" }
-      - { id: b, text: "A relies more on borrowing, because its margin is higher" }
-      - { id: c, text: "They are equally risky, because the ROE is the same" }
-      - { id: d, text: "A's equity multiplier is higher" }
+      - { id: a, text: "B's return leans much more on borrowing, so it is more fragile" }
+      - { id: b, text: "A leans more on borrowing, because its margin is higher", mistake: { tag: read_margin_as_debt, fix: "A fat margin means A earns its return from the business itself, not from debt." } }
+      - { id: c, text: "They are equally risky, because the return is the same", mistake: { tag: same_roe_same_risk, fix: "The same return can be built in very different ways. Return built on borrowing is the riskier kind." } }
+      - { id: d, text: "A's leverage is higher, because its margin is higher", mistake: { tag: swapped_the_parts, fix: "Margin and leverage are different parts. B's thin margin needs heavier borrowing to reach the same return." } }
     answer: a
     explanation: >
-      A: 0.10 x 0.75 x 2.0 = 15%. B: 0.03 x 1.0 x 5.0 = 15%. B's equity multiplier of 5 means 4 units of liabilities per unit of equity; A's is 2. B's identical ROE rests on leverage and is more fragile.
+      The same return on equity can come from a rich margin or from borrowing. Chain B's thin margin means it needs a high equity multiplier to reach the same 15%, so a bad year hurts it far more.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
   - id: fr-q-negative-roe
     prompt: >
-      A company has a net profit margin of minus 4%, an asset turnover of 0.5 and an equity multiplier of 8. What is its ROE?
+      A company makes a small loss on its sales, but it is heavily in debt on a thin base of its own equity. What happens to that loss when it is measured against the owners' own money?
     choices:
-      - { id: a, text: "Minus 16%" }
-      - { id: b, text: "Minus 2%" }
-      - { id: c, text: "Minus 0.16%" }
-      - { id: d, text: "Plus 16%" }
+      - { id: a, text: "It turns into a much bigger loss, because leverage multiplies it" }
+      - { id: b, text: "It shrinks, because the lenders share the loss", mistake: { tag: lenders_share_loss, fix: "Lenders are still owed their money in full. The owners take the loss first." } }
+      - { id: c, text: "It stays the same size as it was on sales", mistake: { tag: ignored_the_base, fix: "The loss is measured against the owners' small equity, so it looks much larger there." } }
+      - { id: d, text: "It disappears, because debt is not the owners' money", mistake: { tag: debt_hides_loss, fix: "A loss is still a loss. Debt does not remove it; it only makes the owners' share of it bigger." } }
     answer: a
     explanation: >
-      ROE = -0.04 x 0.5 x 8 = -0.16, or minus 16%. A margin of only minus 4% becomes a loss of 16% of owners' equity, because leverage multiplies it by 8.
+      Leverage multiplies a loss as well as a profit. A small negative margin on sales becomes a large negative return on thin equity.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
   - id: fr-q-multiplier
     prompt: >
-      A company has total assets of 5,000 and equity of 500. What is its equity multiplier, and how many units of liabilities does it have per unit of equity?
+      An analyst says a company has an "equity multiplier" of 10. What does that say about it?
     choices:
-      - { id: a, text: "10, with 9 units of liabilities per unit of equity" }
-      - { id: b, text: "10, with 10 units of liabilities per unit of equity" }
-      - { id: c, text: "0.1, with 0.9 units of liabilities per unit of equity" }
-      - { id: d, text: "9, with 10 units of liabilities per unit of equity" }
+      - { id: a, text: "It has ten rupees of assets for every rupee of owners' money, so debt funds most of it" }
+      - { id: b, text: "The owners earn ten times their money back each year", mistake: { tag: read_it_as_return, fix: "The multiplier measures assets per rupee of owners' money. It is not a return." } }
+      - { id: c, text: "Its sales are ten times its assets", mistake: { tag: mixed_with_turnover, fix: "Sales against assets is asset turnover. The multiplier is assets against owners' money." } }
+      - { id: d, text: "It pays out ten percent of its profit", mistake: { tag: read_it_as_payout, fix: "The multiplier is about how the assets are funded, not about payouts." } }
     answer: a
     explanation: >
-      Equity multiplier = assets / equity = 5,000 / 500 = 10. Liabilities = 5,000 - 500 = 4,500, which is 9 times equity. In general the multiplier is 1 plus liabilities / equity.
+      The equity multiplier is total assets against equity, which equals one plus liabilities against equity. A high multiplier means someone other than the owners paid for most of the assets.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method (equity multiplier = total assets / stockholders' equity): https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
   - id: fr-q-which-lever
     prompt: >
-      A supermarket chain earns a thin net margin but a high asset turnover. Which DuPont component is doing most of the work to lift its ROE?
+      A supermarket chain keeps only a thin slice of each sale, but its shelves empty and refill all day. Which DuPont part does most of the work lifting its return?
     choices:
-      - { id: a, text: "Asset turnover: it sells a lot for every unit of assets" }
-      - { id: b, text: "The net profit margin" }
-      - { id: c, text: "The equity multiplier only" }
-      - { id: d, text: "None of the three" }
+      - { id: a, text: "Asset turnover: it sells a lot for every rupee of assets" }
+      - { id: b, text: "The net profit margin", mistake: { tag: picked_margin, fix: "Its margin is thin. That is the part that is not doing the lifting." } }
+      - { id: c, text: "The equity multiplier only", mistake: { tag: picked_leverage_only, fix: "Nothing in the story says it borrows heavily. The busy shelves point to turnover." } }
+      - { id: d, text: "None of the three", mistake: { tag: said_none, fix: "The three parts multiply, so a small margin can be offset by a high turnover." } }
     answer: a
     explanation: >
-      With a thin margin, a high turnover (sales / assets) is what turns each unit of assets into return. The three parts multiply, so a small margin can be offset by high turnover.
+      With a thin margin, a high turnover is what turns each rupee of assets into return. The three parts multiply, so one strong part can offset a weak one.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fr-q-lingo-margin
+    prompt: >
+      A trader says: "Coffee Day's net margin was negative." Which plain-words reading is right?
+    choices:
+      - { id: a, text: "After all costs, it kept less than nothing from its sales: it made a net loss" }
+      - { id: b, text: "It sold nothing at all that year", mistake: { tag: read_as_no_sales, fix: "It sold plenty. A negative margin says costs were bigger than sales." } }
+      - { id: c, text: "It owed more than it owned", mistake: { tag: mixed_with_balance_sheet, fix: "Owing more than owning is a balance sheet idea. Margin is about profit on sales." } }
+      - { id: d, text: "It paid no tax", mistake: { tag: read_as_no_tax, fix: "Margin does not say who got paid. It says what was left of sales after all costs." } }
+    answer: a
+    explanation: >
+      Net profit margin is the share of sales left as profit. A negative margin means a net loss: Coffee Day's net loss for the year to March 2015 was Rs 87 crore.
+    source: >
+      Net loss from this Topic's Case, Coffee Day Enterprises at its IPO (asOf 2015-10-13), after the company's prospectus: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+  - id: fr-q-lingo-levered
+    prompt: >
+      Analysts call a company "highly levered". Which picture fits?
+    choices:
+      - { id: a, text: "Most of what it owns was paid for with borrowed money" }
+      - { id: b, text: "It sells more than its rivals", mistake: { tag: mixed_with_size, fix: "Selling a lot is about turnover or size. Levered is about borrowing." } }
+      - { id: c, text: "It has a large pile of cash in the bank", mistake: { tag: mixed_with_cash, fix: "Cash is not leverage. Levered means debt is doing much of the funding." } }
+      - { id: d, text: "It keeps a high margin on every sale", mistake: { tag: mixed_with_margin, fix: "Margin is profit on sales. Levered is about how the assets were funded." } }
+    answer: a
+    explanation: >
+      Leverage is borrowing under the owners' money. Coffee Day's borrowings were far larger than its shareholders' funds, which is what analysts mean by highly levered.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fr-q-lingo-turnover
+    prompt: >
+      Which phrase would an analyst use for a business whose big pile of assets makes only modest sales?
+    choices:
+      - { id: a, text: "Low asset turnover" }
+      - { id: b, text: "High profit margin", mistake: { tag: mixed_with_margin, fix: "Margin is profit per sale. This business is about sales per rupee of assets." } }
+      - { id: c, text: "Low leverage", mistake: { tag: mixed_with_leverage, fix: "Leverage is about borrowing. Slow-working assets are turnover." } }
+      - { id: d, text: "High return on equity", mistake: { tag: assumed_good_return, fix: "Slow assets drag the return down unless margin or leverage make up for it." } }
+    answer: a
+    explanation: >
+      Asset turnover is sales against assets. A big base of estates, cafes and offices that makes modest sales has a low turnover, which pulls the return down.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
@@ -148,21 +238,100 @@ checks:
       - fr-q-negative-roe
       - fr-q-multiplier
       - fr-q-which-lever
+      - fr-q-lingo-margin
+      - fr-q-lingo-levered
+      - fr-q-lingo-turnover
     perAttempt: 3
     passRule:
       correct: 2
   - id: fr-coffee-roe
     kind: conversation
     prompt: >
-      Coffee Day Enterprises reported consolidated revenue of Rs 2,479 crore and a net loss of Rs
-      87 crore for 2014-15. At 31 March 2015 its total assets were Rs 6,014 crore and its
-      shareholders' funds Rs 532 crore. Use the DuPont method: work out its net profit margin,
-      asset turnover, equity multiplier and return on equity. What does that tell you about its
-      position at the IPO?
+      It is 13 October 2015. Coffee Day Enterprises is about to sell its shares to the public. Its prospectus shows revenue of Rs 2,479 crore and a net loss of Rs 87 crore for 2014-15, with total assets of Rs 6,014 crore and shareholders' funds of Rs 532 crore. In your own words, tell me whether the owners are earning a return or losing one, how much of the business rests on borrowing, and what that combination would worry you about at the IPO.
     passCriteria: >
-      The Learner computes a net margin of about minus 3.5% (minus 87 / 2,479), an asset
-      turnover of about 0.41 (2,479 / 6,014), an equity multiplier of about 11.3 (6,014 / 532)
-      and an ROE of about minus 16% (the product, or minus 87 / 532), and says that the low
-      turnover and heavy leverage multiply a small negative margin into a large negative return
-      on thin equity. They conclude that the company is fragile at the IPO: a loss, low equity
-      and heavy borrowing, so lenders and how the IPO money is used matter.
+      The Learner says that the company lost money on its sales (a net loss, so a negative margin) and that the owners' return is therefore negative. They say that the owners' own money is a thin slice under a large load of assets, with borrowings far larger than shareholders' funds, and that the assets make only modest sales. They connect the parts: leverage turns a small loss into a large negative return on thin equity, so the company looks fragile at the IPO and lenders matter. No figure needs to be worked out; naming the three DuPont parts and what each shows is enough.
+
+scenes:
+  - id: coffee-story
+    step: story
+    recipe: story_scene
+    title: The cafe chain before its share sale
+    inputs:
+      cast:
+        - { id: cd, emoji: hot-beverage, name: Coffee Day, role: runs the cafes }
+        - { id: asha, emoji: woman, name: Asha, role: weighs the share sale }
+        - { id: lenders, emoji: bank, name: The lenders, role: lent to the group }
+      beats:
+        - { who: narrator, says: "Mid-October 2015. Coffee Day is about to sell its shares to the public.", emoji: calendar }
+        - { who: asha, says: "The cafes are everywhere. But is the owners' money working hard here?", emoji: thinking-face }
+        - { who: cd, says: "We lost money last year, and we owe the lenders a lot." }
+        - { who: lenders, says: "Our loans sit under a small pile of the owners' money." }
+        - { who: narrator, says: "Asha must decide what the ratios say about the owners' return and the borrowing." }
+      caption: The ratios will tell her
+      date: "2015-10-13"
+  - id: dupont-myths
+    step: concept
+    check: fr-quiz-dupont
+    recipe: myth_or_fact
+    title: Myth or fact, return on equity
+    inputs:
+      cards:
+        - claim: Two companies with the same return on equity are equally safe.
+          isFact: false
+          why: One may earn it from borrowing, which is riskier than earning it from margin.
+          emoji: balance-scale
+        - claim: Leverage makes a loss bigger as well as a profit.
+          isFact: true
+          why: Debt multiplies good years and bad years alike, measured on the owners' money.
+          emoji: high-voltage
+        - claim: A thin margin can never give a good return on equity.
+          isFact: false
+          why: High asset turnover or heavy borrowing can lift it, as they do for a supermarket.
+          emoji: shopping-cart
+  - id: same-return-paths
+    step: concept
+    check: fr-coffee-roe
+    recipe: two_paths
+    title: Same return, two routes
+    inputs:
+      question: Two cafe owners show the same return on equity. How did each get there?
+      left:
+        emoji: woman
+        name: Meera
+        choice: Keeps a fat margin on every cup
+        outcome: [sparkles, slightly-smiling-face]
+        outcomeLine: A bad month still leaves her standing.
+      right:
+        emoji: man
+        name: Ravi
+        choice: Borrows most of the money to expand
+        outcome: [warning, anxious-face-with-sweat]
+        outcomeLine: A bad month hits his own money first.
+  - id: coffee-listing
+    step: reveal
+    recipe: headline
+    title: The morning the shares listed
+    inputs:
+      paper: The market morning
+      date: "2015-11-02"
+      headline: Coffee Day shares open below the issue price on BSE listing
+      deck: An imagined front page. Opened at Rs 313 against an issue price of Rs 328; closed at Rs 270.15.
+      source: https://www.businesstoday.in/markets/company-stock/story/coffee-day-shares-list-on-bse-plunge-within-minutes-in-trade-56487-2015-11-02
+  - id: look-inside-paths
+    step: principle
+    recipe: two_paths
+    title: Look inside the return
+    inputs:
+      question: Two investors see the same return on equity. Who looked inside it?
+      left:
+        emoji: woman
+        name: Asha
+        choice: Trusted the headline return
+        outcome: [warning, worried-face]
+        outcomeLine: She missed how much of it was borrowed.
+      right:
+        emoji: man
+        name: Ravi
+        choice: Split it into margin, turnover and leverage
+        outcome: [magnifying-glass-tilted-left, check-mark-button]
+        outcomeLine: He saw which part was doing the work.
