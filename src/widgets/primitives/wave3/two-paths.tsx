@@ -45,7 +45,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
       className={`flex min-w-0 flex-col gap-2 rounded-xl border border-t-4 border-[var(--brand-line)] bg-[var(--field)] p-3 ${tone === "left" ? "border-t-[var(--sun)]" : "border-t-[var(--violet)]"}`}
     >
       <div className="flex items-center gap-3">
-        <span className="shrink-0">
+        <span key={shown ? "told" : "waiting"} data-testid="path-character" className={`shrink-0 ${shown && !reduced ? "story-bounce" : ""}`}>
           <Pic name={path.emoji} size={48} />
         </span>
         <div className="min-w-0">
@@ -54,7 +54,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
         </div>
       </div>
       <div>
-        <Button variant="secondary" size="sm" aria-expanded={shown} onClick={() => setShown((v) => !v)} data-testid="path-reveal">
+        <Button variant="secondary" size="sm" aria-expanded={shown} onClick={() => setShown((v) => !v)} className="story-toggle" data-testid="path-reveal">
           See what happened
         </Button>
       </div>
