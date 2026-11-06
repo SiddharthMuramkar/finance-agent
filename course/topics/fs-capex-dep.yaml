@@ -74,7 +74,7 @@ runningExample:
 terms:
   - term: capex
     means: Money spent on things that last for years, like warehouses and trucks.
-    pro: Analysts read capex next to cash flow to see what a business must keep spending.
+    pro: Analysts read capex next to cash flow to see what firms must keep spending.
     example: A bakery buying a ₹8 lakh oven that it will use for years.
     emoji: factory
     inStory: Webvan planned about a billion dollars of automated distribution centres.
