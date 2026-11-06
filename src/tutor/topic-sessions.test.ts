@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { stringify } from "yaml";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { messages, OWNER_LEARNER_ID, sessions as sessionsTable, settings, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -17,6 +17,10 @@ import { listSessions, loadCurrentSession, loadSession } from "./transcript";
 import { passedTopicShown, shownInWorkspace, topicSessions, type Shown } from "./session-log";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { startTurn, turnKind, updateTurn } from "./turn-status";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * One Session per Topic (ADR 0004, spec #119): the Tutor Turn on in-memory Postgres with the real

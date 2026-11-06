@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CONVERTED_TOPIC_DATA, topicFileOf } from "@/course/lesson-fixture";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { OWNER_LEARNER_ID } from "@/db/schema";
@@ -16,6 +16,10 @@ import { QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData, type SessionItem } from
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * Seam: the Tutor Turn and the Quick-try handler with Skill state in Learner Memory (spec #229, ticket #245). The repair

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { CourseMap } from "@/course/map";
 import { importCaseData } from "@/case-data/import";
 import type { TeachingStep } from "@/course/navigator";
@@ -15,6 +15,10 @@ import { NOT_THE_LEARNERS_ATTEMPT } from "./tools";
 import { latestTurn, runTutorTurn, type TurnDeps, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * Seam 1, Tutor Turn: what the Tutor sees of the Learner's Widgets (spec #119, "Widgets › What the Tutor sees").

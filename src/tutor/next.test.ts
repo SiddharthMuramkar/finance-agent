@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { CourseMap } from "@/course/map";
 import type { TeachingStep } from "@/course/navigator";
 import type { Db } from "@/db/types";
@@ -14,6 +14,10 @@ import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import { NOT_THE_LEARNERS_ATTEMPT, PACING_REJECTION, VERDICT_PACING_REJECTION } from "./tools";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * Seam 1, Tutor Turn: the Learner's Next. Code checks the move is allowed, advances the Course Navigator,
