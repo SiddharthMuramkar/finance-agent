@@ -66,6 +66,8 @@ describe("the rules tuned against the live tests", () => {
     expect(ENGINE_INSTRUCTIONS).toContain("When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers");
     expect(ENGINE_INSTRUCTIONS).toContain("it asks the Learner to pick the right reading, so write only a short acknowledgement and that one question, and stop there");
     expect(ENGINE_INSTRUCTIONS).toContain("For a quiz-me ask, point to the next Quick try, or show choice_cards with one story or lingo question;");
+    // Runs 8 and the D3b finish runs: T5 asked "Which reading gives that move?" with no readings in the reply, and the grader said a beginner could not follow it.
+    expect(ENGINE_INSTRUCTIONS).toContain('never write "which reading": the readings are on the card, so ask how a trader would say the move');
     expect(ENGINE_INSTRUCTIONS).not.toContain("own answer box");
     expect(TUTOR_INSTRUCTIONS).not.toContain("show rate_move in practice mode");
   });
