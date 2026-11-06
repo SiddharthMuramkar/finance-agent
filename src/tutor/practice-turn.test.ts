@@ -95,6 +95,29 @@ describe("a converted Your turn", () => {
     expect((await turn(db, { quickTryFollowUp: true })).events).toEqual([{ type: "not_allowed", message: NO_QUICK_TRY_FOLLOW_UP }]);
   });
 
+  // Round 10 (critics BP-2, MP-1): the open try's words and choices reach the Tutor while it waits on screen, never its
+  // answer; its answer only when the Learner asks for it, to say in words.
+  it("tells the next turn the open try's words and choices, and its answer only when the Learner asks for it", async () => {
+    const db = await testDb();
+    const first = await atYourTurn(db);
+    const { sent } = await turn(db, "why does this matter");
+    expect(sent).toContain("Quick try on the Learner's screen, not answered yet");
+    expect(sent).toContain(first.prompt);
+    for (const c of first.choices ?? []) expect(sent).toContain(c.text);
+    expect(sent).not.toContain("The Learner asked for its answer");
+    const asked = (await turn(db, "just tell me the answer pls")).sent;
+    expect(asked).toContain('The Learner asked for its answer: \\"Up 1 point\\".');
+  });
+
+  it("tells the turn that posts the first try that code posts it with this reply", async () => {
+    const db = await testDb();
+    await turn(db, "Hi", "In 1994 the Fed held its rate at 3%.");
+    await saveFinishedStep(db, map, "story", new Date(), me);
+    await saveFinishedStep(db, map, "concept", new Date(), me);
+    const { sent } = await turn(db, "Ready.");
+    expect(sent).toContain("Code posts the next Quick try with this reply: it is the reply's one ask, so write no ask of your own.");
+  });
+
   it("keeps the same items and the same open try on a reload", async () => {
     const db = await testDb();
     const first = await atYourTurn(db);

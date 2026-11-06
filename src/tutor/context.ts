@@ -151,6 +151,7 @@ export function stepContext(
   else if (practice && check?.card) lines.push("", `Concept card (on screen earlier): ${plain(cardText(check.card))}`, QUICK_TRIES);
   else if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
   if (practice && !check?.card) lines.push(QUICK_TRIES);
+  if (practice && facts) lines.push(...tryLines(facts));
   if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, exploreWidgetOf(topic)?.code));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
@@ -209,6 +210,23 @@ export function stepContext(
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");
+}
+
+/**
+ * At a converted Your turn, what is on the Learner's screen to tap (round 10, BP-1, BP-2): the open try's words and
+ * choices (the Tutor sees what the Learner sees, and never its answer unless the Learner asked for it), or that code
+ * posts the next try with this reply, which is then the reply's one ask.
+ */
+function tryLines(facts: TurnFacts): string[] {
+  const open = facts.openTry;
+  if (open) {
+    return [
+      `Quick try on the Learner's screen, not answered yet (code posts no new one this turn): "${open.ask}" Its choices: ${open.choices.map((c) => `"${c}"`).join("; ")}.`,
+      "You see this try as the Learner does: never say you cannot see it. When your reply names it (what it asks), it is the reply's one ask: write no ask of your own.",
+      ...(open.answer ? [`The Learner asked for its answer: "${open.answer}". Say it in words as a story fact and stop: no steps for the Learner to do, no ask of your own.`] : []),
+    ];
+  }
+  return facts.tryPosted ? ["Code posts the next Quick try with this reply: it is the reply's one ask, so write no ask of your own."] : [];
 }
 
 const CURRENCY_NAMES: Record<string, string> = { INR: "₹ (rupees)", USD: "$ (dollars)" };

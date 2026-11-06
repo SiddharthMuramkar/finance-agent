@@ -241,6 +241,25 @@ function convertedPlace(place: Place | null): (Place & { check: Check }) | null 
   return place && place.check && isConverted(place.topic) ? (place as Place & { check: Check }) : null;
 }
 
+/**
+ * The Quick try open at the Learner's converted Your turn, for this turn's facts (round 10, BP-2): its words and choices as
+ * the Learner reads them, and its answer (the right choice's words) only `withAnswer`, when the Learner asked for it.
+ * `practice` says the place is a converted Your turn at all; with no try open there, code posts the next one this turn.
+ */
+export async function openTryFor(db: Db, learnerId: number, place: Place | null, withAnswer: boolean): Promise<{ practice: boolean; openTry?: { ask: string; choices: string[]; answer?: string } }> {
+  const at = convertedPlace(place);
+  if (!at || !practiceStep(at.topic, at.step, at.check)) return { practice: false };
+  const session = await liveSession(db, learnerId, at.topic.id);
+  const open = session ? triesIn(await loadSessionItems(db, session.id, learnerId), at.check.id).open : undefined;
+  if (!open) return { practice: true };
+  const found = withAnswer ? quickTryItem(at.topic, open.key) : null;
+  const answer = found ? markChoice(found.item, "").expected : "";
+  return {
+    practice: true,
+    openTry: { ask: [open.prompt, open.halfDone].filter(Boolean).join(" "), choices: (open.choices ?? []).map((c) => c.text), ...(answer && { answer }) },
+  };
+}
+
 /** The Concept card for this turn's facts: at a converted Concept step and at a converted quiz Check, else undefined. */
 export function cardForFacts(place: Place | null): string | undefined {
   const at = convertedPlace(place);
