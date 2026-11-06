@@ -150,21 +150,21 @@ questions:
       capitalization table in Twitter, Inc., Form S-1 (3 October 2013).
   - id: jip-q-pro-forma
     prompt: >
-      5 October 2013: Aswath Damodaran is valuing each Twitter share from its new S-1. Miss the
-      shares about to be sold, and each share looks worth more. Which column of the share table
-      counts them?
+      5 October 2013: Rohan, a made-up investor, will buy Twitter only if a blog's value per share
+      beats the listing price. The blog divides by the S-1's "pro forma" count. Should he trust it?
     choices:
-      - { id: a, text: "Actual: the shares in issue on the table's date", mistake: { tag: actual_as_after, fix: "Actual is the count before anything changes; it adds no new shares." } }
-      - { id: b, text: "Pro forma: after the preferred stock turns into common shares", mistake: { tag: pro_forma_as_adjusted, fix: "Pro forma adds the conversion only; the sale comes in the next column." } }
-      - { id: c, text: "Pro forma as adjusted: the column this S-1 still leaves blank" }
-      - { id: d, text: "Any of them: a share count is a share count", mistake: { tag: all_columns_same, fix: "Each column is a different moment; only the last adds the sale." } }
+      - { id: a, text: "Yes: pro forma already counts the shares sold at the listing", mistake: { tag: pro_forma_as_adjusted, fix: "Pro forma adds only the preferred stock turning into common; the sale comes in \"as adjusted\"." } }
+      - { id: b, text: "No: pro forma leaves out the preferred stock, so the value runs low", mistake: { tag: preferred_left_out, fix: "Pro forma already counts the preferred stock as common; what it lacks is the new shares." } }
+      - { id: c, text: "No: it skips the shares about to be sold, so he could overpay" }
+      - { id: d, text: "Yes: every count in the S-1 gives the same value per share", mistake: { tag: all_columns_same, fix: "Each count is a different moment; only \"pro forma as adjusted\" adds the shares sold." } }
     answer: c
     explanation: >
-      "Pro forma" changes the count only for the preferred stock turning into common. "Pro forma as
-      adjusted" also adds the shares sold in the listing and the cash they raise, which is why
-      Twitter's first S-1 left it blank: neither the number of shares nor the price was set yet.
+      "Pro forma" changes the count only for the preferred stock turning into common shares. The
+      shares sold in the listing join only in "pro forma as adjusted", which Twitter's first S-1 had
+      not filled in: neither the number of shares nor the price was set yet. Divide by too few
+      shares and each share looks worth more, so Rohan could pay more than his own test allows.
     source: >
-      The capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted, the last not filled in; Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
+      Made-up story (Rohan and the blog are invented); the share counts follow the capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted, the last not filled in; Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-growth
     prompt: >
       A blogger expects a company's $200 million of revenue to grow 60% a year for five years,

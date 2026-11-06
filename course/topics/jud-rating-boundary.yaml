@@ -89,20 +89,20 @@ questions:
       card (investment grade and non-investment grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Priya, her fund and the note are made up.
   - id: jrb-q-notches
     prompt: >
-      16 May 2025: Moody's takes the United States off its top rating, moving it from Aaa down to
-      Aa1. At dinner your dad asks what traders call a single step like that. What do you tell him?
+      16 May 2025: Moody's moves the US from Aaa to Aa1. Your dad holds US Treasuries, reads that
+      the US lost its top rating, and wants to sell them all on Monday. What do you tell him?
     choices:
-      - { id: a, text: "A notch: so the news is a one-notch downgrade" }
-      - { id: b, text: "A grade: so the US has dropped out of investment grade", mistake: { tag: notch_as_grade, fix: "Aa1 is still near the top of investment grade; one step on the ladder is a notch." } }
-      - { id: c, text: "A basis point: the unit traders use for rating moves", mistake: { tag: notch_as_bp, fix: "Basis points measure yields and spreads, not steps on a rating ladder." } }
-      - { id: d, text: "A tranche: one slice of the US government's debt", mistake: { tag: notch_as_tranche, fix: "A tranche is a slice of a bond issue, not a step on the ladder." } }
+      - { id: a, text: "No need to panic: it is a one-notch downgrade, still investment grade" }
+      - { id: b, text: "Sell: losing Aaa means the US has dropped into junk", mistake: { tag: notch_as_grade, fix: "Aa1 is one notch below Aaa, still near the top of investment grade." } }
+      - { id: c, text: "No need to panic: a notch is just one basis point", mistake: { tag: notch_as_bp, fix: "Basis points measure yields and spreads; a notch is one step on the rating ladder." } }
+      - { id: d, text: "Sell: a notch means one tranche of US debt was cut", mistake: { tag: notch_as_tranche, fix: "A tranche is a slice of a bond issue; a notch is one rating step." } }
     answer: a
     explanation: >
       Each step on Moody's ladder of 21 ratings is a notch, so Aaa to Aa1 is a one-notch downgrade.
-      Aa1 is still high in investment grade; a notch is a small step, even when it is the step off
-      the top.
+      Aa1 is still near the top of investment grade: a small step, even when it is the step off the
+      top. Whether to sell is his own call, but the rating has not turned his Treasuries into junk.
     source: >
-      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; the 16 May 2025 move from Aaa to Aa1 as reported in Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!", Musings on Markets, 2 June 2025.
+      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; the 16 May 2025 move from Aaa to Aa1 as reported in Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!", Musings on Markets, 2 June 2025; your dad and his Treasuries are a made-up story.
   - id: jrb-q-ratio
     prompt: >
       A blogger says a study found 24% of one group of bonds defaulted against 1.8% of another, and
