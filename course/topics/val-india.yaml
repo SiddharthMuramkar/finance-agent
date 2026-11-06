@@ -88,11 +88,11 @@ questions:
 
   - id: vi-q-depreciation
     prompt: >
-      Ravi runs the New York fund eyeing Coffee Day. On 22 October 2015 Indian 10-year bonds yield 7.58 percent; US Treasuries paid 2.04 percent the day before. What stops him piling into rupee bonds?
+      22 October 2015: Ravi, at the New York fund, wants to move his dollars into Indian government bonds, which pay far more than US Treasuries. His boss warns, "Mind the rupee." What is she worried about?
     choices:
-      - { id: a, text: "Traders expect the rupee to slide by about the yield gap each year" }
-      - { id: b, text: "Nothing: the rupee is expected to strengthen as well", mistake: { tag: rupee_strengthens, fix: "Rupee bonds pay more because the rupee is expected to weaken, not strengthen." } }
-      - { id: c, text: "Nothing: the rupee will stay at 65.12 to the dollar", mistake: { tag: flat_rupee, fix: "If it stayed flat, rupee bonds would simply win. The yield gap is offset by expected weakening." } }
+      - { id: a, text: "The rupee is expected to weaken by about that extra yield each year" }
+      - { id: b, text: "Nothing real: the rupee should strengthen too, so he wins twice", mistake: { tag: rupee_strengthens, fix: "Rupee bonds pay more because the rupee is expected to weaken, not strengthen." } }
+      - { id: c, text: "Nothing real: the rupee will stay at 65.12 to the dollar", mistake: { tag: flat_rupee, fix: "If it stayed flat, rupee bonds would simply win. Expected weakening offsets the extra yield." } }
       - { id: d, text: "The rupee is expected to lose the whole rupee yield each year", mistake: { tag: used_whole_rate, fix: "Only the gap between the two yields is offset, not the whole rupee yield." } }
     answer: a
     explanation: >

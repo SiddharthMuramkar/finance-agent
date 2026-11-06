@@ -67,12 +67,12 @@ youllLearn:
 questions:
   - id: ie-q-implied-return
     prompt: >
-      31 December 2007: Meera, a new analyst, buys an S&P 500 fund. Its companies pay cash out as dividends and buybacks, expected to grow about 5 percent a year. Where will her reward come from?
+      31 December 2007: Meera puts her first bonus into an S&P 500 fund. Her flatmate Kabir laughs: "The bank pays interest. What do shares pay you?" Its companies pay out cash, growing about 5 percent a year. Her best comeback?
     choices:
-      - { id: a, text: "The cash paid out to her, plus the growth in that cash" }
-      - { id: b, text: "The growth in payouts, less the cash paid out", mistake: { tag: subtracted_yield, fix: "Payouts and their growth are both rewards to Meera, so they add. Neither is taken off." } }
-      - { id: c, text: "Only the cash paid out this year", mistake: { tag: ignored_growth, fix: "This year's payout is only part of her reward. Its expected growth adds to it." } }
-      - { id: d, text: "The Treasury bond rate, plus the growth in payouts", mistake: { tag: mixed_in_riskfree, fix: "The Treasury rate is what a safe bond pays. It is taken off later, to leave the premium." } }
+      - { id: a, text: "\"I get the cash they pay out, and that cash keeps growing\"" }
+      - { id: b, text: "\"I get the payout growth, minus the cash they hand out\"", mistake: { tag: subtracted_yield, fix: "Payouts and their growth are both Meera's reward, so they add. Neither is taken off." } }
+      - { id: c, text: "\"I get this year's payout, and nothing more\"", mistake: { tag: ignored_growth, fix: "This year's payout is only part of her reward. Its expected growth adds to it." } }
+      - { id: d, text: "\"I get the Treasury rate, plus the payout growth\"", mistake: { tag: mixed_in_riskfree, fix: "The Treasury rate is what a safe bond pays, not what her fund pays her." } }
     answer: a
     explanation: >
       When payouts grow steadily, the return a price promises is the payout yield plus the growth in payouts. Damodaran reads the S&P 500 this way, using dividends and buybacks and a growth rate of about 5 percent.
@@ -109,12 +109,12 @@ questions:
 
   - id: ie-q-growth
     prompt: >
-      Meera rereads Damodaran's end-2007 numbers: he assumes payouts grow about 5 percent a year. Her colleague Arjun thinks 6 percent is likelier. With the index still at 1,468.36, whose premium comes out bigger?
+      31 December 2007: Meera and her colleague Arjun bet lunch on whose implied premium comes out bigger. Same index, 1,468.36. She takes Damodaran's 5 percent payout growth; Arjun insists on 6. Who wins lunch?
     choices:
-      - { id: a, text: "Arjun's: faster growth at the same price promises a higher return" }
-      - { id: b, text: "Meera's: faster growth makes stocks safer, so less premium is needed", mistake: { tag: growth_means_safer, fix: "Growth is extra expected cash, not safety. At the same price it lifts the promised return." } }
-      - { id: c, text: "Neither: the price did not move, so the premium is the same", mistake: { tag: ignored_growth_change, fix: "The price held, but more growth is assumed, so the promised return and the premium rise." } }
-      - { id: d, text: "Meera's, because she uses Damodaran's own growth figure", mistake: { tag: trusted_the_name, fix: "A famous name does not change the reading. More assumed growth lifts the premium." } }
+      - { id: a, text: "Arjun: more growth at the same price promises a higher return" }
+      - { id: b, text: "Meera: faster growth makes stocks safer, so less premium is needed", mistake: { tag: growth_means_safer, fix: "Growth is extra expected cash, not safety. At the same price it lifts the promised return." } }
+      - { id: c, text: "Nobody: the price did not move, so the premiums match", mistake: { tag: ignored_growth_change, fix: "The price held, but more growth is assumed, so the promised return and the premium rise." } }
+      - { id: d, text: "Meera, because she uses Damodaran's own growth figure", mistake: { tag: trusted_the_name, fix: "A famous name does not change the reading. More assumed growth lifts the premium." } }
     answer: a
     explanation: >
       At the same price, assuming faster growth means the index promises more future cash, so the implied return and the premium come out higher. The implied premium is only as good as the growth you assume, so check how much it moves when growth changes.
