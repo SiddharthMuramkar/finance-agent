@@ -35,3 +35,9 @@ export function safeDestination(next: unknown): string | null {
 
 /** The safe destination, or the Study Workspace when `next` is missing or unsafe. */
 export const destinationOrDefault = (next: unknown) => safeDestination(next) ?? DEFAULT_DESTINATION;
+
+/**
+ * Where Google sign-in lands the Learner afterwards (Better Auth's `callbackURL`): the same safe
+ * destination rule, so a crafted `next` can never turn sign-in into an open redirect (C1b).
+ */
+export const googleCallbackURL = destinationOrDefault;
