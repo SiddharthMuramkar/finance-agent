@@ -11,7 +11,7 @@ import { motionFlag, Pic } from "./shared";
 // (two houses against one), never as numbers. Both paths are a story, so both carry sunflower (Appendix A); the sides
 // differ by place, character and choice, never by an accent that means something else (violet is lingo).
 // At rest it is already a story moment (ticket R-E2a, CL-1): each character stands large on a sunflower sticker tilted
-// towards the other path, their choice sits in a thought bubble, "or" stands between the paths, and a dashed slot with an
+// towards the other path, their choice sits in a borderless thought bubble (so it never reads as a button), "or" stands between the paths, and a dashed slot with an
 // hourglass waits for the Learner until the outcome replaces it.
 
 const pathProps = z.object({
@@ -66,7 +66,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
               <span aria-hidden="true" className="shrink-0">
                 <Pic name="thought-balloon" size={24} />
               </span>
-              <p className="min-w-0 rounded-2xl rounded-bl-sm border border-[var(--sun)] bg-[var(--field)] px-3 py-1.5 text-sm font-medium leading-5 text-[var(--ink)]">
+              <p className="min-w-0 rounded-2xl rounded-bl-sm bg-[var(--field)] px-3 py-1.5 text-sm italic leading-5 text-[var(--ink)]">
                 {path.choice}
               </p>
             </div>
