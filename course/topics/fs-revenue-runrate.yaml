@@ -259,7 +259,7 @@ scenes:
         - { id: asha, emoji: woman, name: Asha, role: weighs the share sale }
       beats:
         - { who: narrator, says: "14 August 2019. WeWork publishes its plan to sell shares to the public.", emoji: scroll }
-        - { who: wework, says: "We reached $3 billion of run-rate revenue in just six months!", emoji: rocket }
+        - { who: wework, says: "Over seven years to $1 billion run-rate, then six months from $2 billion to $3 billion!", emoji: rocket }
         - { who: asha, says: "Nice. But the revenue actually recorded this half-year is $1.54 billion.", emoji: thinking-face }
         - { who: asha, says: "And the net loss? About $905 million." }
         - { who: narrator, says: "Asha must decide what a run rate tells her about earned revenue." }
