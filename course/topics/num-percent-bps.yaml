@@ -265,8 +265,8 @@ templates:
     avoid: [100, 25, 1, 120, 1.2, 50, 75, 60, 30]
   - id: pb-t-pct-change
     skill: pct-change
-    ask: A headline writer measures a rate that goes from {a}% to {b}% against its old level. The headline says it rose…
-    label: "Up {value}"
+    ask: A rate goes from {a}% to {b}%. A headline writer measures the rise against the old level. Which headline gets it right?
+    label: "Up {value}: the move set against the old rate"
     params:
       a: { min: 1, max: 9, step: 0.5 }
       d: { min: 0.25, max: 2, step: 0.25 }
@@ -276,7 +276,7 @@ templates:
     decimals: 1
     sign: either
     mistakes:
-      - { tag: mixed_percent_points, fix: "That is the move in points. Divide it by the old rate, then times 100." }
+      - { tag: mixed_percent_points, fix: "That is the move in points. Divide it by the old rate, then times 100.", label: "Up {value}: the gap in points, written as a percent" }
     halfDone: { shows: "First step, done for you: the move is {points} points.", asks: pct_change }
     avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 2, 6, 7.5, 1.5, 8, 6.25, 50, 12.5]
 

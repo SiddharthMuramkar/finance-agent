@@ -264,8 +264,8 @@ skills:
 templates:
   - id: grow-amount
     skill: compound-growth
-    ask: "Asha's ₹{amount} deposit grows {rate}% a year for {years} years. Her statement then shows…"
-    label: "{value}"
+    ask: "Asha's ₹{amount} deposit grows {rate}% a year for {years} years. Which line on her statement shows growth on growth?"
+    label: "{value}: each year grows on the new, bigger total"
     params:
       amount: { min: 2000, max: 9000, step: 1000 }
       rate: { min: 2, max: 12, step: 2 }
@@ -278,14 +278,15 @@ templates:
     mistakes:
       - tag: simple_growth
         fix: "That adds the first year's gain every year. Each year grows on the new, bigger total."
+        label: "{value}: the first year's gain added again each year"
     halfDone:
       shows: "First step, done for you: after one year it is ₹{first}."
       asks: compound_value
     avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126]
   - id: double-time
     skill: rule-of-72
-    ask: "Money grows {rate}% a year. By the rule of 72, it doubles in about…"
-    label: "About {value}"
+    ask: "Money grows {rate}% a year. Which wait to double matches the rule of 72?"
+    label: "About {value}: seventy-two over the yearly rate"
     params:
       rate: { min: 2, max: 24, step: 1 }
     answer: rule_of_72_years
@@ -295,12 +296,13 @@ templates:
     mistakes:
       - tag: simple_doubling
         fix: "That is 100 divided by the rate, as if growth never compounded. Divide 72 by the rate instead."
-    # 8, 9 and 18 (and the answers 9 and 8) keep a draw apart from the rule-of-72 question and Quick tries (lint L9).
-    avoid: [10, 6, 12, 5, 23, 28, 33, 56, 126, 8, 9, 18]
+        label: "About {value}: a hundred over the yearly rate, as if nothing compounded"
+    # 8, 9, 11 and 18 (and the answers 9 and 8) keep a draw apart from the rule-of-72 question and Quick tries (lint L9).
+    avoid: [10, 6, 12, 5, 23, 28, 33, 56, 126, 8, 9, 11, 18]
   - id: steady-rate
     skill: cagr
-    ask: "A fund goes from {start} to {end} in {years} years. Its CAGR, the steady yearly rate, is about…"
-    label: "About {value} a year"
+    ask: "A fund goes from {start} to {end} in {years} years. Which figure is its CAGR, the one steady yearly rate?"
+    label: "About {value} a year: one steady rate, growing on itself each year"
     params:
       start: { min: 100, max: 500, step: 100 }
       g: { min: 20, max: 90, step: 10 }
@@ -313,6 +315,7 @@ templates:
     mistakes:
       - tag: averaged_gain
         fix: "That divides the total gain by the years. Find the one rate that, grown twice, gives the whole rise."
+        label: "About {value} a year: the whole gain split evenly across the years"
     halfDone:
       shows: "First step, done for you: the end divided by the start is {grew}."
       asks: cagr_percent
@@ -816,7 +819,7 @@ checks:
     quickTries:
       - id: cp-try-72-half
         skill: rule-of-72
-        ask: "Money grows 9% a year. By the rule of 72, it doubles in about:"
+        ask: "Money grows 9% a year. Seventy-two over 9 is 8, and a hundred over 9 is about 11. By the rule of 72, it doubles in about:"
         kind: choice
         answer: a
         choices:
@@ -845,7 +848,7 @@ checks:
       lines:
         - "CAGR, the compound annual growth rate, is the one steady yearly rate that gets from a start to an end."
         - "₹1,000 became ₹1,331 in 3 years. Growing 10% a year does exactly that, so the CAGR is 10%."
-        - "For 2 years: divide the end by the start, then find the number that times itself gives that. A calculator's square-root key does it."
+        - "Over 2 years, the CAGR is the one rate that, grown on itself twice, gives the whole rise."
         - "100 became 144. 144 divided by 100 is 1.44, and 1.2 times 1.2 is 1.44. 1.2 is 1 plus 20%, so the CAGR is 20% a year."
       writeDown: "CAGR is the one steady rate that joins the start and the end."
       skills: [cagr]
