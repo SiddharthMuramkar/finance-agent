@@ -104,9 +104,9 @@ questions:
       An analyst wants to treat a list of fixed yearly payments like a loan and say what that loan is worth today (its 'debt-equivalent'). That means shrinking each later payment by a rate, called discounting. Which rate does Damodaran's approach use?
     choices:
       - { id: a, text: "The firm's pre-tax cost of debt" }
-      - { id: b, text: "The firm's cost of equity" }
-      - { id: c, text: "Zero, because the payments are certain" }
-      - { id: d, text: "The firm's after-tax return on equity" }
+      - { id: b, text: "The firm's cost of equity", mistake: { tag: equity-rate, fix: "These are fixed claims like borrowing, so the borrowing rate fits, not the owners' required return." } }
+      - { id: c, text: "Zero, because the payments are certain", mistake: { tag: ignores-time, fix: "Certain payments still arrive later, and money later is worth less than money now." } }
+      - { id: d, text: "The firm's after-tax return on equity", mistake: { tag: return-not-rate, fix: "A return on equity measures profit; the commitments are pre-tax claims, discounted at the pre-tax borrowing rate." } }
     answer: a
     explanation: >
       The commitments are fixed, pre-tax claims that rank like unsecured borrowing, so they are discounted at the pre-tax cost of debt and the result is treated as debt.
@@ -132,9 +132,9 @@ questions:
       Some of Anthropic's contracts run a few years and some run up to 20. Picture two of them, each adding up to $100 billion on paper, paid in equal yearly amounts: one over 3 years, the other over 20. Shrinking each payment to its worth today at the same rate gives each one's 'present value'. Which is worth less today?
     choices:
       - { id: a, text: "The 20-year obligation" }
-      - { id: b, text: "The 3-year obligation" }
-      - { id: c, text: "They are equal, because the totals are equal" }
-      - { id: d, text: "It cannot be said without knowing the company's profit" }
+      - { id: b, text: "The 3-year obligation", mistake: { tag: reverses-discounting, fix: "The 3-year payments arrive sooner, so they are shrunk less and are worth more today." } }
+      - { id: c, text: "They are equal, because the totals are equal", mistake: { tag: headline-figure, fix: "Equal totals on paper are not equal today; payments further away are discounted more." } }
+      - { id: d, text: "It cannot be said without knowing the company's profit", mistake: { tag: profit-confusion, fix: "Worth today depends on payment dates and the rate, not on profit." } }
     answer: a
     explanation: >
       Payments spread over more years are on average further away, so more of them are discounted heavily. The same undiscounted total is worth less today when it is paid over 20 years.
@@ -146,9 +146,9 @@ questions:
       Anthropic leases equipment from Broadcom. An analyst counts a firm's lease payments as debt, at their worth today (their 'present value'). The balance sheet must still balance. What appears on the other side?
     choices:
       - { id: a, text: "An asset of the same value is recognised" }
-      - { id: b, text: "Equity falls by the same amount" }
-      - { id: c, text: "Nothing, because debt can be added alone" }
-      - { id: d, text: "Cash rises by the same amount" }
+      - { id: b, text: "Equity falls by the same amount", mistake: { tag: equity-hit, fix: "Counting the lease as debt adds the right to use the asset; the owners lose nothing." } }
+      - { id: c, text: "Nothing, because debt can be added alone", mistake: { tag: one-sided-entry, fix: "A balance sheet always balances, so the new debt needs a matching asset." } }
+      - { id: d, text: "Cash rises by the same amount", mistake: { tag: cash-confusion, fix: "No cash was borrowed; the firm gained the right to use the leased equipment." } }
     answer: a
     explanation: >
       The right to use the leased asset is worth what the commitments are worth, so the debt is matched by an asset of exactly the same value.
