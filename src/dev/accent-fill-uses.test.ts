@@ -66,8 +66,18 @@ const INVENTORY: Record<string, Use> = {
   "src/widgets/primitives/wave3/two-paths.tsx": { uses: 4, verdict: "decorative", why: "Both paths are sunflower, so the colour tells nothing apart; names, choices and outcome lines are text" },
 };
 
-const FILL = /var\(--(mint|coral|sun|violet|you-line|src-line)\)/g;
+// A fill is painted three ways: var(--mint) (also inside bg-[var(--mint)]); the bg-(--mint) shorthand; or a Tailwind 4
+// utility named after the --color-* mapping in globals.css (bg-mint, border-t-sun, hover:fill-coral/40, from-violet, …). A
+// name that runs on (mint-ink, sun-tag, coral-tint) is another token, not a fill.
+const NAMES = "(?:mint|coral|sun|violet|you-line|src-line)";
+const UTILITY = "(?:bg|text|fill|stroke|ring|ring-offset|inset-ring|outline|border(?:-[xytrblse])?|divide|from|via|to|decoration|shadow|inset-shadow|accent|caret|placeholder)";
+const FILL = new RegExp(`(?:var)?\\(--${NAMES}\\)|(?<![\\w-])${UTILITY}-${NAMES}(?![\\w-])`, "g");
 const SRC = join(process.cwd(), "src");
+
+/** How many times `text` paints an accent fill. */
+function fillUses(text: string): number {
+  return text.match(FILL)?.length ?? 0;
+}
 
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -81,13 +91,22 @@ function sources(dir: string): string[] {
 function found(): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const file of sources(SRC)) {
-    const n = readFileSync(file, "utf8").match(FILL)?.length ?? 0;
+    const n = fillUses(readFileSync(file, "utf8"));
     if (n) counts[relative(process.cwd(), file)] = n;
   }
   return counts;
 }
 
 describe("accent fills and the 3:1 rule", () => {
+  // Issue #457, review T1: Tailwind 4 utilities and the bg-(--token) shorthand paint the same fills as var(--token).
+  it("counts a fill however it is written: var(), a Tailwind utility, or the (--token) shorthand", () => {
+    expect(fillUses('<span className="h-2 w-2 rounded-full bg-coral" />')).toBe(1);
+    expect(fillUses('className="border-l-4 border-you-line hover:bg-src-line/40 fill-mint stroke-violet ring-sun outline-coral"')).toBe(6);
+    expect(fillUses('className="from-mint via-sun to-coral decoration-violet border-t-sun text-violet"')).toBe(6);
+    expect(fillUses('className="bg-(--mint) bg-[var(--coral)]" style={{ color: "var(--sun)" }}')).toBe(3);
+    expect(fillUses('className="bg-mint-tint text-coral-ink border-sun-tag bg-(--violet-ink) var(--mint-ink) bg-you"')).toBe(0);
+  });
+
   it("has a verdict for every accent fill in src", () => {
     const expected = Object.fromEntries(Object.entries(INVENTORY).map(([file, use]) => [file, use.uses]));
     expect(found()).toEqual(expected);
