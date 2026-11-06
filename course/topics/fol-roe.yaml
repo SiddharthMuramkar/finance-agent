@@ -72,71 +72,71 @@ youllLearn:
 questions:
   - id: fr-q-roe-excess
     prompt: >
-      Damodaran's post gives a quick test of a business: set what it earns on its book equity against what investors could expect elsewhere at the same risk. Picture a company earning 15% when investors expect 12%. What does the gap, its "excess return", tell you about it?
+      18 February 2025: Damodaran grades a business by its "excess return", what it earns on book equity beyond what investors expect. Your uncle's firm earns 15% when investors expect 12%. What's the verdict?
     choices:
-      - { id: a, text: "It earns more on its book equity than investors could expect elsewhere, so the business looks like a good one" }
-      - { id: b, text: "It earns less than investors expect, so it is destroying value", mistake: { tag: gap_sign, fix: "The company's 15% is above the 12%, so the gap is in its favour." } }
-      - { id: c, text: "It earns just what investors expect, so its excess return is zero", mistake: { tag: ignored_gap, fix: "The 15% is above the 12%, so the excess return is not zero." } }
-      - { id: d, text: "Its excess return is the whole of its return on equity", mistake: { tag: excess_is_roe, fix: "Excess return is what is left after taking off what investors expect." } }
+      - { id: a, text: "A good business: it beats what investors could get elsewhere" }
+      - { id: b, text: "A value destroyer: it falls short of what investors expect", mistake: { tag: gap_sign, fix: "The firm's 15% is above the 12% investors expect, so the gap runs in its favour." } }
+      - { id: c, text: "Just average: its excess return is zero", mistake: { tag: ignored_gap, fix: "Zero would mean it earns exactly what investors expect. It earns more." } }
+      - { id: d, text: "Its excess return is the whole 15%", mistake: { tag: excess_is_roe, fix: "Excess return is only what is left once investors' expected return is taken off." } }
     answer: a
     explanation: >
-      Excess return is what the business earns on its book equity above what investors expect from other investments of the same risk. Here it earns more than they expect, so the gap is in its favour.
+      Excess return is what a business earns on its book equity above what investors expect from other investments of the same risk. Your uncle's firm earns more than that, so the gap is in its favour: on this test it is a good business.
     source: >
       Arithmetic on the definitions in Damodaran, "Return on Equity, Earnings Yield and Market
       Efficiency: Back to Basics!", Musings on Markets, 18 February 2025.
   - id: fr-q-fair-value
     prompt: >
-      Picture a good business, frozen in time: the same profit every year for ever, no growth, and more than its investors require on the money put into it (its book equity). If the market prices it fairly, where does its price sit against its book value?
+      Damodaran's February 2025 toy firm earns the same profit every year for ever, more than investors require on the money put in (its book equity). Your cousin asks: priced fairly, where does it trade?
     choices:
-      - { id: a, text: "Above book value, because the business earns more than investors require on the money put in" }
-      - { id: b, text: "Equal to book value, because a fair price is always the money put in", mistake: { tag: price_equals_book, fix: "A fair price depends on what the business earns, not only on what was put in." } }
-      - { id: c, text: "Below book value, because a business with no growth is worth less than was put in", mistake: { tag: no_growth_discount, fix: "Earning above the required return makes it worth more than was put in, growth or not." } }
-      - { id: d, text: "Far below book value, because one year's income is small", mistake: { tag: one_year_only, fix: "The income repeats for ever, so the value counts many years of it." } }
+      - { id: a, text: "Above book value: it earns more than investors require on that money" }
+      - { id: b, text: "Exactly at book value: a fair price is the money put in", mistake: { tag: price_equals_book, fix: "A fair price follows what the business earns, not only what was put in." } }
+      - { id: c, text: "Below book value: a business with no growth is worth less", mistake: { tag: no_growth_discount, fix: "Earning above the required return makes it worth more than was put in, growth or not." } }
+      - { id: d, text: "Far below book value: one year's profit is small", mistake: { tag: one_year_only, fix: "The profit repeats every year for ever, so the price counts all those years." } }
     answer: a
     explanation: >
-      A business that earns more than investors require is worth more than the capital put in, so a fair price sits above book value. With steady income for ever, the price comes from what that income is worth to investors, not from the money invested.
+      A business that earns more than investors require is worth more than the capital put in, so a fair price sits above book value. With steady profit for ever, the price comes from what that profit is worth to investors, not from the money invested.
     source: >
       Perpetuity value = income / required return, as applied in Damodaran, "Return on Equity,
       Earnings Yield and Market Efficiency: Back to Basics!", 18 February 2025.
   - id: fr-q-yield
     prompt: >
-      Damodaran complains that people use "return on equity" and "earnings yield" as if they were one number. A company's shares trade for far more than the equity on its books, and a commentator quotes its earnings yield. What should the headline say that figure measures?
+      At dinner in February 2025, your aunt calls a share's "earnings yield" its return on equity. Damodaran's post says those are two different numbers. What does the earnings yield set profit against?
     choices:
-      - { id: a, text: "\"Net income set against book equity\"", mistake: { tag: roe_for_yield, fix: "That is return on equity, which uses book value. Earnings yield uses market value." } }
-      - { id: b, text: "\"Net income set against what the market values the equity at\"" }
-      - { id: c, text: "\"Net income set against the average of book and market values\"", mistake: { tag: averaged_values, fix: "Earnings yield uses market value alone, not an average of book and market." } }
-      - { id: d, text: "\"The gap between market value and book value\"", mistake: { tag: wrong_base, fix: "Earnings yield compares income with price. The gap between book and market is a different matter." } }
+      - { id: a, text: "The equity on the company's books", mistake: { tag: roe_for_yield, fix: "That is return on equity, which uses book value. Earnings yield uses the market price." } }
+      - { id: b, text: "What the market prices the company's shares at" }
+      - { id: c, text: "An average of book value and market price", mistake: { tag: averaged_values, fix: "Earnings yield uses the market price alone, not a blend with book value." } }
+      - { id: d, text: "The gap between market price and book value", mistake: { tag: wrong_base, fix: "Earnings yield compares profit with price. The gap between price and book is another idea." } }
     answer: b
     explanation: >
-      Earnings yield sets net income against the market value of equity, the price. Return on equity sets it against book equity. People who use the two names for one number are mixing book and market value; when the price is far above book, the two figures are far apart.
+      Earnings yield sets profit against the market value of the equity, its price. Return on equity sets it against book equity, what was paid in. Your aunt is mixing book and market value; when the price is far above book, the two figures are far apart.
     source: >
       Definitions in Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to
       Basics!", 18 February 2025 (earnings to price ratio, return on equity).
   - id: fr-q-research
     prompt: >
-      Damodaran tells of a business that spends half its start-up money on research and development (R&D), which accountants expense at once, and half on assets that stay on its books as equity. From then on it earns steady profit. How does its reported return on equity compare with what the owners really earn on everything they put in?
+      Damodaran's February 2025 warning: accountants expense research spending at once, so it never reaches book equity. Your friend's start-up puts half its money into research. Which headline about its return on equity is right?
     choices:
-      - { id: a, text: "The two look the same, because accounting does not change what a business earns", mistake: { tag: accounting_neutral, fix: "Accounting decides what counts as equity, so it changes the ratio." } }
-      - { id: b, text: "The reported return looks much higher, because the expensed research never reached book equity" }
-      - { id: c, text: "The reported return looks lower, because expensing research is a cost to income", mistake: { tag: expense_lowers, fix: "The expense hit year one only. Later income is unaffected and book equity is smaller." } }
-      - { id: d, text: "The reported return is wrong only by a rounding error", mistake: { tag: rounding_only, fix: "Half the money invested is missing from book equity. That is a large gap, not a rounding." } }
+      - { id: a, text: "\"Return on equity spot on: accounting can't change what a firm earns\"", mistake: { tag: accounting_neutral, fix: "Accounting decides what counts as equity, so it changes the ratio." } }
+      - { id: b, text: "\"Return on equity flatters it: the research never reached the books\"" }
+      - { id: c, text: "\"Return on equity looks too low: research is a cost\"", mistake: { tag: expense_lowers, fix: "The research cost hit year one only. Later profit is untouched, and book equity is smaller." } }
+      - { id: d, text: "\"Return on equity off by a rounding error, nothing more\"", mistake: { tag: rounding_only, fix: "Half the money put in is missing from book equity. That is a big gap, not rounding." } }
     answer: b
     explanation: >
-      Expensing the R&D leaves it out of book equity, so the reported return divides profit by a smaller base than the owners actually paid in. The accounting return overstates what the owners earn on what they put in.
+      Expensing the research leaves it out of book equity, so the reported return divides profit by a smaller base than the owners actually paid in. The accounting return overstates what the owners earn on what they put in.
     source: >
       Arithmetic on the accounting-inconsistency example in Damodaran, "Return on Equity, Earnings
       Yield and Market Efficiency: Back to Basics!", 18 February 2025.
   - id: fr-q-mark-to-market
     prompt: >
-      Damodaran asks what would happen if accountants marked every company's books to market value. Take a company with steady income for ever whose old book equity is higher than the business is now worth, so its return on equity looks poor. Once restated, its book equity is simply the value of the business. What becomes of its return on equity?
+      In February 2025 Damodaran imagines every company's books "marked to market": restated each year at what the business is now worth. Your uncle ranks firms by return on equity. What happens to his ranking?
     choices:
-      - { id: a, text: "It stays where it was", mistake: { tag: old_book_value, fix: "Book equity changes to the new value, so the return on equity changes too." } }
-      - { id: b, text: "It moves to the cost of equity, so it no longer separates good businesses from bad ones" }
-      - { id: c, text: "It rises well above the cost of equity, since the restated value is higher", mistake: { tag: market_above, fix: "Market value is what the income is worth at the cost of equity, so the two meet." } }
-      - { id: d, text: "It falls, because restating always lowers the return", mistake: { tag: restate_lowers, fix: "Here book equity falls to the true value, so the same income gives a higher return." } }
+      - { id: a, text: "Nothing: restating the books leaves return on equity alone", mistake: { tag: old_book_value, fix: "Book equity changes to the new value, so return on equity changes too." } }
+      - { id: b, text: "It stops working: every firm's return becomes the return investors require" }
+      - { id: c, text: "Good firms pull further ahead, since their restated equity is bigger", mistake: { tag: market_above, fix: "Bigger equity under the same profit lowers the return. Every firm lands on the required return." } }
+      - { id: d, text: "Every firm's return on equity falls to zero", mistake: { tag: restate_to_zero, fix: "The profit is still there. Set against fair value, it gives the required return, not zero." } }
     answer: b
     explanation: >
-      Value is what the income is worth to investors at their required return. Once book equity is restated to that value, income against book equity equals the required return. If every firm is marked to market, every firm's return on equity equals its cost of equity, which stops it separating good businesses from bad ones.
+      A business's value is what its profit is worth to investors at their required return. Restate book equity to that value and profit against book equity equals the required return. If every firm is marked to market, every firm's return on equity equals its cost of equity, so it no longer separates good businesses from bad ones.
     source: >
       Arithmetic on the fair value accounting example in Damodaran, "Return on Equity, Earnings
       Yield and Market Efficiency: Back to Basics!", 18 February 2025.
