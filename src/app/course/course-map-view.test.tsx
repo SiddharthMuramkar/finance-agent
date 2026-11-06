@@ -51,6 +51,13 @@ describe("the Course Map page", () => {
     expect(html.match(/data-recommended-next/g)).toHaveLength(1);
   });
 
+  it("lays the Recommended next card and the off-path card side by side, and marks a todo Topic with a dot, not a ring", () => {
+    const html = render();
+    expect(html).toMatch(/<div class="[^"]*md:grid-cols-2[^"]*"><div data-recommended-next/);
+    expect(html).toMatch(/data-dot="todo"[^>]*class="[^"]*bg-\[var\(--brand-line\)\]/);
+    expect(html).not.toMatch(/data-dot="todo"[^>]*border-2/);
+  });
+
   it("has no Recommended next card once every Topic is passed", () => {
     expect(render({ recommended: null })).not.toContain("data-recommended-next");
   });

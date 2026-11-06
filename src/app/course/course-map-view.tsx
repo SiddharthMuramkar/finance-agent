@@ -14,12 +14,13 @@ export type RecommendedNext = { topicId: string; label: string };
 const STAGE: Record<TopicOverview["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 const LATER_STAGES = ["follow", "judge", "analyse"] as const;
 
-/** Dot beside a Topic (spec §5.6): todo = field fill with a brand-line ring, current = brand fill, passed = brand fill with a check. */
+/** Dot beside a Topic (spec §5.6): todo = small brand-line dot, current = brand fill, passed = brand fill with a check. */
 function Dot({ topic }: { topic: TopicOverview }) {
   const state = topic.status === "passed" ? "passed" : topic.current ? "current" : "todo";
-  const look = state === "todo" ? "border-[var(--brand-line)] bg-[var(--field)]" : "border-[var(--brand)] bg-[var(--brand)]";
+  // A todo Topic is a small solid dot, not an empty ring, so the marker never reads as a radio button or checkbox.
+  const look = state === "todo" ? "m-[5px] mt-[9px] h-1.5 w-1.5 bg-[var(--brand-line)]" : "mt-1 h-4 w-4 border-2 border-[var(--brand)] bg-[var(--brand)]";
   return (
-    <span aria-hidden data-dot={state} className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${look}`}>
+    <span aria-hidden data-dot={state} className={`flex shrink-0 items-center justify-center self-start rounded-full ${look}`}>
       {state === "passed" && (
         <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 text-[var(--brand-ink)]" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M2.5 6.5l2.5 2.5 4.5-5" />
@@ -137,9 +138,10 @@ export function CourseMapView({
       <p data-progress-summary className="mb-6 mt-1 text-sm leading-5 text-[var(--muted)]">
         {progressSummary(topics, nextTitle)}
       </p>
+      <div className="mb-6 grid items-start gap-3 empty:hidden md:grid-cols-2">
       {recommended && (
         <div data-recommended-next>
-          <Card className="mb-6">
+          <Card>
             <Eyebrow className="mb-1">Recommended next</Eyebrow>
             {recommendedTopic && (
               <p className="mb-3 text-sm leading-5 text-[var(--muted)]">
@@ -152,13 +154,14 @@ export function CourseMapView({
         </div>
       )}
       {current && defaultTopic && !current.onDefaultPath && (
-        <Card className="mb-6 text-sm leading-5">
+        <Card className="text-sm leading-5">
           <p>
             You chose <strong>{current.title}</strong>. The default path continues with {defaultTopic.title}.
           </p>
           <BackToPathButton />
         </Card>
       )}
+      </div>
       {foundation.length > 0 && (
         <section data-stage="foundation" aria-labelledby="stage-foundation" className="mb-8">
           <h2 id="stage-foundation" className="mb-2 text-base font-semibold leading-6">
