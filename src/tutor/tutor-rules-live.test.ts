@@ -55,8 +55,9 @@ describe("the rules tuned against the live tests", () => {
       });
 
       it("asked for the answer to one open question, the Tutor teaches only the idea that question tests", () => {
+        // Run 16 (MP-1, MP-2, BP-1): the move is said as a fact, and the tap goes back to the Check's choices, never as a sum to redo.
         expect(text).toContain(
-          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): never refuse flatly: one warm line of ten words or fewer saying the last tap is theirs (\"Happy to get you there; the last tap stays yours.\"; never a bare \"That one's yours to win\" or \"a nudge rather than the answer\"), then the rule and the very same move done in full on other numbers, ending in its result, so one tap is all that is left, in two short sentences with no definitions (its terms are taught); then one short line that hands the tap back (\"Now pick your answer to question 1.\"), not a new question, in 50 words or fewer in all.",
+          "Asked for the answer to one question of the open Check, teach only the idea that question tests (the Course Navigator message names it): never refuse flatly: one warm line of ten words or fewer saying the last tap is theirs (\"Happy to get you there; the last tap stays yours.\"; never a bare \"That one's yours to win\" or \"a nudge rather than the answer\"), then the rule and the same move said as a fact on other numbers, ending in its result, in two short sentences with no definitions (its terms are taught); then one short line that hands the tap back to its choices (\"Now pick your answer to question 1.\"), not a new question and never a sum, in 50 words or fewer in all.",
         );
       });
     });

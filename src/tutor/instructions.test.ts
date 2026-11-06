@@ -117,13 +117,27 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain("That last line is a quiz question, a choice with a right answer, only when the step asks for one");
         expect(text).toContain("it is an invitation with no wrong answer");
         expect(text).toContain("never end two replies in a row on a quiz question");
-        expect(text).toContain("the very same move done in full on other numbers, ending in its result, so one tap is all that is left");
-        expect(text).toContain("When the Learner asks for the answer to anything still open");
         expect(text).toContain('Mention a Quick try, a Widget or anything "below" only when this turn\'s Course Navigator message or a tool result says code shows it now');
       });
 
+      // Run 16 (critics MP-1, MP-2, BP-1): "just tell me the answer pls" got a worked sum, then "Now do the same steps on the
+      // Quick try's numbers": arithmetic asked of a Learner who does not do sums. Asked for an answer, the Tutor gives it.
+      it("give the answer to a Quick try or a question of the Tutor's in words, then one story or lingo choice, and never ask the Learner to redo the steps (T13)", () => {
+        expect(text).not.toContain("the very same move done in full on other numbers, ending in its result, so one tap is all that is left");
+        expect(text).not.toContain("When the Learner asks for the answer to anything still open");
+        expect(text).toContain(
+          "When the Learner asks for the answer to a Quick try or to a question of yours, give it: say the answer in words as a story fact, the move and its result",
+        );
+        expect(text).toContain("then end on one story or lingo choice");
+        expect(text).toContain('Never tell the Learner to repeat the steps, work it out or "do the same on the Quick try\'s numbers": the Learner taps a choice and never does a sum.');
+        // An open Check keeps its answer back (reply check V5): the move in words, then the tap handed back to its choices.
+        expect(text).toContain("then one short line that hands the tap back to its choices");
+        expect(text).toContain('The Learner writes: "just tell me the answer pls".');
+        expect(text).toContain('A good reply:\nSure. The reporter would write "up half a percentage point": points are the gap between two rates, not where the rate ended.');
+      });
+
       it("keep a hint within 50 words (T11)", () => {
-        expect(text).toContain("not a new question, in 50 words or fewer in all");
+        expect(text).toContain("not a new question and never a sum, in 50 words or fewer in all");
       });
 
       // Run 11: with a quiz open on "which would you use to tell a friend how far the rate moved", T4's simpler reply said "Points tell you how far the rate moved".
