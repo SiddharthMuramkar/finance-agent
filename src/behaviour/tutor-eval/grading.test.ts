@@ -144,6 +144,41 @@ describe("the grader", () => {
   });
 });
 
+// Round 10 (G-T15, run 23 T15 runs 1 and 2): round 9 made the Tutor write no ask of its own when code posts a Quick try
+// after the reply (the spec: code's try is the ask), but the grader still read "it is not the Tutor's ask" and wanted one,
+// so a right reply failed. Code's try counts as the reply's one ask; the reply itself must then ask nothing; one idea stays strict.
+describe("a Quick try code posts after the reply is the reply's one ask (G-T15)", () => {
+  const TRY = 'a Quick try: "If the Fed took its 3% rate to 3.5%, a rise traders call 50 basis points, her story would say:"';
+  const noAsk = seen({ text: 'Ha, then you\'ll like this: it\'s words, not maths. "Points" is just the gap between an old rate and a new one.', widgets: [], alsoShown: [TRY] });
+  const ownAsk = seen({ text: '"Points" is just the gap between an old rate and a new one.\nWould a trader say points or basis points?', widgets: [], alsoShown: [TRY] });
+
+  it("tells the grader the try is the one ask, so a reply with no ask of its own passes and one with its own ask has two", () => {
+    const prompt = buildGraderPrompt({ stateNote: "x", message: "honestly I'm so bad at maths lol", reply: noAsk, extra: [] });
+    expect(prompt).not.toContain("it is not the Tutor's ask");
+    expect(prompt).toContain("That Quick try is the reply's one ask: the reply itself must ask nothing (no question, no task, no invitation).");
+    expect(prompt).toContain('For "exactly one idea and one ask", a reply with no ask of its own passes the ask part; a reply that also asks something has two asks, a no.');
+  });
+
+  it("keeps one idea strict: two ideas in one reply (percentage points and basis points) are a no", () => {
+    for (const reply of [noAsk, seen({ text: "Hi.", widgets: [] })]) {
+      const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply, extra: [] });
+      expect(prompt).toContain('One idea is strict: a reply that teaches two ideas (say, what percentage points are and what basis points are) is a no to "exactly one idea and one ask", whatever its ask.');
+    }
+  });
+
+  it("leaves the ask rule as it was when code posts no try", () => {
+    const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply: seen({ text: "Hi.", widgets: [] }), extra: [] });
+    expect(prompt).not.toContain("That Quick try is the reply's one ask");
+  });
+
+  it("oneAsk: with a try posted after the reply, no ask of its own passes and an ask of its own fails as two asks", () => {
+    expect(codedFailures([{ kind: "oneAsk" }], noAsk, ctx)).toEqual([]);
+    expect(codedFailures([{ kind: "oneAsk" }], ownAsk, ctx)).toEqual([expect.stringMatching(/two asks: its own \("Would a trader say points or basis points\?"\) and the Quick try code posted after it/)]);
+    // With no try, a reply still needs its own one ask.
+    expect(codedFailures([{ kind: "oneAsk" }], seen({ text: noAsk.text, widgets: [] }), ctx)[0]).toMatch(/no ask/);
+  });
+});
+
 describe("the grader prompt and Widget Guided Tasks", () => {
   const widgetReply = seen({ text: "Here.\nWhat is the move in points?", widgets: [{ kind: "recipe", id: "rate_move", labels: ["Move the new rate to 4% and read the lines again"] }], savedRule: null, parkOffer: false });
   it("tells the grader Guided Tasks are optional play, not asks, when a Widget was shown", () => {

@@ -134,6 +134,12 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
         break;
       }
       case "oneAsk": {
+        // A Quick try code posts after the reply is the reply's one ask (DA-1): the reply itself must ask nothing (round 10, G-T15).
+        if (reply.alsoShown.length) {
+          const own = ask ?? sentences(message).find((s) => s.includes("?"));
+          if (own) out.push(`The reply has two asks: its own ("${own}") and the Quick try code posted after it.`);
+          break;
+        }
         if (!ask) out.push("The reply ends with no ask: its last line neither asks nor tells the Learner what to do.");
         else if (prose(message).includes("?")) out.push(`The reply asks more than one thing: a question in the message as well as the ask ("${ask}").`);
         break;
@@ -241,7 +247,15 @@ export function buildGraderPrompt(args: { stateNote: string; message: string; re
     "",
     args.reply.widgets.length ? `Shown with the reply: ${args.reply.widgets.map(describeWidget).join("; ")}.` : "No Widget was shown with the reply.",
     // Not the Tutor's words: code shows the next Quick try below a reply, so "the try below" in a reply points at something real.
-    ...(args.reply.alsoShown.length ? [`Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): ${args.reply.alsoShown.join("; ")}.`] : []),
+    // Round 10 (G-T15): that try is the reply's one ask (DA-1), so the reply itself asks nothing; two asks stay a no.
+    ...(args.reply.alsoShown.length
+      ? [
+          `Code then showed the Learner, below the reply (the Tutor did not write it): ${args.reply.alsoShown.join("; ")}.`,
+          "That Quick try is the reply's one ask: the reply itself must ask nothing (no question, no task, no invitation).",
+          'For "exactly one idea and one ask", a reply with no ask of its own passes the ask part; a reply that also asks something has two asks, a no.',
+        ]
+      : []),
+    'One idea is strict: a reply that teaches two ideas (say, what percentage points are and what basis points are) is a no to "exactly one idea and one ask", whatever its ask.',
     ...(args.reply.widgets.length ? ["A Widget's Guided Tasks (lines such as \"Move the new rate to 4%\") are optional play the Learner may ignore. They are not asks and not extra ideas: do not count them against \"one idea and one ask\"."] : []),
     // The reply check V5 keeps an open question's numbers out of a Widget's inputs, so sliders the Learner can move are not a leak.
     ...(args.reply.widgets.length ? ["A Widget's sliders are not a leak of an open quiz answer: code's reply checks already keep the open questions' numbers out of its inputs."] : []),
