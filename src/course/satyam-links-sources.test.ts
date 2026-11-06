@@ -47,3 +47,17 @@ describe("fs-links sources and titles", () => {
     expect(doc.split("\n").filter((l) => l.includes("Satyam's reported profit and cash") && BARE_AS_OF.test(l))).toEqual([]);
   });
 });
+
+/**
+ * #497 (math-police MP1): bank question MBA-ACC-FA-0024 needs 24,000 x 8/12 and a month count to tell its choices
+ * apart, so it is not drawn into the fs-links quiz. fl-q-accrual already covers accrual.
+ */
+describe("fs-links quiz draws no arithmetic bank question", () => {
+  it("#497: fl-quiz-links leaves out bank:eab:MBA-ACC-FA-0024 and still fills an attempt", () => {
+    const topic = loadCourseMap().topics.find((t) => t.id === "fs-links");
+    const quiz = topic?.checks.find((c) => c.id === "fl-quiz-links");
+    if (quiz?.kind !== "quiz") throw new Error("fl-quiz-links is not a quiz");
+    expect(quiz.questions).not.toContain("bank:eab:MBA-ACC-FA-0024");
+    expect(quiz.questions.length).toBeGreaterThanOrEqual(quiz.perAttempt ?? 1);
+  });
+});
