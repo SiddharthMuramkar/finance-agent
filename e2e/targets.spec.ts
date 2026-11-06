@@ -56,7 +56,6 @@ test("[A3b] interactive elements without a signifier and non-interactive element
 });
 
 test("[A5] the header has a gear with the name Settings and no Settings text link", async ({ page }) => {
-  test.fail(true, "[A5] Settings is a gear icon");
   await study(page);
   const header = page.locator("header");
   await expect(header.getByRole("button", { name: "Settings", exact: true }).or(header.getByRole("link", { name: "Settings", exact: true }).filter({ has: page.locator("svg") }))).toHaveCount(1);
