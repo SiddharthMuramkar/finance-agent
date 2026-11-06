@@ -61,6 +61,32 @@ describe("the report", () => {
     expect(md).toContain("num-percent-bps has no Skill pts_to_bp yet.");
   });
 
+  // Round 10 (critic MP-3): a critic traces each number to a story fact, a choice label or a tool result, so the report keeps
+  // every tool call of every run, passed or not, and each dialogue turn's, with its inputs and result.
+  it("lists every tool call of every run and dialogue turn, with its inputs and result, passed runs too", () => {
+    const calc = { name: "calculate", input: { calculator: "cagr", inputs: { start: 100000, end: 200000, years: 5 } }, result: "CAGR: 14.87%", isError: false };
+    const withTools: EvalReport = {
+      ...report,
+      cases: [
+        { id: "T15", title: "Warm", kind: "live", status: "pass", runs: [{ ...pass(1), reply: seen({ text: "Ok.", widgets: [], tools: [calc] }) }] },
+        {
+          id: "T13",
+          title: "No sum",
+          kind: "dialogue",
+          status: "pass",
+          runs: [{ ...pass(1), transcript: [{ learner: "hi", reply: seen({ text: "Hi.", widgets: [] }) }, { learner: "my dad keeps saying CAGR", reply: seen({ text: "CAGR is...", widgets: [], tools: [calc] }) }] }],
+          bar: { runs: 1, passes: 1 },
+        },
+      ],
+    };
+    const md = renderReport(withTools);
+    const tools = md.slice(md.indexOf("## Tool calls"));
+    expect(tools).toContain('- T15, run 1: calculate {"calculator":"cagr","inputs":{"start":100000,"end":200000,"years":5}} returned: CAGR: 14.87%');
+    expect(tools).toContain('- T13, run 1, turn 2 ("my dad keeps saying CAGR"): calculate {"calculator":"cagr","inputs":{"start":100000,"end":200000,"years":5}} returned: CAGR: 14.87%');
+    expect(tools).not.toContain("turn 1");
+    expect(renderReport(report)).toMatch(/## Tool calls\n\nNone\./);
+  });
+
   it("keeps a short summary for the job and the PR, and names every file", () => {
     const summary = renderSummary(report);
     expect(summary).toMatch(/1 of 3 cases passed/);

@@ -4,7 +4,7 @@
  * the files written to evidence/tutor-eval/.
  */
 import type { ReplyProblem } from "@/tutor/reply-checks";
-import type { Grade, SeenReply } from "./grading";
+import type { Grade, SeenReply, SeenTool } from "./grading";
 
 export const RUNS_PER_CASE = 3;
 
@@ -96,8 +96,12 @@ function runDetail(c: CaseResult, run: RunResult): string[] {
     if (run.reply.fixed.length) out.push("", `Code fixed before showing: ${run.reply.fixed.join(", ")}.`);
     out.push("", run.reply.widgets.length ? `Widgets: ${run.reply.widgets.map((w) => `${w.id}${w.params ? ` ${JSON.stringify(w.params)}` : ""}`).join("; ")}.` : "Widgets: none.");
     if (run.reply.savedRule) out.push(`Saved rule: "${run.reply.savedRule}".`);
+    if (run.reply.tools?.length) out.push(`Tools: ${run.reply.tools.map(toolLine).join("; ")}.`);
   }
-  for (const [i, t] of (run.transcript ?? []).entries()) out.push("", `Turn ${i + 1}. Learner: "${t.learner}"`, "", quote(t.reply.text || "(empty)"));
+  for (const [i, t] of (run.transcript ?? []).entries()) {
+    out.push("", `Turn ${i + 1}. Learner: "${t.learner}"`, "", quote(t.reply.text || "(empty)"));
+    if (t.reply.tools?.length) out.push("", `Tools: ${t.reply.tools.map(toolLine).join("; ")}.`);
+  }
   if (run.grade && run.grade.ok) out.push("", `Grader: ${run.grade.answers.map((a) => `${a.n} ${a.yes ? "yes" : "no"}${a.why ? ` (${a.why})` : ""}`).join("; ")}.`);
   if (run.grade && !run.grade.ok) out.push("", "The grader wrote:", "", quote(run.grade.text || "(nothing)"));
   if (run.note) out.push("", run.note);
@@ -105,7 +109,24 @@ function runDetail(c: CaseResult, run: RunResult): string[] {
   return out;
 }
 
-/** The full report: the run's settings and spend, a table of cases, then every failed or skipped run in full. */
+/** A tool call in one line: its name, its inputs as JSON, and what came back. */
+const toolLine = (t: SeenTool) => `${t.name} ${JSON.stringify(t.input ?? {})} ${t.isError ? "failed" : "returned"}: ${t.result.replace(/\s+/g, " ").trim() || "(nothing)"}`;
+
+/**
+ * Every tool call of every run, passed or not, and of every dialogue turn (round 10, critic MP-3): the critics trace each
+ * number in a reply to a story fact, a choice label or one of these results.
+ */
+function toolCalls(r: EvalReport): string[] {
+  const lines = r.cases.flatMap((c) =>
+    c.runs.flatMap((run) => [
+      ...(run.reply?.tools ?? []).map((t) => `- ${c.id}, run ${run.run}: ${toolLine(t)}`),
+      ...(run.transcript ?? []).flatMap((turn, i) => (turn.reply.tools ?? []).map((t) => `- ${c.id}, run ${run.run}, turn ${i + 1} ("${turn.learner}"): ${toolLine(t)}`)),
+    ]),
+  );
+  return ["## Tool calls", "", ...(lines.length ? lines : ["None."]), ""];
+}
+
+/** The full report: the run's settings and spend, a table of cases, then every failed or skipped run in full, then every tool call. */
 export function renderReport(r: EvalReport): string {
   const pending = r.cases.filter((c) => c.status === "pending");
   const failed = r.cases.flatMap((c) => c.runs.filter((run) => run.status !== "pass").map((run) => [c, run] as const));
@@ -120,6 +141,7 @@ export function renderReport(r: EvalReport): string {
     "## Failures",
     "",
     ...(failed.length ? failed.flatMap(([c, run]) => runDetail(c, run)) : ["None.", ""]),
+    ...toolCalls(r),
   ].join("\n");
 }
 

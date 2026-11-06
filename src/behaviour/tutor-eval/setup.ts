@@ -12,7 +12,7 @@ import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
 import { choicesFor, type DrawnItem, type FixedItem } from "@/teaching";
 import { choiceForTyped } from "@/teaching/typed-to-choice";
 import { questionLookup } from "@/bank/lookup";
-import { insightAttempts, noteItems, quizAttempts, sessionItems, settings, toolCalls, turns } from "@/db/schema";
+import { insightAttempts, messages, noteItems, quizAttempts, sessionItems, settings, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { freshToolsLearner } from "@/dev/tools-learner";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveJump } from "@/learner/memory";
@@ -31,7 +31,7 @@ import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { recipeById } from "@/widgets/recipes";
 import type { LiveCase } from "./case";
-import { seen, type SeenChoice, type SeenReply, type SeenWidget } from "./grading";
+import { seen, type SeenChoice, type SeenReply, type SeenTool, type SeenWidget } from "./grading";
 
 /** What placing a Learner needs from a case: a live case, or a dialogue (which has no answer). */
 export type Placed = Pick<LiveCase, "id" | "topic" | "state" | "pending"> & { answer?: LiveCase["answer"] };
@@ -246,6 +246,35 @@ async function tutorStored(db: Db, sessionId: number, turnSeq: number): Promise<
   return { shown: new Set(calls.filter((c) => c.name === "show_widget" || c.name === "compose_widget").map((c) => c.id)), opened: calls.some((c) => c.name === "open_widget") };
 }
 
+/** A tool result's text as code sent it back: a string, or the text of its blocks. Long results are cut, since a critic needs only the figures. */
+function resultText(content: unknown): string {
+  const text = typeof content === "string" ? content : Array.isArray(content) ? content.map((b) => (b?.type === "text" ? String(b.text) : "")).join("\n") : "";
+  return text.length > 1200 ? `${text.slice(0, 1200)}…` : text;
+}
+
+/**
+ * Every tool call the Tutor made in one turn, in order, from the Session's stored messages (round 10, critic MP-3): the
+ * turn's rows run from its turn seq up to the next turn's. A server tool (code execution) is listed with its result block.
+ */
+async function turnTools(db: Db, sessionId: number, turnSeq: number): Promise<SeenTool[]> {
+  const [next] = await db
+    .select({ seq: turns.turnSeq })
+    .from(turns)
+    .where(and(eq(turns.sessionId, sessionId), gt(turns.turnSeq, turnSeq)))
+    .orderBy(turns.turnSeq)
+    .limit(1);
+  const rows = await db.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, sessionId)).orderBy(messages.seq);
+  const blocks = rows.filter((r) => r.seq >= turnSeq && (next?.seq == null || r.seq < next.seq)).flatMap((r) => (Array.isArray(r.content) ? (r.content as Record<string, unknown>[]) : []));
+  const results = new Map(
+    blocks.flatMap((b) => (typeof b.tool_use_id === "string" && /tool_result$/.test(String(b.type)) ? [[b.tool_use_id, b] as const] : [])),
+  );
+  return blocks.flatMap((b): SeenTool[] => {
+    if (b.type !== "tool_use" && b.type !== "server_tool_use") return [];
+    const r = results.get(String(b.id));
+    return [{ name: String(b.name), input: b.input, result: r ? resultText(r.content) : "", isError: r?.is_error === true }];
+  });
+}
+
 /**
  * The reply of one finished turn as the Learner sees it: the text, the Widgets it opened, showed or drew, the
  * rule a tool saved to the Topic Note during the turn (a note that is not a saved reply or Widget), and any park
@@ -278,7 +307,7 @@ export async function seenReply(db: Db, args: { learnerId: number; topic: Topic;
   const alsoShown = items.flatMap((i): string[] => (i.kind === QUICK_TRY ? [`a Quick try: "${askOf(i.data as unknown as QuickTryData)}"`] : []));
   // The Choices code stored under this reply (D3a): the turn's last reply_choices item.
   const choices = ((items.filter((i) => i.kind === REPLY_CHOICES).at(-1)?.data as ReplyChoicesData | undefined)?.choices ?? []) as SeenChoice[];
-  return seen({ text: args.text, widgets, savedRule: rule, parkOffer, alsoShown, choices });
+  return seen({ text: args.text, widgets, savedRule: rule, parkOffer, alsoShown, choices, tools: await turnTools(db, args.sessionId, args.turnSeq) });
 }
 
 /**

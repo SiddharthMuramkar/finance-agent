@@ -3,6 +3,7 @@ import { oldPercentOnly } from "@/test/old-percent-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { Budget } from "./budget";
+import { seen } from "./grading";
 import { CASES_DIR, loadCases, type EvalCase } from "./case";
 import type { EvalReport } from "./report";
 import type { SuiteDeps } from "./run-suite";
@@ -143,7 +144,7 @@ describe("a sweep", () => {
   // Round 10 (F2-sweep): the sweep loads the T13 dialogue (one run of 20 turns) but counted three runs for every case and
   // turns only from live cases, so runsTotal was 2 too high and the cost per turn left out the dialogue's 20 turns.
   it("counts a dialogue's one run and every one of its turns", () => {
-    const reply = { text: "x", raw: "x", fixed: [], widgets: [], savedRule: null, parkOffer: false, alsoShown: [], choices: [] };
+    const reply = seen({ text: "x", widgets: [] });
     const report: EvalReport = {
       startedAt: "2026-11-06T10:00:00.000Z",
       finishedAt: "2026-11-06T10:05:00.000Z",

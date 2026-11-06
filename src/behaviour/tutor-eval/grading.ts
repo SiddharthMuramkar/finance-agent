@@ -27,6 +27,12 @@ export const RUBRIC = [
  */
 export type SeenWidget = ReplyWidget & { labels: string[]; byCode?: boolean };
 
+/**
+ * One tool call the Tutor made in the turn: its name, its inputs and what code sent back (round 10, critic MP-3), so a critic
+ * can trace a number in the reply to a calculate() result rather than guess whether the Tutor made it up.
+ */
+export type SeenTool = { name: string; input: unknown; result: string; isError: boolean };
+
 /** One reply as the Learner sees it: after `fixReply`, with what code fixed noted, its Widgets, its saved rule and any park offer. */
 export type SeenReply = {
   text: string;
@@ -41,18 +47,20 @@ export type SeenReply = {
   alsoShown: string[];
   /** The Choices code stored under the reply in the same turn (a reply_choices item), or none. */
   choices: SeenChoice[];
+  /** The Tutor's tool calls in the turn, in order. Not what the Learner sees: what the critics trace numbers to. */
+  tools: SeenTool[];
 };
 
 const BOLD = /\*\*(?=\S)[\s\S]*?\S\*\*|__(?=\S)[\s\S]*?\S__/g;
 
 /** The reply as the Learner sees it, from the turn's raw text and what it showed and saved. */
-export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[]; choices?: SeenChoice[] }): SeenReply {
+export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[]; choices?: SeenChoice[]; tools?: SeenTool[] }): SeenReply {
   const draft = fixReply({ text: r.text, widgets: r.widgets, savedRule: r.savedRule ?? null });
   const fixed: string[] = [];
   if (/^[ \t]*#{1,6}[ \t]+/m.test(r.text)) fixed.push("headings");
   if (/[\p{Extended_Pictographic}➜➔➡→⇒]/u.test(r.text)) fixed.push("emoji or arrows");
   if ((r.text.match(BOLD)?.length ?? 0) > 1) fixed.push("extra bold");
-  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [], choices: r.choices ?? [] };
+  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [], choices: r.choices ?? [], tools: r.tools ?? [] };
 }
 
 const FENCE = /```[^\n]*\n[\s\S]*?(?:\n```|$)/g;
