@@ -68,32 +68,33 @@ questions:
 
   - id: fd-q-ratio
     prompt: >
-      A country's government debt is Rs 800 lakh crore and its GDP is Rs 1,000 lakh crore. If next year the
-      debt is unchanged and GDP rises to Rs 1,100 lakh crore, what is the debt-to-GDP ratio?
+      For one year a government borrows nothing new, so its debt stays put, while the country's economy
+      grows by about a tenth. Which headline gets the debt-to-GDP ratio right?
     choices:
-      - { id: a, text: "80%" }
-      - { id: b, text: "About 73%" }
-      - { id: c, text: "About 88%" }
-      - { id: d, text: "110%" }
-    answer: b
+      - { id: a, text: "'Debt burden grows as the economy gets bigger'", mistake: { tag: flipped_the_ratio, fix: "GDP is the bottom of the ratio, so a bigger economy makes the ratio smaller." } }
+      - { id: b, text: "'Debt burden unchanged: the debt did not move'", mistake: { tag: forgot_gdp_is_in_it, fix: "The ratio divides debt by GDP, so a change in GDP moves it." } }
+      - { id: c, text: "'Debt burden eases as the economy outgrows it'" }
+      - { id: d, text: "'No comparison: the ratio looks only at debt'", mistake: { tag: forgot_gdp_is_in_it, fix: "The ratio is debt measured against GDP, so GDP matters." } }
+    answer: c
     explanation: >
-      Start: 800 / 1,000 = 80 per cent. After: 800 / 1,100 = 72.7 per cent, about 73. The ratio falls
-      because GDP grew while the debt did not.
+      The ratio compares what the government owes with the size of the whole economy. If the debt stays put
+      and the economy grows, the same debt is a smaller share of a bigger economy, so the ratio falls.
     source: >
       OpenStax, Principles of Macroeconomics 3e (CC BY 4.0), 17.3 Federal Deficits and the National Debt: https://openstax.org/books/principles-macroeconomics-3e/pages/17-3-federal-deficits-and-the-national-debt
-
   - id: fd-q-ratio-with-deficit
     prompt: >
-      A government runs a deficit of Rs 40 lakh crore on a debt of Rs 800 lakh crore, with GDP of Rs 1,000 lakh
-      crore. Next year GDP is Rs 1,100 lakh crore. What happens to the debt-to-GDP ratio?
+      A government runs a small deficit every year, so its debt keeps creeping up. Its economy, though, grows
+      much faster than the debt does. Which headline gets it right?
     choices:
-      - { id: a, text: "It rises, because the debt grew" }
-      - { id: b, text: "It falls from 80% to about 76%, because GDP grew faster than the debt" }
-      - { id: c, text: "It stays at 80%" }
+      - { id: a, text: "'Ratio must rise: the debt grew'", mistake: { tag: looked_only_at_debt, fix: "The ratio compares debt with GDP; if GDP grows faster, the ratio falls." } }
+      - { id: b, text: "'Debt grows, yet the debt-to-GDP ratio falls'" }
+      - { id: c, text: "'Ratio stays put: both of them grew'", mistake: { tag: thought_growth_cancels, fix: "Both grew, but GDP grew faster, so the bottom of the ratio grew more." } }
+      - { id: d, text: "'Any deficit means the country is going broke'", mistake: { tag: deficit_means_default, fix: "A deficit is one year's borrowing; a fast-growing country can still shrink its debt burden." } }
     answer: b
     explanation: >
-      New debt = 800 + 40 = 840. The ratio is 840 / 1,100 = 76.4 per cent, down from 80. A country can run a
-      deficit and still see its ratio fall if its economy grows faster than its debt.
+      A deficit adds to the debt, but the ratio compares that debt with the size of the economy. When the
+      economy grows faster than the debt, the debt becomes a smaller share of it, so a country can run a
+      deficit and still see its ratio fall.
     source: >
       OpenStax, Principles of Economics 3e (CC BY 4.0), Answer Key Chapter 30: https://openstax.org/books/principles-economics-3e/pages/chapter-30
 

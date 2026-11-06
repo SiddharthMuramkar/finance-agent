@@ -4,7 +4,7 @@ import nextTs from "eslint-config-next/typescript";
 
 /**
  * Files that may still hold a raw <button>. It can only shrink (src/app/primitives/lint.test.ts pins it):
- * the 9 Widget files migrate in E2a/E5, the 12 src/app files are emptied by the A3b sweep.
+ * the 9 Widget files migrate in E2a/E5; the src/app side was emptied by the A3b sweep.
  */
 export const RAW_BUTTON_ALLOWLIST = [
   "src/widgets/library.tsx",
@@ -16,18 +16,6 @@ export const RAW_BUTTON_ALLOWLIST = [
   "src/widgets/primitives/wave2/draw-the-line.tsx",
   "src/widgets/primitives/wave2/rank.tsx",
   "src/widgets/primitives/wave2/rate-move.tsx",
-  "src/app/_landing/landing.tsx",
-  "src/app/course/course-map-view.tsx",
-  "src/app/login/passcode-field.tsx",
-  "src/app/notes/own-lines.tsx",
-  "src/app/notes/saved-items.tsx",
-  "src/app/notes/undo.tsx",
-  "src/app/park-offer-view.tsx",
-  "src/app/past-sessions.tsx",
-  "src/app/quick-try-view.tsx",
-  "src/app/session-item-view.tsx",
-  "src/app/theme-menu.tsx",
-  "src/app/workspace-parts.tsx",
 ];
 
 const RAW_BUTTON_MESSAGE = "Use Button, IconButton or Chip from src/app/primitives";

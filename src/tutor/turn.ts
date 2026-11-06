@@ -61,6 +61,7 @@ import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetRep
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
+import { pressedChoiceWords, storeReplyChoices } from "./reply-choices";
 import { lastStepNumber, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 
 /**
@@ -170,6 +171,8 @@ export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | { type: "turn_s
 export const NO_QUICK_TRY_FOLLOW_UP = "There is no Quick try answer to go over.";
 /** A drill turn when no parked Skill of the current Topic is due. */
 export const NO_DRILL = "There is no drill due in this Topic.";
+/** Said when a Choice pressed is no longer under the latest reply (another tab moved on). */
+export const NO_SUCH_CHOICE = "That choice is no longer on offer. Pick one under the latest reply, or type a message.";
 
 export const CUT_SHORT_MESSAGE ="The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
@@ -216,6 +219,8 @@ export type TurnInput =
   | { drill: true }
   | { widgetReport: string }
   | { resume: true }
+  /** A press of one of the Choices under the latest reply, by its index: the server posts its stored words as a chip turn. */
+  | { choice: number }
   | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
@@ -374,6 +379,14 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       return;
     }
     started = DRILL_NOTE;
+  } else if (typeof input === "object" && "choice" in input) {
+    // A Choice press posts the words stored with the latest reply's Choices as the Learner's message: a chip turn.
+    const says = await pressedChoiceWords(db, deps.map ?? loadCourseMap(), learnerId, input.choice);
+    if (says === null) {
+      yield { type: "not_allowed", message: NO_SUCH_CHOICE };
+      return;
+    }
+    started = says;
   } else if (!resuming) started = learnerTextOf(input);
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) {
@@ -924,7 +937,7 @@ async function* runLockedTurn(
     const card = await cardFallback(db, map, learnerId, passedTopic ? null : placeNow);
     rejectReplyRows();
     // A Widget that failed its checks never shows in the fallback.
-    const shown = card ? card.text : trimmedFallback(text, gateFacts.cap, problems.some((p) => p.rule === "V4"));
+    const shown = card ? card.text : trimmedFallback(text, gateFacts.cap, problems.some((p) => p.rule === "V4"), problems.some((p) => p.rule === "V8"));
     await log.append({ role: "assistant", content: [{ type: "text", text: shown }] });
     const out: TurnEvent[] = [];
     for (const item of card?.items ?? []) {
@@ -1004,6 +1017,19 @@ async function* runLockedTurn(
   }
   yield* toSend;
 
+  // Two or three Choices under every checked reply (ADR 0010), stored after it. None once the Topic is passed (in an
+  // earlier turn or this one: its Topic complete card offers what comes next), or after a Stop (the page then shows
+  // code's own set).
+  let droppedChoice: string | null = null;
+  const stored =
+    !passedTopic && stopReason !== "stopped"
+      ? await storeReplyChoices(db, map, { learnerId, sessionId: session.id, topicId: session.topicId, turnSeq, input: turn.input, rows: log.rows, now: now() })
+      : null;
+  if (stored) {
+    droppedChoice = stored.dropped;
+    yield { type: "item", item: stored.item };
+  }
+
   // The record of the checks: what failed and why, the retry, the fallback, and the rows the Learner never saw.
   const seen = replyTextAfter(withoutRejected(log.rows, rejected), turnSeq);
   const record = {
@@ -1050,7 +1076,9 @@ async function* runLockedTurn(
   // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
   const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());
   if (passedCard) yield { type: "item", item: passedCard };
-  const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now(), summaryOf(record));
+  const total = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now(), summaryOf(record));
+  // A suggest_choice label code dropped (too long, an emoji, a sum, a copy of a set label) is recorded with the turn.
+  const usage = droppedChoice === null ? total : { ...total, droppedChoice };
   return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq }, shown: await shownInWorkspace(db, map, learnerId) };
 }
 

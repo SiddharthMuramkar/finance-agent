@@ -240,7 +240,7 @@ describe("the Next chip", () => {
   });
 });
 
-describe("the help chips", () => {
+describe("the Choices", () => {
   const conversation: Line[] = [
     { role: "user", text: "Hi" },
     { role: "assistant", text: "Once, a lottery winner had a choice." },
@@ -248,11 +248,11 @@ describe("the help chips", () => {
     { role: "assistant", text: "Which would you take?" },
   ];
   const toConcept = { kind: "next", step: "concept", label: "Next: Concept", advances: true } as const;
-  const help = (html: string) => html.match(/<button[^>]*data-testid="help-chip"[^>]*>[^<]*<\/button>/g) ?? [];
+  const help = (html: string) => html.match(/<button[^>]*data-testid="choice"[^>]*>.*?<\/button>/g) ?? [];
 
-  it("offers Go deeper and Show me in a widget beside Next, under the latest Tutor reply only", () => {
+  it("offers code's three Choices beside Next, under the latest Tutor reply only, with no Show me in a widget", () => {
     const html = workspace({ initial: conversation, next: toConcept });
-    expect(help(html).map((b) => b.replace(/<[^>]+>/g, ""))).toEqual(["Go deeper", "Show me in a widget"]);
+    expect(help(html).map((b) => b.replace(/<[^>]+>/g, ""))).toEqual(["Show me", "What does that word mean?", "Go deeper"]);
     const plain = text(html);
     expect(plain.indexOf("Go deeper")).toBeGreaterThan(plain.indexOf("Which would you take?"));
     expect(plain.indexOf("Go deeper")).toBeGreaterThan(plain.indexOf("Next: Concept →"));
@@ -262,13 +262,13 @@ describe("the help chips", () => {
 
   it("stay while a quiz Check is open, with no Next", () => {
     const html = workspace({ initial: conversation, next: null, quiz });
-    expect(help(html)).toHaveLength(2);
+    expect(help(html)).toHaveLength(3);
     expect(html).not.toContain('data-testid="next-chip"');
   });
 
   it("stay while a conversation Check is open, with no Next", () => {
     const html = workspace({ initial: conversation, next: null });
-    expect(help(html)).toHaveLength(2);
+    expect(help(html)).toHaveLength(3);
     expect(html).not.toContain('data-testid="next-chip"');
   });
 
@@ -357,12 +357,12 @@ describe("coming back to a Topic", () => {
     expect(divider).toContain('role="separator"');
     expect(divider).toContain(label);
     expect(html.indexOf(label)).toBeGreaterThan(html.indexOf("Because it can earn interest."));
-    // One Next chip follows the divider, beside the two help chips.
+    // One Next chip follows the divider, beside the three Choices.
     const chips = html.match(/<button[^>]*data-testid="next-chip"[^>]*>[^<]*<\/button>/g) ?? [];
     expect(chips).toHaveLength(1);
     expect(chips[0]).toContain("Next: Your turn →");
     expect(html.indexOf('data-testid="next-chip"')).toBeGreaterThan(html.indexOf(label));
-    expect(html.match(/data-testid="help-chip"/g)).toHaveLength(2);
+    expect(html.match(/data-testid="choice"/g)).toHaveLength(3);
     expect(html).toContain('placeholder="Ask the Tutor"');
   });
 
@@ -409,7 +409,7 @@ describe("a quiz Check in the right panel", () => {
 
   it("opens as a tab named Check k of N, selected automatically, showing the questions", () => {
     const html = pane(workspace({ quiz }));
-    expect(html).toMatch(/aria-selected="true"[^>]*data-testid="check-tab"/);
+    expect(html).toMatch(/data-testid="check-tab"[^>]*aria-current="true"/);
     expect(text(html)).toContain("How many basis points?");
     expect(text(html)).toContain("Submit answers");
   });
@@ -417,8 +417,10 @@ describe("a quiz Check in the right panel", () => {
   it("stays the selected tab when the Tutor has drawn Widgets, which keep their own tabs", () => {
     const initial: Line[] = [{ role: "assistant", text: fence(ANNUITY) }];
     const html = pane(workspace({ quiz, initial }));
-    expect(html).toMatch(/aria-selected="true"[^>]*data-testid="check-tab"/);
-    expect(html).toMatch(/<li[^>]*aria-selected="false"[^>]*>.*?What the annuity is worth today/);
+    expect(html).toMatch(/data-testid="check-tab"[^>]*aria-current="true"/);
+    const annuityThumb = html.match(/<button[^>]*title="What the annuity is worth today"[^>]*>/)?.[0] ?? "";
+    expect(annuityThumb).toContain('data-testid="filmstrip-thumb"');
+    expect(annuityThumb).not.toContain("aria-current");
     expect(text(html)).toContain("How many basis points?");
     expect(text(html)).not.toContain("Discount rate");
   });
@@ -495,7 +497,7 @@ describe("Check results in the conversation", () => {
     };
     const html = workspace({ initial: conversation, missed });
     const pane = html.slice(html.indexOf('data-testid="widget-pane"'));
-    expect(pane).toMatch(/aria-selected="true"[^>]*data-testid="check-tab"/);
+    expect(pane).toMatch(/data-testid="check-tab"[^>]*aria-current="true"/);
     expect(text(pane)).toContain("Your answer: Zero point two five");
     expect(text(pane)).toContain("Try Check 1 again →");
     expect(text(pane)).not.toContain("Submit answers");
@@ -530,9 +532,9 @@ describe("the Widget panel", () => {
     ];
     const html = workspace({ initial });
     const panel = html.slice(html.indexOf('data-testid="widget-pane"'));
-    const row = panel.slice(panel.indexOf('aria-label="Widgets in this Session"'), panel.indexOf("</div>", panel.indexOf('aria-label="Widgets in this Session"')));
-    // Two tabs, the updated Widget still first, where "Pick a rate" was.
-    expect([...row.matchAll(/<span class="block truncate">([^<]*)<\/span>/g)].map((m) => m[1])).toEqual(["Pick a rate", "What a home loan costs"]);
+    const row = panel.slice(panel.indexOf('data-testid="widget-filmstrip"'), panel.indexOf('data-testid="widget-card"'));
+    // Two thumbnails, the updated Widget still first, where "Pick a rate" was.
+    expect([...row.matchAll(/data-testid="filmstrip-thumb"[^>]*title="([^"]*)"/g)].map((m) => m[1])).toEqual(["Pick a rate", "What a home loan costs"]);
     // The newest drawing shows, in the updated Widget's tab.
     expect(text(panel)).toContain("Loan rate");
     expect(text(panel)).not.toContain("Discount rate");
@@ -550,19 +552,21 @@ describe("the Widget panel", () => {
     expect(text(one)).not.toContain("Long-term interest rates");
   });
 
-  it("pages through its Widgets with a header (3 of 11 · title) instead of a strip of tabs, the long title shortened", () => {
+  it("pages through its Widgets with a header (1 of 6 · title) and a filmstrip of thumbnails, the long title cut to two lines (E5)", () => {
     const long = `root = Widget("A very long title for a Widget that would never fit on one tab in the right panel", [history])
 history = HistoryChart("mega-millions-2018/treasury-30-year")`;
     const many: WidgetItem[] = [...items, ...[3, 4, 5, 6].map((n) => ({ key: `m:${n}`, number: n, code: n === 6 ? long : CALC, complete: true }))];
     const html = renderToStaticMarkup(<WidgetPanel widgets={many} shown={many[0]} onPick={() => {}} />);
-    const row = html.match(/<div[^>]*aria-label="Widgets in this Session"[^>]*>/)?.[0] ?? "";
-    expect(row).not.toMatch(/\boverflow-x-auto\b/);
-    expect(html).not.toMatch(/\bflex-nowrap\b/);
+    // The filmstrip scrolls inside itself and carries one thumbnail per Widget.
+    const strip = html.match(/<div[^>]*data-testid="widget-filmstrip"[^>]*>/)?.[0] ?? "";
+    expect(strip).toMatch(/\boverflow-x-auto\b/);
+    expect([...html.matchAll(/data-testid="filmstrip-thumb"/g)]).toHaveLength(6);
     expect(text(html)).toContain("1 of 6 · Long-term interest rates");
     const position = html.match(/<p[^>]*data-testid="pager-position"[^>]*>/)?.[0] ?? "";
     expect(position).toMatch(/\btruncate\b/);
-    // The long title is in the All menu, cut short there too, with its full text on hover in the header when it is the current one.
-    expect(html).toMatch(/<span class="block truncate">A very long title for a Widget/);
+    // The long title sits on its thumbnail cut to two lines, with its full text on hover (the button's title).
+    expect(html).toMatch(/<span class="line-clamp-2[^"]*">A very long title for a Widget/);
+    expect(html).toContain('title="A very long title for a Widget that would never fit on one tab in the right panel"');
     expect(text(html)).not.toMatch(/Widget \d/);
   });
 

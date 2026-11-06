@@ -35,7 +35,7 @@ function shownOf(value: unknown): Shown | undefined {
 export async function POST(request: Request) {
   // One kind of turn per request (turn-body.ts): a body naming none, or two, is refused.
   const parsed = turnBody.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Send one kind of turn: a message, finish, opener, next, widgetReport, quizFollowUp, resume or stop." }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: "Send one kind of turn: a message, a choice, finish, opener, next, widgetReport, quizFollowUp, resume or stop." }, { status: 400 });
   const body = parsed.data;
   // Stop runs no turn: it flags the Learner's running turn, which sees the flag within half a second and ends its reply.
   if ("stop" in body) return Response.json({ stopping: await requestStop(getDb(), await currentLearnerId(), body.turn) });

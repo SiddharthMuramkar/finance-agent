@@ -46,14 +46,31 @@ describe("the Widget harness page", () => {
     expect(resolveFixture("../../package.json")).toBeUndefined();
   });
 
-  it("lists every fixture, with a link at each of the three widths", async () => {
+  it("lists every fixture, with a link at each of the five widths (360, 480, 560, 720, 860)", async () => {
     const { host, done } = await draw({});
     const all = fixtureList();
     expect(all.length).toBeGreaterThanOrEqual(11);
     expect(host.querySelectorAll("[data-fixture]")).toHaveLength(all.length);
     const links = [...host.querySelectorAll("[data-fixture] a")].map((a) => a.getAttribute("href"));
-    expect(links).toHaveLength(all.length * 3);
-    expect(links).toContain("/dev/widgets?fixture=07-sip-1000-month.openui&width=480");
+    expect(links).toHaveLength(all.length * 5);
+    for (const width of [360, 480, 560, 720, 860]) {
+      expect(links).toContain(`/dev/widgets?fixture=07-sip-1000-month.openui&width=${width}`);
+    }
+    await done();
+  });
+
+  it("shows the button sheet: every variant at rest, hover, pressed, focus and disabled", async () => {
+    const { host, done } = await draw({});
+    const sheet = host.querySelector<HTMLElement>("section#buttons")!;
+    expect(sheet).not.toBeNull();
+    for (const variant of ["primary", "secondary", "danger", "small", "icon", "chip", "link", "tag"]) {
+      const row = sheet.querySelector<HTMLElement>(`[data-variant="${variant}"]`);
+      expect(row, variant).not.toBeNull();
+      const states = [...row!.querySelectorAll("[data-state-cell]")].map((c) => c.getAttribute("data-state-cell"));
+      expect(states, variant).toEqual(["rest", "hover", "pressed", "focus", "disabled"]);
+    }
+    expect(sheet.querySelectorAll('[data-variant="primary"] [data-force="pressed"]')).toHaveLength(1);
+    expect(sheet.querySelector('[data-variant="primary"] button:disabled')).not.toBeNull();
     await done();
   });
 

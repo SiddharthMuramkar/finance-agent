@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { IconButton } from "./icon-button";
+import { MenuItem } from "./primitives";
 import { THEMES, THEME_LABEL, THEME_SWATCH, resolveTheme, type ThemeId, type ThemePref } from "./theme";
 import { followSystem, pinTheme, useThemeState } from "./theme-store";
 
@@ -21,19 +22,13 @@ function Swatch({ theme }: { theme: ThemeId }) {
 
 function Item({ checked, swatch, onPick, children }: { checked: boolean; swatch: ThemeId; onPick: () => void; children: ReactNode }) {
   return (
-    <button
-      type="button"
-      role="menuitemradio"
-      aria-checked={checked}
-      onClick={onPick}
-      className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm leading-5 text-[var(--ink)] hover:bg-[var(--hairline)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--ring)]"
-    >
+    <MenuItem role="menuitemradio" aria-checked={checked} onClick={onPick} className="py-1.5 !px-2">
       <Swatch theme={swatch} />
       <span className="min-w-0 flex-1">{children}</span>
       <svg {...icon} className={`h-4 w-4 shrink-0 text-[var(--brand)] ${checked ? "" : "invisible"}`}>
         <path d="M4.5 10.5 8 14l7.5-8" />
       </svg>
-    </button>
+    </MenuItem>
   );
 }
 

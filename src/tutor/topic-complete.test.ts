@@ -13,6 +13,7 @@ import { submitQuizAnswers } from "./check-results";
 import { passedTopicShown, shownInWorkspace } from "./session-log";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: a passed Topic stops at its Topic complete card. The card is a display-only Session item
@@ -49,7 +50,8 @@ async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map: Cou
   return { events, requests };
 }
 
-const seen = (entries: ThreadEntry[]) => entries.map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const seen = (entries: ThreadEntry[]) => withoutChoices(entries).map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
 const sessionOf = (events: TurnEvent[]) => (events.at(-1) as Extract<TurnEvent, { type: "done" }>).ref.sessionId;
 const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messages);
 

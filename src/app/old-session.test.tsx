@@ -4,6 +4,7 @@ import { foldText, HIDDEN_SOURCE_TITLE } from "@/tutor/citations";
 import { summariseRows } from "@/tutor/session-summary";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { OldSession } from "./old-session";
+import { PastSessionHeaderView } from "./past-sessions";
 
 const reply = [
   "## Why discount?",
@@ -95,8 +96,8 @@ describe("a read-only Topic Session's Widgets, updated in place", () => {
   const rates = (start: number) => ["```openui-lang", 'root = Widget("Rates", [rate])', `$rate = ${start}`, 'rate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")', "```"].join("\n");
   const ANNUITY = 'root = Widget("What the annuity is worth today", [rate])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")';
   const tabs = (html: string) => {
-    const at = html.indexOf('aria-label="Widgets in this Session"');
-    return at === -1 ? 0 : (html.slice(at, html.indexOf("</div>", at)).match(/role="option"/g) ?? []).length;
+    const at = html.indexOf('data-testid="widget-filmstrip"');
+    return at === -1 ? 0 : (html.slice(at, html.indexOf('data-testid="widget-card"', at)).match(/data-thumb-key=/g) ?? []).length;
   };
 
   it("draws a Widget the Tutor drew again under the same title in one tab", () => {
@@ -161,5 +162,67 @@ describe("working out a Session's Topics and Widgets from its messages", () => {
       { role: "assistant", content: [{ type: "text", text: fenced }] },
     ]);
     expect(out).toEqual({ topics: ["Present value", "Annuities"], widgets: 2 });
+  });
+});
+
+const sep5 = new Date("2026-09-05T08:00:00Z");
+const oct24 = new Date("2026-10-24T08:00:00Z");
+
+describe("a Topic Session page header", () => {
+  const unpassed = renderToStaticMarkup(<PastSessionHeaderView header={{ kind: "topic", topicId: "bonds", title: "Bond prices", lastActive: oct24, passed: false }} />);
+
+  it("starts with a back link to the Topic's Notebook row, then the Topic and the date of last activity", () => {
+    const back = unpassed.search(/<a[^>]*href="\/notebook#note-bonds"[^>]*>← Notebook/);
+    expect(back).toBeGreaterThanOrEqual(0);
+    expect(back).toBeLessThan(unpassed.indexOf("Bond prices"));
+    expect(unpassed).toContain("24 Oct 2026");
+    expect(unpassed).not.toContain("Past Sessions");
+  });
+
+  it("goes back to the plain Notebook when the Session has no Topic", () => {
+    const html = renderToStaticMarkup(<PastSessionHeaderView header={{ kind: "topic", topicId: null, title: "Free questions", lastActive: oct24, passed: false }} />);
+    expect(html).toMatch(/<a[^>]*href="\/notebook"[^>]*>← Notebook/);
+  });
+
+  it("offers Resume this Topic, which opens that Topic in the Study Workspace", () => {
+    expect(unpassed).toMatch(/<form[^>]*action="\/api\/open"/);
+    expect(unpassed).toMatch(/name="topic" value="bonds"/);
+    expect(unpassed).toContain("Resume this Topic");
+    expect(unpassed).not.toContain("Passed ✓");
+  });
+
+  it("shows Passed ✓ instead once the Topic is passed", () => {
+    const passed = renderToStaticMarkup(<PastSessionHeaderView header={{ kind: "topic", topicId: "bonds", title: "Bond prices", lastActive: oct24, passed: true }} />);
+    expect(passed).toContain("Passed ✓");
+    expect(passed).not.toContain("Resume");
+    expect(passed).not.toContain("/api/open");
+  });
+});
+
+describe("an Older session page header", () => {
+  it("links back to the Notebook, shows its date and Topics and that it is read-only, with no Resume", () => {
+    const html = renderToStaticMarkup(<PastSessionHeaderView header={{ kind: "older", date: sep5, topics: ["Present value", "Annuities"] }} />);
+    expect(html).toMatch(/<a[^>]*href="\/notebook"[^>]*>← Notebook/);
+    expect(html).toContain("5 Sep 2026");
+    expect(html).not.toContain("Sept");
+    expect(html).toContain("Annuities");
+    expect(html).toContain("Older session · read-only");
+    expect(html).not.toContain("Resume");
+    expect(html).not.toContain("/api/open");
+  });
+
+  it("says No Topic when it touched none", () => {
+    expect(renderToStaticMarkup(<PastSessionHeaderView header={{ kind: "older", date: sep5, topics: [] }} />)).toContain("No Topic");
+  });
+});
+
+describe("an old stored Continue.", () => {
+  it("draws as a → next step divider, never as a Learner bubble", () => {
+    const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text: "That is the story." }, { role: "user", text: "Continue." }, { role: "assistant", text: "Now the concept." }]} />);
+    const at = html.indexOf("→ next step");
+    expect(at).toBeGreaterThan(html.indexOf("That is the story."));
+    expect(at).toBeLessThan(html.indexOf("Now the concept."));
+    expect(html).toContain('role="separator"');
+    expect(html).not.toContain("Continue.");
   });
 });

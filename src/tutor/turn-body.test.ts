@@ -21,6 +21,7 @@ describe("a turn request's body", () => {
     expect(input({ widgetReport: "explore" })).toEqual({ widgetReport: "explore" });
     expect(input({ quizFollowUp: true })).toEqual({ quizFollowUp: true });
     expect(input({ resume: true })).toEqual({ resume: true });
+    expect(input({ choice: 0 })).toEqual({ choice: 0 });
   });
 
   it("parses a stop, which is never a turn's input, and refuses it beside another kind", () => {

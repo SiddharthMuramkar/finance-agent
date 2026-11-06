@@ -22,8 +22,8 @@ cases:
       positions, it held about $30 of debt for every $1 of capital. It traded government
       bonds, mortgage-backed securities and equities, and used swaps, forwards and options.
       Financial trouble that had started in Southeast Asia in 1997 was still working through
-      markets. Suppose the spreads LTCM was betting on narrowing, instead widen. How much does
-      the fund have to lose before its capital is gone?
+      markets. Suppose the spreads LTCM was betting on narrowing, instead widen. Why does a
+      small fall in the value of its assets threaten the fund's own capital?
     reveal: >
       In August 1998 Russia suddenly devalued its currency and stopped payments on its debt.
       Investors rushed to safer and more liquid investments, and the spreads LTCM had bet on
@@ -74,15 +74,15 @@ questions:
 
   - id: cs-q-calculate
     prompt: >
-      A 10-year corporate bond yields 7.9%. A 10-year government bond yields 6.4%. What is the credit spread?
+      Meera overhears two traders at a bond desk: "The 10-year corporate trades 150 over the 10-year government." She nods, but she is lost. What does that mean?
     choices:
-      - { id: a, text: "150 basis points" }
-      - { id: b, text: "15 basis points" }
-      - { id: c, text: "1,430 basis points" }
-      - { id: d, text: "1.5 basis points" }
+      - { id: a, text: "1.5 points more yield on the corporate bond" }
+      - { id: b, text: "$150 more in price per $1,000 bond", mistake: { tag: price_not_yield, fix: "Spreads are quoted in yield, not price. 150 is basis points of extra yield." } }
+      - { id: c, text: "1.5 points more yield on the government bond", mistake: { tag: spread_backwards, fix: "A credit spread is the extra yield on the riskier bond, so the corporate bond yields more." } }
+      - { id: d, text: "150% of the government bond's yield", mistake: { tag: bps_as_percent, fix: "150 means 150 basis points, which is 1.5 percentage points, not 150 percent." } }
     answer: a
     explanation: >
-      7.9% - 6.4% = 1.5 percentage points, which is 150 basis points.
+      A spread quoted as 150 over means 150 basis points, 1.5 percentage points, of extra yield over the government bond of the same length. For example a corporate bond yielding 7.9% against a government bond at 6.4%. It is the extra pay for default risk.
     source: >
       Arithmetic on the definition in OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
 
@@ -115,15 +115,15 @@ questions:
 
   - id: cs-q-leverage
     prompt: >
-      A fund holds $31 of assets for every $1 of its own capital, the rest borrowed. By what percentage must its assets fall in value to wipe out its capital?
+      Kabir's fund holds $31 of assets for every $1 of its own money. The rest is borrowed. Prices dip. Who is in trouble first?
     choices:
-      - { id: a, text: "About 3.2%" }
-      - { id: b, text: "About 30%" }
-      - { id: c, text: "About 50%" }
-      - { id: d, text: "100%" }
+      - { id: a, text: "Kabir: even a small dip wipes out his slice" }
+      - { id: b, text: "The lenders: they put in most of the money", mistake: { tag: lenders_share_loss, fix: "Lenders are repaid first. Kabir's thin slice of capital takes every loss until it is gone." } }
+      - { id: c, text: "Nobody, unless prices fall 30% or more", mistake: { tag: ratio_as_percent, fix: "Thirty-to-one leverage means a small fall is enough, not a fall of thirty percent." } }
+      - { id: d, text: "Nobody, until every asset is lost", mistake: { tag: ignored_leverage, fix: "Lenders must be repaid first, so Kabir's small capital is gone long before that." } }
     answer: a
     explanation: >
-      A fall of $1 on $31 of assets, 1/31 = 3.2%, leaves nothing for the owners after repaying the loans. LTCM held about $30 of debt per $1 of capital at the end of 1997.
+      A fall of $1 on $31 of assets, about 3%, leaves nothing for the owners after repaying the loans. LTCM held about $30 of debt per $1 of capital at the end of 1997.
     source: >
       Arithmetic on the figure of $30 of debt for every $1 of capital in Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure
 

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { send as sendNote } from "./notes/own-lines";
+import { send as sendNote } from "./notebook/own-lines";
 import { send as sendProfile } from "./profile/profile-form";
 
 afterEach(() => vi.unstubAllGlobals());

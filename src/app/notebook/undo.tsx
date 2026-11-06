@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { SecondaryButton } from "../ui";
 
 /** How long the Undo toast stays, in milliseconds. */
 export const UNDO_MS = 8000;
@@ -21,14 +22,9 @@ export function UndoToast({ message, failed = false, onUndo }: { message: string
       className="fixed inset-x-0 bottom-6 z-50 mx-auto flex w-fit max-w-[90vw] items-center gap-4 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-sm leading-5 shadow-lg print:hidden"
     >
       <span>{failed ? "Could not undo. Try again." : message}</span>
-      <button
-        type="button"
-        data-undo-remove
-        onClick={onUndo}
-        className="cursor-pointer font-semibold text-[var(--brand)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
-      >
+      <SecondaryButton size="sm" data-undo-remove onClick={onUndo}>
         Undo
-      </button>
+      </SecondaryButton>
     </div>
   );
 }

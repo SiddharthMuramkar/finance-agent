@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TopicNote } from "@/learner/notes";
 import { OWN_RULE_SAVED } from "@/tutor/own-rule-item";
 import { AnnouncerProvider } from "./announcer";
-import { NotesView } from "./notes/notes-view";
+import { NotebookView } from "./notebook/notebook-view";
 import { SessionItemView } from "./session-item-view";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -84,7 +84,7 @@ describe("the Notes page with the Learner's own rule", () => {
       saved: [],
     },
   ];
-  const html = renderToStaticMarkup(<NotesView notes={notes} />);
+  const html = renderToStaticMarkup(<NotebookView notebook={{ rows: notes.map((n) => ({ topicId: n.topicId, title: n.title, stage: n.stage, status: "not_started" as const, sessionId: null, lastActive: null, action: null, found: [], note: n })), older: [] }} showAll={false} />);
 
   it("shows the rule under its Topic, labelled Your rule, and only that line is labelled", () => {
     expect(html).toContain("change × 100 then divide by original");

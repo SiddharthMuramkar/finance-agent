@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
+import { Chip } from "./ui";
 import type {
   QuickTryData,
   QuickTryResultData,
@@ -97,19 +98,18 @@ export function QuickTryView({ data }: { data: QuickTryData }) {
           className="mt-2 flex flex-wrap gap-2"
         >
           {choices.map((c) => (
-            <button
+            <Chip
               key={c.id}
-              type="button"
               data-testid={
                 data.kind === "truth" ? `quick-try-${c.id}` : "quick-try-choice"
               }
-              aria-pressed={picked === c.id}
+              active={picked === c.id}
               disabled={disabled}
               onClick={() => void send(c.id)}
-              className="pressable min-h-9 rounded-md border border-[var(--border)] border-b-[3px] bg-[var(--bg)] px-3 py-1 font-medium enabled:hover:bg-[var(--hairline)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] disabled:opacity-60 aria-pressed:border-[var(--brand)] aria-pressed:bg-[var(--brand-tint)] aria-pressed:font-semibold aria-pressed:opacity-100 aria-pressed:before:content-['✓_']"
+              className="!rounded-2xl !py-1.5 text-left text-sm leading-5 aria-pressed:before:content-['✓_']"
             >
               {c.text}
-            </button>
+            </Chip>
           ))}
         </div>
       )}
