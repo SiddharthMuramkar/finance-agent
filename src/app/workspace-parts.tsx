@@ -98,8 +98,15 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
     const b = here.getBoundingClientRect();
     ol.scrollLeft += b.left - a.left - (a.width - b.width) / 2;
   }, [current]);
+  // A scroll box clips what sticks out of it, so the strip keeps room inside itself for a scroll-back Chip's focus ring
+  // (4 px all round) and its lip and shadow (12 px below), reaching into the bar's padding so the bar barely grows;
+  // and it never scrolls up and down (a pressed Chip drops 2 px).
   return (
-    <ol ref={list} aria-label="Steps in this Topic" className="mt-1 flex flex-nowrap items-center gap-x-3 overflow-x-auto whitespace-nowrap text-xs leading-5">
+    <ol
+      ref={list}
+      aria-label="Steps in this Topic"
+      className="-mx-2 -mb-2 flex flex-nowrap items-center gap-x-3 overflow-x-auto overflow-y-hidden whitespace-nowrap px-2 pt-1 pb-3 text-xs leading-5"
+    >
       {/* Steps outside any Check (Story, Reveal, Principle) stand alone: "Story · Check 1: Concept, Your turn, Check · … · Reveal · Principle". */}
       {strip.groups.flatMap((g) => (g.check ? [g] : g.steps.map((s) => ({ check: null, steps: [s] })))).map((g) => (
         <li key={g.steps[0].number} data-strip-group className="flex shrink-0 items-center gap-0.5">
