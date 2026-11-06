@@ -45,7 +45,11 @@ export type Condition =
   /** No headings, emoji or "➜", one bold span or fewer, and no app words. */
   | { kind: "plainStyle" }
   /** No "$" in the text or in a Widget's labels. */
-  | { kind: "noDollar" };
+  | { kind: "noDollar" }
+  /** No question, instruction or ask in the reply asks for a sum (`sumAsk`, ADR 0009; the same reading as V8). */
+  | { kind: "noSum" }
+  /** The turn stored a reply_choices item with 2 or 3 Choices (D3a, ADR 0010). */
+  | { kind: "choicesStored" };
 
 export const CONDITION_KINDS = [
   "maxWords",
@@ -59,6 +63,8 @@ export const CONDITION_KINDS = [
   "parkOffer",
   "plainStyle",
   "noDollar",
+  "noSum",
+  "choicesStored",
 ] as const;
 const WITH_VALUE = new Set(["maxWords", "maxLines", "ackMaxWords", "maxMessageSentences"]);
 
@@ -101,7 +107,12 @@ export type LiveCase = Common & {
   kind: "live";
   topic: string;
   state: CaseState;
+  /** The Learner's message; empty for an opener. */
   message: string;
+  /** The page starts the turn itself (the opener of a Session with no messages): the Learner has written nothing. */
+  opener?: true;
+  /** How many of the three runs must pass (default 3, every one). */
+  minPasses?: number;
   /**
    * The Learner's message is an answer on this Skill, recorded with this verdict before the turn (a Quick try). `try` names
    * the fixed Quick try of the case's Check that it answers (its id in the Topic file), so the try code shows is the one the
@@ -118,7 +129,13 @@ export type AggregateCase = Common & { kind: "aggregate"; over: string[]; pass: 
 /** The course check must pass, and the fixture Topics (a folder laid out like the repo's course/) must fail lint L1. */
 export type LintCase = Common & { kind: "lint"; failingFixture?: string };
 
-export type EvalCase = LiveCase | AggregateCase | LintCase;
+/**
+ * A conversation (D3b, T13): the Learner's messages sent in order, each through the real Tutor Turn in one Session, with
+ * the conditions applied to every reply. Code checks it alone (no grader), and it runs `runs` times (1 by default).
+ */
+export type DialogueCase = Common & { kind: "dialogue"; topic: string; state: CaseState; messages: string[]; pass: Condition[]; runs?: number };
+
+export type EvalCase = LiveCase | AggregateCase | LintCase | DialogueCase;
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -225,9 +242,15 @@ export function parseCase(text: string, name: string): { case?: EvalCase; errors
   if (!isStr(raw.title)) errors.push(`${name}: "title" is required`);
   if (raw.pending !== undefined && !isStr(raw.pending)) errors.push(`${name}: "pending" must say why`);
   if (raw.kind === "live") {
-    unknownKeys(raw, [...common, "topic", "state", "message", "answer", "pass", "graderChecks"], name, errors);
+    unknownKeys(raw, [...common, "topic", "state", "message", "opener", "minPasses", "answer", "pass", "graderChecks"], name, errors);
     if (!isStr(raw.topic)) errors.push(`${name}: "topic" is required`);
-    if (!isStr(raw.message)) errors.push(`${name}: "message" is required`);
+    if (raw.opener !== undefined && raw.opener !== true) errors.push(`${name}: "opener" is true or left out`);
+    if (raw.opener === true) {
+      if (raw.message !== undefined) errors.push(`${name}: an opener has no "message": the page starts the turn`);
+      if (raw.answer !== undefined) errors.push(`${name}: an opener has no "answer"`);
+    } else if (!isStr(raw.message)) errors.push(`${name}: "message" is required`);
+    if (raw.minPasses !== undefined && !(Number.isInteger(raw.minPasses) && (raw.minPasses as number) >= 1 && (raw.minPasses as number) <= 3))
+      errors.push(`${name}: "minPasses" is a number of runs from 1 to 3`);
     checkState(raw.state, name, errors);
     if (raw.answer !== undefined && !(isObj(raw.answer) && isStr(raw.answer.skill) && (raw.answer.verdict === "right" || raw.answer.verdict === "wrong")))
       errors.push(`${name}: "answer" needs "skill" and "verdict" (right or wrong)`);
@@ -241,10 +264,18 @@ export function parseCase(text: string, name: string): { case?: EvalCase; errors
     unknownKeys(raw, [...common, "over", "pass"], name, errors);
     if (!(isStrList(raw.over) && raw.over.length)) errors.push(`${name}: "over" must list case ids`);
     parseConditions(raw.pass, name, errors);
+  } else if (raw.kind === "dialogue") {
+    unknownKeys(raw, [...common, "topic", "state", "messages", "runs", "pass"], name, errors);
+    if (!isStr(raw.topic)) errors.push(`${name}: "topic" is required`);
+    if (!(isStrList(raw.messages) && raw.messages.length && raw.messages.every(isStr))) errors.push(`${name}: "messages" must list the Learner's messages, in order`);
+    if (raw.runs !== undefined && !(Number.isInteger(raw.runs) && (raw.runs as number) >= 1)) errors.push(`${name}: "runs" must be a number of runs from 1`);
+    checkState(raw.state, name, errors);
+    parseConditions(raw.pass, name, errors);
   } else if (raw.kind === "lint") {
     unknownKeys(raw, [...common, "failingFixture"], name, errors);
     if (raw.failingFixture !== undefined && !isStr(raw.failingFixture)) errors.push(`${name}: "failingFixture" must be a folder`);
-  } else errors.push(`${name}: "kind" must be live, aggregate or lint`);
+  } else errors.push(`${name}: "kind" must be live, aggregate, dialogue or lint`);
+  if (!errors.length && raw.kind === "live" && raw.opener === true) raw.message = "";
   return errors.length ? { errors } : { case: raw as unknown as EvalCase, errors };
 }
 

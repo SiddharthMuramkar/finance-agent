@@ -44,6 +44,22 @@ describe("the pass conditions code can tell", () => {
     expect(codedFailures([{ kind: "widget", mode: "practice" }], blocked, ctx)[0]).toMatch(/0\.6.*open quiz/);
   });
 
+  it("fails a reply that asks for a sum, and passes one that only says a sum as a fact (noSum, D3b)", () => {
+    const asks = seen({ text: "A rate goes from 6% to 6.4%.\nHow many basis points is that?", widgets: [] });
+    expect(codedFailures([{ kind: "noSum" }], asks, ctx)[0]).toMatch(/asks for a sum \("how many"\)/i);
+    const says = seen({ text: "1 point times 100 is 100 bp.\nWhat would a trader call that move?", widgets: [] });
+    expect(codedFailures([{ kind: "noSum" }], says, ctx)).toEqual([]);
+  });
+
+  it("wants 2 or 3 stored Choices under the reply (choicesStored, D3a)", () => {
+    const choice = (label: string) => ({ id: label, label, says: label, emoji: "eyes" });
+    const two = seen({ text: "Okay.\nWhat next?", widgets: [], choices: [choice("Show me"), choice("Quiz me")] });
+    expect(codedFailures([{ kind: "choicesStored" }], two, ctx)).toEqual([]);
+    expect(codedFailures([{ kind: "choicesStored" }], seen({ text: "Okay.", widgets: [] }), ctx)[0]).toMatch(/No Choices were stored/);
+    const four = seen({ text: "Okay.", widgets: [], choices: ["a", "b", "c", "d"].map(choice) });
+    expect(codedFailures([{ kind: "choicesStored" }], four, ctx)[0]).toMatch(/4 Choices.*2 or 3/);
+  });
+
   it("reads the saved rule and the park offer", () => {
     const saved = seen({ text: "Yes, that is it.\nA price goes from ₹50 to ₹60. What is the percent change?", widgets: [], savedRule: "percent change = change × 100 ÷ original" });
     expect(codedFailures([{ kind: "savedRule", contains: ["change", "100", "original"] }], saved, ctx)).toEqual([]);

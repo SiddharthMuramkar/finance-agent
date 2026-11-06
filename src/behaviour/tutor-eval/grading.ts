@@ -4,8 +4,12 @@
  * checks (V1 to V7, src/tutor/reply-checks.ts) run first; then the case's conditions; then the grader's five
  * rubric questions and the case's own questions. Any "no", and a grade that cannot be read, fail the run.
  */
-import { blockedNumbersFrom, checkReply, countWords, fixReply, splitAsk, type ReplyCheckContext, type ReplyProblem, type ReplyWidget } from "@/tutor/reply-checks";
+import { blockedNumbersFrom, checkReply, countWords, fixReply, splitAsk, sumAsked, type ReplyCheckContext, type ReplyProblem, type ReplyWidget } from "@/tutor/reply-checks";
+import type { ReplyChoicesData } from "@/tutor/session-item-kinds";
 import type { Condition } from "./case";
+
+/** The Choices code stored under a reply (D3a). */
+export type SeenChoice = ReplyChoicesData["choices"][number];
 
 /** The judge rubric, worded as TUTOR_SPEC section 7 words it. Each is a yes-or-no question. */
 export const RUBRIC = [
@@ -35,18 +39,20 @@ export type SeenReply = {
   parkOffer: boolean;
   /** What code showed below the reply in the same turn (the next Quick try), as the Learner reads it. */
   alsoShown: string[];
+  /** The Choices code stored under the reply in the same turn (a reply_choices item), or none. */
+  choices: SeenChoice[];
 };
 
 const BOLD = /\*\*(?=\S)[\s\S]*?\S\*\*|__(?=\S)[\s\S]*?\S__/g;
 
 /** The reply as the Learner sees it, from the turn's raw text and what it showed and saved. */
-export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[] }): SeenReply {
+export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[]; choices?: SeenChoice[] }): SeenReply {
   const draft = fixReply({ text: r.text, widgets: r.widgets, savedRule: r.savedRule ?? null });
   const fixed: string[] = [];
   if (/^[ \t]*#{1,6}[ \t]+/m.test(r.text)) fixed.push("headings");
   if (/[\p{Extended_Pictographic}➜➔➡→⇒]/u.test(r.text)) fixed.push("emoji or arrows");
   if ((r.text.match(BOLD)?.length ?? 0) > 1) fixed.push("extra bold");
-  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [] };
+  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [], choices: r.choices ?? [] };
 }
 
 const FENCE = /```[^\n]*\n[\s\S]*?(?:\n```|$)/g;
@@ -153,6 +159,18 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
         if (prose(reply.text).includes("$")) out.push('The reply text has a "$".');
         const labelled = reply.widgets.filter((w) => w.labels.some((l) => l.includes("$")));
         if (labelled.length) out.push(`The Widget ${labelled.map((w) => `"${w.id}"`).join(", ")} has a "$" in its labels.`);
+        break;
+      }
+      case "noSum": {
+        // The reading V8 uses: questions, instructions and the ask; a sum said as a fact is allowed (ADR 0009).
+        const phrase = sumAsked(reply.text);
+        if (phrase) out.push(`The reply asks for a sum ("${phrase}").`);
+        break;
+      }
+      case "choicesStored": {
+        const n = reply.choices.length;
+        if (!n) out.push("No Choices were stored under the reply.");
+        else if (n < 2 || n > 3) out.push(`${n} Choices were stored under the reply; there should be 2 or 3.`);
         break;
       }
     }

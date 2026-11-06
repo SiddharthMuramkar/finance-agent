@@ -61,6 +61,39 @@ describe("a case file", () => {
   });
 });
 
+describe("the D3b case shapes", () => {
+  it("reads the noSum and choicesStored conditions", () => {
+    const read = parseCase(JSON.stringify({ ...live, pass: [{ kind: "noSum" }, { kind: "choicesStored" }] }), "T14.json");
+    expect(read.errors).toEqual([]);
+    expect(read.case?.kind === "live" && read.case.pass).toEqual([{ kind: "noSum" }, { kind: "choicesStored" }]);
+  });
+
+  it("reads an opener case, which has no message, and refuses a message beside it", () => {
+    const { message: _drop, ...noMessage } = live;
+    void _drop;
+    const opener = { ...noMessage, state: { step: "story", check: 1 }, opener: true };
+    expect(parseCase(JSON.stringify(opener), "T12.json").errors).toEqual([]);
+    expect(parseCase(JSON.stringify({ ...opener, message: "hi" }), "T12.json").errors.join("\n")).toMatch(/opener.*no "message"/);
+    expect(parseCase(JSON.stringify(noMessage), "T1.json").errors.join("\n")).toMatch(/"message" is required/);
+  });
+
+  it("reads how many of the three runs a live case needs to pass, from 1 to 3", () => {
+    expect(parseCase(JSON.stringify({ ...live, minPasses: 2 }), "T15.json").case).toMatchObject({ minPasses: 2 });
+    expect(parseCase(JSON.stringify({ ...live, minPasses: 4 }), "T15.json").errors.join("\n")).toMatch(/minPasses/);
+  });
+
+  it("reads a dialogue case: its messages in order, conditions on every reply, one run", () => {
+    const dialogue = { id: "T13", title: "No sum in 20 turns", kind: "dialogue", topic: "num-percent-bps", state: { step: "your_turn", check: 1 }, messages: ["a", "b"], runs: 1, pass: [{ kind: "noSum" }] };
+    const read = parseCase(JSON.stringify(dialogue), "T13.json");
+    expect(read.errors).toEqual([]);
+    expect(read.case).toMatchObject({ kind: "dialogue", messages: ["a", "b"], runs: 1 });
+    const bad = parseCase(JSON.stringify({ ...dialogue, messages: [], runs: 0, message: "x" }), "T13.json").errors.join("\n");
+    expect(bad).toMatch(/"messages"/);
+    expect(bad).toMatch(/"runs"/);
+    expect(bad).toMatch(/unknown field "message"/);
+  });
+});
+
 describe("the suite's own cases", () => {
   const { cases, errors } = loadCases(CASES_DIR);
 
