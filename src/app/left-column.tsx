@@ -1,6 +1,6 @@
 "use client";
 
-import { ThreadPrimitive } from "@assistant-ui/react";
+import { ThreadPrimitive, useAuiState } from "@assistant-ui/react";
 import { useEffect, useState } from "react";
 import { useAnnounce } from "./announcer";
 import { WhatComesNextButton } from "./course/jump-button";
@@ -54,6 +54,8 @@ export function LeftColumn({
   const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, progress, stopping, stop } = turn;
   // The turn's status words go to the app's one polite live region (announcer.tsx), not one of this column's own.
   const announce = useAnnounce();
+  // Words in the message box make Send the view's one primary; the Next chip steps back to secondary (Appendix B.7, #478).
+  const composing = !useAuiState((st) => st.composer.isEmpty);
   useEffect(() => {
     if (announcement) announce(announcement);
   }, [announcement, announce]);
@@ -93,6 +95,7 @@ export function LeftColumn({
             offer={next}
             choices={choices.list}
             onNext={takeNext}
+            composing={composing}
             onSay={(words) => void send({ message: words }, words)}
             onChoice={(index) => {
               const says = choices.list[index].says;

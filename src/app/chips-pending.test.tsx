@@ -3,6 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { choicesFor } from "@/tutor/choices";
+import { primaryButtonClass } from "./ui";
 import { Chips } from "./workspace-parts";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -59,6 +60,18 @@ describe("the Next chip and the Choices", () => {
     const choices = [...second.querySelectorAll<HTMLButtonElement>('[data-testid="choice"]')];
     expect(choices.length).toBe(STORY.length);
     for (const c of choices) expect(c.className).toContain("btn-sm");
+  });
+
+  it("make the Next chip the one raised primary on /study, while the Choices stay secondary (#478)", () => {
+    act(() => root.render(<Chips offer={{ kind: "next", step: "concept", label: "Next: Concept", advances: true }} choices={STORY} onNext={() => {}} onChoice={() => {}} />));
+    const next = host.querySelector<HTMLButtonElement>('[data-testid="next-chip"]')!;
+    for (const cls of primaryButtonClass.split(" ")) expect(next.classList.contains(cls)).toBe(true);
+    const choices = [...host.querySelectorAll<HTMLButtonElement>('[data-testid="choice"]')];
+    expect(choices.length).toBeGreaterThan(0);
+    for (const c of choices) {
+      expect(c.classList.contains("btn-primary")).toBe(false);
+      expect(c.classList.contains("btn-secondary")).toBe(true);
+    }
   });
 
   it("keep a pressed Choice's label beside its spinner, and the others visibly held (critic AFF-3)", () => {
