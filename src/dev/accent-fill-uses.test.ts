@@ -25,6 +25,7 @@ const INVENTORY: Record<string, Use> = {
   "src/app/course/course-map-view.tsx": { uses: 1, verdict: "paired", why: "A passed Check's bar segment; the row says \"n of m\" in text beside the bar and each segment has a Passed or Not passed yet title" },
   "src/app/course/jump-button.tsx": { uses: 1, verdict: "decorative", why: "Sunflower frame of the prerequisite box; its sentence and two labelled buttons say everything" },
   "src/app/quiz-panel.tsx": { uses: 1, verdict: "paired", why: "Mint border of a right answer, with a check mark and the word Correct; a wrong one has a cross" },
+  "src/app/topic-complete-card.tsx": { uses: 1, verdict: "paired", why: "Mint border of the Topic complete card, always with the mint-ink \"Topic complete ✓\" eyebrow and the card's title (#479)" },
   "src/app/ui.tsx": { uses: 2, verdict: "paired", why: "Provenance box rule (mint for you, sunflower for sourced), always with the \"Your assumption\" or \"Sourced\" Tag" },
   "src/app/widget-panel.tsx": { uses: 1, verdict: "paired", why: "Sunflower rule of the sourced strip, which starts with the Sourced Tag" },
   "src/widgets/case-data-view.tsx": { uses: 3, verdict: "paired", why: "Sourced and assumption rules, each block led by the Sourced or Your assumption Tag" },
