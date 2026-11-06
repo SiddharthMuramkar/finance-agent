@@ -124,12 +124,12 @@ questions:
 
   - id: dcf-q-rate-up
     prompt: >
-      If all the inputs of a DCF stay the same but the discount rate rises, what happens to the estimated value?
+      In November 2025 Meher has valued a coffee chain with a discounted cash flow (DCF) model. Then interest rates rise, and her boss asks her to raise the discount rate while keeping every forecast the same. What happens to her value?
     choices:
-      - { id: a, text: "It falls, and distant cash flows and the terminal value fall most" }
-      - { id: b, text: "It rises", mistake: { tag: rate_raises_value, fix: "A higher discount rate shrinks every present value, so the value falls." } }
-      - { id: c, text: "It does not change", mistake: { tag: rate_irrelevant, fix: "The discount rate is an input; raising it lowers what future cash is worth today." } }
-      - { id: d, text: "Only the first year's cash flow changes", mistake: { tag: first_year_only, fix: "The rate touches every year, and the far years shrink most." } }
+      - { id: a, text: "It falls, and the far-off cash falls most" }
+      - { id: b, text: "It rises, as a higher rate means more return", mistake: { tag: rate_raises_value, fix: "A higher discount rate shrinks every present value, so the value falls." } }
+      - { id: c, text: "It stays put, as the forecasts did not change", mistake: { tag: rate_irrelevant, fix: "The discount rate is an input; raising it lowers what future cash is worth today." } }
+      - { id: d, text: "Only next year's cash changes", mistake: { tag: first_year_only, fix: "The rate touches every year, and the far years shrink most." } }
     answer: a
     explanation: >
       A higher rate shrinks every present value, and the cash flows furthest away shrink most.
@@ -138,12 +138,12 @@ questions:
 
   - id: dcf-q-young
     prompt: >
-      Why does most of the value of a young, fast-growing company with negative cash flows usually come from its terminal value?
+      In April 2025 Tara values a young delivery app that grows fast but still burns cash every year. Her model puts most of its value in the terminal value: the worth of all the years after her forecast ends. Before she shows her boss, she wants to know why. What explains it?
     choices:
-      - { id: a, text: "The early cash flows are small or negative, so the value depends on what the business earns once it matures" }
+      - { id: a, text: "Its cash is negative now; value comes once it matures" }
       - { id: b, text: "Terminal values are always accurate", mistake: { tag: terminal_accurate, fix: "Terminal values are uncertain; they dominate because early cash is negative." } }
       - { id: c, text: "Young companies have no discount rate", mistake: { tag: no_discount_rate, fix: "Young companies have a discount rate, often a high one." } }
-      - { id: d, text: "Because later cash flows are discounted less", mistake: { tag: later_discounted_less, fix: "Later cash flows are discounted more, not less; value sits late because early cash is negative." } }
+      - { id: d, text: "Later cash is discounted less", mistake: { tag: later_discounted_less, fix: "Later cash flows are discounted more, not less; value sits late because early cash is negative." } }
     answer: a
     explanation: >
       When early free cash flows are negative, the positive value comes from later years and the perpetuity beyond the forecast, so the assumptions about margins, growth and the discount rate dominate.

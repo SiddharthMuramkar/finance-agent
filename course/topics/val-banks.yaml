@@ -76,12 +76,12 @@ youllLearn:
 questions:
   - id: vb-q-debt-raw
     prompt: >
-      Why do analysts usually value a bank's equity directly instead of valuing the whole business and subtracting debt?
+      In June 2025 Sana, a new analyst, is asked to value a bank. She starts the way she valued a cement maker: value the whole business, then take off its debt. Her boss stops her and says, "For a bank, value the owners' share directly." Why?
     choices:
-      - { id: a, text: "Deposits and borrowings are the bank's raw material, not a source of capital, so enterprise value is hard to define" }
-      - { id: b, text: "Banks have no debt", mistake: { tag: banks_no_debt, fix: "Banks are full of debt; it is their raw material, which makes enterprise value hard to pin down." } }
-      - { id: c, text: "Banks pay no tax, so tax-adjusted cash flows are meaningless", mistake: { tag: banks_no_tax, fix: "Banks do pay tax; the issue is that debt is part of operations." } }
-      - { id: d, text: "Equity multiples cannot be used for banks", mistake: { tag: no_equity_multiples, fix: "Equity multiples are the natural tool for banks." } }
+      - { id: a, text: "A bank's deposits are its raw material, not just funding" }
+      - { id: b, text: "Banks carry no debt to take off", mistake: { tag: banks_no_debt, fix: "Banks are full of debt; it is their raw material, which makes enterprise value hard to pin down." } }
+      - { id: c, text: "Banks pay no tax, so cash flows mean nothing", mistake: { tag: banks_no_tax, fix: "Banks do pay tax; the issue is that debt is part of operations." } }
+      - { id: d, text: "Price multiples of equity don't work for banks", mistake: { tag: no_equity_multiples, fix: "Equity multiples are the natural tool for banks." } }
     answer: a
     explanation: >
       A bank lends money it has borrowed or taken as deposits, much as a manufacturer buys steel. Debt is therefore part of operations, and equity value, equity multiples and cash flow to equity are the natural tools.
@@ -130,12 +130,12 @@ questions:
 
   - id: vb-q-roe-pb
     prompt: >
-      Two banks have the same growth and the same cost of equity. Bank A earns a return on equity of 18 percent and Bank B earns 10 percent. Which should have the higher price-to-book ratio?
+      In August 2025 Rohan is choosing between two bank shares for his savings. Both banks grow at the same pace and carry the same risk. Bank A earns 18 percent a year on its owners' equity; Bank B earns 10 percent. Which should the market price at more times its book value?
     choices:
-      - { id: a, text: "Bank A, because it earns more on each rupee of book equity" }
-      - { id: b, text: "Bank B, because it has more room to improve", mistake: { tag: room_to_improve, fix: "With equal growth and cost of equity, the bank earning more on equity deserves the higher multiple." } }
-      - { id: c, text: "Both the same, because growth and cost of equity are equal", mistake: { tag: ignores_roe, fix: "Same growth and cost of equity still leaves different returns on equity." } }
-      - { id: d, text: "Neither; price-to-book does not depend on return on equity", mistake: { tag: pb_unrelated, fix: "Price-to-book rises with return on equity against its cost." } }
+      - { id: a, text: "Bank A: each rupee of its equity earns more" }
+      - { id: b, text: "Bank B: it has more room to improve", mistake: { tag: room_to_improve, fix: "With equal growth and risk, the bank earning more on equity deserves the higher multiple." } }
+      - { id: c, text: "Both the same: growth and risk match", mistake: { tag: ignores_roe, fix: "Same growth and risk still leaves different returns on equity." } }
+      - { id: d, text: "Neither: book value has no link to returns", mistake: { tag: pb_unrelated, fix: "Price-to-book rises with return on equity against its cost." } }
     answer: a
     explanation: >
       Price-to-book rises with the return on equity relative to the cost of equity. A bank that earns well above its cost of equity creates value on each rupee of equity, so each rupee of book equity is worth more than a rupee.
@@ -144,12 +144,12 @@ questions:
 
   - id: vb-q-half-book
     prompt: >
-      A bank's shares trade at half of reported book value. Which reading is most sensible?
+      In October 2025 Nisha's uncle forwards her a tip: "This bank's shares trade at half its book value. Free money!" Before she buys, which reading of that gap is most sensible?
     choices:
-      - { id: a, text: "The shares are certainly cheap and should be bought", mistake: { tag: cheap_for_sure, fix: "Below book can be a warning: the market may doubt the loans are worth their book value." } }
-      - { id: b, text: "The market may doubt that book value reflects the losses on the bank's loans, or doubt its future earnings" }
-      - { id: c, text: "The bank must be paying a very large dividend", mistake: { tag: dividend_story, fix: "A big dividend does not explain a low price-to-book; doubts about loan losses do." } }
-      - { id: d, text: "Price-to-book tells nothing about a bank", mistake: { tag: pb_meaningless, fix: "Price-to-book is a key bank measure; a low one says something." } }
+      - { id: a, text: "It is surely cheap, so buy now", mistake: { tag: cheap_for_sure, fix: "Below book can be a warning: the market may doubt the loans are worth their book value." } }
+      - { id: b, text: "The market may doubt its loans and earnings" }
+      - { id: c, text: "The bank must pay a huge dividend", mistake: { tag: dividend_story, fix: "A big dividend does not explain a low price-to-book; doubts about loan losses do." } }
+      - { id: d, text: "Price against book says nothing about a bank", mistake: { tag: pb_meaningless, fix: "Price-to-book is a key bank measure; a low one says something." } }
     answer: b
     explanation: >
       A price well below book value is a warning as often as a bargain. Book equity counts loans at what the bank says they are worth. If the market expects large unreported losses, or low returns on equity, it will pay less than book.

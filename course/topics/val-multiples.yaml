@@ -115,12 +115,12 @@ questions:
 
   - id: vm-q-mood
     prompt: >
-      An analyst values a company at 15 times earnings, the average for its listed peers, and the arithmetic is right. Which risk remains?
+      In March 2025 Kabir values a software firm at 15 times its earnings, the average of its listed rivals, and his arithmetic is right. His manager still says, "Careful, you've borrowed the market's mood." What does she mean?
     choices:
-      - { id: a, text: "The peers may themselves be priced too high or too low, so the answer inherits the market's mood" }
-      - { id: b, text: "The multiple ignores the peers' earnings altogether", mistake: { tag: multiple_ignores_earnings, fix: "A price-earnings multiple is built on the peers' earnings; the risk is their prices." } }
-      - { id: c, text: "Relative valuation cannot be used on companies with listed peers", mistake: { tag: peers_rule_out, fix: "Listed peers are exactly what relative valuation needs." } }
-      - { id: d, text: "The answer must equal the discounted cash flow value", mistake: { tag: must_match_dcf, fix: "A multiple and a DCF can differ; the multiple borrows the market's mood." } }
+      - { id: a, text: "If the rivals are mispriced, so is his value" }
+      - { id: b, text: "The multiple leaves out the rivals' earnings", mistake: { tag: multiple_ignores_earnings, fix: "A price-earnings multiple is built on the rivals' earnings; the risk is their prices." } }
+      - { id: c, text: "Firms with listed rivals can't be valued this way", mistake: { tag: peers_rule_out, fix: "Listed rivals are exactly what valuing by multiples needs." } }
+      - { id: d, text: "His value must match a cash-flow valuation", mistake: { tag: must_match_dcf, fix: "A multiple and a cash-flow value can differ; the multiple borrows the market's mood." } }
     answer: a
     explanation: >
       A multiple is borrowed from other prices. If the market over-values the comparables, a relative valuation passes the over-valuation on. A DCF value need not equal it.
@@ -129,12 +129,12 @@ questions:
 
   - id: vm-q-ev-funding
     prompt: >
-      Two companies sell the same goods in the same quantities. One is funded only with equity, the other with a great deal of debt. Which multiple compares them most fairly?
+      In 2025 Ishaan compares two juice makers that sell the same drinks in the same amounts. One is funded only by its owners; the other has borrowed heavily. He wants a price tag that compares the two businesses themselves, whatever their funding. Which should he use?
     choices:
-      - { id: a, text: "EV/revenue, because enterprise value counts debt as well as equity, so the funding mix does not distort it" }
-      - { id: b, text: "Price/revenue, because the share price already ignores debt", mistake: { tag: price_ignores_debt, fix: "The share price feels debt: more debt leaves less for shareholders." } }
-      - { id: c, text: "Neither; companies with different funding cannot be compared", mistake: { tag: cannot_compare, fix: "Enterprise value multiples are built to compare companies funded differently." } }
-      - { id: d, text: "Price/earnings, because debt does not affect earnings", mistake: { tag: debt_no_earnings_effect, fix: "Interest cuts earnings, so debt does move price-earnings." } }
+      - { id: a, text: "Enterprise value to revenue: it counts debt too" }
+      - { id: b, text: "Share price to revenue: shares ignore debt", mistake: { tag: price_ignores_debt, fix: "The share price feels debt: more debt leaves less for shareholders." } }
+      - { id: c, text: "None: firms funded differently can't be compared", mistake: { tag: cannot_compare, fix: "Enterprise value multiples are built to compare companies funded differently." } }
+      - { id: d, text: "Price to earnings: debt doesn't touch earnings", mistake: { tag: debt_no_earnings_effect, fix: "Interest cuts earnings, so debt does move price-earnings." } }
     answer: a
     explanation: >
       More debt leaves less value for the shareholders, which lowers a price-based multiple even when the business is identical. Enterprise value adds the debt back (and takes off cash), so EV multiples compare the businesses themselves.
@@ -143,12 +143,12 @@ questions:
 
   - id: vm-q-comparable
     prompt: >
-      You must value a young, fast-growing, loss-making software company by a revenue multiple. Which is the best comparable?
+      In May 2025 Zoya is asked to put a price on a young software start-up that grows fast but still loses money. She will borrow a revenue multiple from one listed company. Which one should she borrow it from?
     choices:
-      - { id: a, text: "A listed software company with a similar growth rate and margin outlook" }
-      - { id: b, text: "A profitable utility with the same revenue", mistake: { tag: same_revenue_same_business, fix: "A steady utility grows and earns differently, so its multiple fits a different story." } }
-      - { id: c, text: "The largest company in the stock index", mistake: { tag: biggest_as_comparable, fix: "Size alone does not match growth, margins or risk." } }
-      - { id: d, text: "A larger software company that is already profitable", mistake: { tag: same_industry_enough, fix: "Same industry is not enough; a mature, profitable firm grows differently, so its multiple fits a different story." } }
+      - { id: a, text: "A software firm growing as fast, with similar margins ahead" }
+      - { id: b, text: "A profitable power utility with the same revenue", mistake: { tag: same_revenue_same_business, fix: "A steady utility grows and earns differently, so its multiple fits a different story." } }
+      - { id: c, text: "The biggest company in the stock index", mistake: { tag: biggest_as_comparable, fix: "Size alone does not match growth, margins or risk." } }
+      - { id: d, text: "A bigger software firm that is already profitable", mistake: { tag: same_industry_enough, fix: "Same industry is not enough; a mature, profitable firm grows differently." } }
     answer: a
     explanation: >
       The multiple reflects growth, margins and risk. A comparable with a similar profile has earned a multiple for similar reasons; a utility or an index giant has not.
@@ -164,7 +164,6 @@ checks:
       - vm-q-mood
       - vm-q-ev-funding
       - vm-q-comparable
-      - bank:eab:MBA-FIN-VAL-0009
       - bank:eab:MBA-FIN-VAL-0013
       - bank:eab:MBA-FIN-VAL-0011
     perAttempt: 3
