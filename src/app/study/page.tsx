@@ -29,12 +29,12 @@ import { AppHeader, SignedInFrame } from "../ui";
 export const dynamic = "force-dynamic";
 
 // The Study Workspace's frame, box and header, around its two columns.
-async function WorkspaceShell({ children }: { children: ReactNode }) {
+async function WorkspaceShell({ learnerName, children }: { learnerName: string; children: ReactNode }) {
   return (
     <SignedInFrame>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3 pt-3">
-        <AppHeader current="workspace" theme={await readTheme()} />
+        <AppHeader current="workspace" theme={await readTheme()} account={{ name: learnerName }} />
         {children}
       </main>
     </SignedInFrame>
@@ -105,7 +105,7 @@ export default async function WorkspacePage() {
   const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
   return (
-    <WorkspaceShell>
+    <WorkspaceShell learnerName={learner.name}>
       <Conversation
         initial={initial}
         // The Topic bar's strip: the shown Topic's steps, grouped by Check, with the Learner's place.
