@@ -16,8 +16,8 @@ cases:
       negotiating with its creditors to cut its debt and avoid bankruptcy. Every provider of
       money to a firm expects a return: lenders get interest, which is tax-deductible, and
       shareholders expect dividends or share-price gains. The weighted average cost of capital
-      (WACC) is the return the firm's assets must earn to satisfy all of them. Without any other
-      figures, how large is the interest bill compared with revenue? What does that tell you about
+      (WACC) is the return the firm's assets must earn to satisfy all of them. What does it say
+      about the tunnel that its interest bill is so large next to its revenue? What does that tell you about
       the return the tunnel's operations would have to earn, and who is bearing the risk?
     reveal: >
       Creditors approved a rescue plan in Paris on 27 November 2006 by a single vote, 28 of 53
@@ -56,43 +56,61 @@ youllLearn:
 questions:
   - id: wc-q-calc
     prompt: >
-      A firm has equity worth $600 million at market value and debt worth $400 million. The cost of equity is 12%, the pre-tax cost of debt 6% and the tax rate 25%. What is its WACC?
+      Ananya's firm is funded mostly by shareholders and partly by loans, and loan interest cuts her tax bill. Her banker blends the two costs into one, the WACC. What goes into that blend?
     choices:
-      - { id: a, text: "9.0%" }
-      - { id: b, text: "9.6%" }
-      - { id: c, text: "8.4%" }
-      - { id: d, text: "10.2%" }
+      - { id: a, text: "Each cost, weighted by its share of funding, debt after tax" }
+      - id: b
+        text: "Weighted costs, with the loan taken before tax"
+        mistake: { tag: pre_tax_debt, fix: "Interest is tax-deductible, so the debt cost enters after tax." }
+      - id: c
+        text: "A plain average of the two, ignoring the weights"
+        mistake: { tag: equal_weights, fix: "The weights matter: the bigger piece of funding pulls the blend toward its cost." }
+      - id: d
+        text: "Just the shareholders' cost, since owners come first"
+        mistake: { tag: equity_only, fix: "WACC blends all funding, debt as well as equity." }
     answer: a
     explanation: >
-      WACC = 0.6 x 12% + 0.4 x 6% x (1 - 0.25) = 7.2% + 1.8% = 9.0%. Ignoring the tax shield would give 9.6%.
+      WACC blends the costs by the market-value weights, with debt after tax. For a firm 60% equity at 12% and 40% debt at 6% with 25% tax: 0.6 x 12% + 0.4 x 6% x 0.75 = 9.0%. Ignoring the tax shield would give 9.6%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.3 Calculating the Weighted Average Cost of Capital: https://openstax.org/books/principles-finance-2e/pages/17-3-calculating-the-weighted-average-cost-of-capital
 
   - id: wc-q-capm
     prompt: >
-      The risk-free rate is 4%, the equity risk premium is 5% and a stock's beta is 1.5. What cost of equity does the CAPM give?
+      March 2006: Dev is putting his bonus into one of two shares. One is steady; the other swings 1.5 times as much as the market. Why should the jumpy one promise more?
     choices:
-      - { id: a, text: "11.5%" }
-      - { id: b, text: "7.5%" }
-      - { id: c, text: "9.0%" }
-      - { id: d, text: "13.0%" }
+      - { id: a, text: "More swing means more risk, so investors demand a bigger reward" }
+      - id: b
+        text: "It is sure to earn more, so Dev cannot lose"
+        mistake: { tag: reward_guaranteed, fix: "The bigger return is expected, not promised. A jumpy share can fall hard in a bad year." }
+      - id: c
+        text: "Swings even out over time, so it shouldn't promise more"
+        mistake: { tag: risk_unpaid, fix: "Nobody carries extra risk for free, so the riskier share must offer a bigger expected return." }
+      - id: d
+        text: "Its price per share is lower, and cheap shares grow faster"
+        mistake: { tag: price_not_risk, fix: "A share's price tag does not set its return. How much it swings with the market does." }
     answer: a
     explanation: >
-      Re = 4% + 1.5 x 5% = 11.5%.
+      This is the idea behind the CAPM, the model finance uses for the return shareholders expect. Start from the risk-free rate, what a safe government bond pays. Add the market premium, the extra reward for holding shares at all. Beta, how much a share swings with the market, scales that premium: Dev's jumpy share has a beta of 1.5, so it carries one and a half times the premium.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
 
   - id: wc-q-tax-shield
     prompt: >
-      A firm pays 8% interest on its debt and its tax rate is 25%. What is its after-tax cost of debt?
+      Your family firm borrows from the bank at 8%. Every rupee of interest it pays trims its tax bill. Next to that 8%, where does the loan's real cost sit?
     choices:
-      - { id: a, text: "6%" }
-      - { id: b, text: "8%" }
-      - { id: c, text: "10.7%" }
-      - { id: d, text: "2%" }
+      - { id: a, text: "Below 8%: the tax saving makes debt cheaper after tax" }
+      - id: b
+        text: "Right at 8%, because tax has nothing to do with interest"
+        mistake: { tag: tax_ignored, fix: "Interest is deductible, so the tax bill falls and the real cost drops below 8%." }
+      - id: c
+        text: "Above 8%, since the firm pays tax on top"
+        mistake: { tag: tax_added, fix: "Tax is not added to interest. Deducting interest saves tax, which lowers the cost." }
+      - id: d
+        text: "At the shareholders' rate, the cost of equity"
+        mistake: { tag: debt_as_equity, fix: "Shareholders' return is the cost of equity. Lenders are paid the cost of debt." }
     answer: a
     explanation: >
-      Interest is deductible, so the tax bill falls by 25% of the interest. The cost after tax is 8% x (1 - 0.25) = 6%.
+      Interest is deductible, so the tax bill falls by a quarter of the interest. With a 25% tax rate, this tax shield leaves the after-tax cost of debt at about 6%, below the 8% the lender charges.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
 

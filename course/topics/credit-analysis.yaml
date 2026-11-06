@@ -1,5 +1,5 @@
 # Corporate credit analysis: a foundation Topic taught through IL&FS before its defaults.
-# Case sources (checked): ICRA rationale and CARE press release hosted by IL&FS (Sep 2018, FY2017 figures used for the story); Reuters 4 Oct 2018; PIB, Ministry of Finance, 1 Oct 2018.
+# Case sources (checked): ICRA rationale and CARE press release hosted by IL&FS (Sep 2018, FY2017 figures used for the story); ICRA rationale of 6 Aug 2018 (AAA to AA+); Business Standard 6 Sep 2018 (SIDBI loan default reported); Reuters 4 Oct 2018; PIB, Ministry of Finance, 1 Oct 2018.
 id: credit-analysis
 title: Corporate credit analysis
 
@@ -14,18 +14,19 @@ cases:
       core investment company, a type of holding company regulated by the Reserve Bank of India,
       which limits its outside debt to 2.5 times its adjusted net worth. Its borrowing is raised from
       banks and the bond market, including commercial paper and debentures. ICRA and CARE had rated
-      its debt AAA, the highest grade, for years. For the year to March 2017 the parent alone
+      its debt AAA, the highest grade, for years; on 6 August 2018 ICRA moved it one notch down,
+      to AA+, still a high grade. For the year to March 2017 the parent alone
       reported total income of Rs 1,787 crore, profit after tax of Rs 383 crore, net worth of Rs
       4,998 crore, borrowings of 2.60 times its net worth, and a regulatory leverage ratio of 2.23.
       For the whole group, the consolidated figures for the same year showed total income of Rs
       17,157 crore, profit after tax of only Rs 142 crore and a leverage ratio of 8.62. One of
       its subsidiaries, IL&FS Transportation Networks, had missed a debt payment in June 2018. You are asked to
       lend money for one year to the parent. What would you want to know before agreeing, and which
-      of these figures would make you hesitate despite the AAA rating?
+      of these figures would make you hesitate despite the high rating?
     reveal: >
-      On 16 August 2018 a group company defaulted on a payment to the Small Industries Development
-      Bank of India. ICRA and CARE moved the rating down in mid-August, first by one notch, and then,
-      within a month, to default grade: ICRA cut it to BB on 8 September and CARE did the same on 9
+      In early September 2018 IL&FS was reported to have defaulted on a short-term loan from the Small
+      Industries Development Bank of India. ICRA's one-notch cut on 6 August was followed, in September,
+      by a fall to junk (speculative) grade, below investment grade: ICRA cut it to BB on 8 September and CARE did the same on 9
       September. On 1 October 2018 the government moved to replace the board, saying the group had 169
       companies and about Rs 91,000 crore of debt against assets above Rs 1,15,000 crore. It said the
       consolidated accounts showed over Rs 20,000 crore of intangible assets, that about half of
@@ -76,15 +77,15 @@ questions:
 
   - id: ca-q-net-debt
     prompt: >
-      Two shoe companies owe the same large sum. One has a pile of cash in the bank nearly as big; the other has almost none. A lender shrugs at the first one: "Its net debt is small." What is she counting when she says net debt?
+      Kavya lends to two shoemakers that owe the same big sum. Only one has a pile of cash in the bank, and she calls its net debt small. What is she counting?
     choices:
-      - { id: a, text: "Debt plus the interest due this year", mistake: { tag: added_not_subtracted, fix: "Net means something is taken off. Net debt subtracts cash; it does not add interest." } }
-      - { id: b, text: "Only the debt owed to banks, leaving out bonds", mistake: { tag: net_means_bank_only, fix: "Net is not about who lent the money. It is debt after cash is taken off." } }
-      - { id: c, text: "Debt after tax has been deducted", mistake: { tag: netted_off_tax, fix: "Tax is not netted off. Net debt is debt less cash." } }
-      - { id: d, text: "Debt minus the cash the company holds" }
+      - { id: a, text: "Its debt plus the interest due this year", mistake: { tag: added_not_subtracted, fix: "Net means something is taken off. Net debt subtracts cash; it does not add interest." } }
+      - { id: b, text: "Only its bank loans, leaving out its bonds", mistake: { tag: net_means_bank_only, fix: "Net is not about who lent the money. It is debt after cash is taken off." } }
+      - { id: c, text: "Its debt after tax has been deducted", mistake: { tag: netted_off_tax, fix: "Tax is not netted off. Net debt is debt less cash." } }
+      - { id: d, text: "Its debt minus the cash it already holds" }
     answer: d
     explanation: >
-      Net debt is debt less cash. A company with debt of 500 and cash of 100 has net debt of 400. Net debt to EBITDA then tells a lender, roughly, how many years of EBITDA it would take to repay what is owed.
+      Net means something is taken off: net debt is what a company owes less the cash it could pay with today. Lenders then set it against EBITDA, a rough measure of a year's cash earnings, to judge how long repaying would take.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default ; the ratio is by definition.
 

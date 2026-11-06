@@ -67,6 +67,7 @@ function lessonMap(): CourseMap {
     skills: [],
     templates: [],
     terms: [],
+    scenes: [],
     questions: [],
     checks: [{ id: fed.id, kind: "conversation", prompt: fed.kind === "conversation" ? fed.prompt : "", passCriteria: fed.kind === "conversation" ? fed.passCriteria : "" }],
     widgets: [RATE_WIDGET],

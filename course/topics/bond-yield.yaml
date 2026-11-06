@@ -72,29 +72,29 @@ questions:
 
   - id: by-q-ytm-order
     prompt: >
-      A bond trades below its face value. Which statement about its three yield measures is correct?
+      June 1994. Vikram buys a bond below its face value. His broker's sheet lists three yields: the coupon rate, the current yield and the yield to maturity. Which comes out highest, and why?
     choices:
-      - { id: a, text: "Yield to maturity is higher than the current yield, which is higher than the coupon rate" }
-      - { id: b, text: "The coupon rate is higher than the current yield, which is higher than the yield to maturity" }
-      - { id: c, text: "All three are equal" }
-      - { id: d, text: "The current yield is the highest of the three" }
+      - { id: a, text: "Yield to maturity: it also counts the climb back to face value" }
+      - { id: b, text: "Coupon rate: it is the rate the bond promises", mistake: { tag: coupon_highest, fix: "Below face value each coupon is a bigger share of the price, so the other two beat it." } }
+      - { id: c, text: "Current yield: it uses the low price he paid", mistake: { tag: forgot_gain_at_maturity, fix: "Current yield counts coupons only. Yield to maturity adds the gain as the price returns to face value." } }
+      - { id: d, text: "All three match, since they describe one bond", mistake: { tag: yields_all_equal, fix: "They match only when the price equals face value. Below it they pull apart." } }
     answer: a
     explanation: >
-      For a discount bond the price is below $1,000, so coupon / price is above the coupon rate. The holder also gains as the price rises to par, so YTM is higher still. Example: a 5-year 6% bond at $950 has a current yield of 6.3% and a YTM of 7.2%.
+      Below face value, the coupon is a bigger share of the price, so the current yield beats the coupon rate. The holder also gains as the price climbs back to face value at maturity, so the yield to maturity is highest of all.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: by-q-ytm-meaning
     prompt: >
-      What is a bond's yield to maturity?
+      June 1994. Sunil's broker offers him a bond with a high 'yield to maturity'. Sunil is saving for his daughter's college fees and asks what that yield actually promises him. What should the broker say?
     choices:
-      - { id: a, text: "The discount rate at which the present value of the remaining coupons and face value equals the bond's price" }
-      - { id: b, text: "The annual coupon divided by the face value" }
-      - { id: c, text: "The annual coupon divided by the current price" }
-      - { id: d, text: "The rise in price expected over the next year" }
+      - { id: a, text: "The yearly return if he holds to the end and every payment arrives" }
+      - { id: b, text: "The yearly coupon against the bond's face value", mistake: { tag: ytm_as_coupon_rate, fix: "That is the coupon rate. Yield to maturity also counts the price he pays and the repayment." } }
+      - { id: c, text: "The yearly coupon against today's price", mistake: { tag: ytm_as_current_yield, fix: "That is the current yield. Yield to maturity adds the gain or loss up to maturity." } }
+      - { id: d, text: "A return he keeps even if he sells early", mistake: { tag: ytm_without_holding, fix: "The promise holds only to maturity. Selling early exposes him to whatever the price is then." } }
     answer: a
     explanation: >
-      YTM is the return rate a buyer receives on the money lent to the issuer if the bond is held to maturity. Choice b is the coupon rate and c is the current yield.
+      Yield to maturity is the yearly return a buyer earns on the price paid, if the bond is held to maturity and every coupon and the face value are paid. It is the single rate that makes those payments worth today's price. Selling early breaks the promise.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 

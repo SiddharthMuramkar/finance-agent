@@ -1,10 +1,11 @@
 import type { Notebook, NotebookRow } from "@/learner/notebook";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
-import { shortDate } from "../past-sessions";
+import { dayMonth, shortDate } from "../past-sessions";
 import { ButtonLink, Card, Eyebrow, PrimaryButton, Tag, TextLink } from "../ui";
 import { FilledPart } from "./filled-part";
 import { OwnLines } from "./own-lines";
 import { SavedItems } from "./saved-items";
+import { ScrollToRow } from "./scroll-to-row";
 import { UndoProvider } from "./undo";
 
 const STAGE: Record<NotebookRow["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
@@ -32,6 +33,44 @@ function RowAction({ row }: { row: NotebookRow }) {
       </ButtonLink>
     );
   return null;
+}
+
+/** The Topic's Earlier attempts (it was started over): newest first, each read-only with a Read link, never a Resume. */
+function EarlierAttempts({ row }: { row: NotebookRow }) {
+  if (row.earlier.length === 0) return null;
+  return (
+    <div data-earlier-attempts={row.topicId}>
+      <Heading>Earlier attempts</Heading>
+      <ul className="mt-1 flex flex-col gap-2">
+        {row.earlier.map((e) => (
+          <li key={e.sessionId} data-earlier-attempt={e.sessionId} className="flex flex-col gap-1 rounded-lg border border-[var(--border)] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold leading-5">
+                <span>Earlier attempt · {dayMonth(e.date)}</span>
+                <Tag tone={e.status === "passed" ? "mint" : "neutral"}>{e.status === "passed" ? "Passed" : "Not finished"}</Tag>
+              </p>
+              <ButtonLink href={`/sessions/${e.sessionId}`} variant="secondary" size="sm" className="print:hidden">
+                Read
+              </ButtonLink>
+            </div>
+            <p className="text-xs leading-4 text-[var(--muted)]">
+              Checks passed {e.checksPassed} of {e.checksTotal}
+            </p>
+            {e.found.length > 0 && (
+              <div data-testid="earlier-found">
+                <p className="text-xs font-semibold leading-4">What you found</p>
+                <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 text-sm leading-5">
+                  {e.found.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function Row({ row }: { row: NotebookRow }) {
@@ -67,8 +106,7 @@ function Row({ row }: { row: NotebookRow }) {
       {note.filled ? <FilledPart filled={note.filled} /> : <p className="mt-3 text-sm leading-5 text-[var(--muted)] print:hidden">Fills in when you pass this Topic.</p>}
       <SavedItems items={note.saved} />
       <OwnLines topicId={row.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text, ...(l.ownRule && { ownRule: true }) }))} />
-      {/* Earlier attempts: a Topic started over keeps its old Session here (B3b fills it). */}
-      <div data-earlier-attempts={row.topicId} />
+      <EarlierAttempts row={row} />
     </Card>
   );
 }
@@ -93,7 +131,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
             </TextLink>
           </div>
           <p className="measure mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
-            For each Topic: your Session, what you found and your notes. Add lines of your own to any Topic. Print this page for a paper copy.
+            For each Topic: your Session, what you found and your Topic Note. Add lines of your own to any Topic. Print this page for a paper copy.
           </p>
           {notebook.rows.length === 0 && (
             <p data-notebook-empty className="text-sm leading-5">
@@ -105,6 +143,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
               <Row key={row.topicId} row={row} />
             ))}
           </div>
+          {notebook.rows.length > 0 && <ScrollToRow />}
           {notebook.older.length > 0 && (
             <section aria-labelledby="older-sessions" className="mt-8 flex flex-col gap-3">
               <h2 id="older-sessions" className="text-sm font-semibold leading-5 text-[var(--muted)]">

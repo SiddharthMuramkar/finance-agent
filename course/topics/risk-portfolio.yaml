@@ -64,71 +64,71 @@ youllLearn:
 questions:
   - id: rp-q-expected
     prompt: >
-      A portfolio has 40% in asset A (expected return 10%) and 60% in asset B (expected return 5%). What is the portfolio's expected return?
+      Zoya wins a quiz prize and splits it: a bit under half in a racy fund that should earn a lot, the rest in a steady fund that should earn less. Where should her overall return land?
     choices:
-      - { id: a, text: "7%" }
-      - { id: b, text: "7.5%" }
-      - { id: c, text: "15%" }
-      - { id: d, text: "5%" }
+      - { id: a, text: "Between the two, closer to the steady fund that holds more" }
+      - { id: b, text: "Exactly halfway, whatever the split", mistake: { tag: ignored_weights, fix: "The split matters: the portfolio sits nearer the fund that holds more of the money." } }
+      - { id: c, text: "Above both, since spreading money adds return", mistake: { tag: diversification_adds_return, fix: "Spreading money lowers risk; the expected return is only a weighted average of the holdings." } }
+      - { id: d, text: "Up with the racy fund, since that is the better one", mistake: { tag: best_asset_wins, fix: "Holding the steady fund pulls her expected return down towards its level." } }
     answer: a
     explanation: >
-      The expected return is the weighted average: 0.40 x 10% + 0.60 x 5% = 4% + 3% = 7%.
+      A portfolio's expected return is the weighted average of its holdings' expected returns, so it sits between them and leans towards whichever holds more money. Spreading money out lowers risk; it does not add return.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Summary): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-firm-specific
     prompt: >
-      Which risk does holding a well-diversified portfolio of many shares largely remove?
+      Vikram's grandmother owns shares in 300 companies. One morning one of them loses a huge lawsuit and its shares crash, yet her savings barely dip. What do traders call the kind of risk that hit that company?
     choices:
-      - { id: a, text: "Firm-specific (unsystematic) risk, such as a company's lawsuit" }
-      - { id: b, text: "Systematic (market) risk, such as a broad market fall" }
-      - { id: c, text: "Both equally" }
-      - { id: d, text: "Neither; diversification does not change risk" }
+      - { id: a, text: "Firm-specific risk, which owning many shares largely washes out" }
+      - { id: b, text: "Systematic risk, the risk of the whole market falling", mistake: { tag: systematic_vs_specific, fix: "Systematic risk hits all shares together; a lawsuit hits one firm, and spreading out dilutes it." } }
+      - { id: c, text: "Basis risk, a hedge drifting from what it covers", mistake: { tag: basis_vs_specific, fix: "Basis risk belongs to hedges; this was one company's own bad news." } }
+      - { id: d, text: "Interest-rate risk, from rates going up", mistake: { tag: rate_vs_specific, fix: "Nothing about rates changed; the trouble was one firm's lawsuit." } }
     answer: a
     explanation: >
-      Events that affect one company are offset by others in a large portfolio. Systematic risk, the risk of holding the market, never goes away through diversification.
+      Events that hit one company, like a lawsuit or a failed product, are firm-specific (unsystematic) risk. In a large portfolio they are offset by the other holdings. Systematic risk, the risk of holding the market, never goes away through diversification.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-correlation
     prompt: >
-      You can add one of three assets, each with the same standard deviation as your current holding, to a portfolio. Their correlations with your holding are +0.9, +0.3 and -0.2. Which gives the greatest reduction in portfolio risk?
+      Tanya's family savings sit mostly in one cement company. She can add one of three equally jumpy shares: one moves almost in step with cement, one loosely, one the opposite way. Which calms her savings most?
     choices:
-      - { id: a, text: "The asset with correlation -0.2" }
-      - { id: b, text: "The asset with correlation +0.3" }
-      - { id: c, text: "The asset with correlation +0.9" }
-      - { id: d, text: "All three give the same reduction" }
+      - { id: a, text: "The share that tends to move the opposite way" }
+      - { id: b, text: "The share that moves only loosely with cement", mistake: { tag: second_best, fix: "A loose link helps, but a share that moves the other way offsets more of the losses." } }
+      - { id: c, text: "The share that moves almost in step", mistake: { tag: similar_is_safe, fix: "A share that moves in step adds little protection; its losses arrive with cement's." } }
+      - { id: d, text: "All three calm it the same", mistake: { tag: correlation_ignored, fix: "The calming depends on how each share moves with cement, so the three differ." } }
     answer: a
     explanation: >
-      The lower the correlation, the more one asset's losses are offset by another's gains and the more the portfolio's risk falls. The airline example in OpenStax shows that adding a similar stock removes little risk, while adding a dissimilar one removes much more.
+      The lower the correlation, the more one holding's losses are offset by another's gains and the more the portfolio's risk falls. The airline example in OpenStax shows that adding a similar stock removes little risk, while adding a dissimilar one removes much more.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Diversification): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-market-fall
     prompt: >
-      The whole stock market falls sharply in a day. Why does a portfolio of 500 shares still fall?
+      It is Friday 16 October 1987, and US shares are down more than 9% this week. Mrs Carter's pension fund owns 500 different shares, yet it is down too. Why didn't owning 500 shares protect it?
     choices:
-      - { id: a, text: "Systematic risk affects all shares and cannot be diversified away" }
-      - { id: b, text: "The portfolio was not diversified enough, and 600 shares would have avoided the fall" }
-      - { id: c, text: "Diversification increases risk in a crash" }
-      - { id: d, text: "Only firm-specific risk exists" }
+      - { id: a, text: "A market-wide fall hits nearly every share at once" }
+      - { id: b, text: "500 was too few; 600 shares would have dodged it", mistake: { tag: more_shares_fix, fix: "More shares trim one-company risk, but no number of shares escapes a market-wide fall." } }
+      - { id: c, text: "Owning many shares makes falls worse", mistake: { tag: diversification_harms, fix: "Spreading out does not deepen a fall; it simply cannot stop one that hits everything." } }
+      - { id: d, text: "Only one-company risk exists, so it was bad luck", mistake: { tag: only_specific, fix: "Market-wide risk is real: rates, recessions and panics move all shares together." } }
     answer: a
     explanation: >
-      Events that affect the entire market, such as changes in interest rates or a panic, move all shares together. More shares reduce firm-specific risk but never remove market risk.
+      Systematic risk, from interest rates, recessions or panics, moves almost all shares together. More shares reduce firm-specific risk but never remove market risk, which is why some funds also bought portfolio insurance.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-insurance
     prompt: >
-      Portfolio insurance of the 1980s kept the investor's shares and sold stock-index futures as prices fell. Whose protection did this resemble?
+      Friday, 16 October 1987: a pension fund keeps its shares but has an "insurer" sell stock-index futures, more as prices fall. Its manager says this works like buying protection. Which protection does it copy?
     choices:
-      - { id: a, text: "Buying a put option on the portfolio" }
-      - { id: b, text: "Buying more shares as prices fall" }
-      - { id: c, text: "Holding cash only" }
-      - { id: d, text: "Buying a government bond" }
+      - { id: a, text: "A put option: the right to sell the portfolio at a set price" }
+      - { id: b, text: "Buying more shares as prices fall", mistake: { tag: opposite_trade, fix: "Buying more adds exposure in a fall; the insurer sells futures to shed it." } }
+      - { id: c, text: "Switching everything into cash", mistake: { tag: all_cash, fix: "The fund keeps its shares; only the futures selling grows as prices drop." } }
+      - { id: d, text: "Buying a government bond", mistake: { tag: bond_not_put, fix: "A bond pays interest; it does not cap losses on shares the way a put does." } }
     answer: a
     explanation: >
-      The strategy was designed to replicate the payoff of a put: as the market falls, an increasing share of the exposure is hedged. Unlike a bought put, it depends on being able to trade at the expected prices.
+      The strategy was designed to copy the payoff of a put: as the market falls, more and more of the exposure is hedged. Unlike a bought put, it depends on being able to sell futures at close to the last price.
     source: >
       Federal Reserve Board, FEDS 2007-13, The Federal Reserve's response to the 1987 stock market crash (portfolio insurance described as similar to buying a put): https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf
 

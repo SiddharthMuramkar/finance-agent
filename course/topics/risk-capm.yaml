@@ -18,8 +18,8 @@ cases:
       a share moves with the market, he has two figures. A regression of two years of weekly Amazon returns on the
       market (from Bloomberg) gives a beta of 2.29, but with a standard error of 0.50, which is large because the
       company has a short history. The average beta of internet firms is about 1.60, and of retailers close to
-      1.0. He chooses 1.60 for the first five years, fading to 1.00 by year ten as the company matures. What cost of
-      equity does each beta imply, which would you use, and how much should the choice matter to the value?
+      1.0. He chooses 1.60 for the first five years, fading to 1.00 by year ten as the company matures. Which beta
+      would you use for the cost of equity, and why does the choice matter to the value?
     reveal: >
       Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00).
       The regression beta of 2.29 would have implied 15.66%. Combined with forecasts of rapid revenue growth and rising margins,
@@ -59,57 +59,57 @@ youllLearn:
 questions:
   - id: cm-q-capm
     prompt: >
-      The risk-free rate is 5%, the market risk premium is 6% and a share has a beta of 1.2. What is the CAPM expected return?
+      Neha's dad owns two shares: a sleepy power company and a jumpy dot-com that swings about twice as hard as the market. Over Sunday dinner he asks which should promise him more return. What does the CAPM say?
     choices:
-      - { id: a, text: "12.2%" }
-      - { id: b, text: "7.2%" }
-      - { id: c, text: "11.0%" }
-      - { id: d, text: "13.2%" }
+      - { id: a, text: "The dot-com, because it carries more of the market's risk" }
+      - { id: b, text: "Both the same, since both are just shares", mistake: { tag: beta_ignored, fix: "The model pays more for more market risk, so the jumpier share must promise more." } }
+      - { id: c, text: "The power company, because steady shares deserve more", mistake: { tag: safety_premium, fix: "Steadiness is a comfort, not a reward; the model pays only for market risk you bear." } }
+      - { id: d, text: "Whichever did best over the last five years", mistake: { tag: past_is_expected, fix: "The model builds expected return from the safe rate, beta and the market's premium, not past returns." } }
     answer: a
     explanation: >
-      Re = 5% + 1.2 x 6% = 5% + 7.2% = 12.2%.
+      The CAPM starts from the safe rate (a government bond) and adds a slice of the market's extra reward for risk, sized by beta. The dot-com's beta is about 2, so it should promise roughly twice the extra reward of an average share; the sleepy one, less.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (CAPM equation): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
 
   - id: cm-q-beta
     prompt: >
-      A share has a beta of 2. If the market rises 10%, what does the share tend to do?
+      On the morning of her first trade, Meera's broker tips a start-up share "with a beta of 2". She hopes that means a calm ride for her savings. What do traders mean by a beta of 2?
     choices:
-      - { id: a, text: "Rise about 20%" }
-      - { id: b, text: "Rise about 5%" }
-      - { id: c, text: "Rise about 10%" }
-      - { id: d, text: "Fall about 20%" }
+      - { id: a, text: "It tends to swing about twice as far as the market, same direction" }
+      - { id: b, text: "It tends to swing about half as far as the market", mistake: { tag: beta_inverted, fix: "A beta above 1 means the share swings more than the market, not less." } }
+      - { id: c, text: "Twice as far as the market, but the opposite way", mistake: { tag: sign_slip, fix: "A beta of 2 is positive, so the share moves the same way as the market." } }
+      - { id: d, text: "It is twice as safe as the market", mistake: { tag: beta_is_safety, fix: "A higher beta means more market risk, so the share is riskier, not safer." } }
     answer: a
     explanation: >
-      A beta of 2 means the share tends to move twice as far as the market in the same direction: +20% when the market is up 10%, and -10% when the market falls 5%.
+      When the market rises 10%, a beta-2 share tends to rise about 20%; when the market falls 5%, it tends to fall about 10%. That is a wild ride, not a calm one.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (Interpreting Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
 
   - id: cm-q-differ
     prompt: >
-      Two data providers report different betas for the same share. Which is a main reason?
+      One evening Arjun looks up his favourite share's beta on two websites: one says 1.2, the other 1.5. He suspects a typo before he invests. What is the likelier reason?
     choices:
-      - { id: a, text: "They use different time periods, return frequencies or market indexes" }
-      - { id: b, text: "One of them has made an arithmetic error that cannot be avoided" }
-      - { id: c, text: "Beta is set by the company and reported differently" }
-      - { id: d, text: "Beta changes each time it is read" }
+      - { id: a, text: "They measured over different periods, intervals or market indexes" }
+      - { id: b, text: "One site made an arithmetic slip it could never avoid", mistake: { tag: arithmetic_slip, fix: "Both can be right; a beta is an estimate that shifts with the data chosen." } }
+      - { id: c, text: "The company sets its own beta and reports two", mistake: { tag: company_sets_beta, fix: "Analysts estimate beta from share prices; companies do not announce it." } }
+      - { id: d, text: "Beta changes every time someone looks it up", mistake: { tag: beta_random, fix: "Beta shifts with the data window chosen, not with each lookup." } }
     answer: a
     explanation: >
-      A beta is a regression estimate. Three- and five-year windows, weekly and monthly returns, and different indexes give different slopes.
+      A beta is a regression estimate. Three- and five-year windows, weekly and monthly returns, and different indexes give different slopes for the same share.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (Calculating Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
 
   - id: cm-q-stderr
     prompt: >
-      A regression gives a beta of 1.8 with a standard error of 0.6. Roughly what range, two standard errors either side, is the true beta likely to lie in?
+      Rohan is valuing a young online shop listed only two years ago. Its own price history gives a beta of 1.8, but his software flags it as shaky. His report is due tonight. What should he do?
     choices:
-      - { id: a, text: "0.6 to 3.0" }
-      - { id: b, text: "1.2 to 2.4" }
-      - { id: c, text: "1.8 exactly" }
-      - { id: d, text: "0 to 1.8" }
+      - { id: a, text: "Treat 1.8 as rough and lean on similar firms' average beta" }
+      - { id: b, text: "Use 1.8: the software produced it, so it is exact", mistake: { tag: false_precision, fix: "A short price history gives only a rough estimate; the warning says it could be far off." } }
+      - { id: c, text: "Call the shop low risk, since its beta is shaky", mistake: { tag: error_is_risk, fix: "Shaky describes how reliable the 1.8 is, not how risky the shop is." } }
+      - { id: d, text: "Assume the true beta is below 1", mistake: { tag: error_direction, fix: "The error can push the true beta either way; it does not pull it below 1." } }
     answer: a
     explanation: >
-      1.8 minus 2 x 0.6 is 0.6, and 1.8 plus 2 x 0.6 is 3.0. A range this wide shows why an estimate from a short history is a weak basis for a cost of equity.
+      A beta from a short history carries a big standard error, so the true figure could be well below or well above 1.8. Damodaran faced this with Amazon in February 2000: its regression beta of 2.29 had a standard error of 0.50, so he used the average beta of internet firms, about 1.60.
     source: >
       Damodaran, Amazon.com valuation paper, section 5 (regression betas for firms with limited history carry substantial error; Amazon's 2.29 beta had a standard error of 0.50): http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
 
@@ -129,10 +129,10 @@ checks:
   - id: cm-choose-beta
     kind: conversation
     prompt: >
-      A young company has a regression beta of 2.1 with a large standard error, while the average beta of
-      similar firms is 1.5. With a risk-free rate of 5% and a market risk premium of 5%, work out the
-      cost of equity each beta gives and say which you would use and why.
+      A young company's short price history gives it a beta of 2.1, a shaky figure. Similar, older firms
+      average 1.5. Which would you pick to set the return its shareholders should demand, and why?
     passCriteria: >
-      The Learner calculates 5% + 2.1 x 5% = 15.5% and 5% + 1.5 x 5% = 12.5%. They say the regression
-      beta is imprecise for a company with a short history, so the average beta of comparable firms is a
-      sounder estimate, and note that the choice changes the discount rate and so the value.
+      The Learner picks a beta and gives a reason. They say a short history makes the company's own beta
+      unreliable, so the average of similar firms is the sounder choice (or they argue for 2.1 with a
+      reason). They say a higher beta means shareholders demand a higher return, which makes the
+      company's future cash worth less today, so the choice changes the value.

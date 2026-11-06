@@ -1,13 +1,13 @@
 import type { CourseMap, Topic } from "@/course/map";
 import { courseOverview, type TopicOverview } from "@/course/navigator";
 import type { Db } from "@/db/types";
-import { loadPastSessions, type OlderSessionRow } from "@/tutor/past-sessions";
+import { loadPastSessions, type EarlierAttemptRow, type OlderSessionRow } from "@/tutor/past-sessions";
 import { loadProgress } from "./memory";
 import { loadNotes, type TopicNote } from "./notes";
 
 /**
  * The Notebook (spec 2026-11-05 B2a): one row per Topic, in course order, joining what two pages listed
- * apart. A Topic has a row when it has a Session or a note (a passed Topic, a line or a saved item), or when `all` asks
+ * apart. A Topic has a row when it has a Session, an Earlier attempt or a note (a passed Topic, a line or a saved item), or when `all` asks
  * for every Topic. Worked out by code from the Learner's own records; no model call.
  */
 
@@ -24,6 +24,8 @@ export type NotebookRow = {
   action: "resume" | "read" | null;
   /** What the Learner found, a line each. */
   found: string[];
+  /** Earlier attempts (the Topic started over), newest first. */
+  earlier: EarlierAttemptRow[];
   /** The Topic Note: filled part, own lines, saved replies and Widgets. */
   note: TopicNote;
 };
@@ -40,7 +42,8 @@ export async function loadNotebook(db: Db, map: CourseMap, learnerId: number, op
   const rows: NotebookRow[] = [];
   for (const note of notes) {
     const session = sessionOf.get(note.topicId);
-    if (!opts.all && !session && !hasNote(note)) continue;
+    const earlier = past.earlier.filter((e) => e.topicId === note.topicId);
+    if (!opts.all && !session && earlier.length === 0 && !hasNote(note)) continue;
     const status = overview.get(note.topicId)?.status ?? "not_started";
     const action = status === "in_progress" ? "resume" : status === "passed" && session ? "read" : null;
     rows.push({
@@ -52,6 +55,7 @@ export async function loadNotebook(db: Db, map: CourseMap, learnerId: number, op
       lastActive: session?.lastActive ?? null,
       action,
       found: session?.found ?? [],
+      earlier,
       note,
     });
   }

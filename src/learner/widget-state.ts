@@ -7,7 +7,7 @@ import { cleanSavedWidget, MAX_WIDGET_KEY, type SavedWidget, type WidgetStates }
  * Widget state (spec #119, "Widgets › Widget state"): each Widget's slider values and ticked Guided Tasks in one
  * Session, saved per (Session, Widget key) in table widget_state. The key is the written-ahead Widget's id (the
  * explore Widget is one, so it is saved under its id), or the title of a Widget the Tutor drew. The Study Workspace reads a Session's
- * state with the Session and saves each change through /api/widget-state; Save to notes keeps the same values.
+ * state with the Session and saves each change through /api/widget-state; Save to Notebook keeps the same values.
  *
  * Widget state is one Learner's: a Session of another Learner is no such Session (404).
  */

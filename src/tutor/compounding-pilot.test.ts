@@ -19,7 +19,7 @@ import { runTutorTurn } from "./turn";
 import { calculate } from "@/finance/calculators";
 import { markerProblems } from "@/finance/formula-markers";
 import { plainFormulaText } from "@/finance/formula-text";
-import { drawTemplate, formatExact, markAnswer, plainExact } from "@/teaching";
+import { drawTemplate, formatExact, markAnswer, markChoice, plainExact } from "@/teaching";
 import { widgetProblems, widgetRuleProblems } from "@/widgets/check";
 import { recipeById } from "@/widgets/recipes";
 import { readWidget } from "@/widgets/widget-reading";
@@ -59,12 +59,12 @@ const calc = (id: string, inputs: object, label: string) => {
 };
 
 describe("Growth, compounding and logs, converted", () => {
-  it("is converted, in rupees, with its six Skills, four terms and six Checks in story-to-principle order", () => {
+  it("is converted, in rupees, with its six Skills, six terms and six Checks in story-to-principle order", () => {
     expect(isConverted(topic)).toBe(true);
     expect(topic.exampleCurrency).toBe("INR");
     expect(topic.restructure).toBe("content-only");
     expect(topic.skills.map((s) => s.id)).toEqual(["compound-growth", "fall-and-recover", "rule-of-72", "cagr", "log-return", "steady-pace"]);
-    expect(topic.terms.map((t) => t.term)).toEqual(["compounding", "compound annual growth rate (CAGR)", "rule of 72", "log return"]);
+    expect(topic.terms.map((t) => t.term)).toEqual(["index", "compounding", "CAGR", "bull run", "rule of 72", "log return"]);
     expect(topic.checks.map((c) => [c.id, c.kind])).toEqual([...QUIZZES.map((q) => [q.id, "quiz"]), ["cp-sensex-rate", "conversation"]]);
     expect(topic.formulas).toEqual(["compound-growth", "cagr"]);
     expect(topic.checks.every((c) => !c.required)).toBe(true);
@@ -170,35 +170,53 @@ describe("Growth, compounding and logs, converted", () => {
       }
     });
 
-    it("hold answers the tested calculators agree with", () => {
-      // ₹2,000 at 10% for 2 years.
-      expect(calc("future_value", { amount: 2000, ratePercent: 10, years: 2 }, "Future value")).toBeCloseTo(tryById("cp-try-grow-half").answer as number, 9);
+    /** The words of a written choice Quick try's right choice (E6a: no Quick try is typed any more). */
+    const rightText = (id: string) => {
+      const q = tryById(id);
+      return q.choices?.find((c) => c.id === q.answer)?.text;
+    };
+
+    it("hold choices the tested calculators agree with", () => {
+      // ₹2,000 at 10% for 2 years is ₹2,420: the second year adds ₹220, more than the first year's ₹200.
+      expect(calc("future_value", { amount: 2000, ratePercent: 10, years: 2 }, "Future value")).toBeCloseTo(2420, 9);
+      expect(rightText("cp-try-grow-half")).toContain("₹2,200");
       // 72 ÷ 9 is 8, and 72 ÷ 18 is 4.
-      expect(calc("rule_of_72", { ratePercent: 9 }, "Years to double (approximate)")).toBe(tryById("cp-try-72-half").answer);
+      expect(calc("rule_of_72", { ratePercent: 9 }, "Years to double (approximate)")).toBe(8);
+      expect(rightText("cp-try-72-half")).toBe("8 years");
       expect(calc("rule_of_72", { ratePercent: 18 }, "Years to double (approximate)")).toBe(4);
-      // 100 to 121 in 2 years.
-      expect(calc("cagr", { start: 100, end: 121, years: 2 }, "CAGR")).toBeCloseTo(tryById("cp-try-cagr-half").answer as number, 9);
-      // By hand: ₹500 down 40% is ₹300, and 40% up on ₹300 is ₹420; ₹200 back up to ₹400 is a 100% rise.
-      expect(tryById("cp-try-fall-half").answer).toBe(420);
-      expect(tryById("cp-try-recover").answer).toBe(100);
+      // 100 to 121 in 2 years is 10% a year, not the 10.5% of splitting the gain.
+      expect(calc("cagr", { start: 100, end: 121, years: 2 }, "CAGR")).toBeCloseTo(10, 9);
+      expect(rightText("cp-try-cagr-half")).toContain("10%");
+      // By hand: ₹500 down 40% is ₹300, and 40% up on ₹300 is ₹420, short of ₹500; ₹200 back up to ₹400 is a 100% rise, bigger than the 50% fall.
+      expect(500 * 0.6 * 1.4).toBeCloseTo(420, 9);
+      expect(rightText("cp-try-fall-half")).toContain("Short of ₹500");
+      expect(rightText("cp-try-recover")).toContain("Bigger than the fall");
       // Log returns add: 0.1 and 0.2 make 0.3; 0.25 and 0.15 make 0.4. Doubling then halving: log 2 and minus log 2.
-      expect(tryById("cp-try-log-half").answer).toBe(0.3);
-      expect(tryById("cp-try-log-add").answer).toBe(0.4);
+      expect(0.1 + 0.2).toBeCloseTo(0.3, 12);
+      expect(0.25 + 0.15).toBeCloseTo(0.4, 12);
+      expect(rightText("cp-try-log-half")).toContain("0.3");
+      expect(rightText("cp-try-log-add")).toContain("0.4");
       expect(Math.log(2) + Math.log(0.5)).toBeCloseTo(0, 12);
-      // Steady pace: 300 to 900 in 2 years is about 73% a year (100 to 900 in 10 is about 25%); ₹800 to ₹1,800 in 2 is 50%.
-      expect(Math.round(calc("cagr", { start: 300, end: 900, years: 2 }, "CAGR"))).toBe(tryById("cp-try-pace-half").answer);
+      // Steady pace: 300 to 900 in 2 years is about 73% a year, far above 25% (100 to 900 in 10); ₹800 to ₹1,800 in 2 is 50%, faster than ₹400 to ₹800 in 4 (about 19%).
+      expect(Math.round(calc("cagr", { start: 300, end: 900, years: 2 }, "CAGR"))).toBe(73);
       expect(Math.round(calc("cagr", { start: 100, end: 900, years: 10 }, "CAGR"))).toBe(25);
-      expect(calc("cagr", { start: 800, end: 1800, years: 2 }, "CAGR")).toBeCloseTo(tryById("cp-try-pace-stretch").answer as number, 9);
+      expect(rightText("cp-try-pace-half")).toContain("Far faster");
+      expect(calc("cagr", { start: 800, end: 1800, years: 2 }, "CAGR")).toBeCloseTo(50, 9);
+      expect(calc("cagr", { start: 400, end: 800, years: 4 }, "CAGR")).toBeLessThan(50);
+      expect(rightText("cp-try-pace-stretch")).toBe("The last 2 years");
     });
 
     it("mark the real slips as Known mistakes with their fixes", () => {
-      expect(markAnswer(tryById("cp-try-grow-half"), "2400")).toMatchObject({ verdict: "known_mistake", tag: "simple_growth" });
-      expect(markAnswer(tryById("cp-try-grow-half"), "₹2,420")).toMatchObject({ verdict: "right" });
-      expect(markAnswer(tryById("cp-try-fall-half"), "500")).toMatchObject({ verdict: "known_mistake", tag: "back_where_started" });
+      expect(markChoice(tryById("cp-try-grow-half"), "b")).toMatchObject({ verdict: "known_mistake", tag: "simple_growth" });
+      expect(markChoice(tryById("cp-try-grow-half"), "a")).toMatchObject({ verdict: "right" });
+      expect(markChoice(tryById("cp-try-fall-half"), "b")).toMatchObject({ verdict: "known_mistake", tag: "back_where_started" });
       expect(markAnswer(tryById("cp-try-fall-truth"), "true")).toMatchObject({ verdict: "known_mistake", tag: "back_where_started" });
-      expect(markAnswer(tryById("cp-try-72-half"), "11.1")).toMatchObject({ verdict: "known_mistake", tag: "simple_doubling" });
-      expect(markAnswer(tryById("cp-try-cagr-half"), "10.5%")).toMatchObject({ verdict: "known_mistake", tag: "averaged_gain" });
-      for (const q of fixedTries(topic)) expect(markAnswer(q, String(q.answer)).verdict, q.id).toBe("right");
+      expect(markChoice(tryById("cp-try-72-half"), "b")).toMatchObject({ verdict: "known_mistake", tag: "simple_doubling" });
+      expect(markChoice(tryById("cp-try-cagr-half"), "b")).toMatchObject({ verdict: "known_mistake", tag: "averaged_gain" });
+      for (const q of fixedTries(topic)) {
+        expect(q.kind, q.id).not.toBe("number");
+        expect((q.kind === "choice" ? markChoice : markAnswer)(q, String(q.answer)).verdict, q.id).toBe("right");
+      }
     });
   });
 
@@ -241,7 +259,7 @@ describe("Growth, compounding and logs, converted", () => {
     it("give the three-year question new numbers: ₹2,000 at 20% is ₹2,880, not the Running example's", () => {
       const q = topic.questions.find((x) => x.id === "cp-q-three-years")!;
       expect(q.prompt).not.toContain("1,000");
-      expect(q.choices.find((c) => c.id === q.answer)!.text).toBe("₹2,880");
+      expect(q.choices.find((c) => c.id === q.answer)!.text).toContain("bigger total");
       expect(calc("future_value", { amount: 2000, ratePercent: 20, years: 2 }, "Future value")).toBeCloseTo(2880, 9);
     });
   });
@@ -278,7 +296,15 @@ describe("Growth, compounding and logs, converted", () => {
         const { item } = quickTryItem(one.topic("num-compounding")!, open.key)!;
         const right: string = "templateId" in item ? formatExact(item.answer, item.unit) : String(item.answer);
         const mistake: string | undefined =
-          "templateId" in item ? (item.mistakes[0] ? plainExact(item.mistakes[0].value) : undefined) : item.mistakes?.[0] ? String(item.mistakes[0].answer) : undefined;
+          "templateId" in item
+            ? item.mistakes[0]
+              ? plainExact(item.mistakes[0].value)
+              : undefined
+            : item.kind === "choice"
+              ? item.choices?.find((c) => c.mistake)?.id
+              : item.mistakes?.[0]
+                ? String(item.mistakes[0].answer)
+                : undefined;
         const input: string = !slipped && mistake ? mistake : right;
         const answered = await answerTyped(db, one, OWNER_LEARNER_ID, open.key, input, new Date());
         if (!answered.ok) throw new Error(answered.error);

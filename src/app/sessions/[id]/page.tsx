@@ -13,6 +13,7 @@ import { loadThread } from "@/tutor/transcript";
 import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { OldSession } from "../../old-session";
 import { PastSessionHeaderView } from "../../past-sessions";
+import { accountFor } from "../../account";
 import { readTheme } from "../../theme-cookie";
 import { AppHeader, SignedInFrame } from "../../ui";
 
@@ -37,11 +38,11 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     loadProgress(db, learnerId),
   ]);
   if (!header || lines.length === 0) notFound();
-  const topicTitle = header.kind === "topic" ? (header.topicId ? header.title : undefined) : header.topics[0];
+  const topicTitle = header.kind === "topic" ? (header.topicId ? header.title : undefined) : header.kind === "earlier" ? header.title : header.topics[0];
   // A Topic Session's written-ahead Widgets, so one the Tutor opened there is drawn again.
-  const writtenAhead = header.kind === "topic" ? await loadWrittenAhead(db, map, progress, header.topicId) : [];
+  const writtenAhead = header.kind !== "older" ? await loadWrittenAhead(db, map, progress, header.topicId) : [];
   // The Topic complete card also says what the Learner found, read from this Session's saved Widget state.
-  const states = header.kind === "topic" ? await loadWidgetStates(db, id, learnerId) : {};
+  const states = header.kind !== "older" ? await loadWidgetStates(db, id, learnerId) : {};
   const drawn = lines.map((line) => {
     const topic = line.role === "item" && line.kind === TOPIC_COMPLETE && typeof line.data.topicId === "string" ? map.topic(line.data.topicId) : undefined;
     return topic && line.role === "item" ? { ...line, data: { ...line.data, found: foundLines(topic, states) } } : line;
@@ -49,9 +50,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   return (
     <SignedInFrame>
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col gap-3 pb-4 pt-3">
-        <AppHeader current="sessions" theme={theme} />
+        <AppHeader current="notebook" theme={theme} account={await accountFor(db, learner)} />
         <PastSessionHeaderView header={header} />
-        <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind === "topic"} revealed={revealedCases(map, progress)} referenceClip={referenceClip(map, progress)} developerDetails={learner.showDeveloperDetails} />
+        <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind !== "older"} revealed={revealedCases(map, progress)} referenceClip={referenceClip(map, progress)} developerDetails={learner.showDeveloperDetails} />
       </main>
     </SignedInFrame>
   );

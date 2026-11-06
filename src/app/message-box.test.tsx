@@ -155,3 +155,41 @@ describe("Attach a passage", () => {
     expect(text(html)).toContain("(Pasted passage, 8 words:");
   });
 });
+
+describe("the message row at narrow widths (#317)", () => {
+  const tag = (html: string, re: RegExp) => html.match(re)?.[0] ?? "";
+
+  it("keeps the Attach button named, on one line, and icon-only while the row is under 28rem", () => {
+    for (const [passage, name] of [[null, "Attach a passage"], ["", "Remove passage"]] as const) {
+      const html = column({ passage });
+      const button = tag(html, new RegExp(`<button[^>]*aria-label="${name}"[^>]*>`));
+      expect(button).toContain("whitespace-nowrap");
+      expect(button).toContain("shrink-0");
+      expect(button).toContain(`title="${name}"`);
+      expect(html).toMatch(new RegExp(`<span class="hidden @md:inline">${name}</span>`));
+    }
+  });
+
+  it("keeps Send and Stop on one line and unshrunk", () => {
+    const send = tag(column(), /<button[^>]*>Send<\/button>/);
+    expect(send).toContain("whitespace-nowrap");
+    expect(send).toContain("shrink-0");
+    const stop = tag(column({ running: true }), /<button[^>]*data-testid="stop-reply"[^>]*>/);
+    expect(stop).toContain("whitespace-nowrap");
+    expect(stop).toContain("shrink-0");
+  });
+
+  it("folds Attach to its icon by the row's own width, not the window's (a wide font squeezes the row first)", () => {
+    expect(tag(column(), /<form[^>]*>/)).toContain("@container");
+  });
+
+  it("lets the message box shrink instead of pushing the buttons", () => {
+    expect(tag(column(), /<textarea[^>]*aria-label="Message"[^>]*>/)).toContain("min-w-0");
+  });
+
+  it("renders the message box one row high before the page wakes up (a bare textarea is two rows)", () => {
+    // Auto-grow sizes the box only once the page's script runs; until then the server's markup decides its height, and
+    // a textarea with no rows is two rows tall, so the row starts out twice the height of Send (CI #317, 1512×982).
+    expect(tag(column(), /<textarea[^>]*aria-label="Message"[^>]*>/)).toContain('rows="1"');
+  });
+});

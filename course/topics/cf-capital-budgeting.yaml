@@ -24,7 +24,7 @@ cases:
       be positive and it would produce significant cash from the fifth quarter. If it reaches the
       volumes and costs expected by the end of the third year, its EBITDA from launch to then would
       about equal the cost of building and equipping it. Assume the company's cost of capital is
-      15%. Does one centre pass the test of net present value? What would you need to believe?
+      15%. Is one centre worth building at that cost of capital? What would you need to believe?
     reveal: >
       Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8 million
       on equipment and buildings that year against a plan of $300 million to $350 million, and cut
@@ -65,15 +65,21 @@ youllLearn:
 questions:
   - id: cb-q-npv-calc
     prompt: >
-      A project costs $900 today and pays $1,210 in two years. The discount rate is 10% a year. What is its net present value?
+      Meera can buy a new oven for her bakery today. The extra cash it brings in later, shrunk to today's money, is more than the oven costs. What should she do?
     choices:
-      - { id: a, text: "$100" }
-      - { id: b, text: "$310" }
-      - { id: c, text: "-$100" }
-      - { id: d, text: "$0" }
+      - { id: a, text: "Buy it: its net present value is positive" }
+      - id: b
+        text: "Skip it: cash that comes later is worth nothing today"
+        mistake: { tag: later_cash_worthless, fix: "Later cash is worth less today, but still something. Here it beats the cost." }
+      - id: c
+        text: "Pass, because any upfront cost is a loss"
+        mistake: { tag: cost_only, fix: "Every project costs money upfront. The test is whether today's worth of its cash beats that cost." }
+      - id: d
+        text: "Toss a coin: she gains nothing either way"
+        mistake: { tag: npv_zero, fix: "That holds only when today's worth equals the cost. Here it is higher." }
     answer: a
     explanation: >
-      The present value of $1,210 in two years is 1,210 / 1.10^2 = 1,000. Subtracting the cost of $900 gives an NPV of $100. Accept, because it is positive.
+      Net present value is the later cash's worth today, minus the cost. If that is above zero, accept. For example, $1,210 in two years is worth $1,000 today at 10%, so a $900 oven leaves $100.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 16.2 Net Present Value (NPV) Method: https://openstax.org/books/principles-finance-2e/pages/16-2-net-present-value-npv-method
 

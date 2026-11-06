@@ -128,6 +128,8 @@ describe("the read-only layout", () => {
   it("has the conversation and the Widget panel side by side, and a way back to the workspace", () => {
     expect(html).toContain('aria-label="Widget panel"');
     expect(html).toMatch(/<a[^>]*href="\/study"[^>]*>Back to the workspace<\/a>/);
+    // A raised button the affordance audit can judge (it read as a bare link on an Earlier attempt's page, B3b).
+    expect(html).toMatch(/<a[^>]*data-affordance="button"[^>]*>Back to the workspace<\/a>/);
   });
 
   it("has no composer, no Resume and nothing to send", () => {

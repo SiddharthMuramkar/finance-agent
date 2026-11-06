@@ -4,6 +4,6 @@ export { Chip } from "./chip";
 export type { ChipState } from "./chip";
 export { IconButton } from "./icon-button";
 export { LinkButton, TextLink } from "./link";
-export { MenuItem } from "./menu";
+export { MenuItem, MenuLink, useMenu } from "./menu";
 export { Pill, Tag } from "./tag";
 export type { TagTone } from "./tag";

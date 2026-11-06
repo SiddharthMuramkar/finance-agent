@@ -124,7 +124,7 @@ export type TurnEvent =
    */
   | { type: "correction"; widgets: number[]; /** Of those, the ones to leave out of the reply: written-ahead Widgets cover them, and none replaces them. */ leaveOut: number[] }
   /**
-   * `ref` names the turn's Session and turn, so the browser can offer "Save to notes" on the reply at once.
+   * `ref` names the turn's Session and turn, so the browser can offer "Save to Notebook" on the reply at once.
    * `shown` is what the page's next turn request says it shows: this Session, or the next Topic if the turn moved the Learner on.
    */
   | { type: "done"; stopReason: string | null; usage: TurnUsage; ref: { sessionId: number; turnSeq: number }; shown: Shown }

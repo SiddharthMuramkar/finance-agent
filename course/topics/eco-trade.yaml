@@ -61,15 +61,15 @@ youllLearn:
 questions:
   - id: et-q-comparative
     prompt: >
-      What does it mean for a country to have a comparative advantage in a good?
+      Anita is a top lawyer who also types faster than her assistant, Ravi. Every hour she spends typing costs her a client's fee. Why should she still leave the typing to Ravi?
     choices:
-      - { id: a, text: "It can produce the good at a lower opportunity cost, in terms of other goods, than another country can" }
-      - { id: b, text: "It can produce more of the good than any other country with the same resources" }
-      - { id: c, text: "It sells the good at a lower price in every market" }
-      - { id: d, text: "It does not need to import any inputs to make the good" }
+      - { id: a, text: "Typing costs her far more in lost fees than it costs him" }
+      - { id: b, text: "Ravi types faster, so he has the edge", mistake: { tag: absolute_for_comparative, fix: "Anita types faster. The edge is in what each gives up, not in who is faster." } }
+      - { id: c, text: "She should do both, since she is better at both", mistake: { tag: absolute_advantage_trap, fix: "Being better at both, she still gives up more by typing. Specialising raises total output." } }
+      - { id: d, text: "Typing is cheap work, so it never matters", mistake: { tag: price_not_opportunity, fix: "What matters is what each person gives up, not whether the task looks cheap." } }
     answer: a
     explanation: >
-      Comparative advantage is about opportunity cost, not absolute output. A country with an absolute advantage in everything can still gain from trade by specialising where it gives up least.
+      Ravi has the comparative advantage in typing: he gives up less to do it. Anita is better at both, but each hour of typing costs her a fee, so both gain if she specialises. Countries trade on the same idea: make what you give up least to make, and trade for the rest.
     source: >
       OpenStax, Principles of Economics 3e (CC BY-NC-SA), 33.1 Absolute and Comparative Advantage: https://openstax.org/books/principles-economics-3e/pages/33-1-absolute-and-comparative-advantage
 
@@ -89,43 +89,43 @@ questions:
 
   - id: et-q-protection
     prompt: >
-      A country restricts imports of a good with a tariff or quota. What is the usual effect on the price of the good at home?
+      Rahul is saving for a new TV before his sister's wedding next month. Suppose the government puts a heavy tariff on imported TVs. What happens to TV prices at home, and who gains?
     choices:
-      - { id: a, text: "The price rises: domestic consumers pay more and domestic producers earn more" }
-      - { id: b, text: "The price falls, because there is less competition" }
-      - { id: c, text: "The price does not change, because world prices set it" }
-      - { id: d, text: "The price rises, and domestic consumers gain" }
+      - { id: a, text: "Prices rise: Rahul pays more, and local TV makers earn more" }
+      - { id: b, text: "Prices fall, because there is less competition", mistake: { tag: less_competition_cheaper, fix: "Less competition lets prices rise, not fall. The tariff shields local makers." } }
+      - { id: c, text: "Prices stay put, because world prices set them", mistake: { tag: tariff_no_effect, fix: "A tariff is a tax at the border, so the price at home rises above the world price." } }
+      - { id: d, text: "Prices rise, and buyers like Rahul gain", mistake: { tag: buyers_gain, fix: "Higher prices cost buyers. Local makers and the government's revenue gain, by less than buyers lose." } }
     answer: a
     explanation: >
-      Protectionism raises the domestic price of the protected good. Consumers lose more than producers gain, so the country's total surplus falls.
+      Protection raises the price of the protected good at home. Local producers earn more and the government collects the tariff, but buyers like Rahul lose more than those gains, so the country's total surplus falls.
     source: >
       OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
 
   - id: et-q-compression
     prompt: >
-      A country with almost no foreign exchange squeezes imports by controlling what may be bought from abroad. Which cost is most likely for its domestic industry?
+      Mid-1991. India has almost no usable foreign exchange left, so the government controls what may be bought from abroad. Sanjay's scooter factory needs imported spare parts. What is likely to happen to his output?
     choices:
-      - { id: a, text: "Factories that rely on imported raw materials, spare parts and components may have to cut output" }
-      - { id: b, text: "Domestic firms gain cheaper inputs, because imports compete less with them" }
-      - { id: c, text: "Exports rise at once, because factories no longer need imports" }
-      - { id: d, text: "Output is unchanged, because imports were never needed" }
+      - { id: a, text: "It falls, because without parts his lines slow down" }
+      - { id: b, text: "It rises, because fewer imports means less competition", mistake: { tag: protection_helps_users, fix: "Rivals of imports may gain, but Sanjay needs imports as inputs, so he loses." } }
+      - { id: c, text: "His exports jump, since he needs no imports now", mistake: { tag: imports_unneeded, fix: "His factory still needs the parts. A squeeze on imports is paid for in output." } }
+      - { id: d, text: "It stays the same, since parts are always on hand", mistake: { tag: inputs_ignored, fix: "Controls cut what can come in, so imported parts become scarce." } }
     answer: a
     explanation: >
-      Controls limit the quantity of imports, but industry often needs imported raw materials and parts as inputs. When they are scarce, output falls; a squeeze on imports is paid for in output.
+      Controls limit the quantity of imports, but industry often needs imported raw materials and parts as inputs. When they are scarce, factories cut output; a squeeze on imports is paid for in output.
     source: >
       OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
 
   - id: et-q-relax
     prompt: >
-      How does an import quota differ from a tariff?
+      Leela imports electric motors for her workshop in Pune. Her trade association warns that the government may bring in a tariff or a quota on motors. What would each one do to her orders?
     choices:
-      - { id: a, text: "A quota limits the quantity of a good that may be imported; a tariff is a tax on each unit imported" }
-      - { id: b, text: "A quota is a tax on imports; a tariff limits the quantity imported" }
-      - { id: c, text: "Both are subsidies paid to importers" }
-      - { id: d, text: "A quota applies to exports only" }
+      - { id: a, text: "A tariff taxes each motor; a quota caps how many come in" }
+      - { id: b, text: "A tariff caps how many; a quota taxes each one", mistake: { tag: tariff_quota_swapped, fix: "Swapped: a tariff is a tax on each unit, and a quota is a limit on quantity." } }
+      - { id: c, text: "Both pay her a subsidy to import", mistake: { tag: protection_as_subsidy, fix: "Both make imports dearer or scarcer. Neither pays the importer anything." } }
+      - { id: d, text: "A quota limits only exports", mistake: { tag: quota_on_exports, fix: "An import quota limits what comes in. Here it would cap the motors Leela can buy." } }
     answer: a
     explanation: >
-      A tariff taxes imports and raises revenue for the government; a quota caps the amount that may come in. Both raise the domestic price of the protected good.
+      A tariff taxes imports and raises revenue for the government; a quota caps the amount that may come in. Both raise the price of the protected good at home, so Leela pays more either way.
     source: >
       OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
 

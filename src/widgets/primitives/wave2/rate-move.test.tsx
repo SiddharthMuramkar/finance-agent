@@ -39,6 +39,32 @@ describe("RateMove, show mode", () => {
     expect(to).toBeGreaterThan(from);
   });
 
+  // #471: the Widget paints accents by meaning (spec accent meanings): sunflower for the Old rate (history), violet ink
+  // for the readout terms (lingo). A rate move has no money in it, so its direction is neither a gain (mint also means
+  // "you") nor a loss (coral): the arrow keeps the direction-neutral brand colour.
+  it("paints the Old rate in sun-ink and the readout labels in violet-ink, and the arrow in brand", () => {
+    show(<RateMoveView oldRate={4} newRate={5} />);
+    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--brand)");
+    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--brand)");
+    expect(byId(page!, "rate-move-old")!.getAttribute("fill")).toBe("var(--sun-ink)");
+    expect(byId(page!, "rate-move-old-tick")!.getAttribute("stroke")).toBe("var(--sun-ink)");
+    const labels = allById(page!, "rate-move-readout").map((r) => r.firstElementChild!.getAttribute("class") ?? "");
+    expect(labels).toHaveLength(3);
+    for (const c of labels) {
+      expect(c).toContain("text-[var(--violet-ink)]");
+      expect(c).not.toContain("--muted");
+    }
+  });
+
+  it("never paints a rate's direction as a gain or a loss: a rise and a fall keep the brand arrow", () => {
+    for (const [oldRate, newRate] of [[4, 5], [5, 4]] as const) {
+      show(<RateMoveView oldRate={oldRate} newRate={newRate} />);
+      const paints = [byId(page!, "rate-move-arrow")!.getAttribute("stroke"), byId(page!, "rate-move-head")!.getAttribute("fill")];
+      expect(paints).toEqual(["var(--brand)", "var(--brand)"]);
+      expect(page!.host.innerHTML).not.toMatch(/--(mint|coral)/);
+    }
+  });
+
   it("shows the three worked lines at once: 1 point, 100 bp and 25%", () => {
     show(<RateMoveView oldRate={4} newRate={5} />);
     expect(allById(page!, "rate-move-readout").map((r) => r.textContent)).toEqual([
@@ -138,5 +164,46 @@ describe("RateMove, practice mode", () => {
     expect(text()).toContain("Right. The move is 20 bp.");
     expect(status()).toBe("right");
     expect(byId(page!, "rate-move-new")!.textContent).toBe("New 6%");
+  });
+});
+
+describe("RateMove, number line end labels (#417, #394, #318)", () => {
+  // The svg viewBox is 0..320 and clips anything outside it. jsdom has no text layout, so estimate each glyph's width
+  // in em from the widest sans the system stack can land on (DejaVu Sans on Linux: digits 0.636, "." 0.318, "%" 0.95;
+  // Arial and SF are narrower). A flat 0.6em per glyph under-counts "%" and let 6-character ends like 10.25% clip.
+  const VIEW_WIDTH = 320;
+  const GLYPH_EM: Record<string, number> = { ".": 0.32, "%": 0.95 };
+  const textWidth = (text: string, fontSize: number) => fontSize * [...text].reduce((sum, ch) => sum + (GLYPH_EM[ch] ?? (/\d/.test(ch) ? 0.64 : 0.6)), 0);
+  const endLabels = () => {
+    const texts = [...byId(page!, "rate-move-line")!.querySelectorAll("text")].filter((t) => !t.getAttribute("data-testid"));
+    return texts.map((t) => {
+      const x = Number(t.getAttribute("x"));
+      const width = textWidth(t.textContent ?? "", Number(t.getAttribute("font-size")));
+      const anchor = t.getAttribute("text-anchor");
+      return { text: t.textContent, left: anchor === "end" ? x - width : x, right: anchor === "end" ? x : x + width };
+    });
+  };
+
+  it.each([
+    [4, 5],
+    [4.5, 4.75],
+    [3.75, 5.25],
+    [10, 10.5],
+    [10, 10.25],
+    // 6-character ends at both sides: 10.25% and 11.25%; 13.75% and 21.25%; 19.74% and 20.25%.
+    [10.5, 11],
+    [15, 20],
+    [19.99, 20],
+    // The top of the slider range: the axis reaches 24.99%.
+    [0.04, 20],
+    [4, 20],
+  ])("keeps both axis end labels inside the box for old %s, new %s", (oldRate, newRate) => {
+    show(<RateMoveView oldRate={oldRate} newRate={newRate} />);
+    const labels = endLabels();
+    expect(labels).toHaveLength(2);
+    for (const l of labels) {
+      expect(l.left, `${l.text} left edge`).toBeGreaterThanOrEqual(0);
+      expect(l.right, `${l.text} right edge`).toBeLessThanOrEqual(VIEW_WIDTH);
+    }
   });
 });

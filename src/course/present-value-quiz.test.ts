@@ -8,7 +8,6 @@ const answerText = (id: string) => {
   const q = map.question(id)!;
   return q.choices.find((c) => c.id === q.answer)!.text;
 };
-const dollars = (text: string) => Number(text.replace(/[$,]/g, ""));
 
 describe("present value Topic quiz", () => {
   it("has a quiz Check and a conversation Check", () => {
@@ -19,19 +18,24 @@ describe("present value Topic quiz", () => {
     for (const q of topic.questions) expect(q.source, q.id).toMatch(/https:\/\//);
   });
 
-  it("numeric answers match the tested Finance Calculations", () => {
-    const cases: [string, number, number, number][] = [
-      ["pv-q-one-year", 1100, 10, 1],
-      ["pv-q-two-years", 1210, 10, 2],
-      ["pv-q-five-percent", 5000, 5, 2],
-    ];
-    for (const [id, amount, rate, years] of cases) {
-      expect(dollars(answerText(id)), id).toBe(Math.round(presentValue(amount, rate, years)));
+  it("asks about ideas and words, with no choice that is a bare figure to work out (E6a)", () => {
+    for (const id of ["pv-q-one-year", "pv-q-two-years", "pv-q-five-percent"]) {
+      const q = map.question(id)!;
+      expect(q.choices.some((c) => /^[$₹]\s?[\d,]+$/.test(c.text)), id).toBe(false);
     }
   });
 
-  it("the other answers follow from the formula", () => {
-    expect(answerText("pv-q-today-vs-later")).toBe("The $1,000 offered today");
+  it("the answers follow from the formula", () => {
+    expect(answerText("pv-q-today-vs-later")).toBe("The ₹1,000 offered today");
+    // Waiting one year at 10% turns 1,100 into 1,000 today: the answer names that sum its present value.
+    expect(Math.round(presentValue(1100, 10, 1))).toBe(1000);
+    expect(answerText("pv-q-one-year")).toBe("Present value");
+    // Two years discount twice.
+    expect(Math.round(presentValue(1210, 10, 2))).toBe(1000);
+    expect(answerText("pv-q-two-years")).toContain("twice");
+    // A lower rate shrinks a payment less.
+    expect(presentValue(5000, 5, 2)).toBeGreaterThan(presentValue(5000, 10, 2));
+    expect(answerText("pv-q-five-percent")).toContain("worth more today");
     // A higher rate lowers the present value of a fixed payment.
     expect(presentValue(1000, 8, 10)).toBeLessThan(presentValue(1000, 4, 10));
     expect(answerText("pv-q-rate-rises")).toBe("It falls");

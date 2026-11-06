@@ -29,27 +29,27 @@ const undo = () => host.querySelector<HTMLButtonElement>("[data-undo-save]")!;
 const mount = () => act(() => root.render(<AnnouncerProvider><SessionItemView item={item} /></AnnouncerProvider>));
 
 describe("the line under the Learner's own rule", () => {
-  it("reads Saved to your notes, with Undo and Open notes (a link to that Topic's note)", () => {
+  it("reads Saved to your Notebook, with Undo and Open Notebook (a link to that Topic's Notebook row)", () => {
     const html = renderToStaticMarkup(<SessionItemView item={item} />);
     expect(html).toContain('data-testid="own-rule-line"');
-    expect(html).toContain("Saved to your notes");
+    expect(html).toContain("Saved to your Notebook");
     expect(html).toContain("Undo");
-    expect(html).toMatch(/href="\/notes#note-present-value"[^>]*>Open notes/);
+    expect(html).toMatch(/href="\/notebook#note-present-value"[^>]*>Open Notebook/);
     // No Save button: code saved it.
-    expect(html).not.toContain("Save to notes");
+    expect(html).not.toContain("Save to Notebook");
   });
 
   it("draws nothing for an item without a note id", () => {
     expect(renderToStaticMarkup(<SessionItemView item={{ kind: OWN_RULE_SAVED, data: {} }} />)).toBe("");
   });
 
-  it("Undo deletes the note and then reads Removed from your notes.", async () => {
+  it("Undo deletes the note and then reads Removed from your Notebook.", async () => {
     const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
     mount();
     await act(async () => undo().click());
     expect(fetchMock).toHaveBeenCalledWith("/api/notes", expect.objectContaining({ method: "DELETE", body: JSON.stringify({ id: 12 }) }));
-    expect(host.textContent).toContain("Removed from your notes.");
+    expect(host.textContent).toContain("Removed from your Notebook.");
     expect(host.textContent).not.toContain("Undo");
   });
 
@@ -57,14 +57,14 @@ describe("the line under the Learner's own rule", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "gone" }), { status: 404 })));
     mount();
     await act(async () => undo().click());
-    expect(host.textContent).toContain("Removed from your notes.");
+    expect(host.textContent).toContain("Removed from your Notebook.");
   });
 
   it("keeps the line, with its Undo, when the network fails", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new Error("offline"))));
     mount();
     await act(async () => undo().click());
-    expect(host.textContent).toContain("Saved to your notes");
+    expect(host.textContent).toContain("Saved to your Notebook");
     expect(undo()).toBeTruthy();
   });
 });
@@ -84,7 +84,7 @@ describe("the Notes page with the Learner's own rule", () => {
       saved: [],
     },
   ];
-  const html = renderToStaticMarkup(<NotebookView notebook={{ rows: notes.map((n) => ({ topicId: n.topicId, title: n.title, stage: n.stage, status: "not_started" as const, sessionId: null, lastActive: null, action: null, found: [], note: n })), older: [] }} showAll={false} />);
+  const html = renderToStaticMarkup(<NotebookView notebook={{ rows: notes.map((n) => ({ topicId: n.topicId, title: n.title, stage: n.stage, status: "not_started" as const, sessionId: null, lastActive: null, action: null, found: [], earlier: [], note: n })), older: [] }} showAll={false} />);
 
   it("shows the rule under its Topic, labelled Your rule, and only that line is labelled", () => {
     expect(html).toContain("change × 100 then divide by original");

@@ -166,35 +166,31 @@ questions:
       OpenStax, Principles of Accounting, Volume 1 (CC BY-NC-SA 4.0), 6.6 Multi-Step and Simple Income Statements (income from operations comes before other revenue and expenses, which lead to net income): https://openstax.org/books/principles-financial-accounting/pages/6-6-describe-and-prepare-multi-step-and-simple-income-statements-for-merchandising-companies
   - id: jfc-q-two-lines
     prompt: >
-      Corvane Ltd's balance sheet lists long-term debt of 300 and, on a separate line, lease
-      liabilities of 200. A writer says "Corvane's debt is 500". What is the best judgement?
+      Wednesday 11 March 2026, 4 pm; Sana, a made-up fact-checker, has an hour before a newsletter goes out. Corvane Ltd's balance sheet shows long-term debt of 300 and, on its own line, lease liabilities of 200. The writer puts the two lines together and says "Corvane's debt is 500". What does Sana send back?
     choices:
-      - { id: a, text: "An arithmetic error: 300 + 200 is not 500" }
-      - { id: b, text: "500 is a real sum of two separate lines under the name of one; it is fair only if the writer says what is included, and the balance-sheet debt line is 300" }
-      - { id: c, text: "It ties out: lease liabilities are always part of debt" }
-      - { id: d, text: "A period mismatch: the two lines cover different years" }
+      - { id: a, text: "\"Run it. Leases always count as debt.\"", mistake: { tag: leases_always_debt, fix: "The filing keeps leases on their own line. 'Debt' alone names only the 300." } }
+      - { id: b, text: "\"Say 'debt and leases', or use the debt line alone.\"" }
+      - { id: c, text: "\"Cut it. No line in the filing prints 500.\"", mistake: { tag: total_seen_as_invented, fix: "The 500 is two printed lines put together. The figure is real; its label is too narrow." } }
+      - { id: d, text: "\"Hold it. The two lines must cover different years.\"", mistake: { tag: lines_seen_as_different_periods, fix: "Both lines sit on the same balance sheet, at the same date. The slip is in the name." } }
     answer: b
     explanation: >
-      The arithmetic is right, but the filing keeps the two items on separate lines, so "debt" alone
-      names only the 300. A writer may reasonably add the lease liabilities to get a wider measure of
-      what the company owes, but the claim should say so; as written it is a label and definition gap,
-      not an error in the sum.
+      The writer's 500 is the debt line and the lease line together, a fair wider measure of what Corvane owes, but the filing calls only the 300 debt. As written it is a label gap, not a wrong figure, so the fix is to name what is included.
     source: >
-      SEC Office of the Advocate for Small Business Capital Formation, "What is a balance sheet?" (liabilities are reported as separate lines): https://www.sec.gov/files/balancesheet-building-blocks.pdf
+      SEC Office of the Advocate for Small Business Capital Formation, "What is a balance sheet?" (liabilities are reported as separate lines): https://www.sec.gov/files/balancesheet-building-blocks.pdf ; Sana, the newsletter and Corvane are made up.
 
   - id: jfc-q-ties-out
     prompt: >
-      A writer says marketing fell "from 90% of revenue to 30%". The Learner redoes each ratio from the filing's own marketing and revenue lines, and both percentages match. How should a careful judge mark the claim?
+      Friday 6 March 2026, an hour before a made-up newsletter reaches 40,000 readers. Fact-checker Meera reads: Corvane's marketing fell "from 90% of revenue to 30%". Both figures match the filing. What does she send back?
     choices:
-      - { id: a, text: "As checked: it ties out, and say so" }
-      - { id: b, text: "As a mislabel, because writers always round", mistake: { tag: as_a_mislabel_because_writer, fix: "Matching figures are not a mislabel. Mark a claim that recomputes as checked." } }
-      - { id: c, text: "As more than the text says, because the filing prints no percentages", mistake: { tag: as_more_than_the_text_says_b, fix: "A ratio of two printed lines is an ordinary reading, not an addition." } }
-      - { id: d, text: "As unconfirmed until the writer shows the spreadsheet", mistake: { tag: as_unconfirmed_until_the_wri, fix: "The filing's own lines settle it. No spreadsheet is needed." } }
+      - { id: a, text: "\"Checked, it matches the filing. Run it.\"" }
+      - { id: b, text: "\"Hold it. Writers always round, so something must be off.\"", mistake: { tag: assumed_rounding_means_error, fix: "Matching figures leave nothing to fix. A line that traces back gets marked checked." } }
+      - { id: c, text: "\"Cut it. The filing never prints those percentages.\"", mistake: { tag: ratio_seen_as_invented, fix: "Setting marketing against revenue is a fair reading of two printed lines, not an invention." } }
+      - { id: d, text: "\"Hold it until the writer sends me the spreadsheet.\"", mistake: { tag: asked_for_proof_already_held, fix: "The filing's own lines settle it. Once they match, no spreadsheet is needed." } }
     answer: a
     explanation: >
-      Each percentage is an expense divided by that quarter's revenue, and both match. A claim that recomputes should be marked as checked; the writer's percentages are an ordinary way to read two lines of the filing.
+      Each percentage sets Corvane's marketing line against its revenue line for the same period, and both match the filing. A claim that traces back should be marked as checked, and saying so is as much part of fair judging as catching a slip.
     source: >
-      SEC Office of the Advocate for Small Business Capital Formation, "What is an income statement?" (revenue and expense lines; a ratio to revenue is expense divided by revenue): https://www.sec.gov/files/income-statement-building-blocks.pdf
+      SEC Office of the Advocate for Small Business Capital Formation, "What is an income statement?" (revenue and expense lines; a ratio to revenue is expense divided by revenue): https://www.sec.gov/files/income-statement-building-blocks.pdf ; Meera, the newsletter and Corvane are made up.
   - id: jfc-q-ttm
     prompt: >
       Halloran Inc. reports a full year 2025, the first half of 2025 and the first half of 2026. Analysts call revenue for the latest twelve months "trailing twelve months". Which pieces make up Halloran's twelve months to 30 June 2026?
@@ -215,9 +211,9 @@ questions:
       filing?
     choices:
       - { id: a, text: "A unit slip: the filing's 650 is $650 million, so $650bn is a thousand times too large" }
-      - { id: b, text: "A period mismatch: the filing has no second-half figure" }
-      - { id: c, text: "It ties out: bn and m are interchangeable in a filing" }
-      - { id: d, text: "More than the text says: the writer added a cause" }
+      - { id: b, text: "A period mismatch: the filing has no second-half figure", mistake: { tag: second_half_seen_as_missing, fix: "The second half is the full year less the first half. The filing prints both lines." } }
+      - { id: c, text: "It ties out: bn and m are interchangeable in a filing", mistake: { tag: units_seen_as_interchangeable, fix: "A billion is a thousand millions. The table header fixes the unit, and the writer swapped it." } }
+      - { id: d, text: "More than the text says: the writer added a cause", mistake: { tag: unit_slip_seen_as_added_cause, fix: "The writer gives a figure, not a reason. What changed is the unit, not the story." } }
     answer: a
     explanation: >
       The table header sets the unit. 650 in a table "in millions" is $650 million, or $0.65 billion;
@@ -233,10 +229,10 @@ questions:
       "8% of sales were grey-market diversion designed to undercut the brand." What is the best
       description of the writer's step?
     choices:
-      - { id: a, text: "A mislabel: 8% is the wrong number" }
-      - { id: b, text: "A period mismatch: nine months against a year" }
+      - { id: a, text: "A mislabel: 8% is the wrong number", mistake: { tag: matching_figure_called_mislabel, fix: "The 8% matches the filing as printed. The slip is the motive the writer adds after it." } }
+      - { id: b, text: "A period mismatch: nine months against a year", mistake: { tag: nine_months_seen_as_mismatch, fix: "The writer names no other period; the 8% is the filing's nine-month figure. Only the motive is new." } }
       - { id: c, text: "More than the text says: the filing gives a size and a category, and the writer adds a purpose" }
-      - { id: d, text: "An arithmetic slip" }
+      - { id: d, text: "An arithmetic slip", mistake: { tag: copied_figure_seen_as_sum, fix: "The writer does no sum; the 8% is copied as printed. The added words are a motive." } }
     answer: c
     explanation: >
       The 8%, the period and the category (sales outside agreed territories) all match the filing.
@@ -253,9 +249,9 @@ questions:
       claim stays inside its text?
     choices:
       - { id: a, text: "The company expects that its gross margin may narrow" }
-      - { id: b, text: "The company says its gross margin will narrow" }
-      - { id: c, text: "The company guarantees a narrower gross margin" }
-      - { id: d, text: "The company says its gross margin cannot narrow" }
+      - { id: b, text: "The company says its gross margin will narrow", mistake: { tag: may_read_as_will, fix: "'May' flags a possibility. 'Will' turns it into a certainty the filing never states." } }
+      - { id: c, text: "The company guarantees a narrower gross margin", mistake: { tag: hedge_read_as_guarantee, fix: "'Guarantees' is the writer's word. The filing only expects the margin may narrow." } }
+      - { id: d, text: "The company says its gross margin cannot narrow", mistake: { tag: direction_reversed, fix: "The filing says the margin may narrow, so 'cannot narrow' reverses its direction." } }
     answer: a
     explanation: >
       The filing pairs an expectation with "may": a possibility the company flags, not a certainty.
@@ -266,17 +262,17 @@ questions:
 
   - id: jfc-q-ratio-vs-change
     prompt: >
-      A filing shows annual revenue of 200 one year and 700 the next. A writer says revenue "grew 350%". What do you find?
+      Thursday 14 May 2026, 8 pm; reporter Tomás files at 9. A made-up firm's filing says revenue rose from $200m to $700m, "3.5 times last year". The headline reads "Revenue grew 350%". What should he say?
     choices:
-      - { id: a, text: "A slip: 350% is the ratio of the two amounts, while growth counts only the extra on top, which is less" }
-      - { id: b, text: "It ties out: a ratio and a growth rate are the same thing", mistake: { tag: it_ties_out_a_ratio_and_a_gr, fix: "They are not. The ratio is the whole new figure; growth is only the extra." } }
-      - { id: c, text: "A period mismatch: the years should not be compared", mistake: { tag: a_period_mismatch_the_years, fix: "Both figures are annual. The slip is between a ratio and a change." } }
-      - { id: d, text: "More than the text says: the filing never mentions growth", mistake: { tag: more_than_the_text_says_the, fix: "The filing's two figures give the growth. The writer read it as a ratio." } }
+      - { id: a, text: "\"Make it '3.5 times last year'. 'Grew 350%' claims a bigger jump.\"" }
+      - { id: b, text: "\"Run it. 'Times' and 'grew by a percent' mean the same.\"", mistake: { tag: multiple_read_as_growth, fix: "'Times' sets the whole new figure against the old; 'grew' counts only the extra on top." } }
+      - { id: c, text: "\"Drop it. Two different years should never be compared.\"", mistake: { tag: year_on_year_seen_as_mismatch, fix: "Comparing this year with last year is what growth means. Only the wording slipped." } }
+      - { id: d, text: "\"Cut the figure. The filing never talks about growth.\"", mistake: { tag: growth_seen_as_beyond_text, fix: "Two years of revenue is what growth is read from. Keep the figure, fix the word." } }
     answer: a
     explanation: >
-      Growth is the change divided by the starting value, 500 / 200 = 2.5, or 250%. The figure 350% is the ratio of the two amounts (700 is 350% of 200), not the increase. Reading a ratio as a change is a frequent slip.
+      "3.5 times" sets the whole new revenue against the old. "Grew 350%" would count only the extra on top, so it describes a bigger jump than the filing shows. The safe headline keeps the filing's own comparison: a multiple stays a multiple.
     source: >
-      OpenStax, Prealgebra 2e (CC BY 4.0), 6.2 Solve General Applications of Percent, percent increase (the amount of increase as a percent of the original amount): https://openstax.org/books/prealgebra-2e/pages/6-2-solve-general-applications-of-percent
+      OpenStax, Prealgebra 2e (CC BY 4.0), 6.2 Solve General Applications of Percent, percent increase (the amount of increase as a percent of the original amount): https://openstax.org/books/prealgebra-2e/pages/6-2-solve-general-applications-of-percent ; Tomás, his editor and the firm are made up.
 
 checks:
   - id: jfc-quiz-judging
