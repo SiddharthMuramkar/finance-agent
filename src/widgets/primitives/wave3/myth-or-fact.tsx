@@ -1,7 +1,7 @@
 "use client";
 
 import { defineComponent, useStateField, type ComponentRenderProps } from "@openuidev/react-lang";
-import { useId } from "react";
+import { useId, type CSSProperties } from "react";
 import { z } from "zod/v4";
 import { Button } from "@/app/primitives";
 import { usePrefersReducedMotion } from "../wave1/motion";
@@ -65,10 +65,10 @@ export function MythOrFactView({
               </p>
               {pick === null ? (
                 <div className="flex gap-2">
-                  <Button variant="secondary" size="sm" data-testid="myth-button" onClick={() => onPick(i, "myth")}>
+                  <Button variant="secondary" size="sm" data-testid="myth-button" style={{ "--face": "var(--coral-tint)" } as CSSProperties} onClick={() => onPick(i, "myth")}>
                     Myth
                   </Button>
-                  <Button variant="secondary" size="sm" data-testid="fact-button" onClick={() => onPick(i, "fact")}>
+                  <Button variant="secondary" size="sm" data-testid="fact-button" style={{ "--face": "var(--mint-tint)" } as CSSProperties} onClick={() => onPick(i, "fact")}>
                     Fact
                   </Button>
                 </div>

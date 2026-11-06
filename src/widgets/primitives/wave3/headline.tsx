@@ -3,7 +3,7 @@
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { usePrefersReducedMotion } from "../wave1/motion";
-import { longDayLabel, motionFlag } from "./shared";
+import { longDayLabel, motionFlag, Pic } from "./shared";
 
 // Headline: a period front page. A serif masthead, the date line, the headline and deck, a sunflower rule and a link to
 // the source. Nothing to press but the link, so nothing here looks like a button.
@@ -37,7 +37,10 @@ export function HeadlineView({ paper, date, headline, deck, source }: Props) {
     <section data-testid="headline" data-motion={motionFlag(reduced)} aria-label={`Front page of ${paper}`} className="@container py-1">
       <article className="rounded-sm border border-[var(--brand-line)] bg-[var(--sun-tint)] px-4 py-3 text-[var(--ink)]">
         <header className="border-b-4 border-double border-[var(--ink)] pb-1 text-center">
-          <p className="font-serif text-2xl font-black uppercase leading-8 tracking-wide">{paper}</p>
+          <p className="flex items-center justify-center gap-3 font-serif text-2xl font-black uppercase leading-8 tracking-wide">
+            <Pic name="newspaper" size={32} />
+            <span>{paper}</span>
+          </p>
         </header>
         <p className="mt-1 border-b border-[var(--ink)] pb-1 text-center font-serif text-xs uppercase tracking-widest text-[var(--sun-ink)]">{longDayLabel(date) ?? date}</p>
         <h3 className="mt-3 font-serif text-2xl font-bold leading-8 @min-[560px]:text-3xl @min-[560px]:leading-9">{headline}</h3>

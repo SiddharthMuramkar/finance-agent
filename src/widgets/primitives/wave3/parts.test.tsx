@@ -196,6 +196,13 @@ describe("WhoPaysWhom", () => {
     expect(items[0].textContent).toBe("The bank pays the saver: interest");
   });
 
+  it("each row carries a visible Replay cue", () => {
+    show(payers);
+    const cues = [...page!.host.querySelectorAll('[data-testid="flow-replay"]')];
+    expect(cues).toHaveLength(2);
+    expect(cues[0].textContent).toContain("Replay");
+  });
+
   it("a tap on a flow replays it", () => {
     show(payers);
     const flow = page!.host.querySelector<HTMLElement>('[data-testid="flow"]')!;

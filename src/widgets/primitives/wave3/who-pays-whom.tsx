@@ -75,6 +75,10 @@ function Flow({ actors, flow }: { actors: Actor[]; flow: Props["flows"][number] 
         <Pic name={to.emoji} size={32} />
         <span className="text-xs font-semibold leading-4">{to.name}</span>
       </span>
+      <span data-testid="flow-replay" aria-hidden="true" className="flex shrink-0 flex-col items-center text-[var(--mint-ink)]">
+        <span className="text-xl leading-5">↻</span>
+        <span className="text-xs font-semibold leading-4">Replay</span>
+      </span>
     </Button>
   );
 }
@@ -91,7 +95,7 @@ export function WhoPaysWhomView({ actors, flows }: Props) {
           <Flow key={i} actors={actors} flow={flow} />
         ))}
       </div>
-      <p className="mt-1 text-xs text-[var(--muted)]">Tap a row to watch it again.</p>
+      <p className="mt-2 text-sm text-[var(--muted)]">Tap a row to watch it again.</p>
       <ol className="mt-2 list-decimal pl-5 text-sm leading-6 text-[var(--ink)]">
         {flows.slice(0, 4).map((flow, i) => (
           <li key={i}>{sentenceOf(who(flow.from), who(flow.to), flow.what)}</li>
