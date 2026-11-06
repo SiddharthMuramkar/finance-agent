@@ -7,8 +7,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/course" }));
 vi.mock("./theme-cookie", () => ({ readTheme: async () => ({ mode: "single", theme: "light" }) }));
 
 import Loading from "./course/loading";
-import NotesLoading from "./notes/loading";
-import SessionsLoading from "./sessions/loading";
+import NotebookLoading from "./notebook/loading";
 import SettingsLoading from "./settings/loading";
 import StudyLoading from "./study/loading";
 import { Button, Chip, IconButton, NavLink, Spinner } from "./ui";
@@ -103,8 +102,7 @@ describe("route skeletons", () => {
   it.each([
     ["study", StudyLoading],
     ["course", Loading],
-    ["sessions", SessionsLoading],
-    ["notes", NotesLoading],
+        ["notebook", NotebookLoading],
     ["settings", SettingsLoading],
   ])("%s shows the route-skeleton under the real header", async (_name, Page) => {
     // Each loading.tsx returns an async server component; resolve it by hand, as the server would.
@@ -122,7 +120,7 @@ describe("Card and heading sizes (A2)", () => {
     expect(renderToStaticMarkup(<Card>x</Card>)).toMatch(/\bp-3\b/);
     const { readFileSync } = await import("node:fs");
     const { join } = await import("node:path");
-    for (const file of ["course/course-map-view.tsx", "settings/settings-view.tsx", "notes/notes-view.tsx"]) {
+    for (const file of ["course/course-map-view.tsx", "settings/settings-view.tsx", "notebook/notebook-view.tsx"]) {
       const h1 = readFileSync(join(__dirname, file), "utf8").match(/<h1 className="([^"]*)"/)![1]!;
       expect(h1, file).toContain("text-lg");
       expect(h1, file).not.toContain("text-xl");

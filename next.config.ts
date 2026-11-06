@@ -27,7 +27,13 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: { "/*": ["./course/topics/**/*", "./course/outline.yaml"] },
   // Progress and the Course Map are one page now (spec 2026-11-05 B1): the old address answers 308 to the map.
   async redirects() {
-    return [{ source: "/progress", destination: "/course", permanent: true }];
+    return [
+      { source: "/progress", destination: "/course", permanent: true },
+      // The Notebook is Past Sessions and Notes in one page (spec 2026-11-05 B2a). The query variant is listed first so `?all=1` is kept.
+      { source: "/notes", has: [{ type: "query", key: "all", value: "1" }], destination: "/notebook?all=1", permanent: true },
+      { source: "/notes", destination: "/notebook", permanent: true },
+      { source: "/sessions", destination: "/notebook", permanent: true },
+    ];
   },
   // "/" (Home) is public, so no other site may frame any page (clickjacking), browsers must not guess content types,
   // and other sites see only our origin as the referrer. Only frame-ancestors is set: a full script CSP would need nonces.

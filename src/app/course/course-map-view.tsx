@@ -34,7 +34,7 @@ function Dot({ topic }: { topic: TopicOverview }) {
 const passedCount = (group: TopicOverview[]) => `${group.filter((t) => t.status === "passed").length} of ${group.length} passed`;
 
 /**
- * One Topic card: a whole-card link. A passed card opens the Topic's Session read-only (Past Sessions when it
+ * One Topic card: a whole-card link. A passed card opens the Topic's Session read-only (the Notebook when it
  * has none); the current card opens the current Topic; any other card chooses it. It shows the status as a
  * static Tag and the Checks passed as "n of m" with a segmented bar; unpassed prerequisites are "Do first" links.
  */
@@ -46,7 +46,7 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
       title={t.title}
       mode={mode}
       status={t.status}
-      href={mode === "passed" ? (sessionId ? `/sessions/${sessionId}` : "/sessions") : "/study"}
+      href={mode === "passed" ? (sessionId ? `/sessions/${sessionId}` : "/notebook") : "/study"}
       unmet={t.unmetPrerequisites.map((id) => ({ id, title: title(id) }))}
       lead={<Dot topic={t} />}
     >

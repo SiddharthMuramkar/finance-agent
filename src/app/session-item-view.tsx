@@ -112,7 +112,7 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
     const rule = ownRuleOf({ kind: OWN_RULE_SAVED, data });
     return rule ? <OwnRuleLine data={rule} /> : null;
   },
-  // Never stored: an old "Continue." message, drawn in the thread and on Past Sessions pages as where the next step began.
+  // Never stored: an old "Continue." message, drawn in the thread and on Session pages as where the next step began.
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.
   [TOPIC_COMPLETE]: (data) => (typeof data.title === "string" && typeof data.principle === "string" ? <TopicCompleteCard card={data as TopicCompleteData} /> : null),
