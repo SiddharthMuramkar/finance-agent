@@ -833,6 +833,7 @@ body {
   }
   .chip[aria-pressed="true"],
   .story-toggle[aria-pressed="true"],
+  .story-toggle[aria-expanded="true"],
   .chip[data-state="showing"],
   .chip[aria-current="page"],
   .btn-icon[aria-pressed="true"] {
@@ -840,6 +841,21 @@ body {
     --label: var(--brand);
     --rim: var(--brand);
     --lip-colour: var(--brand);
+  }
+
+  /* TimelineStrip (issue #450): the open marker rises on a sunflower face with a sunflower lip, so the pressed one is
+     seen at rest. It grows with `scale`, not `transform`, so hover and press still move it as they move every button. */
+  .timeline-marker {
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      box-shadow var(--dur-press) var(--ease-out),
+      background-color var(--dur-ui) var(--ease-out),
+      scale var(--dur-ui) var(--ease-out);
+  }
+  .timeline-marker[aria-pressed="true"] {
+    --face: var(--sun-tag);
+    --lip-colour: var(--sun-ink);
+    scale: 1.12;
   }
 
   /* States */
