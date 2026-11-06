@@ -211,9 +211,9 @@ questions:
       filing?
     choices:
       - { id: a, text: "A unit slip: the filing's 650 is $650 million, so $650bn is a thousand times too large" }
-      - { id: b, text: "A period mismatch: the filing has no second-half figure" }
-      - { id: c, text: "It ties out: bn and m are interchangeable in a filing" }
-      - { id: d, text: "More than the text says: the writer added a cause" }
+      - { id: b, text: "A period mismatch: the filing has no second-half figure", mistake: { tag: second_half_seen_as_missing, fix: "The second half is the full year less the first half. The filing prints both lines." } }
+      - { id: c, text: "It ties out: bn and m are interchangeable in a filing", mistake: { tag: units_seen_as_interchangeable, fix: "A billion is a thousand millions. The table header fixes the unit, and the writer swapped it." } }
+      - { id: d, text: "More than the text says: the writer added a cause", mistake: { tag: unit_slip_seen_as_added_cause, fix: "The writer gives a figure, not a reason. What changed is the unit, not the story." } }
     answer: a
     explanation: >
       The table header sets the unit. 650 in a table "in millions" is $650 million, or $0.65 billion;
@@ -229,10 +229,10 @@ questions:
       "8% of sales were grey-market diversion designed to undercut the brand." What is the best
       description of the writer's step?
     choices:
-      - { id: a, text: "A mislabel: 8% is the wrong number" }
-      - { id: b, text: "A period mismatch: nine months against a year" }
+      - { id: a, text: "A mislabel: 8% is the wrong number", mistake: { tag: matching_figure_called_mislabel, fix: "The 8% matches the filing as printed. The slip is the motive the writer adds after it." } }
+      - { id: b, text: "A period mismatch: nine months against a year", mistake: { tag: nine_months_seen_as_mismatch, fix: "The writer names no other period; the 8% is the filing's nine-month figure. Only the motive is new." } }
       - { id: c, text: "More than the text says: the filing gives a size and a category, and the writer adds a purpose" }
-      - { id: d, text: "An arithmetic slip" }
+      - { id: d, text: "An arithmetic slip", mistake: { tag: copied_figure_seen_as_sum, fix: "The writer does no sum; the 8% is copied as printed. The added words are a motive." } }
     answer: c
     explanation: >
       The 8%, the period and the category (sales outside agreed territories) all match the filing.
@@ -249,9 +249,9 @@ questions:
       claim stays inside its text?
     choices:
       - { id: a, text: "The company expects that its gross margin may narrow" }
-      - { id: b, text: "The company says its gross margin will narrow" }
-      - { id: c, text: "The company guarantees a narrower gross margin" }
-      - { id: d, text: "The company says its gross margin cannot narrow" }
+      - { id: b, text: "The company says its gross margin will narrow", mistake: { tag: may_read_as_will, fix: "'May' flags a possibility. 'Will' turns it into a certainty the filing never states." } }
+      - { id: c, text: "The company guarantees a narrower gross margin", mistake: { tag: hedge_read_as_guarantee, fix: "'Guarantees' is the writer's word. The filing only expects the margin may narrow." } }
+      - { id: d, text: "The company says its gross margin cannot narrow", mistake: { tag: direction_reversed, fix: "The filing says the margin may narrow, so 'cannot narrow' reverses its direction." } }
     answer: a
     explanation: >
       The filing pairs an expectation with "may": a possibility the company flags, not a certainty.
