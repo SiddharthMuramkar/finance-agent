@@ -89,6 +89,47 @@ describe("Percent's content-only restructure", () => {
     }
   });
 
+  // Round 7 (critics MP-R6-2/3/5): pb-try-pts-2, pb-try-pts-3 and pb-q-wrong-description had choices told apart only by
+  // a number ("0.4 points", "40 points", "9.4 points"), with the move left for the Learner to work out (9.4 minus 9, 6.5
+  // minus 5.9, 8.50 minus 8.00 then times 100). Where two choices differ only by a number, the stem says the move itself.
+  describe("choices told apart by words, never by a number the Learner works out", () => {
+    const numberless = (text: string) => text.toLowerCase().replace(/\d+(?:[.,]\d+)?/g, "#").trim();
+    /** The stem says the move in points or basis points ("a rise of 0.4 of a point", "a gap of half a point", "120 bp"). */
+    const STATES_MOVE = /\b\d+(?:\.\d+)?\s*(?:of a )?(?:percentage points?|points?|bp|basis points)\b|\bhalf a (?:percentage )?point\b/i;
+    const items = [
+      ...percent.checks.flatMap((c) =>
+        c.quickTries.filter((q): q is FixedQuickTry => "id" in q).map((q) => ({ id: q.id, stem: `${q.ask} ${q.halfDone ?? ""}`, choices: q.choices ?? [] })),
+      ),
+      ...percent.questions.map((q) => ({ id: q.id, stem: q.prompt, choices: q.choices })),
+    ];
+    const toldApartByANumber = (choices: { text: string }[]) =>
+      choices.some((a, i) => choices.some((b, j) => i !== j && a.text !== b.text && numberless(a.text) === numberless(b.text)));
+
+    it("states the move as a fact in every Quick try and Check question whose choices differ only by a number", () => {
+      expect(items.filter((i) => toldApartByANumber(i.choices) && !STATES_MOVE.test(i.stem)).map((i) => i.id)).toEqual([]);
+    });
+
+    it.each([
+      ["pb-try-pts-2", /\bsavers\b/],
+      ["pb-try-pts-3", /\bhome loans\b/],
+      ["pb-q-wrong-description", /\bloans\b/],
+    ])("%s tells the move as a story fact (a person, a date, the stakes), with choices told apart by the word and a short fix on each slip", (id, stakes) => {
+      const item = items.find((i) => i.id === id)!;
+      expect(item.stem).toContain("3 February 1994");
+      expect(item.stem).toMatch(/\b(?:reporter|radio host|editor|trader)\b/);
+      expect(item.stem).toMatch(stakes);
+      expect(item.stem).toMatch(STATES_MOVE);
+      expect(sumAsk(item.stem)).toBeNull();
+      expect(new Set(item.choices.map((c) => numberless(c.text).replace(/#/g, "").replace(/\s+/g, " "))).size).toBe(item.choices.length);
+      const wrong = item.choices.filter((c) => c.mistake);
+      expect(wrong).toHaveLength(item.choices.length - 1);
+      for (const c of wrong) {
+        expect(c.mistake!.tag).toBeTruthy();
+        expect(c.mistake!.fix.split(/\s+/).length).toBeLessThanOrEqual(20);
+      }
+    });
+  });
+
   it("keeps a Learner at the reveal with both old Checks passed at the reveal, though the new Check 2 is not passed", () => {
     const place = navigate(map, inPercent("reveal", ["pb-quiz-language", "pb-fed-language"]))!;
     expect(place).toMatchObject({ step: "reveal", check: null, next: "principle" });

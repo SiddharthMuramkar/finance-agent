@@ -316,22 +316,24 @@ questions:
     source: >
       Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
+  # Round 7 (critic MP-R6-5): the move is a story fact in basis points, so the unit word tells the choices apart, not 8.50 minus 8.00.
   - id: pb-q-wrong-description
     skill: wording
     prompt: >
-      A central bank lifts its rate from 8.00% to 8.50%. Which headline is clear and true?
+      3 February 1994, New York. An editor checks headlines for readers whose loans follow the central bank's rate.
+      If the bank lifted its rate from 8% to 8.5%, a rise traders call 50 basis points, which headline is clear and true?
     choices:
-      - { id: a, text: "Rate up 50 percent", mistake: { tag: mixed_percent_points, fix: "50 is the move in basis points. As a percent of the old 8%, the move is only 6.25%." } }
-      - { id: b, text: "Rate up 5 basis points", mistake: { tag: used_x10, fix: "One point is 100 basis points, so half a point is 50 bp, not 5." } }
+      - { id: a, text: "Rate up 50 percent", mistake: { tag: mixed_percent_points, fix: "Percent compares the move with the old 8%. The 50 is basis points, the gap itself." } }
+      - { id: b, text: "Rate up 50 percentage points", mistake: { tag: forgot_to_convert, fix: "That keeps the 50 but changes the unit. Basis points are hundredths of a point." } }
       - { id: c, text: "Rate up 50 basis points" }
-      - { id: d, text: "Rate up half a percent of its old level", mistake: { tag: mixed_percent_points, fix: "Half a point is the gap itself. Measured against the old 8%, the move is 6.25%." } }
+      - { id: d, text: "Rate up half a percent", mistake: { tag: mixed_percent_points, fix: "Half a percent reads as a share of the old 8%. The gap itself is 50 basis points." } }
     answer: c
     explanation: >
-      The change is half a percentage point, which is 50 basis points. Compared with the old 8%,
-      half a point is one sixteenth, or 6.25 percent of the old level. "Up 50 percent" would mean a
-      new rate of 12%.
+      Traders call the rise 50 basis points: half a percentage point, the gap between 8% and 8.5%.
+      "Up 50 percent" or "up half a percent" would compare the move with the old rate, and "50
+      percentage points" keeps the number but changes the unit.
     source: >
-      Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm ; the percent figures are the arithmetic of half a point on 8.00%.
+      Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm
 
   - id: pb-q-bond-140
     skill: bp-to-pts
@@ -516,24 +518,25 @@ checks:
           - { id: b, text: "12 points", mistake: { tag: divided_by_10, fix: "Divide by 100, not 10: 100 bp make 1 point." } }
           - { id: c, text: "0.12 points", mistake: { tag: divided_by_1000, fix: "Divide by 100, not 1,000: 100 bp make 1 point." } }
         halfDone: "First step, done for you: 100 bp make 1 point, so convert by 100."
+      # Round 7 (critics MP-R6-2, MP-R6-3): as pb-try-a1, the move is a story fact, so the words tell the choices apart.
       - id: pb-try-pts-2
         skill: pts
-        ask: "A rate goes from 9% to 9.4%. A reporter would call the gap:"
+        ask: "3 February 1994, New York. A reporter writes for savers, who earn more when rates rise. If a bank took its savings rate from 9% to 9.4%, a rise of 0.4 of a point, her story would say:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "0.4 points" }
-          - { id: b, text: "40 points", mistake: { tag: forgot_to_convert, fix: "That is basis points. Points are the new rate minus the old rate." } }
-          - { id: c, text: "9.4 points", mistake: { tag: gave_the_new_level, fix: "9.4% is where the rate ended. The gap is the end minus the start." } }
+          - { id: a, text: "Savings rates rose 0.4 of a percentage point" }
+          - { id: b, text: "Savings rates rose 0.4 percent", mistake: { tag: mixed_percent_points, fix: "0.4 percent is a share of the old rate. The gap between two rates is in points." } }
+          - { id: c, text: "Savings rates rose 9.4 percentage points", mistake: { tag: gave_the_new_level, fix: "9.4% is where the rate would end. Points measure the gap between the old and new rates." } }
       - id: pb-try-pts-3
         skill: pts
-        ask: "A rate falls from 6.5% to 5.9%. A reporter would call the size of the fall:"
+        ask: "3 February 1994, New York. A radio host speaks to families paying off home loans. If a lender cut its loan rate from 6.5% to 5.9%, a fall of 0.6 of a point, she would say:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "0.6 points" }
-          - { id: b, text: "60 points", mistake: { tag: forgot_to_convert, fix: "That is basis points. Points are the new rate minus the old rate." } }
-          - { id: c, text: "5.9 points", mistake: { tag: gave_the_new_level, fix: "5.9% is where the rate ended. The fall is the gap between start and end." } }
+          - { id: a, text: "Loan rates fell 0.6 of a percentage point" }
+          - { id: b, text: "Loan rates fell 0.6 percent", mistake: { tag: mixed_percent_points, fix: "0.6 percent is a share of the old rate. The gap between two rates is in points." } }
+          - { id: c, text: "Loan rates fell 5.9 percentage points", mistake: { tag: gave_the_new_level, fix: "5.9% is where the rate would end. Points measure the gap between the old and new rates." } }
       - { template: pb-t-bp-from-move }
       - { template: pb-t-points-from-bp }
       - { template: pb-t-bp-from-move, halfDone: true }
