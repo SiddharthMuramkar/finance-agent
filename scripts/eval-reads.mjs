@@ -4,7 +4,10 @@
 // PGlite client in the tests), so the reads are tested on the real migrations with no server and no model.
 import { textOf } from "./script-guards.mjs";
 
-/** Which lane served the Widget, and its code, from the Session's rows after the prompt. */
+/**
+ * Which lane served the Widget, and its code, from the Session's rows after the prompt. An item stored at `promptSeq`
+ * itself follows the opener's last message, so it is the opener's (session-items.ts saves after the latest message).
+ */
 export async function readLane(pool, learnerId, promptSeq) {
   const sessions = (await pool.query(`select id from sessions where learner_id = $1 order by id desc limit 1`, [learnerId])).rows;
   if (!sessions.length) return { lane: "none", note: "no Session" };
@@ -12,7 +15,7 @@ export async function readLane(pool, learnerId, promptSeq) {
   const messages = (await pool.query(`select seq, role, content from messages where session_id = $1 order by seq`, [sessionId])).rows;
   const after = messages.filter((m) => m.seq > promptSeq);
   const toolsUsed = after.flatMap((m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === "tool_use").map((b) => b.name) : []));
-  const items = (await pool.query(`select kind, data, after_seq from session_items where session_id = $1 and kind = 'widget_shown' and after_seq >= $2 order by id`, [sessionId, promptSeq])).rows;
+  const items = (await pool.query(`select kind, data, after_seq from session_items where session_id = $1 and kind = 'widget_shown' and after_seq > $2 order by id`, [sessionId, promptSeq])).rows;
   const turn = (await pool.query(`select status, stop_reason, error from turns where session_id = $1 order by id desc limit 1`, [sessionId])).rows[0] ?? null;
   const base = { sessionId, toolsUsed, turn };
   if (items.length) {
@@ -26,15 +29,21 @@ export async function readLane(pool, learnerId, promptSeq) {
 }
 
 /**
- * Delight set: what one prompt's judges and bars read. The reply is the Tutor's text after the prompt; the Choices are the
- * latest reply_choices item (spec E4a); widget_source is reply_checks.widget_source for the turn, and when that column is
- * not there yet (a branch before E4a's migration) it falls back to the lane, marked so the report can say so.
+ * Delight set: what one prompt's judges and bars read. The reply is the text the Learner saw: the turn's
+ * reply_checks.shown_text, or, with no shown text recorded, the Tutor's messages after the prompt less the rows the
+ * record lists as never seen (a held-back draft, its correction, a failed retry). The Choices are the latest
+ * reply_choices item stored after the prompt (spec E4a): the opener's sit at `promptSeq` and never count. widget_source
+ * is reply_checks.widget_source for the turn, and when that column is not there yet (a branch before E4a's migration)
+ * it falls back to the lane, marked so the report can say so.
  */
 export async function readDelight(pool, sessionId, promptSeq, lane) {
   if (!sessionId) return { reply: "", choices: null, choicesCount: null, widgetSource: null, widgetSourceFrom: "none" };
-  const messages = (await pool.query(`select role, content from messages where session_id = $1 and seq > $2 order by seq`, [sessionId, promptSeq])).rows;
-  const reply = messages.filter((m) => m.role === "assistant").map((m) => textOf(m).trim()).filter(Boolean).join("\n\n");
-  const item = (await pool.query(`select data from session_items where session_id = $1 and kind = 'reply_choices' and after_seq >= $2 order by id desc limit 1`, [sessionId, promptSeq])).rows[0];
+  const messages = (await pool.query(`select seq, role, content from messages where session_id = $1 and seq > $2 order by seq`, [sessionId, promptSeq])).rows;
+  const check = (await pool.query(`select shown_text, rejected_seqs from reply_checks where session_id = $1 and turn_seq > $2 order by turn_seq limit 1`, [sessionId, promptSeq])).rows[0];
+  const rejected = new Set(check?.rejected_seqs ?? []);
+  const shown = typeof check?.shown_text === "string" ? check.shown_text.trim() : "";
+  const reply = shown || messages.filter((m) => m.role === "assistant" && !rejected.has(m.seq)).map((m) => textOf(m).trim()).filter(Boolean).join("\n\n");
+  const item = (await pool.query(`select data from session_items where session_id = $1 and kind = 'reply_choices' and after_seq > $2 order by id desc limit 1`, [sessionId, promptSeq])).rows[0];
   const choices = Array.isArray(item?.data?.choices) ? item.data.choices : null;
   let widgetSource = null;
   let widgetSourceFrom = "reply_checks";
