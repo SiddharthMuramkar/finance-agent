@@ -192,6 +192,10 @@ test("[#313] a wheel over the strip scrolls the capped box around it first, and 
     el.scrollTop = 0;
   });
   await strip.evaluate((ol) => { ol.scrollLeft = 0; ol.dispatchEvent(new Event("scroll")); });
+  // The strip is visible in the server's HTML before it hydrates; its wheel handler exists only once its effects ran,
+  // which data-more-right (set by those effects) proves. Without this wait a wheel can land before the handler, and on
+  // Linux Chromium the unhandled wheel scrolls the sideways-only strip instead of the box (main CI 42219779094).
+  await expect(strip).toHaveAttribute("data-more-right", "true");
   const r = (await strip.boundingBox())!;
   await page.mouse.move(r.x + r.width / 2, r.y + r.height / 2);
   await page.mouse.wheel(0, 120);
