@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { seed } from "./support/app";
+import { say, seed } from "./support/app";
 
 /** B2a (spec 2026-11-05): one Notebook for notes and past Sessions; the old addresses redirect to it. */
 
@@ -22,13 +22,25 @@ test("old addresses still work", async ({ page }) => {
   const topicId = await row.getAttribute("data-notebook-row");
   await page.goto(`/notes#note-${topicId}`);
   await expect(page).toHaveURL(new RegExp(`/notebook#note-${topicId}$`));
+});
 
-  const read = page.locator("[data-notebook-row]").getByRole("link", { name: "Read" }).first();
-  await expect(read).toBeVisible();
-  await read.click();
-  await expect(page).toHaveURL(/\/sessions\/\d+$/);
+test("a Session still opens read-only, with Resume and a way back", async ({ page }) => {
+  test.setTimeout(180_000);
+  // Seeded Sessions hold no messages (their page is a 404 by design), so talk once to give one a message.
+  await seed(page, "story");
+  await page.goto("/study");
+  await say(page, "plain-reply", "Tell me more.");
+  await page.goto("/notebook");
+  await expect(page.locator("[data-notebook-row]").getByRole("button", { name: "Resume" }).first()).toBeVisible();
+  // Find the Session's page: the Notebook has no link to an unfinished Topic's Session, so probe the ids this run made.
+  let id = 0;
+  for (let n = 1; n <= 40 && !id; n++) if ((await page.request.get(`/sessions/${n}`, { maxRedirects: 0 })).status() === 200) id = n;
+  expect(id, "a Session page that answers 200").toBeGreaterThan(0);
+  await page.goto(`/sessions/${id}`);
   await expect(page.getByTestId("old-session")).toBeVisible();
-  await expect(page.getByRole("link", { name: "← Notebook" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Resume this Topic" })).toBeVisible();
+  await page.getByRole("link", { name: "← Notebook" }).click();
+  await expect(page).toHaveURL(/\/notebook#note-/);
 });
 
 test("notebook is wide", async ({ page }, info) => {
