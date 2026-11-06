@@ -50,7 +50,8 @@ questions:
   - id: tx-q-after-tax-profit
     prompt: >
       A company's year ends with a profit. It pays its tax bill to the government, and whatever is left
-      belongs to its shareholders. What do accountants call that leftover?
+      belongs to its shareholders. Picture the accountant writing the last line of the income statement:
+      what do they call that leftover?
     choices:
       - { id: a, text: "Operating profit", mistake: { tag: called_it_operating_profit, fix: "Operating profit comes before interest and tax; what is left after tax is profit after tax." } }
       - { id: b, text: "Profit after tax" }

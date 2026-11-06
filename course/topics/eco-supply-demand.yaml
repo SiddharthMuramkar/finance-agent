@@ -111,7 +111,7 @@ checks:
     kind: conversation
     prompt: >
       It is 1 September 2019 and onion prices are rising while the new crop is still weeks away.
-      Using supply and demand, explain what could push the price up from here, why the size of the
+      Picture yourself as a trader watching the market: what could push the price up from here, why the size of the
       move depends on how buyers react to price, and what options the government has to ease
       prices and what each would do to prices at home and abroad.
     passCriteria: >

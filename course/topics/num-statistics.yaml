@@ -108,8 +108,8 @@ checks:
     prompt: >
       It is the evening of 16 October 1987, and the S&P 500 has fallen more than 9% this week. A risk
       manager says "our model, fitted to the past five calm years, says a daily fall of 10% or
-      more has essentially zero probability, so we are safe". Using ideas of mean, standard deviation and
-      distributions, explain what is wrong with that reasoning.
+      more has essentially zero probability, so we are safe". Picture yourself as a sceptical colleague:
+      what is wrong with that reasoning, in terms of the average, the spread and the shape of the curve?
     passCriteria: >
       The Learner explains that the model's mean and standard deviation come from a calm sample, so a
       normal curve built on them puts almost no probability on extreme moves; a fall that large

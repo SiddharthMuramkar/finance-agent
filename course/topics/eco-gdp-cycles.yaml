@@ -98,8 +98,8 @@ checks:
   - id: eco-gdp-growth-financing
     kind: conversation
     prompt: >
-      India grew faster in the late 1980s than before. Using the figures from the Case, judge whether that
-      growth looks sustainable, and explain what could go wrong even while GDP is rising.
+      India grew faster in the late 1980s than before. Picture yourself as a finance minister reading the
+      Case: does that growth look sustainable, and explain what could go wrong even while GDP is rising.
     passCriteria: >
       The Learner explains that growth was financed by large fiscal deficits (around 8 to 9 per cent of GDP),
       partly funded by the central bank, and by external borrowing, so imports and the current account deficit
