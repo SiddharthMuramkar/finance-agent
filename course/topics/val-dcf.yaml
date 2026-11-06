@@ -21,8 +21,8 @@ cases:
       discounted them at a cost of capital of 12.84% in years 1 to 3, 12.83% in year 4, 12.81% in year 5, then 12.13%, 11.62%, 11.08%, 10.49% and 9.61% in years 6 to 10,
       and valued the cash flows after year 10 as a perpetuity growing at 6%. The firm had
       $26 million of cash and $349 million of debt, and employee options outstanding that he valued
-      at $2,892 million. Using these inputs, what is Amazon worth, and how much of it comes from
-      the years after year 10? How would you decide whether $84 is high or low?
+      at $2,892 million. Using these inputs, what story does this valuation tell about where Amazon's value
+      comes from, and does it lean on the years after year 10? How would you decide whether $84 is high or low?
     reveal: >
       Damodaran's terminal value was $52,148 million (1,881 / (9.61% - 6%)), and the present value
       of all the cash flows was $15,170 million for the operations. Adding cash and subtracting

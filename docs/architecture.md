@@ -4633,7 +4633,7 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Scenario.** A Learner in Capital budgeting used to see "$900 cost, $1,210 in two years, 10%: what is the net present value?". Now the card says the $1,210 is worth $1,000 today and asks what the $100 left over is called and what the firm should do. They tap "net present value, positive, so accept", or a wrong choice and read why the plain $310 profit misleads.
 
-**Trade-off.** The numbers stay as story facts, so a Learner still sees them, but never has to do the sum; in return a Learner who wants the arithmetic practice finds it in the Tutor's worked examples, not in the quiz. The explanations keep the worked figures so the answer can be checked.
+**Trade-off.** The numbers stay as story facts, so a Learner still sees them, but never has to do the sum; in return a Learner who wants the arithmetic practice finds it in the Tutor's worked examples, not in the quiz. The explanations keep the worked figures so the answer can be checked. Four Case questions were reworded (only the question sentence; every fact kept): Webvan capital budgeting, Eurotunnel WACC, Amazon DCF and WeWork multiples.
 
 ## Foundation Topics, story-first questions batch D2c (`course/topics/`, issue #346)
 
