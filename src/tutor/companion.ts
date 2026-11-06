@@ -71,21 +71,28 @@ export function termAt(text: string, term: string): number {
   return at;
 }
 
-/** The first plain sentence of the reply that uses the term (not its ask), as the card's example. */
-function sentenceWith(text: string, term: string): string | undefined {
+/** The reply's plain sentences that use the term (never its ask), shortest-fitting first in reply order. */
+function sentencesWith(text: string, term: string): string[] {
   return text
     .split(/(?<=[.!])\s+|\n+/)
     .map((s) => s.trim())
-    .find((s) => s && !s.endsWith("?") && termAt(s, term) >= 0);
+    .filter((s) => s && !s.endsWith("?") && termAt(s, term) >= 0);
 }
 
-/** A term's Lingo card inputs: the Topic file's own words, and the reply's sentence where the file has no example. */
+/**
+ * A term's Lingo card inputs: the Topic file's own words first. Where the file gives no `pro` line, the reply's own
+ * sentence that uses the term says it like a pro; where it gives no example, the Running example does (the Topic's
+ * everyday example), else a second sentence of the reply.
+ */
 function lingoInputs(topic: Topic, term: Term, replyText: string): Record<string, unknown> {
   const name = term.term.charAt(0).toUpperCase() + term.term.slice(1);
-  const example = term.example ?? sentenceWith(replyText, term.term) ?? topic.runningExample?.text ?? term.means;
+  const said = sentencesWith(replyText, term.term);
+  const short = (max: number) => said.filter((s) => words(s).length <= max);
+  const pro = term.pro ?? short(14)[0] ?? `"${name}" is the word pros use.`;
+  const example = term.example ?? topic.runningExample?.text ?? short(20).find((s) => s !== pro) ?? said.find((s) => s !== pro) ?? term.means;
   return {
     term: fit(name, 10, 60),
-    pro: fit(term.pro ?? `"${name}" is the word pros use.`, 14, 160),
+    pro: fit(pro, 14, 160),
     means: fit(term.means, 20, 200),
     example: fit(example, 20, 200),
     emoji: term.emoji ?? LINGO_EMOJI,
@@ -99,16 +106,8 @@ function sceneFor(topic: Topic, place: CompanionInput["place"]): Scene | undefin
   return atStep.find((s) => s.check && s.check === place.check) ?? atStep.find((s) => !s.check);
 }
 
-/** ISO dates blanked out: a Case's day is a date, not a quiz figure. */
-function withoutDates(v: unknown): unknown {
-  if (typeof v === "string") return v.replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ");
-  if (Array.isArray(v)) return v.map(withoutDates);
-  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, withoutDates(x)]));
-  return v;
-}
-
-/** Every number a built candidate shows, in its title and params. */
-const shownNumbers = (built: Extract<Built, { ok: true }>) => paramNumbers([built.title, withoutDates(built.params)]);
+/** Every number a built candidate shows, in its title and params, read as V5 reads a Widget's (a date's parts count). */
+const shownNumbers = (built: Extract<Built, { ok: true }>) => paramNumbers([built.title, built.params]);
 
 export function pickCompanion(input: CompanionInput): Companion | null {
   const { topic, place, replyText } = input;
