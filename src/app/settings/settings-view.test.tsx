@@ -16,15 +16,26 @@ describe("the Settings page", () => {
     const t = text(html);
     expect(t.indexOf("Settings")).toBeGreaterThanOrEqual(0);
     expect(t).not.toMatch(/Dark mode/);
-    // Start over: a danger button under a Start over heading, in the last card, spanning the grid.
+    // Start over: a danger button under a Start over heading, in the last card, full width below the columns.
     expect(html).toMatch(/<h2[^>]*id="start-over-heading"[^>]*>Start over<\/h2>/);
     expect(html).toMatch(/<button[^>]*class="btn btn-danger[^"]*"[^>]*>Start over as a new learner/);
-    expect(html).toMatch(/<section[^>]*class="[^"]*col-span-full[^"]*"[^>]*id="start-over"|<section[^>]*id="start-over"[^>]*class="[^"]*col-span-full/);
+    const columns = html.match(/<div class="[^"]*columns-\[420px\][^"]*">/);
+    expect(columns).not.toBeNull();
+    const inside = html.slice(html.indexOf(columns![0]), html.indexOf('id="start-over"'));
+    expect(inside).toContain('id="developer-details"');
+    expect(inside).toMatch(/<\/section><\/div><section[^>]*$/); // the columns' next sibling, not a column cell
   });
 
   // #470: a 420 px column minimum (as Notebook) so card paragraphs run 60-75 characters at 1512 and 1920, not 54.
-  it("lays the cards out in the card-grid at minmax(420px, 1fr)", () => {
-    expect(view()).toMatch(/<div class="[^"]*card-grid[^"]*\[grid-template-columns:repeat\(auto-fill,minmax\(min\(420px,100%\),1fr\)\)\]/);
+  // #529: masonry columns, not fixed grid rows, so the tall About you card leaves no ~400 px holes under the short cards.
+  it("lays the first five cards out in 420 px masonry columns that never split a card", () => {
+    const html = view();
+    const columns = html.match(/<div class="([^"]*columns-\[420px\][^"]*)">/);
+    expect(columns).not.toBeNull();
+    const cls = columns![1].replaceAll("&gt;", ">").replaceAll("&amp;", "&").split(" ");
+    expect(cls).toEqual(expect.arrayContaining(["columns-[420px]", "gap-x-[var(--gap)]", "[&>*]:break-inside-avoid", "[&>*]:mb-[var(--gap)]"]));
+    expect(cls).not.toContain("card-grid");
+    expect(html).not.toContain("grid-template-columns");
   });
 
   it("Your Topics lists only the Topics given (those with progress), in that order, each with a Start over Button", () => {
