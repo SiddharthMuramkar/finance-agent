@@ -4748,7 +4748,7 @@ A headline is never written by the Tutor. Its recipe takes the front page's text
 
 **Scenario.** A Learner opens Percent. Before any Check they see the trader, the reporter and the Fed on 3 February 1994, with no word of what the Fed did. At the concept step for "say which size you mean" they flip three Myth or Fact cards, then in Check 1 they tap "50 bp" for a half-point move, and a wrong tap on "5 bp" shows "One point is 100 basis points, so multiply by 100, not 10."
 
-A template's Known mistake may carry its own `label:` (`src/teaching/choices.ts`, schema in `src/course/map.ts`), so each choice names its idea: a rule-of-72 draw shows "About 8 years: seventy-two over the yearly rate" beside "About 11.1 years: a hundred over the yearly rate, as if nothing compounded", and the Learner picks the idea, not the result of a division. The course check refuses a label with no `{value}` slot.
+A template's Known mistake may carry its own `label:` (`src/teaching/choices.ts`, schema in `src/course/map.ts`), so each choice names its idea: a rule-of-72 draw at 19% shows "About 3.8 years: seventy-two over the yearly rate" beside "About 5.3 years: a hundred over the yearly rate, as if nothing compounded", and the Learner picks the idea, not the result of a division. The course check refuses a label with no `{value}` slot.
 
 **Trade-off.** Choices make the Quick tries faster to mark and kinder to a Learner who dislikes sums, but a bare numeric choice is told apart only by arithmetic, so where units do not separate the right and wrong labels, each label names the idea behind its number (math police, round 2). Num-probability dropped its three Question Bank items, whose wording this batch cannot see or rewrite; its own seven questions cover the Check.
 
