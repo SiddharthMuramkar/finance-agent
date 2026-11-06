@@ -49,7 +49,7 @@ export function ChoiceCardsView({ question, choices, answer, picked, onPick }: P
               pressed={isPick}
               disabled={right && !isPick}
               onClick={() => onPick(c.id)}
-              style={state === "right" ? ({ "--face": "var(--mint-tint)" } as CSSProperties) : state === "wrong" ? ({ "--face": "var(--coral-tint)" } as CSSProperties) : undefined}
+              style={state === "right" ? ({ "--face": "var(--mint-tint)", "--rim": "var(--mint-ink)", "--lip-colour": "var(--mint)" } as CSSProperties) : state === "wrong" ? ({ "--face": "var(--coral-tint)", "--rim": "var(--coral-ink)", "--lip-colour": "var(--coral)" } as CSSProperties) : undefined}
               className={`!h-auto min-h-12 w-full !justify-start gap-3 !py-2 text-left !text-base ${state === "right" && !reduced ? "choice-pop" : ""}`}
             >
               {c.emoji && (
@@ -68,7 +68,7 @@ export function ChoiceCardsView({ question, choices, answer, picked, onPick }: P
         })}
       </div>
       <div role="status" data-testid="choice-status" className="mt-2 min-h-6 text-sm font-medium leading-5">
-        {chosen && (right ? <p className="text-base font-semibold text-[var(--mint-ink)]">✓ Yes</p> : <p className="text-[var(--coral-ink)]">{chosen.fix || "Not quite. Try another."}</p>)}
+        {chosen && (right ? <p className="text-base font-semibold text-[var(--mint-ink)]">✓ Yes</p> : <p className="text-base font-semibold text-[var(--coral-ink)]">{chosen.fix || "Not quite. Try another."}</p>)}
       </div>
     </section>
   );

@@ -69,7 +69,7 @@ function Flow({ actors, flow }: { actors: Actor[]; flow: Props["flows"][number] 
           <path d="M0 5 H94" pathLength={1} strokeDasharray={1} className={reduced ? "" : "flow-draw"} stroke="var(--mint-ink)" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
           <path d="M88 1 L98 5 L88 9" stroke="var(--mint-ink)" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="mt-1 text-center text-xs font-medium leading-4 text-[var(--mint-ink)]">{flow.what}</span>
+        <span data-testid="flow-what" className="mt-1 rounded-full bg-[var(--sun-tint)] px-2 text-center text-xs font-semibold leading-5 text-[var(--sun-ink)]">{flow.what}</span>
       </span>
       <span className="flex shrink-0 flex-col items-center">
         <Pic name={to.emoji} size={32} />

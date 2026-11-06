@@ -1,2 +1,2 @@
-root = Widget("Why did bond prices fall?", [pick])
+root = Widget("A bond puzzle", [pick])
 pick = ChoiceCards("Why did older bonds lose value when the central bank raised rates?", [{id: "a", text: "New bonds paid more", emoji: "chart-increasing", fix: "Not quite. Think about what new bonds offered."}, {id: "b", text: "Nobody wanted any bond", emoji: "worried-face", fix: "People still bought bonds. They wanted the better ones."}, {id: "c", text: "The bank printed the old ones", emoji: "bank", fix: "Old bonds did not change. The new ones did."}], "a")

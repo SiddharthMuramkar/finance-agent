@@ -35,7 +35,7 @@ export function HeadlineView({ paper, date, headline, deck, source }: Props) {
   const href = safeHref(source);
   return (
     <section data-testid="headline" data-motion={motionFlag(reduced)} aria-label={`Front page of ${paper}`} className="@container py-1">
-      <article className="rounded-sm border border-[var(--brand-line)] bg-[var(--sun-tint)] px-4 py-3 text-[var(--ink)]">
+      <article className="rounded-sm border border-t-4 border-[var(--brand-line)] border-t-[var(--sun)] bg-[var(--sun-tint)] px-4 py-3 text-[var(--ink)]">
         <header className="border-b-4 border-double border-[var(--ink)] pb-1 text-center">
           <p className="flex items-center justify-center gap-3 font-serif text-2xl font-black uppercase leading-8 tracking-wide">
             <Pic name="newspaper" size={32} />
