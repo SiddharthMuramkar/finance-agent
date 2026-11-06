@@ -61,7 +61,7 @@ export function LandingView({ stats, button, widget }: { stats: LandingStats; bu
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+        <div className="mx-auto flex h-[var(--header-h)] max-w-6xl items-center justify-between px-4 sm:px-6">
           <span className="text-base font-semibold">{copy.brand}</span>
           {button ? (
             <div className="flex items-center gap-4">
