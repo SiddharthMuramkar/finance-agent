@@ -46,14 +46,16 @@ describe("the Widget harness page", () => {
     expect(resolveFixture("../../package.json")).toBeUndefined();
   });
 
-  it("lists every fixture, with a link at each of the three widths", async () => {
+  it("lists every fixture, with a link at each of the five widths (360, 480, 560, 720, 860)", async () => {
     const { host, done } = await draw({});
     const all = fixtureList();
     expect(all.length).toBeGreaterThanOrEqual(11);
     expect(host.querySelectorAll("[data-fixture]")).toHaveLength(all.length);
     const links = [...host.querySelectorAll("[data-fixture] a")].map((a) => a.getAttribute("href"));
-    expect(links).toHaveLength(all.length * 3);
-    expect(links).toContain("/dev/widgets?fixture=07-sip-1000-month.openui&width=480");
+    expect(links).toHaveLength(all.length * 5);
+    for (const width of [360, 480, 560, 720, 860]) {
+      expect(links).toContain(`/dev/widgets?fixture=07-sip-1000-month.openui&width=${width}`);
+    }
     await done();
   });
 
