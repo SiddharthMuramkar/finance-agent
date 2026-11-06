@@ -85,6 +85,8 @@ export function auditAffordances(page: Page): Promise<Affordances> {
     let interactive = 0, tags = 0;
     for (const el of root.querySelectorAll(INTERACTIVE)) {
       if (!visible(el)) continue;
+      // A disabled control cannot be pressed, so it is not judged as one: Appendix B.3 makes it flat on purpose ("off").
+      if (el.matches(':disabled, [aria-disabled="true"]')) continue;
       if (el.closest("svg") && !el.matches("a[href]")) continue;   // a chart mark that takes focus so arrow keys can read it is not a control
       interactive++;
       // A radio or checkbox inside a chip label is the chip's own control: judge the chip face, not the 18px native input.

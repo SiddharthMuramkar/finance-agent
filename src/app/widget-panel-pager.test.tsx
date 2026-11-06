@@ -189,7 +189,9 @@ describe("the filmstrip (E5)", () => {
       expect(img?.getAttribute("width")).toBe("24");
       expect(img?.getAttribute("src")).toMatch(/^\/emoji\/.+\.webp$/);
     }
-    expect(list[2].className).toMatch(/ring-\[var\(--ring\)\]|outline-\[var\(--ring\)\]/);
+    // The brand ring is an outline: a Tailwind ring is a box-shadow that would replace the .btn lip and drop shadow.
+    expect(list[2].className).toMatch(/\boutline-\[var\(--ring\)\]/);
+    expect(list[2].className).not.toMatch(/\bring-/);
   });
 
   it("pressing thumbnail 1 shows Widget 1 and Back to latest; Back to latest returns to the newest", async () => {
@@ -240,11 +242,13 @@ describe("the chat chip", () => {
     expect(html).toMatch(/min-h-8!/);
   });
 
-  it("is Showing, filled brand, while the panel shows its Widget", () => {
+  it("is Showing, in Appendix B.2's showing look, while the panel shows its Widget", () => {
     const html = chip(item(1), true);
     expect(html).toContain("Showing");
     expect(html).toContain('data-state="showing"');
-    expect(html).toContain("bg-[var(--brand-main)]!");
+    // The look comes from `.chip[data-state="showing"]` (brand-tint face, brand label, rim and lip), not from
+    // !important utilities that repaint the face and rim and leave the lip a different colour.
+    expect(html).not.toMatch(/(?:bg|border|text)-\[var\(--brand[^)]*\)\]!/);
   });
 
   it("is Drawing… with a shimmer while its fence is open", () => {

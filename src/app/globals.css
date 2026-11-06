@@ -874,8 +874,8 @@ body {
   .btn:disabled,
   .btn[aria-disabled="true"],
   .chip:disabled {
-    /* Dimmed and flat on the page, but it keeps its lip: a button that cannot be pressed yet still looks like a button. */
-    box-shadow: 0 var(--lip) 0 var(--lip-colour);
+    /* Appendix B.3: dimmed and flat, with no lip or shadow, so a control that cannot be pressed reads as "off" by its shape. */
+    box-shadow: none;
     transform: none;
     opacity: 0.55;
     cursor: not-allowed;

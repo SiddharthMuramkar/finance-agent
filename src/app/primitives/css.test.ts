@@ -24,4 +24,10 @@ describe("button anatomy", () => {
     expect(reduced).toBeGreaterThan(-1);
     expect(rule(".btn,\n    .chip {", reduced)).toContain("transition: none");
   });
+
+  it("drops the shadow on a disabled control, so it reads as off by its shape (Appendix B.3)", () => {
+    const disabled = rule('.chip:disabled {');
+    expect(disabled).toMatch(/box-shadow:\s*none;/);
+    expect(disabled).toContain("opacity: 0.55");
+  });
 });

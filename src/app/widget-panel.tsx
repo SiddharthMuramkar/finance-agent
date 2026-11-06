@@ -462,7 +462,7 @@ export function widgetName(item: WidgetItem): string {
 
 /**
  * The chip standing where a Widget belongs in a reply: a 36px card-link with the Widget's title and three states.
- * Idle "View widget →"; Showing (filled brand) while the panel shows that Widget; Drawing… (a shimmer) while its
+ * Idle "View widget →"; Showing (the brand-tint showing chip) while the panel shows that Widget; Drawing… (a shimmer) while its
  * fence is still being written. Pressing it shows that Widget in the panel; pressing the one already showing
  * scrolls the panel to the top and pulses it.
  */
@@ -479,12 +479,8 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
     onPick(key);
   };
   if (guard.timedOut) return <DrawingFailed retry={guard.retry} compact />;
-  const look =
-    state === "showing"
-      ? "border-[var(--brand-deep)]! bg-[var(--brand-main)]! text-[var(--brand-ink)]! hover:bg-[var(--brand-hover)]!"
-      : state === "drawing"
-        ? "skeleton text-[var(--muted)]!"
-        : "";
+  // Showing takes Appendix B.2's look from `.chip[data-state="showing"]`, like every other showing chip.
+  const look = state === "drawing" ? "skeleton text-[var(--muted)]!" : "";
   return (
     <span className="my-3 block">
       <Chip state={state} onClick={() => pick(item.key)} data-testid="widget-chip" title={name} className={`min-h-8! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
