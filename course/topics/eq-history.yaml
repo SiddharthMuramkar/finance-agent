@@ -85,12 +85,12 @@ questions:
 
   - id: eh-q-recover
     prompt: >
-      A share price falls by 40%. Which statement about getting back to the old price is true?
+      Meera's shares drop 40% in one bad month. She tells her friend, "I only need a 40% climb to be even again." Is she right?
     choices:
-      - { id: a, text: "It needs a rise bigger than 40%, because the gain starts from a smaller price" }
-      - { id: b, text: "A rise of 40% is enough, because a gain undoes a loss of the same size", mistake: { tag: same_percent_undoes, fix: "A 40% rise starts from the lower price, so it lands short of the old price." } }
-      - { id: c, text: "It needs a rise smaller than 40%, because the price is now lower", mistake: { tag: lower_base_myth, fix: "The lower base means each point of gain is worth less, so the rise must be bigger." } }
-      - { id: d, text: "It can never get back, because losses are permanent", mistake: { tag: losses_permanent, fix: "Prices can recover; the point is only that the rise needed is bigger than the fall." } }
+      - { id: a, text: "No. She needs a bigger climb than 40%, because the gain starts from a smaller price" }
+      - { id: b, text: "Yes. A 40% climb undoes a 40% drop, because a gain undoes a loss of the same size", mistake: { tag: same_percent_undoes, fix: "A 40% rise starts from the lower price, so it lands short of the old price." } }
+      - { id: c, text: "No. She needs a smaller climb than 40%, because the price is now lower", mistake: { tag: lower_base_myth, fix: "The lower base means each point of gain is worth less, so the rise must be bigger." } }
+      - { id: d, text: "No. The shares can never get back, because losses are permanent", mistake: { tag: losses_permanent, fix: "Prices can recover; the point is only that the rise needed is bigger than the fall." } }
     answer: a
     explanation: >
       Starting at 100, a fall of 40% leaves 60. To get back to 100 the price must rise by 40 / 60 = 66.7%, more than the 40% it fell.

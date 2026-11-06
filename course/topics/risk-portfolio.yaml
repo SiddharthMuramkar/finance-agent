@@ -94,9 +94,9 @@ questions:
     prompt: >
       You can add one of three assets to a portfolio. Each is as jumpy as your current holding. One tends to move almost in step with your holding, one moves with it only a little, and one tends to move the opposite way. Which gives the greatest reduction in portfolio risk?
     choices:
-      - { id: a, text: "The asset that tends to move the opposite way (correlation -0.2)" }
-      - { id: b, text: "The asset that moves with it only a little (correlation +0.3)", mistake: { tag: second_best, fix: "A small link helps, but an asset that moves the other way offsets more of your losses." } }
-      - { id: c, text: "The asset that moves almost in step (correlation +0.9)", mistake: { tag: similar_is_safe, fix: "An asset that moves in step adds little protection; its losses arrive with yours." } }
+      - { id: a, text: "The asset that tends to move the opposite way" }
+      - { id: b, text: "The asset that moves with it only a little", mistake: { tag: second_best, fix: "A small link helps, but an asset that moves the other way offsets more of your losses." } }
+      - { id: c, text: "The asset that moves almost in step", mistake: { tag: similar_is_safe, fix: "An asset that moves in step adds little protection; its losses arrive with yours." } }
       - { id: d, text: "All three give the same reduction", mistake: { tag: correlation_ignored, fix: "The reduction depends on how the asset moves with your holding, so the three differ." } }
     answer: a
     explanation: >

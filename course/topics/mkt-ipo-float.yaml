@@ -78,7 +78,7 @@ youllLearn:
 questions:
   - id: ip-q-float
     prompt: >
-      A prospectus says an IPO is selling 15 percent of the company. Kabir wonders what that 15 percent is counted out of. Which is it?
+      A prospectus says an IPO is selling 15 percent of the company. Asha wonders what that 15 percent is counted out of.
     choices:
       - { id: a, text: "All the shares in issue after the IPO, including the new ones" }
       - { id: b, text: "Only the shares in issue before the IPO", mistake: { tag: wrong_base, fix: "The prospectus counts against the shares after the issue, which include the new ones." } }

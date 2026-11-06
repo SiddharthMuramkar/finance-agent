@@ -66,7 +66,7 @@ youllLearn:
 questions:
   - id: rx-q-cip
     prompt: >
-      Anil imports laptops and must pay a supplier in dollars a year from now. Today a dollar costs Rs 60, and rupee deposits pay more interest than dollar deposits. His bank offers to fix today the price he will pay for dollars in a year. Will that fixed price ask for more or fewer rupees per dollar than today?
+      Anil imports laptops and must pay his supplier in dollars next year. A dollar costs Rs 60 today, and rupee deposits pay more than dollar deposits. His bank offers to fix his dollar price now. Will it ask for more or fewer rupees per dollar than today?
     choices:
       - { id: a, text: "More rupees per dollar, because the fixed price makes up for the higher rupee interest" }
       - { id: b, text: "Fewer rupees per dollar, because rupees earn more interest", mistake: { tag: inverted_parity, fix: "The higher rupee interest is cancelled by a fixed price that asks for more rupees per dollar, not fewer." } }
@@ -94,7 +94,7 @@ questions:
 
   - id: rx-q-net-payment
     prompt: >
-      A swap has a notional amount of Rs 100 crore. One side pays a fixed rate of 7% and receives a floating rate that turns out to be 6% for the year. What changes hands at the end of the year?
+      Dev's firm swaps a Rs 100 crore loan's payments: it pays a fixed 7% and receives a floating rate that ends the year at 6%. When the year closes, what actually moves between Dev's firm and the bank?
     choices:
       - { id: a, text: "Only the gap between the two rates, applied to the notional, paid by the fixed-rate payer" }
       - { id: b, text: "The whole fixed interest, paid by the fixed-rate payer", mistake: { tag: gross_not_net, fix: "Swaps settle net: only the difference between the two payments changes hands." } }
