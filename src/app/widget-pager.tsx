@@ -131,10 +131,10 @@ export function WidgetPager({
                 title={e.title}
                 onClick={() => onSelect(e.key)}
                 onFocus={() => setCursor(e.key)}
-                className={`h-16! w-24! shrink-0 flex-col! items-center! justify-center! gap-1! px-1! py-1! ${selected ? "ring-2 ring-[var(--ring)]" : ""} ${e.explore ? "max-lg:hidden" : ""}`}
+                className={`h-16! w-24! shrink-0 flex-col! items-center! justify-center! gap-0.5! px-1! py-1! ${selected ? "ring-2 ring-[var(--ring)]" : ""} ${e.explore ? "max-lg:hidden" : ""}`}
               >
                 <Emoji name={e.emoji ?? (e.check ? "check-mark-button" : "sparkles")} size={24} />
-                <span className="line-clamp-2 w-full overflow-hidden text-center text-xs leading-4 font-normal">{e.title}</span>
+                <span className="line-clamp-2 w-full overflow-hidden text-center text-[11px] leading-[14px] font-normal">{e.title}</span>
               </Button>
             );
           })}
