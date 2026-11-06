@@ -92,6 +92,20 @@ questions:
       Keeping exports at home raises supply to domestic buyers (aiming to lower the price there) and removes supply from importing countries, where prices tend to rise.
     source: >
       OpenStax, Principles of Microeconomics 3e, 3.3 Changes in Equilibrium Price and Quantity: https://openstax.org/books/principles-microeconomics-3e/pages/3-key-concepts-and-summary ; a made-up example of the mechanism.
+  - id: sd-q-rent-cap
+    prompt: >
+      March 2019. Arjun has a new job and must find a flat within a month. His city caps rents well below
+      what tenants would pay in an open market. What is his hunt most likely to look like?
+    choices:
+      - { id: a, text: "Few vacant flats and long queues: at the capped rent, more people want flats than landlords offer" }
+      - { id: b, text: "Plenty of empty flats to pick from, since rents are cheap", mistake: { tag: ceiling_makes_surplus, fix: "A cap below the market rent brings more renters and fewer flats: a shortage, not a surplus." } }
+      - { id: c, text: "Nothing changes, because the cap is only a number on paper", mistake: { tag: ceiling_does_not_bind, fix: "A cap set below the market rent bites; only a cap above it changes nothing." } }
+      - { id: d, text: "Rents climb past the cap as landlords build more", mistake: { tag: flipped_ceiling, fix: "A low cap gives landlords less reason to build, and the law stops rent rising past it." } }
+    answer: a
+    explanation: >
+      A rent ceiling set below the equilibrium rent is binding. At the lower rent more people want flats and landlords offer fewer, so there is a shortage. The flats go by queues, contacts or side payments instead of price, and Arjun may have to search for a long time.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0034, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; and OpenStax, Principles of Microeconomics 3e, 3.4 Price Ceilings and Price Floors: https://openstax.org/books/principles-microeconomics-3e/pages/3-4-price-ceilings-and-price-floors ; the scenario is made up.
 
 checks:
   - id: sd-quiz-prices
@@ -102,7 +116,7 @@ checks:
       - sd-q-ban
       - bank:eab:MBA-ECON-0001
       - bank:eab:MBA-ECON-0002
-      - bank:eab:MBA-ECON-0034
+      - sd-q-rent-cap
       - bank:eab:MBA-ECON-0037
     perAttempt: 4
     passRule:
