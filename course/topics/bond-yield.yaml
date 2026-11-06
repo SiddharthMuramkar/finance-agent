@@ -58,12 +58,12 @@ youllLearn:
 questions:
   - id: by-q-current-yield
     prompt: >
-      Meera buys a bond with an 8% coupon, but she pays less than its face value for it. Her broker says the yearly coupon looks bigger against what she paid. Is that bigger than 8%, and what is it called?
+      Meera snaps up an 8% coupon bond in a sale, paying less than its face value. Her broker grins: "Nice. Your current yield beats your coupon." What is the broker telling her?
     choices:
-      - { id: a, text: "Current yield, and it is above 8%" }
-      - { id: b, text: "Current yield, and it is exactly 8%", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
-      - { id: c, text: "Yield to maturity, and it is exactly 8%", mistake: { tag: mixed_up_ytm, fix: "Yield to maturity includes the gain at maturity. Current yield counts only the coupon." } }
-      - { id: d, text: "Current yield, and it is below 8%", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
+      - { id: a, text: "Each coupon is a bigger slice of the lower price she paid" }
+      - { id: b, text: "The bond will now pay her a bigger coupon each year", mistake: { tag: coupon_is_current_yield, fix: "The coupon is fixed on face value. Current yield divides that same coupon by the price you actually pay." } }
+      - { id: c, text: "It counts the gain when the bond repays its full face value", mistake: { tag: mixed_up_ytm, fix: "That gain belongs to yield to maturity. Current yield counts only the coupon." } }
+      - { id: d, text: "A sale price means she earns less than the coupon", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
     answer: a
     explanation: >
       Current yield is the yearly coupon over the price you pay. Paying less than face value makes it come out above the 8% coupon rate. It ignores the gain as the price returns to par at maturity, which is why the yield to maturity is higher still.
@@ -116,13 +116,13 @@ questions:
     prompt: >
       A county pool borrows heavily to buy far more bonds than its depositors' money alone could. Traders call this a leveraged pool. Bond prices dip a little. Who feels it, and how hard?
     choices:
-      - { id: a, text: "The depositors, harder than the bonds fell" }
-      - { id: b, text: "The depositors, by the same share as the bonds", mistake: { tag: ignored_leverage, fix: "The depositors' money carries the whole loss, so the percentage is magnified, not matched." } }
-      - { id: c, text: "Both sides, so the depositors lose less than the bonds", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The whole loss lands on the depositors' money." } }
+      - { id: a, text: "The depositors: borrowing magnifies their hit" }
+      - { id: b, text: "Nobody much: a little dip is a little loss", mistake: { tag: ignored_leverage, fix: "The dip hits the whole bond pile, but only the depositors' smaller stake absorbs it, so their share falls much harder." } }
+      - { id: c, text: "The lenders: their money bought most of the bonds", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The whole loss lands on the depositors' money." } }
       - { id: d, text: "Nobody: the bonds are held to maturity", mistake: { tag: held_to_maturity_safe, fix: "Lenders can demand collateral or repayment sooner, so holding to maturity may not be possible." } }
     answer: a
     explanation: >
-      A 5% fall on $200 of bonds is a loss of $10. The $100 of borrowing is still owed, so the whole loss falls on the depositors' $100, which is now worth $90. Leverage of two to one doubles the percentage loss, just as it doubles the extra yield. Holding to maturity does not erase a loss when the lenders can demand collateral or repayment sooner.
+      The borrowed money must be repaid in full, so every dip in the whole bond pile lands on the depositors' smaller stake. Their share falls harder than the bonds did. That is leverage: it magnifies the extra yield in good times and the loss in bad. Holding to maturity does not erase a loss when the lenders can demand collateral or repayment sooner.
     source: >
       Arithmetic of leverage; the effect described in SEC, Report of Investigation in the Matter of County of Orange, California, Exchange Act Release No. 36761 (24 January 1996): https://sec.gov/files/litigation/admin/3436761.txt
 

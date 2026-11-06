@@ -74,12 +74,12 @@ questions:
 
   - id: cs-q-calculate
     prompt: >
-      Traders say a 10-year corporate bond trades 150 over a 10-year government bond. What does that mean?
+      Kabir's bond app pings: "Corporate 10-year now trades 150 over the government 10-year." He texts a friend who trades bonds: "150 what?" What should she reply?
     choices:
-      - { id: a, text: "1.5 points more yield on the corporate bond" }
-      - { id: b, text: "$150 more in price per $1,000 bond", mistake: { tag: price_not_yield, fix: "Spreads are quoted in yield, not price. 150 is basis points of extra yield." } }
-      - { id: c, text: "1.5 points more yield on the government bond", mistake: { tag: spread_backwards, fix: "A credit spread is the extra yield on the riskier bond, so the corporate bond yields more." } }
-      - { id: d, text: "150% of the government bond's yield", mistake: { tag: bps_as_percent, fix: "150 means 150 basis points, which is 1.5 percentage points, not 150 percent." } }
+      - { id: a, text: "Extra yield: the company pays 1.5 points more, for its risk" }
+      - { id: b, text: "Price: the company's bond costs $150 more per $1,000", mistake: { tag: price_not_yield, fix: "Spreads are quoted in yield, not price. 150 is basis points of extra yield." } }
+      - { id: c, text: "The government bond pays 1.5 points more than the company", mistake: { tag: spread_backwards, fix: "A credit spread is the extra yield on the riskier bond, so the corporate bond yields more." } }
+      - { id: d, text: "The company pays 150% of the government's yield", mistake: { tag: bps_as_percent, fix: "150 means 150 basis points, which is 1.5 percentage points, not 150 percent." } }
     answer: a
     explanation: >
       A spread quoted as 150 over means 150 basis points, 1.5 percentage points, of extra yield over the government bond of the same length. For example a corporate bond yielding 7.9% against a government bond at 6.4%. It is the extra pay for default risk.

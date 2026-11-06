@@ -82,7 +82,7 @@ questions:
       - { id: d, text: "Its price is unchanged; the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price adjusts when market yields move." } }
     answer: a
     explanation: >
-      Duration is the rule of thumb for the percentage a price changes for each one-point move in yield, in the opposite direction. So a one-point rise cuts this bond's price by several percent, about 7.4%. A 10-year 6% bond at a 6% yield has a modified duration of 7.44; when its yield rises one point the price actually falls 7.1%, because of convexity.
+      Duration is the rule of thumb for the percentage a price changes for each one-point move in yield, in the opposite direction. So a duration of 7.4 means a one-point rise knocks roughly 7.4% off the price: several percent overnight, from a move that sounds tiny.
     source: >
       Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
@@ -102,7 +102,7 @@ questions:
 
   - id: bd-q-convexity
     prompt: >
-      Meera holds a plain 10-year bond. Tomorrow, yields might fall one point, or rise one point. Bond people say her bond has convexity. What does that mean for her?
+      Meera holds a plain 10-year bond. The news says yields could jump one point tomorrow, or drop one point. Her friend shrugs: "Same size move, same size swing." A bond trader smiles: "Convexity says otherwise." What does the trader mean for Meera?
     choices:
       - { id: a, text: "Her gain if yields fall beats her loss if they rise" }
       - { id: b, text: "Her gain and her loss would be exactly equal", mistake: { tag: linear_price, fix: "Duration's straight line says so, but the real price curve bends, so the two differ." } }
