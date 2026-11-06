@@ -233,10 +233,11 @@ export function Chips({
     else onNext(offer.kind === "complete" ? "complete" : offer.step);
   };
   return (
-    // The Next chip is the main move, so it gets its own row at full size; the Choices are smaller, grouped below it.
+    // The Next chip is the main move, so it is the view's one primary, on its own row at full size; the Choices are
+    // smaller secondaries, grouped below it (#478, Appendix B.7).
     <div className="measure mt-3 flex flex-col items-start gap-2" data-testid="choices">
       {offer && (
-        <Button variant="secondary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
+        <Button variant="primary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →
         </Button>
       )}
