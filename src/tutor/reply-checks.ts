@@ -1,8 +1,10 @@
+import { sumAsk } from "@/teaching/no-sums";
+
 /**
  * Reply checks: the rules every Tutor reply must meet, written as code (spec #229, ticket #230).
  * Pure: no model, no database. A caller hands in a finished reply (its text, the Widgets it showed and
  * any rule it saved) and the turn's context (the Teaching Step, the Reply kind, the Topic's currencies,
- * the open quiz's questions), and gets back every rule the reply breaks (V1 to V7), with reasons a
+ * the open quiz's questions), and gets back every rule the reply breaks (V1 to V8), with reasons a
  * retry can be told. Small style slips (emoji, arrows, headings, extra bold) are fixed by `fixReply`
  * without a retry. Nothing here is wired into the Tutor Turn yet.
  */
@@ -60,7 +62,7 @@ export interface ReplyDraft {
 }
 
 export interface ReplyProblem {
-  rule: "V1" | "V2" | "V3" | "V4" | "V5" | "V6" | "V7";
+  rule: "V1" | "V2" | "V3" | "V4" | "V5" | "V6" | "V7" | "V8";
   message: string;
 }
 
@@ -244,8 +246,54 @@ function quoteList(items: string[]): string {
   return items.map((s) => `"${s}"`).join(", ");
 }
 
+/** Verbs that open a line asking for a sum, beside the instruction verbs ("Compute the ratio.", "Figure out the growth."). */
+const SUM_VERBS = new Set(["compute", "figure", "round"]);
+
 /**
- * Every rule (V1 to V7) the reply breaks, with a reason a retry can be told. Run it on the fixed draft
+ * What a reply asks of the Learner, for V8: every sentence that ends in "?" or opens as an instruction, and the ask.
+ * Statements are left out, so a short sum said as a fact ("1 point times 100 is 100 bp.") is never read as an ask.
+ */
+export function asksIn(text: string): string[] {
+  const lines = text.split("\n");
+  return proseLineIndices(lines)
+    .flatMap((i) => sentencesOf(prose(lines[i])))
+    .filter((s) => asksOrInstructs(s) || opensWithVerb(s, SUM_VERBS));
+}
+
+/** V8's message: the phrase that asks for a sum, and what to ask instead (ADR 0009). */
+export const sumAskMessage = (phrase: string) =>
+  `Your reply asks the Learner to work out a sum ("${phrase}"). Ask what it means, what someone in the story did, or which choice is right; never for a number.`;
+
+/** The phrase in a reply that asks the Learner for a sum (V8), or null. */
+export function sumAsked(text: string): string | null {
+  for (const line of asksIn(text)) {
+    const phrase = sumAsk(line);
+    if (phrase) return phrase;
+  }
+  return null;
+}
+
+/**
+ * The reply with every sentence that asks for a sum (V8) taken out, and any line left empty by it: the fallback after a
+ * failed V8 retry. Statements and fences stay; the Choices under the reply carry the next move.
+ */
+export function dropSumAsks(text: string): string {
+  const out = mapProse(text, (chunk) =>
+    chunk
+      .split("\n")
+      .map((line) => {
+        const sentences = sentencesOf(line);
+        const kept = sentences.filter((s) => !((asksOrInstructs(s) || opensWithVerb(s, SUM_VERBS)) && sumAsk(prose(s))));
+        return kept.length === sentences.length ? line : kept.length ? kept.join(" ") : null;
+      })
+      .filter((line): line is string => line !== null)
+      .join("\n"),
+  );
+  return out.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/**
+ * Every rule (V1 to V8) the reply breaks, with a reason a retry can be told. Run it on the fixed draft
  * (`fixReply`), so that V3 fails only on what code cannot fix.
  */
 export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProblem[] {
@@ -325,6 +373,10 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
       rule: "V7",
       message: `Your reply uses ${wrong.join(" and ")}. This Topic's examples and Widgets use ${currencyName(ctx.exampleCurrency)}.`,
     });
+
+  // V8: no sum asked of the Learner (ADR 0009). Only questions, instructions and the ask are read; one V8 a reply.
+  const sum = sumAsked(draft.text);
+  if (sum) problems.push({ rule: "V8", message: sumAskMessage(sum) });
 
   return problems;
 }

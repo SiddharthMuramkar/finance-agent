@@ -43,6 +43,7 @@ import type { ToolDefinition } from "./instructions";
 import { JUST_TELL_ME } from "./chips";
 import { ownRuleOf, OWN_RULE_SAVED } from "./own-rule-item";
 import { isCodeWritten, OLD_CONTINUE_TEXT, turnKind } from "./turn-status";
+import { isChoicePress } from "./reply-choices";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
@@ -506,6 +507,12 @@ export function toolCode(
       parse: (input) => searchInput.parse(input),
       run: async ({ query, source }) => searchResultBlocks(await searchLibrary({ db, map, embedQuery, learnerId }, query, { source })),
     },
+    // Choices (D3a, ADR 0010): the Tutor may suggest one. It writes nothing: after the reply, code reads the call from the
+    // log, keeps a valid label as the first Choice and silently drops a bad one (recorded with the turn's usage).
+    suggest_choice: {
+      parse: (input) => z.object({ label: z.unknown() }).passthrough().parse(input ?? {}),
+      run: async () => "Noted.",
+    },
     // Pure: it writes nothing, so it does not go through `once`; the same inputs always give the same answer.
     calculate: {
       parse: (input) => calculateInput.parse(input),
@@ -567,7 +574,7 @@ export function toolCode(
           // An old "Continue.", a note code wrote (Finish this reply's among them) or a help chip is never an attempt,
           // whatever words the Tutor offers; the Just tell me chip only ever asks to be told (ADR 0001).
           const justTellMe = message.trim() === JUST_TELL_ME;
-          if (message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || (turn && turnKind(turn) === "chip" && !justTellMe)) {
+          if (message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || (turn && turnKind(turn) === "chip" && !justTellMe) || (turn && !justTellMe && (await isChoicePress(tx, turn)))) {
             return { ok: false, text: NOT_THE_LEARNERS_ATTEMPT };
           }
           // Pacing rule: the Learner must have seen the question before an attempt can count.
@@ -611,7 +618,7 @@ export function toolCode(
           const [turn] = await tx.select().from(turns).where(eq(turns.id, turnId));
           const message = turn?.input ?? "";
           // A chip, a note code wrote and the old "Continue." are never the Learner's own words.
-          if (!turn || message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || turnKind(turn) !== "message") {
+          if (!turn || message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || turnKind(turn) !== "message" || (await isChoicePress(tx, turn))) {
             return { ok: false, text: "Not saved: this turn is not a message the Learner typed. Save a rule only from words they wrote themselves." };
           }
           const words = exactWords(message, learner_words);

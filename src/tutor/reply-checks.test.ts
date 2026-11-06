@@ -78,9 +78,9 @@ describe("capFor", () => {
 
 describe("splitAsk", () => {
   it("takes a last line that asks a question as the ask", () => {
-    expect(splitAsk("Points are the new rate minus the old rate.\n\nA rate goes from 3% to 3.5%: how many points did it move?")).toEqual({
+    expect(splitAsk("Points are the new rate minus the old rate.\n\nA rate goes from 3% to 3.5%: what do you call that gap?")).toEqual({
       message: "Points are the new rate minus the old rate.",
-      ask: "A rate goes from 3% to 3.5%: how many points did it move?",
+      ask: "A rate goes from 3% to 3.5%: what do you call that gap?",
     });
   });
 
@@ -176,7 +176,7 @@ describe("V1: words within the cap", () => {
   const long = Array.from({ length: 10 }, () => "Points are the new rate minus the old rate, said plainly.").join(" ");
 
   it("passes 80 words at Concept", () => {
-    expect(rules(draft("Points are the new rate minus the old rate.\nHow many points is 3% to 3.5%?"), ctx())).toEqual([]);
+    expect(rules(draft("Points are the new rate minus the old rate.\nWhich word do traders use for that gap?"), ctx())).toEqual([]);
   });
 
   it("fails 100 words at Concept and passes them at Story", () => {
@@ -238,13 +238,13 @@ describe("V2: one question and one ask", () => {
 
 describe("V3: plain style", () => {
   it("fails banned phrases", () => {
-    expect(rules(draft("Great question! Points are a difference.\nHow many points is 3% to 3.5%?"), ctx())).toEqual(["V3"]);
+    expect(rules(draft("Great question! Points are a difference.\nWhich word do traders use for that gap?"), ctx())).toEqual(["V3"]);
     expect(rules(draft("Certainly. Points are a difference."), ctx())).toEqual(["V3"]);
     expect(rules(draft("Absolutely right."), ctx())).toEqual(["V3"]);
   });
 
   it("fails emoji, arrows and extra bold before the fix, and passes after it", () => {
-    const d = draft("**Points** 🎉 ➜ **bp**.\nHow many points is 3% to 3.5%?");
+    const d = draft("**Points** 🎉 ➜ **bp**.\nWhich word do traders use for that gap?");
     expect(checkReply(d, ctx()).map((p) => p.rule)).toContain("V3");
     expect(checkReply(fixReply(d), ctx())).toEqual([]);
   });
@@ -282,7 +282,7 @@ describe("V5: no open quiz answer", () => {
   });
 
   it("passes the same idea taught on other numbers", () => {
-    expect(rules(draft("A point is 100 bp. So 0.2 of a point is 20 bp.\nHow many basis points is 0.7 of a point?"), quizOpen)).toEqual([]);
+    expect(rules(draft("A point is 100 bp. So 0.2 of a point is 20 bp.\nWhich name would a trader give that move?"), quizOpen)).toEqual([]);
   });
 
   it("fails a reply that confirms the open answer without its question's numbers", () => {
@@ -295,7 +295,7 @@ describe("V5: no open quiz answer", () => {
   it("passes teaching 0.6 into 60 bp while a question about 0.8 points is open", () => {
     const open: OpenItem = { prompt: "How many basis points are there in 0.8 of a percentage point?", choices: ["8", "80", "800"], answer: "80" };
     const c = ctx({ step: "check", openItems: [open] });
-    expect(rules(draft("Take 0.6 points: that is 60 bp, because a point is 100 bp.\nHow many bp is 0.3 of a point?"), c)).toEqual([]);
+    expect(rules(draft("Take 0.6 points: that is 60 bp, because a point is 100 bp.\nWhich name would a trader give that move?"), c)).toEqual([]);
   });
 
   it("passes the open answer once no quiz is open", () => {
@@ -373,6 +373,59 @@ describe("V7: the right currency", () => {
   });
 });
 
+/** D1a's first 12 sum-asking stems and first 12 story or lingo asks (src/teaching/no-sums.test.ts). */
+const SUM_STEMS = [
+  "How many basis points did the rate move?",
+  "Can you work out how much ₹2,000 grows to?",
+  "Calculate the new EMI.",
+  "What is 0.25% in basis points?",
+  "So what's 3% of ₹10,000 worth?",
+  "If you add 50 bp to 6.5%, what rate do you get?",
+  "What would ₹1 lakh be worth after 10 years?",
+  "1.2 points times 100 is how many bp?",
+  "Compute the debt to equity ratio.",
+  "Figure out the yearly growth.",
+  "What's 6% minus 4%?",
+  "Give it to two decimal places.",
+];
+const STORY_ASKS = [
+  "What does a basis point mean to you?",
+  "Which would you pick and why: 7% or 7.5%?",
+  "Why did the Fed move in February 1994?",
+  "What is the point of quoting moves in bps?",
+  "How many people lined up outside the bank?",
+  "WeWork said revenue was $1.8 billion. Sound like a lot?",
+  "Say it in your own words: what is a percentage point?",
+  "RBI cut by 0.25%. What do traders call that move?",
+  "Which headline gets the 1994 move right?",
+  "What happened to Satyam's cash, do you think?",
+  "Its compute costs fell. Why might that matter?",
+  "ETFs work out a NAV each day. What is a NAV?",
+];
+const V8_CTX = { step: "story" as const, caseCurrencies: ["USD", "INR"] };
+const v8s = (text: string) => checkReply(fixReply(draft(text)), ctx(V8_CTX)).filter((p) => p.rule === "V8");
+
+describe("V8: no sum asked of the Learner", () => {
+  it.each(SUM_STEMS)("gives exactly one V8 when the ask is a sum: %s", (stem) => {
+    const found = v8s(`Rates move in small steps, and traders name them in basis points.\n${stem}`);
+    expect(found).toHaveLength(1);
+    expect(found[0].message).toMatch(/^Your reply asks the Learner to work out a sum \("[^"]+"\)\. Ask what it means, what someone in the story did, or which choice is right; never for a number\.$/);
+  });
+
+  it.each(STORY_ASKS)("gives none when the ask is about the story or a word: %s", (stem) => {
+    expect(v8s(`Rates move in small steps, and traders name them in basis points.\n${stem}`)).toEqual([]);
+  });
+
+  it("leaves a statement alone: a short sum said as a fact is not asked", () => {
+    expect(v8s("1 point times 100 is 100 bp.")).toEqual([]);
+  });
+
+  it("lists V8 beside V2 when the reply breaks both", () => {
+    const found = rules(draft("Is that a big move? Is it points or percent?\nWhat is 0.25% in basis points?"), ctx(V8_CTX));
+    expect(found).toEqual(expect.arrayContaining(["V2", "V8"]));
+  });
+});
+
 describe("Appendix A's good replies, said in words", () => {
   const quizOpen = { step: "check" as const, openItems: CHECK_1 };
   const cases: { name: string; d: ReplyDraft; c: Partial<ReplyCheckContext> }[] = [
@@ -384,7 +437,7 @@ describe("Appendix A's good replies, said in words", () => {
     {
       name: "starting from the beginning",
       d: draft(
-        'Okay. One idea first. A savings rate goes from 4% to 5%. How far did it move? Five minus four is **1 percentage point**. "Points" is short for percentage points. It is the new rate minus the old rate.\nA rate goes from 3% to 3.5%: how many points did it move?',
+        'Okay. One idea first. A savings rate goes from 4% to 5%. How far did it move? Five minus four is **1 percentage point**. "Points" is short for percentage points. It is the new rate minus the old rate.\nA rate goes from 3% to 3.5%: what do you call that gap?',
       ),
       c: { step: "concept", replyKind: "rule" },
     },
@@ -395,7 +448,7 @@ describe("Appendix A's good replies, said in words", () => {
     },
     {
       name: "a practice Widget when the Learner wants it over with",
-      d: draft("Okay. Shortest path.\nHow many basis points did the rate move?", [{ kind: "recipe", id: "rate_move", params: { old: 2, new: 2.5, mode: "practice" } }]),
+      d: draft("Okay. Shortest path.\nWhich reading in the Widget is right?", [{ kind: "recipe", id: "rate_move", params: { old: 2, new: 2.5, mode: "practice" } }]),
       c: { step: "concept", replyKind: "quick_try" },
     },
     {
@@ -405,7 +458,7 @@ describe("Appendix A's good replies, said in words", () => {
     },
     {
       name: "asked for an open answer",
-      d: draft("I can't give the answer to an open quiz question. I can show the method on other numbers. Basis points are points times 100. So 0.2 of a point is 20 bp.\nNow you try: how many basis points is 0.7 of a point?"),
+      d: draft("I can't give the answer to an open quiz question. I can show the method on other numbers. Basis points are points times 100. So 0.2 of a point is 20 bp.\nNow you try: which word names a move that small?"),
       c: { ...quizOpen, replyKind: "hint" },
     },
   ];
@@ -471,7 +524,7 @@ describe("trimToCap", () => {
   });
 
   it("leaves a reply within the cap as it was", () => {
-    expect(trimToCap("Points are a difference.\nHow many points is 3% to 3.5%?", 80)).toBe("Points are a difference.\nHow many points is 3% to 3.5%?");
+    expect(trimToCap("Points are a difference.\nWhich word do traders use for that gap?", 80)).toBe("Points are a difference.\nWhich word do traders use for that gap?");
   });
 
   it("does not count Citation markers or Widget fences", () => {

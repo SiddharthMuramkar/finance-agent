@@ -13,6 +13,7 @@ import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "./instructions";
 import { stepContext } from "./context";
 import { navigate } from "@/course/navigator";
 import { loadProgress, ensureTopicStarted, saveFinishedStep } from "@/learner/memory";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: no "Continue" anywhere. A cut-off reply offers Finish this reply, which runs a Tutor turn
@@ -36,7 +37,8 @@ async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map: Cou
   return { events, requests };
 }
 
-const seen = (entries: ThreadEntry[]) => entries.map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const seen = (entries: ThreadEntry[]) => withoutChoices(entries).map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
 const sessionOf = (events: TurnEvent[]) => (events.at(-1) as Extract<TurnEvent, { type: "done" }>).ref.sessionId;
 const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messages);
 const stored = async (db: Db) => JSON.stringify(await db.select().from(messages));

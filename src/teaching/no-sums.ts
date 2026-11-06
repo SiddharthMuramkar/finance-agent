@@ -14,9 +14,10 @@ const COMPUTE = String.raw`compute(?!\s+(?:costs?|capacity|power|spend|agreement
 
 /**
  * "work out" is a sum-verb when it has an object that is a number word ("work it out") or when it is asked of someone
- * ("can you work out", "to work out"). "ETFs work out a NAV each day" states a fact and is left alone.
+ * ("can you work out", "to work out"), or when it opens the text as an instruction ("Work out the EMI"). "ETFs work out
+ * a NAV each day" states a fact and is left alone.
  */
-const WORK_OUT = String.raw`(?:work(?:ed|ing)?\s+(?:it|this|that)\s+out|(?:you|to|please|let['’]s|we can|can|could|try|then)\s+work(?:ed|ing)?\s+out)`;
+const WORK_OUT = String.raw`(?:^\s*work\s+out|work(?:ed|ing)?\s+(?:it|this|that)\s+out|(?:you|to|please|let['’]s|we can|can|could|try|then)\s+work(?:ed|ing)?\s+out)`;
 
 /** Patterns that match anywhere in the text, tried in order; the first match is the phrase returned. */
 const ANYWHERE: RegExp[] = [
@@ -35,6 +36,15 @@ const ANYWHERE: RegExp[] = [
   /\bto\s+(?:\w+)\s+decimal\s+places?\b/i,
   // 7. Change asks.
   /\b(?:percent change|growth rate|return|ratio|margin)\b[^.?!]*\bfrom\b[^.?!]*\d[^.?!]*\bto\b[^.?!]*\d/i,
+  // 10. "What is the move from 6% to 6.5%?": a question for the size of a change between two numbers. "What do traders
+  // call the move from 6% to 6.5%?" asks for a name and is left alone.
+  /\bwhat(?:['’]s|\s+is|\s+was|\s+would\s+be|\s+will\s+be)\s+(?:the\s+)?(?:size\s+of\s+the\s+)?(?:move|change|rise|fall|jump|drop|gap|cut|hike|increase|decrease)\b[^.?!]*\bfrom\b[^.?!]*\d[^.?!]*\bto\b[^.?!]*\d/i,
+  // 11. "What is 1% of 5000?", "What would 10% of that be?": a share of something, asked as a figure.
+  new RegExp(String.raw`\bwhat(?:['’]s|\s+is|\s+was|\s+would|\s+will|\s+are)\s+(?:be\s+)?${NUMBER}%\s+of\b`, "i"),
+  // 12. "What do you owe after 2 years at 10%?": an amount owed, earned or paid over a time or at a rate.
+  new RegExp(String.raw`\bwhat\s+(?:do|does|did|would|will|should)\s+(?:you|they|we|it|he|she|i|the\s+\w+)\s+(?:owe|earn|get|pay|make|save|have|end\s+up\s+with)\b[^.?!]*\b(?:after|over|at)\s+${NUMBER}`, "i"),
+  // 13. "So 2 lakh at 5% earns what?": a number, then a money verb, then "what".
+  new RegExp(String.raw`${NUMBER}[^.?!]{0,60}?\b(?:earns?|grows?(?:\s+to)?|makes?|gives?|becomes?|pays?|owes?|comes?\s+to|adds?\s+up\s+to|is\s+worth)\s+what\b`, "i"),
 ];
 
 /**

@@ -8,6 +8,7 @@ import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: when the Tutor finishes a Teaching Step with finish_teaching_step, a "Step k of N · <step>"
@@ -25,7 +26,8 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 }
 
 /** What the Learner sees, without the usage and save data that have their own tests. */
-const seen = (entries: ThreadEntry[]) => entries.map((e) => (e.role === "item" ? e : { role: e.role, text: e.text, ...(e.more && { more: true }) }));
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const seen = (entries: ThreadEntry[]) => withoutChoices(entries).map((e) => (e.role === "item" ? e : { role: e.role, text: e.text, ...(e.more && { more: true }) }));
 
 const sessionOf = (events: TurnEvent[]) => (events.at(-1) as Extract<TurnEvent, { type: "done" }>).ref.sessionId;
 
@@ -43,7 +45,7 @@ describe("step dividers when the Tutor moves on", () => {
 
     const divider = { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } };
     // The browser hears it as it is stored, between the reply's two parts.
-    expect(events.map((e) => e.type)).toEqual(["text", "item", "text", "done"]);
+    expect(events.map((e) => e.type)).toEqual(["text", "item", "text", "item", "done"]);
     expect(events[1]).toEqual({ type: "item", item: { kind: divider.kind, data: divider.data } });
 
     const thread = await loadThread(db, sessionOf(events), map, OWNER_LEARNER_ID);
@@ -85,8 +87,8 @@ describe("step dividers when the Tutor moves on", () => {
       say("Let's stay with the story."),
     ]);
     const first = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
-    expect(first.map((e) => e.type)).not.toContain("item");
-    expect((await loadThread(db, sessionOf(first), map, OWNER_LEARNER_ID)).filter((e) => e.role === "item")).toEqual([]);
+    expect(withoutChoices(first).map((e) => e.type)).not.toContain("item");
+    expect(withoutChoices(await loadThread(db, sessionOf(first), map, OWNER_LEARNER_ID)).filter((e) => e.role === "item")).toEqual([]);
 
     // At the Principle, finishing passes the Topic: no next step, so no divider; only its Topic complete card.
     for (const step of ["story", "concept", "your_turn"] as const) await saveStep(db, step);
@@ -95,7 +97,7 @@ describe("step dividers when the Tutor moves on", () => {
     const { client: last } = scriptedClient([{ content: [{ type: "text", text: "That is the principle." }, finish("principle")] }, say("Well done.")]);
     const done = await collect(runTutorTurn({ db, client: last, map, learnerId: OWNER_LEARNER_ID }, "Money today is worth more."));
     expect(done.filter((e) => e.type === "item").map((e) => e.type === "item" && e.item.kind)).toEqual(["topic_complete"]);
-    expect((await loadThread(db, sessionOf(done), map, OWNER_LEARNER_ID)).flatMap((e) => (e.role === "item" ? [e.kind] : []))).toEqual(["topic_complete"]);
+    expect(withoutChoices(await loadThread(db, sessionOf(done), map, OWNER_LEARNER_ID)).flatMap((e) => (e.role === "item" ? [e.kind] : []))).toEqual(["topic_complete"]);
   });
 });
 
