@@ -45,12 +45,17 @@ describe("the Tutor's frozen instructions", () => {
       });
 
       // Run 3 (critics BP-2, EV-2): "bad at maths" got "mostly subtraction", a worked sum and a Quick try that asks for a number.
-      it("keep a reply to a maths worry all words: no sum, not even said as a fact, and no Quick try (T15)", () => {
-        expect(text).toContain("When the worry is maths, keep that reply all words");
-        // Run 4: an ask about basis points competed with the Quick try on points.
-        expect(text).toContain("one choice ask about the word the step teaches (the one the Quick try on screen uses, if there is one)");
-        expect(text).toContain("with no sum in it, not even said as a fact, and no pointer to a Quick try");
+      // Round 7 (critic BP-R6-3, fun 3 of 5 on run 17): the all-words reply had no scene and ended on a check question whose
+      // answer was the line before it, under a generic menu of Choices. It is now a tiny story beat with no check question.
+      it("answer a Learner who is bad at or scared of maths with a tiny story beat, story or lingo Choices and no check question (T15)", () => {
+        expect(text).toContain("When the Learner says they are bad at or scared of maths, make that reply a tiny story beat, all words");
+        expect(text).toContain("a person or a role from the Case, its date and what was at stake");
+        expect(text).toContain("no sum in it, not even said as a fact, and no pointer to a Quick try");
+        expect(text).toContain("no check question in that reply");
+        expect(text).toContain("call suggest_choice with a story or lingo follow-up");
+        expect(text).not.toContain("When the worry is maths, keep that reply all words");
         expect(text).toContain('The Learner writes: "ugh I\'m terrible with numbers".');
+        expect(text).not.toContain('is that the gap or the new rate itself?');
       });
 
       // Run 3 (critic BP-4): T13 held back the answer with "a nudge rather than the answer" and asked "bigger or smaller" again and again.
@@ -85,9 +90,10 @@ describe("the Tutor's frozen instructions", () => {
       });
 
       // Run 7: story ties in every reply left "the Fed" and "our story" unexplained (T1, T6, T15), and T12 printed its reply twice around suggest_choice.
-      it("tie only a why, what-for or life question to the story, with each name explained, and never at a Check, hint or maths worry (T1, T6, T15)", () => {
+      // Round 7 (critic BP-R6-3): a maths worry now gets a tiny story beat, so it leaves this list.
+      it("tie only a why, what-for or life question to the story, with each name explained, and never at a Check or a hint (T1, T6, T15)", () => {
         expect(text).toContain("when the Learner asks why, what it is for or how it touches their life, tie the answer to the Case's people");
-        expect(text).toContain("Leave the story out of a reply at a Check, a hint, a confirmed rule, a maths worry or a simpler reply.");
+        expect(text).toContain("Leave the story out of a reply at a Check, a hint, a confirmed rule or a simpler reply.");
         expect(text).toContain("in 60 words or fewer, say what it means for someone in the Case");
       });
 
