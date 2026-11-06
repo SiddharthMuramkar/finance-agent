@@ -78,43 +78,43 @@ youllLearn:
 questions:
   - id: ip-q-float
     prompt: >
-      A company will have 200 million shares after its IPO, and the IPO sells 30 million new shares to the public. What share of the company is being sold in the IPO?
+      A prospectus says an IPO is selling 15 percent of the company. Asha wonders what that 15 percent is counted out of.
     choices:
-      - { id: a, text: "15 percent" }
-      - { id: b, text: "30 percent" }
-      - { id: c, text: "13 percent" }
-      - { id: d, text: "85 percent" }
+      - { id: a, text: "All the shares in issue after the IPO, including the new ones" }
+      - { id: b, text: "Only the shares in issue before the IPO", mistake: { tag: wrong_base, fix: "The prospectus counts against the shares after the issue, which include the new ones." } }
+      - { id: c, text: "Only the shares the promoters keep", mistake: { tag: wrong_base, fix: "Promoters' shares are one part of the company; the share sold is stated against all shares after the IPO." } }
+      - { id: d, text: "The number of bidders in the book", mistake: { tag: mixed_up_terms, fix: "The number of bidders says nothing about how much of the company is being sold." } }
     answer: a
     explanation: >
-      30 million / 200 million (shares after the issue) = 15 percent. The coffee-chain prospectus states the share the same way: the issue as a percentage of post-issue paid-up capital.
+      The share of the company sold is the new shares divided by the shares after the issue: 30 million / 200 million = 15 percent (made-up numbers; the real Coffee Day prospectus gives 17.02 percent). It states the share the same way: the issue as a percentage of post-issue paid-up capital.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), cover page: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
   - id: ip-q-proceeds
     prompt: >
-      A company sells 30 million new shares at Rs 250 each in an IPO. How much does it raise, before costs?
+      Asha reads that some company's IPO (an imagined one) "raised Rs 750 crore". Her friend says the company will keep less than that. Why is the friend right?
     choices:
-      - { id: a, text: "Rs 75 crore" }
-      - { id: b, text: "Rs 750 crore" }
-      - { id: c, text: "Rs 7,500 crore" }
-      - { id: d, text: "Rs 83 crore" }
-    answer: b
+      - { id: a, text: "The headline counts the money before costs, so fees and other costs still come out of it" }
+      - { id: b, text: "The headline is already after costs, so the company keeps even more", mistake: { tag: costs_already_out, fix: "The headline figure is the money before costs; the costs are still to come out." } }
+      - { id: c, text: "The headline values all the shares, including those not sold in the IPO", mistake: { tag: mixed_up_terms, fix: "Valuing all the shares is the market capitalisation; the headline counts only the money raised." } }
+      - { id: d, text: "The headline counts only the shares that can trade freely", mistake: { tag: mixed_up_terms, fix: "The free float is the part of the company that can trade, not the money raised." } }
+    answer: a
     explanation: >
-      30 million x Rs 250 = Rs 7,500 million. One crore is 10 million, so that is Rs 750 crore.
+      The money raised before costs is the gross proceeds: the shares sold times the issue price, as in this made-up example: 30 million shares x Rs 250 = Rs 7,500 million, or Rs 750 crore (the real Coffee Day IPO was Rs 1,150 crore). Net proceeds are what remains after costs.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015): 35,060,975 shares at Rs 328 aggregating to Rs 11,500 million, shown as Rs 1,150 crore: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
   - id: ip-q-retail
     prompt: >
-      A net issue of 10 crore shares must by rule offer at least 35 percent to retail individual bidders. What is the smallest number of shares reserved for them?
+      Ravi, a student with Rs 15,000 saved, wants to bid in a hot IPO but fears the big funds will grab every share first. His uncle says SEBI's rules keep a part of the issue for small bidders like him. What do those rules promise Ravi's group?
     choices:
-      - { id: a, text: "3.5 crore shares" }
-      - { id: b, text: "1.5 crore shares" }
-      - { id: c, text: "5 crore shares" }
-      - { id: d, text: "35 crore shares" }
+      - { id: a, text: "A floor: at least 35 percent of the net issue is kept for small retail bidders" }
+      - { id: b, text: "A cap: small bidders may get no more than 35 percent", mistake: { tag: floor_not_ceiling, fix: "The rule sets a minimum for retail bidders, not a ceiling." } }
+      - { id: c, text: "Half the issue is kept for small bidders", mistake: { tag: mixed_up_shares, fix: "Half is the institutions' share in the same prospectus, not the retail share." } }
+      - { id: d, text: "Nothing is kept aside; Ravi competes with the big funds for every share", mistake: { tag: no_reservation, fix: "The rules reserve a minimum share for retail bidders so institutions cannot take it all." } }
     answer: a
     explanation: >
-      35 percent of 10 crore = 3.5 crore shares. The same prospectus reserved 50 percent for institutions and at least 15 percent for non-institutional bidders.
+      The rule reserves at least 35 percent of the net issue for retail bidders; for a net issue of 10 crore shares that is 3.5 crore shares. The same prospectus reserved 50 percent for institutions and at least 15 percent for non-institutional bidders.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), the Issue under SEBI ICDR Regulation 26(1): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 

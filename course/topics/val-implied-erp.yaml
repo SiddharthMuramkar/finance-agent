@@ -67,57 +67,57 @@ youllLearn:
 questions:
   - id: ie-q-implied-return
     prompt: >
-      A stock index stands at 1,000. Expected dividends next year are 20 (2 percent of the index level) and are expected to grow at 5 percent a year for ever. What expected return does the index price imply?
+      A stock index stands at 1,000. Its companies are expected to pay 20 in dividends next year, and those dividends are expected to grow 5 percent a year for ever. What two things make up the return that the index price implies?
     choices:
-      - { id: a, text: "3 percent" }
-      - { id: b, text: "5 percent" }
-      - { id: c, text: "7 percent" }
-      - { id: d, text: "10 percent" }
-    answer: c
+      - { id: a, text: "The dividend yield plus the expected growth" }
+      - { id: b, text: "The expected growth minus the dividend yield", mistake: { tag: subtracted_yield, fix: "Both are rewards to the holder, so they add. Neither is taken off." } }
+      - { id: c, text: "The dividend yield alone", mistake: { tag: ignored_growth, fix: "Dividends are only part of the reward. Expected growth in them adds to it." } }
+      - { id: d, text: "The riskfree rate plus the expected growth", mistake: { tag: mixed_in_riskfree, fix: "The riskfree rate is taken off later, to leave the premium. It is not part of this return." } }
+    answer: a
     explanation: >
-      With steady growth, index = dividend / (r - g), so r = dividend / index + g = 20 / 1,000 + 5% = 2% + 5% = 7%.
+      With steady growth, the return the price implies is the dividend yield plus the growth. The yield is 20 on 1,000, which is 2 percent, and growth adds 5 percent, so the index price implies a return of 7 percent.
     source: >
       Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library), the implied equity risk premium: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
   - id: ie-q-implied-erp
     prompt: >
-      The index above implies an expected return of 7 percent and the riskfree rate is 4 percent. What is the implied equity risk premium?
+      The index price implies an expected return of 7 percent, and the riskfree rate is 4 percent. Which description fits the implied equity risk premium?
     choices:
-      - { id: a, text: "3 percent" }
-      - { id: b, text: "4 percent" }
-      - { id: c, text: "7 percent" }
-      - { id: d, text: "11 percent" }
+      - { id: a, text: "The return the price implies, less the riskfree rate: the extra reward for holding stocks" }
+      - { id: b, text: "The return the price implies, plus the riskfree rate", mistake: { tag: added_riskfree, fix: "A premium is extra over riskless, so the riskfree rate comes off, not on." } }
+      - { id: c, text: "The average return stocks earned in the past", mistake: { tag: historical_premium, fix: "That is a historical premium. An implied one is read from today's price." } }
+      - { id: d, text: "The riskfree rate itself", mistake: { tag: premium_is_riskfree, fix: "The riskfree rate is what a safe bond pays. The premium is the extra on top." } }
     answer: a
     explanation: >
-      Implied ERP = implied expected return - riskfree rate = 7% - 4% = 3%.
+      Implied equity risk premium = the return the price implies less the riskfree rate. With 7 percent implied and 4 percent riskfree, that extra reward is 3 percent.
     source: >
       Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
   - id: ie-q-higher-price
     prompt: >
-      Suppose instead the index stood at 1,250 with the same expected dividends of 20, the same 5 percent growth and the same 4 percent riskfree rate. What is the implied equity risk premium?
+      Suppose instead the index stood higher, at 1,250, with the same expected dividends of 20, the same growth and the same 4 percent riskfree rate. What happens to the implied equity risk premium?
     choices:
-      - { id: a, text: "2.6 percent" }
-      - { id: b, text: "3.0 percent" }
-      - { id: c, text: "3.4 percent" }
-      - { id: d, text: "6.6 percent" }
+      - { id: a, text: "It falls, because a higher price for the same cash flows means investors accept a lower return" }
+      - { id: b, text: "It rises, because stocks are now more expensive", mistake: { tag: price_up_premium_up, fix: "A higher price means a lower promised return, so the premium shrinks." } }
+      - { id: c, text: "It stays the same, since the dividends did not change", mistake: { tag: ignored_price, fix: "The price moved, and the implied return is read from the price." } }
+      - { id: d, text: "It cannot be read any more", mistake: { tag: gave_up, fix: "It can. Put the new price into the same reading." } }
     answer: a
     explanation: >
-      Dividend yield = 20 / 1,250 = 1.6 percent. r = 1.6% + 5% = 6.6%, so the ERP is 6.6% - 4% = 2.6%. A higher price for the same expected cash flows means investors accept a lower return.
+      A dividend of 20 on 1,250 is a yield of 1.6 percent, down from 2 percent. The implied return falls to 6.6 percent, so the premium falls to 2.6 percent. A higher price for the same expected cash flows means investors accept a lower return.
     source: >
       Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
   - id: ie-q-growth
     prompt: >
-      Keep the index at 1,000, dividends next year at 20 and the riskfree rate at 4 percent, but raise the assumed growth rate from 5 percent to 6 percent. What happens to the implied equity risk premium?
+      Keep the index at 1,000, dividends next year at 20 and the riskfree rate at 4 percent, but suppose investors now expect growth of 6 percent a year instead of 5. To justify the same price, what must happen to the premium?
     choices:
-      - { id: a, text: "It rises to 4 percent" }
-      - { id: b, text: "It falls to 2 percent" }
-      - { id: c, text: "It stays at 3 percent" }
-      - { id: d, text: "It becomes negative" }
+      - { id: a, text: "It rises: with faster growth assumed, the same price implies a higher return" }
+      - { id: b, text: "It falls, because faster growth makes stocks safer", mistake: { tag: growth_means_safer, fix: "Growth is an expected payout, not safety. At the same price it pushes the implied return up." } }
+      - { id: c, text: "It stays the same, because the price did not move", mistake: { tag: ignored_growth_change, fix: "The price is the same but the growth assumed is bigger, so the implied return rises." } }
+      - { id: d, text: "It turns negative", mistake: { tag: negative_premium, fix: "A bigger growth number lifts the implied return and the premium, not the reverse." } }
     answer: a
     explanation: >
-      r = 2% + 6% = 8%, so ERP = 8% - 4% = 4%. To justify the same price with faster expected growth, investors must demand a higher return. The implied premium is only as good as the growth assumption.
+      The implied return is the 2 percent yield plus 6 percent growth, or 8 percent, so the premium is 4 percent instead of 3. To justify the same price with faster expected growth, investors must demand a higher return. The implied premium is only as good as the growth assumption.
     source: >
       Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
@@ -126,9 +126,9 @@ questions:
       How does an implied equity risk premium differ from a historical one?
     choices:
       - { id: a, text: "It is solved from today's price and expected cash flows, while the historical premium averages past returns" }
-      - { id: b, text: "It averages past returns over a longer period" }
-      - { id: c, text: "It is set by regulators" }
-      - { id: d, text: "It is the same number, estimated twice" }
+      - { id: b, text: "It averages past returns over a longer period", mistake: { tag: swapped_definitions, fix: "That describes a historical premium, which is the opposite of an implied one." } }
+      - { id: c, text: "It is set by regulators", mistake: { tag: regulator_set, fix: "No regulator sets it. It is read from market prices." } }
+      - { id: d, text: "It is the same number, estimated twice", mistake: { tag: same_number, fix: "They differ whenever prices move, since only the implied one reads today's price." } }
     answer: a
     explanation: >
       A historical premium looks backward and has a large standard error. An implied premium asks what return the market's current price and expected cash flows promise, so it moves with prices.

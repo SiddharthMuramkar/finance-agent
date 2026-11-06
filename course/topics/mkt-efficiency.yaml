@@ -94,15 +94,15 @@ questions:
 
   - id: ef-q-luck
     prompt: >
-      1,000 fund managers each have an independent 50% chance of beating the market in any one year, by luck alone. About how many would you expect to beat it three years in a row?
+      Imagine 1,000 fund managers who each beat the market by luck alone half the time. Some will beat it three years in a row. What does that say about one manager's three-year streak?
     choices:
-      - { id: a, text: "About 125" }
-      - { id: b, text: "About 500" }
-      - { id: c, text: "About 250" }
-      - { id: d, text: "About 12" }
+      - { id: a, text: "By itself it is weak proof of skill, because a streak among many managers can happen by luck" }
+      - { id: b, text: "It proves skill, because luck cannot repeat three times", mistake: { tag: streak_equals_skill, fix: "Luck can repeat; with many managers trying, some streaks are expected by chance." } }
+      - { id: c, text: "It proves the market is inefficient", mistake: { tag: streak_equals_inefficiency, fix: "A few streaks are what luck alone produces, so they do not show a market is beaten." } }
+      - { id: d, text: "It shows the manager will beat the market again next year", mistake: { tag: streak_predicts, fix: "A lucky past gives no promise about next year; each year is a fresh draw." } }
     answer: a
     explanation: >
-      The chance of three wins in a row is 0.5 x 0.5 x 0.5 = 0.125, and 0.125 x 1,000 = 125. A streak among many managers is therefore not by itself proof of skill, which is why a track record has to be judged against the number of managers who tried.
+      The chance of three wins in a row by luck is 0.5 x 0.5 x 0.5 = 0.125, so about 125 of 1,000 managers would do it. A streak among many managers is therefore not by itself proof of skill, which is why a track record has to be judged against the number of managers who tried.
     source: >
       Own arithmetic on the binomial probability of independent events; the efficient-market reading follows OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
 
