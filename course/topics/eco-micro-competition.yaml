@@ -60,12 +60,12 @@ youllLearn:
 questions:
   - id: mc-q-studios
     prompt: >
-      January 2016. Isha opens a yoga studio in Pune, a city with dozens of gyms and studios, each with its own classes and location. New ones open and close every year. What do economists call a market like this?
+      January 2016. Isha sinks her savings into a yoga studio in Pune, among dozens of gyms and studios that open and close every year. Her brother says she can charge anything. Who's right?
     choices:
-      - { id: a, text: "Monopolistic competition: many sellers, each a little different" }
-      - { id: b, text: "Perfect competition: identical products, so nobody sets a price", mistake: { tag: missed_differentiation, fix: "Studios differ in classes and place, so each has a little pricing power." } }
-      - { id: c, text: "Oligopoly: a few big sellers watching each other", mistake: { tag: miscounted_sellers, fix: "Dozens of small studios is many sellers, far from a few giants." } }
-      - { id: d, text: "Monopoly: Isha's studio has no close rival", mistake: { tag: overstated_power, fix: "Plenty of nearby studios are close rivals, and easy entry keeps any one from dominating." } }
+      - { id: a, text: "She can charge a bit extra for her style, but not much" }
+      - { id: b, text: "Her brother: her classes are unique, so she sets any price", mistake: { tag: overstated_power, fix: "Dozens of nearby studios are close rivals; push the price too far and members walk." } }
+      - { id: c, text: "Neither: with so many studios, every class must cost the same", mistake: { tag: missed_differentiation, fix: "Studios differ in classes and place, so each can charge a little more." } }
+      - { id: d, text: "Neither: a few big gym chains will set her price for her", mistake: { tag: miscounted_sellers, fix: "Dozens of small studios is many sellers; no few giants set her price." } }
     answer: a
     explanation: >
       Many sellers, slightly different products and easy entry make monopolistic competition. Isha can charge a bit more for her own style or a handy location, but if she pushes too far, members walk to the studio down the road, and new ones keep opening.
@@ -73,25 +73,25 @@ questions:
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0013, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
   - id: mc-q-empty-threat
     prompt: >
-      March 2016. A big ice-cream maker's boss vows to "fight any newcomer to the last rupee". Yet once a rival is in, a price war would cost the maker more than sharing. You're the newcomer: which would you pick, and why?
+      March 2016. Zoya bets her family's savings on a new ice-cream brand. The leader's boss vows to "fight any newcomer to the last rupee", but a price war would cost him more than sharing. Should she launch?
     choices:
-      - { id: a, text: "Enter: once you're in, fighting hurts the maker more, so it's a bluff" }
-      - { id: b, text: "Stay out: the boss said it in public", mistake: { tag: believed_cheap_talk, fix: "Words cost nothing; ask whether fighting would pay the maker after you arrive." } }
-      - { id: c, text: "Enter and expect a price war, because bosses keep promises", mistake: { tag: assumed_follow_through, fix: "After you enter, the maker picks whatever pays best, and sharing pays better." } }
-      - { id: d, text: "Toss a coin: there's no way to predict it", mistake: { tag: gave_up_predicting, fix: "Think from the end: after entry, sharing beats fighting for the maker, so expect sharing." } }
+      - { id: a, text: "Launch: fighting her would hurt him more, so it's a bluff" }
+      - { id: b, text: "Stay out: he said it in public, so he must mean it", mistake: { tag: believed_cheap_talk, fix: "Words cost nothing; ask whether fighting would pay him once Zoya has arrived." } }
+      - { id: c, text: "Launch, but plan for a long price war that he'll start", mistake: { tag: assumed_follow_through, fix: "Once she's in, he picks what pays best, and sharing pays better than fighting." } }
+      - { id: d, text: "Wait a year and see whether he calms down first", mistake: { tag: waited_it_out, fix: "Waiting changes nothing: after entry, sharing still beats fighting for him, so the threat is empty." } }
     answer: a
     explanation: >
-      A threat is credible only if carrying it out pays when the moment comes. After entry, the incumbent does better sharing the market than fighting, so a rational newcomer treats the vow as cheap talk and enters. Economists find this by reasoning backwards from the last move.
+      A threat is credible only if carrying it out pays when the moment comes. After entry, the leader does better sharing the market than fighting, so a rational newcomer treats the vow as cheap talk and enters. Economists find this by reasoning backwards from the last move.
     source: >
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0019, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
   - id: mc-q-commitment
     prompt: >
-      May 2016. The same ice-cream maker's boss wants the next newcomer to believe the threat of a price war this time. Which move would make that threat believable?
+      May 2016. Zoya launched anyway, and the ice-cream leader's boss is stung. Before the next newcomer turns up, he wants his price-war threat believed. Which move would actually scare them off?
     choices:
-      - { id: a, text: "Build a costly new plant whose low costs make fighting pay better than sharing" }
-      - { id: b, text: "Repeat the threat in a full-page newspaper ad", mistake: { tag: louder_cheap_talk, fix: "An ad changes no costs or profits, so the threat is still cheap talk." } }
-      - { id: c, text: "Hire a tougher-sounding boss", mistake: { tag: swapped_the_boss, fix: "Same costs and profits after entry mean the same choice: sharing still pays better." } }
-      - { id: d, text: "Sign long fixed-price deals with shops, ruling out price cuts", mistake: { tag: tied_hands_wrong_way, fix: "Locking prices stops it cutting them, which makes a price war less believable." } }
+      - { id: a, text: "Build a low-cost plant now, so fighting would pay" }
+      - { id: b, text: "Repeat the threat in a full-page newspaper ad", mistake: { tag: louder_cheap_talk, fix: "An ad changes no costs or profits, so fighting still pays worse than sharing." } }
+      - { id: c, text: "Hire a famously ruthless new boss to sound tougher", mistake: { tag: swapped_the_boss, fix: "Same costs and profits after entry mean the same choice: sharing still pays better." } }
+      - { id: d, text: "Sign long fixed-price deals with shops, so he can't cut prices", mistake: { tag: tied_hands_wrong_way, fix: "Locking prices stops him cutting them, which makes a price war less believable." } }
     answer: a
     explanation: >
       A threat becomes credible when the threatener changes its own payoffs so that carrying it out pays. A plant that lowers its costs, built before anyone enters and impossible to undo, makes fighting the better choice after entry, so a newcomer expects a price war and stays out. This is a commitment device.
@@ -99,15 +99,15 @@ questions:
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0020, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
   - id: mc-q-charity-price
     prompt: >
-      June 2016. A software firm checks that a buyer is a registered charity, then sells it the same licence 40% cheaper than companies pay. What do economists call this kind of pricing?
+      June 2016. Farah's accounting software barely sells to charities, so she offers registered ones the same licence 40% cheaper, once they show their papers. Why does checking the papers matter?
     choices:
-      - { id: a, text: "Group pricing (third-degree price discrimination): different prices for groups you can check" }
-      - { id: b, text: "Predatory pricing: cutting prices to drive rivals out", mistake: { tag: confused_with_predatory, fix: "Predatory pricing aims to kill rivals; here the firm splits its buyers into groups." } }
-      - { id: c, text: "Perfect price discrimination: each buyer pays their own top price", mistake: { tag: overstated_discrimination, fix: "That charges every buyer a personal price; here a whole group gets one discount." } }
-      - { id: d, text: "A two-part tariff: an entry fee plus a charge per use", mistake: { tag: confused_with_tariff, fix: "A two-part tariff splits one price in two; here two groups pay different prices." } }
+      - { id: a, text: "It stops companies posing as charities to grab the discount" }
+      - { id: b, text: "It drives rival software firms out of the charity market", mistake: { tag: confused_with_predatory, fix: "The discount isn't aimed at rivals; it splits buyers into groups paying different prices." } }
+      - { id: c, text: "It lets her charge each charity its own top price", mistake: { tag: overstated_discrimination, fix: "Every registered charity gets the same discount; she prices groups, not each buyer." } }
+      - { id: d, text: "It's just paperwork; the price works the same without it", mistake: { tag: skipped_the_check, fix: "Without the check, every company would claim the cheaper price and her plan collapses." } }
     answer: a
     explanation: >
-      Charging identifiable groups different prices for the same product is third-degree price discrimination. Charities usually have tighter budgets, so a lower price wins sales a single high price would lose, and checking charity status stops companies from claiming the discount. Student and senior discounts work the same way.
+      Charging groups you can tell apart different prices for the same product is group pricing, which economists call third-degree price discrimination. Charities usually have tighter budgets, so a lower price wins sales a single high price would lose. It only works if outsiders cannot claim the cheaper price, which is what the check is for. Student and senior discounts work the same way.
     source: >
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0022, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
 

@@ -77,65 +77,65 @@ questions:
 
   - id: st-q-tails
     prompt: >
-      A risk model fitted to years of calm daily returns says a one-day fall of more than 10% in a stock index is practically impossible. Then such a fall happens. What does that show?
+      August 1987. Leela's risk model, fitted to five calm years, says her bank's big mining stock practically can't fall 10% in a day. One Tuesday it does. What should she conclude?
     choices:
-      - { id: a, text: "A model fitted to calm periods can badly understate extreme moves" }
-      - { id: b, text: "The mean of daily returns was wrong", mistake: { tag: blamed_the_mean, fix: "The average can be right while the model still badly underrates rare, extreme days." } }
-      - { id: c, text: "Standard deviation cannot be calculated for stock returns", mistake: { tag: denied_the_measure, fix: "It can be measured; the trouble is assuming calm-period spread describes crash days." } }
-      - { id: d, text: "The crash was impossible and the data must be wrong", mistake: { tag: trusted_model_over_data, fix: "When reality beats the model, the model is wrong; the crash really happened." } }
+      - { id: a, text: "Calm years taught the model too little about wild days" }
+      - { id: b, text: "The model's average daily return must have been wrong", mistake: { tag: blamed_the_mean, fix: "The average can be right while the model still badly underrates rare, extreme days." } }
+      - { id: c, text: "Nobody can measure how much a stock swings, so skip models", mistake: { tag: denied_the_measure, fix: "Swings can be measured; the trouble is assuming calm-year swings describe crash days." } }
+      - { id: d, text: "The fall was impossible, so the price data must be wrong", mistake: { tag: trusted_model_over_data, fix: "When reality beats the model, the model is wrong; the fall really happened." } }
     answer: a
     explanation: >
-      Extreme moves are far more common than a normal distribution fitted to ordinary days implies. A statistic is only as good as the sample and the shape assumed for it.
+      Extreme moves are far more common than a normal distribution fitted to ordinary days implies, which is why statisticians talk about fat tails. A statistic is only as good as the sample and the shape assumed for it.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is hypothetical.
+      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is made up.
 
   - id: st-q-queues
     prompt: >
-      June 1987: across a chain's 80 grocery stores, checkout queue time and shopper satisfaction show a correlation of -0.85. Meera's boss says the minus sign means a weak link. Which headline gets it right?
+      June 1987. Across 80 grocery stores, queue time and shopper happiness show a correlation of -0.85. Meera's boss says the minus means a weak link and plans to cut checkout staff. What should Meera say?
     choices:
-      - { id: a, text: "Strong link: stores with longer queues tend to have less happy shoppers" }
-      - { id: b, text: "Weak link, because the correlation is negative", mistake: { tag: sign_read_as_strength, fix: "The sign gives the direction; a figure close to -1 means a strong link." } }
-      - { id: c, text: "Proof that long queues cause unhappy shoppers", mistake: { tag: correlation_as_cause, fix: "Correlation shows two things moving together; it cannot prove one causes the other." } }
-      - { id: d, text: "Each extra minute of queueing cuts satisfaction by 0.85 points", mistake: { tag: correlation_as_slope, fix: "Correlation says how tightly the points hug a line, not how steep the line is." } }
+      - { id: a, text: "It's a strong link: longer queues go with unhappier shoppers" }
+      - { id: b, text: "He's right: any negative correlation is a weak one by definition", mistake: { tag: sign_read_as_strength, fix: "The sign gives the direction; a figure close to -1 means a strong link." } }
+      - { id: c, text: "It proves long queues are what make the shoppers unhappy", mistake: { tag: correlation_as_cause, fix: "Correlation shows two things moving together; it can't prove one causes the other." } }
+      - { id: d, text: "Each extra minute in a queue costs 0.85 happiness points", mistake: { tag: correlation_as_slope, fix: "Correlation says how tightly the points hug a line, not how steep the line is." } }
     answer: a
     explanation: >
-      A correlation runs from -1 to +1. The sign gives the direction (more queueing goes with less satisfaction) and closeness to -1 or +1 gives the strength, so -0.85 is a strong negative link. It still says nothing about cause, and it is not the slope of a line.
+      A correlation runs from -1 to +1. The sign gives the direction (more queueing goes with less happiness) and closeness to -1 or +1 gives the strength, so -0.85 is a strong negative link. Cutting checkout staff would likely make things worse. It still says nothing about cause, and it is not the slope of a line.
     source: >
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0030, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
   - id: st-q-ads
     prompt: >
-      September 1987. For three years, Rohan's shop chain has seen sales rise in the same months its newspaper ad spending rises. He wants to double the ad budget before the holidays. Which would you pick as the best reason to pause?
+      September 1987. For three years Rohan's shops have sold more in months with more newspaper ads. He wants to borrow to double the holiday ad budget. What should make him pause?
     choices:
-      - { id: a, text: "The holidays may lift both, or ad budgets rise when sales already look strong" }
-      - { id: b, text: "Three years of data is too long a stretch to study", mistake: { tag: blamed_the_period, fix: "More history is fine; the risk is a hidden cause moving ads and sales together." } }
-      - { id: c, text: "A correlation can never be bigger than 1", mistake: { tag: true_but_irrelevant, fix: "True, but that rule says nothing about whether the ads cause the extra sales." } }
-      - { id: d, text: "Adverts never change what shoppers buy", mistake: { tag: ads_never_work, fix: "Ads can work; the trouble is that moving together alone cannot prove they do." } }
+      - { id: a, text: "The holiday rush may be lifting both ads and sales" }
+      - { id: b, text: "Three years is far too long a stretch of data to trust", mistake: { tag: blamed_the_period, fix: "More history is fine; the risk is a hidden cause moving ads and sales together." } }
+      - { id: c, text: "A correlation can never be bigger than 1, after all", mistake: { tag: true_but_irrelevant, fix: "True, but that rule says nothing about whether the ads cause the extra sales." } }
+      - { id: d, text: "Newspaper adverts never change what shoppers buy", mistake: { tag: ads_never_work, fix: "Ads can work; the trouble is that moving together alone can't prove they do." } }
     answer: a
     explanation: >
-      Ad spending and sales can climb together because something else drives both, such as the holiday rush (a confounder), or because the cause runs backwards: shops spend more on ads when they already expect strong sales. To know whether ads lift sales, you need a test, such as running ads in some towns and holding them back in others.
+      Ad spending and sales can climb together because something else drives both, such as the holiday rush (a confounder), or because the cause runs backwards: shops spend more on ads when they already expect strong sales. To know whether ads lift sales, Rohan needs a test, such as running ads in some towns and holding them back in others.
     source: >
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0029, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
   - id: st-q-std-error
     prompt: >
-      July 1987. Ananya asks 64 random customers of a coffee chain what they spend each week, then reports their average. Her boss asks how far that average might sit from the true one. What do statisticians call that typical gap?
+      July 1987. Ananya asks a few dozen random coffee-chain customers what they spend a week. Her boss will price 300 cafés off her average. What would make that average more trustworthy?
     choices:
-      - { id: a, text: "The standard error, which shrinks as the sample gets bigger" }
-      - { id: b, text: "The standard deviation, the spread from one customer to the next", mistake: { tag: confused_with_sd, fix: "That spread describes single customers; the standard error describes how much the sample's average wobbles." } }
-      - { id: c, text: "The correlation between customers and their spending", mistake: { tag: confused_with_correlation, fix: "Correlation links two different measures; here there is only one, weekly spending." } }
-      - { id: d, text: "The standard error, which grows as the sample gets bigger", mistake: { tag: flipped_sample_size, fix: "More customers average out the luck, so a bigger sample makes the standard error smaller." } }
+      - { id: a, text: "Asking many more customers, still picked at random" }
+      - { id: b, text: "Asking only her most regular, loyal customers instead", mistake: { tag: picked_the_sample, fix: "Regulars spend differently; a hand-picked crowd skews the average however many you ask." } }
+      - { id: c, text: "Asking the same people again next month", mistake: { tag: repeated_the_sample, fix: "The same people repeat the same luck; only more random customers average it out." } }
+      - { id: d, text: "Rounding every answer to the nearest dollar first", mistake: { tag: rounded_the_answers, fix: "Rounding just blurs the answers; the gap shrinks only with more randomly chosen customers." } }
     answer: a
     explanation: >
-      The standard error is the typical distance between a sample's average and the true average of everyone. It depends on how spread out single customers are (the standard deviation) and shrinks as the sample grows, because luck in who you happened to ask averages out.
+      The typical gap between a sample's average and the true average of everyone is the standard error. It depends on how spread out single customers are (the standard deviation) and shrinks as a random sample grows, because luck in who you happened to ask averages out. Picking the sample by hand adds a bias that more answers cannot fix.
     source: >
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0015, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
   - id: st-q-two-funds
     prompt: >
-      January 1987. Kavya, a company treasurer, splits spare cash between two funds whose returns only loosely move together. A colleague says the mix will be exactly as bumpy as the two funds' average bumpiness. Which headline gets it right?
+      January 1987. Kavya, a company treasurer, splits spare cash between two funds that only loosely move together. Her boss calls it pointless: the mix will swing as much as the two funds on average. Who's right?
     choices:
-      - { id: a, text: "The mix is calmer than that average, because the funds' dips partly cancel" }
-      - { id: b, text: "The mix is exactly as bumpy as the two funds' average", mistake: { tag: ignored_correlation, fix: "That only holds when the funds move in perfect step; loose links smooth the ride." } }
-      - { id: c, text: "The mix is bumpier than even the bumpier fund", mistake: { tag: mix_wilder_than_parts, fix: "A mix cannot swing more than its wildest part, and loose links calm it further." } }
-      - { id: d, text: "Only each fund's own swings matter, never how they move together", mistake: { tag: correlation_irrelevant, fix: "How funds move together matters: when one dips and the other holds, the mix dips less." } }
+      - { id: a, text: "Kavya: when one fund dips, the other often holds steady" }
+      - { id: b, text: "Her boss: a mix swings exactly as much as its parts' average", mistake: { tag: ignored_correlation, fix: "That holds only when the funds move in perfect step; loose links smooth the ride." } }
+      - { id: c, text: "Her boss: mixing makes the swings bigger than either fund", mistake: { tag: mix_wilder_than_parts, fix: "A mix can't swing more than its wildest part, and loose links calm it further." } }
+      - { id: d, text: "Neither: only each fund's own swings matter", mistake: { tag: correlation_irrelevant, fix: "How funds move together matters: when one dips and the other holds, the mix dips less." } }
     answer: a
     explanation: >
       This is diversification. A mix is exactly as bumpy as the average of its parts only when they move in perfect step. When their correlation is below 1, some ups of one fund offset downs of the other, so the mix is calmer than the average of its parts.
