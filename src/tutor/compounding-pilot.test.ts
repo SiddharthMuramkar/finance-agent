@@ -148,6 +148,12 @@ describe("Growth, compounding and logs, converted", () => {
       expect(Math.round(calc("future_value", { amount: 1000, ratePercent: 6, years: 12 }, "Future value"))).toBe(2012);
     });
 
+    it("teach log returns in plain words: no ln key and no decimals on the card or its Quick tries (E6a round 2, BP-3)", () => {
+      const c = checkById("cp-quiz-log-return");
+      const words = [...c.card!.lines, c.card!.writeDown, ...c.quickTries.flatMap((q) => ("id" in q ? [q.ask, q.halfDone ?? "", ...(q.choices ?? []).flatMap((x) => [x.text, x.mistake?.fix ?? ""])] : []))].join(" ");
+      expect(words).not.toMatch(/\bln\b|calculator|\d\.\d/);
+    });
+
     it("say on the log-return card what its true-or-false try needs: a price that ends where it began has a log return of zero", () => {
       expect(checkById("cp-quiz-log-return").card!.lines.join(" ")).toContain("A price that ends where it began has a log return of zero.");
     });
@@ -191,11 +197,9 @@ describe("Growth, compounding and logs, converted", () => {
       expect(500 * 0.6 * 1.4).toBeCloseTo(420, 9);
       expect(rightText("cp-try-fall-half")).toContain("Short of ₹500");
       expect(rightText("cp-try-recover")).toContain("Bigger than the fall");
-      // Log returns add: 0.1 and 0.2 make 0.3; 0.25 and 0.15 make 0.4. Doubling then halving: log 2 and minus log 2.
-      expect(0.1 + 0.2).toBeCloseTo(0.3, 12);
-      expect(0.25 + 0.15).toBeCloseTo(0.4, 12);
-      expect(rightText("cp-try-log-half")).toContain("0.3");
-      expect(rightText("cp-try-log-add")).toContain("0.4");
+      // Log returns add, said in words (E6a round 2, BP-3). Doubling then halving: log 2 and minus log 2.
+      expect(rightText("cp-try-log-half")).toBe("Add the two scores together");
+      expect(rightText("cp-try-log-add")).toBe("The two yearly scores added together");
       expect(Math.log(2) + Math.log(0.5)).toBeCloseTo(0, 12);
       // Steady pace, in words: tripling over 10 years is about 12% a year, and tripling in just 2 is about 73%, far faster;
       // doubling in 4 years is about 19% a year, and even just doubling in 2 is about 41%, so "more than doubled in 2" is faster.
