@@ -88,15 +88,15 @@ questions:
 
   - id: vi-q-depreciation
     prompt: >
-      One-year riskless rates are 9 percent in rupees and 4 percent in dollars. Traders say the two investments are only equally attractive if the rupee is expected to do what over the year?
+      Ravi runs the New York fund eyeing Coffee Day. On 22 October 2015 Indian 10-year bonds yield 7.58 percent; US Treasuries paid 2.04 percent the day before. What stops him piling into rupee bonds?
     choices:
-      - { id: a, text: "Weaken against the dollar, by roughly the gap between the two rates" }
-      - { id: b, text: "Strengthen against the dollar, because rupee interest is higher", mistake: { tag: rupee_strengthens, fix: "Higher rupee interest is paid because the rupee is expected to weaken, not strengthen." } }
-      - { id: c, text: "Stay exactly flat", mistake: { tag: flat_rupee, fix: "If flat, rupee savers would simply win. The rate gap should be offset by expected weakening." } }
-      - { id: d, text: "Weaken by the whole 9 percent rupee rate", mistake: { tag: used_whole_rate, fix: "Only the gap between the two rates matters, not the rupee rate alone." } }
+      - { id: a, text: "Traders expect the rupee to slide by about the yield gap each year" }
+      - { id: b, text: "Nothing: the rupee is expected to strengthen as well", mistake: { tag: rupee_strengthens, fix: "Rupee bonds pay more because the rupee is expected to weaken, not strengthen." } }
+      - { id: c, text: "Nothing: the rupee will stay at 65.12 to the dollar", mistake: { tag: flat_rupee, fix: "If it stayed flat, rupee bonds would simply win. The yield gap is offset by expected weakening." } }
+      - { id: d, text: "The rupee is expected to lose the whole rupee yield each year", mistake: { tag: used_whole_rate, fix: "Only the gap between the two yields is offset, not the whole rupee yield." } }
     answer: a
     explanation: >
-      The extra rupee interest is paid because the rupee is expected to fall. The expected fall is (1.09 / 1.04) - 1, about 4.8 percent. If the rupee fell less, the rupee investment would be better; if more, worse.
+      Higher rupee yields mostly pay for higher expected Indian inflation, so traders expect the rupee to lose value against the dollar by about the gap between the two riskless rates. If it fell less, rupee bonds would win; if it fell more, they would lose.
     source: >
       Damodaran, Country Risk (Library), on riskfree rates in different currencies and inflation differentials: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
@@ -116,15 +116,15 @@ questions:
 
   - id: vi-q-crp-method
     prompt: >
-      In the scaled default spread method, analysts start from a country's sovereign default spread of 2.0 percent. Its equities are 1.5 times as volatile as its government bonds. How do they turn the spread into a country risk premium for equities?
+      October 2015: Moody's rates India Baa3. Priya, at the Mumbai fund, takes that rating's default spread. Indian shares swing more than India's bonds. How does she make it a country risk premium?
     choices:
-      - { id: a, text: "Use the spread as it stands, since it already measures country risk", mistake: { tag: unscaled_spread, fix: "Equities swing more than bonds, so the spread is scaled up for them." } }
-      - { id: b, text: "Scale it down, because shares are less risky than bonds", mistake: { tag: scaled_down, fix: "Shares are riskier than bonds, so the spread is scaled up, not down." } }
-      - { id: c, text: "Scale it up, because equities are more volatile than government bonds" }
-      - { id: d, text: "Add the stock market's past average return to it", mistake: { tag: added_history, fix: "No history is added. The spread is only scaled by relative volatility." } }
+      - { id: a, text: "Use it as it is, since it already measures country risk", mistake: { tag: unscaled_spread, fix: "Shares swing more than bonds, so the bond spread is scaled up for them." } }
+      - { id: b, text: "Scale it down, because shares are safer than bonds", mistake: { tag: scaled_down, fix: "Shares are riskier than government bonds, so the spread is scaled up, not down." } }
+      - { id: c, text: "Scale it up, because shares swing more than bonds" }
+      - { id: d, text: "Add India's past stock market returns to it", mistake: { tag: added_history, fix: "No history is added. The spread is only scaled by how much more shares swing." } }
     answer: c
     explanation: >
-      Country risk premium = default spread x (volatility of equities / volatility of bonds). With a 2.0 percent spread and equities 1.5 times as volatile, the premium works out to 3.0 percent.
+      In the scaled default spread method, the default spread for the country's rating is scaled up by how much more volatile its shares are than its government bonds. Shares swing more, so their country risk premium is bigger than the bond spread.
     source: >
       Damodaran, Country Risk (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
