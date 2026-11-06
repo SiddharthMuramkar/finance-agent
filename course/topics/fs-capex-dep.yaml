@@ -55,51 +55,138 @@ youllLearn:
   - "Know what EBITDA leaves out and why that matters."
   - "Judge an asset-heavy business after the cost of the assets it needs."
 
+
+exampleCurrency: INR
+runningExample:
+  text: A baker buys an oven for ₹6 lakh that should bake for six years.
+  numbers: [6, 6]
+  scene:
+    cast:
+      - { id: dev, emoji: cook, name: Dev, role: runs a bakery }
+      - { id: acct, emoji: woman-office-worker, name: The accountant }
+    beats:
+      - { who: narrator, says: "Dev the baker pays ₹6 lakh for an oven. It should bake for six years.", emoji: fire }
+      - { who: dev, says: "I paid all the cash today, so this year's profit is ruined!", emoji: face-screaming-in-fear }
+      - { who: acct, says: "No. We charge a slice each year, as the oven wears out.", emoji: calendar }
+      - { who: dev, says: "So profit shows a slice, but my bank balance felt it all today." }
+    caption: The cash leaves once, the profit feels it slowly
+
+terms:
+  - term: capex
+    means: Money spent on things that last for years, like warehouses and trucks.
+    pro: Analysts read capex next to cash flow to see what firms must keep spending.
+    example: A bakery buying a ₹8 lakh oven that it will use for years.
+    emoji: factory
+    inStory: Webvan planned about a billion dollars of automated distribution centres.
+  - term: depreciation
+    means: Spreading the cost of a lasting thing across the years it is used.
+    pro: Depreciation is the yearly slice of a purchase charged to profit.
+    example: An autorickshaw bought for ₹3 lakh is charged a slice each year of its life.
+    emoji: delivery-truck
+    inStory: Webvan's warehouses and trucks would each be charged to profit a slice a year.
+  - term: amortisation
+    means: The same spreading idea, for things you cannot touch, like software or licences.
+    pro: Analysts lump it with depreciation as D and A, and add both back.
+    example: A software licence paid for up front is charged to profit over its years of use.
+    emoji: laptop
+    inStory: Webvan's buildings would be depreciated; any software or licences would be amortised instead.
+  - term: EBITDA
+    means: Profit with interest, tax, depreciation and amortisation all added back.
+    pro: Bankers say "look at EBITDA", but it hides what the assets cost.
+    example: A taxi owner counting profit while ignoring the yearly cost of the taxi itself.
+    emoji: warning
+    inStory: A banker might point at EBITDA while Webvan's buildings cost a billion dollars.
+  - term: fixed assets
+    means: The lasting things a company owns and uses, like buildings, trucks and machines.
+    pro: Fixed assets sit on the balance sheet and are depreciated.
+    example: A tailor's sewing machines and shop counter.
+    emoji: office-building
+    inStory: Webvan's Oakland centre alone covered 336,000 square feet.
+
 questions:
   - id: cx-q-straight-line
     prompt: >
-      A company spends $1,000 million on warehouses and equipment with a 20-year life and no
-      residual value. Using straight-line depreciation, how much depreciation does it record each year?
+      In April, Dev the baker pays ₹6 lakh for an oven that should bake for six years. Tomorrow he shows his books to the bank. "This year's profit is ruined!" What does his accountant tell him?
     choices:
-      - { id: a, text: "$50 million" }
-      - { id: b, text: "$1,000 million in the first year" }
-      - { id: c, text: "$20 million" }
-      - { id: d, text: "$200 million" }
+      - { id: a, text: "Relax: the oven's cost is spread over its years, as depreciation" }
+      - { id: b, text: "True: the whole oven comes off this year's profit", mistake: { tag: expensed_it_all_at_once, fix: "A lasting asset goes on the balance sheet, and its cost is spread over its life." } }
+      - { id: c, text: "The oven stays off the books until Dev sells it", mistake: { tag: left_it_off_the_books, fix: "The oven is recorded as an asset the day Dev buys it." } }
+      - { id: d, text: "The oven counts only when customers buy his bread", mistake: { tag: tied_it_to_sales, fix: "The cost follows the oven's useful life, not each loaf sold." } }
     answer: a
     explanation: >
-      1,000 / 20 = 50. The cash is spent up front, but the profit and loss account bears $50 million a year for 20 years.
+      Depreciation spreads the cost of a lasting asset over the years it is used. The cash left Dev's bank on day one, but each year's profit bears only a slice.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-ebitda-blind-spot
     prompt: >
-      EBITDA adds back depreciation and amortisation. What does that mean for a company that spends heavily on equipment?
+      5 November 1999. Asha must decide today on Webvan's shares, and Webvan plans about a billion dollars of warehouses. Suppose a banker tells her, "Forget the loss, look at EBITDA." What could EBITDA hide?
     choices:
-      - { id: a, text: "EBITDA leaves out the cost of the equipment, so it can look healthy while cash is going out on capex" }
-      - { id: b, text: "EBITDA includes the full purchase price in the year the equipment is bought" }
-      - { id: c, text: "EBITDA is lower than operating profit" }
-      - { id: d, text: "Heavy spending on equipment has no effect on cash" }
+      - { id: a, text: "The yearly cost of the warehouses, because depreciation is added back" }
+      - { id: b, text: "Nothing: EBITDA counts each warehouse's full price", mistake: { tag: thought_ebitda_counts_the_purchase, fix: "EBITDA adds depreciation back, so the cost of the warehouses drops out." } }
+      - { id: c, text: "That Webvan's operating profit is higher than EBITDA", mistake: { tag: swapped_the_direction, fix: "Adding costs back makes EBITDA higher than operating profit, not lower." } }
+      - { id: d, text: "Nothing, because building warehouses takes no cash", mistake: { tag: ignored_the_cash, fix: "Cash leaves when the warehouses are built, whatever the yearly charge says." } }
     answer: a
     explanation: >
-      EBITDA is profit before depreciation, interest and tax. Because depreciation is added back, the cost of the assets does not appear in it, so it must be read next to capex.
+      EBITDA is profit before interest, tax, depreciation and amortisation. With depreciation added back, the cost of the warehouses never shows up in it, so Asha should read it next to capex.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-bechtel
     prompt: >
-      In 1999 Webvan agreed with Bechtel to build distribution centres costing about $1 billion in all. If the centres last 20
-      years with no residual value and are depreciated straight-line, about how much yearly
-      depreciation does that order alone add?
+      July 1999. Webvan agrees with Bechtel to build up to 26 more automated warehouses, about $1 billion in all. Asha wants the word analysts use for spending on buildings that last. Which is it?
     choices:
-      - { id: a, text: "$50 million" }
-      - { id: b, text: "$1 billion" }
-      - { id: c, text: "$500 million" }
-      - { id: d, text: "$5 million" }
+      - { id: a, text: "Capital expenditure, or capex" }
+      - { id: b, text: "An operating expense, like wages", mistake: { tag: called_it_operating_expense, fix: "Operating expenses are everyday running costs. Spending on lasting buildings is capex." } }
+      - { id: c, text: "Amortisation", mistake: { tag: called_it_amortisation, fix: "Amortisation is a yearly charge for things you cannot touch, not the spending itself." } }
+      - { id: d, text: "Working capital", mistake: { tag: called_it_working_capital, fix: "Working capital is the day-to-day float of stock and bills. Buildings are fixed assets." } }
     answer: a
     explanation: >
-      1,000 / 20 = 50. The 20-year life is an assumption for this exercise, not a figure from Webvan's accounts. Against first-half revenue of $395,000, even a fraction of such a charge dwarfs sales.
+      Capex is spending on things that last. It becomes an asset, and its cost is spread through depreciation. The agreement carried no specific capital commitment, but it shows the scale of the plan.
     source: >
-      Contract size from Webvan's 10-K405 for 1999, filed 30 March 2000 (EDGAR, accession 0000891618-00-001877); the life is an assumption of the exercise.
+      Contract size from Webvan's 10-K405 for 1999, filed 30 March 2000 (EDGAR, accession 0000891618-00-001877).
+
+  - id: cx-q-lingo-amortisation
+    prompt: >
+      Dev pays up front for five years of billing software for his bakery. At the bank meeting he must name how that cost is spread over the five years. Which word should he use?
+    choices:
+      - { id: a, text: "Amortisation" }
+      - { id: b, text: "Depreciation", mistake: { tag: used_depreciation_for_intangibles, fix: "Depreciation is for physical things like ovens. Software and licences are spread by amortisation." } }
+      - { id: c, text: "Capex", mistake: { tag: called_the_spread_capex, fix: "Capex is the spending itself. The spreading over the years has its own name." } }
+      - { id: d, text: "EBITDA", mistake: { tag: called_the_spread_ebitda, fix: "EBITDA is a profit measure that adds the spreading back." } }
+    answer: a
+    explanation: >
+      Amortisation spreads the cost of something you cannot touch, such as software or a licence, over its useful life. Depreciation does the same for physical things like Dev's oven.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+
+  - id: cx-q-lingo-fixed-assets
+    prompt: >
+      November 1999. Before she decides on the share sale, Asha lists the things Webvan owns and will use for years. Which belongs on her list of fixed assets?
+    choices:
+      - { id: a, text: "Its automated distribution centre in Oakland" }
+      - { id: b, text: "The groceries on its shelves, sold within days", mistake: { tag: counted_stock_as_fixed, fix: "Stock is sold within days. Fixed assets are things used for years." } }
+      - { id: c, text: "The cash it raises from the share sale", mistake: { tag: counted_cash_as_fixed, fix: "Cash is money in hand. Fixed assets are the lasting things it buys." } }
+      - { id: d, text: "The goodwill of its Bay Area customers", mistake: { tag: counted_goodwill_as_fixed, fix: "Goodwill cannot be touched. Fixed assets are buildings, trucks and machines." } }
+    answer: a
+    explanation: >
+      Fixed assets are the lasting things a company owns and uses, like buildings, trucks and machines. Webvan's Oakland centre alone covered 336,000 square feet.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement; the Oakland centre is from the Webvan prospectus summarised in this Topic's Case.
+
+  - id: cx-q-lingo-ebitda
+    prompt: >
+      Dev's uncle wants ₹5 lakh from Dev for his trucking firm and boasts that its EBITDA is huge. Before he hands over a rupee, Dev asks what the letters stand for. Which answer is right?
+    choices:
+      - { id: a, text: "Earnings before interest, taxes, depreciation and amortisation" }
+      - { id: b, text: "Earnings before income, tax, debt and assets", mistake: { tag: scrambled_the_letters, fix: "The letters are interest, taxes, depreciation and amortisation." } }
+      - { id: c, text: "Expenses before interest and tax on every asset", mistake: { tag: read_e_as_expenses, fix: "The E is for earnings, a profit figure, not expenses." } }
+      - { id: d, text: "Estimated balance of income, taxes and dividends", mistake: { tag: invented_a_meaning, fix: "EBITDA is not an estimate. It is earnings with four things added back." } }
+    answer: a
+    explanation: >
+      EBITDA is earnings before interest, taxes, depreciation and amortisation. For a trucking firm, adding depreciation back leaves out the cost of the trucks it must keep buying.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
 checks:
   - id: cx-quiz-depreciation
@@ -108,6 +195,9 @@ checks:
       - cx-q-straight-line
       - cx-q-ebitda-blind-spot
       - cx-q-bechtel
+      - cx-q-lingo-amortisation
+      - cx-q-lingo-fixed-assets
+      - cx-q-lingo-ebitda
       - bank:eab:MBA-ACC-FA-0030
       - bank:eab:MBA-ACC-FA-0031
       - bank:eab:MBA-ACC-FA-0032
@@ -117,10 +207,11 @@ checks:
   - id: cx-ebitda-view
     kind: conversation
     prompt: >
-      It is 5 November 1999. Webvan has agreed to build distribution centres costing about
-      $1 billion and has revenue of $395,000 for the half year. A banker says "look at EBITDA, not net loss". Explain what
-      depreciation and EBITDA would show for this plan over the next few years, and what you would
-      look at instead to judge whether the build-out can pay for itself.
+      It is 5 November 1999, the day Webvan's shares start trading, and Asha must decide today.
+      Webvan has agreed to build warehouses costing about $1 billion, and its sales for the half
+      year were $395,000. A banker tells her "look at EBITDA, not the net loss". In your own words,
+      tell Asha what EBITDA would leave out for this plan, and what you would look at instead
+      before she decides.
     passCriteria: >
       The Learner explains that the $1 billion is capex: cash goes out up front, appears on the
       balance sheet as an asset, and is expensed gradually through depreciation. EBITDA adds
@@ -128,3 +219,80 @@ checks:
       They suggest looking at capex against operating cash flow, how fast each centre can fill
       with orders (utilisation, orders per day, revenue per centre) and thin grocery margins, or at
       profit after depreciation, to see whether the assets can earn their cost.
+
+scenes:
+  - id: webvan-story
+    step: story
+    recipe: story_scene
+    title: The grocer before its share sale
+    inputs:
+      cast:
+        - { id: webvan, emoji: delivery-truck, name: Webvan, role: an online grocer }
+        - { id: bechtel, emoji: building-construction, name: Bechtel, role: builds the warehouses }
+        - { id: asha, emoji: woman, name: Asha, role: weighs the share sale }
+      beats:
+        - { who: narrator, says: "5 November 1999. Webvan, an online grocer, sells its first shares to the public.", emoji: calendar }
+        - { who: webvan, says: "We will build giant automated warehouses across many cities.", emoji: rocket }
+        - { who: bechtel, says: "Up to 26 more centres in three years. About a billion dollars." }
+        - { who: asha, says: "Today you deliver only around San Francisco, and the average order is small.", emoji: thinking-face }
+        - { who: narrator, says: "Asha must decide how those big buildings will show up in the profit numbers." }
+      caption: Big buildings, small sales so far
+      date: "1999-11-05"
+  - id: capex-myths
+    step: concept
+    check: cx-quiz-depreciation
+    recipe: myth_or_fact
+    title: Myth or fact, spending on assets
+    inputs:
+      cards:
+        - claim: Spending on a lasting asset is charged to profit all at once.
+          isFact: false
+          why: The cost is spread across the years the asset is used.
+          emoji: calendar
+        - claim: Depreciation is cash paid out every year.
+          isFact: false
+          why: The cash left when the asset was bought; the yearly charge is a book entry.
+          emoji: receipt
+        - claim: EBITDA leaves out the cost of the assets a business needs.
+          isFact: true
+          why: It adds depreciation back, so the cost of the assets drops out of it.
+          emoji: magnifying-glass-tilted-left
+  - id: oven-jar
+    step: concept
+    check: cx-ebitda-view
+    recipe: money_jar
+    title: The oven money leaves on day one
+    inputs:
+      label: Dev's oven money
+      start: 6
+      end: 0
+      unit: coin
+      each: each coin is ₹1 lakh
+      words: all of it leaves today, only a slice reaches profit yearly
+  - id: webvan-timeline
+    step: reveal
+    recipe: timeline
+    title: What came next for Webvan
+    inputs:
+      beats:
+        - { date: "1999-11-05", label: "Day one: shares close at $24.875", emoji: chart-increasing }
+        - { date: "2001-07-09", label: "Webvan shuts down, shares at 6 cents", emoji: stop-sign }
+        - { date: "2001-07-13", label: Webvan files for bankruptcy protection, emoji: scroll }
+  - id: ebitda-paths
+    step: principle
+    recipe: two_paths
+    title: Two readers, one healthy-looking EBITDA
+    inputs:
+      question: Two readers see a healthy EBITDA. Who is safer?
+      left:
+        emoji: man
+        name: The banker
+        choice: Trusted EBITDA alone
+        outcome: [sparkles, anxious-face-with-sweat]
+        outcomeLine: He missed the cost of the buildings.
+      right:
+        emoji: woman
+        name: The analyst
+        choice: Compared EBITDA with capex and cash
+        outcome: [magnifying-glass-tilted-left, check-mark-button]
+        outcomeLine: She saw whether the assets would pay for themselves.
