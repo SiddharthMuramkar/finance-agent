@@ -106,7 +106,7 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
     <ol
       ref={list}
       aria-label="Steps in this Topic"
-      className="quiet-scroll -mx-2 -mb-2 flex flex-nowrap items-center gap-x-3 overflow-x-auto overflow-y-hidden whitespace-nowrap px-2 pt-1 pb-3 text-xs leading-5"
+      className="-mx-2 -mb-2 flex flex-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden items-center gap-x-3 overflow-x-auto overflow-y-hidden whitespace-nowrap px-2 pt-1 pb-3 text-xs leading-5"
     >
       {/* Steps outside any Check (Story, Reveal, Principle) stand alone: "Story · Check 1: Concept, Your turn, Check · … · Reveal · Principle". */}
       {strip.groups.flatMap((g) => (g.check ? [g] : g.steps.map((s) => ({ check: null, steps: [s] })))).map((g) => (
