@@ -22,8 +22,10 @@ cases:
       Blodget. (B1) The Nasdaq rose 83% in 1999 and is still up 40% over the past year.
       (B2) Valuation matters less while an industry is young and more as it matures, and the
       internet is maturing. (B3) Probably 75% of the new internet companies will disappear, but the
-      best, such as Yahoo, will keep growing for ten years. (B4) Yahoo is now a $70 billion company
-      selling at 340 times earnings; it was cheap when it listed. (B5) A fund manager measured
+      best, such as Yahoo, will keep growing for ten years. (B4) Yahoo is now a $70 billion company;
+      it was cheap when it listed, and he would gladly buy it at 30 times earnings if he could. At
+      that point Forbes's editors added a note of their own in brackets: "[It sells at 340 times
+      earnings.]" The 340 is the magazine's figure, not Blodget's words. (B5) A fund manager measured
       against the S&P 500 index risks the job by not owning Yahoo and AOL, which have just joined
       it, so one cannot judge each stock purely on discounted cash flow.
       Grantham. (G1) At the end of February the combined stock-market value of the internet
@@ -52,10 +54,11 @@ cases:
       more than he said; his 'sooner or later' turned out to be two and a half years, not an instant.
       The reveal does not settle every claim. The share of new internet companies that disappeared (B3,
       G3) was not counted for this Case, so it stays untested here. Blodget's 83% (B1) was within three points of the
-      Nasdaq's own 85.59%, and his 340 times (B4) could not be reproduced from Yahoo's April release (about 225 times
+      Nasdaq's own 85.59%. The editors' bracketed 340 times beside B4 (Forbes's figure, not
+      Blodget's) could not be reproduced from Yahoo's April release (about 225 times
       on reported earnings and about 277 times on pro forma earnings, annualised, at $70 billion), so
       its gap lay in the price date and the earnings definition, which a careful reader could
-      have asked about on the day. B5 was an observation about incentives, which index levels
+      have asked the magazine about on the day. B5 was an observation about incentives, which index levels
       neither prove nor disprove. A separate fact is that on 28 April 2003 Blodget settled SEC and
       industry charges, without admitting or denying them, that some of his research on other
       internet companies (the SEC named GoTo.com) expressed views inconsistent with what he said
@@ -128,7 +131,7 @@ questions:
 
   - id: adb-q-pe-arithmetic
     prompt: >
-      Blodget said Yahoo sold at '340 times earnings'. Take a simpler share: it sells for $60, and the company earned $0.50 a share over the last four quarters. Traders set the price against those past four quarters of earnings and quote it as one 'times earnings' figure. What do they call it?
+      In the Forbes debate the editors noted in brackets that Yahoo sold at '340 times earnings'. Take a simpler share: it sells for $60, and the company earned $0.50 a share over the last four quarters. Traders set the price against those past four quarters of earnings and quote it as one 'times earnings' figure. What do they call it?
     choices:
       - { id: a, text: "The dividend yield", mistake: { tag: wrong-ratio, fix: "Dividend yield sets the payout against the price, not the earnings." } }
       - { id: b, text: "The trailing price-to-earnings ratio, or trailing P/E" }
@@ -156,15 +159,15 @@ questions:
 
   - id: adb-q-reconcile
     prompt: >
-      A US public company issues a press release quoting 'adjusted' earnings that leave out certain charges. Under the SEC's Regulation G, which of these must the release also contain?
+      A company's press release boasts 'adjusted' earnings that leave out some costs. US rules make it also print the official figure, the one built under the standard accounting rules (traders call them 'GAAP'), plus a table showing how to get from one figure to the other (a 'reconciliation'). Which would you pick as the reason a reader wants that table?
     choices:
-      - { id: a, text: "The most directly comparable GAAP measure and a reconciliation of the adjusted figure to it" }
-      - { id: b, text: "An audit opinion on the adjusted figure", mistake: { tag: audit_for_reconcile, fix: "Regulation G asks for the GAAP measure and a reconciliation, not an audit opinion." } }
-      - { id: c, text: "Nothing more, because adjusted figures are exempt", mistake: { tag: adjusted_exempt, fix: "Adjusted figures are not exempt: Regulation G covers them." } }
-      - { id: d, text: "A forecast of next year's adjusted earnings", mistake: { tag: forecast_for_reconcile, fix: "The rule is about showing the GAAP figure now, not a forecast." } }
+      - { id: a, text: "It shows exactly what was left out, so the reader can judge whether leaving it out was fair" }
+      - { id: b, text: "It proves the adjusted figure is the true one", mistake: { tag: adjusted_is_true, fix: "The table proves nothing; it shows what was dropped, so you can judge it." } }
+      - { id: c, text: "It turns the adjusted figure into an audited one", mistake: { tag: audit_for_reconcile, fix: "A reconciliation is not an audit; it only lines the two figures up." } }
+      - { id: d, text: "It forecasts next year's earnings", mistake: { tag: forecast_for_reconcile, fix: "The table compares two figures for the same past period; it forecasts nothing." } }
     answer: a
     explanation: >
-      Regulation G requires a public company that releases a non-GAAP measure to present the most directly comparable GAAP measure and a reconciliation of the two. That lets a reader see exactly what was left out.
+      Under the SEC's Regulation G, a public company that releases a non-GAAP measure must also present the most directly comparable GAAP measure and a reconciliation of the two. That lets a reader see exactly what was left out and decide whether to accept it.
     source: >
       SEC, Conditions for Use of Non-GAAP Financial Measures (Release 33-8176, 2003): https://www.sec.gov/rules-regulations/2003/03/conditions-use-non-gaap-financial-measures
 
@@ -237,7 +240,6 @@ checks:
       - adb-q-multiple-and-earnings
       - adb-q-starting-point
       - adb-q-incentive
-      - bank:eab:MBA-FIN-VAL-0014
     perAttempt: 3
     passRule:
       correct: 2
@@ -245,18 +247,14 @@ checks:
     kind: conversation
     prompt: >
       On 12 June 2000, which writer looked better supported to you, and which one claim would you
-      check first? At $70 billion, Yahoo's first-quarter earnings (released 5 April), annualised, give
-      about 225 times reported earnings and about 277 times pro forma earnings, against the quoted 340.
+      check first, and where would you look it up?
     passCriteria: >
-      The Learner picks at least one checkable fact from each writer (for example the Nasdaq's 1999
-      rise against its published year-end figures, Yahoo's earnings against its April release, or
-      the S&P 500's multiple) and says where it would be checked. They see that Yahoo's 'times earnings'
-      figure depends on the first-quarter earnings used (about 225 times reported or about 277 times
-      pro forma, as the prompt gives) and that neither matches the quoted 340, so the gap needs a stated
-      price date and definition before it can be called an error. They name a forecast (such as the share of companies that disappear
-      or the size of a fall) and judge it by its reasoning, size, time and stated limits, not as a
-      fact. They name a framing device (a starting point for a percentage, the sum of a sector shown
-      without its parts, benchmark pressure or the writer's own incentives). They prefer an argument
-      rather than a person, say what remains unknown, and name evidence that would change their mind.
-      They make no forecast of their own and no buy, sell or hold call. The prompt gives both
-      multiples, so no figure needs to be worked out.
+      The Learner says which writer's argument looked better supported and gives a reason drawn
+      from the claims themselves (for example that one side leans on checkable facts and the
+      other on forecasts or framing), preferring an argument rather than a person. They name one
+      claim to check first and say where it could be looked up (for example the Nasdaq's 1999
+      rise against the Nasdaq's published year-end figures, or Yahoo's earnings against its
+      5 April release). If they pick the '340 times earnings' figure, they treat it as the
+      magazine's bracketed note, not Blodget's words, and see that it depends on the price date
+      and the earnings used. They treat a forecast as a forecast, not a fact. They make no
+      forecast of their own and no buy, sell or hold call. No figure needs to be worked out.

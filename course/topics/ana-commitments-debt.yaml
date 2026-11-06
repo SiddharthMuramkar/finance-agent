@@ -29,11 +29,10 @@ cases:
       either party may cancel on 90 days' notice after initial non-cancelable periods end in
       January and March 2027. At 30 June 2026 the company held cash and cash equivalents of
       $112.4 billion and short-term investments of $19.3 billion. No one has yet said what the
-      commitments are worth in today's money. Using the 31 December 2025 schedule, why would
-      a payment due in 2030 count for less than one due this year, and why does the rate
-      you pick matter? Say how you would decide which of the contracts above belong in a
-      debt-like total, and what the filing would need to show for you to do the same for the
-      later, larger figures.
+      commitments are worth in today's money. Picture yourself as the analyst who adds up what
+      the company truly owes, counting these contracts like a loan (a 'debt-like total'). Which
+      contracts would you put in, which would you leave out, and why would a payment due in 2030
+      count for less than one due this year?
     reveal: >
       Treating each year's payment as made at year end, and spreading the 11,808 "thereafter"
       evenly over 2031 to 2035 (the filing does not give the split, so this is an assumption),
@@ -87,45 +86,45 @@ youllLearn:
 questions:
   - id: cd-q-pv-annuity
     prompt: >
-      Anthropic's filing lists cloud and equipment contracts it must pay for year after year. Shrink that to a small company that must pay $1 million at the end of each of the next five years, $5 million on paper. An analyst counts these payments like a loan and asks what that loan is worth today: its 'debt-equivalent', using the company's 10% borrowing rate. How does the debt-equivalent compare with the $5 million on paper?
+      Note 13 of Anthropic's filing lists $54.6 billion of payments it cannot cancel, due year by year from 2026 into the 2030s. An analyst treats them like a loan and asks what they are worth in today's money. Which headline gets it right?
     choices:
-      - { id: a, text: "It is lower, because each later payment is shrunk to what it is worth today" }
-      - { id: b, text: "It is the same, because the payments are fixed and certain", mistake: { tag: ignores-time, fix: "Fixed payments still arrive later, and money later is worth less than money now." } }
-      - { id: c, text: "It is higher, because the interest is added on top of the payments", mistake: { tag: adds-interest, fix: "Discounting shrinks later payments; it does not add interest on top of them." } }
-      - { id: d, text: "It cannot be compared until the company reports a profit", mistake: { tag: profit-confusion, fix: "Debt-equivalent depends on payment dates and the rate, not on profit." } }
+      - { id: a, text: "Worth less than $54.6 billion today, because each later payment shrinks when brought back to today" }
+      - { id: b, text: "Worth exactly $54.6 billion, because the payments are fixed", mistake: { tag: ignores-time, fix: "Fixed payments still arrive later, and money later is worth less than money now." } }
+      - { id: c, text: "Worth more than $54.6 billion, because interest is added on top", mistake: { tag: adds-interest, fix: "Bringing later payments back to today shrinks them; it adds no interest on top." } }
+      - { id: d, text: "Nobody can say until the company makes a profit", mistake: { tag: profit-confusion, fix: "Worth today depends on the payment dates and the rate, not on profit." } }
     answer: a
     explanation: >
-      Each payment is shrunk to its worth today, so the debt-equivalent of five yearly payments of $1 million is about $3.79 million, below the $5 million on paper. The undiscounted total overstates the debt-equivalent.
+      Each later payment is shrunk to what it is worth today, so the loan-like total comes out below the $54.6 billion on paper. The undiscounted sum overstates what the company owes in today's money.
     source: >
-      Damodaran, Dealing with Operating Leases in Valuation (Table 1, $1 million a year for five years at 10%): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf
+      Anthropic, PBC, Form S-1, Note 13 (future minimum payments under non-cancelable purchase commitments at 31 December 2025, total $54,559m): https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm ; Damodaran, Dealing with Operating Leases in Valuation: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf
 
   - id: cd-q-rate
     prompt: >
-      An analyst wants to treat a list of fixed yearly payments like a loan and say what that loan is worth today (its 'debt-equivalent'). That means shrinking each later payment by a rate, called discounting. Which rate does Damodaran's approach use?
+      Anthropic must pay Amazon at least $110.0 billion by 2036 'regardless of actual usage', much as a borrower must repay a lender. To bring such payments back to today's money (traders say 'discount' them), an analyst needs a rate. Which would you pick, and why?
     choices:
-      - { id: a, text: "The firm's pre-tax cost of debt" }
-      - { id: b, text: "The firm's cost of equity", mistake: { tag: equity-rate, fix: "These are fixed claims like borrowing, so the borrowing rate fits, not the owners' required return." } }
+      - { id: a, text: "The rate the company pays when it borrows, because a fixed payment works like a loan" }
+      - { id: b, text: "The return its shareholders hope to earn, because they own the company", mistake: { tag: equity-rate, fix: "Owners take what is left over; a fixed payment is like a loan, so use a borrowing rate." } }
       - { id: c, text: "Zero, because the payments are certain", mistake: { tag: ignores-time, fix: "Certain payments still arrive later, and money later is worth less than money now." } }
-      - { id: d, text: "The firm's after-tax return on equity", mistake: { tag: return-not-rate, fix: "A return on equity measures profit; the commitments are pre-tax claims, discounted at the pre-tax borrowing rate." } }
+      - { id: d, text: "Whichever rate makes the total look smallest", mistake: { tag: rate-to-flatter, fix: "The rate should fit the kind of claim, not the answer you want." } }
     answer: a
     explanation: >
-      The commitments are fixed, pre-tax claims that rank like unsecured borrowing, so they are discounted at the pre-tax cost of debt and the result is treated as debt.
+      A payment owed whatever happens is a claim like borrowing, so Damodaran discounts such commitments at the company's pre-tax cost of debt, the rate it pays to borrow, and treats the result as debt.
     source: >
       Damodaran, Operating versus Capital Leases: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/AccPrimer/lease.htm
 
   - id: cd-q-two-payments
     prompt: >
-      A firm owes $600 at the end of year 1 and $600 at the end of year 2. Treated as debt at a 10% discount rate, which of the two payments counts for more today, and why?
+      Anthropic's Note 13 gives a payment for each year to 2030, then lumps $11.8 billion together as 'thereafter', with no dates. An analyst wants that lump in today's money too. Which would you do first?
     choices:
-      - { id: a, text: "Year 1, because it is nearer and so is shrunk less" }
-      - { id: b, text: "Year 2, because money paid later has had longer to grow", mistake: { tag: reverses-discounting, fix: "The firm owes the same $600 either way; the later one is simply worth less today." } }
-      - { id: c, text: "Neither; both are $600, so they count the same", mistake: { tag: ignores-time, fix: "Equal amounts on paper are not equal today; the later payment is discounted more." } }
-      - { id: d, text: "Neither; discounting leaves out fixed payments", mistake: { tag: wrong-thing, fix: "Fixed payments are exactly what gets discounted and counted as debt." } }
+      - { id: a, text: "Pick when the lump is paid, say plainly it is a guess, and show what changes if the guess changes" }
+      - { id: b, text: "Leave the lump out, since the filing gives no dates", mistake: { tag: drops-tail, fix: "The payments are still owed; leaving them out makes the debt look smaller than it is." } }
+      - { id: c, text: "Count the full $11.8 billion, since dates do not matter", mistake: { tag: ignores-time, fix: "Dates decide what a payment is worth today; money paid later counts for less." } }
+      - { id: d, text: "Pick dates quietly and report one exact figure", mistake: { tag: hides-assumption, fix: "Any split is a guess; a reader needs to know it and see how much it matters." } }
     answer: a
     explanation: >
-      The nearer payment is shrunk less, so it counts for more today. Together the two payments are worth about $1,041, below the $1,200 on paper.
+      You cannot bring a total back to today without its dates. The Case spreads the 'thereafter' amount evenly over 2031 to 2035 and says so, because the filing gives no split, and shows the answer at more than one rate.
     source: >
-      OpenStax, Principles of Finance, 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+      Anthropic, PBC, Form S-1, Note 13 ('Thereafter 11,808' in the schedule of non-cancelable purchase commitments): https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm ; Damodaran, Dealing with Operating Leases in Valuation (spreading the lump beyond the listed years): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf
 
   - id: cd-q-longer-is-less
     prompt: >
@@ -143,9 +142,9 @@ questions:
 
   - id: cd-q-other-side
     prompt: >
-      Anthropic leases equipment from Broadcom. An analyst counts a firm's lease payments as debt, at their worth today (their 'present value'). The balance sheet must still balance. What appears on the other side?
+      Anthropic leases data-centre equipment from Broadcom for five years. An analyst adds the rent it owes to the company's debts, at its worth in today's money. A balance sheet always has two sides that match: what a company owns, and what it owes plus what its owners hold. What goes on the 'owns' side to match the new debt?
     choices:
-      - { id: a, text: "An asset of the same value is recognised" }
+      - { id: a, text: "The right to use the equipment, counted as something the company owns, at the same value" }
       - { id: b, text: "Equity falls by the same amount", mistake: { tag: equity-hit, fix: "Counting the lease as debt adds the right to use the asset; the owners lose nothing." } }
       - { id: c, text: "Nothing, because debt can be added alone", mistake: { tag: one-sided-entry, fix: "A balance sheet always balances, so the new debt needs a matching asset." } }
       - { id: d, text: "Cash rises by the same amount", mistake: { tag: cash-confusion, fix: "No cash was borrowed; the firm gained the right to use the leased equipment." } }
@@ -179,7 +178,6 @@ checks:
       - cd-q-longer-is-less
       - cd-q-other-side
       - cd-q-cancelable
-      - bank:eab:MBA-FIN-CF-0006
     perAttempt: 3
     passRule:
       correct: 2
@@ -187,16 +185,13 @@ checks:
     kind: conversation
     prompt: >
       In your own words: why is a list of fixed yearly payments like a loan, and which contract
-      would you leave out?
+      would you leave out, and why?
     passCriteria: >
-      The Learner explains in words that each year's payment is shrunk to what it is worth today,
-      or that a stated assumed split of the "thereafter" amount is needed first, so the debt-like
-      total comes out below the undiscounted total. They justify the rate as a pre-tax borrowing
-      rate for fixed, unsecured claims (or give a reasoned alternative) and recognise the answer
-      moves with the rate and with the assumed tail. They separate fixed, non-cancelable or
-      pay-regardless commitments and finance leases from "up to" or short-notice-cancelable
-      amounts and from amounts not yet fixed, and say the totals depend on that scope. They say a
-      total with no payment dates cannot be discounted without a stated assumption, and name the
-      payment schedule as the missing item. They make no forecast about the company and no buy,
-      sell or hold call. The Learner needs no figures; the idea that the debt-like total is lower
-      than the undiscounted total is enough.
+      The Learner explains in words that fixed payments on fixed dates must be made whatever
+      happens, as a loan must be repaid, and that payments due later are worth less in today's
+      money, so the loan-like total comes out below the sum on paper. They name a contract to
+      leave out (or keep apart), such as the SpaceXAI "up to" agreements that either side may
+      cancel on 90 days' notice, or amounts with no fixed dollar figure, and say why: it can be
+      avoided or is not yet fixed, so it is closer to an option than a debt. They make no forecast
+      about the company and no buy, sell or hold call. The Learner needs no figures; the ideas
+      in words are enough.

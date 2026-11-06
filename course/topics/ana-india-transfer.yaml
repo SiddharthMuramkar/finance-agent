@@ -56,13 +56,10 @@ cases:
       crore next year, growing at the rupee inflation rate for ever. For this exercise take rupee
       inflation as 8% a year, dollar inflation as 2%, a dollar cost of equity for this company of 10%
       (already including any country risk premium), and a round exchange rate of Rs 65 to the
-      dollar (not the day's actual rate). Why must the rupee cash flows be discounted at a rupee rate, built from the dollar
-      cost of equity and the inflation gap, and not at the 10% dollar rate? Would valuing the
-      company in dollars, with the exchange rate drifting by the same inflation gap, and
-      converting back at Rs 65, tell the same story? What mistake is it to discount the rupee
-      cash flows at the dollar rate?
-      Finally, does the 17% fall already seen tell you what the rupee will do next, and what
-      would you need to know before using it?
+      dollar (not the day's actual rate). Her colleague wants to discount the rupee cash flows
+      at the 10% dollar rate. In your own words, why would that make the company look far more
+      valuable than it is, and does the 17% fall already seen tell her what the rupee will do
+      next?
     reveal: >
       The two values agree at about Rs 1,181 crore: the rupee discount rate is
       1.10 x 1.08 / 1.02 - 1, about 16.5%, so the value is 100 / (16.47% - 8%); in dollars the
@@ -152,29 +149,29 @@ questions:
 
   - id: ana-india-q-cost-of-equity
     prompt: >
-      Back to the dollar investor eyeing an Indian company in 2013. The company's shares swing more than the market (traders say its 'beta' is 1.2). It also carries the extra risk of doing business in India, which analysts price as a 'country risk premium'. In Damodaran's method, how does the beta treat that country premium?
+      Back to the dollar investor eyeing an Indian company in 2013. Its shares jump around more than the market as a whole (traders say its 'beta' is 1.2, where an average share is 1). Doing business in India also carries extra risk, which analysts price as a 'country risk premium'. Should this jumpier company carry more of India's extra risk than an average Indian company, and why?
     choices:
-      - { id: a, text: "Beta scales it up, just as it scales the ordinary reward for owning shares" }
-      - { id: b, text: "It is added once at the end, the same for every company whatever its beta", mistake: { tag: unscaled-premium, fix: "In this method beta scales the country premium too, so a jumpier company carries more of it." } }
-      - { id: c, text: "It is left out, because a country's risk shows up in the risk-free rate alone", mistake: { tag: leaves-out-country, fix: "A rupee or dollar risk-free rate does not stand in for country risk." } }
-      - { id: d, text: "It lowers the cost of equity, because a riskier country offers higher returns", mistake: { tag: reverses-risk, fix: "More risk means investors ask for a higher return, so the cost of equity goes up." } }
+      - { id: a, text: "More, because a share that moves more with the market also feels the country's shocks more" }
+      - { id: b, text: "The same as every Indian company, whatever its swings", mistake: { tag: unscaled-premium, fix: "In this method the country premium grows with beta, so a jumpier company carries more." } }
+      - { id: c, text: "None, because a country's risk shows up in the risk-free rate alone", mistake: { tag: leaves-out-country, fix: "A rupee or dollar risk-free rate does not stand in for country risk." } }
+      - { id: d, text: "Less, because a riskier company already offers higher returns", mistake: { tag: reverses-risk, fix: "More risk means investors ask for a higher return, so the cost of equity goes up." } }
     answer: a
     explanation: >
-      The formula is risk-free rate + beta x (mature premium + country risk premium), so with a beta of 1.2 the country premium is scaled by 1.2 along with the mature-market premium. With a 4% risk-free rate, a 5% premium and a 3% country premium that gives 13.6%. Adding the country premium unscaled gives a lower figure.
+      In Damodaran's beta approach the cost of equity is the risk-free rate plus beta times both the mature-market premium and the country risk premium. A company with a beta above 1 therefore carries more of the country premium than an average one, and adding the premium unscaled would understate its cost of equity.
     source: >
       Damodaran, Valuation lecture slides, session 5 (NYU Stern, spring 2020), approaches to country risk exposure: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr20/session5slides.pdf
 
   - id: ana-india-q-country-premium
     prompt: >
-      Investors want extra reward for owning shares in a riskier country. One way to size it starts from the country's dollar bonds, which pay 2% more than safe US bonds (the 'default spread'). The country's shares swing more than those bonds (30% against 20%), so the method scales the 2% by that bigger swing. What does that say about the premium for shares?
+      The dollar investor wants an extra reward for the risk of owning Indian shares. Lenders already charge a riskier country's government more than the US government to borrow dollars; traders call that gap the 'default spread'. Shares in that country swing more than its bonds do. Which headline gets the extra reward for shares right?
     choices:
-      - { id: a, text: "It is larger than the 2% spread, because equity is the riskier asset" }
-      - { id: b, text: "It equals the 2% spread, because the spread already measures country risk", mistake: { tag: skips-scaling, fix: "The spread is for bonds; equity swings more, so the method scales it up." } }
-      - { id: c, text: "It is smaller than the 2% spread, because a stock market spreads risk over many companies", mistake: { tag: reverses-scaling, fix: "Equity is the more volatile asset here, so the premium is larger, not smaller." } }
-      - { id: d, text: "It is zero, because the bonds are paid back in dollars", mistake: { tag: wrong-thing, fix: "A default spread above zero is exactly the country risk the method carries over." } }
+      - { id: a, text: "Shares need more than the bond gap, because they are the jumpier thing to own" }
+      - { id: b, text: "Shares need exactly the bond gap, because it already measures country risk", mistake: { tag: skips-scaling, fix: "The gap is for bonds; shares swing more, so the method scales it up." } }
+      - { id: c, text: "Shares need less than the bond gap, because a stock market spreads risk over many companies", mistake: { tag: reverses-scaling, fix: "Shares are the more volatile thing here, so the premium is larger, not smaller." } }
+      - { id: d, text: "Shares need nothing extra, because the bonds are paid back in dollars", mistake: { tag: wrong-thing, fix: "A default spread above zero is exactly the country risk the method carries over." } }
     answer: a
     explanation: >
-      Country risk premium = default spread x (equity volatility / bond volatility), here 2% x (30 / 20) = 3%. Equity is the riskier asset, so the premium is larger than the bond's spread.
+      One way Damodaran sizes the country risk premium for shares is to take the default spread and scale it up by the ratio of the swings in the country's shares to the swings in its bonds. Shares are the riskier thing to own, so their premium is larger than the bond gap.
     source: >
       Damodaran, Valuation lecture slides, session 5 (NYU Stern, spring 2020): https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr20/session5slides.pdf
 
@@ -208,18 +205,17 @@ checks:
   - id: ana-india-bank-reading
     kind: conversation
     prompt: >
-      Using only what was published by 28 February 2020, say what Yes Bank's numbers show about
-      its asset quality and earnings, which further numbers you would want before valuing its
-      equity, and what you cannot conclude from the evidence. Do not forecast.
+      Say it in your own words: using only what was published by 28 February 2020, what do Yes
+      Bank's numbers tell you about the bank, and what would you still want to know before
+      putting a value on its shares?
     passCriteria: >
-      The Learner reads the figures correctly (a gross NPA ratio of 7.39% against 1.60% a year
-      earlier, net NPA 4.35%, a quarterly loss against a profit, a share price far below earlier
-      closes) and says that they show deteriorating asset quality and falling earnings. They name
-      what a bank valuation needs instead of free cash flow to the firm: capital ratios, provisions
-      cover, funding and deposits, book value per share and return on equity, and the missing
-      results for the latest quarter. They say that a low price against old book value or a
-      stake offer does not prove the equity is cheap, that the evidence is dated, and that they
-      cannot say what will happen next. They give no buy, sell or hold view and no prediction.
+      The Learner says in words that the bank's bad loans had risen sharply in a year and that it
+      had swung from a profit to a loss, so its loan quality and earnings had worsened; no exact
+      ratio is needed. They name at least two further things a bank valuation would need, such as
+      its capital, the money it has set aside for bad loans, its deposits and funding, its book
+      value and return on equity, or the missing results for the latest quarter. They may add that
+      the numbers are dated or that a low share price or a stake offer does not prove the shares
+      are cheap. They give no buy, sell or hold view and no prediction.
   - id: ana-india-currency-consistency
     kind: conversation
     prompt: >
