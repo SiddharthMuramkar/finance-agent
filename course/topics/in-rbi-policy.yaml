@@ -58,7 +58,7 @@ youllLearn:
 questions:
   - id: rbi-q-repo
     prompt: >
-      3 September 2013. Late in the day, a Mumbai bank finds it is short of cash. It borrows overnight from the RBI under a repo, at the policy rate of 7.25 per cent. What does the bank hand over?
+      3 September 2013. Priya runs the cash desk at a Mumbai bank, and it is short for one night. She uses the bank's small daily repo allowance at the RBI, at the 7.25 per cent policy rate. What does the bank hand over?
     choices:
       - { id: a, text: "Government securities, which it agrees to buy back later at a higher price" }
       - { id: b, text: "Dollars, which the RBI keeps for good", mistake: { tag: repo_in_dollars, fix: "A repo pledges government securities, and the bank buys them back when it repays." } }
