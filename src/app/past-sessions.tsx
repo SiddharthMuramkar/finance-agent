@@ -16,6 +16,11 @@ export function shortDate(d: Date): string {
   return `${Number(parts.day)} ${MONTHS[Number(parts.month) - 1]} ${parts.year}`;
 }
 
+/** "4 Nov": the day and month, for a row that sits under a Topic (the year is in the Session's own page). */
+export function dayMonth(d: Date): string {
+  return shortDate(d).replace(/ \d{4}$/, "");
+}
+
 function TopicPills({ topics }: { topics: string[] }) {
   return (
     <span className="flex flex-wrap gap-2">
