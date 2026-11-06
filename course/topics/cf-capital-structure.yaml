@@ -62,43 +62,61 @@ youllLearn:
 questions:
   - id: cs-q-tax-shield
     prompt: >
-      A firm has permanent debt of 1,000 at 8% interest and pays tax at 25%. What is the yearly tax saving from the interest?
+      A firm borrows for good and pays interest every year. Interest is taken off profit before tax, and tax is 25%. Which headline about the tax saving gets it right?
     choices:
-      - { id: a, text: "20" }
-      - { id: b, text: "80" }
-      - { id: c, text: "250" }
-      - { id: d, text: "60" }
+      - { id: a, text: "The tax saving is a quarter of the interest paid, a gain for owners that grows as the firm borrows more" }
+      - id: b
+        text: "The tax saving is all of the interest paid, so debt is free"
+        mistake: { tag: debt_is_free, fix: "Only the tax on the interest is saved, a quarter of it here, so debt is not free." }
+      - id: c
+        text: "The tax saving is a quarter of the debt itself"
+        mistake: { tag: saving_on_debt, fix: "The saving comes from the interest, not the debt amount." }
+      - id: d
+        text: "There is no saving, because tax is charged on earnings before interest"
+        mistake: { tag: interest_after_tax, fix: "Interest is deducted before tax, which is why the tax bill falls." }
     answer: a
     explanation: >
-      Interest is 1,000 x 8% = 80. It is deducted before tax, so the tax bill falls by 25% of 80, which is 20.
+      Interest is deducted before tax, so the tax bill falls by a quarter of the interest. For example, debt of 1,000 at 8% costs 80 of interest a year and saves 20 of tax.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
 
   - id: cs-q-roe
     prompt: >
-      A firm earns 10 a year before interest on assets of 100, financed by 40 of debt at 6% interest and 60 of equity. Ignoring tax, what is the return on equity?
+      You buy a shop partly with a loan. The shop earns more each year than the loan's interest costs. Which headline about your return gets it right?
     choices:
-      - { id: a, text: "12.7%" }
-      - { id: b, text: "10.0%" }
-      - { id: c, text: "7.6%" }
-      - { id: d, text: "16.7%" }
+      - { id: a, text: "It rises above what the assets earn: leverage is working in the owners' favour" }
+      - id: b
+        text: "It stays the same: borrowing changes nothing for owners"
+        mistake: { tag: borrowing_neutral, fix: "The assets earn more than the debt costs, so the gap goes to the owners." }
+      - id: c
+        text: "It falls: interest eats into the owners' return"
+        mistake: { tag: interest_always_hurts, fix: "Interest is less than the assets earn, so owners keep the gap." }
+      - id: d
+        text: "It becomes the lender's rate: owners earn what the lender earns"
+        mistake: { tag: owners_get_loan_rate, fix: "Owners keep what the assets earn after interest, not the lender's rate." }
     answer: a
     explanation: >
-      Interest is 40 x 6% = 2.4, so earnings for shareholders are 10 - 2.4 = 7.6. Return on equity = 7.6 / 60 = 12.7%. Borrowing at less than the return on assets raises the return on equity, and would lower it if the assets earned less than 6%.
+      Borrowing at less than the assets earn lifts the owners' return, and would lower it if the assets earned less than the interest. For example, assets earning 10 on 100, with 40 borrowed at 6%, leave owners 7.6 on their 60, about 12.7%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.1 The Concept of Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-1-the-concept-of-capital-structure
 
   - id: cs-q-cover
     prompt: >
-      A firm earns 50 before interest and tax and pays 25 of interest. What is its interest cover?
+      A firm's yearly earnings are only twice its interest bill. Lenders watch the gap between the two closely. Which headline gets it right?
     choices:
-      - { id: a, text: "2.0 times" }
-      - { id: b, text: "0.5 times" }
-      - { id: c, text: "25 times" }
-      - { id: d, text: "75 times" }
+      - { id: a, text: "Interest cover, and a low figure signals a thin margin of safety" }
+      - id: b
+        text: "Interest cover, and a low figure signals that the firm is very safe"
+        mistake: { tag: low_cover_safe, fix: "A low cover means little room for earnings to fall before interest goes unpaid." }
+      - id: c
+        text: "Debt to equity, and a low figure signals a thin margin of safety"
+        mistake: { tag: cover_as_gearing, fix: "Debt to equity compares funding sources. Earnings against interest is interest cover." }
+      - id: d
+        text: "Return on equity, and a low figure signals a thin margin of safety"
+        mistake: { tag: cover_as_roe, fix: "Return on equity is what owners earn. Earnings against interest is interest cover." }
     answer: a
     explanation: >
-      Interest cover = EBIT / interest = 50 / 25 = 2.0. A fall of half in EBIT would leave nothing for shareholders, so a low cover signals a thin margin of safety.
+      Interest cover sets earnings before interest and tax against the interest bill, here 2 times. A fall of half in earnings would leave nothing for shareholders, so a low cover is a thin margin of safety.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
 

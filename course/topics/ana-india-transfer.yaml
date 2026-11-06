@@ -56,11 +56,11 @@ cases:
       crore next year, growing at the rupee inflation rate for ever. For this exercise take rupee
       inflation as 8% a year, dollar inflation as 2%, a dollar cost of equity for this company of 10%
       (already including any country risk premium), and a round exchange rate of Rs 65 to the
-      dollar (not the day's actual rate). First value the company in rupees, converting the dollar
-      cost of equity with the inflation differential. Then value it in dollars, converting each
-      rupee cash flow at an exchange rate that moves with the inflation differential, and convert
-      the answer back at Rs 65. Do the two values agree? Then consider the other reading, in which
-      the investor discounts the rupee cash flows at the 10% dollar rate: what error is that?
+      dollar (not the day's actual rate). Why must the rupee cash flows be discounted at a rupee rate, built from the dollar
+      cost of equity and the inflation gap, and not at the 10% dollar rate? Would valuing the
+      company in dollars, with the exchange rate drifting by the same inflation gap, and
+      converting back at Rs 65, tell the same story? What mistake is it to discount the rupee
+      cash flows at the dollar rate?
       Finally, does the 17% fall already seen tell you what the rupee will do next, and what
       would you need to know before using it?
     reveal: >
@@ -125,15 +125,15 @@ questions:
 
   - id: ana-india-q-inflation-convert
     prompt: >
-      A company's cost of equity is 10% in dollars. Expected inflation is 8% a year in rupees and 2% in dollars. About what is the cost of equity in rupees?
+      A company's cost of equity is 10% in dollars. Expected inflation is higher in rupees than in dollars, 8% a year against 2%. Which headline gets the company's cost of equity in rupees right?
     choices:
-      - { id: a, text: "About 18.0%" }
-      - { id: b, text: "About 16.5%" }
-      - { id: c, text: "About 12.0%" }
-      - { id: d, text: "About 8.0%" }
-    answer: b
+      - { id: a, text: "Higher than 10%, because the rupee rate carries the inflation gap between the two currencies" }
+      - { id: b, text: "Still 10%, because the company has not changed", mistake: { tag: ignores-inflation-gap, fix: "The company is the same, but a rupee rate must carry rupee inflation." } }
+      - { id: c, text: "Lower than 10%, because rupee cash is worth less", mistake: { tag: reverses-gap, fix: "Higher rupee inflation pushes the rupee rate up, not down." } }
+      - { id: d, text: "10% plus all of the 8% rupee inflation", mistake: { tag: adds-full-inflation, fix: "Dollar inflation is already in the 10%; only the gap between them is added." } }
+    answer: a
     explanation: >
-      (1 + 0.10) x (1.08 / 1.02) - 1 = 1.10 x 1.0588 - 1 = about 16.5%. Simply adding the 6-point inflation gap gives 16%, and 18% adds 8 points of inflation.
+      The rupee rate is the dollar rate lifted by the inflation gap between the two currencies: (1 + 0.10) x (1.08 / 1.02) - 1, about 16.5%. Adding all 8% of rupee inflation double counts the inflation already in the dollar rate.
     source: >
       Damodaran, Cost of Capital lecture slides (NYU Stern, 2024), cost of equity conversion with the inflation differential: https://pages.stern.nyu.edu/~adamodar/podcasts/cfspr24/session10slides.pdf
 
@@ -152,43 +152,43 @@ questions:
 
   - id: ana-india-q-cost-of-equity
     prompt: >
-      The risk-free rate is 4%, the mature-market equity premium is 5%, a country risk premium of 3% applies, and a company has a beta of 1.2 and is exposed to country risk in line with its beta. Using cost of equity = risk-free rate + beta x (mature premium + country risk premium), what is its cost of equity?
+      Back to the dollar investor eyeing an Indian company in 2013. The company's shares swing more than the market (traders say its 'beta' is 1.2). It also carries the extra risk of doing business in India, which analysts price as a 'country risk premium'. In Damodaran's method, how does the beta treat that country premium?
     choices:
-      - { id: a, text: "10.0%" }
-      - { id: b, text: "13.0%" }
-      - { id: c, text: "13.6%" }
-      - { id: d, text: "16.0%" }
-    answer: c
+      - { id: a, text: "Beta scales it up, just as it scales the ordinary reward for owning shares" }
+      - { id: b, text: "It is added once at the end, the same for every company whatever its beta", mistake: { tag: unscaled-premium, fix: "In this method beta scales the country premium too, so a jumpier company carries more of it." } }
+      - { id: c, text: "It is left out, because a country's risk shows up in the risk-free rate alone", mistake: { tag: leaves-out-country, fix: "A rupee or dollar risk-free rate does not stand in for country risk." } }
+      - { id: d, text: "It lowers the cost of equity, because a riskier country offers higher returns", mistake: { tag: reverses-risk, fix: "More risk means investors ask for a higher return, so the cost of equity goes up." } }
+    answer: a
     explanation: >
-      4% + 1.2 x (5% + 3%) = 4% + 9.6% = 13.6%. Leaving out the country risk premium gives 10%, and adding the premium without scaling it by beta gives 13%.
+      The formula is risk-free rate + beta x (mature premium + country risk premium), so with a beta of 1.2 the country premium is scaled by 1.2 along with the mature-market premium. With a 4% risk-free rate, a 5% premium and a 3% country premium that gives 13.6%. Adding the country premium unscaled gives a lower figure.
     source: >
       Damodaran, Valuation lecture slides, session 5 (NYU Stern, spring 2020), approaches to country risk exposure: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr20/session5slides.pdf
 
   - id: ana-india-q-country-premium
     prompt: >
-      A country's dollar bonds carry a default spread of 2%. The country's stock market has a standard deviation of 30% and its government bond a standard deviation of 20%. Scaling the default spread by relative volatility, what is the country equity risk premium?
+      Investors want extra reward for owning shares in a riskier country. One way to size it starts from the country's dollar bonds, which pay 2% more than safe US bonds (the 'default spread'). The country's shares swing more than those bonds (30% against 20%), so the method scales the 2% by that bigger swing. What does that say about the premium for shares?
     choices:
-      - { id: a, text: "1.33%" }
-      - { id: b, text: "2%" }
-      - { id: c, text: "3%" }
-      - { id: d, text: "6%" }
-    answer: c
+      - { id: a, text: "It is larger than the 2% spread, because equity is the riskier asset" }
+      - { id: b, text: "It equals the 2% spread, because the spread already measures country risk", mistake: { tag: skips-scaling, fix: "The spread is for bonds; equity swings more, so the method scales it up." } }
+      - { id: c, text: "It is smaller than the 2% spread, because a stock market spreads risk over many companies", mistake: { tag: reverses-scaling, fix: "Equity is the more volatile asset here, so the premium is larger, not smaller." } }
+      - { id: d, text: "It is zero, because the bonds are paid back in dollars", mistake: { tag: wrong-thing, fix: "A default spread above zero is exactly the country risk the method carries over." } }
+    answer: a
     explanation: >
-      Country risk premium = default spread x (equity volatility / bond volatility) = 2% x (30 / 20) = 3%. Equity is the riskier asset, so the premium is larger than the bond's spread.
+      Country risk premium = default spread x (equity volatility / bond volatility), here 2% x (30 / 20) = 3%. Equity is the riskier asset, so the premium is larger than the bond's spread.
     source: >
       Damodaran, Valuation lecture slides, session 5 (NYU Stern, spring 2020): https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr20/session5slides.pdf
 
   - id: ana-india-q-gross-npa
     prompt: >
-      A bank reports gross non-performing assets of Rs 5,000 crore on gross advances of Rs 80,000 crore. What is its gross NPA ratio?
+      When a bank reports its results, readers go first to one figure: bad loans as a share of all loans lent, before any money set aside for losses is taken off. Picture a bank with Rs 5,000 crore of bad loans out of Rs 80,000 crore lent. What do bankers call that figure?
     choices:
-      - { id: a, text: "1.6%" }
-      - { id: b, text: "6.25%" }
-      - { id: c, text: "16%" }
-      - { id: d, text: "62.5%" }
-    answer: b
+      - { id: a, text: "The gross NPA ratio" }
+      - { id: b, text: "The net NPA ratio", mistake: { tag: gross-vs-net, fix: "Net NPA takes provisions off first; gross NPA does not." } }
+      - { id: c, text: "The capital ratio", mistake: { tag: wrong-ratio, fix: "The capital ratio compares capital with assets, not bad loans with loans lent." } }
+      - { id: d, text: "The return on equity", mistake: { tag: wrong-ratio, fix: "Return on equity is profit per unit of owners' money, not bad loans." } }
+    answer: a
     explanation: >
-      Gross NPA ratio = gross NPAs / gross advances = 5,000 / 80,000 = 6.25%. Indian banks report it as a percentage of gross advances.
+      Gross NPA ratio = gross non-performing assets / gross advances, before provisions. Indian banks report it as a percentage of gross advances; here it is 5,000 / 80,000 = 6.25%. The net NPA ratio uses advances and NPAs after provisions.
     source: >
       Business Standard / PTI, 1 Nov 2019, an Indian bank's results stating gross bad loans as a percentage of gross advances: https://www.business-standard.com/amp/article/pti-stories/yes-bank-posts-net-loss-of-rs-629-cr-in-sept-quarter-as-bad-loans-spike-119110101058_1.html
 
@@ -223,14 +223,13 @@ checks:
   - id: ana-india-currency-consistency
     kind: conversation
     prompt: >
-      A dollar-based investor values a company's rupee cash flows. Explain how you would keep the
-      valuation consistent, where country risk enters, and whether the rupee's earlier 17% fall
-      changes the method.
+      Tell the dollar investor in a sentence or two: how does she keep rupees and dollars from
+      getting mixed up?
     passCriteria: >
-      The Learner says cash flows and discount rate must be in the same currency, converts the
-      dollar cost of equity to rupees with the inflation differential (about 16.5% in the
-      exercise, giving about Rs 1,181 crore) or values in dollars and gets the same answer, and
-      says that discounting rupee flows at a dollar rate overstates value. They put country risk
+      The Learner says cash flows and discount rate must be in the same currency, lifts the
+      dollar cost of equity for the inflation gap before using it on rupee flows (or values in
+      dollars and gets the same answer), and says that discounting rupee flows at a dollar
+      rate overstates value. They put country risk
       in the cost of equity as a premium rather than leaving it out. They say that a past fall in
       the currency does not by itself say what the exchange rate will do next, and that the method
       does not depend on guessing it. They make no forecast of the rupee and no buy, sell or hold

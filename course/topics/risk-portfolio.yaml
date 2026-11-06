@@ -64,15 +64,15 @@ youllLearn:
 questions:
   - id: rp-q-expected
     prompt: >
-      A portfolio has 40% in asset A (expected return 10%) and 60% in asset B (expected return 5%). What is the portfolio's expected return?
+      Zoya splits her savings: 40% in asset A, which has the higher expected return, and 60% in asset B, which has the lower one. Where does her portfolio's expected return fall?
     choices:
-      - { id: a, text: "7%" }
-      - { id: b, text: "7.5%" }
-      - { id: c, text: "15%" }
-      - { id: d, text: "5%" }
+      - { id: a, text: "Between the two, nearer B, because B has the bigger weight" }
+      - { id: b, text: "Exactly halfway, whatever the weights", mistake: { tag: ignored_weights, fix: "The weights matter: the portfolio sits nearer the asset that holds more of the money." } }
+      - { id: c, text: "Above both, because diversification adds return", mistake: { tag: diversification_adds_return, fix: "Diversification lowers risk; the expected return is only a weighted average of the holdings." } }
+      - { id: d, text: "At asset A's level, because it is the better asset", mistake: { tag: best_asset_wins, fix: "Holding some of B pulls the portfolio's expected return down towards B's." } }
     answer: a
     explanation: >
-      The expected return is the weighted average: 0.40 x 10% + 0.60 x 5% = 4% + 3% = 7%.
+      The expected return is the weighted average of the holdings' expected returns, so it falls between the two, nearer the asset with the bigger weight: 0.40 x 10% + 0.60 x 5% = 7%.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Summary): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
@@ -92,12 +92,12 @@ questions:
 
   - id: rp-q-correlation
     prompt: >
-      You can add one of three assets, each with the same standard deviation as your current holding, to a portfolio. Their correlations with your holding are +0.9, +0.3 and -0.2. Which gives the greatest reduction in portfolio risk?
+      You can add one of three assets to a portfolio. Each is as jumpy as your current holding. One tends to move almost in step with your holding, one moves with it only a little, and one tends to move the opposite way. Which gives the greatest reduction in portfolio risk?
     choices:
-      - { id: a, text: "The asset with correlation -0.2" }
-      - { id: b, text: "The asset with correlation +0.3" }
-      - { id: c, text: "The asset with correlation +0.9" }
-      - { id: d, text: "All three give the same reduction" }
+      - { id: a, text: "The asset that tends to move the opposite way" }
+      - { id: b, text: "The asset that moves with it only a little", mistake: { tag: second_best, fix: "A small link helps, but an asset that moves the other way offsets more of your losses." } }
+      - { id: c, text: "The asset that moves almost in step", mistake: { tag: similar_is_safe, fix: "An asset that moves in step adds little protection; its losses arrive with yours." } }
+      - { id: d, text: "All three give the same reduction", mistake: { tag: correlation_ignored, fix: "The reduction depends on how the asset moves with your holding, so the three differ." } }
     answer: a
     explanation: >
       The lower the correlation, the more one asset's losses are offset by another's gains and the more the portfolio's risk falls. The airline example in OpenStax shows that adding a similar stock removes little risk, while adding a dissimilar one removes much more.
