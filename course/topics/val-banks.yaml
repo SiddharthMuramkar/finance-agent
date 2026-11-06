@@ -90,29 +90,41 @@ questions:
 
   - id: vb-q-pb
     prompt: >
-      A bank has book equity of Rs 10,000 crore and a stock market value of Rs 15,000 crore. What is its price-to-book ratio?
+      A bank's books show equity of Rs 10,000 crore, but the stock market values its shares at Rs 15,000 crore. Which headline gets it right?
     choices:
-      - { id: a, text: "0.67" }
-      - { id: b, text: "1.0" }
-      - { id: c, text: "1.5" }
-      - { id: d, text: "5,000" }
+      - id: a
+        text: "Price-to-book: the market values the bank below what its books show"
+        mistake: { tag: below_book, fix: "The market value is above the book equity, so the market values the bank higher." }
+      - id: b
+        text: "Price-to-book: the market values the bank exactly at its books"
+        mistake: { tag: at_book, fix: "Equal would mean the market pays book value. Here the market pays more." }
+      - { id: c, text: "Price-to-book: the market values the bank above what its books show" }
+      - id: d
+        text: "Leverage ratio: the bank borrows heavily against its equity"
+        mistake: { tag: pb_as_leverage, fix: "Leverage compares assets with equity. Market value against book value is price-to-book." }
     answer: c
     explanation: >
-      Price-to-book = market value of equity / book value of equity = 15,000 / 10,000 = 1.5. A ratio above 1 means the market values the bank at more than the book equity.
+      Price-to-book compares the market value of equity with its book value, here 1.5. A ratio above 1 means the market values the bank at more than the book equity.
     source: >
       Damodaran, Valuing Financial Service Firms (Library), price-to-book value ratios: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
 
   - id: vb-q-leverage
     prompt: >
-      A bank has assets of Rs 100,000 crore, funded by Rs 8,000 crore of equity and the rest deposits and borrowings. If bad loans cost it 5 percent of assets, what share of its equity is lost?
+      A bank holds huge assets but funds them with only a thin layer of owners' equity, the rest being deposits and borrowings. Bad loans then cost it a small slice of its assets. What does that do to the owners' equity?
     choices:
-      - { id: a, text: "5 percent" }
-      - { id: b, text: "8 percent" }
-      - { id: c, text: "62.5 percent" }
-      - { id: d, text: "12.5 percent" }
+      - id: a
+        text: "It trims the equity by the same small slice as the assets"
+        mistake: { tag: leverage_ignored, fix: "Equity is a small cushion under big assets, so the same loss hits it much harder." }
+      - id: b
+        text: "It does not touch the equity, because depositors share the loss"
+        mistake: { tag: depositors_share_loss, fix: "Depositors are paid first, so the owners' equity takes the hit alone." }
+      - { id: c, text: "It can wipe out most of the equity, because a small loss on assets is a large one on a thin cushion" }
+      - id: d
+        text: "It only matters if the bank pays a dividend"
+        mistake: { tag: loss_via_dividend, fix: "A loss reduces equity whether or not a dividend is paid." }
     answer: c
     explanation: >
-      The loss is 5 percent of Rs 100,000 crore = Rs 5,000 crore. Against equity of Rs 8,000 crore that is 5,000 / 8,000 = 62.5 percent. High leverage turns a small loss on assets into a large loss of equity.
+      High leverage turns a small loss on assets into a large loss of equity. For example, a loss of 5 percent of Rs 100,000 crore of assets is Rs 5,000 crore, against equity of Rs 8,000 crore: about 62 percent of the cushion gone.
     source: >
       Damodaran, Valuing Financial Service Firms (Library), on regulatory capital and equity as a cushion: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
 

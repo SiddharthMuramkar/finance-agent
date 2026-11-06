@@ -59,51 +59,47 @@ youllLearn:
 questions:
   - id: fu-q-revenue-chain
     prompt: >
-      A car-service market is worth $100 billion a year. Suppose a company wins a 10% share of the
-      money customers spend and keeps 20% of every fare as its own revenue. What is its revenue?
+      Damodaran builds Uber's revenue as a chain. Riders pay fares across the car-service market, Uber wins a share of those fares, and it keeps a slice of each one, 20% in his story; the rest goes to the driver. So what counts as Uber's revenue?
     choices:
-      - { id: a, text: "$2 billion" }
-      - { id: b, text: "$10 billion" }
-      - { id: c, text: "$20 billion" }
-      - { id: d, text: "$30 billion" }
+      - { id: a, text: "Revenue is only the slice the company keeps of the fares in its share, a small part of the market" }
+      - { id: b, text: "Revenue is everything customers pay in the company's share of the market", mistake: { tag: gross_for_revenue, fix: "That is what customers pay in total. Revenue is only the slice the company keeps." } }
+      - { id: c, text: "Revenue is the slice kept from the whole market, as if the company had won all of it", mistake: { tag: skipped_the_share, fix: "The company wins only a share of the market first. The slice applies to that share." } }
+      - { id: d, text: "Revenue is the share and the slice added together", mistake: { tag: added_not_chained, fix: "They come one after the other: first Uber wins its share, then it keeps a slice of that share." } }
     answer: a
     explanation: >
-      Gross receipts are 10% of $100 billion, or $10 billion; the company keeps 20% of that, so its
-      revenue is $2 billion. Gross receipts and revenue are different numbers.
+      The chain runs from market to share to slice. Customers pay fares, the company wins a share of them, and it keeps a slice of that share as revenue. Gross receipts and revenue are different things.
     source: >
       Arithmetic on the market x share x slice chain set out in Damodaran, "Up, Up and Away! A Crowd
       Valuation of Uber!", Musings on Markets, 2 December 2014.
   - id: fu-q-market-growth
     prompt: >
-      A market of $100 billion grows 10.39% a year for ten years. About how big is it at the end?
+      One of the dials Damodaran hands his readers is how fast the whole car-service market grows. Say a reader picks about 10% a year for ten years. How does the market's size behave over that decade?
     choices:
-      - { id: a, text: "About $204 billion" }
-      - { id: b, text: "About $269 billion" }
-      - { id: c, text: "About $110 billion" }
-      - { id: d, text: "About $1,039 billion" }
-    answer: b
+      - { id: a, text: "Each year's growth builds on the growth before it, so it ends well above a straight-line count" }
+      - { id: b, text: "Each year adds the same dollars, so it grows in a straight line", mistake: { tag: simple_not_compound, fix: "Adding the same slice each year misses growth on earlier growth, so it understates." } }
+      - { id: c, text: "It grows once, by about a tenth, and then stays put", mistake: { tag: grew_once, fix: "The market grows every year for ten years, not just once." } }
+      - { id: d, text: "Ten years of growth multiplies its size by ten", mistake: { tag: rate_times_years, fix: "Ten years does not multiply size by ten. Each year adds a modest step." } }
+    answer: a
     explanation: >
-      1.1039 to the power 10 is about 2.69, so the market grows to about $269 billion. Simply adding
-      10.39% ten times would give about $204 billion and understates compounding.
+      Each year's growth is earned on a bigger base, so the market ends a good deal larger than a straight-line count, at more than two and a half times today's size. Simply adding the same dollars each year understates compounding.
     source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
   - id: fu-q-reinvestment
     prompt: >
-      A company expects revenue to rise by $5 billion. Each dollar of new capital it invests supports
-      $2.50 of extra revenue (a sales-to-capital ratio of 2.5). How much must it reinvest?
+      Another dial is how much capital Uber must put in to grow. Say a reader sets it so each new dollar of capital supports $2.50 of extra revenue, a sales-to-capital ratio of 2.5. What does that say about the new capital Uber needs?
     choices:
-      - { id: a, text: "$12.5 billion" }
-      - { id: b, text: "$2 billion" }
-      - { id: c, text: "$5 billion" }
-      - { id: d, text: "$0.5 billion" }
+      - { id: a, text: "More capital than the revenue it adds, because each dollar of revenue needs $2.50 of capital", mistake: { tag: ratio_upside_down, fix: "It is the other way round: each dollar of capital supports $2.50 of revenue." } }
+      - { id: b, text: "Less capital than the revenue it adds, because each dollar of capital supports more than a dollar of sales" }
+      - { id: c, text: "The same capital as the revenue it adds, one dollar for each dollar", mistake: { tag: ratio_of_one, fix: "Here each capital dollar supports $2.50 of revenue, not $1." } }
+      - { id: d, text: "Next to none, because the ratio is about profit rather than investment", mistake: { tag: ratio_about_profit, fix: "The ratio links new revenue to new capital. It says nothing about profit." } }
     answer: b
     explanation: >
-      Reinvestment = change in revenue / sales to capital = 5 / 2.5 = $2 billion. A higher ratio
-      means growth needs less capital, which raises value.
+      A sales-to-capital ratio above 1 means growth needs less new capital than the revenue it adds. The higher the ratio, the less the company must reinvest, which raises value.
     source: Sales-to-capital reinvestment, as used in Damodaran's young-company valuations (Musings on Markets, 2014).
   - id: fu-q-why-gap
     prompt: >
-      Two analysts use the same valuation model for a young company. One gets $6 billion, the other
-      $40 billion. What is the most likely reason?
+      In June 2014 Damodaran valued Uber at about $6 billion; months later, news stories spoke of
+      $40 billion and more. Both sides could use the same kind of valuation model. Why might they
+      land so far apart?
     choices:
       - { id: a, text: "One of them made an arithmetic error" }
       - { id: b, text: "They assume different stories: market size, share and margins" }
