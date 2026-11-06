@@ -40,14 +40,15 @@ describe("the Companion Widget picker", () => {
 
   it("takes the term that comes first in the text: percentage point before basis point", () => {
     const replyText = "The rate rose by a percentage point, or 100 basis points, in one day.";
-    const picked = pickCompanion(input(percent, { replyText }));
+    // Percent's story scene (E6a) was shown already, so the scene rule gives nothing.
+    const picked = pickCompanion(input(percent, { replyText, shownThisSession: { scenes: ["fed-opening"], terms: [] } }));
     expect(picked?.kind).toBe("lingo");
     expect(termOf(picked)).toBe("percentage point");
   });
 
   it("skips a term already carded in this Session: basis point once percentage point is carded", () => {
     const replyText = "The rate rose by a percentage point, or 100 basis points, in one day.";
-    const picked = pickCompanion(input(percent, { replyText, shownThisSession: { scenes: [], terms: ["percentage point"] } }));
+    const picked = pickCompanion(input(percent, { replyText, shownThisSession: { scenes: ["fed-opening"], terms: ["percentage point"] } }));
     expect(termOf(picked)).toBe("basis point");
   });
 

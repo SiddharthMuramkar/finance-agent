@@ -64,14 +64,21 @@ describe("a Widget with every reply", () => {
   it("adds exactly one Companion Widget to a Percent concept reply with no tool call, and records its kind", async () => {
     const db = await testDb();
     await atConcept(db);
-    const { events, sessionId, turnSeq } = await turn(db, "Tell me more", [say(CONCEPT)]);
-    const shown = await widgetsOfTurn(db, sessionId, turnSeq);
+    // Percent's first Check has a written-ahead concept scene (E6a), so the first bare reply gets it.
+    const first = await turn(db, "Tell me more", [say(CONCEPT)]);
+    const shown = await widgetsOfTurn(db, first.sessionId, first.turnSeq);
     expect(shown).toHaveLength(1);
-    expect(shown[0]).toMatchObject({ source: "companion", companion: "lingo", recipe: "lingo_card" });
-    expect((await sources(db)).at(-1)).toBe("lingo");
+    expect(shown[0]).toMatchObject({ source: "companion", companion: "scene", companionKey: "two-ways-to-say-it", recipe: "two_paths" });
+    expect((await sources(db)).at(-1)).toBe("scene");
     // The browser gets the Widget before the reply's text.
-    const types = events.map((e) => (e.type === "item" ? `item:${e.item.kind}` : e.type));
+    const types = first.events.map((e) => (e.type === "item" ? `item:${e.item.kind}` : e.type));
     expect(types.indexOf(`item:${WIDGET_SHOWN}`)).toBeLessThan(types.indexOf("text"));
+    // The scene was shown, so the next reply that explains "basis point" in words gets its Lingo card.
+    const next = await turn(db, "And again?", [say(CONCEPT)]);
+    const again = await widgetsOfTurn(db, next.sessionId, next.turnSeq);
+    expect(again).toHaveLength(1);
+    expect(again[0]).toMatchObject({ source: "companion", companion: "lingo", companionKey: "basis point", recipe: "lingo_card" });
+    expect((await sources(db)).at(-1)).toBe("lingo");
   });
 
   it("gives tutor and no companion when the reply calls show_widget", async () => {
