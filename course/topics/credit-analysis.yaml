@@ -76,15 +76,15 @@ questions:
 
   - id: ca-q-net-debt
     prompt: >
-      Two shoe companies owe the same large sum. One has a pile of cash in the bank nearly as big; the other has almost none. A lender shrugs at the first one: "Its net debt is small." What is she counting when she says net debt?
+      Kavya lends to two shoemakers that owe the same big sum. Only one has a pile of cash in the bank, and she calls its net debt small. What is she counting?
     choices:
-      - { id: a, text: "Debt plus the interest due this year", mistake: { tag: added_not_subtracted, fix: "Net means something is taken off. Net debt subtracts cash; it does not add interest." } }
-      - { id: b, text: "Only the debt owed to banks, leaving out bonds", mistake: { tag: net_means_bank_only, fix: "Net is not about who lent the money. It is debt after cash is taken off." } }
-      - { id: c, text: "Debt after tax has been deducted", mistake: { tag: netted_off_tax, fix: "Tax is not netted off. Net debt is debt less cash." } }
-      - { id: d, text: "Debt minus the cash the company holds" }
+      - { id: a, text: "Its debt plus the interest due this year", mistake: { tag: added_not_subtracted, fix: "Net means something is taken off. Net debt subtracts cash; it does not add interest." } }
+      - { id: b, text: "Only its bank loans, leaving out its bonds", mistake: { tag: net_means_bank_only, fix: "Net is not about who lent the money. It is debt after cash is taken off." } }
+      - { id: c, text: "Its debt after tax has been deducted", mistake: { tag: netted_off_tax, fix: "Tax is not netted off. Net debt is debt less cash." } }
+      - { id: d, text: "Its debt minus the cash it already holds" }
     answer: d
     explanation: >
-      Net debt is debt less cash. A company with debt of 500 and cash of 100 has net debt of 400. Net debt to EBITDA then tells a lender, roughly, how many years of EBITDA it would take to repay what is owed.
+      Net means something is taken off: net debt is what a company owes less the cash it could pay with today. Lenders then set it against EBITDA, a rough measure of a year's cash earnings, to judge how long repaying would take.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default ; the ratio is by definition.
 
