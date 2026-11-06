@@ -37,8 +37,9 @@ cases:
 
 concept: >
   An exchange-rate regime is the rule a country follows for its currency. At one end, a floating rate
-  is set by the foreign exchange market. At the other, a hard peg fixes the rate and a currency board
-  or a shared currency removes the central bank's discretion. In between lie soft pegs, where the
+  is set by the foreign exchange market. At the other, a hard peg (such as a currency board) fixes the
+  rate; past it, a merged currency, using another country's currency or sharing one, leaves no
+  exchange rate to manage. In between lie soft pegs, where the
   central bank fixes or targets the rate but can move it, and managed floats, where the market
   sets the rate but the central bank steps in to smooth large moves. Every peg has to be defended: if the
   market wants to sell the currency at the pegged price, the central bank must buy it with its

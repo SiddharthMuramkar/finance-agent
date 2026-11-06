@@ -149,14 +149,15 @@ checks:
     kind: conversation
     prompt: >
       A firm has promised to deliver oil at fixed prices every month for ten years and covers
-      that promise with one-month futures that it rolls each month. Explain what the hedge does
-      well, and name two things it leaves unprotected: one about timing and one about cash.
+      that promise with one-month futures that it rolls each month, about 120 rolls. Explain what
+      the hedge does well, and name two things it leaves unprotected: one about timing and one about cash.
     passCriteria: >
       The Learner says the long futures gain when oil prices rise, offsetting the higher cost of
       the fixed-price promise, so the price direction is covered. They name a timing mismatch: a
-      one-month contract has to be rolled about 120 times over ten years, and each roll depends
-      on the shape of the futures curve (contango costs money, backwardation earns it). They name
+      one-month contract has to be rolled about 120 times over ten years (as the prompt gives), and
+      each roll depends on the shape of the futures curve (contango costs money, backwardation earns it). They name
       a cash mismatch: futures are marked to market daily and settled in cash, while the gains on
       the fixed-price contracts arrive only as oil is delivered, so the firm needs cash or credit
       lines to meet margin calls. Mentioning that the early-termination right given to customers
-      adds a further exposure is a bonus.
+      adds a further exposure is a bonus. The prompt gives the number of rolls, so no figure needs
+      to be worked out.
