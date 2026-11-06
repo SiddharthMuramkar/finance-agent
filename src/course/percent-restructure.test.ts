@@ -4,7 +4,8 @@ import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
-import { isConverted, loadCourseMap, testedSkills } from "./map";
+import { isConverted, loadCourseMap, testedSkills, type FixedQuickTry } from "./map";
+import { sumAsk } from "@/teaching/no-sums";
 import { cardForFacts, nextQuickTry } from "@/tutor/practice";
 import { courseOverview, finishStep, navigate, practiceStep, type Progress, type TeachingStep } from "./navigator";
 
@@ -68,6 +69,24 @@ describe("Percent's content-only restructure", () => {
     const check = percent.checks[0];
     expect(testedSkills(percent, check)).toContain("pts");
     expect(nextQuickTry(percent, check, {}, [])).toMatchObject({ skillId: "pts", key: expect.stringMatching(/:pb-try-a1$/) });
+  });
+
+  // Run 16 (critics MP-3, BP-3): "A reporter sees a rate go from 3% to 3.5%. What gap would the story report?" needed
+  // 3.5 minus 3 to tell its choices apart. The gap is now a story fact, and the choices differ by the word: points, percent, level.
+  it("opens Your turn on a Quick try the words tell apart: a person, a date and the stakes, no figure to work out, a short fix on each slip", () => {
+    const a1 = percent.checks[0].quickTries.find((q) => "id" in q && q.id === "pb-try-a1") as FixedQuickTry;
+    expect(a1.ask).toContain("3 February 1994");
+    expect(a1.ask).toMatch(/\breporter\b/);
+    expect(a1.ask).toMatch(/loans cost more/);
+    expect(a1.ask).toContain("a gap of half a point");
+    expect(sumAsk(a1.ask)).toBeNull();
+    expect(a1.halfDone).toBeDefined();
+    expect(a1.halfDone).not.toMatch(/\d/);
+    expect(a1.choices!.map((c) => c.text)).toEqual(["Rates rose half a percentage point", "Rates rose half a percent", "Rates rose 3.5 percentage points"]);
+    for (const c of a1.choices!.filter((c) => c.id !== a1.answer)) {
+      expect(c.mistake?.tag).toBeTruthy();
+      expect(c.mistake!.fix.split(/\s+/).length).toBeLessThanOrEqual(20);
+    }
   });
 
   it("keeps a Learner at the reveal with both old Checks passed at the reveal, though the new Check 2 is not passed", () => {

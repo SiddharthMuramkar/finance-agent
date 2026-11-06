@@ -478,14 +478,15 @@ checks:
     quickTries:
       - id: pb-try-a1
         skill: pts
-        ask: "A reporter sees a rate go from 3% to 3.5%. What gap would the story report?"
+        # Run 16 (critics MP-3, BP-3): the gap is a story fact, so the words tell the choices apart, not 3.5 minus 3.
+        ask: "3 February 1994, New York. A reporter writes for readers whose loans cost more when rates rise. If the Fed took its 3% rate to 3.5%, a gap of half a point, her story would say:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "Half a percentage point" }
-          - { id: b, text: "50 percentage points", mistake: { tag: forgot_to_convert, fix: "That is basis points. Points are the new rate minus the old rate." } }
-          - { id: c, text: "3.5 percentage points", mistake: { tag: gave_the_new_level, fix: "3.5% is where the rate ended. The gap is the end minus the start." } }
-        halfDone: "First step, done for you: the new rate is 3.5% and the old rate is 3%."
+          - { id: a, text: "Rates rose half a percentage point" }
+          - { id: b, text: "Rates rose half a percent", mistake: { tag: mixed_percent_points, fix: "Half a percent is a share of the old rate. The gap between two rates is in points." } }
+          - { id: c, text: "Rates rose 3.5 percentage points", mistake: { tag: gave_the_new_level, fix: "3.5% is where the rate would end. Points measure the gap between the old and new rates." } }
+        halfDone: "First step, done for you: a reporter writes the gap between two rates in percentage points."
       - id: pb-try-a2
         skill: pts-to-bp
         ask: "Same move, 3% to 3.5%. A bond trader would quote it as:"
