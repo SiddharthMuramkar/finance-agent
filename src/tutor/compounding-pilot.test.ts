@@ -197,13 +197,29 @@ describe("Growth, compounding and logs, converted", () => {
       expect(rightText("cp-try-log-half")).toContain("0.3");
       expect(rightText("cp-try-log-add")).toContain("0.4");
       expect(Math.log(2) + Math.log(0.5)).toBeCloseTo(0, 12);
-      // Steady pace: 300 to 900 in 2 years is about 73% a year, far above 25% (100 to 900 in 10); ₹800 to ₹1,800 in 2 is 50%, faster than ₹400 to ₹800 in 4 (about 19%).
-      expect(Math.round(calc("cagr", { start: 300, end: 900, years: 2 }, "CAGR"))).toBe(73);
-      expect(Math.round(calc("cagr", { start: 100, end: 900, years: 10 }, "CAGR"))).toBe(25);
+      // Steady pace, in words: tripling over 10 years is about 12% a year, and tripling in just 2 is about 73%, far faster;
+      // doubling in 4 years is about 19% a year, and even just doubling in 2 is about 41%, so "more than doubled in 2" is faster.
+      expect(tryById("cp-try-pace-half").ask).toContain("about 3 times over its first 10 years");
+      expect(Math.round(calc("cagr", { start: 1, end: 3, years: 10 }, "CAGR"))).toBe(12);
+      expect(Math.round(calc("cagr", { start: 1, end: 3, years: 2 }, "CAGR"))).toBe(73);
+      expect(calc("cagr", { start: 1, end: 3, years: 10 }, "CAGR")).toBeLessThan(calc("cagr", { start: 1, end: 3, years: 2 }, "CAGR"));
       expect(rightText("cp-try-pace-half")).toContain("Far faster");
-      expect(calc("cagr", { start: 800, end: 1800, years: 2 }, "CAGR")).toBeCloseTo(50, 9);
-      expect(calc("cagr", { start: 400, end: 800, years: 4 }, "CAGR")).toBeLessThan(50);
+      // The truth try's figures: growing about 9 times in 10 years is about 25% a year, and tripling in 2 is about 73%.
+      expect(tryById("cp-try-pace-truth").ask).toContain("25% a year over 10 years, but 73% a year in its last 2");
+      expect(Math.round(calc("cagr", { start: 1, end: 9, years: 10 }, "CAGR"))).toBe(25);
+      expect(calc("cagr", { start: 1, end: 2, years: 4 }, "CAGR")).toBeLessThan(calc("cagr", { start: 1, end: 2, years: 2 }, "CAGR"));
       expect(rightText("cp-try-pace-stretch")).toBe("The last 2 years");
+    });
+
+    it("let the steady-pace tries be answered by the idea, with no division (#484)", () => {
+      for (const id of ["cp-try-pace-half", "cp-try-pace-stretch"]) {
+        const q = tryById(id);
+        const words = [q.ask, q.halfDone ?? "", ...(q.choices ?? []).flatMap((c) => [c.text, c.mistake?.fix ?? ""])].join(" ");
+        // No money figures, no rates, no decimals, no big numbers to divide: only year counts and small multiples.
+        expect(words, id).not.toMatch(/₹|%|\d\.\d|\d{3}|\d,\d/);
+      }
+      expect(tryById("cp-try-pace-stretch").ask).toContain("more than doubled");
+      expect(tryById("cp-try-pace-half").ask).toContain("more than tripled");
     });
 
     it("mark the real slips as Known mistakes with their fixes", () => {
