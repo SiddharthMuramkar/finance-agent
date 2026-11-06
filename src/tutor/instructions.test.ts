@@ -21,8 +21,14 @@ describe("the Tutor's frozen instructions", () => {
 
       // Run 2 of the live eval (8 of 16): each rule below answers one failure.
       it("keep a story opener short, with a place in its scene (T12)", () => {
-        expect(text).toContain("that name who, where (a city, a firm or a market), when and what is at stake");
         expect(text).toContain("A story opener is 90 words or fewer in all");
+      });
+
+      // Run 3 (critics BP-5, EV-1): T12 failed 3 of 3 on no place, an unexplained backstory firm, and an ask off the idea.
+      it("put who, where, when and the stakes in an opener's first two sentences, with no backstory, and ask about its idea (T12)", () => {
+        expect(text).toContain("its first two sentences name who, where (a city, a firm or a market the Case names), when and what is at stake");
+        expect(text).toContain("Leave out backstory: no one's past jobs or earlier firms");
+        expect(text).toContain("The opener's ask is about the one idea it states");
       });
 
       it("say a sum as a statement, never as an instruction, and split choices by idea (T13)", () => {
@@ -33,6 +39,19 @@ describe("the Tutor's frozen instructions", () => {
       it("acknowledge frustration warmly, without the flat 'Fair.' (T15)", () => {
         expect(text).not.toContain('"Fair.');
         expect(text).toContain('"Good news: this part is words, not maths."');
+      });
+
+      // Run 3 (critics BP-2, EV-2): "bad at maths" got "mostly subtraction", a worked sum and a Quick try that asks for a number.
+      it("keep a reply to a maths worry all words: no sum, not even said as a fact, and no Quick try (T15)", () => {
+        expect(text).toContain("When the worry is maths, keep that reply all words");
+        expect(text).toContain("with no sum in it, not even said as a fact, and no pointer to a Quick try");
+        expect(text).toContain('The Learner writes: "ugh I\'m terrible with numbers".');
+      });
+
+      // Run 3 (critic BP-4): T13 held back the answer with "a nudge rather than the answer" and asked "bigger or smaller" again and again.
+      it("keep an answer back playfully, and never ask the same question twice in a Session (T13)", () => {
+        expect(text).toContain("one light, playful line that keeps the answer back as the Learner's to win");
+        expect(text).toContain("Never put the same question to the Learner twice in a Session");
       });
 
       it("answer a word question with the word only, within 70 words (T16)", () => {

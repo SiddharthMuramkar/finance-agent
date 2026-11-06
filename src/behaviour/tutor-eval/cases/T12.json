@@ -20,7 +20,7 @@
     }
   ],
   "graderChecks": [
-    "Does the reply open with a scene from the Case: a role or a name, a place, a date and what was at stake?",
+    "Does the reply open with a scene from the Case: a role or a name, a place (a city, a firm or a market: a named firm counts as the place when the Case names no city), a date and what was at stake?",
     "Does it keep to what was known on 1 August 1998 (1998-08-01), giving no outcome after that date (no loss, collapse or rescue of the fund)?"
   ],
   "notes": "Pass when (2 of 3 runs): the page starts the turn (the opener of a Session with no messages), 120 words or fewer, no sum asked, and the grader finds a scene (who, where, when, the stakes) with no outcome after the Case's as-of date."
