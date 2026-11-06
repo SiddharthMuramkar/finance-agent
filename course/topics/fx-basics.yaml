@@ -18,7 +18,7 @@ cases:
       Suppose policymakers decide to cut the rupee's value against other currencies.
       Consider the rupee price of a dollar. If India lowers the rupee's value, what happens to the
       rupee price of imported oil, to the dollar price of Indian exports, and to the
-      incentive to send money home or to hold it abroad? How large a cut would be enough?
+      incentive to send money home or to hold it abroad? What would make a cut big enough to win lenders' trust?
     reveal: >
       On 1 July 1991 the RBI cut the rupee's value by about 9%. Two days later, on 3 July,
       it cut it by a further 11%. The RBI's own chronology puts the cumulative devaluation at
@@ -111,7 +111,7 @@ questions:
       - { id: d, text: "The rupee lost value; the dollar gained" }
     answer: d
     explanation: >
-      One rupee was worth 1/75 = $0.013333 and is now worth 1/80 = $0.0125, a fall of 6.25%. The rise in the rupee price of a dollar is 6.67% (80/75 - 1). Both describe one move, measured from different sides.
+      It now takes more rupees to buy one dollar, so each rupee buys less: the rupee lost value and the dollar gained. It is one move seen from two sides, and because each side is measured from its own starting point the two percentages differ a little (the rupee fell about 6.25%, the dollar rose about 6.67%).
     source: >
       Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
@@ -161,12 +161,12 @@ checks:
   - id: fx-devaluation-explain
     kind: conversation
     prompt: >
-      Suppose a country with a fixed exchange rate cuts its currency's value by 10% and then
-      by a further 20% of the new value. In your own words, say what this does to the price of
-      imports and to the foreign-currency price of exports, why the total fall is a little less
-      than the two cuts put together, and how it could help with a payments crisis like India's in 1991.
+      Anil's uncle imports oil into Mumbai, and his aunt sells cotton shirts to shops in Dubai.
+      The morning after the government cuts the rupee's value, both of them call him. What does
+      each one tell him has changed for their business, and why would a government that is
+      running short of dollars, as India was in 1991, want that?
     passCriteria: >
-      The Learner says imports cost more in the home currency and exports cost less in foreign currency, so imports
-      are discouraged and exports encouraged. They say the second cut bites an already smaller value, so the total fall
-      is a little less than the two cuts put together (in this example 28%, not 30%). They connect it to the crisis: a cheaper
-      currency improves the trade balance and the incentive to hold the home currency, which helps restore reserves.
+      The Learner says the oil now costs the uncle more rupees, so imports are discouraged, and the aunt's
+      shirts now cost less in dirhams or dollars, so she can win more orders and exports are encouraged. They
+      connect it to the crisis: the country spends fewer dollars on imports and earns more from exports, and
+      holding rupees looks less risky once the cut is done, which helps rebuild the reserves.

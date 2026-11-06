@@ -82,12 +82,12 @@ questions:
 
   - id: sd-q-implied-prob
     prompt: >
-      A government's one-year bond offers 12% while a default-free one-year bond offers 4%. A friend says the 12% bond is simply the better deal. What is the catch?
+      A government's one-year bond offers 12% while a default-free one-year bond offers 4%. A friend says the 12% bond is simply the better deal. What does the gap between the two yields tell a bond trader?
     choices:
-      - { id: a, text: "There is no catch: a higher yield always means a higher return", mistake: { tag: yield_is_return, fix: "A high yield is only a promise. If default comes, the investor is paid less." } }
-      - { id: b, text: "The extra yield pays for the chance of default" }
-      - { id: c, text: "The only catch is that the bond is shorter", mistake: { tag: wrong_maturity, fix: "Both are one-year bonds. The wider yield pays for risk, not for length." } }
-      - { id: d, text: "The catch is that the safe bond pays tax-free", mistake: { tag: tax_catch, fix: "Tax is not what explains a wide gap. The extra yield is the price of default risk." } }
+      - { id: a, text: "The government bond will return more, since its yield is higher", mistake: { tag: yield_is_return, fix: "A high yield is only a promise. If default comes, the investor is paid less." } }
+      - { id: b, text: "Investors are being paid to carry the chance of default" }
+      - { id: c, text: "The government bond is expected to be held for longer", mistake: { tag: wrong_maturity, fix: "Both are one-year bonds. The wider yield pays for risk, not for length." } }
+      - { id: d, text: "The safe bond must be tax-free, so it can pay less", mistake: { tag: tax_catch, fix: "Tax is not what explains a wide gap. The extra yield is the price of default risk." } }
     answer: b
     explanation: >
       A bond that pays 12% if repaid, compared with 4% for a safe bond, only makes sense to investors if there is a real chance of default. The extra yield is what investors ask for to cover that chance.

@@ -65,12 +65,12 @@ questions:
       Meera runs two bakeries and asks a bank for a loan to open a third. The loan officer skims her accounts, stops at a line marked interest cover, and smiles. What has the officer just read there?
     choices:
       - { id: a, text: "How much interest the company earns on its own cash", mistake: { tag: flipped_interest, fix: "Interest cover is about interest the company owes, not interest it earns." } }
-      - { id: b, text: "How comfortably profit covers the interest bill: higher is safer" }
+      - { id: b, text: "How many times over profit could pay the year's interest bill" }
       - { id: c, text: "How many years of operating profit it would take to repay the debt", mistake: { tag: mixed_with_leverage, fix: "That is a debt-to-EBITDA idea. Interest cover sets profit against the interest bill." } }
       - { id: d, text: "How much of the debt a guarantee protects", mistake: { tag: mixed_with_guarantee, fix: "Guarantees are a separate idea. Cover here means profit covering the interest bill." } }
     answer: b
     explanation: >
-      Interest cover is operating profit (before interest and tax) divided by the interest expense. A company with profit of 120 and interest of 40 has a cover of 3.0: profit can fall a long way before interest goes unpaid. The higher the cover, the safer the lender.
+      Interest cover tells a lender how many times over the year's profit could pay the interest bill, so a high cover means profit can fall a long way before interest goes unpaid. It is operating profit (before interest and tax) divided by the interest expense: profit of 120 against interest of 40 gives a cover of 3.0.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default ; the ratio is by definition.
 
