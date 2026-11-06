@@ -150,6 +150,13 @@ describe("TimelineStrip", () => {
     click(markers[0]);
     expect(byId(page!, "timeline-label")!.textContent).toContain("Calm before");
   });
+
+  it("rings every marker in sunflower, the accent of history and stories, never gains, losses or lingo (Appendix A)", () => {
+    show(timeline);
+    const html = page!.host.innerHTML;
+    expect(html).toContain("border-[var(--sun)]");
+    expect(html).not.toMatch(/var\(--(mint|coral|violet)\)/);
+  });
 });
 
 describe("TwoPaths", () => {
@@ -162,6 +169,15 @@ describe("TwoPaths", () => {
     expect(text()).toContain("Ravi kept both houses");
     expect(page!.host.querySelectorAll('[data-testid="path-outcome"] img')).toHaveLength(2);
     expect(text()).not.toContain("Mira lost one house");
+  });
+
+  it("tells the sides apart by place and name, not by accent: both are a story, in sunflower (Appendix A)", () => {
+    show(paths);
+    for (const b of page!.host.querySelectorAll<HTMLButtonElement>('[data-testid="path-reveal"]')) click(b);
+    const html = page!.host.innerHTML;
+    expect(html).not.toMatch(/var\(--(mint|coral|violet)[^)]*\)/);
+    const sides = [...page!.host.querySelectorAll<HTMLElement>('[data-testid="path"]')];
+    expect(sides[0].className).toBe(sides[1].className);
   });
 });
 

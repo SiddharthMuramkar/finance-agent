@@ -35,6 +35,8 @@ describe("the rules tuned against the live tests", () => {
         expect(text).toContain("even when code has already shown a fix; only a short acknowledgement may come before it.");
         expect(text).toContain("Then one similar item with new numbers");
         expect(text).toContain("The methods, in order, are restate the rule, a worked example, a half-done choice, the Widget and a choice drill.");
+        // D1a: the boxes rung is now code's half-done choice, so the Tutor names the slip and asks nothing of its own there.
+        expect(text).toContain("At a half-done choice, code posts the half-done try after your reply: name the slip in one sentence and write no question of your own.");
       });
 
       it("simpler means the first idea only, with nothing new, and an open question asked again rather than answered", () => {
@@ -86,11 +88,16 @@ describe("the rules tuned against the live tests", () => {
     expect(tool.description).toContain("whenever they state a correct rule in their own words. Call it before you write your reply, and let code check the rest");
   });
 
-  it("the repeat-miss example names the slip and leaves the last step to the half-done choice code posts (D3b)", () => {
+  // D3b: the Learner picks the "0.3 bp" choice, and the slip is said warmly, the way a trader says it. F2-C1: code's
+  // half-done try after the reply is the ask, so the reply is the slip alone, with no pointer line or ask of its own.
+  it("the repeat-miss example, at the half-done choice, names the slip in one sentence and leaves the ask to code's half-done try (D3b, F2-C1)", () => {
     const halfDone = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
-    expect(halfDone.situation).toContain("method a half-done choice");
+    expect(halfDone.situation).toContain("method a half-done choice;");
+    expect(halfDone.situation).toContain("they picked 0.3 bp");
+    expect(halfDone.learner).toBe("0.3 bp");
+    expect(halfDone.reply).not.toContain("7.5%");
     expect(halfDone.reply).not.toMatch(/Box/);
-    expect(halfDone.reply.split("\n").at(-1)).toBe("The try below has its first step done: tap the way a trader would say it.");
+    expect(halfDone.reply).toBe("Close: 0.3 is the move in points; traders say it in basis points, one more step, times 100.");
   });
 
   it("the start-from-the-beginning example says what a savings rate is, inside its one worked example", () => {

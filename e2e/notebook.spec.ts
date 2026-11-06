@@ -66,13 +66,13 @@ const firstLine = async (page: import("@playwright/test").Page) => {
 test("notebook is wide", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "measured at 1512×982");
   // Default view (the seeded Topics only): card-grid minmax(420px, 1fr) is three across at 1512, four at 1920, with no stranded area.
+  // Poll the layout rather than sleep: the grid reflows after a resize in its own time on a slow runner.
   await page.goto("/notebook");
-  expect(await firstLine(page), "rows in the first line at 1512").toBe(3);
+  await expect.poll(() => firstLine(page), { message: "rows in the first line at 1512" }).toBe(3);
   await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.waitForTimeout(300);
-  expect(await firstLine(page), "rows in the first line at 1920").toBe(4);
+  await expect.poll(() => firstLine(page), { message: "rows in the first line at 1920" }).toBe(4);
   await page.goto("/notebook?all=1");
-  expect(await firstLine(page), "rows in the first line, all Topics at 1920").toBe(4);
+  await expect.poll(() => firstLine(page), { message: "rows in the first line, all Topics at 1920" }).toBe(4);
   const gutters = await page.evaluate(() => {
     const r = document.querySelector('[data-testid="reading-column"]')!.getBoundingClientRect();
     return { left: r.left, right: document.documentElement.clientWidth - r.right };
@@ -91,7 +91,12 @@ test("save, then find it", async ({ page }) => {
   const savedText = "A basis point is one hundredth of a percentage point.";
   await expect(page.getByTestId("assistant-message").last()).toContainText(savedText);
 
+  // Wait for the save itself, not a fixed 5 s: this is the suite's only save, so the dev server compiles
+  // /api/notes/saved on this first POST, and under CI load that took over 5 s while the control sat on "Saving…"
+  // (CI runs 42208947817 and 42209284994, w1024). The link appears once the save answers.
+  const saved = page.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/api/notes/saved", { timeout: 90_000 });
   await page.getByRole("button", { name: "Save this reply to Notebook" }).last().click();
+  expect((await saved).ok(), "the save answered").toBe(true);
   const open = page.getByRole("link", { name: "Open Notebook" }).last();
   await expect(open).toBeVisible();
   const href = await open.getAttribute("href");

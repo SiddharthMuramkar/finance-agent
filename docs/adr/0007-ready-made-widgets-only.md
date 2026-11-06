@@ -1,6 +1,6 @@
 # Ready-made Widgets only, opened already set
 
-Status: accepted, 2026-11-04 (spec #229, "Teach simply"). Amends ADR 0003 and ADR 0005.
+Status: accepted, 2026-11-04 (spec #229, "Teach simply"). Amends ADR 0003 and ADR 0005. Amended by ADR 0009 (the rate-move Widget's practice mode asks the Learner to choose the right reading, not type it) and ADR 0010 ("at most one Widget per reply" becomes "exactly one": where no recipe fits, code adds a companion Widget).
 
 In the Study Workspace every Widget is either written ahead in a Topic's file or drawn by code from a Widget recipe (ADR 0005), and it opens already set to the numbers under discussion: a Concept card's preset, or the numbers the Tutor asks for. There is at most one Widget per reply, and code refuses a second with a tool error. The Tutor never draws a Widget of its own during the chat: compose_widget stays in the code but is not bound into the Tutor's tools, and a free-form Widget written into a reply fails the reply check (ADR 0008). When no recipe fits, the Tutor says so in one sentence and teaches in words. A Tutor preset replaces the Learner's last settings on that Widget, and the item records the preset, so an earlier chip reopens its own numbers. Guided Tasks stay optional play that the Tutor never sets as work. The explore step is unchanged (ADR 0001): it is the one place a Guided Task may decide progress, and elsewhere a ticked task may end a step early but never holds one back.
 

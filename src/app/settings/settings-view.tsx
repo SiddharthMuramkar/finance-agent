@@ -32,7 +32,7 @@ export function SettingsView({
   return (
     <div>
       <h1 className="text-lg font-semibold leading-[26px]">Settings</h1>
-      <div className="card-grid mt-3 items-start">
+      <div className="card-grid mt-3 items-start [grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr))]">
         <Card id="account" aria-labelledby="account-heading">
           <h2 id="account-heading" className={heading}>
             Account

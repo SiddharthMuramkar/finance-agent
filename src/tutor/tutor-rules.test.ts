@@ -33,6 +33,13 @@ describe("the Tutor's rules", () => {
         expect(text).not.toMatch(/an Accordion for detail/);
       });
 
+      it("name the third rung as code's half-done choice, with no question of the Tutor's own (D1a, ladder-moves.ts)", () => {
+        // D3b names the rungs as the spec and practice.ts's METHOD_NAMES do: a worked example, the Widget, a choice drill.
+        expect(text).toContain("restate the rule, a worked example, a half-done choice, the Widget and a choice drill");
+        expect(text).toContain("At a half-done choice, code posts the half-done try after your reply: name the slip in one sentence and write no question of your own.");
+        expect(text).not.toContain("The blank box is the reply's one ask");
+      });
+
       it("say what Go deeper, simpler and Show me get", () => {
         expect(text).toContain('"Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy.');
         expect(text).toContain("A request for something simpler gets the rule in four lines or fewer, with the same example.");
@@ -146,4 +153,68 @@ describe("Appendix A's examples", () => {
       expect({ reply: e.reply, problems: checkReply(fixReply({ text: e.reply, widgets: e.widget ? [e.widget] : [] }), ctx) }).toEqual({ reply: e.reply, problems: [] });
     }
   });
+});
+
+/**
+ * F2-C1: at the half-done choice rung code posts the half-done try after the reply, and that try is the ask
+ * (`ladder-moves.ts`). No rule that covers every rung may still demand an ask of the Tutor's own there, and the
+ * example at that rung must use the current method name and end with no ask.
+ */
+describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", () => {
+  const sentences = (text: string) => text.split(/(?<=[.!?])\s+(?=[A-Z"(])/);
+  const methodsIn = (text: string) => {
+    const list = text.match(/The methods, in order, are ([^.;]+)[.;]/)![1];
+    return list.split(/, | and /).map((m) => m.trim());
+  };
+
+  for (const [name, text] of [
+    ["widget engine off", TUTOR_INSTRUCTIONS],
+    ["widget engine on", ENGINE_INSTRUCTIONS],
+  ] as const) {
+    it(`${name}: every rule that sets an ask in this reply's method carves out the half-done choice`, () => {
+      const demands = sentences(text).filter((s) => s.includes("this reply's method") && /\bas the ask\b/.test(s));
+      expect(demands.length).toBeGreaterThan(0);
+      for (const s of demands) expect({ s, carvesOut: /half-done choice[^.]*write no ask of your own/.test(s) }).toEqual({ s, carvesOut: true });
+    });
+
+    it(`${name}: what is said at a half-done choice never asks the Tutor for a question or an ask`, () => {
+      // The rules only: the method list names the rung, and an example's Context line is checked by the example tests below.
+      const atRung = sentences(text).filter((s) => s.includes("half-done choice") && !s.startsWith("The methods, in order") && !s.startsWith("Context:"));
+      expect(atRung.length).toBeGreaterThan(0);
+      for (const s of atRung) expect(s).toMatch(/write no (?:question|ask) of your own/);
+    });
+  }
+
+  it("every example that names a method names one on the current list", () => {
+    const methods = methodsIn(TUTOR_INSTRUCTIONS);
+    expect(methods).toEqual(["restate the rule", "a worked example", "a half-done choice", "the Widget", "a choice drill"]);
+    const named = TUTOR_EXAMPLES.map((e) => e.situation.match(/\bmethod ([^;]+);/)?.[1]).filter((m): m is string => !!m);
+    expect(named.length).toBeGreaterThan(0);
+    for (const m of named) expect(methods).toContain(m);
+  });
+
+  it("the example at the half-done choice rung names the slip in one sentence and ends with no ask", () => {
+    const atRung = TUTOR_EXAMPLES.filter((e) => /\bmethod a half-done choice;/.test(e.situation));
+    expect(atRung).toHaveLength(1);
+    for (const e of atRung) {
+      expect(splitAsk(e.reply).ask).toBeNull();
+      expect(e.reply).not.toContain("?");
+      expect(e.reply.split("\n")).toHaveLength(1);
+    }
+  });
+
+  // F2-T-2: the heading above the examples must not tell the Tutor that every example ends with an ask while the
+  // half-done choice example ends with none.
+  for (const [name, text] of [
+    ["widget engine off", TUTOR_INSTRUCTIONS],
+    ["widget engine on", ENGINE_INSTRUCTIONS],
+  ] as const) {
+    it(`${name}: the examples heading carves out the half-done choice, whose example has no ask`, () => {
+      const heading = text.split("\n").find((l) => l.startsWith("Examples of good replies"));
+      expect(heading).toBeDefined();
+      const claimsEveryAsk = /each reply's last line is its one ask/.test(heading!);
+      const anyWithoutAsk = TUTOR_EXAMPLES.some((e) => splitAsk(e.reply).ask === null);
+      if (claimsEveryAsk && anyWithoutAsk) expect(heading).toMatch(/half-done choice[^)]*write no ask of your own/);
+    });
+  }
 });
