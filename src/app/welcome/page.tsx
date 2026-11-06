@@ -20,7 +20,7 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   const firstTopic = loadCourseMap().topics[0];
   return (
     <SignedInFrame>
-      <ReadingPage theme={await readTheme()}>
+      <ReadingPage theme={await readTheme()} account={{ name: learner.name }}>
         <WelcomeView panel={welcomePanel((await searchParams).panel)} firstTopic={firstTopic} />
       </ReadingPage>
     </SignedInFrame>

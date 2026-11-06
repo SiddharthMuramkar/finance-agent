@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadCourseMap } from "@/course/map";
-import { currentLearnerId } from "@/auth/session";
+import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadPassageView } from "@/library/library";
 import { MACHINE_READ_NOTE } from "@/library/pictures";
@@ -32,8 +32,9 @@ export default async function PassagePage({
 }) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
+  const learner = await signedInLearner();
   const view = await loadPassageView(
-    { db: getDb(), map: loadCourseMap(), learnerId: await currentLearnerId() },
+    { db: getDb(), map: loadCourseMap(), learnerId: learner.id },
     id,
     blockRange((await searchParams).blocks),
   );
@@ -41,7 +42,7 @@ export default async function PassagePage({
   const theme = await readTheme();
   return (
     <SignedInFrame>
-      <ReadingPage theme={theme}>
+      <ReadingPage theme={theme} account={{ name: learner.name }}>
         <Eyebrow className="mb-1">Library passage</Eyebrow>
         {view.status === "hidden" ? (
           <p data-testid="passage-hidden">

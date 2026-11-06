@@ -13,7 +13,7 @@ export default async function SettingsPage() {
   const [p, theme] = await Promise.all([loadProfile(getDb(), learner.id), readTheme()]);
   return (
     <SignedInFrame>
-      <ReadingPage current="settings" theme={theme}>
+      <ReadingPage current="settings" theme={theme} account={{ name: learner.name }}>
         <SettingsView
           profile={{ work: p.work ?? "", location: p.location ?? "", loan: p.loan ?? "", savingFor: p.savingFor ?? "" }}
           developerDetails={learner.showDeveloperDetails}
