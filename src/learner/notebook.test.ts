@@ -122,7 +122,7 @@ describe("the Notebook", () => {
     const ra = nb.rows.find((r) => r.topicId === "a")!;
     expect(ra).toMatchObject({ status: "not_started", action: null, sessionId: null });
     expect(ra.earlier).toEqual([
-      { sessionId: a, attemptNo: 1, date: new Date("2026-11-04T10:00:00Z"), status: "passed", checksPassed: 1, checksTotal: 1, found: ["You moved the first slider.", "You moved the second slider."] },
+      { sessionId: a, topicId: "a", attemptNo: 1, date: new Date("2026-11-04T10:00:00Z"), status: "passed", checksPassed: 1, checksTotal: 1, found: ["You moved the first slider.", "You moved the second slider."] },
     ]);
     expect(nb.rows.find((r) => r.topicId === "b")!.earlier).toEqual([]);
   });
