@@ -100,7 +100,7 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
 
 export type HeaderPage = "workspace" | "course" | "notebook" | "settings";
 
-/** Who the header's account menu names: the signed-in Learner, with their email once Google sign-in supplies one. */
+/** Who the header's account menu names: the signed-in Learner, with their Google email when linked (see accountFor). */
 export type HeaderAccount = { name: string; email?: string };
 
 const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [

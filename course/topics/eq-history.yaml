@@ -16,7 +16,7 @@ cases:
       January 1992 it crossed 2,000 and on 29 February, after the next budget, it closed at 3,018, up 9.4% in
       a day. In March alone it rose 42% and today it closed at 4,285, more than four times its level of fifteen
       months ago. You are asked what the market might do from here.
-      Before you answer, work out what yearly return the last fifteen months represent, and compare it with
+      Before you answer, think about how fast a yearly pace the last fifteen months represent, and compare it with
       what you would reasonably expect shares to earn over many years. What would you want to know to tell a lasting
       re-rating from a bubble?
     reveal: >
@@ -57,71 +57,71 @@ youllLearn:
 questions:
   - id: eh-q-cagr
     prompt: >
-      An index rises from 500 to 2,000 over two years. What is its compound annual growth rate?
+      At dinner on 31 March 1992, Riya's uncle brags his shares "grew 40% a year on average". Riya wants the one steady yearly pace that, repeated, links his start to today. What do investors call it?
     choices:
-      - { id: a, text: "100% a year" }
-      - { id: b, text: "150% a year" }
-      - { id: c, text: "300% a year" }
-      - { id: d, text: "75% a year" }
+      - { id: a, text: "The compound annual growth rate, or CAGR" }
+      - { id: b, text: "The simple average of each year's change", mistake: { tag: averaged_changes, fix: "A plain average ignores that each year builds on the last; that is the uncle's shortcut." } }
+      - { id: c, text: "The real return", mistake: { tag: mixed_up_terms, fix: "Real return allows for rising prices; it is not the steady rate linking start and end." } }
+      - { id: d, text: "The standard deviation", mistake: { tag: mixed_up_terms, fix: "Standard deviation measures how much returns swing, not the steady pace of growth." } }
     answer: a
     explanation: >
-      The index grows by a factor of 4 in two years, so each year's factor is the square root of 4, which is 2: a 100% rise a year. Dividing the total rise of 300% by two years (150%) is the arithmetic shortcut and overstates the compounded rate.
+      The CAGR is the one steady yearly rate that, compounded, links the start value to the end value. When returns swing, a simple average of the yearly changes overstates what an investor actually earned, which is why long-run records quote compound rates.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (geometric mean for growth rates): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
   - id: eh-q-up-down
     prompt: >
-      A portfolio of Rs 100 gains 50% in one year and loses 50% the next. What is it worth at the end?
+      A portfolio gains 50% in one year and loses 50% the next. The plain average of those two years is zero. Which statement gets it right?
     choices:
-      - { id: a, text: "Rs 75" }
-      - { id: b, text: "Rs 100" }
-      - { id: c, text: "Rs 150" }
-      - { id: d, text: "Rs 50" }
+      - { id: a, text: "The investor ended below the start, because the loss applied to a bigger amount" }
+      - { id: b, text: "The investor broke even, because the gain and the loss cancel", mistake: { tag: averaged_returns, fix: "Gains and losses of the same size do not cancel; the loss falls on a bigger base." } }
+      - { id: c, text: "The investor ended above the start, because the gain came first", mistake: { tag: order_myth, fix: "The order does not rescue the investor; the second-year loss is taken on the bigger amount." } }
+      - { id: d, text: "No one can say without knowing the amounts in rupees", mistake: { tag: needs_rupees, fix: "The answer does not depend on the starting amount; the same pattern leaves any investor behind." } }
     answer: a
     explanation: >
-      100 x 1.5 = 150, and 150 x 0.5 = 75. The arithmetic average of +50% and -50% is zero, but the investor has lost 25%: the geometric average is about -13.4% a year.
+      Start with Rs 100: a gain of 50% takes it to Rs 150, and a loss of 50% on that bigger amount takes it to Rs 75. The plain average of +50% and -50% is zero, but the investor has lost 25%: the geometric average is about -13.4% a year.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (arithmetic and geometric mean): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
   - id: eh-q-recover
     prompt: >
-      A share price falls by 40%. What percentage rise is needed to return to the original price?
+      Meera's shares drop 40% in one bad month. She tells her friend, "I only need a 40% climb to be even again." Is she right?
     choices:
-      - { id: a, text: "About 67%" }
-      - { id: b, text: "40%" }
-      - { id: c, text: "60%" }
-      - { id: d, text: "100%" }
+      - { id: a, text: "No. She needs a bigger climb than 40%, because the gain starts from a smaller price" }
+      - { id: b, text: "Yes. A 40% climb undoes a 40% drop, because a gain undoes a loss of the same size", mistake: { tag: same_percent_undoes, fix: "A 40% rise starts from the lower price, so it lands short of the old price." } }
+      - { id: c, text: "No. She needs a smaller climb than 40%, because the price is now lower", mistake: { tag: lower_base_myth, fix: "The lower base means each point of gain is worth less, so the rise must be bigger." } }
+      - { id: d, text: "No. The shares can never get back, because losses are permanent", mistake: { tag: losses_permanent, fix: "Prices can recover; the point is only that the rise needed is bigger than the fall." } }
     answer: a
     explanation: >
-      Starting at 100, a fall of 40% leaves 60. To get back to 100 the price must rise by 40 / 60 = 66.7%.
+      Starting at 100, a fall of 40% leaves 60. To get back to 100 the price must rise by 40 / 60 = 66.7%, more than the 40% it fell.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (working with growth factors): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
   - id: eh-q-real
     prompt: >
-      An investment earns 15% in a year when inflation is 10%. What is the real return (closest)?
+      Dev's savings earned 15% last year, but prices in the shops rose 10%. His grandfather says, "You are far less than 15% richer." What is the grandfather pointing at?
     choices:
-      - { id: a, text: "4.5%" }
-      - { id: b, text: "5.0%" }
-      - { id: c, text: "25%" }
-      - { id: d, text: "1.5%" }
+      - { id: a, text: "The real return: what he earned once the rise in prices is allowed for" }
+      - { id: b, text: "The nominal return: the headline figure before allowing for prices", mistake: { tag: mixed_up_terms, fix: "The headline 15% is the nominal return, which Dev already has; his grandfather means the figure after prices." } }
+      - { id: c, text: "The risk premium: the extra return for taking risk", mistake: { tag: mixed_up_terms, fix: "A risk premium is the extra return for taking risk, not an adjustment for rising prices." } }
+      - { id: d, text: "The expected return: what is likely in future", mistake: { tag: mixed_up_terms, fix: "Expected return looks forward at what is likely; his grandfather is adjusting what was already earned." } }
     answer: a
     explanation: >
-      Real return = 1.15 / 1.10 - 1 = 4.5%. Subtracting (15 - 10 = 5%) is a rough approximation that overstates it when inflation is high.
+      Real return allows for rising prices: (1.15 / 1.10) - 1 = 4.5%. Simply taking away the price rise (15 - 10 = 5%) is a rough approximation that overstates it when inflation is high.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 7.4 Applications of TVM in Finance (nominal versus real interest rates): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
 
   - id: eh-q-risk-return
     prompt: >
-      In the long US record, how did large-company stocks compare with Treasury bills?
+      On 31 March 1992, as the Sensex soars, Isha's grandfather warns that shares beat safe Treasury bills over the long run "but you pay for it in sleepless nights". Over the long US record, which headline gets it right?
     choices:
-      - { id: a, text: "Higher average return and a higher standard deviation" }
-      - { id: b, text: "Higher average return and a lower standard deviation" }
-      - { id: c, text: "Lower average return and a higher standard deviation" }
-      - { id: d, text: "The same average return and standard deviation" }
+      - { id: a, text: "Shares earned more on average, and swung far more year to year" }
+      - { id: b, text: "Shares earned more and swung less", mistake: { tag: no_free_lunch, fix: "Higher average returns came with bigger swings, never smaller ones." } }
+      - { id: c, text: "Bills earned more, while shares swung more", mistake: { tag: reversed_reward, fix: "Over long US records shares out-earned bills; the swings were the price of that." } }
+      - { id: d, text: "Both earned and swung about the same", mistake: { tag: no_difference, fix: "The long record shows a clear gap: more return for shares, and more swing." } }
     answer: a
     explanation: >
-      Over 1981-2020 stocks averaged 12.64% with a standard deviation of 16.06%, against 3.94% and 3.39% for bills. More return came with more risk.
+      In the long US record, large-company stocks earned well above Treasury bills on average, with much wider swings from year to year (a bigger standard deviation). More return came with more risk: that extra reward is the equity risk premium.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 12.4 Historical Picture of Returns to Stocks: https://openstax.org/books/principles-finance-2e/pages/12-4-historical-picture-of-returns-to-stocks
 
@@ -140,12 +140,12 @@ checks:
   - id: eh-judge-boom
     kind: conversation
     prompt: >
-      An index has more than quadrupled in fifteen months. Work out roughly what yearly return that is,
-      say how it compares with what shares earn over many years, and list what you would check before
-      deciding whether to buy.
+      The index has more than quadrupled in fifteen months, and your cousin wants to put his wedding
+      savings in tomorrow. In your own words, what is the one thing you would check first, and why?
     passCriteria: >
-      The Learner works out that a rise of more than four times in fifteen months is a yearly rate of
-      well over 100% (about 220%), far above the long-run average return of shares (low to mid teens a
-      year in nominal terms), and says that such a run cannot be a normal rate. They name checks such as
-      earnings and valuation, where the money is coming from (borrowing, leverage), how broad the
-      buying is, and the risk of a large fall, and note that a fall needs a bigger rise to recover.
+      The Learner names one check and says why it matters: earnings and valuation (what buyers now pay
+      for the profits), where the money for the buying comes from (borrowing, leverage), how broad the
+      buying is, or how big a fall could be. They recognise that more than quadrupling in fifteen months
+      is a pace far above what shares earn over many years, so the run is no guide to a normal year.
+      They may add that a fall needs a bigger rise to recover, or that a lasting re-rating needs profits
+      to grow into the price.

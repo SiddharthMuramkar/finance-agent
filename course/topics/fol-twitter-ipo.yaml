@@ -71,71 +71,57 @@ youllLearn:
 questions:
   - id: ftw-q-proceeds
     prompt: >
-      A company announces a price range of $10 to $12 a share for 40 million shares, with an option
-      to sell a further 6 million. What is the most it could raise if the option is used and the
-      shares are sold at the top of the range?
+      28 October 2013: Damodaran notes Twitter plans to sell 70 million shares at $17 to $20, with an option for 10.5 million more. A headline gives the most it could raise. Which figures is it using?
     choices:
-      - { id: a, text: "$400 million" }
-      - { id: b, text: "$480 million" }
-      - { id: c, text: "$552 million" }
-      - { id: d, text: "$660 million" }
+      - { id: a, text: "The bottom of the range on the main block of shares", mistake: { tag: used_low_end, fix: "That gives the least. The most uses the top price on every share on offer." } }
+      - { id: b, text: "The top of the range on the main block only", mistake: { tag: left_out_option, fix: "Right price, but the 10.5 million extra shares are left out." } }
+      - { id: c, text: "The top of the range on every share, extra option included" }
+      - { id: d, text: "A price above the range, since demand may push it up", mistake: { tag: above_range, fix: "The headline uses the announced range. A hoped-for higher price is not in it." } }
     answer: c
     explanation: >
-      The most shares sold is 40 + 6 = 46 million, and the highest price is $12, so the most raised is
-      46 million x $12 = $552 million. The low end, 40 million at $10, is $400 million.
+      The most the listing can raise uses the highest price in the range on the most shares on offer: the main block plus the extra option. The bottom of the range on the main block gives the least.
     source: >
       Arithmetic as in Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets,
       28 October 2013 (shares x price at each end of the range, with and without the extra option).
   - id: ftw-q-owners-cost
     prompt: >
-      A company is fairly worth $10 billion. It sells 8% of its shares to the public at a price 20%
-      below fair value. About how much value do the existing owners give up?
+      October 2013: Twitter is selling only a small slice of the company to the public. Say its bankers price the listing a bit below fair value, as bankers often do. What do Twitter's existing owners give up?
     choices:
-      - { id: a, text: "$2 billion" }
-      - { id: b, text: "$800 million" }
-      - { id: c, text: "$160 million" }
-      - { id: d, text: "$16 million" }
+      - { id: a, text: "The discount on the whole company", mistake: { tag: discount_on_whole, fix: "The discount applies only to the shares sold, not to the whole company." } }
+      - { id: b, text: "The full worth of the shares sold", mistake: { tag: gave_away_all, fix: "Buyers still pay most of what those shares are worth. Owners lose only the discount." } }
+      - { id: c, text: "Only the discount, and only on the slice sold" }
+      - { id: d, text: "Nothing, because the buyers paid a price", mistake: { tag: cost_ignored, fix: "A discount is a real cost to the owners, even if small beside the whole company." } }
     answer: c
     explanation: >
-      The shares sold are worth $800 million at fair value but are sold for 80% of that, $640
-      million, so the owners give up $160 million, or 1.6% of the company's value. Underpricing 20%
-      of the whole company would have cost $2 billion; selling only a small part limits the cost.
+      The owners lose the gap between fair value and the price paid, on the shares sold only. Selling only a small slice limits the cost; discounting the whole company would have cost far more.
     source: >
       The reasoning of Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", 28 October 2013
-      (underpricing costs the owners only on the part sold); numbers here are hypothetical.
+      (underpricing costs the owners only on the part sold).
   - id: ftw-q-underwriting-skew
     prompt: >
-      An investment bank guarantees to its client that all the shares in an offering will be sold at
-      the agreed offer price. Why does that guarantee push the bank towards a lower offer price?
+      28 October 2013: Damodaran asks what Twitter's bankers are up to. They "underwrite" the listing, guaranteeing every share sells at the offer price. Why does that promise push them to price low?
     choices:
-      - { id: a, text: "A price set above what buyers will pay leaves the bank holding unsold shares at a loss, while a price set a little low costs it little" }
-      - { id: b, text: "Regulators require the offer price to be below the company's book value" }
-      - { id: c, text: "Lower prices raise the bank's percentage fee" }
-      - { id: d, text: "Banks are paid only when the share price falls" }
+      - { id: a, text: "Too high leaves them stuck with unsold shares; a bit low costs little" }
+      - { id: b, text: "Regulators make offer prices sit below book value", mistake: { tag: regulator_rule, fix: "No rule ties the offer to book value. The bank's own guarantee drives it." } }
+      - { id: c, text: "A lower price raises the bank's percentage fee", mistake: { tag: fee_rises, fix: "A percentage fee shrinks with a lower price. The guarantee is what pulls the price down." } }
+      - { id: d, text: "Banks get paid only when the share price falls", mistake: { tag: paid_on_fall, fix: "Banks earn a fee on the sale. They gain nothing from a falling price." } }
     answer: a
     explanation: >
-      With the guarantee, the bank bears the loss if it cannot place the shares at the agreed price.
-      Setting the price too high is costly to the bank; setting it somewhat low is cheap, and it also
-      makes the offering easy to sell. This skew is one reason offerings tend to be priced below what
-      the first buyers then pay.
+      With the guarantee, the bank bears the loss if it cannot place the shares at the agreed price. Setting the price too high is costly to the bank; setting it somewhat low is cheap, and it also makes the offering easy to sell. This skew is one reason offerings tend to be priced below what the first buyers then pay.
     source: >
       Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets, 28 October
       2013 ("the underwriting skew").
   - id: ftw-q-close-values
     prompt: >
-      An analyst's discounted cash flow value for a company about to list is $18 a share, and the
-      price range announced for the offering is $17 to $19. What does the closeness of the two
-      numbers tell you?
+      October 2013: Damodaran values Twitter at $17.84 a share, and the bankers' range is $17 to $20. Your friend cheers: "His model is proven!" Damodaran disagrees. What does the match really tell you?
     choices:
-      - { id: a, text: "That the model is confirmed, since the market agrees with it" }
-      - { id: b, text: "Very little by itself: the range is set from demand and the bankers' reading of buyers, so the match may be coincidence" }
-      - { id: c, text: "That the offering will be sold below its true value" }
-      - { id: d, text: "That the company's cash flows are certain" }
+      - { id: a, text: "The model is confirmed, since the market agrees with it", mistake: { tag: match_proves, fix: "Bankers set the range by testing demand, not from his model, so a match proves little." } }
+      - { id: b, text: "Very little: the range reflects demand, so the match may be luck" }
+      - { id: c, text: "The shares will be sold below their true value", mistake: { tag: match_means_discount, fix: "A match between his value and the range says nothing about a discount either way." } }
+      - { id: d, text: "Twitter's future cash flows are now certain", mistake: { tag: match_means_certain, fix: "No price range makes cash flows certain. Value rests on a story about the future." } }
     answer: b
     explanation: >
-      A value comes from a story about growth, margins and risk; an offer price comes from bankers
-      testing demand. They can coincide by chance, so agreement is not a test of the model, and a
-      gap between them would not by itself prove either is wrong.
+      A value comes from a story about growth, margins and risk; an offer price comes from bankers testing demand. They can coincide by chance, so agreement is not a test of the model, and a gap between them would not by itself prove either is wrong.
     source: >
       Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets, 28 October
       2013 (price versus value).

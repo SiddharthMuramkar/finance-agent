@@ -70,61 +70,62 @@ youllLearn:
 questions:
   - id: jrb-q-mislabel
     prompt: >
-      A made-up agency, Agency Z, rates debt Z1 (best) down to Z8. Its published scale says Z1 to Z4 are "investment grade" and Z5 to Z8 are "non-investment grade". A writer says "non-investment grade debt (Z4 and below) defaulted far more often than investment grade debt (Z1 to Z3)". Which statement about the sentence is true?
+      May 2025, a made-up story: Priya's pension fund may hold only investment-grade bonds. On
+      Fitch's ladder, BBB- is the last investment-grade step and BB+ the first junk step. A new note
+      calls BBB- junk. If Priya trusts it, what happens?
     choices:
-      - { id: a, text: "The sentence is correct: Z4 is the weakest of the top group, so it belongs with what follows" }
-      - { id: b, text: "It places the dividing line one notch too high; by Agency Z's scale Z4 is investment grade" }
-      - { id: c, text: "It places the dividing line one notch too low; by Agency Z's scale Z5 is investment grade" }
-      - { id: d, text: "Agency Z's scale cannot be used to say where the line is" }
+      - { id: a, text: "Nothing: BBB- is the weakest of the top group anyway", mistake: { tag: weakest_moved_down, fix: "Fitch keeps BBB- inside investment grade, so calling it junk changes what the fund holds." } }
+      - { id: b, text: "She sells BBB- bonds her fund is allowed to keep" }
+      - { id: c, text: "She keeps BB+ bonds her fund should have sold", mistake: { tag: line_wrong_way, fix: "BB+ is junk on Fitch's ladder and in the note, so she sells it either way." } }
+      - { id: d, text: "Nobody can say: each analyst draws the line where they like", mistake: { tag: scale_ignored, fix: "The agency publishes its scale, and that is what decides where the line falls." } }
     answer: b
     explanation: >
-      The agency's own scale decides where the line is. By that scale Z4 is the last investment-grade
-      notch, so the writer has moved the line up one notch. The figures the writer quotes are a
+      The agency's own scale decides where the line is. On Fitch's scale BBB- is the last
+      investment-grade notch, so the note moved the line up one notch, and a fund that may hold only
+      investment grade would sell bonds it is allowed to keep. Any default figures in the note are a
       separate matter and would still need checking against the study they come from.
     source: >
-      Method of reading a scale against its published grade groupings, as in Moody's Rating Scale
-      card (investment grade and non-investment grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Agency Z is hypothetical.
+      Fitch Ratings, Rating Definitions ('AAA' to 'BBB' investment grade and 'BB' to 'D' speculative grade, with + and - modifiers): https://www.fitchratings.com/products/rating-definitions ; method of reading a scale against its published grade groupings, as in Moody's Rating Scale
+      card (investment grade and non-investment grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Priya, her fund and the note are made up.
   - id: jrb-q-notches
     prompt: >
-      On Moody's ladder (Aaa, Aa1, Aa2, Aa3, A1, A2, A3, Baa1, Baa2, Baa3, Ba1, Ba2, Ba3, B1 and
-      so on), how many notches lower is Baa3 than Aa1?
+      16 May 2025: Moody's moves the US from Aaa to Aa1. Your dad holds US Treasuries, reads that
+      the US lost its top rating, and wants to sell them all on Monday. What do you tell him?
     choices:
-      - { id: a, text: "Six" }
-      - { id: b, text: "Seven" }
-      - { id: c, text: "Eight" }
-      - { id: d, text: "Nine" }
-    answer: c
-    explanation: >
-      Counting down from Aa1: Aa2 (1), Aa3 (2), A1 (3), A2 (4), A3 (5), Baa1 (6), Baa2 (7), Baa3 (8).
-      Each numbered modifier is a notch of its own, so it is easy to be one out when counting by letter
-      class instead.
-    source: >
-      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; counting is arithmetic on that list.
-  - id: jrb-q-ratio
-    prompt: >
-      A writer says a study found a default rate of 24% for one group of bonds against 1.8% for
-      another, and calls the first group "about 13 times as likely to default". Recompute the ratio.
-    choices:
-      - { id: a, text: "About 13.3 times: 24 divided by 1.8" }
-      - { id: b, text: "About 22 times: 24 minus 1.8" }
-      - { id: c, text: "About 0.075 times: 1.8 divided by 24" }
-      - { id: d, text: "About 43 times: 24 times 1.8" }
+      - { id: a, text: "No need to panic: it is a one-notch downgrade, still investment grade" }
+      - { id: b, text: "Sell: losing Aaa means the US has dropped into junk", mistake: { tag: notch_as_grade, fix: "Aa1 is one notch below Aaa, still near the top of investment grade." } }
+      - { id: c, text: "No need to panic: a notch is just one basis point", mistake: { tag: notch_as_bp, fix: "Basis points measure yields and spreads; a notch is one step on the rating ladder." } }
+      - { id: d, text: "Sell: a notch means one tranche of US debt was cut", mistake: { tag: notch_as_tranche, fix: "A tranche is a slice of a bond issue; a notch is one rating step." } }
     answer: a
     explanation: >
-      The ratio of two rates is one divided by the other: 24 / 1.8 = 13.33. So "about 13 times" is
-      right as arithmetic. It says nothing about whether the groups were defined correctly, or
-      whether the two rates cover the same period.
-    source: Arithmetic on the two figures as the writer quotes them; no outside data is used.
+      Each step on Moody's ladder of 21 ratings is a notch, so Aaa to Aa1 is a one-notch downgrade.
+      Aa1 is still near the top of investment grade: a small step, even when it is the step off the
+      top. Whether to sell is his own call, but the rating has not turned his Treasuries into junk.
+    source: >
+      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; the 16 May 2025 move from Aaa to Aa1 as reported in Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!", Musings on Markets, 2 June 2025; your dad and his Treasuries are a made-up story.
+  - id: jrb-q-ratio
+    prompt: >
+      A blogger says a study found 24% of one group of bonds defaulted against 1.8% of another, and
+      calls the first group "about 13 times as likely to default". What is the careful reading?
+    choices:
+      - { id: a, text: "One group defaulted far more, but check how each group was drawn" }
+      - { id: b, text: "The big gap proves the first group's rating is the riskier one of the two", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
+      - { id: c, text: "Two default rates can never be set side by side", mistake: { tag: rates_incomparable, fix: "Setting one rate against another is a normal comparison; the question is what each covers." } }
+      - { id: d, text: "It only counts if the ratio is a whole number", mistake: { tag: whole_number_fixation, fix: "Whether the ratio is round does not matter; what the groups cover does." } }
+    answer: a
+    explanation: >
+      "About 13 times" is a fair way to set the two quoted rates side by side. It says nothing about
+      whether the groups were defined correctly, or whether the two rates cover the same period.
+    source: The two figures as the writer quotes them; no outside data is used.
   - id: jrb-q-inference
     prompt: >
-      A rating agency's published definition says debt in a certain class "may possess certain
-      weaker characteristics". A writer says the agency "defines this class as weak". What kind of
-      slip is that?
+      A rating agency says debt in one class "may possess certain weaker characteristics". A blogger
+      writes that the agency "defines this class as weak". What slip did the blogger make?
     choices:
-      - { id: a, text: "A unit error" }
-      - { id: b, text: "A period mismatch" }
-      - { id: c, text: "An inference beyond the text: the writer dropped the hedge" }
-      - { id: d, text: "No slip: the two sentences mean the same" }
+      - { id: a, text: "Mixed up two units of measure", mistake: { tag: unit_blamed, fix: "No units are involved; the blogger changed what the sentence claims." } }
+      - { id: b, text: "Set two different years side by side", mistake: { tag: period_blamed, fix: "No years are compared; the slip is in the wording." } }
+      - { id: c, text: "Dropped the hedge: \"may\" became \"is\"" }
+      - { id: d, text: "No slip: the two sentences mean the same", mistake: { tag: hedge_ignored, fix: "\"May possess\" is a possibility; \"defines as weak\" is a firm statement." } }
     answer: c
     explanation: >
       The source says debt "may possess" the characteristic; the writer says it is defined as having
@@ -134,29 +135,30 @@ questions:
       Method of comparing a claim with the source's wording; the quoted definition is hypothetical. The style of Moody's definitions is at https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
   - id: jrb-q-period
     prompt: >
-      One study reports that 6% of bonds in a rating group defaulted within five years. Another
-      reports that 2% of bonds in a rating group defaulted in one year. A writer says the first group
-      is "three times as risky". What is the main problem?
+      A blogger reads two studies. One says 6% of bonds in a rating group defaulted within five
+      years. The other says 2% of bonds in another group defaulted within one year. The blogger calls
+      the first group "three times as risky". What is the main problem?
     choices:
-      - { id: a, text: "The percentages are rounded" }
-      - { id: b, text: "The figures cover different periods, five years against one, so the ratio compares unlike things" }
-      - { id: c, text: "6 divided by 2 is not 3" }
-      - { id: d, text: "Percentages cannot be compared at all" }
+      - { id: a, text: "The figures are rounded, so the comparison between them is off", mistake: { tag: rounding_blamed, fix: "Rounding is minor; the real issue is a five-year window against a one-year window." } }
+      - { id: b, text: "The two cover different windows: five years against one" }
+      - { id: c, text: "A default rate says nothing about risk", mistake: { tag: default_not_risk, fix: "Default rates are a core risk measure; the problem is the unequal time windows." } }
+      - { id: d, text: "Percentages can never be compared", mistake: { tag: percent_incomparable, fix: "Percentages compare fine when they measure the same thing over the same window." } }
     answer: b
     explanation: >
-      6 / 2 = 3 is correct arithmetic, but a five-year cumulative figure and a one-year figure are not
-      measured over the same period. Always check what window each number covers before dividing one
-      by the other.
+      A five-year figure piles up defaults over five years; a one-year figure covers a single year.
+      They are not measured over the same window, so setting one against the other misleads. Always
+      check what window each number covers first.
     source: >
       Method of matching the period of compared figures; numbers are hypothetical. Default-study definitions of cumulative and annual rates: Moody's Ratings, Understanding credit ratings, https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
   - id: jrb-q-what-survives
     prompt: >
-      A writer mislabels where a rating agency's grade line falls, but then quotes two default rates taken from an agency study with its own grouping. You have yet to see the study. Which statement is the most careful?
+      A blogger draws the grade line one notch off, then quotes two default rates from an agency
+      study you have yet to read. What is the most careful verdict?
     choices:
-      - { id: a, text: "The two rates are wrong because the label is wrong" }
-      - { id: b, text: "The two rates are right because the study is by the agency" }
-      - { id: c, text: "The label is wrong; the rates are unchecked, and you need the study's own grouping to know" }
-      - { id: d, text: "The label does not matter if the arithmetic is right" }
+      - { id: a, text: "Both rates are wrong, because the label is wrong", mistake: { tag: one_slip_all_wrong, fix: "A wrong label does not make the quoted rates wrong; they are unchecked." } }
+      - { id: b, text: "Both rates are right, since the agency itself wrote the study they come from", mistake: { tag: source_as_proof, fix: "A good source still has to be read; the rates' grouping is unseen." } }
+      - { id: c, text: "The label is wrong; the rates stay unchecked until you see the study" }
+      - { id: d, text: "The label does not matter if the maths adds up", mistake: { tag: label_unimportant, fix: "A mislabelled group changes what the figures describe, whatever the maths." } }
     answer: c
     explanation: >
       A judge separates what has been shown wrong (the label, against the scale), what has been shown

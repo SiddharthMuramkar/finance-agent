@@ -9,8 +9,9 @@ const heading = "mb-2 text-base font-semibold leading-6";
 /**
  * The Settings page's body (A5): five cards in a card-grid — Account (who is signed in, and Sign out), Appearance
  * (Light, Dark or Match my Mac; the header's Theme menu shares its choice), About you (the Learner Profile form),
- * Developer details, and Start over (the danger zone, full width, last). B3b inserts Your Topics before Developer
- * details. Until Google sign-in supplies an email, Account says "Signed in with a passcode". No model call.
+ * Developer details, and Start over (the danger zone, full width, last). Between About you and Developer details sits
+ * the empty Your Topics slot (`id="your-topics"`) that B3b fills. A Google-linked Learner's Account shows their Google email (from accountFor); a passcode Learner has none, so
+ * Account says "Signed in with a passcode". No model call.
  */
 export function SettingsView({
   profile,
@@ -53,6 +54,8 @@ export function SettingsView({
           <p className="measure mb-4 text-xs leading-4 text-[var(--muted)]">{PROFILE_PRIVACY}</p>
           <ProfileForm mode="page" initial={profile} />
         </Card>
+        {/* Your Topics: the empty slot B3b fills with a Card. `contents` so it takes no grid cell until then. */}
+        <div id="your-topics" className="contents" />
         <Card id="developer-details" aria-labelledby="developer-details-heading">
           <h2 id="developer-details-heading" className={heading}>
             Developer details

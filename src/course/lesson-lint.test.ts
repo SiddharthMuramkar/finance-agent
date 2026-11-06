@@ -32,7 +32,8 @@ describe("the Topic file's teaching fields", () => {
     for (const t of loadCourseMap().topics.filter((x) => LESSON_NOT_YET_CONVERTED.includes(x.id))) {
       expect(isConverted(t)).toBe(false);
       expect(t.exampleCurrency).toBe("INR");
-      expect([t.terms, t.templates, ...t.checks.map((c) => c.quickTries)].every((list) => list.length === 0)).toBe(true);
+      // A story-first batch (E6) gives a Topic terms and scenes before its Skills, so terms only count for a Topic with no scenes.
+      expect([t.scenes.length ? [] : t.terms, t.templates, ...t.checks.map((c) => c.quickTries)].every((list) => list.length === 0)).toBe(true);
     }
   });
 

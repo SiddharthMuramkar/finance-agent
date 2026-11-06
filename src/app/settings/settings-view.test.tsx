@@ -22,6 +22,16 @@ describe("the Settings page", () => {
     expect(html).toMatch(/<section[^>]*class="[^"]*col-span-full[^"]*"[^>]*id="start-over"|<section[^>]*id="start-over"[^>]*class="[^"]*col-span-full/);
   });
 
+  it("leaves the empty Your Topics slot (id=\"your-topics\") between About you and Developer details for B3b", () => {
+    const html = view();
+    const slot = html.match(/<(\w+)[^>]*\bid="your-topics"[^>]*>(.*?)<\/\1>/);
+    expect(slot).not.toBeNull();
+    expect(slot![1]).not.toBe("section"); // a slot, not a card: still five cards until B3b fills it
+    expect(slot![2]).toBe("");
+    expect(html.indexOf('id="your-topics"')).toBeGreaterThan(html.indexOf('id="about-you"'));
+    expect(html.indexOf('id="your-topics"')).toBeLessThan(html.indexOf('id="developer-details"'));
+  });
+
   it("Account names the Learner, says Signed in with a passcode until an email exists, and signs out by form post", () => {
     const html = view();
     const card = html.slice(html.indexOf('id="account"'), html.indexOf('id="appearance"'));

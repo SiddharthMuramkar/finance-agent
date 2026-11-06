@@ -78,71 +78,71 @@ youllLearn:
 questions:
   - id: ip-q-float
     prompt: >
-      A company will have 200 million shares after its IPO, and the IPO sells 30 million new shares to the public. What share of the company is being sold in the IPO?
+      On 21 October Coffee Day prices its first public share sale. The new shares are about 17 percent of the company, and most of the rest is locked in. Asha's broker says the "float" is small. What does he mean?
     choices:
-      - { id: a, text: "15 percent" }
-      - { id: b, text: "30 percent" }
-      - { id: c, text: "13 percent" }
-      - { id: d, text: "85 percent" }
+      - { id: a, text: "Only a thin slice of the company can actually be bought and sold" }
+      - { id: b, text: "The company is short of cash to stay afloat", mistake: { tag: float_is_cash, fix: "Float here means the shares free to trade, not the company's cash." } }
+      - { id: c, text: "The share price floats free, with no band at all", mistake: { tag: float_is_price, fix: "Book building set the price inside a band; float counts tradable shares, not price freedom." } }
+      - { id: d, text: "Most investors' bids sank and were thrown out", mistake: { tag: float_is_bids, fix: "Float is about the shares that can trade, not about bids won or lost." } }
     answer: a
     explanation: >
-      30 million / 200 million (shares after the issue) = 15 percent. The coffee-chain prospectus states the share the same way: the issue as a percentage of post-issue paid-up capital.
+      The float is the part of a company that can trade freely. With about 17 percent sold in the issue and most other shares locked in, only that slice can come to market at first, so a few buyers or sellers can move the price a lot. The prospectus states the issue as a share of the shares after it: 35,060,975 new shares / 206,001,719 = 17.02 percent.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), cover page: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
   - id: ip-q-proceeds
     prompt: >
-      A company sells 30 million new shares at Rs 250 each in an IPO. How much does it raise, before costs?
+      On 21 October Coffee Day's IPO is priced to raise Rs 1,150 crore. Asha's uncle, a banker, grins: "The company won't bank all of that." Why is he right?
     choices:
-      - { id: a, text: "Rs 75 crore" }
-      - { id: b, text: "Rs 750 crore" }
-      - { id: c, text: "Rs 7,500 crore" }
-      - { id: d, text: "Rs 83 crore" }
-    answer: b
+      - { id: a, text: "The headline counts the money before fees and issue costs come out" }
+      - { id: b, text: "The headline is after costs, so the company keeps even more", mistake: { tag: costs_already_out, fix: "The headline is gross: the money before costs. Fees still come out of it." } }
+      - { id: c, text: "The headline values the whole company, unsold shares and all", mistake: { tag: mixed_up_terms, fix: "Valuing every share is market capitalisation; the headline counts only money raised from new shares." } }
+      - { id: d, text: "The headline counts only the free float", mistake: { tag: mixed_up_terms, fix: "Float is the tradable part of the company, not the money the issue raised." } }
+    answer: a
     explanation: >
-      30 million x Rs 250 = Rs 7,500 million. One crore is 10 million, so that is Rs 750 crore.
+      Rs 1,150 crore is the gross proceeds: the new shares sold times the issue price. After the costs of the issue, the prospectus counts net proceeds of Rs 1,082 crore, and Rs 633 crore of that will repay loans.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015): 35,060,975 shares at Rs 328 aggregating to Rs 11,500 million, shown as Rs 1,150 crore: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
   - id: ip-q-retail
     prompt: >
-      A net issue of 10 crore shares must by rule offer at least 35 percent to retail individual bidders. What is the smallest number of shares reserved for them?
+      Ravi, a student with Rs 15,000 saved, wants Coffee Day shares but fears the big funds will grab them all. His uncle says SEBI's rules keep a slice of this issue for small bidders. What does that promise Ravi?
     choices:
-      - { id: a, text: "3.5 crore shares" }
-      - { id: b, text: "1.5 crore shares" }
-      - { id: c, text: "5 crore shares" }
-      - { id: d, text: "35 crore shares" }
+      - { id: a, text: "A guaranteed minimum slice for small bidders that big funds can't take" }
+      - { id: b, text: "A ceiling that stops small bidders getting too much", mistake: { tag: floor_not_ceiling, fix: "The rule sets a minimum for retail bidders, not a maximum." } }
+      - { id: c, text: "Shares for sure, as many as he bids for", mistake: { tag: guaranteed_allotment, fix: "The slice is shared among all retail bidders, so a popular issue can leave each with fewer." } }
+      - { id: d, text: "Nothing; it is first come, first served for everyone", mistake: { tag: no_reservation, fix: "The rules reserve a minimum share for retail bidders so institutions cannot take it all." } }
     answer: a
     explanation: >
-      35 percent of 10 crore = 3.5 crore shares. The same prospectus reserved 50 percent for institutions and at least 15 percent for non-institutional bidders.
+      In the Coffee Day prospectus at least 35 percent of the net issue is kept for retail individuals like Ravi. Half goes to institutions and at least 15 percent to non-institutional bidders. That floor is what gives Ravi a fair shot.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), the Issue under SEBI ICDR Regulation 26(1): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
   - id: ip-q-book-building
     prompt: >
-      In an IPO run by book building, how is the final issue price decided?
+      From 14 to 16 October, investors bid for Coffee Day shares anywhere between Rs 316 and Rs 328. Asha's flatmate wonders who picks the final price. What does "book building" mean here?
     choices:
-      - { id: a, text: "Investors bid within a published price band, and the price is set after the bids show demand at each price" }
-      - { id: b, text: "The regulator sets one fixed price before any investor is asked" }
-      - { id: c, text: "The lowest bid sets the price for everyone" }
-      - { id: d, text: "The price is set by the first day of trading" }
+      - { id: a, text: "Bids are collected first, then the price is set where demand shows it" }
+      - { id: b, text: "SEBI fixes one price before anyone bids", mistake: { tag: regulator_sets, fix: "SEBI checks the rules; the price comes from the bids within the band." } }
+      - { id: c, text: "The lowest bid sets the price for everyone", mistake: { tag: lowest_bid, fix: "The price is set from demand across the whole band, not by the lowest bidder." } }
+      - { id: d, text: "The first day of trading sets it", mistake: { tag: trading_sets_price, fix: "Trading starts only after the price is fixed; book building comes first." } }
     answer: a
     explanation: >
-      Book building collects bids from investors within a band and finds the price where demand covers the shares on offer. The first day of trading comes after the price is set.
+      The bankers "build a book" of bids at each price within the band, then set the issue price where demand covers the shares on offer. Coffee Day priced at Rs 328, the top of its band, on 21 October, before any trading began.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), cover page: the Issue is made "through the Book Building Process" within a price band: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
   - id: ip-q-lock-in
     prompt: >
-      Why are the shares of promoters and pre-IPO investors usually locked in for a period after an IPO?
+      After Coffee Day's IPO the founder and his family companies will still own just over half of it, and SEBI's rules lock their shares in for a while. Asha asks why they can't sell on day one. What is the lock-in for?
     choices:
-      - { id: a, text: "So large holders cannot sell all at once into a new, thin market, and so insiders stay committed to the company" }
-      - { id: b, text: "Because they are not allowed to own shares after the IPO" }
-      - { id: c, text: "To guarantee the share price will rise" }
-      - { id: d, text: "Because the exchange cannot trade more than 17 percent of a company" }
+      - { id: a, text: "So big holders can't flood a thin new market, and stay committed" }
+      - { id: b, text: "Because owners may keep no shares after an IPO", mistake: { tag: owners_banned, fix: "Owners keep their shares; the lock-in only delays when they can sell them." } }
+      - { id: c, text: "To promise buyers that the price will rise", mistake: { tag: price_guarantee, fix: "A lock-in keeps shares off the market for a while; it guarantees no price." } }
+      - { id: d, text: "Because an exchange can only trade 17 percent of a company", mistake: { tag: float_cap, fix: "No such cap exists; the float is small because the other shares are locked in." } }
     answer: a
     explanation: >
-      With a small float, a large sale would hit the price hard. A lock-in keeps those shares off the market for a set time. It does not guarantee any price.
+      With a small float, one large sale would hit the price hard. A lock-in keeps those shares off the market for a set time: under SEBI's rules the promoters' 20 percent for three years and most other pre-issue shares for a year. It guarantees no price.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), lock-in requirements for promoters and pre-issue capital: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 

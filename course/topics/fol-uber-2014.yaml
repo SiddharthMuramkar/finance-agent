@@ -59,60 +59,53 @@ youllLearn:
 questions:
   - id: fu-q-revenue-chain
     prompt: >
-      A car-service market is worth $100 billion a year. Suppose a company wins a 10% share of the
-      money customers spend and keeps 20% of every fare as its own revenue. What is its revenue?
+      December 2014: Damodaran builds Uber's revenue as a chain. Riders pay fares, Uber wins a share of the market, and it keeps 20% of each fare; drivers get the rest. Which counts as Uber's revenue?
     choices:
-      - { id: a, text: "$2 billion" }
-      - { id: b, text: "$10 billion" }
-      - { id: c, text: "$20 billion" }
-      - { id: d, text: "$30 billion" }
+      - { id: a, text: "Only its 20% slice of the fares in its share" }
+      - { id: b, text: "Every fare riders pay in Uber's share of the market", mistake: { tag: gross_for_revenue, fix: "That is what riders pay in total. Uber's revenue is only the slice it keeps." } }
+      - { id: c, text: "Its slice of every fare in the whole market", mistake: { tag: skipped_the_share, fix: "Uber wins only a share of the market. The slice applies to that share." } }
+      - { id: d, text: "Its market share and its slice added together", mistake: { tag: added_not_chained, fix: "They chain: first Uber wins its share, then it keeps a slice of that share." } }
     answer: a
     explanation: >
-      Gross receipts are 10% of $100 billion, or $10 billion; the company keeps 20% of that, so its
-      revenue is $2 billion. Gross receipts and revenue are different numbers.
+      The chain runs from market to share to slice. Riders pay fares, Uber wins a share of them, and it keeps a slice of that share as revenue. Gross receipts and revenue are different things.
     source: >
       Arithmetic on the market x share x slice chain set out in Damodaran, "Up, Up and Away! A Crowd
       Valuation of Uber!", Musings on Markets, 2 December 2014.
   - id: fu-q-market-growth
     prompt: >
-      A market of $100 billion grows 10.39% a year for ten years. About how big is it at the end?
+      December 2014: Damodaran lets readers set how fast the whole car-service market grows. Your cousin picks about 10% a year for ten years. How does the market's size behave over that decade?
     choices:
-      - { id: a, text: "About $204 billion" }
-      - { id: b, text: "About $269 billion" }
-      - { id: c, text: "About $110 billion" }
-      - { id: d, text: "About $1,039 billion" }
-    answer: b
+      - { id: a, text: "It curves up: each year's growth builds on the last" }
+      - { id: b, text: "A straight line: the same dollars added each year", mistake: { tag: simple_not_compound, fix: "Adding the same dollars each year misses growth on earlier growth, so it understates." } }
+      - { id: c, text: "It grows once, by about a tenth, then stays put", mistake: { tag: grew_once, fix: "The market grows every year for ten years, not just once." } }
+      - { id: d, text: "It shrinks, since a bigger market grows more slowly", mistake: { tag: growth_shrinks, fix: "The rate is set at 10% each year. A bigger base gives bigger gains, not losses." } }
+    answer: a
     explanation: >
-      1.1039 to the power 10 is about 2.69, so the market grows to about $269 billion. Simply adding
-      10.39% ten times would give about $204 billion and understates compounding.
+      Each year's growth is earned on a bigger base, so the market ends a good deal larger than a straight-line count. Simply adding the same dollars each year understates compounding.
     source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
   - id: fu-q-reinvestment
     prompt: >
-      A company expects revenue to rise by $5 billion. Each dollar of new capital it invests supports
-      $2.50 of extra revenue (a sales-to-capital ratio of 2.5). How much must it reinvest?
+      December 2014: another of Damodaran's dials is the capital Uber needs to grow. A reader sets each new dollar of capital to support $2.50 of sales, a "sales-to-capital ratio" of 2.5. What does that mean?
     choices:
-      - { id: a, text: "$12.5 billion" }
-      - { id: b, text: "$2 billion" }
-      - { id: c, text: "$5 billion" }
-      - { id: d, text: "$0.5 billion" }
+      - { id: a, text: "More capital than revenue added: each sales dollar needs $2.50", mistake: { tag: ratio_upside_down, fix: "It is the other way round: each dollar of capital supports $2.50 of sales." } }
+      - { id: b, text: "Uber needs less new capital than the new revenue it brings" }
+      - { id: c, text: "One dollar of capital for each dollar of sales", mistake: { tag: ratio_of_one, fix: "Here each capital dollar supports $2.50 of sales, not $1." } }
+      - { id: d, text: "Almost none, since the ratio is about profit", mistake: { tag: ratio_about_profit, fix: "The ratio links new sales to new capital. It says nothing about profit." } }
     answer: b
     explanation: >
-      Reinvestment = change in revenue / sales to capital = 5 / 2.5 = $2 billion. A higher ratio
-      means growth needs less capital, which raises value.
+      A sales-to-capital ratio above 1 means growth needs less new capital than the revenue it adds. The higher the ratio, the less the company must reinvest, which raises value.
     source: Sales-to-capital reinvestment, as used in Damodaran's young-company valuations (Musings on Markets, 2014).
   - id: fu-q-why-gap
     prompt: >
-      Two analysts use the same valuation model for a young company. One gets $6 billion, the other
-      $40 billion. What is the most likely reason?
+      June 2014: Damodaran values Uber at about $6 billion. By December, news stories talk of $40 billion and more. Both sides can use the same kind of model. Why might they land so far apart?
     choices:
-      - { id: a, text: "One of them made an arithmetic error" }
-      - { id: b, text: "They assume different stories: market size, share and margins" }
-      - { id: c, text: "A discounted cash flow model cannot value young companies" }
-      - { id: d, text: "One used a higher tax rate" }
+      - { id: a, text: "One side made an arithmetic slip", mistake: { tag: arithmetic_error, fix: "A slip rarely moves a value this far. Different stories change many inputs at once." } }
+      - { id: b, text: "They tell different stories: market size, share and margins" }
+      - { id: c, text: "Cash flow models can't value young companies", mistake: { tag: model_fails, fix: "The model works. It turns whatever story you feed it into a value." } }
+      - { id: d, text: "One side used a higher tax rate", mistake: { tag: tax_only, fix: "A tax rate moves a value a little. A gap this wide comes from different stories." } }
     answer: b
     explanation: >
-      With the same model, large gaps nearly always come from different narratives, which change
-      several inputs at once. The model is a way of making the story's consequences explicit.
+      With the same model, large gaps nearly always come from different narratives, which change several inputs at once. The model is a way of making the story's consequences explicit.
     source: Narrative and numbers, as argued in Damodaran, "Up, Up and Away! A Crowd Valuation of Uber!", 2 December 2014.
 
 checks:

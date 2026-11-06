@@ -9,6 +9,9 @@ import { seed, settled, type State } from "./support/app";
 
 // The OpenUI devtools overlay (dev server only) has a disabled "Chunk seed" number box; it is not the Learner's UI.
 const TYPED_NUMBER = ':is(input[inputmode="decimal"], input[type="number"], input[inputmode="numeric"]):not([aria-label="Chunk seed"])';
+// Any box to type in, outside that overlay. Its panel (with the Chunk seed box) mounts lazily under
+// [data-openui-devtools-root], about 2 s after load: a bare `input` count passed or failed by which came first.
+const LEARNER_INPUT = "input:not([data-openui-devtools-root] *)";
 
 async function study(page: Page, state: State) {
   await seed(page, state);
@@ -73,11 +76,60 @@ test("rate-move practice offers three readings to tap and nothing to type, and a
   const choices = page.getByTestId("rate-move-choice");
   await expect(choices).toHaveCount(3);
   expect((await choices.allInnerTexts()).sort()).toEqual(["Up 1 point, or 100 bps", "Up 1%", "Up 10 bps"]);
-  await expect(page.locator("input")).toHaveCount(0);
+  await expect(page.locator(LEARNER_INPUT)).toHaveCount(0);
   await choices.filter({ hasText: "Up 10 bps" }).click();
   await expect(page.getByTestId("rate-move-answer")).toHaveAttribute("data-status", "wrong");
   await expect(page.getByTestId("rate-move-result")).toContainText("multiply by 100, not 10");
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
+});
+
+// #394: at 1512 the number line's end labels clipped ("4.75%" showed ".75%"). Each end label must sit inside the SVG.
+test("rate-move number line end labels like 3.75% and 4.75% sit inside the drawing, not clipped", async ({ page }) => {
+  await page.goto("/dev/widgets?fixture=rate-move");
+  const line = page.getByTestId("rate-move-line");
+  await expect(line).toBeVisible();
+  // The slider's new rate: 5 gives ends 3.75% and 5.25%; 4.5 gives 3.75% and 4.75%.
+  // 11 gives a 6-character end (2.25% and 12.75%); 20, the top of the slider, gives 0% and 24%.
+  for (const [rate, ends] of [["5", ["3.75%", "5.25%"]], ["4.5", ["3.75%", "4.75%"]], ["11", ["2.25%", "12.75%"]], ["20", ["0%", "24%"]]] as const) {
+    await page.getByRole("slider").first().fill(rate);
+    const labels = line.locator(":scope > text");
+    await expect(labels.first()).toHaveText(ends[0]);
+    await expect(labels.nth(1)).toHaveText(ends[1]);
+    const svg = (await line.boundingBox())!;
+    for (const i of [0, 1]) {
+      const box = (await labels.nth(i).boundingBox())!;
+      expect(box.x, `${ends[i]} left edge inside the SVG`).toBeGreaterThanOrEqual(svg.x);
+      expect(box.x + box.width, `${ends[i]} right edge inside the SVG`).toBeLessThanOrEqual(svg.x + svg.width);
+    }
+  }
+});
+
+// #417: 6-character ends ("10.25%") are the widest the 0-20 sliders make, and "%" is far wider than a digit. Both
+// rates move here (practice mode's play sliders), so both ends can be 6 characters at once.
+test("rate-move number line 6-character end labels like 10.25% and 21.25% sit inside the drawing, not clipped", async ({ page }) => {
+  await page.goto("/dev/widgets?fixture=rate-move-practice");
+  await page.getByTestId("rate-move-choice").filter({ hasText: "Up 1 point, or 100 bps" }).click();
+  await expect(page.getByTestId("rate-move-answer")).toHaveAttribute("data-status", "right");
+  const line = page.getByTestId("rate-move-line");
+  const cases = [
+    ["10.5", "11", ["10.25%", "11.25%"]],
+    ["15", "20", ["13.75%", "21.25%"]],
+    ["19.99", "20", ["19.74%", "20.25%"]],
+    ["0.04", "20", ["0%", "24.99%"]],
+  ] as const;
+  for (const [oldRate, newRate, ends] of cases) {
+    await page.getByLabel("Old rate").fill(oldRate);
+    await page.getByLabel("New rate").fill(newRate);
+    const labels = line.locator(":scope > text");
+    await expect(labels.first()).toHaveText(ends[0]);
+    await expect(labels.nth(1)).toHaveText(ends[1]);
+    const svg = (await line.boundingBox())!;
+    for (const i of [0, 1]) {
+      const box = (await labels.nth(i).boundingBox())!;
+      expect(box.x, `${ends[i]} left edge inside the SVG`).toBeGreaterThanOrEqual(svg.x);
+      expect(box.x + box.width, `${ends[i]} right edge inside the SVG`).toBeLessThanOrEqual(svg.x + svg.width);
+    }
+  }
 });
 
 test("StepThrough's faded step has a Show the number button, never Your number", async ({ page }) => {

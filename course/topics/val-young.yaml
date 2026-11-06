@@ -79,43 +79,61 @@ youllLearn:
 questions:
   - id: vy-q-revenue-path
     prompt: >
-      A start-up believes its market will be $200 billion in ten years and that it can win 5 percent of it. What yearly revenue does that story imply once it reaches that share?
+      At a pitch night a founder says her market will be huge in ten years and she will win a small slice of it. Which two parts of her story set her revenue?
     choices:
-      - { id: a, text: "$1 billion" }
-      - { id: b, text: "$10 billion" }
-      - { id: c, text: "$100 billion" }
-      - { id: d, text: "$200 billion" }
-    answer: b
+      - { id: a, text: "The market's size, and her slice of it" }
+      - id: b
+        text: "The size of the market, and nothing else"
+        mistake: { tag: whole_market, fix: "She wins only a slice of the market, not all of it." }
+      - id: c
+        text: "Her slice alone, whatever the market's size"
+        mistake: { tag: share_alone, fix: "A slice means nothing until it is applied to the size of the market." }
+      - id: d
+        text: "How confident and polished she sounds on stage"
+        mistake: { tag: confidence_as_input, fix: "Confidence is not a number in the story. Market size and slice are." }
+    answer: a
     explanation: >
-      Revenue = market size x share = $200 billion x 0.05 = $10 billion. In a young-company valuation, the market-size and market-share choices set the revenue path.
+      Revenue is the market's size times the firm's share of it. In a young-company valuation, the market-size and market-share choices set the revenue path. A big market with a tiny slice and a small market with a big slice can tell very different stories.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), steps for estimating revenues: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
   - id: vy-q-margin
     prompt: >
-      That firm expects revenue of $10 billion and a long-run operating margin of 20 percent. What operating income does the story imply, before tax?
+      Founder Zoya promises investors that once her app is grown up, it will keep 20 cents of every dollar of sales as operating profit. Which part of her story is that?
     choices:
-      - { id: a, text: "$0.2 billion" }
-      - { id: b, text: "$2 billion" }
-      - { id: c, text: "$8 billion" }
-      - { id: d, text: "$20 billion" }
+      - id: a
+        text: "Market size: how big the prize could be"
+        mistake: { tag: margin_as_market, fix: "Market size sets revenue. The margin says how much of the revenue is kept as profit." }
+      - { id: b, text: "Operating margin: how profitable it gets once mature" }
+      - id: c
+        text: "Survival chance: how likely the app is to make it"
+        mistake: { tag: margin_as_survival, fix: "Survival is a separate part of the story. Margin is about profitability." }
+      - id: d
+        text: "Tax rate: the government's share of the profit"
+        mistake: { tag: margin_as_tax, fix: "Margin is before tax, so the tax rate is a separate input." }
     answer: b
     explanation: >
-      Operating income = revenue x operating margin = $10 billion x 0.20 = $2 billion. Margin is the part of the story about how profitable the business becomes when it matures.
+      Operating income = revenue x operating margin, so a firm with $10 billion of sales and a 20 percent margin earns $2 billion before tax. Margin is the part of the story about how profitable the business becomes when it matures.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
   - id: vy-q-survival
     prompt: >
-      A discounted cash flow valuation says a young firm is worth $500 million if it survives and $20 million if it fails. You judge the chance of survival at 40 percent. What is its expected value?
+      A DCF says a young firm is worth $500 million if it survives and $20 million if it fails. You give it a 40 percent chance of surviving. How should you value it?
     choices:
-      - { id: a, text: "$212 million" }
-      - { id: b, text: "$260 million" }
-      - { id: c, text: "$500 million" }
-      - { id: d, text: "$20 million" }
+      - { id: a, text: "Weigh both outcomes by their chances: well below $500 million" }
+      - id: b
+        text: "Take $500 million, since DCF shows the firm at its best"
+        mistake: { tag: survival_assumed, fix: "A value that assumes survival overstates a firm that may fail." }
+      - id: c
+        text: "Assume failure and call it $20 million"
+        mistake: { tag: failure_assumed, fix: "Ignoring the survival case understates it. Both outcomes count, by their chances." }
+      - id: d
+        text: "Split the difference, whatever the odds"
+        mistake: { tag: odds_ignored, fix: "Halfway ignores your odds. The likelier outcome pulls the value toward itself." }
     answer: a
     explanation: >
-      Expected value = 0.40 x 500 + 0.60 x 20 = 200 + 12 = $212 million. A value that assumes survival overstates a firm that may not survive.
+      Weighing 40 percent on $500 million and 60 percent on $20 million gives about $212 million. A value that assumes survival overstates a firm that may not survive.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), on survival and failure: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
@@ -135,15 +153,21 @@ questions:
 
   - id: vy-q-runway
     prompt: >
-      A loss-making company has $300 million in cash and loses $100 million a year in cash. If nothing changes, how long can it operate before it needs new money?
+      Your friend Isha runs a start-up that loses money. It has a pile of cash and burns through some of it every month. What do investors call how long that cash lasts?
     choices:
-      - { id: a, text: "One year" }
-      - { id: b, text: "Three years" }
-      - { id: c, text: "Five years" }
-      - { id: d, text: "Thirty years" }
-    answer: b
+      - { id: a, text: "Runway: if the cash runs out first, the story ends" }
+      - id: b
+        text: "Margin: the profit each sale leaves"
+        mistake: { tag: runway_as_margin, fix: "Margin is profit per sale. The time the cash lasts is the runway." }
+      - id: c
+        text: "Dividend: what it pays shareholders from its cash"
+        mistake: { tag: runway_as_dividend, fix: "A loss-making company has no profit to pay out. The time its cash lasts is the runway." }
+      - id: d
+        text: "Burn rate: the time the cash will last"
+        mistake: { tag: runway_as_burn, fix: "Burn rate is the cash spent each month. How long the cash lasts is the runway." }
+    answer: a
     explanation: >
-      Runway = cash / yearly cash burn = $300 million / $100 million = 3 years. A young company's survival depends on raising new money before this runs out, which is why survival probability belongs in the valuation.
+      The runway is how long the cash lasts at the current burn rate. A young company's survival depends on raising new money before it runs out, which is why survival probability belongs in the valuation.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 

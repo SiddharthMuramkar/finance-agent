@@ -30,7 +30,7 @@ cases:
       gap to that run rate, which he puts at $19.1 billion. The Learner pastes the piece and
       takes these two claims back to the figures he himself gives.
     reveal: >
-      Anthropic's registration statement (Form S-1), filed on 26 October 2026, later gave audited
+      Anthropic's registration statement (Form S-1), filed on 26 October 2026, later gave unaudited
       quarterly revenue: $4,731 million for the first quarter of 2026 and $11,555 million for the
       second, $16,286 million for the half. It defines run-rate revenue as the trailing 28 days
       of usage fees multiplied by 13, plus monthly subscription fees multiplied by 12, and says
@@ -158,19 +158,17 @@ questions:
       Arithmetic on the run-rate definition in Anthropic, PBC, Form S-1 (filed 26 October 2026), Glossary, "Run-Rate Revenue": https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
   - id: ju-q-like-for-like
     prompt: >
-      A report compares a company's annual run rate with the revenue it earned in one quarter.
-      Which comparison measures the same period on both sides?
+      Tuesday 13 October 2026, 3 pm; Rosa, a made-up newsletter editor, checks a chart before her 5 pm send. It sets a company's annual run rate beside the revenue it earned in one quarter. Which pairing would you pick, and why?
     choices:
-      - { id: a, text: "The annual run rate against the quarter's revenue as it stands" }
-      - { id: b, text: "The annual run rate against four times the quarter's revenue" }
-      - { id: c, text: "The annual run rate against the quarter's revenue divided by four" }
-      - { id: d, text: "The annual run rate against the quarter's revenue plus 12%" }
+      - { id: a, text: "The run rate against the quarter as it stands", mistake: { tag: year_against_quarter, fix: "A run rate is a yearly pace and a quarter is three months, so the periods do not match." } }
+      - { id: b, text: "The run rate against the quarter scaled up to a year" }
+      - { id: c, text: "The run rate against the quarter scaled down to a month", mistake: { tag: scaled_the_wrong_way, fix: "A month is still not a year. Scale the quarter up to a year, not down." } }
+      - { id: d, text: "The run rate against the half-year's revenue, as it is closer", mistake: { tag: half_year_taken_for_year, fix: "Half a year is still not a year. Both sides need the same period." } }
     answer: b
     explanation: >
-      A run rate is a yearly pace, so the quarter has to be scaled to a year (multiplied by four)
-      before the two are compared. Comparing a year with a quarter inflates the gap fourfold.
+      A run rate is a yearly pace, so the quarter is scaled up to a year before the two are set side by side. Setting a year beside a quarter makes the run rate look far bigger than a like-for-like match would.
     source: >
-      Anthropic, PBC, Form S-1 (filed 26 October 2026), risk factor on Run-Rate Revenue ("it annualizes a short measurement period"): https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+      Anthropic, PBC, Form S-1 (filed 26 October 2026), risk factor on Run-Rate Revenue ("it annualizes a short measurement period"): https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm ; Rosa, the newsletter and the company are made up.
 
   - id: ju-q-gap-sum
     prompt: >

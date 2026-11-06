@@ -127,17 +127,17 @@ youllLearn:
 questions:
   - id: jrc-q-notches-line
     prompt: >
-      On the Fitch and KBRA ladder, BBB- is the last investment-grade notch. A writer calls a company rated BB+ "deep in junk". Which description is fairer?
+      Monday 2 March 2026: Priya, a made-up pension-fund trainee, briefs her boss at 9 am. A blog calls a BB+ company "deep in junk". BBB- is the last investment-grade notch. What does BB+ mean here?
     choices:
-      - { id: a, text: "Speculative, but the first notch below the investment-grade line, as close to it as a junk rating gets" }
-      - { id: b, text: "Deep in junk, because any rating below investment grade is equally bad", mistake: { tag: deep_in_junk_because_any_rat, fix: "The ladder has many notches below the line. BB+ is the nearest one." } }
+      - { id: a, text: "Junk, but only just: the first notch below investment grade" }
+      - { id: b, text: "Deep in junk: every rating below the line is equally bad", mistake: { tag: deep_in_junk_because_any_rat, fix: "The ladder has many notches below the line. BB+ is the nearest one." } }
       - { id: c, text: "Still investment grade, because it starts with a B", mistake: { tag: still_investment_grade_becau, fix: "The line falls between BBB- and BB+. BB+ is already speculative." } }
-      - { id: d, text: "Neither: ratings only matter for bonds, not for companies", mistake: { tag: neither_ratings_only_matter, fix: "Companies carry ratings too, and the line still separates the two grades." } }
+      - { id: d, text: "Nothing for a company: only bonds carry ratings", mistake: { tag: neither_ratings_only_matter, fix: "Companies carry ratings too, and the same line separates the two grades." } }
     answer: a
     explanation: >
-      The line runs between BBB- and BB+. BB+ is speculative grade, but it is the first notch below the line, so "deep in junk" overstates where it sits.
+      The line runs between BBB- and BB+. BB+ is speculative grade, or junk, but it is the first notch below the line, so "deep in junk" overstates where it sits. Priya can tell her boss: junk, but only just.
     source: >
-      Fitch Ratings, rating definitions (scale from AAA to D with plus and minus modifiers): https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; counting is arithmetic on that list.
+      Fitch Ratings, rating definitions (scale from AAA to D with plus and minus modifiers): https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; Priya, the fund, the blog and the company are made up.
   - id: jrc-q-notches-apart
     prompt: >
       Why does describing the distance between two ratings by letter class alone mislead?
@@ -153,82 +153,78 @@ questions:
       Fitch Ratings, rating definitions: https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; counting is arithmetic on that list.
   - id: jrc-q-first-junk
     prompt: >
-      On the Fitch scale, which is the highest notch that counts as speculative grade?
+      Tuesday 10 March 2026; Kofi, a made-up bond-fund analyst, must tell a client by noon whether a bond has just slipped into junk on the Fitch scale. Which rating is the first notch on the speculative side of the line?
     choices:
-      - { id: a, text: "BBB-" }
+      - { id: a, text: "BBB-", mistake: { tag: last_investment_grade_read_as_junk, fix: "BBB- sits inside the BBB class, so it is still investment grade: the last notch above the line." } }
       - { id: b, text: "BB+" }
-      - { id: c, text: "BB" }
-      - { id: d, text: "B+" }
+      - { id: c, text: "BB", mistake: { tag: skipped_the_plus_notch, fix: "BB+ comes before BB. The plus is a notch of its own, just below the line." } }
+      - { id: d, text: "B+", mistake: { tag: single_b_taken_for_the_line, fix: "B+ is already well into junk. The line falls between BBB- and BB+." } }
     answer: b
     explanation: >
       Fitch counts AAA to BBB as investment grade and BB to D as speculative grade. BBB- is inside the
-      BBB class, so it is still investment grade, and BB+ is the first notch of speculative grade.
+      BBB class, so it is still investment grade, and BB+ is the first notch of speculative grade. Kofi can tell the client: a BB+ bond is junk, but only just.
     source: >
-      Fitch Ratings, rating definitions: https://www.fitchratings.com/products/rating-definitions
+      Fitch Ratings, rating definitions: https://www.fitchratings.com/products/rating-definitions ; Kofi, the fund and the client are made up.
 
   - id: jrc-q-own-consistency
     prompt: >
-      A writer's section heading says a company would be rated "between B+ and CCC+", while the text under it says "between a B and a CCC+". What should a careful judge do?
+      Sunday 15 March 2026, the night before his club's debate, Leo checks a made-up newsletter. Its heading rates a company "B+ to CCC+"; the paragraph below says "B to CCC+". Which would you pick, and why?
     choices:
-      - { id: a, text: "Note that the heading and the text name different top ends, and say which one is being tested" }
-      - { id: b, text: "Treat them as the same, since B+ and B are the same grade", mistake: { tag: treat_them_as_the_same_since, fix: "B+ and B are different notches. The two ranges are not identical." } }
-      - { id: c, text: "Pick the wider range and ignore the other", mistake: { tag: pick_the_wider_range_and_ign, fix: "The judge should say which range they test, not quietly choose." } }
-      - { id: d, text: "Discard the whole piece as unreliable", mistake: { tag: discard_the_whole_piece_as_u, fix: "One inconsistency does not make the whole piece wrong. Report it and carry on." } }
+      - { id: a, text: "Flag the gap, and say which of the two ranges he tests" }
+      - { id: b, text: "Treat them as one range, since B+ and B are the same grade", mistake: { tag: treat_them_as_the_same_since, fix: "B+ and B are different notches. The two ranges are not identical." } }
+      - { id: c, text: "Quietly test the wider range and skip the other", mistake: { tag: pick_the_wider_range_and_ign, fix: "Choosing quietly hides the gap. Say which range is tested, and why." } }
+      - { id: d, text: "Throw out the whole newsletter as unreliable", mistake: { tag: discard_the_whole_piece_as_u, fix: "One inconsistency does not sink a whole piece. Report it and keep checking." } }
     answer: a
     explanation: >
-      B sits one notch below B+, and both ranges end at CCC+. So the two statements differ, and a careful judge notes the inconsistency and says which one they are testing.
+      B sits one notch below B+, and both ranges end at CCC+. So the heading and the paragraph differ, and Leo should point out the gap in the debate and say which range he is testing.
     source: >
-      Fitch Ratings, rating definitions (plus and minus modifiers as separate notches): https://www.fitchratings.com/products/rating-definitions ; the writer and sentences are hypothetical.
+      Fitch Ratings, rating definitions (plus and minus modifiers as separate notches): https://www.fitchratings.com/products/rating-definitions ; Leo, the newsletter, its writer and its sentences are made up.
   - id: jrc-q-issuer-vs-bond
     prompt: >
-      An agency's report gives a company an issuer rating of X. A writer says "the company's bond
-      rating is X". What should a careful reader check before accepting this?
+      Thursday 19 March 2026, 5 pm; Hana, a made-up markets reporter, files at 6. An agency's report gives a company an issuer rating of BB+, and her draft says "the company's bond rating is BB+". What should she check before it runs?
     choices:
-      - { id: a, text: "Nothing: an issuer rating and every bond rating are always identical" }
-      - { id: b, text: "Whether the agency rated that bond, and whether a bond's rating, which depends on its seniority, matches the company's" }
-      - { id: c, text: "Whether the rating is positive or negative" }
-      - { id: d, text: "Only whether the agency is American" }
+      - { id: a, text: "Nothing: an issuer rating and every bond rating always match", mistake: { tag: issuer_taken_for_bond, fix: "A bond's rating depends on its seniority, so it can differ from the company's own rating." } }
+      - { id: b, text: "Whether the agency rated that bond, since a bond's rating depends on its seniority and can differ from the company's" }
+      - { id: c, text: "Only whether the outlook is positive or negative", mistake: { tag: outlook_taken_for_scope, fix: "The outlook is a separate signal. The question is what was rated: the company or the bond." } }
+      - { id: d, text: "Only that the agency is a well-known one", mistake: { tag: agency_fame_taken_for_scope, fix: "A well-known agency still rates companies and bonds separately. Check which one it rated." } }
     answer: b
     explanation: >
       KBRA states that issuer-level ratings assume a loss severity consistent with a senior unsecured
       claim, while for an obligation the expected loss depends on the seniority of the claim. So a
       bond can be rated differently from its issuer, and the label "bond rating" needs its own check.
     source: >
-      KBRA, Understanding long-term credit ratings (issuers and obligations on the same scale; issuer-level ratings assume senior unsecured loss severity): https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating
+      KBRA, Understanding long-term credit ratings (issuers and obligations on the same scale; issuer-level ratings assume senior unsecured loss severity): https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; Hana, her draft and the company are made up.
 
   - id: jrc-q-date
     prompt: >
-      A report says an agency assigned a company a rating in March. In late July a writer calls it
-      "the current rating". With nothing else known, what is the careful statement?
+      Monday 27 July 2026; Omar, a made-up student, has a seminar at 2 pm. A blog calls a rating an agency assigned a company in March "the current rating". With nothing else known, what is the careful thing for Omar to say?
     choices:
       - { id: a, text: "It is the rating as of March; whether it still stands in July depends on later agency actions, which need checking" }
-      - { id: b, text: "Ratings never change, so it is current" }
-      - { id: c, text: "It must have been withdrawn, since it is four months old" }
-      - { id: d, text: "The month does not matter for a rating" }
+      - { id: b, text: "It is current, because ratings rarely move within a year", mistake: { tag: rating_assumed_unchanged, fix: "Agencies can affirm, change or withdraw a rating at any time. Check the latest action." } }
+      - { id: c, text: "It must be out of date, since it is four months old", mistake: { tag: age_taken_as_stale, fix: "Age alone proves nothing. Only the agency's later actions show whether it still stands." } }
+      - { id: d, text: "The date does not matter: a rating describes a company for good", mistake: { tag: date_ignored, fix: "A rating is the agency's view on a date. Later actions can replace it." } }
     answer: a
     explanation: >
       An assignment date fixes when the agency held that view. Agencies can affirm, change or withdraw a
       rating later, so "current" needs a check of the agency's latest action.
     source: >
-      Method of matching a figure to its date, as in KBRA's practice of publishing rating actions with dates, for example https://www.kbra.com/publications/hNNWSXkz/kbra-releases-surveillance-report-for-pinnacle-bancorp-inc ; the company and months in the question are hypothetical.
+      Method of matching a figure to its date, as in KBRA's practice of publishing rating actions with dates, for example https://www.kbra.com/publications/hNNWSXkz/kbra-releases-surveillance-report-for-pinnacle-bancorp-inc ; Omar, the blog, the company and the months in the question are made up.
 
   - id: jrc-q-conditional
     prompt: >
-      A writer says: "If a firm's cash flow stays deeply negative and no outside party guarantees its
-      debt, agencies will likely rate it B or lower." Later an agency publishes a rating for a firm.
-      Which is the most careful reading of how to test the claim?
+      Friday 22 May 2026; Ines, a made-up debate coach, preps her team for a 10 am round. A writer said: "If a firm's cash flow stays deeply negative and no outside party guarantees its debt, agencies will likely rate it B or lower." Now an agency publishes a rating for a firm. How should her team test the claim?
     choices:
-      - { id: a, text: "The claim is tested by whichever rating appears first" }
-      - { id: b, text: "The claim cannot be tested by any rating" }
+      - { id: a, text: "Whichever rating appears first settles it", mistake: { tag: first_rating_settles_it, fix: "A rating tests the claim only if that firm met the condition the writer set." } }
+      - { id: b, text: "Any rating above B proves the writer wrong", mistake: { tag: condition_skipped, fix: "Only if the firm met the condition. Under other conditions the claim says nothing." } }
       - { id: c, text: "First check whether that firm met the condition, and whether the agencies the writer meant are the ones that acted; a rating from another agency or under another condition leaves the claim untested" }
-      - { id: d, text: "A conditional claim cannot be judged at all" }
+      - { id: d, text: "No rating can ever test a claim that starts with \"if\"", mistake: { tag: conditional_seen_as_untestable, fix: "It can be tested: once the condition held and the agencies it names have acted." } }
     answer: c
     explanation: >
       A conditional claim is tested only when its condition held and the actors it names have acted. A
       rating under a different condition, or from a different agency, leaves it untested.
       The judge reports what it does show and what remains open.
     source: >
-      Method of judging a conditional claim; the scenario is hypothetical and uses no outside data.
+      Method of judging a conditional claim; Ines, her team, the writer and the firm are made up, and the scenario uses no outside data.
 
   - id: jrc-q-margin
     prompt: >

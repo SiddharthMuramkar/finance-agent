@@ -60,29 +60,41 @@ youllLearn:
 questions:
   - id: po-q-ex-div
     prompt: >
-      In a frictionless market a share trades at $60. The company pays a one-off special dividend of $2 a share. About what should the share price be on the first day it trades without the dividend?
+      Mia owns a share trading at $60. Its company pays a one-off special dividend of $2 a share. Next morning the share trades without the dividend. What happens to its price?
     choices:
-      - { id: a, text: "$58" }
-      - { id: b, text: "$60" }
-      - { id: c, text: "$62" }
-      - { id: d, text: "$2" }
+      - { id: a, text: "Down by about the dividend, since that cash has left" }
+      - id: b
+        text: "It stays at $60, since a dividend is a free gift"
+        mistake: { tag: dividend_as_gift, fix: "The company has $2 a share less cash, so each share is worth less." }
+      - id: c
+        text: "Up by about the dividend, since investors love payouts"
+        mistake: { tag: payout_creates_value, fix: "A payout moves cash out of the company. It does not create value." }
+      - id: d
+        text: "Falls all the way to the dividend's size"
+        mistake: { tag: price_to_dividend, fix: "The share keeps almost all its value. Only the paid-out cash leaves it." }
     answer: a
     explanation: >
-      The company has $2 a share less cash, so each share is worth $2 less: $58. Shareholders have $58 in shares plus $2 in cash, the same $60 as before.
+      The company has $2 a share less cash, so each share is worth about $2 less, near $58. Mia holds $58 in shares plus $2 in cash, the same $60 as before.
     source: >
       Miller and Modigliani, 'Dividend Policy, Growth, and the Valuation of Shares', Journal of Business 34 (1961): https://doi.org/10.1086/294442
 
   - id: po-q-eps
     prompt: >
-      A company's net income is unchanged. It buys back 10% of its shares. By what factor does earnings per share rise, ignoring the lost interest on the cash used?
+      Sara owns shares in a company that spends spare cash buying back a tenth of its shares. Its profit stays the same. Is Sara any richer?
     choices:
-      - { id: a, text: "About 1.11 (up 11%)" }
-      - { id: b, text: "1.10 (up 10%)" }
-      - { id: c, text: "0.90 (down 10%)" }
-      - { id: d, text: "It does not change" }
+      - { id: a, text: "No: earnings per share rise, but the cash has left" }
+      - id: b
+        text: "Yes, because higher earnings per share make every holder richer"
+        mistake: { tag: eps_as_wealth, fix: "The cash spent has left the company, so a higher figure per share does not make holders richer." }
+      - id: c
+        text: "Worse off, as earnings per share fall when cash is spent"
+        mistake: { tag: cash_spent_cuts_eps, fix: "Profit is unchanged and spread over fewer shares, so earnings per share rise." }
+      - id: d
+        text: "Hard to say, since earnings per share stay flat"
+        mistake: { tag: share_count_ignored, fix: "Profit is the same, but fewer shares split it, so earnings per share rise." }
     answer: a
     explanation: >
-      With 90% of the shares left, EPS = E / 0.9 shares = 1.11 times its previous value. That does not mean shareholders are better off: the cash that paid for the shares has left the company.
+      With 90% of the shares left, earnings per share rise to about 1.11 times their old level. Shareholders are no better off, because the cash that paid for the shares has left the company.
     source: >
       Miller and Modigliani, 'Dividend Policy, Growth, and the Valuation of Shares', Journal of Business 34 (1961): https://doi.org/10.1086/294442
 
