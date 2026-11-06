@@ -131,9 +131,9 @@ questions:
       In February 2025 Damodaran imagines every company's books "marked to market": restated each year at what the business is now worth. Your uncle ranks firms by return on equity. What happens to his ranking?
     choices:
       - { id: a, text: "Nothing: restating the books leaves return on equity alone", mistake: { tag: old_book_value, fix: "Book equity changes to the new value, so return on equity changes too." } }
-      - { id: b, text: "It stops working: every firm's return on equity becomes its cost of equity" }
-      - { id: c, text: "Good firms pull further ahead, since their restated equity is bigger", mistake: { tag: market_above, fix: "Bigger equity under the same profit lowers the return. Every firm lands on its cost of equity." } }
-      - { id: d, text: "Every firm's return on equity falls to zero", mistake: { tag: restate_to_zero, fix: "The profit is still there. Set against fair value, it gives the cost of equity, not zero." } }
+      - { id: b, text: "It stops working: every firm's return becomes the return investors require" }
+      - { id: c, text: "Good firms pull further ahead, since their restated equity is bigger", mistake: { tag: market_above, fix: "Bigger equity under the same profit lowers the return. Every firm lands on the required return." } }
+      - { id: d, text: "Every firm's return on equity falls to zero", mistake: { tag: restate_to_zero, fix: "The profit is still there. Set against fair value, it gives the required return, not zero." } }
     answer: b
     explanation: >
       A business's value is what its profit is worth to investors at their required return. Restate book equity to that value and profit against book equity equals the required return. If every firm is marked to market, every firm's return on equity equals its cost of equity, so it no longer separates good businesses from bad ones.

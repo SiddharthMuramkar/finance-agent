@@ -147,11 +147,11 @@ questions:
 
   - id: ins-q-collateral
     prompt: >
-      12 September 2008: AIG's swap deals make it hand over collateral when values move against it, and a ratings cut lowers some triggers. Suppose the agencies cut AIG. What happens to its cash needs?
+      12 September 2008: AIG's swap deals make it hand over collateral when values move against it, and a ratings cut makes it start paying sooner. Suppose the agencies cut AIG. What happens to its cash needs?
     choices:
       - { id: a, text: "They can jump at once, before any claim is settled" }
       - { id: b, text: "They fall, because a lower rating means lower risk", mistake: { tag: rating_backwards, fix: "A cut says AIG is riskier, so the firms it dealt with want more security, not less." } }
-      - { id: c, text: "Nothing changes until the bonds actually default", mistake: { tag: waits_for_default, fix: "Collateral follows market values and rating triggers, long before any default." } }
+      - { id: c, text: "Nothing changes until the bonds actually default", mistake: { tag: waits_for_default, fix: "Collateral follows market values and the rating, long before any default." } }
       - { id: d, text: "Only the buyers of the protection need more cash", mistake: { tag: wrong_side, fix: "AIG sold the protection, so AIG is the one that must hand over collateral." } }
     answer: a
     explanation: >
