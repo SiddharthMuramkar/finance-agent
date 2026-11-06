@@ -25,6 +25,8 @@
 //             This is PAID (about 22 Tutor turns plus 80 judge calls). DELIGHT_BUDGET_USD (default 13) caps the whole round:
 //             each prompt's Tutor turns are charged from the usage rows the app records, a prompt that would pass the cap
 //             is not started, and the judges get what is left. Without --judge the Tutor turns are still capped.
+//             A try that timed out or threw is charged once its usage settles (its turn may still be running on the
+//             server), or with a reserve after 240 s. Every planned prompt has a row, so the bars always count all 20.
 //             It needs ANTHROPIC_API_KEY in the environment; it is never run in CI.
 //   --rescore re-reads <folder>/<name>.json, merges --scores and rewrites both files without running anything
 //
