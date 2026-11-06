@@ -135,12 +135,12 @@ scenes:
     recipe: money_jar
     title: What borrowing does to a loss
     inputs:
-      label: The fund's own money
+      label: "A made-up fund: 1 coin of its own, 30 borrowed"
       start: 1
       end: 0
       unit: coin
-      each: each coin is its own money
-      words: a small fall in the assets empties the jar
+      each: one coin of its own
+      words: "a fall of a few percent would empty it"
   - id: ltcm-front-page
     step: reveal
     recipe: headline
@@ -287,7 +287,8 @@ checks:
       The Learner explains that expected value is a probability-weighted long-run average that
       hides the size of the rare bad outcome, and that a loss big enough to wipe out the capital
       ends the game so the average is never collected. They use leverage: with about 30 to 1
-      debt a fall in asset values of only about 3% (one part in thirty-one) removes all of the fund's capital.
+      debt, even a small fall in the value of what it holds can wipe out all of the fund's own
+      money. The Learner does not need to give any percentage or work out a number; the idea is what passes.
       They say they would want to know how large and how likely the bad outcomes are, how
       correlated the trades are (the small risks may not be independent), and how much
       borrowing sits behind them. They do not need to cite the fund's actual outcome.
