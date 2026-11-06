@@ -127,9 +127,9 @@ questions:
       - { id: d, text: "Making the hedge free to hold", mistake: { tag: cost_not_risk, fix: "The sizing is about leaving the least risk, not about what the hedge costs." } }
     answer: a
     explanation: >
-      Traders call this the minimum-variance hedge ratio: it uses how closely the two prices move together and how big each one's swings are. If mangoes swing a bit more than orange juice, Priya needs a bit more than one-for-one. Some risk, the basis risk, always stays.
+      Traders call this the minimum-variance hedge ratio: it weighs how closely the two prices move together and how big each one's swings are. Depending on both, the best size can land above or below one-for-one. Some risk, the basis risk, always stays.
     source: >
-      Hull, Options, Futures, and Other Derivatives (Pearson), minimum variance hedge ratio h* = rho x sigma_S / sigma_F; figures calculated
+      Hull, Options, Futures, and Other Derivatives (Pearson), minimum variance hedge ratio h* = rho x sigma_S / sigma_F
 
 checks:
   - id: hr-quiz-hedging
