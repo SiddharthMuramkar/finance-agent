@@ -93,7 +93,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
             </TextLink>
           </div>
           <p className="measure mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
-            For each Topic: your Session, what you found and your notes. Add lines of your own to any Topic. Print this page for a paper copy.
+            For each Topic: your Session, what you found and your Topic Note. Add lines of your own to any Topic. Print this page for a paper copy.
           </p>
           {notebook.rows.length === 0 && (
             <p data-notebook-empty className="text-sm leading-5">

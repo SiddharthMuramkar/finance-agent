@@ -71,7 +71,7 @@ function startCorrection(reply: string, checkMessage: string): { text: string; c
 
 const hasWidgetBlock = (text: string) => text.includes("```openui-lang\n");
 
-/** Which Session and turn a reply belongs to (the turn is the seq of the Learner's message that began it): what "Save to notes" keys on. */
+/** Which Session and turn a reply belongs to (the turn is the seq of the Learner's message that began it): what "Save to Notebook" keys on. */
 export type TurnRef = { sessionId: number; turnSeq: number };
 
 export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage; /** On a reply: where it sits in its Session. */ ref?: TurnRef };

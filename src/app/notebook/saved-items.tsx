@@ -8,7 +8,7 @@ import { LinkButton } from "../ui";
 import { WidgetView } from "../widget-view";
 import { useOfferUndo } from "./undo";
 
-// A Widget in a saved reply is drawn in place: the Notes page has no Widget panel.
+// A Widget in a saved reply is drawn in place: the Notebook has no Widget panel.
 const inline: WidgetSlot = ({ code, complete }) => (
   <span className="my-3 block">
     <WidgetView code={code} complete={complete} />
