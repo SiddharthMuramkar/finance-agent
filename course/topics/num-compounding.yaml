@@ -424,7 +424,7 @@ questions:
         mistake: { fix: "A bull run is a long stretch of rising prices, not a score for growth.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      The log return of a rise from 100 to 150 is the natural log of 1.5, about 0.405, a little smaller than the ordinary 50%. Log returns add across periods, which ordinary returns do not.
+      A log return is a score for one stretch of growth, built so that back-to-back scores simply add. That is why analysts reach for it: ordinary returns have to be compounded, log returns just join up.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
@@ -571,7 +571,7 @@ questions:
         mistake: { fix: "Every year counts. The log returns of back-to-back years all add up.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      Log returns of back-to-back periods add up to the log return of the whole stretch: 0.1 plus 0.2 plus 0.1 is 0.4.
+      Log returns of back-to-back periods add up to the log return of the whole stretch. That is the whole point of them: no compounding to untangle.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
@@ -613,7 +613,7 @@ questions:
         mistake: { fix: "A log return needs only the start and the end, not the days between them.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      The log return is the natural log of 1.2, which is about 0.182, or 18.2%. For a rise, a log return is always a little below the ordinary return.
+      For a rise, a log return always comes out a little below the ordinary return, because it is the score that lets periods add rather than compound.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
@@ -655,7 +655,7 @@ questions:
         mistake: { fix: "A log return needs only the start and the end, and here they are equal.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      A log return is the natural log of end over start. When the end equals the start, that ratio is one and its log is zero.
+      No gain and no loss means a log return of zero. That is why a rise and the fall back to the start cancel out.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 

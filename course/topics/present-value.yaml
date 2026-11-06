@@ -327,10 +327,10 @@ questions:
 
   - id: pv-q-lingo-annuity
     prompt: >
-      The advertised jackpot was paid as 30 yearly instalments. What do finance people call a prize paid that way?
+      The advertised jackpot was offered as 30 yearly instalments. What do finance people call a prize offered that way?
     choices:
       - { id: a, text: "An annuity" }
-      - { id: b, text: "A lump sum", mistake: { tag: mixed_up_terms, fix: "A lump sum is one payment, all at once. This prize came in 30 instalments." } }
+      - { id: b, text: "A lump sum", mistake: { tag: mixed_up_terms, fix: "A lump sum is one payment, all at once. This prize was offered in 30 instalments." } }
       - { id: c, text: "A discount rate", mistake: { tag: mixed_up_terms, fix: "A discount rate is a yearly percentage used to shrink later payments." } }
       - { id: d, text: "A cash option", mistake: { tag: mixed_up_terms, fix: "The cash option is the lump sum taken instead of the annuity." } }
     answer: a
