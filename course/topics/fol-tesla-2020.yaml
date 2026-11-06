@@ -69,51 +69,51 @@ youllLearn:
 questions:
   - id: ft-q-compounding
     prompt: >
-      Damodaran warns his Tesla readers that compounding is hard to feel. Picture a Tesla fan who expects revenue to grow 40% a year for five years running. What happens to revenue as those years pass?
+      February 2020: Damodaran warns his Tesla readers that compounding is hard to feel. Say your cousin, a Tesla fan, expects revenue to grow 40% a year for five years. What shape is the climb?
     choices:
-      - { id: a, text: "Each year adds the same dollars, 40% of today's revenue, so the climb is a straight line", mistake: { tag: simple_not_compound, fix: "Growth also grows: each year's 40% applies to a bigger base, so a straight line understates." } }
-      - { id: b, text: "Each year's growth builds on the year before, so the climb steepens and ends far above a straight line" }
-      - { id: c, text: "Growth fades by itself as revenue gets bigger, so the climb flattens", mistake: { tag: growth_fades, fix: "The rate stays 40%. A bigger base means bigger dollar gains, not smaller." } }
-      - { id: d, text: "Revenue only doubles, because 40% a year is a modest rate", mistake: { tag: modest_rate, fix: "Modest-looking rates compound to a lot. Five years at 40% ends several times larger." } }
+      - { id: a, text: "A straight line: each year adds the same dollars", mistake: { tag: simple_not_compound, fix: "Each year's 40% lands on a bigger base, so the climb steepens." } }
+      - { id: b, text: "It steepens: each year's growth builds on the year before" }
+      - { id: c, text: "It flattens, as growth fades on a bigger base", mistake: { tag: growth_fades, fix: "The rate stays at 40%. A bigger base means bigger dollar gains, not smaller." } }
+      - { id: d, text: "One jump in the first year, then flat", mistake: { tag: grew_once, fix: "The 40% repeats every year, so revenue keeps climbing for all five years." } }
     answer: b
     explanation: >
-      Compounding means each year's growth is earned on a bigger base, so the climb curves upward. At 40% a year, five years take revenue to more than five times today's. That is why the post suggests judging the dollar revenue in ten years rather than the growth rate.
+      Compounding means each year's growth is earned on a bigger base, so the climb curves upward. That is why the post suggests judging the dollar revenue in ten years rather than the growth rate.
     source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
   - id: ft-q-reinvestment
     prompt: >
-      In Damodaran's own Tesla story, each dollar Tesla invests in its first five years brings in $3 of revenue, a sales-to-capital ratio of 3. What does that say about how much Tesla must invest to grow?
+      In Damodaran's February 2020 Tesla story, each dollar Tesla invests brings in $3 of new revenue, a "sales-to-capital ratio" of 3. Your uncle asks: what does that say about the money Tesla must invest to grow?
     choices:
-      - { id: a, text: "It must invest far more than the revenue it adds, because capital is the bigger number", mistake: { tag: ratio_upside_down, fix: "A ratio of 3 means capital is the smaller number, not the bigger." } }
-      - { id: b, text: "It must invest less than the revenue it adds, because each dollar of new capital supports several dollars of sales" }
-      - { id: c, text: "It must invest about as much as the revenue it adds, one dollar for each dollar", mistake: { tag: ratio_of_one, fix: "That describes a ratio of 1. A ratio of 3 needs less capital." } }
-      - { id: d, text: "The ratio does not matter, because growth is paid for by profit alone", mistake: { tag: ratio_ignored, fix: "The ratio sets how much must be reinvested, whatever the profit." } }
+      - { id: a, text: "More than the revenue it adds, because capital is the bigger number", mistake: { tag: ratio_upside_down, fix: "A ratio of 3 means each dollar of capital brings $3 of sales. Capital is smaller." } }
+      - { id: b, text: "Less than the revenue it adds: each dollar invested supports several of sales" }
+      - { id: c, text: "About as much as it adds, a dollar for each dollar", mistake: { tag: ratio_of_one, fix: "That describes a ratio of 1. A ratio of 3 needs less capital." } }
+      - { id: d, text: "It doesn't matter, since profit alone pays for growth", mistake: { tag: ratio_ignored, fix: "The ratio sets how much must be reinvested, whatever the profit." } }
     answer: b
     explanation: >
       Sales to capital says how many dollars of extra revenue each dollar of new investment supports. The higher it is, the less the company must reinvest to grow. A low ratio, such as the $1.37 the post gives for the median carmaker, would need far more capital for the same growth.
     source: Sales-to-capital reinvestment, as set out in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
   - id: ft-q-failure
     prompt: >
-      Damodaran's story gives Tesla a 10% chance of failing. If it fails, its assets are sold for far less than the going business is worth. How does he let that chance into his value?
+      Damodaran sold his own Tesla shares on 30 January 2020. His story gives Tesla a 10% chance of failing, when its assets would sell for far less than the going business. How does that chance enter his value?
     choices:
-      - { id: a, text: "Weigh both outcomes by their chances, so a small chance of failure trims the value a little" }
-      - { id: b, text: "Treat failure as worth nothing, since a failed company has no value", mistake: { tag: failure_worth_nothing, fix: "If it fails a share still fetches something from the assets. That has to be counted." } }
-      - { id: c, text: "Ignore the 10%, because survival is far more likely", mistake: { tag: ignore_unlikely, fix: "A small chance of a big loss still lowers the value. It has to be counted." } }
-      - { id: d, text: "Value the company at the failure price, to be safe", mistake: { tag: worst_case_value, fix: "Valuing at the worst case ignores that survival is far more likely." } }
+      - { id: a, text: "Weigh both outcomes by their chances, trimming the value a little" }
+      - { id: b, text: "Count failure as zero, since a failed firm is worthless", mistake: { tag: failure_worth_nothing, fix: "A failed firm's assets still sell for something. That has to be counted." } }
+      - { id: c, text: "Ignore it, since survival is far more likely", mistake: { tag: ignore_unlikely, fix: "A small chance of a big loss still lowers the value. It has to be counted." } }
+      - { id: d, text: "Value Tesla at the failure price, to be safe", mistake: { tag: worst_case_value, fix: "Valuing at the worst case ignores that survival is far more likely." } }
     answer: a
     explanation: >
       Each outcome counts in proportion to its chance. Survival counts most, failure counts for its 10%, and the failure price is what the assets sell for, not zero. So the value sits a little below the survival value. This is the second part of the risk lever, apart from the cost of capital.
     source: Expected value of two outcomes; the failure-probability adjustment is the second risk input in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", 6 February 2020.
   - id: ft-q-rd
     prompt: >
-      Tesla spends heavily on research and development (R&D), and its accounts charge all of it against this year's income. Damodaran treats R&D as an investment instead, written off over several years. What does that do to the operating income in his story?
+      6 February 2020: your cousin, deciding whether to buy Tesla, reads that Damodaran counts its research spending (R&D) as an investment, written off over years. Which headline gets his Tesla profit right?
     choices:
-      - { id: a, text: "Operating income looks higher, because most of this year's R&D is no longer charged at once" }
-      - { id: b, text: "Operating income looks higher by the whole R&D amount, because the R&D is ignored", mistake: { tag: ignored_writeoff, fix: "Nothing is ignored: the R&D still gets charged, just a piece each year." } }
-      - { id: c, text: "Operating income looks lower, because the write-off is a new charge on top", mistake: { tag: subtracted_only, fix: "Think of it as swapping a big charge this year for a smaller one, not adding a charge." } }
-      - { id: d, text: "Operating income looks the same, because the cost is only relabelled", mistake: { tag: relabel_only, fix: "Spreading the cost changes how much is charged this year, so income changes." } }
+      - { id: a, text: "His Tesla profit looks higher: most of this year's R&D is charged later" }
+      - { id: b, text: "He drops the R&D bill, so profit jumps by all of it", mistake: { tag: ignored_writeoff, fix: "Nothing is ignored: the R&D still gets charged, a piece each year." } }
+      - { id: c, text: "His write-offs pile an extra cost on Tesla, so profit falls", mistake: { tag: subtracted_only, fix: "It swaps one big charge this year for smaller yearly ones. Nothing extra is added." } }
+      - { id: d, text: "Same profit, new label: moving R&D changes nothing", mistake: { tag: relabel_only, fix: "Spreading the cost changes how much is charged this year, so profit changes." } }
     answer: a
     explanation: >
-      Treating R&D as an investment adds back the year's R&D expense and charges only the write-off for the year. When R&D is growing, that charge is smaller, so operating income rises. That is how Damodaran's story improves Tesla's margin.
+      Treating R&D as an investment adds back the year's R&D expense and charges only the write-off for the year. When R&D is growing, that charge is smaller, so operating income (profit before interest) rises. That is how Damodaran's story improves Tesla's margin.
     source: R&D capitalisation, as described in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
 checks:
   - id: ft-quiz-levers
