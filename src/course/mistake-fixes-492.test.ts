@@ -53,4 +53,30 @@ describe("PR #492 pre-merge content fixes", () => {
     expect(fix).not.toMatch(/earlier/i);
     expect(fix).toMatch(/money growth/i);
   });
+
+  it("#514: hmr-q-before-oct-1979 b and d fixes say 'Before October 1979'", () => {
+    const b = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "b").mistake?.fix ?? "";
+    const d = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "d").mistake?.fix ?? "";
+    expect(b).toMatch(/^Before October 1979/);
+    expect(d).toMatch(/^Before October 1979/);
+  });
+
+  it("#514: hmr-q-before-oct-1979 d fix says nothing about after the as-of date", () => {
+    const d = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "d").mistake?.fix ?? "";
+    expect(d).not.toMatch(/after/i);
+  });
+
+  it("#514: hmr-q-before-oct-1979 c fix brings in no unsourced government price controls", () => {
+    const c = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "c").mistake?.fix ?? "";
+    expect(c).not.toMatch(/government/i);
+  });
+
+  it("#513: sd-q-spread-widens choice c fix lets Treasury moves shift the gap too", () => {
+    const c = choice("sov-default-country-risk", "sd-q-spread-widens", "c");
+    expect(c.mistake?.tag).toBe("treasury_moved");
+    expect(c.mistake?.fix).not.toMatch(/widens because the country looks riskier/i);
+    expect(c.mistake?.fix).toMatch(/Treasury moves can nudge the gap/i);
+    expect(c.mistake?.fix).toMatch(/default fear/i);
+    expect(words(c.mistake?.fix ?? "")).toBeLessThanOrEqual(20);
+  });
 });

@@ -122,7 +122,7 @@ questions:
       - { id: d, text: "Buy back shares to raise earnings per share", mistake: { tag: eps_as_value, fix: "A buyback that lifts earnings per share adds no value if a good project goes unfunded." } }
     answer: a
     explanation: >
-      Positive-NPV projects add value, so they come before payouts. Cash with no use that earns more than its cost of capital should go back to shareholders.
+      Positive-NPV projects add value, so they come before payouts. Cash the firm has no use for, meaning no project that earns more than its cost of capital, should go back to shareholders.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 16.2 Net Present Value (NPV) Method: https://openstax.org/books/principles-finance-2e/pages/16-2-net-present-value-npv-method
 

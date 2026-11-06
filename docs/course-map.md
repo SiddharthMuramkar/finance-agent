@@ -74,7 +74,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 - Needs first: The cash flow statement
 - Case: **Satyam's reported profit and cash (as of December 2008)** (as of 2008-12-31)
   - Outcome: On 7 Jan 2009 Raju wrote that for the September 2008 quarter Satyam had reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (24%) against actual revenue of Rs 2,112 crore and operating profit of Rs 61 crore (3%); the Rs 588 crore difference showed up as 'artificial cash and bank balances'. The SEC later said managers created more than 6,000 phony invoices and bogus bank statements, giving more than $1bn of fictitious cash, about half of total assets; Satyam paid a $10m penalty to settle. The false profit had to appear in the general ledger and the financial statements.
-  - Sources: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915 https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+  - Sources: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915 https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm https://www.reuters.com/article/marketsNews/idINN1628370020081216/ https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17
 
 ### 9. Ratios, return on equity and DuPont
 
@@ -122,8 +122,8 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 - ID: `fs-earnings-quality` · Written · Subject: Financial statements
 - Needs first: Ratios, return on equity and DuPont, Capex, depreciation, amortisation and EBITDA
-- Case: **Satyam, the day before the confession** (as of 2009-01-06)
-  - Outcome: On 7 Jan 2009 Raju wrote to the board and the regulators and resigned. He said Rs 5,040 crore of the Rs 5,361 crore of cash and bank balances on the 30 Sep 2008 balance sheet did not exist, Rs 376 crore of accrued interest was non-existent and receivables were overstated by Rs 490 crore (of Rs 2,651 crore). For the September quarter the reported revenue of Rs 2,700 crore and operating margin of Rs 649 crore (24%) compared with actual figures of Rs 2,112 crore and Rs 61 crore (3%). The shares fell to Rs 39.95 in Mumbai that day. The SEC later alleged that officials used false invoices and forged bank statements to inflate results.
+- Case: **Satyam in early January 2009** (as of 2009-01-06)
+  - Outcome: On 7 Jan 2009 Raju wrote to the board and the regulators and resigned. He said Rs 5,040 crore of the Rs 5,361 crore of cash and bank balances on the 30 Sep 2008 balance sheet did not exist, Rs 376 crore of accrued interest was non-existent and receivables were overstated by Rs 490 crore (of Rs 2,651 crore). For the September quarter the reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (a 24% margin) compared with actual figures of Rs 2,112 crore and Rs 61 crore (a 3% margin). The shares fell to Rs 39.95 in Mumbai that day. The SEC later alleged that officials used false invoices and forged bank statements to inflate results.
   - Sources: https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915 https://www.reuters.com/article/marketsNews/idINN1628370020081216/ https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17
 
 ### 15. Corporate tax and after-tax cash flows
@@ -175,7 +175,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 - ID: `eco-central-banks` · Written · Subject: Economics & policy
 - Needs first: Money, banks and credit creation
 - Case: **The 1994 Fed tightening** (as of 1994-02-03)
-  - Outcome: On 4 Feb 1994 the FOMC tightened. Its statement said the Committee had 'decided to increase slightly the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%; markets were surprised. Monthly averages from the Fed's H.15 release: the 10-year Treasury yield went from 5.75% in Jan 1994 to a peak of 7.96% in Nov (+221 bp) and the 2-year from 4.14% to 7.59%, so the 10s-2s gap shrank from 1.61 to 0.22 points; the funds rate averaged 3.05% in Jan and 5.45% in Dec. A Fed study contrasts 2004, when the Fed issued a statement after each meeting and signalled a 'measured pace', and the 10-year yield fell 8 bp on the day of the first increase.
+  - Outcome: On 4 Feb 1994 the FOMC tightened. For the first time, the Fed announced its decision the same day: its statement said the Committee had 'decided to increase slightly the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%; markets were surprised. Monthly averages from the Fed's H.15 release: the 10-year Treasury yield went from 5.75% in Jan 1994 to a peak of 7.96% in Nov (+221 bp) and the 2-year from 4.14% to 7.59%, so the 10s-2s gap shrank from 1.61 to 0.22 points; the funds rate averaged 3.05% in Jan and 5.45% in Dec. A Fed study contrasts 2004, when the Fed issued a statement after each meeting and signalled a 'measured pace', and the 10-year yield fell 8 bp on the day of the first increase.
   - Sources: https://www.federalreserve.gov/fomc/19940204default.htm https://www.federalreserve.gov/fomc/MINUTES/1994/19940204min.htm https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html https://www.federalreserve.gov/releases/h15/
 
 ### 21. Inflation, nominal vs real rates
@@ -357,7 +357,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 - ID: `mkt-efficiency` · Written · Subject: Markets & investing
 - Needs first: CAPM, beta and factor models
 - Case: **Blodget versus Grantham on the dot-com valuations** (as of 2000-05-01)
-  - Outcome: The Nasdaq kept falling: it closed at 1,114.11 on 9 Oct 2002, 78% below its record close of 5,048.62 on 10 Mar 2000, and did not close above that record again until April 2015. The S&P 500 went from its record close of 1,527.46 on 24 Mar 2000 to a closing low of 776.76 on 9 Oct 2002, a fall of about 49%. Grantham's calls of a 50% fall for the S&P 500 and 70% for the Nasdaq were close to the eventual declines, though they took two and a half years, and Blodget's warning that most of the new companies would not survive was also borne out.
+  - Outcome: The Nasdaq kept falling: it closed at 1,114.11 on 9 Oct 2002, 78% below its record close of 5,048.62 on 10 Mar 2000, and did not close above that record again until April 2015. The S&P 500 went from its record close of 1,527.46 on 24 Mar 2000 to a closing low of 776.76 on 9 Oct 2002, a fall of about 49%. Grantham's calls of a 50% fall for the S&P 500 and 70% for the Nasdaq were close to the eventual declines, though they took two and a half years; how many of the new companies disappeared (Blodget's 75%, Grantham's 80%) was not counted for this Case, so that claim stays untested here.
   - Note: The debate was staged in early May 2000, after the 10 Mar 2000 Nasdaq peak, not on 1 Jan 2000. Only headline index closes are used (AP, CNBC, Reuters); the Nasdaq decimals come from secondary sources.
   - Sources: https://www.forbes.com/forbes/2000/0612/6514312a.html https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html https://apnews.com/general-news-5472b273b06642eaa5a0487fed43e9c4 https://cnbc.com/2007/07/13/sp-500-milestones.html
 

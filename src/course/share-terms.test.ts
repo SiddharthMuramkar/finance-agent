@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap } from "./map";
+import { parseOutline } from "./outline";
 
 /**
  * A term the Topic teaches as a share (operating margin: "operating profit as a share of revenue") must be used as a
@@ -34,4 +37,14 @@ describe("share terms in Case Reveals and stories", () => {
       expect(misuses).toEqual([]);
     });
   }
+
+  // Issue #508: the outline's Case outcome is what the Historian judge reads as the Case outcome, so it must use the
+  // share terms the same way the Reveal does.
+  it("outline Case outcomes never give a share term as a money amount", () => {
+    const { outline } = parseOutline(readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8"));
+    const misuses = (outline?.topics ?? []).flatMap((t) =>
+      t.cases.flatMap((c) => ALWAYS.filter((term) => amountAfter(term).test(c.outcome)).map((term) => `${t.id} "${c.title}": ${term}`)),
+    );
+    expect(misuses).toEqual([]);
+  });
 });
