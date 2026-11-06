@@ -83,7 +83,7 @@ questions:
     prompt: >
       A country that exports onions bans exports while its home price is rising. What is the immediate effect the ban aims at, and what happens in the countries that import from it?
     choices:
-      - { id: a, text: "More onions stayed in the home market, lowering the domestic price; prices rose in countries that import Indian onions" }
+      - { id: a, text: "More onions stayed in the home market, lowering the domestic price; prices rose in the countries that import them" }
       - { id: b, text: "Domestic demand fell; prices fell abroad" }
       - { id: c, text: "Domestic supply fell; prices rose at home and abroad" }
       - { id: d, text: "No effect on either, since exports were a small share of production" }
