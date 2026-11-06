@@ -137,7 +137,7 @@ The whole conversation between one Learner and the Tutor about one Topic. Leavin
 _Avoid_: Login, thread, chat
 
 **Older session**:
-A Session from before each Topic had one Session of its own. Older sessions are kept and can be read, listed apart from the Topic Sessions, but are never continued.
+A Session from before each Topic had one Session of its own. Older sessions are kept and can be read, listed apart from the Topic Sessions, but are never continued. A Session the Learner restarted (see Earlier attempt) is not an Older session: the Notebook shows it as an Earlier attempt of its Topic.
 _Avoid_: Legacy session, archived session
 
 **Start a Topic over**:

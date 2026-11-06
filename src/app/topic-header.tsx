@@ -31,7 +31,7 @@ export function TopicHeader({
   const marked = new Set(turn.messages.flatMap((m) => (m.role === "item" && m.kind === STEP_DIVIDER && typeof m.data.number === "number" ? [m.data.number] : [])));
   return (
     <div data-testid="above-widgets" className="relative flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
-      {place && <TopicBar title={place.title} goal={place.goal} strip={strip} marked={marked} />}
+      {place && <TopicBar topicId={place.topicId} title={place.title} goal={place.goal} strip={strip} marked={marked} />}
       {explore && <PinnedExplore item={exploreItem(explore.code, undefined, explore.id)} />}
       <ReviewPanel review={review} />
     </div>

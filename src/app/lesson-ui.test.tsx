@@ -45,3 +45,19 @@ describe("what the Learner found", () => {
     expect(header).toContain("You guessed 12%.");
   });
 });
+
+describe("an Earlier attempt's header", () => {
+  const header = renderToStaticMarkup(<PastSessionHeaderView header={{ kind: "earlier", topicId: "present-value", title: "Present value", date: new Date("2026-11-04T10:00:00Z"), attemptNo: 1 }} />);
+
+  it("says Earlier attempt, the date and read-only, under the Topic's title", () => {
+    expect(header).toContain("Earlier attempt · 4 Nov 2026 · read-only");
+    expect(header).toMatch(/<h1[^>]*>Present value<\/h1>/);
+  });
+
+  it("offers Go to the current attempt (opens the Topic) and no Resume", () => {
+    expect(header).toMatch(/<form[^>]*action="\/api\/open"/);
+    expect(header).toContain('name="topic" value="present-value"');
+    expect(header).toContain("Go to the current attempt");
+    expect(header).not.toContain("Resume");
+  });
+});
