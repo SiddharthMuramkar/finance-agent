@@ -83,7 +83,7 @@ export default async function WorkspacePage() {
   ]);
   // The shown Topic: a passed Topic still on screen, else the current Topic.
   const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
-  const place = current ? { stage: current.stage, title: current.title, goal: map.topic(current.id)?.goal } : null;
+  const place = current ? { stage: current.stage, topicId: current.id, title: current.title, goal: map.topic(current.id)?.goal } : null;
   // The Topic Start card opens the Topic's conversation: worked out from course data now, never stored.
   const start = current ? topicStart(map, progress, current.id) : null;
   // The shown Topic's written-ahead Widgets, as the Learner sees them now: those the Tutor opened are drawn from these.

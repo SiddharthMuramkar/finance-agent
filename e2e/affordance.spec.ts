@@ -88,6 +88,26 @@ test.describe("affordance audit is clean", () => {
     await expect(page.getByTestId("account-menu")).toBeVisible();
     await clean(page, "/settings account menu open");
   });
+
+  // B3b: the Topic bar's ⋯ menu, its restart confirm, and Settings → Your Topics with a confirm open.
+  test("[B3b] /study with the Topic options menu open, then its confirm", async ({ page }) => {
+    await visit(page, "restart-topics", "/study");
+    await page.getByTestId("topic-bar").getByRole("button", { name: "Topic options" }).click();
+    await expect(page.getByRole("menuitem", { name: "Start this Topic over…" })).toBeVisible();
+    await clean(page, "/study Topic options open");
+    await page.getByRole("menuitem", { name: "Start this Topic over…" }).click();
+    await expect(page.getByTestId("restart-confirm")).toBeVisible();
+    await clean(page, "/study restart confirm");
+  });
+
+  test("[B3b] /settings Your Topics with a confirm open", async ({ page }) => {
+    await visit(page, "restart-topics", "/settings");
+    await expect(page.locator("#your-topics [data-your-topic]")).not.toHaveCount(0);
+    await clean(page, "/settings Your Topics");
+    await page.locator("#your-topics [data-your-topic]").first().getByRole("button", { name: "Start over" }).click();
+    await expect(page.getByTestId("restart-confirm")).toBeVisible();
+    await clean(page, "/settings Your Topics confirm");
+  });
 });
 
 test("[A3b] pressing feels physical", async ({ page }) => {

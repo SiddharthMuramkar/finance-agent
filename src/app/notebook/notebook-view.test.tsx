@@ -37,6 +37,7 @@ const rowOf = (note: TopicNote, over: Partial<NotebookRow> = {}): NotebookRow =>
   lastActive: null,
   action: null,
   found: [],
+  earlier: [],
   note,
   ...over,
 });
@@ -197,8 +198,42 @@ describe("notebook rows", () => {
     expect(none).toContain("Nothing here yet.");
   });
 
-  it("leaves a slot for Earlier attempts, empty until a Topic is started over", () => {
-    expect(html).toContain("data-earlier-attempts");
+  it("has no Earlier attempts block on a Topic that was never started over", () => {
+    expect(html).not.toContain("data-earlier-attempts");
+  });
+});
+
+describe("earlier attempts", () => {
+  const attempt = (sessionId: number, attemptNo: number, date: string, over: Partial<NotebookRow["earlier"][number]> = {}): NotebookRow["earlier"][number] => ({
+    sessionId, topicId: "bonds", attemptNo, date: new Date(date), status: "not_finished", checksPassed: 1, checksTotal: 3, found: [], ...over,
+  });
+  const bonds = rowOf(notes[1], {
+    status: "in_progress",
+    sessionId: 40,
+    action: "resume",
+    earlier: [attempt(31, 2, "2026-11-04T10:00:00Z", { status: "passed", checksPassed: 3, found: ["You found the rate."] }), attempt(30, 1, "2026-11-02T10:00:00Z", { checksPassed: 2 })],
+  });
+  const html = renderToStaticMarkup(<NotebookView notebook={{ rows: [bonds], older: [] }} showAll={false} />);
+  const block = html.slice(html.indexOf("data-earlier-attempts"));
+
+  it("lists each earlier attempt, newest first, as 'Earlier attempt · 4 Nov'", () => {
+    expect(block.indexOf("Earlier attempt · 4 Nov")).toBeGreaterThan(-1);
+    expect(block.indexOf("Earlier attempt · 2 Nov")).toBeGreaterThan(block.indexOf("Earlier attempt · 4 Nov"));
+  });
+
+  it("says how each ended, the Checks passed, and what the Learner found", () => {
+    expect(block).toMatch(/data-affordance="tag"[^>]*>Passed</);
+    expect(block).toMatch(/data-affordance="tag"[^>]*>Not finished</);
+    expect(block).toContain("Checks passed 3 of 3");
+    expect(block).toContain("Checks passed 2 of 3");
+    expect(block).toContain("You found the rate.");
+  });
+
+  it("gives each a Read link to its Session and no Resume", () => {
+    expect(block).toMatch(/<a[^>]*href="\/sessions\/31"[^>]*>Read<\/a>/);
+    expect(block).toMatch(/<a[^>]*href="\/sessions\/30"[^>]*>Read<\/a>/);
+    expect(block).not.toContain("Resume");
+    expect(block).not.toContain("/api/open");
   });
 });
 
