@@ -19,7 +19,7 @@ describe("the Settings page", () => {
     // Start over: a danger button under a Start over heading, in the last card, full width below the columns.
     expect(html).toMatch(/<h2[^>]*id="start-over-heading"[^>]*>Start over<\/h2>/);
     expect(html).toMatch(/<button[^>]*class="btn btn-danger[^"]*"[^>]*>Start over as a new learner/);
-    const columns = html.match(/<div class="[^"]*columns-\[420px\][^"]*">/);
+    const columns = html.match(/<div class="[^"]*columns-\[420px[^"]*">/);
     expect(columns).not.toBeNull();
     const inside = html.slice(html.indexOf(columns![0]), html.indexOf('id="start-over"'));
     expect(inside).toContain('id="developer-details"');
@@ -30,10 +30,11 @@ describe("the Settings page", () => {
   // #529: masonry columns, not fixed grid rows, so the tall About you card leaves no ~400 px holes under the short cards.
   it("lays the first five cards out in 420 px masonry columns that never split a card", () => {
     const html = view();
-    const columns = html.match(/<div class="([^"]*columns-\[420px\][^"]*)">/);
+    const columns = html.match(/<div class="([^"]*columns-\[420px[^"]*)">/);
     expect(columns).not.toBeNull();
     const cls = columns![1].replaceAll("&gt;", ">").replaceAll("&amp;", "&").split(" ");
-    expect(cls).toEqual(expect.arrayContaining(["columns-[420px]", "gap-x-[var(--gap)]", "[&>*]:break-inside-avoid", "[&>*]:mb-[var(--gap)]"]));
+    // At most 3 columns: five cards balance into 3 stacks, so a 4th column at 1920 would stay empty.
+    expect(cls).toEqual(expect.arrayContaining(["columns-[420px_3]","gap-x-[var(--gap)]", "[&>*]:break-inside-avoid", "[&>*]:mb-[var(--gap)]"]));
     expect(cls).not.toContain("card-grid");
     expect(html).not.toContain("grid-template-columns");
   });

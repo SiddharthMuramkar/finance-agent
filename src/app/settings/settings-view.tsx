@@ -33,8 +33,9 @@ export function SettingsView({
     <div>
       <h1 className="text-lg font-semibold leading-[26px]">Settings</h1>
       {/* #529: masonry columns (420 px minimum, #470), so a short card stacks under the one above instead of waiting for
-          the tall About you card's row to end. Start over sits below them, full width. */}
-      <div className="mt-3 columns-[420px] gap-x-[var(--gap)] [&>*]:mb-[var(--gap)] [&>*]:break-inside-avoid">
+          the tall About you card's row to end. At most 3 columns: five cards balance into 3 stacks, so a 4th (1920) stayed
+          empty. Start over sits below them, full width. */}
+      <div className="mt-3 columns-[420px_3] gap-x-[var(--gap)] [&>*]:mb-[var(--gap)] [&>*]:break-inside-avoid">
         <Card id="account" aria-labelledby="account-heading">
           <h2 id="account-heading" className={heading}>
             Account

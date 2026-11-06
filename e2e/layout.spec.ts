@@ -70,6 +70,32 @@ test("[A1] reading pages fill the window", async ({ page }, info) => {
   }
 });
 
+// #529: Settings cards stack in masonry columns, so the tall About you card leaves no ~400 px hole under a short card.
+test("[#529] settings cards stack with no holes", async ({ page }, info) => {
+  test.skip(!["mbp14", "w1920"].includes(info.project.name), "measured at 1512 and 1920");
+  await seed(page, "many-topics");
+  await page.goto("/settings");
+  await expect(page.locator("#start-over")).toBeVisible();
+  const rects = await page.evaluate(() =>
+    ["account", "appearance", "about-you", "your-topics", "developer-details"].map((id) => {
+      const r = document.getElementById(id)!.getBoundingClientRect();
+      return { id, left: Math.round(r.left), right: r.right, top: r.top, bottom: r.bottom };
+    }),
+  );
+  // No empty column on the right: the cards reach the right edge of the full-width Start over card.
+  const edge = await page.locator("#start-over").evaluate((el) => el.getBoundingClientRect().right);
+  expect(Math.max(...rects.map((r) => r.right)), "cards reach the right edge").toBeGreaterThanOrEqual(edge - 2);
+  const byColumn = new Map<number, typeof rects>();
+  for (const r of rects) byColumn.set(r.left, [...(byColumn.get(r.left) ?? []), r]);
+  expect(byColumn.size, "more than one column").toBeGreaterThan(1);
+  for (const column of byColumn.values()) {
+    column.sort((a, b) => a.top - b.top);
+    for (let i = 1; i < column.length; i++) {
+      expect(column[i].top - column[i - 1].bottom, `gap above ${column[i].id}`).toBeLessThanOrEqual(32);
+    }
+  }
+});
+
 test("[A1] chat lines are readable", async ({ page }, info) => {
   const bands: Record<string, [number, number]> = { w1280: [60, 75], mbp14: [60, 75], w1920: [60, 75], w1024: [48, 80] };
   const band = bands[info.project.name];
