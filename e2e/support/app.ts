@@ -6,7 +6,7 @@ import { expect, type Page } from "@playwright/test";
  */
 
 export type State = "fresh" | "story" | "concept-widget" | "quiz-open" | "your-turn" | "review-due" | "topic-complete" | "many-topics" | "notebook-older";
-export type Script = "story-reply" | "concept-reply-widget" | "plain-reply" | "quiz-open";
+export type Script = "story-reply" | "concept-reply-widget" | "plain-reply" | "quiz-open" | "stage-reply-2" | "stage-reply-3" | "stage-reply-4";
 
 /** Signs the tools Learner in through the login form (the saved cookie usually makes this unneeded). */
 export async function signIn(page: Page) {

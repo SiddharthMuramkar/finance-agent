@@ -219,7 +219,7 @@ describe("Present value's annuity Widget at the explore step", () => {
 
   it("is the same Widget when the Tutor reopens it: one tab, its chip pointing at it", async () => {
     await workspace({ initial: [{ role: "item", kind: WIDGET_OPENED, data: { id: "annuity-worth-today" } }] });
-    const tabs = [...host.querySelectorAll('[aria-label="Widgets in this Session"] [role=option]')];
+    const tabs = [...host.querySelectorAll('[data-testid="widget-filmstrip"] [data-thumb-key]')];
     expect(tabs).toHaveLength(1);
     expect(host.textContent).toContain("What the annuity is worth today");
   });
