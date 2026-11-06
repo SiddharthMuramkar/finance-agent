@@ -125,6 +125,40 @@ describe("a finished step on the Topic bar", () => {
     expect(bar.querySelector('button[data-step-number="1"]')?.getAttribute("data-affordance")).toBe("chip");
   });
 
+  it("draws the strip on one line that scrolls sideways, every Check in the one list, and brings the current step into view (#313)", async () => {
+    const map = loadCourseMap();
+    const id = "num-percent-bps";
+    const progress = { currentTopicId: id, topics: { [id]: { step: "your_turn" as const, passedChecks: [], revealShown: false, status: "in_progress" as const } } };
+    const strip = stepSequence(map, progress, id)!;
+    expect(strip.groups.filter((g) => g.check).length).toBe(4);
+    const scrolled: Element[] = [];
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+    await act(async () => {
+      root.render(
+        <Conversation
+          initial={[{ role: "assistant", text: "Hello." }]}
+          strip={strip}
+          quiz={null}
+          pending={null}
+          review={noReview}
+          place={{ stage: "foundation", title: "Percent, percentage points and basis points" }}
+        />,
+      );
+    });
+    const list = host.querySelector('[data-testid="topic-bar"] ol[aria-label="Steps in this Topic"]')!;
+    expect(list.className).not.toMatch(/\bflex-wrap\b/);
+    expect(list.className).toMatch(/\bflex-nowrap\b/);
+    expect(list.className).toMatch(/\boverflow-x-auto\b/);
+    for (const inner of list.querySelectorAll("ol")) expect(inner.className).not.toMatch(/\bflex-wrap\b/);
+    expect([...list.querySelectorAll(":scope > li")].filter((li) => li.textContent!.startsWith("Check ")).length).toBe(4);
+    // The strip scrolls only itself to the current step: scrollIntoView would also move the page and the column.
+    expect(scrolled).toEqual([]);
+    expect(list.querySelector('[aria-current="step"]')).not.toBeNull();
+  });
+
   it("the Study page's Topic bar carries the shown Topic's ⋯ Topic options button (B3b)", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
     await act(async () => {
