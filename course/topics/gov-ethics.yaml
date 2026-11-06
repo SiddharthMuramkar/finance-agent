@@ -131,9 +131,9 @@ questions:
       What does a strong, independent audit committee of a board do?
     choices:
       - { id: a, text: "Reviews audit plans and findings, approves the external accountants and coordinates internal and external reviews of the accounts" }
-      - { id: b, text: "Sets the company's share price", mistake: { tag: sets_price, fix: "The market sets the share price; the audit committee oversees the accounts." } }
-      - { id: c, text: "Approves each customer order", mistake: { tag: approves_orders, fix: "Customer orders are management's work; the committee oversees audits." } }
-      - { id: d, text: "Decides which employees are promoted", mistake: { tag: promotions, fix: "Promotions are management's call; the committee oversees audits and auditors." } }
+      - { id: b, text: "Prepares the financial statements itself", mistake: { tag: prepares_accounts, fix: "Management prepares the accounts; the audit committee oversees them and the auditors who check them." } }
+      - { id: c, text: "Carries out the external audit itself", mistake: { tag: does_the_audit, fix: "The external accountants do the audit; the committee approves them and reviews their findings." } }
+      - { id: d, text: "Sets executive pay and bonuses", mistake: { tag: sets_pay, fix: "Pay is a separate board committee's job; the audit committee oversees the accounts and audits." } }
     answer: a
     explanation: >
       The audit committee is a subcommittee of the board that handles critical financial matters, including reviewing audit plans and findings and approving the external public accountants.
@@ -145,7 +145,7 @@ questions:
       A company's controlling family holds 25% of a builder and proposes that the company buy it for cash. What most clearly protects the other shareholders?
     choices:
       - { id: a, text: "Independent directors who can block the deal, or a vote in which shareholders with no stake in the builder decide" }
-      - { id: b, text: "A statement by the chairman that the price is fair", mistake: { tag: interested_word, fix: "The chairman is on the selling side, so his word cannot check the price." } }
+      - { id: b, text: "A statement by the family that the price is fair", mistake: { tag: interested_word, fix: "The family is on the selling side, so its word cannot check the price." } }
       - { id: c, text: "A press release praising the deal", mistake: { tag: press_release, fix: "A press release is the company's own praise; it gives objectors no power." } }
       - { id: d, text: "Waiting for the next annual report", mistake: { tag: wait_for_report, fix: "The report comes after the cash has gone; protection must act before the deal." } }
     answer: a

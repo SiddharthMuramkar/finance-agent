@@ -53,4 +53,13 @@ describe("PR #492 pre-merge content fixes", () => {
     expect(fix).not.toMatch(/earlier/i);
     expect(fix).toMatch(/money growth/i);
   });
+
+  it("#513: sd-q-spread-widens choice c fix lets Treasury moves shift the gap too", () => {
+    const c = choice("sov-default-country-risk", "sd-q-spread-widens", "c");
+    expect(c.mistake?.tag).toBe("treasury_moved");
+    expect(c.mistake?.fix).not.toMatch(/widens because the country looks riskier/i);
+    expect(c.mistake?.fix).toMatch(/Treasury moves can nudge the gap/i);
+    expect(c.mistake?.fix).toMatch(/default fear/i);
+    expect(words(c.mistake?.fix ?? "")).toBeLessThanOrEqual(20);
+  });
 });

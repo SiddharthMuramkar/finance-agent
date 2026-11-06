@@ -148,7 +148,7 @@ questions:
       - { id: a, text: "A listed software company with a similar growth rate and margin outlook" }
       - { id: b, text: "A profitable utility with the same revenue", mistake: { tag: same_revenue_same_business, fix: "A steady utility grows and earns differently, so its multiple fits a different story." } }
       - { id: c, text: "The largest company in the stock index", mistake: { tag: biggest_as_comparable, fix: "Size alone does not match growth, margins or risk." } }
-      - { id: d, text: "A company in the same city", mistake: { tag: same_city, fix: "Location says nothing about growth, margins or risk." } }
+      - { id: d, text: "A larger software company that is already profitable", mistake: { tag: same_industry_enough, fix: "Same industry is not enough; a mature, profitable firm grows differently, so its multiple fits a different story." } }
     answer: a
     explanation: >
       The multiple reflects growth, margins and risk. A comparable with a similar profile has earned a multiple for similar reasons; a utility or an index giant has not.
