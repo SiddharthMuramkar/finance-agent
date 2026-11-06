@@ -85,7 +85,6 @@ test("[D1a] typed-number inputs in the Learner UI: none on an open quiz", async 
 });
 
 test("[E4a] Widget on 100 % of replies (scripted): 4 of 4", async ({ page }) => {
-  test.fail(true, "[E4a] a Widget with every reply");
   await study(page);
   const scripts: Script[] = ["story-reply", "concept-reply-widget", "plain-reply", "quiz-open"];
   let withWidget = 0;

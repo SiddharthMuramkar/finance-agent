@@ -82,6 +82,51 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /** E4a: a Concept reply about percent change and its base, no Widget: code adds the Lingo card for "percent change". */
+  "concept-percent-change": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A percent change compares the move with where the rate started. Traders call that starting rate the base. " +
+              "A small move on a low base is a big percent change, which is why headlines and traders can sound so different.\n\n" +
+              "Which rate is the base when a rate moves from its old level to a new one?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** E4a: a Your turn reply that points at the open Quick try and names the base, no Widget. */
+  "your-turn-reply": {
+    step: "your_turn",
+    replies: [
+      {
+        content: [
+          text(
+            "Before you tap, find the base: the rate the move started from. Everything in a percent change is measured against it.\n\n" +
+              "Have a go at the Quick try below.",
+          ),
+        ],
+      },
+    ],
+  },
+  /** E4a: a Reveal reply that tells what the Fed did and how traders said it, no Widget. */
+  "reveal-reply": {
+    step: "reveal",
+    replies: [
+      {
+        content: [
+          text(
+            "On 4 February 1994 the Fed tightened, and the federal funds rate went from about 3% to 3.25%. " +
+              "No number was announced. Traders still read the move in basis points straight away, and bond prices fell over the following weeks " +
+              "as borrowed money rushed out of long bonds. That spring became known as the great bond massacre.\n\n" +
+              "Why do you think such a small move shook the bond market so hard?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;

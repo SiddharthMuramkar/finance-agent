@@ -103,6 +103,11 @@ const STATES: Record<string, Build> = {
     const session = await sessionForTurn(db, now, learnerId, TOPIC);
     await enterStepItems(db, map, learnerId, session.id, now);
   },
+  /** The Topic at its Reveal step, every Check passed (E4a: a Widget with every reply at the reveal). */
+  reveal: async (db, map, learnerId, now) => {
+    await story(db, map, learnerId, now);
+    await walk(db, map, learnerId, now, TOPIC, (step) => step === "reveal");
+  },
   /** The first quiz Check with a written question, missed once, so that question is enrolled and one Review is due (D1a). */
   "review-due": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);

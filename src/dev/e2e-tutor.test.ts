@@ -23,7 +23,7 @@ const context = (name: E2eScriptName): ReplyCheckContext => ({
 
 describe("the scripted Tutor", () => {
   it("every named script passes the reply checks", () => {
-    expect(Object.keys(E2E_SCRIPTS).sort()).toEqual(["concept-reply-widget", "plain-reply", "quiz-open", "story-reply"]);
+    expect(Object.keys(E2E_SCRIPTS).sort()).toEqual(["concept-percent-change", "concept-reply-widget", "plain-reply", "quiz-open", "reveal-reply", "story-reply", "your-turn-reply"]);
     for (const name of Object.keys(E2E_SCRIPTS) as E2eScriptName[]) {
       expect({ name, problems: checkReply(draftOf(name), context(name)) }).toEqual({ name, problems: [] });
     }
