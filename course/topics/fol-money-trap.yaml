@@ -69,65 +69,66 @@ youllLearn:
 questions:
   - id: fmt-q-runrate
     prompt: >
-      A company's revenue in its best month so far was $20 million. A news report says it has "$240
-      million in annualised revenue". How was the figure most likely reached?
+      Your cousin's start-up just had its best month ever: $20 million of sales. Next day a news site
+      says it has "$240 million in annualised revenue", twelve times that one month. What does
+      "annualised" mean here?
     choices:
-      - { id: a, text: "The company earned $240 million over the last twelve months" }
-      - { id: b, text: "The best month's revenue was multiplied by twelve" }
-      - { id: c, text: "Revenue was forecast to grow 12 times" }
-      - { id: d, text: "Profit was added to revenue and multiplied by two" }
+      - { id: a, text: "Sales already earned over the past twelve months", mistake: { tag: run_rate_as_earned, fix: "Annualised revenue is a month scaled up, not twelve months already earned." } }
+      - { id: b, text: "One month's pace stretched out to a year" }
+      - { id: c, text: "A forecast that sales grow twelve times", mistake: { tag: run_rate_as_forecast, fix: "Annualising repeats one period for a year; it forecasts no growth at all." } }
+      - { id: d, text: "Sales plus profit for the year", mistake: { tag: profit_mixed_in, fix: "Annualised revenue uses revenue only; profit is not added to it." } }
     answer: b
     explanation: >
-      $20 million x 12 = $240 million. An annualised figure repeats one period for a year; it is not
-      revenue already earned over twelve months and it assumes the strong month recurs.
-    source: Arithmetic on the run-rate definition (one period's revenue scaled to a year); checked with the calculate tool.
+      An annualised figure repeats one period for a year. It is not revenue already earned over
+      twelve months, and it quietly assumes the best month comes round again and again.
+    source: The run-rate definition (one period's revenue scaled to a year).
   - id: fmt-q-lastyear
     prompt: >
-      A company's monthly revenue was $10 million in January and rose by $2 million each month
-      through December ($12 million in February, and so on up to $32 million). What was its revenue
-      for the year, and what annualised figure would December's month alone give?
+      Sales at a fast-growing start-up climbed every month, from $10 million in January to $32
+      million in December. Its pitch deck quotes "annualised revenue" from December alone. Which
+      headline gets it right?
     choices:
-      - { id: a, text: "Revenue $252 million; December annualised $264 million" }
-      - { id: b, text: "Revenue $252 million; December annualised $384 million" }
-      - { id: c, text: "Revenue $384 million; December annualised $252 million" }
-      - { id: d, text: "Revenue $384 million; December annualised $384 million" }
-    answer: b
+      - { id: a, text: "\"December, stretched to a year, runs well ahead of the real year\"" }
+      - { id: b, text: "\"Annualised revenue is the twelve months added up, so it is exact\"", mistake: { tag: run_rate_as_sum, fix: "Annualising scales one month up; it does not add the twelve real months." } }
+      - { id: c, text: "\"Annualised revenue falls short of the real year\"", mistake: { tag: growth_ignored, fix: "In a growing company the last month is the biggest, so scaling it up overshoots." } }
+      - { id: d, text: "\"Steady growth makes the two match\"", mistake: { tag: steady_means_equal, fix: "Even steady growth leaves the last month above the year's average month." } }
+    answer: a
     explanation: >
-      The twelve months add up to 10 + 12 + ... + 32 = $252 million. December alone scaled up is
-      $32 million x 12 = $384 million, about 52% more than was actually earned. A fast-growing company's
-      annualised figure runs well ahead of its real year.
-    source: Arithmetic series sum and run-rate scaling; checked with the calculate tool.
+      The twelve months actually added up to $252 million, but December scaled up gives $384 million.
+      A fast-growing company's annualised figure runs well ahead of its real year.
+    source: Run-rate scaling of a single month, against the year's actual monthly revenue; the figures are hypothetical.
   - id: fmt-q-multiple
     prompt: >
-      A start-up is valued at $5 billion and has $250 million of annualised revenue. It then raises
-      money at three times that valuation while annualised revenue doubles. What happens to the
-      valuation as a multiple of annualised revenue?
+      In a new funding round, a start-up's valuation triples while its annualised revenue only
+      doubles. The valuation grew faster than the revenue. What does that mean for the price
+      investors now pay for each dollar of its revenue?
     choices:
-      - { id: a, text: "It rises from 20 times to 30 times" }
-      - { id: b, text: "It falls from 30 times to 20 times" }
-      - { id: c, text: "It stays at 20 times" }
-      - { id: d, text: "It rises from 20 times to 60 times" }
+      - { id: a, text: "It went up: each dollar of sales now costs more" }
+      - { id: b, text: "It went down: more revenue makes each dollar cheaper", mistake: { tag: only_revenue_watched, fix: "The valuation rose faster than revenue, so each dollar of revenue costs more." } }
+      - { id: c, text: "It is unchanged, because both numbers rose", mistake: { tag: both_rose_same, fix: "Both rose, but at different speeds, so the price per dollar of revenue moved." } }
+      - { id: d, text: "No one can say without the profit", mistake: { tag: profit_needed, fix: "Value against revenue needs no profit figure; it compares only those two numbers." } }
     answer: a
     explanation: >
-      Before: $5 billion / $250 million = 20 times. After: $15 billion / $500 million = 30 times.
-      The valuation grew faster than revenue, so each dollar of revenue is priced higher.
-    source: Arithmetic on a price-to-revenue multiple; checked with the calculate tool.
+      When the valuation rises faster than revenue, each dollar of revenue is priced higher. Traders
+      say the revenue multiple went up: investors are paying more for the same sales, betting on
+      growth to come.
+    source: A price-to-revenue multiple (value set against revenue); the start-up is hypothetical.
   - id: fmt-q-margin
     prompt: >
-      A software company sells $100 of service. It pays $70 of that to the company whose AI model it
-      resells, and $10 to run its own servers. What is its gross margin, and what happens if the
-      model supplier raises its price by $10?
+      Your friend resells an AI model as a writing app. Of every $100 a customer pays, $70 goes to the
+      model's maker and $10 to servers. The model's maker can raise its price whenever it likes. What
+      does that mean for your friend?
     choices:
-      - { id: a, text: "20%, falling to 10%" }
-      - { id: b, text: "30%, falling to 20%" }
-      - { id: c, text: "20%, falling to 0%" }
-      - { id: d, text: "70%, falling to 60%" }
+      - { id: a, text: "Any price rise comes straight out of a thin slice" }
+      - { id: b, text: "Nothing: sales stay at $100 either way", mistake: { tag: revenue_unchanged, fix: "Revenue stays but costs rise, so what is left for the company shrinks." } }
+      - { id: c, text: "Good news: the app now resells a pricier, better model", mistake: { tag: dearer_is_better, fix: "A dearer input is a bigger cost for the company, not a gain." } }
+      - { id: d, text: "The model's maker pays for the rise", mistake: { tag: supplier_pays, fix: "The supplier sets the price; the company, as buyer, pays it." } }
     answer: a
     explanation: >
-      Gross profit is 100 - 70 - 10 = $20, a 20% gross margin. A $10 increase in the supplier's price
-      leaves $10, or 10%, if the company cannot pass the increase on. The supplier's pricing power
-      matters as much as the company's revenue.
-    source: Gross margin = (revenue - direct cost) / revenue; checked with the calculate tool.
+      The app keeps only a thin slice of each $100 after paying its supplier and its servers, so a
+      rise in the supplier's price eats straight into its gross margin if it cannot pass the increase
+      on. The supplier's pricing power matters as much as the app's own sales.
+    source: Gross margin, revenue less direct cost; see the course Topic fs-ratios.
 
 checks:
   - id: fmt-quiz-runrate-margin
