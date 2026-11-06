@@ -171,6 +171,35 @@ describe("a sweep", () => {
     expect(s.costPerTurn).toBeCloseTo(0.46 / 23);
   });
 
+  // Premerge T-1 (round 13): a dialogue the cap cut short is skipped now, but the turns it ran were real Tutor turns and
+  // were paid for, so they still count in the cost per turn.
+  it("counts the turns a dialogue ran before the cap stopped it, though the run is skipped", () => {
+    const reply = seen({ text: "x", widgets: [] });
+    const report: EvalReport = {
+      startedAt: "2026-11-06T10:00:00.000Z",
+      finishedAt: "2026-11-06T10:05:00.000Z",
+      tutor: { model: "claude-opus-5-5", effort: "medium", widgetEngine: "on" },
+      graderModel: "claude-opus-5-5",
+      fingerprint: "x",
+      capUsd: 8,
+      spentUsd: 0.34,
+      budgetStop: "Stopped: spent $0.34, and the next run (about $0.02) would pass the $0.35 cap.",
+      cases: [
+        {
+          id: "T13",
+          title: "b",
+          kind: "dialogue",
+          status: "skipped",
+          runs: [{ run: 1, status: "skipped", reasons: ["Not run past turn 17: Stopped"], costUsd: 0.34, transcript: Array.from({ length: 17 }, (_, i) => ({ learner: `m${i}`, reply })) }],
+          bar: { runs: 1, passes: 1 },
+        },
+      ],
+    };
+    const s = summarisePair({ pair: { model: "claude-opus-5-5", effort: "medium" }, report });
+    expect(s).toMatchObject({ runsPassed: 0, runsTotal: 1, turns: 17, passed: false });
+    expect(s.costPerTurn).toBeCloseTo(0.34 / 17);
+  });
+
   it("writes a dated report and a latest copy, in Markdown and JSON", async () => {
     const report = await runSweep(pick("T1"), parsePairs("claude-sonnet-5-5:medium"), { capUsd: 5, suiteDeps: (p, b) => suiteDeps(p, b, T1_REPLY, 0.01) });
     expect(Object.keys(sweepFiles(report)).sort()).toEqual(["sweep-latest.json", "sweep-latest.md", expect.stringMatching(/^sweep-.*\.json$/), expect.stringMatching(/^sweep-.*\.md$/)].sort());

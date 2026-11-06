@@ -63,10 +63,11 @@ export function summarisePair(r: PairResult): PairStats {
   const cases = r.report.cases;
   const ran = cases.filter((c) => c.status !== "pending");
   // A dialogue has its own number of runs (T13: one) and many turns a run; every other case three runs of one turn (round 10, F2).
+  // A dialogue the cap cut short is skipped, but its turns ran and were paid for, so every transcript turn counts (premerge T-1).
   const started = (c: (typeof cases)[number]) => c.runs.filter((run) => run.status !== "skipped");
   const turns =
     cases.filter((c) => c.kind === "live").flatMap(started).length +
-    cases.filter((c) => c.kind === "dialogue").flatMap(started).reduce((n, run) => n + (run.transcript?.length ?? 0), 0);
+    cases.filter((c) => c.kind === "dialogue").flatMap((c) => c.runs).reduce((n, run) => n + (run.transcript?.length ?? 0), 0);
   return {
     ...base,
     passed: r.report.budgetStop === null && cases.every((c) => c.status === "pass"),

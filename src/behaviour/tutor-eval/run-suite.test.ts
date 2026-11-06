@@ -142,6 +142,52 @@ describe("the D3b cases", () => {
     expect(t13.runs[0].reasons).toEqual([expect.stringMatching(/^Turn 2 \("show me"\): the Tutor Turn sent "cut_short"/)]);
   });
 
+  // Premerge T-1 (round 13): when the spend cap stopped a dialogue partway, the run read "fail" though no turn that ran
+  // had failed (run18: T13 "fail 0 of 1" with 0 sums in the 17 turns it ran). A live run the cap stops is skipped, and so
+  // is a dialogue the cap cuts short, unless a turn that ran failed.
+  describe("a dialogue the spend cap cuts short (premerge T-1)", () => {
+    /** A budget that lets `turns` holds through, then stops as the cap would. */
+    class StopsAfter extends Budget {
+      constructor(private turns: number) {
+        super(5);
+      }
+      override hold(amount: number): boolean {
+        if (this.turns-- > 0) return super.hold(amount);
+        this.stopped ??= "Stopped: spent $4.90, and the next run (about $0.20) would pass the $5.00 cap.";
+        return false;
+      }
+    }
+    const dialogue: EvalCase = { ...base, id: "T13", kind: "dialogue", messages: ["hi", "show me", "ok"], runs: 1, pass: [{ kind: "noSum" }] };
+    const talk = (...texts: string[]) => scriptedClient(texts.map((text) => ({ content: [{ type: "text", text }] }))).client;
+
+    it("is skipped, not judged, when every turn that ran was clean, and keeps those turns", async () => {
+      const client = talk(STORY, STORY);
+      const report = await runSuite([dialogue], deps({ budget: new StopsAfter(2), tutorClient: () => client }));
+      const [t13] = report.cases;
+      expect(t13.runs[0].status).toBe("skipped");
+      expect(t13.status).toBe("skipped");
+      expect(t13.runs[0].reasons).toEqual([expect.stringMatching(/^Not run past turn 2: Stopped/)]);
+      expect(t13.runs[0].transcript?.map((t) => t.learner)).toEqual(["hi", "show me"]);
+      expect(t13.runs[0].note).toMatch(/^2 of 3 turns ran before the spend cap stopped the dialogue: not judged/);
+      expect(report.budgetStop).toMatch(/^Stopped/);
+      expect(allPassed(report)).toBe(false);
+    });
+
+    it("still fails when a turn that ran failed, with that turn's reason first", async () => {
+      const client = talk(STORY, "Okay.\nHow many basis points is 0.4 of a point?");
+      const report = await runSuite([dialogue], deps({ budget: new StopsAfter(2), tutorClient: () => client }));
+      const [t13] = report.cases;
+      expect(t13.runs[0].status).toBe("fail");
+      expect(t13.status).toBe("fail");
+      expect(t13.runs[0].reasons).toEqual([expect.stringMatching(/^Turn 2 \("show me"\): The reply asks for a sum/), expect.stringMatching(/^Not run past turn 2: Stopped/)]);
+    });
+
+    it("is skipped with no transcript when the cap stops it before its first turn", async () => {
+      const report = await runSuite([dialogue], deps({ budget: new StopsAfter(0), tutorClient: () => talk(STORY) }));
+      expect(report.cases[0].runs[0]).toMatchObject({ status: "skipped", transcript: [] });
+    });
+  });
+
   // Round 10 (F1-budget): each dialogue turn held the per-run mean (a Tutor Turn and a grade) but settled one turn's cost,
   // so the dialogue over-held and pulled the live runs' mean down. A dialogue turn holds and settles its own estimate.
   it("holds each dialogue turn on its own per-turn estimate and keeps the live runs' estimate apart", async () => {

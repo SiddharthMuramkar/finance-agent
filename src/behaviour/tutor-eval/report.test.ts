@@ -48,6 +48,13 @@ describe("the report", () => {
     expect(md).toMatch(/\| T3 \| Repeat miss \| pending \| 0 of 3 \|/);
   });
 
+  // Premerge T-1 (round 13): a dialogue the cap cuts short is skipped, not judged, so the cap line says so.
+  it("says a dialogue the cap cut short is skipped and not judged, unless a turn that ran failed", () => {
+    expect(renderReport(report)).toContain("A dialogue the cap cut short is skipped, not judged, unless a turn that ran failed.");
+    expect(renderSummary(report)).toContain("A dialogue the cap cut short is skipped, not judged, unless a turn that ran failed.");
+    expect(renderReport({ ...report, budgetStop: null })).not.toContain("A dialogue the cap cut short");
+  });
+
   it("lists every failure in full: each reason, the whole reply and its Widgets", () => {
     const md = renderReport(report);
     const failures = md.slice(md.indexOf("## Failures"));

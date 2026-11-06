@@ -115,8 +115,12 @@ async function runDialogue(c: DialogueCase, run: number, deps: SuiteDeps, map: C
       // A dialogue turn is one Tutor Turn with no grade: it holds the dialogue turns' own mean, never a live run's (round 10, F1).
       const held = deps.budget.estimate("dialogue_turn");
       if (!deps.budget.hold(held)) {
+        // The cap, not the Tutor, stopped it (premerge T-1): skipped and not judged, as a live run the cap stops, unless a
+        // turn that ran already failed. The turns that ran stay in the transcript.
+        const failed = reasons.length > 0;
         reasons.push(`Not run past turn ${i}: ${deps.budget.stopped}`);
-        return { run, status: transcript.length ? "fail" : "skipped", reasons, costUsd: cost, transcript };
+        const note = `${transcript.length} of ${c.messages.length} turns ran before the spend cap stopped the dialogue: ${failed ? "a turn that ran failed" : "not judged"}. $${cost.toFixed(4)}.`;
+        return { run, status: failed ? "fail" : "skipped", reasons, costUsd: cost, transcript, note };
       }
       let spent = 0;
       try {
