@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Learner, signInAs } from "@/auth/learners";
-import { learners, noteItems, reviewCards, sessionItems, sessions } from "@/db/schema";
+import { learners, messages, noteItems, reviewCards, sessionItems, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
@@ -144,6 +144,18 @@ describe("the fixture route", () => {
       expect((await loadProgress(as.db, learnerId)).topics["num-percent-bps"]?.step).toBe("your_turn");
       const result = items.find((i) => i.kind === "quick_try_result")?.data;
       expect(result).toEqual(expect.objectContaining({ verdict: "known_mistake", line: "That is basis points. Points are the new rate minus the old rate." }));
+    });
+
+    it("mix-up: a Tutor reply is stored before the try, so the page starts no opener under the answered try", async () => {
+      const { session, items } = await seed("mix-up");
+      // The page starts an opener when every line it loads is an item (src/app/turn-stream.ts): a real Your turn is
+      // entered after Tutor replies, so the try follows one.
+      const rows = await as.db.select().from(messages).where(eq(messages.sessionId, session!.id)).orderBy(messages.seq);
+      const tutor = rows.filter((r) => r.role === "assistant").map((r) => r.seq);
+      const tried = items.find((i) => i.kind === "quick_try");
+      expect(tutor.length).toBeGreaterThan(0);
+      expect(tried).toBeDefined();
+      expect(Math.min(...tutor)).toBeLessThanOrEqual(tried!.afterSeq);
     });
   });
 });

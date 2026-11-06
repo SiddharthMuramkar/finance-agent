@@ -161,9 +161,13 @@ const STATES: Record<string, Build> = {
     await turn(db, map, learnerId, "concept-two-ways", "Why do they say it differently?");
     await turn(db, map, learnerId, "concept-percent-change", "What is a percent change?");
   },
-  /** F1 matrix (#481, §8.3 "a wrong-choice mix-up fix"): Your turn's first Quick try with its Known mistake tapped. */
+  /**
+   * F1 matrix (#481, §8.3 "a wrong-choice mix-up fix"): Your turn's first Quick try with its Known mistake tapped. As in a
+   * real Session, the try follows a Tutor reply (the Concept turn of concept-widget): a Session of items only would make
+   * the page start its opener, which would stream a reply below the answered try.
+   */
   "mix-up": async (db, map, learnerId, now) => {
-    await story(db, map, learnerId, now);
+    await STATES["concept-widget"](db, map, learnerId, now);
     await walk(db, map, learnerId, now, TOPIC, (step) => step === "your_turn");
     const session = await sessionForTurn(db, now, learnerId, TOPIC);
     const tries = (await enterStepItems(db, map, learnerId, session.id, now)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as QuickTryData);

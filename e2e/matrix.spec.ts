@@ -29,6 +29,10 @@ type Result = {
    */
   accents: string[] | null;
   accentVia?: Record<string, string>;
+  /** /study cells: how many openers the page asked for (POST /api/turn with `opener`) while the cell was measured. */
+  openers?: number;
+  /** The mix-up cell (#481): what the conversation and the Widget panel show once the page is quiet. */
+  mixup?: MixupView;
   scrollWidth: number;
   innerWidth: number;
   error?: string;
@@ -41,6 +45,18 @@ type FocusWalk = {
   reached: string[];
   /** Stops whose outline and box-shadow did not change from the element's own resting look. */
   withoutRing: string[];
+};
+
+type MixupView = {
+  /** Tutor replies on the page: only the seeded ones when no opener streamed in. */
+  replies: number;
+  /** The answered try's result line (the Known mistake's fix), and whether it sits inside the conversation's view. */
+  fix: string | null;
+  fixInView: boolean;
+  /** Whether the answered try's result is the conversation's last answered result, with no Tutor reply below it. */
+  replyBelowFix: boolean;
+  /** The Widget panel's title line (the open Widget's name). */
+  panel: string | null;
 };
 
 /** Run envelope: `run` matches the token test 1 left in Playwright's output dir, which Playwright empties every run. */
@@ -130,12 +146,34 @@ async function focusWalk(page: Page): Promise<FocusWalk> {
   return walk;
 }
 
+/** What the mix-up cell shows: its Tutor replies, the answered try's fix and where it sits, and the Widget panel's title. */
+async function mixupView(page: Page): Promise<MixupView> {
+  return page.evaluate(() => {
+    const replies = [...document.querySelectorAll('[data-testid="assistant-message"]')];
+    const fix = document.querySelector<HTMLElement>('[data-testid="quick-try-result"]');
+    const viewport = document.querySelector<HTMLElement>('[data-testid="thread-viewport"]');
+    let fixInView = false;
+    if (fix && viewport) {
+      const f = fix.getBoundingClientRect(), v = viewport.getBoundingClientRect();
+      fixInView = f.height > 0 && f.top >= v.top && f.bottom <= v.bottom;
+    }
+    const replyBelowFix = !!fix && replies.some((r) => fix.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const card = document.querySelector('[data-testid="widget-pane"] [data-testid="widget-card"]');
+    const panel = (card?.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 80) || null;
+    return { replies: replies.length, fix: fix?.textContent?.trim().replace(/\s+/g, " ") ?? null, fixInView, replyBelowFix, panel };
+  });
+}
+
 async function visit(page: Page, cell: MatrixCell): Promise<Result> {
   const { page: p } = cell;
   const out: Result = { cell: `${cell.project}/${p.id}`, file: cell.file, layout: null, affordances: null, focus: null, accents: null, scrollWidth: 0, innerWidth: 0 };
   try {
     if (p.signedOut) await page.context().clearCookies();
     else await seed(page, p.seed!);
+    let openers = 0;
+    page.on("request", (r) => {
+      if (r.method() === "POST" && new URL(r.url()).pathname === "/api/turn" && /"opener"\s*:\s*true/.test(r.postData() ?? "")) openers++;
+    });
     await page.goto(p.path);
     if (p.kind === "study") {
       await expect(page.getByTestId("workspace-frame")).toBeVisible();
@@ -167,7 +205,9 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
       const a = await accentFamilies(page);
       out.accents = a.families;
       out.accentVia = a.via;
+      out.openers = openers;
     }
+    if (p.seed === "mix-up") out.mixup = await mixupView(page);
     mkdirSync(dirname(join(process.cwd(), cell.file)), { recursive: true });
     await page.screenshot({ path: cell.file, fullPage: true });
     out.focus = await focusWalk(page); // after the shot, so the ring does not appear in it
@@ -240,4 +280,21 @@ test("[F1] /study with a Widget shows ≥ 3 accents", async ({}, info) => {
   const r = saved(info.project.name, info.project.outputDir).find((x) => x.cell === `${info.project.name}/study-concept-widget`);
   expect(r?.accents, `accent families painted on /study with a Widget (${r?.error ?? "measured"})`).not.toBeNull();
   expect(r!.accents!.length, `accent families painted on /study with a Widget: ${JSON.stringify(r!.accentVia)}`).toBeGreaterThanOrEqual(3);
+});
+
+// #481, spec §8.3 "a wrong-choice mix-up fix": the cell is the answered try and its fix, as a real Session reaches it.
+// The seed stores a Tutor reply (the Concept turn) before the try, so the page starts no opener: nothing streams in below
+// the fix, and the panel keeps that reply's rate Widget, the points-versus-basis-points move the fix is about (an opener
+// would put its own Lingo card there).
+test("[F1] the mix-up cell shows its fix, with no opener streamed in", async ({}, info) => {
+  const r = saved(info.project.name, info.project.outputDir).find((x) => x.cell === `${info.project.name}/study-mixup-fix`);
+  expect(r?.error, "the mix-up cell loads").toBeUndefined();
+  expect(r?.openers, "openers the page asked for").toBe(0);
+  const m = r!.mixup!;
+  expect(m.fix).toContain("That is basis points. Points are the new rate minus the old rate.");
+  expect(m.fixInView, "the fix is inside the conversation's view").toBe(true);
+  expect(m.replyBelowFix, "a Tutor reply streamed in below the fix").toBe(false);
+  expect(m.replies, "Tutor replies on the page (the seeded one only)").toBe(1);
+  expect(m.panel, "the Widget panel's open Widget").toContain("One move, two ways");
+  expect(m.panel, "the Widget panel's open Widget").not.toContain("Lingo");
 });
