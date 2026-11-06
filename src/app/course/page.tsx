@@ -5,6 +5,7 @@ import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { parkedSkills } from "@/learner/skill-state";
 import { topicSessions } from "@/tutor/session-log";
+import { accountFor } from "../account";
 import { readTheme } from "../theme-cookie";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { CourseMapView } from "./course-map-view";
@@ -24,7 +25,7 @@ export default async function CourseMapPage() {
   const next = whatComesNext(map, progress);
   return (
     <SignedInFrame>
-      <ReadingPage current="course" theme={theme} account={{ name: learner.name }}>
+      <ReadingPage current="course" theme={theme} account={await accountFor(db, learner)}>
         <CourseMapView
           topics={courseOverview(map, progress, parked)}
           coming={map.coming}

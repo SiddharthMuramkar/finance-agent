@@ -5,6 +5,7 @@ import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadPassageView } from "@/library/library";
 import { MACHINE_READ_NOTE } from "@/library/pictures";
+import { accountFor } from "../../account";
 import { readTheme } from "../../theme-cookie";
 import { Eyebrow, ReadingPage, SignedInFrame } from "../../ui";
 
@@ -42,7 +43,7 @@ export default async function PassagePage({
   const theme = await readTheme();
   return (
     <SignedInFrame>
-      <ReadingPage theme={theme} account={{ name: learner.name }}>
+      <ReadingPage theme={theme} account={await accountFor(getDb(), learner)}>
         <Eyebrow className="mb-1">Library passage</Eyebrow>
         {view.status === "hidden" ? (
           <p data-testid="passage-hidden">

@@ -10,7 +10,8 @@ const heading = "mb-2 text-base font-semibold leading-6";
  * The Settings page's body (A5): five cards in a card-grid — Account (who is signed in, and Sign out), Appearance
  * (Light, Dark or Match my Mac; the header's Theme menu shares its choice), About you (the Learner Profile form),
  * Developer details, and Start over (the danger zone, full width, last). B3b inserts Your Topics before Developer
- * details. Until Google sign-in supplies an email, Account says "Signed in with a passcode". No model call.
+ * details. A Google-linked Learner's Account shows their Google email (from accountFor); a passcode Learner has none, so
+ * Account says "Signed in with a passcode". No model call.
  */
 export function SettingsView({
   profile,
