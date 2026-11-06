@@ -2,13 +2,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { ACCESS_COOKIE, learnerToken } from "@/auth/passcode";
-import { learners, OWNER_LEARNER_ID } from "@/db/schema";
+import { learners, OWNER_LEARNER_ID, user } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 
 let db: Db;
 vi.mock("@/db/client", () => ({ getDb: () => db }));
-const { proxy } = await import("./proxy");
+// Better Auth is mocked at its seam: on only when both secrets are in the env (as getAuth decides),
+// and getSession answers the Google user the test sets, or null (no or stale session).
+const ba = vi.hoisted(() => ({ user: null as null | { id: string; email: string; name: string } }));
+vi.mock("@/auth/better-auth", () => {
+  const on = (env: Record<string, string | undefined> = process.env) => Boolean(env.BETTER_AUTH_SECRET?.trim() && env.GOOGLE_CLIENT_ID?.trim());
+  return {
+    googleSignInOn: on,
+    getAuth: (env: Record<string, string | undefined> = process.env) =>
+      on(env) ? { api: { getSession: async () => (ba.user ? { session: { id: "s1" }, user: ba.user } : null) } } : null,
+  };
+});
+const { proxy, config } = await import("./proxy");
 
 const SECRET = "test-secret";
 
@@ -203,5 +214,80 @@ describe("Developer pages (/dev)", () => {
   it("do not open for a path that only starts with the same letters", async () => {
     vi.stubEnv("NODE_ENV", "development");
     expect(redirectedToLogin(await proxy(request("/devices")))).toBe(true);
+  });
+});
+
+describe("Cookies at the gate (Google sign-in, C1b)", () => {
+  const googleCookie = "better-auth.session_token=tok.sig";
+
+  beforeEach(async () => {
+    db = await testDb();
+    ba.user = null;
+    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("PASSCODES", "tools:tools-pass");
+    vi.stubEnv("BETTER_AUTH_SECRET", "a-test-secret-of-at-least-32-characters!");
+    vi.stubEnv("GOOGLE_CLIENT_ID", "test-client");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("lets a verified fa_access through and skips the login form for it", async () => {
+    const [tools] = await db.insert(learners).values({ name: "tools" }).returning();
+    const cookie = `${ACCESS_COOKIE}=${await learnerToken(tools.id, SECRET)}`;
+    expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
+    const login = await proxy(request("/login", { headers: { cookie } }));
+    expect(login.status).toBe(307);
+    expect(new URL(login.headers.get("location")!).pathname).toBe("/study");
+  });
+
+  it("lets a request with only a Better Auth cookie through to the page (optimistic)", async () => {
+    const headers = { cookie: googleCookie };
+    expect(allowed(await proxy(request("/study", { headers })))).toBe(true);
+    expect(allowed(await proxy(request("/api/turn", { method: "POST", headers })))).toBe(true);
+  });
+
+  it("with neither cookie a page redirects to /login?next=… and /api/* answers 401", async () => {
+    const page = await proxy(request("/study"));
+    expect(redirectedToLogin(page)).toBe(true);
+    expect(new URL(page.headers.get("location")!).search).toBe("?next=%2Fstudy");
+    expect((await proxy(request("/api/turn", { method: "POST" }))).status).toBe(401);
+  });
+
+  it("does not redirect GET /login away for an unchecked Better Auth cookie (no loop)", async () => {
+    expect(allowed(await proxy(request("/login", { headers: { cookie: googleCookie } })))).toBe(true);
+    expect(allowed(await proxy(request("/login?next=%2Fcourse", { headers: { cookie: googleCookie } })))).toBe(true);
+  });
+
+  it("skips the login form only for a fully checked Google session with a Learner", async () => {
+    await db.insert(user).values({ id: "g1", name: "Asha", email: "a@x.com", emailVerified: true });
+    await db.insert(learners).values({ name: "Asha", authUserId: "g1" });
+    ba.user = { id: "g1", email: "a@x.com", name: "Asha" };
+    const headers = { cookie: googleCookie };
+    const plain = await proxy(request("/login", { headers }));
+    expect(plain.status).toBe(307);
+    expect(new URL(plain.headers.get("location")!).pathname).toBe("/study");
+    const withNext = await proxy(request("/login?next=%2Fcourse", { headers }));
+    expect(new URL(withNext.headers.get("location")!).pathname).toBe("/course");
+    const evil = await proxy(request("/login?next=https%3A%2F%2Fevil.example", { headers }));
+    expect(new URL(evil.headers.get("location")!).pathname).toBe("/study");
+  });
+
+  it("recognises the production __Secure- cookie name on an https request", async () => {
+    const headers = { cookie: "__Secure-better-auth.session_token=tok.sig" };
+    expect(allowed(await proxy(request("/study", { headers })))).toBe(true);
+  });
+
+  it("treats a Better Auth cookie as signed out while Google sign-in is off", async () => {
+    vi.stubEnv("GOOGLE_CLIENT_ID", "");
+    expect(redirectedToLogin(await proxy(request("/study", { headers: { cookie: googleCookie } })))).toBe(true);
+    expect((await proxy(request("/api/turn", { method: "POST", headers: { cookie: googleCookie } }))).status).toBe(401);
+  });
+
+  it("keeps Better Auth's own routes out of the proxy, signed out (matcher)", () => {
+    const matcher = new RegExp(`^${config.matcher[0]}$`);
+    expect(matcher.test("/api/auth/sign-in/social")).toBe(false);
+    expect(matcher.test("/api/auth")).toBe(false);
+    expect(matcher.test("/api/authx")).toBe(true);
+    expect(matcher.test("/api/turn")).toBe(true);
+    expect(matcher.test("/study")).toBe(true);
   });
 });

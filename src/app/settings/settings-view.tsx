@@ -14,7 +14,7 @@ const heading = "mb-2 text-base font-semibold leading-6";
 export function SettingsView({ profile, developerDetails, theme = DEFAULT_PREF }: { profile: ProfileValues; developerDetails: boolean; theme?: ThemePref }) {
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold leading-7">Settings</h1>
+      <h1 className="text-lg font-semibold leading-[26px]">Settings</h1>
       <section id="about-you" aria-labelledby="about-you-heading" className={section}>
         <h2 id="about-you-heading" className={heading}>
           About you

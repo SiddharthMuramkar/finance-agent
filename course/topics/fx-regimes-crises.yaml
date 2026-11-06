@@ -107,13 +107,13 @@ questions:
 
   - id: fr-q-dollar-debt
     prompt: >
-      A company earns revenue in local currency and owes $1 million. The local currency then loses half its value against the dollar. What happens to the local-currency value of its debt?
+      A company earns revenue in local currency and owes $1 million. The local currency then loses half its value against the dollar, and the finance chief has to explain it to the board. What does she tell them?
     choices:
-      - { id: a, text: "It doubles" }
-      - { id: b, text: "It halves" }
-      - { id: c, text: "It is unchanged" }
-      - { id: d, text: "It falls by a quarter" }
-    answer: a
+      - { id: a, text: "The debt gets lighter: a weaker currency shrinks debts", mistake: { tag: weak_currency_shrinks_debt, fix: "A debt in dollars does not shrink. It costs more local currency to repay." } }
+      - { id: b, text: "Nothing changes, because the debt is fixed", mistake: { tag: fixed_in_dollars_only, fix: "The debt is fixed in dollars, but its cost in local currency is not." } }
+      - { id: c, text: "The debt gets heavier: repaying costs more local currency" }
+      - { id: d, text: "The debt falls with the currency", mistake: { tag: debt_follows_currency_down, fix: "Dollars now cost more local currency, so the debt rises. It does not fall with the currency." } }
+    answer: c
     explanation: >
       The debt is fixed at $1 million. If each dollar now costs twice as much local currency, the debt costs twice as much to repay. Revenues in local currency have not risen, so the debt burden doubles.
     source: >
