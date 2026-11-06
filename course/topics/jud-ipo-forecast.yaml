@@ -150,21 +150,21 @@ questions:
       capitalization table in Twitter, Inc., Form S-1 (3 October 2013).
   - id: jip-q-pro-forma
     prompt: >
-      Before a listing, a prospectus shows three share counts: "actual", "pro forma" (after the
-      preferred stock turns into common) and "pro forma as adjusted". Which one counts the new shares
-      sold in the listing?
+      5 October 2013: Aswath Damodaran is valuing each Twitter share from its new S-1. Miss the
+      shares about to be sold, and each share looks worth more. Which column of the share table
+      counts them?
     choices:
-      - { id: a, text: "Actual, the shares in issue on the cover date", mistake: { tag: actual_as_after, fix: "Actual is before anything changes; it counts no new shares." } }
-      - { id: b, text: "Pro forma, after the preferred stock converts", mistake: { tag: pro_forma_as_adjusted, fix: "Pro forma adds the conversion only; the sale comes in the next column." } }
-      - { id: c, text: "Pro forma as adjusted" }
-      - { id: d, text: "All three, since each is a share count", mistake: { tag: all_columns_same, fix: "Each column is a different moment; only the last adds the sale." } }
+      - { id: a, text: "Actual: the shares in issue on the table's date", mistake: { tag: actual_as_after, fix: "Actual is the count before anything changes; it adds no new shares." } }
+      - { id: b, text: "Pro forma: after the preferred stock turns into common shares", mistake: { tag: pro_forma_as_adjusted, fix: "Pro forma adds the conversion only; the sale comes in the next column." } }
+      - { id: c, text: "Pro forma as adjusted: the column this S-1 still leaves blank" }
+      - { id: d, text: "Any of them: a share count is a share count", mistake: { tag: all_columns_same, fix: "Each column is a different moment; only the last adds the sale." } }
     answer: c
     explanation: >
-      "Pro forma" changes the count for the conversion of preferred stock only. "Pro forma as adjusted"
-      goes one step further and adds the shares sold in the offering and the proceeds, so it is the
-      count after the sale.
+      "Pro forma" changes the count only for the preferred stock turning into common. "Pro forma as
+      adjusted" also adds the shares sold in the listing and the cash they raise, which is why
+      Twitter's first S-1 left it blank: neither the number of shares nor the price was set yet.
     source: >
-      The capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted.
+      The capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted, the last not filled in; Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-growth
     prompt: >
       A blogger expects a company's $200 million of revenue to grow 60% a year for five years,
@@ -216,21 +216,21 @@ questions:
       Weighted-average beta as used in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-basis
     prompt: >
-      A blogger's target was a 25% operating margin, counting research spending as an investment
-      spread over three years. A later report shows 15%, with research spending counted in full in
-      the year it happens. Before calling it a miss, what should you do?
+      A made-up story: in 2014 Meera bets her brother dinner that a young app will reach a 30%
+      operating margin, counting research spending as an investment. Five years on, its report shows
+      18%, with research counted as a cost. Who pays for dinner?
     choices:
-      - { id: a, text: "Call it a clear miss: 15% is below 25%", mistake: { tag: basis_ignored, fix: "The two margins treat research differently, so part of the gap is accounting." } }
-      - { id: b, text: "Put both margins on the same basis first" }
-      - { id: c, text: "Ignore the report: it is a different document", mistake: { tag: report_dismissed, fix: "The report is the evidence; restate it, do not set it aside." } }
-      - { id: d, text: "Say the blogger's arithmetic was wrong", mistake: { tag: arithmetic_blamed, fix: "Nothing shows an arithmetic slip; the bases differ." } }
+      - { id: a, text: "Meera pays: 18% is well short of the 30% she bet on", mistake: { tag: basis_ignored, fix: "The two margins treat research differently, so part of that gap is just accounting." } }
+      - { id: b, text: "Nobody yet: first put both margins on the same footing" }
+      - { id: c, text: "Her brother pays: a later report is a different document", mistake: { tag: report_dismissed, fix: "The report is the evidence; restate it on her basis, do not set it aside." } }
+      - { id: d, text: "Meera pays: her forecast sums must have been off", mistake: { tag: arithmetic_blamed, fix: "Nothing shows a slip in her sums; the two margins follow different rules." } }
     answer: b
     explanation: >
-      The two margins are measured differently, so the gap mixes a real difference with an
-      accounting one. Restating one margin to the other's basis (for example, capitalising the
-      research spending in the report) makes the comparison fair.
+      The two margins count research spending differently, so the gap mixes a real shortfall with an
+      accounting one. Restate one margin on the other's basis (for example, treat the report's
+      research spending as an investment), and only then settle the bet.
     source: >
-      Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life); Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
+      Made-up story; the basis question follows Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life), against Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
   - id: jip-q-arithmetic-story
     prompt: >
       Every number in a blogger's valuation ties out to the inputs he states. What does that prove?
