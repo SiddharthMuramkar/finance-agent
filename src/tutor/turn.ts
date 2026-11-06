@@ -12,7 +12,7 @@ import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
 import { newReplyWidgetProblems } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
-import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
+import { coveredParts, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
@@ -58,7 +58,9 @@ import { fixReply } from "./reply-checks";
 import { savedRuleOf } from "./own-rule-item";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
-import { WIDGET_SHOWN } from "@/widgets/shown-widget";
+import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
+import { recipeById } from "@/widgets/recipes";
+import { pickCompanion } from "./companion";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { pressedChoiceWords, storeReplyChoices } from "./reply-choices";
@@ -947,6 +949,49 @@ async function* runLockedTurn(
     return out;
   };
 
+  /**
+   * The turn's Widget and where it came from: the Tutor's (its own show_widget, compose_widget or open_widget), the
+   * step's (code opened a card preset, the reveal or the explore Widget), or a Companion Widget code stores now.
+   */
+  const companionWidget = async (): Promise<{ source: string; item?: SessionItem }> => {
+    const items = await loadSessionItems(db, session.id, learnerId);
+    if (items.some((i) => i.afterSeq >= turnSeq && (i.kind === WIDGET_SHOWN || i.kind === WIDGET_OPENED))) {
+      return { source: toolWidgets(log.rows, turnSeq, items).length ? "tutor" : "step" };
+    }
+    if (stoppedNow() || !covering) return { source: "none" };
+    const at = [placeNow, placeAtStart].find((p) => p?.topic.id === covering.id);
+    const shown = items.flatMap((i) => (i.kind === WIDGET_SHOWN ? [i.data as ShownWidget] : []));
+    const lingoTerm = (w: ShownWidget) => w.companionKey ?? String((w.params.inputs as { term?: unknown } | undefined)?.term ?? "");
+    const picked = pickCompanion({
+      topic: covering,
+      place: { step: at?.step ?? "principle", check: at?.check?.id ?? null },
+      replyText: await shownText(),
+      shownThisSession: {
+        scenes: shown.flatMap((w) => (w.companion === "scene" && w.companionKey ? [w.companionKey] : [])),
+        terms: shown.flatMap((w) => (w.recipe === "lingo_card" ? [lingoTerm(w)] : [])),
+      },
+      blocked: gateFacts.blockedNumbers,
+    });
+    const built = picked ? recipeById(picked.recipe)?.build(picked.params) : undefined;
+    if (!picked || !built?.ok) {
+      if (picked) console.error(`Companion Widget "${picked.kind}" of Topic "${covering.id}" does not build${built ? `: ${built.error}` : ""}.`);
+      return { source: "none" };
+    }
+    const data: ShownWidget = {
+      id: `companion-${turnSeq}`,
+      recipe: picked.recipe,
+      params: built.params,
+      title: built.title,
+      code: built.code,
+      source: "companion",
+      companion: picked.kind,
+      companionKey: picked.key,
+    };
+    const item: SessionItem = { kind: WIDGET_SHOWN, data };
+    await saveItemAfterLatest(db, learnerId, session.id, item, now());
+    return { source: picked.kind, item };
+  };
+
   const nonText = (held: TurnEvent[]) => held.filter((e) => e.type !== "text");
   const shownText = () => turnText(log.rows, turnSeq, { db, map, learnerId }, rejected);
   // What the browser gets once the checks are done: the held items and Widget states in their order, with the checked reply.
@@ -1015,6 +1060,18 @@ async function* runLockedTurn(
       toSend = [...nonText(draftHeld), ...items, ...(await replyEvent())];
     }
   }
+  // A Widget with every reply (spec 2026-11-05, E4a, ADR 0010): when neither the Tutor nor code opened one in this
+  // turn, code adds a Companion Widget after the checks (or the fallback), before the reply is released. Only in
+  // Sessions frozen with the widget engine on, and never after a Stop. The browser gets it before the reply's text.
+  let widgetSource: string | null = null;
+  if (engine) {
+    const companion = await companionWidget();
+    widgetSource = companion.source;
+    if (companion.item) {
+      const at = toSend.findIndex((e) => e.type === "text");
+      toSend.splice(at < 0 ? toSend.length : at, 0, { type: "item", item: companion.item });
+    }
+  }
   yield* toSend;
 
   // Two or three Choices under every checked reply (ADR 0010), stored after it. None once the Topic is passed (in an
@@ -1047,6 +1104,7 @@ async function* runLockedTurn(
     shownText: stopReason === "stopped" ? "" : await shownText(),
     // The Reply kind code chose; a Learner's own typed message with none is an answer to their own question (spec #229).
     replyKind: gateFacts.replyKind ?? (turnKind(turn) === "message" ? "answer_question" : null),
+    widgetSource,
   };
   await saveReplyCheck(db, record);
 
