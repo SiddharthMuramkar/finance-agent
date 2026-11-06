@@ -33,8 +33,13 @@ test("a Session still opens read-only, with Resume and a way back", async ({ pag
   await page.goto("/notebook");
   await expect(page.locator("[data-notebook-row]").getByRole("button", { name: "Resume" }).first()).toBeVisible();
   // Find the Session's page: the Notebook has no link to an unfinished Topic's Session, so probe the ids this run made.
+  // Session ids keep growing across the whole run, so probe in batches until one answers 200.
   let id = 0;
-  for (let n = 1; n <= 40 && !id; n++) if ((await page.request.get(`/sessions/${n}`, { maxRedirects: 0 })).status() === 200) id = n;
+  for (let from = 1; from <= 1000 && !id; from += 50) {
+    const batch = Array.from({ length: 50 }, (_, i) => from + i);
+    const codes = await Promise.all(batch.map(async (n) => (await page.request.get(`/sessions/${n}`, { maxRedirects: 0 })).status()));
+    id = batch[codes.findIndex((c) => c === 200)] ?? 0;
+  }
   expect(id, "a Session page that answers 200").toBeGreaterThan(0);
   await page.goto(`/sessions/${id}`);
   await expect(page.getByTestId("old-session")).toBeVisible();
