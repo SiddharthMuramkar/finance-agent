@@ -172,7 +172,7 @@ describe("Percent's content-only restructure", () => {
     /** Two rates, "from 3% to 3.5%" or "6% to 9%": the move would be b - a unless the stem says it. */
     const TWO_RATES = /\d+(?:\.\d+)?%\s+to\s+\d+(?:\.\d+)?%/;
 
-    type Item = { id: string; stem: string; choices: { text: string; right: boolean; mistake?: { tag: string; fix: string } }[] };
+    type Item = { id: string; stem: string; choices: { text: string; right: boolean; mistake?: { tag?: string; fix: string } }[] };
     const fixedTries = percent.checks.flatMap((c) => c.quickTries.filter((q): q is FixedQuickTry => "id" in q));
     const DRAWS = 40;
     const items: Item[] = [
