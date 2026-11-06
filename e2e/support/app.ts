@@ -58,6 +58,25 @@ export async function say(page: Page, name: Script, text: string) {
   await settled(page);
 }
 
+/**
+ * Waits until a Tutor reply has landed: one is on the page and no turn is running, both read in one look at the page.
+ * An empty Session starts its opener once the page hydrates, which can come after the page looks quiet (a slow CPU or
+ * a cold dev compile on CI), and the opener draws its reply line, still empty, the moment it starts. So "no Stop" read
+ * at one moment and "a reply is there" read at the next can be an opener that started in between and is still running,
+ * its Widget not in yet (main CI run 42251293052). Then waits for the page's own re-read after the turn.
+ */
+export async function replyLanded(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const on = (testId: string) => document.querySelector(`[data-testid="${testId}"]`) !== null;
+      return on("assistant-message") && !on("stop-reply") && !on("writing-indicator");
+    },
+    null,
+    { timeout: 30_000, polling: 50 },
+  );
+  await settled(page);
+}
+
 /** Waits until the page is quiet: no request in flight and no reply being written. */
 export async function settled(page: Page) {
   await page.waitForLoadState("networkidle");
