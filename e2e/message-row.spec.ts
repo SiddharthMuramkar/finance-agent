@@ -8,7 +8,10 @@ import { seed, settled } from "./support/app";
  * 1512×982, and nothing in the row spills out of it. Runs once, in the mbp14 project, and resizes the window itself.
  */
 
-/** `lines`: for the box, its content height in line-heights; for a button, how many lines its label's text sits on. */
+/**
+ * `lines`: for the box, its content height in line-heights; for a button, how many lines its label's text sits on (0 when
+ * the label is hidden and only the icon shows).
+ */
 type Control = { height: number; lines: number };
 type Row = {
   attach: Control;
@@ -99,6 +102,8 @@ for (const [fonts, wideFont] of [
     const wide = await measureRow(page);
     expect(wide.box.lines, "message box at 1512").toBeLessThanOrEqual(1.5);
     expect(wide.send.lines, "Send at 1512").toBe(1);
+    // The row is wider than 28rem here, so Attach shows its words, on one line.
+    expect(wide.attach.lines, "Attach a passage label lines at 1512").toBe(1);
 
     for (const [width, height] of [
       [768, 1024],
@@ -112,7 +117,8 @@ for (const [fonts, wideFont] of [
       expect(m.box.height, `message box height ${at}`).toBeLessThanOrEqual(wide.box.height + 0.5);
       expect(m.send.lines, `Send lines ${at}`).toBe(1);
       expect(m.send.height, `Send height ${at}`).toBeLessThanOrEqual(wide.send.height + 0.5);
-      expect(m.attach.lines, `Attach a passage lines ${at}`).toBeLessThanOrEqual(1);
+      // Under 28rem Attach folds to its icon: no label text drawn at all.
+      expect(m.attach.lines, `Attach a passage is icon-only ${at}`).toBe(0);
       expect(m.rowOverflow, `row overflow ${at}`).toBeLessThanOrEqual(0);
       expect(m.childSpill, `controls outside the row ${at}`).toBeLessThanOrEqual(0.5);
       expect(m.horizontalScroll, `horizontal scroll ${at}`).toBe(false);
