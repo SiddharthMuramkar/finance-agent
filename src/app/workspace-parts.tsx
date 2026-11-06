@@ -216,9 +216,12 @@ export function Chips({
   onNext,
   onSay,
   onChoice,
+  composing = false,
 }: {
   offer: NextOffer | null;
   choices: readonly ChoiceButton[];
+  /** The Learner has words in the message box: Send is the view's one primary then, so the Next chip steps back to secondary. */
+  composing?: boolean;
   onNext: (named: NextName) => void;
   /** Posts words as the Learner's message: the Just tell me chip. */
   onSay?: (words: string) => void;
@@ -233,11 +236,11 @@ export function Chips({
     else onNext(offer.kind === "complete" ? "complete" : offer.step);
   };
   return (
-    // The Next chip is the main move, so it is the view's one primary, on its own row at full size; the Choices are
-    // smaller secondaries, grouped below it (#478, Appendix B.7).
+    // The Next chip is the main move, so it is the view's one primary, on its own row at full size, until the Learner
+    // types (then Send is); the Choices are smaller secondaries, grouped below it (#478, Appendix B.7).
     <div className="measure mt-3 flex flex-col items-start gap-2" data-testid="choices">
       {offer && (
-        <Button variant="primary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
+        <Button variant={composing ? "secondary" : "primary"} data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →
         </Button>
       )}

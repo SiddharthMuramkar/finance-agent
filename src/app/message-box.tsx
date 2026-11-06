@@ -28,13 +28,16 @@ export function WritingIndicator({
   );
 }
 
-/** Send: its title says why it is off while the box is empty. */
+/**
+ * Send: its title says why it is off while the box is empty. It is the view's one primary only while the box has words;
+ * empty, it is a secondary and the Next chip is the primary (Appendix B.7, #478).
+ */
 function SendButton() {
   const empty = useAuiState((st) => st.composer.isEmpty);
   return (
     <ComposerPrimitive.Send asChild>
       <Button
-        variant="primary"
+        variant={empty ? "secondary" : "primary"}
         title={empty ? "Type a message to send" : "Send (Enter)"}
         className="shrink-0 whitespace-nowrap"
       >
