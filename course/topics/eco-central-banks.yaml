@@ -97,7 +97,7 @@ questions:
       - { id: d, text: "One thousandth of a percentage point, so it is hardly a cut", mistake: { tag: took_bp_for_a_thousandth, fix: "It is one hundredth, not one thousandth." } }
     answer: a
     explanation: >
-      A basis point is a hundredth of a percentage point, so 100 of them make one point. Central banks usually move rates in steps of 25 basis points, which is a small, careful step.
+      A basis point is a hundredth of a percentage point, so 100 of them make one point. Central banks often move rates in steps of 25 basis points, which is a small, careful step.
     source: >
       Constructed headline; a basis point is one hundredth of a percentage point.
 

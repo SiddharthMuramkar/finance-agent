@@ -58,7 +58,7 @@ youllLearn:
 questions:
   - id: gdp-q-components
     prompt: >
-      Economists measure GDP by adding up what is spent in the economy. Which description of the spending approach is right?
+      A reporter asks an economist how a whole country's output gets counted. She says: "Follow the money people spend." Households, firms, the government and foreign buyers all spend, and some of what is bought comes from abroad. Which description of that spending approach is right?
     choices:
       - { id: a, text: "Consumption, investment and government spending, plus exports, minus imports" }
       - { id: b, text: "Consumption, investment and government spending, plus exports and imports", mistake: { tag: added_imports, fix: "Imports are spending on goods made abroad, so they are taken away." } }

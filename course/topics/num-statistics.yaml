@@ -50,7 +50,7 @@ questions:
   - id: st-q-sd
     prompt: >
       A fund's daily returns bounced around all week, some up and some down. An analyst reports that the
-      standard deviation of those returns is about 2.7%. What does that figure tell you?
+      standard deviation of those returns is about 2.7%. A friend says "so it makes 2.7% a day?" What does that figure really tell you?
     choices:
       - { id: a, text: "How far a typical day strays from the week's average return" }
       - { id: b, text: "The average daily return for the week", mistake: { tag: confused_with_mean, fix: "The average is the mean; the standard deviation measures the spread around it." } }
