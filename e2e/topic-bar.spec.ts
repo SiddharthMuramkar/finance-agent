@@ -116,3 +116,21 @@ test("[#313] a narrow bar never squeezes the goal away: it keeps 12rem or drops 
   expect(m.spill, "nothing spills past the title row").toBeLessThanOrEqual(0.5);
   expect(m.rowScroll, "the title row does not overflow").toBeLessThanOrEqual(0);
 });
+
+test("[#313] the strip's scrollbar stays quiet, so a classic scrollbar never adds height (T313-C2)", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "a computed style, the same at every viewport");
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await seed(page, "your-turn");
+  await page.goto("/study");
+  const strip = page.getByTestId("topic-bar").locator('ol[aria-label="Steps in this Topic"]');
+  await expect(strip).toBeVisible();
+  // Headless Chromium hides scrollbars, so measure the style that keeps them hidden on Windows, Linux and a Mac set to
+  // always show scrollbars: the repo's quiet-scroll (thin and transparent at rest), as the chat and the Widget panel use.
+  const s = await strip.evaluate((ol) => {
+    const cs = getComputedStyle(ol);
+    return { width: cs.scrollbarWidth, color: cs.scrollbarColor, overflows: ol.scrollWidth > ol.clientWidth };
+  });
+  expect(s.overflows, "four Checks overflow the strip at 768, so its scrollbar would show").toBe(true);
+  expect(s.width).toBe("thin");
+  expect(s.color).toMatch(/^(transparent|rgba\(0, 0, 0, 0\)) (transparent|rgba\(0, 0, 0, 0\))$/);
+});
