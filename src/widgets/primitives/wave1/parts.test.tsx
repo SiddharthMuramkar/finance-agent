@@ -60,8 +60,10 @@ describe("Stat", () => {
 
   // Issue #457 (WCAG 2.2 SC 1.4.11): the tone's rule is the mint or sunflower fill, under 3:1 in Light, so the rule may not
   // be the only thing that says where the number came from. A static Tag says it in words; a neutral Stat has none.
+  // A "you" Stat is often a result worked out from the Learner's inputs (a calculator's "Maturity value"), not an
+  // assumption, so its words say where it came from without calling a result an assumption.
   it("says its tone in words with a Tag, not by the coloured rule alone", () => {
-    for (const [tone, words] of [["you", "Your assumption"], ["src", "Sourced"]] as const) {
+    for (const [tone, words] of [["you", "From your inputs"], ["src", "Sourced"]] as const) {
       show(<StatView label="Rate" value={7} unit="percent" tone={tone} />);
       const tag = byId(page!, "stat")!.querySelector('[data-affordance="tag"]');
       expect(tag?.textContent, tone).toBe(words);

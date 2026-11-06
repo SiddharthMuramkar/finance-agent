@@ -35,7 +35,12 @@ export function StatView({ label, value, unit, note, tone = "neutral" }: z.infer
     >
       <div className="text-xs text-[var(--muted)]">
         {label}
-        {tone !== "neutral" && <Tag kind={tone} className="ml-2 align-middle" />}
+        {/* A "you" Stat is often a result worked out from the Learner's inputs, so its words never call it an assumption. */}
+        {tone !== "neutral" && (
+          <Tag kind={tone} className="ml-2 align-middle">
+            {tone === "you" ? "From your inputs" : undefined}
+          </Tag>
+        )}
       </div>
       <div
         data-testid="stat-value"

@@ -48,7 +48,7 @@ const INVENTORY: Record<string, Use> = {
   "src/widgets/primitives/wave1/tones.ts": {
     uses: 2,
     verdict: "paired",
-    why: "The rule of a you or src Stat, its only consumer; the Stat also shows the Your assumption or Sourced Tag (issue #457)",
+    why: "The rule of a you or src Stat, its only consumer; the Stat also shows the 'From your inputs' or 'Sourced' Tag (issue #457)",
   },
   "src/widgets/primitives/wave1/track.tsx": { uses: 1, verdict: "paired", why: "The sourced tick on a track, used by Breakeven only, which always labels it in words below the track, \"Sourced\" at the least" },
   "src/widgets/primitives/wave3/choice-cards.tsx": { uses: 2, verdict: "paired", why: "Lip of a right or wrong card, with a check or cross on the card and \"Yes\" or the fix in the status line" },
