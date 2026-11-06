@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PREF, type ThemePref } from "./theme";
-import { AppHeader, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
+import { AppHeader, Card, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
 
 const LIGHT: ThemePref = { mode: "single", theme: "light" };
 
@@ -22,6 +22,26 @@ describe("ReadingPage", () => {
       expect(html).toContain("Study Workspace");
     }
     expect(new Set(pages.map((h) => h.match(/<main[^>]*>/)![0])).size).toBe(1);
+  });
+});
+
+describe("AppHeader density (A2)", () => {
+  it("header is h-[var(--header-h)] and has no bottom margin", () => {
+    const header = renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />).match(/<header[^>]*>/)![0];
+    expect(header).toContain("h-[var(--header-h)]");
+    expect(header).not.toMatch(/\bmb-\d/);
+    const page = renderToStaticMarkup(
+      <ReadingPage current="course" theme={LIGHT}>
+        <p>content</p>
+      </ReadingPage>,
+    );
+    expect(page.match(/<header[^>]*>/)![0]).not.toMatch(/\bmb-\d/);
+  });
+
+  it("Card has p-3", () => {
+    const html = renderToStaticMarkup(<Card>x</Card>);
+    expect(html).toMatch(/<section[^>]*\bp-3\b/);
+    expect(html).not.toMatch(/\bp-4\b/);
   });
 });
 
