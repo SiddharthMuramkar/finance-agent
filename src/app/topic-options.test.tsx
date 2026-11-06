@@ -89,6 +89,22 @@ describe("the Topic bar's ⋯ menu", () => {
     expect(submitted).not.toHaveBeenCalled();
   });
 
+  it("choosing the row with the keyboard moves focus into the confirm (its Cancel), not to the page", async () => {
+    await mount();
+    await press(options(), "Enter");
+    await click(document.activeElement as HTMLElement);
+    const cancel = [...host.querySelectorAll<HTMLElement>("button")].find((b) => b.textContent === "Cancel")!;
+    expect(document.activeElement).toBe(cancel);
+  });
+
+  it("Cancel returns focus to the ⋯ button", async () => {
+    await mount();
+    await click(options());
+    await click(host.querySelector<HTMLElement>('[role="menuitem"]')!);
+    await click([...host.querySelectorAll<HTMLElement>("button")].find((b) => b.textContent === "Cancel")!);
+    expect(document.activeElement).toBe(options());
+  });
+
   it("Escape closes the menu and returns focus to the button", async () => {
     await mount();
     await click(options());
