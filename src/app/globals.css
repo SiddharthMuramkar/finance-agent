@@ -713,7 +713,7 @@ body {
   border-color: var(--border);
 }
 
-/* Printing (the Notes page): always the light look on white paper, whatever the Learner's mode,
+/* Printing (the Notebook page): always the light look on white paper, whatever the Learner's mode,
    with the page margins left to the printer. Controls carry `print:hidden` in their markup. */
 @media print {
   :root,

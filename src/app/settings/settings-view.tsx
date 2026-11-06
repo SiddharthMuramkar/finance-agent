@@ -63,7 +63,7 @@ export function SettingsView({
           <h2 id="start-over-heading" className={`${heading} text-[var(--coral-ink)]`}>
             Start over
           </h2>
-          <p className="measure mb-3 text-sm leading-5">Begin again as a new learner, from the Welcome. Your current progress, Notes and Sessions are kept, not deleted.</p>
+          <p className="measure mb-3 text-sm leading-5">Begin again as a new learner, from the Welcome. Your current progress, Notebook and Sessions are kept, not deleted.</p>
           <StartOverButton confirmValue={START_OVER_CONFIRM} />
         </Card>
       </div>
