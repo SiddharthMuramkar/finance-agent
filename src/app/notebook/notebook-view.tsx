@@ -41,7 +41,7 @@ function Row({ row }: { row: NotebookRow }) {
       id={`note-${row.topicId}`}
       data-notebook-row={row.topicId}
       data-passed={note.passed}
-      className={`flex flex-col ${note.passed ? "scroll-mt-4" : "scroll-mt-4 print:[&:not(:has([data-line],[data-saved]))]:hidden"}`}
+      className={`mb-[var(--gap)] flex break-inside-avoid flex-col ${note.passed ? "scroll-mt-4" : "scroll-mt-4 print:[&:not(:has([data-line],[data-saved]))]:hidden"}`}
     >
       <Eyebrow>{STAGE[row.stage]}</Eyebrow>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -76,7 +76,7 @@ function Row({ row }: { row: NotebookRow }) {
 /**
  * The Notebook: one row per Topic in course order, each with its status, the Session (Resume or Read), what the Learner
  * found and the Topic Note. By default only Topics with a Session or a note; "Show all Topics" lists every one, so a line
- * can be added to a Topic not reached yet. Older sessions follow the rows. The page prints: controls are hidden, and a
+ * can be added to a Topic not reached yet. Rows flow down columns (CSS columns) so a short card leaves no gap beside a tall one. Older sessions follow the rows. The page prints: controls are hidden, and a
  * Topic with nothing on it is left out of the paper copy.
  */
 export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAll: boolean }) {
@@ -99,7 +99,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
               Nothing here yet. Study a Topic, or save a reply while you study, and it shows here. Show all Topics to add a line of your own.
             </p>
           )}
-          <div className="card-grid [grid-template-columns:repeat(auto-fill,minmax(420px,1fr))] items-start">
+          <div className="columns-[420px] gap-[var(--gap)]">
             {notebook.rows.map((row) => (
               <Row key={row.topicId} row={row} />
             ))}
@@ -111,7 +111,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
               </h2>
               <ul className="card-grid">
                 {notebook.older.map((s) => (
-                  <li key={s.id} className="relative flex flex-col gap-2 rounded-lg border border-[var(--border)] p-4">
+                  <li key={s.id} className="relative flex flex-col gap-2 rounded-lg border border-[var(--border)] p-4 hover:bg-[var(--hairline)]">
                     <TextLink href={`/sessions/${s.id}`} className="self-start text-xs font-semibold uppercase leading-4 tracking-[0.08em] after:absolute after:inset-0 after:content-['']">
                       Older session · {shortDate(s.date).toUpperCase()}
                     </TextLink>

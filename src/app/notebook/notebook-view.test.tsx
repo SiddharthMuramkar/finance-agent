@@ -173,6 +173,16 @@ describe("notebook rows", () => {
     expect(html).toContain("5 SEP 2026");
   });
 
+  it("flows rows down columns so short cards leave no gap, and keeps each card whole", () => {
+    expect(html).toMatch(/class="[^"]*columns-\[/);
+    expect(html).not.toContain("items-start\"><section");
+    expect(html).toMatch(/<section class="[^"]*break-inside-avoid[^"]*" id="note-pv"/);
+  });
+
+  it("gives an Older session card a hover face, since the whole card is the link", () => {
+    expect(html).toMatch(/<li[^>]*hover:bg-\[var\(--hairline\)\]/);
+  });
+
   it("offers Show all Topics, and turning it off goes back", () => {
     expect(html).toMatch(/<a[^>]*href="\/notebook\?all=1"[^>]*>Show all Topics<\/a>/);
     const all = renderToStaticMarkup(<NotebookView notebook={{ rows, older: [] }} showAll />);
