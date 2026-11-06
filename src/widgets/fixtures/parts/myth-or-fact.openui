@@ -1,0 +1,2 @@
+root = Widget("Myth or fact: bonds", [cards])
+cards = MythOrFact([{claim: "When interest rates rise, older bonds lose value.", isFact: true, why: "New bonds pay more, so old ones look less attractive.", emoji: "chart-decreasing"}, {claim: "A bond always pays back more than you lent.", isFact: false, why: "If you sell early, the price can be lower than you paid.", emoji: "dollar-banknote"}, {claim: "Prices of safe bonds never move.", isFact: false, why: "Even safe bonds change price when rates move.", emoji: "locked"}])

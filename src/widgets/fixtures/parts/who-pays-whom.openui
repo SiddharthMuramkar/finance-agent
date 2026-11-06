@@ -1,0 +1,2 @@
+root = Widget("Who pays whom on a savings account", [flow])
+flow = WhoPaysWhom([{id: "bank", emoji: "bank", name: "The bank"}, {id: "saver", emoji: "woman", name: "The saver"}], [{from: "saver", to: "bank", what: "a deposit", emoji: "coin"}, {from: "bank", to: "saver", what: "interest", emoji: "money-bag"}])

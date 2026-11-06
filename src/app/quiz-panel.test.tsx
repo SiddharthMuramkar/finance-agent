@@ -68,6 +68,8 @@ describe("QuizPanel template questions", () => {
     expect(html).toContain("60 bp");
     expect(html).toContain("0.6 bp");
     expect(html).toContain('type="radio"');
+    expect(html).toMatch(/<label[^>]*data-affordance="chip"[^>]*class="[^"]*\bchip\b[^"]*"/);
+    expect(html).toContain('data-state="idle"');
     expect(html).not.toMatch(/inputMode|inputmode/i);
     expect(html).not.toContain("quiz-number");
     expect(html).not.toContain("<input type=\"text\"");
