@@ -53,4 +53,21 @@ describe("PR #492 pre-merge content fixes", () => {
     expect(fix).not.toMatch(/earlier/i);
     expect(fix).toMatch(/money growth/i);
   });
+
+  it("#514: hmr-q-before-oct-1979 b and d fixes say 'Before October 1979'", () => {
+    const b = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "b").mistake?.fix ?? "";
+    const d = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "d").mistake?.fix ?? "";
+    expect(b).toMatch(/^Before October 1979/);
+    expect(d).toMatch(/^Before October 1979/);
+  });
+
+  it("#514: hmr-q-before-oct-1979 d fix says nothing about after the as-of date", () => {
+    const d = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "d").mistake?.fix ?? "";
+    expect(d).not.toMatch(/after/i);
+  });
+
+  it("#514: hmr-q-before-oct-1979 c fix brings in no unsourced government price controls", () => {
+    const c = choice("hist-macro-regimes", "hmr-q-before-oct-1979", "c").mistake?.fix ?? "";
+    expect(c).not.toMatch(/government/i);
+  });
 });
