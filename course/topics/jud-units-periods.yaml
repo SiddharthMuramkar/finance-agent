@@ -63,8 +63,8 @@ cases:
       comparable US Treasury a bond yields, and he adds a short statement of what one basis
       point is. He also explains that a bond's price and its yield move in opposite directions.
       The Case Data shows the daily 10-year Treasury yield through the month. The Learner pastes
-      the piece, checks each statement in the sidenote and the yield he quotes, and recomputes
-      any figure a basis point is used for.
+      the piece, checks each statement in the sidenote and the yield he quotes, and says in
+      plain words what traders mean by a basis point.
     reveal: >
       A basis point is one hundredth of a percentage point: 0.01%, or 0.0001 as a fraction (the
       SEC's Investor.gov glossary and the European Central Bank both say so). The sidenote gave
@@ -132,36 +132,30 @@ youllLearn:
 questions:
   - id: ju-q-pct-more
     prompt: >
-      A report says a run rate of $62 billion is "X% more" than a quarter's revenue of $10
-      billion. What is X?
+      A writer says one figure is "five times" another, then calls it "500% more than" the other. What did the writer mix up?
     choices:
-      - { id: a, text: "520%" }
-      - { id: b, text: "620%" }
-      - { id: c, text: "84%" }
-      - { id: d, text: "6.2%" }
+      - { id: a, text: "\"More than\" counts only the extra above the base, while \"times\" counts the whole figure, so the two phrases are not interchangeable" }
+      - { id: b, text: "Nothing: \"times\" and \"percent more\" always mean the same", mistake: { tag: nothing_times_and_percent_mo, fix: "They do not. \"Five times\" is the whole figure; \"percent more\" counts only the extra on top." } }
+      - { id: c, text: "A percentage above 100% is not allowed in a report", mistake: { tag: a_percentage_above_is_not_al, fix: "Percentages above 100% are fine. They just show one figure is more than double the other." } }
+      - { id: d, text: "The writer should have quoted the gap in basis points", mistake: { tag: the_writer_should_have_quote, fix: "Basis points suit small rate moves. The mix-up here is between \"times\" and \"percent more\"." } }
     answer: a
     explanation: >
-      62 / 10 = 6.2 times the base. The increase over the base is 6.2 - 1 = 5.2, which is 520% more.
-      620% is the figure as a percentage of the base, not the amount by which it is larger.
+      "Five times" is the whole figure measured against the base. "500% more" counts only the extra on top, which would make it six times. The three phrases (times, percent more, percent of) are not interchangeable.
     source: >
       OpenStax, Prealgebra, 6.2 Solve General Applications of Percent (percent increase is the amount of increase as a percent of the original amount): https://openstax.org/books/prealgebra/pages/6-2-solve-general-applications-of-percent
-
   - id: ju-q-annualise-quarter
     prompt: >
-      A company's revenue for one quarter was $10 billion. If every quarter looked the same, what
-      would the yearly pace be?
+      A headline quotes a company's "yearly pace" from just one quarter of revenue. What does that yearly pace assume?
     choices:
-      - { id: a, text: "$40 billion" }
-      - { id: b, text: "$30 billion" }
-      - { id: c, text: "$120 billion" }
-      - { id: d, text: "$2.5 billion" }
+      - { id: a, text: "That every later quarter will look like this one" }
+      - { id: b, text: "That the company has already earned a full year of revenue", mistake: { tag: that_the_company_has_already, fix: "A pace is not revenue earned. It only says what a year would bring if the quarter repeated." } }
+      - { id: c, text: "That this quarter was the best the company will ever have", mistake: { tag: that_this_quarter_was_the_be, fix: "A pace assumes the quarter repeats. It says nothing about it being the best." } }
+      - { id: d, text: "That the revenue will be paid out to shareholders", mistake: { tag: that_the_revenue_will_be_pai, fix: "A pace is about revenue, not payouts. Nothing in it says where the money goes." } }
     answer: a
     explanation: >
-      A year has four quarters, so the pace is 4 x 10 = $40 billion. It is a pace, not revenue
-      earned, and it holds only if later quarters look the same.
+      A yearly pace takes one short period and carries it forward as if it repeated. It is a pace, not revenue earned, and it holds only if later quarters look the same.
     source: >
       Arithmetic on the run-rate definition in Anthropic, PBC, Form S-1 (filed 26 October 2026), Glossary, "Run-Rate Revenue": https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
-
   - id: ju-q-like-for-like
     prompt: >
       A report compares a company's annual run rate with the revenue it earned in one quarter.
@@ -180,78 +174,66 @@ questions:
 
   - id: ju-q-gap-sum
     prompt: >
-      A writer says two companies together earned $9.2 billion and $14.1 billion in a half-year,
-      and compares the total with a $41 billion annual pace. How far short of the pace does the
-      total fall, in billions of dollars?
+      A writer adds up two companies' half-year revenue and says the total falls well short of a yearly pace. What is the problem with setting these two side by side?
     choices:
-      - { id: a, text: "$17.7 billion" }
-      - { id: b, text: "$18.7 billion" }
-      - { id: c, text: "$27.8 billion" }
-      - { id: d, text: "$23.3 billion" }
+      - { id: a, text: "One is revenue already earned over half a year and the other is a pace for a year, so the gap mixes two different periods" }
+      - { id: b, text: "Nothing: any two revenue figures can be compared", mistake: { tag: nothing_any_two_revenue_figu, fix: "Periods matter. Half a year of earned revenue and a yearly pace measure different things." } }
+      - { id: c, text: "Revenue can only be compared in percentages, never in dollars", mistake: { tag: revenue_can_only_be_compared, fix: "Dollars compare fine when the periods match. Here the periods differ." } }
+      - { id: d, text: "A half-year total can never be added across two companies", mistake: { tag: a_half_year_total_can_never, fix: "Adding two companies is fine. The trouble is the half-year total against a yearly pace." } }
     answer: a
     explanation: >
-      9.2 + 14.1 = 23.3, and 41 - 23.3 = 17.7. $18.7 billion is a slip of one in the last step;
-      $23.3 billion is the total, not the gap.
+      The total is revenue earned over six months. The pace is an annual rate. A gap between them mixes earned revenue with a pace and says little until both sit on the same period.
     source: Arithmetic on the figures stated in the question (hypothetical companies).
-
   - id: ju-q-bp-fraction
     prompt: >
-      A loan is priced 150 basis points over its reference rate. Written as a decimal fraction of
-      the rate, what is the margin?
+      A sidenote says one basis point is "0.001". A regulator's glossary says a basis point is one hundredth of a percentage point. What should a careful reader conclude?
     choices:
-      - { id: a, text: "0.015" }
-      - { id: b, text: "0.15" }
-      - { id: c, text: "0.0015" }
-      - { id: d, text: "1.5" }
+      - { id: a, text: "The sidenote's unit is too big, and the publisher's definition decides" }
+      - { id: b, text: "Both are fine: a basis point is a matter of taste", mistake: { tag: both_are_fine_a_basis_point, fix: "A basis point has one fixed definition, kept by the bodies that publish it." } }
+      - { id: c, text: "The glossary is out of date, because a basis point changes with the market", mistake: { tag: the_glossary_is_out_of_date, fix: "A basis point is a fixed unit. It does not move with rates." } }
+      - { id: d, text: "The sidenote is right, because small units are written with three zeros", mistake: { tag: the_sidenote_is_right_becaus, fix: "The publisher's definition decides, not a habit of zeros. Look it up." } }
     answer: a
     explanation: >
-      One basis point is 0.01% = 0.0001, so 150 basis points is 1.5% = 0.015. In the ECB's own
-      reporting example, 100 basis points is 1% and is entered as 0.01.
+      A basis point is one hundredth of a percentage point, as the SEC's glossary and the ECB both say. The sidenote's version is ten times too large. Units have fixed definitions, so look them up at the body that publishes them.
     source: >
       European Central Bank, AnaCredit question 2020/0002 (a margin of one basis point is 0.01%, reported as 0.0001): https://ecb.europa.eu/stats/ecb_statistics/anacredit/questions/html/ecb.anaq.200131.0002.hr.html ; Investor.gov (US SEC), Basis Point: https://investor.gov/introduction-investing/investing-basics/glossary/basis-point
-
   - id: ju-q-bp-move
     prompt: >
-      A bond yield rises from 5.00% to 5.25%. How many basis points is that?
+      Traders quote a bond yield rising from 5.00% to 5.25% as "up 25 basis points". Why do they use basis points for small moves like this?
     choices:
-      - { id: a, text: "25" }
-      - { id: b, text: "2.5" }
-      - { id: c, text: "250" }
-      - { id: d, text: "0.25" }
+      - { id: a, text: "A basis point is a hundredth of a percentage point, so small moves become whole numbers with no decimals" }
+      - { id: b, text: "A basis point is a whole percentage point, so it keeps the move large", mistake: { tag: a_basis_point_is_a_whole_per, fix: "A basis point is only a hundredth of a point. It makes small moves easy to say." } }
+      - { id: c, text: "A basis point is the price of the bond, not its yield", mistake: { tag: a_basis_point_is_the_price_o, fix: "It measures yield or rate moves, not the bond's price." } }
+      - { id: d, text: "Basis points are only used for moves of 5% or more", mistake: { tag: basis_points_are_only_used_f, fix: "Basis points suit small moves best. Large ones are said in points." } }
     answer: a
     explanation: >
-      The rise is 0.25 percentage points. A basis point is 0.01 percentage points, so 0.25 / 0.01 = 25.
+      A basis point is 0.01 of a percentage point, so a quarter-point move is simply "25 basis points". Traders use the unit so that small moves are said as whole numbers.
     source: >
       Investor.gov (US SEC), Basis Point glossary entry ("One one-hundredth (.01) of a percentage point"): https://investor.gov/introduction-investing/investing-basics/glossary/basis-point
-
   - id: ju-q-spread-sum
     prompt: >
-      A loan pays a floating reference rate plus a margin of 225 basis points. If the reference
-      rate is 4.00%, what is the loan's all-in rate?
+      A loan pays a floating reference rate plus a margin quoted in basis points. How is its all-in rate put together?
     choices:
-      - { id: a, text: "6.25%" }
-      - { id: b, text: "4.0225%" }
-      - { id: c, text: "4.225%" }
-      - { id: d, text: "6.00%" }
+      - { id: a, text: "The reference rate with the margin added on top, both read as percentages" }
+      - { id: b, text: "The margin replaces the reference rate", mistake: { tag: the_margin_replaces_the_refe, fix: "The margin sits on top of the reference rate. It does not replace it." } }
+      - { id: c, text: "The margin multiplies the reference rate", mistake: { tag: the_margin_multiplies_the_re, fix: "The margin is added, not multiplied. It is a spread over the reference rate." } }
+      - { id: d, text: "The lender charges whichever of the two is lower", mistake: { tag: the_lender_charges_whichever, fix: "The loan pays both: the reference rate plus the margin over it." } }
     answer: a
     explanation: >
-      225 basis points is 2.25 percentage points, and 4.00 + 2.25 = 6.25%.
+      The all-in rate is the reference rate plus the margin over it. The margin is quoted in basis points, so it is read as a percentage before it is added.
     source: >
       Investor.gov (US SEC), Basis Point: https://investor.gov/introduction-investing/investing-basics/glossary/basis-point ; ECB AnaCredit question 2020/0002 (a margin over a reference rate): https://ecb.europa.eu/stats/ecb_statistics/anacredit/questions/html/ecb.anaq.200131.0002.hr.html
-
   - id: ju-q-spread-bp
     prompt: >
-      A corporate bond yields 6.10% and a Treasury of similar maturity yields 4.85%. How many
-      basis points is the bond's spread over the Treasury?
+      A trader says a corporate bond "trades at a spread over the Treasury". What does the spread tell you?
     choices:
-      - { id: a, text: "125" }
-      - { id: b, text: "12.5" }
-      - { id: c, text: "1.25" }
-      - { id: d, text: "1,250" }
+      - { id: a, text: "How much more yield the bond pays than a Treasury of similar maturity, quoted in basis points" }
+      - { id: b, text: "How much more the bond costs in dollars than a Treasury", mistake: { tag: how_much_more_the_bond_costs, fix: "A spread is about yield, not the price paid in dollars." } }
+      - { id: c, text: "How many years the bond has left until it matures", mistake: { tag: how_many_years_the_bond_has, fix: "Maturity is a different label. A spread compares yields." } }
+      - { id: d, text: "What share of the bond the Treasury holds", mistake: { tag: what_share_of_the_bond_the_t, fix: "A spread does not describe ownership. It compares yields." } }
     answer: a
     explanation: >
-      The gap is 6.10 - 4.85 = 1.25 percentage points. One basis point is 0.01 percentage points,
-      so the spread is 1.25 / 0.01 = 125 basis points.
+      A spread is the extra yield over a comparable Treasury, quoted in basis points.
     source: >
       Investor.gov (US SEC), Basis Point glossary entry: https://investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
@@ -273,41 +255,29 @@ checks:
   - id: ju-recompute-run-rate
     kind: conversation
     prompt: >
-      Take the two claims in the pasted piece about the run rate: the percentage by which the
-      run rate exceeds the second quarter's revenue, and the gap left after adding up both
-      companies' first-half revenue. Using only the figures the piece itself gives, recompute each
-      claim, say what your percentage measures, and explain whether an annual run rate can be
-      set against one quarter's revenue as it stands. Then say what, if anything, your
-      recomputation changes about the writer's wider point.
+      The pasted piece sets a yearly run rate beside one quarter's revenue, and beside half a
+      year's. In your own words: why is that an uneven match, and what fairer match would you
+      pick? Does the writer's main point, that a run rate is not revenue, still stand?
     passCriteria: >
-      The Learner recomputes both claims from the piece's own figures rather than from memory or
-      a guess: they divide the run rate by the quarter's revenue and convert the ratio to "percent
-      more" (subtracting the base, not stating the ratio as a percentage); they add the four
-      quarterly figures and subtract from the run rate; and they compare each result with what the
-      piece states, naming how large any difference is. They explain that a run rate is a yearly
-      pace while the quarter covers three months, so a like-for-like comparison scales the quarter
-      by four first. They separate a slip in the arithmetic from the writer's wider point, that a
-      run rate is not revenue already earned, and say which survives. The Tutor supplies no
-      figure of its own: every number comes from the Case or from a source the Learner retrieves.
+      In their own words the Learner says that a run rate is a yearly pace while a quarter covers
+      three months and a half-year six, so the two sides measure different periods, and that a fair
+      match puts both on the same period (for example the quarter scaled to a year). They say that
+      "percent more" counts only the extra above the base, not the whole figure. They keep the
+      period slip apart from the writer's wider point, that a run rate is a pace and not revenue
+      already earned, and say that point survives. No arithmetic is asked or needed; the Tutor
+      supplies no figure of its own.
   - id: ju-recompute-units-labels
     kind: conversation
     prompt: >
-      Two statements in the other pasted pieces use a unit or a label. In one, a basis point is
-      given as a number; in the other, SOFR is described in a parenthesis. For the first, use the
-      Case Data to find how many basis points the 10-year Treasury yield rose between 22 and 29
-      September 2026, and show what that is in percentage points and as a fraction. For the
-      second, check the description against how the New York Fed describes SOFR. Say, for each
-      statement, whether it holds, how large any error is, and whether it changes the writer's
-      conclusion.
+      One pasted piece defines a basis point; another calls SOFR borrowing from the Fed. Look each
+      up where it is published (the Tutor can help you find it in the Library). In your own words:
+      what does each really mean, and does the slip change the writer's point?
     passCriteria: >
-      For the yield move the Learner reads both dates from the Case Data, takes the difference in
-      percentage points, converts it to basis points (multiplying by 100) and expresses it as a
-      fraction (dividing by 10,000), showing the unit conversion rather than only stating it; they
-      then apply the same definition to test the sidenote's basis-point statement and say whether it
-      holds and by what factor any error is out. For SOFR the Learner retrieves the New York Fed's
-      description (the Tutor may help them find it in the Library) and compares the wording with the
-      piece's parenthesis, naming any difference in what the rate measures and how it arises.
-      For both statements they say whether the slip is one of a unit or a label, how much it
-      changes, and that neither alters the pricing arithmetic or the writer's conclusion by itself.
-      They make no forecast and no buy, sell or hold judgement. The Tutor supplies no figure of its
-      own.
+      The Learner looks up the publisher's definition of a basis point (a hundredth of a percentage
+      point, as the SEC's glossary or the ECB says) and says in words that the sidenote's version is
+      too big, and why traders use the unit for small moves. For SOFR they retrieve the New York
+      Fed's description (the Tutor may help them find it in the Library) and say in their own words
+      that it is a market rate for overnight borrowing backed by Treasuries, not borrowing from the
+      Fed. For both they say the slip is one of a unit or a label and that neither changes the
+      writer's conclusion by itself. No arithmetic is asked or needed. They make no forecast and no
+      buy, sell or hold judgement. The Tutor supplies no figure of its own.
