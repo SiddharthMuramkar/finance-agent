@@ -118,6 +118,8 @@ describe("the Tutor's frozen instructions", () => {
       it("keep a simpler reply off the open quiz's own words, and the closing ask within 20 words (T4, T11)", () => {
         expect(text).toContain("never describe an option in the open question's own words");
         expect(text).toContain("never say which option fits its situation");
+        // Targeted run t9: T4 then explained points and basis points side by side, two ideas.
+        expect(text).toContain("explain only the first idea in fresh words of your own, never each option in turn");
         expect(text).toContain("one short sentence of 20 words or fewer");
       });
 
