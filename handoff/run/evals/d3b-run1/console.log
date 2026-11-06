@@ -1,0 +1,200 @@
+npm notice run finance-agent@0.1.0 tutor:eval
+npm notice run node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.tutor-eval.config.ts
+
+ RUN  v5.0.5 /Users/siddharth/Desktop/finance-agent/.claude/worktrees/wf_a507a13d-f83-3
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T1 run 3 ($0.153 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T1 run 2 ($0.310 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T1 run 1 ($0.467 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T2 run 3 ($0.499 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T2 run 2 ($0.536 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T2 run 1 ($0.587 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T3 run 1 ($0.630 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T3 run 2 ($0.664 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T3 run 3 ($0.693 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T4 run 1 ($0.742 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T4 run 2 ($0.772 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T4 run 3 ($0.802 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T5 run 2 ($0.844 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T5 run 3 ($0.884 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T5 run 1 ($0.931 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T6 run 2 ($0.976 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T7 run 1 ($0.976 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T7 run 2 ($0.976 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T6 run 1 ($1.021 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T7 run 3 ($1.021 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T6 run 3 ($1.051 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T11 run 3 ($1.079 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T11 run 1 ($1.115 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T11 run 2 ($1.151 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T12 run 1 ($1.192 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T12 run 2 ($1.233 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T12 run 3 ($1.274 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T14 run 2 ($1.305 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T14 run 1 ($1.341 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T14 run 3 ($1.365 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T15 run 1 ($1.405 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T15 run 2 ($1.438 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T15 run 3 ($1.472 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T16 run 2 ($1.514 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T16 run 3 ($1.549 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+FAIL T16 run 1 ($1.596 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+PASS T13 run 1 ($1.982 so far)
+
+stdout | src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+## Live Tutor tests: 8 of 16 cases passed three times out of three
+
+Tutor: claude-opus-5-5, effort medium, widget engine on. Grader: claude-opus-5-5. Instruction fingerprint 41202986c17127e0f921262568631c0097a025ab0a47256e5bcb3620fe5eb607.
+Spent $1.98 of the $8.00 cap. Started 2026-11-06T03:16:36.508Z, finished 2026-11-06T03:20:32.182Z.
+
+| Case | Title | Verdict | Runs passed |
+| --- | --- | --- | --- |
+| T1 | Check open: a Widget to explain the idea | fail | 0 of 3 |
+| T2 | After 0 of 3: start from the beginning | fail | 2 of 3 |
+| T3 | A repeat miss on points to basis points: a new method | fail | 2 of 3 |
+| T4 | Explain that more simply | fail | 2 of 3 |
+| T5 | Ask me a question, let's get it over with, use widgets | fail | 2 of 3 |
+| T6 | The Learner's own rule | pass | 3 of 3 |
+| T7 | Same Skill missed 3 times: offer to park | pass | 3 of 3 |
+| T8 | Lint on the current Topic | pass | 3 of 3 |
+| T9 | Every reply in T1 to T7: plain style | pass | 3 of 3 |
+| T10 | Rupee lesson, any Widget: no dollar sign | pass | 3 of 3 |
+| T11 | Check open: just tell me the answer | pass | 3 of 3 |
+| T12 | Story-first opener: the Tutor opens with a scene from the Case | fail | 0 of 3 (needs 2) |
+| T13 | No sum in 20 turns of the persona's lines | pass | 1 of 1 |
+| T14 | Choices under the reply, and no menu in its text | pass | 3 of 3 (needs 2) |
+| T15 | A warm voice for a Learner who says they are bad at maths | fail | 0 of 3 (needs 2) |
+| T16 | Lingo on first use: what a basis point is, in everyday words | fail | 0 of 3 (needs 2) |
+
+Every failure is written out in full in the report (the tutor-eval artifact of this run). This job is not a required check.
+
+Report in /Users/siddharth/Downloads/finance-agent-story-run/evals/d3b-run1
+
+ ❯ src/behaviour/tutor-eval/run.live.ts (1 test | 1 failed) 235796ms
+   × live Tutor tests T1 to T16 235795ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/behaviour/tutor-eval/run.live.ts > live Tutor tests T1 to T16
+AssertionError: ## Live Tutor tests: 8 of 16 cases passed three times out of three
+
+Tutor: claude-opus-5-5, effort medium, widget engine on. Grader: claude-opus-5-5. Instruction fingerprint 41202986c17127e0f921262568631c0097a025ab0a47256e5bcb3620fe5eb607.
+Spent $1.98 of the $8.00 cap. Started 2026-11-06T03:16:36.508Z, finished 2026-11-06T03:20:32.182Z.
+
+| Case | Title | Verdict | Runs passed |
+| --- | --- | --- | --- |
+| T1 | Check open: a Widget to explain the idea | fail | 0 of 3 |
+| T2 | After 0 of 3: start from the beginning | fail | 2 of 3 |
+| T3 | A repeat miss on points to basis points: a new method | fail | 2 of 3 |
+| T4 | Explain that more simply | fail | 2 of 3 |
+| T5 | Ask me a question, let's get it over with, use widgets | fail | 2 of 3 |
+| T6 | The Learner's own rule | pass | 3 of 3 |
+| T7 | Same Skill missed 3 times: offer to park | pass | 3 of 3 |
+| T8 | Lint on the current Topic | pass | 3 of 3 |
+| T9 | Every reply in T1 to T7: plain style | pass | 3 of 3 |
+| T10 | Rupee lesson, any Widget: no dollar sign | pass | 3 of 3 |
+| T11 | Check open: just tell me the answer | pass | 3 of 3 |
+| T12 | Story-first opener: the Tutor opens with a scene from the Case | fail | 0 of 3 (needs 2) |
+| T13 | No sum in 20 turns of the persona's lines | pass | 1 of 1 |
+| T14 | Choices under the reply, and no menu in its text | pass | 3 of 3 (needs 2) |
+| T15 | A warm voice for a Learner who says they are bad at maths | fail | 0 of 3 (needs 2) |
+| T16 | Lingo on first use: what a basis point is, in everyday words | fail | 0 of 3 (needs 2) |
+
+Every failure is written out in full in the report (the tutor-eval artifact of this run). This job is not a required check.
+: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/behaviour/tutor-eval/run.live.ts:99:38
+     97|   console.log(summary);
+     98|   console.log(`Report in ${OUT}`);
+     99|   expect(allPassed(report), summary).toBe(true);
+       |                                      ^
+    100| });
+    101|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  08:46:35
+   Duration  236.74s (tests 100%)
+

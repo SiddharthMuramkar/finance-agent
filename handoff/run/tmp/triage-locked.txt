@@ -1,0 +1,243 @@
+.github/workflows/ci.yml   # group cipw (waits on C1b)
+GLOSSARY.md   # changed on story/B1
+GLOSSARY.md   # changed on story/D3a
+course/topics/ana-anthropic-s1.yaml   # changed on story/D2j
+course/topics/ana-build-valuation.yaml   # changed on story/D2i
+course/topics/ana-commitments-debt.yaml   # changed on story/D2j
+course/topics/ana-decide-between.yaml   # changed on story/D2j
+course/topics/ana-india-transfer.yaml   # changed on story/D2j
+course/topics/ana-who-pays-whom.yaml   # changed on story/D2j
+course/topics/bank-regulation.yaml   # changed on story/D2f
+course/topics/bond-credit-spreads.yaml   # changed on story/D2b
+course/topics/bond-duration.yaml   # changed on story/D2b
+course/topics/bond-pricing.yaml   # changed on story/D2b
+course/topics/bond-yield-curve.yaml   # changed on story/D2b
+course/topics/bond-yield.yaml   # changed on story/D2b
+course/topics/cf-capital-budgeting.yaml   # changed on story/D2e
+course/topics/cf-capital-structure.yaml   # changed on story/D2e
+course/topics/cf-payout.yaml   # changed on story/D2e
+course/topics/cf-venture.yaml   # changed on story/D2f
+course/topics/cf-wacc.yaml   # changed on story/D2e
+course/topics/credit-analysis.yaml   # changed on story/D2c
+course/topics/crisis-bank-runs.yaml   # changed on story/D2f
+course/topics/crisis-leverage.yaml   # changed on story/D2g
+course/topics/der-forwards.yaml   # changed on story/D2c
+course/topics/der-hedging.yaml   # changed on story/D2d
+course/topics/der-option-pricing.yaml   # changed on story/D2c
+course/topics/der-options.yaml   # changed on story/D2c
+course/topics/der-rates-fx.yaml   # changed on story/D2d
+course/topics/eco-central-banks.yaml   # changed on story/D2a
+course/topics/eco-fiscal-debt.yaml   # changed on story/D2a
+course/topics/eco-gdp-cycles.yaml   # changed on story/D2a
+course/topics/eco-inflation-real.yaml   # changed on story/D2a
+course/topics/eco-micro-competition.yaml   # changed on story/D2a
+course/topics/eco-money-banking.yaml   # changed on story/D2a
+course/topics/eco-supply-demand.yaml   # changed on story/D2a
+course/topics/eco-trade.yaml   # changed on story/D2b
+course/topics/eq-history.yaml   # changed on story/D2d
+course/topics/fol-erp.yaml   # changed on story/D2h
+course/topics/fol-money-trap.yaml   # changed on story/D2h
+course/topics/fol-roe.yaml   # changed on story/D2g
+course/topics/fol-sov-ratings.yaml   # changed on story/D2g
+course/topics/fol-subprime-ai.yaml   # changed on story/D2h
+course/topics/fol-systemic-risk.yaml   # changed on story/D2h
+course/topics/fol-tesla-2020.yaml   # changed on story/D2g
+course/topics/fol-twitter-ipo.yaml   # changed on story/D2g
+course/topics/fol-uber-2014.yaml   # changed on story/D2g
+course/topics/fs-earnings-quality.yaml   # changed on story/D2a
+course/topics/fs-filings.yaml   # changed on story/D2a
+course/topics/fs-tax.yaml   # changed on story/D2a
+course/topics/funds-passive.yaml   # changed on story/D2e
+course/topics/fx-basics.yaml   # changed on story/D2c
+course/topics/fx-bop.yaml   # changed on story/D2c
+course/topics/fx-regimes-crises.yaml   # changed on story/D2c
+course/topics/hist-macro-regimes.yaml   # changed on story/D2b
+course/topics/in-economy.yaml   # changed on story/D2b
+course/topics/in-gsec.yaml   # changed on story/D2b
+course/topics/ins-risk-transfer.yaml   # changed on story/D2g
+course/topics/jud-assumptions.yaml   # changed on story/D2h
+course/topics/jud-filing-vs-claim.yaml   # changed on story/D2i
+course/topics/jud-ipo-forecast.yaml   # changed on story/D2h
+course/topics/jud-narrative-numbers.yaml   # changed on story/D2h
+course/topics/jud-predicted-outcomes.yaml   # changed on story/D2i
+course/topics/jud-rating-boundary.yaml   # changed on story/D2h
+course/topics/jud-rating-conflict.yaml   # changed on story/D2i
+course/topics/jud-units-periods.yaml   # changed on story/D2i
+course/topics/mkt-behavioural.yaml   # changed on story/D2d
+course/topics/mkt-efficiency.yaml   # changed on story/D2d
+course/topics/mkt-ipo-float.yaml   # changed on story/D2d
+course/topics/num-econometrics.yaml   # changed on story/D2a
+course/topics/num-statistics.yaml   # changed on story/D2a
+course/topics/private-credit.yaml   # changed on story/D2f
+course/topics/real-assets.yaml   # changed on story/D2e
+course/topics/risk-capm.yaml   # changed on story/D2d
+course/topics/risk-portfolio.yaml   # changed on story/D2d
+course/topics/sov-default-country-risk.yaml   # changed on story/D2c
+course/topics/struct-securitisation.yaml   # changed on story/D2f
+course/topics/val-banks.yaml   # changed on story/D2e
+course/topics/val-dcf.yaml   # changed on story/D2e
+course/topics/val-distress.yaml   # changed on story/D2f
+course/topics/val-implied-erp.yaml   # changed on story/D2f
+course/topics/val-india.yaml   # changed on story/D2f
+course/topics/val-multiples.yaml   # changed on story/D2e
+course/topics/val-young.yaml   # changed on story/D2e
+docs/adr/0010-a-widget-and-choices-with-every-reply.md   # changed on story/D3a
+docs/architecture.md   # changed on story/B1
+docs/architecture.md   # changed on story/D2a
+docs/architecture.md   # changed on story/D2b
+docs/architecture.md   # changed on story/D2c
+docs/architecture.md   # changed on story/D2d
+docs/architecture.md   # changed on story/D2e
+docs/architecture.md   # changed on story/D2f
+docs/architecture.md   # changed on story/D2g
+docs/architecture.md   # changed on story/D2h
+docs/architecture.md   # changed on story/D2i
+docs/architecture.md   # changed on story/D2j
+docs/architecture.md   # changed on story/D3a
+docs/architecture.md   # changed on story/E2b
+drizzle/   # group schema (waits on E4a)
+e2e/affordance.spec.ts   # changed on story/B1
+e2e/choices.spec.ts   # changed on story/D3a
+e2e/course-map.spec.ts   # changed on story/B1
+e2e/layout.spec.ts   # changed on story/B1
+e2e/story-parts.spec.ts   # changed on story/E2b
+e2e/targets.spec.ts   # changed on story/B1
+next.config.ts   # changed on story/B1
+next.config.ts   # group nextcfg (waits on B1,B2a)
+package-lock.json   # group pkg (waits on E4b)
+package.json   # group pkg (waits on E4b)
+playwright.config.ts   # group cipw (waits on C1b)
+scripts/check-course.mjs   # group lint (waits on E3)
+src/app/account-menu.tsx   # group accountmenu (waits on A5,C1b)
+src/app/api/turn/route.ts   # changed on story/D3a
+src/app/api/turn/route.ts   # group turn (waits on D3a,E4a)
+src/app/chips-pending.test.tsx   # changed on story/D3a
+src/app/course/course-map-view.test.tsx   # changed on story/B1
+src/app/course/course-map-view.tsx   # changed on story/B1
+src/app/course/course-map-view.tsx   # group coursemap (waits on B1)
+src/app/course/jump-button.tsx   # changed on story/B1
+src/app/globals.css   # changed on story/E2b
+src/app/globals.css   # group globals (waits on A2,E5)
+src/app/left-column.tsx   # changed on story/D3a
+src/app/left-column.tsx   # group leftcol (waits on D3a,A2)
+src/app/login/page.tsx   # group auth (waits on C1b,C3)
+src/app/message-box.tsx   # group thread (waits on A2)
+src/app/notebook/*   # group notebook (waits on B2a,B3b)
+src/app/notes/*   # group notesold (waits on B2a)
+src/app/old-session.tsx   # group oldsession (waits on B2a)
+src/app/past-sessions.tsx   # group notesold (waits on B2a)
+src/app/primitives/menu.tsx   # group accountmenu (waits on A5,C1b)
+src/app/profile/profile-form.test.tsx   # changed on story/B1
+src/app/progress/loading.tsx   # changed on story/B1
+src/app/progress/page.tsx   # changed on story/B1
+src/app/redirects.test.ts   # changed on story/B1
+src/app/save-to-notes.tsx   # group savenotes (waits on B2b)
+src/app/settings/settings-controls.tsx   # group themectl (waits on A5)
+src/app/settings/settings-view.tsx   # group settingsview (waits on A5,C1b,B3b)
+src/app/theme-menu.tsx   # group themectl (waits on A5)
+src/app/theme.ts   # group themectl (waits on A5)
+src/app/thread.tsx   # group thread (waits on A2)
+src/app/topic-header.tsx   # group frame (waits on A2,E5,B3b)
+src/app/turn-stream.ts   # changed on story/D3a
+src/app/ui-primitives.test.tsx   # changed on story/B1
+src/app/ui.tsx   # group ui (waits on A2,A5,C1b)
+src/app/widget-pager.tsx   # group pager (waits on A2,E5)
+src/app/widget-panel.tsx   # group widgetpanel (waits on A2,B2b,E5)
+src/app/widget-state.test.tsx   # changed on story/D3a
+src/app/workspace-frame.tsx   # group frame (waits on A2,E5,B3b)
+src/app/workspace-parts.tsx   # changed on story/D3a
+src/app/workspace-parts.tsx   # group wsparts (waits on D3a,B3b)
+src/app/workspace.test.tsx   # changed on story/D3a
+src/auth/learners.ts   # group auth (waits on C1b,C3)
+src/auth/session.ts   # group auth (waits on C1b,C3)
+src/auth/sign-in.test.ts   # changed on story/B1
+src/course/formula-check.ts   # changed on story/D2a
+src/course/formula-check.ts   # changed on story/D2b
+src/course/formula-check.ts   # changed on story/D2c
+src/course/formula-check.ts   # changed on story/D2e
+src/course/formula-check.ts   # changed on story/D2f
+src/course/formula-check.ts   # changed on story/D2g
+src/course/formula-check.ts   # changed on story/D2h
+src/course/formula-check.ts   # changed on story/D2i
+src/course/formula-check.ts   # changed on story/D2j
+src/course/l10-allowlist.ts   # changed on story/D2a
+src/course/l10-allowlist.ts   # changed on story/D2b
+src/course/l10-allowlist.ts   # changed on story/D2c
+src/course/l10-allowlist.ts   # changed on story/D2d
+src/course/l10-allowlist.ts   # changed on story/D2e
+src/course/l10-allowlist.ts   # changed on story/D2f
+src/course/l10-allowlist.ts   # changed on story/D2g
+src/course/l10-allowlist.ts   # changed on story/D2h
+src/course/l10-allowlist.ts   # changed on story/D2i
+src/course/l10-allowlist.ts   # changed on story/D2j
+src/course/lesson-lint.ts   # group lint (waits on E3)
+src/course/progress-summary.test.ts   # changed on story/B1
+src/course/progress-summary.ts   # changed on story/B1
+src/db/schema.ts   # group schema (waits on E4a)
+src/learner/notebook.ts   # group notebook (waits on B2a,B3b)
+src/proxy.ts   # group auth (waits on C1b,C3)
+src/teaching/no-sums.test.ts   # changed on story/D3a
+src/teaching/no-sums.ts   # changed on story/D3a
+src/test/choices.ts   # changed on story/D3a
+src/tutor/calculator-tools.test.ts   # changed on story/D3a
+src/tutor/check-results.test.ts   # changed on story/D3a
+src/tutor/chips.ts   # changed on story/D3a
+src/tutor/choices-turn.test.ts   # changed on story/D3a
+src/tutor/choices.test.ts   # changed on story/D3a
+src/tutor/choices.ts   # changed on story/D3a
+src/tutor/coming-back.test.ts   # changed on story/D3a
+src/tutor/finish.test.ts   # changed on story/D3a
+src/tutor/instructions.ts   # changed on story/D3a
+src/tutor/instructions.ts   # group instructions (waits on D3a,D3b,E3,E4a)
+src/tutor/ladder-turn.test.ts   # changed on story/D3a
+src/tutor/lesson.test.ts   # changed on story/D3a
+src/tutor/next.test.ts   # changed on story/D3a
+src/tutor/practice-turn.test.ts   # changed on story/D3a
+src/tutor/practice.ts   # group practice (waits on E4a)
+src/tutor/ready-made-turn.test.ts   # changed on story/D3a
+src/tutor/ready-made-widgets.ts   # group recipes (waits on E3,E4a)
+src/tutor/reply-checks.test.ts   # changed on story/D3a
+src/tutor/reply-checks.ts   # changed on story/D3a
+src/tutor/reply-checks.ts   # group replychecks (waits on D3a,E4a)
+src/tutor/reply-choices.ts   # changed on story/D3a
+src/tutor/reply-gate.test.ts   # changed on story/D3a
+src/tutor/reply-gate.ts   # changed on story/D3a
+src/tutor/session-item-kinds.ts   # changed on story/D3a
+src/tutor/show-widget.test.ts   # changed on story/D3a
+src/tutor/start-again.test.ts   # changed on story/D3a
+src/tutor/step-dividers.test.ts   # changed on story/D3a
+src/tutor/tools.ts   # changed on story/D3a
+src/tutor/tools.ts   # group tools (waits on D3a,B2b,E3,E4a)
+src/tutor/topic-complete.test.ts   # changed on story/D3a
+src/tutor/turn-body.test.ts   # changed on story/D3a
+src/tutor/turn-body.ts   # changed on story/D3a
+src/tutor/turn.test.ts   # changed on story/D3a
+src/tutor/turn.ts   # changed on story/D3a
+src/tutor/turn.ts   # group turn (waits on D3a,E4a)
+src/tutor/tutor-rules-live.test.ts   # changed on story/D3a
+src/tutor/usage.ts   # changed on story/D3a
+src/tutor/widget-context.test.ts   # changed on story/D3a
+src/tutor/written-ahead.test.ts   # changed on story/D3a
+src/widgets/fixtures/parts/choice-cards.openui   # changed on story/E2b
+src/widgets/fixtures/parts/headline.openui   # changed on story/E2b
+src/widgets/fixtures/parts/myth-or-fact.openui   # changed on story/E2b
+src/widgets/fixtures/parts/who-pays-whom.openui   # changed on story/E2b
+src/widgets/frozen-schema.generated.json   # changed on story/E2b
+src/widgets/frozen.generated.json   # changed on story/E2b
+src/widgets/frozen.generated.json   # group widgetlib (waits on E2b,E3)
+src/widgets/library.tsx   # changed on story/E2b
+src/widgets/library.tsx   # group widgetlib (waits on E2b,E3)
+src/widgets/primitives/wave2/*   # group widgetlib (waits on E2b,E3)
+src/widgets/primitives/wave3/choice-cards.tsx   # changed on story/E2b
+src/widgets/primitives/wave3/headline.tsx   # changed on story/E2b
+src/widgets/primitives/wave3/index.ts   # changed on story/E2b
+src/widgets/primitives/wave3/myth-or-fact.tsx   # changed on story/E2b
+src/widgets/primitives/wave3/parts.test.tsx   # changed on story/E2b
+src/widgets/primitives/wave3/shared.tsx   # changed on story/E2b
+src/widgets/primitives/wave3/tokens.test.ts   # changed on story/E2b
+src/widgets/primitives/wave3/who-pays-whom.tsx   # changed on story/E2b
+src/widgets/recipes/define.ts   # group recipes (waits on E3,E4a)
+src/widgets/recipes/index.ts   # group recipes (waits on E3,E4a)
+src/widgets/recipes/set-tutor.ts   # group widgetlib (waits on E2b,E3)
+src/widgets/widget-fixes.test.tsx   # changed on story/E2b
+src/widgets/widgets.test.ts   # changed on story/E2b

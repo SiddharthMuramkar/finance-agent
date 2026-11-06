@@ -1,0 +1,3993 @@
+{
+  "startedAt": "2026-11-06T03:16:36.508Z",
+  "finishedAt": "2026-11-06T03:20:32.182Z",
+  "tutor": {
+    "model": "claude-opus-5-5",
+    "effort": "medium",
+    "widgetEngine": "on"
+  },
+  "graderModel": "claude-opus-5-5",
+  "fingerprint": "41202986c17127e0f921262568631c0097a025ab0a47256e5bcb3620fe5eb607",
+  "capUsd": 8,
+  "spentUsd": 1.9821710000000006,
+  "budgetStop": null,
+  "cases": [
+    {
+      "id": "T1",
+      "title": "Check open: a Widget to explain the idea",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Could a beginner follow every sentence?\" (\"as a trader would say it\" assumes untaught knowledge of how traders talk)"
+          ],
+          "reply": {
+            "text": "The Widget shows our savings rate rising from 4% to 5%. The arrow is the move, and the three lines under it describe that one move in three ways: in points, in basis points, and as a percent of the old rate. Basis points work like paise: 100 paise make ₹1, and 100 basis points make 1 point.\n\nWhich line on the Widget gives the move as a trader would say it?",
+            "raw": "The Widget shows our savings rate rising from 4% to 5%. The arrow is the move, and the three lines under it describe that one move in three ways: in points, in basis points, and as a percent of the old rate. Basis points work like paise: 100 paise make ₹1, and 100 basis points make 1 point.\n\nWhich line on the Widget gives the move as a trader would say it?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "rate_move",
+                "params": {
+                  "refs": {},
+                  "facts": {},
+                  "title": "A savings rate moves from 4% to 5%",
+                  "inputs": {
+                    "new": 5,
+                    "old": 4,
+                    "mode": "show"
+                  }
+                },
+                "labels": [
+                  "A savings rate moves from 4% to 5%",
+                  "A savings rate moves from 4% to 5%",
+                  "new",
+                  "New rate",
+                  "percent",
+                  "more",
+                  "More settings",
+                  "old",
+                  "Old rate",
+                  "percent",
+                  "Move the new rate to 4% and read the lines again",
+                  "Set the old rate to 0% and read the last line"
+                ]
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Shows the requested Widget: \"The Widget shows our savings rate rising from 4% to 5%\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, \"one move in three ways\", and one question at the end"
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "\"as a trader would say it\" assumes untaught knowledge of how traders talk"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "No repeat miss; the Learner only asked for a widget"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Uses 4% to 5%, not the quiz's numbers; no quiz answer given"
+              }
+            ]
+          },
+          "costUsd": 0.157381,
+          "note": "Turn: 6.0 s, 2 loop step(s), tools show_widget, stop end_turn, $0.1398."
+        },
+        {
+          "run": 2,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Could a beginner follow every sentence?\" (\"bond trader\" is never explained, and the ask relies on it)"
+          ],
+          "reply": {
+            "text": "I've put a Widget on screen with our savings rate going from 4% to 5%. Under the arrow, three lines describe that same move. One gives it in percentage points (the gap between the two rates), one in basis points (hundredths of a point, like 100 paise in ₹1) and one as a percent of the old rate.\n\nWhich of the three lines would a bond trader use?",
+            "raw": "I've put a Widget on screen with our savings rate going from 4% to 5%. Under the arrow, three lines describe that same move. One gives it in percentage points (the gap between the two rates), one in basis points (hundredths of a point, like 100 paise in ₹1) and one as a percent of the old rate.\n\nWhich of the three lines would a bond trader use?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "rate_move",
+                "params": {
+                  "refs": {},
+                  "facts": {},
+                  "title": "A savings rate moves from 4% to 5%",
+                  "inputs": {
+                    "new": 5,
+                    "old": 4,
+                    "mode": "show"
+                  }
+                },
+                "labels": [
+                  "A savings rate moves from 4% to 5%",
+                  "A savings rate moves from 4% to 5%",
+                  "new",
+                  "New rate",
+                  "percent",
+                  "more",
+                  "More settings",
+                  "old",
+                  "Old rate",
+                  "percent",
+                  "Move the new rate to 4% and read the lines again",
+                  "Set the old rate to 0% and read the last line"
+                ]
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "\"I've put a Widget on screen\" shows the widget the learner asked for"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one idea, the same 4%→5% move told three ways; one ask, \"Which of the three lines...\""
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "\"bond trader\" is never explained, and the ask relies on it"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "not a repeat miss, so this does not apply"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "uses the 4% to 5% example and gives no quiz answers"
+              }
+            ]
+          },
+          "costUsd": 0.15646100000000002,
+          "note": "Turn: 6.2 s, 2 loop step(s), tools show_widget, stop end_turn, $0.1395."
+        },
+        {
+          "run": 3,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Could a beginner follow every sentence?\" ('bond trader' is never explained, and the ask needs knowledge of how traders talk)"
+          ],
+          "reply": {
+            "text": "The Widget shows our savings rate going from 4% to 5%. The three lines under it say that one move three ways: in points, in basis points and as a percent of the old rate.\n\nWhich line would a bond trader read out?",
+            "raw": "The Widget shows our savings rate going from 4% to 5%. The three lines under it say that one move three ways: in points, in basis points and as a percent of the old rate.\n\nWhich line would a bond trader read out?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "rate_move",
+                "params": {
+                  "refs": {},
+                  "facts": {},
+                  "title": "A savings rate moves from 4% to 5%",
+                  "inputs": {
+                    "new": 5,
+                    "old": 4,
+                    "mode": "show"
+                  }
+                },
+                "labels": [
+                  "A savings rate moves from 4% to 5%",
+                  "A savings rate moves from 4% to 5%",
+                  "new",
+                  "New rate",
+                  "percent",
+                  "more",
+                  "More settings",
+                  "old",
+                  "Old rate",
+                  "percent",
+                  "Move the new rate to 4% and read the lines again",
+                  "Set the old rate to 0% and read the last line"
+                ]
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "gave the widget: 'The Widget shows our savings rate going from 4% to 5%'"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one idea (one move said three ways), one ask: 'Which line would a bond trader read out?'"
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'bond trader' is never explained, and the ask needs knowledge of how traders talk"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "not a repeat miss; the learner only asked for a widget"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "uses 4% to 5%, not the quiz numbers, and gives no answer"
+              }
+            ]
+          },
+          "costUsd": 0.15330000000000002,
+          "note": "Turn: 5.2 s, 2 loop step(s), tools show_widget, stop end_turn, $0.1383."
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "After 0 of 3: start from the beginning",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Okay. Smaller steps.\n\nA bank's savings rate goes from 4% to 5%. 5 minus 4 is 1 point. **Points are the new rate minus the old rate.**\n\nIs a point the gap between two rates, or a share of the old rate?",
+            "raw": "Okay. Smaller steps.\n\nA bank's savings rate goes from 4% to 5%. 5 minus 4 is 1 point. **Points are the new rate minus the old rate.**\n\nIs a point the gap between two rates, or a share of the old rate?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "\"Smaller steps.\" It restarts with the most basic idea, points."
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (points = new minus old) and one question."
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain words: \"5 minus 4 is 1 point\"; the rule is stated in bold."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss; this was the first check."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No quiz is open; nothing to withhold."
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "Only points are taught; basis points are not mentioned and percent change is only a distractor option."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "One example: \"savings rate goes from 4% to 5%\"."
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "No analogy beyond the single bank-rate example."
+              }
+            ]
+          },
+          "costUsd": 0.051133,
+          "note": "Turn: 8.1 s, 1 loop step(s), tools none, stop end_turn, $0.0298."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Okay. One idea at a time.\n\nA bank's savings rate goes from 4% to 5%. 5 minus 4 is 1. That gap is 1 percentage point, or 1 \"point\".\n\n**Points are the new rate minus the old rate.**\n\nDo you find points by subtracting or by dividing?",
+            "raw": "Okay. One idea at a time.\n\nA bank's savings rate goes from 4% to 5%. 5 minus 4 is 1. That gap is 1 percentage point, or 1 \"point\".\n\n**Points are the new rate minus the old rate.**\n\nDo you find points by subtracting or by dividing?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "restarts at basics: \"One idea at a time\" with a simple 4% to 5% example"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one idea (points = new minus old) and one question \"subtracting or by dividing?\""
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "plain sentences: \"5 minus 4 is 1. That gap is 1 percentage point\""
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "no earlier explanation of points is shown, so this is not a repeat miss"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "no quiz is open"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "only points; no basis points or percent change"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "single example: 4% to 5%"
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "no analogy used"
+              }
+            ]
+          },
+          "costUsd": 0.037255,
+          "note": "Turn: 9.4 s, 1 loop step(s), tools none, stop end_turn, $0.0220."
+        },
+        {
+          "run": 3,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Could a beginner follow every sentence?\" (\"a share of the old rate\" is never explained.)"
+          ],
+          "reply": {
+            "text": "Okay. One small idea first.\n\nA savings rate is the interest a bank pays on savings. Say it goes from 4% to 5%. 5 minus 4 is 1 percentage point. **Points are the new rate minus the old rate.**\n\nIs the move in points the gap between the two rates, or a share of the old rate?",
+            "raw": "Okay. One small idea first.\n\nA savings rate is the interest a bank pays on savings. Say it goes from 4% to 5%. 5 minus 4 is 1 percentage point. **Points are the new rate minus the old rate.**\n\nIs the move in points the gap between the two rates, or a share of the old rate?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Starts from scratch: \"One small idea first.\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (points = new minus old) and one question."
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "\"a share of the old rate\" is never explained."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss; this is the first re-teach after the quiz."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No quiz is open."
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "Teaches only \"new rate minus the old rate\"; no basis points or percent change."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "Single example: \"4% to 5% ... 1 percentage point.\""
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "Only the savings rate example; no other analogy."
+              }
+            ]
+          },
+          "costUsd": 0.031435000000000005,
+          "note": "Turn: 4.4 s, 1 loop step(s), tools none, stop end_turn, $0.0110."
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "A repeat miss on points to basis points: a new method",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "fail",
+          "reasons": [
+            "V8: Your reply asks the Learner to work out a sum (\"multiply\"). Ask what it means, what someone in the story did, or which choice is right; never for a number."
+          ],
+          "reply": {
+            "text": "Okay, one small step at a time.\n\nYou stopped at points: 0.3 is the fall in points, and basis points need one more step, times 100.\n\nSame idea, new numbers: a rate goes from 3% to 3.5%. 3.5 minus 3 is 0.5 points. Now multiply by 100, just as ₹1 is 100 paise.",
+            "raw": "Okay, one small step at a time.\n\nYou stopped at points: 0.3 is the fall in points, and basis points need one more step, times 100.\n\nSame idea, new numbers: a rate goes from 3% to 3.5%. 3.5 minus 3 is 0.5 points. Now multiply by 100, just as ₹1 is 100 paise.",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [
+              "a Quick try: \"Same move, 3% to 3.5%. How many basis points did it move? First step, done for you: the move is 0.5 points.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V8",
+              "message": "Your reply asks the Learner to work out a sum (\"multiply\"). Ask what it means, what someone in the story did, or which choice is right; never for a number."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "responds to '0.3 bp': 'You stopped at points'"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one idea, times 100, with one ask: 'Now multiply by 100'"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "plain steps: '3.5 minus 3 is 0.5 points', '₹1 is 100 paise'"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "half-done item plus paise analogy, not a restate or full worked example"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "stops at 0.5 points and never states 50"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "half-done: '0.5 points. Now multiply by 100'"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "'You stopped at points: 0.3 is the fall in points...'"
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "'a rate goes from 3% to 3.5%'"
+              },
+              {
+                "n": 9,
+                "yes": true,
+                "why": "no mention of percent change"
+              }
+            ]
+          },
+          "costUsd": 0.043511999999999995,
+          "note": "Turn: 2.5 s, 1 loop step(s), tools none, stop end_turn, $0.0236."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Okay, one small step at a time.\n\n0.3 was the fall in points. To get basis points, you still need to multiply by 100.\n\nIn the try below, a rate goes from 3% to 3.5%. The first step is done: 3.5 minus 3 is 0.5 points.\n\nThe last step, turning points into basis points, is your tap.",
+            "raw": "Okay, one small step at a time.\n\n0.3 was the fall in points. To get basis points, you still need to multiply by 100.\n\nIn the try below, a rate goes from 3% to 3.5%. The first step is done: 3.5 minus 3 is 0.5 points.\n\nThe last step, turning points into basis points, is your tap.",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [
+              "a Quick try: \"Same move, 3% to 3.5%. How many basis points did it move? First step, done for you: the move is 0.5 points.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "It responds to the '0.3 bp' answer directly: '0.3 was the fall in points.'"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, points to basis points, and one ask: 'your tap'."
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain sentences like '3.5 minus 3 is 0.5 points'."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Earlier methods were restate and worked; this is a half-done item ('The first step is done')."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "It gives only the method ('multiply by 100'), not the answer 50."
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "It uses a half-done item: 'The first step is done... The last step... is your tap.'"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "It names the slip in one sentence: '0.3 was the fall in points.'"
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "It sets one similar item with new numbers: 'a rate goes from 3% to 3.5%'."
+              },
+              {
+                "n": 9,
+                "yes": true,
+                "why": "It never mentions percent change."
+              }
+            ]
+          },
+          "costUsd": 0.033193,
+          "note": "Turn: 3.6 s, 1 loop step(s), tools none, stop end_turn, $0.0120."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Okay. One small step.\n\nYou stopped at points: basis points need one more step, times 100.\n\nA rate goes from 3% to 3.5%. The first step is done: 3.5 minus 3 is 0.5 points. Just like ₹1 is 100 paise, multiply the points by 100.\n\nTap the last step below.",
+            "raw": "Okay. One small step.\n\nYou stopped at points: basis points need one more step, times 100.\n\nA rate goes from 3% to 3.5%. The first step is done: 3.5 minus 3 is 0.5 points. Just like ₹1 is 100 paise, multiply the points by 100.\n\nTap the last step below.",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [
+              "a Quick try: \"Same move, 3% to 3.5%. How many basis points did it move? First step, done for you: the move is 0.5 points.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "responds directly to the learner's answer \"0.3 bp\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one idea, times 100; one ask, \"Tap the last step below\""
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "plain sentences with a familiar \"₹1 is 100 paise\" comparison"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "half-done item plus a paise comparison, not restate or worked"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "never states 50; says \"Tap the last step below\""
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "\"The first step is done: ... 0.5 points\" is a half-done item"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "\"You stopped at points: basis points need one more step, times 100.\""
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "new numbers: \"3% to 3.5%\""
+              },
+              {
+                "n": 9,
+                "yes": true,
+                "why": "no mention of percent change"
+              }
+            ]
+          },
+          "costUsd": 0.029785,
+          "note": "Turn: 2.3 s, 1 loop step(s), tools none, stop end_turn, $0.0087."
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Explain that more simply",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "A savings rate goes from 4% to 5%.\n5 minus 4 is 1, so the rate moved 1 percentage point (\"points\" for short).\n**Points are the new rate minus the old rate.**\nA rate goes from 6% to 8%: do points tell you the gap between 6 and 8, or the new rate?",
+            "raw": "A savings rate goes from 4% to 5%.\n5 minus 4 is 1, so the rate moved 1 percentage point (\"points\" for short).\n**Points are the new rate minus the old rate.**\nA rate goes from 6% to 8%: do points tell you the gap between 6 and 8, or the new rate?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Simpler version given: \"5 minus 4 is 1, so the rate moved 1 percentage point\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (points = new minus old) and one question about 6% to 8%"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Short plain sentences; \"points\" is defined as \"the new rate minus the old rate\""
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "No repeat miss; the learner asked for a simpler explanation"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Only restates the 1 percentage point move already taught; new check is open"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "\"A savings rate goes from 4% to 5%\" is kept"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "No analogy, just the arithmetic \"5 minus 4 is 1\""
+              }
+            ]
+          },
+          "costUsd": 0.048944,
+          "note": "Turn: 5.4 s, 1 loop step(s), tools none, stop end_turn, $0.0253."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "A savings rate goes from 4% to 5%.\n5% minus 4% is 1 percentage point: that's how far the rate moved.\n**Points are the new rate minus the old rate.**\nIf a rate goes from 6% to 8%, do points measure the gap between the two rates or the new rate itself?",
+            "raw": "A savings rate goes from 4% to 5%.\n5% minus 4% is 1 percentage point: that's how far the rate moved.\n**Points are the new rate minus the old rate.**\nIf a rate goes from 6% to 8%, do points measure the gap between the two rates or the new rate itself?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Simplified to one plain point: '5% minus 4% is 1 percentage point'"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea: 'Points are the new rate minus the old rate'; one ask about 6% to 8%"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Short sentences; 'percentage point' is shown as 5% minus 4%"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss; the learner asked for a simpler version"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Concept step only, so no Check quiz is open yet"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "'A savings rate goes from 4% to 5%' is kept"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "No analogy added; it uses only the rate numbers"
+              }
+            ]
+          },
+          "costUsd": 0.029403000000000002,
+          "note": "Turn: 4.4 s, 1 loop step(s), tools none, stop end_turn, $0.0112."
+        },
+        {
+          "run": 3,
+          "status": "fail",
+          "reasons": [
+            "V2: Your ask was 26 words. The limit is 25. Make it one short sentence."
+          ],
+          "reply": {
+            "text": "A savings rate goes from 4% to 5%.\nTo see how far it moved, take the old rate from the new one: 5 minus 4 is 1.\nThat gap is called 1 percentage point, or \"1 point\" for short.\nA rate goes from 6% to 8%: to say how far it moved, do you take the gap between them, or compare it with the 6%?",
+            "raw": "A savings rate goes from 4% to 5%.\nTo see how far it moved, take the old rate from the new one: 5 minus 4 is 1.\nThat gap is called 1 percentage point, or \"1 point\" for short.\nA rate goes from 6% to 8%: to say how far it moved, do you take the gap between them, or compare it with the 6%?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V2",
+              "message": "Your ask was 26 words. The limit is 25. Make it one short sentence."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Rewrote it simpler: \"take the old rate from the new one: 5 minus 4 is 1\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, the percentage point, and one question about 6% to 8%"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Short plain steps; \"percentage point\" is explained as the gap"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss; the learner asked for a simpler version"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "The new question's answer is not given; the 6% to 8% gap is left to the learner"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "Explains with \"A savings rate goes from 4% to 5%\""
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "No analogy is used, only the rate numbers"
+              }
+            ]
+          },
+          "costUsd": 0.029866999999999998,
+          "note": "Turn: 4.3 s, 1 loop step(s), tools none, stop end_turn, $0.0119."
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Ask me a question, let's get it over with, use widgets",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Could a beginner follow every sentence?\" (\"bond trader\" uses \"bond\", a finance term not yet taught or explained)"
+          ],
+          "reply": {
+            "text": "Okay. One quick question.\n\nThis Widget shows a savings rate going up from 2% to 2.5%.\n\nHow would a bond trader say this move in basis points?",
+            "raw": "Okay. One quick question.\n\nThis Widget shows a savings rate going up from 2% to 2.5%.\n\nHow would a bond trader say this move in basis points?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "rate_move",
+                "params": {
+                  "refs": {},
+                  "facts": {},
+                  "title": "Quick try: a rate from 2% to 2.5%",
+                  "inputs": {
+                    "new": 2.5,
+                    "old": 2,
+                    "mode": "practice"
+                  }
+                },
+                "labels": [
+                  "Quick try: a rate from 2% to 2.5%",
+                  "Quick try: a rate from 2% to 2.5%",
+                  "practice"
+                ]
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "asks \"How would a bond trader say this move\" with a Widget, as requested"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one question about the 2% to 2.5% move in basis points"
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "\"bond trader\" uses \"bond\", a finance term not yet taught or explained"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "no repeat miss; this is the first question"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "does not state the 50 basis points answer"
+              }
+            ]
+          },
+          "costUsd": 0.046544999999999996,
+          "note": "Turn: 6.0 s, 2 loop step(s), tools show_widget, stop end_turn, $0.0321."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Okay. Here's a short one.\n\nA rate goes from 6% to 6.5%.\n\nHow would a trader say that move in basis points?",
+            "raw": "Okay. Here's a short one.\n\nA rate goes from 6% to 6.5%.\n\nHow would a trader say that move in basis points?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "rate_move",
+                "params": {
+                  "refs": {},
+                  "facts": {},
+                  "title": "Your try: a rate from 6% to 6.5%",
+                  "inputs": {
+                    "new": 6.5,
+                    "old": 6,
+                    "mode": "practice"
+                  }
+                },
+                "labels": [
+                  "Your try: a rate from 6% to 6.5%",
+                  "Your try: a rate from 6% to 6.5%",
+                  "practice"
+                ]
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Asks a question with a widget: \"How would a trader say that move in basis points?\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (6% to 6.5% in basis points) and one ask"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Short sentences; basis points were taught earlier"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "No repeat miss; first question asked"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Does not state 50 basis points; widget only shows 6 and 6.5"
+              }
+            ]
+          },
+          "costUsd": 0.041856000000000004,
+          "note": "Turn: 5.5 s, 2 loop step(s), tools show_widget, stop end_turn, $0.0317."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Okay, one quick question. A rate goes from 2% to 2.5%.\nHow would a trader say that move in basis points?",
+            "raw": "Okay, one quick question. A rate goes from 2% to 2.5%.\nHow would a trader say that move in basis points?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "rate_move",
+                "params": {
+                  "refs": {},
+                  "facts": {},
+                  "title": "One move, two ways",
+                  "inputs": {
+                    "new": 2.5,
+                    "old": 2,
+                    "mode": "practice"
+                  }
+                },
+                "labels": [
+                  "One move, two ways",
+                  "One move, two ways",
+                  "practice"
+                ]
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "asks a question with the rate_move widget, as requested"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one idea, one ask: \"How would a trader say that move in basis points?\""
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "basis points were taught earlier; the sentences are short"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "not a repeat miss"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "does not state 50 basis points"
+              }
+            ]
+          },
+          "costUsd": 0.040972,
+          "note": "Turn: 5.5 s, 2 loop step(s), tools show_widget, stop end_turn, $0.0312."
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "The Learner's own rule",
+      "kind": "live",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Yes: **change times 100, then divide by the original.**\n\nWhen a savings rate goes from 6% to 8%, which rate is the original?",
+            "raw": "Yes: **change times 100, then divide by the original.**\n\nWhen a savings rate goes from 6% to 8%, which rate is the original?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": "so its basically change × 100 then divide by original",
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Learner asked for a check of the rule; reply opens \"Yes: change times 100, then divide by the original.\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (the rule) and one ask: \"which rate is the original?\""
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain words throughout, e.g. \"a savings rate goes from 6% to 8%\""
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss; the Learner's \"50\" was marked right"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No open quiz answer is revealed; the new ask is not answered in the reply"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "\"Yes: change times 100, then divide by the original\" confirms the rule, which is correct"
+              }
+            ]
+          },
+          "costUsd": 0.04511,
+          "note": "Turn: 6.1 s, 2 loop step(s), tools save_learner_rule, stop end_turn, $0.0311."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Yes: **change times 100, then divide by the original.**\n\nIf a savings rate went from 5% down to 4%, which rate would be the original?",
+            "raw": "Yes: **change times 100, then divide by the original.**\n\nIf a savings rate went from 5% down to 4%, which rate would be the original?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": "so its basically change × 100 then divide by original",
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Opens with \"Yes: change times 100, then divide by the original\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, the rule, and one ask: \"which rate would be the original?\""
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain words: \"savings rate went from 5% down to 4%\""
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "No repeat miss; the Learner's \"50\" was marked right"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "The Quick try was already answered and no answer was revealed"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "\"Yes: change times 100, then divide by the original\" is a correct rule"
+              }
+            ]
+          },
+          "costUsd": 0.044919,
+          "note": "Turn: 6.7 s, 2 loop step(s), tools save_learner_rule, stop end_turn, $0.0322."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "Yes: **change × 100, then divide by the original.**\nWhen a savings rate goes from 6% to 8%, which rate is the original?",
+            "raw": "Yes: **change × 100, then divide by the original.**\nWhen a savings rate goes from 6% to 8%, which rate is the original?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": "so its basically change × 100 then divide by original",
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "opens with \"Yes: change × 100, then divide by the original\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one rule confirmed, one question about the original rate"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "plain words: \"which rate is the original?\""
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "no repeat miss; the Quick try was marked right"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "no open quiz answer is revealed"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "\"Yes: change × 100, then divide by the original\""
+              }
+            ]
+          },
+          "costUsd": 0.029704,
+          "note": "Turn: 5.7 s, 2 loop step(s), tools save_learner_rule, stop end_turn, $0.0189."
+        }
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "Same Skill missed 3 times: offer to park",
+      "kind": "live",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "",
+            "raw": "",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": true,
+            "alsoShown": [
+              "a Quick try: \"Same move, 3% to 3.5%. How many basis points did it move? First step, done for you: the move is 0.5 points.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "costUsd": 0,
+          "note": "Code answered with no Tutor turn; graded by code only."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "",
+            "raw": "",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": true,
+            "alsoShown": [
+              "a Quick try: \"Same move, 3% to 3.5%. How many basis points did it move? First step, done for you: the move is 0.5 points.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "costUsd": 0,
+          "note": "Code answered with no Tutor turn; graded by code only."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "",
+            "raw": "",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": true,
+            "alsoShown": [
+              "a Quick try: \"Same move, 3% to 3.5%. How many basis points did it move? First step, done for you: the move is 0.5 points.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "costUsd": 0,
+          "note": "Code answered with no Tutor turn; graded by code only."
+        }
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "Lint on the current Topic",
+      "kind": "lint",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0
+        }
+      ]
+    },
+    {
+      "id": "T9",
+      "title": "Every reply in T1 to T7: plain style",
+      "kind": "aggregate",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0,
+          "note": "Replies checked: T1, T2, T3, T4, T5, T6, T7."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0,
+          "note": "Replies checked: T1, T2, T3, T4, T5, T6, T7."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0,
+          "note": "Replies checked: T1, T2, T3, T4, T5, T6, T7."
+        }
+      ]
+    },
+    {
+      "id": "T10",
+      "title": "Rupee lesson, any Widget: no dollar sign",
+      "kind": "aggregate",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0,
+          "note": "Replies checked: T1, T2, T3, T4, T5, T6, T7, T11."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0,
+          "note": "Replies checked: T1, T2, T3, T4, T5, T6, T7, T11."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0,
+          "note": "Replies checked: T1, T2, T3, T4, T5, T6, T7, T11."
+        }
+      ]
+    },
+    {
+      "id": "T11",
+      "title": "Check open: just tell me the answer",
+      "kind": "live",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "That one stays yours to answer, so here's the method on other numbers. Points are the new rate minus the old rate. A rate going from 6% to 6.5% moves 6.5 minus 6, which is 0.5 point.\n\nYour turn: a rate rises from 7% to 7.25%. Is that a move of 0.25 point or 25 points?",
+            "raw": "That one stays yours to answer, so here's the method on other numbers. Points are the new rate minus the old rate. A rate going from 6% to 6.5% moves 6.5 minus 6, which is 0.5 point.\n\nYour turn: a rate rises from 7% to 7.25%. Is that a move of 0.25 point or 25 points?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Opens by addressing the request: 'That one stays yours to answer'"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (new minus old) and one ask: '0.25 point or 25 points?'"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain wording: '6.5 minus 6, which is 0.5 point'"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss, so this does not apply"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Never states '1.15 points', '95 bp' or '0.15 points'"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "Declines and gives no answer for 4.25% to 5.4%"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "Works the method on 'from 6% to 6.5%'"
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "Friendly and encouraging: 'Your turn'"
+              }
+            ]
+          },
+          "costUsd": 0.035542000000000004,
+          "note": "Turn: 3.5 s, 1 loop step(s), tools none, stop end_turn, $0.0185."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "That one is yours to answer, so here is the method on other numbers. Points are the new rate minus the old rate. A rate that moves from 6% to 7.2% has moved 1.2 points, because 7.2 minus 6 is 1.2.\n\nYour turn: a rate goes from 2% to 2.8%. Is that a move of 0.8 points or 8 points?",
+            "raw": "That one is yours to answer, so here is the method on other numbers. Points are the new rate minus the old rate. A rate that moves from 6% to 7.2% has moved 1.2 points, because 7.2 minus 6 is 1.2.\n\nYour turn: a rate goes from 2% to 2.8%. Is that a move of 0.8 points or 8 points?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "First addresses the request: \"That one is yours to answer\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (new minus old) and one ask (0.8 or 8 points)"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain steps: \"7.2 minus 6 is 1.2\""
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "No repeat miss, so this does not apply"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Uses 6% to 7.2% and 2% to 2.8%, not quiz numbers"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "1.15 points is never stated"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "\"here is the method on other numbers\""
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "Friendly redirect: \"Your turn\""
+              }
+            ]
+          },
+          "costUsd": 0.036430000000000004,
+          "note": "Turn: 4.3 s, 1 loop step(s), tools none, stop end_turn, $0.0207."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "That one stays yours to answer, so here is the method on other numbers. Points are the new rate minus the old rate, so a move from 6% to 7.2% is 1.2 points.\n\nYour turn: a rate goes from 3% to 3.6%. Is that a move of 0.6 points or 6 points?",
+            "raw": "That one stays yours to answer, so here is the method on other numbers. Points are the new rate minus the old rate, so a move from 6% to 7.2% is 1.2 points.\n\nYour turn: a rate goes from 3% to 3.6%. Is that a move of 0.6 points or 6 points?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Addresses the request first: \"That one stays yours to answer\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, new minus old, and one ask about 3% to 3.6%"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Short, plain sentences: \"Points are the new rate minus the old rate\""
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss, so this does not apply"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Never states 1.15, 95 bp or 0.15 points"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "Uses 6% to 7.2% instead, giving 1.2, not 1.15"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "\"a move from 6% to 7.2% is 1.2 points\""
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "Polite refusal followed by help and \"Your turn\""
+              }
+            ]
+          },
+          "costUsd": 0.028655,
+          "note": "Turn: 3.5 s, 1 loop step(s), tools none, stop end_turn, $0.0117."
+        }
+      ]
+    },
+    {
+      "id": "T12",
+      "title": "Story-first opener: the Tutor opens with a scene from the Case",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "fail",
+          "reasons": [
+            "V1: Your reply was 137 words. The limit is 120. Keep one idea and one ask.",
+            "The reply was 137 words; the limit is 120.",
+            "Grader: no to \"Could a beginner follow every sentence?\" ('securities' and 'bond firm' are used without being explained to a beginner.)",
+            "Grader: no to \"Does the reply open with a scene from the Case: a role or a name, a place, a date and what was at stake?\" (It has a date and names (LTCM, Meriwether) but no place and no clear stakes in the opening.)"
+          ],
+          "reply": {
+            "text": "August 1998. Long-Term Capital Management (LTCM) is a hedge fund, a private investment pool for big investors. John Meriwether, a former vice chairman of the bond firm Salomon Brothers, founded it in February 1994.\n\nThe fund looks for two similar securities whose prices are slightly apart. It bets the gap will close. Each win is small, so the fund borrows heavily to make those small wins add up.\n\nAt the end of 1997 it gave some money back to its investors but kept its bets the same size. Now it holds about 30 dollars of debt for every dollar of its own.\n\nOn most days the fund makes small gains. A big loss is rare.\n\nFor a fund borrowing 30 to 1, which do you think matters more: the many small gains or the rare big loss?",
+            "raw": "August 1998. Long-Term Capital Management (LTCM) is a hedge fund, a private investment pool for big investors. John Meriwether, a former vice chairman of the bond firm Salomon Brothers, founded it in February 1994.\n\nThe fund looks for two similar securities whose prices are slightly apart. It bets the gap will close. Each win is small, so the fund borrows heavily to make those small wins add up.\n\nAt the end of 1997 it gave some money back to its investors but kept its bets the same size. Now it holds about 30 dollars of debt for every dollar of its own.\n\nOn most days the fund makes small gains. A big loss is rare.\n\nFor a fund borrowing 30 to 1, which do you think matters more: the many small gains or the rare big loss?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "next",
+                "says": "What happened next?",
+                "emoji": "scroll",
+                "label": "What happened next?"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "life",
+                "says": "How does this touch my life?",
+                "emoji": "money-with-wings",
+                "label": "How does this touch my life?"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V1",
+              "message": "Your reply was 137 words. The limit is 120. Keep one idea and one ask."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "The page started and the learner asked nothing, so it rightly opens the story."
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, leverage with small gains vs a rare loss; one question at the end."
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'securities' and 'bond firm' are used without being explained to a beginner."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss; this is the opening turn."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No quiz is open."
+              },
+              {
+                "n": 6,
+                "yes": false,
+                "why": "It has a date and names (LTCM, Meriwether) but no place and no clear stakes in the opening."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "It stays at 'Now it holds about 30 dollars of debt' and gives no loss, collapse or rescue."
+              }
+            ]
+          },
+          "costUsd": 0.040199,
+          "note": "Turn: 7.9 s, 1 loop step(s), tools none, stop end_turn, $0.0228."
+        },
+        {
+          "run": 2,
+          "status": "fail",
+          "reasons": [
+            "V1: Your reply was 130 words. The limit is 120. Keep one idea and one ask.",
+            "The reply was 130 words; the limit is 120.",
+            "Grader: no to \"Could a beginner follow every sentence?\" ('two similar securities, such as bonds' is never explained for a beginner)",
+            "Grader: no to \"Does the reply open with a scene from the Case: a role or a name, a place, a date and what was at stake?\" (Has a date, names and stakes, but no place is given)"
+          ],
+          "reply": {
+            "text": "1 August 1998. Long-Term Capital Management, or LTCM, is a hedge fund: a private pool of investors' money that can trade almost anything. John Meriwether started it in February 1994. He was once vice chairman of the bond firm Salomon Brothers.\n\nThe fund finds two similar securities, such as bonds, whose prices have drifted slightly apart. Then it bets the gap will close. Each trade earns only a little, so the fund borrows heavily to make those gains bigger.\n\nAt the end of 1997, it gave some money back to investors but kept all its trades. Now it owes about 30 dollars for every dollar of its own money, which is called its capital.\n\nWhich would you check more carefully: the many small, likely gains or the rare, large loss?",
+            "raw": "1 August 1998. Long-Term Capital Management, or LTCM, is a hedge fund: a private pool of investors' money that can trade almost anything. John Meriwether started it in February 1994. He was once vice chairman of the bond firm Salomon Brothers.\n\nThe fund finds two similar securities, such as bonds, whose prices have drifted slightly apart. Then it bets the gap will close. Each trade earns only a little, so the fund borrows heavily to make those gains bigger.\n\nAt the end of 1997, it gave some money back to investors but kept all its trades. Now it owes about 30 dollars for every dollar of its own money, which is called its capital.\n\nWhich would you check more carefully: the many small, likely gains or the rare, large loss?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "next",
+                "says": "What happened next?",
+                "emoji": "scroll",
+                "label": "What happened next?"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "life",
+                "says": "How does this touch my life?",
+                "emoji": "money-with-wings",
+                "label": "How does this touch my life?"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V1",
+              "message": "Your reply was 130 words. The limit is 120. Keep one idea and one ask."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Learner asked nothing; the reply starts the story step"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (small likely gains vs rare large loss), one question at the end"
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'two similar securities, such as bonds' is never explained for a beginner"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No open quiz answer is revealed"
+              },
+              {
+                "n": 6,
+                "yes": false,
+                "why": "Has a date, names and stakes, but no place is given"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "Only facts up to 1998, e.g. 'owes about 30 dollars'; no collapse or rescue"
+              }
+            ]
+          },
+          "costUsd": 0.041343000000000005,
+          "note": "Turn: 7.7 s, 1 loop step(s), tools none, stop end_turn, $0.0220."
+        },
+        {
+          "run": 3,
+          "status": "fail",
+          "reasons": [
+            "V1: Your reply was 145 words. The limit is 120. Keep one idea and one ask.",
+            "V8: Your reply asks the Learner to work out a sum (\"What is the whole set of bets worth\"). Ask what it means, what someone in the story did, or which choice is right; never for a number.",
+            "The reply was 145 words; the limit is 120.",
+            "The reply asks for a sum (\"What is the whole set of bets worth\").",
+            "Grader: no to \"Is there exactly one idea and one ask?\" (Two questions: \"What is the whole set of bets worth?\" (expected value), then \"Why do you think it borrows so much?\" (borrowing).)",
+            "Grader: no to \"Could a beginner follow every sentence?\" (\"securities\" and \"bond firm\" are used without being explained.)",
+            "Grader: no to \"Does the reply open with a scene from the Case: a role or a name, a place, a date and what was at stake?\" (Has a date, a role and a name (\"1 August 1998. An analyst... LTCM\"), but no place, and no stakes at the opening.)"
+          ],
+          "reply": {
+            "text": "1 August 1998. An analyst is studying a fund called Long-Term Capital Management, or LTCM. It is a hedge fund, a private pool of investors' money that can trade almost anything. John Meriwether founded it in February 1994. He was once vice chairman of the bond firm Salomon Brothers.\n\nLTCM looks for tiny price gaps between very similar securities and bets that the gaps will close. Each win is small, so the fund borrows heavily to make those small wins add up. It now holds about 30 dollars of debt for every dollar of its own money, called its capital.\n\nThe analyst's puzzle is this. The fund has many small gains that are likely, and one large loss that is unlikely. What is the whole set of bets worth?\n\nEach of LTCM's trades earns only a little. Why do you think it borrows so much?",
+            "raw": "1 August 1998. An analyst is studying a fund called Long-Term Capital Management, or LTCM. It is a hedge fund, a private pool of investors' money that can trade almost anything. John Meriwether founded it in February 1994. He was once vice chairman of the bond firm Salomon Brothers.\n\nLTCM looks for tiny price gaps between very similar securities and bets that the gaps will close. Each win is small, so the fund borrows heavily to make those small wins add up. It now holds about 30 dollars of debt for every dollar of its own money, called its capital.\n\nThe analyst's puzzle is this. The fund has many small gains that are likely, and one large loss that is unlikely. What is the whole set of bets worth?\n\nEach of LTCM's trades earns only a little. Why do you think it borrows so much?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "next",
+                "says": "What happened next?",
+                "emoji": "scroll",
+                "label": "What happened next?"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "life",
+                "says": "How does this touch my life?",
+                "emoji": "money-with-wings",
+                "label": "How does this touch my life?"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V1",
+              "message": "Your reply was 145 words. The limit is 120. Keep one idea and one ask."
+            },
+            {
+              "rule": "V8",
+              "message": "Your reply asks the Learner to work out a sum (\"What is the whole set of bets worth\"). Ask what it means, what someone in the story did, or which choice is right; never for a number."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "The page started, so the Learner had asked nothing."
+              },
+              {
+                "n": 2,
+                "yes": false,
+                "why": "Two questions: \"What is the whole set of bets worth?\" (expected value), then \"Why do you think it borrows so much?\" (borrowing)."
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "\"securities\" and \"bond firm\" are used without being explained."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Does not apply: this is the first turn."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No quiz is open."
+              },
+              {
+                "n": 6,
+                "yes": false,
+                "why": "Has a date, a role and a name (\"1 August 1998. An analyst... LTCM\"), but no place, and no stakes at the opening."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "Only says \"one large loss that is unlikely\" and gives no collapse or rescue."
+              }
+            ]
+          },
+          "costUsd": 0.040796,
+          "note": "Turn: 8.7 s, 1 loop step(s), tools none, stop end_turn, $0.0201."
+        }
+      ],
+      "bar": {
+        "runs": 3,
+        "passes": 2
+      }
+    },
+    {
+      "id": "T13",
+      "title": "No sum in 20 turns of the persona's lines",
+      "kind": "dialogue",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "costUsd": 0.38658499999999996,
+          "transcript": [
+            {
+              "learner": "what even is a basis point lol",
+              "reply": {
+                "text": "A basis point is a tiny slice of a rate move: one hundredth of a percentage point. A percentage point is just the gap between two rates. It works like money: 100 paise make ₹1, and 100 basis points make 1 point. Our savings rate went from 4% to 5%. 5 minus 4 is 1 point, and 1 point times 100 is 100 bp. Traders call each one a \"bip.\"\n\n**Points times 100 give basis points.**\n\nTry the Quick try below.",
+                "raw": "A basis point is a tiny slice of a rate move: one hundredth of a percentage point. A percentage point is just the gap between two rates. It works like money: 100 paise make ₹1, and 100 basis points make 1 point. Our savings rate went from 4% to 5%. 5 minus 4 is 1 point, and 1 point times 100 is 100 bp. Traders call each one a \"bip.\"\n\n**Points times 100 give basis points.**\n\nTry the Quick try below.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [
+                  "a Quick try: \"A rate goes from 3% to 3.5%. How many points did it move? First step, done for you: the new rate is 3.5% and the old rate is 3%.\""
+                ],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "why did the bank change the rate",
+              "reply": {
+                "text": "That bank is made up: 4% to 5% is just an example to practise on. Real banks do change savings rates, though. A big reason is the central bank, the public body that steers a country's interest rates. When it raises its rate, banks usually pay more on savings too. In February 1994, the US central bank, called the Federal Reserve or \"the Fed,\" is about to make that kind of decision. Its rate stands at 3%.",
+                "raw": "That bank is made up: 4% to 5% is just an example to practise on. Real banks do change savings rates, though. A big reason is the central bank, the public body that steers a country's interest rates. When it raises its rate, banks usually pay more on savings too. In February 1994, the US central bank, called the Federal Reserve or \"the Fed,\" is about to make that kind of decision. Its rate stands at 3%.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "show me",
+              "reply": {
+                "text": "This Widget shows the four steps by which a central bank raising its rate usually ends up raising what banks pay on savings.",
+                "raw": "This Widget shows the four steps by which a central bank raising its rate usually ends up raising what banks pay on savings.",
+                "fixed": [],
+                "widgets": [
+                  {
+                    "kind": "recipe",
+                    "id": "chain",
+                    "params": {
+                      "refs": {},
+                      "facts": {},
+                      "title": "How a central bank's rate reaches your savings",
+                      "inputs": {
+                        "steps": [
+                          {
+                            "body": "The central bank raises the rate it steers, the cost of short-term borrowing between banks.",
+                            "title": "The central bank moves its rate",
+                            "highlight": "neutral"
+                          },
+                          {
+                            "body": "Banks now pay more when they borrow short-term money from each other.",
+                            "title": "Money costs banks more",
+                            "highlight": "neutral"
+                          },
+                          {
+                            "body": "Savers' deposits become a cheaper way for a bank to get money, so banks compete for them.",
+                            "title": "Your deposits look better",
+                            "highlight": "neutral"
+                          },
+                          {
+                            "body": "To win deposits, banks usually raise the interest they pay on savings.",
+                            "title": "Savings rates rise",
+                            "highlight": "neutral"
+                          }
+                        ]
+                      }
+                    },
+                    "labels": [
+                      "How a central bank's rate reaches your savings",
+                      "How a central bank's rate reaches your savings",
+                      "The central bank moves its rate",
+                      "The central bank raises the rate it steers, the cost of short-term borrowing between banks.",
+                      "neutral",
+                      "Money costs banks more",
+                      "Banks now pay more when they borrow short-term money from each other.",
+                      "neutral",
+                      "Your deposits look better",
+                      "Savers' deposits become a cheaper way for a bank to get money, so banks compete for them.",
+                      "neutral",
+                      "Savings rates rise",
+                      "To win deposits, banks usually raise the interest they pay on savings.",
+                      "neutral"
+                    ]
+                  }
+                ],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "is this like my credit card?",
+              "reply": {
+                "text": "Partly. A credit card works the other way round: you pay the interest, not the bank. Some card rates follow the central bank's rate, but many barely move with it. The language is the same either way. Suppose your card's yearly rate rose by 1 percentage point. A trader would call that 100 bp, just like our savings rate going from 4% to 5%. The paise rule still works: 100 bp make 1 point, as 100 paise make ₹1.",
+                "raw": "Partly. A credit card works the other way round: you pay the interest, not the bank. Some card rates follow the central bank's rate, but many barely move with it. The language is the same either way. Suppose your card's yearly rate rose by 1 percentage point. A trader would call that 100 bp, just like our savings rate going from 4% to 5%. The paise rule still works: 100 bp make 1 point, as 100 paise make ₹1.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "just tell me the answer pls",
+              "reply": {
+                "text": "That one stays yours, but here's the method on other numbers. First, new rate minus old rate gives the points. Then points times 100 gives basis points. So 6% to 6.5% is 0.5 of a point, which is 50 bp.\n\nYour turn: a rate goes from 7% to 7.25%. Is that 25 bp or 2.5 bp?",
+                "raw": "That one stays yours, but here's the method on other numbers. First, new rate minus old rate gives the points. Then points times 100 gives basis points. So 6% to 6.5% is 0.5 of a point, which is 50 bp.\n\nYour turn: a rate goes from 7% to 7.25%. Is that 25 bp or 2.5 bp?",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "explain like I'm 5",
+              "reply": {
+                "text": "A rate goes from 4% to 5%.\n5 minus 4 is 1 point.\nEach point splits into 100 tiny bits called basis points.\nSo 1 point is 100 basis points.\n\nA rate goes from 6% to 7%. Is that 100 basis points or 10 basis points?",
+                "raw": "A rate goes from 4% to 5%.\n5 minus 4 is 1 point.\nEach point splits into 100 tiny bits called basis points.\nSo 1 point is 100 basis points.\n\nA rate goes from 6% to 7%. Is that 100 basis points or 10 basis points?",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "why does money grow faster later on",
+              "reply": {
+                "text": "It's because interest earns interest. That's called compounding. Put ₹100 in savings at 10% a year. In year 1 it earns ₹10, so you have ₹110. In year 2 the 10% is paid on ₹110, not ₹100. That year it earns ₹11, and you end with ₹121. Each year the pile is bigger, so the same rate adds more money. Over many years, that's why the growth seems to speed up later on.",
+                "raw": "It's because interest earns interest. That's called compounding. Put ₹100 in savings at 10% a year. In year 1 it earns ₹10, so you have ₹110. In year 2 the 10% is paid on ₹110, not ₹100. That year it earns ₹11, and you end with ₹121. Each year the pile is bigger, so the same rate adds more money. Over many years, that's why the growth seems to speed up later on.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "my dad keeps saying CAGR, what is that",
+              "reply": {
+                "text": "CAGR stands for compound annual growth rate. It's the one steady yearly rate that would carry a start value to an end value, with interest earning interest along the way. Take our ₹100 that became ₹121 over 2 years. Its CAGR is 10%. Real investments jump around from year to year. CAGR flattens those jumps into one even yearly rate, so two investments are easy to compare. That's why your dad uses it.",
+                "raw": "CAGR stands for compound annual growth rate. It's the one steady yearly rate that would carry a start value to an end value, with interest earning interest along the way. Take our ₹100 that became ₹121 over 2 years. Its CAGR is 10%. Real investments jump around from year to year. CAGR flattens those jumps into one even yearly rate, so two investments are easy to compare. That's why your dad uses it.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "quiz me but make it fun",
+              "reply": {
+                "text": "You're a bond trader in New York, 3 February 1994. The Fed is about to announce its decision, and your desk speaks only in basis points.\n\nTake on the Quick try below.",
+                "raw": "You're a bond trader in New York, 3 February 1994. The Fed is about to announce its decision, and your desk speaks only in basis points.\n\nTake on the Quick try below.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "wait did people lose money in 1992??",
+              "reply": {
+                "text": "Our story is set in February 1994, not 1992. I don't have figures on 1992 here, so I can't say what happened that year. In early 1994, nobody yet knows how things will turn out. What we do know is that many investors have borrowed cheaply to buy long-term bonds, which are loans to governments or companies that pay out over many years. Whether they gain or lose is what this Topic shows at its end.",
+                "raw": "Our story is set in February 1994, not 1992. I don't have figures on 1992 here, so I can't say what happened that year. In early 1994, nobody yet knows how things will turn out. What we do know is that many investors have borrowed cheaply to buy long-term bonds, which are loans to governments or companies that pay out over many years. Whether they gain or lose is what this Topic shows at its end.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "what even is a basis point lol",
+              "reply": {
+                "text": "Same question, so here it is as a picture. A basis point is one hundredth of a point, just as a paisa is one hundredth of a rupee. The Widget shows our savings rate going from 4% to 5%. That's a move of 1 point, which is 100 basis points.\n\nIf a rate moved half a point, would that be 50 bp or 5 bp?",
+                "raw": "Same question, so here it is as a picture. A basis point is one hundredth of a point, just as a paisa is one hundredth of a rupee. The Widget shows our savings rate going from 4% to 5%. That's a move of 1 point, which is 100 basis points.\n\nIf a rate moved half a point, would that be 50 bp or 5 bp?",
+                "fixed": [],
+                "widgets": [
+                  {
+                    "kind": "recipe",
+                    "id": "rate_move",
+                    "params": {
+                      "refs": {},
+                      "facts": {},
+                      "title": "Savings rate from 4% to 5%",
+                      "inputs": {
+                        "new": 5,
+                        "old": 4,
+                        "mode": "show"
+                      }
+                    },
+                    "labels": [
+                      "Savings rate from 4% to 5%",
+                      "Savings rate from 4% to 5%",
+                      "new",
+                      "New rate",
+                      "percent",
+                      "more",
+                      "More settings",
+                      "old",
+                      "Old rate",
+                      "percent",
+                      "Move the new rate to 4% and read the lines again",
+                      "Set the old rate to 0% and read the last line"
+                    ]
+                  }
+                ],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "why did the bank change the rate",
+              "reply": {
+                "text": "Same answer as before, short version. Our bank is made up, so 4% to 5% is just for practice. In real life, banks often change savings rates after the central bank changes its own rate. The chain Widget, \"How a central bank's rate reaches your savings,\" walks through it in four steps. Banks also raise rates to win more deposits from savers.",
+                "raw": "Same answer as before, short version. Our bank is made up, so 4% to 5% is just for practice. In real life, banks often change savings rates after the central bank changes its own rate. The chain Widget, \"How a central bank's rate reaches your savings,\" walks through it in four steps. Banks also raise rates to win more deposits from savers.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "show me",
+              "reply": {
+                "text": "That's the Widget \"How a central bank's rate reaches your savings,\" already open in its tab in the Widget panel, where Next steps you through how a central bank's rate change reaches the rate your bank pays on savings.",
+                "raw": "That's the Widget \"How a central bank's rate reaches your savings,\" already open in its tab in the Widget panel, where Next steps you through how a central bank's rate change reaches the rate your bank pays on savings.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "is this like my credit card?",
+              "reply": {
+                "text": "Yes, in one way. Your card has an interest rate too, but you pay it instead of earning it. Any change to it is said the same way. Suppose your card's rate went up 1 point. That's 100 bp, just like our savings rate going from 4% to 5% on the Widget.\n\nBack to the earlier question: is half a point 50 bp or 5 bp?",
+                "raw": "Yes, in one way. Your card has an interest rate too, but you pay it instead of earning it. Any change to it is said the same way. Suppose your card's rate went up 1 point. That's 100 bp, just like our savings rate going from 4% to 5% on the Widget.\n\nBack to the earlier question: is half a point 50 bp or 5 bp?",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "just tell me the answer pls",
+              "reply": {
+                "text": "That one's still yours, so here's the method with paise. 100 paise make ₹1, so ₹0.30 is 30 paise. Basis points work the same way: 0.3 of a point times 100 is 30 bp.\n\nYour turn: a rate rises 0.8 of a point. Is that 80 bp or 8 bp?",
+                "raw": "That one's still yours, so here's the method with paise. 100 paise make ₹1, so ₹0.30 is 30 paise. Basis points work the same way: 0.3 of a point times 100 is 30 bp.\n\nYour turn: a rate rises 0.8 of a point. Is that 80 bp or 8 bp?",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "explain like I'm 5",
+              "reply": {
+                "text": "A rate goes from 4% to 5%.\n5 minus 4 is 1 point.\n1 point is 100 basis points.\nTwo points would be twice that.\n\nA rate goes from 4% to 6%. Is that 200 basis points or 20?",
+                "raw": "A rate goes from 4% to 5%.\n5 minus 4 is 1 point.\n1 point is 100 basis points.\nTwo points would be twice that.\n\nA rate goes from 4% to 6%. Is that 200 basis points or 20?",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "why does money grow faster later on",
+              "reply": {
+                "text": "Same reason as before: interest earns interest. Your ₹100 at 10% earns ₹10 in year 1. In year 2, the 10% is paid on ₹110, so it earns ₹11. Every year the pile is bigger. The same rate on a bigger pile adds more money. That's why growth looks slow at first and fast later on. This idea is called compounding.",
+                "raw": "Same reason as before: interest earns interest. Your ₹100 at 10% earns ₹10 in year 1. In year 2, the 10% is paid on ₹110, so it earns ₹11. Every year the pile is bigger. The same rate on a bigger pile adds more money. That's why growth looks slow at first and fast later on. This idea is called compounding.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "my dad keeps saying CAGR, what is that",
+              "reply": {
+                "text": "CAGR means compound annual growth rate. It's the one even yearly rate that turns a starting amount into an ending amount, with interest earning interest. Our ₹100 grew to ₹121 over 2 years, so its CAGR is 10%. Real investments go up and down unevenly. CAGR smooths that into one steady yearly number, which makes two investments easy to compare.",
+                "raw": "CAGR means compound annual growth rate. It's the one even yearly rate that turns a starting amount into an ending amount, with interest earning interest. Our ₹100 grew to ₹121 over 2 years, so its CAGR is 10%. Real investments go up and down unevenly. CAGR smooths that into one steady yearly number, which makes two investments easy to compare.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "quiz me but make it fun",
+              "reply": {
+                "text": "New role: you're the headline writer at a newspaper on 3 February 1994. Your editor wants rate moves said exactly right, and one slip means a correction in tomorrow's paper.\n\nYour first story is the Quick try below.",
+                "raw": "New role: you're the headline writer at a newspaper on 3 February 1994. Your editor wants rate moves said exactly right, and one slip means a correction in tomorrow's paper.\n\nYour first story is the Quick try below.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            },
+            {
+              "learner": "wait did people lose money in 1992??",
+              "reply": {
+                "text": "Our story is February 1994, not 1992, and I don't have figures on 1992 here. As of 3 February 1994, nobody knows yet whether investors will gain or lose. They've borrowed cheaply to hold long-term bonds, and the Fed is about to announce a decision. How that turns out is saved for the end of this Topic. No spoilers yet.",
+                "raw": "Our story is February 1994, not 1992, and I don't have figures on 1992 here. As of 3 February 1994, nobody knows yet whether investors will gain or lose. They've borrowed cheaply to hold long-term bonds, and the Fed is about to announce a decision. How that turns out is saved for the end of this Topic. No spoilers yet.",
+                "fixed": [],
+                "widgets": [],
+                "savedRule": null,
+                "parkOffer": false,
+                "alsoShown": [],
+                "choices": [
+                  {
+                    "id": "quiz",
+                    "says": "Quiz me.",
+                    "emoji": "direct-hit",
+                    "label": "Quiz me"
+                  },
+                  {
+                    "id": "show",
+                    "says": "Show me.",
+                    "emoji": "eyes",
+                    "label": "Show me"
+                  },
+                  {
+                    "id": "word",
+                    "says": "What does that word mean?",
+                    "emoji": "thinking-face",
+                    "label": "What does that word mean?"
+                  }
+                ]
+              }
+            }
+          ],
+          "note": "20 of 20 turns ran, $0.3866."
+        }
+      ],
+      "bar": {
+        "runs": 1,
+        "passes": 1
+      }
+    },
+    {
+      "id": "T14",
+      "title": "Choices under the reply, and no menu in its text",
+      "kind": "live",
+      "status": "pass",
+      "runs": [
+        {
+          "run": 1,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "It's like interest left in a fixed deposit, an account where the bank holds your money for a set time. That interest starts earning interest of its own. This is **compounding**: each year's gain is added to the total, and the next year grows on that new total.\n\nIn year three, is the 10% worked out on the starting ₹1,000 or on the ₹1,210?",
+            "raw": "It's like interest left in a fixed deposit, an account where the bank holds your money for a set time. That interest starts earning interest of its own. This is **compounding**: each year's gain is added to the total, and the next year grows on that new total.\n\nIn year three, is the 10% worked out on the starting ₹1,000 or on the ₹1,210?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "formula",
+                "params": {
+                  "refs": {
+                    "sourced": {}
+                  },
+                  "facts": {},
+                  "title": "What ₹1,000 grows to at 10% a year",
+                  "inputs": {
+                    "held": {
+                      "amount": 1000,
+                      "ratePercent": 10
+                    },
+                    "slider": {
+                      "max": 30,
+                      "min": 1,
+                      "step": 1,
+                      "label": "Years it grows",
+                      "start": 3,
+                      "symbol": "years"
+                    },
+                    "formula": "compound-growth"
+                  }
+                },
+                "labels": [
+                  "What ₹1,000 grows to at 10% a year",
+                  "What ₹1,000 grows to at 10% a year",
+                  "years",
+                  "Years it grows",
+                  "years",
+                  "compound-growth",
+                  "Move years it grows to 30 years and watch what changes"
+                ],
+                "byCode": true
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "\"ok and?\" asks to go on; reply continues with \"This is **compounding**\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, compounding; one ask, the year-three question"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "\"fixed deposit\" explained inline; ₹1,210 likely came from the prior step"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Asks \"₹1,000 or ₹1,210?\" without stating the answer"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "No follow-up menu; the either/or is the check question"
+              }
+            ]
+          },
+          "costUsd": 0.03587,
+          "note": "Turn: 4.0 s, 1 loop step(s), tools none, stop end_turn, $0.0169."
+        },
+        {
+          "run": 2,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "The key point is that the 10% is taken from the new total each year, not from the ₹1,000 you started with. It works like interest left in a fixed deposit, which then earns interest of its own.\n\nIn year three, is the ₹121 gain 10% of ₹1,000 or 10% of ₹1,210?",
+            "raw": "The key point is that the 10% is taken from the new total each year, not from the ₹1,000 you started with. It works like interest left in a fixed deposit, which then earns interest of its own.\n\nIn year three, is the ₹121 gain 10% of ₹1,000 or 10% of ₹1,210?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "formula",
+                "params": {
+                  "refs": {
+                    "sourced": {}
+                  },
+                  "facts": {},
+                  "title": "What ₹1,000 grows to at 10% a year",
+                  "inputs": {
+                    "held": {
+                      "amount": 1000,
+                      "ratePercent": 10
+                    },
+                    "slider": {
+                      "max": 30,
+                      "min": 1,
+                      "step": 1,
+                      "label": "Years it grows",
+                      "start": 3,
+                      "symbol": "years"
+                    },
+                    "formula": "compound-growth"
+                  }
+                },
+                "labels": [
+                  "What ₹1,000 grows to at 10% a year",
+                  "What ₹1,000 grows to at 10% a year",
+                  "years",
+                  "Years it grows",
+                  "years",
+                  "compound-growth",
+                  "Move years it grows to 30 years and watch what changes"
+                ],
+                "byCode": true
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "\"ok and?\" asks to continue; reply gives the next point"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (10% of the new total) and one question about year three"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain words; \"fixed deposit\" is a familiar everyday analogy"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss; the learner just said \"ok and?\""
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Concept step; no quiz answer is given away"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "Only a single check question, no list of follow-ups"
+              }
+            ]
+          },
+          "costUsd": 0.031322,
+          "note": "Turn: 3.4 s, 1 loop step(s), tools none, stop end_turn, $0.0158."
+        },
+        {
+          "run": 3,
+          "status": "pass",
+          "reasons": [],
+          "reply": {
+            "text": "The point: the 10% never changes, but the gain grows each year because it lands on a bigger total. It works like interest left in a fixed deposit (money you lock in a bank for a set time), which then earns interest of its own.\n\nIn year three, is the 10% earned on the starting ₹1,000 or on the ₹1,210 total?",
+            "raw": "The point: the 10% never changes, but the gain grows each year because it lands on a bigger total. It works like interest left in a fixed deposit (money you lock in a bank for a set time), which then earns interest of its own.\n\nIn year three, is the 10% earned on the starting ₹1,000 or on the ₹1,210 total?",
+            "fixed": [],
+            "widgets": [
+              {
+                "kind": "recipe",
+                "id": "formula",
+                "params": {
+                  "refs": {
+                    "sourced": {}
+                  },
+                  "facts": {},
+                  "title": "What ₹1,000 grows to at 10% a year",
+                  "inputs": {
+                    "held": {
+                      "amount": 1000,
+                      "ratePercent": 10
+                    },
+                    "slider": {
+                      "max": 30,
+                      "min": 1,
+                      "step": 1,
+                      "label": "Years it grows",
+                      "start": 3,
+                      "symbol": "years"
+                    },
+                    "formula": "compound-growth"
+                  }
+                },
+                "labels": [
+                  "What ₹1,000 grows to at 10% a year",
+                  "What ₹1,000 grows to at 10% a year",
+                  "years",
+                  "Years it grows",
+                  "years",
+                  "compound-growth",
+                  "Move years it grows to 30 years and watch what changes"
+                ],
+                "byCode": true
+              }
+            ],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "deeper",
+                "says": "Go deeper.",
+                "emoji": "magnifying-glass-tilted-left",
+                "label": "Go deeper"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "\"ok and?\" is answered with \"The point: ... the gain grows each year\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (gain lands on a bigger total), one question about year three"
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain wording; \"fixed deposit (money you lock in a bank...)\" is explained"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No quiz open; concept step only"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "Single question, no list of follow-ups"
+              }
+            ]
+          },
+          "costUsd": 0.023887,
+          "note": "Turn: 4.4 s, 1 loop step(s), tools none, stop end_turn, $0.0111."
+        }
+      ],
+      "bar": {
+        "runs": 3,
+        "passes": 2
+      }
+    },
+    {
+      "id": "T15",
+      "title": "A warm voice for a Learner who says they are bad at maths",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Could a beginner follow every sentence?\" ('with the same two steps', but the Quick try asks only for points, which could confuse a beginner)",
+            "Grader: no to \"Is the reply warm and a little playful?\" ('That's okay.' is kind but flat, with no playful touch to match the learner's 'lol')"
+          ],
+          "reply": {
+            "text": "That's okay. The steps here are small.\n\nA rate goes from 6% to 7%. 7 minus 6 is 1 point. Then 1 point times 100 is 100 bp, just as 100 paise make ₹1.\n\nTry the Quick try below with the same two steps.",
+            "raw": "That's okay. The steps here are small.\n\nA rate goes from 6% to 7%. 7 minus 6 is 1 point. Then 1 point times 100 is 100 bp, just as 100 paise make ₹1.\n\nTry the Quick try below with the same two steps.",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [
+              "a Quick try: \"A rate goes from 3% to 3.5%. How many points did it move? First step, done for you: the new rate is 3.5% and the old rate is 3%.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "responds to 'bad at maths' with 'That's okay. The steps here are small.'"
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "one idea (6% to 7% is 1 point, then 100 bp) and one ask, the Quick try"
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'with the same two steps', but the Quick try asks only for points, which could confuse a beginner"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "not a repeat miss"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "uses 6% to 7%, so the 0.5 answer is not revealed"
+              },
+              {
+                "n": 6,
+                "yes": false,
+                "why": "'That's okay.' is kind but flat, with no playful touch to match the learner's 'lol'"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "no hype words"
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "no praise given"
+              },
+              {
+                "n": 9,
+                "yes": true,
+                "why": "reassurance is one short line, not a pep talk"
+              }
+            ]
+          },
+          "costUsd": 0.040184,
+          "note": "Turn: 4.9 s, 1 loop step(s), tools none, stop end_turn, $0.0173."
+        },
+        {
+          "run": 2,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Is there exactly one idea and one ask?\" (Adds a second idea, points to bp ('times 100 is 100 bp'), beyond the points-only Quick try.)",
+            "Grader: no to \"Could a beginner follow every sentence?\" ('bp' is never spelled out, and 'times 100' contradicts 'beyond one subtraction.')",
+            "Grader: no to \"Is the reply warm and a little playful?\" (Brisk and factual, with no warm acknowledgment of 'so bad at maths lol' and nothing playful.)"
+          ],
+          "reply": {
+            "text": "No maths needed beyond one subtraction.\n\nA rate goes from 6% to 7%. 7 minus 6 is 1 point. 1 point times 100 is 100 bp, just as 100 paise make ₹1.\n\nTry the Quick try below the same way.",
+            "raw": "No maths needed beyond one subtraction.\n\nA rate goes from 6% to 7%. 7 minus 6 is 1 point. 1 point times 100 is 100 bp, just as 100 paise make ₹1.\n\nTry the Quick try below the same way.",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [
+              "a Quick try: \"A rate goes from 3% to 3.5%. How many points did it move? First step, done for you: the new rate is 3.5% and the old rate is 3%.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Opens by answering the worry: 'No maths needed beyond one subtraction.'"
+              },
+              {
+                "n": 2,
+                "yes": false,
+                "why": "Adds a second idea, points to bp ('times 100 is 100 bp'), beyond the points-only Quick try."
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'bp' is never spelled out, and 'times 100' contradicts 'beyond one subtraction.'"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "Does not give the 3% to 3.5% answer."
+              },
+              {
+                "n": 6,
+                "yes": false,
+                "why": "Brisk and factual, with no warm acknowledgment of 'so bad at maths lol' and nothing playful."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "No hype words."
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "No praise given."
+              },
+              {
+                "n": 9,
+                "yes": true,
+                "why": "Only one short reassuring line, no pep talk."
+              }
+            ]
+          },
+          "costUsd": 0.032931,
+          "note": "Turn: 4.4 s, 1 loop step(s), tools none, stop end_turn, $0.0122."
+        },
+        {
+          "run": 3,
+          "status": "fail",
+          "reasons": [
+            "Grader: no to \"Is the reply warm and a little playful?\" (\"That's fine.\" is flat and brief, with no playfulness.)"
+          ],
+          "reply": {
+            "text": "That's fine. No hard maths here, only one subtraction.\n\nA savings rate goes from 6% to 8%. 8 minus 6 is 2 points. 2 points times 100 is 200 bp, the same way 100 paise make ₹1.\n\nHave a go at the Quick try below.",
+            "raw": "That's fine. No hard maths here, only one subtraction.\n\nA savings rate goes from 6% to 8%. 8 minus 6 is 2 points. 2 points times 100 is 200 bp, the same way 100 paise make ₹1.\n\nHave a go at the Quick try below.",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [
+              "a Quick try: \"A rate goes from 3% to 3.5%. How many points did it move? First step, done for you: the new rate is 3.5% and the old rate is 3%.\""
+            ],
+            "choices": [
+              {
+                "id": "quiz",
+                "says": "Quiz me.",
+                "emoji": "direct-hit",
+                "label": "Quiz me"
+              },
+              {
+                "id": "show",
+                "says": "Show me.",
+                "emoji": "eyes",
+                "label": "Show me"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              }
+            ]
+          },
+          "problems": [],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": true,
+                "why": "Opens on the maths worry: \"That's fine. No hard maths here.\""
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (points, then bp) and one ask: \"Have a go at the Quick try\"."
+              },
+              {
+                "n": 3,
+                "yes": true,
+                "why": "Plain steps: \"8 minus 6 is 2 points\", with a paise analogy."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss, so this does not apply."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "It does not give the 3% to 3.5% answer."
+              },
+              {
+                "n": 6,
+                "yes": false,
+                "why": "\"That's fine.\" is flat and brief, with no playfulness."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "No hype words appear."
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "There is no praise in the reply."
+              },
+              {
+                "n": 9,
+                "yes": true,
+                "why": "Reassurance is one short line, not a pep talk."
+              }
+            ]
+          },
+          "costUsd": 0.033743,
+          "note": "Turn: 4.5 s, 1 loop step(s), tools none, stop end_turn, $0.0126."
+        }
+      ],
+      "bar": {
+        "runs": 3,
+        "passes": 2
+      }
+    },
+    {
+      "id": "T16",
+      "title": "Lingo on first use: what a basis point is, in everyday words",
+      "kind": "live",
+      "status": "fail",
+      "runs": [
+        {
+          "run": 1,
+          "status": "fail",
+          "reasons": [
+            "V1: Your reply was 126 words. The limit is 120. Keep one idea and one ask.",
+            "Grader: no to \"Did it do what the learner asked first?\" (Opens with the 1994 Fed story; the basis point answer only comes in paragraph two.)",
+            "Grader: no to \"Could a beginner follow every sentence?\" ('borrowed cheaply to buy long-term bonds' uses 'bonds' without explaining it.)",
+            "Grader: no to \"Does it ask the Learner for no conversion between points and basis points?\" (It asks whether 4% to 5% is '1 bp or 100 bp', which is a point-to-bp conversion.)"
+          ],
+          "reply": {
+            "text": "February 1994, Washington. The Federal Reserve, the US central bank, is about to announce its decision on the federal funds rate. That's the overnight interest rate the Fed steers, and today it stands at 3%. Many investors have borrowed cheaply to buy long-term bonds, so any move in that rate matters to them.\n\nSo what's a basis point? Start with a percentage point, which is the gap between two rates. Say a savings rate goes from 4% to 5%. 5% minus 4% is 1 point. **A basis point is one hundredth of a point, so 1 point is 100 basis points.** Traders write it as \"bp\".\n\nIf a savings rate rose from 4% to 5%, would a trader call that move 1 bp or 100 bp?",
+            "raw": "February 1994, Washington. The Federal Reserve, the US central bank, is about to announce its decision on the federal funds rate. That's the overnight interest rate the Fed steers, and today it stands at 3%. Many investors have borrowed cheaply to buy long-term bonds, so any move in that rate matters to them.\n\nSo what's a basis point? Start with a percentage point, which is the gap between two rates. Say a savings rate goes from 4% to 5%. 5% minus 4% is 1 point. **A basis point is one hundredth of a point, so 1 point is 100 basis points.** Traders write it as \"bp\".\n\nIf a savings rate rose from 4% to 5%, would a trader call that move 1 bp or 100 bp?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "next",
+                "says": "What happened next?",
+                "emoji": "scroll",
+                "label": "What happened next?"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "life",
+                "says": "How does this touch my life?",
+                "emoji": "money-with-wings",
+                "label": "How does this touch my life?"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V1",
+              "message": "Your reply was 126 words. The limit is 120. Keep one idea and one ask."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": false,
+                "why": "Opens with the 1994 Fed story; the basis point answer only comes in paragraph two."
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea (basis point, defined via point) and one question at the end."
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'borrowed cheaply to buy long-term bonds' uses 'bonds' without explaining it."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No open quiz, and the reply does not give away its own question's answer."
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "'A basis point is one hundredth of a point' is in the same sentence as the term."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "'Traders write it as \"bp\".'"
+              },
+              {
+                "n": 8,
+                "yes": false,
+                "why": "It asks whether 4% to 5% is '1 bp or 100 bp', which is a point-to-bp conversion."
+              }
+            ]
+          },
+          "costUsd": 0.046432,
+          "note": "Turn: 9.3 s, 1 loop step(s), tools none, stop end_turn, $0.0254."
+        },
+        {
+          "run": 2,
+          "status": "fail",
+          "reasons": [
+            "V1: Your reply was 133 words. The limit is 120. Keep one idea and one ask.",
+            "Grader: no to \"Did it do what the learner asked first?\" (opens with the 1994 Fed story before answering 'what even is a basis point')",
+            "Grader: no to \"Is there exactly one idea and one ask?\" (adds federal funds rate, bond borrowing, percentage point and basis point)",
+            "Grader: no to \"Could a beginner follow every sentence?\" ('long-term bonds' and 'bond trader' are never explained)"
+          ],
+          "reply": {
+            "text": "February 3, 1994, Washington. The Federal Reserve, America's central bank, steers one key rate: the federal funds rate, the interest banks charge each other on overnight loans. Today it stands at 3%. Many investors have borrowed cheaply to buy long-term bonds. Any move in that rate will reach them quickly.\n\nNow your question. Suppose a savings rate (the interest a bank pays on savings) goes from 4% to 5%. 5% minus 4% is 1 percentage point. **A basis point is one hundredth of a percentage point, so 1 point is 100 basis points.** Traders write that as 100 bp. Basis points let them name tiny moves in whole numbers.\n\nIf the Fed nudges its 3% rate, who would most likely describe the move in basis points: a bond trader or a headline writer?",
+            "raw": "February 3, 1994, Washington. The Federal Reserve, America's central bank, steers one key rate: the federal funds rate, the interest banks charge each other on overnight loans. Today it stands at 3%. Many investors have borrowed cheaply to buy long-term bonds. Any move in that rate will reach them quickly.\n\nNow your question. Suppose a savings rate (the interest a bank pays on savings) goes from 4% to 5%. 5% minus 4% is 1 percentage point. **A basis point is one hundredth of a percentage point, so 1 point is 100 basis points.** Traders write that as 100 bp. Basis points let them name tiny moves in whole numbers.\n\nIf the Fed nudges its 3% rate, who would most likely describe the move in basis points: a bond trader or a headline writer?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "next",
+                "says": "What happened next?",
+                "emoji": "scroll",
+                "label": "What happened next?"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "life",
+                "says": "How does this touch my life?",
+                "emoji": "money-with-wings",
+                "label": "How does this touch my life?"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V1",
+              "message": "Your reply was 133 words. The limit is 120. Keep one idea and one ask."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": false,
+                "why": "opens with the 1994 Fed story before answering 'what even is a basis point'"
+              },
+              {
+                "n": 2,
+                "yes": false,
+                "why": "adds federal funds rate, bond borrowing, percentage point and basis point"
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'long-term bonds' and 'bond trader' are never explained"
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "not a repeat miss"
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "no quiz answer revealed"
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "'A basis point is one hundredth of a percentage point'"
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "'Traders write that as 100 bp.'"
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "asks 'a bond trader or a headline writer?', not a conversion"
+              }
+            ]
+          },
+          "costUsd": 0.042284,
+          "note": "Turn: 8.2 s, 1 loop step(s), tools none, stop end_turn, $0.0238."
+        },
+        {
+          "run": 3,
+          "status": "fail",
+          "reasons": [
+            "V1: Your reply was 133 words. The limit is 120. Keep one idea and one ask.",
+            "Grader: no to \"Did it do what the learner asked first?\" (It opens with the 3 February 1994 Fed story before answering 'what even is a basis point'.)",
+            "Grader: no to \"Could a beginner follow every sentence?\" ('borrowed cheaply to buy long-term bonds' uses 'bonds' without explaining it.)"
+          ],
+          "reply": {
+            "text": "3 February 1994, Washington. The interest rate the US Federal Reserve steers stands at 3%. Many investors have borrowed cheaply to buy long-term bonds. The Fed's committee is about to decide, and nobody knows what it will do.\n\nIf the Fed moves the rate, traders will say the move in basis points. Here's what that means.\n\nSay a savings rate, the interest a bank pays on savings, goes from 4% to 5%. 5% minus 4% is 1 percentage point, the gap between the two rates. **A basis point is one hundredth of a percentage point, so 1 point is 100 basis points.** Traders write it \"100 bp\" and say \"bips.\"\n\nIf the Fed nudged the rate by just a few basis points, would that be less than a full percentage point, or more?",
+            "raw": "3 February 1994, Washington. The interest rate the US Federal Reserve steers stands at 3%. Many investors have borrowed cheaply to buy long-term bonds. The Fed's committee is about to decide, and nobody knows what it will do.\n\nIf the Fed moves the rate, traders will say the move in basis points. Here's what that means.\n\nSay a savings rate, the interest a bank pays on savings, goes from 4% to 5%. 5% minus 4% is 1 percentage point, the gap between the two rates. **A basis point is one hundredth of a percentage point, so 1 point is 100 basis points.** Traders write it \"100 bp\" and say \"bips.\"\n\nIf the Fed nudged the rate by just a few basis points, would that be less than a full percentage point, or more?",
+            "fixed": [],
+            "widgets": [],
+            "savedRule": null,
+            "parkOffer": false,
+            "alsoShown": [],
+            "choices": [
+              {
+                "id": "next",
+                "says": "What happened next?",
+                "emoji": "scroll",
+                "label": "What happened next?"
+              },
+              {
+                "id": "word",
+                "says": "What does that word mean?",
+                "emoji": "thinking-face",
+                "label": "What does that word mean?"
+              },
+              {
+                "id": "life",
+                "says": "How does this touch my life?",
+                "emoji": "money-with-wings",
+                "label": "How does this touch my life?"
+              }
+            ]
+          },
+          "problems": [
+            {
+              "rule": "V1",
+              "message": "Your reply was 133 words. The limit is 120. Keep one idea and one ask."
+            }
+          ],
+          "grade": {
+            "ok": true,
+            "answers": [
+              {
+                "n": 1,
+                "yes": false,
+                "why": "It opens with the 3 February 1994 Fed story before answering 'what even is a basis point'."
+              },
+              {
+                "n": 2,
+                "yes": true,
+                "why": "One idea, basis points, and one question: 'less than a full percentage point, or more?'"
+              },
+              {
+                "n": 3,
+                "yes": false,
+                "why": "'borrowed cheaply to buy long-term bonds' uses 'bonds' without explaining it."
+              },
+              {
+                "n": 4,
+                "yes": true,
+                "why": "Not a repeat miss, so this does not apply."
+              },
+              {
+                "n": 5,
+                "yes": true,
+                "why": "No quiz is open, so this does not apply."
+              },
+              {
+                "n": 6,
+                "yes": true,
+                "why": "'A basis point is one hundredth of a percentage point' gives the meaning in the same sentence."
+              },
+              {
+                "n": 7,
+                "yes": true,
+                "why": "'Traders write it \"100 bp\" and say \"bips.\"'"
+              },
+              {
+                "n": 8,
+                "yes": true,
+                "why": "The ask is a less-or-more comparison, not a conversion."
+              }
+            ]
+          },
+          "costUsd": 0.035193,
+          "note": "Turn: 7.3 s, 1 loop step(s), tools none, stop end_turn, $0.0160."
+        }
+      ],
+      "bar": {
+        "runs": 3,
+        "passes": 2
+      }
+    }
+  ]
+}
