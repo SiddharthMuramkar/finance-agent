@@ -75,7 +75,10 @@ const pause = () => act(async () => void (await new Promise((r) => setTimeout(r,
 const enabledPrimaries = () =>
   [...host.querySelectorAll<HTMLButtonElement>("button.btn-primary")].filter((b) => !b.disabled).map((b) => b.textContent?.trim());
 
-async function openStoryStep({ quiz = null, review = noReview, scene = true }: { quiz?: OpenQuiz | null; review?: ReviewState; scene?: boolean } = {}) {
+type View = { quiz?: OpenQuiz | null; review?: ReviewState; scene?: boolean; next?: typeof NEXT | null };
+
+/** Draws (or redraws, keeping state, as a router refresh does) the /study conversation. */
+async function openStoryStep({ quiz = null, review = noReview, scene = true, next = NEXT }: View = {}) {
   await act(async () => {
     root.render(
       <Conversation
@@ -83,7 +86,7 @@ async function openStoryStep({ quiz = null, review = noReview, scene = true }: {
         quiz={quiz}
         pending={null}
         review={review}
-        next={NEXT}
+        next={next}
         place={{ stage: "foundation", title: "Income statement" }}
       />,
     );
@@ -132,15 +135,22 @@ describe("one primary on /study (Appendix B.7, #478)", () => {
     expect(enabledPrimaries()).toEqual(["Next: Concept →"]);
   });
 
-  it("with a Check's answers picked, Submit is the one enabled primary; once it is passed, the Next chip is (Done steps back)", async () => {
-    await openStoryStep({ quiz: QUIZ, scene: false });
+  it("with a Check open (no Next offered while it is open), Submit is the one primary; once passed and Next arrives, the Next chip is (Done steps back)", async () => {
+    // While a Check is open the Course Navigator offers no Next (conversation.tsx `next`: null while a Check is open).
+    await openStoryStep({ quiz: QUIZ, scene: false, next: null });
+    expect(host.querySelector('[data-testid="next-chip"]')).toBeNull();
     await click(host.querySelector<HTMLInputElement>('[data-testid="quiz"] input[type="radio"]')!);
     expect(enabledPrimaries()).toEqual(["Submit answers"]);
-    expect(nextChipIsSecondary()).toBe(true);
 
     await click(button("Submit answers"));
     await pause();
-    expect(button("Done"), "the passed Check's Done still shows").toBeDefined();
+    expect(button("Done"), "the passed Check's Done shows").toBeDefined();
+    expect(enabledPrimaries()).toEqual([]);
+
+    // The pass refreshes the page: the Check closes and the Navigator now offers Next, while the marked result is held.
+    await openStoryStep({ quiz: null, scene: false, next: NEXT });
+    expect(button("Done"), "the marked result is still held after the refresh").toBeDefined();
+    expect(host.querySelector('[data-testid="next-chip"]')).not.toBeNull();
     expect(enabledPrimaries()).toEqual(["Next: Concept →"]);
   });
 
