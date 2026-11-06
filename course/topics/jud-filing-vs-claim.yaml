@@ -47,7 +47,7 @@ cases:
       judges these statements, not the post's valuation or its view of the future. The S-1's figures
       are in the Case Data and its wording is in the Library (search with the source filter "Anthropic
       PBC, Form S-1" and words from the passage). The Learner reads the post in the Library, goes to
-      the filing for each statement, recomputes it, and says what kind of finding it is: it ties out,
+      the filing for each statement, sets it beside the line it rests on, and says what kind of finding it is: it ties out,
       or it is a mislabel, a period or unit mismatch, or more than the text says.
     reveal: >
       Checked against the S-1 on 2 November 2026. Three statements tie out. Operating income was a
@@ -99,7 +99,7 @@ cases:
       judge, and the Tutor works only from what is pasted. The S-1's figures are in the Case Data and
       its wording is in the Library (search with the source filter "Anthropic PBC, Form S-1" and
       words from the passage). The Learner finds the S-1 sentence each statement rests on, sets the
-      writer's version beside it, recomputes where there is a sum, and says what kind of finding it
+      writer's version beside it, notes where a figure adds lines together, and says what kind of finding it
       is: it ties out, or it is a mislabel, a period or unit mismatch, or more than the text says.
     reveal: >
       Checked against the S-1 on 2 November 2026. The sum is right and its label is wrong. Revenue
@@ -153,23 +153,17 @@ youllLearn:
 questions:
   - id: jfc-q-net-vs-operating
     prompt: >
-      Brindle Systems reports, for six months (USD millions): revenue 900; total operating expenses
-      1,000; interest income 30; change in fair value of convertible notes (500); other expense, net
-      (70); income tax 5. A writer says Brindle had "an operating loss of 645". What is the right
-      reading?
+      Brindle Systems' filing lists revenue, then operating expenses, then interest income, a large change in the fair value of convertible notes, other expense and tax, ending in a net loss. A writer calls that final net loss "an operating loss". What is the right reading?
     choices:
-      - { id: a, text: "Correct: 645 is the operating loss" }
-      - { id: b, text: "645 is the net loss, after interest, the fair-value change, other expense and tax; the operating loss is 100" }
-      - { id: c, text: "645 is the net loss before the fair-value change; the operating loss is 100" }
-      - { id: d, text: "The operating loss is 500, the fair-value change" }
-    answer: b
+      - { id: a, text: "A mislabel: the figure is real but it is the net loss, which comes after interest, the fair-value change and tax; the operating loss is the earlier line" }
+      - { id: b, text: "It ties out: the bottom line of an income statement is the operating loss", mistake: { tag: it_ties_out_the_bottom_line, fix: "The bottom line is net income. Operating income comes earlier, before interest and tax." } }
+      - { id: c, text: "A period mismatch: the two figures cover different months", mistake: { tag: a_period_mismatch_the_two_fi, fix: "Both lines sit in the same statement and period. The slip is in the name." } }
+      - { id: d, text: "More than the text says: the filing never reports a loss", mistake: { tag: more_than_the_text_says_the, fix: "The filing does report the loss. The writer gave it the wrong name." } }
+    answer: a
     explanation: >
-      Operating income is revenue less operating expenses: 900 - 1,000 = -100. Interest income (+30),
-      the fair-value change (-500), other expense (-70) and tax (-5) then lead to a net loss of
-      -100 + 30 - 500 - 70 - 5 = -645. So 645 is a real number carrying the wrong name: a mislabel.
+      Operating income comes first, from revenue less operating expenses. Interest, the fair-value change, other items and tax then lead to net income, the bottom line. So the writer's figure is a real number carrying the wrong name: a mislabel.
     source: >
       OpenStax, Principles of Accounting, Volume 1 (CC BY-NC-SA 4.0), 6.6 Multi-Step and Simple Income Statements (income from operations comes before other revenue and expenses, which lead to net income): https://openstax.org/books/principles-financial-accounting/pages/6-6-describe-and-prepare-multi-step-and-simple-income-statements-for-merchandising-companies
-
   - id: jfc-q-two-lines
     prompt: >
       Corvane Ltd's balance sheet lists long-term debt of 300 and, on a separate line, lease
@@ -190,40 +184,30 @@ questions:
 
   - id: jfc-q-ties-out
     prompt: >
-      A filing for Dunmore Co. shows marketing expense of 72 on revenue of 80 in one quarter, and
-      marketing expense of 120 on revenue of 400 in a later quarter. A writer says marketing fell
-      "from 90% of revenue to 30%". What do you conclude?
+      A writer says marketing fell "from 90% of revenue to 30%". The Learner redoes each ratio from the filing's own marketing and revenue lines, and both percentages match. How should a careful judge mark the claim?
     choices:
-      - { id: a, text: "It ties out: 72 / 80 = 90% and 120 / 400 = 30%" }
-      - { id: b, text: "A period mismatch: the two quarters should not be compared" }
-      - { id: c, text: "A mislabel: marketing expense is not a cost" }
-      - { id: d, text: "More than the text says: the filing never mentions percentages" }
+      - { id: a, text: "As checked: it ties out, and say so" }
+      - { id: b, text: "As a mislabel, because writers always round", mistake: { tag: as_a_mislabel_because_writer, fix: "Matching figures are not a mislabel. Mark a claim that recomputes as checked." } }
+      - { id: c, text: "As more than the text says, because the filing prints no percentages", mistake: { tag: as_more_than_the_text_says_b, fix: "A ratio of two printed lines is an ordinary reading, not an addition." } }
+      - { id: d, text: "As unconfirmed until the writer shows the spreadsheet", mistake: { tag: as_unconfirmed_until_the_wri, fix: "The filing's own lines settle it. No spreadsheet is needed." } }
     answer: a
     explanation: >
-      Dividing each expense by that quarter's revenue gives 90% and 30%, exactly as written.
-      A claim that recomputes should be marked as checked; the writer's own percentages are an
-      ordinary way to read two lines of the filing.
+      Each percentage is an expense divided by that quarter's revenue, and both match. A claim that recomputes should be marked as checked; the writer's percentages are an ordinary way to read two lines of the filing.
     source: >
       SEC Office of the Advocate for Small Business Capital Formation, "What is an income statement?" (revenue and expense lines; a ratio to revenue is expense divided by revenue): https://www.sec.gov/files/income-statement-building-blocks.pdf
-
   - id: jfc-q-ttm
     prompt: >
-      Halloran Inc. reports revenue (USD millions) of 900 for the year 2025 and 250 for the first
-      half of 2025. For the first half of 2026 it reports 700. What was its revenue for the twelve
-      months to 30 June 2026?
+      Halloran Inc. reports a full year 2025, the first half of 2025 and the first half of 2026. Analysts call revenue for the latest twelve months "trailing twelve months". Which pieces make up Halloran's twelve months to 30 June 2026?
     choices:
-      - { id: a, text: "1,350" }
-      - { id: b, text: "1,600" }
-      - { id: c, text: "650" }
-      - { id: d, text: "1,850" }
+      - { id: a, text: "The second half of 2025 together with the first half of 2026" }
+      - { id: b, text: "The full year 2025 together with the first half of 2026", mistake: { tag: the_full_year_together_with, fix: "That brings in the first half of 2025, which ended before the twelve months began." } }
+      - { id: c, text: "The second half of 2025 on its own", mistake: { tag: the_second_half_of_on_its_ow, fix: "The twelve months also include the latest half, the first half of 2026." } }
+      - { id: d, text: "The full year 2025, its first half and the 2026 half, all together", mistake: { tag: the_full_year_its_first_half, fix: "The first half of 2025 is already inside the full year. Count each half once." } }
     answer: a
     explanation: >
-      Twelve months to 30 June 2026 = second half of 2025 plus first half of 2026. The second half
-      of 2025 is 900 - 250 = 650, so the total is 650 + 700 = 1,350. Adding the full 2025 year to the
-      first half of 2026 (1,600) counts the first half of 2025 inside a period that began after it.
+      Twelve months to 30 June 2026 are the second half of 2025 plus the first half of 2026. The second half of 2025 is the full year less its first half. Adding the full 2025 year to the first half of 2026 counts the first half of 2025 inside a period that began after it.
     source: >
       Arithmetic on a trailing-twelve-month sum; period conventions as in the SEC's "What is an income statement?" (statements cover a stated period): https://www.sec.gov/files/income-statement-building-blocks.pdf
-
   - id: jfc-q-unit-slip
     prompt: >
       In the Halloran Inc. filing every table is headed "(in millions)". A writer states that the
@@ -282,17 +266,15 @@ questions:
 
   - id: jfc-q-ratio-vs-change
     prompt: >
-      A quarterly filing shows revenue of 200 one year and 700 the next. A writer says revenue "grew
-      350%". What do you find?
+      A filing shows annual revenue of 200 one year and 700 the next. A writer says revenue "grew 350%". What do you find?
     choices:
-      - { id: a, text: "It ties out: 700 / 200 = 3.5, which is 350%" }
-      - { id: b, text: "A slip: 700 is 3.5 times 200, which is an increase of 250%" }
-      - { id: c, text: "A slip: the increase is 500%" }
-      - { id: d, text: "A slip: the increase is 71%" }
-    answer: b
+      - { id: a, text: "A slip: 350% is the ratio of the two amounts, while growth counts only the extra on top, which is less" }
+      - { id: b, text: "It ties out: a ratio and a growth rate are the same thing", mistake: { tag: it_ties_out_a_ratio_and_a_gr, fix: "They are not. The ratio is the whole new figure; growth is only the extra." } }
+      - { id: c, text: "A period mismatch: the years should not be compared", mistake: { tag: a_period_mismatch_the_years, fix: "Both figures are annual. The slip is between a ratio and a change." } }
+      - { id: d, text: "More than the text says: the filing never mentions growth", mistake: { tag: more_than_the_text_says_the, fix: "The filing's two figures give the growth. The writer read it as a ratio." } }
+    answer: a
     explanation: >
-      The change is (700 - 200) / 200 = 2.5, or 250%. 350% is the ratio of the two amounts (700 is
-      350% of 200), not the increase. Reading a ratio as a change is a frequent arithmetic slip.
+      Growth is the change divided by the starting value, 500 / 200 = 2.5, or 250%. The figure 350% is the ratio of the two amounts (700 is 350% of 200), not the increase. Reading a ratio as a change is a frequent slip.
     source: >
       OpenStax, Prealgebra 2e (CC BY 4.0), 6.2 Solve General Applications of Percent, percent increase (the amount of increase as a percent of the original amount): https://openstax.org/books/prealgebra-2e/pages/6-2-solve-general-applications-of-percent
 
@@ -314,15 +296,13 @@ checks:
   - id: jfc-judge-claims
     kind: conversation
     prompt: >
-      Choose two statements from the pieces you read, one you expect to hold and one you doubt.
-      For each, say which line or sentence of the filing you went to, what you recomputed with the
-      Case Data, and what you found: it ties out, a mislabel, a period or unit mismatch, or more
-      than the text says. Then say what your finding changes about the writer's point, and what you
-      could not check.
+      Pick two statements from the pieces you read: one you trust, one you doubt. Which line of the
+      filing did each rest on, and what did you find: ties out, wrong label, wrong period or unit,
+      or more than the text says? Does it change the writer's point?
     passCriteria: >
       For both statements the Learner names the filing line or sentence it rests on, with its label
-      and period, and uses figures from the Case Data or from Library passages, not from memory or
-      from the writer. They redo the arithmetic and get it right. They sort each finding correctly
+      and period, and works from the Case Data or Library passages, not from memory or from the
+      writer. No arithmetic is asked or needed. They sort each finding correctly
       into ties out, mislabel, period or unit mismatch, or more than the text says, and they can
       say why, in their own words. They separate what the filing says from what the writer adds, and
       they do not call something an error unless they have shown it. They say what the finding does

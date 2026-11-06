@@ -25,8 +25,8 @@ cases:
       it grows; assume it needs about $1 of new capital for every $3 of added revenue. Choose
       your own path for ten years: how fast revenue grows, when the margin turns positive and
       where it settles, what rate you discount at, and what stable growth rate you use after year
-      10. Then work out free cash flow each year, a terminal value, and a value per share, taking
-      cash, debt and the options into account. Write your inputs down before you compute
+      10. Then follow the cash the business would free up each year into a terminal value and a value per share, taking
+      cash, debt and the options into account. Write your inputs down before you build
       anything. How does your value compare with $84, and which of your inputs moves it most?
       (You are valuing the firm as of February 2000 only. Do not try to say what happens next.)
     reveal: >
@@ -78,8 +78,8 @@ cases:
       10-year Treasury yield is 5.95% and the marginal tax rate is 35%. Choose your own path for ten
       years: how many centres open and when, how full each one gets and how fast, the average order,
       where the operating margin settles, the discount rate, and the stable growth rate after year 10.
-      Work out free cash flow each year, a terminal value and a value per share, allowing for the cash,
-      debt and options. Write your inputs down before you compute anything. How does your value compare
+      Follow the cash the business would free up each year into a terminal value and a value per share, allowing for the cash,
+      debt and options. Write your inputs down before you build anything. How does your value compare
       with $15, and which input moves it most? What would you have to believe for $15 to be a fair
       price? (You are valuing the firm as of November 1999 only. Do not try to say what happens next.)
     reveal: >
@@ -147,71 +147,68 @@ youllLearn:
 questions:
   - id: abv-q-revenue
     prompt: >
-      A young firm has revenue of $1,000 million. An analyst assumes it grows 100% in year 1, 50% in year 2 and 20% in year 3. What is revenue in year 3?
+      An analyst gives a young firm three years of fast growth, a little slower each year. How does the second and third year's growth work?
     choices:
-      - { id: a, text: "$3,600 million" }
-      - { id: b, text: "$1,700 million" }
-      - { id: c, text: "$2,700 million" }
-      - { id: d, text: "$3,000 million" }
+      - { id: a, text: "Each year grows from where the year before ended, so the growth compounds" }
+      - { id: b, text: "The three growth rates are added into one and applied to the starting revenue", mistake: { tag: added_growth_rates, fix: "Each year grows from a bigger base, so growth compounds. Adding the rates undercounts." } }
+      - { id: c, text: "Only the last year's growth matters for year 3", mistake: { tag: used_last_growth_only, fix: "Year 3 starts where year 2 ended, so all three years of growth count." } }
+      - { id: d, text: "Growth cannot be set until the margin is chosen", mistake: { tag: margin_before_revenue, fix: "Revenue comes first. The growth path builds it, and the margin is applied to it." } }
     answer: a
     explanation: >
-      Growth compounds: 1,000 x 2.00 x 1.50 x 1.20 = 3,600. Adding the growth rates (170%) would give 2,700, which is wrong.
+      Growth compounds: each year starts from the bigger revenue the year before left behind. Adding the rates up and applying them to the start would undercount the path.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems (compound growth): https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
   - id: abv-q-reinvest
     prompt: >
-      A firm assumes it needs $1 of new capital for every $3 of added revenue (sales-to-capital of 3). Revenue rises from $1,000 million to $1,600 million. How much does it reinvest that year?
+      A firm assumes a sales-to-capital ratio of 3. Its revenue rises. Which sentence describes its reinvestment that year?
     choices:
-      - { id: a, text: "$200 million" }
-      - { id: b, text: "$600 million" }
-      - { id: c, text: "$1,800 million" }
-      - { id: d, text: "$533 million" }
+      - { id: a, text: "A third of the added revenue is needed as new capital" }
+      - { id: b, text: "All of the added revenue is put back into the firm", mistake: { tag: all_of_the_added_revenue_is, fix: "Added revenue is not spent in full. Only a third of it is needed as new capital." } }
+      - { id: c, text: "Three times the added revenue is needed as new capital", mistake: { tag: three_times_the_added_revenu, fix: "The ratio is sales per dollar of capital: $3 of sales needs $1 of capital, not the reverse." } }
+      - { id: d, text: "A third of all the revenue the firm has after the rise", mistake: { tag: a_third_of_all_the_revenue_t, fix: "Only the added revenue needs new capital, not the revenue the firm already had." } }
     answer: a
     explanation: >
-      Reinvestment = added revenue / sales-to-capital = (1,600 - 1,000) / 3 = 200. It is subtracted from after-tax operating income to give free cash flow.
+      Reinvestment is the added revenue divided by the sales-to-capital ratio. With a ratio of 3, that is a third of the added revenue. It is subtracted from after-tax operating income to give free cash flow.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where reinvestment is set by a sales-to-capital ratio of 3.0: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-
   - id: abv-q-terminal-share
     prompt: >
-      In a valuation of a hypothetical young company, the present value of the ten forecast years of free cash flow is $200 million and the present value of the terminal value is $800 million. What share of the operating value comes from beyond year 10?
+      In a valuation of a young company, most of the operating value comes from the terminal value, beyond year 10. What does a high terminal share tell the judge?
     choices:
-      - { id: a, text: "80%" }
-      - { id: b, text: "20%" }
-      - { id: c, text: "40%" }
-      - { id: d, text: "It cannot be worked out" }
+      - { id: a, text: "The stable-growth and margin assumptions deserve the most testing" }
+      - { id: b, text: "The ten forecast years are now certain", mistake: { tag: the_ten_forecast_years_are_n, fix: "A big terminal share means the opposite: the later, less certain years carry the value." } }
+      - { id: c, text: "The company has already matured", mistake: { tag: the_company_has_already_matu, fix: "A young company with most of its value late is far from mature." } }
+      - { id: d, text: "The valuation must be wrong", mistake: { tag: the_valuation_must_be_wrong, fix: "A high share is a signal to test, not proof of an error." } }
     answer: a
     explanation: >
-      The operating value is 200 + 800 = 1,000, and 800 / 1,000 = 80% comes from beyond year 10. When this share is high, the stable-growth and margin assumptions deserve the most testing.
+      When most of the value sits beyond year 10, the stable-growth and margin assumptions drive the result, so they deserve the most testing. It is a prompt to test, not proof of an error.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-
   - id: abv-q-options
     prompt: >
-      A hypothetical valuation gives operating assets of $5,000 million. The firm has cash of $100 million, debt of $300 million, employee options worth $400 million and 100 million shares. What is the value per share?
+      A valuation gives a young firm's operating assets. The firm holds cash, owes debt and has employee options outstanding. Which sentence describes the path to the value per share that belongs to its shareholders?
     choices:
-      - { id: a, text: "$44" }
-      - { id: b, text: "$48" }
-      - { id: c, text: "$50" }
-      - { id: d, text: "$52" }
+      - { id: a, text: "Start from the operating assets, add the cash, take off the debt and the options, then share the rest among the shares" }
+      - { id: b, text: "The same, but leave the employee options out", mistake: { tag: the_same_but_leave_the_emplo, fix: "Options are a claim on shareholders' value too, so they come off before sharing it out." } }
+      - { id: c, text: "Take the operating assets alone and share them among the shares", mistake: { tag: take_the_operating_assets_al, fix: "Cash adds to the equity and debt takes from it, so operating assets alone is not equity." } }
+      - { id: d, text: "The same, but add the options instead of taking them off", mistake: { tag: the_same_but_add_the_options, fix: "Options are a claim on shareholders, so they are taken off the value, not added." } }
     answer: a
     explanation: >
-      Equity = 5,000 + 100 - 300 = 4,800; less the options, 4,400; divided by 100 million shares = $44. Leaving out the options would give $48.
+      Equity is the operating assets plus cash less debt. The value of the employee options then comes off before dividing by the shares, because options are a claim on shareholders' value.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), pages 31-34 (the bridge from operating value to value per share, with options subtracted): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-
   - id: abv-q-stable-growth
     prompt: >
-      The Treasury bond yield is 6.5%. Which stable growth rate after year 10 is hardest to defend?
+      An analyst lets a young firm grow for ever after year 10 at a "stable" rate above the Treasury bond yield. Why do valuers push back?
     choices:
-      - { id: a, text: "9%, because the firm would outgrow the whole economy for ever" }
-      - { id: b, text: "6%" }
-      - { id: c, text: "4%" }
-      - { id: d, text: "2%" }
+      - { id: a, text: "Growing faster than the economy for ever, the firm would one day be bigger than the economy" }
+      - { id: b, text: "Growth after year 10 never changes the value", mistake: { tag: late_growth_irrelevant, fix: "Most of a young firm's value sits after year 10, so that growth matters a lot." } }
+      - { id: c, text: "No firm is allowed to grow after year 10", mistake: { tag: no_growth_after_year_ten, fix: "Firms can keep growing. The limit is on growing faster than the economy for ever." } }
+      - { id: d, text: "The Treasury yield caps the firm's profit margin, not its growth", mistake: { tag: yield_caps_margin, fix: "The yield is a rough ceiling for the economy's growth, not for any margin." } }
     answer: a
     explanation: >
-      The risk-free rate is a rough ceiling for the long-run nominal growth of the economy, so a stable growth rate above it implies the firm eventually becomes larger than the economy. 
+      The risk-free rate is a rough ceiling for the long-run nominal growth of the economy, so a stable growth rate above it implies the firm eventually becomes larger than the economy.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where stable growth is capped by the Treasury bond yield: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
 
@@ -230,40 +227,28 @@ checks:
   - id: abv-build-explain
     kind: conversation
     prompt: >
-      Using the Amazon figures from February 2000, state the inputs of your own valuation (revenue
-      growth path, the margin you reach in year 10, the discount rate, stable growth), show how
-      you get from them to a value per share (use the dcf calculator for a quick version), and
-      say which input moves your value most. Then compare your value with the $84 price.
+      It is February 2000 and Amazon trades at $84. Tell your story in a few lines: how big does it
+      get, how profitable, how risky? Which belief matters most? (The dcf calculator does the sums
+      if you want a number.)
     passCriteria: >
-      The Learner writes their inputs down before giving a result: a revenue path that fades,
-      an operating margin that improves towards a level justified by mature firms, a discount
-      rate and a stable growth rate no higher than the risk-free rate. They get from free cash
-      flow to value per share through a terminal value, cash, debt and the options. They name
-      the input that drives the value (usually the long-run margin, the discount rate or
-      terminal growth) and test it with a different value. They treat the gap with the price as a
-      question, not proof that the price is wrong, and make no forecast of the share price and no
-      buy, sell or hold call.
+      The Learner tells a story in words before any number: growth that fades, a margin that
+      improves towards what mature firms earn, and a view of risk. They name the belief that moves
+      the value most (usually the long-run margin or the risk) and say what would change if it
+      were different. Any number comes from the dcf calculator; no arithmetic is asked of the
+      Learner. They treat the gap with the price as a question, not proof that the price is wrong,
+      and make no forecast of the share price and no buy, sell or hold call.
   - id: abv-build-webvan
     kind: conversation
     prompt: >
-      Using the Webvan figures from 4 November 1999, state the inputs of your own valuation (how
-      many distribution centres open and when, how full each one gets and how fast, the average
-      order, the operating margin you reach, the discount rate and stable growth), show how you get
-      from them to a value per share (use the dcf calculator for a quick version, and count the
-      cash from the offering, the debt and the options), and say which input moves your value most.
-      Then compare your value with the $15 offer price and say what you would have to believe for
-      $15 to be a fair price.
+      It is 4 November 1999 and Webvan has priced its shares at $15. Tell your story in a few lines:
+      how fast do its distribution centres fill up, and does it earn like a supermarket or better? What would you have
+      to believe for $15 to be fair?
     passCriteria: >
-      The Learner writes their inputs down before giving a result: the number and timing of
-      centres (no faster than the plan in the story unless they say why), how full each centre gets
-      and how fast, starting from under 20% and not from full capacity, the average order and what
-      a full centre sells, an operating margin that they set against both the company's 12% and a
-      supermarket's 4%, the cost of building each centre ($25 million to $35 million) as
-      reinvestment, a discount rate above the Treasury yield and a stable growth rate no higher
-      than the Treasury yield. They get from free cash flow to value per share through a terminal
-      value, the cash (counting the offering), the loans and the options (which cover about a fifth
-      as many shares as are outstanding, so leaving them out is a clear error). They name the input
-      that drives the value (usually how full the centres get, the long-run margin or the discount
-      rate) and test it with a different value. They treat the gap with the $15 offer price as a
-      question, not proof that the price is wrong, and make no forecast of the share price and no
-      buy, sell or hold call.
+      The Learner tells a story in words before any number: how quickly the distribution centres
+      open and fill (starting well below full, not at full capacity), and whether the margin looks
+      more like a supermarket's 4% or the company's hoped-for 12%. They name the belief that moves
+      the value most (usually how full the centres get or the long-run margin) and say what you
+      would have to believe for $15 to be fair. They note in words that the employee options are a
+      claim on shareholders. Any number comes from the dcf calculator; no arithmetic is asked of
+      the Learner. They treat the gap with the offer price as a question, not proof that the price
+      is wrong, and make no forecast of the share price and no buy, sell or hold call.

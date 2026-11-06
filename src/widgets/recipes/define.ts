@@ -16,7 +16,7 @@ import { CASE_DATA_REFERENCE } from "../tool-specs";
  */
 
 /** What kind of idea a recipe teaches; it feeds variety later (no two in a row). */
-export const ARCHETYPES = ["Grow", "Compare", "History", "Formula", "Predict", "Check", "Rank", "Chain", "Convert"] as const;
+export const ARCHETYPES = ["Grow", "Compare", "History", "Formula", "Predict", "Check", "Rank", "Chain", "Convert", "Story", "Lingo"] as const;
 export type Archetype = (typeof ARCHETYPES)[number];
 
 /** The information budget of a Widget at rest (UX audit ★.7): enforced by the recipe tests. */

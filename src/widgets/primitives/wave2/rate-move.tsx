@@ -58,7 +58,7 @@ function NumberLine({ oldRate, newRate }: { oldRate: number; newRate: number }) 
       role="img"
       aria-label={label}
       viewBox={`0 0 ${WIDTH} 72`}
-      className="block h-auto w-full max-w-md"
+      className="block h-auto w-full max-w-md @min-[720px]:max-w-none"
     >
       <line x1={MARGIN - 16} x2={WIDTH - MARGIN + 16} y1={AXIS_Y} y2={AXIS_Y} stroke="var(--border)" strokeWidth={1.5} />
       <text x={MARGIN - 20} y={AXIS_Y + 4} textAnchor="end" fontSize={10} fill="var(--muted)">
@@ -191,7 +191,7 @@ function Practice({ oldRate, newRate }: { oldRate: number; newRate: number }) {
 export function RateMoveView({ oldRate, newRate, mode }: Props) {
   if (![oldRate, newRate].every(Number.isFinite)) return <p className="py-2 text-sm text-[var(--muted)]">Working out the move…</p>;
   return (
-    <figure data-testid="rate-move" data-mode={mode ?? "show"} className="my-3">
+    <figure data-testid="rate-move" data-mode={mode ?? "show"} className="@container my-3">
       {mode === "practice" ? (
         <Practice oldRate={oldRate} newRate={newRate} />
       ) : (

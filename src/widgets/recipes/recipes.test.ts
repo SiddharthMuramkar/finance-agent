@@ -13,6 +13,14 @@ describe("Widget recipes", () => {
     expect(recipeById("history_case")?.archetype).toBe("History");
   });
 
+  it("registers the nine story recipes (E3), each stayed within its budget by the loop below", () => {
+    for (const id of ["story_scene", "lingo_card", "timeline", "two_paths", "money_jar", "who_pays_whom", "myth_or_fact", "headline", "choice_cards"]) {
+      expect(recipeById(id), id).toBeDefined();
+    }
+    expect(recipeById("story_scene")?.archetype).toBe("Story");
+    expect(recipeById("lingo_card")?.archetype).toBe("Lingo");
+  });
+
   for (const recipe of RECIPES) {
     describe(recipe.id, () => {
       it("has examples", () => expect(recipe.examples.length).toBeGreaterThan(0));
