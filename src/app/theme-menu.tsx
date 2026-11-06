@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { IconButton } from "./icon-button";
-import { MenuItem } from "./primitives";
+import { MenuItem, useMenu } from "./primitives";
 import { THEMES, THEME_LABEL, THEME_SWATCH, resolveTheme, type ThemeId, type ThemePref } from "./theme";
 import { followSystem, pinTheme, useThemeState } from "./theme-store";
 
@@ -40,63 +40,23 @@ function Item({ checked, swatch, onPick, children }: { checked: boolean; swatch:
  */
 export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; className?: string }) {
   const { pref, osDark, theme } = useThemeState(initial);
-  const [open, setOpen] = useState(false);
-  const toggle = useRef<HTMLButtonElement>(null);
-  const root = useRef<HTMLDivElement>(null);
-  const menu = useRef<HTMLDivElement>(null);
-  const menuId = useId();
+  const { open, setOpen, toggleRef, rootRef, menuRef, menuId, close, onMenuKeyDown, onToggleKeyDown } = useMenu("[role=menuitemradio]");
 
-  const items = () => [...(menu.current?.querySelectorAll<HTMLElement>("[role=menuitemradio]") ?? [])];
-  useEffect(() => {
-    if (!open) return;
-    const rows = items();
-    (rows.find((row) => row.getAttribute("aria-checked") === "true") ?? rows[0])?.focus();
-    const away = (e: PointerEvent) => {
-      if (root.current && !root.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", away);
-    return () => document.removeEventListener("pointerdown", away);
-  }, [open]);
-
-  const close = () => {
-    setOpen(false);
-    toggle.current?.focus();
-  };
   const pick = (apply: () => void) => {
     apply();
     close();
   };
-  const onMenuKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    const rows = items();
-    const i = rows.indexOf(document.activeElement as HTMLElement);
-    const moves: Record<string, number> = { ArrowDown: (i + 1) % rows.length, ArrowUp: (i - 1 + rows.length) % rows.length, Home: 0, End: rows.length - 1 };
-    if (e.key === "Escape") {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    } else if (e.key in moves) {
-      e.preventDefault();
-      rows[moves[e.key]]?.focus();
-    } else if (e.key === "Tab") {
-      setOpen(false);
-    }
-  };
 
   return (
-    <div ref={root} className="relative inline-flex">
+    <div ref={rootRef} className="relative inline-flex">
       <IconButton
-        ref={toggle}
+        ref={toggleRef}
         label={theme ? `Theme: ${THEME_LABEL[theme]}` : "Theme"}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen((o) => !o)}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowDown" && !open) {
-            e.preventDefault();
-            setOpen(true);
-          }
-        }}
+        onKeyDown={onToggleKeyDown}
         data-testid="theme-menu-button"
         className={className}
       >
@@ -118,13 +78,13 @@ export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; cla
       </IconButton>
       {open && (
         <div
-          ref={menu}
+          ref={menuRef}
           id={menuId}
           role="menu"
           aria-label="Theme"
-          onKeyDown={onMenuKey}
+          onKeyDown={onMenuKeyDown}
           data-testid="theme-menu"
-          className="absolute top-full right-0 z-20 mt-1 w-56 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
+          className="absolute top-full right-0 z-20 mt-1 flex w-56 flex-col gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
         >
           {THEMES.map((id) => (
             <Item key={id} checked={pref.mode === "single" && pref.theme === id} swatch={id} onPick={() => pick(() => pinTheme(id))}>
