@@ -4,8 +4,8 @@ import { quietDevtools } from "./support/app";
 /**
  * Sign-in (spec 2026-11-05, C1b): the login page offers Google first and the passcode second, and a
  * Google-linked Learner (the test bed's `googleLearner` fixture, through Better Auth's test helpers)
- * reaches their own progress and signs out with one click. Google itself is never called. Every test
- * starts signed out (no saved tools cookie).
+ * reaches their own progress, sees their Google email in Settings and the account menu, and signs out
+ * from that menu (A5). Google itself is never called. Every test starts signed out (no saved tools cookie).
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -53,10 +53,20 @@ test("a Google-linked Learner reaches their progress and signs out with one clic
   expect(before.find((c) => c.name === "better-auth.session_token")?.value).toBeTruthy();
   expect(before.find((c) => c.name === "fa_access")?.value).toBeTruthy();
 
+  // Settings' Account card shows the Google email, not "Signed in with a passcode" (A5).
+  await page.goto("/settings");
+  const accountCard = page.locator("#account");
+  await expect(accountCard).toContainText("asha@e2e.example");
+  await expect(accountCard).not.toContainText("Signed in with a passcode");
+
   await page.goto("/study");
   await expect(page.getByTestId("topic-bar")).toBeVisible();
 
-  await page.getByRole("button", { name: "Sign out" }).click();
+  // Sign out lives in the header's account menu (A5), which also shows the Google email.
+  await page.getByTestId("account-menu-button").click();
+  const menu = page.getByTestId("account-menu");
+  await expect(menu).toContainText("asha@e2e.example");
+  await menu.getByRole("menuitem", { name: "Sign out" }).click();
   await page.waitForURL((url) => url.pathname === "/");
   await expect(page.locator('a[href="/login"]').first()).toBeVisible();
   const after = await context.cookies();

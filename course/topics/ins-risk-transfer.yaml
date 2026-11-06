@@ -77,15 +77,15 @@ youllLearn:
 questions:
   - id: ins-q-fair-premium
     prompt: >
-      Most of AIG's business was plain insurance: a family pays a premium, and the insurer pays a large sum if a rare event happens, say one with a 1 in 200 chance each year. Insurers talk of an "actuarially fair" premium. Leaving out costs and profit, what does that phrase mean?
+      In September 2008 most of AIG was plain insurance. Say your mum insures the family home against a fire with a 1 in 200 chance a year. What is an "actuarially fair" premium?
     choices:
-      - { id: a, text: "The full payout, because the insurer might have to pay all of it", mistake: { tag: ignored_probability, fix: "Fair pricing weighs the payout by its chance. It is not the whole payout." } }
-      - { id: b, text: "The average payout per policy: the payout weighed by its small chance, so a small fraction of the full sum" }
-      - { id: c, text: "A price high enough that the insurer never loses in any single year", mistake: { tag: fair_means_safe, fix: "Fair means the average payout. A bad year can still cost more." } }
-      - { id: d, text: "The average payout plus a margin for the insurer's costs and profit", mistake: { tag: added_loading, fix: "That is a real price. Fair means the bare average payout, with no margin." } }
+      - { id: a, text: "The full payout, since the insurer might have to pay all of it", mistake: { tag: ignored_probability, fix: "Fair pricing weighs the payout by its small chance. It is not the whole payout." } }
+      - { id: b, text: "The average payout per policy: the payout weighed by its small chance" }
+      - { id: c, text: "A price so high the insurer never loses in any year", mistake: { tag: fair_means_safe, fix: "Fair means the average payout. A bad year can still cost the insurer more." } }
+      - { id: d, text: "The average payout plus the insurer's costs and profit", mistake: { tag: added_loading, fix: "That is a real price. Fair means the bare average payout, with no margin." } }
     answer: b
     explanation: >
-      An actuarially fair premium equals the average benefit paid: the payout weighed by its chance, which for a rare event is a small fraction of the full sum. A real insurer charges more to cover costs, profit and the uncertainty of the pool.
+      An actuarially fair premium equals the average benefit paid: the payout weighed by its chance, which for a rare fire is a small fraction of the full sum. A real insurer charges more to cover costs, profit and the uncertainty of the pool.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 16.2 Insurance and Imperfect Information (an actuarially fair policy charges the average amount of benefits): https://openstax.org/books/principles-economics/pages/16-2-insurance-and-imperfect-information
 
@@ -105,15 +105,15 @@ questions:
 
   - id: ins-q-correlated
     prompt: >
-      Two insurers expect the same claims on average. Insurer X covers homes in many different towns against fire. Insurer Y covers every home in one town against flood. Which one is in more danger in a bad year, and why?
+      AIG's 2007 swap losses came almost all from mortgage-linked bonds, which sink together. Two insurers expect equal claims: X covers fire across many towns, Y covers flood in one town. Who should fear a bad year?
     choices:
-      - { id: a, text: "Neither: the same expected claims mean the same risk", mistake: { tag: same_average_same_risk, fix: "Same average, different spread. One flood hits every home in Y at once." } }
-      - { id: b, text: "Y: one flood makes every home claim at once, while X's fires stay close to their usual number" }
-      - { id: c, text: "X: its homes are spread over many towns, so it has more ways to lose", mistake: { tag: swapped_insurers, fix: "Fires in different towns are independent. It is Y's one-town flood that hits together." } }
-      - { id: d, text: "Both face the same worst case, since each home is as likely to claim", mistake: { tag: worst_case_is_average, fix: "Same chance per home, but in the flood year every home in Y claims together." } }
+      - { id: a, text: "Neither: the same average claims mean the same risk", mistake: { tag: same_average_same_risk, fix: "Same average, different spread. One flood hits every home Y covers at once." } }
+      - { id: b, text: "Y: one flood makes every home it covers claim at once" }
+      - { id: c, text: "X: spread over many towns, it has more ways to lose", mistake: { tag: swapped_insurers, fix: "Fires in different towns are independent. It is Y's one-town flood that strikes together." } }
+      - { id: d, text: "Both alike, since each home is as likely to claim", mistake: { tag: worst_case_is_average, fix: "Same chance per home, but in the flood year every home Y covers claims together." } }
     answer: b
     explanation: >
-      Both expect the same claims on average. Fires in different towns are independent, so in a typical year about the usual number of homes burn and X's total is predictable. Y's flood is all or nothing: most years nothing, but in the flood year every home claims at once. When losses move together, pooling stops protecting the insurer, which is the risk the swaps carried.
+      Both expect the same claims on average. Fires in different towns are independent, so in a typical year about the usual number of homes burn and X's total is predictable. Y's flood is all or nothing: most years nothing, but in the flood year every home claims at once. When losses move together, pooling stops protecting the insurer, which is the risk AIG's mortgage swaps carried.
     source: >
       The pooling argument rests on independent trials, OpenStax, Statistics (CC BY), 4.2: https://openstax.org/books/statistics/pages/4-2-mean-or-expected-value-and-standard-deviation
 
@@ -133,12 +133,12 @@ questions:
 
   - id: ins-q-adverse-selection
     prompt: >
-      A life insurer cannot tell its healthier customers from its riskier ones, so it charges everyone one price, set from the group average. The healthy customers notice they are paying more than their own risk is worth, and many of them leave. What happens to the insurer?
+      Your uncle's life insurer can't tell healthy customers from risky ones, so this year everyone pays one price set from the average. The healthiest feel overcharged and quit. What happens to his insurer?
     choices:
-      - { id: a, text: "The people left are riskier, so the old price no longer covers expected claims (adverse selection)" }
-      - { id: b, text: "The insurer's expected claims fall, so it makes more profit" }
-      - { id: c, text: "Nothing changes, because the average risk is the same" }
-      - { id: d, text: "The high-risk group also drops out" }
+      - { id: a, text: "Those left are riskier, so the old price no longer covers claims" }
+      - { id: b, text: "Its claims fall, so it makes more profit", mistake: { tag: claims_fall, fix: "The ones who left were the cheapest to cover. Claims per customer rise." } }
+      - { id: c, text: "Nothing: the average risk stays the same", mistake: { tag: average_fixed, fix: "The average shifts once the healthy leave. Those who stay are riskier." } }
+      - { id: d, text: "The riskiest customers quit too", mistake: { tag: risky_leave, fix: "The average price is a bargain for the riskiest, so they stay." } }
     answer: a
     explanation: >
       The people who leave are the ones the average price overcharged, so those who stay are riskier than the average the price was set on. Claims now run above what the premiums bring in, and raising the price drives out the next-healthiest group. That is adverse selection: the price itself chooses who buys.
@@ -147,15 +147,15 @@ questions:
 
   - id: ins-q-collateral
     prompt: >
-      Many of AIG's swap contracts said: hand over collateral when the market value of the protection you sold has moved against you by more than a threshold, and the threshold is lower if your credit rating falls. What happens to AIG's cash needs if its rating is cut?
+      12 September 2008: AIG's swap deals make it hand over collateral when values move against it, and a ratings cut makes it start paying sooner. Suppose the agencies cut AIG. What happens to its cash needs?
     choices:
-      - { id: a, text: "They can jump at once, because more of the market-value loss must now be covered with collateral, even though no claim has been settled" }
-      - { id: b, text: "They fall, because a lower rating means lower risk" }
-      - { id: c, text: "They are unchanged until the underlying bonds actually default" }
-      - { id: d, text: "They only rise for the buyer of the protection" }
+      - { id: a, text: "They can jump at once, before any claim is settled" }
+      - { id: b, text: "They fall, because a lower rating means lower risk", mistake: { tag: rating_backwards, fix: "A cut says AIG is riskier, so the firms it dealt with want more security, not less." } }
+      - { id: c, text: "Nothing changes until the bonds actually default", mistake: { tag: waits_for_default, fix: "Collateral follows market values and the rating, long before any default." } }
+      - { id: d, text: "Only the buyers of the protection need more cash", mistake: { tag: wrong_side, fix: "AIG sold the protection, so AIG is the one that must hand over collateral." } }
     answer: a
     explanation: >
-      Collateral covers the mark-to-market loss before any final settlement. A lower threshold means the seller must post collateral on a bigger share of that loss, so a downgrade raises cash needs immediately. Rating-linked terms make the cash needs rise exactly when the seller's credit is weakening.
+      Collateral covers the market-value loss before any final settlement. A lower threshold means AIG must post collateral on a bigger share of that loss, so a downgrade raises cash needs at once. Rating-linked terms make the cash needs rise exactly when the seller's credit is weakening.
     source: >
       McDonald and Paulson, AIG in Hindsight, Chicago Fed WP 2014-07 (collateral thresholds and rating triggers): https://www.chicagofed.org/-/media/publications/working-papers/2014/wp2014-07-pdf.pdf
 

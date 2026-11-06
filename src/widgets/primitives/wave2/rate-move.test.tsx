@@ -140,3 +140,44 @@ describe("RateMove, practice mode", () => {
     expect(byId(page!, "rate-move-new")!.textContent).toBe("New 6%");
   });
 });
+
+describe("RateMove, number line end labels (#417, #394, #318)", () => {
+  // The svg viewBox is 0..320 and clips anything outside it. jsdom has no text layout, so estimate each glyph's width
+  // in em from the widest sans the system stack can land on (DejaVu Sans on Linux: digits 0.636, "." 0.318, "%" 0.95;
+  // Arial and SF are narrower). A flat 0.6em per glyph under-counts "%" and let 6-character ends like 10.25% clip.
+  const VIEW_WIDTH = 320;
+  const GLYPH_EM: Record<string, number> = { ".": 0.32, "%": 0.95 };
+  const textWidth = (text: string, fontSize: number) => fontSize * [...text].reduce((sum, ch) => sum + (GLYPH_EM[ch] ?? (/\d/.test(ch) ? 0.64 : 0.6)), 0);
+  const endLabels = () => {
+    const texts = [...byId(page!, "rate-move-line")!.querySelectorAll("text")].filter((t) => !t.getAttribute("data-testid"));
+    return texts.map((t) => {
+      const x = Number(t.getAttribute("x"));
+      const width = textWidth(t.textContent ?? "", Number(t.getAttribute("font-size")));
+      const anchor = t.getAttribute("text-anchor");
+      return { text: t.textContent, left: anchor === "end" ? x - width : x, right: anchor === "end" ? x : x + width };
+    });
+  };
+
+  it.each([
+    [4, 5],
+    [4.5, 4.75],
+    [3.75, 5.25],
+    [10, 10.5],
+    [10, 10.25],
+    // 6-character ends at both sides: 10.25% and 11.25%; 13.75% and 21.25%; 19.74% and 20.25%.
+    [10.5, 11],
+    [15, 20],
+    [19.99, 20],
+    // The top of the slider range: the axis reaches 24.99%.
+    [0.04, 20],
+    [4, 20],
+  ])("keeps both axis end labels inside the box for old %s, new %s", (oldRate, newRate) => {
+    show(<RateMoveView oldRate={oldRate} newRate={newRate} />);
+    const labels = endLabels();
+    expect(labels).toHaveLength(2);
+    for (const l of labels) {
+      expect(l.left, `${l.text} left edge`).toBeGreaterThanOrEqual(0);
+      expect(l.right, `${l.text} right edge`).toBeLessThanOrEqual(VIEW_WIDTH);
+    }
+  });
+});

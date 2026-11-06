@@ -5,7 +5,7 @@ import { IconButton, MenuItem, MenuLink, useMenu } from "./primitives";
 /**
  * The header's account menu (A5): a round 36px button with the Learner's initial on the soft brand surface, opening a
  * menu with the Learner's name, their email when there is one, Settings and Sign out (the same plain form post to
- * /api/logout as SignOutButton, drawn as a menu row so the arrows reach it). Email is empty until C1b supplies it.
+ * /api/logout as SignOutButton, drawn as a menu row so the arrows reach it). The email is the Google one (accountFor); a passcode Learner has none.
  * In Dark the soft face is nearly the deep label's colour (1.3:1), so the label switches to --brand (about 6:1). The keyboard works like the Theme menu's, through useMenu in primitives.
  */
 export function AccountMenu({ name, email }: { name: string; email?: string }) {

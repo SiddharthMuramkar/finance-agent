@@ -11,7 +11,9 @@ const heading = "mb-2 text-base font-semibold leading-6";
 /**
  * The Settings page's body (A5): six cards in a card-grid — Account (who is signed in, and Sign out), Appearance
  * (Light, Dark or Match my Mac; the header's Theme menu shares its choice), About you (the Learner Profile form),
- * Your Topics (B3b: start one Topic over), Developer details, and Start over (the danger zone, full width, last). Until Google sign-in supplies an email, Account says "Signed in with a passcode". No model call.
+ * Your Topics (B3b: start one Topic over; its Card fills A5's `id="your-topics"` slot between About you and Developer details),
+ * Developer details, and Start over (the danger zone, full width, last). A Google-linked Learner's Account shows their
+ * Google email (from accountFor); a passcode Learner has none, so Account says "Signed in with a passcode". No model call.
  */
 export function SettingsView({
   profile,
@@ -57,6 +59,7 @@ export function SettingsView({
           <p className="measure mb-4 text-xs leading-4 text-[var(--muted)]">{PROFILE_PRIVACY}</p>
           <ProfileForm mode="page" initial={profile} />
         </Card>
+        {/* Your Topics: B3b's Card fills A5's slot (keeps id="your-topics"). */}
         <YourTopicsSection topics={topics} />
         <Card id="developer-details" aria-labelledby="developer-details-heading">
           <h2 id="developer-details-heading" className={heading}>
