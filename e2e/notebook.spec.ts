@@ -83,7 +83,9 @@ test("notebook is wide", async ({ page }, info) => {
 
 test("save, then find it", async ({ page }) => {
   test.setTimeout(180_000); // the dev server compiles each page on first visit
-  await seed(page, "story");
+  // Seventeen Topic rows, the current Topic's near the bottom: its row starts well below the fold at 1512×982, so only
+  // the deep link's scroll can bring it into view.
+  await seed(page, "notebook-long");
   await page.goto("/study");
   await say(page, "plain-reply", "What is a basis point?");
   const savedText = "A basis point is one hundredth of a percentage point.";
@@ -100,10 +102,17 @@ test("save, then find it", async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/notebook#note-${topicId}$`));
   const row = page.locator(`[data-notebook-row="${topicId}"]`);
   await expect(row).toContainText(savedText);
-  const box = await row.boundingBox();
-  expect(box, "the row has a box").not.toBeNull();
-  expect(box!.y, "the row's top is in the viewport").toBeGreaterThanOrEqual(0);
-  expect(box!.y, "the row's top is in the viewport").toBeLessThan(page.viewportSize()!.height);
+  // The page streams in behind loading.tsx; the scroll may land a moment after the rows do, so poll for it.
+  const where = () =>
+    row.evaluate((el) => {
+      const top = el.getBoundingClientRect().top;
+      return { top, scrollY: window.scrollY, pageTop: top + window.scrollY, height: window.innerHeight };
+    });
+  await expect.poll(async () => (await where()).scrollY, { message: "the page scrolled to the row", timeout: 10_000 }).toBeGreaterThan(0);
+  const at = await where();
+  expect(at.pageTop, "the row starts below the fold, so the check means something").toBeGreaterThan(at.height);
+  expect(at.top, "the row's top is in the viewport").toBeGreaterThanOrEqual(0);
+  expect(at.top, "the row's top is in the viewport").toBeLessThan(at.height);
 });
 
 test("older sessions are listed below the rows", async ({ page }, info) => {

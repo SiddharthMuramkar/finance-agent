@@ -155,6 +155,20 @@ const STATES: Record<string, Build> = {
       { sessionId: older.id, seq: 1, role: "assistant", content: [{ type: "text", text: "Here is the idea." }], createdAt: at },
     ]);
   },
+  /**
+   * many-topics plus twelve more Topics with a Session, so the Notebook runs well below the fold at 1512×982 and the
+   * current Topic (the last one opened) has its row near the bottom (B2b: following "Open Notebook" scrolls to that row).
+   */
+  "notebook-long": async (db, map, learnerId, now) => {
+    await STATES["many-topics"](db, map, learnerId, now);
+    const path = map.topics.map((t) => t.id).filter((id) => id !== TOPIC);
+    for (const id of path.slice(4, 16)) {
+      await saveJump(db, map, id, now, learnerId);
+      await ensureTopicStarted(db, map, now, learnerId);
+      await sessionForTurn(db, now, learnerId, id);
+    }
+    await openCurrentTopic(db, learnerId);
+  },
 };
 
 /** Passes any Topic by opening it and walking it to the end. */
