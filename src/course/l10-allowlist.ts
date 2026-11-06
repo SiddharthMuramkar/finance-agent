@@ -24,8 +24,6 @@ export const L10_NOT_YET_STORY: readonly string[] = [
   "fol-tesla-2020",
   "fol-uber-2014",
   "fs-capex-dep",
-  "fs-cashflow",
-  "fs-income",
   "fs-leases-debt",
   "fs-ratios",
   "fs-revenue-runrate",
