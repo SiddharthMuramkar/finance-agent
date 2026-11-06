@@ -116,7 +116,7 @@ describe("show_widget and the widget engine", () => {
     const db = await testDb();
     await engine(db, "on");
     const scene = {
-      title: "The day the bond market panicked",
+      title: "The day before the decision",
       inputs: {
         cast: [
           { id: "fed", emoji: "bank", name: "The central bank" },
@@ -124,7 +124,7 @@ describe("show_widget and the widget engine", () => {
         ],
         beats: [
           { who: "narrator", says: "It is February, and everyone expects calm." },
-          { who: "fed", says: "We are raising the rate, a little." },
+          { who: "narrator", says: "Tomorrow, the central bank gives its decision." },
         ],
         date: "1994-02-03",
       },
@@ -134,7 +134,7 @@ describe("show_widget and the widget engine", () => {
     const { client } = scriptedClient([{ content: [show("story_scene", scene)] }, { content: [text("That is the day in the story.")] }]);
     const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Tell me the story"));
     const item = events.find((e) => e.type === "item" && e.item.kind === WIDGET_SHOWN) as Extract<TurnEvent, { type: "item" }> | undefined;
-    expect(item?.item.data).toMatchObject({ recipe: "story_scene", title: "The day the bond market panicked" });
+    expect(item?.item.data).toMatchObject({ recipe: "story_scene", title: "The day before the decision" });
     expect(String(item?.item.data.code)).toContain("StoryScene(");
   });
 
@@ -145,7 +145,7 @@ describe("show_widget and the widget engine", () => {
       title: "How the story unfolded",
       inputs: {
         beats: [
-          { date: "1994-02-03", label: "The rate goes up", emoji: "bank" },
+          { date: "1994-02-04", label: "The rate goes up", emoji: "bank" },
           { date: "1994-05-09", label: "Prices keep falling", emoji: "chart-decreasing" },
         ],
       },

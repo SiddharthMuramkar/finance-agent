@@ -71,7 +71,7 @@ const cards = [
 ];
 const MythOrFactTest = ({ picks = [] as (string | null)[], onPick = () => {} }) => <MythOrFactView cards={cards} picks={picks} onPick={onPick} />;
 const myth = <MythOrFactTest />;
-const headline = <HeadlineView paper="The Daily Ledger" date="1994-02-03" headline="Central bank lifts rates for the first time in five years" deck="Bond traders were caught off guard." source="https://example.com/1994" />;
+const headline = <HeadlineView paper="The morning paper" date="1994-02-04" headline="Central bank tightens pressure on reserve positions" deck="An imagined front page. No number was announced; traders read one in." source="https://www.federalreserve.gov/fomc/19940204default.htm" />;
 const choiceCards = (picked: string | null, onPick: (id: string) => void = () => {}) => (
   <ChoiceCardsView
     question="Why did the bonds lose value?"
@@ -241,11 +241,11 @@ describe("MythOrFact", () => {
 describe("Headline", () => {
   it("renders the date in full and links the source", () => {
     show(headline);
-    expect(text()).toContain("3 February 1994");
-    expect(text()).toContain("The Daily Ledger");
+    expect(text()).toContain("4 February 1994");
+    expect(text()).toContain("The morning paper");
     const link = page!.host.querySelector<HTMLAnchorElement>("a")!;
     expect(link.textContent).toBe("Source");
-    expect(link.getAttribute("href")).toBe("https://example.com/1994");
+    expect(link.getAttribute("href")).toBe("https://www.federalreserve.gov/fomc/19940204default.htm");
   });
 
   it("does not link a source that is not an http address", () => {

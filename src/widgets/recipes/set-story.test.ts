@@ -14,7 +14,7 @@ const byId = (id: string) => {
 };
 
 const storyScene = (over: Record<string, unknown> = {}) => ({
-  title: "The day the bond market panicked",
+  title: "The day before the decision",
   inputs: {
     cast: [
       { id: "fed", emoji: "bank", name: "The central bank", role: "sets the rate" },
@@ -22,10 +22,10 @@ const storyScene = (over: Record<string, unknown> = {}) => ({
     ],
     beats: [
       { who: "narrator", says: "It is February, and everyone expects calm." },
-      { who: "fed", says: "We are raising the rate, a little." },
-      { who: "saver", says: "My old bonds just got less attractive!" },
+      { who: "narrator", says: "Tomorrow, the central bank gives its decision." },
+      { who: "saver", says: "If the rate rises, my old bonds lose their shine." },
     ],
-    caption: "A small rate move, a big surprise",
+    caption: "Everyone waits for tomorrow's decision",
     date: "1994-02-03",
     ...over,
   },
@@ -38,7 +38,7 @@ const timeline = {
   inputs: {
     beats: [
       { date: "1993-12-01", label: "Calm markets", emoji: "sun" },
-      { date: "1994-02-03", label: "The rate goes up", emoji: "bank" },
+      { date: "1994-02-04", label: "The rate goes up", emoji: "bank" },
       { date: "1994-05-09", label: "Prices keep falling", emoji: "chart-decreasing" },
     ],
   },
@@ -78,7 +78,7 @@ describe("story recipes", () => {
     const bad = storyScene({
       beats: [
         { who: "narrator", says: "Work out the EMI?" },
-        { who: "fed", says: "We are raising the rate, a little." },
+        { who: "narrator", says: "Tomorrow, the central bank gives its decision." },
       ],
     });
     const built = byId("story_scene").build(bad);
@@ -101,7 +101,7 @@ describe("story recipes", () => {
     const withDollar = storyScene({
       beats: [
         { who: "saver", says: "I paid $5 for that bond, in cash." },
-        { who: "fed", says: "We are raising the rate, a little." },
+        { who: "narrator", says: "Tomorrow, the central bank gives its decision." },
       ],
     });
     const inr: StoryContext = { exampleCurrency: "INR", caseCurrencies: [] };
@@ -177,7 +177,7 @@ describe("story recipes", () => {
   it("headline takes a scene id from the Tutor, never inline text, and resolves to the written-ahead scene", () => {
     const inline = parseHeadlineRef({
       title: "Rates up",
-      inputs: { paper: "Daily Ledger", date: "1994-02-04", headline: "Rates go up", source: "https://example.com/x" },
+      inputs: { paper: "Some paper", date: "1994-02-04", headline: "Rates go up", source: "https://example.com/x" },
       refs: {},
       facts: {},
     });
@@ -191,14 +191,14 @@ describe("story recipes", () => {
       {
         id: "fed-front-page",
         recipe: "headline",
-        title: "The day the bond market fell",
-        inputs: { paper: "The Daily Ledger", date: "1994-02-04", headline: "Central bank lifts rates", source: "https://example.com/fed" },
+        title: "The morning rates moved",
+        inputs: { paper: "The morning paper", date: "1994-02-04", headline: "Central bank tightens pressure", source: "https://example.com/fed" },
       },
     ];
     const resolved = headlineParamsForScene(scenes, { title: "Rates up", inputs: { scene: "fed-front-page" }, refs: {}, facts: {} });
     expect(resolved.ok).toBe(true);
     if (resolved.ok) {
-      expect(resolved.params.inputs).toMatchObject({ headline: "Central bank lifts rates" });
+      expect(resolved.params.inputs).toMatchObject({ headline: "Central bank tightens pressure" });
       expect(byId("headline").build(resolved.params).ok).toBe(true);
     }
     const missing = headlineParamsForScene(scenes, { inputs: { scene: "nope" } });
