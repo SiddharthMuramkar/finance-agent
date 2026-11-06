@@ -257,6 +257,12 @@ describe("V4: a valid Widget", () => {
     expect(rules(draft("This shows a rate moving from 2% to 3%.", [RATE_MOVE]), ctx({ widgetOk: () => null }))).toEqual([]);
   });
 
+  it("exactly one, and code fills a missing one: no Widget is no problem, two are (E4a)", () => {
+    expect(checkReply(draft("A basis point is one hundredth of a point."), ctx())).toEqual([]);
+    const two = checkReply(draft("Two pictures.", [RATE_MOVE, { kind: "written", id: "rate-change-three-ways" }]), ctx());
+    expect(two).toEqual([{ rule: "V4", message: "Your reply showed 2 Widgets. The limit is one." }]);
+  });
+
   it("fails two Widgets in one reply", () => {
     expect(rules(draft("Two pictures.", [RATE_MOVE, { kind: "written", id: "rate-change-three-ways" }]), ctx())).toEqual(["V4"]);
   });

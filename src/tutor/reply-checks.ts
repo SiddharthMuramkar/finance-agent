@@ -335,7 +335,8 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   const bold = said.match(BOLD)?.length ?? 0;
   if (bold > 1) problems.push({ rule: "V3", message: `Your reply had ${bold} bold spans. The limit is one: the rule worth writing down.` });
 
-  // V4: one Widget a reply, and a valid one.
+  // V4: exactly one Widget a reply, and a valid one. None is not the Tutor's problem: code adds a Companion Widget
+  // after the checks (companion.ts, ADR 0010). More than one is still refused.
   if (draft.widgets.length > 1)
     problems.push({ rule: "V4", message: `Your reply showed ${draft.widgets.length} Widgets. The limit is one.` });
   for (const w of draft.widgets) {
