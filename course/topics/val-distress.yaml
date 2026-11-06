@@ -75,26 +75,26 @@ youllLearn:
 questions:
   - id: vd-q-going-liquidation
     prompt: >
-      A firm's assets could be sold for Rs 600 crore today (liquidation value). Run as a going concern, its business is worth Rs 900 crore. It owes lenders Rs 700 crore. What are the equity's values under the two views?
+      A firm owes its lenders a large sum. Run as a going concern, its business is worth more than that debt. Sold off in a rush (liquidation), its assets would fetch less than the debt. Which headline gets it right for the shareholders?
     choices:
-      - { id: a, text: "Rs 200 crore as a going concern; nothing if liquidated" }
-      - { id: b, text: "Rs 900 crore as a going concern; Rs 600 crore if liquidated" }
-      - { id: c, text: "Rs 200 crore under both views" }
-      - { id: d, text: "Nothing under both views" }
+      - { id: a, text: "They keep something if the business carries on, and get nothing if it is sold off in a rush" }
+      - { id: b, text: "They get whatever the assets fetch in a rush sale", mistake: { tag: ignored_debt, fix: "Lenders are paid first. Equity is only what is left after the debt." } }
+      - { id: c, text: "They are wiped out under both views", mistake: { tag: ignored_going_concern, fix: "If the business carries on it is worth more than its debt, so something is left." } }
+      - { id: d, text: "They get the full value of the business either way", mistake: { tag: ignored_debt, fix: "Debt comes off first, and a rush sale fetches less than a going concern." } }
     answer: a
     explanation: >
-      Equity is what is left after debt. Going concern: 900 - 700 = Rs 200 crore. Liquidation: the Rs 600 crore of proceeds all goes to lenders, who are still short by Rs 100 crore, so shareholders get nothing.
+      Equity is what is left after debt, because lenders are paid first. If the business carries on, it is worth more than the debt, so something is left for shareholders. In a rush sale all the proceeds go to lenders, who are still short, so shareholders get nothing.
     source: >
       Damodaran, The Value of Distressed Firms (Library), going-concern and distress sale value: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
 
   - id: vd-q-option
     prompt: >
-      A firm's assets are worth Rs 80 crore and it owes Rs 100 crore in a year, and its asset value is very uncertain. Why might its shares still be worth more than zero?
+      A firm's assets are worth Rs 80 crore and it owes lenders Rs 100 crore in a year, and what the assets will be worth is very uncertain. Why might its shares still be worth something?
     choices:
       - { id: a, text: "Shareholders keep the gain if asset value rises above the debt and cannot lose more than their stake, like holding an option" }
-      - { id: b, text: "Debt is always cancelled when assets are worth less than the debt" }
-      - { id: c, text: "Shares are always worth at least their face value" }
-      - { id: d, text: "Lenders must give shareholders part of the assets" }
+      - { id: b, text: "Debt is always cancelled when assets are worth less than the debt", mistake: { tag: debt_cancelled, fix: "Debt is not cancelled. Shareholders simply cannot lose more than their stake." } }
+      - { id: c, text: "Shares are always worth at least their face value", mistake: { tag: face_value, fix: "Face value is only a label. Share value depends on what is left after debt." } }
+      - { id: d, text: "Lenders must give shareholders part of the assets", mistake: { tag: lenders_share, fix: "Lenders are paid first. Shareholders gain only if asset value rises past the debt." } }
     answer: a
     explanation: >
       Equity holders have limited liability. If asset value ends up above the Rs 100 crore, they keep the excess. If it ends up below, they lose the shares but no more. The more uncertain the asset value, the more that option is worth.
@@ -103,29 +103,29 @@ questions:
 
   - id: vd-q-expected
     prompt: >
-      A firm is worth Rs 400 crore if it survives and Rs 100 crore if it is forced into a distress sale. You put the probability of distress at 30 percent. What is its expected value?
+      A firm would be worth a lot if it survives and far less if it is forced into a distress sale. You think distress could happen, but survival is more likely. Which description of its value is the sensible one?
     choices:
-      - { id: a, text: "Rs 250 crore" }
-      - { id: b, text: "Rs 310 crore" }
-      - { id: c, text: "Rs 370 crore" }
-      - { id: d, text: "Rs 400 crore" }
+      - { id: a, text: "Halfway between the two, since either could happen", mistake: { tag: equal_weights, fix: "The two outcomes are not equally likely. Weigh each by its chance." } }
+      - { id: b, text: "A blend of the two weighted by their chances, so closer to the survival value" }
+      - { id: c, text: "The survival value, because that is what the firm is meant to be worth", mistake: { tag: ignored_distress, fix: "Ignoring the chance of distress overstates the value. Weigh in the bad case too." } }
+      - { id: d, text: "The distress value, to be safe", mistake: { tag: only_worst_case, fix: "Planning for the worst alone is too gloomy. Weigh both cases by their chances." } }
     answer: b
     explanation: >
-      Expected value = 0.70 x 400 + 0.30 x 100 = 280 + 30 = Rs 310 crore. Ignoring the chance of distress overstates the value by Rs 90 crore here.
+      Expected value weighs each outcome by its chance. Survival is the likelier case, so the blend sits nearer the survival value, but the chance of distress still pulls it down. Ignoring that chance overstates the value.
     source: >
       Damodaran, The Value of Distressed Firms (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
 
   - id: vd-q-enterprise
     prompt: >
-      A company has a stock market value of Rs 4,000 crore, debt of Rs 6,500 crore and cash of Rs 500 crore. What is its enterprise value?
+      A heavily indebted company has shares, a lot of debt and some cash. Analysts want one figure for the whole business: the market value of the shares plus the debt, less the cash it holds. What do they call that figure?
     choices:
-      - { id: a, text: "Rs 3,500 crore" }
-      - { id: b, text: "Rs 10,000 crore" }
-      - { id: c, text: "Rs 11,000 crore" }
-      - { id: d, text: "Rs 4,000 crore" }
+      - { id: a, text: "Market capitalisation", mistake: { tag: shares_only, fix: "Market capitalisation counts the shares alone. It leaves the debt out." } }
+      - { id: b, text: "Enterprise value" }
+      - { id: c, text: "Book value", mistake: { tag: accounting_value, fix: "Book value is an accounting figure, not the market price of the whole business." } }
+      - { id: d, text: "Net worth", mistake: { tag: net_worth, fix: "Net worth is assets less liabilities, which is a different thing." } }
     answer: b
     explanation: >
-      Enterprise value = equity value + debt - cash = 4,000 + 6,500 - 500 = Rs 10,000 crore. In a heavily indebted company, equity is only a small part of the value of the business.
+      Enterprise value prices the whole business: the shares plus the debt, less the cash. In a heavily indebted company the shares are only a small part of it, so a small fall in the business's value can wipe out much of the equity.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation (enterprise value multiples): https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
 
@@ -134,9 +134,9 @@ questions:
       A promoter has pledged most of his shares in the company to lenders as security for loans. What can happen if the share price falls sharply?
     choices:
       - { id: a, text: "Lenders can take ownership of the pledged shares and sell them, which can push the price down further" }
-      - { id: b, text: "The pledge is cancelled automatically" }
-      - { id: c, text: "The company must buy back the shares at the original price" }
-      - { id: d, text: "Nothing, because a pledge does not give lenders any rights over the shares" }
+      - { id: b, text: "The pledge is cancelled automatically", mistake: { tag: pledge_cancelled, fix: "A pledge stays until the loan is repaid. Nothing cancels it." } }
+      - { id: c, text: "The company must buy back the shares at the original price", mistake: { tag: forced_buyback, fix: "Nothing forces a buy-back. Lenders simply sell the shares." } }
+      - { id: d, text: "Nothing, because a pledge does not give lenders any rights over the shares", mistake: { tag: no_rights, fix: "A pledge does give lenders a claim on the shares if the security falls short." } }
     answer: a
     explanation: >
       A pledge gives lenders a claim on the shares if the loan is not repaid or the security falls short. They may take the shares and sell them, adding supply to a falling market. That is why pledges raise the chance of a spiral in a distressed company.
@@ -159,13 +159,13 @@ checks:
     kind: conversation
     prompt: >
       On the evening of 29 July 2019 Coffee Day Enterprises has a stock market value of Rs 4,068
-      crore, loans of about Rs 6,550 crore and a promoter group holding 76 percent pledged. Explain
-      how you would value its shares, why a single discounted cash flow value could mislead, and
-      what the pledge adds to the risk.
+      crore, loans of about Rs 6,550 crore and a promoter group holding 76 percent pledged. Say in
+      your own words why its shares might still have value, why one steady-growth value could
+      mislead, and what the pledge adds to the risk.
     passCriteria: >
-      The Learner explains that equity is what is left after debt and behaves like an option, so
-      it can be worth something even if asset values are close to or below debt, but that value
-      depends heavily on the chance of survival. They say the valuation should weigh a
+      The Learner explains that equity is the part that remains once debt is paid and behaves like
+      an option, so it can still have value even if asset values are close to or below debt, but
+      that value depends heavily on the chance of survival. They say the valuation should weigh a
       going-concern value against what assets would fetch in a forced sale, using a probability
       of distress, and that going-concern DCF alone ignores the failure case. They explain that
       the pledge lets lenders take and sell shares if the price falls, which can force the price

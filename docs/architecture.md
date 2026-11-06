@@ -4670,6 +4670,13 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** In `fol-money-trap` a Learner meets a company whose monthly revenue rose from $10 million to $32 million, and a report that scales December up to a year. The question used to ask for the year's revenue and the annualised figure. It now asks "Which headline gets it right?", and a Learner who picks "annualised revenue is the sum of the twelve months" is told that annualising scales one month up.
 
 **Trade-off.** A choice question about what a number means tests understanding, not working-out, so a Learner can no longer show the calculation. The cost is accepted because the owner wants comprehension, and the Case still carries the figures for anyone who wants to check them.
+## Foundation Topics, story questions batch D2f (`course/topics/val-distress.yaml` and seven more, spec 2026-11-05, ticket D2f)
+
+**What it does.** Eight Foundation Topics (`val-distress`, `val-implied-erp`, `val-india`, `cf-venture`, `bank-regulation`, `crisis-bank-runs`, `struct-securitisation`, `private-credit`) now ask about the story and the words. A quiz question that used to ask for a figure ("What is its CET1 ratio?") asks which headline gets it right or what a word means, and the numbers stay as facts in the story or in the choice labels. Every wrong choice carries a Known mistake, a tag and a one-line fix that shows when it is tapped. The two conversation Checks that asked for a sum ask the Learner to say it in their own words. The batch's ids leave `L10_NOT_YET_STORY`, and three that no longer type a formula leave `NOT_YET_CONVERTED` in `src/course/formula-check.ts`.
+
+**Scenario.** A Learner on Bank regulation meets "A bank has a CET1 ratio of about 9% and must hold 7%: which headline gets it right?" They tap "It only just meets the minimum" and see "With the buffer the requirement is 7%, so 9% leaves a 2-point cushion." They learn the word and the idea and never divide anything.
+
+**Trade-off.** A question about a reading is easier to guess than a sum, so the Check's two-in-a-row rule and the fixes on wrong taps carry more of the weight. Every wrong choice has to be a plausible slip a beginner really makes, which takes more writing than a number distractor.
 
 ## Page frame (`src/app/globals.css` (`--gutter`, `--gap`, `--page-max`, `measure`, `card-grid`), `workspace-frame.tsx`, `study/page.tsx`, `ui.tsx` (`ReadingPage`), `old-session.tsx`, `route-skeleton.tsx`, `src/app/no-width-caps.test.ts`, spec 2026-11-05, ticket A1)
 
