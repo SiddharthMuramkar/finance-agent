@@ -8,7 +8,8 @@ import { usePrefersReducedMotion } from "../wave1/motion";
 import { motionFlag, Pic } from "./shared";
 
 // TwoPaths: two characters make two choices. "See what happened" under each reveals its outcome as a row of objects
-// (two houses against one), never as numbers.
+// (two houses against one), never as numbers. Both paths are a story, so both carry sunflower (Appendix A); the sides
+// differ by place, character and choice, never by an accent that means something else (violet is lingo).
 
 const pathProps = z.object({
   emoji: z.string().describe("An emoji name for the character"),
@@ -42,7 +43,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
     <div
       data-testid="path"
       data-side={tone}
-      className={`flex min-w-0 flex-col gap-2 rounded-xl border border-t-4 border-[var(--brand-line)] bg-[var(--field)] p-3 ${tone === "left" ? "border-t-[var(--sun)]" : "border-t-[var(--violet)]"}`}
+      className={`flex min-w-0 flex-col gap-2 rounded-xl border border-t-4 border-[var(--brand-line)] bg-[var(--field)] p-3 border-t-[var(--sun)]`}
     >
       <div className="flex items-center gap-3">
         <span className="shrink-0">
@@ -60,7 +61,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
       </div>
       <div aria-live="polite">
         {shown && (
-          <div data-testid="path-outcome" className={`rounded-lg px-3 py-2 ${tone === "left" ? "bg-[var(--sun-tint)]" : "bg-[var(--violet-tint)]"} ${reduced ? "" : "story-pop"}`}>
+          <div data-testid="path-outcome" className={`rounded-lg px-3 py-2 bg-[var(--sun-tint)] ${reduced ? "" : "story-pop"}`}>
             <p className="flex flex-wrap items-center gap-1" aria-hidden="true">
               {objects.map((name, i) => (
                 <Pic key={i} name={name} size={32} />
