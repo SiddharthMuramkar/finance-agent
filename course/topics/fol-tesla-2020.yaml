@@ -105,15 +105,15 @@ questions:
     source: Expected value of two outcomes; the failure-probability adjustment is the second risk input in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", 6 February 2020.
   - id: ft-q-rd
     prompt: >
-      Tesla's accounts charge all its research spending (R&D) against this year's income. In February 2020 Damodaran treats R&D as an investment instead, written off over years. What happens to operating income?
+      6 February 2020: your cousin, deciding whether to buy Tesla, reads that Damodaran counts its research spending (R&D) as an investment, written off over years. Which headline gets his Tesla profit right?
     choices:
-      - { id: a, text: "It looks higher: most of this year's R&D isn't charged at once" }
-      - { id: b, text: "It rises by the whole R&D bill, which is ignored", mistake: { tag: ignored_writeoff, fix: "Nothing is ignored: the R&D still gets charged, a piece each year." } }
-      - { id: c, text: "It looks lower: the write-off is an extra charge", mistake: { tag: subtracted_only, fix: "It swaps one big charge this year for smaller yearly ones. Nothing extra is added." } }
-      - { id: d, text: "It stays the same: the cost is only relabelled", mistake: { tag: relabel_only, fix: "Spreading the cost changes how much is charged this year, so income changes." } }
+      - { id: a, text: "His Tesla profit looks higher: most of this year's R&D is charged later" }
+      - { id: b, text: "He drops the R&D bill, so profit jumps by all of it", mistake: { tag: ignored_writeoff, fix: "Nothing is ignored: the R&D still gets charged, a piece each year." } }
+      - { id: c, text: "His write-offs pile an extra cost on Tesla, so profit falls", mistake: { tag: subtracted_only, fix: "It swaps one big charge this year for smaller yearly ones. Nothing extra is added." } }
+      - { id: d, text: "Same profit, new label: moving R&D changes nothing", mistake: { tag: relabel_only, fix: "Spreading the cost changes how much is charged this year, so profit changes." } }
     answer: a
     explanation: >
-      Treating R&D as an investment adds back the year's R&D expense and charges only the write-off for the year. When R&D is growing, that charge is smaller, so operating income rises. That is how Damodaran's story improves Tesla's margin.
+      Treating R&D as an investment adds back the year's R&D expense and charges only the write-off for the year. When R&D is growing, that charge is smaller, so operating income (profit before interest) rises. That is how Damodaran's story improves Tesla's margin.
     source: R&D capitalisation, as described in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
 checks:
   - id: ft-quiz-levers
