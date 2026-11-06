@@ -50,9 +50,10 @@ function NumberLine({ oldRate, newRate }: { oldRate: number; newRate: number }) 
   const to = x(newRate);
   const moved = Math.round(oldRate * 100) !== Math.round(newRate * 100);
   const dir = newRate > oldRate ? 1 : -1;
-  // Accents by meaning (spec 2026-11-05 accent meanings, #471): a rise is a gain (mint), a fall a loss (coral); the Old
-  // rate is history (sunflower ink). No move keeps the brand dot.
-  const moveInk = dir > 0 ? "var(--mint)" : "var(--coral)";
+  // Accents by meaning (spec 2026-11-05 accent meanings, #471): the Old rate is history (sunflower ink). A rate move has
+  // no money in it, so its direction is neither a gain (mint, which also means "you") nor a loss (coral): the arrow
+  // keeps the direction-neutral brand colour.
+  const moveInk = "var(--brand)";
   const label = moved
     ? `A number line: the rate moves from ${rateText(oldRate)}% ${dir > 0 ? "up" : "down"} to ${rateText(newRate)}%.`
     : `A number line: the rate stays at ${rateText(oldRate)}%.`;

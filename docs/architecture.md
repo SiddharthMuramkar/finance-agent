@@ -1041,14 +1041,14 @@ Tutor's follow-up decides whether it is understood. The play sliders are part st
 so they are not saved with the Session and a Guided Task cannot read them. Code reading a shown `rate_move` (the
 readouts sent to the Tutor) is T14's; the state names stay exported as `RATE_MOVE_STATE`.
 
-**Accents by meaning (issue #471).** The part paints the accent families by what they mean, not as decoration: the
-arrow and its head are `--mint` on a rise (a gain) and `--coral` on a fall (a loss), and the brand dot stays for no
-move; the Old tick and its "Old 4%" label are `--sun-ink` (the earlier rate, history); the three readout labels
-("Points", "Basis points", "Percent of the old rate") are `--violet-ink` (lingo), the text-safe violet. Scenario: the
-concept-widget cell of the F1 matrix shows `rate_move` 4% to 5% and now paints mint, sun and violet, three families, so
-"/study with a Widget shows ≥ 3 accents" holds without a staged seed. Trade-off: the readout labels lose their muted,
-quiet look and the arrow's colour now changes with the direction, which is a second cue beside the arrowhead (never
-the only one, so colour-blind Learners still read the move from the head and the words).
+**Accents by meaning (issue #471).** The part paints accent families only where they mean something: the Old tick
+and its "Old 4%" label are `--sun-ink` (the earlier rate, history), and the three readout labels ("Points", "Basis
+points", "Percent of the old rate") are `--violet-ink` (lingo), the text-safe violet. The arrow and its head keep the
+direction-neutral `--brand`: a rate move has no money in it, so a rise is not a gain and a fall is not a loss (mint
+also means "you", coral a loss), and painting the Fed's 1994 hike as a mint gain would misteach. Scenario: the
+concept-widget cell of the F1 matrix shows `rate_move` 4% to 5% and paints sun and violet; with the mint already on the
+page (a `--mint-tag` Tag) the cell shows three families, so "/study with a Widget shows ≥ 3 accents" holds
+without a staged seed. Trade-off: the readout labels lose their muted, quiet look.
 
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
