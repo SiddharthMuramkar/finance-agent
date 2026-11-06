@@ -6,7 +6,7 @@ import type { Marking } from "@/course/quiz";
 import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import { MarkedText } from "@/widgets/marked-text";
 import type { SessionItemData } from "./session-item-view";
-import { PrimaryButton } from "./ui";
+import { PrimaryButton, SecondaryButton } from "./ui";
 
 /** A marking on screen, with the Check's number for Try Check <k> again. */
 type Result = Marking & { attemptNo: number; checkNumber: number };
@@ -128,6 +128,11 @@ export function QuizPanel({
     router.refresh();
   }
 
+  const complete = !!active && active.questions.every((q) => picked[q.id]?.trim());
+  // No primary claim here: while a Check is open, or after a miss, the Course Navigator offers no Next (nextOfferNow is
+  // null), so Submit and Try again are already the view's one primary. A passed Check's Done is secondary: Next in the
+  // conversation is the main move then (Appendix B.7, #478).
+
   if (result) {
     return (
       <section aria-label="Quiz result" data-testid="quiz-result">
@@ -183,9 +188,9 @@ export function QuizPanel({
           <p className="mt-2 text-sm leading-5 text-[var(--danger)]">{error}</p>
         )}
         {result.passed ? (
-          <PrimaryButton onClick={dismiss} className="mt-3">
+          <SecondaryButton onClick={dismiss} className="mt-3">
             Done
-          </PrimaryButton>
+          </SecondaryButton>
         ) : (
           <PrimaryButton
             onClick={() => void retry()}
@@ -204,7 +209,6 @@ export function QuizPanel({
     );
   }
   if (!active) return null;
-  const complete = active.questions.every((q) => picked[q.id]?.trim());
   return (
     <section aria-label="Quiz" data-testid="quiz">
       {active.attemptNo > 0 && (
