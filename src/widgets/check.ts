@@ -190,6 +190,13 @@ const DISCOVERY_PARTS = new Set(["Breakeven", "Predict", "DrawTheLine", "QuickCh
 export function archetypeOf(code: string): Archetype | null {
   const { components, tools, datasets } = widgetParts(code);
   const has = (...names: string[]) => names.some((name) => components.includes(name));
+  // The story parts (E2a/E2b, recipes in E3): the same archetypes their recipes carry.
+  if (has("LingoCard")) return "Lingo";
+  if (has("StoryScene", "TwoPaths")) return "Story";
+  if (has("MythOrFact", "ChoiceCards")) return "Check";
+  if (has("TimelineStrip", "Headline")) return "History";
+  if (has("WhoPaysWhom")) return "Chain";
+  if (has("MoneyJar")) return "Grow";
   if (has("QuickCheck")) return "Check";
   // A quiz of dropdowns: Selects with no slider to move and nothing drawn.
   if (has("Select") && !has("Slider", ...CHARTS)) return "Check";

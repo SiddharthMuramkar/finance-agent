@@ -1,6 +1,7 @@
 import { widgetNodes } from "@/widgets/check";
 import { RECIPES, recipeById } from "@/widgets/recipes";
 import { recipeSignature } from "@/widgets/recipes/define";
+import { parseHeadlineRef } from "@/widgets/recipes/set-story";
 import { sliderStep } from "@/widgets/slider-steps";
 import type { ReplyWidget } from "./reply-checks";
 
@@ -17,9 +18,18 @@ const NOT_FOR_TEACHING = ["quick_check", "percent_points"] as const;
 /** The recipes the Tutor may choose from: every recipe except quick_check and percent_points. */
 export const TUTOR_RECIPE_IDS: readonly string[] = RECIPES.map((r) => r.id).filter((id) => !(NOT_FOR_TEACHING as readonly string[]).includes(id));
 
+/**
+ * Headline as the Tutor sees it (E3): a front page is written ahead as a Topic scene, so the Tutor gives only
+ * the scene to open and code swaps in its text in show_widget. Its real recipe schema is never listed here.
+ */
+const HEADLINE_TUTOR_SIGNATURE =
+  '- headline (History): A period front page written ahead as a Topic scene. Give only the scene to open; never write its text.\n  params: {"title":"...","inputs":{"scene":"<headline scene id>"},"refs":{},"facts":{}}';
+
 /** The Tutor's catalogue as its instructions list it: each recipe's id, use and params schema. */
 export function tutorRecipeSignatures(): string {
-  return RECIPES.filter((r) => TUTOR_RECIPE_IDS.includes(r.id)).map(recipeSignature).join("\n");
+  return RECIPES.filter((r) => TUTOR_RECIPE_IDS.includes(r.id))
+    .map((r) => (r.id === "headline" ? HEADLINE_TUTOR_SIGNATURE : recipeSignature(r)))
+    .join("\n");
 }
 
 /** What show_widget says when a Session frozen with quick_check still calls it. */
@@ -116,6 +126,8 @@ export function widgetValidator(writtenAhead: readonly { id: string; code: strin
     }
     if (w.id === "quick_check") return QUICK_CHECK_REFUSAL.replace(/^Not shown: /, "");
     if (!TUTOR_RECIPE_IDS.includes(w.id)) return `there is no Widget recipe "${w.id}" in the Tutor's catalogue.`;
+    // A Tutor headline call names a written-ahead scene; show_widget resolves it and stores the scene's text.
+    if (w.id === "headline" && parseHeadlineRef(w.params ?? {}).ok) return null;
     const built = recipeById(w.id)!.build(w.params ?? {});
     if (!built.ok) return `these params do not fit the ${w.id} recipe. ${built.error}`;
     const problems = illustrationProblems(w.id, built.params);

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
+import { IconButton } from "../primitives";
 
 /** What the passcode field and its eye look like: hidden offers "Show passcode", shown offers "Hide passcode". */
 export function passcodeEye(shown: boolean): { type: "password" | "text"; label: string } {
@@ -22,22 +21,15 @@ export function PasscodeField() {
         autoFocus
         required
         autoComplete="current-password"
-        className="w-full rounded border border-[var(--border)] bg-[var(--field)] py-2 pl-3 pr-11 text-[var(--ink)]"
+        className="w-full rounded border border-[var(--border)] bg-[var(--field)] py-2 pl-3 pr-14 text-[var(--ink)]"
       />
-      <button
-        type="button"
-        onClick={() => setShown(!shown)}
-        aria-label={eye.label}
-        aria-pressed={shown}
-        title={eye.label}
-        className={`absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r text-[var(--muted)] hover:text-[var(--ink)] ${focusRing}`}
-      >
+      <IconButton label={eye.label} pressed={shown} onClick={() => setShown(!shown)} className="absolute right-1 top-1/2 -translate-y-1/2 !h-8 !w-8">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
           <circle cx="12" cy="12" r="3" />
           {shown && <path d="M3 3l18 18" />}
         </svg>
-      </button>
+      </IconButton>
     </div>
   );
 }

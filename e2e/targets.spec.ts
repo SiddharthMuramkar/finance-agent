@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { say, seed, type Script } from "./support/app";
+import { hydrated, say, seed, type Script } from "./support/app";
 import { auditAffordances, measureLayout } from "./support/measure";
 
 /**
@@ -20,7 +20,6 @@ async function study(page: Page, state: Parameters<typeof seed>[1] = "story") {
 }
 
 test("[A1] side gutter at 1512×982 on /study is 32 px or less each side", async ({ page }) => {
-  test.fail(true, "[A1] full-screen workspace");
   await study(page);
   const m = await measureLayout(page);
   expect(m.gutterLeft).toBeLessThanOrEqual(32);
@@ -28,7 +27,6 @@ test("[A1] side gutter at 1512×982 on /study is 32 px or less each side", async
 });
 
 test("[A1] side gutter at 1512×982 on /course is 32 px or less each side", async ({ page }) => {
-  test.fail(true, "[A1] full-screen reading pages");
   await seed(page, "many-topics");
   await page.goto("/course");
   await expect(page.getByTestId("reading-column")).toBeVisible();
@@ -38,14 +36,11 @@ test("[A1] side gutter at 1512×982 on /course is 32 px or less each side", asyn
 });
 
 test("[A1] Widget panel width at 1512 is 55 % of the viewport or more", async ({ page }) => {
-  test.fail(true, "[A1] the Widget panel is the star");
   await study(page, "concept-widget");
   expect((await measureLayout(page)).panelWidthPct).toBeGreaterThanOrEqual(55);
 });
 
 test("[A2] header height is 56 px or less and the chat body font is 15 px", async ({ page }) => {
-  // The header alone already measures 36 px today, so the font (A2's other metric, §1.1 row 9) keeps this target red.
-  test.fail(true, "[A2] denser workspace");
   await study(page);
   const m = await measureLayout(page);
   expect(m.headerHeight).toBeLessThanOrEqual(56);
@@ -53,8 +48,8 @@ test("[A2] header height is 56 px or less and the chat body font is 15 px", asyn
 });
 
 test("[A3b] interactive elements without a signifier and non-interactive elements with cursor:pointer are 0", async ({ page }) => {
-  test.fail(true, "[A3b] buttons look like buttons");
   await study(page, "concept-widget");
+  await hydrated(page);
   const audit = await auditAffordances(page);
   expect(audit.interactiveWithoutSignifier).toEqual([]);
   expect(audit.pointerOnStatic).toEqual([]);
@@ -69,7 +64,6 @@ test("[A5] the header has a gear with the name Settings and no Settings text lin
 });
 
 test("[B1] old page redirects: GET /progress answers 308 to /course", async ({ page }) => {
-  test.fail(true, "[B1] Course Map shows progress");
   await seed(page, "many-topics");
   const response = await page.request.get("/progress", { maxRedirects: 0 });
   expect(response.status()).toBe(308);
@@ -77,7 +71,6 @@ test("[B1] old page redirects: GET /progress answers 308 to /course", async ({ p
 });
 
 test("[B2a] /notebook renders", async ({ page }) => {
-  test.fail(true, "[B2a] Notebook");
   await seed(page, "many-topics");
   const response = await page.goto("/notebook");
   expect(response?.status()).toBe(200);

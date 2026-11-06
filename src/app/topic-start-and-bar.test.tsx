@@ -121,6 +121,7 @@ describe("a finished step on the Topic bar", () => {
     // The current step (Your turn, step 3) is highlighted, not a button.
     expect(bar.querySelector('button[data-step-number="3"]')).toBeNull();
     expect(bar.querySelector('[aria-current="step"]')?.textContent).toBe("Your turn");
-    expect(bar.querySelector('button[data-step-number="1"]')?.className).toContain("pressable");
+    // A finished step is a small raised Chip (spec A3b), so it reads as a button.
+    expect(bar.querySelector('button[data-step-number="1"]')?.getAttribute("data-affordance")).toBe("chip");
   });
 });

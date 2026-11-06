@@ -62,29 +62,29 @@ youllLearn:
 questions:
   - id: op-q-call-profit
     prompt: >
-      You buy a call option with a strike of $50 for a premium of $3. At expiry the share price is $58. What is your profit per share?
+      Zara paid a small premium for a call on a games company before its big launch. The launch is a hit, and at expiry the share sits well above her strike. Her friend asks how she did. What is the honest answer?
     choices:
-      - { id: a, text: "$5" }
-      - { id: b, text: "$8" }
-      - { id: c, text: "$3" }
-      - { id: d, text: "$11" }
+      - { id: a, text: "The call is in the money, but the premium you paid comes out of the gain" }
+      - { id: b, text: "The call is in the money and the whole gain is yours: the premium no longer counts", mistake: { tag: forgot_premium, fix: "The premium was paid up front, so it still comes off the gain." } }
+      - { id: c, text: "The call is out of the money: you lose the premium", mistake: { tag: out_of_the_money_mixup, fix: "A share above the strike means in the money. The call pays something." } }
+      - { id: d, text: "The call is at the money: no gain, no loss", mistake: { tag: at_the_money_mixup, fix: "At the money means share equals strike. Here the share ended above the strike." } }
     answer: a
     explanation: >
-      The call pays 58 - 50 = $8 at expiry. You paid $3 for it, so the profit is 8 - 3 = $5. $8 forgets the premium.
+      A call pays the gap between the share price and the strike, and the premium paid up front comes off that gain. With a $50 strike, a $3 premium and the share at $58, Zara is $5 ahead, not $8.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (call and put payoffs, premium): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; payoff calculated as max(S - K, 0) minus premium
 
   - id: op-q-put-profit
     prompt: >
-      You buy a put option with a strike of $100 for a premium of $4. At expiry the share price is $80. What is your profit per share?
+      Sam thought a share was overpriced, so he paid a small premium for a put on it. At expiry the share has slumped well below his strike. His friend asks how the bet went. What is the honest answer?
     choices:
-      - { id: a, text: "$16" }
-      - { id: b, text: "$20" }
-      - { id: c, text: "$24" }
-      - { id: d, text: "-$4" }
-    answer: a
+      - { id: a, text: "The put is out of the money and expires worthless", mistake: { tag: put_pays_on_a_rise, fix: "A put gains when the share ends below the strike, and this one ended well below it." } }
+      - { id: b, text: "The put is in the money; the premium comes off the gain" }
+      - { id: c, text: "The put pays you the whole strike price", mistake: { tag: paid_strike_not_gap, fix: "A put pays the gap between the strike and the share price, not the strike itself." } }
+      - { id: d, text: "The put is in the money and the premium no longer counts", mistake: { tag: forgot_premium, fix: "The premium was paid up front, so it still comes off the gain." } }
+    answer: b
     explanation: >
-      The put pays 100 - 80 = $20. After the $4 premium the profit is $16. The loss is $4 only if the share ends at or above $100.
+      A put pays the gap between the strike and the share price, and the premium paid up front comes off that gain. With a $100 strike, a $4 premium and the share at $80, Sam is $16 ahead. He loses only the premium if the share ends at or above the strike.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (call and put payoffs, premium): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; payoff calculated as max(K - S, 0) minus premium
 
@@ -104,15 +104,15 @@ questions:
 
   - id: op-q-protective-put
     prompt: >
-      You own a share bought at $100 and also buy a put with a strike of $90 for $3. What is the most you can lose per share at expiry?
+      Dev owns a share he loves, but he needs the money for his wedding next spring and fears a crash before then. He buys a put with a strike a little below today's price. What does the put do for him?
     choices:
-      - { id: a, text: "$13" }
-      - { id: b, text: "$10" }
-      - { id: c, text: "$3" }
-      - { id: d, text: "$97" }
-    answer: a
+      - { id: a, text: "It removes every loss: you cannot lose money", mistake: { tag: insurance_is_free, fix: "You still lose the premium and the drop down to the strike." } }
+      - { id: b, text: "It gains when the share rises", mistake: { tag: put_gains_on_a_rise, fix: "A put gains when the share falls, not when it rises." } }
+      - { id: c, text: "It fixes the share at today's price, so he can no longer gain", mistake: { tag: fixes_the_price, fix: "The put sets a floor but leaves the upside. If the share rises he still gains." } }
+      - { id: d, text: "It puts a floor under your loss: the worst case is capped" }
+    answer: d
     explanation: >
-      If the share falls to $90 or below, the put lets you sell at $90: you lose 100 - 90 = $10 on the share plus the $3 premium, $13 in all. The floor holds however far the share falls.
+      However far the share falls, the put lets Dev sell at the strike, so his loss stops there plus the premium he paid. Bought at $100 with a $90 strike and a $3 premium, the most he can lose is $13.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (options to limit one-sided risk): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; floor calculated as (purchase price - strike) + premium
 

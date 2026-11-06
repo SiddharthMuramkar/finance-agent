@@ -1,0 +1,2 @@
+root = Widget("How the story unfolded", [line])
+line = TimelineStrip([{date: "1993-12-01", label: "Calm markets", emoji: "sun"}, {date: "1994-02-04", label: "The rate goes up", emoji: "bank"}, {date: "1994-05-09", label: "Prices keep falling", emoji: "chart-decreasing"}], "1994-02-03")

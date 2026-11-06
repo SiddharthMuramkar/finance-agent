@@ -68,43 +68,43 @@ youllLearn:
 questions:
   - id: sd-q-spread
     prompt: >
-      A government's 10-year dollar bond yields 9.5%, while the US Treasury 10-year yield is 4.5%. What is the bond's default spread?
+      Ana is choosing between two 10-year dollar bonds: one from a young emerging country, one from the US Treasury. The emerging country's bond pays far more, and her broker warns that the extra comes with a catch. Why does that bond pay so much more?
     choices:
-      - { id: a, text: "5.0 percentage points (500 basis points)" }
-      - { id: b, text: "14.0 percentage points" }
-      - { id: c, text: "0.5 percentage points" }
-      - { id: d, text: "4.5 percentage points" }
-    answer: a
+      - { id: a, text: "The coupon: the interest printed on the bond", mistake: { tag: spread_is_coupon, fix: "The coupon is the bond's own interest rate. The gap between two yields is the spread." } }
+      - { id: b, text: "The haircut: the cut in value after a default", mistake: { tag: spread_is_haircut, fix: "A haircut comes after a default. The spread is the extra yield priced in beforehand." } }
+      - { id: c, text: "The reserve ratio: how much the central bank holds back", mistake: { tag: spread_is_reserves, fix: "Reserves are a central bank's holdings. They are not a gap between two yields." } }
+      - { id: d, text: "The default spread: the extra yield asked for the risk of not being repaid" }
+    answer: d
     explanation: >
-      The default spread is the yield on the country's bond minus the yield on a default-free bond in the same currency: 9.5% - 4.5% = 5.0 percentage points.
+      The default spread is the extra yield a country pays over a default-free bond in the same currency. If Ana's emerging-country bond yields 9.5% and the Treasury 4.5%, the spread is 5 percentage points, or 500 basis points: her pay for the risk of not being repaid.
     source: >
       Damodaran, Country Risk (Measuring Country Risk Premiums, country bond default spreads): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
   - id: sd-q-implied-prob
     prompt: >
-      A one-year bond issued by a government pays 12% if repaid; a default-free one-year bond pays 4%. If investors want only to be compensated for expected loss, and a defaulted bond pays nothing, what annual probability of default does this imply (closest)?
+      A government's one-year bond offers 12% while a default-free one-year bond offers 4%. A friend says the 12% bond is simply the better deal. What does the gap between the two yields tell a bond trader?
     choices:
-      - { id: a, text: "About 7%" }
-      - { id: b, text: "About 8%" }
-      - { id: c, text: "About 12%" }
-      - { id: d, text: "About 4%" }
-    answer: a
+      - { id: a, text: "The government bond will return more, since its yield is higher", mistake: { tag: yield_is_return, fix: "A high yield is only a promise. If default comes, the investor is paid less." } }
+      - { id: b, text: "Investors are being paid to carry the chance of default" }
+      - { id: c, text: "The government bond is expected to be held for longer", mistake: { tag: wrong_maturity, fix: "Both are one-year bonds. The wider yield pays for risk, not for length." } }
+      - { id: d, text: "The safe bond must be tax-free, so it can pay less", mistake: { tag: tax_catch, fix: "Tax is not what explains a wide gap. The extra yield is the price of default risk." } }
+    answer: b
     explanation: >
-      For the same expected payoff, (1 - p) x 1.12 = 1.04, so p = 1 - 1.04/1.12 = 7.1%. Equivalently, the 8-point gap divided by the 12% promised payoff (1.12) gives the same 7.1%.
+      A bond that pays 12% if repaid, compared with 4% for a safe bond, only makes sense to investors if there is a real chance of default. The extra yield is what investors ask for to cover that chance.
     source: >
       Yale ECON 251 (Financial Theory), Lecture 16, Chapter 2 (the gap between a risky borrower's rates and the safe rate is the default probability): https://oyc.yale.edu/economics/econ-251/lecture-16
 
   - id: sd-q-haircut
     prompt: >
-      After a default, creditors are offered new bonds worth 40 cents for each dollar of face value of the old bonds. An investor holds old bonds with a face value of $50,000. What is the value of the new bonds, and what is the investor's loss relative to face value?
+      Carlos's grandmother held bonds from a government that defaulted. A letter arrives: she can swap them for new bonds worth 40 cents for every dollar she was owed. Carlos's banker friend winces: "That is a deep one." What has she been asked to accept?
     choices:
-      - { id: a, text: "$20,000, a loss of 60%" }
-      - { id: b, text: "$20,000, a loss of 40%" }
-      - { id: c, text: "$30,000, a loss of 60%" }
-      - { id: d, text: "$40,000, a loss of 20%" }
-    answer: a
+      - { id: a, text: "The loss of the interest payments the old bonds used to pay (a coupon)", mistake: { tag: haircut_is_coupon, fix: "A coupon is a bond's interest payment, not the loss taken in a restructuring." } }
+      - { id: b, text: "A fall in the extra yield investors asked for before the default (a spread)", mistake: { tag: haircut_is_spread, fix: "A spread is the extra yield before a default. The loss taken in the swap is the haircut." } }
+      - { id: c, text: "A cut in what she is owed, taken to settle the debt (a haircut)" }
+      - { id: d, text: "A promise to keep the exchange rate fixed (a peg)", mistake: { tag: haircut_is_peg, fix: "A peg fixes an exchange rate. It has nothing to do with writing down debt." } }
+    answer: c
     explanation: >
-      0.40 x 50,000 = $20,000 of new bonds; the investor gives up $30,000 of face value, 60%. The 60% is the haircut.
+      An investor holding old bonds with a face value of $50,000 gets new bonds worth 0.40 x 50,000 = $20,000, giving up 60% of face value. That 60% is the haircut: the part of the debt that the creditor gives up.
     source: >
       US State Department, 2006 Investment Climate Statement, Argentina (restructuring offer measured in cents per dollar of face value of old debt): https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm
 

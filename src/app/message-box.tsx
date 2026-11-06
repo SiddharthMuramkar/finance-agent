@@ -137,7 +137,7 @@ export function MessageBox({
           />
         </div>
       )}
-      <ComposerPrimitive.Root className="flex gap-2">
+      <ComposerPrimitive.Root className="measure flex gap-2">
         <Button
           type="button"
           variant="secondary"
@@ -153,7 +153,7 @@ export function MessageBox({
           aria-label="Message"
           minRows={1}
           maxRows={6}
-          className="flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-base leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-hidden focus:ring-1 focus:ring-[var(--brand)]"
+          className="flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-[15px] leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-hidden focus:ring-1 focus:ring-[var(--brand)]"
         />
         <span
           className="contents"

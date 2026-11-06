@@ -1,15 +1,26 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db/client";
+import { getAuth } from "./better-auth";
+import { learnerForAuthUser } from "./google-learner";
 import { type Learner, learnerFromCookie } from "./learners";
 import { ACCESS_COOKIE, passcodeList } from "./passcode";
 
 /**
- * The signed-in Learner of this request, or null when it counts as signed out. The proxy has already
- * checked the cookie; every page and route checks it again here before reading any Learner data,
- * so an archived Learner, or a name taken off the passcode list, is signed out everywhere at once.
+ * The signed-in Learner of this request, or null when it counts as signed out. Better Auth first
+ * (C1b): a Google session resolves to its Learner through `learnerForAuthUser`, and that answer
+ * stands even when it is null (not invited, sign-up closed). Only with no Better Auth session does
+ * the passcode cookie decide, and only there must the Learner's name be on `PASSCODES`; a
+ * Google-linked Learner never needs a passcode. While Google sign-in is off there is no instance and
+ * Better Auth is skipped. The proxy has already checked a cookie; every page and route checks again
+ * here before reading any Learner data, so an archived Learner is signed out everywhere at once.
  */
 export async function currentLearner(): Promise<Learner | null> {
+  const auth = getAuth();
+  if (auth) {
+    const found = await auth.api.getSession({ headers: await headers() });
+    if (found) return learnerForAuthUser(getDb(), found.user);
+  }
   const jar = await cookies();
   return learnerFromCookie(getDb(), jar.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "", passcodeList());
 }

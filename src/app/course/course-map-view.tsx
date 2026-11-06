@@ -1,6 +1,7 @@
 import type { TopicOverview } from "@/course/navigator";
 import { backAt } from "@/tutor/park-items";
-import { Card, Eyebrow, KeyValueRow, Pill } from "../ui";
+import { progressSummary } from "@/course/progress-summary";
+import { Card, Chevron, Eyebrow, Pill, Tag } from "../ui";
 import { BackToPathButton, DoFirstLink, TopicRow, WhatComesNextButton } from "./jump-button";
 
 const STATUS: Record<TopicOverview["status"], string> = { not_started: "Not started", in_progress: "In progress", passed: "Passed" };
@@ -13,12 +14,13 @@ export type RecommendedNext = { topicId: string; label: string };
 const STAGE: Record<TopicOverview["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 const LATER_STAGES = ["follow", "judge", "analyse"] as const;
 
-/** Dot beside a Topic (spec §5.6): todo = field fill with a brand-line ring, current = brand fill, passed = brand fill with a check. */
+/** Dot beside a Topic (spec §5.6): todo = small brand-line dot, current = brand fill, passed = brand fill with a check. */
 function Dot({ topic }: { topic: TopicOverview }) {
   const state = topic.status === "passed" ? "passed" : topic.current ? "current" : "todo";
-  const look = state === "todo" ? "border-[var(--brand-line)] bg-[var(--field)]" : "border-[var(--brand)] bg-[var(--brand)]";
+  // A todo Topic is a small solid dot, not an empty ring, so the marker never reads as a radio button or checkbox.
+  const look = state === "todo" ? "m-[5px] mt-[9px] h-1.5 w-1.5 bg-[var(--brand-line)]" : "mt-1 h-4 w-4 border-2 border-[var(--brand)] bg-[var(--brand)]";
   return (
-    <span aria-hidden data-dot={state} className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${look}`}>
+    <span aria-hidden data-dot={state} className={`flex shrink-0 items-center justify-center self-start rounded-full ${look}`}>
       {state === "passed" && (
         <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 text-[var(--brand-ink)]" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M2.5 6.5l2.5 2.5 4.5-5" />
@@ -32,9 +34,9 @@ function Dot({ topic }: { topic: TopicOverview }) {
 const passedCount = (group: TopicOverview[]) => `${group.filter((t) => t.status === "passed").length} of ${group.length} passed`;
 
 /**
- * One Topic row: a whole-row link. A passed row shows Passed ✓ and opens the Topic's Session read-only
- * (Past Sessions when it has none); the current row opens the current Topic; any other row chooses it.
- * Check pills show only once the Topic is started; unpassed prerequisites are "Do first" links.
+ * One Topic card: a whole-card link. A passed card opens the Topic's Session read-only (the Notebook when it
+ * has none); the current card opens the current Topic; any other card chooses it. It shows the status as a
+ * static Tag and the Checks passed as "n of m" with a segmented bar; unpassed prerequisites are "Do first" links.
  */
 function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | undefined; title: (id: string) => string }) {
   const mode = t.status === "passed" ? "passed" : t.current ? "current" : "choose";
@@ -43,35 +45,33 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
       topicId={t.id}
       title={t.title}
       mode={mode}
-      href={mode === "passed" ? (sessionId ? `/sessions/${sessionId}` : "/sessions") : "/study"}
+      status={t.status}
+      href={mode === "passed" ? (sessionId ? `/sessions/${sessionId}` : "/notebook") : "/study"}
       unmet={t.unmetPrerequisites.map((id) => ({ id, title: title(id) }))}
       lead={<Dot topic={t} />}
     >
-      <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs leading-4 text-[var(--muted)]">
-        <span>
-          {t.status === "passed" ? "Passed ✓" : STATUS[t.status]}
-          {t.step && t.status === "in_progress" ? ` · Teaching Step: ${STEP[t.step]}` : ""}
-        </span>
+      <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-4 text-[var(--muted)]">
+        <Tag tone={t.status === "passed" ? "mint" : t.status === "in_progress" ? "brand" : "neutral"}>{STATUS[t.status]}</Tag>
+        {t.step && t.status === "in_progress" && <span>Teaching Step: {STEP[t.step]}</span>}
         {t.current && <Pill>You are here</Pill>}
         {t.parkedUntil && <span data-parked={t.id}>Parked · back {backAt(t.parkedUntil)}</span>}
       </p>
-      {t.status !== "not_started" && (
-        <ul aria-label={`Checks in ${t.title}`} className="mt-2 flex flex-wrap gap-1.5">
-          {t.checks.map((c, i) => (
+      <div className="mt-2 flex items-center gap-2">
+        <ul aria-label={`Checks in ${t.title}`} className="flex flex-1 gap-1">
+          {t.checks.map((c) => (
             <li
               key={c.id}
-              data-check={c.passed ? "passed" : c.here ? "here" : "open"}
+              data-segment={c.passed ? "filled" : "empty"}
+              data-here={c.here ? "" : undefined}
               title={c.passed ? "Passed" : c.here ? "Your place" : "Not passed yet"}
-              className={`rounded border px-1.5 py-0.5 text-xs tabular-nums ${
-                c.passed ? "border-[var(--brand)] text-[var(--brand)]" : c.here ? "border-[var(--ink)] text-[var(--ink)]" : "border-[var(--border)] text-[var(--muted)]"
-              }`}
-            >
-              Check {i + 1}
-              {c.passed ? " ✓" : ""}
-            </li>
+              className={`h-1.5 flex-1 rounded-full ${c.passed ? "bg-[var(--mint)]" : "bg-[var(--hairline)]"} ${c.here ? "ring-1 ring-[var(--brand)]" : ""}`}
+            />
           ))}
         </ul>
-      )}
+        <span className="text-xs tabular-nums text-[var(--muted)]">
+          {t.checks.filter((c) => c.passed).length} of {t.checks.length}
+        </span>
+      </div>
       {t.status !== "passed" && t.unmetPrerequisites.length > 0 && (
         <p className="mt-2 text-xs leading-4 text-[var(--muted)]">
           {"Do first: "}
@@ -91,11 +91,14 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
 function Group({ label, topics, open, attrs, children }: { label: React.ReactNode; topics: TopicOverview[]; open: boolean; attrs?: Record<string, string>; children: React.ReactNode }) {
   return (
     <details open={open} className="group mb-3" {...attrs}>
-      <summary className="flex cursor-pointer items-baseline justify-between gap-3 rounded py-2 text-sm leading-5">
-        <span className="font-medium">{label}</span>
+      <summary className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[var(--edge)] bg-[var(--field)] px-3 py-2 text-sm leading-5 shadow-[0_2px_0_var(--edge)] hover:bg-[var(--brand-tint)] active:translate-y-px active:shadow-none">
+        <span className="flex items-center gap-2 font-medium">
+          <Chevron />
+          {label}
+        </span>
         <span className="text-xs text-[var(--muted)]">{passedCount(topics)}</span>
       </summary>
-      <ol className="border-t border-[var(--hairline)]">{children}</ol>
+      <ol className="card-grid mt-3">{children}</ol>
     </details>
   );
 }
@@ -128,11 +131,17 @@ export function CourseMapView({
   const foundation = topics.filter((t) => t.stage === "foundation");
   const subjects = [...new Set(foundation.map((t) => t.subject ?? "Other"))];
   const recommendedTopic = recommended ? topics.find((t) => t.id === recommended.topicId) : undefined;
+  const nextTitle = recommendedTopic?.title ?? null;
   return (
     <div>
+      <h1 className="text-lg font-semibold leading-[26px]">Course Map</h1>
+      <p data-progress-summary className="mb-6 mt-1 text-sm leading-5 text-[var(--muted)]">
+        {progressSummary(topics, nextTitle)}
+      </p>
+      <div className="mb-6 grid items-start gap-3 empty:hidden md:grid-cols-2">
       {recommended && (
         <div data-recommended-next>
-          <Card className="mb-6">
+          <Card>
             <Eyebrow className="mb-1">Recommended next</Eyebrow>
             {recommendedTopic && (
               <p className="mb-3 text-sm leading-5 text-[var(--muted)]">
@@ -145,13 +154,14 @@ export function CourseMapView({
         </div>
       )}
       {current && defaultTopic && !current.onDefaultPath && (
-        <Card className="mb-6 text-sm leading-5">
+        <Card className="text-sm leading-5">
           <p>
             You chose <strong>{current.title}</strong>. The default path continues with {defaultTopic.title}.
           </p>
           <BackToPathButton />
         </Card>
       )}
+      </div>
       {foundation.length > 0 && (
         <section data-stage="foundation" aria-labelledby="stage-foundation" className="mb-8">
           <h2 id="stage-foundation" className="mb-2 text-base font-semibold leading-6">
@@ -182,8 +192,11 @@ export function CourseMapView({
         );
       })}
       {coming.length > 0 && (
-        <details className="mt-4 text-sm">
-          <summary className="cursor-pointer font-medium">Coming ({coming.length} more Topics, in path order)</summary>
+        <details className="group mt-4 text-sm">
+          <summary className="flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--edge)] bg-[var(--field)] px-3 py-2 font-medium shadow-[0_2px_0_var(--edge)] hover:bg-[var(--brand-tint)] active:translate-y-px active:shadow-none">
+            <Chevron />
+            Coming ({coming.length} more Topics, in path order)
+          </summary>
           <ol className="mt-3 space-y-1.5 text-[var(--muted)]">
             {coming.map((t) => (
               <li key={t.id} data-coming={t.id}>
@@ -193,51 +206,6 @@ export function CourseMapView({
           </ol>
         </details>
       )}
-    </div>
-  );
-}
-
-/**
- * The Progress page's body: a title, a one-line summary ("<n> in progress · <n> passed · Next: <title>",
- * Next being What comes next's Topic), then each Topic's status and how many of its Checks are passed.
- * Every row's title opens its Topic: a plain form post to /api/open, so it works without scripts.
- */
-export function ProgressView({ topics, next = null }: { topics: TopicOverview[]; next?: string | null }) {
-  const count = (status: TopicOverview["status"]) => topics.filter((t) => t.status === status).length;
-  const summary = [`${count("in_progress")} in progress`, `${count("passed")} passed`, ...(next ? [`Next: ${next}`] : [])].join(" · ");
-  return (
-    <div>
-      <h1 className="text-xl font-semibold leading-7">Progress</h1>
-      <p data-progress-summary className="mb-6 mt-1 text-sm leading-5 text-[var(--muted)]">
-        {summary}
-      </p>
-      <Eyebrow className="mb-2">Topics</Eyebrow>
-      <div>
-        {topics.map((t) => (
-          <KeyValueRow
-            key={t.id}
-            label={
-              <>
-                <form method="post" action="/api/open" className="inline">
-                  <input type="hidden" name="topic" value={t.id} />
-                  <button type="submit" data-open-topic={t.id} className="text-left text-[var(--ink)] underline decoration-[var(--hairline)] underline-offset-4 hover:text-[var(--brand)] hover:decoration-current">{t.title}</button>
-                </form>{" "}
-                <span className="text-xs">· {STAGE[t.stage]}</span>
-              </>
-            }
-            value={
-              <span className="flex items-center gap-3">
-                <span className="tabular-nums text-[var(--muted)]">
-                  {t.checks.filter((c) => c.passed).length} of {t.checks.length}
-                </span>
-                <Pill brand={t.status !== "not_started"}>
-                  <span data-status={t.status}>{STATUS[t.status]}</span>
-                </Pill>
-              </span>
-            }
-          />
-        ))}
-      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { OFF_TOPIC } from "@/tutor/session-item-kinds";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
-import { PastSessionHeaderView, PastSessionsList } from "./past-sessions";
+import { PastSessionHeaderView } from "./past-sessions";
 import { SessionItemView } from "./session-item-view";
 import { TopicBar } from "./workspace-parts";
 
@@ -39,13 +39,9 @@ describe("what the Learner found", () => {
     expect(renderToStaticMarkup(<SessionItemView item={{ kind: TOPIC_COMPLETE, data: { ...card, found: [] } }} />)).not.toContain("topic-found");
     expect(renderToStaticMarkup(<SessionItemView item={{ kind: TOPIC_COMPLETE, data: card }} />)).not.toContain("topic-found");
   });
-  it("is one line on a Past Sessions row and on the Session's header", () => {
+  it("is one line on the Session's header", () => {
     const lastActive = new Date("2026-10-24T08:00:00Z");
-    const row = renderToStaticMarkup(<PastSessionsList past={{ topics: [{ id: 4, topicId: "present-value", title: "Present value", lastActive, found: ["You guessed 12%."] }], older: [] }} />);
-    expect(row).toContain('data-testid="session-found"');
-    expect(row).toContain("You guessed 12%.");
     const header = renderToStaticMarkup(<PastSessionHeaderView header={{ kind: "topic", topicId: "present-value", title: "Present value", lastActive, passed: true, found: ["You guessed 12%."] }} />);
     expect(header).toContain("You guessed 12%.");
-    expect(renderToStaticMarkup(<PastSessionsList past={{ topics: [{ id: 4, topicId: "present-value", title: "Present value", lastActive, found: [] }], older: [] }} />)).not.toContain("session-found");
   });
 });

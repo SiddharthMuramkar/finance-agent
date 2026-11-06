@@ -54,6 +54,8 @@ describe("Tutor Turn", () => {
     // The reply is held until code has checked it (ADR 0008), then sent as one text.
     expect(events).toEqual([
       { type: "text", text: "Present value starts with a story." },
+      // The reply's Choices (D3a), stored after it.
+      { type: "item", item: { kind: "reply_choices", data: { choices: expect.any(Array) } } },
       { type: "done", stopReason: "end_turn", usage: expect.any(Object), ref: { sessionId: expect.any(Number), turnSeq: 0 }, shown: { sessionId: expect.any(Number) } },
     ]);
     expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
@@ -93,6 +95,7 @@ describe("Tutor Turn", () => {
         { name: "record_misconception" },
         { name: "open_widget" },
         { name: "calculate" },
+        { name: "suggest_choice" },
         { name: "code_execution" },
       ]);
       expect(request.thinking).toEqual({ type: "adaptive" });
@@ -190,7 +193,7 @@ describe("Tutor Turn", () => {
     // transcript lost the message.
     const db = await testDb();
     const { client, requests } = scriptedClient([
-      { content: [{ type: "text", text: "80 bp is how many points?" }] },
+      { content: [{ type: "text", text: "Is 80 bp 0.8 points or 8 points?" }] },
       { content: [{ type: "text", text: "Yes, 0.8 points." }] },
       { content: [{ type: "text", text: "Right again." }] },
     ]);
@@ -808,7 +811,7 @@ describe("Tutor Turn", () => {
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(requests)).toMatch(/slider.*Guided Task/i);
       // The reply is held until checked (ADR 0008): the Learner sees only the retry, as one text.
-      expect(events.map((e) => e.type)).toEqual(["text", "done"]);
+      expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
       expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
         { role: "user", text: "Show me" },
         { role: "assistant", text: `Here it is.\n${good}` },
@@ -863,7 +866,7 @@ describe("Tutor Turn", () => {
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Rates around the draw")), text(queried("Long-term interest rates"))]);
         await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
-        expect(events.map((e) => e.type)).toEqual(["text", "done"]);
+        expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
         expect(String(requests[2].messages.at(-1)!.content)).toMatch(/same Case Data \(mega-millions-2018\/treasury-30-year\) as the open Widget "Long-term interest rates"/);
       });
 
@@ -913,7 +916,7 @@ describe("Tutor Turn", () => {
       const correction = requests[1].messages.at(-1)!;
       expect(correction.role).toBe("user");
       expect(String(correction.content)).toMatch(/LineChart/);
-      expect(events.map((e) => e.type)).toEqual(["text", "done"]);
+      expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
 
       // History stays add-only: both replies and the correction request are stored, and a reload shows the retry.
       expect(await db.select().from(messages)).toHaveLength(4);
@@ -935,7 +938,7 @@ describe("Tutor Turn", () => {
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me the formula"));
       expect(requests).toHaveLength(2);
       expect(String(requests[1].messages.at(-1)!.content)).toMatch(/input "ratePercent" is bound to no Slider/);
-      expect(events.map((e) => e.type)).toEqual(["text", "done"]);
+      expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
     });
 
     it("gives up after one retry, and the fallback leaves the broken Widget out", async () => {
@@ -1180,7 +1183,7 @@ describe("surviving cut-offs and failures", () => {
 
     const resume = scriptedClient([{ content: [text("Now the concept.")] }]);
     const resumed = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
-    expect(types(resumed)).toEqual(["replay", "text", "done"]);
+    expect(types(resumed)).toEqual(["replay", "text", "item", "done"]);
     // The finish_teaching_step call ran before the cut-off, but its result was never saved: it is re-run
     // under its tool call ID, returns the saved result, and the Learner moves on only once.
     const results = resultsIn(resume.requests[0]);
@@ -1234,7 +1237,7 @@ describe("surviving cut-offs and failures", () => {
     const resume = scriptedClient([]);
     const events = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
     // The stored reply is checked before it shows.
-    expect(types(events)).toEqual(["replay", "text", "done"]);
+    expect(types(events)).toEqual(["replay", "text", "item", "done"]);
     expect(events[0]).toEqual({ type: "replay", text: "" });
     expect(events[1]).toEqual({ type: "text", text: "All done." });
     expect(resume.requests).toHaveLength(0);
@@ -1395,7 +1398,7 @@ describe("surviving cut-offs and failures", () => {
     // As if the Session was frozen by an earlier build, on another model and effort.
     await db.update(sessionsTable).set({ fingerprint: "an-earlier-build", instructions: "Old instructions.", model: "claude-sonnet-5-5", effort: "high" });
     const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hello again"));
-    expect(events.map((e) => e.type)).toEqual(["text", "done"]);
+    expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
     expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     // The fold runs under the new instructions; the reply's request carries the summary and no reply from before the change.
     expect(requests).toHaveLength(3);

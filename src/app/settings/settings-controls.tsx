@@ -29,7 +29,7 @@ export function DeveloperDetailsSwitch({ initial }: { initial: boolean }) {
           checked={on}
           disabled={saving}
           onChange={(e) => void change(e.target.checked)}
-          className="mt-0.5 h-4 w-4 accent-[var(--brand)]"
+          className="mt-0.5"
         />
         <span>
           Show developer details
@@ -72,12 +72,12 @@ export function StartOverButton({ confirmValue }: { confirmValue: string }) {
   );
 }
 
-/** One option of a radio group: a real radio button, hidden but focusable, and a tile that shows its state. */
+/** One option of a radio group: a real, visible radio button inside a tile that shows its state. The tile is a label, so it may show a pointer. */
 function Choice({ name, label, checked, onPick, children }: { name: string; label: string; checked: boolean; onPick: () => void; children?: React.ReactNode }) {
   return (
-    <label className="cursor-pointer">
-      <input type="radio" name={name} checked={checked} onChange={onPick} className="peer sr-only" />
-      <span className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm leading-5 peer-checked:border-[var(--brand)] peer-checked:ring-1 peer-checked:ring-[var(--brand)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--ring)]">
+    <label data-allow-pointer className="cursor-pointer">
+      <span className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm leading-5 has-[:checked]:border-[var(--brand)] has-[:checked]:ring-1 has-[:checked]:ring-[var(--brand)]">
+        <input type="radio" name={name} checked={checked} onChange={onPick} />
         {children}
         {label}
       </span>

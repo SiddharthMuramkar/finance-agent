@@ -7,7 +7,7 @@ import { loadProgress } from "@/learner/memory";
 import { summariseRows } from "./session-summary";
 
 /**
- * What Past Sessions lists (spec #119, "Pages › Past Sessions"), worked out by code. No model call.
+ * What the Notebook lists (spec #119, then 2026-11-05 B2a), worked out by code. No model call.
  * - A Topic Session (ADR 0004) is one row, titled by its Topic, ordered by the Learner's last activity in it.
  *   The every-Topic-passed Session (no Topic) is a row of its own, titled FREE_QUESTIONS.
  * - Every Session from before one Session per Topic is Older: its own group, by the date it began, with the
@@ -68,7 +68,7 @@ async function olderTopics(db: Db, ids: number[]): Promise<Map<number, string[]>
   return out;
 }
 
-/** The Learner's Past Sessions: Topic Sessions, the most recently worked on first, and the Older ones, newest first. */
+/** The Learner's Sessions for the Notebook: Topic Sessions, the most recently worked on first, and the Older ones, newest first. */
 export async function loadPastSessions(db: Db, map: CourseMap, learnerId: number): Promise<PastSessions> {
   const all = await sessionsWithActivity(db, learnerId);
   const found = await foundIn(db, map, learnerId, all.filter((s) => !s.older));

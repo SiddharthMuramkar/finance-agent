@@ -9,7 +9,6 @@ import { Button, Tag } from "./primitives";
 import type { ThemePref } from "./theme";
 import { ThemeMenu } from "./theme-menu";
 
-const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]";
 
 /** Small uppercase label above a block (spec §2), e.g. "SPACED REVIEW". className adds spacing. */
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -28,13 +27,16 @@ export function Chevron({ className = "" }: { className?: string }) {
 // The look pieces live in src/app/primitives (ticket A3a); the old names keep working from here.
 export {
   Button,
+  ButtonLink,
   Chip,
   IconButton,
+  LinkButton,
   Pill,
   PrimaryButton,
   SecondaryButton,
   Spinner,
   Tag,
+  TextLink,
   primaryButtonClass,
   secondaryButtonClass,
 } from "./primitives";
@@ -42,10 +44,10 @@ export type { ButtonProps, ChipState } from "./primitives";
 
 export { NavLink };
 
-/** Bordered section (spec §5.1): 1px border, radius 8, padding 16. className adds layout. */
+/** Bordered section (spec §5.1): 1px border, radius 8, padding 12. className adds layout. */
 export function Card({ children, className = "", ...props }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLElement>) {
   return (
-    <section className={`rounded-lg border border-[var(--border)] p-4 ${className}`} {...props}>
+    <section className={`rounded-lg border border-[var(--border)] p-3 ${className}`} {...props}>
       {children}
     </section>
   );
@@ -106,9 +108,10 @@ const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "settings", href: "/settings", label: "Settings" },
 ];
 
-const headerLink = `pressable inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-1 text-[13px] leading-5 lg:px-3 lg:text-sm ${focusRing}`;
-const idleLink = `${headerLink} text-[var(--muted)] hover:bg-[var(--hairline)] hover:text-[var(--ink)]`;
-const currentLink = `${headerLink} bg-[var(--brand-tint)] font-medium text-[var(--brand)]`;
+// The page links are chips (NavLink adds the raised look); here only their size changes with the window.
+const headerLink = "whitespace-nowrap px-2 text-[13px] leading-5 lg:px-3 lg:text-sm";
+const idleLink = headerLink;
+const currentLink = headerLink;
 
 /**
  * Sign out: a plain form posting to /api/logout (its 303 reloads the page), never a link (a GET could be
@@ -141,9 +144,9 @@ function BrandMark() {
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: ThemePref; className?: string }) {
   return (
-    <header className={`flex items-center justify-between gap-2 lg:gap-4 ${className}`}>
+    <header className={`flex h-[var(--header-h)] shrink-0 items-center justify-between gap-2 border-b border-[var(--hairline)] lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
-        <Link href="/" title="Home" className={`-ml-2 inline-flex items-center gap-1.5 rounded px-2 py-1 transition-colors hover:bg-[var(--hairline)] hover:text-[var(--brand)] ${focusRing}`}>
+        <Link href="/" title="Home" data-affordance="nav" className="chip gap-1.5 px-3 text-base font-semibold">
           <BrandMark />
           Finance Agent
         </Link>
@@ -164,15 +167,15 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
 }
 
 /**
- * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Settings, Passage): the header sits in the
- * same 6xl box as the workspace's, so the title and nav stay put between pages, and only the content
- * below it uses the narrower reading column.
+ * Page shell for the reading pages (Course Map, Notebook, Settings, Passage): the header and the
+ * content share the workspace's one box (the page's gutters, up to --page-max), so the title and nav stay put between
+ * pages and the content uses the whole window. Running paragraphs inside cards cap themselves with `measure`.
  */
 export function ReadingPage({ current, theme, children }: { current?: HeaderPage; theme: ThemePref; children: ReactNode }) {
   return (
-    <main className="mx-auto max-w-6xl px-4 pb-12 pt-4 lg:px-6 lg:pt-6">
-      <AppHeader current={current} theme={theme} className="mb-6" />
-      <div data-testid="reading-column" className="mx-auto max-w-2xl">
+    <main className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-12 pt-3">
+      <AppHeader current={current} theme={theme} />
+      <div data-testid="reading-column" className="w-full pt-3">
         {children}
       </div>
     </main>
