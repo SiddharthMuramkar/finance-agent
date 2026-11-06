@@ -32,9 +32,13 @@ export type TutorExample = {
   replyKind: ReplyKind;
 };
 
-/** An open quiz question for the examples: a move from 4.00% to 4.60%, with its choices. */
+/** An open quiz question for the examples: a move from 4.00% to 4.60%, and what a basis point is (ADR 0009: the idea separates the choices, not arithmetic). */
 const EXAMPLE_QUIZ: OpenItem[] = [
-  { prompt: "A central bank moves its rate from 4.00% to 4.60%. How many basis points is the move?", choices: ["0.6", "6", "60", "120"], answer: "60" },
+  {
+    prompt: "A central bank moves its rate from 4.00% to 4.60%, and traders call it a 60 basis point move. What is one basis point?",
+    choices: ["A hundredth of a percentage point", "A tenth of a percentage point", "One whole percentage point", "One percent of the old rate"],
+    answer: "A hundredth of a percentage point",
+  },
 ];
 const rateMove = (old: number, now: number, mode: "show" | "practice"): ReplyWidget => ({
   kind: "recipe",
@@ -57,14 +61,14 @@ export const TUTOR_EXAMPLES: TutorExample[] = [
     situation: "the concept step; the Learner scored 0 of 3 on the last Check",
     learner: "i dont know any of this stuff. start from the beginning and explain it to a complete beginner",
     reply:
-      'Okay. One idea first. A savings rate, the interest a bank pays on savings, goes from 4% to 5%. 5% minus 4% is 1 point. "Points" is short for percentage points. **Points are the new rate minus the old rate.**\nA rate goes from 3% to 3.5%. How many points did it move?',
+      'Okay. One idea first. A savings rate, the interest a bank pays on savings, goes from 4% to 5%. 5% minus 4% is 1 point. "Points" is short for percentage points. **Points are the new rate minus the old rate.**\nA rate goes from 3% to 3.5%. Is that move 0.5 points or 50 points?',
     step: "concept",
     replyKind: "rule",
   },
   {
     situation: "your turn; method fill-in boxes; the Learner has missed turning points into basis points twice in a row, after a restated rule and a worked example; they answered 0.3 for a fall from 7.5% to 7.2%, asked in basis points",
     learner: "0.3",
-    reply: "0.3 is the move in points; basis points need one more step, times 100.\nBox 1: a rate goes from 6% to 6.4%, a move of 0.4 points.\nBox 2: 0.4 times 100 is how many basis points?",
+    reply: "0.3 is the move in points; basis points need one more step, times 100.\nBox 1: a rate goes from 6% to 6.4%, a move of 0.4 points.\nBox 2: in basis points, is that 4 bp or 40 bp?",
     step: "your_turn",
     replyKind: "reteach",
   },
@@ -72,14 +76,14 @@ export const TUTOR_EXAMPLES: TutorExample[] = [
     situation: "the concept step; frustration 2",
     learner: "okay ask me a question this time, lets get it over with. use widgets",
     widget: rateMove(2, 2.5, "practice"),
-    reply: "Okay. Shortest path.\nHow many basis points did the rate move?",
+    reply: "Okay. Shortest path.\nOn the Widget, which line names the move in basis points?",
     step: "concept",
     replyKind: "quick_try",
   },
   {
     situation: "the concept step for percent change; the reply first calls save_learner_rule with the Learner's words",
     learner: "so its basically change × 100 then divide by original",
-    reply: "Yes: **change times 100, then divide by the original.**\nWhat is the percent change when a price goes from ₹50 to ₹60?",
+    reply: "Yes: **change times 100, then divide by the original.**\nWhen a price goes from ₹50 to ₹60, which price is the original?",
     step: "concept",
     replyKind: "feedback",
   },
@@ -87,7 +91,7 @@ export const TUTOR_EXAMPLES: TutorExample[] = [
     situation: "a quiz is open, and question 1 tests the idea that basis points are points times 100",
     openItems: EXAMPLE_QUIZ,
     learner: "just tell me the answer to question 1",
-    reply: "That one stays yours to answer, so here is the method on other numbers. Basis points are points times 100. So 0.2 of a point times 100 is 20 bp.\nYour turn: how many basis points is 0.7 of a point?",
+    reply: "That one stays yours to answer, so here is the method on other numbers. Basis points are points times 100. So 0.2 of a point times 100 is 20 bp.\nYour turn: is 0.7 of a point 7 bp or 70 bp?",
     step: "check",
     replyKind: "hint",
   },
@@ -113,6 +117,7 @@ Rules:
 - Use plain, unambiguous wording. Say "the years until the payment arrives", never "the wait" (it reads like a misspelling of "weights"), and avoid words with a second meaning that could trip a reader. Define each new term in plain words the first time it appears, everyday finance words too ("a savings rate, the interest a bank pays on savings"). Never ask what a bond trader, a newspaper or anyone else would say: ask about the numbers in front of the Learner.
 - Word limit: the Course Navigator message gives the word limit for each reply ("Word limit for this reply"), and that line rules. It is 80 words at the concept, your turn and Check steps, and 120 for a worked example, a Go deeper reply, and the story, explore, reveal and principle steps. Widgets do not count.
 - One idea and one ask: a reply holds at most one sentence of feedback, one idea, and one thing for the Learner to do, alone on the reply's last line (or nothing to do, when Next is the way on). At most one question in a reply, and never a list of tasks. Never offer more at the end ("Want the next part?"): the Go deeper chip asks for more.
+- Code puts two or three Choices under every reply. You may suggest one with suggest_choice: a follow-up the Learner might tap, in 6 words or fewer. Never write Choices or a menu in your reply.
 - An open question you put to the Learner (the Insight question, a Check prompt, "what rate did you find?") stays on screen for them. Ask it once. When the Learner asks about something else, answer that and stop: do not end every reply by asking the open question again. Come back to it only when the Learner returns to it, or after about three replies on other things, and then in a few words.
 
 How you teach:
@@ -299,6 +304,17 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: "suggest_choice",
+    description:
+      "Optional. Suggest one follow-up the Learner might tap, in 6 words or fewer, with no emoji and no sum (\"Who were the traders?\"). Code puts two or three Choices under every reply and puts a good suggestion first; a suggestion that breaks these rules is dropped. Never write Choices or a menu in your reply.",
+    input_schema: {
+      type: "object",
+      properties: { label: { type: "string", description: "The Choice's words, as the Learner would say them, in 6 words or fewer." } },
+      required: ["label"],
+      additionalProperties: false,
+    },
+  },
   // Anthropic's hosted code execution: a server tool, so Anthropic runs it and we have no code to bind.
   { type: "code_execution_20260521", name: "code_execution" },
 ];
@@ -378,6 +394,7 @@ const ENGINE_WIDGETS = `Widgets (ready-made only, drawn by code):
 - A Widget's title is its name in the panel. To move the sliders of a Widget this reply opened or showed ("make it 9%"), call update_widget with its title and the new values. A reply holds one Widget: after you open, show or update one, make no other call that draws a Widget.
 - For a quiz-me ask, point to the next Quick try or ask one question in words; quick_check is not a teaching Widget. When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers: it asks the question itself, so write only a short acknowledgement and that one question, and stop there: the Widget has its own answer box, so never say where to type.
 - If code refuses the params, read its reason and call show_widget again with params that fit, or teach in words.
+- For a story moment, a word or a who-pays-whom, show the story recipe that fits; never write a fact the Case does not give.
 
 Widget recipes (id (archetype): use, then its params as JSON Schema):
 ${tutorRecipeSignatures()}`;

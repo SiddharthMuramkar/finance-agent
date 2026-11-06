@@ -11,6 +11,7 @@ import { nextOfferNow } from "./next";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: Check results in the conversation. Submitting a quiz stores a result card (a Session item
@@ -35,7 +36,8 @@ async function turn(db: Db, input: TurnInput, replies: ScriptedReply[]) {
   return { events, requests };
 }
 
-const seen = (entries: ThreadEntry[]) => entries.map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const seen = (entries: ThreadEntry[]) => withoutChoices(entries).map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
 const sessionOf = (events: TurnEvent[]) => (events.at(-1) as Extract<TurnEvent, { type: "done" }>).ref.sessionId;
 const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messages);
 
@@ -147,7 +149,7 @@ describe("a quiz result card", () => {
 
     const divider = { role: "item", kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 9 · Concept" } };
     // The browser draws it as it is stored, before the reply, as a reload does.
-    expect(typed.events.filter((e) => e.type === "item")).toEqual([{ type: "item", item: { kind: divider.kind, data: divider.data } }]);
+    expect(withoutChoices(typed.events).filter((e) => e.type === "item")).toEqual([{ type: "item", item: { kind: divider.kind, data: divider.data } }]);
     expect(seen(await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).slice(-3)).toEqual([{ role: "user", text: "What comes now?" }, divider, { role: "assistant", text: "The second concept." }]);
     expect(sent(typed.requests[0])).not.toContain("Step 5 of 9");
 
@@ -164,7 +166,7 @@ describe("a quiz result card", () => {
     const again = await submitQuizAnswers(db, map, quiz.attemptId, right(quiz), new Date(), OWNER_LEARNER_ID);
     expect(again).toMatchObject({ ok: true, passed: true });
     expect(again).not.toHaveProperty("item");
-    expect((await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item")).toHaveLength(1);
+    expect(withoutChoices(await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item")).toHaveLength(1);
   });
 });
 
@@ -190,7 +192,7 @@ describe("a conversation Check's result card", () => {
     const pass = { role: "item", kind: "check_result", data: { check: 2, passed: true, label: "Check 2 — passed ✓" } };
     // The pass moves the Learner on, so the divider for the new step follows the card: a finished step can be scrolled back to.
     const divider = { role: "item", kind: "step", data: { step: "reveal", number: 8, label: "Step 8 of 9 · Reveal" } };
-    expect(passed.events.filter((e) => e.type === "item")).toEqual([
+    expect(withoutChoices(passed.events).filter((e) => e.type === "item")).toEqual([
       { type: "item", item: { kind: pass.kind, data: pass.data } },
       { type: "item", item: { kind: divider.kind, data: divider.data } },
     ]);

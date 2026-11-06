@@ -26,6 +26,13 @@ describe("sumAsk", () => {
     "They redo the arithmetic and get it right.",
     "They name correct notch counts.",
     "Say what you recomputed with the Case Data.",
+    "Work out the EMI",
+    // Critic MP-2: asks for a figure with no sum-verb.
+    "What is 1% of 5000?",
+    "What would 10% of that be?",
+    "What do you owe after 2 years at 10%?",
+    "So 2 lakh at 5% earns what?",
+    "What's the move from 6% to 6.5%?",
   ])("flags a sum: %s", (text) => {
     expect(sumAsk(text)).not.toBeNull();
   });
@@ -46,6 +53,11 @@ describe("sumAsk", () => {
     "What is the present value of a promise, in your own words?",
     "What is its business model?",
     "Why does a lower margin worry lenders?",
+    "Why did the Fed move from 3% to 6% in 1994?",
+    "What did 40% of voters think of the bailout?",
+    "What do traders call the move from 6% to 6.5%?",
+    "What do you owe the bank, in plain words?",
+    "Northern Rock lent at 5%. What went wrong?",
   ])("passes a story or lingo ask: %s", (text) => {
     expect(sumAsk(text)).toBeNull();
   });

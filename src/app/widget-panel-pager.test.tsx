@@ -206,14 +206,14 @@ describe("the chat chip", () => {
     expect(html).toContain("View widget →");
     expect(html).toContain('data-state="idle"');
     expect(html).toContain('aria-pressed="false"');
-    expect(html).toMatch(/min-h-9!/);
+    expect(html).toMatch(/min-h-8!/);
   });
 
   it("is Showing, filled brand, while the panel shows its Widget", () => {
     const html = chip(item(1), true);
     expect(html).toContain("Showing");
     expect(html).toContain('data-state="showing"');
-    expect(html).toContain("bg-[var(--brand)]!");
+    expect(html).toContain("bg-[var(--brand-main)]!");
   });
 
   it("is Drawing… with a shimmer while its fence is open", () => {

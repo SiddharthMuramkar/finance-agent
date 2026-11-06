@@ -35,7 +35,7 @@ export type ThreadLine = Line & { id: string };
 
 /**
  * Before Next and Finish this reply replaced it, moving on posted a "Continue." message as if the Learner typed it.
- * Old Sessions still hold them: in the Study Workspace and on Past Sessions pages each one draws as a small
+ * Old Sessions still hold them: in the Study Workspace and on Session pages each one draws as a small
  * "→ next step" divider in its place, never as a Learner bubble.
  */
 export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)[] {
@@ -149,7 +149,7 @@ function ItemMessage() {
 function UserMessage() {
   return (
     <MessagePrimitive.Root className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-[var(--bubble)] px-3 py-2 text-base leading-6">
+      <div className="measure whitespace-pre-wrap rounded-lg bg-[var(--bubble)] px-3 py-2 text-[15px] leading-6">
         <MessagePrimitive.Parts />
       </div>
     </MessagePrimitive.Root>
@@ -164,7 +164,7 @@ function AssistantMessage() {
   const usage = useContext(DeveloperDetailsContext) ? usages.get(id) : undefined;
   const ref = refs.get(id);
   return (
-    <MessagePrimitive.Root className="text-base leading-[26px]" data-testid="assistant-message">
+    <MessagePrimitive.Root className="measure text-[15px] leading-6" data-testid="assistant-message">
       <p data-testid="tutor-label" className="mb-1 text-xs font-semibold leading-4 text-[var(--brand)]">Tutor</p>
       <MessagePrimitive.Parts components={{ Text: Reply }} />
       {ref && (

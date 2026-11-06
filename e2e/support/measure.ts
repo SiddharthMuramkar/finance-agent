@@ -37,7 +37,8 @@ export function measureLayout(page: Page): Promise<Layout> {
     const panel = box('[data-testid="widget-pane"]');
     const header = box("header");
     const pct = (r: DOMRect | null) => (r ? Math.round((r.width / vw) * 1000) / 10 : null);
-    const para = document.querySelector('[data-testid="assistant-message"] p');
+    // The Tutor's reply text, not its "Tutor" label (also a <p>): the longest paragraph, so a short opener is not picked.
+    const para = [...document.querySelectorAll('[data-testid="assistant-message"] p:not([data-testid="tutor-label"])')].sort((x, y) => (y.textContent || "").length - (x.textContent || "").length)[0] ?? null;
     const input = document.querySelector("textarea");
     const fontOf = (el: Element | null) => (el ? parseFloat(getComputedStyle(el).fontSize) : null);
     const perLine = (el: Element | null) => {                       // median characters on the full lines of a paragraph (needs 3+ lines)
@@ -84,8 +85,11 @@ export function auditAffordances(page: Page): Promise<Affordances> {
     let interactive = 0, tags = 0;
     for (const el of root.querySelectorAll(INTERACTIVE)) {
       if (!visible(el)) continue;
+      if (el.closest("svg") && !el.matches("a[href]")) continue;   // a chart mark that takes focus so arrow keys can read it is not a control
       interactive++;
-      const s = getComputedStyle(el), r = el.getBoundingClientRect(), kind = kindOf(el);
+      // A radio or checkbox inside a chip label is the chip's own control: judge the chip face, not the 18px native input.
+      const host = el.matches('input[type="radio"], input[type="checkbox"]') ? el.closest('[data-affordance="chip"]') || el : el;
+      const s = getComputedStyle(host), r = host.getBoundingClientRect(), kind = kindOf(el);
       const raised = s.boxShadow !== "none";
       const surface = s.backgroundColor !== "rgba(0, 0, 0, 0)" || s.backgroundImage !== "none" || parseFloat(s.borderTopWidth) > 0;
       let ok = false;

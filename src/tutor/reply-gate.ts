@@ -2,7 +2,7 @@ import type { BrokenWidget } from "@/widgets/check";
 import { splitReply } from "@/widgets/split";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { checkReply, correctionText, countWords, fixReply, trimToCap, type ReplyCheckContext, type ReplyDraft, type ReplyProblem, type ReplyWidget } from "./reply-checks";
+import { checkReply, correctionText, countWords, dropSumAsks, fixReply, trimToCap, type ReplyCheckContext, type ReplyDraft, type ReplyProblem, type ReplyWidget } from "./reply-checks";
 import { replyCheckContext, type TurnFacts } from "./turn-facts";
 import type { StoredItem } from "./session-items";
 import type { TurnEvent } from "./turn";
@@ -120,10 +120,10 @@ export function retryMessage(j: Judged, onScreen: readonly string[]): string {
 
 /**
  * The fallback with no card: the fixed reply cut at its last full sentence within the cap, its ask kept. When a Widget
- * failed its checks (V4), the reply's openui-lang blocks are left out.
+ * failed its checks (V4), the reply's openui-lang blocks are left out; when it asked for a sum (V8), that question is.
  */
-export function trimmedFallback(text: string, cap: number, dropWidgets = false): string {
-  const kept = dropWidgets
+export function trimmedFallback(text: string, cap: number, dropWidgets = false, dropSums = false): string {
+  const withWidgets = dropWidgets
     ? splitReply(text)
         .filter((s) => s.type === "prose")
         .map((s) => (s as { text: string }).text)
@@ -131,6 +131,8 @@ export function trimmedFallback(text: string, cap: number, dropWidgets = false):
         .replace(/\n{3,}/g, "\n\n")
         .trim()
     : text;
+  // A sum the reply asked (V8) is never shown: its question goes, and the Choices carry the next move.
+  const kept = dropSums ? dropSumAsks(withWidgets) : withWidgets;
   return trimToCap(fixReply({ text: kept, widgets: [] }).text, cap);
 }
 

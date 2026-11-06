@@ -324,4 +324,66 @@ ${extra}`;
       expect(pv.connections.map((c) => c.topics)).toEqual([["bond-pricing", "bond-yield"], ["eco-gdp-cycles", "eco-central-banks"], ["val-dcf"]]);
     });
   });
+
+  describe("story scenes, terms and the Running example's scene (E3)", () => {
+    const scenes = `scenes:
+  - id: opening-story
+    step: story
+    recipe: story_scene
+    title: The day the bank surprised everyone
+    inputs:
+      cast: [{ id: fed, emoji: bank, name: The central bank }]
+      beats:
+        - { who: narrator, says: It is a calm morning. }
+        - { who: fed, says: We are moving the rate today. }
+      date: "2018-10-24"`;
+    const terms = `terms:
+  - term: present value
+    means: What a later payment is worth today.
+    pro: The present value of the annuity is the cash option.
+    example: A promise of rent next year is worth less today.
+    emoji: house
+    inStory: The cash option was the present value, in the story.`;
+    const running = `runningExample:
+  text: Asha can take cash today or payments each year.
+  numbers: [1]
+  scene:
+    cast: [{ id: asha, emoji: woman, name: Asha }]
+    beats:
+      - { who: narrator, says: Asha must choose today. }
+      - { who: asha, says: Now beats later for me. }`;
+
+    it("parses terms with pro, example, emoji and inStory, a scenes entry and a Running-example scene", () => {
+      const { map, errors } = parseCourseMap([topic("a", `${terms}\n${running}\n${scenes}`)]);
+      expect(errors).toEqual([]);
+      const t = map?.topic("a");
+      expect(t?.terms[0]).toMatchObject({ term: "present value", pro: "The present value of the annuity is the cash option.", emoji: "house", inStory: "The cash option was the present value, in the story." });
+      expect(t?.runningExample?.scene?.cast[0]).toMatchObject({ id: "asha", emoji: "woman" });
+      expect(t?.scenes).toHaveLength(1);
+      expect(t?.scenes[0]).toMatchObject({ id: "opening-story", step: "story", recipe: "story_scene", title: "The day the bank surprised everyone" });
+      expect(t?.scenes[0].inputs).toMatchObject({ date: "2018-10-24" });
+    });
+
+    it("keeps old terms and Running examples working, with no scenes by default", () => {
+      const { map, errors } = parseCourseMap([topic("a", "terms:\n  - { term: yield, means: Income for lending. }")]);
+      expect(errors).toEqual([]);
+      expect(map?.topic("a")?.terms[0]).toEqual({ term: "yield", means: "Income for lending." });
+      expect(map?.topic("a")?.scenes).toEqual([]);
+    });
+
+    it("fails two scenes for the same step and Check, and allows the same step for another Check", () => {
+      const again = `\n  - id: another-story\n    step: story\n    recipe: story_scene\n    inputs: {}`;
+      const dup = parseCourseMap([topic("a", `${scenes}${again}`)]);
+      expect(dup.errors.join()).toMatch(/two Scenes for step story/);
+      const secondCheck = `${scenes}\n  - id: check-story\n    step: story\n    check: a-check\n    recipe: story_scene\n    inputs: {}`;
+      expect(parseCourseMap([topic("a", secondCheck)]).errors).toEqual([]);
+    });
+
+    it("fails a repeated scene id and a scene that names a Check the Topic does not have", () => {
+      const repeat = `${scenes}\n  - id: opening-story\n    step: reveal\n    recipe: timeline\n    inputs: {}`;
+      expect(parseCourseMap([topic("a", repeat)]).errors.join()).toMatch(/Scene "opening-story" repeats its id/);
+      const ghost = scenes.replace("step: story", "step: concept\n    check: ghost-check");
+      expect(parseCourseMap([topic("a", ghost)]).errors.join()).toMatch(/no Check "ghost-check"/);
+    });
+  });
 });

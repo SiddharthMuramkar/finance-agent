@@ -126,7 +126,18 @@ describe("widget instructions", () => {
     // language, so it counts the rules at the 11,194 characters they had when it was set.
     // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
     expect(TUTOR_INSTRUCTIONS.endsWith(frozen.instructions)).toBe(true);
-    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250);
+    // The five story parts (spec 2026-11-05, ticket E2a) add their signatures, descriptions and a "Story" group: about
+    // 1,650 characters, allowed on purpose (the Widget text still stays far under the 12k-token plan above).
+    // The four more story parts (ticket E2b) add about 900 characters of signatures and descriptions.
+    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700 + 1_000);
+  });
+
+  it("include all nine story parts (wave 3, tickets E2a and E2b), in a group of their own", () => {
+    for (const name of ["StoryScene", "LingoCard", "TimelineStrip", "TwoPaths", "MoneyJar", "WhoPaysWhom", "MythOrFact", "Headline", "ChoiceCards"]) {
+      expect(frozen.instructions, name).toContain(`${name}(`);
+      expect(JSON.stringify(frozen.schema), name).toContain(`"${name}"`);
+    }
+    expect(frozen.instructions).toContain("### Story");
   });
 
   it("group every part of the library, so none is listed under Other", () => {

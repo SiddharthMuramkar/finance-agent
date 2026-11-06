@@ -8,7 +8,7 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { countWords } from "./reply-checks";
+import { countWords, splitAsk } from "./reply-checks";
 import { CHECKING_LABEL, FENCE_IN_ENGINE, REPLY_CHECK_PREFIX, toolWidgets } from "./reply-gate";
 import { loadSessionItems } from "./session-items";
 import { STOPPED } from "./session-item-kinds";
@@ -74,6 +74,19 @@ describe("a reply checked before the Learner sees it", () => {
     expect((await loadCurrentSession(db, map, OWNER_LEARNER_ID)).at(-1)).toMatchObject({ role: "assistant", text: shown.text });
     const [, record] = await records(db);
     expect(record).toMatchObject({ retried: true, fallback: true, shownText: shown.text });
+  });
+
+  it("after a failed V8 retry, shows a fallback with no ask line: the sum it asked is dropped", async () => {
+    const db = await testDb();
+    await atConcept(db);
+    const SUM = "Money today is worth more than money later.\nWhat would ₹1 lakh be worth after 10 years?";
+    const { events, requests } = await run(db, [say(SUM), say(SUM)]);
+    expect(requests).toHaveLength(2);
+    expect(String(requests[1].messages.at(-1)!.content)).toContain("Your reply asks the Learner to work out a sum");
+    const [shown] = texts(events);
+    expect(shown.text).toBe("Money today is worth more than money later.");
+    expect(splitAsk(shown.text).ask).toBeNull();
+    expect(events.at(-1)).toMatchObject({ type: "done", usage: { replyCheck: { failed: ["V8"], retried: true, fallback: true } } });
   });
 
   it("goes straight to the fallback when the draft fails after the time limit", async () => {

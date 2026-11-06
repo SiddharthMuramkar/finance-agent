@@ -197,6 +197,33 @@
     "RateMove": {
       "$ref": "#/$defs/RateMove"
     },
+    "StoryScene": {
+      "$ref": "#/$defs/StoryScene"
+    },
+    "LingoCard": {
+      "$ref": "#/$defs/LingoCard"
+    },
+    "TimelineStrip": {
+      "$ref": "#/$defs/TimelineStrip"
+    },
+    "TwoPaths": {
+      "$ref": "#/$defs/TwoPaths"
+    },
+    "MoneyJar": {
+      "$ref": "#/$defs/MoneyJar"
+    },
+    "WhoPaysWhom": {
+      "$ref": "#/$defs/WhoPaysWhom"
+    },
+    "MythOrFact": {
+      "$ref": "#/$defs/MythOrFact"
+    },
+    "Headline": {
+      "$ref": "#/$defs/Headline"
+    },
+    "ChoiceCards": {
+      "$ref": "#/$defs/ChoiceCards"
+    },
     "GuidedTask": {
       "$ref": "#/$defs/GuidedTask"
     },
@@ -270,6 +297,15 @@
     "Rank",
     "Waterfall",
     "RateMove",
+    "StoryScene",
+    "LingoCard",
+    "TimelineStrip",
+    "TwoPaths",
+    "MoneyJar",
+    "WhoPaysWhom",
+    "MythOrFact",
+    "Headline",
+    "ChoiceCards",
     "GuidedTask",
     "Step"
   ],
@@ -353,6 +389,33 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               },
               {
                 "$ref": "#/$defs/Stack"
@@ -1244,6 +1307,416 @@
       "additionalProperties": false,
       "description": "A rate move on a number line, with points, bp and percent of the old rate by code; \"practice\" asks for the bp first."
     },
+    "StoryScene": {
+      "type": "object",
+      "properties": {
+        "cast": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "emoji",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "who": {
+                "type": "string"
+              },
+              "says": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "who",
+              "says"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "caption": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cast",
+        "beats"
+      ],
+      "additionalProperties": false,
+      "description": "A story one beat at a time: cast of 1 to 4 {id, emoji, name, role}, 2 to 5 beats {who: a cast id or \"narrator\", says, emoji}, an ISO date stamp. No numbers."
+    },
+    "LingoCard": {
+      "type": "object",
+      "properties": {
+        "term": {
+          "type": "string"
+        },
+        "pro": {
+          "type": "string"
+        },
+        "means": {
+          "type": "string"
+        },
+        "example": {
+          "type": "string"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "inStory": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "term",
+        "pro",
+        "means",
+        "example",
+        "emoji"
+      ],
+      "additionalProperties": false,
+      "description": "One piece of lingo: say it like a pro, plain meaning, everyday example; inStory turns the card to the word in the story."
+    },
+    "TimelineStrip": {
+      "type": "object",
+      "properties": {
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "date",
+              "label",
+              "emoji"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "hideAfter": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "beats"
+      ],
+      "additionalProperties": false,
+      "description": "Emoji moments on a line, oldest first: beats {date (ISO), label, emoji}; beats after hideAfter are locked."
+    },
+    "TwoPaths": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "left": {
+          "type": "object",
+          "properties": {
+            "emoji": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "choice": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "outcomeLine": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "emoji",
+            "name",
+            "choice",
+            "outcome",
+            "outcomeLine"
+          ],
+          "additionalProperties": false
+        },
+        "right": {
+          "type": "object",
+          "properties": {
+            "emoji": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "choice": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "outcomeLine": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "emoji",
+            "name",
+            "choice",
+            "outcome",
+            "outcomeLine"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "question",
+        "left",
+        "right"
+      ],
+      "additionalProperties": false,
+      "description": "Two characters, two choices; each reveals its outcome as 1 to 6 emoji and a line with no digits."
+    },
+    "MoneyJar": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "start": {
+          "type": "number"
+        },
+        "end": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "each": {
+          "type": "string"
+        },
+        "words": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "start",
+        "end",
+        "unit",
+        "words"
+      ],
+      "additionalProperties": false,
+      "description": "A jar that fills or drains 0 to 20 objects (unit: an emoji name), sized in words; numerals only in each."
+    },
+    "WhoPaysWhom": {
+      "type": "object",
+      "properties": {
+        "actors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "emoji",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "flows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "what": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "what",
+              "emoji"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "actors",
+        "flows"
+      ],
+      "additionalProperties": false,
+      "description": "Money moving between 2 to 4 actors {id, emoji, name}: 1 to 4 flows {from, to, what (6 words), emoji}; a tap replays one."
+    },
+    "MythOrFact": {
+      "type": "object",
+      "properties": {
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim": {
+                "type": "string"
+              },
+              "isFact": {
+                "type": "boolean"
+              },
+              "why": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "claim",
+              "isFact",
+              "why"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "cards"
+      ],
+      "additionalProperties": false,
+      "description": "2 to 4 cards {claim, isFact, why, emoji?}; each has Myth and Fact buttons and turns to the verdict and why. Not marked."
+    },
+    "Headline": {
+      "type": "object",
+      "properties": {
+        "paper": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "deck": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "paper",
+        "date",
+        "headline",
+        "source"
+      ],
+      "additionalProperties": false,
+      "description": "A period front page: paper, ISO date, headline (12 words), deck?, source URL."
+    },
+    "ChoiceCards": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "fix": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "answer": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "choices",
+        "answer"
+      ],
+      "additionalProperties": false,
+      "description": "Tap to choose: question, 2 to 4 choices {id, text, emoji?, fix?}, answer is the right id. Not marked."
+    },
     "Stack": {
       "type": "object",
       "properties": {
@@ -1452,6 +1925,33 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               }
             ]
           }
@@ -2319,6 +2819,33 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               }
             ]
           }
@@ -2467,6 +2994,33 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               }
             ]
           }

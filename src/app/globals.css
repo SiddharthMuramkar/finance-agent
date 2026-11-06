@@ -46,6 +46,10 @@
    chart labels use the -ink variants, which pass 4.5:1. Surfaces are a cool off-white, never pure grey. */
 :root {
   color-scheme: light;
+  /* Page frame (A1): the gutter beside the page, the gap between columns, and the widest the page grows. */
+  --gutter: clamp(12px, 1.6vw, 32px);
+  --gap: clamp(16px, 1.6vw, 28px);
+  --page-max: 2200px;
   /* Surfaces and text */
   --bg: #f6f8ff;            /* page */
   --field: #ffffff;         /* inputs, cards, popovers (one step up) */
@@ -354,6 +358,18 @@ body {
 /* Pressable: a press moves the control 1px down and in, and takes the pressed colour, within 90ms. It uses :active, not
    :hover, so a finger on a touch screen gets it too. A control names its pressed colour with --pressed-bg (the primary
    button sets --brand-pressed); without one the press goes to the quiet --hairline. */
+/* A readable line of chat text: 34em is about 71 characters at the chat font (follows the font size, in em). */
+@utility measure {
+  max-width: 34em;
+}
+
+/* Cards that fill the page: as many 340px-or-wider columns as fit. */
+@utility card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--gap);
+}
+
 @utility pressable {
   transition:
     transform var(--dur-press) var(--ease-out),
@@ -393,6 +409,119 @@ body {
 }
 @utility animate-fade-rise {
   animation: fade-rise var(--dur-ui) var(--ease-out) both;
+}
+
+/* Story parts (wave 3 Widget parts, ticket E2a). Motion is transform and opacity only: feedback 100 to 150 ms, entrances
+   200 to 300 ms, nothing over 400 ms. The reduced-motion rule below turns every animation and transition off. */
+@keyframes story-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes story-bounce {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+@keyframes story-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes jar-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes jar-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+}
+@utility story-bubble-in {
+  animation: story-bubble-in 200ms var(--ease-out) both;
+}
+@utility story-bounce {
+  animation: story-bounce 240ms var(--ease-out) both;
+}
+@utility story-pop {
+  animation: story-pop 200ms var(--ease-out) both;
+}
+@utility jar-in {
+  animation: jar-in 150ms var(--ease-out) both;
+}
+@utility jar-out {
+  animation: jar-out 150ms var(--ease-out) both;
+}
+/* WhoPaysWhom and ChoiceCards (ticket E2b): the arrow draws in 300 ms with its emoji riding along it; a right choice pops in 150 ms. */
+@keyframes flow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes flow-ride {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@utility flow-draw {
+  animation: flow-draw 300ms var(--ease-out) both;
+}
+@utility flow-ride {
+  animation: flow-ride 300ms var(--ease-out) both;
+}
+@utility choice-pop {
+  animation: story-pop 150ms var(--ease-out) both;
+}
+/* The LingoCard: two faces on one card that turns over (300 ms). Both faces share one grid cell, so the card is as tall as the taller. */
+.lingo-turn {
+  perspective: 900px;
+}
+.lingo-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 300ms var(--ease-out);
+}
+.lingo-inner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+.lingo-face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.lingo-face-back {
+  transform: rotateY(180deg);
 }
 
 /* A loading block: a hairline with a quiet light sweeping across (a still hairline for reduced motion). */
@@ -497,7 +626,8 @@ body {
 /* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight.
    Step headings take the button navy (--brand, lighter in dark mode); bold key terms and paragraphs stay --ink. */
 .md {
-  @apply leading-relaxed break-words;
+  @apply break-words;
+  line-height: var(--lh-chat);
 }
 .md > * + * {
   @apply mt-3;
@@ -687,6 +817,7 @@ body {
     --lip-colour: var(--coral-deep);
   }
   .chip[aria-pressed="true"],
+  .story-toggle[aria-pressed="true"],
   .chip[data-state="showing"],
   .chip[aria-current="page"],
   .btn-icon[aria-pressed="true"] {
@@ -728,7 +859,8 @@ body {
   .btn:disabled,
   .btn[aria-disabled="true"],
   .chip:disabled {
-    box-shadow: none;
+    /* Dimmed and flat on the page, but it keeps its lip: a button that cannot be pressed yet still looks like a button. */
+    box-shadow: 0 var(--lip) 0 var(--lip-colour);
     transform: none;
     opacity: 0.55;
     cursor: not-allowed;
@@ -739,6 +871,43 @@ body {
   }
   .btn[aria-busy="true"] {
     cursor: progress;
+  }
+
+  /* The big landing button (Home's hero). */
+  .btn-lg {
+    min-height: 48px;
+    padding: 0 24px;
+    border-radius: 14px;
+    font-size: 16px;
+    line-height: 24px;
+    --lip: 4px;
+  }
+
+  /* The button sheet at /dev/widgets#buttons shows each state without a mouse: data-force pins the look. */
+  .btn[data-force="hover"],
+  .chip[data-force="hover"] {
+    transform: translateY(-1px);
+    box-shadow:
+      0 calc(var(--lip) + 1px) 0 var(--lip-colour),
+      0 calc(var(--lip) + 5px) 12px -2px var(--shadow);
+  }
+  .btn-primary[data-force="hover"] {
+    --face: var(--brand-hover);
+  }
+  .btn[data-force="pressed"],
+  .chip[data-force="pressed"] {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 var(--lip-colour),
+      0 2px 4px -1px var(--shadow);
+  }
+  .btn-primary[data-force="pressed"] {
+    --face: var(--brand-pressed);
+  }
+  .btn[data-force="focus"],
+  .chip[data-force="focus"] {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   /* Inline links are underlined, so they never read as plain words. */
@@ -753,6 +922,53 @@ body {
   .link:hover {
     text-decoration-thickness: 2px;
     color: color-mix(in srgb, var(--brand) 80%, var(--ink));
+  }
+  /* A button that acts like a link (Edit, Delete, Undo, a row title that posts a form): same underline, no button chrome. */
+  .link-button {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: inherit;
+  }
+
+  /* Fields say so with a border: native radios, checkboxes and sliders get a visible edge too. */
+  input[type="radio"],
+  input[type="checkbox"] {
+    appearance: none;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid var(--edge);
+    background: var(--field);
+  }
+  input[type="radio"] {
+    border-radius: 999px;
+  }
+  input[type="checkbox"] {
+    border-radius: 5px;
+  }
+  input[type="radio"]:checked {
+    border-color: var(--brand);
+    background: radial-gradient(circle, var(--brand) 0 38%, var(--field) 42%);
+  }
+  input[type="checkbox"]:checked {
+    border-color: var(--brand);
+    background: var(--brand-main)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E")
+      center / 12px no-repeat;
+  }
+  input[type="radio"]:focus-visible,
+  input[type="checkbox"]:focus-visible,
+  input[type="range"]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  input[type="range"] {
+    border: 1px solid var(--edge);
+    border-radius: 999px;
   }
 
   /* Static tags: flat, square-ish (6px; chips are fully round), no shadow, no pointer, a dot instead of a lip. */
@@ -826,4 +1042,12 @@ body {
       box-shadow: none;
     }
   }
+}
+
+/* A Widget's "More settings" accordion trigger is a button (the kit's): give it the raised edge the rest of the app's buttons have. */
+.genui .openui-accordion-trigger {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  box-shadow: 0 2px 0 var(--edge);
+  padding: 6px 12px !important;
 }

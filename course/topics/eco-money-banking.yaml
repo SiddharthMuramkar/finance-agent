@@ -59,34 +59,28 @@ youllLearn:
 questions:
   - id: mb-q-multiplier
     prompt: >
-      Banks must hold 20% of deposits as reserves. Customers deposit Rs 1,000 in a bank that holds no
-      other reserves, so it has Rs 800 of excess reserves. By how much can the banking system increase
-      the money supply by lending out those excess reserves, assuming no cash is held outside banks and
-      all banks lend fully?
+      Customers deposit Rs 1,000 in a bank. It keeps a fifth as reserves and lends out the rest, and the borrower deposits that loan in another bank, which does the same. What does this chain of lending do to the money supply?
     choices:
-      - { id: a, text: "Rs 800" }
-      - { id: b, text: "Rs 1,000" }
-      - { id: c, text: "Rs 4,000" }
-      - { id: d, text: "Rs 5,000" }
-    answer: c
+      - { id: a, text: "Each loan creates a new deposit, so the money supply grows by a multiple of the first deposit" }
+      - { id: b, text: "It stays at Rs 1,000, because lending only moves money around", mistake: { tag: thought_money_only_moves, fix: "Each loan becomes a fresh deposit, so the total grows." } }
+      - { id: c, text: "It shrinks, because banks keep reserves back", mistake: { tag: thought_reserves_shrink_money, fix: "Reserves cap the growth; they do not make money disappear." } }
+      - { id: d, text: "It grows only when the central bank prints notes", mistake: { tag: needed_the_printer, fix: "Bank lending itself creates deposits, with no new notes needed." } }
+    answer: a
     explanation: >
-      The money multiplier is 1 / 0.20 = 5. New money created = multiplier x excess reserves = 5 x Rs 800
-      = Rs 4,000. Rs 5,000 is the total deposits supported by the original Rs 1,000, which includes the
-      Rs 1,000 already there.
+      Each bank lends out what it does not have to hold, and the loan lands as a new deposit somewhere else. Repeated, this grows the money supply by a multiple of the first deposit; the share banks must keep as reserves limits how far it can go.
     source: >
       OpenStax, Principles of Economics 3e (CC BY 4.0), 27.4 How Banks Create Money: https://openstax.org/books/principles-economics-3e/pages/27-4-how-banks-create-money
-
   - id: mb-q-multiplier-ratio
     prompt: >
-      What is the money multiplier when the reserve ratio is 10%?
+      Asha deposits her salary at her bank. The bank keeps a slice back as reserves and lends the rest to a shopkeeper, who pays a supplier, who deposits it at another bank, which lends again. What do economists call this chain, and what makes it stretch further?
     choices:
-      - { id: a, text: "0.1" }
-      - { id: b, text: "10" }
-      - { id: c, text: "90" }
-      - { id: d, text: "100" }
-    answer: b
+      - { id: a, text: "The money multiplier, and it stretches further when banks keep a thinner slice in reserve" }
+      - { id: b, text: "The money multiplier, and it stretches further when banks keep a thicker slice in reserve", mistake: { tag: reversed_the_link, fix: "A bank that keeps less in reserve lends more, so the chain stretches further." } }
+      - { id: c, text: "Velocity of money, how fast money changes hands", mistake: { tag: confused_with_velocity, fix: "Velocity is how often money is spent; the multiplier is how lending expands deposits." } }
+      - { id: d, text: "The discount rate, what banks pay to borrow from the central bank", mistake: { tag: confused_with_discount_rate, fix: "The discount rate is a borrowing cost for banks, not an expansion factor." } }
+    answer: a
     explanation: >
-      The multiplier is 1 divided by the reserve ratio: 1 / 0.10 = 10.
+      Each bank in the chain lends out what it does not keep in reserve, and that loan turns up as someone else's deposit. The thinner the slice each bank keeps back, the more is lent out again at every step, so Asha's salary ends up supporting far more money in the economy.
     source: >
       OpenStax, Principles of Economics 3e (CC BY 4.0), 27.4 How Banks Create Money: https://openstax.org/books/principles-economics-3e/pages/27-4-how-banks-create-money
 

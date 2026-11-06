@@ -10,6 +10,7 @@ import { ENGINE_INSTRUCTIONS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "./instruct
 import { fingerprint, frozenNow, readSettings } from "./session-log";
 import { loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { withoutChoices } from "@/test/choices";
 
 // Seam 1, the Tutor Turn (ADR 0005): with the widget engine on, the Tutor calls show_widget with a recipe and params;
 // code compiles and checks the Widget, stores it as a Session item and streams it. Off, nothing changes.
@@ -79,7 +80,7 @@ describe("show_widget and the widget engine", () => {
 
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const thread = await loadThread(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID);
-    expect(thread.map((e) => (e.role === "item" ? e.kind : e.role))).toEqual(["user", WIDGET_SHOWN, "assistant"]);
+    expect(withoutChoices(thread).map((e) => (e.role === "item" ? e.kind : e.role))).toEqual(["user", WIDGET_SHOWN, "assistant"]);
 
     // The next turn's Tutor is told it is open, by title, and what its slider shows, keyed by its title.
     const next = scriptedClient([{ content: [text("You chose 25 years.")] }]);
@@ -111,6 +112,54 @@ describe("show_widget and the widget engine", () => {
     expect(String(result.content)).not.toContain("answer box");
   });
 
+  it("shows a story recipe Widget at the story step, checked against the Topic (E3)", async () => {
+    const db = await testDb();
+    await engine(db, "on");
+    const scene = {
+      title: "The day before the decision",
+      inputs: {
+        cast: [
+          { id: "fed", emoji: "bank", name: "The central bank" },
+          { id: "saver", emoji: "woman", name: "Asha" },
+        ],
+        beats: [
+          { who: "narrator", says: "It is February, and everyone expects calm." },
+          { who: "narrator", says: "Tomorrow, the central bank gives its decision." },
+        ],
+        date: "1994-02-03",
+      },
+      refs: {},
+      facts: {},
+    };
+    const { client } = scriptedClient([{ content: [show("story_scene", scene)] }, { content: [text("That is the day in the story.")] }]);
+    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Tell me the story"));
+    const item = events.find((e) => e.type === "item" && e.item.kind === WIDGET_SHOWN) as Extract<TurnEvent, { type: "item" }> | undefined;
+    expect(item?.item.data).toMatchObject({ recipe: "story_scene", title: "The day before the decision" });
+    expect(String(item?.item.data.code)).toContain("StoryScene(");
+  });
+
+  it("refuses a story Widget dated after the Case's as-of date before the reveal (E3)", async () => {
+    const db = await testDb();
+    await engine(db, "on");
+    const line = {
+      title: "How the story unfolded",
+      inputs: {
+        beats: [
+          { date: "1994-02-04", label: "The rate goes up", emoji: "bank" },
+          { date: "1994-05-09", label: "Prices keep falling", emoji: "chart-decreasing" },
+        ],
+      },
+      refs: {},
+      facts: {},
+    };
+    const { client, requests } = scriptedClient([{ content: [show("timeline", line)] }, { content: [text("Let me say it in words.")] }]);
+    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me the year"));
+    const [result] = toolResults(requests[1]);
+    expect(result.is_error).toBe(true);
+    expect(String(result.content)).toMatch(/1994-05-09 is after the Case's as-of date/);
+    expect(events.some((e) => e.type === "item" && e.item.kind === WIDGET_SHOWN)).toBe(false);
+  });
+
   it("params that do not fit give a tool error, so the Tutor retries inside the loop; nothing is stored", async () => {
     const db = await testDb();
     await engine(db, "on");
@@ -127,7 +176,7 @@ describe("show_widget and the widget engine", () => {
     const second = toolResults(requests[2]).at(-1)!;
     expect(second.is_error).toBe(true);
     expect(String(second.content)).toMatch(/nowhere\/nothing is not in the Case Data/);
-    expect(events.some((e) => e.type === "item")).toBe(false);
+    expect(withoutChoices(events).some((e) => e.type === "item")).toBe(false);
     expect(events.some((e) => e.type === "correction")).toBe(false);
   });
 

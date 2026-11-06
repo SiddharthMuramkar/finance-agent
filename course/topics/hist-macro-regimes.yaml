@@ -63,43 +63,42 @@ youllLearn:
 questions:
   - id: hmr-q-real-rate
     prompt: >
-      A one-year loan carries a nominal interest rate of 8% while inflation runs at 12% a year. What is the
-      real interest rate, approximately?
+      You lend a friend money for a year at 8% interest. That year, prices rise 12%. When your friend pays you back, with interest, what has the loan really done for you?
     choices:
-      - { id: a, text: "About +4%" }
-      - { id: b, text: "About -4%" }
-      - { id: c, text: "About 20%" }
-      - { id: d, text: "8%" }
+      - { id: a, text: "Richer: you got 8% more money back", mistake: { tag: ignored_inflation, fix: "Money paid back buys less when inflation is 12%. Interest of 8% does not cover that." } }
+      - { id: b, text: "Poorer: it buys less than you lent" }
+      - { id: c, text: "Much richer: inflation adds to the interest", mistake: { tag: added_not_subtracted, fix: "Inflation eats into the interest. It takes away from the real return, it does not add." } }
+      - { id: d, text: "Even: you earned exactly the 8%", mistake: { tag: nominal_as_real, fix: "8% is the nominal rate. The real rate takes inflation off it." } }
     answer: b
     explanation: >
-      Real rate is approximately the nominal rate minus inflation: 8% - 12% = -4%. The lender is repaid in money that buys about 4% less.
+      The real rate is the nominal rate less inflation, roughly. Here inflation outruns the interest, so the real rate is negative, about minus 4%. The lender is repaid in money that buys less.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
 
   - id: hmr-q-tight-or-easy
     prompt: >
-      Central bank A holds its policy rate at 12% while inflation is 4%. Central bank B holds its policy rate at 12% while inflation is 15%. Which stance is tighter in real terms?
+      Two central banks hold the same policy rate. In country A prices barely move; in country B they race ahead of that rate. Traders count inflation before judging each stance. Which bank are they calling tight, and which easy?
     choices:
-      - { id: a, text: "A, with a real rate of about +8%" }
-      - { id: b, text: "B, with a real rate of about +3%" }
-      - { id: c, text: "Both are equally tight, since the nominal rates are equal" }
-      - { id: d, text: "A, with a real rate of about -8%" }
+      - { id: a, text: "A is tight, B is easy" }
+      - { id: b, text: "B is tight: prices racing ahead means money is dear", mistake: { tag: inflation_as_tightness, fix: "When inflation outruns the policy rate, borrowers repay in cheaper money. That is easy money, not tight." } }
+      - { id: c, text: "Both equally tight: the rates match", mistake: { tag: nominal_as_stance, fix: "Equal headline rates can hide very different real rates once inflation is taken off." } }
+      - { id: d, text: "A is easy: calm prices mean little pressure", mistake: { tag: low_inflation_easy, fix: "A policy rate well above calm inflation is a high real rate, which is tight, not easy." } }
     answer: a
     explanation: >
-      A's real rate is about 12% - 4% = +8%. B's is about 12% - 15% = -3%, which is easy money despite the high nominal rate. Equal nominal rates can mean very different stances.
+      With calm prices, A's rate sits well above inflation, so its real rate is clearly positive and money is dear. B's rate sits below its inflation, so its real rate is negative: easy money despite the same headline rate. Equal nominal rates can mean very different stances.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
 
   - id: hmr-q-fixed-borrower
     prompt: >
-      A household borrows at a fixed 9% a year. Inflation then turns out to be 12% a year for the life of the loan, higher than anyone expected. Who benefits?
+      Priya's family takes a loan at a fixed 9% a year. Prices then climb 12% a year for the whole loan, far more than anyone expected. Who comes out ahead?
     choices:
-      - { id: a, text: "The lender, who is repaid more than expected" }
+      - { id: a, text: "The lender, who is repaid more than expected", mistake: { tag: lender_gains_from_inflation, fix: "The lender is repaid in money that buys less than when it was lent, so the lender loses." } }
       - { id: b, text: "The borrower, who repays in money worth less than expected" }
-      - { id: c, text: "Neither, because the nominal rate was fixed" }
+      - { id: c, text: "Neither, because the nominal rate was fixed", mistake: { tag: nominal_as_stance, fix: "A fixed rate does not fix what the money buys. Inflation moves value from lender to borrower." } }
     answer: b
     explanation: >
-      The real rate paid is about 9% - 12% = -3%. The borrower repays with money that buys less than when it was borrowed, so value moves from lender to borrower.
+      Inflation outran the 9% interest, so the real rate paid is negative. The borrower repays with money that buys less than when it was borrowed, so value moves from lender to borrower.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
 
@@ -159,14 +158,13 @@ checks:
   - id: hmr-central-bank-choice
     kind: conversation
     prompt: >
-      Imagine a central bank facing inflation of about 9% a year with a policy rate of 10%. It says it will
-      stop defending any particular level of the policy rate and will control bank reserves instead. Explain
-      what the real rate is here, why this change lets the policy rate move much more than before, who gains and
-      who loses if rates rise and inflation falls, and what the central bank is trading off.
+      Imagine a central bank whose policy rate looks high, but prices are rising almost as fast, so savers
+      barely come out ahead once inflation is counted. The bank stops defending a set rate and holds bank
+      reserves fixed instead, ready to let rates jump until inflation breaks. In your own words, what is the
+      bank trading off when it does this?
     passCriteria: >
-      The Learner says the real rate is about +1% (10% minus 9%), so policy is not tight even though the
-      nominal rate looks high. They explain that with reserves held fixed, the price of reserves is set by
-      demand, so the rate can move sharply. They say that lenders, savers and holders of newly issued
-      bonds gain from higher real rates while borrowers (and those facing job losses in a slowdown)
-      lose, and that the central bank is trading short-term output and jobs for lower inflation and
-      credibility. Any mention of stagflation (inflation and weak growth together) is a plus.
+      The Learner says the bank is giving up short-term output and jobs to bring inflation down and win back
+      credibility. They say who bears it: borrowers, and people who lose jobs in the slowdown, while lenders
+      and savers gain once rates clearly beat inflation. A plus: noting that money was not really tight
+      before, since inflation nearly matched the rate, or that with reserves held fixed, demand sets the rate,
+      so it can swing sharply. Any mention of stagflation (inflation and weak growth together) is a plus.

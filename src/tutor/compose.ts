@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 import { ARCHETYPES, type Archetype } from "@/widgets/recipes/define";
 import { RECIPES, recipeById } from "@/widgets/recipes";
+import { isStoryRecipeId } from "@/widgets/recipes/set-story";
 import { scriptedTutor } from "@/dev/e2e-mode";
 import { e2eComposeClient } from "@/dev/e2e-tutor";
 import type { ApiUsage } from "./usage";
@@ -66,6 +67,8 @@ const GROUPS_FOR: Record<Archetype, string[]> = {
   Rank: ["### Guess, check, compare, order"],
   Chain: ["### Things to count", "### Data display"],
   Convert: ["### Things to count"],
+  Story: ["### Story"],
+  Lingo: ["### Story"],
 };
 
 /** Cuts a "## " or "### " section, up to the next heading of its level or above. */
@@ -174,10 +177,13 @@ export type FallbackCandidate = { recipe: string; params: unknown };
  * shows the first that builds and passes the checks.
  */
 export function fallbackCandidates(archetype: Archetype, given?: FallbackCandidate): FallbackCandidate[] {
-  const same = RECIPES.filter((r) => r.archetype === archetype);
-  const others = RECIPES.filter((r) => r.archetype !== archetype);
+  // A story recipe's example is written for one Case and date (E3): shown bare, with no Topic or step in
+  // hand, it could state another Topic's outcome before its reveal. Story Widgets reach a Learner only
+  // through show_widget or a written-ahead scene, which run the story checks with that context.
+  const same = RECIPES.filter((r) => r.archetype === archetype && !isStoryRecipeId(r.id));
+  const others = RECIPES.filter((r) => r.archetype !== archetype && !isStoryRecipeId(r.id));
   const fromExamples = [...same, ...others].flatMap((r) => r.examples.map((params) => ({ recipe: r.id, params })));
-  return [...(given && recipeById(given.recipe) ? [given] : []), ...fromExamples];
+  return [...(given && !isStoryRecipeId(given.recipe) && recipeById(given.recipe) ? [given] : []), ...fromExamples];
 }
 
 export const isArchetype = (value: unknown): value is Archetype => typeof value === "string" && (ARCHETYPES as readonly string[]).includes(value);

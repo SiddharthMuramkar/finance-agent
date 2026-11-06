@@ -15,6 +15,8 @@ import { declaredSettings } from "@/widgets/settings";
 import { widgetKey } from "@/widgets/widget-state";
 import { ARCHETYPES } from "@/widgets/recipes/define";
 import { recipeById } from "@/widgets/recipes";
+import { headlineParamsForScene, isStoryRecipeId, storyChecks } from "@/widgets/recipes/set-story";
+import { storyContextFor } from "@/course/scenes";
 import { shownWidgetOf, WIDGET_SHOWN, type ComposeTimings, type ShownWidget } from "@/widgets/shown-widget";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
@@ -43,6 +45,7 @@ import type { ToolDefinition } from "./instructions";
 import { JUST_TELL_ME } from "./chips";
 import { ownRuleOf, OWN_RULE_SAVED } from "./own-rule-item";
 import { isCodeWritten, OLD_CONTINUE_TEXT, turnKind } from "./turn-status";
+import { isChoicePress } from "./reply-choices";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
@@ -506,6 +509,12 @@ export function toolCode(
       parse: (input) => searchInput.parse(input),
       run: async ({ query, source }) => searchResultBlocks(await searchLibrary({ db, map, embedQuery, learnerId }, query, { source })),
     },
+    // Choices (D3a, ADR 0010): the Tutor may suggest one. It writes nothing: after the reply, code reads the call from the
+    // log, keeps a valid label as the first Choice and silently drops a bad one (recorded with the turn's usage).
+    suggest_choice: {
+      parse: (input) => z.object({ label: z.unknown() }).passthrough().parse(input ?? {}),
+      run: async () => "Noted.",
+    },
     // Pure: it writes nothing, so it does not go through `once`; the same inputs always give the same answer.
     calculate: {
       parse: (input) => calculateInput.parse(input),
@@ -567,7 +576,7 @@ export function toolCode(
           // An old "Continue.", a note code wrote (Finish this reply's among them) or a help chip is never an attempt,
           // whatever words the Tutor offers; the Just tell me chip only ever asks to be told (ADR 0001).
           const justTellMe = message.trim() === JUST_TELL_ME;
-          if (message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || (turn && turnKind(turn) === "chip" && !justTellMe)) {
+          if (message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || (turn && turnKind(turn) === "chip" && !justTellMe) || (turn && !justTellMe && (await isChoicePress(tx, turn)))) {
             return { ok: false, text: NOT_THE_LEARNERS_ATTEMPT };
           }
           // Pacing rule: the Learner must have seen the question before an attempt can count.
@@ -611,7 +620,7 @@ export function toolCode(
           const [turn] = await tx.select().from(turns).where(eq(turns.id, turnId));
           const message = turn?.input ?? "";
           // A chip, a note code wrote and the old "Continue." are never the Learner's own words.
-          if (!turn || message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || turnKind(turn) !== "message") {
+          if (!turn || message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || turnKind(turn) !== "message" || (await isChoicePress(tx, turn))) {
             return { ok: false, text: "Not saved: this turn is not a message the Learner typed. Save a rule only from words they wrote themselves." };
           }
           const words = exactWords(message, learner_words);
@@ -723,10 +732,31 @@ export function toolCode(
           if (id === "quick_check") return { ok: false, text: QUICK_CHECK_REFUSAL };
           const recipe = recipeById(id);
           if (!recipe) return { ok: false, text: `Not shown: there is no Widget recipe "${id}". Recipes: ${TUTOR_RECIPE_IDS.join(", ")}.` };
-          const built = recipe.build(params);
+          // A front page is written ahead (E3): the Tutor names a headline scene of this Topic and code
+          // swaps in the scene's own text, so the stored Widget and every later check see that text.
+          let showParams: unknown = params;
+          if (id === "headline") {
+            const where = await replyScope(tx);
+            const topicId = where?.topicId ?? navigate(map, await loadProgress(tx, learnerId))?.topic.id;
+            const topic = topicId ? map.topic(topicId) : undefined;
+            const resolved = headlineParamsForScene(topic?.scenes ?? [], params);
+            if (!resolved.ok) return { ok: false, text: `Not shown: ${resolved.error}` };
+            showParams = resolved.params;
+          }
+          const built = recipe.build(showParams);
           if (!built.ok) return { ok: false, text: `Not shown: these params do not fit the ${id} recipe. ${built.error}. Call show_widget again with params that fit, or teach this in words.` };
           const scope = await replyScope(tx);
           if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
+          // Story words are checked against this Topic and step too (E3): dates to the Case's as-of date,
+          // and the Topic's currencies, as the same rules the scene check runs on Topic files.
+          if (isStoryRecipeId(id)) {
+            const topic = scope.topicId ? map.topic(scope.topicId) : undefined;
+            const place = navigate(map, await loadProgress(tx, learnerId));
+            const facts = await turnFacts(tx, map, learnerId, place);
+            const base = topic ? storyContextFor(topic, facts.step === "none" ? place?.step : facts.step) : {};
+            const problems = storyChecks((built.params as { inputs?: unknown }).inputs, { ...base, exampleCurrency: facts.exampleCurrency, caseCurrencies: facts.caseCurrencies });
+            if (problems.length) return { ok: false, text: `Not shown: ${problems.join(" ")} Call show_widget again within them, or teach this in words.` };
+          }
           if (await widgetInReply(tx, scope)) return { ok: false, text: ONE_WIDGET };
           // An Illustration only where no input or Case Data path covers the same number.
           const covered = illustrationProblems(id, built.params);
