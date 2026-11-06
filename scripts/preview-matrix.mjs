@@ -33,7 +33,7 @@ for (const project of projects) {
     const shot = join(root, r.file);
     if (existsSync(shot) && statSync(shot).mtimeMs >= started) shots++;
     const l = r.layout;
-    console.log(`${r.cell.padEnd(34)} gutters ${l?.gutterLeft}/${l?.gutterRight} header ${l?.headerHeight} panel% ${l?.panelWidthPct} chars/line ${l?.charsPerLine} scroll ${l?.horizontalScroll} tab ${r.focus?.stops ?? "-"} stops, ${r.focus?.withoutRing.length ?? "-"} without ring${r.accents ? ` accents ${r.accents.length}` : ""}${r.error ? ` ERROR ${r.error}` : ""}`);
+    console.log(`${r.cell.padEnd(34)} gutters ${l?.gutterLeft}/${l?.gutterRight} header ${l?.headerHeight} panel% ${l?.panelWidthPct} chars/line ${l?.charsPerLine} scroll ${l?.horizontalScroll} tab ${r.focus?.stops ?? "-"} stops, ${r.focus?.withoutRing.length ?? "-"} without ring${r.accents ? ` accents ${r.accents.length} [${r.accents.join(",")}]` : ""}${r.error ? ` ERROR ${r.error}` : ""}`);
   }
 }
 console.log(`\n${cells} cells measured, ${shots} screenshots, ${projects.length} projects.`);

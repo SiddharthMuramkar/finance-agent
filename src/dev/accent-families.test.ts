@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ACCENT_FAMILIES, accentFamiliesPainted, familyOf, over, paintsOf, parseColors, type AccentTokens, type Paint, type PaintKind, type Rgba } from "./accent-families";
+import { ACCENT_FAMILIES, accentFamiliesPainted, familyOf, over, paintsOf, parseColors, type AccentTokens, type Paint, type PaintKind } from "./accent-families";
 
 /**
  * F1's accent count (spec 2026-11-05 §3 row 7: "≥ 3 distinct accent colours visible on /study with a Widget"). The token

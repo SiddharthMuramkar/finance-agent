@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { cellsOfProject, MATRIX_DIR, matrixThresholds, type MatrixCell } from "../src/dev/preview-matrix";
 import { quietDevtools, seed, settled } from "./support/app";
-import { auditAffordances, measureLayout, type Affordances, type Layout } from "./support/measure";
+import { accentFamilies, auditAffordances, measureLayout, type Affordances, type Layout } from "./support/measure";
 
 /**
  * F1's preview matrix (spec 2026-11-05, ticket F1): one shot and one set of numbers for every cell of the current
@@ -21,8 +21,13 @@ type Result = {
   layout: Layout | null;
   affordances: Affordances | null;
   focus: FocusWalk | null;
-  /** Which of --mint, --coral, --sun, --violet the Widget panel actually paints (concept-with-Widget cell only). */
+  /**
+   * Which accent families (mint, coral, sun, violet, each with every variant its theme defines) the whole /study page
+   * paints, anywhere: header, chat, Topic bar, Widget panel (concept-with-Widget cell only). `accentVia` says, per family,
+   * the first variant and paint that matched ("--sun-tag as background").
+   */
   accents: string[] | null;
+  accentVia?: Record<string, string>;
   scrollWidth: number;
   innerWidth: number;
   error?: string;
@@ -59,53 +64,6 @@ function saved(project: string, outputDir: string): Result[] {
 /** The accessible names the Done-when keyboard pass needs: the header's three icons, and Google on the sign-in page. */
 const HEADER_CONTROLS = ["Theme", "Settings", "Account menu"];
 const LOGIN_CONTROLS = ["Continue with Google"];
-
-/**
- * Which of --mint, --coral, --sun and --violet the visible elements of the Widget panel paint: backgrounds (and their
- * gradients), borders, SVG fills and strokes, and the colour of text they hold. A probe only resolves each token to its
- * colour; the count comes from what is painted. A tint (same colour, alpha >= 0.1) counts as its accent.
- */
-const accentsPainted = (page: Page) =>
-  page.evaluate(() => {
-    const pane = document.querySelector('[data-testid="widget-pane"]');
-    if (!pane) return null;
-    type Rgba = [number, number, number, number];
-    const parse = (c: string): Rgba[] => {
-      const out: Rgba[] = [];
-      for (const m of c.matchAll(/rgba?\(([^)]+)\)/g)) {
-        const [r, g, b, a = "1"] = m[1].split(/[\s,/]+/).filter(Boolean);
-        out.push([+r, +g, +b, +a]);
-      }
-      for (const m of c.matchAll(/color\(srgb ([^)]+)\)/g)) {
-        const [r, g, b, a = "1"] = m[1].split(/[\s/]+/).filter(Boolean);
-        out.push([+r * 255, +g * 255, +b * 255, +a]);
-      }
-      return out;
-    };
-    const probe = document.createElement("span");
-    document.body.appendChild(probe);
-    const accents = ["--mint", "--coral", "--sun", "--violet"].map((name) => {
-      probe.style.color = `var(${name})`;
-      return { name, rgb: parse(getComputedStyle(probe).color)[0] };
-    });
-    probe.remove();
-    const painted: Rgba[] = [];
-    for (const el of [pane, ...pane.querySelectorAll("*")]) {
-      const r = el.getBoundingClientRect(), s = getComputedStyle(el);
-      if (!r.width || !r.height || s.visibility === "hidden" || s.display === "none" || s.opacity === "0") continue;
-      painted.push(...parse(s.backgroundColor), ...parse(s.backgroundImage));
-      for (const side of ["Top", "Right", "Bottom", "Left"] as const) {
-        if (parseFloat(s[`border${side}Width`]) > 0 && s[`border${side}Style`] !== "none") painted.push(...parse(s[`border${side}Color`]));
-      }
-      if (el instanceof SVGElement) {
-        if (s.fill !== "none") painted.push(...parse(s.fill));
-        if (s.stroke !== "none" && parseFloat(s.strokeWidth) > 0) painted.push(...parse(s.stroke));
-      }
-      if ([...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) painted.push(...parse(s.color));
-    }
-    const near = (a: Rgba, b: Rgba) => a[3] >= 0.1 && Math.abs(a[0] - b[0]) <= 2 && Math.abs(a[1] - b[1]) <= 2 && Math.abs(a[2] - b[2]) <= 2;
-    return accents.filter((x) => x.rgb && painted.some((p) => near(p, x.rgb))).map((x) => x.name);
-  });
 
 /**
  * Walks Tab through the whole page (until focus leaves it or comes back round, at most 80 stops). Before the first Tab
@@ -195,7 +153,11 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
     // blurbs of cards that sit beside other cards (measureLayout skips those).
     out.layout = await measureLayout(page, p.prose ? { prose: '[data-testid="reading-column"] p' } : {});
     out.affordances = await auditAffordances(page);
-    if (p.id === "study-concept-widget") out.accents = await accentsPainted(page);
+    if (p.id === "study-concept-widget") {
+      const a = await accentFamilies(page);
+      out.accents = a.families;
+      out.accentVia = a.via;
+    }
     mkdirSync(dirname(join(process.cwd(), cell.file)), { recursive: true });
     await page.screenshot({ path: cell.file, fullPage: true });
     out.focus = await focusWalk(page); // after the shot, so the ring does not appear in it
@@ -262,8 +224,10 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
   expect(failing, "failing cells (each is a finding)").toEqual([]);
 });
 
+// §3 row 7: ">= 3 distinct accent colours visible on /study with a Widget". The whole cell counts, and a family counts
+// whichever of its variants is painted, so the same page scores the same in Light and Dark.
 test("[F1] /study with a Widget shows ≥ 3 accents", async ({}, info) => {
   const r = saved(info.project.name, info.project.outputDir).find((x) => x.cell === `${info.project.name}/study-concept-widget`);
-  expect(r?.accents, `accents painted in the Widget panel (${r?.error ?? "measured"})`).not.toBeNull();
-  expect(r!.accents!.length, `accents painted in the Widget panel: ${JSON.stringify(r!.accents)}`).toBeGreaterThanOrEqual(3);
+  expect(r?.accents, `accent families painted on /study with a Widget (${r?.error ?? "measured"})`).not.toBeNull();
+  expect(r!.accents!.length, `accent families painted on /study with a Widget: ${JSON.stringify(r!.accentVia)}`).toBeGreaterThanOrEqual(3);
 });

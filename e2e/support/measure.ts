@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { accentFamiliesPainted, paintsOf, type AccentCount, type AccentTokens } from "../../src/dev/accent-families";
 
 /**
  * The one measuring module of the browser test bed (spec 2026-11-05, Appendix C.2 and C.3, ticket T-00). Each function
@@ -156,4 +157,69 @@ export function auditAffordances(page: Page): Promise<Affordances> {
     out.counts = { interactive, tags };
     return out;                                           // a clean page returns four empty lists
   });
+}
+
+/**
+ * F1's accent count (§3 row 7: ">= 3 distinct accent colours visible on /study with a Widget"): which accent FAMILIES
+ * (mint, coral, sun, violet) the visible elements of the whole page paint. The page gives the raw material: every
+ * variant of each family that its stylesheets declare (--mint, --mint-ink, --mint-tint, --mint-tag, --coral-fill, ...),
+ * resolved in the current theme from getComputedStyle(document.documentElement), and each element's background,
+ * gradients, borders, SVG fill and stroke, and the colour of its own text. src/dev/accent-families.ts composites each
+ * translucent paint and variant over its backdrop and decides (tested there with the Light and Dark token tables).
+ * Visible means a box of some size that checkVisibility() passes with opacity and visibility, so a hidden, see-through
+ * or 0x0 accent does not count.
+ */
+export async function accentFamilies(page: Page): Promise<AccentCount & { tokens: AccentTokens }> {
+  const { tokens, nodes } = await page.evaluate(() => {
+    const FAMILY = /^--(mint|coral|sun|violet)(-[a-z0-9-]+)?$/;
+    const names = new Set<string>();
+    const scan = (rules: CSSRuleList) => {
+      for (const r of Array.from(rules)) {
+        if (r instanceof CSSStyleRule) for (const p of Array.from(r.style)) if (FAMILY.test(p)) names.add(p);
+        if ("cssRules" in r) scan((r as CSSGroupingRule).cssRules);
+      }
+    };
+    for (const sheet of Array.from(document.styleSheets)) {
+      try { scan(sheet.cssRules); } catch { /* a cross-origin sheet cannot be read */ }
+    }
+    if (!names.size) for (const f of ["mint", "coral", "sun", "violet"]) for (const v of ["", "-ink", "-tint", "-tag"]) names.add(`--${f}${v}`);
+    const root = getComputedStyle(document.documentElement);
+    const probe = document.createElement("span");
+    document.body.appendChild(probe);
+    const tokens: Record<string, string> = {};
+    for (const name of names) {
+      const raw = root.getPropertyValue(name).trim();
+      if (!raw || !CSS.supports("color", raw)) continue;
+      probe.style.color = raw;                       // normalised the way computed styles report colours
+      tokens[name] = getComputedStyle(probe).color;
+    }
+    probe.remove();
+    type On = { color: string; kind: "border" | "fill" | "stroke" | "text" };
+    const els = [document.documentElement, ...Array.from(document.documentElement.querySelectorAll("*"))];
+    const index = new Map<Element, number>(els.map((el, i) => [el, i]));
+    const nodes = els.map((el) => {
+      const s = getComputedStyle(el), r = el.getBoundingClientRect();
+      const shown = typeof el.checkVisibility === "function"
+        ? el.checkVisibility({ opacityProperty: true, visibilityProperty: true })
+        : s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0";
+      const on: On[] = [];
+      for (const side of ["Top", "Right", "Bottom", "Left"] as const) {
+        if (parseFloat(s[`border${side}Width`]) > 0 && !["none", "hidden"].includes(s[`border${side}Style`])) on.push({ color: s[`border${side}Color`], kind: "border" });
+      }
+      if (el instanceof SVGElement) {
+        if (s.fill !== "none") on.push({ color: s.fill, kind: "fill" });
+        if (s.stroke !== "none" && parseFloat(s.strokeWidth) > 0) on.push({ color: s.stroke, kind: "stroke" });
+      }
+      if (Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) on.push({ color: s.color, kind: "text" });
+      return {
+        parent: el.parentElement ? index.get(el.parentElement) ?? -1 : -1,
+        visible: r.width > 0 && r.height > 0 && shown,
+        background: s.backgroundColor,
+        gradients: s.backgroundImage !== "none" ? [s.backgroundImage] : [],
+        on,
+      };
+    });
+    return { tokens, nodes };
+  });
+  return { ...accentFamiliesPainted(tokens, paintsOf(nodes)), tokens };
 }
