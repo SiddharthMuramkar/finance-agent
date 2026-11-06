@@ -39,6 +39,9 @@ describe("the Tutor's frozen instructions", () => {
       it("acknowledge frustration warmly, without the flat 'Fair.' (T15)", () => {
         expect(text).not.toContain('"Fair.');
         expect(text).toContain('"Good news: this part is words, not maths."');
+        // D3b finish run t3: T15 was "warm but nothing playful" next to the Learner's "lol", and one ask said "how many points".
+        expect(text).toContain('when the Learner jokes ("lol"), answer with a light touch of your own ("Ha, then you\'ll like this: words, not maths.")');
+        expect(text).toContain('that ask never says "how many" or "how much"');
       });
 
       // Run 3 (critics BP-2, EV-2): "bad at maths" got "mostly subtraction", a worked sum and a Quick try that asks for a number.
