@@ -128,7 +128,7 @@ questions:
     choices:
       - { id: a, text: "Investors see a higher chance of default or restructuring" }
       - { id: b, text: "Investors see a lower chance of default", mistake: { tag: spread_backwards, fix: "A wider spread means investors want more pay for more risk, so default looks likelier." } }
-      - { id: c, text: "US Treasury yields have fallen to zero", mistake: { tag: treasury_moved, fix: "The spread is the gap over Treasuries; it widens because the country looks riskier." } }
+      - { id: c, text: "US Treasury yields have fallen to zero", mistake: { tag: treasury_moved, fix: "Treasury moves can nudge the gap, but a sharp widening is the market pricing default fear." } }
       - { id: d, text: "The country's currency has been fixed to the dollar", mistake: { tag: peg_for_spread, fix: "A spread over Treasuries prices default fear, not the exchange rate regime." } }
     answer: a
     explanation: >
