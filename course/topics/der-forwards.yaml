@@ -65,15 +65,15 @@ youllLearn:
 questions:
   - id: fw-q-fair-forward
     prompt: >
-      A jeweller agrees today to buy a metal in a year's time. The metal costs $100 now, costs nothing to store, and her cash would earn 5% a year in the bank. The dealer quotes a forward price above $100 and she suspects a rip-off. Why is the higher price fair?
+      Asha, a jeweller, agrees today to buy a metal in a year. It costs $100 now and nothing to store, yet the dealer quotes her more than $100. Is she being ripped off?
     choices:
-      - { id: a, text: "Your cash earns interest while you wait, so the price carries it (cost of carry)" }
-      - { id: b, text: "Traders expect the metal's price to rise by that much", mistake: { tag: forecast_not_carry, fix: "The forward price reflects interest on the cash, not a forecast of the spot price." } }
-      - { id: c, text: "The seller adds a profit margin on top", mistake: { tag: markup_not_carry, fix: "A fair price comes from interest, not a markup. A markup would be arbitraged away." } }
-      - { id: d, text: "A forward is always priced at today's spot price", mistake: { tag: forward_equals_spot, fix: "A forward at the spot price would let a trader borrow, buy and deliver for a sure profit." } }
+      - { id: a, text: "No: her cash earns interest meanwhile, and the price reflects that" }
+      - { id: b, text: "No: traders expect the metal's price to rise by that much", mistake: { tag: forecast_not_carry, fix: "The forward price reflects interest on the cash, not a forecast of the spot price." } }
+      - { id: c, text: "Yes: the dealer is adding his own profit on top", mistake: { tag: markup_not_carry, fix: "A fair price comes from interest, not a markup. A markup would be arbitraged away." } }
+      - { id: d, text: "Yes: a fair forward price always equals today's price", mistake: { tag: forward_equals_spot, fix: "At today's price, metal holders would sell now, bank the cash and buy back forward: free money." } }
     answer: a
     explanation: >
-      Buying forward leaves your $100 free to earn interest for a year, so the forward price must be the spot price grown at the interest rate, so a little above $100. A forward at $100 would let a trader borrow, buy the metal and deliver it at a sure profit.
+      Buying forward leaves Asha's $100 free to earn interest for a year, so the fair forward price is today's price grown at the interest rate. Traders call this the cost of carry. At any other price, someone could trade the metal against the bank for a sure profit.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.2 Commodity Price Risk (forward and futures contracts): https://openstax.org/books/principles-finance/pages/20-2-commodity-price-risk ; cost-of-carry price calculated as F = S x (1 + r)^T
 
