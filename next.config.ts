@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
   },
   // The Course Map is read from course/topics and course/outline.yaml at runtime, so ship those files with every route.
   outputFileTracingIncludes: { "/*": ["./course/topics/**/*", "./course/outline.yaml"] },
+  // Progress and the Course Map are one page now (spec 2026-11-05 B1): the old address answers 308 to the map.
+  async redirects() {
+    return [{ source: "/progress", destination: "/course", permanent: true }];
+  },
   // "/" (Home) is public, so no other site may frame any page (clickjacking), browsers must not guess content types,
   // and other sites see only our origin as the referrer. Only frame-ancestors is set: a full script CSP would need nonces.
   async headers() {

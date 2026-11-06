@@ -50,7 +50,6 @@ const { POST: login } = await import("@/app/api/login/route");
 const session = await import("@/auth/session");
 const { default: NotesPage } = await import("@/app/notes/page");
 const { default: SessionsPage } = await import("@/app/sessions/page");
-const { default: ProgressPage } = await import("@/app/progress/page");
 const { default: ProfilePage } = await import("@/app/profile/page");
 const { default: StudyPage } = await import("@/app/study/page");
 const { default: WelcomePage } = await import("@/app/welcome/page");
@@ -203,7 +202,7 @@ describe("The owner and a second Learner", () => {
 
     expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s own note line");
     expect(await html(SessionsPage())).not.toContain("No Sessions yet.");
-    expect(await html(ProgressPage())).toMatch(/In progress/i);
+    expect(await html(CourseMapPage())).toMatch(/In progress/i);
     expect(await html(StudyPage())).toContain("The owner&#x27;s reply about the annuity.");
     expect(await json(profileRoute.GET())).toMatchObject({ work: "a teacher in Mumbai" });
   });
@@ -216,7 +215,7 @@ describe("The owner and a second Learner", () => {
     await signIn(OWNER_PASSCODE);
 
     expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).toContain("my line");
-    expect(await html(ProgressPage())).toContain('data-status="in_progress"');
+    expect(await html(CourseMapPage())).toContain('data-status="in_progress"');
     expect(await html(SessionsPage())).toContain("Older sessions");
     expect(await html(CourseMapPage())).toMatch(/>In progress\b/);
     expect(await loadHomeButton()).toEqual({ kind: "resume", topic: as.map!.topic("present-value")!.title });
@@ -229,8 +228,8 @@ describe("The owner and a second Learner", () => {
 
     expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).not.toContain("The owner&#x27;s own note line");
     expect(await html(SessionsPage())).toContain("No Sessions yet.");
-    expect(await html(ProgressPage())).toContain("0 in progress · 0 passed");
-    expect(await html(ProgressPage())).not.toContain('data-status="in_progress"');
+    expect(await html(CourseMapPage())).toContain("0 in progress · 0 passed");
+    expect(await html(CourseMapPage())).not.toContain('data-status="in_progress"');
     expect(await html(SettingsPage())).not.toContain("Mumbai");
     expect(await html(CourseMapPage())).not.toMatch(/>In progress\b/);
     expect(await loadHomeButton()).toEqual({ kind: "start", topic: as.map!.topic("present-value")!.title });
@@ -362,8 +361,8 @@ describe("Start over", () => {
     // The fresh Learner starts empty.
     expect(await html(SessionsPage())).toContain("No Sessions yet.");
     expect(await html(NotesPage({ searchParams: Promise.resolve({ all: "1" }) }))).not.toContain("note line");
-    expect(await html(ProgressPage())).toContain("0 in progress · 0 passed");
-    expect(await html(ProgressPage())).not.toContain('data-status="in_progress"');
+    expect(await html(CourseMapPage())).toContain("0 in progress · 0 passed");
+    expect(await html(CourseMapPage())).not.toContain('data-status="in_progress"');
     expect(await json(profileRoute.GET())).toMatchObject({ work: null });
     // With no Sessions, the fresh Learner lands on the Welcome, from the Study Workspace too.
     await expect(StudyPage()).rejects.toMatchObject(toWelcome);

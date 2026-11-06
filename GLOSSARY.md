@@ -29,7 +29,7 @@ What one Tutor reply sets out to do, such as feedback on an answer, a rule, a wo
 _Avoid_: Move, teaching move, action
 
 **Course Map**:
-The Topics across finance and economics, what each one requires first, and a default path the Tutor leads the Learner along. The Learner can ask anything along the way, or choose another Topic, and come back to where they were.
+The Topics across finance and economics, what each one requires first, and a default path the Tutor leads the Learner along, and shows the Learner's progress on it. The Learner can ask anything along the way, or choose another Topic, and come back to where they were.
 _Avoid_: Syllabus, curriculum
 
 **Topic**:
