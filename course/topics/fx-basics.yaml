@@ -16,9 +16,8 @@ cases:
       International Monetary Fund. The rupee was not allowed to float: it was fixed by the RBI
       against a basket of currencies, and the RBI adjusted the rate in small daily steps.
       Suppose policymakers decide to cut the rupee's value against other currencies.
-      Consider the rupee price of a dollar. If India lowers the rupee's value, what happens to the
-      rupee price of imported oil, to the dollar price of Indian exports, and to the
-      incentive to send money home or to hold it abroad? What would make a cut big enough to win lenders' trust?
+      If you sat at the RBI that week, would you make one big cut, or a small one first to see how
+      the market takes it?
     reveal: >
       On 1 July 1991 the RBI cut the rupee's value by about 9%. Two days later, on 3 July,
       it cut it by a further 11%. The RBI's own chronology puts the cumulative devaluation at
@@ -61,15 +60,15 @@ youllLearn:
 questions:
   - id: fx-q-invert
     prompt: >
-      Lena lands in Mexico City. Her bank's app shows one peso at $0.0625, but the airport board says 16 pesos to the dollar. She fears she is being shown two different prices. What is really going on?
+      Lena lands in Mexico City. Her bank app prices a peso in dollars, a tiny number; the airport board prices a dollar in pesos, a big one. Is she seeing two prices?
     choices:
-      - { id: a, text: "The inverse quote: the same rate, read from the dollar's side" }
-      - { id: b, text: "A second, different rate for the peso", mistake: { tag: flip_is_new_rate, fix: "Flipping the quote changes nothing. It is the same rate read from the other currency's side." } }
-      - { id: c, text: "A devaluation of the peso", mistake: { tag: flip_is_devaluation, fix: "A devaluation is a government cutting a fixed rate. Reading a quote the other way moves nothing." } }
-      - { id: d, text: "A forward rate", mistake: { tag: flip_is_forward, fix: "A forward rate is for a later date. This is the same rate, today, quoted the other way." } }
+      - { id: a, text: "No: it is one rate, read from each currency's side" }
+      - { id: b, text: "Yes: the peso has two official prices, one per side", mistake: { tag: flip_is_new_rate, fix: "Flipping the quote changes nothing. It is the same rate read from the other currency's side." } }
+      - { id: c, text: "Yes: the peso was devalued while her plane was flying", mistake: { tag: flip_is_devaluation, fix: "A devaluation is a government cutting a fixed rate. Reading a quote the other way moves nothing." } }
+      - { id: d, text: "No: the board is showing next month's forward rate", mistake: { tag: flip_is_forward, fix: "A forward rate is for a later date. This is the same rate, today, quoted the other way." } }
     answer: a
     explanation: >
-      Divide both sides of MXN 1 = USD 0.0625 by 0.0625 and you get MXN 16 = USD 1. The quote the other way round is the reciprocal: the same rate, quoted from the other currency.
+      A rate can be quoted from either side: dollars for one peso, or pesos for one dollar. Traders call the flipped version the inverse quote. It is the same price, so a tiny number on one side means a big number on the other.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
@@ -89,15 +88,15 @@ questions:
 
   - id: fx-q-exporter
     prompt: >
-      A Mexican potter sells goods to a buyer in Texas for $20,000. Then the peso slides from MXN 16 = USD 1 to MXN 20 = USD 1. When the potter changes the dollars into pesos, what does she find?
+      Maria, a potter in Oaxaca, sells mugs to a Texas shop for dollars. One spring the peso weakens, and her nephew calls it bad news for her. Who gets it right?
     choices:
-      - { id: a, text: "The peso strengthened, so the potter ends up with more pesos", mistake: { tag: read_the_rate_backwards, fix: "More pesos per dollar means each peso buys fewer dollars. The peso weakened." } }
-      - { id: b, text: "The peso weakened, so the potter ends up with fewer pesos", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more in pesos." } }
-      - { id: c, text: "The peso weakened, so the potter ends up with more pesos" }
-      - { id: d, text: "Nothing changes, because the dollar price is the same", mistake: { tag: ignored_conversion, fix: "The dollars are the same, but converting them now gives a different number of pesos." } }
-    answer: c
+      - { id: a, text: "Maria: each dollar she earns now changes into more pesos" }
+      - { id: b, text: "The nephew: a weak peso makes everything Maria sells worth less", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more at home." } }
+      - { id: c, text: "Neither: the shop pays the same dollars, so nothing changes", mistake: { tag: ignored_conversion, fix: "The dollars are the same, but changing them into pesos now gives her more." } }
+      - { id: d, text: "The nephew: her Texas shop must now pay her more dollars", mistake: { tag: buyer_pays_more, fix: "Her dollar price has not moved. The peso's fall changes what those dollars buy at home." } }
+    answer: a
     explanation: >
-      At 16 per dollar $20,000 buys 320,000 pesos; at 20 per dollar it buys 400,000. More pesos per dollar means each peso is worth fewer dollars: the peso depreciated, and the exporter earns more in pesos.
+      A weaker peso means one dollar buys more pesos. Maria's dollar price has not changed, so the same sale brings home more pesos. That is why exporters often welcome a weak home currency.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
@@ -117,15 +116,15 @@ questions:
 
   - id: fx-q-compound
     prompt: >
-      Ravi has saved for a year of study abroad. One Monday his government cuts his currency's value; a few days later it cuts the new, lower value again. His roommate says the hit to his savings is just the two cuts added up. Is it?
+      Ravi has saved for a year of study abroad. On Monday his government cuts its currency's value; on Wednesday it cuts again. His roommate says the second cut compounds the first. What does compounds mean here?
     choices:
-      - { id: a, text: "Exactly the two cuts added", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
-      - { id: b, text: "A little less than the two cuts added" }
-      - { id: c, text: "More than the two cuts added", mistake: { tag: compounding_goes_up, fix: "The second cut applies to a smaller base, so it takes away less of the original." } }
-      - { id: d, text: "It depends on which cut came first", mistake: { tag: order_matters, fix: "The order does not matter. The second cut always bites a smaller value, so the total is a little below the two added." } }
-    answer: b
+      - { id: a, text: "The second cut is taken from the already-lowered value" }
+      - { id: b, text: "The second cut cancels the first and starts over", mistake: { tag: second_cut_resets, fix: "The first cut stays. The second is stacked on top, taken from the lower value." } }
+      - { id: c, text: "The second cut is to interest rates, not the currency", mistake: { tag: compound_means_interest, fix: "Compounding here means one cut stacked on another, not a change in interest rates." } }
+      - { id: d, text: "The second cut doubles the size of the first one", mistake: { tag: compound_means_double, fix: "Compounding means stacking, not doubling. The second cut works on what the first cut left." } }
+    answer: a
     explanation: >
-      The second cut bites a currency that is already worth less, so it takes away less of the original value. A 10% cut followed by a 10% cut of the new value leaves a total fall of 19%, not 20%.
+      Each cut is taken from whatever value is left. The second cut bites a currency already worth less, so together the two cuts take a little less than their sizes simply added.
     source: >
       Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
@@ -161,12 +160,9 @@ checks:
   - id: fx-devaluation-explain
     kind: conversation
     prompt: >
-      Anil's uncle imports oil into Mumbai, and his aunt sells cotton shirts to shops in Dubai.
-      The morning after the government cuts the rupee's value, both of them call him. What does
-      each one tell him has changed for their business, and why would a government that is
-      running short of dollars, as India was in 1991, want that?
+      Anil's aunt sells cotton shirts to shops in Dubai. The morning after the government cuts the
+      rupee's value, she calls him, delighted. Say in your own words why the cut is good news for her.
     passCriteria: >
-      The Learner says the oil now costs the uncle more rupees, so imports are discouraged, and the aunt's
-      shirts now cost less in dirhams or dollars, so she can win more orders and exports are encouraged. They
-      connect it to the crisis: the country spends fewer dollars on imports and earns more from exports, and
-      holding rupees looks less risky once the cut is done, which helps rebuild the reserves.
+      The Learner says, in any words, that her shirts now look cheaper to buyers abroad, so she can win
+      more orders, or that each dirham or dollar she earns now changes into more rupees. Either idea is
+      enough; no numbers are needed.
