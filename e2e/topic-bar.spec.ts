@@ -173,3 +173,34 @@ test("[#313] the edge fade follows the strip's content, not only its box (T313-F
   await page.addStyleTag({ content: '[data-strip-group]:nth-child(n+2) { display: flex !important; }' });
   await expect(strip).toHaveAttribute("data-more-right", "true");
 });
+
+test("[#313] a wheel over the strip scrolls the capped box around it first, and the strip only when that box cannot (T313-T1)", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "sizes its own viewport");
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await seed(page, "your-turn");
+  await page.goto("/study");
+  const box = page.getByTestId("above-widgets");
+  const strip = page.getByTestId("topic-bar").locator('ol[aria-label="Steps in this Topic"]');
+  await expect(strip).toBeVisible();
+  // Make the capped box overflow (as with Review open or a pinned explore Widget): a tall block below the bar.
+  await box.evaluate((el) => {
+    const pad = document.createElement("div");
+    pad.style.height = "2000px";
+    pad.style.flex = "none";
+    pad.dataset.testPad = "1";
+    el.appendChild(pad);
+    el.scrollTop = 0;
+  });
+  await strip.evaluate((ol) => { ol.scrollLeft = 0; ol.dispatchEvent(new Event("scroll")); });
+  const r = (await strip.boundingBox())!;
+  await page.mouse.move(r.x + r.width / 2, r.y + r.height / 2);
+  await page.mouse.wheel(0, 120);
+  await expect.poll(() => box.evaluate((el) => el.scrollTop), { message: "the capped box scrolls" }).toBeGreaterThan(0);
+  expect(await strip.evaluate((ol) => ol.scrollLeft), "the strip stays put while the box can scroll").toBe(0);
+  // Once the box is at its end (and the strip is still under the mouse), the wheel moves the strip sideways.
+  await box.evaluate((el) => { el.querySelector("[data-test-pad]")!.remove(); el.scrollTop = 0; });
+  const r2 = (await strip.boundingBox())!;
+  await page.mouse.move(r2.x + r2.width / 2, r2.y + r2.height / 2);
+  await page.mouse.wheel(0, 120);
+  await expect.poll(() => strip.evaluate((ol) => ol.scrollLeft)).toBeGreaterThan(0);
+});

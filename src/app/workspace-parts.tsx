@@ -84,6 +84,18 @@ export function TopicBar({ topicId, title, goal, strip, marked }: { topicId?: st
   );
 }
 
+/** Whether a box around `el` (up to the page) can still scroll vertically in the wheel's direction. */
+function ancestorCanScroll(el: HTMLElement, deltaY: number): boolean {
+  const can = (box: Element) =>
+    deltaY > 0 ? box.scrollTop + box.clientHeight < box.scrollHeight - 1 : box.scrollTop > 0;
+  for (let box = el.parentElement; box; box = box.parentElement) {
+    const { overflowY } = getComputedStyle(box);
+    if ((overflowY === "auto" || overflowY === "scroll") && box.scrollHeight > box.clientHeight && can(box)) return true;
+  }
+  const page = document.scrollingElement;
+  return !!page && page.scrollHeight > page.clientHeight && can(page);
+}
+
 /**
  * The Topic bar's step strip on one line (#313): a Topic with four Checks scrolls sideways instead of wrapping, and
  * the strip scrolls only itself (never the page or the column) so the current step is in view.
@@ -115,6 +127,9 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
     if (!ol) return;
     const onWheel = (e: WheelEvent) => {
       if (e.shiftKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      // A box around the strip that can still scroll that way (the capped above-widgets box, the page) gets the wheel
+      // first; the strip turns it sideways only when none can (T313-T1).
+      if (ancestorCanScroll(ol, e.deltaY)) return;
       const max = ol.scrollWidth - ol.clientWidth;
       if (max <= 0) return;
       const next = Math.min(max, Math.max(0, ol.scrollLeft + e.deltaY));
