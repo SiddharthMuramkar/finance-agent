@@ -33,6 +33,12 @@ describe("the Tutor's rules", () => {
         expect(text).not.toMatch(/an Accordion for detail/);
       });
 
+      it("name the third rung as code's half-done choice, with no question of the Tutor's own (D1a, ladder-moves.ts)", () => {
+        expect(text).toContain("restate the rule, worked example, a half-done choice, Widget and drill");
+        expect(text).toContain("At a half-done choice, code posts the half-done try after your reply: name the slip in one sentence and write no question of your own.");
+        expect(text).not.toContain("The blank box is the reply's one ask");
+      });
+
       it("say what Go deeper, simpler and Show me in a widget get", () => {
         expect(text).toContain('"Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy.');
         expect(text).toContain("A request for something simpler gets the rule in four lines or fewer, with the same example.");

@@ -33,8 +33,8 @@ describe("the rules tuned against the live tests", () => {
         expect(text).toContain("After a wrong answer, in 60 words or fewer: name the slip in one sentence");
         expect(text).toContain("even when code has already shown a fix; only a short acknowledgement may come before it.");
         expect(text).toContain("Then one similar item with new numbers");
-        expect(text).toContain("Fill-in boxes leave the last box blank for the Learner: boxes you fill in are a worked example.");
-        expect(text).toContain("The blank box is the reply's one ask, not a practice question of your own.");
+        // D1a: the boxes rung is now code's half-done choice, so the Tutor names the slip and asks nothing of its own there.
+        expect(text).toContain("At a half-done choice, code posts the half-done try after your reply: name the slip in one sentence and write no question of your own.");
       });
 
       it("simpler means the first idea only, with nothing new, and an open question asked again rather than answered", () => {
