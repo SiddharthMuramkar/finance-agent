@@ -206,7 +206,7 @@ describe("the chat chip", () => {
     expect(html).toContain("View widget →");
     expect(html).toContain('data-state="idle"');
     expect(html).toContain('aria-pressed="false"');
-    expect(html).toMatch(/min-h-9!/);
+    expect(html).toMatch(/min-h-8!/);
   });
 
   it("is Showing, filled brand, while the panel shows its Widget", () => {

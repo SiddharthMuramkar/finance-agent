@@ -134,7 +134,7 @@ export function CourseMapView({
   const nextTitle = recommendedTopic?.title ?? null;
   return (
     <div>
-      <h1 className="text-xl font-semibold leading-7">Course Map</h1>
+      <h1 className="text-lg font-semibold leading-[26px]">Course Map</h1>
       <p data-progress-summary className="mb-6 mt-1 text-sm leading-5 text-[var(--muted)]">
         {progressSummary(topics, nextTitle)}
       </p>

@@ -86,7 +86,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
       <UndoProvider>
         <div>
           <div className="mb-2 flex items-baseline justify-between gap-4">
-            <h1 className="text-xl font-semibold leading-7">Notebook</h1>
+            <h1 className="text-lg font-semibold leading-[26px]">Notebook</h1>
             <TextLink href={showAll ? "/notebook" : "/notebook?all=1"} data-show-all={showAll} className="text-sm leading-5 print:hidden">
               {showAll ? "Show only Topics with something in them" : "Show all Topics"}
             </TextLink>

@@ -113,3 +113,17 @@ describe("route skeletons", () => {
     expect(html).toContain("skeleton");
   });
 });
+
+describe("Card and heading sizes (A2)", () => {
+  it("Card pads with p-3 and the page h1 is text-lg", async () => {
+    const { Card } = await import("./ui");
+    expect(renderToStaticMarkup(<Card>x</Card>)).toMatch(/\bp-3\b/);
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    for (const file of ["course/course-map-view.tsx", "settings/settings-view.tsx", "notebook/notebook-view.tsx"]) {
+      const h1 = readFileSync(join(__dirname, file), "utf8").match(/<h1 className="([^"]*)"/)![1]!;
+      expect(h1, file).toContain("text-lg");
+      expect(h1, file).not.toContain("text-xl");
+    }
+  });
+});

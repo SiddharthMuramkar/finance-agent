@@ -9,9 +9,9 @@ import type { ReactNode } from "react";
  */
 export function WorkspaceFrame({ left, top, right }: { left: ReactNode; top: ReactNode; right: ReactNode }) {
   return (
-    <div data-testid="workspace-frame" className="grid min-h-0 flex-1 grid-cols-[minmax(360px,2fr)_minmax(0,3fr)] grid-rows-[minmax(0,1fr)] gap-[var(--gap)] overflow-hidden">
+    <div data-testid="workspace-frame" className="grid min-h-0 flex-1 grid-cols-[minmax(360px,2fr)_minmax(0,3fr)] grid-rows-[minmax(0,1fr)] gap-[var(--gap)] overflow-hidden pt-3">
       {left}
-      <div className="flex min-h-0 min-w-0 flex-col gap-4">
+      <div className="flex min-h-0 min-w-0 flex-col gap-3">
         {top}
         <aside aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll relative min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip overscroll-contain [scrollbar-gutter:stable]">
           {right}
