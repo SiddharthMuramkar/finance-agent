@@ -21,10 +21,18 @@ type Row = {
   horizontalScroll: boolean;
 };
 
-async function openStudy(page: Page, width: number, height: number) {
+/**
+ * A wide fallback face, so the row is checked against fonts wider than the Mac's: CI's Linux Chromium draws the page in
+ * a fallback about 15 % wider than SF, and a row that only fits by the Mac's metrics clips there. DejaVu Sans is the
+ * Linux fallback; Verdana, on the Mac, is wider still.
+ */
+const WIDE_FONT = "* { font-family: 'DejaVu Sans', Verdana, sans-serif !important; }";
+
+async function openStudy(page: Page, width: number, height: number, wideFont: boolean) {
   await page.setViewportSize({ width, height });
   await page.goto("/study");
   await expect(page.getByTestId("workspace-frame")).toBeVisible();
+  if (wideFont) await page.addStyleTag({ content: WIDE_FONT });
   // The story Session plays its opener on first load; Send only shows once no reply is being written.
   await settled(page);
   await expect(page.getByRole("button", { name: "Send", exact: true })).toBeVisible();
@@ -80,29 +88,34 @@ async function measureRow(page: Page): Promise<Row> {
   });
 }
 
-test("[#317] the message row stays on one line at 768×1024 and 1024×768", async ({ page }, info) => {
-  test.skip(info.project.name !== "mbp14", "resizes the window itself; runs once");
-  await seed(page, "story");
-  await openStudy(page, 1512, 982);
-  const wide = await measureRow(page);
-  expect(wide.box.lines, "message box at 1512").toBeLessThanOrEqual(1.5);
-  expect(wide.send.lines, "Send at 1512").toBe(1);
+for (const [fonts, wideFont] of [
+  ["", false],
+  [" in a wide fallback font", true],
+] as const) {
+  test(`[#317] the message row stays on one line at 768×1024 and 1024×768${fonts}`, async ({ page }, info) => {
+    test.skip(info.project.name !== "mbp14", "resizes the window itself; runs once");
+    await seed(page, "story");
+    await openStudy(page, 1512, 982, wideFont);
+    const wide = await measureRow(page);
+    expect(wide.box.lines, "message box at 1512").toBeLessThanOrEqual(1.5);
+    expect(wide.send.lines, "Send at 1512").toBe(1);
 
-  for (const [width, height] of [
-    [768, 1024],
-    [1024, 768],
-  ] as const) {
-    await openStudy(page, width, height);
-    const m = await measureRow(page);
-    const at = `at ${width}×${height}`;
-    expect(m.placeholder.text, `"Ask the Tutor" fits the box ${at}`).toBeLessThanOrEqual(m.placeholder.room);
-    expect(m.box.lines, `message box lines ${at}`).toBeLessThanOrEqual(1.5);
-    expect(m.box.height, `message box height ${at}`).toBeLessThanOrEqual(wide.box.height + 0.5);
-    expect(m.send.lines, `Send lines ${at}`).toBe(1);
-    expect(m.send.height, `Send height ${at}`).toBeLessThanOrEqual(wide.send.height + 0.5);
-    expect(m.attach.lines, `Attach a passage lines ${at}`).toBeLessThanOrEqual(1);
-    expect(m.rowOverflow, `row overflow ${at}`).toBeLessThanOrEqual(0);
-    expect(m.childSpill, `controls outside the row ${at}`).toBeLessThanOrEqual(0.5);
-    expect(m.horizontalScroll, `horizontal scroll ${at}`).toBe(false);
-  }
-});
+    for (const [width, height] of [
+      [768, 1024],
+      [1024, 768],
+    ] as const) {
+      await openStudy(page, width, height, wideFont);
+      const m = await measureRow(page);
+      const at = `at ${width}×${height}`;
+      expect(m.placeholder.text, `"Ask the Tutor" fits the box ${at}`).toBeLessThanOrEqual(m.placeholder.room);
+      expect(m.box.lines, `message box lines ${at}`).toBeLessThanOrEqual(1.5);
+      expect(m.box.height, `message box height ${at}`).toBeLessThanOrEqual(wide.box.height + 0.5);
+      expect(m.send.lines, `Send lines ${at}`).toBe(1);
+      expect(m.send.height, `Send height ${at}`).toBeLessThanOrEqual(wide.send.height + 0.5);
+      expect(m.attach.lines, `Attach a passage lines ${at}`).toBeLessThanOrEqual(1);
+      expect(m.rowOverflow, `row overflow ${at}`).toBeLessThanOrEqual(0);
+      expect(m.childSpill, `controls outside the row ${at}`).toBeLessThanOrEqual(0.5);
+      expect(m.horizontalScroll, `horizontal scroll ${at}`).toBe(false);
+    }
+  });
+}
