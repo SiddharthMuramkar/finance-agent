@@ -45,4 +45,30 @@ describe("npm run invites", () => {
     await expect(runInvites(db, ["add", "p@x.com", "--learner", "owner"], capture().log)).rejects.toThrow(/already linked/);
     expect(await isInvited(db, "p@x.com")).toBe(false);
   });
+
+  it("re-adding an invited email with --learner links it, and the message says what happened", async () => {
+    const db = await testDb();
+    await runInvites(db, ["add", "o@x.com"], capture().log);
+    const linked = capture();
+    await runInvites(db, ["add", "o@x.com", "--learner", "owner"], linked.log);
+    expect(await db.select().from(invites)).toEqual([expect.objectContaining({ email: "o@x.com", learnerName: "owner" })]);
+    expect(linked.lines).toEqual(['o@x.com was already invited; it is now linked to Learner 1 ("owner").']);
+
+    const again = capture();
+    await runInvites(db, ["add", "o@x.com", "--learner", "owner"], again.log);
+    expect(again.lines).toEqual(['o@x.com was already invited, linked to Learner 1 ("owner"): nothing changed.']);
+
+    const plain = capture();
+    await runInvites(db, ["add", "O@x.com"], plain.log);
+    expect(plain.lines).toEqual(["o@x.com was already invited: nothing changed."]);
+    expect((await db.select().from(invites))[0].learnerName).toBe("owner");
+  });
+
+  it("refuses to relink an invite already linked to another Learner, and changes nothing", async () => {
+    const db = await testDb();
+    await db.insert(learners).values({ name: "second" });
+    await runInvites(db, ["add", "o@x.com", "--learner", "second"], capture().log);
+    await expect(runInvites(db, ["add", "o@x.com", "--learner", "owner"], capture().log)).rejects.toThrow(/already invited and linked to "second"/);
+    expect((await db.select().from(invites))[0].learnerName).toBe("second");
+  });
 });

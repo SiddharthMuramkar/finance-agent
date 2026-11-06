@@ -72,6 +72,12 @@ export async function runInvites(db: Db, argv: string[], log: (line: string) => 
     if (!email.includes("@")) throw new Error(`add needs an email.\n${INVITES_USAGE}`);
     const learnerName = flag(args, "--learner");
     const note = flag(args, "--note");
+    // addInvite changes nothing on an email already listed, so a re-add is handled here and says what it did.
+    const existing = await inviteFor(db, email);
+    if (existing && !learnerName) {
+      log(`${email} was already invited: nothing changed.`);
+      return;
+    }
     if (learnerName) {
       const [learner] = await db
         .select()
@@ -80,6 +86,20 @@ export async function runInvites(db: Db, argv: string[], log: (line: string) => 
         .limit(1);
       if (!learner) throw new Error(`No active Learner is named "${learnerName}": nothing was added.`);
       if (learner.authUserId) throw new Error(`Learner ${learner.id} ("${learnerName}") is already linked to a Google account: nothing was added.`);
+      if (existing) {
+        if (existing.learnerName === learnerName) {
+          log(`${email} was already invited, linked to Learner ${learner.id} ("${learnerName}"): nothing changed.`);
+          return;
+        }
+        if (existing.learnerName !== null)
+          throw new Error(`${email} is already invited and linked to "${existing.learnerName}": remove it first to link it to another Learner. Nothing was changed.`);
+        await db
+          .update(invites)
+          .set({ learnerName, ...(note !== null && { note }) })
+          .where(eq(invites.id, existing.id));
+        log(`${email} was already invited; it is now linked to Learner ${learner.id} ("${learnerName}").`);
+        return;
+      }
       await addInvite(db, email, { learnerName, note });
       log(`Invited ${email}, linked to Learner ${learner.id} ("${learnerName}").`);
       return;
