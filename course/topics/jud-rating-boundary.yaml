@@ -70,38 +70,39 @@ youllLearn:
 questions:
   - id: jrb-q-mislabel
     prompt: >
-      A made-up rater, Agency Z, grades debt from Z1 (best) down to Z8. Its rulebook says Z1 to Z4
-      are "investment grade" and Z5 to Z8 are "non-investment grade". A blogger writes that
-      "non-investment grade debt (Z4 and below) defaulted far more often than investment grade (Z1
-      to Z3)". Which reading of that sentence is true?
+      May 2025, a made-up story: Priya's pension fund may hold only investment-grade bonds. On
+      Fitch's ladder, BBB- is the last investment-grade step and BB+ the first junk step. A new note
+      calls BBB- junk. If Priya trusts it, what happens?
     choices:
-      - { id: a, text: "Nothing: Z4 is the weakest of the top group, so it goes below", mistake: { tag: weakest_moved_down, fix: "The rater's own scale decides; it puts Z4 inside investment grade." } }
-      - { id: b, text: "The line is one notch too high: Z4 is still investment grade" }
-      - { id: c, text: "The line is one notch too low: Z5 is investment grade", mistake: { tag: line_wrong_way, fix: "The scale puts Z5 below the line; the blogger moved Z4 down." } }
-      - { id: d, text: "The rater's own scale cannot say where the line is", mistake: { tag: scale_ignored, fix: "The published scale is exactly what decides where the line falls." } }
+      - { id: a, text: "Nothing: BBB- is the weakest of the top group anyway", mistake: { tag: weakest_moved_down, fix: "Fitch keeps BBB- inside investment grade, so calling it junk changes what the fund holds." } }
+      - { id: b, text: "She sells BBB- bonds her fund is allowed to keep" }
+      - { id: c, text: "She keeps BB+ bonds her fund should have sold", mistake: { tag: line_wrong_way, fix: "BB+ is junk on Fitch's ladder and in the note, so she sells it either way." } }
+      - { id: d, text: "Nobody can say: each analyst draws the line where they like", mistake: { tag: scale_ignored, fix: "The agency publishes its scale, and that is what decides where the line falls." } }
     answer: b
     explanation: >
-      The agency's own scale decides where the line is. By that scale Z4 is the last investment-grade
-      notch, so the writer has moved the line up one notch. The figures the writer quotes are a
+      The agency's own scale decides where the line is. On Fitch's scale BBB- is the last
+      investment-grade notch, so the note moved the line up one notch, and a fund that may hold only
+      investment grade would sell bonds it is allowed to keep. Any default figures in the note are a
       separate matter and would still need checking against the study they come from.
     source: >
-      Method of reading a scale against its published grade groupings, as in Moody's Rating Scale
-      card (investment grade and non-investment grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Agency Z is hypothetical.
+      Fitch Ratings, Rating Definitions ('AAA' to 'BBB' investment grade and 'BB' to 'D' speculative grade, with + and - modifiers): https://www.fitchratings.com/products/rating-definitions ; method of reading a scale against its published grade groupings, as in Moody's Rating Scale
+      card (investment grade and non-investment grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Priya, her fund and the note are made up.
   - id: jrb-q-notches
     prompt: >
-      On Moody's ladder (Aaa, Aa1, Aa2, Aa3, A1, A2, A3, Baa1, Baa2, Baa3, Ba1 and so on), what do
-      raters call each single step down, such as Aa1 to Aa2?
+      16 May 2025: Moody's moves the US from Aaa to Aa1. Your dad holds US Treasuries, reads that
+      the US lost its top rating, and wants to sell them all on Monday. What do you tell him?
     choices:
-      - { id: a, text: "A notch" }
-      - { id: b, text: "A class", mistake: { tag: notch_as_class, fix: "A class is a whole letter group like Aa. Each numbered step inside it is a notch." } }
-      - { id: c, text: "A basis point", mistake: { tag: notch_as_bp, fix: "Basis points measure yields and spreads, not steps on a rating ladder." } }
-      - { id: d, text: "A tranche", mistake: { tag: notch_as_tranche, fix: "A tranche is a slice of a bond issue, not a step on the ladder." } }
+      - { id: a, text: "No need to panic: it is a one-notch downgrade, still investment grade" }
+      - { id: b, text: "Sell: losing Aaa means the US has dropped into junk", mistake: { tag: notch_as_grade, fix: "Aa1 is one notch below Aaa, still near the top of investment grade." } }
+      - { id: c, text: "No need to panic: a notch is just one basis point", mistake: { tag: notch_as_bp, fix: "Basis points measure yields and spreads; a notch is one step on the rating ladder." } }
+      - { id: d, text: "Sell: a notch means one tranche of US debt was cut", mistake: { tag: notch_as_tranche, fix: "A tranche is a slice of a bond issue; a notch is one rating step." } }
     answer: a
     explanation: >
-      Each numbered modifier is a notch of its own, so Aa1 to Aa2 is one notch and Aa3 to A1 is
-      another. Counting by letter class instead of by notch misses the numbered steps.
+      Each step on Moody's ladder of 21 ratings is a notch, so Aaa to Aa1 is a one-notch downgrade.
+      Aa1 is still near the top of investment grade: a small step, even when it is the step off the
+      top. Whether to sell is his own call, but the rating has not turned his Treasuries into junk.
     source: >
-      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf
+      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; the 16 May 2025 move from Aaa to Aa1 as reported in Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!", Musings on Markets, 2 June 2025; your dad and his Treasuries are a made-up story.
   - id: jrb-q-ratio
     prompt: >
       A blogger says a study found 24% of one group of bonds defaulted against 1.8% of another, and
