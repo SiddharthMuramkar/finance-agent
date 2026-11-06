@@ -212,6 +212,18 @@
     "MoneyJar": {
       "$ref": "#/$defs/MoneyJar"
     },
+    "WhoPaysWhom": {
+      "$ref": "#/$defs/WhoPaysWhom"
+    },
+    "MythOrFact": {
+      "$ref": "#/$defs/MythOrFact"
+    },
+    "Headline": {
+      "$ref": "#/$defs/Headline"
+    },
+    "ChoiceCards": {
+      "$ref": "#/$defs/ChoiceCards"
+    },
     "GuidedTask": {
       "$ref": "#/$defs/GuidedTask"
     },
@@ -290,6 +302,10 @@
     "TimelineStrip",
     "TwoPaths",
     "MoneyJar",
+    "WhoPaysWhom",
+    "MythOrFact",
+    "Headline",
+    "ChoiceCards",
     "GuidedTask",
     "Step"
   ],
@@ -388,6 +404,18 @@
               },
               {
                 "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               },
               {
                 "$ref": "#/$defs/Stack"
@@ -1521,6 +1549,174 @@
       "additionalProperties": false,
       "description": "A jar that fills or drains 0 to 20 objects (unit: an emoji name), sized in words; numerals only in each."
     },
+    "WhoPaysWhom": {
+      "type": "object",
+      "properties": {
+        "actors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "emoji",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "flows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "what": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "what",
+              "emoji"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "actors",
+        "flows"
+      ],
+      "additionalProperties": false,
+      "description": "Money moving between 2 to 4 actors {id, emoji, name}: 1 to 4 flows {from, to, what (6 words), emoji}; a tap replays one."
+    },
+    "MythOrFact": {
+      "type": "object",
+      "properties": {
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim": {
+                "type": "string"
+              },
+              "isFact": {
+                "type": "boolean"
+              },
+              "why": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "claim",
+              "isFact",
+              "why"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "cards"
+      ],
+      "additionalProperties": false,
+      "description": "2 to 4 cards {claim, isFact, why, emoji?}; each has Myth and Fact buttons and turns to the verdict and why. Not marked."
+    },
+    "Headline": {
+      "type": "object",
+      "properties": {
+        "paper": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "deck": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "paper",
+        "date",
+        "headline",
+        "source"
+      ],
+      "additionalProperties": false,
+      "description": "A period front page: paper, ISO date, headline (12 words), deck?, source URL."
+    },
+    "ChoiceCards": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "fix": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "answer": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "choices",
+        "answer"
+      ],
+      "additionalProperties": false,
+      "description": "Tap to choose: question, 2 to 4 choices {id, text, emoji?, fix?}, answer is the right id. Not marked."
+    },
     "Stack": {
       "type": "object",
       "properties": {
@@ -1744,6 +1940,18 @@
               },
               {
                 "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               }
             ]
           }
@@ -2626,6 +2834,18 @@
               },
               {
                 "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               }
             ]
           }
@@ -2789,6 +3009,18 @@
               },
               {
                 "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
               }
             ]
           }

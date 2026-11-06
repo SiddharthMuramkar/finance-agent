@@ -87,7 +87,9 @@ export function auditAffordances(page: Page): Promise<Affordances> {
       if (!visible(el)) continue;
       if (el.closest("svg") && !el.matches("a[href]")) continue;   // a chart mark that takes focus so arrow keys can read it is not a control
       interactive++;
-      const s = getComputedStyle(el), r = el.getBoundingClientRect(), kind = kindOf(el);
+      // A radio or checkbox inside a chip label is the chip's own control: judge the chip face, not the 18px native input.
+      const host = el.matches('input[type="radio"], input[type="checkbox"]') ? el.closest('[data-affordance="chip"]') || el : el;
+      const s = getComputedStyle(host), r = host.getBoundingClientRect(), kind = kindOf(el);
       const raised = s.boxShadow !== "none";
       const surface = s.backgroundColor !== "rgba(0, 0, 0, 0)" || s.backgroundImage !== "none" || parseFloat(s.borderTopWidth) > 0;
       let ok = false;

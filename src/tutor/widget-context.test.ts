@@ -9,11 +9,12 @@ import { saveWidgetState } from "@/learner/widget-state";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
-import { HELP_CHIPS } from "./chips";
+import { GO_DEEPER } from "./chips";
 import { listSessions, loadThread } from "./transcript";
 import { NOT_THE_LEARNERS_ATTEMPT } from "./tools";
 import { latestTurn, runTutorTurn, type TurnDeps, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: what the Tutor sees of the Learner's Widgets (spec #119, "Widgets › What the Tutor sees").
@@ -98,7 +99,7 @@ describe("the Widget context sent with a Learner's message", () => {
     const opener = await turn(db, { opener: true }, [say(`Once, a lottery winner had a choice.\n\n${fence(RATES)}`)]);
     expect(sent(opener.requests[0])).not.toContain("Widgets by code:");
 
-    const chip = await turn(db, HELP_CHIPS[0], [say("Simply put.")], { widgets: { Rates: { values: { $rate: 2 }, ticked: [] } } });
+    const chip = await turn(db, GO_DEEPER, [say("Simply put.")], { widgets: { Rates: { values: { $rate: 2 }, ticked: [] } } });
     expect(sent(chip.requests[0])).toContain("Interest rate: 2%");
 
     const next = await turn(db, { next: "concept" }, [say("The concept.")], { widgets: { Rates: { values: { $rate: 4 }, ticked: [] } } });
@@ -197,7 +198,7 @@ describe("Tell the Tutor what I found", () => {
     expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("widget_report");
     const thread = await loadThread(db, await sessionId(db), map, OWNER_LEARNER_ID);
     expect(thread.filter((e) => e.role === "user").map((e) => e.role === "user" && e.text)).toEqual(["Show me a rate."]);
-    expect(thread.at(-1)).toMatchObject({ role: "assistant", text: "You found it." });
+    expect(withoutChoices(thread).at(-1)).toMatchObject({ role: "assistant", text: "You found it." });
   });
 
   it("is refused as an Insight attempt", async () => {

@@ -18,6 +18,7 @@ describe("hosted code execution", () => {
       record_misconception: { run: async () => "", parse: (x) => x },
       open_widget: { run: async () => "", parse: (x) => x },
       calculate: { run: async () => "", parse: (x) => x },
+      suggest_choice: { run: async () => "", parse: (x) => x },
     });
     const server = bound.find((t) => t.name === "code_execution");
     expect(server).toEqual({ type: "code_execution_20260521", name: "code_execution" });

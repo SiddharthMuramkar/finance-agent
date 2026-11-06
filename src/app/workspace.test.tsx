@@ -240,7 +240,7 @@ describe("the Next chip", () => {
   });
 });
 
-describe("the help chips", () => {
+describe("the Choices", () => {
   const conversation: Line[] = [
     { role: "user", text: "Hi" },
     { role: "assistant", text: "Once, a lottery winner had a choice." },
@@ -248,11 +248,11 @@ describe("the help chips", () => {
     { role: "assistant", text: "Which would you take?" },
   ];
   const toConcept = { kind: "next", step: "concept", label: "Next: Concept", advances: true } as const;
-  const help = (html: string) => html.match(/<button[^>]*data-testid="help-chip"[^>]*>[^<]*<\/button>/g) ?? [];
+  const help = (html: string) => html.match(/<button[^>]*data-testid="choice"[^>]*>.*?<\/button>/g) ?? [];
 
-  it("offers Go deeper and Show me in a widget beside Next, under the latest Tutor reply only", () => {
+  it("offers code's three Choices beside Next, under the latest Tutor reply only, with no Show me in a widget", () => {
     const html = workspace({ initial: conversation, next: toConcept });
-    expect(help(html).map((b) => b.replace(/<[^>]+>/g, ""))).toEqual(["Go deeper", "Show me in a widget"]);
+    expect(help(html).map((b) => b.replace(/<[^>]+>/g, ""))).toEqual(["Show me", "What does that word mean?", "Go deeper"]);
     const plain = text(html);
     expect(plain.indexOf("Go deeper")).toBeGreaterThan(plain.indexOf("Which would you take?"));
     expect(plain.indexOf("Go deeper")).toBeGreaterThan(plain.indexOf("Next: Concept →"));
@@ -262,13 +262,13 @@ describe("the help chips", () => {
 
   it("stay while a quiz Check is open, with no Next", () => {
     const html = workspace({ initial: conversation, next: null, quiz });
-    expect(help(html)).toHaveLength(2);
+    expect(help(html)).toHaveLength(3);
     expect(html).not.toContain('data-testid="next-chip"');
   });
 
   it("stay while a conversation Check is open, with no Next", () => {
     const html = workspace({ initial: conversation, next: null });
-    expect(help(html)).toHaveLength(2);
+    expect(help(html)).toHaveLength(3);
     expect(html).not.toContain('data-testid="next-chip"');
   });
 
@@ -357,12 +357,12 @@ describe("coming back to a Topic", () => {
     expect(divider).toContain('role="separator"');
     expect(divider).toContain(label);
     expect(html.indexOf(label)).toBeGreaterThan(html.indexOf("Because it can earn interest."));
-    // One Next chip follows the divider, beside the two help chips.
+    // One Next chip follows the divider, beside the three Choices.
     const chips = html.match(/<button[^>]*data-testid="next-chip"[^>]*>[^<]*<\/button>/g) ?? [];
     expect(chips).toHaveLength(1);
     expect(chips[0]).toContain("Next: Your turn →");
     expect(html.indexOf('data-testid="next-chip"')).toBeGreaterThan(html.indexOf(label));
-    expect(html.match(/data-testid="help-chip"/g)).toHaveLength(2);
+    expect(html.match(/data-testid="choice"/g)).toHaveLength(3);
     expect(html).toContain('placeholder="Ask the Tutor"');
   });
 

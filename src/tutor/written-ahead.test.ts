@@ -10,6 +10,7 @@ import { REPLY_CHECK_PREFIX } from "./turn-status";
 import { loadSession, loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
+import { withoutChoices } from "@/test/choices";
 
 // Seam 1, the Tutor Turn (spec #119, "Widgets › Written-ahead Widgets"): the Tutor opens a written-ahead Widget by id
 // with open_widget; the opening is stored in the Session as an item, so the Widget comes back after a reload. In Percent
@@ -64,7 +65,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
 
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const thread = await loadThread(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID);
-    expect(thread.map((e) => (e.role === "item" ? e.kind : e.role))).toEqual(["user", WIDGET_OPENED, "assistant"]);
+    expect(withoutChoices(thread).map((e) => (e.role === "item" ? e.kind : e.role))).toEqual(["user", WIDGET_OPENED, "assistant"]);
   });
 
   it("shows the Tutor an opened written-ahead Widget's sliders and ticks with the Learner's next message, keyed by its id", async () => {
@@ -99,7 +100,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     const [result] = toolResults(requests[1]);
     expect(result.is_error).toBe(true);
     expect(String(result.content)).toMatch(/Not opened: this Topic has no written-ahead Widget "annuity-today". Its written-ahead Widgets: rate-change-three-ways/);
-    expect(events.some((e) => e.type === "item")).toBe(false);
+    expect(withoutChoices(events).some((e) => e.type === "item")).toBe(false);
   });
 
   it("sends a Tutor-drawn growth-rate calculator in Percent back through the correction turn, naming the written-ahead Widget to open", async () => {
@@ -108,7 +109,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     const { client, requests } = scriptedClient([text(`Here is a box.\n${CAGR}`), open("rate-change-three-ways", "toolu_fix"), text("")]);
     const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me in a widget"));
     // The draft is held and checked (ADR 0008): the Learner sees only the retry, which opens the written-ahead Widget.
-    expect(events.map((e) => e.type)).toEqual(["item", "done"]);
+    expect(events.map((e) => e.type)).toEqual(["item", "item", "done"]);
     const correction = String(requests[1].messages.at(-1)!.content);
     expect(correction.startsWith(REPLY_CHECK_PREFIX)).toBe(true);
     expect(correction).toMatch(/this Widget uses the Compound annual growth rate calculator \(cagr\), which the written-ahead Widget "One rate change, said three ways" covers/);
@@ -117,7 +118,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     expect((await loadSession(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Show me in a widget"]);
     const thread = await loadThread(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID);
-    expect(thread.filter((e) => e.role === "item").map((e) => e.role === "item" && e.kind)).toEqual([WIDGET_OPENED]);
+    expect(withoutChoices(thread).filter((e) => e.role === "item").map((e) => e.role === "item" && e.kind)).toEqual([WIDGET_OPENED]);
   });
 
   it("sends back a Widget the Tutor draws under a written-ahead Widget's title, its own version of it", async () => {
@@ -179,7 +180,7 @@ describe("the explore Widget before the explore step", () => {
     const [result] = toolResults(requests[1]);
     expect(result.is_error).toBe(true);
     expect(String(result.content)).toMatch(/Not opened: "What the annuity is worth today" is this Topic's explore Widget/);
-    expect(events.some((e) => e.type === "item")).toBe(false);
+    expect(withoutChoices(events).some((e) => e.type === "item")).toBe(false);
     expect(contextOf(requests[0])).not.toContain("annuity-worth-today");
   });
 
