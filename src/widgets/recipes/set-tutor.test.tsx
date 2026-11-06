@@ -109,7 +109,7 @@ describe("the rate_move recipe", () => {
 
   it("says a move from 0% has no percent change", async () => {
     await draw(show(0, 1.5).code);
-    expect(text()).toContain("No percent change from 0%: there is no old rate to compare with");
+    expect(text()).toContain("From 0% no percent change can be given: the old rate is zero, so there is nothing to take a share of");
   });
 
   it("practice mode hides the worked lines until the Learner taps a reading, then marks it and reveals them", async () => {

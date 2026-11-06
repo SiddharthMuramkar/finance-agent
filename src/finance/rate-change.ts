@@ -50,7 +50,7 @@ export function rateMoveLines(oldPercent: number, newPercent: number): [string, 
   const trader = `Traders call that ${bp < 0 ? "a fall of " : ""}${size} bp`;
   const headline =
     oldBp === 0
-      ? "No percent change from 0%: there is no old rate to compare with"
+      ? "From 0% no percent change can be given: the old rate is zero, so there is nothing to take a share of"
       : percent === 0
         ? "No change on the old rate"
         : `${bp > 0 ? "Up" : "Down"} ${percent}% on the old rate`;

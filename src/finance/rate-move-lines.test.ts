@@ -14,7 +14,7 @@ describe("a rate move said three ways (the rate_move Widget)", () => {
   });
 
   it("says a move from 0% has no percent change", () => {
-    expect(rateMoveLines(0, 1.5)[2]).toBe("No percent change from 0%: there is no old rate to compare with");
+    expect(rateMoveLines(0, 1.5)[2]).toBe("From 0% no percent change can be given: the old rate is zero, so there is nothing to take a share of");
   });
 
   it("says no move as no move", () => {

@@ -89,7 +89,7 @@ describe("RateMove, show mode", () => {
 
   it("says an old rate of 0 has no percent change", () => {
     show(<RateMoveView oldRate={0} newRate={1.5} />);
-    expect(text()).toContain("No percent change from 0%: there is no old rate to compare with");
+    expect(text()).toContain("From 0% no percent change can be given: the old rate is zero, so there is nothing to take a share of");
   });
 
   it("draws no arrow when the rate does not move", () => {
