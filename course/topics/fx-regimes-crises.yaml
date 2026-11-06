@@ -123,9 +123,9 @@ questions:
     prompt: >
       A central bank describes its regime as a managed float. What does that mean?
     choices:
-      - { id: a, text: "The market sets the baht's value, and the central bank steps in only when it judges it necessary" }
-      - { id: b, text: "The baht is fixed to a basket of currencies", mistake: { tag: basket_peg, fix: "A basket peg fixes the value; a managed float lets the market set it." } }
-      - { id: c, text: "The baht is pegged to the US dollar", mistake: { tag: dollar_peg, fix: "A dollar peg fixes the rate; a managed float lets it move with help now and then." } }
+      - { id: a, text: "The market sets the currency's value, and the central bank steps in only when it judges it necessary" }
+      - { id: b, text: "The currency is fixed to a basket of currencies", mistake: { tag: basket_peg, fix: "A basket peg fixes the value; a managed float lets the market set it." } }
+      - { id: c, text: "The currency is pegged to the US dollar", mistake: { tag: dollar_peg, fix: "A dollar peg fixes the rate; a managed float lets it move with help now and then." } }
       - { id: d, text: "The central bank sets the exchange rate every day", mistake: { tag: daily_fix, fix: "Setting the rate daily is a fix; in a managed float the market sets it." } }
     answer: a
     explanation: >
