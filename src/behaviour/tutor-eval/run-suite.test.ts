@@ -90,3 +90,41 @@ describe("a suite run", () => {
     expect(byId.T10.status).toBe("pass");
   });
 });
+
+describe("the D3b cases", () => {
+  const STORY = "February 1994. Bond traders in New York are about to get a surprise from the Fed.\nWhat do you think they are watching?";
+  const textOnly = (text: string) => scriptedClient([{ content: [{ type: "text", text }] }]).client;
+  const base = { title: "x", topic: "num-percent-bps", state: { step: "story" as const, check: 1 } };
+
+  it("starts an opener as the page does, tells the grader the Learner wrote nothing, and sees the Choices code stored", async () => {
+    const prompts: string[] = [];
+    const opener: EvalCase = { ...base, id: "T12", kind: "live", opener: true, message: "", pass: [{ kind: "noSum" }, { kind: "choicesStored" }] };
+    const report = await runSuite([opener], deps({ tutorClient: () => textOnly(STORY), graderText: (p) => (prompts.push(p), yesTo((p.match(/^\d+\. /gm) ?? []).length)) }));
+    expect(report.cases[0].runs.map((r) => r.reasons)).toEqual([[], [], []]);
+    expect(report.cases[0].runs[0].reply?.choices.length).toBe(3);
+    expect(prompts[0]).toMatch(/Learner: \(nothing: the page started this turn\)/);
+  });
+
+  it("passes a live case on two of three runs when it needs two", async () => {
+    const c: EvalCase = { ...base, id: "T15", kind: "live", message: "honestly I'm so bad at maths lol", minPasses: 2, pass: [{ kind: "noSum" }] };
+    const client = (_c: unknown, run: number) => textOnly(run === 2 ? "Okay.\nHow many basis points is 0.4 of a point?" : STORY);
+    const report = await runSuite([c], deps({ tutorClient: client }));
+    expect(report.cases[0].runs.map((r) => r.status)).toEqual(["pass", "fail", "pass"]);
+    expect(report.cases[0].status).toBe("pass");
+    expect(allPassed(report)).toBe(true);
+  });
+
+  it("runs a dialogue's messages in order in one Session, checks every reply, and keeps the whole transcript", async () => {
+    const replies = [STORY, "Okay.\nHow many basis points is 0.4 of a point?", "1 point times 100 is 100 bp.\nWhat would a trader call that?"];
+    const c: EvalCase = { ...base, id: "T13", kind: "dialogue", messages: ["hi", "show me", "ok"], runs: 1, pass: [{ kind: "noSum" }] };
+    // One client for the whole conversation: it answers the three turns in order.
+    const { client } = scriptedClient(replies.map((text) => ({ content: [{ type: "text", text }] })));
+    const report = await runSuite([c], deps({ tutorClient: () => client }));
+    const [t13] = report.cases;
+    expect(t13.runs).toHaveLength(1);
+    expect(t13.status).toBe("fail");
+    expect(t13.runs[0].reasons).toEqual([expect.stringMatching(/^Turn 2 \("show me"\): The reply asks for a sum/)]);
+    expect(t13.runs[0].transcript?.map((t) => t.learner)).toEqual(["hi", "show me", "ok"]);
+    expect(t13.runs[0].transcript?.[2].reply.text).toBe(replies[2]);
+  });
+});

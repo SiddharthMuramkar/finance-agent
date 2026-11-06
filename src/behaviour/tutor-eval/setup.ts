@@ -23,7 +23,7 @@ import { scriptedClient } from "@/test/scripted-client";
 import { submitQuizAnswers } from "@/tutor/check-results";
 import { ENGINE_TOOLS, TUTOR_TOOLS } from "@/tutor/instructions";
 import { answerQuickTry, nextQuickTry, quickTryItem } from "@/tutor/practice";
-import { QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData, type QuickTryResultData } from "@/tutor/session-item-kinds";
+import { QUICK_TRY, QUICK_TRY_RESULT, REPLY_CHOICES, type QuickTryData, type QuickTryResultData, type ReplyChoicesData } from "@/tutor/session-item-kinds";
 import { liveSession } from "@/tutor/session-log";
 import type { OpenItem, ReplyCheckContext, StepKind } from "@/tutor/reply-checks";
 import { loadSessionItems, saveItemAfterLatest } from "@/tutor/session-items";
@@ -31,7 +31,10 @@ import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { recipeById } from "@/widgets/recipes";
 import type { LiveCase } from "./case";
-import { seen, type SeenReply, type SeenWidget } from "./grading";
+import { seen, type SeenChoice, type SeenReply, type SeenWidget } from "./grading";
+
+/** What placing a Learner needs from a case: a live case, or a dialogue (which has no answer). */
+export type Placed = Pick<LiveCase, "id" | "topic" | "state" | "pending"> & { answer?: LiveCase["answer"] };
 
 /** The model, effort and widget engine the Tutor runs on in this throwaway database. */
 export type TutorSettings = { model: string; effort: string; widgetEngine: "on" | "off" };
@@ -48,7 +51,7 @@ export type Prepared = {
 };
 
 /** Why a case cannot run yet on today's code and Topic files; null when it can. */
-export function pendingReason(c: LiveCase, map: CourseMap): string | null {
+export function pendingReason(c: Placed, map: CourseMap): string | null {
   if (c.pending) return c.pending;
   const topic = map.topic(c.topic);
   if (!topic) return `There is no Topic "${c.topic}" on the Course Map.`;
@@ -87,7 +90,7 @@ export async function saveTutorSettings(db: Db, s: TutorSettings): Promise<void>
 
 const STEP_KIND: Record<string, StepKind> = { story: "story", concept: "concept", explore: "explore", your_turn: "your_turn", check: "check", reveal: "reveal", principle: "principle" };
 
-async function walkTo(db: Db, map: CourseMap, topic: Topic, c: LiveCase, learnerId: number): Promise<Place> {
+async function walkTo(db: Db, map: CourseMap, topic: Topic, c: Placed, learnerId: number): Promise<Place> {
   await ensureTopicStarted(db, map, new Date(), learnerId);
   for (let i = 0; i < 40; i++) {
     const place = navigate(map, await loadProgress(db, learnerId));
@@ -115,7 +118,7 @@ async function drain(events: AsyncIterable<TurnEvent>): Promise<TurnEvent[]> {
 }
 
 /** Sets the case's state up for a fresh tools Learner and returns what the checks and the grader need. Call `pendingReason` first. */
-export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; settings?: TutorSettings } = {}): Promise<Prepared> {
+export async function prepareCase(db: Db, c: Placed, opts: { map?: CourseMap; settings?: TutorSettings } = {}): Promise<Prepared> {
   const map = opts.map ?? loadCourseMap();
   if (opts.settings) await saveTutorSettings(db, opts.settings);
   const topic = map.topic(c.topic);
@@ -273,7 +276,9 @@ export async function seenReply(db: Db, args: { learnerId: number; topic: Topic;
   const parkOffer = items.some((i) => /park/i.test(i.kind));
   // The Quick try code put below the reply in this turn (after a re-teach, the next one), which a reply may point to ("the try below").
   const alsoShown = items.flatMap((i): string[] => (i.kind === QUICK_TRY ? [`a Quick try: "${askOf(i.data as unknown as QuickTryData)}"`] : []));
-  return seen({ text: args.text, widgets, savedRule: rule, parkOffer, alsoShown });
+  // The Choices code stored under this reply (D3a): the turn's last reply_choices item.
+  const choices = ((items.filter((i) => i.kind === REPLY_CHOICES).at(-1)?.data as ReplyChoicesData | undefined)?.choices ?? []) as SeenChoice[];
+  return seen({ text: args.text, widgets, savedRule: rule, parkOffer, alsoShown, choices });
 }
 
 /**
@@ -322,7 +327,7 @@ async function clearOpenTries(db: Db, sessionId: number, learnerId: number): Pro
 async function showAndMark(
   db: Db,
   map: CourseMap,
-  c: LiveCase,
+  c: Placed,
   p: { learnerId: number; topic: Topic },
   want: { tryId?: string; skill?: string; input: string },
   now: Date,

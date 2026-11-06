@@ -19,16 +19,20 @@ export type RunResult = {
   costUsd: number;
   /** What else is worth seeing: the turn's tools, its time, what code fixed. */
   note?: string;
+  /** A dialogue's turns, in order: each Learner message and the reply as they saw it. */
+  transcript?: { learner: string; reply: SeenReply }[];
 };
 
 export type CaseResult = {
   id: string;
   title: string;
-  kind: "live" | "aggregate" | "lint";
+  kind: "live" | "aggregate" | "lint" | "dialogue";
   status: "pass" | "fail" | "pending" | "skipped";
   /** Why the case could not run yet. */
   pending?: string;
   runs: RunResult[];
+  /** How many runs the case has and how many must pass, when not three of three (a dialogue's one run, D3b's two of three). */
+  bar?: { runs: number; passes: number };
 };
 
 export type EvalReport = {
@@ -43,11 +47,16 @@ export type EvalReport = {
   cases: CaseResult[];
 };
 
-/** A case passes only on three passing runs. A failed run fails it; a run not started leaves it skipped. */
-export function caseStatus(runs: RunResult[], expected = RUNS_PER_CASE): "pass" | "fail" | "skipped" {
-  if (runs.some((r) => r.status === "fail")) return "fail";
-  if (runs.length < expected || runs.some((r) => r.status === "skipped")) return "skipped";
-  return "pass";
+/**
+ * A case passes on `needed` passing runs of `expected` (by default three of three). It fails once too many runs failed
+ * to reach that; otherwise runs not started leave it skipped.
+ */
+export function caseStatus(runs: RunResult[], expected = RUNS_PER_CASE, needed = expected): "pass" | "fail" | "skipped" {
+  const passed = runs.filter((r) => r.status === "pass").length;
+  const failed = runs.filter((r) => r.status === "fail").length;
+  if (failed > expected - needed) return "fail";
+  if (passed >= needed) return "pass";
+  return "skipped";
 }
 
 /** The suite passes only when every case passed three times out of three and the cap stopped nothing. */
@@ -76,7 +85,7 @@ function table(r: EvalReport): string[] {
   return [
     "| Case | Title | Verdict | Runs passed |",
     "| --- | --- | --- | --- |",
-    ...r.cases.map((c) => `| ${c.id} | ${cell(c.title)} | ${c.status} | ${passedRuns(c)} of ${RUNS_PER_CASE} |`),
+    ...r.cases.map((c) => `| ${c.id} | ${cell(c.title)} | ${c.status} | ${passedRuns(c)} of ${c.bar?.runs ?? RUNS_PER_CASE}${c.bar && c.bar.passes !== c.bar.runs ? ` (needs ${c.bar.passes})` : ""} |`),
   ];
 }
 
@@ -88,6 +97,7 @@ function runDetail(c: CaseResult, run: RunResult): string[] {
     out.push("", run.reply.widgets.length ? `Widgets: ${run.reply.widgets.map((w) => `${w.id}${w.params ? ` ${JSON.stringify(w.params)}` : ""}`).join("; ")}.` : "Widgets: none.");
     if (run.reply.savedRule) out.push(`Saved rule: "${run.reply.savedRule}".`);
   }
+  for (const [i, t] of (run.transcript ?? []).entries()) out.push("", `Turn ${i + 1}. Learner: "${t.learner}"`, "", quote(t.reply.text || "(empty)"));
   if (run.grade && run.grade.ok) out.push("", `Grader: ${run.grade.answers.map((a) => `${a.n} ${a.yes ? "yes" : "no"}${a.why ? ` (${a.why})` : ""}`).join("; ")}.`);
   if (run.grade && !run.grade.ok) out.push("", "The grader wrote:", "", quote(run.grade.text || "(nothing)"));
   if (run.note) out.push("", run.note);

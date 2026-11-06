@@ -11,7 +11,7 @@ import type { Db } from "@/db/types";
 import { checkReply } from "@/tutor/reply-checks";
 import { runTutorTurn, type TutorClient } from "@/tutor/turn";
 import type { Budget } from "./budget";
-import type { AggregateCase, EvalCase, LintCase, LiveCase } from "./case";
+import type { AggregateCase, DialogueCase, EvalCase, LintCase, LiveCase } from "./case";
 import { buildGraderPrompt, codedFailures, GRADER_SYSTEM, judgeRun, parseGrade, RUBRIC, type SeenReply } from "./grading";
 import { caseStatus, RUNS_PER_CASE, type CaseResult, type EvalReport, type RunResult } from "./report";
 import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply, type TutorSettings } from "./setup";
@@ -26,7 +26,7 @@ export type SuiteDeps = {
   /** A fresh in-memory Postgres with the real migrations. */
   newDb: () => Promise<Db>;
   /** The Tutor's model client for one run. */
-  tutorClient: (c: LiveCase, run: number) => TutorClient;
+  tutorClient: (c: LiveCase | DialogueCase, run: number) => TutorClient;
   /** Asks the grader; returns what it wrote and what the call cost. */
   grade: (system: string, prompt: string) => Promise<{ text: string; costUsd: number }>;
   /** Runs the course check in a folder (the repo, or a fixture); passed is its exit status. */
@@ -63,7 +63,8 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
       return { run, status: coded.length ? "fail" : "pass", reasons: coded, reply, costUsd: 0, note: "Code answered with no Tutor turn; graded by code only.", words: p.ctx.internalWords };
     }
     const started = performance.now();
-    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false }, c.answer ? { quickTryFollowUp: true } : c.message)) {
+    const input = c.opener ? ({ opener: true } as const) : c.answer ? ({ quickTryFollowUp: true } as const) : c.message;
+    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false }, input)) {
       if (e.type === "text") text += e.text;
       if (e.type === "replay") text = e.text;
       if (e.type === "done") {
@@ -80,7 +81,7 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
     const problems = checkReply({ text: reply.text, widgets: reply.widgets, savedRule: reply.savedRule }, p.ctx);
     const coded = codedFailures(c.pass, reply, p.ctx);
     const questions = [...RUBRIC, ...(c.graderChecks ?? [])];
-    const graded = await deps.grade(GRADER_SYSTEM, buildGraderPrompt({ stateNote: p.stateNote, message: c.message, reply, extra: c.graderChecks ?? [] }));
+    const graded = await deps.grade(GRADER_SYSTEM, buildGraderPrompt({ stateNote: p.stateNote, message: c.opener ? OPENER_MESSAGE : c.message, reply, extra: c.graderChecks ?? [] }));
     cost += graded.costUsd;
     const grade = parseGrade(graded.text, questions.length);
     const verdict = judgeRun({ problems, coded: [...troubles, ...coded], grade, questions });
@@ -90,6 +91,61 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
   } finally {
     deps.budget.settle(held, cost);
   }
+}
+
+/** What the grader reads as the Learner's message for an opener, which the page starts with nothing from the Learner. */
+const OPENER_MESSAGE = "(nothing: the page started this turn)";
+
+/**
+ * One run of a dialogue (D3b, T13): the Learner's messages in order, each a real Tutor Turn in the same Session, with the
+ * case's conditions applied to every reply. Each message holds its own estimate, so the cap still holds turn by turn.
+ * Code checks it alone: no grader.
+ */
+async function runDialogue(c: DialogueCase, run: number, deps: SuiteDeps, map: CourseMap): Promise<RunResult> {
+  let cost = 0;
+  const transcript: { learner: string; reply: SeenReply }[] = [];
+  const reasons: string[] = [];
+  try {
+    const db = await deps.newDb();
+    const p = await prepareCase(db, c, { map, settings: deps.settings });
+    for (const [i, message] of c.messages.entries()) {
+      const held = deps.budget.estimate();
+      if (!deps.budget.hold(held)) {
+        reasons.push(`Not run past turn ${i}: ${deps.budget.stopped}`);
+        return { run, status: transcript.length ? "fail" : "skipped", reasons, costUsd: cost, transcript };
+      }
+      let spent = 0;
+      try {
+        const notesAfter = await noteMark(db, p.learnerId);
+        let text = "";
+        let done: { sessionId: number; turnSeq: number } | null = null;
+        for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false }, message)) {
+          if (e.type === "text") text += e.text;
+          if (e.type === "replay") text = e.text;
+          if (e.type === "done") {
+            done = e.ref;
+            spent = e.usage.costUsd ?? 0;
+            if (e.usage.costUsd === null) reasons.push(`Turn ${i + 1}: the Tutor Turn's cost is unknown (no price for ${deps.settings.model}).`);
+          }
+          if (e.type === "error" || e.type === "refusal" || e.type === "busy" || e.type === "stale" || e.type === "not_allowed" || e.type === "save_failed")
+            reasons.push(`Turn ${i + 1} ("${message}"): the Tutor Turn sent "${e.type}"${"message" in e ? `: ${e.message}` : ""}.`);
+        }
+        if (!done) {
+          reasons.push(`Turn ${i + 1} ("${message}"): the Tutor Turn did not finish.`);
+          break;
+        }
+        const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done, text, notesAfter });
+        transcript.push({ learner: message, reply });
+        reasons.push(...codedFailures(c.pass, reply, p.ctx).map((f) => `Turn ${i + 1} ("${message}"): ${f}`));
+      } finally {
+        cost += spent;
+        deps.budget.settle(held, spent);
+      }
+    }
+  } catch (err) {
+    reasons.push(`The run failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  return { run, status: reasons.length ? "fail" : "pass", reasons, costUsd: cost, transcript, note: `${transcript.length} of ${c.messages.length} turns ran, $${cost.toFixed(4)}.` };
 }
 
 /** Runs tasks with at most `n` at a time, keeping their order in the results. */
@@ -151,13 +207,16 @@ export async function runSuite(cases: EvalCase[], deps: SuiteDeps): Promise<Eval
   const liveCases = cases.filter((c): c is LiveCase => c.kind === "live");
   const pending = new Map(liveCases.map((c) => [c.id, pendingReason(c, map)]));
   const runnable = liveCases.filter((c) => !pending.get(c.id));
-  const tasks = runnable.flatMap((c) =>
-    Array.from({ length: RUNS_PER_CASE }, (_, i) => async () => {
-      const r = await runLive(c, i + 1, deps, map);
-      log(`${r.status.toUpperCase()} ${c.id} run ${r.run} ($${deps.budget.spent.toFixed(3)} so far)`);
-      return [c.id, r] as const;
-    }),
-  );
+  const dialogues = cases.filter((c): c is DialogueCase => c.kind === "dialogue");
+  for (const c of dialogues) pending.set(c.id, pendingReason(c, map));
+  const logged = (id: string, r: RunResult) => {
+    log(`${r.status.toUpperCase()} ${id} run ${r.run} ($${deps.budget.spent.toFixed(3)} so far)`);
+    return [id, r] as const;
+  };
+  const tasks = [
+    ...runnable.flatMap((c) => Array.from({ length: RUNS_PER_CASE }, (_, i) => async () => logged(c.id, await runLive(c, i + 1, deps, map)))),
+    ...dialogues.filter((c) => !pending.get(c.id)).flatMap((c) => Array.from({ length: c.runs ?? 1 }, (_, i) => async () => logged(c.id, await runDialogue(c, i + 1, deps, map)))),
+  ];
   const done = await pool(tasks, deps.concurrency ?? 3);
   const results = new Map<string, LiveRun[]>();
   for (const [id, r] of done) results.set(id, [...(results.get(id) ?? []), r].sort((a, b) => a.run - b.run));
@@ -173,7 +232,16 @@ export async function runSuite(cases: EvalCase[], deps: SuiteDeps): Promise<Eval
           delete kept.words;
           return kept;
         });
-        out.push({ id: c.id, title: c.title, kind: c.kind, status: caseStatus(runs), runs });
+        const needed = c.minPasses ?? RUNS_PER_CASE;
+        out.push({ id: c.id, title: c.title, kind: c.kind, status: caseStatus(runs, RUNS_PER_CASE, needed), runs, ...(needed !== RUNS_PER_CASE && { bar: { runs: RUNS_PER_CASE, passes: needed } }) });
+      }
+    } else if (c.kind === "dialogue") {
+      const why = pending.get(c.id);
+      const expected = c.runs ?? 1;
+      if (why) out.push({ id: c.id, title: c.title, kind: c.kind, status: "pending", pending: why, runs: [] });
+      else {
+        const runs = results.get(c.id) ?? [];
+        out.push({ id: c.id, title: c.title, kind: c.kind, status: caseStatus(runs, expected), runs, bar: { runs: expected, passes: expected } });
       }
     } else if (c.kind === "aggregate") {
       const runs = c.pending ? [] : aggregate(c, results);
