@@ -164,3 +164,72 @@ describe("TwoPaths reveal", () => {
     expect(who[1].className).not.toContain("story-bounce");
   });
 });
+
+// CL-1 (R-E2a fix round 1): the at-rest frame of TwoPaths was two plain cards. At rest it must already read as a story:
+// both characters large on tilted sunflower stickers, each choice in a thought bubble, an "or" between the paths, and a
+// closed "what happened" slot that waits for the Learner. Both sides are a story, so both are sunflower (Appendix A).
+describe("TwoPaths at rest", () => {
+  const paths = (
+    <TwoPathsView
+      question="Who kept the house?"
+      left={{ emoji: "man", name: "Ravi", choice: "Sold early", outcome: ["house", "house"], outcomeLine: "Ravi kept both houses" }}
+      right={{ emoji: "woman", name: "Mira", choice: "Held on", outcome: ["house"], outcomeLine: "Mira lost one house" }}
+    />
+  );
+
+  it("shows each character large on a sunflower sticker, tilted towards the other path", () => {
+    show(paths);
+    const stickers = allById(page!, "path-sticker");
+    expect(stickers).toHaveLength(2);
+    for (const s of stickers) {
+      expect(s.querySelector("img")!.getAttribute("width")).toBe("64");
+      expect(s.className).toContain("var(--sun-tag)");
+    }
+    expect(stickers[0].className).toContain("-rotate-3");
+    expect(stickers[1].className).toMatch(/(^|\s)rotate-3/);
+  });
+
+  it("puts each choice in a thought bubble, so the character is deciding", () => {
+    show(paths);
+    const bubbles = allById(page!, "path-choice");
+    expect(bubbles.map((b) => b.textContent)).toEqual(["Sold early", "Held on"]);
+    for (const b of bubbles) expect(b.querySelector("img")).not.toBeNull();
+  });
+
+  it("keeps a closed, dashed what-happened slot until the outcome is shown, then swaps it for the outcome", () => {
+    show(paths);
+    const waiting = allById(page!, "path-waiting");
+    expect(waiting).toHaveLength(2);
+    expect(waiting[0].className).toContain("border-dashed");
+    expect(waiting[0].querySelector("img")).not.toBeNull();
+    expect(waiting[0].textContent).toContain("Ravi");
+    click(allById(page!, "path-reveal")[0]);
+    expect(allById(page!, "path-waiting")).toHaveLength(1);
+    expect(allById(page!, "path-outcome")).toHaveLength(1);
+  });
+
+  it("says or between the two paths, as static words, not a control", () => {
+    show(paths);
+    const or = byId(page!, "paths-or")!;
+    expect(or.textContent).toBe("or");
+    expect(or.closest("button")).toBeNull();
+  });
+
+  it("is sunflower on both sides, never violet, mint or coral, with the same card on each side", () => {
+    show(paths);
+    for (const b of allById(page!, "path-reveal")) click(b);
+    expect(page!.host.innerHTML).not.toMatch(/var\(--(mint|coral|violet)[^)]*\)/);
+    expect(page!.host.innerHTML).toContain("var(--sun-tint)");
+    const sides = allById(page!, "path");
+    expect(sides[0].className).toBe(sides[1].className);
+  });
+
+  it("pops the stickers in when it mounts, and keeps them still under reduced motion", () => {
+    show(paths);
+    expect(allById(page!, "path-sticker")[0].className).toContain("story-pop");
+    page!.cleanup();
+    stubReducedMotion(true);
+    show(paths);
+    expect(allById(page!, "path-sticker")[0].className).not.toContain("story-pop");
+  });
+});
