@@ -96,7 +96,7 @@ questions:
 
   - id: gs-q-coupon
     prompt: >
-      Priya buys a dated G-sec of Rs 100 face value with an 8% coupon. How does it pay her?
+      Priya wants steady income, so she buys a dated G-sec of Rs 100 face value with an 8% coupon. How does it pay her over the years?
     choices:
       - { id: a, text: "Coupons twice a year, then Rs 100 back" }
       - { id: b, text: "All the coupons at once, at the end", mistake: { tag: coupon_at_end_only, fix: "Dated G-secs pay coupons along the way, every six months, not all at the end." } }

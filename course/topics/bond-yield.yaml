@@ -58,12 +58,12 @@ youllLearn:
 questions:
   - id: by-q-current-yield
     prompt: >
-      Meera buys a bond with an 8% coupon, but she pays less than its face value for it. Her broker says the yearly coupon looks bigger against what she paid. Is that bigger than 8%, and what is it called?
+      Meera buys a bond with an 8% coupon, but she pays less than its face value for it. Her broker says the yearly coupon looks bigger against what she paid, and he has a name for that. What is it called, and what does it measure?
     choices:
-      - { id: a, text: "Current yield, and it is above 8%" }
-      - { id: b, text: "Current yield, and it is exactly 8%", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
-      - { id: c, text: "Yield to maturity, and it is exactly 8%", mistake: { tag: mixed_up_ytm, fix: "Yield to maturity includes the gain at maturity. Current yield counts only the coupon." } }
-      - { id: d, text: "Current yield, and it is below 8%", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
+      - { id: a, text: "Current yield: the yearly coupon against what she paid" }
+      - { id: b, text: "Coupon rate: the yearly coupon against face value", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
+      - { id: c, text: "Yield to maturity: the coupon plus the gain at maturity", mistake: { tag: mixed_up_ytm, fix: "Yield to maturity includes the gain at maturity. Current yield counts only the coupon." } }
+      - { id: d, text: "Current yield, but smaller than 8% because she paid less", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
     answer: a
     explanation: >
       Current yield is the yearly coupon over the price you pay. Paying less than face value makes it come out above the 8% coupon rate. It ignores the gain as the price returns to par at maturity, which is why the yield to maturity is higher still.

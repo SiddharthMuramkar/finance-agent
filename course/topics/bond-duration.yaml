@@ -102,7 +102,7 @@ questions:
 
   - id: bd-q-convexity
     prompt: >
-      Meera holds a plain 10-year bond. Tomorrow, yields might fall one point, or rise one point. Bond people say her bond has convexity. What does that mean for her?
+      Meera holds a plain 10-year bond. She is nervous about tomorrow's news: yields might fall one point, or rise one point. Her broker grins and says her bond has convexity. What does that mean for her?
     choices:
       - { id: a, text: "Her gain if yields fall beats her loss if they rise" }
       - { id: b, text: "Her gain and her loss would be exactly equal", mistake: { tag: linear_price, fix: "Duration's straight line says so, but the real price curve bends, so the two differ." } }

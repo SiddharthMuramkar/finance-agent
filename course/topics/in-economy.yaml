@@ -112,7 +112,7 @@ questions:
 
   - id: ie-q-dual-rate
     prompt: >
-      Under a dual exchange rate, an exporter must sell half her dollars at the official rate. She sells the rest at the market rate, where a dollar fetches more rupees. What does she get per dollar overall?
+      Under a dual exchange rate, an exporter has just been paid in dollars, but the rules make her sell half of them at the official rate. She sells the rest at the market rate, where a dollar fetches more rupees. When all her rupees land, what rate did she get per dollar overall?
     choices:
       - { id: a, text: "Somewhere between the two rates" }
       - { id: b, text: "The official rate on every dollar", mistake: { tag: official_on_all, fix: "Only the surrendered half goes at the official rate. The rest sells at the market rate." } }

@@ -74,7 +74,7 @@ questions:
 
   - id: cs-q-calculate
     prompt: >
-      Traders say a 10-year corporate bond trades 150 over a 10-year government bond. What does that mean?
+      Meera overhears two traders at a bond desk: "The 10-year corporate trades 150 over the 10-year government." She nods, but she is lost. What does that mean?
     choices:
       - { id: a, text: "1.5 points more yield on the corporate bond" }
       - { id: b, text: "$150 more in price per $1,000 bond", mistake: { tag: price_not_yield, fix: "Spreads are quoted in yield, not price. 150 is basis points of extra yield." } }

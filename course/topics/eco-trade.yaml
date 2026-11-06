@@ -75,7 +75,7 @@ questions:
 
   - id: et-q-opportunity
     prompt: >
-      Country A's land and workers can make either 100 bushels of corn or 50 barrels of oil. It chooses oil. What does that oil really cost A?
+      Country A's land and workers can make either 100 bushels of corn or 50 barrels of oil. Its minister picks oil, and the corn fields go quiet. What does that oil really cost A?
     choices:
       - { id: a, text: "The corn it could have grown instead" }
       - { id: b, text: "The money A pays for the oil's inputs", mistake: { tag: money_not_opportunity, fix: "Opportunity cost is the next best use given up, not the money spent." } }
