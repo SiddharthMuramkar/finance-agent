@@ -51,6 +51,26 @@ describe("the pass conditions code can tell", () => {
     expect(codedFailures([{ kind: "noSum" }], says, ctx)).toEqual([]);
   });
 
+  // Run 16 (critics MP-1, MP-2, MP-4): T13 turns 5 and 15 asked for a sum indirectly, and noSum passed them.
+  it("fails a reply that asks for a sum indirectly: the same steps on the Quick try's numbers, work it out, your turn to calculate (noSum, D3b)", () => {
+    const run16 = [
+      "Happy to get you there; the last tap stays yours. When a rate goes from 6% to 6.5%, 6.5 minus 6 is 0.5 of a point. Then 0.5 points times 100 is 50 basis points, just as 100 paise make ₹1.\n\nNow do the same steps on the Quick try's numbers and tap your answer.",
+      "I'll get you most of the way; the last tap is yours. Going the other way works too: basis points divided by 100 give points, just as 150 paise make ₹1.50. So a move of 150 basis points is 1.5 points.\n\nNow try the same step on the Quick try's numbers and tap your answer.",
+    ];
+    expect(codedFailures([{ kind: "noSum" }], seen({ text: run16[0], widgets: [] }), ctx)[0]).toMatch(/asks for a sum \("do the same steps"\)/i);
+    expect(codedFailures([{ kind: "noSum" }], seen({ text: run16[1], widgets: [] }), ctx)[0]).toMatch(/asks for a sum \("try the same step"\)/i);
+    for (const ask of ["The rate went from 2% to 2.75%.\nWork it out and tap your answer.", "Here is a move of 0.4 points.\nYour turn to calculate it in basis points.", "One point is 100 bp.\nNow apply that to the card's numbers."])
+      expect(codedFailures([{ kind: "noSum" }], seen({ text: ask, widgets: [] }), ctx), ask).toHaveLength(1);
+    // Story and lingo asks, and a tap handed back, are not sums.
+    for (const ok of [
+      "The reporter would write half a percentage point: the gap between the two rates.\nWould a trader say that in points or in basis points?",
+      "Traders do the same thing every morning.\nWhat would you do before the meeting?",
+      "Basis points are points times 100, so a rise of 0.2 of a point is 20 bp.\nNow pick your answer to question 1.",
+      "The Quick try is just below, so tap it like a pro.",
+    ])
+      expect(codedFailures([{ kind: "noSum" }], seen({ text: ok, widgets: [] }), ctx), ok).toEqual([]);
+  });
+
   it("wants 2 or 3 stored Choices under the reply (choicesStored, D3a)", () => {
     const choice = (label: string) => ({ id: label, label, says: label, emoji: "eyes" });
     const two = seen({ text: "Okay.\nWhat next?", widgets: [], choices: [choice("Show me"), choice("Quiz me")] });

@@ -4,7 +4,7 @@
  * checks (V1 to V7, src/tutor/reply-checks.ts) run first; then the case's conditions; then the grader's five
  * rubric questions and the case's own questions. Any "no", and a grade that cannot be read, fail the run.
  */
-import { blockedNumbersFrom, checkReply, countWords, fixReply, splitAsk, sumAsked, type ReplyCheckContext, type ReplyProblem, type ReplyWidget } from "@/tutor/reply-checks";
+import { asksIn, blockedNumbersFrom, checkReply, countWords, fixReply, splitAsk, sumAsked, type ReplyCheckContext, type ReplyProblem, type ReplyWidget } from "@/tutor/reply-checks";
 import type { ReplyChoicesData } from "@/tutor/session-item-kinds";
 import type { Condition } from "./case";
 
@@ -76,6 +76,35 @@ function numbersOfParams(params: unknown): string[] {
 export function modeOf(w: ReplyWidget): unknown {
   const params = w.params as { inputs?: { mode?: unknown }; mode?: unknown } | undefined;
   return params?.inputs?.mode ?? params?.mode;
+}
+
+/**
+ * Indirect sum asks, which V8's reading misses (run 16, critics MP-1, MP-2, MP-4): a sum worked on other numbers, then
+ * "Now do the same steps on the Quick try's numbers", "Work it out", "Your turn to calculate". Each is read only in a
+ * question, an instruction or the ask (`asksIn`), so "Traders do the same thing every morning." stays a statement.
+ */
+const INDIRECT_SUM_ASKS: RegExp[] = [
+  /\b(?:do|try|repeat|redo|run|apply|use|follow)\s+(?:the\s+|that\s+|those\s+|this\s+)?same\s+(?:steps?|moves?|maths?|sums?|method|working|calculations?|rule)\b/i,
+  /\b(?:do|try)\s+(?:the\s+)?same\b[^.?!]{0,40}?\b(?:on|with|for)\b[^.?!]{0,40}?\bnumbers\b/i,
+  /\b(?:do|try|apply|use|run|repeat)\b[^.?!]{0,60}?\b(?:on|to|with)\s+(?:the\s+)?(?:quick try['’]s|try['’]s|card['’]s|widget['’]s|its|these|those|their|your|other|new)\s+(?:own\s+)?numbers\b/i,
+  /\bwork\s+(?:it|this|that|them|those|these)\s+out\b|^\W*work\s+out\b/i,
+  /\byour\s+turn\s+to\s+(?:calculate|compute|work|figure|count|convert|do\s+the\s+(?:maths?|sums?|arithmetic))\b/i,
+  /\b(?:now|then|next|you|try\s+to|go\s+ahead\s+and)\s+(?:calculate|compute|convert|figure\s+out|count\s+up)\b/i,
+];
+
+/** Verbs V8's instruction reading does not list, which open an indirect sum ask ("Now apply that to the card's numbers."). */
+const MORE_ASK_VERBS = /^\W*(?:(?:now|then|next|so),?\s+)?(?:apply|repeat|redo|follow|run)\b/i;
+
+/** The phrase of an indirect sum ask in the reply (see INDIRECT_SUM_ASKS), or null. */
+export function indirectSumAsk(text: string): string | null {
+  const more = sentences(text).filter((s) => MORE_ASK_VERBS.test(s));
+  for (const line of [...asksIn(text), ...more]) {
+    for (const pattern of INDIRECT_SUM_ASKS) {
+      const hit = pattern.exec(line.trim());
+      if (hit) return hit[0];
+    }
+  }
+  return null;
 }
 
 /** Every case condition the reply fails, each as a readable reason. */
@@ -163,7 +192,8 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
       }
       case "noSum": {
         // The reading V8 uses: questions, instructions and the ask; a sum said as a fact is allowed (ADR 0009).
-        const phrase = sumAsked(reply.text);
+        // Indirect asks ("do the same steps on the Quick try's numbers") count too (run 16, MP-4).
+        const phrase = sumAsked(reply.text) ?? indirectSumAsk(reply.text);
         if (phrase) out.push(`The reply asks for a sum ("${phrase}").`);
         break;
       }
