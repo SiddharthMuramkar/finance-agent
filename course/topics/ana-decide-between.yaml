@@ -103,9 +103,9 @@ questions:
       Which of these statements can a reader check against a published source on the day it is made?
     choices:
       - { id: a, text: "A company's latest quarterly release states a net income of $50 million" }
-      - { id: b, text: "Most of the companies in this industry will be gone within five years" }
-      - { id: c, text: "Investors who ignore this sector are being reckless" }
-      - { id: d, text: "This index will be lower in three years than it is today" }
+      - { id: b, text: "Most of the companies in this industry will be gone within five years", mistake: { tag: forecast_as_fact, fix: "A five-year forecast cannot be checked today; it is graded later." } }
+      - { id: c, text: "Investors who ignore this sector are being reckless", mistake: { tag: judgement_as_fact, fix: "Calling investors reckless is a judgement, not something a source can confirm." } }
+      - { id: d, text: "This index will be lower in three years than it is today", mistake: { tag: forecast_as_fact, fix: "A three-year forecast cannot be checked on the day." } }
     answer: a
     explanation: >
       A reported figure can be looked up in the company's own release. The other three are a forecast, a judgement about people and another forecast: each can be argued about now, but none can be checked against a source on the day.
@@ -116,10 +116,10 @@ questions:
     prompt: >
       A writer says a whole sector will be worth less in fifteen years than it is today, and gives a figure. How should a reader treat this on the day it is written?
     choices:
-      - { id: a, text: "As a fact, if the writer is well known" }
+      - { id: a, text: "As a fact, if the writer is well known", mistake: { tag: fame_as_proof, fix: "Fame does not turn a forecast into a fact." } }
       - { id: b, text: "As a forecast: judge the reasoning, the size, the time and what would prove it wrong, and let the outcome grade it later" }
-      - { id: c, text: "As framing only, so ignore it" }
-      - { id: d, text: "As a false statement, because the future cannot be known" }
+      - { id: c, text: "As framing only, so ignore it", mistake: { tag: forecast_as_framing, fix: "A forecast is a real claim to judge, not framing to ignore." } }
+      - { id: d, text: "As a false statement, because the future cannot be known", mistake: { tag: future_as_false, fix: "A forecast is not false today; the outcome grades it later." } }
     answer: b
     explanation: >
       A forecast is an opinion about the future. It cannot be marked true or false on the day, but its reasoning, its specificity and its stated limits can be judged, and later events grade it.
@@ -159,9 +159,9 @@ questions:
       A US public company issues a press release quoting 'adjusted' earnings that leave out certain charges. Under the SEC's Regulation G, which of these must the release also contain?
     choices:
       - { id: a, text: "The most directly comparable GAAP measure and a reconciliation of the adjusted figure to it" }
-      - { id: b, text: "An audit opinion on the adjusted figure" }
-      - { id: c, text: "Nothing more, because adjusted figures are exempt" }
-      - { id: d, text: "A forecast of next year's adjusted earnings" }
+      - { id: b, text: "An audit opinion on the adjusted figure", mistake: { tag: audit_for_reconcile, fix: "Regulation G asks for the GAAP measure and a reconciliation, not an audit opinion." } }
+      - { id: c, text: "Nothing more, because adjusted figures are exempt", mistake: { tag: adjusted_exempt, fix: "Adjusted figures are not exempt: Regulation G covers them." } }
+      - { id: d, text: "A forecast of next year's adjusted earnings", mistake: { tag: forecast_for_reconcile, fix: "The rule is about showing the GAAP figure now, not a forecast." } }
     answer: a
     explanation: >
       Regulation G requires a public company that releases a non-GAAP measure to present the most directly comparable GAAP measure and a reconciliation of the two. That lets a reader see exactly what was left out.
@@ -214,10 +214,10 @@ questions:
     prompt: >
       Two writers disagree about a market. Which question best helps a reader judge the framing of each view, as opposed to its facts?
     choices:
-      - { id: a, text: "Which writer is more famous?" }
+      - { id: a, text: "Which writer is more famous?", mistake: { tag: fame_for_framing, fix: "Fame says nothing about which facts a writer chose to show." } }
       - { id: b, text: "What does each writer's job and employer gain from this view, and which true facts would they have left out if the view were wrong?" }
-      - { id: c, text: "Which writer predicts the bigger move?" }
-      - { id: d, text: "Which writer uses more numbers?" }
+      - { id: c, text: "Which writer predicts the bigger move?", mistake: { tag: size_for_framing, fix: "A bigger forecast tells you nothing about selection of facts." } }
+      - { id: d, text: "Which writer uses more numbers?", mistake: { tag: numbers_for_framing, fix: "More numbers can still be a selected set; ask what the author gains." } }
     answer: b
     explanation: >
       Framing is the selection and presentation of true facts. Asking what a view is worth to its author, and what would count against it, exposes selection. Fame, the size of a forecast and the count of numbers say nothing about it. Professional codes treat independence and objectivity as a duty for this reason.

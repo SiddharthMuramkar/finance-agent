@@ -70,9 +70,9 @@ questions:
       A drought destroys part of a staple vegetable crop and delays the next harvest, while demand for the vegetable stays the same. What happens to the equilibrium price and quantity sold?
     choices:
       - { id: a, text: "Price rises and quantity falls" }
-      - { id: b, text: "Price rises and quantity rises" }
-      - { id: c, text: "Price falls and quantity falls" }
-      - { id: d, text: "Price and quantity do not change" }
+      - { id: b, text: "Price rises and quantity rises", mistake: { tag: both_rise, fix: "Less supply raises the price but cuts the amount sold; both rising needs more demand." } }
+      - { id: c, text: "Price falls and quantity falls", mistake: { tag: price_falls, fix: "A smaller crop with the same demand pushes the price up, not down." } }
+      - { id: d, text: "Price and quantity do not change", mistake: { tag: no_shift, fix: "The drought shifts supply left, so the meeting point moves." } }
     answer: a
     explanation: >
       The supply curve shifts left. With demand unchanged, the new intersection is at a higher price and a lower quantity. Because buyers have few substitutes, the price rise is large.

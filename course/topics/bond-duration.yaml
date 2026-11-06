@@ -63,9 +63,9 @@ questions:
       What does a bond's duration tell you?
     choices:
       - { id: a, text: "How sensitive its price is to changes in interest rates: the higher the duration, the more sensitive" }
-      - { id: b, text: "The probability that the issuer defaults" }
-      - { id: c, text: "The number of coupon payments left" }
-      - { id: d, text: "The bond's yield to maturity" }
+      - { id: b, text: "The probability that the issuer defaults", mistake: { tag: duration_as_default, fix: "Default chance is credit risk; duration measures interest rate risk." } }
+      - { id: c, text: "The number of coupon payments left", mistake: { tag: duration_as_count, fix: "Duration is not a count of coupons; it says how much price moves when rates move." } }
+      - { id: d, text: "The bond's yield to maturity", mistake: { tag: duration_as_yield, fix: "Yield is the return; duration is how sensitive the price is to rate changes." } }
     answer: a
     explanation: >
       Duration is a measure of interest rate risk. It combines maturity, coupon rate and the level of yields. Credit risk is a separate matter.
@@ -119,9 +119,9 @@ questions:
       Three 10-year bonds are priced at the same market yield: one with an 8% coupon, one with a 4% coupon, and a zero-coupon bond. Which price is most sensitive to a change in yield?
     choices:
       - { id: a, text: "The zero-coupon bond" }
-      - { id: b, text: "The 8% coupon bond" }
-      - { id: c, text: "The 4% coupon bond" }
-      - { id: d, text: "All three are equally sensitive" }
+      - { id: b, text: "The 8% coupon bond", mistake: { tag: high_coupon_sensitive, fix: "A bigger coupon pays more money early, which lowers duration and sensitivity." } }
+      - { id: c, text: "The 4% coupon bond", mistake: { tag: middle_coupon, fix: "The 4% bond still pays coupons early; the zero pays all at the end, so it moves most." } }
+      - { id: d, text: "All three are equally sensitive", mistake: { tag: maturity_only, fix: "Same maturity is not same duration: lower coupons push the payments later." } }
     answer: a
     explanation: >
       The lower the coupon, the later the average payment arrives and the higher the duration. A zero-coupon bond pays everything at maturity, so its duration equals its maturity, the longest possible for ten years.

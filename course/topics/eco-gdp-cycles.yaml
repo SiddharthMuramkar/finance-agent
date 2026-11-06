@@ -74,8 +74,8 @@ questions:
       Historically, how was a recession defined in the United States?
     choices:
       - { id: a, text: "Two consecutive quarters of declining real GDP" }
-      - { id: b, text: "Any year in which prices fall" }
-      - { id: c, text: "Unemployment above 10%" }
+      - { id: b, text: "Any year in which prices fall", mistake: { tag: prices_for_output, fix: "Falling prices is deflation; a recession is about falling output." } }
+      - { id: c, text: "Unemployment above 10%", mistake: { tag: jobs_threshold, fix: "There was never a 10% jobless line; the old rule was two quarters of falling real GDP." } }
     answer: a
     explanation: >
       Historically a recession was two consecutive quarters of declining GDP. Today the NBER declares one

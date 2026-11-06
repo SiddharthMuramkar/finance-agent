@@ -95,9 +95,9 @@ questions:
       Which statement correctly contrasts an exchange-traded fund (ETF) with a traditional open-end mutual fund?
     choices:
       - { id: a, text: "ETF shares trade on an exchange all day at market prices, which can differ from NAV; mutual fund investors deal with the fund at the end-of-day NAV" }
-      - { id: b, text: "ETF shares are always priced exactly at NAV; mutual fund units trade on an exchange all day" }
-      - { id: c, text: "An ETF cannot hold shares; a mutual fund can" }
-      - { id: d, text: "An ETF is always actively managed; a mutual fund is always passive" }
+      - { id: b, text: "ETF shares are always priced exactly at NAV; mutual fund units trade on an exchange all day", mistake: { tag: pricing_swapped, fix: "That swaps them: ETFs trade all day and can drift from NAV, mutual funds deal at NAV." } }
+      - { id: c, text: "An ETF cannot hold shares; a mutual fund can", mistake: { tag: etf_no_shares, fix: "ETFs hold shares like any fund; the difference is how investors buy and sell them." } }
+      - { id: d, text: "An ETF is always actively managed; a mutual fund is always passive", mistake: { tag: style_by_wrapper, fix: "Either type can be active or passive; the wrapper is about trading, not style." } }
     answer: a
     explanation: >
       Both are pooled funds that work out a NAV each business day. The difference is in how they are bought and sold: ETF shares change hands on an exchange at market prices, so the price can drift from NAV, while mutual fund investors buy and redeem with the fund at the day's NAV. Either type can be active or passive.

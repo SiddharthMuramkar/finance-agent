@@ -63,8 +63,8 @@ questions:
       which case are long-term bond yields more likely to jump well beyond the first step, and why?
     choices:
       - { id: a, text: "Bank B, because without guidance investors must re-estimate the whole expected path of short rates and may expect more increases" }
-      - { id: b, text: "Bank A, because announcing a plan in advance always unsettles bond markets" }
-      - { id: c, text: "Neither, because long-term yields do not depend on expected policy rates" }
+      - { id: b, text: "Bank A, because announcing a plan in advance always unsettles bond markets", mistake: { tag: guidance_unsettles, fix: "A plan markets saw coming is already in prices; the surprise forces the bigger rethink." } }
+      - { id: c, text: "Neither, because long-term yields do not depend on expected policy rates", mistake: { tag: long_rates_ignore_policy, fix: "Long yields track the expected path of short rates, so policy moves them." } }
     answer: a
     explanation: >
       Long-term rates reflect the expected path of short-term rates. A move that investors saw coming is
@@ -77,9 +77,9 @@ questions:
     prompt: >
       Market interest rates rise sharply. What happens to the price of an existing bond with a fixed coupon?
     choices:
-      - { id: a, text: "It rises" }
+      - { id: a, text: "It rises", mistake: { tag: price_follows_rate, fix: "A fixed coupon looks worse when new bonds pay more, so the old bond's price drops." } }
       - { id: b, text: "It falls" }
-      - { id: c, text: "It does not change" }
+      - { id: c, text: "It does not change", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price is not: it falls when market rates rise." } }
     answer: b
     explanation: >
       A bond's price is the present value of its fixed payments. When the discount rate rises, that present

@@ -119,9 +119,9 @@ questions:
       Why should WACC use the market values of debt and equity as weights, rather than the figures on the balance sheet?
     choices:
       - { id: a, text: "Market values show what investors currently have at stake and could earn elsewhere" }
-      - { id: b, text: "Market values never change" }
-      - { id: c, text: "Book values are not audited" }
-      - { id: d, text: "Tax law requires it" }
+      - { id: b, text: "Market values never change", mistake: { tag: market_static, fix: "Market values change all the time; they matter because they show what investors have at stake now." } }
+      - { id: c, text: "Book values are not audited", mistake: { tag: book_unaudited, fix: "Book values are audited; they are just old amounts, not today's stakes." } }
+      - { id: d, text: "Tax law requires it", mistake: { tag: tax_rule, fix: "No tax law sets the weights; market values match the returns investors need today." } }
     answer: a
     explanation: >
       The required returns apply to the money investors have at risk today, which is the market value of their claims, not the historical amount recorded in the accounts.

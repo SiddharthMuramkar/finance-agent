@@ -113,9 +113,9 @@ questions:
       A country operates a currency board that guarantees one unit of its currency equals one US dollar. What is the main risk to holders of the currency if the country's finances weaken?
     choices:
       - { id: a, text: "That the guarantee is abandoned and the currency falls below one dollar" }
-      - { id: b, text: "That the currency rises above one dollar" }
-      - { id: c, text: "That the central bank prints too little currency to keep the rate" }
-      - { id: d, text: "There is no risk, because the rate is guaranteed by law" }
+      - { id: b, text: "That the currency rises above one dollar", mistake: { tag: wrong_direction, fix: "A weak economy pushes the currency down, not up above one dollar." } }
+      - { id: c, text: "That the central bank prints too little currency to keep the rate", mistake: { tag: too_little_money, fix: "The danger is running out of dollars to back the promise, not printing too little." } }
+      - { id: d, text: "There is no risk, because the rate is guaranteed by law", mistake: { tag: law_as_guarantee, fix: "A law holds only while reserves can honour it; markets can test it." } }
     answer: a
     explanation: >
       A guarantee holds only while the authorities can and will honour it. If markets doubt it, holders sell or convert into dollars, which drains the reserves that back the promise.
@@ -127,9 +127,9 @@ questions:
       The yield spread of a country's dollar bonds over US Treasuries widens sharply. What does it most directly signal?
     choices:
       - { id: a, text: "Investors see a higher chance of default or restructuring" }
-      - { id: b, text: "Investors see a lower chance of default" }
-      - { id: c, text: "US Treasury yields have fallen to zero" }
-      - { id: d, text: "The country's currency has been fixed to the dollar" }
+      - { id: b, text: "Investors see a lower chance of default", mistake: { tag: spread_backwards, fix: "A wider spread means investors want more pay for more risk, so default looks likelier." } }
+      - { id: c, text: "US Treasury yields have fallen to zero", mistake: { tag: treasury_moved, fix: "The spread is the gap over Treasuries; it widens because the country looks riskier." } }
+      - { id: d, text: "The country's currency has been fixed to the dollar", mistake: { tag: peg_for_spread, fix: "A spread over Treasuries prices default fear, not the exchange rate regime." } }
     answer: a
     explanation: >
       Investors demand a bigger premium over the safe rate when they fear losing part of their money. A wider default spread is the market's price of that fear.

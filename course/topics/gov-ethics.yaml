@@ -75,9 +75,9 @@ questions:
       In corporate finance, what is an agency problem?
     choices:
       - { id: a, text: "A conflict of interest in which the managers entrusted with running a company act for their own gain rather than the owners'" }
-      - { id: b, text: "A dispute between two companies over the price of a takeover" }
-      - { id: c, text: "A tax charged on the sale of shares" }
-      - { id: d, text: "A rule that every company must hire an outside agency to audit it" }
+      - { id: b, text: "A dispute between two companies over the price of a takeover", mistake: { tag: takeover_dispute, fix: "A takeover price fight is between companies; agency is managers against owners." } }
+      - { id: c, text: "A tax charged on the sale of shares", mistake: { tag: agency_as_tax, fix: "It is not a tax; it is managers serving themselves instead of owners." } }
+      - { id: d, text: "A rule that every company must hire an outside agency to audit it", mistake: { tag: agency_as_auditor, fix: "The agent is the manager, not an outside audit firm." } }
     answer: a
     explanation: >
       The agent (manager) is entrusted with the owner's interests but may abuse the position to pursue personal goals. The conflict between management and shareholders is the standard example.
@@ -89,9 +89,9 @@ questions:
       A company's chairman owns 40% of a private builder. The company's board proposes to buy the whole builder for cash. Why does this deserve extra scrutiny from outside shareholders?
     choices:
       - { id: a, text: "The chairman sits on both sides of the deal, so he gains if the price is set too high" }
-      - { id: b, text: "Companies are never allowed to buy private firms" }
-      - { id: c, text: "A cash purchase always lowers earnings" }
-      - { id: d, text: "The builder's size decides the price, not the owners" }
+      - { id: b, text: "Companies are never allowed to buy private firms", mistake: { tag: never_allowed, fix: "Companies may buy private firms; the worry is the chairman on both sides." } }
+      - { id: c, text: "A cash purchase always lowers earnings", mistake: { tag: cash_lowers_earnings, fix: "The worry is who gains from the price, not the accounting of cash." } }
+      - { id: d, text: "The builder's size decides the price, not the owners", mistake: { tag: size_sets_price, fix: "The danger is the chairman steering the price, whatever the builder's size." } }
     answer: a
     explanation: >
       The chairman is a buyer's agent and a seller's owner at the same time, which is the agency problem in its sharpest form. Each rupee above fair value moves company money to him.
@@ -103,9 +103,9 @@ questions:
       Which group is mainly responsible for protecting the interests of shareholders inside a company?
     choices:
       - { id: a, text: "The board of directors, which acts as a fiduciary for the shareholders" }
-      - { id: b, text: "The company's bankers" }
-      - { id: c, text: "The company's customers" }
-      - { id: d, text: "The stock exchange's trading staff" }
+      - { id: b, text: "The company's bankers", mistake: { tag: bankers_for_board, fix: "Bankers protect their loans; the board is the shareholders' fiduciary." } }
+      - { id: c, text: "The company's customers", mistake: { tag: customers_for_board, fix: "Customers want good products, not shareholder protection." } }
+      - { id: d, text: "The stock exchange's trading staff", mistake: { tag: exchange_for_board, fix: "Exchange staff run trading; the board guards shareholders inside the company." } }
     answer: a
     explanation: >
       The board hires and fires the chief executive and oversees management as a fiduciary for shareholders. That is why its independence matters.
@@ -117,9 +117,9 @@ questions:
       Which measure is listed as one way to reduce the conflict between managers and shareholders?
     choices:
       - { id: a, text: "Awarding managers stock and other long-term pay so their goals match the owners'" }
-      - { id: b, text: "Paying managers only a fixed salary for the current quarter" }
-      - { id: c, text: "Letting managers set their own bonus" }
-      - { id: d, text: "Keeping the company's results secret from shareholders" }
+      - { id: b, text: "Paying managers only a fixed salary for the current quarter", mistake: { tag: short_term_pay, fix: "A fixed salary for one quarter gives no stake in the owners' long-term gains." } }
+      - { id: c, text: "Letting managers set their own bonus", mistake: { tag: self_set_bonus, fix: "Managers setting their own bonus widens the conflict." } }
+      - { id: d, text: "Keeping the company's results secret from shareholders", mistake: { tag: secrecy, fix: "Hiding results from owners makes the conflict worse." } }
     answer: a
     explanation: >
       Long-term pay such as stock encourages long-term thinking and ties the managers' wealth to the owners'. Penalising poor performance and unethical behaviour is another measure. Letting managers decide their own pay worsens the conflict.
@@ -131,9 +131,9 @@ questions:
       What does a strong, independent audit committee of a board do?
     choices:
       - { id: a, text: "Reviews audit plans and findings, approves the external accountants and coordinates internal and external reviews of the accounts" }
-      - { id: b, text: "Sets the company's share price" }
-      - { id: c, text: "Approves each customer order" }
-      - { id: d, text: "Decides which employees are promoted" }
+      - { id: b, text: "Sets the company's share price", mistake: { tag: sets_price, fix: "The market sets the share price; the audit committee oversees the accounts." } }
+      - { id: c, text: "Approves each customer order", mistake: { tag: approves_orders, fix: "Customer orders are management's work; the committee oversees audits." } }
+      - { id: d, text: "Decides which employees are promoted", mistake: { tag: promotions, fix: "Promotions are management's call; the committee oversees audits and auditors." } }
     answer: a
     explanation: >
       The audit committee is a subcommittee of the board that handles critical financial matters, including reviewing audit plans and findings and approving the external public accountants.
@@ -145,9 +145,9 @@ questions:
       A company's controlling family holds 25% of a builder and proposes that the company buy it for cash. What most clearly protects the other shareholders?
     choices:
       - { id: a, text: "Independent directors who can block the deal, or a vote in which shareholders with no stake in the builder decide" }
-      - { id: b, text: "A statement by the chairman that the price is fair" }
-      - { id: c, text: "A press release praising the deal" }
-      - { id: d, text: "Waiting for the next annual report" }
+      - { id: b, text: "A statement by the chairman that the price is fair", mistake: { tag: interested_word, fix: "The chairman is on the selling side, so his word cannot check the price." } }
+      - { id: c, text: "A press release praising the deal", mistake: { tag: press_release, fix: "A press release is the company's own praise; it gives objectors no power." } }
+      - { id: d, text: "Waiting for the next annual report", mistake: { tag: wait_for_report, fix: "The report comes after the cash has gone; protection must act before the deal." } }
     answer: a
     explanation: >
       Governance protects owners only if those who object have the power to act on it. The word of the interested party does not check the price; a veto by independent directors or a vote by the unconnected shareholders does.

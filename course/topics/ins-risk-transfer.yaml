@@ -94,9 +94,9 @@ questions:
       Why does an insurer with 100,000 independent policies face less risk per policy than one with 100 policies?
     choices:
       - { id: a, text: "With more independent policies, the average loss per policy settles closer to its expected value (the law of large numbers)" }
-      - { id: b, text: "Because with more policies every policy is certain to produce a claim" }
-      - { id: c, text: "Because a larger pool lowers each customer's chance of a claim" }
-      - { id: d, text: "Because a larger pool removes the need for reserves" }
+      - { id: b, text: "Because with more policies every policy is certain to produce a claim", mistake: { tag: claims_certain, fix: "More policies do not make claims certain; they make the average loss predictable." } }
+      - { id: c, text: "Because a larger pool lowers each customer's chance of a claim", mistake: { tag: pool_cuts_odds, fix: "Each customer's chance of a claim is unchanged; only the average gets steadier." } }
+      - { id: d, text: "Because a larger pool removes the need for reserves", mistake: { tag: no_reserves, fix: "A big pool still needs reserves for bad years." } }
     answer: a
     explanation: >
       The chance of loss on each policy is unchanged. What shrinks is the uncertainty of the average: as the number of independent trials grows, the average outcome gets closer to the expected value. Reserves are still needed for bad years.
@@ -122,9 +122,9 @@ questions:
       Why do many insurance policies include a deductible, an amount the policyholder pays first?
     choices:
       - { id: a, text: "It reduces moral hazard, because the insured bears part of every loss and so keeps a reason to take care" }
-      - { id: b, text: "It guarantees that the insurer makes a profit on every claim" }
-      - { id: c, text: "It removes adverse selection completely" }
-      - { id: d, text: "It lets the insurer avoid pooling risks" }
+      - { id: b, text: "It guarantees that the insurer makes a profit on every claim", mistake: { tag: deductible_guarantees_profit, fix: "A deductible shares the loss with the insured; it guarantees no profit." } }
+      - { id: c, text: "It removes adverse selection completely", mistake: { tag: selection_for_hazard, fix: "Adverse selection is about who buys cover; a deductible targets care after buying." } }
+      - { id: d, text: "It lets the insurer avoid pooling risks", mistake: { tag: no_pooling, fix: "Insurers still pool risks; the deductible only shares each loss." } }
     answer: a
     explanation: >
       Moral hazard is the tendency of insured people to take less care. A deductible, co-payment or coinsurance makes them share the cost. It does not remove adverse selection, which is about who chooses to buy cover.
