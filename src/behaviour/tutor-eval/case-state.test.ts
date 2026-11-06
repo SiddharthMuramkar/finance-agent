@@ -86,7 +86,7 @@ describe("T6: the Learner's own rule is saved after a right practice answer", ()
     const { client, requests } = scripted({ id: "toolu_t6", name: "save_learner_rule", input: { learner_words: c.message } }, "Yes, that is the rule.\nWhat is the percent change from 50 to 60?");
     const events = await collect(runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: false }, c.message));
     // The Tutor is told of the right answer with the Learner's message, as the app tells it.
-    expect(JSON.stringify(requests[0])).toMatch(/Quick try results since your last reply[\s\S]*The Learner gave \\"50%\\": right/);
+    expect(JSON.stringify(requests[0])).toMatch(/Quick try results since your last reply[\s\S]*The Learner gave \\"50%[^"\\]*\\": right/);
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text: textOf(events), notesAfter });
     expect(reply.savedRule).toBe(c.message);
