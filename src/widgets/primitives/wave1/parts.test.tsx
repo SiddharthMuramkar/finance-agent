@@ -58,6 +58,19 @@ describe("Stat", () => {
     expect(stat.style.borderColor).toBe("var(--you-line)");
   });
 
+  // Issue #457 (WCAG 2.2 SC 1.4.11): the tone's rule is the mint or sunflower fill, under 3:1 in Light, so the rule may not
+  // be the only thing that says where the number came from. A static Tag says it in words; a neutral Stat has none.
+  it("says its tone in words with a Tag, not by the coloured rule alone", () => {
+    for (const [tone, words] of [["you", "Your assumption"], ["src", "Sourced"]] as const) {
+      show(<StatView label="Rate" value={7} unit="percent" tone={tone} />);
+      const tag = byId(page!, "stat")!.querySelector('[data-affordance="tag"]');
+      expect(tag?.textContent, tone).toBe(words);
+      page!.cleanup();
+    }
+    show(<StatView label="Rate" value={7} unit="percent" />);
+    expect(byId(page!, "stat")!.querySelector('[data-affordance="tag"]')).toBeNull();
+  });
+
   it("crossfades a changed value (dims for a frame) and does not under reduced motion", async () => {
     show(<StatView label="Rate" value={3} unit="percent" />);
     redraw(page!, <StatView label="Rate" value={4} unit="percent" />);
