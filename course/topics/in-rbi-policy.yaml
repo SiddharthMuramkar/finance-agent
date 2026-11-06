@@ -58,58 +58,57 @@ youllLearn:
 questions:
   - id: rbi-q-repo
     prompt: >
-      A bank borrows from the RBI under a repo. What does the bank hand over, and what happens at the end?
+      3 September 2013. Late in the day, a Mumbai bank finds it is short of cash. It borrows overnight from the RBI under a repo, at the policy rate of 7.25 per cent. What does the bank hand over?
     choices:
-      - { id: a, text: "It sells government securities to the RBI and agrees to buy them back later at a higher price" }
-      - { id: b, text: "It gives the RBI foreign currency and keeps it permanently" }
-      - { id: c, text: "It deposits cash with the RBI and receives securities permanently" }
+      - { id: a, text: "Government securities, which it agrees to buy back later at a higher price" }
+      - { id: b, text: "Dollars, which the RBI keeps for good", mistake: { tag: repo_in_dollars, fix: "A repo pledges government securities, and the bank buys them back when it repays." } }
+      - { id: c, text: "Cash, in return for securities it keeps", mistake: { tag: repo_reverse_flipped, fix: "That is the reverse repo direction. In a repo the bank gets cash and gives securities." } }
+      - { id: d, text: "Nothing: it is a loan on trust", mistake: { tag: repo_unsecured, fix: "A repo is secured. The securities protect the RBI if the bank fails to repay." } }
     answer: a
     explanation: >
-      A repo is a collateralised loan: the borrower sells securities now and repurchases them later, and the
-      difference in price is the interest, quoted as the repo rate.
+      A repo is a collateralised loan: the borrowing bank sells government securities to the RBI now and repurchases them later. The difference in price is the interest, quoted as the repo rate.
     source: >
       Reserve Bank of India, Report of the Technical Group on Repo Market (section on repo and reverse repo): https://www.rbi.org.in/scripts/PublicationReportDetails.aspx?ID=34
 
   - id: rbi-q-reverse-repo
     prompt: >
-      Why does the RBI use a reverse repo to drain excess cash from the banking system?
+      Rohit reads that banks are flooded with spare cash, and the RBI will run a reverse repo to drain it. At dinner his aunt asks how that soaks the cash up. What should Rohit say?
     choices:
-      - { id: a, text: "In a reverse repo the RBI takes cash from banks and gives them securities, so cash leaves the banking system for a time" }
-      - { id: b, text: "In a reverse repo the RBI lends cash to banks, so cash enters the system" }
-      - { id: c, text: "A reverse repo changes the reserve requirement for banks" }
+      - { id: a, text: "Banks hand the RBI cash for securities, so the cash leaves for a time" }
+      - { id: b, text: "The RBI lends banks more cash against securities", mistake: { tag: reverse_repo_adds_cash, fix: "That is a repo, which adds cash. In a reverse repo the RBI takes cash in." } }
+      - { id: c, text: "The RBI changes how much banks must keep in reserve", mistake: { tag: reverse_repo_as_crr, fix: "That is the cash reserve ratio. A reverse repo is a short deal that borrows banks' cash." } }
+      - { id: d, text: "The RBI prints fresh rupees for the banks", mistake: { tag: reverse_repo_prints, fix: "Printing would add cash. A reverse repo takes banks' cash in, against securities." } }
     answer: a
     explanation: >
-      A reverse repo is the mirror image of a repo: the RBI acquires cash against securities with a commitment
-      to sell them back, which absorbs liquidity.
+      A reverse repo is the mirror image of a repo: the RBI takes cash from banks against securities, with a promise to sell the securities back later. Until then that cash sits with the RBI, which absorbs liquidity.
     source: >
       Reserve Bank of India, Report of the Technical Group on Repo Market: https://www.rbi.org.in/scripts/PublicationReportDetails.aspx?ID=34
 
   - id: rbi-q-target
     prompt: >
-      Under the inflation targeting framework agreed between the government and the RBI in 2015, what is the
-      RBI's medium-term inflation goal?
+      March 2015. Asha's aunt, a banker, reads that the government and the RBI have agreed on a goal for consumer inflation. Asha asks what the RBI must now aim for. What should her aunt say?
     choices:
-      - { id: a, text: "4 per cent, with a band of plus or minus 2 percentage points" }
-      - { id: b, text: "2 per cent, with a band of plus or minus 4 percentage points" }
-      - { id: c, text: "Zero inflation" }
+      - { id: a, text: "4 per cent, with room of 2 points either side" }
+      - { id: b, text: "2 per cent, with room of 4 points either side", mistake: { tag: target_band_swapped, fix: "Swapped: 4 per cent is the target, and 2 points is the room on either side." } }
+      - { id: c, text: "Zero inflation, so prices never rise", mistake: { tag: zero_inflation, fix: "The goal is low, steady inflation, not zero. The agreement sets 4 per cent." } }
+      - { id: d, text: "Whatever keeps the rupee steady", mistake: { tag: target_as_currency, fix: "The agreement targets consumer inflation. The rupee is handled with other tools, such as swaps." } }
     answer: a
     explanation: >
-      The agreement sets the mid-point of the 4 per cent plus or minus 2 per cent band as the target.
+      The Monetary Policy Framework Agreement of February 2015 sets the RBI a medium-term target of 4 per cent consumer inflation, with a band of 2 percentage points on either side.
     source: >
       Reserve Bank of India, press release of 4 March 2015 on the Monetary Policy Framework Agreement: http://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1847POLF040315.pdf
 
   - id: rbi-q-swap
     prompt: >
-      Suppose a central bank lets banks raise three-year dollar deposits from non-residents and swap the
-      dollars with the central bank at a forward rate fixed today. What risk does the swap take off the banks?
+      September 2013. The rupee hit a record low near Rs 69 to the dollar in August. Suppose Vikram's bank swaps new three-year dollar deposits with the RBI at a rate fixed today. Which risk leaves his bank?
     choices:
-      - { id: a, text: "The risk that the rupee would weaken before the dollars had to be returned" }
-      - { id: b, text: "The risk that depositors would withdraw their deposits in rupees" }
-      - { id: c, text: "The risk that the RBI would raise the repo rate" }
+      - { id: a, text: "The rupee weakening before the dollars must be repaid" }
+      - { id: b, text: "Depositors pulling their money out early", mistake: { tag: withdrawal_risk, fix: "The swap fixes the exchange rate for repayment. It does nothing about depositors leaving." } }
+      - { id: c, text: "The RBI raising the repo rate", mistake: { tag: swap_as_rate_hedge, fix: "The swap fixes a currency rate, not interest rates. Repo moves still hit the bank." } }
+      - { id: d, text: "Paying interest to the depositors", mistake: { tag: swap_removes_interest, fix: "The bank still pays its depositors. The swap only fixes the rupee price of the dollars." } }
     answer: a
     explanation: >
-      With the forward rate fixed today, banks know in advance the rupee price at which they can return the
-      dollars after three years, so the exchange-rate risk moves to the central bank.
+      With the rate fixed today, the bank knows in advance the rupee price at which it can get the dollars back to repay its depositors after three years. If the rupee falls further, the central bank, not the bank, carries that loss.
     source: >
       Reserve Bank of India circular RBI/2013-14/234, 6 September 2013, Swap Window for Attracting FCNR(B) Dollar Funds: https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0 ; Raghuram Rajan, "The independence of the central bank", 3 September 2016 (BIS): https://bis.org/review/r160905b.htm
 
