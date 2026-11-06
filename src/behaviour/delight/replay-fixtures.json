@@ -58,14 +58,14 @@
     {
       "id": "R10",
       "topic": "num-percent-bps",
-      "step": "your_turn",
-      "text": "Yes, in one way. Your card has an interest rate too, but you pay it instead of earning it. Any change to it is said the same way. Suppose your card's rate went up 1 point. That's 100 bp, just like our savings rate going from 4% to 5% on the Widget.\n\nBack to the earlier question: is half a point 50 bp or 5 bp?"
+      "step": "check",
+      "text": "Okay. One idea at a time.\n\nA bank's savings rate goes from 4% to 5%. 5 minus 4 is 1. That gap is 1 percentage point, or 1 \"point\".\n\n**Points are the new rate minus the old rate.**\n\nDo you find points by subtracting or by dividing?"
     },
     {
       "id": "R11",
       "topic": "num-percent-bps",
-      "step": "your_turn",
-      "text": "That one's still yours, so here's the method with paise. 100 paise make ₹1, so ₹0.30 is 30 paise. Basis points work the same way: 0.3 of a point times 100 is 30 bp.\n\nYour turn: a rate rises 0.8 of a point. Is that 80 bp or 8 bp?"
+      "step": "check",
+      "text": "Fair. Let's start tiny.\n\nA savings rate goes from 4% to 5%. 5 minus 4 is 1. **That gap is 1 percentage point, or 1 \"point\".**\n\nIs a point the new rate minus the old one, or both added together?"
     },
     {
       "id": "R12",
@@ -94,8 +94,8 @@
     {
       "id": "R16",
       "topic": "num-percent-bps",
-      "step": "your_turn",
-      "text": "Nearly there. One small step left.\n\n0.3 was the move in points, but the question asked for basis points, and that needs one more step: times 100.\n\nNext one: a rate goes from 3% to 3.5%. The first step is done for you: the move is 0.5 points."
+      "step": "concept",
+      "text": "Yes: **change times 100, then divide by the original.**\n\nWhen a price goes from ₹50 to ₹60, which price is the original?"
     },
     {
       "id": "R17",
