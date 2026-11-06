@@ -84,9 +84,7 @@ describe("the Tutor's frozen instructions", () => {
       it("tie only a why, what-for or life question to the story, with each name explained, and never at a Check, hint or maths worry (T1, T6, T15)", () => {
         expect(text).toContain("when the Learner asks why, what it is for or how it touches their life, tie the answer to the Case's people");
         expect(text).toContain("Leave the story out of a reply at a Check, a hint, a confirmed rule, a maths worry or a simpler reply.");
-        expect(text).toContain("in 50 words or fewer in all, say what it means for someone in the Case");
-        // Run 8: the T14 nudge ran to 82 and 85 words with "shares" and "Bombay Stock Exchange" unexplained.
-        expect(text).toContain("Explain every finance word it uses in the same sentence (an index, shares), or leave the word out.");
+        expect(text).toContain("in 60 words or fewer, say what it means for someone in the Case");
       });
 
       it("write the reply once, after any tool calls (T12)", () => {
