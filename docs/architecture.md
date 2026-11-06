@@ -4645,6 +4645,14 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Trade-off.** The snapshot repeats data that already exists in the old Session, accepted because it makes "nothing is lost" true (the live tables can then be cleared, so their keys and unique indexes never clash with the new attempt) and keeps the live tables simple. A turn that starts in the instant between the route's running-turn check and the restart would write to the Session being closed; the Learner's one-turn lock makes that a double-tap case only.
 
+## Foundation Topics, story-first questions batch D2c (`course/topics/`, issue #346)
+
+**What it does.** Eight Foundation Topics (`credit-analysis`, `fx-basics`, `fx-bop`, `fx-regimes-crises`, `sov-default-country-risk`, `der-forwards`, `der-options`, `der-option-pricing`) now ask about the story and the words, never for a sum (ADR 0009, spec "Shared rules for the D2 batches"). Each sum-stem quiz question keeps its `id` and its Check but becomes a lingo or "which headline gets it right?" choice question: the numbers stay as story facts, and every wrong choice carries a `mistake: {tag, fix}` of 20 words or fewer. `fx-devaluation-explain` asks the Learner to say it in their own words. The five ids that L10 flagged (`fx-basics`, `fx-bop`, `sov-default-country-risk`, `der-forwards`, `der-options`) leave `L10_NOT_YET_STORY`, and `credit-analysis`, which no longer types a formula, leaves the ADR 0002 list in `formula-check.ts`.
+
+**Scenario.** A Learner meets "A bank quotes one Mexican peso at $0.0625; the next desk reads it as 16 pesos to the dollar. What do traders call that?" They tap "the inverse quote", or tap "a devaluation" and see "A devaluation is a government cutting a fixed rate. Reading a quote the other way moves nothing." Code marks the tap, and no arithmetic is needed to tell the choices apart.
+
+**Trade-off.** A choice question is easier to guess than a typed number. Skill state still needs two right in a row and a Check still has its pass rule, so one lucky tap passes nothing, and the owner prefers the lingo to the arithmetic.
+
 ## Foundation Topics, story-first questions, batch D2a (`course/topics/`, spec 2026-11-05, ticket D2a)
 
 **What it does.** Twelve Topics (`num-statistics`, `num-econometrics`, `fs-filings`, `fs-earnings-quality`, `fs-tax`, `eco-supply-demand`, `eco-micro-competition`, `eco-money-banking`, `eco-central-banks`, `eco-inflation-real`, `eco-gdp-cycles`, `eco-fiscal-debt`) leave the L10 not-yet-story list. Stems and passCriteria that asked for a sum now ask what a word means, which headline gets it right, or what happened in the story. Each wrong choice of a rewritten question carries a one-line Known mistake fix. Five Topics also left the old typed-formula list in `formula-check.ts`.

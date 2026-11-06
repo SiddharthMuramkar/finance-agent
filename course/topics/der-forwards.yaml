@@ -65,15 +65,15 @@ youllLearn:
 questions:
   - id: fw-q-fair-forward
     prompt: >
-      A metal costs $100 today and has no storage cost or income. The interest rate is 5% a year. What is the fair price for a forward contract to buy it in one year?
+      A jeweller agrees today to buy a metal in a year's time. The metal costs $100 now, costs nothing to store, and her cash would earn 5% a year in the bank. The dealer quotes a forward price above $100 and she suspects a rip-off. Why is the higher price fair?
     choices:
-      - { id: a, text: "$105" }
-      - { id: b, text: "$100" }
-      - { id: c, text: "$95" }
-      - { id: d, text: "$110" }
+      - { id: a, text: "Your cash earns interest while you wait, so the price carries it (cost of carry)" }
+      - { id: b, text: "Traders expect the metal's price to rise by that much", mistake: { tag: forecast_not_carry, fix: "The forward price reflects interest on the cash, not a forecast of the spot price." } }
+      - { id: c, text: "The seller adds a profit margin on top", mistake: { tag: markup_not_carry, fix: "A fair price comes from interest, not a markup. A markup would be arbitraged away." } }
+      - { id: d, text: "A forward is always priced at today's spot price", mistake: { tag: forward_equals_spot, fix: "A forward at the spot price would let a trader borrow, buy and deliver for a sure profit." } }
     answer: a
     explanation: >
-      Buying forward leaves your $100 free to earn interest for a year, so the forward price must be the spot price grown at the interest rate: 100 x 1.05 = $105. A forward at $100 would let a trader borrow, buy the metal and deliver it at a sure profit.
+      Buying forward leaves your $100 free to earn interest for a year, so the forward price must be the spot price grown at the interest rate, so a little above $100. A forward at $100 would let a trader borrow, buy the metal and deliver it at a sure profit.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.2 Commodity Price Risk (forward and futures contracts): https://openstax.org/books/principles-finance/pages/20-2-commodity-price-risk ; cost-of-carry price calculated as F = S x (1 + r)^T
 
@@ -93,15 +93,15 @@ questions:
 
   - id: fw-q-mark-to-market
     prompt: >
-      A grain merchant is long 5,000 bushels of wheat futures. The futures price falls by $0.40 a bushel today. What happens at the end of the day?
+      Maya trades grain. This morning she signed up to buy 5,000 bushels of wheat later at a price fixed today (a futures contract), so she wins if wheat rises and loses if it falls. By afternoon the wheat price has dropped 40 cents a bushel. When the exchange closes tonight, what happens to Maya?
     choices:
-      - { id: a, text: "The merchant must pay $2,000 into the margin account" }
-      - { id: b, text: "Nothing is paid until the contract expires" }
-      - { id: c, text: "The merchant receives $2,000" }
-      - { id: d, text: "The exchange cancels the contract" }
-    answer: a
+      - { id: a, text: "Nothing is paid until the contract runs out", mistake: { tag: forward_not_futures, fix: "That describes a forward. Futures are marked to market and settled in cash every day." } }
+      - { id: b, text: "Maya receives cash for the fall", mistake: { tag: long_gains_on_a_fall, fix: "A long position loses when the price falls, so cash goes out, not in." } }
+      - { id: c, text: "Her loss is taken from her margin account in cash that day" }
+      - { id: d, text: "The exchange cancels her contract", mistake: { tag: cancel_on_loss, fix: "The exchange asks for more margin. It does not cancel a contract over a price move." } }
+    answer: c
     explanation: >
-      Futures are marked to market daily. A long position loses when the price falls: 5,000 x $0.40 = $2,000 is settled in cash that day (a variation margin payment). A forward contract would show the same paper loss but no cash call.
+      Futures are marked to market daily. A long position (Maya's promise to buy) loses when the price falls: the loss is settled in cash that day, taken from her margin account (a variation margin payment). A forward contract would show the same paper loss but no cash call.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.2 Commodity Price Risk (futures, margin and marking to market): https://openstax.org/books/principles-finance/pages/20-2-commodity-price-risk
 
