@@ -17,17 +17,18 @@ cases:
       It is February 2000. Amazon.com, the online retailer, trades on the Nasdaq at $84 a share.
       You will build your own discounted cash flow valuation from what was public then. Revenue
       for the twelve months to September 1999 was $1,117 million, with an operating loss of $410
-      million, a margin of about -36.7%. In 1998 revenue was $610 million and the operating loss
-      $125 million. The firm has $26 million of cash and $349 million of debt, about 341 million
+      million, a margin of about -36.7%. In 1998 revenue was $610 million and the loss from
+      operations $109 million (Amazon's 10-K405; the net loss was $125 million). The firm has $26 million of cash and $349 million of debt, about 341 million
       shares, and employees hold about 38 million options with an exercise price of $13.375. The
       Treasury bond yield is 6.5% and the marginal tax rate is 35%. Established specialty
       retailers earn an operating margin of about 10%. Amazon spends on warehouses and systems as
       it grows; assume it needs about $1 of new capital for every $3 of added revenue. Choose
       your own path for ten years: how fast revenue grows, when the margin turns positive and
       where it settles, what rate you discount at, and what stable growth rate you use after year
-      10. Then follow the cash the business would free up each year into a terminal value and a value per share, taking
-      cash, debt and the options into account. Write your inputs down before you build
-      anything. How does your value compare with $84, and which of your inputs moves it most?
+      10. Write your inputs down first, as a story in words. The dcf calculator does the sums: it
+      follows the cash the business would free up each year into a value per share, taking cash,
+      debt and the options into account, so no figure is done by hand. Which of your beliefs moves
+      the value most, and what would you have to believe for $84 to be a fair price?
       (You are valuing the firm as of February 2000 only. Do not try to say what happens next.)
     reveal: >
       Aswath Damodaran, a professor at New York University's Stern School of Business, valued
@@ -78,10 +79,10 @@ cases:
       10-year Treasury yield is 5.95% and the marginal tax rate is 35%. Choose your own path for ten
       years: how many centres open and when, how full each one gets and how fast, the average order,
       where the operating margin settles, the discount rate, and the stable growth rate after year 10.
-      Follow the cash the business would free up each year into a terminal value and a value per share, allowing for the cash,
-      debt and options. Write your inputs down before you build anything. How does your value compare
-      with $15, and which input moves it most? What would you have to believe for $15 to be a fair
-      price? (You are valuing the firm as of November 1999 only. Do not try to say what happens next.)
+      Write your inputs down first, as a story in words. The dcf calculator does the sums: it follows
+      the cash the business would free up each year into a value per share, allowing for the cash,
+      debt and options, so no figure is done by hand. Which of your beliefs moves the value most, and
+      what would you have to believe for $15 to be a fair price? (You are valuing the firm as of November 1999 only. Do not try to say what happens next.)
     reveal: >
       The prospectus carried one outside view: Goldman Sachs, the lead underwriter, had told prospective
       investors on a conference call that it projected revenue of $11.9 million and a net loss of $73.8
