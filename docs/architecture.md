@@ -1014,7 +1014,7 @@ part calls the tested `rateMoveLines` in the browser, so the words on screen are
 
 In **show** mode (the default) the recipe binds the part to two sliders, `$new` in view and `$old` under "More settings",
 so the arrow and the lines follow the Learner's play, with two Guided Tasks. In **practice** mode the recipe gives the
-part the two numbers and no sliders. The part asks "Which reading is right?" and offers three buttons, built by the
+part the two numbers and no sliders. The part asks "Which reading is right?" and offers three Chips (the shared `Chip`, Appendix B.7), built by the
 choice engine (`choicesFor`, ADR 0009) in `moveReadings`: the right reading ("Up 1 point, or 100 bps"), the times-10
 slip, a Known mistake `used_x10` ("Up 10 bps"), and the percent mix-up, `mixed_percent_points` ("Up 1%"). A fall says
 "Down 0.3 points, or 30 bps", "Down 3 bps", "Down 0.3%". Nothing is typed, and the same question always gives the
