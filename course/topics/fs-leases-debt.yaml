@@ -41,64 +41,152 @@ youllLearn:
   - "Value long leases and commitments in today's money."
   - "Compare how long a company must pay with how long its customers must stay."
 
+
+exampleCurrency: INR
+runningExample:
+  text: A cafe owner signs a ten-year lease on a shop at ₹50,000 a month.
+  numbers: [10, 50000]
+  scene:
+    cast:
+      - { id: kabir, emoji: cook, name: Kabir, role: opens a cafe }
+      - { id: owner, emoji: old-man, name: The landlord, role: owns the shop }
+    beats:
+      - { who: narrator, says: "Kabir signs a ten-year lease for his cafe, at ₹50,000 a month.", emoji: scroll }
+      - { who: owner, says: "The rent is due every month for ten years, whatever happens.", emoji: calendar }
+      - { who: kabir, says: "But my cafe's customers can drift away within a few months.", emoji: worried-face }
+      - { who: narrator, says: "The rent promise is long. The customers' promise is short." }
+    caption: A long promise to pay, a short promise to stay
+
+terms:
+  - term: lease liability
+    means: What a company owes for rent it has promised, counted at today's value.
+    pro: Under the leasing rules, most leases show up as a lease liability.
+    example: A gym contract with two years left, counted as what you still owe.
+    emoji: ledger
+    inStory: WeWork's balance sheet showed $17.9 billion of long-term lease obligations.
+  - term: commitments
+    means: Promises to pay in the future that the company has already signed.
+    pro: Analysts read the notes for commitments the balance sheet may not show.
+    example: A signed lease for a shop you will open next year.
+    emoji: memo
+    inStory: WeWork had signed leases worth billions that had not even started yet.
+  - term: off-balance-sheet
+    means: A real promise that the balance sheet itself does not yet show.
+    pro: Analysts hunt for off-balance-sheet items, because they can hide debt.
+    example: A friend's loan that never makes it into the notebook where you list your debts.
+    emoji: eyes
+    inStory: Signed leases that had not started were not yet on the balance sheet.
+  - term: debt-like
+    means: Not a loan, but a promise to pay fixed amounts whatever sales do.
+    pro: Treat leases as debt-like when sizing up a company's risk.
+    example: A fixed ₹20,000 monthly rent that is due even if the shop earns nothing.
+    emoji: chains
+    inStory: WeWork owed rent for years, whether or not its members stayed.
+  - term: landlord
+    means: The owner of a building who rents it out and is owed the rent.
+    pro: The landlord is the lessor; the tenant is the lessee.
+    example: The owner of your flat, to whom you pay rent each month.
+    emoji: key
+    inStory: WeWork was a tenant to its landlords and rented desks on to its members.
+
 questions:
   - id: ls-q-gap
     prompt: >
-      WeWork's S-1 showed $47.2 billion of undiscounted future lease payments but $17.9 billion of
-      long-term lease obligations on the balance sheet. What explains the gap?
+      14 August 2019. Asha reads WeWork's S-1 before deciding on its shares. One page lists $47.2 billion of future rent, yet the balance sheet shows $17.9 billion of lease obligations. What explains the gap?
     choices:
-      - { id: a, text: "Future payments are discounted to present value, and signed leases not yet started are not yet on the balance sheet" }
-      - { id: b, text: "WeWork had already paid most of the rent" }
-      - { id: c, text: "The balance sheet leaves out leases it does not own the buildings for" }
-      - { id: d, text: "The two figures cover different companies" }
+      - { id: a, text: "Later rent counts at today's value, and unstarted leases aren't there yet" }
+      - { id: b, text: "WeWork had already paid most of that rent", mistake: { tag: assumed_rent_was_paid, fix: "The $47.2 billion is rent still to be paid, not rent already paid." } }
+      - { id: c, text: "Leases on buildings WeWork doesn't own are left off", mistake: { tag: thought_leases_are_left_out, fix: "Under the current rules most leases are on the balance sheet, though the tenant owns no building." } }
+      - { id: d, text: "The two figures belong to different companies", mistake: { tag: thought_different_companies, fix: "Both figures are WeWork's, at the same date. They are measured in different ways." } }
     answer: a
     explanation: >
-      A liability is recorded at the present value of the payments, not their sum, and payments many years away are worth much less today at any positive discount rate. Of the $47.2 billion, about $13.1 billion was on signed leases that had not yet started, which are not on the balance sheet yet.
+      A lease liability is recorded at the present value of the rent, and rent due many years away is worth much less today. About $13.1 billion was on signed leases that had not yet started, which are not on the balance sheet yet.
     source: >
       CNBC, WeWork releases S-1 filing for IPO, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
 
   - id: ls-q-pv-rent
     prompt: >
-      A tenant must pay rent of 100 at the end of each of the next two years. At a discount rate of 10% a year, what is the present value of the two payments?
+      Kabir has just signed a ten-year lease for his cafe at ₹50,000 a month. Next week his banker asks how that promise shows in his books today. What does his accountant say?
     choices:
-      - { id: a, text: "173.55" }
-      - { id: b, text: "200.00" }
-      - { id: c, text: "190.91" }
-      - { id: d, text: "165.29" }
+      - { id: a, text: "Smaller than all the rent put together, as later rent is worth less today" }
+      - { id: b, text: "Exactly all ten years of rent put together", mistake: { tag: added_without_discounting, fix: "Counting later rent at full value overstates the liability. Money due later is worth less today." } }
+      - { id: c, text: "Bigger than all the rent, because rents tend to rise", mistake: { tag: reversed_the_discount, fix: "Discounting shrinks later payments. It never makes the liability bigger than the plain total." } }
+      - { id: d, text: "Nothing at all until the first rent falls due", mistake: { tag: waited_for_the_due_date, fix: "A signed lease is a liability from the start, not only when rent falls due." } }
     answer: a
     explanation: >
-      100 / 1.10 = 90.91 and 100 / 1.21 = 82.64, which add to 173.55. Adding the payments without discounting (200) overstates the liability.
+      A lease liability is the present value of the rent still owed. Rent due in the tenth year is worth much less today than next month's, so the liability is smaller than the plain total.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
   - id: ls-q-mismatch
     prompt: >
-      WeWork's leases with landlords averaged 15 years, while its members' contracts averaged about 15
-      months. What risk does that mismatch create in a downturn?
+      August 2019. Asha spots it in WeWork's S-1: its leases with US landlords average 15 years when signed, but members' contracts average about 15 months. If business turns bad, what should worry her?
     choices:
       - { id: a, text: "Members can leave within months while rent is owed for years" }
-      - { id: b, text: "Rent falls automatically when members leave" }
-      - { id: c, text: "WeWork cannot sublet space it leases" }
-      - { id: d, text: "No risk, because the two periods cancel out" }
+      - { id: b, text: "Rent falls on its own when members leave", mistake: { tag: assumed_rent_falls, fix: "The rent is fixed by the lease. It does not fall because members leave." } }
+      - { id: c, text: "WeWork is not allowed to sublet the space it leases", mistake: { tag: thought_subletting_is_banned, fix: "Subletting desks to members is WeWork's whole business." } }
+      - { id: d, text: "Nothing, because the two periods cancel out", mistake: { tag: thought_they_cancel, fix: "A long promise to pay set against a short promise to stay leaves the company exposed." } }
     answer: a
     explanation: >
-      The rent is a fixed commitment over the long lease term, while income depends on members who can go after a short period. A downturn cuts income quickly but not the rent.
+      The rent is a fixed promise over the long lease, while income depends on members who can go after a short stay. Bad times can cut income quickly, but not the rent.
     source: >
       Business Insider, WeWork's $47 billion, $4 billion lease disparity, 22 August 2019: https://www.businessinsider.com/wework-47-billion-and-4-billion-lease-disparity-dangerous-recipe-2019-8
 
   - id: ls-q-debt-like
     prompt: >
-      Which of these is closest to debt in its effect on a company that cannot pay?
+      Kabir wants a bank loan to open a second cafe. The banker asks him to list every promise that works like debt, or the loan is off. Which one must Kabir list?
     choices:
-      - { id: a, text: "A 15-year lease with fixed rent payments" }
-      - { id: b, text: "A signed customer order that can be cancelled at no cost" }
-      - { id: c, text: "A trademark the company owns" }
-      - { id: d, text: "Cash in the bank" }
+      - { id: a, text: "His ten-year shop lease with fixed monthly rent" }
+      - { id: b, text: "A catering order a customer can cancel for free", mistake: { tag: counted_a_cancellable_order, fix: "A cancellable order does not oblige Kabir to pay anyone." } }
+      - { id: c, text: "The cafe's name and logo, which he owns", mistake: { tag: counted_an_asset, fix: "Something Kabir owns is an asset, not a promise to pay." } }
+      - { id: d, text: "The cash in his cafe's bank account", mistake: { tag: counted_cash, fix: "Cash is money Kabir holds. Debt is money he must pay out." } }
     answer: a
     explanation: >
-      A lease is a contract to pay fixed amounts over years whatever the company earns, like loan repayments. Cancellable orders, owned assets and cash do not oblige the company to pay anyone.
+      A lease is a contract to pay fixed amounts for years, whatever the cafe earns, just like loan repayments. That is why analysts call it debt-like.
     source: >
       IFRS 16 Leases, summary of the lessee model (leases recognised as a liability for the present value of payments): https://www.ifrs.org/issued-standards/list-of-standards/ifrs-16-leases/
+
+  - id: ls-q-lingo-off-balance
+    prompt: >
+      August 2019. WeWork has signed leases, with $13.1 billion of rent to come, that start only later. Asha hears an analyst call them "off-balance-sheet". What does he mean?
+    choices:
+      - { id: a, text: "They are real promises the balance sheet does not show yet" }
+      - { id: b, text: "They are promises that were never really made", mistake: { tag: thought_it_was_fake, fix: "Off-balance-sheet promises are real. The balance sheet just does not show them yet." } }
+      - { id: c, text: "That rent has already been paid in full", mistake: { tag: thought_it_was_paid, fix: "Paid rent is gone. Off-balance-sheet promises are still to be paid." } }
+      - { id: d, text: "It is cash that WeWork keeps abroad", mistake: { tag: mixed_with_cash, fix: "This is about promises to pay, not about where cash is kept." } }
+    answer: a
+    explanation: >
+      Leases that are signed but have not yet started are real promises that are not yet on the balance sheet. WeWork had about $13.1 billion of them at 30 June 2019.
+    source: >
+      CNBC, WeWork releases S-1 filing for IPO, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+
+  - id: ls-q-lingo-landlord
+    prompt: >
+      At dinner in August 2019, Asha tells her father how WeWork works: it rents whole buildings and sublets desks to members. He asks, "So who is WeWork's landlord?" What should she say?
+    choices:
+      - { id: a, text: "The owner of the building that WeWork rents" }
+      - { id: b, text: "The members who rent its desks", mistake: { tag: swapped_the_roles, fix: "Members are WeWork's tenants. WeWork's own landlord is the building owner." } }
+      - { id: c, text: "The investors buying its shares", mistake: { tag: mixed_with_investors, fix: "Investors own shares. They are not owed rent." } }
+      - { id: d, text: "The auditor who checks its accounts", mistake: { tag: mixed_with_auditor, fix: "An auditor checks the accounts. A landlord owns the building and is owed rent." } }
+    answer: a
+    explanation: >
+      A landlord owns the building and is owed the rent. WeWork was a tenant to its landlords and a landlord to its members.
+    source: >
+      WeWork S-1 (14 August 2019): https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
+
+  - id: ls-q-lingo-lease-liability
+    prompt: >
+      Kabir's banker reads his cafe's books before approving a loan. She points to the line for the ten years of rent Kabir has promised. What do accountants call that line?
+    choices:
+      - { id: a, text: "A lease liability" }
+      - { id: b, text: "A right-of-use asset", mistake: { tag: named_the_asset_side, fix: "That is what Kabir gets to use. The promise to pay is the liability." } }
+      - { id: c, text: "Backlog", mistake: { tag: named_backlog, fix: "Backlog is business customers have promised Kabir, the opposite direction." } }
+      - { id: d, text: "Goodwill", mistake: { tag: named_goodwill, fix: "Goodwill comes from buying a business at a premium. It is not rent." } }
+    answer: a
+    explanation: >
+      Under IFRS 16 and ASC 842 a lease appears as a lease liability, the present value of the remaining rent, with a matching right-of-use asset for the shop Kabir gets to use.
+    source: >
+      IFRS 16 Leases, summary of the lessee model: https://www.ifrs.org/issued-standards/list-of-standards/ifrs-16-leases/
 
 checks:
   - id: ls-quiz-leases
@@ -108,20 +196,101 @@ checks:
       - ls-q-pv-rent
       - ls-q-mismatch
       - ls-q-debt-like
+      - ls-q-lingo-off-balance
+      - ls-q-lingo-landlord
+      - ls-q-lingo-lease-liability
     perAttempt: 3
     passRule:
       correct: 2
   - id: ls-lease-view
     kind: conversation
     prompt: >
-      On 14 August 2019 WeWork reports $17.9 billion of lease obligations, $47.2 billion of
-      undiscounted lease payments and $4 billion of committed member revenue. Explain how the first
-      two figures relate, and judge whether the leases should be treated like debt when sizing up
-      the company's risk.
+      14 August 2019. Asha's father is weighing WeWork's share sale and asks her for help. The S-1
+      shows $17.9 billion of lease obligations, $47.2 billion of undiscounted lease payments and
+      $4 billion of committed member revenue. In your own words, tell him why the first two
+      figures differ, and whether you would treat the leases like debt, and why.
     passCriteria: >
-      The Learner explains that $47.2 billion is the plain sum of future payments, and that the
+      The Learner explains that $47.2 billion is the plain total of future payments, and that the
       $17.9 billion on the balance sheet is smaller mainly because later payments are discounted
       (and because about $13.1 billion of signed leases had not yet started). They argue the leases are
       debt-like: fixed payments over about 15 years that must be met whatever revenue does, set
       against members who commit for about 15 months and a backlog of $4 billion that is small next
       to the $47.2 billion.
+
+scenes:
+  - id: lease-story
+    step: story
+    recipe: story_scene
+    title: The desk-renting company before its share sale
+    inputs:
+      cast:
+        - { id: wework, emoji: office-building, name: WeWork, role: rents buildings and sublets desks }
+        - { id: landlord, emoji: old-man, name: The landlord, role: owns a building }
+        - { id: member, emoji: woman, name: A member, role: rents a desk }
+      beats:
+        - { who: narrator, says: "14 August 2019. WeWork's share-sale papers show how it runs its business.", emoji: scroll }
+        - { who: landlord, says: "In the US, WeWork's first lease with us runs fifteen years on average.", emoji: key }
+        - { who: member, says: "I rent my desk for about fifteen months.", emoji: calendar }
+        - { who: wework, says: "We rent from landlords and sublet desks to members like her." }
+        - { who: narrator, says: "Signed lease payments: $47.2 billion. Members' signed revenue: about $4 billion." }
+      caption: Long rent promises, short member promises
+      date: "2019-08-14"
+  - id: rent-flow
+    step: concept
+    check: ls-quiz-leases
+    recipe: who_pays_whom
+    title: Who pays whom at WeWork
+    inputs:
+      actors:
+        - { id: member, emoji: woman, name: A member }
+        - { id: wework, emoji: office-building, name: WeWork }
+        - { id: landlord, emoji: old-man, name: The landlord }
+      flows:
+        - { from: member, to: wework, what: "desk fees, for months", emoji: coin }
+        - { from: wework, to: landlord, what: "rent, for years", emoji: money-bag }
+  - id: debt-myths
+    step: concept
+    check: ls-lease-view
+    recipe: myth_or_fact
+    title: Myth or fact, leases and debt
+    inputs:
+      cards:
+        - claim: A lease is a promise to pay, so it works like debt.
+          isFact: true
+          why: Fixed payments owed whatever sales do behave like loan repayments.
+          emoji: chains
+        - claim: Only bank loans count as debt.
+          isFact: false
+          why: Leases and other fixed promises to pay are debt-like too.
+          emoji: bank
+        - claim: A rent payment due in ten years counts the same as one due today.
+          isFact: false
+          why: Later money is worth less today, so a liability is counted at today's value.
+          emoji: hourglass-not-done
+  - id: lease-timeline
+    step: reveal
+    recipe: timeline
+    title: What came next for WeWork
+    inputs:
+      beats:
+        - { date: "2019-08-14", label: WeWork publishes its S-1, emoji: scroll }
+        - { date: "2019-09-30", label: WeWork files to withdraw its IPO, emoji: stop-sign }
+        - { date: "2023-11-06", label: WeWork files for Chapter 11 bankruptcy, emoji: no-entry }
+  - id: count-the-promises
+    step: principle
+    recipe: two_paths
+    title: Counting every promise to pay
+    inputs:
+      question: Two readers see the same balance sheet. Who spots the real weight of the rent?
+      left:
+        emoji: woman
+        name: Asha
+        choice: Read only the balance sheet figure
+        outcome: [warning, worried-face]
+        outcomeLine: She missed the promises not yet counted.
+      right:
+        emoji: man
+        name: Ravi
+        choice: Counted every fixed promise to pay
+        outcome: [magnifying-glass-tilted-left, check-mark-button]
+        outcomeLine: He saw how long the rent would outlast the members.

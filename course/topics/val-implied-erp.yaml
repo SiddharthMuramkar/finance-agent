@@ -67,57 +67,57 @@ youllLearn:
 questions:
   - id: ie-q-implied-return
     prompt: >
-      A stock index stands at 1,000. Its companies are expected to pay 20 in dividends next year, and those dividends are expected to grow 5 percent a year for ever. What two things make up the return that the index price implies?
+      31 December 2007: Meera puts her first bonus into an S&P 500 fund. Her flatmate Kabir laughs: "The bank pays interest. What do shares pay you?" Its companies pay out cash, growing about 5 percent a year. Her best comeback?
     choices:
-      - { id: a, text: "The dividend yield plus the expected growth" }
-      - { id: b, text: "The expected growth minus the dividend yield", mistake: { tag: subtracted_yield, fix: "Both are rewards to the holder, so they add. Neither is taken off." } }
-      - { id: c, text: "The dividend yield alone", mistake: { tag: ignored_growth, fix: "Dividends are only part of the reward. Expected growth in them adds to it." } }
-      - { id: d, text: "The riskfree rate plus the expected growth", mistake: { tag: mixed_in_riskfree, fix: "The riskfree rate is taken off later, to leave the premium. It is not part of this return." } }
+      - { id: a, text: "\"I get the cash they pay out, and that cash keeps growing\"" }
+      - { id: b, text: "\"I get the payout growth, minus the cash they hand out\"", mistake: { tag: subtracted_yield, fix: "Payouts and their growth are both Meera's reward, so they add. Neither is taken off." } }
+      - { id: c, text: "\"I get this year's payout, and nothing more\"", mistake: { tag: ignored_growth, fix: "This year's payout is only part of her reward. Its expected growth adds to it." } }
+      - { id: d, text: "\"I get the Treasury rate, plus the payout growth\"", mistake: { tag: mixed_in_riskfree, fix: "The Treasury rate is what a safe bond pays, not what her fund pays her." } }
     answer: a
     explanation: >
-      With steady growth, the return the price implies is the dividend yield plus the growth. The yield is 20 on 1,000, which is 2 percent, and growth adds 5 percent, so the index price implies a return of 7 percent.
+      When payouts grow steadily, the return a price promises is the payout yield plus the growth in payouts. Damodaran reads the S&P 500 this way, using dividends and buybacks and a growth rate of about 5 percent.
     source: >
       Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library), the implied equity risk premium: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
   - id: ie-q-implied-erp
     prompt: >
-      The index price implies an expected return of 7 percent, and the riskfree rate is 4 percent. Which description fits the implied equity risk premium?
+      31 December 2007: Meera's first valuation goes to her boss after New Year. It uses Damodaran's implied premium for the start of 2008, 4.37 percent. Her boss asks, "Premium over what?" Which answer saves her?
     choices:
-      - { id: a, text: "The return the price implies, less the riskfree rate: the extra reward for holding stocks" }
-      - { id: b, text: "The return the price implies, plus the riskfree rate", mistake: { tag: added_riskfree, fix: "A premium is extra over riskless, so the riskfree rate comes off, not on." } }
-      - { id: c, text: "The average return stocks earned in the past", mistake: { tag: historical_premium, fix: "That is a historical premium. An implied one is read from today's price." } }
-      - { id: d, text: "The riskfree rate itself", mistake: { tag: premium_is_riskfree, fix: "The riskfree rate is what a safe bond pays. The premium is the extra on top." } }
+      - { id: a, text: "\"Over Treasuries: the extra return today's stock prices promise\"" }
+      - { id: b, text: "\"Over nothing: it is stock return plus the 4.02 percent Treasury rate\"", mistake: { tag: added_riskfree, fix: "A premium is the extra over a safe bond, so the Treasury rate comes off, not on." } }
+      - { id: c, text: "\"Over the past: the extra stocks earned in past decades\"", mistake: { tag: historical_premium, fix: "That is a historical premium. Damodaran's implied one is read from today's price." } }
+      - { id: d, text: "\"It is no extra: it is what a safe Treasury pays\"", mistake: { tag: premium_is_riskfree, fix: "That is the riskfree rate. The premium is the extra stocks promise on top of it." } }
     answer: a
     explanation: >
-      Implied equity risk premium = the return the price implies less the riskfree rate. With 7 percent implied and 4 percent riskfree, that extra reward is 3 percent.
+      The implied equity risk premium is the return today's index price promises on stocks, less the riskfree Treasury rate of 4.02 percent: the extra reward for taking stock-market risk. Because it is read from today's price, it moves when prices move. Damodaran's figure for the start of 2008 was 4.37 percent, up from 4.16 percent a year earlier.
     source: >
-      Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
+      Damodaran, Historical Implied Equity Risk Premiums (NYU Stern): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html ; Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
   - id: ie-q-higher-price
     prompt: >
-      Suppose instead the index stood higher, at 1,250, with the same expected dividends of 20, the same growth and the same 4 percent riskfree rate. What happens to the implied equity risk premium?
+      On 31 December 2007 the S&P 500 closes at 1,468.36. At dinner Meera's uncle asks, "What if it had closed much higher, with the same payouts expected?" Which headline gets the implied premium right?
     choices:
-      - { id: a, text: "It falls, because a higher price for the same cash flows means investors accept a lower return" }
-      - { id: b, text: "It rises, because stocks are now more expensive", mistake: { tag: price_up_premium_up, fix: "A higher price means a lower promised return, so the premium shrinks." } }
-      - { id: c, text: "It stays the same, since the dividends did not change", mistake: { tag: ignored_price, fix: "The price moved, and the implied return is read from the price." } }
-      - { id: d, text: "It cannot be read any more", mistake: { tag: gave_up, fix: "It can. Put the new price into the same reading." } }
+      - { id: a, text: "'Premium shrinks: buyers pay more for the same cash'" }
+      - { id: b, text: "'Premium jumps: pricier stocks must pay more'", mistake: { tag: price_up_premium_up, fix: "A higher price for the same cash means a lower promised return, so the premium shrinks." } }
+      - { id: c, text: "'Premium unchanged: the payouts did not move'", mistake: { tag: ignored_price, fix: "The payouts held, but the price moved, and the premium is read from the price." } }
+      - { id: d, text: "'Premium can no longer be read'", mistake: { tag: gave_up, fix: "It can. Damodaran reads it the same way at any price." } }
     answer: a
     explanation: >
-      A dividend of 20 on 1,250 is a yield of 1.6 percent, down from 2 percent. The implied return falls to 6.6 percent, so the premium falls to 2.6 percent. A higher price for the same expected cash flows means investors accept a lower return.
+      The implied premium is read from the price. Paying more for the same expected cash means accepting a lower return, so the premium falls. When payouts hold steady, the index and the implied premium move in opposite directions.
     source: >
       Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
   - id: ie-q-growth
     prompt: >
-      Keep the index at 1,000, dividends next year at 20 and the riskfree rate at 4 percent, but suppose investors now expect growth of 6 percent a year instead of 5. To justify the same price, what must happen to the premium?
+      31 December 2007: Meera and her colleague Arjun bet lunch on whose implied premium comes out bigger. Same index, 1,468.36. She takes Damodaran's 5 percent payout growth; Arjun insists on 6. Who wins lunch?
     choices:
-      - { id: a, text: "It rises: with faster growth assumed, the same price implies a higher return" }
-      - { id: b, text: "It falls, because faster growth makes stocks safer", mistake: { tag: growth_means_safer, fix: "Growth is an expected payout, not safety. At the same price it pushes the implied return up." } }
-      - { id: c, text: "It stays the same, because the price did not move", mistake: { tag: ignored_growth_change, fix: "The price is the same but the growth assumed is bigger, so the implied return rises." } }
-      - { id: d, text: "It turns negative", mistake: { tag: negative_premium, fix: "A bigger growth number lifts the implied return and the premium, not the reverse." } }
+      - { id: a, text: "Arjun: more growth at the same price promises a higher return" }
+      - { id: b, text: "Meera: faster growth makes stocks safer, so less premium is needed", mistake: { tag: growth_means_safer, fix: "Growth is extra expected cash, not safety. At the same price it lifts the promised return." } }
+      - { id: c, text: "Nobody: the price did not move, so the premiums match", mistake: { tag: ignored_growth_change, fix: "The price held, but more growth is assumed, so the promised return and the premium rise." } }
+      - { id: d, text: "Meera, because she uses Damodaran's own growth figure", mistake: { tag: trusted_the_name, fix: "A famous name does not change the reading. More assumed growth lifts the premium." } }
     answer: a
     explanation: >
-      The implied return is the 2 percent yield plus 6 percent growth, or 8 percent, so the premium is 4 percent instead of 3. To justify the same price with faster expected growth, investors must demand a higher return. The implied premium is only as good as the growth assumption.
+      At the same price, assuming faster growth means the index promises more future cash, so the implied return and the premium come out higher. The implied premium is only as good as the growth you assume, so check how much it moves when growth changes.
     source: >
       Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
