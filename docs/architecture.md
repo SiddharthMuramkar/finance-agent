@@ -4622,6 +4622,14 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Trade-off.** A choice question is easier to guess than a typed number. Skill state still needs two right in a row and a Check still has its pass rule, so one lucky tap passes nothing, and the owner prefers the lingo to the arithmetic.
 
+## Foundation Topics, story-first questions, batch D2a (`course/topics/`, spec 2026-11-05, ticket D2a)
+
+**What it does.** Twelve Topics (`num-statistics`, `num-econometrics`, `fs-filings`, `fs-earnings-quality`, `fs-tax`, `eco-supply-demand`, `eco-micro-competition`, `eco-money-banking`, `eco-central-banks`, `eco-inflation-real`, `eco-gdp-cycles`, `eco-fiscal-debt`) leave the L10 not-yet-story list. Stems and passCriteria that asked for a sum now ask what a word means, which headline gets it right, or what happened in the story. Each wrong choice of a rewritten question carries a one-line Known mistake fix. Five Topics also left the old typed-formula list in `formula-check.ts`.
+
+**Scenario.** Eco-inflation-real used to ask "What is the real interest rate?" for 8% against 10% prices. It now asks how to describe the saver's real return, and a tap on "Positive" shows "Prices rose by more than the interest, so buying power falls."
+
+**Trade-off.** Choices are easier to guess than typed numbers, so a Check still needs its pass rule. The arithmetic stays in the explanation as a story fact, not as the ask.
+
 ## Design primitives (`src/app/primitives/`, `src/app/globals.css` (`.btn`, `.chip`, `.link`, `.tag`), `eslint.config.mjs`, spec 2026-11-05, ticket A3a)
 
 **What it does.** One module holds the app's pressable and label pieces: `Button` (primary, secondary, danger; medium or small; `loading`; `ButtonLink` for a link that looks like one), `IconButton` (round, always named by its `label`), `Chip` (a small round choice or filter), `TextLink` (underlined), `Tag` and `Pill` (flat status words) and `MenuItem`. Each renders `data-affordance` = `button | icon | chip | link | nav | tag`, so a test can ask the page what every control claims to be. The look is in `globals.css` under `@layer components` and uses only tokens: a raised face with a darker lip and a soft shadow that sinks 2px when pressed; chips are fully round with a 2px lip; links are underlined; tags are flat, 6px square-ish, with a dot, no shadow and no pointer. `ui.tsx` re-exports the old names so imports did not change. There is no Ghost button any more: Save to notes, Undo and the pager's "All" are small secondary buttons. A lint rule (`no-restricted-syntax` in `eslint.config.mjs`) rejects a raw `<button>` or `role="button"` outside the primitives, except the files on `RAW_BUTTON_ALLOWLIST`, which a test pins so it can only shrink.
@@ -4647,3 +4655,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** The Tutor is on the 1994 bond sell-off. It opens a `StoryScene` where the central bank says "We are raising the rate, a little" and Asha says "My old bonds just got less attractive!", then a `LingoCard` for "Yield" whose flip side says "In the story, bond prices fell, so the yield rose". Nothing asks the Learner for a number.
 
 **Trade-off.** The Tutor has more parts to choose from, which makes the frozen catalogue longer and the Tutor's choice a little harder. In return a Learner who does not like numbers gets something to look at and tap. Frozen Sessions keep the catalogue they started with (ADR 0005), so older Sessions never see these parts.
+
+## The Course Map shows progress (`src/app/course/course-map-view.tsx`, `src/course/progress-summary.ts`, `next.config.ts` (`redirects`), spec 2026-11-05, ticket B1)
+
+**What it does.** Progress and the Course Map are one page. The Course Map has an `h1`, "Course Map", and under it a summary line built by the pure function `progressSummary(topics, next)`: `2 in progress · 3 passed · 5 to go · Next: Bond prices` (Next is What comes next's Topic, left out when nothing comes next; "0 passed" is kept). Each Topic is a card in a `card-grid` per Subject, so a 14-inch screen shows four across. A card shows the Topic's status as a static Tag (Not started, In progress, Passed), the Checks passed as "2 of 3" and a small segmented bar with one segment per Check (passed segments `--mint`, others `--hairline`). A group header shows "n of m passed". The whole card is still one link: a passed card opens its Session read-only, any other card chooses the Topic. The Progress page, its loading skeleton and `ProgressView` are gone; `next.config.ts` redirects `/progress` to `/course` with a permanent redirect (Next answers 308), so old bookmarks keep working. The header's Progress link goes in ticket A5, and until then it follows the redirect.
+
+**Scenario.** The Learner opens the Course Map and sees "3 of 7" under Bond prices, with three filled segments, without opening another page. An old bookmark to `/progress` lands on the same map.
+
+**Trade-off.** One page holds both the choosing and the progress, so it is longer than either was. Collapsible Subject groups (open only where the Learner's place is) keep it short, at the price of one click to see a closed Subject's cards.

@@ -58,21 +58,17 @@ youllLearn:
 questions:
   - id: gdp-q-components
     prompt: >
-      An economy has consumption of Rs 60 lakh crore, investment of Rs 20 lakh crore, government spending of
-      Rs 15 lakh crore, exports of Rs 10 lakh crore and imports of Rs 5 lakh crore. What is GDP by the
-      spending approach?
+      A reporter asks an economist how a whole country's output gets counted. She says: "Follow the money people spend." Households, firms, the government and foreign buyers all spend, and some of what is bought comes from abroad. Which description of that spending approach is right?
     choices:
-      - { id: a, text: "Rs 100 lakh crore" }
-      - { id: b, text: "Rs 110 lakh crore" }
-      - { id: c, text: "Rs 105 lakh crore" }
-      - { id: d, text: "Rs 95 lakh crore" }
+      - { id: a, text: "Consumption, investment and government spending, plus exports, minus imports" }
+      - { id: b, text: "Consumption, investment and government spending, plus exports and imports", mistake: { tag: added_imports, fix: "Imports are spending on goods made abroad, so they are taken away." } }
+      - { id: c, text: "Only what households spend and firms invest", mistake: { tag: left_out_government_and_trade, fix: "Government spending and net exports are part of the total too." } }
+      - { id: d, text: "Wages, rent, interest and profit added together", mistake: { tag: used_income_approach, fix: "That is the income approach; the spending approach adds up what is bought." } }
     answer: a
     explanation: >
-      GDP = C + I + G + (X - M) = 60 + 20 + 15 + (10 - 5) = 100. Adding imports instead of subtracting
-      them would give 110.
+      GDP by spending is C + I + G + (X - M): what households, firms and government buy, plus what foreigners buy from us, less what we buy from abroad. Imports come out because they are not made at home.
     source: >
       OpenStax, Principles of Macroeconomics 2e (CC BY 4.0), 6.1 Measuring the Size of the Economy: Gross Domestic Product: https://openstax.org/books/principles-macroeconomics-2e/pages/6-1-measuring-the-size-of-the-economy-gross-domestic-product
-
   - id: gdp-q-recession
     prompt: >
       Historically, how was a recession defined in the United States?
@@ -102,8 +98,8 @@ checks:
   - id: eco-gdp-growth-financing
     kind: conversation
     prompt: >
-      India grew faster in the late 1980s than before. Using the figures from the Case, judge whether that
-      growth looks sustainable, and explain what could go wrong even while GDP is rising.
+      India grew faster in the late 1980s than before. Picture yourself as a finance minister reading the
+      Case: does that growth look sustainable, and explain what could go wrong even while GDP is rising.
     passCriteria: >
       The Learner explains that growth was financed by large fiscal deficits (around 8 to 9 per cent of GDP),
       partly funded by the central bank, and by external borrowing, so imports and the current account deficit
