@@ -80,9 +80,9 @@ questions:
       A risk model fitted to years of calm daily returns says a one-day fall of more than 10% in a stock index is practically impossible. Then such a fall happens. What does that show?
     choices:
       - { id: a, text: "A model fitted to calm periods can badly understate extreme moves" }
-      - { id: b, text: "The mean of daily returns was wrong" }
-      - { id: c, text: "Standard deviation cannot be calculated for stock returns" }
-      - { id: d, text: "The crash was impossible and the data must be wrong" }
+      - { id: b, text: "The mean of daily returns was wrong", mistake: { tag: blamed_the_mean, fix: "The average can be right while the model still badly underrates rare, extreme days." } }
+      - { id: c, text: "Standard deviation cannot be calculated for stock returns", mistake: { tag: denied_the_measure, fix: "It can be measured; the trouble is assuming calm-period spread describes crash days." } }
+      - { id: d, text: "The crash was impossible and the data must be wrong", mistake: { tag: trusted_model_over_data, fix: "When reality beats the model, the model is wrong; the crash really happened." } }
     answer: a
     explanation: >
       Extreme moves are far more common than a normal distribution fitted to ordinary days implies. A statistic is only as good as the sample and the shape assumed for it.
