@@ -16,8 +16,10 @@ import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
 import { ensureTopicStarted, loadProgress, openCurrentTopic, saveCheckResult, saveJump } from "@/learner/memory";
+import { saveOwnRule } from "@/learner/own-rule";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
+import { saveToNotes } from "@/learner/saved";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { enterStepItems } from "@/tutor/practice";
 import { sessionForTurn } from "@/tutor/session-log";
@@ -154,6 +156,25 @@ const STATES: Record<string, Build> = {
       { sessionId: older.id, seq: 0, role: "user", content: [{ type: "text", text: `Topic: ${title} (Foundation Stage).\nTeaching Step: concept` }, { type: "text", text: "Explain it." }], createdAt: at },
       { sessionId: older.id, seq: 1, role: "assistant", content: [{ type: "text", text: "Here is the idea." }], createdAt: at },
     ]);
+  },
+  /**
+   * Restart (B3b): Percent passed with one message, a saved reply, an Own rule and a due Review card; the next Topic in
+   * progress with a live Session. The two Topics a Learner starts over from the Topic bar and from Settings.
+   */
+  "restart-topics": async (db, map, learnerId, now) => {
+    await STATES["review-due"](db, map, learnerId, now);
+    const session = await sessionForTurn(db, now, learnerId, TOPIC);
+    await turn(db, map, learnerId, "plain-reply", "Tell me more.");
+    const saved = await saveToNotes(db, map, { kind: "reply", sessionId: session.id, turnSeq: 0 }, now, learnerId);
+    if (!saved.ok) throw new Error(`The test bed could not save a reply: ${JSON.stringify(saved)}`);
+    await saveOwnRule(db, { learnerId, topicId: TOPIC, sessionId: session.id, turnSeq: 0, text: "A point is not a percent.", skillId: null }, now);
+    await walk(db, map, learnerId, now, TOPIC, () => false);
+    const next = map.topics.map((t) => t.id).find((id) => id !== TOPIC);
+    if (!next) throw new Error("The Course Map has a single Topic.");
+    await saveJump(db, map, next, now, learnerId);
+    await ensureTopicStarted(db, map, now, learnerId);
+    await sessionForTurn(db, now, learnerId, next);
+    await openCurrentTopic(db, learnerId);
   },
 };
 

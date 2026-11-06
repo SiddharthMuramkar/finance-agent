@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { PastSessionHeader } from "@/tutor/past-sessions";
-import { Eyebrow, PrimaryButton, Pill, TextLink } from "./ui";
+import { Eyebrow, LinkButton, PrimaryButton, Pill, TextLink } from "./ui";
 
 /**
  * The header above one Session's page (spec #119, reshaped by 2026-11-05 B2a: the list is the Notebook now). Plain
@@ -14,6 +14,11 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 export function shortDate(d: Date): string {
   const parts = Object.fromEntries(dateFormat.formatToParts(d).map((p) => [p.type, p.value]));
   return `${Number(parts.day)} ${MONTHS[Number(parts.month) - 1]} ${parts.year}`;
+}
+
+/** "4 Nov": the day and month, for a row that sits under a Topic (the year is in the Session's own page). */
+export function dayMonth(d: Date): string {
+  return shortDate(d).replace(/ \d{4}$/, "");
 }
 
 function TopicPills({ topics }: { topics: string[] }) {
@@ -45,7 +50,7 @@ function Header({ back, children }: { back: string; children: ReactNode }) {
 
 /**
  * The top of one Session's page: a back link to the Notebook, then for a Topic Session its Topic, the date
- * last worked on and Resume this Topic (Passed ✓ once passed); for an Older session its date, the Topics it
+ * last worked on and Resume this Topic (Passed ✓ once passed); for an Earlier attempt (a Topic started over) its date, "read-only" and Go to the current attempt; for an Older session its date, the Topics it
  * touched (or No Topic) and "Older session · read-only", with no Resume.
  */
 export function PastSessionHeaderView({ header }: { header: PastSessionHeader }) {
@@ -55,6 +60,18 @@ export function PastSessionHeaderView({ header }: { header: PastSessionHeader })
         <Eyebrow>Older session · read-only</Eyebrow>
         <h1 className="text-lg font-semibold leading-[26px] text-[var(--ink)]">{shortDate(header.date)}</h1>
         <TopicPills topics={header.topics} />
+      </Header>
+    );
+  }
+  if (header.kind === "earlier") {
+    return (
+      <Header back={`/notebook#note-${header.topicId}`}>
+        <Eyebrow>Earlier attempt · {shortDate(header.date)} · read-only</Eyebrow>
+        <h1 className="text-lg font-semibold leading-[26px] text-[var(--ink)]">{header.title}</h1>
+        <form method="post" action="/api/open" className="self-start text-sm leading-5">
+          <input type="hidden" name="topic" value={header.topicId} />
+          <LinkButton type="submit">Go to the current attempt</LinkButton>
+        </form>
       </Header>
     );
   }
