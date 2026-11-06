@@ -52,7 +52,9 @@ describe("the Tutor's frozen instructions", () => {
 
       // Run 3 (critic BP-4): T13 held back the answer with "a nudge rather than the answer" and asked "bigger or smaller" again and again.
       it("keep an answer back playfully, and never ask the same question twice in a Session (T13)", () => {
-        expect(text).toContain("one light, playful line that keeps the answer back as the Learner's to win");
+        expect(text).toContain("one light, playful line of five words or fewer that keeps the answer back as the Learner's to win");
+        // Run 5: T11 failed 0 of 3, each reply 2 to 5 words over its cap, after a longer hold-back line.
+        expect(text).toContain("A good reply:\nThat one's yours to win. Basis points are points times 100.");
         expect(text).toContain("Never put the same question to the Learner twice in a Session");
         // Run 4: a new ask turned into "how many basis points is that?", a sum.
         expect(text).toContain('never a conversion ("how many basis points is that?" is a sum)');

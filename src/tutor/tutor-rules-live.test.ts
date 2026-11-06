@@ -56,7 +56,7 @@ describe("the rules tuned against the live tests", () => {
 
       it("asked for the answer to one open question, the Tutor teaches only the idea that question tests", () => {
         expect(text).toContain(
-          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): one light, playful line that keeps the answer back as the Learner's to win (never \"a nudge rather than the answer\"), the rule and one worked example on other numbers in two short sentences, with no definitions (its terms are taught), then one ask on that idea, in 50 words or fewer in all.",
+          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): one light, playful line of five words or fewer that keeps the answer back as the Learner's to win (\"That one's yours to win.\"; never \"a nudge rather than the answer\"), the rule and one worked example on other numbers in two short sentences, with no definitions (its terms are taught), then one ask on that idea, in 50 words or fewer in all.",
         );
       });
     });
