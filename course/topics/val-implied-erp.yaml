@@ -81,15 +81,15 @@ questions:
 
   - id: ie-q-implied-erp
     prompt: >
-      Meera's boss spots a line in Damodaran's notes: the implied equity risk premium for the start of 2008 is 4.37 percent, with Treasuries paying 4.02 percent. What does that phrase mean here?
+      31 December 2007: Meera's first valuation goes to her boss after New Year. She uses Damodaran's implied premium for the start of 2008, 4.37 percent, and her boss asks what it is. Which one-liner wins his sign-off?
     choices:
-      - { id: a, text: "The extra return stocks promise over a safe Treasury bond" }
-      - { id: b, text: "The stock return and the Treasury rate, added together", mistake: { tag: added_riskfree, fix: "A premium is the extra over a safe bond, so the Treasury rate comes off, not on." } }
-      - { id: c, text: "The average return stocks earned in past decades", mistake: { tag: historical_premium, fix: "That is a historical premium. Damodaran's implied one is read from today's price." } }
-      - { id: d, text: "What a Treasury bond pays", mistake: { tag: premium_is_riskfree, fix: "That is the riskfree rate. The premium is the extra stocks promise on top of it." } }
+      - { id: a, text: "The extra return today's prices promise on stocks over Treasuries" }
+      - { id: b, text: "The stock return and the 4.02 percent Treasury rate, added together", mistake: { tag: added_riskfree, fix: "A premium is the extra over a safe bond, so the Treasury rate comes off, not on." } }
+      - { id: c, text: "The average extra return stocks earned in past decades", mistake: { tag: historical_premium, fix: "That is a historical premium. Damodaran's implied one is read from today's price." } }
+      - { id: d, text: "What a safe Treasury bond pays for a year", mistake: { tag: premium_is_riskfree, fix: "That is the riskfree rate. The premium is the extra stocks promise on top of it." } }
     answer: a
     explanation: >
-      The implied equity risk premium is the return today's index price promises on stocks, less the riskfree Treasury rate: the extra reward for taking stock-market risk. Damodaran's figure for the start of 2008 was 4.37 percent, up from 4.16 percent a year earlier.
+      The implied equity risk premium is the return today's index price promises on stocks, less the riskfree Treasury rate of 4.02 percent: the extra reward for taking stock-market risk. Because it is read from today's price, it moves when prices move. Damodaran's figure for the start of 2008 was 4.37 percent, up from 4.16 percent a year earlier.
     source: >
       Damodaran, Historical Implied Equity Risk Premiums (NYU Stern): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html ; Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 

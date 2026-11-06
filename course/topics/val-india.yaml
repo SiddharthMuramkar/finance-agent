@@ -116,15 +116,15 @@ questions:
 
   - id: vi-q-crp-method
     prompt: >
-      October 2015: Moody's rates India Baa3. Priya, at the Mumbai fund, takes that rating's default spread. Indian shares swing more than India's bonds. How does she make it a country risk premium?
+      22 October 2015: Priya's Mumbai fund decides this week on Coffee Day shares. Go too light on India's risk and it overpays. Her clue: the extra yield lenders charge Baa3-rated India. Which would you pick?
     choices:
-      - { id: a, text: "Use it as it is, since it already measures country risk", mistake: { tag: unscaled_spread, fix: "Shares swing more than bonds, so the bond spread is scaled up for them." } }
-      - { id: b, text: "Scale it down, because shares are safer than bonds", mistake: { tag: scaled_down, fix: "Shares are riskier than government bonds, so the spread is scaled up, not down." } }
-      - { id: c, text: "Scale it up, because shares swing more than bonds" }
-      - { id: d, text: "Add India's past stock market returns to it", mistake: { tag: added_history, fix: "No history is added. The spread is only scaled by how much more shares swing." } }
+      - { id: a, text: "Use that extra yield as it is: bonds already show India's risk", mistake: { tag: unscaled_spread, fix: "Shares swing more than India's bonds, so the bond spread is scaled up for them." } }
+      - { id: b, text: "Shrink it, because shares are safer than government bonds", mistake: { tag: scaled_down, fix: "Shares are riskier than government bonds, so the spread is scaled up, not down." } }
+      - { id: c, text: "Scale it up, because Indian shares swing more than India's bonds" }
+      - { id: d, text: "Drop it: Coffee Day's rupee earnings escape country risk", mistake: { tag: skipped_country_risk, fix: "All its earnings are in India, so India's risk hits it fully. Dropping it means overpaying." } }
     answer: c
     explanation: >
-      In the scaled default spread method, the default spread for the country's rating is scaled up by how much more volatile its shares are than its government bonds. Shares swing more, so their country risk premium is bigger than the bond spread.
+      The extra yield lenders charge a government with India's Baa3 rating is its default spread. In the scaled default spread method it is scaled up by how much more volatile the country's shares are than its bonds, giving the country risk premium. Leaving it unscaled, or out, makes Coffee Day look safer than it is, so the fund would overpay.
     source: >
       Damodaran, Country Risk (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
