@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { applyTheme, isTheme } from "../../theme";
 import { WidgetView } from "../../widget-view";
@@ -47,10 +47,13 @@ export function SceneList({
   terms: ScenePiece[];
   running: ScenePiece | null;
 }) {
-  // Widgets draw only after mount: their parts read matchMedia on first render, so a server draw would
+  // Widgets draw only on the client: their parts read matchMedia on first render, so a server draw would
   // hydrate against a different reduced-motion answer and log a mismatch instead of drawing the scene.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   useEffect(() => {
     const before = document.documentElement.dataset.theme;
     applyTheme(theme);
