@@ -67,6 +67,52 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /** E5's stage scripts: Concept replies like concept-reply-widget, each showing a differently titled Widget, so a Session collects one filmstrip thumbnail per reply. */
+  "stage-reply-2": {
+    step: "concept",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_stage2", name: "show_widget", input: { recipe: "rate_move", params: { title: "A deposit rate from 6% to 6.5%", inputs: { old: 6, new: 6.5, mode: "show" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Here is the same move on a deposit rate. It climbs from 6% to 6.5%: half a percentage point, which traders call 50 basis points. " +
+              "The panel draws the move on one line, so the two names sit side by side.\n\n" +
+              "Which name makes the move sound bigger?",
+          ),
+        ],
+      },
+    ],
+  },
+  "stage-reply-3": {
+    step: "concept",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_stage3", name: "show_widget", input: { recipe: "rate_move", params: { title: "A loan rate from 9% to 8.75%", inputs: { old: 9, new: 8.75, mode: "show" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Now a move the other way. A loan rate falls from 9% to 8.75%: a quarter of a point down, or 25 basis points in trader talk. " +
+              "The arrow on the panel points down this time.\n\n" +
+              "Which word would a bank use in a headline?",
+          ),
+        ],
+      },
+    ],
+  },
+  "stage-reply-4": {
+    step: "concept",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_stage4", name: "show_widget", input: { recipe: "rate_move", params: { title: "A bond yield from 7% to 7.1%", inputs: { old: 7, new: 7.1, mode: "show" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "One more, smaller still. A bond yield edges from 7% to 7.1%: a tenth of a point, just 10 basis points. " +
+              "Small moves like this are exactly why the smaller unit exists.\n\n" +
+              "Which unit would you reach for here?",
+          ),
+        ],
+      },
+    ],
+  },
   /** A reply beside an open quiz: it quotes none of the quiz's numbers (it has no numbers at all). */
   "quiz-open": {
     step: "check",
@@ -107,6 +153,24 @@ export function draftOf(name: E2eScriptName): ReplyDraft {
 
 declare global {
   var __faE2eScript: E2eScriptName | undefined;
+  var __faE2eTurnCount: number | undefined;
+}
+
+/**
+ * A fresh copy of a script's replies for one Tutor Turn, with every tool_use id made unique to this play:
+ * tool calls are recorded once per tool-call id across the whole database (`once` in src/tutor/tools.ts), so
+ * replaying a script's fixed ids in a later Session would store no second Widget.
+ */
+export function freshScriptReplies(name: E2eScriptName): ScriptedReply[] {
+  const play = (globalThis.__faE2eTurnCount = (globalThis.__faE2eTurnCount ?? 0) + 1);
+  const replies = structuredClone(E2E_SCRIPTS[name].replies) as ScriptedReply[];
+  for (const reply of replies) {
+    if (!("content" in reply)) continue;
+    for (const block of reply.content) {
+      if (block.type === "tool_use" && typeof block.id === "string") block.id = `${block.id}-p${play}`;
+    }
+  }
+  return replies;
 }
 
 /** Chooses the script the next Tutor Turns play. */
@@ -123,7 +187,7 @@ export function e2eTutorClient(): TutorClient {
   return {
     beta: {
       messages: {
-        toolRunner: (params, options) => scriptedClient(structuredClone(E2E_SCRIPTS[currentE2eScript()].replies) as ScriptedReply[]).client.beta.messages.toolRunner(params, options),
+        toolRunner: (params, options) => scriptedClient(freshScriptReplies(currentE2eScript())).client.beta.messages.toolRunner(params, options),
       },
     },
   };

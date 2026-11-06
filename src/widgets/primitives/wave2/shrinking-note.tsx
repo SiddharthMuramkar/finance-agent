@@ -33,8 +33,8 @@ export function ShrinkingNoteView({ amount, ratePercent, years, currency }: z.in
   if (!ok) return <p className="py-2 text-sm text-[var(--muted)]">Working out what the note buys…</p>;
   const text = `The note still says ${printed}. In ${trimmed(years)} ${years === 1 ? "year" : "years"} at ${trimmed(ratePercent)}% a year it buys what ${worth} buys today.`;
   return (
-    <figure data-testid="shrinking-note" data-motion={reduced ? "reduced" : "full"} data-share={trimmed(share, 4)} role="img" aria-label={text} className="my-3">
-      <div className="relative h-24 max-w-sm overflow-hidden rounded-md border border-[var(--muted)] bg-[var(--field)]">
+    <figure data-testid="shrinking-note" data-motion={reduced ? "reduced" : "full"} data-share={trimmed(share, 4)} role="img" aria-label={text} className="@container my-3">
+      <div className="relative h-24 max-w-sm overflow-hidden rounded-md border border-[var(--muted)] bg-[var(--field)] @min-[720px]:max-w-none">
         <div
           data-testid="shrinking-note-power"
           aria-hidden

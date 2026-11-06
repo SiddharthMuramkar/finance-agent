@@ -127,7 +127,7 @@ export function WidgetHost({ host, topicTitle }: { host: WidgetHostState; topicT
   const { widgets, picker, check, messageNumbers, retry } = host;
   return (
     <WidgetRetryContext.Provider value={retry}>
-      <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} check={check} messageNumbers={messageNumbers} />
+      <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} check={check} messageNumbers={messageNumbers} latestKey={picker.newestKey} />
     </WidgetRetryContext.Provider>
   );
 }
