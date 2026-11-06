@@ -166,21 +166,17 @@ questions:
       OpenStax, Principles of Accounting, Volume 1 (CC BY-NC-SA 4.0), 6.6 Multi-Step and Simple Income Statements (income from operations comes before other revenue and expenses, which lead to net income): https://openstax.org/books/principles-financial-accounting/pages/6-6-describe-and-prepare-multi-step-and-simple-income-statements-for-merchandising-companies
   - id: jfc-q-two-lines
     prompt: >
-      Corvane Ltd's balance sheet lists long-term debt of 300 and, on a separate line, lease
-      liabilities of 200. A writer says "Corvane's debt is 500". What is the best judgement?
+      Wednesday 11 March 2026, 4 pm; Sana, a made-up fact-checker, has an hour before a newsletter goes out. Corvane Ltd's balance sheet shows long-term debt of 300 and, on its own line, lease liabilities of 200. The writer puts the two lines together and says "Corvane's debt is 500". What does Sana send back?
     choices:
-      - { id: a, text: "An arithmetic error: 300 + 200 is not 500" }
-      - { id: b, text: "500 is a real sum of two separate lines under the name of one; it is fair only if the writer says what is included, and the balance-sheet debt line is 300" }
-      - { id: c, text: "It ties out: lease liabilities are always part of debt" }
-      - { id: d, text: "A period mismatch: the two lines cover different years" }
+      - { id: a, text: "\"Run it. Leases always count as debt.\"", mistake: { tag: leases_always_debt, fix: "The filing keeps leases on their own line. 'Debt' alone names only the 300." } }
+      - { id: b, text: "\"Say 'debt and leases', or use the debt line alone.\"" }
+      - { id: c, text: "\"Cut it. No line in the filing prints 500.\"", mistake: { tag: total_seen_as_invented, fix: "The 500 is two printed lines put together. The figure is real; its label is too narrow." } }
+      - { id: d, text: "\"Hold it. The two lines must cover different years.\"", mistake: { tag: lines_seen_as_different_periods, fix: "Both lines sit on the same balance sheet, at the same date. The slip is in the name." } }
     answer: b
     explanation: >
-      The arithmetic is right, but the filing keeps the two items on separate lines, so "debt" alone
-      names only the 300. A writer may reasonably add the lease liabilities to get a wider measure of
-      what the company owes, but the claim should say so; as written it is a label and definition gap,
-      not an error in the sum.
+      The writer's 500 is the debt line and the lease line together, a fair wider measure of what Corvane owes, but the filing calls only the 300 debt. As written it is a label gap, not a wrong figure, so the fix is to name what is included.
     source: >
-      SEC Office of the Advocate for Small Business Capital Formation, "What is a balance sheet?" (liabilities are reported as separate lines): https://www.sec.gov/files/balancesheet-building-blocks.pdf
+      SEC Office of the Advocate for Small Business Capital Formation, "What is a balance sheet?" (liabilities are reported as separate lines): https://www.sec.gov/files/balancesheet-building-blocks.pdf ; Sana, the newsletter and Corvane are made up.
 
   - id: jfc-q-ties-out
     prompt: >
