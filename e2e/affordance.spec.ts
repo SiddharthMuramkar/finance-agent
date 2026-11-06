@@ -73,6 +73,21 @@ test.describe("affordance audit is clean", () => {
       await clean(page, path);
     });
   }
+
+  // A5: the audit stays clean with the header's menus open (their rows are raised, not plain text).
+  test("[A5] /settings with the theme menu open", async ({ page }) => {
+    await visit(page, "many-topics", "/settings");
+    await page.getByTestId("theme-menu-button").click();
+    await expect(page.getByTestId("theme-menu")).toBeVisible();
+    await clean(page, "/settings theme menu open");
+  });
+
+  test("[A5] /settings with the account menu open", async ({ page }) => {
+    await visit(page, "many-topics", "/settings");
+    await page.getByTestId("account-menu-button").click();
+    await expect(page.getByTestId("account-menu")).toBeVisible();
+    await clean(page, "/settings account menu open");
+  });
 });
 
 test("[A3b] pressing feels physical", async ({ page }) => {
