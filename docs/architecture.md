@@ -4749,3 +4749,11 @@ A headline is never written by the Tutor. Its recipe takes the front page's text
 **Scenario.** The Learner opens the Course Map and sees "3 of 7" under Bond prices, with three filled segments, without opening another page. An old bookmark to `/progress` lands on the same map.
 
 **Trade-off.** One page holds both the choosing and the progress, so it is longer than either was. Collapsible Subject groups (open only where the Learner's place is) keep it short, at the price of one click to see a closed Subject's cards.
+
+## Analyse Topics rewritten to story and lingo questions, batch D2j (`course/topics/ana-who-pays-whom.yaml`, `ana-commitments-debt`, `ana-india-transfer`, `ana-decide-between`, `ana-anthropic-s1`)
+
+**What it does.** The five Analyse Topics from "who pays whom" to the Anthropic S-1 no longer ask the Learner for a sum. Each old exam stem (a present value, a cost of equity, a gross NPA ratio, a P/E fall, an operating loss) is now a choice question about the story or the words ("Which headline gets it right?", "What do bankers call it?"), numbers stay only as story facts, and every wrong choice of a rewritten question carries a Known mistake with a one-line fix. Two conversation Checks now ask the Learner to say it in their own words. The five ids left `L10_NOT_YET_STORY`, and two of them (`ana-who-pays-whom`, `ana-commitments-debt`) also left the typed-formula list because their stems and explanations no longer hold a typed formula.
+
+*Scenario.* A Learner meets "a tenant owes 200 a year for three years" and is asked what "present value" means here, not for the figure. Tapping "the payments added up as they stand" shows "Money due later is worth less than money in hand now, so later payments are discounted."
+
+*Trade-off.* The Learner no longer practises the arithmetic in these Topics; the worked numbers live only in explanations after the tap. The Case texts (story, reveal) are untouched by rule, so they still show the workings the Tutor may quote.
