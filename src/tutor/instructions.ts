@@ -32,9 +32,13 @@ export type TutorExample = {
   replyKind: ReplyKind;
 };
 
-/** An open quiz question for the examples: a move from 4.00% to 4.60%, with its choices. */
+/** An open quiz question for the examples: a move from 4.00% to 4.60%, and what a basis point is (ADR 0009: the idea separates the choices, not arithmetic). */
 const EXAMPLE_QUIZ: OpenItem[] = [
-  { prompt: "A central bank moves its rate from 4.00% to 4.60%. How many basis points is the move?", choices: ["0.6", "6", "60", "120"], answer: "60" },
+  {
+    prompt: "A central bank moves its rate from 4.00% to 4.60%, and traders call it a 60 basis point move. What is one basis point?",
+    choices: ["A hundredth of a percentage point", "A tenth of a percentage point", "One whole percentage point", "One percent of the old rate"],
+    answer: "A hundredth of a percentage point",
+  },
 ];
 const rateMove = (old: number, now: number, mode: "show" | "practice"): ReplyWidget => ({
   kind: "recipe",
