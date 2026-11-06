@@ -209,17 +209,17 @@ questions:
       https://www.sec.gov/files/income-statement-building-blocks.pdf
   - id: jud-po-q-percent-change
     prompt: >
-      A private company's valuation goes from one funding round to the next, and a headline says it "rose 250%" when the new value is 2.5 times the old one. What is the slip?
+      Tuesday 15 July 2025, 6 pm; Ana's start-up newsletter goes out at 7. A founder says his made-up robotics firm's new round values it at "2.5 times" the last one. Which headline gets it right?
     choices:
-      - { id: a, text: "A multiple read as a percent rise: \"times\" counts the whole new value, while a percent rise counts only the extra" }
-      - { id: b, text: "Nothing: \"times\" and \"percent rise\" always match", mistake: { tag: nothing_times_and_percent_ri, fix: "They do not. A multiple counts the whole new value; a percent rise counts only the extra." } }
-      - { id: c, text: "A valuation can only be quoted in dollars, never in percent", mistake: { tag: a_valuation_can_only_be_quot, fix: "Valuations can be compared in percent. The slip is in which percent." } }
-      - { id: d, text: "The headline should have used basis points", mistake: { tag: the_headline_should_have_use, fix: "Basis points suit small rate moves, not a change in a company's value." } }
+      - { id: a, text: "\"Robot maker valued at 2.5 times its last round\"" }
+      - { id: b, text: "\"Robot maker's value rose 250%\"", mistake: { tag: multiple_read_as_percent_rise, fix: "'Times' counts the whole new value; 'rose' counts only the extra, so 250% overstates it." } }
+      - { id: c, text: "\"Robot maker's value rose 2.5%\"", mistake: { tag: multiple_read_as_small_percent, fix: "2.5% would be a tiny nudge. A value 2.5 times the old one is a big jump." } }
+      - { id: d, text: "\"Robot maker raises 2.5 times more cash\"", mistake: { tag: valuation_read_as_cash_raised, fix: "The multiple is about what the firm is valued at, not the cash raised in the round." } }
     answer: a
     explanation: >
-      The new value is 2.5 times the old one, so the extra on top is 1.5 times the old value, a 150% rise. Saying "250%" mixes up a multiple with a percent increase.
+      "2.5 times" sets the whole new value against the old one. "Rose 250%" would count only the extra on top, so it overstates the jump, and "2.5%" shrinks it to almost nothing. The safe headline copies the founder's multiple as a multiple.
     source: >
-      Arithmetic on the numbers in the question (percent change = change divided by starting value).
+      Meaning of a multiple against a percent increase (percent change = change divided by starting value), as in OpenStax, Prealgebra 2e (CC BY 4.0), 6.2 percent increase: https://openstax.org/books/prealgebra-2e/pages/6-2-solve-general-applications-of-percent ; the editor, founder and firm are made up.
 
 checks:
   - id: jud-po-quiz-recompute
