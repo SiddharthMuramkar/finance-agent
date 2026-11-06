@@ -176,10 +176,11 @@ export type FallbackCandidate = { recipe: string; params: unknown };
  * shows the first that builds and passes the checks.
  */
 export function fallbackCandidates(archetype: Archetype, given?: FallbackCandidate): FallbackCandidate[] {
-  const same = RECIPES.filter((r) => r.archetype === archetype);
-  const others = RECIPES.filter((r) => r.archetype !== archetype);
+  // A front page is written ahead for one Topic (E3): its example is never a fallback in another Topic.
+  const same = RECIPES.filter((r) => r.archetype === archetype && r.id !== "headline");
+  const others = RECIPES.filter((r) => r.archetype !== archetype && r.id !== "headline");
   const fromExamples = [...same, ...others].flatMap((r) => r.examples.map((params) => ({ recipe: r.id, params })));
-  return [...(given && recipeById(given.recipe) ? [given] : []), ...fromExamples];
+  return [...(given && given.recipe !== "headline" && recipeById(given.recipe) ? [given] : []), ...fromExamples];
 }
 
 export const isArchetype = (value: unknown): value is Archetype => typeof value === "string" && (ARCHETYPES as readonly string[]).includes(value);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RECIPE_IDS, recipeById } from "@/widgets/recipes";
+import { fallbackCandidates } from "./compose";
 import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
 import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, TUTOR_RECIPE_IDS, tutorRecipeSignatures, widgetValidator } from "./ready-made-widgets";
 
@@ -29,6 +30,30 @@ describe("the Tutor's catalogue", () => {
     expect(ENGINE_INSTRUCTIONS).toContain("- rate_move (");
     expect(ENGINE_INSTRUCTIONS).not.toContain("- quick_check (");
     expect(ENGINE_INSTRUCTIONS).not.toContain("compose_widget");
+  });
+
+  it("lists the nine story recipes (E3), with headline by scene id only, and tells the Tutor to use them", () => {
+    for (const id of ["story_scene", "lingo_card", "timeline", "two_paths", "money_jar", "who_pays_whom", "myth_or_fact", "headline", "choice_cards"]) {
+      expect(TUTOR_RECIPE_IDS, id).toContain(id);
+      expect(tutorRecipeSignatures(), id).toContain(`- ${id} (`);
+    }
+    const headlineLine = tutorRecipeSignatures()
+      .split("\n")
+      .filter((l) => l.startsWith("- headline (") || l.includes('"scene"'))
+      .join(" ");
+    expect(headlineLine).toContain('"scene"');
+    expect(headlineLine).not.toContain('"paper"');
+    expect(ENGINE_INSTRUCTIONS).toContain("For a story moment, a word or a who-pays-whom, show the story recipe that fits; never write a fact the Case does not give.");
+    // A front page is written ahead: no compose fallback may show the headline recipe's example in a random Topic.
+    expect(fallbackCandidates("History").map((c) => c.recipe)).not.toContain("headline");
+  });
+
+  it("accepts a headline scene reference and a stored, resolved headline in the Widget validator", () => {
+    const valid = widgetValidator([]);
+    expect(valid({ kind: "recipe", id: "headline", params: { title: "Rates up", inputs: { scene: "fed-front-page" }, refs: {}, facts: {} } })).toBeNull();
+    // The stored form (code resolved the scene before storing) builds as it is.
+    const stored = recipeById("headline")!.examples[0] as Record<string, unknown>;
+    expect(valid({ kind: "recipe", id: "headline", params: stored })).toBeNull();
   });
 
   it("offers show_widget, open_widget (with a preset) and update_widget, and compose_widget only to a Session that has it", () => {
