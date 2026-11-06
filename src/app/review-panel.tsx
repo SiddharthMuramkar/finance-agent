@@ -123,23 +123,25 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
         </p>
         <fieldset>
           <legend className="mb-1 text-sm leading-5">{q.prompt}</legend>
-          {q.choices.map((c) => (
-            <label
-              key={c.id}
-              data-affordance="chip"
-              data-state={picked === c.id ? "showing" : "idle"}
-              data-allow-pointer
-              className="chip mb-2 min-h-11 cursor-pointer !justify-start gap-3 !rounded-2xl !px-3 !py-2 text-left text-sm leading-5 font-normal"
-            >
-              <input
-                type="radio"
-                name={`review-${q.id}`}
-                checked={picked === c.id}
-                onChange={() => setPicked(c.id)}
-              />
-              {c.text}
-            </label>
-          ))}
+          <div className="flex flex-col gap-2">
+            {q.choices.map((c) => (
+              <label
+                key={c.id}
+                data-affordance="chip"
+                data-state={picked === c.id ? "showing" : "idle"}
+                data-allow-pointer
+                className="chip min-h-11 cursor-pointer !justify-start gap-3 !rounded-2xl !px-3 !py-2 text-left text-sm leading-5 font-normal"
+              >
+                <input
+                  type="radio"
+                  name={`review-${q.id}`}
+                  checked={picked === c.id}
+                  onChange={() => setPicked(c.id)}
+                />
+                {c.text}
+              </label>
+            ))}
+          </div>
         </fieldset>
         {error && (
           <p className="mt-2 text-sm leading-5 text-[var(--danger)]">{error}</p>
