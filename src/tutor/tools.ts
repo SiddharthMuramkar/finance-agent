@@ -109,7 +109,7 @@ export const TOOL_LABELS: Record<string, string> = {
   record_misconception: "Making a note…",
   record_check_verdict: "Recording the Check…",
   record_insight_attempt: "Recording your answer…",
-  save_learner_rule: "Saving to your notes…",
+  save_learner_rule: "Saving to your Notebook…",
   start_again: "Starting again…",
   open_widget: "Opening a Widget…",
   show_widget: "Drawing the Widget…",
@@ -665,7 +665,7 @@ export function toolCode(
           await saveItemAfterLatest(tx, learnerId, turn.sessionId, item, now());
           return {
             ok: true,
-            text: `Saved by code to the Learner's Topic Note: "${words}". The Learner sees "Saved to your notes" with Undo, so don't say you saved it. Confirm their rule in one sentence and use their words from now on.`,
+            text: `Saved by code to the Learner's Topic Note: "${words}". The Learner sees "Saved to your Notebook" with Undo, so don't say you saved it. Confirm their rule in one sentence and use their words from now on.`,
             items: [item],
           };
         }),

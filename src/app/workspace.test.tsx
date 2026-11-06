@@ -131,7 +131,7 @@ describe("the workspace's left column", () => {
     expect(workspace({ quiz, review: { ...noReview, dueCount: 2 } }).toLowerCase()).not.toContain("lesson");
   });
 
-  it("draws a stored step divider as a small centred divider at its place in the thread, and the reply's Save to notes only once", () => {
+  it("draws a stored step divider as a small centred divider at its place in the thread, and the reply's Save to Notebook only once", () => {
     const ref = { sessionId: 7, turnSeq: 2 };
     const initial: Line[] = [
       { role: "user", text: "I'd take the lump sum." },
@@ -147,10 +147,10 @@ describe("the workspace's left column", () => {
     const at = html.indexOf("Step 2 of 6 · Concept");
     expect(at).toBeGreaterThan(html.indexOf("Good thinking."));
     expect(at).toBeLessThan(html.indexOf("Now the concept"));
-    // A divider is not a message: no Tutor label or bubble of its own, and one Save to notes for the whole reply, at its end.
+    // A divider is not a message: no Tutor label or bubble of its own, and one Save to Notebook for the whole reply, at its end.
     expect(html.match(/data-testid="tutor-label"/g)).toHaveLength(2);
-    expect(text(html).match(/Save to notes/g)).toHaveLength(1);
-    expect(text(html).indexOf("Save to notes")).toBeGreaterThan(text(html).indexOf("Now the concept"));
+    expect(text(html).match(/Save to Notebook/g)).toHaveLength(1);
+    expect(text(html).indexOf("Save to Notebook")).toBeGreaterThan(text(html).indexOf("Now the concept"));
   });
 
   it("puts a Widget chip in each part of a reply a divider cut", () => {
@@ -315,12 +315,12 @@ describe("the Topic complete card", () => {
   const complete = (next: string | null): Line => ({ role: "item", kind: "topic_complete", data: { topicId: "present-value", title: "Present value", principle, next } });
   const cardOf = (html: string) => html.match(/<section[^>]*data-testid="topic-complete-card"[^>]*>.*?<\/section>/)?.[0] ?? "";
 
-  it("ends the conversation with the principle, Saved to your Notes ✓, Next Topic and the Course Map", () => {
+  it("ends the conversation with the principle, Saved to your Notebook ✓, Next Topic and the Course Map", () => {
     const html = workspace({ initial: [...closing, complete("Next Topic: Bond prices")], passed: { title: "Present value", next: "Next Topic: Bond prices" } });
     const card = cardOf(html);
     expect(text(card)).toContain("Topic complete");
     expect(text(card)).toContain(principle);
-    expect(text(card)).toContain("Saved to your Notes ✓");
+    expect(text(card)).toContain("Saved to your Notebook ✓");
     expect(card).toMatch(/<button[^>]*data-what-comes-next[^>]*>Next Topic: Bond prices →<\/button>/);
     expect(card).toMatch(/<a[^>]*href="\/course"[^>]*>Course Map<\/a>/);
     expect(html.indexOf("topic-complete-card")).toBeGreaterThan(html.indexOf("That closes the Topic."));

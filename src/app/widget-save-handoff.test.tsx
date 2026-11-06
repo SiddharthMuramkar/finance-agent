@@ -90,11 +90,11 @@ describe("Save to notes", () => {
   it("keeps keyboard focus on the control when it changes to Saved", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ id: 7, topicId: "pv" })));
     mount();
-    const save = button(/Save to notes/);
+    const save = button(/Save to Notebook/);
     save.focus();
     await act(async () => save.click());
     await act(async () => void vi.advanceTimersByTimeAsync(10));
-    expect(host.textContent).toContain("Saved ✓");
+    expect(host.textContent).toContain("Saved to Notebook ✓");
     expect(host.contains(document.activeElement)).toBe(true);
   });
 
@@ -102,7 +102,7 @@ describe("Save to notes", () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => (init?.method === "DELETE" ? new Response("no", { status: 500 }) : Response.json({ id: 7, topicId: "pv" })));
     vi.stubGlobal("fetch", fetchMock);
     mount();
-    await act(async () => button(/Save to notes/).click());
+    await act(async () => button(/Save to Notebook/).click());
     await act(async () => void vi.advanceTimersByTimeAsync(10));
     await act(async () => button(/Undo/).click());
     await act(async () => void vi.advanceTimersByTimeAsync(10));
