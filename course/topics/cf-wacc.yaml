@@ -56,17 +56,17 @@ youllLearn:
 questions:
   - id: wc-q-calc
     prompt: >
-      A firm is funded mostly by shareholders and partly by loans, and loan interest cuts its tax bill. Finance people blend the two costs into one, the WACC. How is it built?
+      Ananya's firm is funded mostly by shareholders and partly by loans, and loan interest cuts her tax bill. Her banker blends the two costs into one, the WACC. What goes into that blend?
     choices:
-      - { id: a, text: "A blend weighted by how much of the money each source provides, with the loan cost taken after tax" }
+      - { id: a, text: "Each cost, weighted by its share of funding, debt after tax" }
       - id: b
-        text: "A weighted blend with the loan cost before tax, so the tax saving does not matter"
+        text: "Weighted costs, with the loan taken before tax"
         mistake: { tag: pre_tax_debt, fix: "Interest is tax-deductible, so the debt cost enters after tax." }
       - id: c
-        text: "The plain middle of the two costs, since the weights do not matter"
+        text: "A plain average of the two, ignoring the weights"
         mistake: { tag: equal_weights, fix: "The weights matter: the bigger piece of funding pulls the blend toward its cost." }
       - id: d
-        text: "The cost of equity alone, because owners come first"
+        text: "Just the shareholders' cost, since owners come first"
         mistake: { tag: equity_only, fix: "WACC blends all funding, debt as well as equity." }
     answer: a
     explanation: >
@@ -76,38 +76,38 @@ questions:
 
   - id: wc-q-capm
     prompt: >
-      A stock tends to swing about one and a half times as much as the market (a beta of 1.5). How does the CAPM build the return its owners should expect?
+      Your friend Dev owns a stock that swings about one and a half times as much as the market (a beta of 1.5). How does the CAPM build the return he should expect?
     choices:
-      - { id: a, text: "It starts from the risk-free rate and adds the market's risk premium, scaled up by the beta because the stock is riskier than the market" }
+      - { id: a, text: "Start safe, then add the market premium scaled up by beta" }
       - id: b
-        text: "It starts from the risk-free rate and adds the premium once, ignoring the beta"
+        text: "A flat premium on top of the risk-free rate, beta aside"
         mistake: { tag: beta_ignored, fix: "Beta scales the premium. A beta above 1 means more risk, so a larger premium." }
       - id: c
-        text: "It averages the risk-free rate and the premium"
+        text: "An average of the risk-free rate and the premium"
         mistake: { tag: averaged_premium, fix: "The premium is added on top of the risk-free rate, not averaged with it." }
       - id: d
-        text: "It multiplies the risk-free rate by the beta and drops the premium"
+        text: "The risk-free rate times beta, with no premium"
         mistake: { tag: beta_on_riskfree, fix: "The premium is the reward for market risk. Beta scales that premium, not the risk-free rate." }
     answer: a
     explanation: >
-      The CAPM builds the cost of equity as the risk-free rate plus beta times the premium. With a 4% risk-free rate and a 5% premium: 4% + 1.5 x 5% = 11.5%.
+      The CAPM starts from the risk-free rate, the safe return, and adds beta times the market's risk premium. With a 4% risk-free rate and a 5% premium: 4% + 1.5 x 5% = 11.5%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
 
   - id: wc-q-tax-shield
     prompt: >
-      A firm borrows at 8%, and every rupee of interest cuts its tax bill. Which headline about the real cost of that loan gets it right?
+      Your family firm borrows from the bank at 8%. Every rupee of interest it pays trims its tax bill. Next to that 8%, where does the loan's real cost sit?
     choices:
-      - { id: a, text: "The after-tax cost of debt, and it is lower than 8% because the tax bill shrinks" }
+      - { id: a, text: "Below 8%: the tax saving makes debt cheaper after tax" }
       - id: b
-        text: "The after-tax cost of debt, and it stays at 8% because tax ignores interest"
+        text: "Right at 8%, because tax has nothing to do with interest"
         mistake: { tag: tax_ignored, fix: "Interest is deductible, so the tax bill falls and the real cost drops below 8%." }
       - id: c
-        text: "The after-tax cost of debt, and it is higher than 8% because the firm also pays tax"
+        text: "Above 8%, since the firm pays tax on top"
         mistake: { tag: tax_added, fix: "Tax is not added to interest. Deducting interest saves tax, which lowers the cost." }
       - id: d
-        text: "The cost of equity, and it is lower than 8%"
-        mistake: { tag: debt_as_equity, fix: "Cost of equity is what shareholders expect. Lenders are paid the cost of debt." }
+        text: "At the shareholders' rate, the cost of equity"
+        mistake: { tag: debt_as_equity, fix: "Shareholders' return is the cost of equity. Lenders are paid the cost of debt." }
     answer: a
     explanation: >
       Interest is deductible, so the tax bill falls by a quarter of the interest. With a 25% tax rate, this tax shield leaves the after-tax cost of debt at about 6%, below the 8% the lender charges.

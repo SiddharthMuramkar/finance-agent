@@ -64,18 +64,18 @@ youllLearn:
 questions:
   - id: dcf-q-pv
     prompt: >
-      A friend promises to pay you $110 next year and $121 the year after. Money you get later is worth less than money in hand. What do finance people call those payments' worth today?
+      Leo will pay $110 next year and $121 the year after for your old bike. Dad says to shrink both payments back to today's money first. What is the result called?
     choices:
-      - { id: a, text: "Present value: later money is worth less today, so each payment is shrunk back" }
+      - { id: a, text: "Present value: each payment shrunk back to today" }
       - id: b
-        text: "Future value: each payment is grown forward with interest"
-        mistake: { tag: pv_as_fv, fix: "Future value looks forward. Here later cash is brought back to today." }
+        text: "Future value: each payment grown forward with interest"
+        mistake: { tag: pv_as_fv, fix: "Future value grows money forward. Dad shrank later cash back to today." }
       - id: c
-        text: "Terminal value: the worth of all cash flows beyond the forecast"
-        mistake: { tag: pv_as_terminal, fix: "Terminal value covers years after the forecast. These two years sit inside it." }
+        text: "Terminal value: what the years after a forecast are worth"
+        mistake: { tag: pv_as_terminal, fix: "Terminal value covers years after a forecast. These two payments sit inside it." }
       - id: d
-        text: "Book value: what the accounts record for the project"
-        mistake: { tag: pv_as_book, fix: "Book value is an accounting record, not discounted future cash." }
+        text: "Book value: the figure the accounts record"
+        mistake: { tag: pv_as_book, fix: "Book value is an accounting record, not later cash shrunk to today." }
     answer: a
     explanation: >
       At a 10% discount rate each payment is worth $100 today, so together they are worth $200, less than the plain total of $231. This is their present value.
@@ -84,37 +84,37 @@ questions:
 
   - id: dcf-q-terminal
     prompt: >
-      Your forecast covers ten years, but the business should carry on for ever, growing slowly. Analysts squeeze all those later years into one lump. Which headline gets it right?
+      Nisha's forecast for a cafe chain covers ten years, but the chain should run for ever, growing slowly. She packs the later years into one lump, its terminal value. When does it balloon?
     choices:
-      - { id: a, text: "Terminal value: the narrower the gap between discount rate and growth, the bigger it is" }
+      - { id: a, text: "When growth creeps close to the discount rate" }
       - id: b
-        text: "Terminal value: the wider the gap between discount rate and growth, the bigger it is"
-        mistake: { tag: gap_backwards, fix: "A wider gap shrinks it. A narrower gap makes the lump balloon." }
+        text: "If the discount rate sits far above growth"
+        mistake: { tag: gap_backwards, fix: "A wide gap shrinks the lump. A narrow gap makes it balloon." }
       - id: c
-        text: "Salvage value: what the assets would fetch if sold at the end"
-        mistake: { tag: terminal_as_salvage, fix: "Salvage value assumes a sale. Terminal value assumes the business carries on." }
+        text: "Once the cafes are sold off at the end"
+        mistake: { tag: terminal_as_salvage, fix: "That is salvage value, a sale. Terminal value assumes the business carries on." }
       - id: d
-        text: "Present value of year 1 only: later years are ignored"
-        mistake: { tag: later_years_ignored, fix: "Later years are not ignored. Terminal value packs them into one lump." }
+        text: "Never, since years after the forecast are left out"
+        mistake: { tag: later_years_ignored, fix: "Later years are kept. Terminal value packs them into one lump." }
     answer: a
     explanation: >
-      For example, a year-11 cash flow of $50 growing at 3% for ever, at a 10% discount rate, is $50 over a 7-point gap: about $714. That lump is then discounted back to today.
+      For example, a year-11 cash flow of $50 growing at 3% for ever, at a 10% discount rate, is $50 over a 7-point gap: about $714. At an 8% discount rate the gap is 5 points and the lump is $1,000. That lump is then discounted back to today.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), Ch. 11 Summary (growing-perpetuity valuation, the same formula): https://openstax.org/books/principles-finance-2e/pages/11-summary
 
   - id: dcf-q-bridge
     prompt: >
-      A DCF has valued a firm's business. The firm also owes its lenders money and has some cash in the bank. How do you get from there to what the shareholders own?
+      Ravi's DCF has valued a firm's business. The firm also owes its lenders money and has some cash in the bank. What do the shareholders own?
     choices:
-      - { id: a, text: "Add the cash and take away the debt: lenders are paid first and spare cash belongs to owners" }
+      - { id: a, text: "Add the cash, take off the debt: lenders come first" }
       - id: b
-        text: "Add the debt and take away the cash"
+        text: "Debt gets added on, and the cash comes off"
         mistake: { tag: bridge_backwards, fix: "Debt is owed to lenders, so it comes off. Cash goes on." }
       - id: c
-        text: "Take away both the debt and the cash"
+        text: "Both the debt and the cash come off"
         mistake: { tag: cash_removed, fix: "Cash belongs to the owners, so it is added, not removed." }
       - id: d
-        text: "Keep the business value as it is: operations are all that matter"
+        text: "Just the business value; debt and cash change nothing"
         mistake: { tag: no_bridge, fix: "Owners get what is left after lenders, so debt and cash change the answer." }
     answer: a
     explanation: >
