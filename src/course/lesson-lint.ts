@@ -163,6 +163,7 @@ export function lessonLintErrors(topics: Topic[], opts?: { notYet?: readonly str
     if (!listed && isConverted(t)) errors.push(...topicLint(t, presetOk));
     else errors.push(...ruleFor(t, lintL6)); // L6 alone covers a Topic that is not converted (topicLint already ran it for a converted one)
     errors.push(...ruleFor(t, lintL11)); // L11 covers every Topic, converted or not
+    errors.push(...ruleFor(t, lintL12)); // so does L12
     // L10 covers every Topic too; an allowlisted Topic is skipped, and must still have a hit (the list only shrinks).
     const hits = ruleFor(t, lintL10);
     if (l10NotYet.includes(t.id)) {
@@ -526,6 +527,20 @@ function lintL11(t: Topic, add: Add) {
   for (const name of topicEmojiNames(t)) {
     if (!isEmojiName(name)) add("L11", `emoji "${name}" is not in src/emoji/registry.ts`);
   }
+}
+
+/**
+ * L12 (spec §3.3, #485): every wrong choice carries a mix-up fix, one line naming the slip, so a wrong tap always shows
+ * it. It reads every question in the file and every fixed `kind: choice` Quick try, on every Topic.
+ */
+function lintL12(t: Topic, add: Add) {
+  const say = (where: string, answer: string, choices: { id: string; mistake?: { fix?: string } }[]) => {
+    for (const c of choices) {
+      if (c.id !== answer && !c.mistake?.fix?.trim()) add("L12", `${where} wrong choice "${c.id}" has no mix-up fix; give it mistake: { tag, fix } with one line naming the slip (spec §3.3)`);
+    }
+  };
+  for (const q of t.questions) say(`question "${q.id}"`, q.answer, q.choices);
+  for (const c of t.checks) for (const q of c.quickTries) if (isFixed(q) && q.kind === "choice" && q.choices) say(`Check "${c.id}" Quick try "${q.id}"`, String(q.answer), q.choices);
 }
 
 /** How many seeded draws L10 takes of each template. */
