@@ -43,8 +43,8 @@ describe("RateMove, show mode", () => {
   // sunflower for the Old rate (history), violet ink for the readout terms (lingo).
   it("paints a rise mint, the Old rate in sun-ink and the readout labels in violet-ink", () => {
     show(<RateMoveView oldRate={4} newRate={5} />);
-    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--mint)");
-    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--mint)");
+    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--mint-ink)");
+    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--mint-ink)");
     expect(byId(page!, "rate-move-old")!.getAttribute("fill")).toBe("var(--sun-ink)");
     expect(byId(page!, "rate-move-old-tick")!.getAttribute("stroke")).toBe("var(--sun-ink)");
     const labels = allById(page!, "rate-move-readout").map((r) => r.firstElementChild!.getAttribute("class") ?? "");
@@ -57,8 +57,8 @@ describe("RateMove, show mode", () => {
 
   it("paints a fall coral", () => {
     show(<RateMoveView oldRate={5} newRate={4} />);
-    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--coral)");
-    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--coral)");
+    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--coral-ink)");
+    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--coral-ink)");
   });
 
   it("shows the three worked lines at once: 1 point, 100 bp and 25%", () => {

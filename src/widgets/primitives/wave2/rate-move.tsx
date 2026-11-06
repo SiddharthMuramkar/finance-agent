@@ -51,8 +51,9 @@ function NumberLine({ oldRate, newRate }: { oldRate: number; newRate: number }) 
   const moved = Math.round(oldRate * 100) !== Math.round(newRate * 100);
   const dir = newRate > oldRate ? 1 : -1;
   // Accents by meaning (spec 2026-11-05 accent meanings, #471): a rise is a gain (mint), a fall a loss (coral); the Old
-  // rate is history (sunflower ink). No move keeps the brand dot.
-  const moveInk = dir > 0 ? "var(--mint)" : "var(--coral)";
+  // rate is history (sunflower ink). No move keeps the brand dot. The arrow is the move's main cue, so it uses the -ink
+  // variants (>= 3:1 non-text contrast, WCAG 1.4.11); the bare --mint / --coral fills are about 2.5:1 on white.
+  const moveInk = dir > 0 ? "var(--mint-ink)" : "var(--coral-ink)";
   const label = moved
     ? `A number line: the rate moves from ${rateText(oldRate)}% ${dir > 0 ? "up" : "down"} to ${rateText(newRate)}%.`
     : `A number line: the rate stays at ${rateText(oldRate)}%.`;

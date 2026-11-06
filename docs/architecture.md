@@ -1042,7 +1042,8 @@ so they are not saved with the Session and a Guided Task cannot read them. Code 
 readouts sent to the Tutor) is T14's; the state names stay exported as `RATE_MOVE_STATE`.
 
 **Accents by meaning (issue #471).** The part paints the accent families by what they mean, not as decoration: the
-arrow and its head are `--mint` on a rise (a gain) and `--coral` on a fall (a loss), and the brand dot stays for no
+arrow and its head are `--mint-ink` on a rise (a gain) and `--coral-ink` on a fall (a loss), the -ink variants because
+the arrow is the main cue and the bare fills are under the 3:1 non-text floor on white (WCAG 1.4.11); the brand dot stays for no
 move; the Old tick and its "Old 4%" label are `--sun-ink` (the earlier rate, history); the three readout labels
 ("Points", "Basis points", "Percent of the old rate") are `--violet-ink` (lingo), the text-safe violet. Scenario: the
 concept-widget cell of the F1 matrix shows `rate_move` 4% to 5% and now paints mint, sun and violet, three families, so
