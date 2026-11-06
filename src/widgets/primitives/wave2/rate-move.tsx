@@ -50,6 +50,10 @@ function NumberLine({ oldRate, newRate }: { oldRate: number; newRate: number }) 
   const to = x(newRate);
   const moved = Math.round(oldRate * 100) !== Math.round(newRate * 100);
   const dir = newRate > oldRate ? 1 : -1;
+  // Accents by meaning (spec 2026-11-05 accent meanings, #471): the Old rate is history (sunflower ink). A rate move has
+  // no money in it, so its direction is neither a gain (mint, which also means "you") nor a loss (coral): the arrow
+  // keeps the direction-neutral brand colour.
+  const moveInk = "var(--brand)";
   const label = moved
     ? `A number line: the rate moves from ${rateText(oldRate)}% ${dir > 0 ? "up" : "down"} to ${rateText(newRate)}%.`
     : `A number line: the rate stays at ${rateText(oldRate)}%.`;
@@ -69,21 +73,21 @@ function NumberLine({ oldRate, newRate }: { oldRate: number; newRate: number }) 
       <text x={WIDTH - MARGIN + 20} y={AXIS_Y + 4} textAnchor="start" fontSize={10} fill="var(--muted)">
         {rateText(end)}%
       </text>
-      <line x1={from} x2={from} y1={AXIS_Y - 5} y2={AXIS_Y + 5} stroke="var(--muted)" strokeWidth={1.5} />
+      <line data-testid="rate-move-old-tick" x1={from} x2={from} y1={AXIS_Y - 5} y2={AXIS_Y + 5} stroke="var(--sun-ink)" strokeWidth={1.5} />
       <line x1={to} x2={to} y1={AXIS_Y - 5} y2={AXIS_Y + 5} stroke="var(--ink)" strokeWidth={1.5} />
       {moved ? (
         <>
-          <line data-testid="rate-move-arrow" x1={from} x2={to - dir * HEAD} y1={AXIS_Y - 12} y2={AXIS_Y - 12} stroke="var(--brand)" strokeWidth={2.5} strokeLinecap="round" />
+          <line data-testid="rate-move-arrow" x1={from} x2={to - dir * HEAD} y1={AXIS_Y - 12} y2={AXIS_Y - 12} stroke={moveInk} strokeWidth={2.5} strokeLinecap="round" />
           <polygon
             data-testid="rate-move-head"
             points={`${to},${AXIS_Y - 12} ${to - dir * HEAD},${AXIS_Y - 17} ${to - dir * HEAD},${AXIS_Y - 7}`}
-            fill="var(--brand)"
+            fill={moveInk}
           />
         </>
       ) : (
         <circle cx={from} cy={AXIS_Y - 12} r={4} fill="var(--brand)" />
       )}
-      <text data-testid="rate-move-old" x={clampLabel(from)} y={AXIS_Y + 20} textAnchor="middle" fontSize={11} fill="var(--muted)">
+      <text data-testid="rate-move-old" x={clampLabel(from)} y={AXIS_Y + 20} textAnchor="middle" fontSize={11} fill="var(--sun-ink)">
         Old {rateText(oldRate)}%
       </text>
       <text data-testid="rate-move-new" x={clampLabel(to)} y={AXIS_Y - 24} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--ink)">
@@ -101,7 +105,7 @@ function Readouts({ oldRate, newRate }: { oldRate: number; newRate: number }) {
     <ol className="mt-2 space-y-1" style={{ opacity: fresh ? 0.35 : 1, transition: reduced ? undefined : "opacity 160ms var(--ease-out, ease-out)" }}>
       {lines.map((line, i) => (
         <li key={RATE_MOVE_LABELS[i]} data-testid="rate-move-readout" className="text-sm leading-6">
-          <span className="block text-xs text-[var(--muted)]">{RATE_MOVE_LABELS[i]}</span>
+          <span className="block text-xs text-[var(--violet-ink)]">{RATE_MOVE_LABELS[i]}</span>
           <span className="tabular-nums">{line}</span>
         </li>
       ))}

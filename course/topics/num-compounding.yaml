@@ -409,21 +409,21 @@ questions:
   - id: cp-q-log-return
     skill: log-return
     prompt: >
-      A share rises one year and rises again the next. An analyst wants a score for each year, so that the two years' scores simply join into one score for both. What do analysts call that score?
+      Bombay, 31 March 1992. Karan's boss wants each year of the Sensex climb scored by morning, so the yearly scores simply join into one for the whole run. What do analysts call that score?
     choices:
-      - { id: a, text: "A log return" }
+      - { id: a, text: "A log return: back-to-back scores just join up" }
       - id: b
-        text: "A CAGR"
-        mistake: { fix: "A CAGR is a steady yearly rate. It does not add across periods.", tag: mixed_up_terms }
+        text: "A CAGR: one steady rate for the whole run"
+        mistake: { fix: "A CAGR is one steady yearly rate. It does not join up year by year.", tag: mixed_up_terms }
       - id: c
-        text: "A base year"
-        mistake: { fix: "A base year is the starting point of an index, not a way to score growth.", tag: mixed_up_terms }
+        text: "A base year: where the index started at 100"
+        mistake: { fix: "A base year is where an index starts, not a score for one year's growth.", tag: mixed_up_terms }
       - id: d
-        text: "A bull run"
-        mistake: { fix: "A bull run is a long stretch of rising prices, not a score for growth.", tag: mixed_up_terms }
+        text: "A bull run: a long stretch of rising prices"
+        mistake: { fix: "A bull run names a rising market. It does not score each year's growth.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      A log return is a score for one stretch of growth, built so that back-to-back scores simply add. That is why analysts reach for it: ordinary returns have to be compounded, log returns just join up.
+      A log return is a score for one stretch of growth, built so that back-to-back scores simply add. That is why Karan reaches for it: ordinary returns have to be compounded, log returns just join up.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
@@ -556,105 +556,105 @@ questions:
   - id: cp-q-log-add-three
     skill: log-return
     prompt: >
-      A fund has a log return for each of three back-to-back years. How do they combine into the log return of the whole three years?
+      Bombay, 31 March 1992. Meera holds a log return for each of the Sensex's last three years. Her biggest client wants one score for all three before lunch. What should she do with them?
     choices:
-      - { id: a, text: "They add together" }
+      - { id: a, text: "Add them: back-to-back log returns simply join up" }
       - id: b
-        text: "They multiply together"
-        mistake: { fix: "Multiplying is how ordinary growth factors combine. Log returns simply add.", tag: mixed_up_terms }
+        text: "Multiply them, the way growth factors combine"
+        mistake: { fix: "Multiplying is for ordinary growth factors. Log returns of back-to-back years simply add.", tag: mixed_up_terms }
       - id: c
-        text: "They are averaged, and the average is the answer"
-        mistake: { fix: "An average is one year's typical score. The whole stretch is the sum of the years.", tag: averaged_gain }
+        text: "Average them and send the average"
+        mistake: { fix: "An average gives one typical year. The whole stretch is all three years joined together.", tag: averaged_gain }
       - id: d
-        text: "Only the biggest year counts"
-        mistake: { fix: "Every year counts. The log returns of back-to-back years all add up.", tag: mixed_up_terms }
+        text: "Send only the biggest year, since it drove the climb"
+        mistake: { fix: "Every year counts. The log returns of all three back-to-back years add up.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      Log returns of back-to-back periods add up to the log return of the whole stretch. That is the whole point of them: no compounding to untangle.
+      Log returns of back-to-back periods add up to the log return of the whole stretch. That is the whole point of them: Meera has no compounding to untangle, so her client gets the answer in one easy step.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
   - id: cp-q-log-round-trip
     skill: log-return
     prompt: >
-      A share goes from ₹200 to ₹250 and then back to ₹200. Which one is true about its two log returns?
+      Ravi bought a share at ₹200 in January 1992. It shot to ₹250, then slid back to ₹200 by 31 March. At dinner he insists he came out ahead. What do his two log returns say?
     choices:
-      - { id: a, text: "They cancel out to zero" }
+      - { id: a, text: "They cancel out to zero: he ended where he began" }
       - id: b
-        text: "They add up to a gain, because the 25% rise is bigger than the 20% fall"
-        mistake: { fix: "It ends where it began, so the whole stretch has a log return of zero, and the two add to that.", tag: back_where_started }
+        text: "They join up to a gain, since the rise looked bigger"
+        mistake: { fix: "He ended where he began, so his two log returns add up to zero: no gain.", tag: back_where_started }
       - id: c
-        text: "They cannot be combined"
-        mistake: { fix: "Log returns of back-to-back periods always combine. That is why analysts use them.", tag: mixed_up_terms }
+        text: "They cannot be joined, since one is up and one is down"
+        mistake: { fix: "Back-to-back log returns always join up, rises and falls alike. That is why analysts use them.", tag: mixed_up_terms }
       - id: d
-        text: "They add up to a loss, because a fall hurts more than a rise helps"
-        mistake: { fix: "It ends where it began, so there is no loss: the two log returns add up to zero.", tag: back_where_started }
+        text: "They join up to a loss, since a fall hurts more"
+        mistake: { fix: "He ended where he began, so there is no loss either: his two log returns add to zero.", tag: back_where_started }
     answer: a
     explanation: >
-      The share ends where it began, so the log return of the whole stretch is zero. The two log returns add up to that, so they are the same size with opposite signs. The ordinary returns, up 25% and down 20%, do not add.
+      Ravi's share ends where it began, so the log return of the whole stretch is zero. His two log returns add up to that, so they are the same size with opposite signs. The ordinary returns, up 25% and down 20%, do not add, which is why the round trip fooled him.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
   - id: cp-q-log-smaller
     skill: log-return
     prompt: >
-      A price rises 20% in a year. Which one is true about its log return for that year?
+      31 March 1992. Asha's family fund rose 20% this year. Her father, who signs the cheques, asks why the log return on her report looks smaller than 20%. What should she tell him?
     choices:
-      - { id: a, text: "It is a little below 20%" }
+      - { id: a, text: "That is normal: for a rise, the log return is a little smaller" }
       - id: b
-        text: "It is exactly 20%"
-        mistake: { fix: "For a rise, the log return is a little smaller than the ordinary return.", tag: too_big }
+        text: "It is a typo: the two should match exactly"
+        mistake: { fix: "They match only when nothing changes. For a rise, the log return comes out a little smaller.", tag: too_big }
       - id: c
-        text: "It is a little above 20%"
-        mistake: { fix: "For a rise, the log return is smaller than the ordinary return, never larger.", tag: too_big }
+        text: "It is a typo: the log return should be a bit bigger"
+        mistake: { fix: "For a rise, the log return is smaller than the ordinary return, never bigger.", tag: too_big }
       - id: d
-        text: "It needs the number of trading days in the year"
-        mistake: { fix: "A log return needs only the start and the end, not the days between them.", tag: mixed_up_terms }
+        text: "Log returns skip some trading days, so they shrink"
+        mistake: { fix: "A log return uses only the start and the end price, never the days between them.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      For a rise, a log return always comes out a little below the ordinary return, because it is the score that lets periods add rather than compound.
+      For a rise, a log return always comes out a little below the ordinary return, because it is the score that lets periods add rather than compound. Nothing is missing from Asha's report: both describe the same 20% rise.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
   - id: cp-q-log-why
     skill: log-return
     prompt: >
-      Why do analysts often measure growth with log returns? Which one is true?
+      Bombay, March 1992. Neha starts as a trainee at a broking firm and sees Meera score every share with log returns. Her first client meeting is tomorrow, so she asks why. What should Meera say?
     choices:
-      - { id: a, text: "Because the log returns of back-to-back periods add up" }
+      - { id: a, text: "Back-to-back log returns simply add up, so long runs are easy" }
       - id: b
-        text: "Because log returns are always bigger than ordinary returns"
-        mistake: { fix: "For a rise, a log return is a little smaller than the ordinary return.", tag: too_big }
+        text: "Log returns always come out bigger, so results look better"
+        mistake: { fix: "For a rise, a log return comes out a little smaller than the ordinary return.", tag: too_big }
       - id: c
-        text: "Because log returns leave compounding out"
+        text: "Log returns leave compounding out of the picture"
         mistake: { fix: "Log returns keep compounding in. They just turn it into adding.", tag: mixed_up_terms }
       - id: d
-        text: "Because log returns need only dates, not prices"
+        text: "Log returns need only dates, so prices can be skipped"
         mistake: { fix: "A log return needs the price at the start and at the end.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      Ordinary returns of back-to-back periods have to be compounded, but log returns simply add up to the log return of the whole stretch. That makes sums over many periods easy.
+      Ordinary returns of back-to-back periods have to be compounded, but log returns simply add up to the log return of the whole stretch. That is why Meera, and analysts like her, use them to score long runs in one step.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
   - id: cp-q-log-two-years
     skill: log-return
     prompt: >
-      A share ends a year exactly where it began. What is its log return for that year?
+      March 1992. The Sensex closes above 4,000 for the first time, but Mr Shah's sleepy share ends the year where it began. Which log return line on his 31 March statement is right?
     choices:
-      - { id: a, text: "Zero" }
+      - { id: a, text: "Zero: no change at all means a log return of zero" }
       - id: b
-        text: "A small gain"
-        mistake: { fix: "Ending where it began means no gain at all, so the log return is zero.", tag: too_big }
+        text: "A small gain, because the market rose around it"
+        mistake: { fix: "His share's own start and end are equal, so its log return is zero, whatever the market did.", tag: too_big }
       - id: c
-        text: "A small loss"
-        mistake: { fix: "Ending where it began means no loss either, so the log return is zero.", tag: too_small }
+        text: "A small loss, because he missed the bull run"
+        mistake: { fix: "Missing a rally is no loss. Ending where it began gives a log return of zero.", tag: too_small }
       - id: d
-        text: "It cannot be found"
-        mistake: { fix: "A log return needs only the start and the end, and here they are equal.", tag: mixed_up_terms }
+        text: "Blank: a flat year has no log return"
+        mistake: { fix: "A log return needs only the start and the end, and here they are equal: zero.", tag: mixed_up_terms }
     answer: a
     explanation: >
-      No gain and no loss means a log return of zero. That is why a rise and the fall back to the start cancel out.
+      No gain and no loss means a log return of zero, whatever the Sensex did that year. That is also why a rise and the fall back to the start cancel out.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 

@@ -91,7 +91,12 @@ test("save, then find it", async ({ page }) => {
   const savedText = "A basis point is one hundredth of a percentage point.";
   await expect(page.getByTestId("assistant-message").last()).toContainText(savedText);
 
+  // Wait for the save itself, not a fixed 5 s: this is the suite's only save, so the dev server compiles
+  // /api/notes/saved on this first POST, and under CI load that took over 5 s while the control sat on "Saving…"
+  // (CI runs 42208947817 and 42209284994, w1024). The link appears once the save answers.
+  const saved = page.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/api/notes/saved", { timeout: 90_000 });
   await page.getByRole("button", { name: "Save this reply to Notebook" }).last().click();
+  expect((await saved).ok(), "the save answered").toBe(true);
   const open = page.getByRole("link", { name: "Open Notebook" }).last();
   await expect(open).toBeVisible();
   const href = await open.getAttribute("href");
