@@ -533,9 +533,11 @@ checks:
         halfDone: "First step, done for you: 100 basis points make 1 point."
       # Round 7 (critics MP-R6-2, MP-R6-3): as pb-try-a1, the move is a story fact, so the words tell the choices apart.
       # Round 9 (critic C1): as pb-try-a1, the fact is in basis points, so the right choice is no echo of the stem.
+      # Round 11 (historian H3, H4): no source gives a New York bank's savings rate of 9% or a loan rate of 6.5% on
+      # 3 February 1994, so pb-try-pts-2 and pb-try-pts-3 are plainly hypothetical, as pb-try-a4 is: no date, no city.
       - id: pb-try-pts-2
         skill: pts
-        ask: "3 February 1994, New York. A reporter writes for savers, who earn more when rates rise. If a bank took its savings rate from 9% to 9.4%, a rise traders call 40 basis points, her story would say:"
+        ask: "A reporter writes for savers, who earn more when rates rise. If a bank took its savings rate from 9% to 9.4%, a rise traders call 40 basis points, her story would say:"
         kind: choice
         answer: a
         choices:
@@ -544,7 +546,7 @@ checks:
           - { id: c, text: "Savings rates rose 40 percent", mistake: { tag: bp_as_percent, fix: "The 40 is basis points, a gap. Percent would compare the rise with the old 9%." } }
       - id: pb-try-pts-3
         skill: pts
-        ask: "3 February 1994, New York. A radio host speaks to families paying off home loans. If a lender cut its loan rate from 6.5% to 5.9%, a fall traders call 60 basis points, she would say:"
+        ask: "A radio host speaks to families paying off home loans. If a lender cut its loan rate from 6.5% to 5.9%, a fall traders call 60 basis points, she would say:"
         kind: choice
         answer: a
         choices:
@@ -635,7 +637,8 @@ checks:
       - id: pb-try-word-3
         skill: wording
         # Round 9 (#496): the move is a story fact in points, so the one step left is the lingo step to basis points.
-        ask: "3 February 1994, New York. If a bank took its loan rate from 7% to 8%, a rise of 1 percentage point, its borrowers would pay more. True or false: a trader would call that rise 100 basis points."
+        # Round 11 (historian H5): no source gives a bank's 7% loan rate on 3 February 1994, so the try is undated.
+        ask: "If a bank took its loan rate from 7% to 8%, a rise of 1 percentage point, its borrowers would pay more. True or false: a trader would call that rise 100 basis points."
         kind: truth
         answer: true
         mistakes:

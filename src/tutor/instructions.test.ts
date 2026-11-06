@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { loadCourseMap } from "@/course/map";
 import { ENGINE_INSTRUCTIONS, TUTOR_INSTRUCTIONS } from "./instructions";
 
 /**
@@ -156,16 +157,36 @@ describe("the Tutor's frozen instructions", () => {
       });
 
       // Run 10: T16 glossed a basis point with an unexplained "percentage point", and T4 said "1 percentage point" right before asking how far the rate moved.
-      it("gloss a term in everyday words only, and never state the answer its ask is after (T4, T16)", () => {
-        expect(text).toContain("in everyday words only, never with another finance word");
-        expect(text).toContain('a basis point is "a hundredth of one percent", never "a hundredth of a percentage point"');
-        expect(text).toContain("Traders measure such moves in basis points: a hundredth of one percent.");
-        expect(text).not.toContain("Traders measure such moves in basis points: one hundredth");
+      it("gloss a term in everyday words, and never state the answer its ask is after (T4, T16)", () => {
+        expect(text).toContain("explain each finance word the first time in everyday words, and never lean on another finance word you leave unexplained");
+        // Round 11 (C1): the everyday picture is a move on the Running example, so "percentage point" needs no second explanation.
+        expect(text).toContain('its everyday picture is a move on the Running example ("a rate going from 4% to 5% has moved 100 basis points, so one basis point is a hundredth of that step")');
+        expect(text).toContain("Traders measure such moves in basis points: one hundredth of a percentage point. A rate going from 4% to 5% has moved 100 basis points.");
         expect(text).toContain("Never state the number or answer your ask is after");
         // Targeted run t6: T4 said "1 percentage point. That is how far the rate moved." while that question was still open.
         expect(text).toContain("While a question you asked is still open, work the running example only up to its last step");
         // Targeted run t7: T4 still wrote "5% minus 4% is 1 percentage point" under the open "how far the rate moved?".
         expect(text).toContain('and never give its answer, not even as the worked line ("5% minus 4% is 1 point" answers "how far did it move?")');
+      });
+
+      // Round 11 (critic C1): round 10's Lingo rule made the Tutor say a basis point is "a hundredth of one percent" and
+      // banned "a hundredth of a percentage point". That is the percent-vs-percentage-point slip Percent corrects: a basis
+      // point is 0.01 percentage points, as the Topic's term card says; a hundredth of a percent is a share of a rate.
+      it("define a basis point as its card does, one hundredth of a percentage point, never as a hundredth of a percent (C1)", () => {
+        const card = loadCourseMap().topic("num-percent-bps")!.terms.find((t) => t.term === "basis point")!;
+        const cardDefinition = card.means.split(",")[0].toLowerCase();
+        expect(cardDefinition).toBe("one hundredth of a percentage point");
+        // No line defines it as a hundredth of a percent (of one percent, of 1%), or as 0.01%.
+        expect(text).not.toMatch(/\bhundredths? of (?:a|one|1)\s*(?:percent\b(?!age)|%)/i);
+        expect(text).not.toMatch(/\b0\.01\s*(?:%|percent\b(?!age))/i);
+        // Every "hundredth of ..." in the text is the card's: of a percentage point.
+        const hundredthsOf = [...text.matchAll(/\bhundredths? of (a|one|1)\s+([a-z]+(?: point)?)/gi)].map((m) => `${m[1].toLowerCase()} ${m[2].toLowerCase()}`);
+        expect(hundredthsOf.length).toBeGreaterThan(0);
+        for (const of of hundredthsOf) expect(of).toBe("a percentage point");
+        // The Lingo rule and the story opener both say the card's words.
+        expect(text).toContain(`a basis point is "${cardDefinition}", as its card says`);
+        expect(text).toContain(`Traders measure such moves in basis points: ${cardDefinition}.`);
+        expect(text).toContain('Never put "percent" in place of "percentage point" there: a percent is a share of the old rate, not the gap between two rates');
       });
     });
   }

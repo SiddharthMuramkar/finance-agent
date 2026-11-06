@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CASES_DIR, loadCases, parseCase } from "./case";
 
@@ -138,10 +140,36 @@ describe("the suite's own cases", () => {
     expect(state("T3")?.skills?.[0]).toMatchObject({ skill: "pts-to-bp", methodsUsed: ["restate", "worked"] });
   });
 
-  it("rewrite T3 for Choices: the Learner picks the 0.3 bp choice by its number, and the new method is a half-done choice (D3b)", () => {
-    const t3 = cases.find((c) => c.id === "T3")!;
-    expect(t3.kind === "live" && t3.message).toBe("0.3");
-    expect(t3.kind === "live" && t3.graderChecks?.join(" ")).toMatch(/a half-done choice/);
+  // Round 11 (critic F1): D3b had rewritten T3, a T1-T11 case whose bar is 3 of 3, and the ticket keeps T1-T11's bars.
+  // T3 is main's case again, word for word, but for the one name D3b's ladder changed (spec D3b: "its grader line
+  // 'fill-in boxes' becomes 'a half-done choice'"): the Tutor's methods no longer include fill-in boxes.
+  it("keep T3 as main has it, but for the method D3b's ladder renamed: fill-in boxes became a half-done choice (F1)", () => {
+    const t3 = JSON.parse(readFileSync(join(CASES_DIR, "T3.json"), "utf8"));
+    expect(t3).toEqual({
+      id: "T3",
+      title: "A repeat miss on points to basis points: a new method",
+      source: "Percent Session, the basis-point slip that came up three times (TUTOR_SPEC section 7, T3)",
+      kind: "live",
+      topic: "num-percent-bps",
+      state: {
+        step: "your_turn",
+        check: 1,
+        skills: [{ skill: "pts-to-bp", answers: ["wrong", "wrong", "right", "wrong"], methodsUsed: ["restate", "worked"] }],
+        history: [{ learner: "ok, give me one", tutor: "A rate falls from 7.5% to 7.2%. How many basis points did it fall?" }],
+        replyKind: "reteach",
+      },
+      message: "0.3",
+      answer: { skill: "pts-to-bp", verdict: "wrong", try: "pb-try-a3" },
+      pass: [{ kind: "maxWords", value: 60 }],
+      graderChecks: [
+        "Does it use a method other than restating the rule or a worked example (for example a half-done choice)?",
+        "Does it name the slip in one sentence?",
+        "Does it set one similar item with new numbers?",
+        "Does it leave percent change alone (no re-explaining it)?",
+      ],
+      notes:
+        "Pass when: uses a method not in methods_used (for example a half-done choice). Names the slip in one sentence. One similar item with new numbers. 60 words or fewer. Does not re-explain percent change. The Skill has three misses before this answer, but a right answer broke the run, so 0.3 is the second miss in a row: under the decided ladder that brings the next unused method, where a third miss in a row would offer to park (T7). Code shows the Quick try the earlier turn talks about (7.5% to 7.2%, answer 30 bp), so the Learner's 0.3 is that try's Known mistake (stopped at points).",
+    });
     expect(JSON.stringify(t3)).not.toMatch(/fill-in boxes/);
   });
 

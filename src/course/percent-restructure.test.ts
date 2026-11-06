@@ -115,9 +115,9 @@ describe("Percent's content-only restructure", () => {
     it.each([
       ["pb-try-pts-2", /\bsavers\b/],
       ["pb-try-pts-3", /\bhome loans\b/],
-    ])("%s tells the move as a story fact (a person, a date, the stakes), with choices told apart by the word and a short fix on each slip", (id, stakes) => {
+    ])("%s tells the move as a story fact (a person and the stakes, undated since round 11's H3/H4), with choices told apart by the word and a short fix on each slip", (id, stakes) => {
       const item = items.find((i) => i.id === id)!;
-      expect(item.stem).toContain("3 February 1994");
+      expect(item.stem).not.toMatch(/\b(?:19|20)\d\d\b|\bNew York\b/);
       expect(item.stem).toMatch(/\b(?:reporter|radio host|editor|trader)\b/);
       expect(item.stem).toMatch(stakes);
       expect(item.stem).toMatch(STATES_MOVE);
@@ -249,7 +249,11 @@ describe("Percent's content-only restructure", () => {
   // 8.5%, while the Case gives the Fed funds rate at 3% that day; pb-try-a4 dated a loan rate "up 120 basis points" to that
   // day with no source. A dated item uses only the Case's figures; otherwise it carries no date and no central bank or Fed,
   // so it reads as plainly hypothetical.
-  describe("dated items use only sourced figures (H1, H2)", () => {
+  // Round 11 (historian H3, H4, H5; tests F3): the rule held for those two items only, and pb-try-pts-2 (a New York
+  // savings rate of 9% to 9.4%), pb-try-pts-3 (a loan rate of 6.5% to 5.9%) and pb-try-word-3 (a loan rate of 7% to 8%)
+  // still put unsourced rates on 3 February 1994 in New York. It now holds for every question, Quick try, template draw and
+  // conversation prompt, in every Learner-facing word (stem, half-done line, choices, fixes, explanation).
+  describe("dated items use only sourced figures (H1-H5, F3)", () => {
     const stems = {
       "pb-q-wrong-description": percent.questions.find((q) => q.id === "pb-q-wrong-description")!.prompt,
       "pb-try-a4": (() => {
@@ -257,17 +261,101 @@ describe("Percent's content-only restructure", () => {
         return `${q.ask} ${q.halfDone ?? ""}`;
       })(),
     };
-    /** The Case's own figures for 3 and 4 February 1994: the funds rate at 3%, then 3.25%, a move of 25 basis points. */
-    const CASE_FIGURES = ["3", "3.25", "25", "0.25"];
-    const DATE = /\b(?:1[89]|20)\d\d\b|\b\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December)\b/;
+    const fedCase = percent.cases.find((c) => c.id === "fed-hike-1994")!;
+    const MONTH = "January|February|March|April|May|June|July|August|September|October|November|December";
+    /** A year, a month name (capitalised, so "may" the verb is not one) or a day and month. */
+    const DATES = new RegExp(`\\b(?:19|20)\\d\\d\\b|\\b(?:\\d{1,2} )?(?:${MONTH})\\b`, "g");
+    const DATE = new RegExp(DATES.source);
+    /** The Case's figures for each of its dates. 3 February (its as-of date): the funds rate at 3%, from the story. 4 February: 3% to 3.25%, a move of 25 basis points (its Case Data). */
+    const storyFigures = [...new Set(fedCase.story.replace(DATES, "").match(/\d+(?:\.\d+)?/g) ?? [])];
+    const FIGURES_FOR: Record<string, string[]> = { "3 February 1994": storyFigures, "4 February 1994": ["3", "3.25", "25", "0.25"] };
+    /** The Case's outcome, which no what-if may name. */
+    const OUTCOME = "3.25";
+    /**
+     * The one figure a dated item may add: the target of a what-if on the Case's own rate from its level that day
+     * ("If the Fed took its 3% rate to 3.5%"), with that move's size in points and basis points. The Case leaves the size
+     * open as of its date, so this claims no history; a what-if never names the real outcome.
+     */
+    const WHAT_IF = /\bIf the Fed took its (\d+(?:\.\d+)?)% rate to (\d+(?:\.\d+)?)%/;
+    const num = (n: number) => String(Number(n.toFixed(4)));
 
-    it.each(Object.entries(stems))("%s carries no date, or only the Case's own figures", (_id, stem) => {
-      if (DATE.test(stem)) {
-        const figures = stem.replace(new RegExp(DATE.source, "g"), "").match(/\d+(?:\.\d+)?/g) ?? [];
-        for (const f of figures) expect(CASE_FIGURES).toContain(f);
-      } else {
-        expect(stem).not.toMatch(/\bcentral bank\b|\bFed\b|\bFederal Reserve\b|\bNew York\b/);
+    type Dated = { id: string; text: string };
+    const fixedTries = percent.checks.flatMap((c) => c.quickTries.filter((q): q is FixedQuickTry => "id" in q));
+    const all: Dated[] = [
+      ...fixedTries.map((q) => {
+        const set = choiceSet(q)!;
+        return { id: q.id, text: [q.ask, q.halfDone ?? "", ...set.choices.flatMap((c) => [c.text, c.mistake?.fix ?? ""])].join("\n") };
+      }),
+      ...percent.questions.map((q) => ({ id: q.id, text: [q.prompt, ...q.choices.flatMap((c) => [c.text, c.mistake?.fix ?? ""]), q.explanation].join("\n") })),
+      ...percent.templates.flatMap((t) =>
+        [false, ...(t.halfDone ? [true] : [])].flatMap((halfDone) =>
+          Array.from({ length: 40 }, (_, i) => {
+            const drawn = drawTemplate(t, `round11-${i}`, { halfDone });
+            const set = choiceSet(drawn)!;
+            return { id: `${drawn.id} (${drawn.prompt})`, text: [drawn.prompt, ...set.choices.flatMap((c) => [c.text, c.mistake?.fix ?? ""])].join("\n") };
+          }),
+        ),
+      ),
+      ...percent.checks.filter((c) => c.kind === "conversation").map((c) => ({ id: c.id, text: c.prompt })),
+    ];
+    /** What is wrong with one item's dates and figures, if anything. */
+    const problems = ({ id, text }: Dated): string[] => {
+      const dates = text.match(DATES) ?? [];
+      if (dates.length === 0) return /\bFed\b|\bFederal Reserve\b|\bNew York\b/.test(text) ? [`${id}: no date, yet it names the Case's Fed or New York`] : [];
+      const caseDates = Object.keys(FIGURES_FOR).filter((d) => text.includes(d));
+      const rest = caseDates.reduce((t, d) => t.split(d).join(" "), text);
+      const stray = rest.match(DATES);
+      if (stray) return [`${id}: names ${stray.join(", ")}, a date the Case gives no figures for`];
+      const allowed = new Set(caseDates.flatMap((d) => FIGURES_FOR[d]));
+      const whatIf = rest.match(WHAT_IF);
+      if (whatIf && allowed.has(whatIf[1]) && whatIf[2] !== OUTCOME) {
+        const move = Math.abs(Number(whatIf[2]) - Number(whatIf[1]));
+        for (const f of [whatIf[2], num(move), num(move * 100)]) allowed.add(f);
       }
+      return [...new Set(rest.match(/\d+(?:\.\d+)?/g) ?? [])].filter((f) => !allowed.has(f)).map((f) => `${id}: ${f} is not the Case's figure for ${caseDates.join(" or ")}`);
+    };
+
+    it("reads the Case's figures and the what-if the way the rule means", () => {
+      expect(storyFigures).toEqual(["3"]);
+      expect(fedCase.reveal).toContain("3% to 3.25%, which markets read as 25 basis points");
+      expect(problems({ id: "x", text: "3 February 1994, New York. If a bank took its savings rate from 9% to 9.4%, a rise traders call 40 basis points" })).toEqual([
+        "x: 9 is not the Case's figure for 3 February 1994",
+        "x: 9.4 is not the Case's figure for 3 February 1994",
+        "x: 40 is not the Case's figure for 3 February 1994",
+      ]);
+      expect(problems({ id: "x", text: "3 February 1994, New York. If the Fed took its 3% rate to 3.5%, a rise traders call 50 basis points" })).toEqual([]);
+      expect(problems({ id: "x", text: "3 February 1994. If the Fed took its 3% rate to 3.25%, a rise of 25 basis points" })).toHaveLength(2);
+      expect(problems({ id: "x", text: "9 May 1994. The 10-year yield stood at 7.49%." })).toEqual(["x: names 9 May, 1994, a date the Case gives no figures for"]);
+      expect(problems({ id: "x", text: "A loan rate goes from 7% to 8%. The Fed would call it 100 basis points." })).toHaveLength(1);
+      expect(problems({ id: "x", text: "A central bank takes its rate from 2% to 2.5%. Rates may rise." })).toEqual([]);
+    });
+
+    it("covers every question, fixed Quick try, both kinds of draw of every template, and the conversation prompt", () => {
+      const draws = percent.templates.reduce((n, t) => n + (t.halfDone ? 2 : 1) * 40, 0);
+      expect(all.length).toBe(fixedTries.length + percent.questions.length + draws + 1);
+    });
+
+    it("gives every item no date, or only the Case's own figures for the date it names", () => {
+      expect(all.flatMap(problems)).toEqual([]);
+    });
+
+    // H3-H5: undated, so plainly hypothetical (as pb-try-a4 is), each still a person, the stakes and the move as a story fact.
+    it.each([
+      ["pb-try-pts-2", /\breporter\b/, /\bsavers\b/],
+      ["pb-try-pts-3", /\bradio host\b/, /\bhome loans\b/],
+      ["pb-try-word-3", /\bborrowers\b/, /\bpay more\b/],
+    ])("%s carries no date and no city, and keeps its person, its stakes and its one lingo step (H3-H5)", (id, who, stakes) => {
+      const q = fixedTries.find((t) => t.id === id)!;
+      expect(q.ask).not.toMatch(DATE);
+      expect(q.ask).not.toMatch(/\bNew York\b|\bFed\b/);
+      expect(q.ask).toMatch(who);
+      expect(q.ask).toMatch(stakes);
+      expect(sumAsk(q.ask)).toBeNull();
+    });
+
+    it.each(Object.entries(stems))("%s carries no date and no central bank (H1, H2)", (_id, stem) => {
+      expect(stem).not.toMatch(DATE);
+      expect(stem).not.toMatch(/\bcentral bank\b|\bFed\b|\bFederal Reserve\b|\bNew York\b/);
     });
 
     it("keeps pb-q-wrong-description's story: an editor, readers with loans, the move said in points, the answer in basis points", () => {
