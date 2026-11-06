@@ -148,8 +148,9 @@ export function pickCompanion(input: CompanionInput): Companion | null {
     if (fits(c)) return c;
   }
 
-  // 4. The safety net: the Case's date and title on a one-beat timeline.
-  const first = topic.cases[0];
+  // 4. The safety net: the earliest Case's date and title on a one-beat timeline. Before the reveal, story recipes are held
+  // to the earliest Case asOf (storyContextFor), so a later Case's date would fail the build and leave the reply bare.
+  const first = [...topic.cases].sort((a, b) => a.asOf.localeCompare(b.asOf))[0];
   if (first) {
     const beats = [{ date: first.asOf, label: fit(first.title, 8, 80), emoji: CASE_EMOJI }];
     const c: Companion = { kind: "case", recipe: "timeline", key: first.id, params: { title: fit(first.title, 16, 90), inputs: { beats }, refs: {}, facts: {} } };

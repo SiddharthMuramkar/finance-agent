@@ -67,6 +67,26 @@ describe("the Companion Widget picker", () => {
     expect(beats).toEqual([{ date: "2010-05-01", label: "Reinhart and Rogoff's 90% debt threshold", emoji: "spiral-calendar" }]);
   });
 
+  it("gives every Topic a Companion at every step: the Case safety net uses the earliest Case, the story steps' date limit", () => {
+    const steps = ["story", "concept", "explore", "your_turn", "check", "reveal", "principle"] as const;
+    const missing: string[] = [];
+    for (const topic of map.topics) {
+      if (!topic.cases.length) continue;
+      for (const step of steps) {
+        const picked = pickCompanion(input(topic, { place: { step, check: null }, replyText: "" }));
+        if (!picked) missing.push(`${topic.id}@${step}`);
+      }
+    }
+    expect(missing).toEqual([]);
+    // Topics whose first-listed Case is not the earliest: the timeline beat carries the earliest asOf before the reveal.
+    for (const id of ["ana-build-valuation", "ana-india-transfer", "jud-units-periods"]) {
+      const topic = map.topic(id)!;
+      const earliest = [...topic.cases].sort((a, b) => a.asOf.localeCompare(b.asOf))[0];
+      const picked = pickCompanion(input(topic, { replyText: "" }));
+      expect({ id, kind: picked?.kind, key: picked?.key }).toEqual({ id, kind: "case", key: earliest.id });
+    }
+  });
+
   it("skips a scene whose beat text shows an open quiz's blocked numbers (3.5, 50) and goes on to the next rule", () => {
     // The blocked numbers are none of the scene date's parts (1994, 2, 3), so only the injected beat can skip it.
     const blocked = [3.5, 50];
