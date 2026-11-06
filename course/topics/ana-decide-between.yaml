@@ -144,10 +144,10 @@ questions:
     prompt: >
       Yahoo's April 2000 release gave two earnings figures, one with a one-off gain and one without. Here is the same puzzle in small: a share sells for $60. Reported earnings per share were $0.50, but $0.10 of that came from a one-off gain, so a writer quotes 'adjusted' earnings of $0.40. One writer says the stock sells at 120 times earnings and another says 150 times. What explains the difference?
     choices:
-      - { id: a, text: "One of them has made an arithmetic error" }
+      - { id: a, text: "One of them has made an arithmetic error", mistake: { tag: blames-arithmetic, fix: "Both figures are right; each divides the same price by a different earnings number." } }
       - { id: b, text: "They divide the same price by different earnings: reported ($0.50) against adjusted ($0.40)" }
-      - { id: c, text: "They use different prices" }
-      - { id: d, text: "150 times is always the correct figure because adjusted earnings are cleaner" }
+      - { id: c, text: "They use different prices", mistake: { tag: different-price, fix: "Both use the same $60 price; the earnings figure is what differs." } }
+      - { id: d, text: "150 times is always the correct figure because adjusted earnings are cleaner", mistake: { tag: adjusted-always-right, fix: "Adjusted earnings are the company's choice; ask what was left out and why." } }
     answer: b
     explanation: >
       60 / 0.50 = 120 and 60 / 0.40 = 150. Both are correct arithmetic on different definitions of earnings. A reader asks which earnings were used, and why the writer chose them, before comparing two multiples.
