@@ -216,10 +216,13 @@ cases:
 # tries', the Check questions' and the Case's moves out of every draw.
 templates:
   # Check 1 tests points too, so its three Quick tries on pts can be shown (review item 0; lesson lint L8).
+  # Round 9 (#496): every template's ask says the move itself, in one unit, so no draw needs b - a; the one step left is
+  # the lingo step (points to basis points or back), and each choice's label names its idea, so no two choices differ by
+  # the scale of the number alone.
   - id: pb-t-points-from-move
     skill: pts
-    ask: The central bank takes its rate from {a}% to {b}%. A reporter would call the gap…
-    label: "{value}"
+    ask: A central bank takes its rate from {a}% to {b}%, a move traders call {bp} basis points. A reporter writing for borrowers puts it as…
+    label: "{value}: the basis points read as hundredths of a point"
     params:
       a: { min: 1, max: 9, step: 0.25 }
       d: { min: -1.2, max: 1.2, step: 0.05 }
@@ -229,11 +232,12 @@ templates:
     decimals: 2
     sign: magnitude
     mistakes:
-      - { tag: forgot_to_convert, fix: That is basis points. Points are the new rate minus the old rate. }
-    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9]
+      - { tag: forgot_to_convert, fix: "That is still basis points. 100 basis points make 1 point.", label: "{value}: the basis points kept, called points" }
+      - { tag: divided_by_10, fix: "Divide by 100, not 10: 100 basis points make 1 point.", label: "{value}: the basis points read as tenths of a point" }
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9, 50, 40, 60, 120]
   - id: pb-t-bp-from-move
     skill: pts-to-bp
-    ask: The central bank takes its rate from {a}% to {b}%. A bond trader would call that move…
+    ask: A central bank takes its rate from {a}% to {b}%, a move of {points} percentage points. A bond trader would call that move…
     label: "{value}: the move counted in hundredths of a point"
     params:
       a: { min: 1, max: 9, step: 0.25 }
@@ -246,12 +250,12 @@ templates:
     mistakes:
       - { tag: stopped_at_points, fix: "That is the move in points. Times 100 gives basis points.", label: "{value}: the move left in points" }
       - { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10.", label: "{value}: the move counted in tenths of a point" }
-    halfDone: { shows: "First step, done for you: the move is {points} points.", asks: bp_from_points }
-    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9]
+    halfDone: { shows: "First step, done for you: traders count a move in hundredths of a point.", asks: bp_from_points }
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9, 0.5, 0.4, 0.6, 1.2]
   - id: pb-t-points-from-bp
     skill: bp-to-pts
-    ask: A trader says the rate is up {bp} basis points. A newspaper would say it is up…
-    label: "Up {value}"
+    ask: A trader tells a reporter that a loan rate is up {bp} basis points. Her newspaper, read by borrowers, would say it is up…
+    label: "Up {value}: the basis points read as hundredths of a point"
     params:
       bp: { min: 10, max: 300, step: 5 }
     answer: points_from_bp
@@ -259,13 +263,13 @@ templates:
     decimals: 2
     sign: magnitude
     mistakes:
-      - { tag: divided_by_10, fix: "Divide by 100, not 10: 100 basis points make 1 point." }
-      - { tag: divided_by_1000, fix: "Divide by 100, not 1,000: 100 basis points make 1 point." }
-      - { tag: forgot_to_convert, fix: That is still basis points. Divide by 100 for points. }
-    avoid: [100, 25, 1, 120, 1.2, 50, 75, 60, 30]
+      - { tag: divided_by_10, fix: "Divide by 100, not 10: 100 basis points make 1 point.", label: "Up {value}: the basis points read as tenths of a point" }
+      - { tag: divided_by_1000, fix: "Divide by 100, not 1,000: 100 basis points make 1 point.", label: "Up {value}: the basis points read as thousandths of a point" }
+      - { tag: forgot_to_convert, fix: "That is still basis points. Divide by 100 for points.", label: "Up {value}: the basis points kept, called points" }
+    avoid: [100, 25, 1, 120, 1.2, 50, 75, 60, 30, 40]
   - id: pb-t-pct-change
     skill: pct-change
-    ask: A rate goes from {a}% to {b}%. A headline writer measures the rise against the old level. Which headline gets it right?
+    ask: A rate goes from {a}% to {b}%, a rise of {points} percentage points. A headline writer gives the rise as a percent. Which headline gets it right?
     label: "Up {value}: the move set against the old rate"
     params:
       a: { min: 1, max: 9, step: 0.5 }
@@ -277,8 +281,9 @@ templates:
     sign: either
     mistakes:
       - { tag: mixed_percent_points, fix: "That is the move in points. Divide it by the old rate, then times 100.", label: "Up {value}: the gap in points, written as a percent" }
-    halfDone: { shows: "First step, done for you: the move is {points} points.", asks: pct_change }
-    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 2, 6, 7.5, 1.5, 8, 6.25, 50, 12.5]
+    halfDone: { shows: "First step, done for you: a percent change compares the move with where the rate started.", asks: pct_change }
+    # 5.25 keeps out 5% to 5.25%, whose answer (5%) is also the old rate.
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 2, 6, 7.5, 1.5, 8, 6.25, 50, 12.5, 5.25]
 
 concept: >
   A percentage point is the plain gap between two rates: a savings rate going from 4% to 5% has
@@ -304,24 +309,26 @@ questions:
   - id: pb-q-bp-definition
     skill: pts-to-bp
     prompt: >
-      A trader says a rate moved "60 bp". Which plain-words version of that is right?
+      A trader tells a reporter that a loan rate moved "60 bp". Which plain-words version of that is right for her readers?
+    # Round 9 (#496): the choices differ by the idea (a gap in points, or a share of the old rate), not by the scale of six.
     choices:
       - { id: a, text: "Six tenths of a percentage point" }
-      - { id: b, text: "Six percentage points", mistake: { tag: used_x10, fix: "One point is 100 basis points, so 60 bp is well under one point, not six." } }
+      - { id: b, text: "Six tenths of a percent of the old rate", mistake: { tag: mixed_percent_points, fix: "A percent of the old rate is a share. 60 bp is a gap between two rates." } }
       - { id: c, text: "Sixty percentage points", mistake: { tag: forgot_to_convert, fix: "That keeps the 60 but changes the unit. Basis points are hundredths of a point." } }
-      - { id: d, text: "Six hundredths of a point", mistake: { tag: divided_by_1000, fix: "Sixty hundredths of a point is 0.6 of a point, not 0.06." } }
+      - { id: d, text: "Sixty percent of the old rate", mistake: { tag: bp_as_percent, fix: "Basis points are a gap between rates, not a share of the old rate." } }
     answer: a
     explanation: >
       A basis point is one hundredth of a percentage point, so 60 basis points is 0.6 of a point.
     source: >
       Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
-  # Round 7 (critic MP-R6-5): the move is a story fact in basis points, so the unit word tells the choices apart, not 8.50 minus 8.00.
+  # Round 7 (critic MP-R6-5): the move is a story fact, so the unit word tells the choices apart, not 8.50 minus 8.00.
+  # Round 9 (critic C1): the fact is in points, so the right headline (in basis points) is no echo of the stem.
   - id: pb-q-wrong-description
     skill: wording
     prompt: >
       3 February 1994, New York. An editor checks headlines for readers whose loans follow the central bank's rate.
-      If the bank lifted its rate from 8% to 8.5%, a rise traders call 50 basis points, which headline is clear and true?
+      If the bank lifted its rate from 8% to 8.5%, a rise of half a percentage point, which headline is clear and true?
     choices:
       - { id: a, text: "Rate up 50 percent", mistake: { tag: mixed_percent_points, fix: "Percent compares the move with the old 8%. The 50 is basis points, the gap itself." } }
       - { id: b, text: "Rate up 50 percentage points", mistake: { tag: forgot_to_convert, fix: "That keeps the 50 but changes the unit. Basis points are hundredths of a point." } }
@@ -329,7 +336,7 @@ questions:
       - { id: d, text: "Rate up half a percent", mistake: { tag: mixed_percent_points, fix: "Half a percent reads as a share of the old 8%. The gap itself is 50 basis points." } }
     answer: c
     explanation: >
-      Traders call the rise 50 basis points: half a percentage point, the gap between 8% and 8.5%.
+      Half a percentage point is 50 basis points, the gap between 8% and 8.5%.
       "Up 50 percent" or "up half a percent" would compare the move with the old rate, and "50
       percentage points" keeps the number but changes the unit.
     source: >
@@ -338,12 +345,12 @@ questions:
   - id: pb-q-bond-140
     skill: bp-to-pts
     prompt: >
-      A trader says a bond yield "rose 120 basis points". A newspaper would put that as:
+      A trader tells a reporter that a bond yield, the yearly return a bond pays, "rose 120 basis points". Her newspaper would put that as:
+    # Round 9 (#496): the choices differ by the idea (points, or percent of the old yield), not by the scale of 1.2.
     choices:
       - { id: a, text: "Up 1.2 percentage points" }
-      - { id: b, text: "Up 12 percentage points", mistake: { tag: divided_by_10, fix: "Basis points are hundredths of a point, so you divide by 100, not 10." } }
-      - { id: c, text: "Up 0.12 percentage points", mistake: { tag: divided_by_1000, fix: "Basis points are hundredths of a point, so you divide by 100, not 1,000." } }
-      - { id: d, text: "Up 120 percentage points", mistake: { tag: forgot_to_convert, fix: "That is still basis points. Convert them to points first." } }
+      - { id: b, text: "Up 1.2 percent", mistake: { tag: mixed_percent_points, fix: "1.2 percent would be a share of the old yield. The gap itself is in points." } }
+      - { id: c, text: "Up 120 percent", mistake: { tag: bp_as_percent, fix: "Basis points are a gap between rates, not a share of the old yield." } }
     answer: a
     explanation: >
       Basis points are hundredths of a point: 120 basis points is 1.2 percentage points.
@@ -355,7 +362,7 @@ questions:
     prompt: >
       Unemployment goes from 6% to 9%. A statistician says "up 3 points" and a headline says "up 50 percent". Which statement is correct?
     choices:
-      - { id: a, text: "Both are right: 3 points is the gap, and 50 percent compares it with the old 6%" }
+      - { id: a, text: "Both are right: one gives the gap, the other compares it with the old rate" }
       - { id: b, text: "Only the headline is right: the gap is 50 points", mistake: { tag: mixed_percent_points, fix: "This swaps the two sizes. The gap is 3 points; 50 percent is the move measured against the start." } }
       - { id: c, text: "Only the statistician is right: percent never describes a rate move", mistake: { tag: percent_never_for_rates, fix: "A rate can rise by a percent of its old level. The writer just has to say so." } }
       - { id: d, text: "Neither is right, because the new rate is 9 points", mistake: { tag: gave_the_new_level, fix: "9% is where the rate ended. The move is the end minus the start." } }
@@ -369,12 +376,12 @@ questions:
   - id: pb-q-mortgage-rate
     skill: pts-to-bp
     prompt: >
-      A lender cuts its mortgage rate by 0.3 of a percentage point. Traders call that a cut of:
+      A lender cuts its home-loan rate by 0.3 of a percentage point, good news for its borrowers. Traders call that a cut of:
+    # Round 9 (#496): the choices differ by the unit word, not by the scale of 30.
     choices:
       - { id: a, text: "30 basis points" }
-      - { id: b, text: "3 basis points", mistake: { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." } }
-      - { id: c, text: "300 basis points", mistake: { tag: used_x1000, fix: "One point is 100 basis points, so multiply by 100, not 1,000." } }
-      - { id: d, text: "0.3 basis points", mistake: { tag: stopped_at_points, fix: "That is the move in points. Times 100 gives basis points." } }
+      - { id: b, text: "30 percent of the old rate", mistake: { tag: mixed_percent_points, fix: "A percent compares the cut with the old rate. Traders count the gap in basis points." } }
+      - { id: c, text: "30 percentage points", mistake: { tag: forgot_to_convert, fix: "30 points would be a huge cut. The 30 counts hundredths of a point." } }
     answer: a
     explanation: >
       0.3 points times 100 is 30 basis points.
@@ -384,7 +391,7 @@ questions:
   - id: pb-q-newspaper
     skill: wording
     prompt: >
-      A rate goes from 1.5% to 2.25%. A reporter writes "up 50 percent" and a trader says "up 75 basis points". Which statement is true?
+      A rate goes from 1.5% to 2.25%. A trader calls the rise 75 basis points; a reporter, measuring it against the old 1.5%, writes "up 50 percent". Which statement is true?
     choices:
       - { id: a, text: "Both are true: they are two sizes of one move" }
       - { id: b, text: "Only the trader is true: percent cannot describe a rate", mistake: { tag: percent_never_for_rates, fix: "A rate can rise by a percent of its old level. The writer just has to say so." } }
@@ -401,12 +408,13 @@ questions:
   - id: pb-q-up-one-percent
     skill: wording
     prompt: >
-      A savings rate goes from 6% to 7%. A headline says "rate up 1%". What is the clearest way to fix it?
+      A savings rate goes from 6% to 7%, a rise of 1 percentage point. A headline says "rate up 1%". What is the clearest way to fix it?
+    # Round 9 (C1): the stem gives the rise in points, so the right fix (in basis points) is no echo of it.
     choices:
-      - { id: a, text: "Say up 1 percentage point, or up 100 basis points" }
-      - { id: b, text: "Leave it: up 1% is exact", mistake: { tag: mixed_percent_points, fix: "Up 1% could mean 1 point, or 1% of the old 6%, which is only 0.06 points. Say points or bp." } }
-      - { id: c, text: "Say up 100%", mistake: { tag: bp_as_percent, fix: "100 is the move in basis points, not a percent. As a percent of the old 6%, the move is about 17%." } }
-      - { id: d, text: "Say up 1 basis point", mistake: { tag: forgot_to_convert, fix: "One point is 100 basis points, so a rise of 1 point is 100 bp, not 1." } }
+      - { id: a, text: "Say up 100 basis points" }
+      - { id: b, text: "Leave it: up 1% is exact", mistake: { tag: mixed_percent_points, fix: "Up 1% could mean 1 point, or 1% of the old 6%. Say points or bp." } }
+      - { id: c, text: "Say up 100%", mistake: { tag: bp_as_percent, fix: "100 is the move in basis points, not a percent. Against the old 6%, it is about 17%." } }
+      - { id: d, text: "Say up 7 percentage points", mistake: { tag: gave_the_new_level, fix: "7% is where the rate ended. The rise itself is 1 point, or 100 basis points." } }
     answer: a
     explanation: >
       The gap is 1 percentage point, which is 100 basis points. "Up 1%" could be read as 1 point or as
@@ -435,7 +443,6 @@ questions:
       When a central bank raises its rate by 25 basis points, what do traders call that step?
     choices:
       - { id: a, text: "A quarter-point hike" }
-      - { id: b, text: "A full-point hike", mistake: { tag: mixed_up_terms, fix: "A full point is 100 basis points. 25 basis points is only a quarter of that." } }
       - { id: c, text: "A twenty-five percent hike", mistake: { tag: mixed_percent_points, fix: "25 is the move in basis points. A percent would compare the move with the old rate." } }
       - { id: d, text: "A base-year hike", mistake: { tag: mixed_up_terms, fix: "A base year belongs to index numbers. It has nothing to do with the size of a rate step." } }
     answer: a
@@ -481,24 +488,26 @@ checks:
       - id: pb-try-a1
         skill: pts
         # Run 16 (critics MP-3, BP-3): the gap is a story fact, so the words tell the choices apart, not 3.5 minus 3.
-        ask: "3 February 1994, New York. A reporter writes for readers whose loans cost more when rates rise. If the Fed took its 3% rate to 3.5%, a gap of half a point, her story would say:"
+        # Round 9 (critic C1): the fact is in basis points, so the right choice (in points) is no echo of the stem.
+        ask: "3 February 1994, New York. A reporter writes for readers whose loans cost more when rates rise. If the Fed took its 3% rate to 3.5%, a rise traders call 50 basis points, her story would say:"
         kind: choice
         answer: a
         choices:
           - { id: a, text: "Rates rose half a percentage point" }
           - { id: b, text: "Rates rose half a percent", mistake: { tag: mixed_percent_points, fix: "Half a percent is a share of the old rate. The gap between two rates is in points." } }
-          - { id: c, text: "Rates rose 3.5 percentage points", mistake: { tag: gave_the_new_level, fix: "3.5% is where the rate would end. Points measure the gap between the old and new rates." } }
+          - { id: c, text: "Rates rose 50 percent", mistake: { tag: bp_as_percent, fix: "The 50 is basis points, a gap. Percent would compare the rise with the old 3%." } }
         halfDone: "First step, done for you: a reporter writes the gap between two rates in percentage points."
       - id: pb-try-a2
         skill: pts-to-bp
-        ask: "Same move, 3% to 3.5%. A bond trader would quote it as:"
+        # Round 9 (#496): the move is a story fact in points, and the choices differ by the unit word, not by 50, 5 or 0.5.
+        ask: "3 February 1994, New York. A bond trader borrowed cheaply to hold long-term bonds. If the Fed took its 3% rate to 3.5%, a rise of half a percentage point, she would call it:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "50 bp" }
-          - { id: b, text: "5 bp", mistake: { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." } }
-          - { id: c, text: "0.5 bp", mistake: { tag: stopped_at_points, fix: "That is the move in points. Times 100 gives basis points." } }
-        halfDone: "First step, done for you: the move is 0.5 points."
+          - { id: a, text: "Up 50 basis points" }
+          - { id: b, text: "Up 50 percent", mistake: { tag: mixed_percent_points, fix: "Percent compares the rise with the old 3%. Traders count the gap in basis points." } }
+          - { id: c, text: "Up 50 percentage points", mistake: { tag: forgot_to_convert, fix: "That keeps the 50 but says points. Basis points are hundredths of a point." } }
+        halfDone: "First step, done for you: traders count a move in hundredths of a point."
       - id: pb-try-a3
         skill: pts-to-bp
         ask: "A rate falls from 7.5% to 7.2%. That is a fall of 0.3 points. A trader would quote the same fall as:"
@@ -510,33 +519,35 @@ checks:
           - { id: c, text: "0.3 bp: the fall left in points", mistake: { tag: stopped_at_points, fix: "That is the fall in points. Times 100 gives basis points." } }
       - id: pb-try-a4
         skill: bp-to-pts
-        ask: "A trader says a yield is up 120 bp. A newspaper would say it is up:"
+        # Round 9 (#496): the choices differ by the idea (points, or percent of the old rate), not by 1.2, 12 or 0.12.
+        ask: "3 February 1994, New York. A trader tells a reporter that a loan rate is up 120 basis points. Her newspaper, read by borrowers, would say it is up:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "1.2 points" }
-          - { id: b, text: "12 points", mistake: { tag: divided_by_10, fix: "Divide by 100, not 10: 100 bp make 1 point." } }
-          - { id: c, text: "0.12 points", mistake: { tag: divided_by_1000, fix: "Divide by 100, not 1,000: 100 bp make 1 point." } }
-        halfDone: "First step, done for you: 100 bp make 1 point, so convert by 100."
+          - { id: a, text: "1.2 percentage points" }
+          - { id: b, text: "1.2 percent", mistake: { tag: mixed_percent_points, fix: "1.2 percent would be a share of the old rate. The gap itself is in points." } }
+          - { id: c, text: "120 percent", mistake: { tag: bp_as_percent, fix: "Basis points are a gap between rates, not a share of the old rate." } }
+        halfDone: "First step, done for you: 100 basis points make 1 point."
       # Round 7 (critics MP-R6-2, MP-R6-3): as pb-try-a1, the move is a story fact, so the words tell the choices apart.
+      # Round 9 (critic C1): as pb-try-a1, the fact is in basis points, so the right choice is no echo of the stem.
       - id: pb-try-pts-2
         skill: pts
-        ask: "3 February 1994, New York. A reporter writes for savers, who earn more when rates rise. If a bank took its savings rate from 9% to 9.4%, a rise of 0.4 of a point, her story would say:"
+        ask: "3 February 1994, New York. A reporter writes for savers, who earn more when rates rise. If a bank took its savings rate from 9% to 9.4%, a rise traders call 40 basis points, her story would say:"
         kind: choice
         answer: a
         choices:
           - { id: a, text: "Savings rates rose 0.4 of a percentage point" }
           - { id: b, text: "Savings rates rose 0.4 percent", mistake: { tag: mixed_percent_points, fix: "0.4 percent is a share of the old rate. The gap between two rates is in points." } }
-          - { id: c, text: "Savings rates rose 9.4 percentage points", mistake: { tag: gave_the_new_level, fix: "9.4% is where the rate would end. Points measure the gap between the old and new rates." } }
+          - { id: c, text: "Savings rates rose 40 percent", mistake: { tag: bp_as_percent, fix: "The 40 is basis points, a gap. Percent would compare the rise with the old 9%." } }
       - id: pb-try-pts-3
         skill: pts
-        ask: "3 February 1994, New York. A radio host speaks to families paying off home loans. If a lender cut its loan rate from 6.5% to 5.9%, a fall of 0.6 of a point, she would say:"
+        ask: "3 February 1994, New York. A radio host speaks to families paying off home loans. If a lender cut its loan rate from 6.5% to 5.9%, a fall traders call 60 basis points, she would say:"
         kind: choice
         answer: a
         choices:
           - { id: a, text: "Loan rates fell 0.6 of a percentage point" }
           - { id: b, text: "Loan rates fell 0.6 percent", mistake: { tag: mixed_percent_points, fix: "0.6 percent is a share of the old rate. The gap between two rates is in points." } }
-          - { id: c, text: "Loan rates fell 5.9 percentage points", mistake: { tag: gave_the_new_level, fix: "5.9% is where the rate would end. Points measure the gap between the old and new rates." } }
+          - { id: c, text: "Loan rates fell 60 percent", mistake: { tag: bp_as_percent, fix: "The 60 is basis points, a gap. Percent would compare the fall with the old 6.5%." } }
       - { template: pb-t-bp-from-move }
       - { template: pb-t-points-from-bp }
       - { template: pb-t-bp-from-move, halfDone: true }
@@ -563,21 +574,22 @@ checks:
     quickTries:
       - id: pb-try-b1
         skill: pct-change
-        ask: "A rate goes from 2% to 3%. A headline writer measures the move against the old rate and writes that it rose:"
+        # Round 9 (critic C1): the ask no longer names the method ("against the old rate"), which the right label echoed.
+        ask: "A rate goes from 2% to 3%. That is a rise of 1 percentage point. A headline writer giving the rise as a percent would write that it rose:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "50%: the 1-point move set against the old 2%" }
+          - { id: a, text: "50%: the move set against the old rate" }
           - { id: b, text: "1%: the move in points", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 2%." } }
           - { id: c, text: "3%: the new rate", mistake: { tag: gave_the_new_level, fix: "3% is where the rate ended. The headline compares the move with the start, 2%." } }
         halfDone: "First step, done for you: the move is 1 point, on a start of 2%."
       - id: pb-try-b2
         skill: pct-change
-        ask: "A rate goes from 4% to 4.5%. A headline writer measures the move against the old rate and writes that it rose:"
+        ask: "A rate goes from 4% to 4.5%. That is a rise of half a percentage point. A headline writer giving the rise as a percent would write that it rose:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "12.5%: the half-point move set against the old 4%" }
+          - { id: a, text: "12.5%: the move set against the old rate" }
           - { id: b, text: "0.5%: the move in points", mistake: { tag: mixed_percent_points, fix: "That is the move in points. Compare it with the old rate, 4%." } }
           - { id: c, text: "4.5%: the new rate", mistake: { tag: gave_the_new_level, fix: "4.5% is where the rate ended. The headline compares the move with the start, 4%." } }
       - { template: pb-t-pct-change, halfDone: true }
@@ -604,26 +616,27 @@ checks:
     quickTries:
       - id: pb-try-b3
         skill: wording
-        ask: "A rate goes from 2% to 3%. True or false: a headline saying \"rates up 1%\" tells readers exactly which size of move it means."
+        ask: "A rate goes from 2% to 3%, a rise of 1 percentage point. True or false: a headline saying \"rates up 1%\" tells readers exactly which size of move it means."
         kind: truth
         answer: false
         halfDone: "First step, done for you: the move is 1 point, on a start of 2%."
         mistakes:
-          - { answer: true, fix: "Up 1% could mean up 1 point, or up 1% of the old 2%. Say up 1 point or up 100 bp.", tag: mixed_percent_points }
+          - { answer: true, fix: "Up 1% could mean 1 point, or 1% of the old 2%. Say up 1 point or 100 bp.", tag: mixed_percent_points }
       - id: pb-try-b4
         skill: wording
-        ask: "A rate goes from 4% to 6%, and a headline says rates rose 50%. True or false: the headline means the rate went up 50 points."
+        ask: "A rate goes from 4% to 6%, a rise of 2 percentage points, and a headline says rates rose 50%. True or false: the headline means the rate went up 50 points."
         kind: truth
         answer: false
         mistakes:
-          - { answer: true, fix: "Rose 50% compares the move with the old rate, 4%. The move itself is 2 points, or 200 bp.", tag: mixed_percent_points }
+          - { answer: true, fix: "Rose 50% compares the move with the old rate, 4%. The move itself is 2 points.", tag: mixed_percent_points }
       - id: pb-try-word-3
         skill: wording
-        ask: "A rate goes from 7% to 8%. True or false: it rose 100 basis points."
+        # Round 9 (#496): the move is a story fact in points, so the one step left is the lingo step to basis points.
+        ask: "3 February 1994, New York. If a bank took its loan rate from 7% to 8%, a rise of 1 percentage point, its borrowers would pay more. True or false: a trader would call that rise 100 basis points."
         kind: truth
         answer: true
         mistakes:
-          - { answer: false, fix: "The move is 1 point, and 1 point is 100 basis points.", tag: mixed_percent_points }
+          - { answer: false, fix: "One point is 100 basis points, so a one-point rise is 100 basis points.", tag: forgot_to_convert }
 
   # Check 4: the conversation Check, on Skills Cards 1 to 3 already teach, so it needs no Quick tries of its own.
   - id: pb-fed-language

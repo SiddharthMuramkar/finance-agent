@@ -6,6 +6,8 @@ import { checkTabNow } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
 import { isConverted, loadCourseMap, testedSkills, type FixedQuickTry } from "./map";
 import { sumAsk } from "@/teaching/no-sums";
+import { choiceSet, drawTemplate } from "@/teaching";
+import { indirectSumAsk } from "@/behaviour/tutor-eval/grading";
 import { cardForFacts, nextQuickTry } from "@/tutor/practice";
 import { courseOverview, finishStep, navigate, practiceStep, type Progress, type TeachingStep } from "./navigator";
 
@@ -78,11 +80,12 @@ describe("Percent's content-only restructure", () => {
     expect(a1.ask).toContain("3 February 1994");
     expect(a1.ask).toMatch(/\breporter\b/);
     expect(a1.ask).toMatch(/loans cost more/);
-    expect(a1.ask).toContain("a gap of half a point");
+    // Round 9 (critic C1): the gap is said in basis points, so the right choice (in points) is no echo of the stem.
+    expect(a1.ask).toContain("a rise traders call 50 basis points");
     expect(sumAsk(a1.ask)).toBeNull();
     expect(a1.halfDone).toBeDefined();
     expect(a1.halfDone).not.toMatch(/\d/);
-    expect(a1.choices!.map((c) => c.text)).toEqual(["Rates rose half a percentage point", "Rates rose half a percent", "Rates rose 3.5 percentage points"]);
+    expect(a1.choices!.map((c) => c.text)).toEqual(["Rates rose half a percentage point", "Rates rose half a percent", "Rates rose 50 percent"]);
     for (const c of a1.choices!.filter((c) => c.id !== a1.answer)) {
       expect(c.mistake?.tag).toBeTruthy();
       expect(c.mistake!.fix.split(/\s+/).length).toBeLessThanOrEqual(20);
@@ -120,13 +123,126 @@ describe("Percent's content-only restructure", () => {
       expect(item.stem).toMatch(stakes);
       expect(item.stem).toMatch(STATES_MOVE);
       expect(sumAsk(item.stem)).toBeNull();
-      expect(new Set(item.choices.map((c) => numberless(c.text).replace(/#/g, "").replace(/\s+/g, " "))).size).toBe(item.choices.length);
+      // Round 9: two wrong choices may share a word ("0.4 percent", "40 percent"); the right one shares its words with none.
+      const words = (text: string) => numberless(text).replace(/#/g, "").replace(/\s+/g, " ");
+      const rightWords = words(item.choices.find((c) => !c.mistake)!.text);
+      for (const c of item.choices.filter((c) => c.mistake)) expect(words(c.text)).not.toBe(rightWords);
       const wrong = item.choices.filter((c) => c.mistake);
       expect(wrong).toHaveLength(item.choices.length - 1);
       for (const c of wrong) {
         expect(c.mistake!.tag).toBeTruthy();
         expect(c.mistake!.fix.split(/\s+/).length).toBeLessThanOrEqual(20);
       }
+    });
+  });
+
+  // Round 9 (critic C1, issue #496): "a rise traders call 50 basis points" had the right choice "Rate up 50 basis points",
+  // and "a gap of half a point" had "half a percentage point": a Learner passed by matching words. And pb-t-points-from-move,
+  // pb-t-bp-from-move, pb-t-points-from-bp, pb-try-a2, pb-try-a4 and pb-try-word-3 needed b - a, or had choices that
+  // differed only by the scale of a number (50 / 5 / 0.5 bp). One rule for every question, Quick try and template draw.
+  describe("every question, Quick try and template draw is told apart by the idea, never by matching words or a sum (C1, #496)", () => {
+    const WORD_VALUE: Record<string, number> = {
+      half: 0.5, quarter: 0.25, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+      "twenty-five": 25, fifty: 50, sixty: 60, "seventy-five": 75, hundred: 100,
+    };
+    const NUMBER = `(?:\\d+(?:[.,]\\d+)?|\\b(?:${Object.keys(WORD_VALUE).join("|")})\\b)`;
+    /** A size: a number, maybe "a" or "of a", maybe "tenths of a", then a unit ("half a point", "0.4 of a percentage point", "60 bp", "6%"). */
+    const SIZE = new RegExp(`(${NUMBER})(?:\\s+(?:of\\s+)?an?\\b)?\\s*(?:(tenths?|hundredths?)\\s+of\\s+an?\\s+)?(percentage points?|points?|basis points?|bps?\\b|percent\\b|%)`, "gi");
+    const valueOf = (word: string) => WORD_VALUE[word.toLowerCase()] ?? Number(word.replace(",", "."));
+    /** Each size a text names, one spelling per size: "half a point" = "0.5 percentage points" = "0.5 of a point"; "60 bp" = "60 basis points". */
+    const sizesIn = (text: string) =>
+      [...text.matchAll(SIZE)].map(([, n, part, unit]) => {
+        const value = valueOf(n) * (part ? (part.startsWith("tenth") ? 0.1 : 0.01) : 1);
+        const u = /^(?:basis|bp)/i.test(unit) ? "bp" : /point/i.test(unit) ? "point" : "percent";
+        return `${Number(value.toFixed(6))} ${u}`;
+      });
+    /** A choice with its numbers taken out, so two choices that differ only by a number read the same. */
+    const ideaOf = (text: string) =>
+      text
+        .toLowerCase()
+        .replace(/%/g, " percent")
+        .replace(/[-–]/g, " ")
+        .replace(/\bbps?\b/g, "basis point")
+        .replace(new RegExp(`${NUMBER}(?:\\s+(?:of\\s+)?an?\\b)?`, "gi"), "#")
+        .replace(/\b(point|percent)s\b/g, "$1")
+        .replace(/[^a-z#]+/g, " ")
+        .trim();
+    /** The stem says the move in points or basis points, in digits ("a rise of 0.4 of a point", "half a percentage point", "120 bp"). */
+    const STATES_MOVE = /\b\d+(?:\.\d+)?\s*(?:of a )?(?:percentage points?|points?|bp|basis points)\b|\bhalf a (?:percentage )?point\b/i;
+    /** Two rates, "from 3% to 3.5%" or "6% to 9%": the move would be b - a unless the stem says it. */
+    const TWO_RATES = /\d+(?:\.\d+)?%\s+to\s+\d+(?:\.\d+)?%/;
+
+    type Item = { id: string; stem: string; choices: { text: string; right: boolean; mistake?: { tag: string; fix: string } }[] };
+    const fixedTries = percent.checks.flatMap((c) => c.quickTries.filter((q): q is FixedQuickTry => "id" in q));
+    const DRAWS = 40;
+    const items: Item[] = [
+      ...fixedTries.map((q) => {
+        const set = choiceSet(q)!;
+        return { id: q.id, stem: `${q.ask} ${q.halfDone ?? ""}`, choices: set.choices.map((c) => ({ text: c.text, right: c.id === set.answer, mistake: c.mistake })) };
+      }),
+      ...percent.questions.map((q) => ({ id: q.id, stem: q.prompt, choices: q.choices.map((c) => ({ text: c.text, right: c.id === q.answer, mistake: c.mistake })) })),
+      ...percent.templates.flatMap((t) =>
+        [false, ...(t.halfDone ? [true] : [])].flatMap((halfDone) =>
+          Array.from({ length: DRAWS }, (_, i) => {
+            const drawn = drawTemplate(t, `round9-${i}`, { halfDone });
+            const set = choiceSet(drawn)!;
+            return { id: `${drawn.id} (${drawn.prompt})`, stem: drawn.prompt, choices: set.choices.map((c) => ({ text: c.text, right: c.id === set.answer, mistake: c.mistake })) };
+          }),
+        ),
+      ),
+    ];
+    const right = (i: Item) => i.choices.find((c) => c.right)!;
+    const wrong = (i: Item) => i.choices.filter((c) => !c.right);
+
+    it("reads sizes and ideas the way the rule means", () => {
+      expect(sizesIn("a gap of half a point")).toEqual(["0.5 point"]);
+      expect(sizesIn("Rates rose half a percentage point")).toEqual(["0.5 point"]);
+      expect(sizesIn("a rise of 0.4 of a point")).toEqual(sizesIn("Savings rates rose 0.4 of a percentage point"));
+      expect(sizesIn("a rise traders call 50 basis points")).toEqual(sizesIn("Rate up 50 bp"));
+      expect(sizesIn("Six tenths of a percentage point")).toEqual(["0.6 point"]);
+      expect(ideaOf("50 bp")).toBe(ideaOf("0.5 bp"));
+      expect(ideaOf("Up 1.2 points")).toBe(ideaOf("Up 12 points"));
+      expect(ideaOf("Rates rose half a percentage point")).toBe(ideaOf("Rates rose 3.5 percentage points"));
+      expect(ideaOf("30 bp: the fall counted in hundredths of a point")).not.toBe(ideaOf("3 bp: the fall counted in tenths of a point"));
+      expect(ideaOf("Up 50 basis points")).not.toBe(ideaOf("Up 50 percent"));
+    });
+
+    it("covers every fixed Quick try, every question and both kinds of draw of every template", () => {
+      const draws = percent.templates.reduce((n, t) => n + (t.halfDone ? 2 : 1) * DRAWS, 0);
+      expect(items.length).toBe(fixedTries.length + percent.questions.length + draws);
+      for (const i of items) expect({ id: i.id, rightChoices: i.choices.filter((c) => c.right).length }).toEqual({ id: i.id, rightChoices: 1 });
+    });
+
+    it("never echoes the right choice's size in the stem: the Learner uses the idea, not the words", () => {
+      const echoes = items.flatMap((i) => {
+        const [size] = sizesIn(right(i).text);
+        return size && sizesIn(i.stem).includes(size) ? [`${i.id}: "${right(i).text}" echoes the stem`] : [];
+      });
+      expect(echoes).toEqual([]);
+    });
+
+    it("tells the right choice from every wrong one by an idea word, never by the scale of a number alone", () => {
+      const byNumber = items.flatMap((i) => wrong(i).filter((w) => ideaOf(w.text) === ideaOf(right(i).text)).map((w) => `${i.id}: "${w.text}" vs "${right(i).text}"`));
+      expect(byNumber).toEqual([]);
+    });
+
+    it("asks for no sum: no sum ask, and a stem with two rates says the move itself whenever the choices or the claim name points or basis points", () => {
+      for (const i of items) expect({ id: i.id, sum: sumAsk(i.stem) ?? indirectSumAsk(i.stem) }).toEqual({ id: i.id, sum: null });
+      const needsGap = items.filter((i) => {
+        const facts = i.stem.split(/True or false/i)[0];
+        const claim = i.stem.slice(facts.length);
+        const namesPoints = [claim, ...i.choices.map((c) => c.text)].some((t) => /\b(?:points?|bp|basis points?)\b/i.test(t));
+        return TWO_RATES.test(facts) && namesPoints && !STATES_MOVE.test(facts);
+      });
+      expect(needsGap.map((i) => i.id)).toEqual([]);
+    });
+
+    it("keeps a Known mistake with a short fix (20 words or fewer) on every wrong choice", () => {
+      for (const i of items)
+        for (const w of wrong(i)) {
+          expect({ id: i.id, choice: w.text, tag: !!w.mistake?.tag }).toEqual({ id: i.id, choice: w.text, tag: true });
+          expect({ id: i.id, choice: w.text, short: w.mistake!.fix.split(/\s+/).length <= 20 }).toEqual({ id: i.id, choice: w.text, short: true });
+        }
     });
   });
 

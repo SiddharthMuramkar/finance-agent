@@ -164,7 +164,7 @@ describe("T3: the Quick try code shows is the one the earlier turn talks about",
     const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text: textOf(events), notesAfter });
     expect(reply.alsoShown).toHaveLength(1);
     // Fill-in boxes: the half-done try on the same Skill, with new numbers (3% to 3.5%, not the 7.5% to 7.2% just missed).
-    expect(reply.alsoShown[0]).toMatch(/^a Quick try: ".*3% to 3\.5%.*First step, done for you/);
+    expect(reply.alsoShown[0]).toMatch(/^a Quick try: ".*3% rate to 3\.5%.*First step, done for you/);
     const prompt = buildGraderPrompt({ stateNote: p.stateNote, message: c.message, reply, extra: [] });
     expect(prompt).toContain("Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): a Quick try:");
   });

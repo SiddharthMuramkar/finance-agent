@@ -27,10 +27,10 @@ test.beforeEach(async ({}, info) => {
 test("the Learner at Percent's Your turn taps a wrong choice and sees its fix", async ({ page }) => {
   await study(page, "your-turn");
   const card = page.getByTestId("quick-try");
-  await expect(card).toContainText("If the Fed took its 3% rate to 3.5%, a gap of half a point, her story would say:");
+  await expect(card).toContainText("If the Fed took its 3% rate to 3.5%, a rise traders call 50 basis points, her story would say:");
   // The order is the seed's choice (it differs between Sessions), so compare the set.
   await expect(card.getByTestId("quick-try-choice")).toHaveCount(3);
-  expect((await card.getByTestId("quick-try-choice").allInnerTexts()).sort()).toEqual(["Rates rose 3.5 percentage points", "Rates rose half a percent", "Rates rose half a percentage point"]);
+  expect((await card.getByTestId("quick-try-choice").allInnerTexts()).sort()).toEqual(["Rates rose 50 percent", "Rates rose half a percent", "Rates rose half a percentage point"]);
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
   await expect(page.getByTestId("quick-try-input")).toHaveCount(0);
 
