@@ -59,14 +59,25 @@ test("Widget on 100 % of replies (scripted): 6 replies across story, concept, yo
   expect(perReply.map((names) => names.length)).toEqual([1, 1, 1, 1, 1, 1]);
 });
 
+/** The panel's own counters ("3 of 3" in the pager, "1 of 3" under a story's beats) are not the Widget's numbers. */
+const withoutCounters = (text: string) => text.replace(/\b\d+ of \d+\b/g, "");
+
 test("Widget on 100 % of replies (scripted): beside an open quiz, no Widget code adds shows the quiz's numbers", async ({ page }) => {
   await study(page, "quiz-open");
   const quizNumbers = numbersIn((await page.getByTestId("quiz").first().textContent()) ?? "");
   const added = await reply(page, "quiz-open", "Which question first?");
   expect(added.length).toBeLessThanOrEqual(1);
+  // What the Learner sees: the Widget's card, every beat of a story, without the panel's counters.
   for (const name of added) {
     await page.getByTestId("widget-chip").filter({ hasText: name }).first().click();
-    const shown = numbersIn(`${name} ${await page.getByTestId("widget-pane").innerText()}`.replace(await page.getByTestId("quiz").first().innerText().catch(() => ""), ""));
+    const card = page.getByTestId("widget-card");
+    let text = `${name} ${await card.innerText()}`;
+    const next = card.getByRole("button", { name: /Next beat/ });
+    for (let i = 0; i < 12 && (await next.count()) > 0 && (await next.isEnabled()); i++) {
+      await next.click();
+      text += ` ${await card.innerText()}`;
+    }
+    const shown = numbersIn(withoutCounters(text));
     expect([...shown].filter((n) => quizNumbers.has(n))).toEqual([]);
   }
 });
