@@ -336,6 +336,17 @@ describe("the Topic complete card", () => {
     expect(cardOf(workspace({ initial: [...closing, complete("New in Present value: Explore")] }))).toMatch(/<button[^>]*data-what-comes-next[^>]*>New in Present value: Explore →<\/button>/);
   });
 
+  // #479, spec §3.1 decision 1 (Mint = gains, "right"): the pass is marked in mint, on a tint, so the fill never carries
+  // text alone. Tokens only, so the cue holds in Light and Dark.
+  it("marks the pass in mint: a mint-tint fill, a mint border and a mint-ink Topic complete ✓ eyebrow", () => {
+    const card = cardOf(workspace({ initial: [...closing, complete("Next Topic: Bond prices")] }));
+    const open = card.match(/^<section[^>]*>/)?.[0] ?? "";
+    expect(open).toContain("bg-[var(--mint-tint)]");
+    expect(open).toContain("border-[var(--mint)]");
+    expect(open).not.toContain("border-[var(--border)]");
+    expect(card).toMatch(/<p[^>]*text-\[var\(--mint-ink\)\][^>]*>Topic complete ✓<\/p>/);
+  });
+
   it("with every Topic passed, offers only the Course Map", () => {
     const card = cardOf(workspace({ initial: [...closing, complete(null)] }));
     expect(card).not.toContain("data-what-comes-next");
