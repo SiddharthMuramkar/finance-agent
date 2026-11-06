@@ -126,8 +126,10 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
           {q.choices.map((c) => (
             <label
               key={c.id}
+              data-affordance="chip"
+              data-state={picked === c.id ? "showing" : "idle"}
               data-allow-pointer
-              className="flex items-center gap-2 py-1 text-sm leading-5"
+              className="chip mb-2 min-h-11 cursor-pointer !justify-start gap-3 !rounded-2xl !px-3 !py-2 text-left text-sm leading-5 font-normal"
             >
               <input
                 type="radio"
