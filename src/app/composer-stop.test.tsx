@@ -135,7 +135,7 @@ describe("the chat column", () => {
   });
 
   it("marks Attach a passage as a toggle", () => {
-    expect(renderToStaticMarkup(<Column />)).toMatch(/aria-pressed="false"[^>]*>(<svg.*?<\/svg>)?<span class="hidden lg:inline">Attach a passage<\/span>/);
+    expect(renderToStaticMarkup(<Column />)).toMatch(/aria-pressed="false"[^>]*>(<svg.*?<\/svg>)?<span class="hidden @md:inline">Attach a passage<\/span>/);
   });
 });
 

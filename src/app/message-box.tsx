@@ -139,7 +139,9 @@ export function MessageBox({
           />
         </div>
       )}
-      <ComposerPrimitive.Root className="measure flex gap-2">
+      {/* A size container: Attach shows its words only when the row itself is 28rem or wider, whatever the window or font,
+          so a wide fallback font (Linux Chromium) folds it to the icon before the message box gets squeezed. */}
+      <ComposerPrimitive.Root className="measure @container flex gap-2">
         <Button
           type="button"
           variant="secondary"
@@ -150,7 +152,7 @@ export function MessageBox({
           className={`shrink-0 whitespace-nowrap ${open ? "bg-[var(--brand-tint)] text-[var(--brand)]" : ""}`}
         >
           <Paperclip />
-          <span className="hidden lg:inline">{label}</span>
+          <span className="hidden @md:inline">{label}</span>
         </Button>
         <ComposerPrimitive.Input
           placeholder="Ask the Tutor"
