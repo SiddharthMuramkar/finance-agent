@@ -367,6 +367,16 @@ export function useTurnStream({
     if (runIdRef.current === run) setStopping(false);
   }
 
+  /**
+   * Starts the turn the page opens with. The browser test bed can hold it until it lets it go (`__faE2eHoldOpener`, a
+   * promise only its init script sets; e2e/reply-landed.spec.ts), as a slow CI runner does when the page hydrates after
+   * it looks quiet.
+   */
+  function startOnOpen(start: TurnBody) {
+    const held = (window as { __faE2eHoldOpener?: Promise<unknown> }).__faE2eHoldOpener;
+    return held ? held.then(() => send(start)) : send(start);
+  }
+
   // A turn cut off while the page was closed resumes as soon as the page opens; an empty Session starts its opener.
   const resumedOnOpen = useRef(false);
   useEffect(() => {
@@ -374,7 +384,7 @@ export function useTurnStream({
       pending?.status === "cut_off" ? { resume: true } : opener && shown && pending === null && initial.every((l) => l.role === "item") ? { opener: true } : null;
     if (!start || resumedOnOpen.current) return;
     resumedOnOpen.current = true;
-    void send(start);
+    void startOnOpen(start);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
