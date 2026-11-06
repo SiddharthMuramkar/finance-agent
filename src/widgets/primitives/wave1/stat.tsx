@@ -2,11 +2,14 @@
 
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
 import { z } from "zod/v4";
+import { Tag } from "@/app/primitives";
 import { formatAmount } from "./format";
 import { useChangeFlash, usePrefersReducedMotion } from "./motion";
 import { toneRule, type Tone } from "./tones";
 
-// Stat: one number, formatted properly, under the control that moves it.
+// Stat: one number, formatted properly, under the control that moves it. A "you" or "src" tone draws its rule in the mint or
+// sunflower fill and also says it in words with a static Tag, since those fills are under 3:1 in Light and colour alone may
+// not carry the meaning (issue #457, WCAG 2.2 SC 1.4.11).
 
 export const statProps = z.object({
   label: z.string(),
@@ -30,7 +33,15 @@ export function StatView({ label, value, unit, note, tone = "neutral" }: z.infer
       className="my-2 border-l-[3px] pl-3"
       style={{ borderColor: toneRule[tone] }}
     >
-      <div className="text-xs text-[var(--muted)]">{label}</div>
+      <div className="text-xs text-[var(--muted)]">
+        {label}
+        {/* A "you" Stat is often a result worked out from the Learner's inputs, so its words never call it an assumption. */}
+        {tone !== "neutral" && (
+          <Tag kind={tone} className="ml-2 align-middle">
+            {tone === "you" ? "From your inputs" : undefined}
+          </Tag>
+        )}
+      </div>
       <div
         data-testid="stat-value"
         className="text-2xl font-semibold tabular-nums"

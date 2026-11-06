@@ -1,9 +1,20 @@
 // scripts/check-theme-contrast.mjs
-// Zero-dependency guard for the two colour themes, Light and Dark. Run: node scripts/check-theme-contrast.mjs [path/to/tokens.css]
+// Zero-dependency guard for the two colour themes, Light and Dark. Run: node scripts/check-theme-contrast.mjs [path/to/tokens.css] [colour-only.json]
 // Exits 1 if any rule fails. Rules: docs/specs/2026-11-05-story-first-full-screen-google-sign-in.md, Appendix A.3.
 import { readFileSync } from 'node:fs';
 
 const CSS_PATH = process.argv[2] ?? 'src/app/globals.css'; // <-- the file that defines the :root token blocks
+
+// Fills need 3:1 against their surface only when colour ALONE carries the meaning (WCAG 2.2 SC 1.4.11; spec §4 rule 4,
+// §6.2, Appendix A.3, issue #457). A fill that is decorative, or always paired with a text label or an icon, is exempt. Each
+// [fill, surface] listed here is checked at 3:1 in both themes. The accent fills (--mint, --coral, --sun, --violet) are not
+// listed: every use is paired or decorative (the inventory in src/dev/accent-fill-uses.test.ts). The kit's chart series are
+// listed: a series' mark is needed to read the chart and a legend does not exempt it, so each series token
+// (CHART_SERIES in src/widgets/genui-theme.tsx; a test keeps the copies equal) is checked on each chart surface. A JSON
+// array of pairs as the second argument checks that list instead (the tests use it).
+const CHART_SERIES = ['brand-main', 'mint-ink', 'sun-ink', 'violet', 'coral-ink', 'edge'];
+const CHART_SURFACES = ['bg', 'field'];
+const COLOUR_ONLY = process.argv[3] ? JSON.parse(readFileSync(process.argv[3], 'utf8')) : CHART_SERIES.flatMap(f => CHART_SURFACES.map(b => [f, b]));
 
 const TOKENS = ['bg', 'field', 'bubble', 'hairline', 'border', 'edge', 'data', 'muted', 'ink',
   'brand-main', 'brand', 'brand-hover', 'brand-pressed', 'brand-deep', 'ring', 'brand-ink', 'brand-tint', 'brand-soft', 'brand-line',
@@ -109,6 +120,10 @@ for (const th of THEMES) {
     for (const [k, v] of Object.entries(th.frozen)) { const a = S(k), b = parseColor(v); check(a.r === b.r && a.g === b.g && a.b === b.b, `${th.id}: --${k} is unchanged (${v})`); }
   }
   for (const [f, b, min] of TEXT) { const r = wcag(S(f), S(b)); check(r >= min, `${th.id}: --${f} on --${b} ${r.toFixed(2)}:1 (min ${min})`); }
+  for (const [f, b] of COLOUR_ONLY) {
+    if (!TOKENS.includes(f) || !TOKENS.includes(b)) { check(false, `${th.id}: colour-only pair [${f}, ${b}] names a fill token and a surface token`); continue; }
+    const r = wcag(S(f), S(b)); check(r >= 3, `${th.id}: --${f} on --${b} ${r.toFixed(2)}:1 (min 3, colour alone carries the meaning)`);
+  }
   const L = k => oklch(S(k)).L;
   if (th.kind === 'dark') {
     const r = wcag(S('ink'), bg), lc = Math.abs(apca(S('ink'), bg));
@@ -123,6 +138,7 @@ for (const th of THEMES) {
     check(L('field') >= L('bg') && L('bg') > L('hairline') && L('hairline') > L('border'), `${th.id}: light surfaces order (field ≥ bg > hairline > border)`);
   }
 }
+out.push(`\nFills that carry meaning by colour alone: ${COLOUR_ONLY.length ? COLOUR_ONLY.map(([f, b]) => `--${f} on --${b}`).join(', ') : 'none (each use is paired with a text label or an icon, so fills are not checked; Appendix A.3)'}`);
 console.log(out.join('\n'));
 if (fails.length) { console.error(`\n${fails.length} theme rule(s) failed in ${CSS_PATH}`); process.exit(1); }
 console.log(`\nAll themes pass.`);
