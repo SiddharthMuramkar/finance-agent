@@ -148,7 +148,7 @@ questions:
 
   - id: cl-q-systemic
     prompt: >
-      When the Fed called LTCM's lenders together, its worry was bigger than one fund's losses. People call that worry "systemic risk". What does the phrase mean?
+      Picture many lenders to one fund all trying to leave at once. People call the worry that trouble spreads that way "systemic risk". What does the phrase mean?
     choices:
       - { id: a, text: "The risk that one firm's investment loses money" }
       - { id: b, text: "The risk that trouble at one firm or in one market spreads through links such as lending, shared positions and common funding to many other firms" }

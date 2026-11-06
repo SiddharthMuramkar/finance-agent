@@ -113,7 +113,7 @@ questions:
       - { id: d, text: "Both face the same worst case, since each home is as likely to claim", mistake: { tag: worst_case_is_average, fix: "Same chance per home, but in the flood year every home in Y claims together." } }
     answer: b
     explanation: >
-      Both expect the same claims on average. Fires in different towns are independent, so in a typical year about the usual number of homes burn and X's total is predictable. Y's flood is all or nothing: most years nothing, but in the flood year every home claims at once. When losses move together, pooling stops protecting the insurer, which is what happened to AIG's swaps.
+      Both expect the same claims on average. Fires in different towns are independent, so in a typical year about the usual number of homes burn and X's total is predictable. Y's flood is all or nothing: most years nothing, but in the flood year every home claims at once. When losses move together, pooling stops protecting the insurer, which is the risk the swaps carried.
     source: >
       The pooling argument rests on independent trials, OpenStax, Statistics (CC BY), 4.2: https://openstax.org/books/statistics/pages/4-2-mean-or-expected-value-and-standard-deviation
 
