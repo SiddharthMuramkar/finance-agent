@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { seed, settled } from "./support/app";
+import { hydrated, seed, settled } from "./support/app";
 
 /**
  * #317: the message row (Attach a passage, the message box, Send) stays on one line at narrow widths. At 768×1024 the
@@ -36,7 +36,10 @@ async function openStudy(page: Page, width: number, height: number, wideFont: bo
   await page.goto("/study");
   await expect(page.getByTestId("workspace-frame")).toBeVisible();
   if (wideFont) await page.addStyleTag({ content: WIDE_FONT });
-  // The story Session plays its opener on first load; Send only shows once no reply is being written.
+  // The story Session plays its opener on first load, after hydration; Send only shows once no reply is being written.
+  // Wait for the opener itself, so the row is not measured in the gap before it starts (Send then turns into Stop).
+  await hydrated(page);
+  await expect(page.getByTestId("assistant-message").first()).toBeVisible({ timeout: 30_000 });
   await settled(page);
   await expect(page.getByRole("button", { name: "Send", exact: true })).toBeVisible();
 }
