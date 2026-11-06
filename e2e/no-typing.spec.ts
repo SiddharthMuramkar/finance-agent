@@ -89,8 +89,37 @@ test("rate-move number line end labels like 3.75% and 4.75% sit inside the drawi
   const line = page.getByTestId("rate-move-line");
   await expect(line).toBeVisible();
   // The slider's new rate: 5 gives ends 3.75% and 5.25%; 4.5 gives 3.75% and 4.75%.
-  for (const [rate, ends] of [["5", ["3.75%", "5.25%"]], ["4.5", ["3.75%", "4.75%"]]] as const) {
+  // 11 gives a 6-character end (2.25% and 12.75%); 20, the top of the slider, gives 0% and 24%.
+  for (const [rate, ends] of [["5", ["3.75%", "5.25%"]], ["4.5", ["3.75%", "4.75%"]], ["11", ["2.25%", "12.75%"]], ["20", ["0%", "24%"]]] as const) {
     await page.getByRole("slider").first().fill(rate);
+    const labels = line.locator(":scope > text");
+    await expect(labels.first()).toHaveText(ends[0]);
+    await expect(labels.nth(1)).toHaveText(ends[1]);
+    const svg = (await line.boundingBox())!;
+    for (const i of [0, 1]) {
+      const box = (await labels.nth(i).boundingBox())!;
+      expect(box.x, `${ends[i]} left edge inside the SVG`).toBeGreaterThanOrEqual(svg.x);
+      expect(box.x + box.width, `${ends[i]} right edge inside the SVG`).toBeLessThanOrEqual(svg.x + svg.width);
+    }
+  }
+});
+
+// #417: 6-character ends ("10.25%") are the widest the 0-20 sliders make, and "%" is far wider than a digit. Both
+// rates move here (practice mode's play sliders), so both ends can be 6 characters at once.
+test("rate-move number line 6-character end labels like 10.25% and 21.25% sit inside the drawing, not clipped", async ({ page }) => {
+  await page.goto("/dev/widgets?fixture=rate-move-practice");
+  await page.getByTestId("rate-move-choice").filter({ hasText: "Up 1 point, or 100 bps" }).click();
+  await expect(page.getByTestId("rate-move-answer")).toHaveAttribute("data-status", "right");
+  const line = page.getByTestId("rate-move-line");
+  const cases = [
+    ["10.5", "11", ["10.25%", "11.25%"]],
+    ["15", "20", ["13.75%", "21.25%"]],
+    ["19.99", "20", ["19.74%", "20.25%"]],
+    ["0.04", "20", ["0%", "24.99%"]],
+  ] as const;
+  for (const [oldRate, newRate, ends] of cases) {
+    await page.getByLabel("Old rate").fill(oldRate);
+    await page.getByLabel("New rate").fill(newRate);
     const labels = line.locator(":scope > text");
     await expect(labels.first()).toHaveText(ends[0]);
     await expect(labels.nth(1)).toHaveText(ends[1]);
