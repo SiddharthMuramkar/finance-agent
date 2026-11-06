@@ -186,4 +186,10 @@ describe("the message row at narrow widths (#317)", () => {
   it("lets the message box shrink instead of pushing the buttons", () => {
     expect(tag(column(), /<textarea[^>]*aria-label="Message"[^>]*>/)).toContain("min-w-0");
   });
+
+  it("renders the message box one row high before the page wakes up (a bare textarea is two rows)", () => {
+    // Auto-grow sizes the box only once the page's script runs; until then the server's markup decides its height, and
+    // a textarea with no rows is two rows tall, so the row starts out twice the height of Send (CI #317, 1512×982).
+    expect(tag(column(), /<textarea[^>]*aria-label="Message"[^>]*>/)).toContain('rows="1"');
+  });
 });

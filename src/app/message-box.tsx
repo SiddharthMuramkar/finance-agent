@@ -157,6 +157,9 @@ export function MessageBox({
         <ComposerPrimitive.Input
           placeholder="Ask the Tutor"
           aria-label="Message"
+          // One row in the server's markup too: auto-grow only sets the height once the page's script runs, and a
+          // textarea with no rows is two rows tall until then (#317: CI measured the row before that).
+          rows={1}
           minRows={1}
           maxRows={6}
           className="min-w-0 flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-[15px] leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-hidden focus:ring-1 focus:ring-[var(--brand)]"
