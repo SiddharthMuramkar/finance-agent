@@ -87,6 +87,13 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain("in 60 words or fewer, say what it means for someone in the Case");
       });
 
+      // Runs 8 and 9: T14's nudge reply left "shares", "Bombay Stock Exchange" and "the starting 100" unexplained, and ran past 80 words.
+      it("gloss every market word of a nudge reply in its own sentence, name no number it has not set up, and cut history first (T14)", () => {
+        expect(text).toContain('Give each market word from the Case its plain meaning in the same sentence ("the Sensex, a score for 30 big Indian companies")');
+        expect(text).toContain('never "the starting 100" unless a sentence before it says the score began at 100');
+        expect(text).toContain("To stay within the limit, cut a date or a history line, never a meaning.");
+      });
+
       it("write the reply once, after any tool calls (T12)", () => {
         expect(text).toContain("Call suggest_choice before you write, and write the reply once, after your tool calls.");
       });
