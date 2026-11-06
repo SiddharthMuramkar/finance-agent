@@ -6,7 +6,7 @@ import { IconButton, MenuItem, MenuLink, useMenu } from "./primitives";
  * The header's account menu (A5): a round 36px button with the Learner's initial on the soft brand surface, opening a
  * menu with the Learner's name, their email when there is one, Settings and Sign out (the same plain form post to
  * /api/logout as SignOutButton, drawn as a menu row so the arrows reach it). Email is empty until C1b supplies it.
- * The keyboard works like the Theme menu's, through useMenu in primitives.
+ * In Dark the soft face is nearly the deep label's colour (1.3:1), so the label switches to --brand (about 6:1). The keyboard works like the Theme menu's, through useMenu in primitives.
  */
 export function AccountMenu({ name, email }: { name: string; email?: string }) {
   const { open, setOpen, toggleRef, rootRef, menuRef, menuId, onMenuKeyDown, onToggleKeyDown } = useMenu();
@@ -22,7 +22,7 @@ export function AccountMenu({ name, email }: { name: string; email?: string }) {
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onToggleKeyDown}
         data-testid="account-menu-button"
-        className="[--face:var(--brand-soft)] [--label:var(--brand-deep)] [--rim:var(--brand-deep)] [--lip-colour:var(--brand-deep)] text-sm"
+        className="[--face:var(--brand-soft)] [--label:var(--brand-deep)] [.dark_&]:[--label:var(--brand)] [--rim:var(--brand-deep)] [--lip-colour:var(--brand-deep)] text-sm"
       >
         <span aria-hidden="true">{initial}</span>
       </IconButton>

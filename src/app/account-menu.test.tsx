@@ -45,6 +45,11 @@ describe("account menu", () => {
     expect(menu()).toBeNull();
   });
 
+  it("switches the initial to the readable brand colour in Dark (the deep label on the soft face is 1.3:1 there)", async () => {
+    await mount({ name: "Asha" });
+    expect(button().className).toContain("[.dark_&]:[--label:var(--brand)]");
+  });
+
   it("Enter opens it, on Settings first; it shows the name and, when given, the email", async () => {
     await mount({ name: "Asha Rao", email: "asha@example.com" });
     button().focus();
