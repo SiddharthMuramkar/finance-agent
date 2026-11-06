@@ -150,7 +150,7 @@ const templateSchema = z.object({
   decimals: z.number().int().min(0),
   sign: z.enum(SIGN_RULES),
   label: z.string().trim().min(1).optional(),
-  mistakes: z.array(z.object({ tag: mistakeFn, fix: z.string().trim().min(1) })).default([]),
+  mistakes: z.array(z.object({ tag: mistakeFn, fix: z.string().trim().min(1), label: z.string().trim().min(1).optional() })).default([]),
   halfDone: z.object({ shows: z.string().trim().min(1), asks: answerFn }).optional(),
   avoid: z.array(z.number()).optional(),
 });

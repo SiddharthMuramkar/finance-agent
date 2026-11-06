@@ -69,7 +69,8 @@ interface NumberItem {
   sign: SignRule;
   decimals: number;
   label?: string;
-  mistakes: { value: Exact; tag: string; fix: string }[];
+  /** A mistake's own `label` pattern names its idea ("{value}: 100 over the rate"); the item's label when left out. */
+  mistakes: { value: Exact; tag: string; fix: string; label?: string }[];
 }
 
 function numberItem(item: FixedItem | DrawnItem): NumberItem | null {
@@ -85,11 +86,11 @@ function numberItem(item: FixedItem | DrawnItem): NumberItem | null {
 }
 
 /** A value as the Learner reads it: in the item's unit, a fall under the either rule written "(a fall)", and the label pattern around it. */
-function labelOf(n: NumberItem, value: Exact): string {
+function labelOf(n: NumberItem, value: Exact, pattern = n.label): string {
   const fall = isNegative(value) && n.sign !== "signed";
   const size = formatExact(fall ? absolute(value) : value, n.unit);
   const text = fall && n.sign === "either" ? `${size} (a fall)` : size;
-  return n.label ? n.label.replace("{value}", text) : text;
+  return pattern ? pattern.replace("{value}", text) : text;
 }
 
 function numberChoices(n: NumberItem): ChoiceSet {
@@ -98,7 +99,7 @@ function numberChoices(n: NumberItem): ChoiceSet {
   const seen = new Set([answerId, choices[0].text]);
   for (const m of n.mistakes) {
     const id = plainExact(m.value);
-    const text = labelOf(n, m.value);
+    const text = labelOf(n, m.value, m.label ?? n.label);
     if (sameAnswer(m.value, n.answer, n.sign, n.decimals) || seen.has(id) || seen.has(text)) continue;
     if (choices.length >= MAX_CHOICES) break;
     seen.add(id);
