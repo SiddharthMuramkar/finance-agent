@@ -33,8 +33,8 @@ describe("the rules tuned against the live tests", () => {
         expect(text).toContain("After a wrong answer, in 60 words or fewer: name the slip in one sentence");
         expect(text).toContain("even when code has already shown a fix; only a short acknowledgement may come before it.");
         expect(text).toContain("Then one similar item with new numbers");
-        expect(text).toContain("Fill-in boxes leave the last box blank for the Learner: boxes you fill in are a worked example.");
-        expect(text).toContain("The blank box is the reply's one ask, not a practice question of your own.");
+        // D1a: the boxes rung is now code's half-done choice, so the Tutor names the slip and asks nothing of its own there.
+        expect(text).toContain("At a half-done choice, code posts the half-done try after your reply: name the slip in one sentence and write no question of your own.");
       });
 
       it("simpler means the first idea only, with nothing new, and an open question asked again rather than answered", () => {
@@ -81,10 +81,11 @@ describe("the rules tuned against the live tests", () => {
     expect(tool.description).toContain("whenever they state a correct rule in their own words. Call it before you write your reply, and let code check the rest");
   });
 
-  it("the repeat-miss example sets fill-in boxes on new numbers, with Box 2 a choice of two readings as its ask", () => {
-    const boxes = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
-    expect(boxes.reply).not.toContain("7.5%");
-    expect(boxes.reply.split("\n").at(-1)).toBe("Box 2: in basis points, is that 4 bp or 40 bp?");
+  it("the repeat-miss example, at the half-done choice, names the slip in one sentence and leaves the ask to code's half-done try (F2-C1)", () => {
+    const halfDone = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
+    expect(halfDone.situation).toContain("method a half-done choice;");
+    expect(halfDone.reply).not.toContain("7.5%");
+    expect(halfDone.reply).toBe("0.3 is the move in points; basis points need one more step, times 100.");
   });
 
   it("the start-from-the-beginning example says what a savings rate is, inside its one worked example", () => {
