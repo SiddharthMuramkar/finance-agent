@@ -836,6 +836,7 @@ body {
   .story-toggle[aria-expanded="true"],
   .chip[data-state="showing"],
   .chip[aria-current="page"],
+  .btn[aria-current="true"],
   .btn-icon[aria-pressed="true"] {
     --face: var(--brand-tint);
     --label: var(--brand);

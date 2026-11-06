@@ -189,9 +189,11 @@ describe("the filmstrip (E5)", () => {
       expect(img?.getAttribute("width")).toBe("24");
       expect(img?.getAttribute("src")).toMatch(/^\/emoji\/.+\.webp$/);
     }
-    // The brand ring is an outline: a Tailwind ring is a box-shadow that would replace the .btn lip and drop shadow.
-    expect(list[2].className).toMatch(/\boutline-\[var\(--ring\)\]/);
+    // The current thumbnail takes the B.2 showing look from `.btn[aria-current="true"]` in globals.css (brand-tint
+    // face, brand rim and lip). No Tailwind ring (a box-shadow that would replace the lip) and no outline: the
+    // 2px --ring outline is the focus mark, and ← and → move focus without selecting (F2-PM-1).
     expect(list[2].className).not.toMatch(/\bring-/);
+    expect(list[2].className).not.toMatch(/\boutline-/);
   });
 
   it("pressing thumbnail 1 shows Widget 1 and Back to latest; Back to latest returns to the newest", async () => {
