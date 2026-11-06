@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { TopicOverview } from "@/course/navigator";
-import { CourseMapView, ProgressView } from "./course-map-view";
+import { CourseMapView } from "./course-map-view";
 
 const topic = (t: Partial<TopicOverview> & Pick<TopicOverview, "id" | "title">): TopicOverview => ({
   stage: "foundation",
@@ -51,6 +51,13 @@ describe("the Course Map page", () => {
     expect(html.match(/data-recommended-next/g)).toHaveLength(1);
   });
 
+  it("lays the Recommended next card and the off-path card side by side, and marks a todo Topic with a dot, not a ring", () => {
+    const html = render();
+    expect(html).toMatch(/<div class="[^"]*md:grid-cols-2[^"]*"><div data-recommended-next/);
+    expect(html).toMatch(/data-dot="todo"[^>]*class="[^"]*bg-\[var\(--brand-line\)\]/);
+    expect(html).not.toMatch(/data-dot="todo"[^>]*border-2/);
+  });
+
   it("has no Recommended next card once every Topic is passed", () => {
     expect(render({ recommended: null })).not.toContain("data-recommended-next");
   });
@@ -89,17 +96,13 @@ describe("the Course Map page", () => {
     expect(bonds).toMatch(/Do first: (<span>)?<a [^>]*data-jump="pv"[^>]*>Present value<\/a>/);
   });
 
-  it("shows Check pills only for Topics the Learner has started", () => {
-    const html = render();
-    expect(row(html, "pv").match(/data-check=/g)).toHaveLength(2);
-    expect(row(html, "statements")).not.toContain("data-check=");
-    expect(row(html, "compounding")).toContain("data-check=");
-    expect(html).toContain("You are here");
+  it("marks the Learner's place", () => {
+    expect(render()).toContain("You are here");
   });
 
   it("shows Passed ✓ on a passed row, which opens the Topic's Session read-only", () => {
     const compounding = row(render(), "compounding");
-    expect(compounding).toContain("Passed ✓");
+    expect(compounding).toContain(">Passed</span>");
     expect(compounding).toMatch(/<a [^>]*href="\/sessions\/41"/);
     expect(compounding).not.toContain("data-jump");
   });
@@ -118,7 +121,7 @@ describe("the Course Map page", () => {
 describe("the in-progress status wording", () => {
   it("reads as a phrase, not 'at the your turn step'", () => {
     const html = render({ topics: topics.map((t) => (t.status === "in_progress" ? { ...t, step: "your_turn" as const } : t)) });
-    expect(html).toContain("In progress · Teaching Step: your turn");
+    expect(html).toContain("Teaching Step: your turn");
     expect(html).not.toContain("at the");
   });
 });
@@ -136,45 +139,51 @@ describe("Topics not written yet", () => {
   });
 });
 
-describe("the progress view", () => {
-  const progressTopics = [topics[0], topics[1], topics[3]];
-  it("shows each Topic's status as not started, in progress or passed, with Checks passed", () => {
-    const html = renderToStaticMarkup(<ProgressView topics={topics.slice(0, 3)} />);
-    const rows = [...html.matchAll(/data-status="([^"]+)"[^>]*>([^<]*)</g)].map((m) => [m[1], m[2]]);
-    expect(rows).toEqual([
-      ["passed", "Passed"],
-      ["in_progress", "In progress"],
-      ["not_started", "Not started"],
-    ]);
-    expect(html).toContain("1 of 2");
-  });
-
-  it("has a title and a summary of where the Learner stands, with Next from What comes next", () => {
-    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next="Bond prices" />);
-    expect(html).toMatch(/<h1[^>]*>Progress<\/h1>/);
-    expect(html).toContain("1 in progress · 1 passed · Next: Bond prices");
+describe("the Course Map shows progress", () => {
+  it("has the title Course Map and a summary of where the Learner stands, with Next from What comes next", () => {
+    const html = render();
+    expect(html).toMatch(/<h1[^>]*>Course Map<\/h1>/);
+    expect(html).toMatch(/data-progress-summary[^>]*>1 in progress · 1 passed · 4 to go · Next: Present value</);
   });
 
   it("leaves Next out of the summary when nothing comes next", () => {
-    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next={null} />);
-    expect(html).toContain("1 in progress · 1 passed");
+    const html = render({ recommended: null });
+    expect(html).toMatch(/data-progress-summary[^>]*>1 in progress · 1 passed · 4 to go</);
     expect(html).not.toContain("Next:");
   });
 
-  it("links every row to its Topic: choosing it opens that Topic in the Study Workspace", () => {
-    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next="Bond prices" />);
-    const rows = [...html.matchAll(/<form[^>]*action="\/api\/open"[^>]*>.*?name="topic" value="([^"]+)".*?<button[^>]*>([^<]*)<\/button>/g)].map((m) => [m[1], m[2]]);
-    expect(rows).toEqual([
-      ["compounding", "Compounding"],
-      ["pv", "Present value"],
-      ["bonds", "Bond prices"],
-    ]);
-    expect(html).toMatch(/<form[^>]*method="post"/);
+  it("shows Checks passed as 'n of m' with one bar segment per Check, passed ones filled", () => {
+    const pv = row(render(), "pv");
+    expect(pv).toContain("1 of 2");
+    expect(pv.match(/data-segment="filled"/g)).toHaveLength(1);
+    expect(pv.match(/data-segment="empty"/g)).toHaveLength(1);
+    expect(pv).toContain("bg-[var(--mint)]");
+    expect(pv).toContain("bg-[var(--hairline)]");
+    const three = topics.map((t) => (t.id === "pv" ? { ...t, checks: [...t.checks, { id: "pv-3", passed: true, here: false }] } : t));
+    const html = row(render({ topics: three }), "pv");
+    expect(html).toContain("2 of 3");
+    expect(html.match(/data-segment="filled"/g)).toHaveLength(2);
   });
 
-  it("has no About you link (About you lives in Settings)", () => {
-    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next="Bond prices" />);
-    expect(html).not.toContain("About you");
-    expect(html).not.toContain("/profile");
+  it("shows each Topic's status as a static Tag, never a button", () => {
+    const html = render();
+    for (const [id, words] of [["compounding", "Passed"], ["pv", "In progress"], ["statements", "Not started"]] as const) {
+      expect(row(html, id)).toContain(`<span data-affordance="tag"`);
+      expect(row(html, id)).toMatch(new RegExp(`data-affordance="tag"[^>]*>${words}</span>`));
+    }
+  });
+
+  it("shows 'n of m passed' on a group header", () => {
+    const many = Array.from({ length: 6 }, (_, i) => topic({ id: `m${i}`, title: `Topic ${i}`, subject: "Bonds & credit", status: i < 4 ? "passed" : "not_started" }));
+    expect(render({ topics: many, recommended: null })).toContain("4 of 6 passed");
+  });
+
+  it("lays each group's Topics out as a card grid", () => {
+    expect(render()).toMatch(/<ol class="[^"]*card-grid/);
+  });
+
+  it("no longer exports the Progress view", async () => {
+    const mod: Record<string, unknown> = await import("./course-map-view");
+    expect(mod.ProgressView).toBeUndefined();
   });
 });

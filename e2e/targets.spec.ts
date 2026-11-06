@@ -66,7 +66,6 @@ test("[A5] the header has a gear with the name Settings and no Settings text lin
 });
 
 test("[B1] old page redirects: GET /progress answers 308 to /course", async ({ page }) => {
-  test.fail(true, "[B1] Course Map shows progress");
   await seed(page, "many-topics");
   const response = await page.request.get("/progress", { maxRedirects: 0 });
   expect(response.status()).toBe(308);
