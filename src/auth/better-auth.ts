@@ -2,9 +2,11 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth, type BetterAuthOptions, type User } from "better-auth";
 import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
+import { testUtils } from "better-auth/plugins";
 import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
 import type { Db } from "@/db/types";
+import { e2eEnabled } from "@/dev/e2e-mode";
 import { isInvited, signupOpen } from "./invites";
 
 // Google sign-in through Better Auth (ADR 0011, spec 2026-11-05 C1a). Off unless both BETTER_AUTH_SECRET
@@ -57,7 +59,8 @@ export function authOptions(db: Db, env: Env) {
     databaseHooks: { user: { create: { before: inviteGate(db) } } },
     onAPIError: { errorURL: "/login" },
     // Rate limit: Better Auth's in-memory default, enough for about twenty invited people (ADR 0011).
-    plugins: [nextCookies()], // nextCookies stays last
+    // The test bed's helpers exist only under e2eEnabled (never production, never Vercel); src/auth/no-test-utils.test.ts pins this.
+    plugins: [...(e2eEnabled(env) ? [testUtils()] : []), nextCookies()], // nextCookies stays last
   } satisfies BetterAuthOptions;
 }
 

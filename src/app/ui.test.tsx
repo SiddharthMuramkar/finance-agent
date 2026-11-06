@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PREF, type ThemePref } from "./theme";
-import { AppHeader, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
+import { AppHeader, Card, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
 
 const LIGHT: ThemePref = { mode: "single", theme: "light" };
 
@@ -22,6 +22,26 @@ describe("ReadingPage", () => {
       expect(html).toContain("Study Workspace");
     }
     expect(new Set(pages.map((h) => h.match(/<main[^>]*>/)![0])).size).toBe(1);
+  });
+});
+
+describe("AppHeader density (A2)", () => {
+  it("header is h-[var(--header-h)] and has no bottom margin", () => {
+    const header = renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />).match(/<header[^>]*>/)![0];
+    expect(header).toContain("h-[var(--header-h)]");
+    expect(header).not.toMatch(/\bmb-\d/);
+    const page = renderToStaticMarkup(
+      <ReadingPage current="course" theme={LIGHT}>
+        <p>content</p>
+      </ReadingPage>,
+    );
+    expect(page.match(/<header[^>]*>/)![0]).not.toMatch(/\bmb-\d/);
+  });
+
+  it("Card has p-3", () => {
+    const html = renderToStaticMarkup(<Card>x</Card>);
+    expect(html).toMatch(/<section[^>]*\bp-3\b/);
+    expect(html).not.toMatch(/\bp-4\b/);
   });
 });
 
@@ -78,14 +98,14 @@ describe("AppHeader", () => {
     expect(html).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
   });
 
-  it("has a Home brand link with a hover shape and the title Home", () => {
+  it("has a Home brand link drawn as a raised nav pill, with the title Home", () => {
     const html = renderToStaticMarkup(<AppHeader current="workspace" theme={LIGHT} />);
-    expect(html).toMatch(/<a title="Home"[^>]*hover:bg-\[var\(--hairline\)\][^>]*href="\/"/);
+    expect(html).toMatch(/<a title="Home" data-affordance="nav" class="chip[^"]*" href="\/"/);
   });
 
-  it("draws the page links as pills, the current one filled, each with a pending dot", () => {
+  it("draws the page links as raised chips, the current one marked, each with a pending dot", () => {
     const html = renderToStaticMarkup(<AppHeader current="notes" theme={LIGHT} />);
-    expect(html.match(/rounded-full/g)?.length).toBeGreaterThanOrEqual(6);
+    expect(html.match(/data-affordance="nav" class="chip /g)).toHaveLength(7);
     expect(html.match(/data-\[link-pending=true\]/g)).toHaveLength(6);
     expect(html).toMatch(/aria-current="page"[^>]*href="\/notes"/);
     expect(html).not.toContain("underline");

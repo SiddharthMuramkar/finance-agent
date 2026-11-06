@@ -1903,7 +1903,7 @@ either way.
 it breaks. The reply is its text, its last line (the ask, when that line asks a question or says what to do), the
 Widgets it showed and any rule it saved to the Topic Note. The turn's context is the Teaching Step, the Reply kind,
 the Topic's example currency and its Cases' currencies, the open quiz's questions with their answers, and the ids the
-Learner must never read. The seven checks are:
+Learner must never read. The eight checks are:
 
 - V1: the message and the ask together are within the cap. The cap is 80 words at Concept, Your turn and Check, and
   120 for a worked example, a Go deeper reply and every other step (`capFor`). Words are counted the way the Learner
@@ -1923,6 +1923,11 @@ Learner must never read. The seven checks are:
   Go deeper, Show me in a widget, Quick try and Concept card stay allowed.
 - V7: a dollar amount (or a "$" in a Widget's labels) only when the Topic's examples or a Case are in dollars, and a
   rupee amount only when they or a Case are in rupees.
+- V8 (spec 2026-11-05, D3a): no sum asked of the Learner. `sumAsk` (`src/teaching/no-sums.ts`, the one shared
+  detector) runs on every prose line that ends in "?" and on the ask line; statements are not checked, so "1 point
+  times 100 is 100 bp." stays allowed while "0.4 times 100 is how many basis points?" fails. It costs one retry, like
+  V2; if the retry still asks a sum, the fallback (`trimmedFallback`) drops the flagged lines and the Choices carry
+  the next move.
 
 `fixReply` makes the fixes that cost no retry first (emoji and arrows out, headings flattened, only the first bold
 span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line
@@ -2395,7 +2400,7 @@ opener.
   Learner on, so its divider follows the "Check 2 — passed ✓" card in the same transaction ("Step 8 of 9 ·
   Reveal"). A step reached outside a turn (a quiz pass, or a Due Check reopening a passed Topic) has its
   divider stored by whichever turn teaches it first: the Learner's Next stores it with the move, and a
-  typed message or help chip stores it right after the Learner's message, before the reply, and streams it
+  typed message or Choice stores it right after the Learner's message, before the reply, and streams it
   as an item. So every step the Topic bar marks done has a divider to scroll back to.
 - **Drawn in place.** `loadThread` is `loadSession`'s lines with each item placed after the message it
   follows. An item that falls inside a reply (the Tutor gave feedback, finished the step, then began
@@ -2458,7 +2463,7 @@ is skipped. The old Session page draws the divider between the parts too.
   answers 409 with the reason, which the page shows in place of the reply. A taken one streams the
   divider first, then runs the turn from the note, so the reply that teaches the step follows the line.
 - **Just tell me** is not a Next: it posts "Just tell me." as the Learner's own message, and the Tutor
-  records it as asking to be told (code holds that; see "Help chips, and which messages count as Insight attempts").
+  records it as asking to be told (code holds that; see "Choices under every reply, and which messages count as Insight attempts").
 - **Steps not yet begun.** A step reached outside a Tutor turn has not begun (`stepBegun`): the step a
   quiz pass moved the Learner to, until a turn tells the Tutor of that pass, and the first step of a Due
   Check run, until its "New Check" divider is stored. Its chip names that step ("Next: Concept →" for
@@ -2520,7 +2525,7 @@ this Topic at Principle, and no Continue above the chat.
   its note on Retry, never "Continue.". A turn from before the change that saved "Continue." (or nothing)
   is sent the Finish note instead, so "Continue." is never stored again by any path.
 - **Never an Insight attempt.** Finish this reply's note is code-written, so `record_insight_attempt`
-  refuses it like every note code wrote, and an old "Continue." too (see "Help chips, and which messages
+  refuses it like every note code wrote, and an old "Continue." too (see "Choices under every reply, and which messages
   count as Insight attempts").
 - **What the Tutor is told.** The instructions, the Insight tool's description, the Course Navigator's
   explore context and the cut-short notice no longer say Continue; they say a turn code started from a
@@ -2559,51 +2564,69 @@ Continue. `explore.test.ts`: Finish this reply is never an Insight attempt. In t
 `learner-moves.test.ts`: the test tools' moves are the opener, Finish this reply, Next (re-pressed on the
 step a refusal names) or a message, and never Continue.
 
-## Help chips, and which messages count as Insight attempts (`src/tutor/chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-status.ts`, `record_insight_attempt` in `tools.ts`, spec #119, ticket #135; Go deeper from spec #229, ticket #233)
+## Choices under every reply, and which messages count as Insight attempts (`src/tutor/choices.ts`, `reply-choices.ts`, `chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-stream.ts`, `turn-status.ts`, `suggest_choice` and `record_insight_attempt` in `tools.ts`; spec #119, ticket #135; Go deeper from spec #229, ticket #233; Choices from spec 2026-11-05, ticket D3a #340, ADR 0010)
 
 **What it does.**
-- **Two help chips** sit beside Next under the latest Tutor reply or card: **Go deeper** and **Show me in
-  a widget**. Go deeper replaced "Explain that more simply" (spec #229), because the Tutor's first
-  explanation is now the simple one, so the help a Learner asks for is one more layer, not a simpler one. They follow the Next chip's rules for where they stand (never under an
-  older reply or the Learner's own message, not during a turn, a refresh, with Retry on offer, or on a
-  passed Topic), with one difference: while a quiz or conversation Check is open Next is hidden but the
-  two help chips stay, so a Learner who is stuck can always ask for help in another form.
-- **Pressing one** posts its words ("Go deeper.", "Show me in a widget.") as the
-  Learner's own message, drawn as their bubble, and the Tutor answers it as an ordinary turn. The words
-  of every chip, Just tell me included, live in one small module (`chips.ts`) that both the page and the
-  Tutor Turn read. A turn whose input is exactly a chip's words has the kind **chip** (`turnKind`), read
-  off the saved input like the opener's and Next's prefixes, so Retry re-runs it as a chip.
-- **Old chip words.** No chip sends "Explain that more simply." any more, but old Sessions hold it. It stays in
-  `OLD_CHIP_MESSAGES`, part of the chip words, so those turns still read as chip turns: Retry re-runs them as
-  chips and they never count as an Insight attempt.
-- **Which messages can count as an Insight attempt.** Only words the Learner typed. The Insight tool
-  refuses, with no row stored: an old "Continue." (from before Finish this reply), any note code wrote
-  (every prefix in `CODE_WRITTEN_PREFIXES`: the opener's, Next's, Finish this reply's and the quiz
-  follow-up's; widget report notes join that list when their ticket adds them), and the two help chips. "Just
-  tell me." is a chip that counts only as asking to be told: whatever outcome the Tutor reports for it,
-  code records `asked_to_be_told`, so the Insight is told at once and it is never a not-yet. The order
-  of ADR 0001 (hint one, hint two, then the Insight) is unchanged, because only typed not-yets move it.
+- **Two or three Choices** sit under Next below the latest Tutor reply or card: small raised secondary buttons
+  (`size="sm"`) in a group labelled "Choices", each with a decorative emoji (`<Emoji alt="">`) before its words. Next
+  keeps its own row above them at full size, so it reads as the main move and the Choices as other ways in (the
+  affordance critic's AFF-1: one shared style and one wrapping row made them look like peers). Pressing any of them
+  spins that one, keeps its words, and holds the rest disabled until the turn takes them away. They replaced the two help chips (Go deeper and Show me in
+  a widget). They follow the Next chip's rules for where they stand (never under an older reply or the Learner's own
+  message, not during a turn, a refresh, with Retry on offer, or on a passed Topic), with one difference: while a quiz
+  or conversation Check is open Next is hidden but the Choices stay, so a Learner who is stuck can always ask in
+  another form. Typing stays open.
+- **Who picks them.** Code, in `choicesFor(step, suggestion, lastPressed)`, a pure module. Each Teaching Step has a set
+  of three from six (What happened next?, Show me, What does that word mean?, How does this touch my life?, Quiz me,
+  Go deeper): story gives next, word, life; concept and explore give show, word, deeper; your turn gives quiz, show,
+  word; Check gives word, show, deeper (never Quiz me while a quiz is open); reveal gives next, life, deeper;
+  principle gives life, quiz, deeper. The Tutor may suggest one with the optional `suggest_choice` tool (it answers
+  "Noted."). A valid suggestion (6 words or fewer, no emoji, no sum by `sumAsk`, not a copy of a set label) goes
+  first, with the registry's best keyword emoji or a speech balloon; a bad one is dropped and the drop is recorded in
+  the turn's usage (`droppedChoice`). The Choice pressed last turn is skipped, and the list is capped at three, so
+  there are always two or three. The tool is optional because a forced tool call is refused on Opus 5.5 (ADR 0008),
+  and it is frozen into new Sessions only (ADR 0005).
+- **Stored with the reply.** After the checked reply (or its fallback) the Tutor Turn saves a `reply_choices` session
+  item, `{ choices: [{ id, label, says, emoji }] }`, through `saveItemAfterLatest`, and streams it; the page places it
+  after the reply rather than opening a new part (`turn-stream.ts`). A reload draws the same Choices. A reply or card
+  with none stored (an older Session, a card on its own) gets code's own set for where the Learner is. No migration.
+- **Pressing one** posts `{ choice: <index> }`. The server resolves the words (`says`) from the latest stored item and
+  posts them as the Learner's own message, drawn as their bubble; an index no longer on offer gets a plain
+  not-allowed note. The words of every chip, Just tell me and code's Choices included, live in `chips.ts`, which both
+  the page and the Tutor Turn read. A turn whose input is exactly a chip's words has the kind **chip** (`turnKind`),
+  so Retry re-runs it as a chip. A Tutor's suggested Choice has its own words, so `isChoicePress` checks the input
+  against the Choices stored before the turn.
+- **Old chip words.** No chip sends "Explain that more simply." or "Show me in a widget." any more, but old Sessions
+  hold them. They stay in `OLD_CHIP_MESSAGES`, part of the chip words, so those turns still read as chip turns.
+- **Which messages can count as an Insight attempt.** Only words the Learner typed. The Insight tool refuses, with no
+  row stored: an old "Continue." (from before Finish this reply), any note code wrote (every prefix in
+  `CODE_WRITTEN_PREFIXES`), any chip's words and any press of a stored Choice. "Just tell me." is a chip that counts
+  only as asking to be told: whatever outcome the Tutor reports for it, code records `asked_to_be_told`. The order of
+  ADR 0001 (hint one, hint two, then the Insight) is unchanged, because only typed not-yets move it.
 
-**Scenario.** At the Explore of Present value the Learner reads the question and presses "Go deeper".
-Their bubble reads "Go deeper." and the Tutor adds one more layer to the question. If the Tutor then
-tried to record that as a not-yet, code refuses it and no hint is released, so the Learner's first typed
-guess still gets hint 1. Later, mid-quiz, the chips "Go deeper" and "Show me in a widget" still sit under
-the last reply, though Next does not. A Session from last month, where they pressed "Explain that more
-simply", still shows that bubble, and that turn is still a chip turn.
+**Scenario.** At the Concept step of Percent the Tutor explains basis points and calls `suggest_choice("Who were the
+traders?")`. Under the reply the Learner sees "Who were the traders?", "Show me" and "What does that word mean?",
+each with its emoji. They tap "What does that word mean?": the page sends `{ choice: 2 }`, their bubble reads "What
+does that word mean?", and the Tutor answers. Under that reply the Choices are "Show me" and "Go deeper", since the one
+just pressed is skipped. At the Explore the same press is never recorded as a not-yet, so the Learner's first typed
+guess still gets hint 1. A Session from last month, where they pressed "Show me in a widget", still shows that bubble
+as a chip turn.
 
-**Trade-off.** The chip kind is worked out from the exact words, with no column (this ticket adds no
-migration), so a Learner who types exactly "Show me in a widget." is treated as having pressed the chip.
-Keeping the old words in the list means a Learner who types exactly "Explain that more simply." today is
-treated the same way, which is the price of old Sessions reading correctly.
-That is harmless: the words ask for help, not an answer. A Tutor that ignores the refusal can still
-write a hint in prose, but nothing is stored and the hint count does not move.
+**Trade-off.** The chip kind is worked out from the exact words, with no column, so a Learner who types exactly
+"Show me." is treated as having pressed the Choice. That is harmless: the words ask for help, not an answer. The
+Choices are code's, not the Tutor's, so they are sometimes less apt than a hand-written follow-up; the Tutor's one
+suggestion is the room for that, and it is checked like a reply. A Tutor that ignores "never write Choices in your
+reply" still gets the same buttons under it; only the reply checks and the Delight eval can catch a written menu.
 
-**How it is tested.** At the Tutor Turn seam (`explore.test.ts`, scripted client on in-memory
-Postgres): each help chip is sent as the Learner's message, its turn kind is chip and its attempt is
-refused, while a typed answer after it still counts as hint 1; an opener's note is refused; "Just tell
-me." reported as not-yet is stored as asked to be told and tells the Insight. In the workspace render
-(`workspace.test.tsx`): both chips under the latest reply only, beside and after Next, staying with no
-Next while a quiz or conversation Check is open, and gone on a passed Topic.
+**How it is tested.** `choices.test.ts` (S3): every step's set, a valid suggestion first, a 9-word or sum-asking
+suggestion dropped, the last press skipped, no Quiz me at a Check. `choices-turn.test.ts` (S2, scripted client on
+PGlite): a reply that calls `suggest_choice` stores three Choices with that label first; a reply without it stores
+the step's three; `{ choice: 0 }` runs a chip turn whose Learner message is the stored words; at Explore it makes no
+`insight_attempts` row. `explore.test.ts`: each chip's words are refused as an attempt. `chips-pending.test.tsx` and
+`workspace.test.tsx` (S4): two or three Choice buttons with a decorative `<img alt="">`, no Show me in a widget,
+under the latest reply only, staying with no Next while a Check is open. `e2e/choices.spec.ts` (S1): after each of
+five scripted replies two or three Choices show; at Concept one is "What does that word mean?", tapping it posts
+`{ choice }` and its words appear; the message box still sends typed text.
 
 ## Coming back: Picking up where you left off, read-only passed Topics and Due Checks (`src/tutor/coming-back.ts`, `turn.ts`, `src/app/study/page.tsx`, `session-item-view.tsx`, `left-column.tsx`, `_landing/landing.tsx`, spec #119, ticket #136)
 
@@ -2793,37 +2816,15 @@ reply opens with a small navy "Tutor", then "Present value is **today's worth** 
 of blue), but the Tutor has to bold sparingly for the navy to mean "key term". The "never lesson" rule is
 held by tests on the screens we render, not by a site-wide scan, so a new screen needs its own check.
 
-## Past Sessions (`src/app/sessions/`, `src/app/past-sessions.tsx`, `old-session.tsx`, `src/tutor/past-sessions.ts`)
+## Notebook (`src/app/notebook/`, `src/learner/notebook.ts`, `src/app/past-sessions.tsx`, `old-session.tsx`, `src/tutor/past-sessions.ts`, `next.config.ts` (`redirects`), spec 2026-11-05, ticket B2a)
 
-**What it does.** Since each Topic has one Session (ADR 0004), Past Sessions lists one row per Topic
-Session: the Topic's title and "Last worked on 24 Oct 2026", the one worked on most recently first.
-Last activity is the newest saved message in the Session (or its start, before any). The every-Topic-passed
-Session, which has no Topic, is a row of its own called "Free questions". Every Session from before the
-change is Older (the `older` flag the expand migration set), and they sit apart under an **Older sessions**
-heading, newest first, each with its date and the Topics it touched. Older Sessions have no Topic column
-worth trusting (one could hold several Topics), so their Topics are still read from the "Topic: ..." lines
-the Tutor context left in their messages; with none found the row says "No Topic".
+**What it does.** Past Sessions and Notes were two pages that both listed Topics, and a saved reply on a note is only a pointer into a Session, so they felt like one page. They are one now: `/notebook`. `loadNotebook(db, map, learnerId, { all })` joins `loadPastSessions`, `loadNotes` and the Learner's progress into one row per Topic, in course order. A Topic has a row when it has a Session, or a note (it is passed, or the Learner wrote or saved something on it); `?all=1` ("Show all Topics") lists every Topic, so a line can be added to one not reached yet. A row shows the Topic's title, a status Tag (Not started, In progress, Passed), "Last worked on" and one action: **Resume** (a form post to `/api/open`) for an in-progress Topic, or **Read** (a link to `/sessions/<id>`) for a passed Topic that has a Session. Below that: **What you found** (the code-written lines from the Learner's saved Widget state), the Topic Note (the filled part, saved replies and Widgets, Own rules, the line editor) and an empty slot for Earlier attempts, which a Topic started over fills later. The row keeps the id `note-<topicId>`, so old `#note-...` links still land. Under the rows, **Older sessions** (Sessions from before one Session per Topic, ADR 0004) are listed newest first, each linking to its Session. Rows sit in a grid of columns at least 420 px wide: three across at 1512 px. The page prints; controls are hidden and a Topic with nothing on it is left out.
 
-A row opens the Session's page: a "← Past Sessions" back link at the top, then a header, then the
-workspace's two columns, read-only, with chat chips (the widget's title and "View widget →") and the Widget panel. A Topic Session's
-header shows the Topic, the date last worked on and **Resume this Topic**, a plain form post to `/api/open`
-that makes it the current Topic and opens the Study Workspace; once the Topic is passed it shows Passed ✓
-instead. An Older session's header shows its date, its Topics (or No Topic) and "Older session · read-only",
-with no Resume. Old stored "Continue." messages, from when moving on posted one as if the Learner typed it,
-draw on these pages (and in the Study Workspace's thread, see "Finish this reply, and old Continue as a
-divider") as a small "→ next step" divider in their place, never as a Learner bubble; nothing
-stored changes. Another Learner's Session id answers 404. No model call anywhere.
+`/sessions` and `/notes` answer 308 to `/notebook` (`/notes?all=1` to `/notebook?all=1`), set in `next.config.ts`. `/sessions/[id]` stays as the read view: the workspace's two columns, read-only, with a "← Notebook" back link (to the Topic's row, or the plain Notebook for an Older session), the Topic, the date last worked on and **Resume this Topic** (Passed ✓ once passed). `/api/open` sends a passed Topic that has no Session of its own to `/notebook`. Old stored "Continue." messages draw as a small "→ next step" divider, never as a Learner bubble. Another Learner's Session id answers 404. No model call anywhere. `note_items`, the `/api/notes` routes and how a saved reply is redrawn did not change.
 
-**Scenario.** The Learner studied Present value last week, Bond prices yesterday and went back to Present
-value this morning. Past Sessions shows Present value first, then Bond prices, then under Older sessions
-the mixed Session from September with pills for Present value and Annuities. They open Bond prices, read the
-conversation, and press Resume this Topic to carry on where they left off.
+**Scenario.** The Learner passed Percent last week and is halfway through Bond prices. They open the Notebook: Percent's row says Passed, lists what they found, shows the reply they saved and a Read button; Bond prices' row has a Resume button. An old bookmark to `/notes#note-percent` lands on the same row.
 
-**Trade-off.** Ordering by the newest message means one extra grouped query instead of reading a stored
-"last active" column, which would need a migration and keeping in step with every write. Older Sessions keep
-the read-the-text approach, so one whose messages were compacted away shows No Topic. The "→ next step"
-divider is drawn at read time from the message text rather than rewriting history, so the stored log stays
-exactly as it was sent.
+**Trade-off.** One longer page instead of two short ones, and a row that does several jobs. Rows are only the Topics with something in them, so it stays short until the Learner has done a lot. Ordering is by course order now, not by what was worked on most recently; the "Last worked on" date is on each row. The header link still says "Notes" until the header ticket (A5) changes it.
 
 ## Spaced review (`src/course/review.ts`, `reviewsDue` in `navigator.ts`, `src/learner/review.ts`, `/api/review`, `src/app/review-panel.tsx`)
 
@@ -3250,7 +3251,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **The cost.** The cap is `TUTOR_EVAL_BUDGET_USD`, $5 by default, counting the Tutor Turns (with any retry) and the grader. Each run holds its estimated cost before it starts (the first run about $0.40, later ones the mean so far), so runs side by side cannot pass the cap; once the next run would not fit, no more start and the report says "Stopped" and why, and the runs not started count as not passed. A model missing from the price table stops the suite before it spends anything, because its spend could not be counted. With six runnable cases today, a full run is 18 Tutor Turns and 18 grades, about $2 to $4 on Opus 5.5 at medium. The Tutor runs on the production defaults (`DEFAULT_SETTINGS`) unless `TUTOR_EVAL_MODEL`, `TUTOR_EVAL_EFFORT` or `TUTOR_EVAL_WIDGET_ENGINE` say otherwise, which is how the model and effort sweep runs it.
 
-**The CI job.** `.github/workflows/tutor-eval.yml` runs on pull requests that change the Tutor's instructions, tools or context, the quiz follow-up, the help chips, a Topic file or the suite itself. It is not one of the required checks (`check` and `build`), so a noisy model run never blocks a merge or a deploy. It has its own concurrency group that never cancels, so a paid run that started always reports. It reads `secrets.ANTHROPIC_API_KEY`; without it (a PR from a fork, since the repo is public, or the secret not set) it skips and says so in the job summary. It uses `pull_request` only, never `pull_request_target` or `workflow_run`, so no fork can reach the secret.
+**The CI job.** `.github/workflows/tutor-eval.yml` runs on pull requests that change the Tutor's instructions, tools or context, the quiz follow-up, the chips and Choices, a Topic file or the suite itself. It is not one of the required checks (`check` and `build`), so a noisy model run never blocks a merge or a deploy. It has its own concurrency group that never cancels, so a paid run that started always reports. It reads `secrets.ANTHROPIC_API_KEY`; without it (a PR from a fork, since the repo is public, or the secret not set) it skips and says so in the job summary. It uses `pull_request` only, never `pull_request_target` or `workflow_run`, so no fork can reach the secret.
 
 **Drawn questions.** Percent's Check 1 draws typed questions from templates and has no fixed questions, so T1, T2 and T11 no longer pin question ids: setup opens the attempt through the Check tab's own code and reads the drawn items back (a typed question's right answer is the number to type). `cases-prepare.test.ts` prepares every live case against the real Course Map with no model call, so a Check, question or Skill that a content change removes fails a test instead of crashing the live suite. The trade-off is that the open numbers differ each run.
 
@@ -3932,6 +3933,16 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 
 *Trade-off.* The lint reads only the Topic files. Question Bank items live in the database, so it cannot see them, and `sumAsk` is a set of patterns, so a sum phrased in an unusual way slips through; the Math police critic samples Topics the list leaves out to catch those, and each miss becomes a new pattern. The gain is that "no typed numbers, no sums" holds for every future edit without anyone re-reading 95 Topics.
 
+### Foundation Topics, D2b batch: ten Topics rewritten to story and lingo questions (issue #345, ADR 0009)
+
+**What it does.** `in-rbi-policy`, `eco-trade`, `in-economy`, `hist-macro-regimes`, `bond-pricing`, `bond-yield`, `bond-yield-curve`, `bond-duration`, `bond-credit-spreads` and `in-gsec` no longer ask the Learner for a sum. Their ten ids are gone from `L10_NOT_YET_STORY`, and the six that also lost their typed worked sums are gone from the not-yet-converted list in `src/course/formula-check.ts`. Every stem that asked "how much", "what is the price" or "by what percentage" is now "which headline gets it right?" or "what do traders call it?". Numbers stay only as facts in the story or as labels the Learner recognises, and every wrong choice of a rewritten question carries a Known mistake with a one-line fix.
+
+**Scenario.** The old question gave a 6% loan, 12% inflation and asked for the real rate. Now it asks which headline describes the lender's real return, and the wrong "even bigger, about 20%" choice answers a Learner who added inflation instead of taking it off, with the fix "Inflation eats into the interest. It takes away from the real return."
+
+**Trade-off.** A choice question tests that the Learner knows the idea, not that they can do the working. That is the point of ADR 0009, but it means a Learner who guesses can pass, so each wrong choice is a named mix-up and the fix is shown.
+
+> Since spec 2026-11-05 B2a the Notes page is the Notebook (see "Notebook"); the notes below are its rows.
+
 ## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
 
 **What it does.** A fifth header link, "Notes", opens a page titled "Notes" that lists the Topics in course order, each as a Topic Note (since spec #119 only the Topics that have a note, with "Show all Topics" for the rest: see "The Notes filter and Undo" below). When a Topic is passed, code fills in its note with no model call: its Formula Cards drawn with example numbers (the numbers from the first marker in the Topic's own text that names the formula, else the registry's working example, with results from the formula's calculator), the Insight in the Learner's own words (beside the written Insight only when the Tutor had to tell it), the principle, the Connections and the mistakes the Tutor noticed. Nothing of that part is stored: it is built from the current Topic file and the Learner's records every time the page opens. What is stored is only the Learner's own lines, in `note_items` (kind "line"), which they can add, edit and delete on any Topic, passed or not, through `/api/notes` behind the passcode. The table also has empty columns for the saved replies and Widgets of the next ticket. The page prints: the header, buttons and boxes for typing are hidden on paper, a Topic with nothing on it is left out, and the light look is forced onto white.
@@ -3950,7 +3961,7 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 
 **Trade-off.** Storing a pointer instead of a copy means a saved reply always follows today's as-of rule and sources, and cannot go stale or leak an outcome from a frozen copy; but it depends on the Session's messages staying (they are add-only) and a reply saved from a Session cannot be edited. Settings are only slider numbers, so a Widget whose state is anything else reopens at its starting values. Since spec #119 a save from the Study Workspace names the Widget's key too, and the note keeps the values saved under that key with the Session (see "Widget state"). A static page render cannot show the slider numbers, because the Widget library fills them in after the first browser render, so the test checks the code the numbers are written into.
 
-## The Notes filter and Undo (`src/app/notes/notes-view.tsx`, `src/app/notes/undo.tsx`, `src/app/save-to-notes.tsx`, `src/learner/saved.ts`, spec #119, ticket #152)
+## The Notes filter and Undo (`src/app/notebook/notebook-view.tsx`, `src/app/notebook/undo.tsx`, `src/app/save-to-notes.tsx`, `src/learner/saved.ts`, spec #119, ticket #152)
 
 **What it does.** Notes has a visible title and, by default, lists only the Topics that have a Topic Note: a passed Topic (code fills its note in), or one where the Learner wrote a line or saved a reply or Widget. A Learner with none sees one short line instead of a column of empty cards. "Show all Topics" is a plain link to `/notes?all=1`, which lists every Topic so a line can be added to one not reached yet; on that view the link reads "Show only Topics with notes" and goes back to `/notes`. The filter runs on the server from the same notes, so there is no state in the browser to lose. Saving is safe both ways. After **Save to notes** in the Study Workspace or an old Session, the control reads "Saved ✓ · Undo · Open notes": there is no button to save the same thing again, Undo deletes that saved item (by the id the save answered with), and Open notes goes to `/notes#note-<Topic>`, the anchor on that Topic's card. On Notes, **Remove from notes** and a line's **Delete** take the item off at once and show one Undo toast at the bottom of the screen for eight seconds. Undo puts it back through the ordinary routes: a line is added again with its words, and a saved item is saved again from what the page was given with it (`again`: its Session, turn, Widget number and slider numbers, and for the explore Widget its Topic, so it goes back on that Topic even after the Learner has moved on), so the server checks it exactly as a fresh save, Learner ownership included. The item reappears where it was. A second removal replaces the toast, and neither the toast nor the toggle prints.
 
@@ -4598,6 +4609,8 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Trade-off.** Every request will look the Learner up by Google user (one indexed query), and removing an invite does not sign out someone already in: to lock one out, archive the Learner. Better Auth's rate limit is in memory, per server instance, accepted for about twenty invited people. Google sign-in works on production and localhost only; previews keep the tools passcode.
 
+**Reading the session, the proxy rule and the login page (ticket C1b).** `currentLearner()` (`src/auth/session.ts`) reads Better Auth first: `auth.api.getSession` on the request headers, then `learnerForAuthUser`, and that answer stands even when it is null. Only with no Better Auth session does the `fa_access` passcode cookie decide, and only on that path must the Learner's name be on `PASSCODES`; a Google-linked Learner never needs a passcode. While Google sign-in is off there is no instance, so `currentLearner()`, the proxy and `/api/logout` all skip Better Auth and every page works on the passcode path. The proxy (`src/proxy.ts`) lets a request through on a verified `fa_access`, or optimistically on a present Better Auth session cookie (`getSessionCookie`, both the plain and `__Secure-` names) while Google is on; every page and route still verifies through `currentLearner()` before reading data. The one place the optimistic cookie is not enough is skipping the login form: only a verified `fa_access` or a session the proxy fully checked (real session, resolved to a Learner) redirects away from `/login`, so a stale cookie shows the form once instead of looping. `config.matcher` excludes `api/auth(?:/|$)` like `api/login`, because Better Auth's own routes must work signed out; `/api/*` still answers 401 with neither cookie. Sign out (`POST /api/logout`) keeps its same-origin check, calls `auth.api.signOut` and expires `fa_access`, so both cookies end on one click. The login page (`src/app/login/page.tsx`, `google-button.tsx`) shows one raised primary "Continue with Google" button, which posts to Better Auth's social sign-in with a `callbackURL` built by the safe-destination rule (`googleCallbackURL`, so a crafted `next` cannot open-redirect), and the passcode form behind a "Use a passcode" link (`/login?passcode=1`) until C3; where Google is off (`VERCEL_ENV` preview, or the secrets unset) the button is hidden and the passcode form shows directly. `?error=not_invited` is the plain page "You're not on the list yet"; any other error says "Sign-in didn't work. Try again." In the test bed, Playwright carries fake Google values so the button shows, `testUtils()` is mounted only under `e2eEnabled()` (pinned by `src/auth/no-test-utils.test.ts`), and `POST /api/dev-e2e {googleLearner: true}` builds one invited Google user, its Learner and a real session cookie; Google itself is never called.
+
 ## Emoji kit (`public/emoji/`, `src/emoji/`, `scripts/vendor-emoji.mjs`, `src/app/dev/emoji/`, lint L11, spec 2026-11-05, ticket E1)
 
 **What it does.** Every emoji in a Widget, a Story scene or a Lingo card is a picture, not a character. 161 Fluent Emoji 3D images (Microsoft, MIT) are vendored as 160 px WebP files in `public/emoji/<unicode>.webp`, about 0.5 MB in all. `src/emoji/registry.ts` is the list: a kebab-case name (`money-bag`) maps to its unicode, file, plain-word `alt` and keywords, and `emojiFor("money")` picks the best match for a keyword. `<Emoji name size label? />` draws one: decorative by default (empty `alt`, `aria-hidden`), meaningful when given a `label`. An unknown name is a type error, and at runtime it draws nothing and warns once. `scripts/vendor-emoji.mjs` is a dev tool, not part of the build: it reads `src/emoji/subset.json`, fetches the 3D PNGs at one pinned upstream commit, converts them with `cwebp` (ffmpeg as the fallback) and writes the files, `SOURCES.md`, the MIT text and the generated `registry-data.ts`. Lint **L11** (in `lesson-lint.ts`, run by `course:check`) fails a Topic file whose `scenes:`, `terms[].emoji` or `runningExample.scene` names an emoji the registry lacks. `/dev/emoji` (dev only) shows the whole kit on Light or Dark. The credit line sits at the foot of Settings.
@@ -4614,13 +4627,31 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Trade-off.** The snapshot repeats data that already exists in the old Session, accepted because it makes "nothing is lost" true (the live tables can then be cleared, so their keys and unique indexes never clash with the new attempt) and keeps the live tables simple. A turn that starts in the instant between the route's running-turn check and the restart would write to the Session being closed; the Learner's one-turn lock makes that a double-tap case only.
 
+## Foundation Topics, story-first questions batch D2c (`course/topics/`, issue #346)
+
+**What it does.** Eight Foundation Topics (`credit-analysis`, `fx-basics`, `fx-bop`, `fx-regimes-crises`, `sov-default-country-risk`, `der-forwards`, `der-options`, `der-option-pricing`) now ask about the story and the words, never for a sum (ADR 0009, spec "Shared rules for the D2 batches"). Each sum-stem quiz question keeps its `id` and its Check but becomes a lingo or "which headline gets it right?" choice question: the numbers stay as story facts, and every wrong choice carries a `mistake: {tag, fix}` of 20 words or fewer. `fx-devaluation-explain` asks the Learner to say it in their own words. The five ids that L10 flagged (`fx-basics`, `fx-bop`, `sov-default-country-risk`, `der-forwards`, `der-options`) leave `L10_NOT_YET_STORY`, and `credit-analysis`, which no longer types a formula, leaves the ADR 0002 list in `formula-check.ts`.
+
+**Scenario.** A Learner meets "A bank quotes one Mexican peso at $0.0625; the next desk reads it as 16 pesos to the dollar. What do traders call that?" They tap "the inverse quote", or tap "a devaluation" and see "A devaluation is a government cutting a fixed rate. Reading a quote the other way moves nothing." Code marks the tap, and no arithmetic is needed to tell the choices apart.
+
+**Trade-off.** A choice question is easier to guess than a typed number. Skill state still needs two right in a row and a Check still has its pass rule, so one lucky tap passes nothing, and the owner prefers the lingo to the arithmetic.
+
+## Foundation Topics, story-first questions, batch D2a (`course/topics/`, spec 2026-11-05, ticket D2a)
+
+**What it does.** Twelve Topics (`num-statistics`, `num-econometrics`, `fs-filings`, `fs-earnings-quality`, `fs-tax`, `eco-supply-demand`, `eco-micro-competition`, `eco-money-banking`, `eco-central-banks`, `eco-inflation-real`, `eco-gdp-cycles`, `eco-fiscal-debt`) leave the L10 not-yet-story list. Stems and passCriteria that asked for a sum now ask what a word means, which headline gets it right, or what happened in the story. Each wrong choice of a rewritten question carries a one-line Known mistake fix. Five Topics also left the old typed-formula list in `formula-check.ts`.
+
+**Scenario.** Eco-inflation-real used to ask "What is the real interest rate?" for 8% against 10% prices. It now asks how to describe the saver's real return, and a tap on "Positive" shows "Prices rose by more than the interest, so buying power falls."
+
+**Trade-off.** Choices are easier to guess than typed numbers, so a Check still needs its pass rule. The arithmetic stays in the explanation as a story fact, not as the ask.
+
 ## Design primitives (`src/app/primitives/`, `src/app/globals.css` (`.btn`, `.chip`, `.link`, `.tag`), `eslint.config.mjs`, spec 2026-11-05, ticket A3a)
 
 **What it does.** One module holds the app's pressable and label pieces: `Button` (primary, secondary, danger; medium or small; `loading`; `ButtonLink` for a link that looks like one), `IconButton` (round, always named by its `label`), `Chip` (a small round choice or filter), `TextLink` (underlined), `Tag` and `Pill` (flat status words) and `MenuItem`. Each renders `data-affordance` = `button | icon | chip | link | nav | tag`, so a test can ask the page what every control claims to be. The look is in `globals.css` under `@layer components` and uses only tokens: a raised face with a darker lip and a soft shadow that sinks 2px when pressed; chips are fully round with a 2px lip; links are underlined; tags are flat, 6px square-ish, with a dot, no shadow and no pointer. `ui.tsx` re-exports the old names so imports did not change. There is no Ghost button any more: Save to notes, Undo and the pager's "All" are small secondary buttons. A lint rule (`no-restricted-syntax` in `eslint.config.mjs`) rejects a raw `<button>` or `role="button"` outside the primitives, except the files on `RAW_BUTTON_ALLOWLIST`, which a test pins so it can only shrink.
 
 **Scenario.** A Learner sees a raised blue "Check" button and a flat "In progress" tag. Only the button looks pressable, and only the button has a pointer. A developer who writes `<button>` in a new screen gets a lint error that names the primitives.
 
-**Trade-off.** The 9 Widget files and 12 `src/app` files that still hold raw buttons stay on the allowlist until the A3b sweep (`src/app`) and E2a/E5 (Widgets) migrate them, so for now those screens keep their old flat buttons next to the new raised ones. The `Button` anatomy uses a 3px lip, so a row of buttons needs a little more height than before.
+**Every `src/app` button now goes through the primitives (ticket A3b).** The sweep moved the last raw buttons onto `Button`, `IconButton`, `Chip` and the new `LinkButton` (a button that reads as an underlined link: Edit, Delete, Remove from notes, a Course Map row title that posts a form). The header's page links and Home link are raised nav chips, the Topic bar's finished steps are small Chips, Quick try answers are Chips, the park offer is two small secondary buttons, and rows that are cards (Past Sessions, Course Map) carry an underlined title link stretched over the whole card. Native radios and checkboxes draw a visible edge, and a disabled button keeps its lip so it still looks like a button. The allowlist now holds only the 9 Widget files. A browser test (`e2e/affordance.spec.ts`) runs the affordance audit on nine pages and a "pressing feels physical" check; `/dev/widgets#buttons` shows every kind of control at rest, hover, pressed, focus and disabled. Labels that cannot be pressed (the Welcome's Teaching Step names, the Course Map's Check 1 / Check 2, every Topic bar step that is current, future or has no divider) are flat `Tag`s, so next to a raised Chip or Button they cannot be mistaken for a control; the Course Map's group and "Coming" disclosure rows carry a visible edge and a hover face.
+
+**Trade-off.** The 9 Widget files that still hold raw buttons stay on the allowlist until E2a/E5 migrate them, so a Widget's own buttons can still look flatter than the app's. Two exemptions keep the audit honest about what can be pressed: a focusable chart mark (arrow keys read it) is not a control, and the kit's accordion trigger is named a button by `GenuiTheme`. The `Button` anatomy uses a 3px lip, so a row of buttons needs a little more height than before.
 
 ## Foundation Topics, story questions batch D2f (`course/topics/val-distress.yaml` and seven more, spec 2026-11-05, ticket D2f)
 
@@ -4632,8 +4663,48 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 ## Page frame (`src/app/globals.css` (`--gutter`, `--gap`, `--page-max`, `measure`, `card-grid`), `workspace-frame.tsx`, `study/page.tsx`, `ui.tsx` (`ReadingPage`), `old-session.tsx`, `route-skeleton.tsx`, `src/app/no-width-caps.test.ts`, spec 2026-11-05, ticket A1)
 
-**What it does.** Every signed-in page sits in one box: as wide as the window up to `--page-max` (2200 px), with a side gutter of `clamp(12px, 1.6vw, 32px)`. The Study Workspace splits the space inside the gutters into two columns, chat 2fr and Widget panel 3fr (`minmax(360px,2fr) / minmax(0,3fr)`), with `--gap` between them. The reading pages (Course Map, Progress, Past Sessions, Notes, Settings) use the same box for their header and content, so the content is no longer a 672 px column; a Session opened from the past uses the same 2fr / 3fr frame as the live one. Chat text, the message box and the help chips cap at `measure` (34 em, about 71 characters at the chat font), so a wide chat column never makes a long line; the Widget panel and cards are free to fill. `card-grid` is ready for the pages that lay out cards (Course Map, Notebook, Settings). A test (`no-width-caps.test.ts`) fails if any page file brings back `max-w-6xl` or `max-w-2xl`; Home, Welcome, Login and the 404 keep their narrow boxes on purpose.
+**What it does.** Every signed-in page sits in one box: as wide as the window up to `--page-max` (2200 px), with a side gutter of `clamp(12px, 1.6vw, 32px)`. The Study Workspace splits the space inside the gutters into two columns, chat 2fr and Widget panel 3fr (`minmax(360px,2fr) / minmax(0,3fr)`), with `--gap` between them. The reading pages (Course Map, Progress, Past Sessions, Notes, Settings) use the same box for their header and content, so the content is no longer a 672 px column; a Session opened from the past uses the same 2fr / 3fr frame as the live one. Chat text, the message box and the Choices cap at `measure` (34 em, about 71 characters at the chat font), so a wide chat column never makes a long line; the Widget panel and cards are free to fill. `card-grid` is ready for the pages that lay out cards (Course Map, Notebook, Settings). A test (`no-width-caps.test.ts`) fails if any page file brings back `max-w-6xl` or `max-w-2xl`; Home, Welcome, Login and the 404 keep their narrow boxes on purpose.
 
 **Scenario.** On a 14-inch Mac (1512 px wide) the Study Workspace used to leave 204 px empty each side and give the Widget panel 536 px. Now each side is 24 px, the chat column is 576 px and the Widget panel is 864 px, so a Widget with a chart or a Story scene has room. The Course Map's content now spans 1464 px instead of 672 px.
 
 **Trade-off.** On screens wider than 2200 px the page is centred with empty sides. At 1024 px the chat keeps a 360 px minimum, so the Widget panel gets what is left. Chat text stays at its readable line length even in a wide column, so the chat column can have empty room to the right of its text; that is by design (long lines are harder to read).
+
+**Type scale (ticket A2).** The app is compact (tokens in `:root`: `--text-chat`, `--lh-chat`, `--text-ui`, `--text-small`, `--header-h`).
+- Chat: 15 px on 24 px lines, for the Tutor reply, the Learner bubble and the composer (the Tutor label stays 12 px).
+- UI text: 13 px (nav, tags, helper lines) or 14 px (buttons, card body); page `h1` is `text-lg` (18/26), the eyebrow 11 px.
+- Header: `h-[var(--header-h)]` (52 px) with a 1 px hairline underneath and no bottom margin; the page content below starts at `pt-3`.
+- Cards: `p-3`. Widget chips `min-h-8` (32 px), pager items `min-h-9` (36 px); nothing clickable is under 28 px high.
+
+### Story parts (wave 3) (`src/widgets/primitives/wave3/`, `WAVE3_PARTS`, group "Story" in `WIDGET_COMPONENT_GROUPS`, `e2e/story-parts.spec.ts`, spec 2026-11-05, ticket E2a)
+
+**What it does.** Five Widget parts that tell the idea as a story, with pictures and words instead of a slider or a sum. `StoryScene` is a stage with up to four characters and a speech bubble that tells one beat at a time (Next beat, a tap on the stage, or the arrow keys; Replay at the end), stamped with the story's date. `LingoCard` teaches one piece of lingo: the word, "say it like a pro", the plain meaning and an everyday example, with a flip to how the word showed up in the story. `TimelineStrip` puts emoji moments on a line, oldest first, and draws any moment after the story's date as a locked "?" so the future is not given away. `TwoPaths` shows two characters who chose differently and, on a press, reveals each outcome as a row of objects, never numbers. `MoneyJar` fills or drains a jar one object at a time and says how full it is in words. All pictures come through `<Emoji>`, colours through theme tokens and the four accents (sunflower for stories and history, violet for lingo, mint for gains, coral for losses), and motion is `transform` and `opacity` only, under 400 ms. Under reduced motion nothing moves and each part says `data-motion="off"`. The props of each part are in a fixed order forever; `npm run widgets:freeze` added them to the frozen catalogue.
+
+**Scenario.** The Tutor is on the 1994 bond sell-off. It opens a `StoryScene` stamped 3 February 1994 where the narrator says "Tomorrow, the central bank gives its decision" and Asha says "If the rate rises, my old bonds lose their shine", then a `LingoCard` for "Yield" whose flip side says "In the story, bond prices fell, so the yield rose". Nothing asks the Learner for a number.
+
+**Trade-off.** The Tutor has more parts to choose from, which makes the frozen catalogue longer and the Tutor's choice a little harder. In return a Learner who does not like numbers gets something to look at and tap. Frozen Sessions keep the catalogue they started with (ADR 0005), so older Sessions never see these parts.
+
+**Four more story parts (ticket E2b).** `WhoPaysWhom` draws 2 to 4 actors and 1 to 4 flows; each flow is a button that draws its arrow (300 ms) with its emoji riding along, and a tap replays it, while an ordered list under it ("The bank pays the saver: interest") is the screen-reader text. `MythOrFact` gives 2 to 4 claims, each with Myth and Fact buttons; a tap turns the card to its verdict (mint if right, coral if wrong, with a tick or a cross so colour is never the only signal) and the reason. `Headline` is a period front page: a serif masthead, the date written in full ("3 February 1994"), the headline and deck, a sunflower rule and a "Source" link that only opens an http or https address. `ChoiceCards` is tap-to-choose: right gives mint and "Yes" with a 150 ms pop, wrong shows the card's `fix` in a `role="status"` line and the Learner may pick again. `MythOrFact` and `ChoiceCards` are practice only: marked in the browser, kept in Widget state, counted toward nothing. They are appended after E2a's five, in prop order that is now fixed.
+
+**Scenario.** On the 1994 sell-off the Tutor shows a `Headline` for 4 February 1994, then a `WhoPaysWhom` of the bank, the saver and the bond buyer, then two `MythOrFact` cards ("Safe bonds never change price" is a myth). A `ChoiceCards` closes the step; a wrong tap shows why, and the Learner taps again.
+
+**Trade-off.** Four more parts make the frozen catalogue about 1,000 characters longer and add one more thing for the Tutor to choose between. In return the ideas a story alone cannot carry (money flowing, a myth to bust, the day's front page) each get a picture, with no sums.
+
+### Story recipes and scenes (`src/widgets/recipes/set-story.ts`, `scenes:` in `src/course/map.ts`, `src/course/scenes.ts`, `/dev/scenes`, spec 2026-11-05, ticket E3)
+
+**What it does.** The nine story parts now open through Widget recipes, the same door as every other Widget (ADR 0005): `story_scene`, `lingo_card`, `timeline`, `two_paths`, `money_jar`, `who_pays_whom`, `myth_or_fact`, `headline` and `choice_cards`, with two new archetypes, Story and Lingo. Their words are checked in code before anything shows. Each recipe's schema carries the parts' word caps and counts, and `storyChecks` (in `set-story.ts`, run in every recipe's `superRefine`) refuses an emoji name the registry lacks, a `question`, `says`, `choice` or `claim` that asks for a sum, and digits in a TwoPaths outcome line or a MoneyJar size line. Where the Topic is known, code runs the same checks again with its context, in `show_widget` for a Tutor call and in `buildScene` for a Topic file: every date must be on or before the Case's as-of date until the reveal step (at the reveal and principle it may pass it), and a currency sign must be the Topic's example currency or one of its Case currencies, the V7 rule. Story text lives in `inputs`; the parts draw no Case Data and show no typed figure, so their `refs` and `facts` stay empty and no story Widget is labelled an Illustration.
+
+A headline is never written by the Tutor. Its recipe takes the front page's text because code builds it from a Topic scene, but the catalogue the Tutor reads lists only `inputs: {scene: "<id>"}`; `show_widget` looks that scene up in the current Topic, swaps in its written-ahead words, and stores those, so a front page always comes from a file a critic has read. The compose fallbacks never use the headline recipe at all.
+
+**Scenes** are the written-ahead half. A Topic file may list `scenes:` (an id, a Teaching Step, an optional Check, a recipe, an optional title, and its inputs), at most one per step and Check; its `terms:` may carry the whole Lingo card (`pro`, `example`, `emoji`, `inStory`); and its Running example may carry a `scene` of `story_scene` inputs. Plain Node cannot load the recipes, so `course:check` cannot build them: `src/course/scenes.test.ts`, part of `npm run check`, builds every scene of the real map, any failure reading `Scene "<id>": <reason> (Topic "<id>")`, the same split as the recipe presets. `/dev/scenes?topic=<id>` (dev only, no database) draws a Topic's scenes in step order, its terms as Lingo cards and its Running-example scene; the browser test `e2e/dev-scenes.spec.ts` finds every Topic with `scenes:` on its own, so a batch that adds scenes is covered without editing it. Until the first batches land, a fixture Topic (`src/course/scenes-fixture.ts`, `?topic=scene-fixture`) holds one of each recipe for the tests and the page.
+
+**Scenario.** The Tutor is telling the February 1994 story at the story step and calls `story_scene` with a beat dated in May. Code refuses it before anything shows ("date 1994-05-09 is after the Case's as-of date"), and the Tutor calls again inside the story's own date, or teaches in words. The same words written ahead as the Topic's reveal scene build happily, because at the reveal the date may pass. A Topic author who writes `emoji: pizza-slice` in a scene fails `npm run check` instead of showing a blank picture.
+
+**Trade-off.** Recipe signatures grow the engine's instructions by about ten thousand characters, and the headline recipe has two doors (code builds it with text, the Tutor opens it by scene id), which one helper and two tests keep honest. In return, a story Widget is held to the same rules as a chart: nothing after the as-of date before the reveal, no wrong currency, no sum and no picture that does not exist, whichever lane opened it.
+
+## The Course Map shows progress (`src/app/course/course-map-view.tsx`, `src/course/progress-summary.ts`, `next.config.ts` (`redirects`), spec 2026-11-05, ticket B1)
+
+**What it does.** Progress and the Course Map are one page. The Course Map has an `h1`, "Course Map", and under it a summary line built by the pure function `progressSummary(topics, next)`: `2 in progress · 3 passed · 5 to go · Next: Bond prices` (Next is What comes next's Topic, left out when nothing comes next; "0 passed" is kept). Each Topic is a card in a `card-grid` per Subject, so a 14-inch screen shows four across. A card shows the Topic's status as a static Tag (Not started, In progress, Passed), the Checks passed as "2 of 3" and a small segmented bar with one segment per Check (passed segments `--mint`, others `--hairline`). A group header shows "n of m passed". The whole card is still one link: a passed card opens its Session read-only, any other card chooses the Topic. The Progress page, its loading skeleton and `ProgressView` are gone; `next.config.ts` redirects `/progress` to `/course` with a permanent redirect (Next answers 308), so old bookmarks keep working. The header's Progress link goes in ticket A5, and until then it follows the redirect.
+
+**Scenario.** The Learner opens the Course Map and sees "3 of 7" under Bond prices, with three filled segments, without opening another page. An old bookmark to `/progress` lands on the same map.
+
+**Trade-off.** One page holds both the choosing and the progress, so it is longer than either was. Collapsible Subject groups (open only where the Learner's place is) keep it short, at the price of one click to see a closed Subject's cards.

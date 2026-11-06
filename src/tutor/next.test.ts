@@ -13,6 +13,7 @@ import { nextOfferNow, type NextName } from "./next";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import { NOT_THE_LEARNERS_ATTEMPT, PACING_REJECTION, VERDICT_PACING_REJECTION } from "./tools";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: the Learner's Next. Code checks the move is allowed, advances the Course Navigator,
@@ -37,7 +38,8 @@ async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map: Cou
 }
 
 /** What the Learner sees, without the usage and save data that have their own tests. */
-const seen = (entries: ThreadEntry[]) => entries.map((e) => (e.role === "item" ? e : { role: e.role, text: e.text, ...(e.more && { more: true }) }));
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const seen = (entries: ThreadEntry[]) => withoutChoices(entries).map((e) => (e.role === "item" ? e : { role: e.role, text: e.text, ...(e.more && { more: true }) }));
 const sessionOf = (events: TurnEvent[]) => (events.at(-1) as Extract<TurnEvent, { type: "done" }>).ref.sessionId;
 const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messages);
 
@@ -56,7 +58,7 @@ describe("the Learner's Next", () => {
 
     const divider = { kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } };
     // The browser hears the divider first, so it draws it before the new reply.
-    expect(next.events.map((e) => e.type)).toEqual(["item", "text", "done"]);
+    expect(next.events.map((e) => e.type)).toEqual(["item", "text", "item", "done"]);
     expect(next.events[0]).toEqual({ type: "item", item: divider });
     expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"]).toMatchObject({ step: "concept" });
 
@@ -211,7 +213,7 @@ describe("the Learner's Next", () => {
     const later = new Date(t0.getTime() + 7 * 3600_000);
     const first = await turn(db, "Hi", [say("Once upon a time.")], plain, () => t0);
     const next = await turn(db, { next: "concept" }, [say("Now the concept.")], plain, () => later);
-    expect(next.events.map((e) => e.type)).toEqual(["item", "item", "text", "done"]);
+    expect(next.events.map((e) => e.type)).toEqual(["item", "item", "text", "item", "done"]);
     expect(seen(await loadThread(db, sessionOf(first.events), plain, OWNER_LEARNER_ID)).slice(2)).toEqual([
       { role: "item", kind: "picking_up", data: expect.objectContaining({ label: "Picking up where you left off · Step 1 of 6 · Story" }) },
       { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },

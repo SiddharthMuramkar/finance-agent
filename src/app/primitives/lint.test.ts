@@ -17,7 +17,7 @@ describe("raw buttons", () => {
     expect(await messages('export const A = () => <div role="button" />;\n', "src/app/foo.tsx")).toHaveLength(1);
   });
 
-  it("the widget allowlist can only shrink", async () => {
+  it("the src/app allowlist is empty and the widget allowlist can only shrink", async () => {
     // @ts-expect-error plain .mjs config without types
     const { RAW_BUTTON_ALLOWLIST } = (await import("../../../eslint.config.mjs")) as { RAW_BUTTON_ALLOWLIST: string[] };
     // Widget files that have raw buttons today (spec A3a test 2); a later ticket may remove names, never add.
@@ -34,9 +34,8 @@ describe("raw buttons", () => {
     ];
     const list = RAW_BUTTON_ALLOWLIST as string[];
     expect(list.filter((f) => f.startsWith("src/widgets/")).sort()).toEqual([...widgets].sort());
-    // The src/app files the A3b sweep empties: 12 still hold a raw button once ui.tsx and icon-button.tsx move into
-    // primitives (the spec counted 14 before that move).
-    expect(list.filter((f) => f.startsWith("src/app/"))).toHaveLength(12);
-    expect(list).toHaveLength(21);
+    // The A3b sweep emptied the src/app side: only the 9 Widget files are left, and they can only be removed.
+    expect(list.filter((f) => f.startsWith("src/app/"))).toEqual([]);
+    expect(list).toHaveLength(9);
   });
 });

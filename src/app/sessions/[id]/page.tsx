@@ -48,8 +48,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   });
   return (
     <SignedInFrame>
-      <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col pb-4 pt-3">
-        <AppHeader current="sessions" theme={theme} className="mb-6" />
+      <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col gap-3 pb-4 pt-3">
+        <AppHeader current="sessions" theme={theme} />
         <PastSessionHeaderView header={header} />
         <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind === "topic"} revealed={revealedCases(map, progress)} referenceClip={referenceClip(map, progress)} developerDetails={learner.showDeveloperDetails} />
       </main>

@@ -69,12 +69,12 @@ questions:
 
   - id: bp-q-par
     prompt: >
-      A bond with a $1,000 face value pays a 6% coupon. Investors now demand a 6% yield on bonds like it. What is the bond's price?
+      Ravi holds a $1,000 bond paying 6% a year. Today buyers want exactly 6% from bonds like it. He wants to sell. Which asking price would you pick for him?
     choices:
-      - { id: a, text: "$1,000, its face value" }
-      - { id: b, text: "$1,060" }
-      - { id: c, text: "$940" }
-      - { id: d, text: "$600" }
+      - { id: a, text: "$1,000: the coupon matches what buyers want" }
+      - { id: b, text: "More than $1,000: the bond pays a coupon on top", mistake: { tag: coupon_as_premium, fix: "Every bond pays a coupon. A premium appears only when the coupon beats what buyers demand." } }
+      - { id: c, text: "Less than $1,000: buyers always want a bargain", mistake: { tag: discount_by_default, fix: "A discount appears only when buyers want more than the coupon pays. Here the two match." } }
+      - { id: d, text: "It depends only on the years left to maturity", mistake: { tag: maturity_alone, fix: "When the coupon matches what buyers demand, the bond sells at face value whatever its maturity." } }
     answer: a
     explanation: >
       When the coupon rate equals the market yield, the present value of the payments equals the face value, so the bond sells at par.
@@ -96,15 +96,15 @@ questions:
 
   - id: bp-q-five-year
     prompt: >
-      A $1,000 five-year bond pays a 6% coupon in two half-yearly payments. The market yield is 5%. What is its price, to the nearest cent?
+      Your bond pays a 6% coupon and has five years left. New bonds like it now pay only 5%. A buyer walks up and asks your price. What do you tell her, and why?
     choices:
-      - { id: a, text: "$1,043.76" }
-      - { id: b, text: "$1,000.00" }
-      - { id: c, text: "$956.24" }
-      - { id: d, text: "$1,154.54" }
+      - { id: a, text: "Above $1,000: your coupon beats new bonds" }
+      - { id: b, text: "Exactly $1,000: that is what gets repaid", mistake: { tag: confused_face_with_price, fix: "Face value is only what is repaid. A coupon above the market yield pushes the price up." } }
+      - { id: c, text: "Below $1,000: the market yield is lower", mistake: { tag: flipped_yield_effect, fix: "A lower market yield makes the fixed coupon more attractive, so the price rises, not falls." } }
+      - { id: d, text: "Nobody can say until the bond matures", mistake: { tag: price_fixed_at_maturity, fix: "A bond is priced every day. Buyers compare its coupon with what new bonds pay today." } }
     answer: a
     explanation: >
-      Discounting ten payments of $30 and the $1,000 at 2.5% per half year gives $1,043.76. The coupon is above the market yield, so the bond sells at a premium. $1,154.54 is the price of the 30-year bond with the same coupon at the same yield.
+      The coupon is above the market yield, so buyers pay more than face value: a premium. OpenStax's worked example puts the price near $1,044. The longer the bond, the bigger the premium, because the better coupon lasts longer.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk (worked example: 6% coupon, 5-year bond $1,043.76 at 5%): https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
 
@@ -123,15 +123,15 @@ questions:
 
   - id: bp-q-1994
     prompt: >
-      You buy a 10-year bond at par with a 5% coupon, paid half-yearly. Later the market yield on 10-year bonds is 7%. About what is the bond worth per $1,000 of face value, ignoring the time that has passed?
+      You bought a 10-year bond at par with a 5% coupon, paid half-yearly. Now new 10-year bonds pay 7%. A buyer wants yours. What will she offer?
     choices:
-      - { id: a, text: "About $858" }
-      - { id: b, text: "About $1,000" }
-      - { id: c, text: "About $925" }
-      - { id: d, text: "About $1,172" }
+      - { id: a, text: "Less than you paid: new bonds pay 7%" }
+      - { id: b, text: "What you paid: the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price is not. It adjusts when market yields move." } }
+      - { id: c, text: "More than you paid: yields are higher", mistake: { tag: yield_up_price_up, fix: "Higher yields push bond prices down, because buyers can get 7% elsewhere." } }
+      - { id: d, text: "What you paid, plus two points a year", mistake: { tag: added_yield_gap, fix: "Yield and price move in opposite directions. The yield gap is not added to the price." } }
     answer: a
     explanation: >
-      Discount 20 half-yearly payments of $25 and the $1,000 at 3.5% per half year: the sum is about $858, a fall of about 14%. A rise of 2 points in the yield cost the holder roughly 14% of the price.
+      New bonds pay 7%, so buyers will pay less than face value for your 5% coupon. A rise of two points in the yield costs the holder a sizeable slice of the price.
     source: >
       Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 

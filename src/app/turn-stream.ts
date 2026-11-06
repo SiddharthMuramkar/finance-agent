@@ -4,7 +4,7 @@ import { useExternalStoreRuntime, type AppendMessage } from "@assistant-ui/react
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { TOPIC_START } from "@/course/topic-start";
-import { STOPPED } from "@/tutor/session-item-kinds";
+import { REPLY_CHOICES, STOPPED } from "@/tutor/session-item-kinds";
 import { withoutOpenWidget } from "@/tutor/open-widget";
 import { replaceBrokenWidgets, withoutLeftOut } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
@@ -274,8 +274,9 @@ export function useTurnStream({
             if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
             else if (event.type === "text") correction += event.text;
             else if (event.type === "replay") replaceReply(event.text);
-            // An item the correction stores (a written-ahead Widget opened instead) stands after the reply it corrects.
-            else if (event.type === "item" && event.item) addItem(event.item, correction !== null);
+            // An item the correction stores (a written-ahead Widget opened instead) stands after the reply it corrects, and so do
+            // the reply's Choices (D3a), which end the reply rather than start a new part of it.
+            else if (event.type === "item" && event.item) addItem(event.item, correction !== null || event.item.kind === REPLY_CHOICES);
             else if (event.type === "correction") {
               correction = "";
               const named = Array.isArray(event.widgets) ? event.widgets : undefined;

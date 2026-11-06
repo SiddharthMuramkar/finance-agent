@@ -59,7 +59,7 @@ test.describe("study fills the window", () => {
 test("[A1] reading pages fill the window", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "measured at 1512×982");
   await seed(page, "many-topics");
-  for (const path of ["/course", "/progress", "/sessions", "/notes", "/settings"]) {
+  for (const path of ["/course", "/notebook", "/settings"]) {
     await page.goto(path);
     await expect(page.getByTestId("reading-column"), path).toBeVisible();
     const width = await page.getByTestId("reading-column").evaluate((el) => el.getBoundingClientRect().width);

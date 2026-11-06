@@ -453,13 +453,13 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
   if (guard.timedOut) return <DrawingFailed retry={guard.retry} compact />;
   const look =
     state === "showing"
-      ? "border-[var(--brand)]! bg-[var(--brand)]! text-[var(--brand-ink)]! hover:bg-[var(--brand-hover)]!"
+      ? "border-[var(--brand-deep)]! bg-[var(--brand-main)]! text-[var(--brand-ink)]! hover:bg-[var(--brand-hover)]!"
       : state === "drawing"
         ? "skeleton text-[var(--muted)]!"
         : "";
   return (
     <span className="my-3 block">
-      <Chip state={state} onClick={() => pick(item.key)} data-testid="widget-chip" title={name} className={`min-h-9! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
+      <Chip state={state} onClick={() => pick(item.key)} data-testid="widget-chip" title={name} className={`min-h-8! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
         <span className="min-w-0 truncate font-medium">{name}</span>{" "}
         <span className="shrink-0 text-xs">{state === "drawing" ? "Drawing…" : state === "showing" ? "Showing" : "View widget →"}</span>
       </Chip>
@@ -558,7 +558,7 @@ export function WidgetPanel({
     <div ref={root} className="contents" onKeyDown={onKeyDown}>
       {(check || widgets.length >= 2 || widgets.some((w) => w.explore)) && <WidgetPager entries={entries} paged={paged} current={view} onSelect={select} />}
       {check && (
-        <section aria-label={check.name} data-testid="check-card" hidden={!checkShown} className="rounded-lg border border-[var(--border)] p-4">
+        <section aria-label={check.name} data-testid="check-card" hidden={!checkShown} className="rounded-lg border border-[var(--border)] p-3">
           {check.body}
         </section>
       )}
@@ -568,7 +568,7 @@ export function WidgetPanel({
         </p>
       )}
       {shown && !checkShown && !elsewhere && (
-        <section ref={card} data-testid="widget-card" className="relative rounded-lg border border-[var(--border)] p-4">
+        <section ref={card} data-testid="widget-card" className="relative rounded-lg border border-[var(--border)] p-3">
           {/* A ring that breathes once (600ms) on every switch; the key restarts it, and it never remounts the Widget. */}
           {seen.pulse > 0 && <span key={seen.pulse} aria-hidden="true" data-testid="widget-pulse" className="animate-ring-pulse pointer-events-none absolute inset-0 rounded-lg" />}
           {/* Remounts per Widget, so each one fades in (150ms) with a 4px rise. */}

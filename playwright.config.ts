@@ -58,6 +58,10 @@ export default defineConfig({
       E2E_TUTOR: "scripted",
       PASSCODES: "tools:e2e-passcode",
       SESSION_SECRET: "e2e-secret-e2e-secret-e2e-secret!!",
+      // Google sign-in shows in the test bed, but Google is never called (C1b): fake client, fixed secret.
+      GOOGLE_CLIENT_ID: "e2e-not-real",
+      GOOGLE_CLIENT_SECRET: "e2e-not-real",
+      BETTER_AUTH_SECRET: "e2e-better-auth-secret-012345678",
       BETTER_AUTH_URL: BASE,
     },
   },

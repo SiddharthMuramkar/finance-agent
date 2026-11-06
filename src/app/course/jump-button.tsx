@@ -75,7 +75,7 @@ export function PrerequisiteConfirm({
 const STRETCHED = "before:absolute before:inset-0 before:content-['']";
 
 /**
- * One Topic row on the Course Map: a single whole-row link (the Topic's title, stretched over the row).
+ * One Topic card on the Course Map: a single whole-card link (the Topic's title, stretched over the card).
  * - passed: opens the Topic's Session read-only at `href`;
  * - current: opens the current Topic;
  * - choose: chooses the Topic, after the prerequisite warning when some are unpassed.
@@ -86,6 +86,7 @@ export function TopicRow({
   mode,
   href = "/study",
   unmet = [],
+  status,
   lead,
   children,
 }: {
@@ -94,6 +95,8 @@ export function TopicRow({
   mode: "passed" | "current" | "choose";
   href?: string;
   unmet?: TopicRef[];
+  /** The Topic's status, kept on the card as data-status. */
+  status?: string;
   lead?: ReactNode;
   children?: ReactNode;
 }) {
@@ -115,11 +118,11 @@ export function TopicRow({
     else void go({ topicId });
   };
   return (
-    <li data-topic={topicId} className="relative flex gap-3 border-b border-[var(--hairline)] px-1 py-3 hover:bg-[var(--field)]">
+    <li data-topic={topicId} data-status={status} className="relative flex gap-3 rounded-lg border border-[var(--border)] p-3 hover:bg-[var(--field)]">
       {lead}
       <div className="min-w-0 flex-1">
         <h3 className="font-medium leading-5">
-          <a ref={trigger} href={href} data-row-link={topicId} onClick={onClick} className={`${STRETCHED} hover:underline`}>
+          <a ref={trigger} href={href} data-affordance="link" data-row-link={topicId} onClick={onClick} className={`link !text-[var(--ink)] ${STRETCHED}`}>
             {title}
           </a>
         </h3>
@@ -144,6 +147,7 @@ export function DoFirstLink({ topicId, title, label }: { topicId: string; title:
     <>
       <a
         href="/study"
+        data-affordance="link"
         data-jump={topicId}
         aria-busy={busy || undefined}
         onClick={async (e: MouseEvent<HTMLAnchorElement>) => {
@@ -154,7 +158,7 @@ export function DoFirstLink({ topicId, title, label }: { topicId: string; title:
           setError(failed);
           if (failed) setBusy(false);
         }}
-        className={`relative z-10 text-[var(--brand)] underline ${busy ? "opacity-60" : ""}`}
+        className={`link relative z-10 ${busy ? "opacity-60" : ""}`}
       >
         {busy ? "Opening…" : (label ?? title)}
       </a>
