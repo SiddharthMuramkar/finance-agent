@@ -34,7 +34,8 @@ const OWN_ARROWS = "input, textarea, select, [role=slider], [role=listbox], [con
 /**
  * The Widget panel's header: ‹ and › (32px) and "3 of 11 · <title>", then the filmstrip (E5): a row of 96×64
  * thumbnails, one per Widget in this Session, oldest first, each with its lead emoji at 24px and two lines of
- * its title. The current thumbnail carries the brand ring and `aria-current`; the strip scrolls inside itself,
+ * its title. The current thumbnail carries `aria-current` and the B.2 showing face (brand tint, brand rim and lip),
+ * which is not the focus outline, since ← and → move focus without selecting; the strip scrolls inside itself,
  * never the page. Tab enters the strip once (roving tabindex), ← and → move focus, and Enter opens. "Back to
  * latest" stands beside the strip whenever a Widget other than the latest is showing. The open quiz's Check
  * keeps its own first button in the strip (`check-tab`), as before. `paged` is the entries ‹ and › walk
@@ -131,7 +132,7 @@ export function WidgetPager({
                 title={e.title}
                 onClick={() => onSelect(e.key)}
                 onFocus={() => setCursor(e.key)}
-                className={`h-16! w-24! shrink-0 flex-col! items-center! justify-center! gap-0.5! px-1! py-1! ${selected ? "ring-2 ring-[var(--ring)]" : ""} ${e.explore ? "max-lg:hidden" : ""}`}
+                className={`h-16! w-24! shrink-0 flex-col! items-center! justify-center! gap-0.5! px-1! py-1! ${e.explore ? "max-lg:hidden" : ""}`}
               >
                 <Emoji name={e.emoji ?? (e.check ? "check-mark-button" : "sparkles")} size={24} />
                 <span className="line-clamp-2 w-full overflow-hidden text-center text-[11px] leading-[14px] font-normal">{e.title}</span>

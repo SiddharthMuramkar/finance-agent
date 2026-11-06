@@ -41,16 +41,17 @@ async function gate(request: NextRequest): Promise<"passcode" | "google" | null>
 }
 
 /**
- * The full Google check behind the optimistic cookie, for the login page only: the real Better Auth
- * session, resolved to a Learner. Only this (or a verified `fa_access`) may skip the login form, so a
- * stale cookie shows the form once instead of looping /study → /login → /study.
+ * The full check behind the gate, for the login page only, in `currentLearner()`'s order: a real
+ * Better Auth session decides first, resolved to a Learner, and its answer stands even when it is no
+ * Learner; only with no Better Auth session does a verified `fa_access` count. Only a true answer may
+ * skip the login form, so neither a stale Google cookie nor a Google session with no Learner beside a
+ * valid passcode cookie can loop /study → /login → /study.
  */
-async function googleLearnerSignedIn(request: NextRequest): Promise<boolean> {
+async function signedInAtLogin(request: NextRequest, atGate: "passcode" | "google"): Promise<boolean> {
   const auth = getAuth();
-  if (!auth) return false;
-  const found = await auth.api.getSession({ headers: request.headers });
-  if (!found) return false;
-  return (await learnerForAuthUser(getDb(), found.user)) !== null;
+  const found = auth ? await auth.api.getSession({ headers: request.headers }) : null;
+  if (found) return (await learnerForAuthUser(getDb(), found.user)) !== null;
+  return atGate === "passcode";
 }
 
 /**
@@ -68,8 +69,7 @@ export async function proxy(request: NextRequest) {
   const atGate = await gate(request);
   if (atGate) {
     if (read && pathname === "/login") {
-      const verified = atGate === "passcode" || (await googleLearnerSignedIn(request));
-      if (!verified) return NextResponse.next();
+      if (!(await signedInAtLogin(request, atGate))) return NextResponse.next();
       const next = destinationOrDefault(request.nextUrl.searchParams.get("next"));
       return NextResponse.redirect(new URL(next, request.url), 307);
     }

@@ -105,13 +105,17 @@ export function BreakevenView({
   }
 
   const meter = found ? 3 : level;
+  // The amber tick is about 1.5:1 in Light, so colour alone must never carry it (issue #457, review C1): when the model
+  // gives no markerLabel, the tick and its line still say "Sourced" in words.
+  const sourcedName = markerLabel?.trim() || "Sourced";
+  const sourced = found && typeof marker === "number" && Number.isFinite(marker);
   return (
     <div data-testid="breakeven" data-found={found} data-motion={reduced ? "reduced" : "full"} className="my-3">
       <p className="text-sm font-medium">{label}</p>
       <Track>
         <Marker at={along(control, min, max)} kind="now" testId="breakeven-now" label="Where your slider is" style={{ transition: reduced ? undefined : "left 160ms var(--ease-out, ease-out)" }} />
         {found && <Marker at={along(crossing, min, max)} kind="found" testId="breakeven-notch" label="Break-even" />}
-        {found && typeof marker === "number" && Number.isFinite(marker) && <Marker at={along(marker, min, max)} kind="sourced" testId="breakeven-marker" label={markerLabel} />}
+        {sourced && <Marker at={along(marker, min, max)} kind="sourced" testId="breakeven-marker" label={sourcedName} />}
       </Track>
       <div className="flex justify-between text-xs tabular-nums text-[var(--muted)]">
         <span>
@@ -143,10 +147,10 @@ export function BreakevenView({
           {unit}
         </p>
       )}
-      {found && typeof marker === "number" && markerLabel && (
+      {sourced && (
         <p data-testid="breakeven-marker-label" className="text-xs text-[var(--muted)]">
           <span className="mr-1 inline-block h-2 w-2 rounded-sm align-middle" style={{ background: "var(--src-line)" }} />
-          {markerLabel}: {trimmed(marker)}
+          {sourcedName}: {trimmed(marker)}
           {unit}
         </p>
       )}

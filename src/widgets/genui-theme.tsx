@@ -95,12 +95,22 @@ const FONTS = {
 } as Theme;
 
 /**
- * Chart colours for each theme, as hex (charts set them as SVG attributes), each taken from that theme's block in
- * globals.css (a test checks it). The series order is the spec's: brand-main, mint, sunflower, violet, coral, edge.
- * Mint stays the Learner's own series and sunflower history, as everywhere else.
+ * The token behind each chart series, in the spec's order: brand, mint, sunflower, violet, coral, edge. Mint stays the
+ * Learner's own series and sunflower history, as everywhere else. A series' mark is needed to read the chart (WCAG 2.2
+ * SC 1.4.11; a legend does not exempt it), so each must reach 3:1 against the chart's surface. Light's mint, sunflower
+ * and coral fills do not (1.5 to 2.6:1), so the series take their -ink tokens; in Dark each -ink is its fill. The
+ * contrast script checks every [series, surface] pair at 3:1 in both themes (issue #457).
+ */
+export const CHART_SERIES = ["brand-main", "mint-ink", "sun-ink", "violet", "coral-ink", "edge"] as const;
+/** The surfaces a kit chart sits on: the page, and a card or Widget panel. */
+export const CHART_SURFACES = ["bg", "field"] as const;
+
+/**
+ * Chart colours for each theme, as hex (charts set them as SVG attributes): CHART_SERIES resolved in that theme's block
+ * in globals.css (a test checks it).
  */
 const PALETTE: Record<ThemeId, string[]> = {
-  light: ["#2f5bea", "#12b886", "#ffc233", "#8b5cf6", "#ff6b57", "#6677a3"],
+  light: ["#2f5bea", "#0b7a5a", "#8a5a00", "#8b5cf6", "#bd2f1e", "#6677a3"],
   dark: ["#4466d8", "#66cdaa", "#e8be5c", "#b09af2", "#f28b7d", "#6b7aae"],
 };
 

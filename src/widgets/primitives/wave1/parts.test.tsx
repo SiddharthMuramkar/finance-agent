@@ -58,6 +58,21 @@ describe("Stat", () => {
     expect(stat.style.borderColor).toBe("var(--you-line)");
   });
 
+  // Issue #457 (WCAG 2.2 SC 1.4.11): the tone's rule is the mint or sunflower fill, under 3:1 in Light, so the rule may not
+  // be the only thing that says where the number came from. A static Tag says it in words; a neutral Stat has none.
+  // A "you" Stat is often a result worked out from the Learner's inputs (a calculator's "Maturity value"), not an
+  // assumption, so its words say where it came from without calling a result an assumption.
+  it("says its tone in words with a Tag, not by the coloured rule alone", () => {
+    for (const [tone, words] of [["you", "From your inputs"], ["src", "Sourced"]] as const) {
+      show(<StatView label="Rate" value={7} unit="percent" tone={tone} />);
+      const tag = byId(page!, "stat")!.querySelector('[data-affordance="tag"]');
+      expect(tag?.textContent, tone).toBe(words);
+      page!.cleanup();
+    }
+    show(<StatView label="Rate" value={7} unit="percent" />);
+    expect(byId(page!, "stat")!.querySelector('[data-affordance="tag"]')).toBeNull();
+  });
+
   it("crossfades a changed value (dims for a frame) and does not under reduced motion", async () => {
     show(<StatView label="Rate" value={3} unit="percent" />);
     redraw(page!, <StatView label="Rate" value={4} unit="percent" />);
@@ -304,6 +319,18 @@ describe("Breakeven", () => {
     show(view(3.5, { marker: 3.37, markerLabel: "30-year US bond yield that week" }));
     expect(byId(page!, "breakeven-marker")).not.toBeNull();
     expect(byId(page!, "breakeven-marker-label")!.textContent).toContain("30-year US bond yield that week: 3.37%");
+  });
+
+  // Issue #457, review C1 (round 2): markerLabel is optional and the amber tick is only 1.5:1 in Light, so the tick must
+  // never show without words. With no label, or a blank one, the line below the track still names it.
+  it("names the sourced tick in words even when no markerLabel is given", () => {
+    for (const markerLabel of [undefined, "", "   "]) {
+      show(view(3.5, { marker: 3.37, markerLabel }));
+      expect(byId(page!, "breakeven-marker")!.getAttribute("title")).toBe("Sourced");
+      expect(byId(page!, "breakeven-marker-label")!.textContent).toBe("Sourced: 3.37%");
+      page!.cleanup();
+      page = null;
+    }
   });
 
   it("says so when there is no break-even in the range", () => {

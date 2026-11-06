@@ -5,7 +5,7 @@ import { openuiLibrary, useTheme } from "@openuidev/react-ui";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { THEMES } from "@/app/theme";
-import { CHART_PALETTES, GENUI_THEMES, GenuiTheme, kitVariable, rootDeclarations } from "./genui-theme";
+import { CHART_PALETTES, CHART_SERIES, CHART_SURFACES, GENUI_THEMES, GenuiTheme, kitVariable, rootDeclarations } from "./genui-theme";
 import { widgetLibrary } from "./library";
 
 const kitStylesheet = readFileSync(createRequire(import.meta.url).resolve("@openuidev/react-ui/layered/styles/index.css"), "utf8");
@@ -39,8 +39,8 @@ describe("OpenUI's kit drawn in our tokens", () => {
   });
 
   it("gives two and three series colours from our list, in its order", () => {
-    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])'))).toEqual(["#ffc233", "#ff6b57"]);
-    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])', 'Series("z", [3, 4])'))).toEqual(["#ffc233", "#8b5cf6", "#ff6b57"]);
+    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])'))).toEqual(["#8a5a00", "#bd2f1e"]);
+    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])', 'Series("z", [3, 4])'))).toEqual(["#8a5a00", "#8b5cf6", "#bd2f1e"]);
   });
 
   it("is light on the server, with the kit's text in our ink and its type in our font", () => {
@@ -113,9 +113,36 @@ describe("OpenUI's kit drawn in our tokens", () => {
     }
   });
 
-  it("kit follows the tokens: two themes, and Light's chart series run brand-main, mint, sunflower, violet, coral", () => {
+  /** A token's literal hex in one theme's block. */
+  const tokenHex = (block: string, token: string) => new RegExp(`--${token}:\\s*(#[0-9a-f]{6})`).exec(block)?.[1];
+  /** WCAG 2 contrast ratio of two hex colours. */
+  const contrast = (a: string, b: string) => {
+    const lum = (hex: string) =>
+      [1, 3, 5]
+        .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+        .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+        .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+    const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+
+  // Issue #457, WCAG 2.2 SC 1.4.11: a chart series' mark is needed to read the chart, and a legend does not exempt it, so
+  // every series reaches 3:1 against the surface the chart sits on. Light's mint, sunflower and coral fills do not (1.5 to
+  // 2.6:1), so Light's series take their -ink tokens; in Dark each -ink is its fill.
+  it("paints each chart series in its token, at least 3:1 against the chart surface in both themes", () => {
+    for (const id of THEMES) {
+      const block = themeBlock(id);
+      expect(CHART_PALETTES[id], id).toEqual(CHART_SERIES.map((token) => tokenHex(block, token)));
+      for (const surface of CHART_SURFACES) {
+        const under = tokenHex(block, surface)!;
+        for (const colour of CHART_PALETTES[id]) expect(contrast(colour, under), `${id}: ${colour} on --${surface}`).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it("kit follows the tokens: two themes, and Light's chart series run brand-main, mint-ink, sun-ink, violet, coral-ink", () => {
     expect(Object.keys(GENUI_THEMES).sort()).toEqual(["dark", "light"]);
-    expect(GENUI_THEMES.light.defaultChartPalette!.slice(0, 5)).toEqual(["#2f5bea", "#12b886", "#ffc233", "#8b5cf6", "#ff6b57"]);
+    expect(GENUI_THEMES.light.defaultChartPalette!.slice(0, 5)).toEqual(["#2f5bea", "#0b7a5a", "#8a5a00", "#8b5cf6", "#bd2f1e"]);
     const palettes = THEMES.map((id) => JSON.stringify(GENUI_THEMES[id].defaultChartPalette));
     expect(new Set(palettes).size).toBe(THEMES.length);
     expect(GENUI_THEMES.dark.defaultChartPalette!.slice(0, 5)).toEqual(["#4466d8", "#66cdaa", "#e8be5c", "#b09af2", "#f28b7d"]);
