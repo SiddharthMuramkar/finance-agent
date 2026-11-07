@@ -51,20 +51,26 @@ cases:
       ($16,286m) was about fourteen times H1 2025 ($1,163m), that the top five customers were
       about 25% of revenue (nine months to 30 Sep 2026), that compute cost fell to about 48% of
       revenue in Q2 2026 ($5,558m of $11,555m), and that Q2 2026 showed an operating profit
-      ($974m). Three of his figures do not match the filing. (1) He calls the H1 2026 loss "an
+      ($974m). Two of his figures do not match the filing, and a third matches once its label is named. (1) He calls the H1 2026 loss "an
       operating loss, corrected for non-cash and one-time charges, of over $8 billion". The S-1's
       H1 2026 operating loss is $693m, and its own adjusted operating income for the half is a
       profit of about $1.6bn (Q1 $(617)m, Q2 $2,235m). "Over $8 billion" matches the net loss of
       $80,748m less the $72,388m fair-value change, about $8.4bn, which still contains $8,757m of
       other expense (and $1,111m of interest income) below the operating line: a net-loss measure
       with an operating-loss label (this reconstruction is ours; his spreadsheet was not opened). (2) He puts cash "already at
-      $114 billion"; the S-1 gives $112.4bn of cash and cash equivalents plus $19.3bn of
-      short-term investments ($131.7bn together), so $114bn matches neither. (3) He writes that
+      $114 billion". That matches the S-1's cash, cash equivalents and restricted cash of
+      $114,918m at 30 June 2026 (the total in its cash flow statement), so it is not a slip; the
+      balance sheet splits the same money into $112.4bn of cash and cash equivalents and $2.5bn
+      of restricted cash, and lists $19.3bn of short-term investments on top. A reader checking
+      it should name which cash line is meant. (3) He writes that
       his debt figure is "close to half a billion" including the present value of commitments
       worth hundreds of billions, which reads as a unit slip (not confirmed). His "in excess of
-      $600 billion" of compute commitments is a matter of scope, not arithmetic: the S-1's
-      commitments table holds Google $114.5bn, Amazon $110.0bn, Microsoft $44.9bn and Broadcom
-      lease rent $161.2bn ($430.6bn), and the filing adds outside that table an estimated
+      $600 billion" of compute commitments is a matter of scope, not arithmetic. No table in this
+      preliminary filing gives such a total: its contractual-obligations table is left blank, and
+      Note 13 puts fixed or minimum commitments at about $265.6bn at 30 June 2026. The S-1's text
+      names Google $114.5bn, Amazon $110.0bn, Microsoft $44.9bn and Broadcom lease rent $161.2bn,
+      which add up to $430.6bn (our sum of those passages, not a figure the filing prints), and
+      it describes further amounts it says are not in its commitments table: an estimated
       $125-150bn of further TPU compute, over $20bn with AMD and up to $120.5bn with SpaceXAI
       (cancellable after early 2027). His BB+ rating is not in the S-1; the Financial Times
       (16 Oct 2026) reported a June 2026 BB+ issuer rating from KBRA, a smaller agency. His remark
@@ -269,19 +275,21 @@ questions:
 
   - id: s1r-q-period
     prompt: >
-      Revenue can be quoted over different periods. Take a made-up
-      filing with revenue of $5bn in the first quarter and $12bn in the second. A writer sets a
-      yearly-rate ('annualised') figure beside "quarterly revenue of $12bn" as if the two were the
-      same kind of number. What is the main problem with that comparison?
+      Anthropic's S-1 reports revenue quarter by quarter, and writers quote it in different ways.
+      Picture two made-up headlines about one company. One says "sales of $48bn a year", a yearly
+      pace built from its latest quarter (traders call it 'annualised'). The other says
+      "quarterly revenue of $12bn", for that same quarter. A reader decides the first writer saw
+      a far bigger business. Which explains the mix-up?
     choices:
-      - { id: a, text: "Nothing: a bigger number is simply a bigger business", mistake: { tag: ignores-period, fix: "A yearly rate and one quarter cover different periods, so they are not comparable." } }
-      - { id: b, text: "It sets a yearly rate beside a single quarter; both should be put on the same period first" }
-      - { id: c, text: "Quarterly revenue should always be cut to a quarter of itself first", mistake: { tag: wrong-direction, fix: "Put them on the same period; shrinking the quarter does not do that." } }
+      - { id: a, text: "Nothing: a bigger number is simply a bigger business", mistake: { tag: ignores-period, fix: "A yearly pace and one quarter cover different periods, so the bigger number is not a bigger business." } }
+      - { id: b, text: "The reader set a yearly pace beside a single quarter; on the same period the two describe the same sales" }
+      - { id: c, text: "One of the writers must have misread the filing", mistake: { tag: blames-writer, fix: "Both can be right; one gives a year's pace, the other a single quarter." } }
       - { id: d, text: "Annualised figures can never be compared with reported revenue", mistake: { tag: never-compare, fix: "They can be compared once both are on the same period." } }
     answer: b
     explanation: >
-      Put both figures on the same period before comparing: a quarter's revenue scaled to a year
-      is a yearly rate. Set side by side on one period, the two figures are about equal.
+      The $48bn is the $12bn quarter run on for a whole year, so both headlines describe the same
+      sales. Put two figures on the same period before comparing them; an annualised pace is not
+      revenue already earned.
     source: >
       OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement (an income
       statement reports results over a stated period):
