@@ -26,13 +26,16 @@ cases:
       A Lehman Brothers research note in 2005 judged that the cushion under new BBB bonds was sized
       for house prices rising between 5% and 8% a year for the life of the loans, and warned that
       new BBB bonds had downgrade risk if house price growth slowed to 5%. As of 31 December 2006,
-      which tranche takes the first loss, how much loss on the pool does each tranche survive, and
+      which tranche takes the first loss, why is the AAA tranche the last to be hit, and
       what has to be true of the loans behind a CDO for its top layer to be as safe as its rating says?
     reveal: >
       The Federal Reserve Bank of Philadelphia counted 727 publicly traded structured-finance CDOs
       issued between 1999 and 2007, worth $641 billion, and estimated total write-downs of $420
-      billion, 65% of the issuance. Because the unsold lower layers of CDOs were mostly put into other
-      CDOs, $64 billion of BBB-rated subprime bonds became $140 billion of CDO collateral. The paper
+      billion, 65% of the issuance. Demand for BBB-rated subprime bonds was so strong that the same
+      bonds were placed in, or referenced through credit default swaps by, many CDOs at once: 5,496
+      BBB-rated subprime bonds were placed or referenced in the 727 CDOs a total of 36,901 times, so
+      $64 billion of BBB-rated subprime bonds became $140 billion of subprime CDO collateral.
+      Separately, most of the lower-rated layers of CDOs were recycled into other CDOs. The paper
       found that the A-rated subprime bonds had on average only 8% of subordination under them, so
       subprime losses of 8% would wipe out the BBB layer completely; consensus views in early 2007
       put subprime losses at 3% to 5%, so losses needed to reach only about 1.5 to 2.5 times their
@@ -70,9 +73,9 @@ youllLearn:
 questions:
   - id: ss-q-first-loss
     prompt: >
-      A pool of home loans is sliced into four tranches, stacked from top to bottom: a big AAA tranche, then A, then BBB, and a thin residual tranche at the bottom. A few borrowers default, a loss smaller than the residual tranche. Which tranche takes the loss?
+      Spring 2006. Maria, a lender in Ohio, sells a pool of home loans that is sliced into tranches: a big AAA one on top, then A, then BBB, and a thin residual that Maria keeps. In the first months a few borrowers default, a loss smaller than the residual. Whose money takes the hit?
     choices:
-      - { id: a, text: "Only the residual tranche at the bottom" }
+      - { id: a, text: "Only the residual at the bottom, the tranche Maria kept" }
       - { id: b, text: "All tranches, in proportion to their size", mistake: { tag: shared_pro_rata, fix: "Losses are not shared evenly. They hit the bottom tranche first." } }
       - { id: c, text: "The AAA tranche, because it is the largest", mistake: { tag: largest_takes_loss, fix: "Size does not decide the order. Losses start at the bottom." } }
       - { id: d, text: "The BBB tranche", mistake: { tag: wrong_tranche, fix: "BBB sits above the residual, so it is hit only after the residual is used up." } }
@@ -84,7 +87,7 @@ questions:
 
   - id: ss-q-partial-loss
     prompt: >
-      A pool of home loans is sliced into four tranches, stacked from top to bottom: a big AAA tranche, then A, then BBB, and a thin residual at the bottom. Bad loans keep piling up. They wipe out the two lowest tranches and then run a little further, but nowhere near enough to threaten the top. Which tranches are hurt, and which is left untouched?
+      Tom manages a pension fund that bought the AAA tranche of a home-loan pool; beneath it sit A, BBB and a thin residual. As bad loans pile up, they wipe out the two lowest tranches and run a little further, nowhere near the top. Tom's trustees call in a panic. Who is hurt, and is Tom's AAA tranche touched?
     choices:
       - { id: a, text: "The residual and BBB tranches are wiped out, A loses a slice, and AAA is untouched" }
       - { id: b, text: "All four tranches lose 10% each", mistake: { tag: even_losses, fix: "Losses go from the bottom up, not evenly across the tranches." } }
@@ -112,7 +115,7 @@ questions:
 
   - id: ss-q-wipe-bbb
     prompt: >
-      A pool of home loans is sliced into four tranches, stacked from top to bottom: a big AAA tranche, then A, then BBB, and a thin residual at the bottom. The BBB tranche sits just above the residual. Which statement about it is right?
+      Late 2006. Sam, a bond salesman, is pitching a pool's BBB tranche, which sits just above the thin residual and below the A and AAA tranches. His client asks one thing before she buys: when do losses reach her, and what happens to her tranche once they do?
     choices:
       - { id: a, text: "It starts losing money only once the residual is gone, and is wiped out soon after if losses keep coming" }
       - { id: b, text: "It takes the first loss, before the residual", mistake: { tag: bbb_first, fix: "BBB sits above the residual, so the residual takes the first loss." } }

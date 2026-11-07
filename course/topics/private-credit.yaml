@@ -113,7 +113,7 @@ questions:
       - { id: d, text: "The fund must close at once", mistake: { tag: must_close, fix: "A small dip in NAV does not by itself close a fund." } }
     answer: b
     explanation: >
-      The markdown is 40 per cent of Rs 50 crore, Rs 20 crore. Against Rs 1,000 crore of net assets that is a 2 per cent fall in NAV. The 40 per cent applies only to the part of the portfolio held in that paper.
+      The 40 per cent applies only to the small part of the portfolio held in that paper. The rest of the fund keeps its value, so the NAV dips only a little. In the Case, one fund house's IL&FS markdown cut its schemes' NAV by about 1.86 per cent.
     source: >
       Arithmetic from the stated figures; NAV is the value of a fund's assets minus liabilities (Investor.gov, SEC): https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24
 
@@ -127,7 +127,7 @@ questions:
       - { id: d, text: "They are repaid first, ahead of those who left", mistake: { tag: stayers_paid_first, fix: "Those who redeem are paid out of liquid assets. The ones who stay are left with the rest." } }
     answer: b
     explanation: >
-      After paying out Rs 20 crore, the fund has Rs 70 crore of government securities and the same Rs 10 crore of troubled paper: Rs 80 crore in all, so the paper is 12.5 per cent of the fund, up from 10. Each wave of redemptions paid from the liquid assets leaves the remaining investors holding a larger share of what cannot be sold.
+      The fund pays the leavers by selling government securities, because nobody will buy the troubled paper. The paper stays the same size while the fund shrinks, so it becomes a bigger share of what is left. Each wave of redemptions paid from the liquid assets leaves the remaining investors holding a larger share of what cannot be sold.
     source: >
       Arithmetic from the stated figures.
 
