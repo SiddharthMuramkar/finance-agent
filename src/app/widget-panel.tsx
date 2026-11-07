@@ -595,7 +595,7 @@ export function WidgetPanel({
         </p>
       )}
       {shown && !checkShown && !elsewhere && (
-        <section ref={card} data-testid="widget-card" className="relative rounded-lg border border-[var(--border)] p-3">
+        <section ref={card} data-testid="widget-card" className="relative flex-1 rounded-lg border border-[var(--border)] p-3">
           {/* A ring that breathes once (600ms) on every switch; the key restarts it, and it never remounts the Widget. */}
           {seen.pulse > 0 && <span key={seen.pulse} aria-hidden="true" data-testid="widget-pulse" className="animate-ring-pulse pointer-events-none absolute inset-0 rounded-lg" />}
           {/* Remounts per Widget, so each one takes the stage: opacity, a 12px rise and scale 0.98 over 240ms (E5). */}

@@ -119,6 +119,20 @@ describe("StoryScene", () => {
     show(scene);
     expect(byId(page!, "story-bubble")!.closest("[aria-live]")!.getAttribute("aria-live")).toBe("polite");
   });
+
+  // #528: in the Widget panel (the size container named pane) the stage grows with the panel's height, centred, and
+  // the cast grows to 96 px, then 112 px in a tall panel, over the 64/80 px floor.
+  it("grows its stage and cast with the Widget panel's height, keeping the 64/80 px floor", () => {
+    show(scene);
+    const stage = byId(page!, "story-stage")!.className;
+    expect(stage).toContain("flex-col");
+    expect(stage).toContain("justify-center");
+    expect(stage).toContain("[@container_pane_(min-height:480px)]:min-h-[55cqh]");
+    const cast = page!.host.querySelector('ul[aria-label="Cast"] li > span')!.className;
+    for (const size of ["[&_img]:size-16", "@min-[720px]:[&_img]:size-20", "[@container_pane_(min-height:480px)]:[&_img]:size-24", "[@container_pane_(min-height:640px)]:[&_img]:size-28"]) {
+      expect(cast).toContain(size);
+    }
+  });
 });
 
 describe("LingoCard", () => {

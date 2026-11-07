@@ -68,9 +68,9 @@ describe("RateMove, show mode", () => {
   it("shows the three worked lines at once: 1 point, 100 bp and 25%", () => {
     show(<RateMoveView oldRate={4} newRate={5} />);
     expect(allById(page!, "rate-move-readout").map((r) => r.textContent)).toEqual([
-      "Points: new minus old5% minus 4% is 1 point",
-      "Basis points: points times 1001 point times 100 is 100 bp",
-      "Percent of the old rate1 divided by the old 4%, times 100, is 25%",
+      "How far it movedThe rate climbs from 4% to 5%: up 1 point",
+      "How traders say itTraders call that 100 bp",
+      "Next to the old rateUp 25% on the old rate",
     ]);
     expect(byId(page!, "rate-move-answer")).toBeNull();
   });
@@ -80,8 +80,8 @@ describe("RateMove, show mode", () => {
     redraw(page!, <RateMoveView oldRate={7.5} newRate={7.2} />);
     expect(byId(page!, "rate-move-line")!.getAttribute("data-direction")).toBe("fall");
     expect(byId(page!, "rate-move-line")!.getAttribute("aria-label")).toBe("A number line: the rate moves from 7.5% down to 7.2%.");
-    expect(text()).toContain("7.2% minus 7.5% is a fall of 0.3 points");
-    expect(text()).toContain("0.3 points times 100 is a fall of 30 bp");
+    expect(text()).toContain("The rate drops from 7.5% to 7.2%: down 0.3 points");
+    expect(text()).toContain("Traders call that a fall of 30 bp");
     const from = Number(byId(page!, "rate-move-arrow")!.getAttribute("x1"));
     const to = Number(byId(page!, "rate-move-arrow")!.getAttribute("x2"));
     expect(to).toBeLessThan(from);
@@ -89,7 +89,7 @@ describe("RateMove, show mode", () => {
 
   it("says an old rate of 0 has no percent change", () => {
     show(<RateMoveView oldRate={0} newRate={1.5} />);
-    expect(text()).toContain("The old rate is 0%, so the percent change has no value");
+    expect(text()).toContain("From 0% no percent change can be given: the old rate is zero, so there is nothing to take a share of");
   });
 
   it("draws no arrow when the rate does not move", () => {
@@ -147,7 +147,7 @@ describe("RateMove, practice mode", () => {
     expect(status()).toBe("right");
     expect(text()).toContain("Right. The move is 250 bp.");
     expect(allById(page!, "rate-move-readout")).toHaveLength(3);
-    expect(text()).toContain("2.5 points times 100 is 250 bp");
+    expect(text()).toContain("Traders call that 250 bp");
     for (const b of choiceButtons()) expect(b.disabled).toBe(true);
   });
 
@@ -157,7 +157,7 @@ describe("RateMove, practice mode", () => {
     expect(status()).toBe("wrong");
     expect(text()).toContain("Not quite. The move is 30 bp (a fall).");
     expect(text()).toContain("That is a percent.");
-    expect(text()).toContain("0.3 points times 100 is a fall of 30 bp");
+    expect(text()).toContain("Traders call that a fall of 30 bp");
   });
 
   it("marks the x10 slip with its own fix", () => {
@@ -173,7 +173,7 @@ describe("RateMove, practice mode", () => {
     const [oldSlider, newSlider] = [...page!.host.querySelectorAll<HTMLInputElement>('input[type="range"]')];
     expect([oldSlider.value, newSlider.value]).toEqual(["5", "5.2"]);
     setRange(newSlider, 6);
-    expect(text()).toContain("6% minus 5% is 1 point");
+    expect(text()).toContain("The rate climbs from 5% to 6%: up 1 point");
     expect(text()).toContain("The rate moves from 5% to 5.2%. Which reading is right?");
     expect(text()).toContain("Right. The move is 20 bp.");
     expect(status()).toBe("right");
@@ -198,8 +198,8 @@ describe("RateMove's characters (#480)", () => {
     expect(lineImgs()).toEqual(speakers.map((s) => [s]));
     expect(direction()!.getAttribute("data-emoji")).toBe("chart-increasing");
     expect(direction()!.querySelector("img")!.getAttribute("src")).toBe("/emoji/1f4c8.webp");
-    expect(text()).toContain("Points: new minus old");
-    expect(text()).toContain("Percent of the old rate");
+    expect(text()).toContain("How far it moved");
+    expect(text()).toContain("Next to the old rate");
   });
 
   it("practice mode: a falling chart before the tap, and one speaker per line after it", () => {

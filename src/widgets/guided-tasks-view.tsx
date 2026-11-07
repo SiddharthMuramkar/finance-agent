@@ -1,23 +1,24 @@
 import { taskStates, type TaskState } from "./guided-tasks";
 
-// The pure drawing of Guided Tasks: the redesign's stepper, with each task to do, current or done.
-// Colours come from the tokens only.
+// The pure drawing of Guided Tasks: a light "Things to try" list (#533), with each task tried, next or for later.
+// No numbers and no status words like "Current task": it is play, not homework. Colours come from the tokens only.
 
-const DOT: Record<TaskState, string> = {
+const MARK: Record<TaskState, string> = {
   done: "border-[var(--brand)] bg-[var(--brand)] text-[var(--brand-ink)]",
-  current: "border-[var(--brand)] bg-transparent text-[var(--brand)]",
-  todo: "border-[var(--border)] bg-transparent text-[var(--muted)]",
+  current: "border-[var(--brand)] bg-[var(--brand)]",
+  todo: "border-[var(--border)] bg-transparent",
 };
 
-const WORDS: Record<TaskState, string> = { done: "Done", current: "Current task", todo: "To do" };
+/** What a screen reader hears after each task: soft words, never a homework status. */
+const WORDS: Record<TaskState, string> = { done: "Tried", current: "Try next", todo: "Later" };
 
 /** `reached` tasks are done; the next one is current; the rest are to do. */
 export function GuidedTasksFigure({ tasks, reached }: { tasks: string[]; reached: number }) {
   const states = taskStates(tasks.length, reached);
   return (
     <div className="py-2" data-testid="guided-tasks">
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Try this · practice only</p>
-      <ol className="mt-2 space-y-2" aria-label="Guided Tasks">
+      <p className="text-xs font-medium text-[var(--muted)]">Things to try</p>
+      <ul className="mt-2 space-y-2" aria-label="Things to try">
         {tasks.map((text, i) => (
           <li
             key={i}
@@ -25,16 +26,22 @@ export function GuidedTasksFigure({ tasks, reached }: { tasks: string[]; reached
             aria-current={states[i] === "current" ? "step" : undefined}
             className="flex items-start gap-3 text-sm leading-5"
           >
-            <span aria-hidden className={`mt-px flex size-5 shrink-0 items-center justify-center rounded-full border text-xs font-medium ${DOT[states[i]]}`}>
-              {states[i] === "done" ? "✓" : i + 1}
-            </span>
+            {states[i] === "done" ? (
+              <span aria-hidden className={`mt-px flex size-5 shrink-0 items-center justify-center rounded-full border text-xs ${MARK.done}`}>
+                ✓
+              </span>
+            ) : (
+              <span aria-hidden className="mt-px flex size-5 shrink-0 items-center justify-center">
+                <span className={`size-2 rounded-full border ${MARK[states[i]]}`} />
+              </span>
+            )}
             <span className={states[i] === "done" ? "text-[var(--muted)] line-through" : states[i] === "current" ? "font-medium" : "text-[var(--muted)]"}>
               {text}
             </span>
             <span className="sr-only">{WORDS[states[i]]}</span>
           </li>
         ))}
-      </ol>
+      </ul>
     </div>
   );
 }

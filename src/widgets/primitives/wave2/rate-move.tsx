@@ -9,8 +9,9 @@ import { useChangeFlash, usePrefersReducedMotion } from "../wave1/motion";
 import { Pic } from "../wave3/shared";
 import { markReading, moveReadings, RATE_MOVE_LABELS, RATE_MOVE_MAX, RATE_MOVE_SPEAKERS, type ReadingMark } from "./rate-move-marking";
 
-// RateMove: one rate moving from old to new. A number line draws the move as an arrow, and three worked lines say it
-// in points, in basis points and as a percent of the old rate, all written by the tested rateMoveLines. In practice
+// RateMove: one rate moving from old to new. A number line draws the move as an arrow, and three story lines say it
+// in points, in basis points and next to the old rate, as a reporter, a trader and a headline would (#530: quotes,
+// never a worked sum), all written by the tested rateMoveLines. In practice
 // mode the lines stay hidden until the Learner taps the right reading of the move (the right one, the x10 slip and
 // the percent mix-up, ADR 0009) and code marks the tap; only then do the lines show, with sliders for play that move
 // the lines, never the marked question. Nothing is typed. Rates only: no currency. Each line has a speaker (a reporter,

@@ -7,12 +7,12 @@ import type { EmojiName } from "@/emoji/registry";
 // id, so no typed number is ever read.
 
 /** The labels of the three worked lines, in order. */
-export const RATE_MOVE_LABELS = ["Points: new minus old", "Basis points: points times 100", "Percent of the old rate"] as const;
+export const RATE_MOVE_LABELS = ["How far it moved", "How traders say it", "Next to the old rate"] as const;
 
 /**
  * Who says each worked line (#480), in the same order: a reporter says the move in points, a trader in basis points,
  * a headline as a percent of the old rate. Each is a vendored Fluent Emoji 3D name, so the Widget has characters and
- * is never chart-only. The pictures add no words: the labels and the lines stay as they were (ADR 0002).
+ * is never chart-only. Each line is that speaker's quote of the move, never a sum (#530).
  */
 export const RATE_MOVE_SPEAKERS = [
   { who: "reporter", emoji: "woman" },

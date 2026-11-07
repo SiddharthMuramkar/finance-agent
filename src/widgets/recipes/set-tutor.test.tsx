@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WidgetView } from "@/app/widget-view";
-import { widgetNodes, widgetParts, widgetProblems, widgetRuleProblems } from "@/widgets/check";
+import { widgetNodes, widgetParts, widgetProblems, widgetRuleProblems, widgetTaskTexts } from "@/widgets/check";
 import { recipeById, RECIPES } from "./index";
 import { RATE_MOVE_LABELS, RATE_MOVE_STATE, SET_TUTOR } from "./set-tutor";
 
@@ -87,9 +87,9 @@ describe("the rate_move recipe", () => {
     expect(host.querySelector('[data-testid="rate-move-arrow"]')).not.toBeNull();
     expect(host.querySelector('[data-testid="rate-move-head"]')).not.toBeNull();
     expect(host.querySelector('[data-testid="rate-move-line"]')!.getAttribute("data-direction")).toBe("rise");
-    expect(text()).toContain("5% minus 4% is 1 point");
-    expect(text()).toContain("1 point times 100 is 100 bp");
-    expect(text()).toContain("1 divided by the old 4%, times 100, is 25%");
+    expect(text()).toContain("The rate climbs from 4% to 5%: up 1 point");
+    expect(text()).toContain("Traders call that 100 bp");
+    expect(text()).toContain("Up 25% on the old rate");
     for (const label of RATE_MOVE_LABELS) expect(text()).toContain(label);
   });
 
@@ -103,13 +103,13 @@ describe("the rate_move recipe", () => {
   it("shows a fall as a fall of 0.3 points and 30 basis points", async () => {
     await draw(show(7.5, 7.2).code);
     expect(host.querySelector('[data-testid="rate-move-line"]')!.getAttribute("data-direction")).toBe("fall");
-    expect(text()).toContain("7.2% minus 7.5% is a fall of 0.3 points");
-    expect(text()).toContain("0.3 points times 100 is a fall of 30 bp");
+    expect(text()).toContain("The rate drops from 7.5% to 7.2%: down 0.3 points");
+    expect(text()).toContain("Traders call that a fall of 30 bp");
   });
 
   it("says a move from 0% has no percent change", async () => {
     await draw(show(0, 1.5).code);
-    expect(text()).toContain("The old rate is 0%, so the percent change has no value");
+    expect(text()).toContain("From 0% no percent change can be given: the old rate is zero, so there is nothing to take a share of");
   });
 
   it("practice mode hides the worked lines until the Learner taps a reading, then marks it and reveals them", async () => {
@@ -117,24 +117,24 @@ describe("the rate_move recipe", () => {
     expect(text()).not.toContain("could not be drawn");
     expect(host.querySelector('[data-testid="rate-move-arrow"]')).not.toBeNull();
     expect(host.querySelectorAll('[data-testid="rate-move-readout"]')).toHaveLength(0);
-    expect(text()).not.toContain("is 100 bp");
-    expect(text()).not.toContain("is 25%");
+    expect(text()).not.toContain("Traders call that");
+    expect(text()).not.toContain("on the old rate");
     expect([...host.querySelectorAll("button")].map((b) => b.textContent?.trim()).sort()).toEqual(["Up 1 point, or 100 bps", "Up 1%", "Up 10 bps"]);
     expect(host.querySelectorAll("input")).toHaveLength(0);
     expect(text()).toContain("Which reading is right?");
 
     tap("Up 1 point, or 100 bps");
     expect(status()).toBe("right");
-    expect(text()).toContain("5% minus 4% is 1 point");
-    expect(text()).toContain("1 point times 100 is 100 bp");
-    expect(text()).toContain("1 divided by the old 4%, times 100, is 25%");
+    expect(text()).toContain("The rate climbs from 4% to 5%: up 1 point");
+    expect(text()).toContain("Traders call that 100 bp");
+    expect(text()).toContain("Up 25% on the old rate");
   });
 
   it("practice mode marks a wrong reading as wrong and still reveals the lines", async () => {
     await draw(show(4, 5, "practice").code);
     tap("Up 10 bps");
     expect(status()).toBe("wrong");
-    expect(text()).toContain("1 point times 100 is 100 bp");
+    expect(text()).toContain("Traders call that 100 bp");
   });
 
   it("practice mode takes a move of any size and marks it in whole basis points: 250 bp, and the x10 slip", async () => {
@@ -160,5 +160,24 @@ describe("the rate_move recipe", () => {
     const shown = part(show(5, 5.2).code).props;
     expect([shown.oldRate, shown.newRate].map((v) => (v as { n: string }).n)).toEqual([`$${RATE_MOVE_STATE.old}`, `$${RATE_MOVE_STATE.new}`]);
     expect(part(show(5, 5.2, "practice").code).props).toMatchObject({ oldRate: 5, newRate: 5.2, mode: "practice" });
+  });
+
+  // #533: the show-mode tasks are plays that mean something, never the divide-by-zero trick of an old rate of 0%.
+  it("show mode's tasks play with the move: shrink it to nothing, then run the same gap the other way", () => {
+    expect(widgetTaskTexts(show(4, 5).code)).toEqual([
+      "Move the new rate to 4% and watch the move shrink to nothing",
+      "Now set the old rate to 5% and see the same gap run the other way",
+    ]);
+    expect(widgetTaskTexts(show(5, 5).code)).toEqual(["Move the new rate to 10% and read the lines again", "Set the old rate to 10% and read the lines again"]);
+  });
+
+  it("show mode's tasks never send the old rate to 0% or point at the last line", () => {
+    for (const [old, next] of [[4, 5], [7.5, 7.2], [5, 5.2], [2, 4.5], [5, 5], [15, 15], [18, 1], [1, 0], [20, 20]] as const) {
+      const code = show(old, next).code;
+      expect(widgetProblems(code), `${old} to ${next}`).toEqual([]);
+      for (const t of widgetTaskTexts(code)) {
+        expect(t, `${old} to ${next}`).not.toMatch(/\b0%|last line/);
+      }
+    }
   });
 });

@@ -241,7 +241,7 @@ A Widget that shows one finance word, its plain meaning, how pros say it and an 
 _Avoid_: Vocabulary card, flashcard, glossary card
 
 **Rate-move Widget**:
-The one Widget for a rate change, drawn from the rate_move recipe with its own part, RateMove: an arrow on a number line from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the lines stay hidden until the Learner picks the right reading of the move (three buttons: the right reading, the times-10 slip and the percent mix-up) and code marks the tap, then the lines follow, with sliders for play. Nothing is typed.
+The one Widget for a rate change, drawn from the rate_move recipe with its own part, RateMove: an arrow on a number line from an old rate to a new one, with three story lines code writes, said as quotes by a reporter (how far it moved, in points), a trader (in basis points) and a headline (next to the old rate), never as sums. In show mode the lines are on screen and sliders stay for play; in practice mode the lines stay hidden until the Learner picks the right reading of the move (three buttons: the right reading, the times-10 slip and the percent mix-up) and code marks the tap, then the lines follow, with sliders for play. Nothing is typed.
 _Avoid_: rate calculator, Illustration
 
 **Free-form Widget**:
@@ -273,7 +273,7 @@ A Widget that shows a named formula with each symbol in plain words, the Learner
 _Avoid_: Equation, formula block
 
 **Guided Task**:
-A small instruction under a Widget, such as "set the rate to 0%", that ticks itself when the Widget reaches that state. Optional play: nothing is marked and the Tutor never sets one as work, but the ticks are kept with the Session.
+A small instruction under a Widget, such as "set the rate to 0%", that ticks itself when the Widget reaches that state. They show as a light "Things to try" list, never numbered steps. Optional play: nothing is marked and the Tutor never sets one as work, but the ticks are kept with the Session.
 _Avoid_: Exercise, challenge, step
 
 **Question template**:
