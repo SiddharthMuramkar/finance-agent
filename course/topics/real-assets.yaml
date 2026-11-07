@@ -169,12 +169,12 @@ questions:
 
   - id: ra-q-gold-valuation
     prompt: >
-      Why does a discounted cash flow valuation fail to give a value for gold bars held in a vault?
+      In February 2025 Kavya's grandmother keeps gold bars in a bank vault. Kavya tries to value them the way she valued a rented flat, from today's worth of the cash the asset will pay. She gets stuck. Why?
     choices:
       - { id: a, text: "Gold has no price in the market", mistake: { tag: no_price, fix: "Gold has a market price; what it lacks is cash flows to discount." } }
-      - { id: b, text: "The bars produce no cash flows to discount, so gold can be priced (by scarcity and desirability) but not valued" }
+      - { id: b, text: "The bars pay no cash, so they can be priced, not valued" }
       - { id: c, text: "Gold is too risky for any discount rate", mistake: { tag: too_risky, fix: "Risk is not the issue; with no cash flows there is nothing to discount." } }
-      - { id: d, text: "Discounting only works on property", mistake: { tag: property_only, fix: "Discounting works on any asset with cash flows, from bonds to businesses." } }
+      - { id: d, text: "Discounting works only for property", mistake: { tag: property_only, fix: "Discounting works on any asset with cash flows, from bonds to businesses." } }
     answer: b
     explanation: >
       Discounted cash flow value is the present value of expected cash flows. Gold held in a vault pays no rent, interest or dividend, so there is nothing to discount. Damodaran puts gold with collectibles: it can be priced on scarcity and desirability, but not valued from cash flows.

@@ -85,12 +85,12 @@ questions:
 
   - id: cb-q-irr-def
     prompt: >
-      What is the internal rate of return (IRR) of a project?
+      In March 2026 Priya asks her bank for a loan at 10% to buy a delivery van for her bakery. Her adviser's note says the van's internal rate of return (IRR) is 18%. The loan officer asks what that 18% means. What should Priya say?
     choices:
-      - { id: a, text: "The discount rate at which the project's net present value is zero" }
-      - { id: b, text: "The average accounting profit divided by the investment", mistake: { tag: accounting_return, fix: "Average accounting profit over investment is the accounting return, not the IRR." } }
-      - { id: c, text: "The firm's cost of capital", mistake: { tag: irr_as_hurdle, fix: "The cost of capital is the hurdle you compare the IRR with, not the IRR itself." } }
-      - { id: d, text: "The rate at which the payback period equals one year", mistake: { tag: irr_as_payback, fix: "Payback counts years to recover cost; the IRR is the rate that makes NPV zero." } }
+      - { id: a, text: "It is the rate at which the van's NPV is zero" }
+      - { id: b, text: "It is the van's yearly profit over its price", mistake: { tag: accounting_return, fix: "Profit over price is the accounting return, not the IRR." } }
+      - { id: c, text: "It is what the bakery pays to borrow", mistake: { tag: irr_as_hurdle, fix: "The 10% loan is the hurdle; the IRR is what the van itself earns." } }
+      - { id: d, text: "It is how fast the van pays back its price", mistake: { tag: irr_as_payback, fix: "Payback counts years to recover cost; the IRR is the rate that makes NPV zero." } }
     answer: a
     explanation: >
       The IRR sets the present value of the inflows equal to the present value of the outflows. Accept the project if the IRR is above the required return.
@@ -99,12 +99,12 @@ questions:
 
   - id: cb-q-payback-flaw
     prompt: >
-      Which is a weakness of the payback period rule?
+      In June 2025 Arjun must pick one printing press for his shop. Press A earns back its price in two years and then wears out. Press B takes four years to earn back its price but keeps earning for ten. His partner says, "Pick A, it pays back faster." What does that rule leave out?
     choices:
-      - { id: a, text: "It ignores the time value of money and cash flows after the payback date" }
-      - { id: b, text: "It cannot be calculated for a project with positive cash flows", mistake: { tag: payback_impossible, fix: "Payback works fine with positive cash flows; its flaw is ignoring timing and later cash." } }
-      - { id: c, text: "It always favours the largest project", mistake: { tag: size_bias, fix: "Payback favours quick recovery, not size; a small fast project can beat a big one." } }
-      - { id: d, text: "It requires the cost of capital to be known exactly", mistake: { tag: needs_cost_of_capital, fix: "Payback uses no discount rate at all, which is part of its weakness." } }
+      - { id: a, text: "Cash after the payback date, and when it arrives" }
+      - { id: b, text: "Nothing: faster payback is always the better buy", mistake: { tag: payback_always_wins, fix: "Fast payback can hide a press that stops earning early; B earns for years longer." } }
+      - { id: c, text: "That the bigger press must earn more", mistake: { tag: size_bias, fix: "Payback favours quick recovery, not size; size alone says nothing about cash." } }
+      - { id: d, text: "The exact cost of capital that payback needs", mistake: { tag: needs_cost_of_capital, fix: "Payback uses no discount rate at all, which is part of its weakness." } }
     answer: a
     explanation: >
       Payback counts years to recover the cost. A project that pays back quickly but earns nothing afterwards can look better than one that pays back slower but earns much more, and a dollar recovered in year three counts the same as one recovered in year one.
@@ -113,12 +113,12 @@ questions:
 
   - id: cb-q-sunk
     prompt: >
-      A firm paid $50,000 last year for a feasibility study of a new plant. It can still choose whether to build. How should the $50,000 enter the decision?
+      In January 2026 Leela's board meets to decide whether to build a new plant. Last year the firm paid $50,000 for a study of it. One director says, "We've already spent $50,000, so we have to build." How should that $50,000 count?
     choices:
-      - { id: a, text: "Not at all: it is a sunk cost that is the same whether or not the plant is built" }
-      - { id: b, text: "As a cost at time zero", mistake: { tag: sunk_as_cost, fix: "The study is paid whatever happens, so it cannot change the build decision." } }
-      - { id: c, text: "As a benefit, because the study reduced uncertainty", mistake: { tag: sunk_as_benefit, fix: "Its value is already in what the firm knows; the spent money is still sunk." } }
-      - { id: d, text: "Spread over the plant's life as depreciation in the cash flows", mistake: { tag: sunk_as_depreciation, fix: "Spreading a past payment over the plant's life still counts a cost that cannot change." } }
+      - { id: a, text: "Not at all: it is spent whether or not they build" }
+      - { id: b, text: "As a cost of building, counted today", mistake: { tag: sunk_as_cost, fix: "The study is paid whatever happens, so it cannot change the build decision." } }
+      - { id: c, text: "As a benefit, since the study cut the guesswork", mistake: { tag: sunk_as_benefit, fix: "Its value is already in what the firm knows; the spent money is still sunk." } }
+      - { id: d, text: "Spread over the plant's life as a yearly cost", mistake: { tag: sunk_as_depreciation, fix: "Spreading a past payment over the plant's life still counts a cost that cannot change." } }
     answer: a
     explanation: >
       Only cash flows that change with the decision count. The study has been paid for and cannot be recovered, so it should not be counted in the plant's NPV.
@@ -133,8 +133,6 @@ checks:
       - cb-q-irr-def
       - cb-q-payback-flaw
       - cb-q-sunk
-      - bank:eab:MBA-FIN-CF-0011
-      - bank:eab:MBA-FIN-CF-0012
       - bank:eab:MBA-FIN-CF-0013
     perAttempt: 3
     passRule:

@@ -122,12 +122,12 @@ questions:
 
   - id: cs-q-pledge
     prompt: >
-      The main shareholder of a listed company borrows by pledging much of his shares as security. What is the key extra risk?
+      In March 2025 Raj, the founder and main shareholder of a listed company, takes a personal loan by pledging most of his shares to the lender as security. His sister asks about the danger. What is the big extra risk?
     choices:
-      - { id: a, text: "A fall in the share price can force more security or a sale of the pledged shares, costing the owner control" }
-      - { id: b, text: "The interest on the loan becomes taxable twice", mistake: { tag: double_tax, fix: "Tax is not the issue; a falling price can force a sale of the pledged shares." } }
-      - { id: c, text: "The company must pay a higher dividend", mistake: { tag: dividend_forced, fix: "The pledge binds the owner, not the company's dividend." } }
-      - { id: d, text: "The shares can no longer be traded", mistake: { tag: pledge_freezes_trading, fix: "Pledged shares still trade in the market; the lender can sell them if the price falls." } }
+      - { id: a, text: "A falling share price can force a sale and cost him control" }
+      - { id: b, text: "The loan's interest gets taxed twice", mistake: { tag: double_tax, fix: "Tax is not the issue; a falling price can force a sale of the pledged shares." } }
+      - { id: c, text: "His company must now pay a bigger dividend", mistake: { tag: dividend_forced, fix: "The pledge binds the owner, not the company's dividend." } }
+      - { id: d, text: "His pledged shares can no longer trade", mistake: { tag: pledge_freezes_trading, fix: "Pledged shares still trade in the market; the lender can sell them if the price falls." } }
     answer: a
     explanation: >
       The lender's security is the share price. If it falls, the lender can demand top-up collateral or sell the shares, which can push the price down further.
@@ -143,7 +143,6 @@ checks:
       - cs-q-cover
       - cs-q-pledge
       - bank:eab:MBA-FIN-CF-0034
-      - bank:eab:MBA-FIN-CF-0036
       - bank:eab:MBA-FIN-CF-0037
     perAttempt: 3
     passRule:

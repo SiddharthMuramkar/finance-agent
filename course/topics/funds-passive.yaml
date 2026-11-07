@@ -28,7 +28,7 @@ cases:
       per cent, 8.5 per cent a year. The five funds of funds gained 21.7, 42.3, 87.7, 2.8 and
       27.0 per cent (2.0, 3.6, 6.5, 0.3 and 2.4 per cent a year); one was liquidated in 2017, so
       it has no 2017 figure. Their average was about 36 per cent, around
-      2.2 per cent a year (the average is our own arithmetic from the letter's table). The
+      3.1 per cent a year (the average is our own arithmetic from the letter's table). The
       funds of funds started well: each beat the index fund in 2008, a year in which the
       index fund fell 37 per cent and they fell between 16.5 and 30.1 per cent. After that,
       the average of the five trailed the index fund in each of the next nine years (our own
@@ -53,7 +53,8 @@ concept: >
   that, active investors as a group must earn it too. After costs, active investors as a
   group earn less than passive investors, by the difference in costs. A fund of funds adds a
   second layer of fees. Costs compound: a 1 per cent annual cost on a 20-year holding takes
-  far more than 20 per cent of the final amount. In India, mutual funds are regulated by
+  about a sixth of the final amount (about 17 per cent at a 7 per cent return before fees),
+  and a bigger share of the gain. In India, mutual funds are regulated by
   SEBI. Pools for larger investors, such as private equity and hedge-fund style vehicles, are
   Alternative Investment Funds (AIFs) under SEBI's 2012 regulations; SEBI's 2016 FAQ states
   a minimum of Rs 1 crore from each investor (the rules have been amended since).
@@ -92,12 +93,12 @@ questions:
 
   - id: fp-q-etf
     prompt: >
-      Which statement correctly contrasts an exchange-traded fund (ETF) with a traditional open-end mutual fund?
+      At 11 a.m. on 3 March 2025 Kiran wants to sell one of her two funds at once, before a big announcement. One is an exchange-traded fund (ETF); the other is an ordinary mutual fund she buys from and sells back to the fund company. What happens if she sells each now?
     choices:
-      - { id: a, text: "ETF shares trade on an exchange all day at market prices, which can differ from NAV; mutual fund investors deal with the fund at the end-of-day NAV" }
-      - { id: b, text: "ETF shares are always priced exactly at NAV; mutual fund units trade on an exchange all day", mistake: { tag: pricing_swapped, fix: "That swaps them: ETFs trade all day and can drift from NAV, mutual funds deal at NAV." } }
-      - { id: c, text: "An ETF cannot hold shares; a mutual fund can", mistake: { tag: etf_no_shares, fix: "ETFs hold shares like any fund; the difference is how investors buy and sell them." } }
-      - { id: d, text: "An ETF is always actively managed; a mutual fund is always passive", mistake: { tag: style_by_wrapper, fix: "Either type can be active or passive; the wrapper is about trading, not style." } }
+      - { id: a, text: "ETF: sold now at its market price; fund: at the day's NAV" }
+      - { id: b, text: "Fund: sold now on the exchange; ETF: at the day's NAV", mistake: { tag: pricing_swapped, fix: "That swaps them: ETFs trade all day and can drift from NAV, mutual funds deal at NAV." } }
+      - { id: c, text: "Only the fund sells: an ETF holds no shares to sell", mistake: { tag: etf_no_shares, fix: "ETFs hold shares like any fund; the difference is how investors buy and sell them." } }
+      - { id: d, text: "Both the same way, since ETFs are just active funds", mistake: { tag: style_by_wrapper, fix: "Either type can be active or passive; the wrapper is about trading, not style." } }
     answer: a
     explanation: >
       Both are pooled funds that work out a NAV each business day. The difference is in how they are bought and sold: ETF shares change hands on an exchange at market prices, so the price can drift from NAV, while mutual fund investors buy and redeem with the fund at the day's NAV. Either type can be active or passive.
@@ -146,12 +147,12 @@ questions:
 
   - id: fp-q-compounding-cost
     prompt: >
-      On your 20th birthday you and your friend Zoya each invest the same amount for 20 years. Your fund's yearly fee is a little lower. Where do you two stand at 40?
+      On your 20th birthday you and your friend Zoya each put the same amount into a fund for 20 years. Both funds earn 8% a year before fees, but yours charges 0.1% a year and Zoya's charges 1.5%. Where do you two stand at 40?
     choices:
       - id: a
-        text: "Close together, since a small yearly gap stays small"
-        mistake: { tag: gap_stays_small, fix: "A small yearly gap compounds over 20 years into a large difference." }
-      - { id: b, text: "You are far ahead: the small gap compounds every year" }
+        text: "Close together, since a fee gap of a point or so stays small"
+        mistake: { tag: gap_stays_small, fix: "A yearly fee gap compounds over 20 years into a large difference." }
+      - { id: b, text: "You are well ahead: the fee gap compounds every year" }
       - id: c
         text: "You have exactly double Zoya's pot, whatever the rates"
         mistake: { tag: fixed_multiple, fix: "You end well ahead, but by no fixed multiple. It depends on the rates and the years." }
@@ -160,7 +161,7 @@ questions:
         mistake: { tag: costs_cancel, fix: "Both funds charge costs, but the cheaper one compounds faster and ends well ahead." }
     answer: b
     explanation: >
-      Growth builds on earlier growth, so a small yearly gap widens every year. For example, Rs 1,00,000 growing at 7.9% a year for 20 years reaches about Rs 4,57,500, against about Rs 3,52,400 at 6.5%.
+      Growth builds on earlier growth, so a yearly fee gap widens every year. For example, Rs 1,00,000 growing at 7.9% a year for 20 years reaches about Rs 4,57,500, against about Rs 3,52,400 at 6.5%.
     source: >
       Compound growth: OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance-2e/pages/7-3-methods-for-solving-time-value-of-money-problems
 
@@ -209,7 +210,7 @@ checks:
       return, so after costs active investors as a group earn less than passive investors by
       the difference in costs, and that fees are certain while outperformance is not. They say
       a fair comparison measures returns net of all fees and costs, over the same period, at
-      comparable risk, and counts funds that closed or were merged (survivorship). They may
+      comparable risk. They may
       add that some managers do beat the index but that picking them in advance is hard. They
       must not claim that active management can never win in any single period or for any
       single investor.

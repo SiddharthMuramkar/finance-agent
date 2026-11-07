@@ -116,12 +116,12 @@ questions:
 
   - id: wc-q-market-weights
     prompt: >
-      Why should WACC use the market values of debt and equity as weights, rather than the figures on the balance sheet?
+      In July 2025 Omar works out his firm's weighted average cost of capital (WACC), the blended cost of its debt and its shares. His accounts show the shares at the amount raised years ago; on the market today they are worth far more. His mentor says to weight by today's market values. Why?
     choices:
-      - { id: a, text: "Market values show what investors currently have at stake and could earn elsewhere" }
-      - { id: b, text: "Market values never change", mistake: { tag: market_static, fix: "Market values change all the time; they matter because they show what investors have at stake now." } }
-      - { id: c, text: "Book values are not audited", mistake: { tag: book_unaudited, fix: "Book values are audited; they are just old amounts, not today's stakes." } }
-      - { id: d, text: "Tax law requires it", mistake: { tag: tax_rule, fix: "No tax law sets the weights; market values match the returns investors need today." } }
+      - { id: a, text: "They show what investors have at stake today" }
+      - { id: b, text: "Market values never move", mistake: { tag: market_static, fix: "Market values change all the time; they matter because they show what investors have at stake now." } }
+      - { id: c, text: "The accounts are never audited", mistake: { tag: book_unaudited, fix: "Book values are audited; they are just old amounts, not today's stakes." } }
+      - { id: d, text: "Tax law says so", mistake: { tag: tax_rule, fix: "No tax law sets the weights; market values match the returns investors need today." } }
     answer: a
     explanation: >
       The required returns apply to the money investors have at risk today, which is the market value of their claims, not the historical amount recorded in the accounts.
@@ -136,7 +136,6 @@ checks:
       - wc-q-capm
       - wc-q-tax-shield
       - wc-q-market-weights
-      - bank:eab:MBA-FIN-CF-0030
       - bank:eab:MBA-FIN-CF-0031
     perAttempt: 3
     passRule:
