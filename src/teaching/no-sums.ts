@@ -47,21 +47,54 @@ const ANYWHERE: RegExp[] = [
   new RegExp(String.raw`${NUMBER}[^.?!]{0,60}?\b(?:earns?|grows?(?:\s+to)?|makes?|gives?|becomes?|pays?|owes?|comes?\s+to|adds?\s+up\s+to|is\s+worth)\s+what\b`, "i"),
 ];
 
+const ASKED = String.raw`\bwhat(?:['’]s|\s+is|\s+was|\s+are|\s+were|\s+would\s+be|\s+will\s+be)\s+`;
+const FIGURE = String.raw`(?:present value|future value|margin|ratio|premium|cost of (?:equity|debt|capital)|revenue|difference|npa|rate|yield|total|average|payment|price|value|return|profit|loss|growth|spread|duration)\b`;
+
 /**
  * "What is its operating margin?", "What is the present value of $5,000 ...?", "What was its revenue for the twelve
- * months ...?": a question for a figure that has to be worked out. Only a sum when the text also carries a number, so
+ * months ...?": a question for a figure that has to be worked out. Only a sum when the text itself carries a number, so
  * "What is the present value of a payment?" (a words question) is left alone.
  */
-const QUANTITY_ASK = new RegExp(
-  String.raw`\bwhat(?:['’]s|\s+is|\s+was|\s+are|\s+were|\s+would\s+be|\s+will\s+be)\s+(?:the\s+|its\s+|their\s+|that\s+|this\s+)?(?:[\w$%.,/-]+\s+){0,5}?(?:present value|future value|margin|ratio|premium|cost of (?:equity|debt|capital)|revenue|difference|npa|rate|yield|total|average|payment|price|value|return|profit|loss|growth|spread|duration)\b`,
+const QUANTITY_ASK = new RegExp(String.raw`${ASKED}(?:the\s+|its\s+|their\s+|that\s+|this\s+)?(?:[\w$%.,/-]+\s+){0,5}?${FIGURE}`, "i");
+const HAS_NUMBER = /\d/;
+
+/**
+ * The narrower pattern 8 used when only the message around the ask gives numbers: the ask names a figure of something
+ * ("its margin", "the margin here", "Infosys's revenue", "the difference between its revenue and its costs") and ends
+ * on it. A story or words question that only mentions a figure word ("What is the main reason the price fell?", "What
+ * is the big risk to their profit?", "What is the present value of a payment?", "What is yield?") is left alone.
+ */
+const OWNER = String.raw`(?:the|its|their|his|her|our|that|this|these|those|(?!(?:what|it|that|there|here|let|who|where|how|he|she)['’]s\b)\w+['’]s)`;
+const LINK_WORD = String.raw`(?:of|to|about|for|in|on|from|with|behind|by|at|between|than|into|over|under|and|or|but|the|a|an)`;
+const FIGURE_ASK = new RegExp(
+  String.raw`${ASKED}${OWNER}\s+(?:(?!${LINK_WORD}\b)[\w$%.,/-]+\s+){0,2}?${FIGURE}(?=(?:\s+(?:here|now|then|there|today|overall|in total))?\s*\?|\s+between\b)`,
   "i",
 );
-const HAS_NUMBER = /\d/;
+
+/**
+ * A lingo ask names a word rather than a figure: "What is a yield?", "What does the yield mean?", "What is the difference
+ * between the repo rate and the reverse repo rate?". It points at nothing in the story ("its", "their", "Infosys's"), so
+ * numbers elsewhere in the message don't turn it into a sum. Only used when the context, not the ask, gives the numbers.
+ */
+const DEFINITION_ASK = /\bwhat(?:['’]s|\s+is|\s+are)\s+an?\s|\bwhat\s+(?:does|do)\b[^.?!]*\bmean\b|\bdifference\s+between\b/i;
+const STORY_REFERENCE = /\b(?:its|their|his|her|our)\b|\b(?!(?:what|it|that|there|here|let|who|where|how|he|she)['’]s\b)\w+['’]s\b/i;
+const lingoAsk = (sentence: string) => DEFINITION_ASK.test(sentence) && !STORY_REFERENCE.test(sentence);
 
 const HOW_MANY = /\bhow\s+(?:much|many)\b/i;
 
-/** The phrase that makes `text` ask for a sum, or null when it asks a story or lingo question. */
-export function sumAsk(text: string): string | null {
+/**
+ * What the text sits in. `numbers`: the message around it gives numbers to work from (V8 passes the ask's own line and
+ * the line above), even if `text` itself has none.
+ */
+export type SumAskContext = { numbers?: boolean };
+
+/**
+ * The phrase that makes `text` ask for a sum, or null when it asks a story or lingo question. V8 reads a reply one ask
+ * sentence at a time, so it passes `{ numbers: true }` when the statements beside the ask give numbers ("Infosys earned ₹30
+ * on ₹100 of sales. What is its margin?"): pattern 8 then fires on an ask that names a figure of something and ends on
+ * it (FIGURE_ASK), unless the ask is lingo ("What is a yield?").
+ */
+export function sumAsk(text: string, context: SumAskContext = {}): string | null {
   for (const pattern of ANYWHERE) {
     const hit = pattern.exec(text);
     if (hit) return hit[0];
@@ -71,11 +104,15 @@ export function sumAsk(text: string): string | null {
     const hit = HOW_MANY.exec(sentence);
     if (hit && UNIT_WORD.test(sentence)) return hit[0];
   }
-  // 8. A question for a figure ("What is its operating margin?") in text that gives numbers to work it out from.
-  if (HAS_NUMBER.test(text)) {
+  // 8. A question for a figure ("What is its operating margin?") in text, or a message, that gives numbers to work it out from.
+  // When only the message gives the numbers, a lingo ask ("What is a yield?") stays a lingo ask, and the ask must name a
+  // figure of something and end on it (FIGURE_ASK), so a story question that mentions "price" or "rate" is left alone.
+  const ownNumbers = HAS_NUMBER.test(text);
+  if (context.numbers || ownNumbers) {
     for (const sentence of text.split(/(?<=[.?!])\s+/)) {
       if (!sentence.includes("?")) continue;
-      const hit = QUANTITY_ASK.exec(sentence);
+      if (!ownNumbers && lingoAsk(sentence)) continue;
+      const hit = (ownNumbers ? QUANTITY_ASK : FIGURE_ASK).exec(sentence);
       if (hit) return hit[0];
     }
   }

@@ -59,4 +59,15 @@ describe("Your Topics", () => {
     await act(async () => [...forms[0].querySelectorAll("button")].find((b) => b.textContent === "Cancel")!.click());
     expect(host.querySelector("form")).toBeNull();
   });
+
+  it("opening the confirm focuses its Cancel; Cancel sends focus back to that Topic's Start over", async () => {
+    await act(async () => root.render(<YourTopicsSection topics={topics} />));
+    const start = [...host.querySelectorAll<HTMLButtonElement>("button")].filter((b) => b.textContent === "Start over");
+    await act(async () => start[1].click());
+    const cancel = [...host.querySelector("form")!.querySelectorAll("button")].find((b) => b.textContent === "Cancel")!;
+    expect(document.activeElement).toBe(cancel);
+    await act(async () => cancel.click());
+    expect(host.querySelector("form")).toBeNull();
+    expect(document.activeElement).toBe(start[1]);
+  });
 });

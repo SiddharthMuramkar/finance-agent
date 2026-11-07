@@ -25,7 +25,6 @@ describe("raw buttons", () => {
       "src/widgets/primitives/wave2/step-through.tsx",
       "src/widgets/primitives/wave2/rank.tsx",
       "src/widgets/primitives/wave1/quick-check.tsx",
-      "src/widgets/primitives/wave2/rate-move.tsx",
       "src/widgets/primitives/wave2/draw-the-line.tsx",
       "src/widgets/primitives/wave1/waffle.tsx",
       "src/widgets/primitives/wave1/predict.tsx",
@@ -34,8 +33,8 @@ describe("raw buttons", () => {
     ];
     const list = RAW_BUTTON_ALLOWLIST as string[];
     expect(list.filter((f) => f.startsWith("src/widgets/")).sort()).toEqual([...widgets].sort());
-    // The A3b sweep emptied the src/app side: only the 9 Widget files are left, and they can only be removed.
+    // The A3b sweep emptied the src/app side: only the 8 Widget files are left, and they can only be removed.
     expect(list.filter((f) => f.startsWith("src/app/"))).toEqual([]);
-    expect(list).toHaveLength(9);
+    expect(list).toHaveLength(8);
   });
 });

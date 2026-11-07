@@ -162,6 +162,19 @@ describe("notebook rows", () => {
     expect(row).not.toContain("/api/open");
   });
 
+  it("uses primary once per view (Appendix B.7): only the most recently worked-on Resume is primary, the rest secondary", () => {
+    const two = [
+      rowOf(empty("bonds", "Bond prices"), { status: "in_progress", sessionId: 13, lastActive: new Date("2026-11-01T00:00:00Z"), action: "resume" }),
+      rowOf(empty("fx", "Currencies"), { status: "in_progress", sessionId: 14, lastActive: new Date("2026-11-02T00:00:00Z"), action: "resume" }),
+      rowOf(empty("eq", "Shares"), { status: "in_progress", sessionId: 15, lastActive: null, action: "resume" }),
+    ];
+    const page = renderToStaticMarkup(<NotebookView notebook={{ rows: two, older: [] }} showAll={false} />);
+    expect([...page.matchAll(/btn-primary/g)]).toHaveLength(1);
+    const fx = page.slice(page.indexOf('data-notebook-row="fx"'), page.indexOf('data-notebook-row="eq"'));
+    expect(fx).toMatch(/class="btn btn-primary[^"]*"[^>]*>Resume</);
+    expect([...page.matchAll(/class="btn btn-secondary[^"]*"[^>]*>Resume</g)]).toHaveLength(2);
+  });
+
   it("leaves a row with no action without a Resume or Read", () => {
     const row = html.slice(html.indexOf('data-notebook-row="fx"'));
     expect(row).not.toContain("Resume");

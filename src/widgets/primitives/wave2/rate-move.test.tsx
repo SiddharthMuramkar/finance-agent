@@ -122,6 +122,20 @@ describe("RateMove, practice mode", () => {
     expect(status()).toBe("idle");
   });
 
+  it("draws each reading as the shared Chip (Appendix B.7), with no hand-made border look", () => {
+    show(<RateMoveView oldRate={2} newRate={4.5} mode="practice" />);
+    expect(choiceButtons()).toHaveLength(3);
+    for (const b of choiceButtons()) {
+      expect(b.getAttribute("data-affordance")).toBe("chip");
+      expect(b.className.split(/\s+/)).toContain("chip");
+      expect(b.className).not.toMatch(/border-\[var\(--border\)\]|border-b-\[3px\]/);
+      expect(b.getAttribute("aria-pressed")).toBe("false");
+    }
+    tap("Up 2.5 points, or 250 bps");
+    const on = choiceButtons().find((b) => b.textContent?.trim() === "Up 2.5 points, or 250 bps")!;
+    expect(on.getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("offers the fall's readings: 7.5% to 7.2%", () => {
     show(<RateMoveView oldRate={7.5} newRate={7.2} mode="practice" />);
     expect(readings().sort()).toEqual(["Down 0.3 points, or 30 bps", "Down 0.3%", "Down 3 bps"]);

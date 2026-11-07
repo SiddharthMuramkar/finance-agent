@@ -61,4 +61,42 @@ describe("sumAsk", () => {
   ])("passes a story or lingo ask: %s", (text) => {
     expect(sumAsk(text)).toBeNull();
   });
+
+  it("reads a figure asked for with no digit as a sum when its message gives numbers (V8's context)", () => {
+    expect(sumAsk("What is its margin?")).toBeNull();
+    expect(sumAsk("What is its margin?", { numbers: true })).toBe("What is its margin");
+    expect(sumAsk("What is the margin here?", { numbers: true })).toBe("What is the margin");
+  });
+
+  // T1: a lingo ask names a word, not a figure, so numbers elsewhere in the message don't make it a sum.
+  it.each([
+    "What is a yield?",
+    "What is a margin?",
+    "What's an operating margin, in plain words?",
+    "What is the difference between the repo rate and the reverse repo rate?",
+    "What does the yield mean here?",
+  ])("passes a lingo ask whose message gives numbers: %s", (text) => {
+    expect(sumAsk(text, { numbers: true })).toBeNull();
+  });
+
+  it.each([
+    ["What is its margin?", "What is its margin"],
+    ["What is the difference between its revenue and its costs?", "What is the difference"],
+  ])("still reads a figure asked of the story as a sum when its message gives numbers: %s", (text, phrase) => {
+    expect(sumAsk(text, { numbers: true })).toBe(phrase);
+  });
+
+  // F2p2-V8: when only the message gives numbers, pattern 8 needs the ask to name a figure of something in the story
+  // ("its margin", "the margin here") and end on it. A story or words question that only mentions a figure word is left
+  // alone, so a rate, a year or "Q3" in the message never costs a retry or deletes the Learner's question.
+  it.each([
+    "What is the main reason the price fell?",
+    "What is the story telling you about the rate?",
+    "What is the present value of a payment?",
+    "What is yield?",
+    "What is the big risk to their profit?",
+    "What is its margin telling you about the business?",
+  ])("passes a story or words question that mentions a figure word when only its message gives numbers: %s", (text) => {
+    expect(sumAsk(text, { numbers: true })).toBeNull();
+  });
 });

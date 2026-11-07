@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { YourTopic } from "@/learner/your-topics";
 import { RestartConfirm } from "../restart-confirm";
 import { Button, Card, Tag } from "../ui";
@@ -9,6 +9,7 @@ const STATUS: Record<YourTopic["status"], string> = { in_progress: "In progress"
 
 function TopicRow({ topic }: { topic: YourTopic }) {
   const [confirming, setConfirming] = useState(false);
+  const start = useRef<HTMLButtonElement>(null);
   return (
     <li data-your-topic={topic.id} className="flex flex-col gap-2 py-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -16,11 +17,19 @@ function TopicRow({ topic }: { topic: YourTopic }) {
           <span className="font-semibold">{topic.title}</span>
           <Tag tone={topic.status === "passed" ? "mint" : "brand"}>{STATUS[topic.status]}</Tag>
         </p>
-        <Button variant="secondary" size="sm" aria-expanded={confirming} onClick={() => setConfirming(true)}>
+        <Button ref={start} variant="secondary" size="sm" aria-expanded={confirming} onClick={() => setConfirming(true)}>
           Start over
         </Button>
       </div>
-      {confirming && <RestartConfirm topicId={topic.id} onCancel={() => setConfirming(false)} />}
+      {confirming && (
+        <RestartConfirm
+          topicId={topic.id}
+          onCancel={() => {
+            setConfirming(false);
+            start.current?.focus();
+          }}
+        />
+      )}
     </li>
   );
 }

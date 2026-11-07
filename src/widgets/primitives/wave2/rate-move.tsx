@@ -3,6 +3,7 @@
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
 import { useId, useMemo, useState } from "react";
 import { z } from "zod/v4";
+import { Chip } from "@/app/primitives";
 import { rateMoveLines } from "@/finance/rate-change";
 import { useChangeFlash, usePrefersReducedMotion } from "../wave1/motion";
 import { Pic } from "../wave3/shared";
@@ -176,17 +177,17 @@ function Practice({ oldRate, newRate }: { oldRate: number; newRate: number }) {
         </p>
         <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Readings of the move">
           {readings.choices.map((c) => (
-            <button
+            // The shared Chip (Appendix B.7: choices inside content); the tapped one keeps its showing look and a ✓ once locked.
+            <Chip
               key={c.id}
-              type="button"
               data-testid="rate-move-choice"
-              aria-pressed={marked?.tapped === c.id}
+              active={marked?.tapped === c.id}
               disabled={marked !== null}
               onClick={() => tap(c.id)}
-              className="pressable min-h-10 rounded-md border border-[var(--border)] border-b-[3px] bg-[var(--bg)] px-3 py-1 text-sm font-medium enabled:hover:bg-[var(--hairline)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] disabled:opacity-60 aria-pressed:border-[var(--brand)] aria-pressed:bg-[var(--brand-tint)] aria-pressed:font-semibold aria-pressed:opacity-100 aria-pressed:before:content-['✓_']"
+              className="aria-pressed:font-semibold aria-pressed:opacity-100 aria-pressed:before:content-['✓_']"
             >
               {c.text}
-            </button>
+            </Chip>
           ))}
         </div>
         <p role="status" data-testid="rate-move-result" className="mt-2 text-sm">

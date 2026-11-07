@@ -254,20 +254,49 @@ const SUM_VERBS = new Set(["compute", "figure", "round"]);
  * Statements are left out, so a short sum said as a fact ("1 point times 100 is 100 bp.") is never read as an ask.
  */
 export function asksIn(text: string): string[] {
+  return asksWithContext(text).map(({ ask }) => ask);
+}
+
+/** Whether a sentence sets the Learner something to answer or do: a question, an instruction, or a sum verb. */
+const isAsk = (sentence: string) => asksOrInstructs(sentence) || opensWithVerb(sentence, SUM_VERBS);
+
+/**
+ * For each prose line of a reply, in order, whether it or the nearest non-blank prose line above gives a number: the
+ * context V8 reads that line's asks in. A year, "Q3" or a rate two lines away is not the ask's to work from.
+ */
+function numbersNearLines(text: string): boolean[] {
   const lines = text.split("\n");
-  return proseLineIndices(lines)
-    .flatMap((i) => sentencesOf(prose(lines[i])))
-    .filter((s) => asksOrInstructs(s) || opensWithVerb(s, SUM_VERBS));
+  const said = proseLineIndices(lines).map((i) => prose(lines[i]));
+  return said.map((line, k) => {
+    const above = said.slice(0, k).findLast((l) => l.trim() !== "");
+    return /\d/.test(line) || (above !== undefined && /\d/.test(above));
+  });
+}
+
+/** Every ask in a reply (as `asksIn`), each with whether its own line or the line above gives numbers. */
+function asksWithContext(text: string): { ask: string; numbers: boolean }[] {
+  const lines = text.split("\n");
+  const near = numbersNearLines(text);
+  return proseLineIndices(lines).flatMap((i, k) =>
+    sentencesOf(prose(lines[i]))
+      .filter(isAsk)
+      .map((ask) => ({ ask, numbers: near[k] })),
+  );
 }
 
 /** V8's message: the phrase that asks for a sum, and what to ask instead (ADR 0009). */
 export const sumAskMessage = (phrase: string) =>
   `Your reply asks the Learner to work out a sum ("${phrase}"). Ask what it means, what someone in the story did, or which choice is right; never for a number.`;
 
-/** The phrase in a reply that asks the Learner for a sum (V8), or null. */
+/**
+ * The phrase in a reply that asks the Learner for a sum (V8), or null. Each ask is read with the numbers on its own line
+ * and the line above as context (prose only: fences and Citation markers out), so a figure asked for after a statement
+ * that gives the numbers ("…₹30 profit on ₹100 of sales. What is its margin?") is caught although the ask sentence
+ * holds no digit.
+ */
 export function sumAsked(text: string): string | null {
-  for (const line of asksIn(text)) {
-    const phrase = sumAsk(line);
+  for (const { ask, numbers } of asksWithContext(text)) {
+    const phrase = sumAsk(ask, { numbers });
     if (phrase) return phrase;
   }
   return null;
@@ -278,12 +307,16 @@ export function sumAsked(text: string): string | null {
  * failed V8 retry. Statements and fences stay; the Choices under the reply carry the next move.
  */
 export function dropSumAsks(text: string): string {
+  // mapProse hands over the prose lines in the order numbersNearLines lists them (fence lines out).
+  const near = numbersNearLines(text);
+  let k = 0;
   const out = mapProse(text, (chunk) =>
     chunk
       .split("\n")
       .map((line) => {
+        const context = { numbers: near[k++] };
         const sentences = sentencesOf(line);
-        const kept = sentences.filter((s) => !((asksOrInstructs(s) || opensWithVerb(s, SUM_VERBS)) && sumAsk(prose(s))));
+        const kept = sentences.filter((s) => !(isAsk(s) && sumAsk(prose(s), context)));
         return kept.length === sentences.length ? line : kept.length ? kept.join(" ") : null;
       })
       .filter((line): line is string => line !== null)

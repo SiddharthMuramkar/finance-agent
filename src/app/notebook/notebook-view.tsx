@@ -1,7 +1,7 @@
 import type { Notebook, NotebookRow } from "@/learner/notebook";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { dayMonth, shortDate } from "../past-sessions";
-import { ButtonLink, Card, Eyebrow, PrimaryButton, Tag, TextLink } from "../ui";
+import { Button, ButtonLink, Card, Eyebrow, Tag, TextLink } from "../ui";
 import { FilledPart } from "./filled-part";
 import { OwnLines } from "./own-lines";
 import { SavedItems } from "./saved-items";
@@ -15,15 +15,18 @@ function Heading({ children }: { children: React.ReactNode }) {
   return <h3 className="mt-4 text-xs font-semibold uppercase leading-4 tracking-wide text-[var(--muted)]">{children}</h3>;
 }
 
-/** Resume is a form post to /api/open, so it works without scripts; Read is a link to the read-only Session. */
-function RowAction({ row }: { row: NotebookRow }) {
+/**
+ * Resume is a form post to /api/open, so it works without scripts; Read is a link to the read-only Session. Primary is
+ * used once per view (Appendix B.7): only the `next` row's Resume is primary, every other Resume is secondary.
+ */
+function RowAction({ row, next }: { row: NotebookRow; next: boolean }) {
   if (row.action === "resume")
     return (
       <form method="post" action="/api/open" className="print:hidden">
         <input type="hidden" name="topic" value={row.topicId} />
-        <PrimaryButton type="submit" size="sm">
+        <Button type="submit" variant={next ? "primary" : "secondary"} size="sm">
           Resume
-        </PrimaryButton>
+        </Button>
       </form>
     );
   if (row.action === "read" && row.sessionId !== null)
@@ -73,7 +76,17 @@ function EarlierAttempts({ row }: { row: NotebookRow }) {
   );
 }
 
-function Row({ row }: { row: NotebookRow }) {
+/** The one row whose Resume is primary: the in-progress Topic worked on most recently (the first one on a tie or no date). */
+function nextResume(rows: readonly NotebookRow[]): string | null {
+  let best: NotebookRow | null = null;
+  for (const r of rows) {
+    if (r.action !== "resume") continue;
+    if (!best || (r.lastActive?.getTime() ?? -Infinity) > (best.lastActive?.getTime() ?? -Infinity)) best = r;
+  }
+  return best?.topicId ?? null;
+}
+
+function Row({ row, next }: { row: NotebookRow; next: boolean }) {
   const { note } = row;
   return (
     <Card
@@ -91,7 +104,7 @@ function Row({ row }: { row: NotebookRow }) {
             {row.lastActive && <span>Last worked on {shortDate(row.lastActive)}</span>}
           </p>
         </div>
-        <RowAction row={row} />
+        <RowAction row={row} next={next} />
       </div>
       {row.found.length > 0 && (
         <div data-testid="session-found">
@@ -119,6 +132,7 @@ function Row({ row }: { row: NotebookRow }) {
  * Topic with nothing on it is left out of the paper copy.
  */
 export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAll: boolean }) {
+  const next = nextResume(notebook.rows);
   return (
     // One Case Data cache for the page, so saved Widgets drawing the same Case fetch it once.
     <CaseDataProvider>
@@ -140,7 +154,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
           )}
           <div className="card-grid [grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr))]">
             {notebook.rows.map((row) => (
-              <Row key={row.topicId} row={row} />
+              <Row key={row.topicId} row={row} next={row.topicId === next} />
             ))}
           </div>
           {notebook.rows.length > 0 && <ScrollToRow />}

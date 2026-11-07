@@ -5,8 +5,10 @@ import {
   checkReply,
   correctionText,
   countWords,
+  dropSumAsks,
   fixReply,
   splitAsk,
+  sumAsked,
   trimToCap,
   type OpenItem,
   type ReplyCheckContext,
@@ -424,6 +426,49 @@ describe("V8: no sum asked of the Learner", () => {
 
   it("leaves a statement alone: a short sum said as a fact is not asked", () => {
     expect(v8s("1 point times 100 is 100 bp.")).toEqual([]);
+  });
+
+  // The ask sentence is read with the reply's numbers as context (ADR 0009): the numbers to work the figure out from
+  // may sit in a statement before the question, on its line or the line above.
+  it.each([
+    ["on the ask's line", "Infosys earned ₹30 profit on ₹100 of sales. What is its margin?"],
+    ["on the line above", "Infosys earned ₹30 profit on ₹100 of sales.\nWhat is its margin?"],
+  ])("finds a figure asked for when the reply gives the numbers %s", (_where, reply) => {
+    expect(sumAsked(reply)).toBe("What is its margin");
+    expect(v8s(reply)).toHaveLength(1);
+    expect(dropSumAsks(reply)).toBe("Infosys earned ₹30 profit on ₹100 of sales.");
+  });
+
+  // T1: a lingo ask stays a lingo ask in a reply that gives numbers (a %, a date, "Check 1").
+  it.each([
+    "RBI held the repo rate at 6.5%.\nWhat is a yield?",
+    "RBI held the repo rate at 6.5% in June 2024.\nWhat is a margin?",
+    "That is Check 1 done.\nWhat is the difference between the repo rate and the reverse repo rate?",
+  ])("leaves a lingo ask alone in a reply that gives numbers: %s", (reply) => {
+    expect(sumAsked(reply)).toBeNull();
+    expect(v8s(reply)).toEqual([]);
+    expect(dropSumAsks(reply)).toBe(reply);
+  });
+
+  it("still finds a figure asked of the story in a reply that gives the numbers", () => {
+    expect(sumAsked("Infosys earned 30 on 100 of sales. What is its margin?")).toBe("What is its margin");
+  });
+
+  it("leaves a words question for a figure alone when the reply gives no numbers", () => {
+    const reply = "Infosys sells software and keeps part of each sale as profit.\nWhat is its margin telling you about the business?";
+    expect(sumAsked(reply)).toBeNull();
+    expect(dropSumAsks(reply)).toBe(reply);
+  });
+
+  // F2p2-V8: the context is the ask's own line and the line above, not any digit anywhere in the reply.
+  it.each([
+    "Infosys reported its Q3 2024 results.\nIt sells software to banks.\nWhat is its margin?",
+    "The Nifty 50 fell in 2024.\nWhat is the main reason the price fell?",
+    "RBI held the repo rate at 6.5%.\nWhat is the story telling you about the rate?",
+  ])("leaves a story ask alone when the reply's numbers are not the ask's to work from: %s", (reply) => {
+    expect(sumAsked(reply)).toBeNull();
+    expect(v8s(reply)).toEqual([]);
+    expect(dropSumAsks(reply)).toBe(reply);
   });
 
   it("lists V8 beside V2 when the reply breaks both", () => {
