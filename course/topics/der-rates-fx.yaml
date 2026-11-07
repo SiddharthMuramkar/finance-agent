@@ -25,8 +25,8 @@ cases:
       the price of their dollars. The RBI would carry the exchange risk. The incoming Governor
       weighs it. If the rupee stays weak, he judges, each rupee rise in the dollar-rupee rate
       adds about Rs 40,000 crore to India's import bill, whereas even if the scheme draws in a great
-      deal of money, the payout to the banks would be only tens of thousands of crore. What is the swap worth to the banks, what
-      does it cost the RBI, and under what conditions does the RBI come out ahead?
+      deal of money, the payout to the banks would be only tens of thousands of crore. Who gains from the swap, who carries the
+      risk, and when would the RBI come out ahead?
     reveal: >
       On the afternoon of 4 September 2013 the RBI announced a package that included the swap
       window. Its circular of 6 September set the terms: a dollar-rupee swap for fresh FCNR(B)
@@ -150,14 +150,15 @@ checks:
   - id: rx-swap-risk
     kind: conversation
     prompt: >
-      A central bank offers banks a deal: sell dollars to it now and buy them back in three years
-      at a rate fixed today. Explain what the banks get, what risk the central bank takes on, and
-      in what circumstances the central bank would be better off.
+      You run a central bank, your currency is falling fast, and bankers offer a deal: they sell you
+      dollars now and buy them back in three years at a rate fixed today, so you carry the exchange
+      risk. Would you offer it? Say why in your own words.
     passCriteria: >
-      The Learner says the banks get a fixed price for their dollars in three years, which removes
-      the exchange-rate risk on the dollar deposits they owe, and which they would otherwise pay
-      the market for forward cover. The central bank takes that risk over: it must supply dollars at
-      the fixed price, so it loses if the rupee is weaker than the price assumed and gains if the
-      rupee is stronger. They may add that the fixed price is set with covered interest parity in
+      The Learner says yes or no and gives a reason. They say the banks get a fixed price for their
+      dollars in three years, which removes the exchange-rate risk on the dollar deposits they owe, and
+      which they would otherwise pay the market for forward cover. The central bank takes that risk over:
+      it must supply dollars at the fixed price, so it loses if the rupee is weaker than the price assumed
+      and gains if the rupee is stronger, and it may judge that bringing in dollars quickly is worth the
+      risk if it steadies the currency. They may add that the fixed price is set with covered interest parity in
       mind (the interest-rate gap between the currencies) and that the central bank can also
       hedge its position or hold reserves against it.

@@ -163,14 +163,15 @@ checks:
   - id: ip-float-and-price
     kind: conversation
     prompt: >
-      A company is about to list after an IPO that sells 17 percent of its shares through book
-      building at the top of its price band. The owners keep 53 percent, locked in. Explain how
-      the price was found, what the float is here, and why the price on the first day of trading
-      might differ from the issue price.
+      Your friend Neha was allotted shares in an IPO priced by book building at the top of its price
+      band. Only 17 percent of the company was sold; the owners keep 53 percent, locked in. Listing day
+      is tomorrow, and she is sure the shares will open at least at what she paid. Would you tell her she
+      is right? Say why in your own words.
     passCriteria: >
-      The Learner explains that in book building investors bid within a band and the price is set
-      after the bids show demand. They say the float is the part of the company that can trade
-      freely, here about 17 percent, because the owners' shares are locked in. They explain that
+      The Learner says the first-day price need not match the issue price, and gives a reason. They
+      show they know that in book building investors bid within a band and the price is set after the
+      bids show demand, before trading begins. They say the float is the part of the company that can
+      trade freely, here about 17 percent, because the owners' shares are locked in. They explain that
       the first-day price comes from the balance of buyers and sellers in a thin market: demand
       above the offer pushes the price above the issue price (underpricing), demand below pushes
       it below, and a price at the top of the band means bidders were willing to pay more but
