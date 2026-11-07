@@ -72,17 +72,18 @@ youllLearn:
 questions:
   - id: fe-q-fed-gap
     prompt: >
-      Your uncle swears by the "Fed model" to tell if stocks are cheap. It sizes up the "equity risk
-      premium": the extra reward stocks pay over a safe government bond. Where does it find that
-      extra?
+      August 2023: your uncle Raj is deciding whether to move his savings into stocks, and he swears
+      by the "Fed model". It sizes up the "equity risk premium", the extra reward stocks pay over a
+      safe government bond. Where does his model find that extra?
     choices:
-      - { id: a, text: "Stocks' earnings yield (profit against price), less the bond's yield" }
+      - { id: a, text: "Stocks' profit as a share of their price, less the bond's yield" }
       - { id: b, text: "Stocks' earnings yield plus the bond's yield, since both are rewards to owners", mistake: { tag: premium_as_total, fix: "The premium is the extra return over the Treasury, a gap, not a total." } }
       - { id: c, text: "Halfway between the two yields", mistake: { tag: premium_as_average, fix: "An average blends the two yields; the premium is the extra stocks earn over the Treasury." } }
       - { id: d, text: "Only in how stocks did in the past", mistake: { tag: fed_as_history, fix: "That is the historical-average method. The Fed model starts from the earnings yield." } }
     answer: a
     explanation: >
-      The Fed model reads the gap between the earnings yield and the Treasury rate as the premium. It
+      Traders call profit as a share of price the earnings yield. The Fed model reads the gap between
+      the earnings yield and the Treasury rate as the premium. It
       treats the earnings yield as the expected return on stocks, which is fair only if profits never
       grow and are all paid out.
     source: >
@@ -90,8 +91,9 @@ questions:
       5 August 2023 (section "The Fed Model: Earnings Yield and ERP").
   - id: fe-q-why-too-low
     prompt: >
-      Your uncle's Fed model says the premium is tiny. Damodaran says that method leaves something
-      out, so it tends to come in lower than a model built on expected cash flows. What does it miss?
+      August 2023: Raj's Fed model puts the premium at a tiny 0.41%, and he is ready to sell his
+      shares. Damodaran's preferred method, using the same month, gives 4.44%. He says the Fed model
+      leaves something out. What does it miss?
     choices:
       - { id: a, text: "It plugs in a higher safe rate than the other methods do", mistake: { tag: higher_riskfree_blamed, fix: "Both methods use the same safe rate; the gap comes from ignoring growth." } }
       - { id: b, text: "Growth: it treats today's profit as if it never grows" }
@@ -124,8 +126,9 @@ questions:
       5 August 2023 (section "Implied ERP"); the bond-yield analogy is his.
   - id: fe-q-interval
     prompt: >
-      Over many decades, stocks have beaten bonds on average. But single years swing so wildly that
-      the average comes with a wide band of doubt. What does that mean for the "historical premium"?
+      August 2023: Zoya, 24, is planning her retirement savings. A website says stocks have beaten
+      bonds on average for decades, so she can count on that edge. But single years swing so wildly
+      that the average carries a wide band of doubt. What should she take from this "historical premium"?
     choices:
       - { id: a, text: "It is a rough estimate; the true figure could be well off" }
       - { id: b, text: "It is exact: decades of data settle it", mistake: { tag: average_as_fact, fix: "Even decades of data leave a wide range, so the average is only an estimate." } }

@@ -28,7 +28,8 @@ cases:
       has slipped. And his own assumption, which he says he makes reluctantly because the source is a
       leaked document: gross receipts of $3.5 billion for 2014, with the 20% slice unchanged, giving
       revenue of $700 million for the year. He says he does not know whether Uber is profitable. The
-      Learner reads the post and sorts its numbers by where they come from, then redoes its arithmetic.
+      Learner reads the post and sorts its numbers by where they come from, then says in words
+      what each one rests on.
     reveal: >
       Judged against what Uber later filed, the post's starting numbers were a mixed record, and
       that is the point of judging them. The arithmetic ties: $3.5 billion times 20% is $700
@@ -90,9 +91,9 @@ concept: >
   Judging a writer's claim means taking it back to the primary document and doing four things.
   First, sort each number by origin: reported by the company, leaked or second-hand, or the
   writer's own assumption. Only a figure that a filing gives on the same measure for the same
-  period can confirm or refute it. Second, restate the claim as a calculation and redo it:
-  revenue is gross receipts times the share the company keeps, a ratio is one number divided by
-  another, and a growth claim is a quotient of two years. Third, match the measure and the
+  period can confirm or refute it. Second, say in words what the claim is built from: revenue is
+  the slice of gross receipts the company keeps, a ratio sets one measure against another, and a
+  growth claim sets one year against an earlier one. Third, match the measure and the
   period. Revenue, Gross Bookings and adjusted net revenue are different bases, so revenue
   divided by bookings is not the filing's Take Rate. Loss from operations, net income and
   Adjusted EBITDA are three different profit lines, so a loss quoted without its measure is
@@ -103,7 +104,7 @@ concept: >
   which input was wrong.
 
 principle: >
-  A claim is judged by recomputing its numbers from the primary document on the same measure and
+  A claim is judged by setting its numbers beside the primary document's, on the same measure and
   period, and by checking that its conclusion goes no further than that evidence allows. A gap
   between a writer's number and a filing's is a reason to ask whether the two measure the same
   thing, before it is a reason to call the writer wrong.
@@ -136,8 +137,9 @@ questions:
       million of revenue).
   - id: jn-q-take-rate
     prompt: >
-      A ride company's filing defines its "Take Rate" with one special measure of what it keeps from
-      each ride. A blogger quotes a "take rate" of 22.5% but built it from plain revenue instead.
+      April 2019, a made-up story: Tara is writing a school report on a ride company about to list.
+      Its filing defines "Take Rate" with one special measure of what it keeps from each ride. A
+      blogger she wants to quote gives a "take rate" of 22.5%, built from plain revenue instead.
       What did the blogger do?
     choices:
       - { id: a, text: "The blogger put the filing's name on a different measure" }
@@ -147,16 +149,17 @@ questions:
     answer: a
     explanation: >
       Uber's filing builds its Take Rate from adjusted net revenue, not plain revenue. The blogger's
-      22.5% may be a real ratio, but it is not the one the filing names. When a figure carries a name
-      the filing defines, use the filing's definition before comparing.
+      22.5% may be a real ratio, but it is not the one the filing names. Lawyers call a name the
+      filing pins to one measure a defined term: use the filing's definition before comparing.
     source: >
       Uber Technologies, Form S-1 (11 April 2019), definitions of Gross Bookings, Core Platform
       Adjusted Net Revenue and Take Rate, https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
   - id: jn-q-loss-labels
     prompt: >
-      A company had a messy year: a $5.0 billion loss from operations, a $3.0 billion loss on its own
-      "Adjusted EBITDA" measure, and a $1.0 billion net profit thanks to a one-off gain from selling a
-      business. A headline says "Company lost $3.0 billion". What is the catch?
+      A made-up story: your aunt holds shares in a delivery company that had a messy year: a $5.0
+      billion loss from operations, a $3.0 billion loss on its own "Adjusted EBITDA" measure, and a
+      $1.0 billion net profit thanks to a one-off gain from selling a business. A headline says
+      "Company lost $3.0 billion" and she wants to sell on Monday. What is the catch?
     choices:
       - { id: a, text: "It used the company's own Adjusted EBITDA measure without saying so" }
       - { id: b, text: "None: all three lines measure the same thing", mistake: { tag: profit_lines_same, fix: "Operating loss, Adjusted EBITDA and net income are three different measures." } }
@@ -173,27 +176,28 @@ questions:
       EBITDA, https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
   - id: jn-q-period-basis
     prompt: >
-      A blogger guessed a company's revenue for year 0 at $900 million. Years later its first filing
-      shows $650 million, with a note: "old accounting rules, never recast, unaudited, and leaving
-      out a business sold later". What is the fair verdict?
+      A made-up story: in 2014 a blogger guessed a startup's revenue for that year at $900 million.
+      In 2019 its first filing shows $650 million for 2014, with a note: "old accounting rules, never
+      recast, unaudited, and leaving out a business sold later". Your friend bets you lunch that the
+      blogger badly missed. Does your friend win?
     choices:
-      - { id: a, text: "Yes, clearly: the filing is lower, whatever the note may say about it", mistake: { tag: basis_ignored, fix: "The note says the bases differ; restate first, then judge." } }
-      - { id: b, text: "Not proven: restate both on one basis before calling it a miss" }
+      - { id: a, text: "Yes, clearly: the filing is lower, whatever the note says", mistake: { tag: basis_ignored, fix: "The note says the bases differ; restate first, then judge." } }
+      - { id: b, text: "Not yet: the two figures are not like for like" }
       - { id: c, text: "Yes: a filing is always right", mistake: { tag: filing_always_right, fix: "A filing is right on its own basis, which may not match the blogger's." } }
-      - { id: d, text: "Footnotes do not matter when comparing years", mistake: { tag: footnotes_ignored, fix: "Footnotes say what a figure covers; here they say it is not like for like." } }
+      - { id: d, text: "Yes: footnotes do not matter when comparing years", mistake: { tag: footnotes_ignored, fix: "Footnotes say what a figure covers; here they say it is not like for like." } }
     answer: b
     explanation: >
       A figure reported under older rules, unaudited and leaving out a business that was later sold
-      is a different basis from a writer's estimate of the whole company. The gap may be partly or
-      wholly basis. Compare like with like first, then judge.
+      is a different basis from a writer's estimate of the whole company. Analysts say two such
+      figures are not like for like: the gap may be partly or wholly basis. Restate first, then judge.
     source: >
       Uber Technologies, Form S-1 (11 April 2019), selected financial data footnote 1 on Topic 606
       and note on discontinued operations, https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
   - id: jn-q-leaked-input
     prompt: >
-      A blogger writes: "A leaked internal memo says $12 billion of fares next year; for this year I
-      will assume $4 billion." Years later you check the post against an audited filing. How should
-      you treat those two numbers?
+      December 2014, a made-up story: Vikram quotes a blogger in his finance club pitch: "A leaked
+      internal memo says $12 billion of fares next year; for this year I will assume $4 billion."
+      Years later he checks the post against an audited filing. How should he treat those two numbers?
     choices:
       - { id: a, text: "Both are audited facts, since the post states them", mistake: { tag: stated_as_audited, fix: "Stating a number does not audit it; neither came from a filing." } }
       - { id: b, text: "The $12 billion is a fact, since it came from the company's own memo", mistake: { tag: leak_as_fact, fix: "A leak is second-hand and unaudited; it may not be the company's final plan." } }
@@ -209,8 +213,9 @@ questions:
       2014, on using second-hand information from a leaked document.
   - id: jn-q-price-vs-inputs
     prompt: >
-      A blogger valued a private company. Four years later it lists on the stock exchange at a very
-      different value. What does that gap tell you?
+      A made-up story: in 2014 Ishaan, a blogger, valued a private ride company, and his readers argued
+      about it for weeks. Four years later it lists at a very different value, and a rival tweets
+      "Ishaan blew it". What does that gap tell you?
     choices:
       - { id: a, text: "His guesses on market share and margins were wrong", mistake: { tag: gap_blames_input, fix: "A gap in value does not say which input differed; test each one." } }
       - { id: b, text: "The stories differed; test each input against the filings" }
