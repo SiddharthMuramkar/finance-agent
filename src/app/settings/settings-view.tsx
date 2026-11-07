@@ -9,7 +9,7 @@ import { YourTopicsSection } from "./your-topics";
 const heading = "mb-2 text-base font-semibold leading-6";
 
 /**
- * The Settings page's body (A5): six cards in a card-grid — Account (who is signed in, and Sign out), Appearance
+ * The Settings page's body (A5): six cards, the first five in masonry columns (#529) — Account (who is signed in, and Sign out), Appearance
  * (Light, Dark or Match my Mac; the header's Theme menu shares its choice), About you (the Learner Profile form),
  * Your Topics (B3b: start one Topic over; its Card fills A5's `id="your-topics"` slot between About you and Developer details),
  * Developer details, and Start over (the danger zone, full width, last). A Google-linked Learner's Account shows their
@@ -32,7 +32,10 @@ export function SettingsView({
   return (
     <div>
       <h1 className="text-lg font-semibold leading-[26px]">Settings</h1>
-      <div className="card-grid mt-3 items-start [grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr))]">
+      {/* #529: masonry columns (420 px minimum, #470), so a short card stacks under the one above instead of waiting for
+          the tall About you card's row to end. At most 3 columns: five cards balance into 3 stacks, so a 4th (1920) stayed
+          empty. Start over sits below them, full width. */}
+      <div className="mt-3 columns-[420px_3] gap-x-[var(--gap)] [&>*]:mb-[var(--gap)] [&>*]:break-inside-avoid">
         <Card id="account" aria-labelledby="account-heading">
           <h2 id="account-heading" className={heading}>
             Account
@@ -67,14 +70,14 @@ export function SettingsView({
           </h2>
           <DeveloperDetailsSwitch initial={developerDetails} />
         </Card>
-        <Card id="start-over" aria-labelledby="start-over-heading" className="col-span-full bg-[var(--coral-tint)]">
-          <h2 id="start-over-heading" className={`${heading} text-[var(--coral-ink)]`}>
-            Start over
-          </h2>
-          <p className="measure mb-3 text-sm leading-5">Begin again as a new learner, from the Welcome. Your current progress, Notebook and Sessions are kept, not deleted.</p>
-          <StartOverButton confirmValue={START_OVER_CONFIRM} />
-        </Card>
       </div>
+      <Card id="start-over" aria-labelledby="start-over-heading" className="bg-[var(--coral-tint)]">
+        <h2 id="start-over-heading" className={`${heading} text-[var(--coral-ink)]`}>
+          Start over
+        </h2>
+        <p className="measure mb-3 text-sm leading-5">Begin again as a new learner, from the Welcome. Your current progress, Notebook and Sessions are kept, not deleted.</p>
+        <StartOverButton confirmValue={START_OVER_CONFIRM} />
+      </Card>
       <p className="mt-4 text-xs leading-4 text-[var(--muted)]" data-testid="emoji-credit">
         Emoji artwork: Fluent Emoji by Microsoft, MIT License,{" "}
         <TextLink href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noreferrer">
