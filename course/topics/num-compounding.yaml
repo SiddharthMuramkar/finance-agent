@@ -284,7 +284,7 @@ templates:
     avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126]
   - id: double-time
     skill: rule-of-72
-    ask: "Money grows {rate}% a year. Which wait to double matches the rule of 72?"
+    ask: "Before Diwali, Priya puts her first bonus in a deposit that grows {rate}% a year, hoping to double it for her sister's wedding. Which wait should the bank clerk quote her by the rule of 72?"
     label: "About {value}: seventy-two over the yearly rate"
     params:
       rate: { min: 2, max: 24, step: 1 }
@@ -300,7 +300,7 @@ templates:
     avoid: [10, 6, 12, 5, 23, 28, 33, 56, 126, 8, 9, 11, 18]
   - id: steady-rate
     skill: cagr
-    ask: "A fund goes from {start} to {end} in {years} years. Which figure is its CAGR, the one steady yearly rate?"
+    ask: "At Sunday lunch, Kabir's uncle says his fund went from {start} to {end} in {years} years and urges Kabir to put his savings in. Which line on the fund's factsheet gives its CAGR, the one steady yearly rate?"
     label: "About {value} a year: one steady rate, growing on itself each year"
     params:
       start: { min: 100, max: 500, step: 100 }
@@ -325,42 +325,42 @@ questions:
   - id: cp-q-doubling-rate
     skill: cagr
     prompt: >
-      After two years of the same yearly growth, a savings pot ends exactly four times where it started. Which description of that yearly growth fits?
+      March 1992. Asha's savings pot ended two years at exactly four times where it started, growing the same each year. Before she picks where to save next, she asks two friends to describe that growth. Dev says it doubled every year. Tara says it grew 150% a year, the 300% gain split across the two years. Whose description would an analyst back?
     choices:
-      - { id: a, text: "It doubled every year" }
+      - { id: a, text: "Dev's: it doubled every year, and two doublings make four times" }
       - id: b
-        text: "It grew by half every year"
-        mistake: { fix: "Growing by half twice makes the pot about two and a quarter times bigger, not four.", tag: too_small }
+        text: "Tara's: the 300% gain split evenly, 150% a year"
+        mistake: { fix: "Splitting the gain evenly ignores growth on growth, so it overstates the steady yearly rate.", tag: averaged_gain }
       - id: c
-        text: "It grew by 150% a year, the 300% gain split across two years"
-        mistake: { fix: "That splits the gain evenly across the years, which ignores growth on growth.", tag: averaged_gain }
+        text: "Neither: the yearly rate is the whole 300% gain"
+        mistake: { fix: "300% is the whole two-year rise. A yearly rate describes just one year.", tag: mixed_up_terms }
       - id: d
-        text: "It tripled every year"
-        mistake: { fix: "Tripling twice would make the pot nine times bigger, not four.", tag: too_big }
+        text: "Both: any fair split of the gain gives the same yearly rate"
+        mistake: { fix: "Only growth earned on growth gives the honest steady rate; an even split does not.", tag: averaged_gain }
     answer: a
     explanation: >
-      Doubling twice does it, since two times two is four, and doubling is a gain of 100% a year. Splitting the 300% gain across two years says 150%, the common mistake.
+      Doubling every year means each year's growth is earned on the new, bigger total, and two doublings make four times. That is a steady 100% a year. Tara's even split ignores growth on growth, the common mistake.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
 
   - id: cp-q-down-up
     skill: fall-and-recover
     prompt: >
-      A share price falls by half and then rises by half. Compared with where it started, which one is true?
+      Bombay, January 1992. Rohit puts his scooter savings into one share. In February it falls by half; in March it rises by half. His sister says the scooter is still on, since he is back where he started. Which one is true?
     choices:
-      - { id: a, text: "It ends below where it started" }
+      - { id: a, text: "Rohit is short: he ends below where he started" }
       - id: b
-        text: "It ends back where it started"
+        text: "His sister is right: he is back where he started"
         mistake: { fix: "The rise works on the smaller price the fall left, so it wins back only part of what was lost.", tag: back_where_started }
       - id: c
-        text: "It ends above where it started"
+        text: "Rohit is ahead: he ends above where he started"
         mistake: { fix: "A fall and then an equal rise always ends lower, never higher.", tag: too_big }
       - id: d
-        text: "It depends on the share's start price"
+        text: "It depends on the price Rohit paid"
         mistake: { fix: "Whatever the start price, a rise of the same percent after a fall ends lower.", tag: depends_on_start }
     answer: a
     explanation: >
-      Start at 100. After a 50% fall it is 50. A 50% rise on 50 adds 25, giving 75, which is 25% below the start. Gains and losses apply to different bases, so they do not cancel.
+      Say Rohit paid ₹200. Half off leaves ₹100, and half of ₹100 added back gives ₹150, a quarter short of the start. Gains and losses apply to different bases, so they do not cancel.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
@@ -451,32 +451,32 @@ questions:
   - id: cp-q-fall-rise-20
     skill: fall-and-recover
     prompt: >
-      Asha's share falls 20% one month and rises 20% the next. Compared with where it began, it is:
+      Bombay, February 1992. Asha borrowed ₹2,000 from her father's shop till to buy a share. It falls 20% one month and rises 20% the next. She promised him every rupee back. What should she tell him?
     choices:
-      - { id: a, text: "A little lower" }
+      - { id: a, text: "It is a little short of the ₹2,000, so she must top it up" }
       - id: b
-        text: "Exactly where it began"
+        text: "It is all there: the two moves cancelled out"
         mistake: { fix: "The 20% rise works on the smaller price, so it wins back less than the 20% fall took.", tag: back_where_started }
       - id: c
-        text: "A little higher"
+        text: "It is a little more than the ₹2,000, so she can keep the extra"
         mistake: { fix: "A fall and then an equal rise always ends lower, never higher.", tag: too_big }
       - id: d
-        text: "Twice as high"
+        text: "It has doubled, so he gets twice his money back"
         mistake: { fix: "Nothing doubles here. The rise is on a smaller amount than the fall was.", tag: too_big }
     answer: a
     explanation: >
-      20% of ₹2,000 is ₹400, so the fall leaves ₹1,600. 20% of ₹1,600 is ₹320, so the rise ends at ₹1,920, below the start.
+      20% of ₹2,000 is ₹400, so the fall leaves ₹1,600. 20% of ₹1,600 is ₹320, so the rise ends at ₹1,920, below the ₹2,000 she owes.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
   - id: cp-q-rise-fall
     skill: fall-and-recover
     prompt: >
-      A price rises 25% and then falls 25%. Compared with where it started, which one is true?
+      Bombay, December 1991. Vikram's college fees are due in March, so he plans to sell his share at the price he paid. It rises 25% after a good results day, then gives back 25% in January. Which one is true?
     choices:
-      - { id: a, text: "It ends lower than it started" }
+      - { id: a, text: "It ends lower than he paid, so he is short for the fees" }
       - id: b
-        text: "It ends back where it started"
+        text: "It ends back at the price he paid"
         mistake: { fix: "The 25% fall works on the bigger, risen price, so it takes away more than the rise added.", tag: back_where_started }
       - id: c
         text: "It ends higher than it started"
@@ -493,17 +493,17 @@ questions:
   - id: cp-q-recover-half
     skill: fall-and-recover
     prompt: >
-      A share halves in price. To get back to where it started, the rise it needs is:
+      Bombay, March 1992. Neha's cousin needs his money for his wedding in June, but his share halved in price last year. He says he will sell once it rises by the same 50% it fell. Is he waiting for the right rise?
     choices:
-      - { id: a, text: "Bigger than the fall: it must double the price" }
+      - { id: a, text: "No: from half the price, it must double to get even" }
       - id: b
-        text: "The same size as the fall"
+        text: "Yes: a rise as big as the fall wins it all back"
         mistake: { fix: "The rise works on the smaller, halved price, so an equal-sized rise falls short.", tag: back_where_started }
       - id: c
-        text: "Smaller than the fall"
+        text: "No: a smaller rise will do, since the price is lower now"
         mistake: { fix: "A rise on a smaller price needs to be bigger, not smaller, to win back the same rupees.", tag: too_small }
       - id: d
-        text: "Impossible: a fall can never be won back"
+        text: "No: a halved share can never win it back"
         mistake: { fix: "A big enough rise wins it back. It just has to be bigger than the fall.", tag: mixed_up_terms }
     answer: a
     explanation: >
@@ -514,17 +514,17 @@ questions:
   - id: cp-q-recover-quarter
     skill: fall-and-recover
     prompt: >
-      A fund falls by a fifth. To win back what it lost, the rise it needs is:
+      Madras, March 1992. Mr Iyer's ₹4,000 in a unit fund has fallen by a fifth, and his daughter's college fees are due in July. His broker says the fund now needs to rise a bit more than a fifth to get him even. Is the broker right?
     choices:
-      - { id: a, text: "A bit bigger than a fifth" }
+      - { id: a, text: "Yes: the rise works on less money, so it must be a bit bigger" }
       - id: b
-        text: "Exactly a fifth"
+        text: "No: a rise of exactly a fifth wins it back"
         mistake: { fix: "The rise works on the smaller amount, so a fifth of it is less than the fifth that was lost.", tag: back_where_started }
       - id: c
-        text: "A bit smaller than a fifth"
+        text: "No: a rise a bit smaller than a fifth will do"
         mistake: { fix: "A rise on a smaller amount must be bigger, not smaller, to win the same rupees back.", tag: too_small }
       - id: d
-        text: "Double a fifth, no matter what"
+        text: "No: he needs double a fifth, no matter what"
         mistake: { fix: "Two fifths would go well past the start. The rise only needs to be a little bigger.", tag: too_big }
     answer: a
     explanation: >
@@ -535,7 +535,7 @@ questions:
   - id: cp-q-fall-truth
     skill: fall-and-recover
     prompt: >
-      An amount falls by some percent and then rises by the same percent. Which one is true?
+      Bombay, 31 March 1992. This month the Sensex closed above 4,000 for the first time. Kabir has his first salary to invest, and a friend tells him a share that falls by some percent and then rises by the same percent always ends up even, so dips cost nothing. Which one is true?
     choices:
       - { id: a, text: "It always ends below where it started" }
       - id: b
@@ -883,35 +883,35 @@ checks:
     card:
       title: "Returns that add up"
       lines:
-        - "A log return scores growth another way: divide the end by the start, then press ln on a calculator."
-        - "A 20% rise means end divided by start is 1.2. The ln of 1.2 is about 0.18, a little below 0.20."
-        - "Its use: the log returns of back-to-back years simply add up. 0.3 one year and 0.1 the next make 0.4 over both."
+        - "A log return is another way analysts score the growth of one stretch, such as a year."
+        - "Its use: the scores of back-to-back years simply add up, with no compounding to untangle."
+        - "For a rise, the log return comes out a little smaller than the ordinary percent gain."
         - "A price that ends where it began has a log return of zero. So a rise and the fall back to the start add up to zero."
       writeDown: "Log returns of back-to-back years add up to the log return of the whole stretch."
       skills: [log-return]
     quickTries:
       - id: cp-try-log-half
         skill: log-return
-        ask: "A fund's log return is 0.1 one year and 0.2 the next. How do they combine for both years?"
+        ask: "Bombay, March 1992. Arjun's boss hands him a log return for each of the last two years and wants one score for both by lunch. What should he do?"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "They add, to 0.3" }
-          - { id: b, text: "They multiply, to 0.02", mistake: { tag: mixed_up_terms, fix: "Log returns of back-to-back years simply add. Ordinary growth factors multiply." } }
-          - { id: c, text: "They average, to 0.15", mistake: { tag: averaged_gain, fix: "An average is one year's typical score. Over both years the log returns add." } }
+          - { id: a, text: "Add the two scores together" }
+          - { id: b, text: "Multiply the two scores", mistake: { tag: mixed_up_terms, fix: "Log returns of back-to-back years simply add. Ordinary growth factors multiply." } }
+          - { id: c, text: "Average the two scores", mistake: { tag: averaged_gain, fix: "An average is one year's typical score. Over both years the log returns add." } }
         halfDone: "First step, done for you: log returns of back-to-back years add together."
       - id: cp-try-log-add
         skill: log-return
-        ask: "A share's log return is 0.25 one year and 0.15 the next. How do they combine for both years?"
+        ask: "Ravi's gold savings rose in 1990 and rose again in 1991. He wants one log return for both years to show his wife. Which is it?"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "They add, to 0.4" }
-          - { id: b, text: "They multiply, to about 0.04", mistake: { tag: mixed_up_terms, fix: "Log returns of back-to-back years simply add." } }
-          - { id: c, text: "They cancel to zero", mistake: { tag: mixed_up_terms, fix: "Only a rise and an equal fall cancel. Two gains add together." } }
+          - { id: a, text: "The two yearly scores added together" }
+          - { id: b, text: "Only the bigger of the two scores", mistake: { tag: mixed_up_terms, fix: "Both years count. Back-to-back log returns add together." } }
+          - { id: c, text: "Zero, because the two scores cancel", mistake: { tag: mixed_up_terms, fix: "Only a rise and a fall back to the start cancel. Two gains add together." } }
       - id: cp-try-log-truth
         skill: log-return
-        ask: "A price doubles, then halves back to where it began. True or false: its two log returns cancel out to zero."
+        ask: "Neha's share doubles in January, then halves back to her buying price by March. True or false: its two log returns cancel out to zero."
         kind: truth
         answer: true
         mistakes:
@@ -921,17 +921,18 @@ checks:
     kind: conversation
     skills: [steady-pace, cagr]
     prompt: >
-      The Sensex went from 100 to 4,285 in about 13 years. A friend splits the gain evenly and says
-      it rose about 322% a year. Explain what is wrong with that, and what kind of yearly rate
-      would honestly describe the climb. Then use the July 1990 level of about 1,000 to say
-      whether the pace looks steady over those 13 years.
+      Bombay, 31 March 1992. Rohan wants to put his savings into shares. His friend points at the
+      Sensex, now 4,285 from its base of 100, splits the gain evenly over the 13 years, and says it
+      rose about 322% a year at one steady pace. Rohan recalls the index took about 11 years to
+      first close above 1,000, in July 1990, then more than quadrupled in under two years. In your
+      own words, what would you tell Rohan: is the friend's rate honest, and was the climb steady?
     passCriteria: >
       The Learner explains, in their own words, that growth compounds, so the total gain cannot be
-      spread evenly over the years, and that the honest yearly rate is one steady compound rate (a
-      CAGR), far lower than the friend's 322%. They note that going from about 1,000 (July 1990) to
-      4,285 (March 1992) is more than a four-fold rise in under two years, far faster than the
-      long-run pace, so the pace was not steady and the early years must have been slower. The
-      Learner does not need to give any rate as a number; the idea is what passes.
+      split evenly over the years, and that the honest yearly rate is one steady compound rate (a
+      CAGR), far lower than the friend's 322%. They say the climb was not steady: about 11 years to
+      reach 1,000, then more than four times that in under two years, so the last stretch was far
+      faster than the early years. The Learner does not need to give or work out any number; the
+      idea is what passes.
     card:
       title: "Is the pace steady?"
       lines:
