@@ -25,7 +25,7 @@ export const storySceneProps = z.object({
 type Props = z.infer<typeof storySceneProps>;
 
 /**
- * #528: in the Widget panel (the size container named pane, src/app/workspace-frame.tsx) the stage grows with the
+ * Issue 528: in the Widget panel (the size container named pane, src/app/workspace-frame.tsx) the stage grows with the
  * panel's height: at least 55% of it once the panel is 480 px tall, its cast and bubble centred. Anywhere else (the
  * dev harness, the conversation column) no pane matches, so the stage keeps its own height.
  */
