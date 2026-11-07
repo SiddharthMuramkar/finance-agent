@@ -1,0 +1,22 @@
+{
+  "id": "T14",
+  "title": "Choices under the reply, and no menu in its text",
+  "source": "Spec 2026-11-05, D3b (T14)",
+  "kind": "live",
+  "topic": "num-compounding",
+  "state": {
+    "step": "concept",
+    "check": 1
+  },
+  "message": "ok and?",
+  "minPasses": 2,
+  "pass": [
+    {
+      "kind": "choicesStored"
+    }
+  ],
+  "graderChecks": [
+    "Does the reply text hold no menu of options for the Learner to choose from (no list of follow-ups such as \"we could do A, B or C\")?"
+  ],
+  "notes": "Pass when (2 of 3 runs): code stored a reply_choices item with 2 or 3 Choices, and the reply's own text offers no menu: the Choices carry the next move (ADR 0010)."
+}

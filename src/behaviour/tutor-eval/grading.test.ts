@@ -44,6 +44,42 @@ describe("the pass conditions code can tell", () => {
     expect(codedFailures([{ kind: "widget", mode: "practice" }], blocked, ctx)[0]).toMatch(/0\.6.*open quiz/);
   });
 
+  it("fails a reply that asks for a sum, and passes one that only says a sum as a fact (noSum, D3b)", () => {
+    const asks = seen({ text: "A rate goes from 6% to 6.4%.\nHow many basis points is that?", widgets: [] });
+    expect(codedFailures([{ kind: "noSum" }], asks, ctx)[0]).toMatch(/asks for a sum \("how many"\)/i);
+    const says = seen({ text: "1 point times 100 is 100 bp.\nWhat would a trader call that move?", widgets: [] });
+    expect(codedFailures([{ kind: "noSum" }], says, ctx)).toEqual([]);
+  });
+
+  // Run 16 (critics MP-1, MP-2, MP-4): T13 turns 5 and 15 asked for a sum indirectly, and noSum passed them.
+  it("fails a reply that asks for a sum indirectly: the same steps on the Quick try's numbers, work it out, your turn to calculate (noSum, D3b)", () => {
+    const run16 = [
+      "Happy to get you there; the last tap stays yours. When a rate goes from 6% to 6.5%, 6.5 minus 6 is 0.5 of a point. Then 0.5 points times 100 is 50 basis points, just as 100 paise make ₹1.\n\nNow do the same steps on the Quick try's numbers and tap your answer.",
+      "I'll get you most of the way; the last tap is yours. Going the other way works too: basis points divided by 100 give points, just as 150 paise make ₹1.50. So a move of 150 basis points is 1.5 points.\n\nNow try the same step on the Quick try's numbers and tap your answer.",
+    ];
+    expect(codedFailures([{ kind: "noSum" }], seen({ text: run16[0], widgets: [] }), ctx)[0]).toMatch(/asks for a sum \("do the same steps"\)/i);
+    expect(codedFailures([{ kind: "noSum" }], seen({ text: run16[1], widgets: [] }), ctx)[0]).toMatch(/asks for a sum \("try the same step"\)/i);
+    for (const ask of ["The rate went from 2% to 2.75%.\nWork it out and tap your answer.", "Here is a move of 0.4 points.\nYour turn to calculate it in basis points.", "One point is 100 bp.\nNow apply that to the card's numbers."])
+      expect(codedFailures([{ kind: "noSum" }], seen({ text: ask, widgets: [] }), ctx), ask).toHaveLength(1);
+    // Story and lingo asks, and a tap handed back, are not sums.
+    for (const ok of [
+      "The reporter would write half a percentage point: the gap between the two rates.\nWould a trader say that in points or in basis points?",
+      "Traders do the same thing every morning.\nWhat would you do before the meeting?",
+      "Basis points are points times 100, so a rise of 0.2 of a point is 20 bp.\nNow pick your answer to question 1.",
+      "The Quick try is just below, so tap it like a pro.",
+    ])
+      expect(codedFailures([{ kind: "noSum" }], seen({ text: ok, widgets: [] }), ctx), ok).toEqual([]);
+  });
+
+  it("wants 2 or 3 stored Choices under the reply (choicesStored, D3a)", () => {
+    const choice = (label: string) => ({ id: label, label, says: label, emoji: "eyes" });
+    const two = seen({ text: "Okay.\nWhat next?", widgets: [], choices: [choice("Show me"), choice("Quiz me")] });
+    expect(codedFailures([{ kind: "choicesStored" }], two, ctx)).toEqual([]);
+    expect(codedFailures([{ kind: "choicesStored" }], seen({ text: "Okay.", widgets: [] }), ctx)[0]).toMatch(/No Choices were stored/);
+    const four = seen({ text: "Okay.", widgets: [], choices: ["a", "b", "c", "d"].map(choice) });
+    expect(codedFailures([{ kind: "choicesStored" }], four, ctx)[0]).toMatch(/4 Choices.*2 or 3/);
+  });
+
   it("reads the saved rule and the park offer", () => {
     const saved = seen({ text: "Yes, that is it.\nA price goes from ₹50 to ₹60. What is the percent change?", widgets: [], savedRule: "percent change = change × 100 ÷ original" });
     expect(codedFailures([{ kind: "savedRule", contains: ["change", "100", "original"] }], saved, ctx)).toEqual([]);
@@ -105,6 +141,41 @@ describe("the grader", () => {
     expect(unreadable.reasons[0]).toMatch(/grade could not be read/i);
     const no = parseGrade(JSON.stringify({ answers: [1, 2, 3, 4, 5].map((n) => ({ n, answer: n === 2 ? "no" : "yes", why: "two asks" })) }), 5);
     expect(judgeRun({ problems: [], coded: [], grade: no, questions: RUBRIC }).reasons).toEqual(['Grader: no to "Is there exactly one idea and one ask?" (two asks)']);
+  });
+});
+
+// Round 10 (G-T15, run 23 T15 runs 1 and 2): round 9 made the Tutor write no ask of its own when code posts a Quick try
+// after the reply (the spec: code's try is the ask), but the grader still read "it is not the Tutor's ask" and wanted one,
+// so a right reply failed. Code's try counts as the reply's one ask; the reply itself must then ask nothing; one idea stays strict.
+describe("a Quick try code posts after the reply is the reply's one ask (G-T15)", () => {
+  const TRY = 'a Quick try: "If the Fed took its 3% rate to 3.5%, a rise traders call 50 basis points, her story would say:"';
+  const noAsk = seen({ text: 'Ha, then you\'ll like this: it\'s words, not maths. "Points" is just the gap between an old rate and a new one.', widgets: [], alsoShown: [TRY] });
+  const ownAsk = seen({ text: '"Points" is just the gap between an old rate and a new one.\nWould a trader say points or basis points?', widgets: [], alsoShown: [TRY] });
+
+  it("tells the grader the try is the one ask, so a reply with no ask of its own passes and one with its own ask has two", () => {
+    const prompt = buildGraderPrompt({ stateNote: "x", message: "honestly I'm so bad at maths lol", reply: noAsk, extra: [] });
+    expect(prompt).not.toContain("it is not the Tutor's ask");
+    expect(prompt).toContain("That Quick try is the reply's one ask: the reply itself must ask nothing (no question, no task, no invitation).");
+    expect(prompt).toContain('For "exactly one idea and one ask", a reply with no ask of its own passes the ask part; a reply that also asks something has two asks, a no.');
+  });
+
+  it("keeps one idea strict: two ideas in one reply (percentage points and basis points) are a no", () => {
+    for (const reply of [noAsk, seen({ text: "Hi.", widgets: [] })]) {
+      const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply, extra: [] });
+      expect(prompt).toContain('One idea is strict: a reply that teaches two ideas (say, what percentage points are and what basis points are) is a no to "exactly one idea and one ask", whatever its ask.');
+    }
+  });
+
+  it("leaves the ask rule as it was when code posts no try", () => {
+    const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply: seen({ text: "Hi.", widgets: [] }), extra: [] });
+    expect(prompt).not.toContain("That Quick try is the reply's one ask");
+  });
+
+  it("oneAsk: with a try posted after the reply, no ask of its own passes and an ask of its own fails as two asks", () => {
+    expect(codedFailures([{ kind: "oneAsk" }], noAsk, ctx)).toEqual([]);
+    expect(codedFailures([{ kind: "oneAsk" }], ownAsk, ctx)).toEqual([expect.stringMatching(/two asks: its own \("Would a trader say points or basis points\?"\) and the Quick try code posted after it/)]);
+    // With no try, a reply still needs its own one ask.
+    expect(codedFailures([{ kind: "oneAsk" }], seen({ text: noAsk.text, widgets: [] }), ctx)[0]).toMatch(/no ask/);
   });
 });
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ENGINE_INSTRUCTIONS, REPLY_WORD_LIMIT, TUTOR_EXAMPLES, TUTOR_INSTRUCTIONS } from "./instructions";
 import { sumAsk } from "@/teaching/no-sums";
-import { checkReply, fixReply, splitAsk, type ReplyCheckContext } from "./reply-checks";
+import { checkReply, countWords, fixReply, splitAsk, type ReplyCheckContext } from "./reply-checks";
 
 /**
  * The Tutor's teaching rules (spec #229, ticket #238): written for a beginner, one idea and one ask, capped by step,
@@ -34,15 +34,16 @@ describe("the Tutor's rules", () => {
       });
 
       it("name the third rung as code's half-done choice, with no question of the Tutor's own (D1a, ladder-moves.ts)", () => {
-        expect(text).toContain("restate the rule, worked example, a half-done choice, Widget and drill");
+        // D3b names the rungs as the spec and practice.ts's METHOD_NAMES do: a worked example, the Widget, a choice drill.
+        expect(text).toContain("restate the rule, a worked example, a half-done choice, the Widget and a choice drill");
         expect(text).toContain("At a half-done choice, code posts the half-done try after your reply: name the slip in one sentence and write no question of your own.");
         expect(text).not.toContain("The blank box is the reply's one ask");
       });
 
-      it("say what Go deeper, simpler and Show me in a widget get", () => {
+      it("say what Go deeper, simpler and Show me get", () => {
         expect(text).toContain('"Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy.');
         expect(text).toContain("A request for something simpler gets the rule in four lines or fewer, with the same example.");
-        expect(text).toContain('"Show me in a widget" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words.');
+        expect(text).toContain('"Show me" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words.');
       });
 
       it("answer frustration with a short acknowledgement and a smaller step", () => {
@@ -105,8 +106,8 @@ describe("the Tutor's rules", () => {
 });
 
 describe("Appendix A's examples", () => {
-  it("are all six in the instructions, with no typed sums and no refusal", () => {
-    expect(TUTOR_EXAMPLES).toHaveLength(6);
+  it("are all ten (Appendix A's six, and D3b's answer given in words, maths worry, story opener and nudge) in the instructions, with no typed sums and no refusal", () => {
+    expect(TUTOR_EXAMPLES).toHaveLength(10);
     for (const e of TUTOR_EXAMPLES) expect(TUTOR_INSTRUCTIONS).toContain(e.reply);
     for (const e of TUTOR_EXAMPLES) {
       expect(e.reply).not.toMatch(/[−×÷=]|\d\s*-\s*\d/);
@@ -127,6 +128,15 @@ describe("Appendix A's examples", () => {
   it("name the blocked numbers of an open quiz, and the Widget the reply shows", () => {
     expect(TUTOR_INSTRUCTIONS).toContain("Context: a quiz is open; blocked numbers: 4, 4.6, 60.");
     expect(ENGINE_INSTRUCTIONS).toContain("show_widget with recipe rate_move");
+  });
+
+  // Run 11: T11's ask ran to 26 words against the 25-word V2 cap; the examples model a 20-word ask, a margin under it.
+  it("end on one short ask of 20 words or fewer (T11)", () => {
+    for (const e of TUTOR_EXAMPLES) {
+      const { ask } = splitAsk(e.reply);
+      expect({ reply: e.reply, words: ask ? countWords(ask) : 0 }).toEqual({ reply: e.reply, words: expect.any(Number) });
+      expect({ ask, short: (ask ? countWords(ask) : 0) <= 20 }).toEqual({ ask, short: true });
+    }
   });
 
   it("each pass every reply check", () => {
@@ -153,7 +163,7 @@ describe("Appendix A's examples", () => {
 describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", () => {
   const sentences = (text: string) => text.split(/(?<=[.!?])\s+(?=[A-Z"(])/);
   const methodsIn = (text: string) => {
-    const list = text.match(/The methods, in order, are ([^;]+);/)![1];
+    const list = text.match(/The methods, in order, are ([^.;]+)[.;]/)![1];
     return list.split(/, | and /).map((m) => m.trim());
   };
 
@@ -177,7 +187,7 @@ describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", ()
 
   it("every example that names a method names one on the current list", () => {
     const methods = methodsIn(TUTOR_INSTRUCTIONS);
-    expect(methods).toEqual(["restate the rule", "worked example", "a half-done choice", "Widget", "drill"]);
+    expect(methods).toEqual(["restate the rule", "a worked example", "a half-done choice", "the Widget", "a choice drill"]);
     const named = TUTOR_EXAMPLES.map((e) => e.situation.match(/\bmethod ([^;]+);/)?.[1]).filter((m): m is string => !!m);
     expect(named.length).toBeGreaterThan(0);
     for (const m of named) expect(methods).toContain(m);
@@ -205,6 +215,103 @@ describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", ()
       const claimsEveryAsk = /each reply's last line is its one ask/.test(heading!);
       const anyWithoutAsk = TUTOR_EXAMPLES.some((e) => splitAsk(e.reply).ask === null);
       if (claimsEveryAsk && anyWithoutAsk) expect(heading).toMatch(/half-done choice[^)]*write no ask of your own/);
+    });
+  }
+});
+
+/**
+ * Round 9 (critic DA-1): the maths-worry rule said "one choice ask about the word ... the Quick try on screen uses",
+ * while the one-ask rule said there is nothing to ask when code posts the try after the reply. In every T15 run the
+ * reply ended on its own question and code then posted Quick try pb-try-a1 below it: two things to answer, and the
+ * reply's question had nothing to tap. Whenever a Quick try is the ask, the reply names the word or the slip and asks
+ * nothing of its own.
+ */
+describe("a Quick try on screen, or a try code posts after the reply, is the reply's one ask (DA-1)", () => {
+  const sentences = (text: string) => text.split(/(?<=[.!?])\s+(?=[A-Z"(])/);
+  /** A sentence about a Quick try that is on screen, or a try code posts after (or under) the reply. */
+  const QUICK_TRY_IS_THERE = /Quick tr(?:y|ies) (?:is |are )?on screen|\btr(?:y|ies)\b[^.]*\b(?:after|under|below) (?:your|the) reply/i;
+  const NO_ASK_OF_ITS_OWN = /write no (?:ask|question)(?: or (?:ask|question))? of your own/;
+  /** A sentence that sets an ask or a question for the reply to end on. */
+  const PRESCRIBES_AN_ASK = /\b(?:end (?:on|with)|ends? on)\b|\b(?:choice|story or lingo|one) (?:ask|question|choice)\b|\bask about\b/i;
+
+  for (const [name, text] of [
+    ["widget engine off", TUTOR_INSTRUCTIONS],
+    ["widget engine on", ENGINE_INSTRUCTIONS],
+  ] as const) {
+    const rules = sentences(text).filter((s) => !s.startsWith("Context:"));
+
+    it(`${name}: every rule about a Quick try on screen or a try code posts after the reply says the reply writes no ask of its own`, () => {
+      const about = rules.filter((s) => QUICK_TRY_IS_THERE.test(s));
+      expect(about.length).toBeGreaterThanOrEqual(4);
+      for (const s of about) expect({ s, noAsk: NO_ASK_OF_ITS_OWN.test(s) }).toEqual({ s, noAsk: true });
+    });
+
+    it(`${name}: no rule sets an ask about the Quick try's word, or any ask beside a Quick try`, () => {
+      expect(text).not.toContain("the one the Quick try on screen uses");
+      const askBesideTry = rules.filter((s) => /Quick try/.test(s) && PRESCRIBES_AN_ASK.test(s) && !NO_ASK_OF_ITS_OWN.test(s));
+      expect(askBesideTry).toEqual([]);
+    });
+
+    it(`${name}: the maths-worry rule names the word and asks nothing when a Quick try is the ask`, () => {
+      const worry = rules.filter((s) => /\bQuick try\b/.test(s) && /\bworry\b|name the word/i.test(s));
+      expect(worry.length).toBeGreaterThan(0);
+      expect(text).toMatch(/When a Quick try is on screen or code posts a try after your reply, name the word that try uses and stop there: write no ask of your own/);
+    });
+  }
+
+  it("every example with a Quick try on screen, or a try code posts after the reply, ends with no ask of its own", () => {
+    const withTry = TUTOR_EXAMPLES.filter((e) => /Quick try[^;]*on screen|code posts (?:a|the) [^;]*\btry\b[^;]*after the reply/.test(e.situation));
+    expect(withTry.length).toBeGreaterThanOrEqual(3);
+    for (const e of withTry) {
+      expect({ situation: e.situation, ask: splitAsk(e.reply).ask }).toEqual({ situation: e.situation, ask: null });
+      expect(e.reply).not.toContain("?");
+    }
+  });
+});
+
+/**
+ * Round 10 (run 23, T13 and T15). BP-1: "quiz me but make it fun" got a framing line and no question, since no try came
+ * after that reply. BP-2 and MP-1: "just tell me the answer pls" got "I can't see that try's numbers", then the /100 and
+ * x100 steps for the Learner to do. G-T15: a maths-worry reply taught points and basis points at once. MP-3: a CAGR example
+ * whose figures no critic could trace to the story or a calculator.
+ */
+describe("round 10: quiz-me, the screen, the answer in words, one idea, numbers with a source", () => {
+  const sentences = (text: string) => text.split(/(?<=[.!?])\s+(?=[A-Z"(])/);
+  for (const [name, text] of [
+    ["widget engine off", TUTOR_INSTRUCTIONS],
+    ["widget engine on", ENGINE_INSTRUCTIONS],
+  ] as const) {
+    it(`${name}: a quiz-me request with no try coming gets one fun choice question, never a framing line alone (BP-1)`, () => {
+      expect(text).toContain(
+        '"Quiz me", even "make it fun", always gets something to tap: when this turn\'s context says code posts a Quick try with this reply, or names one on the Learner\'s screen, name that try and what it asks in one fun line and write no ask of your own; otherwise ask one fun choice question in words, a story beat with two or three options',
+      );
+      expect(text).toContain("never a framing line alone");
+    });
+
+    it(`${name}: a Quick try is the ask only when code posts it with this reply, or the reply names the one open on screen (BP-1)`, () => {
+      expect(text).toContain("A try already on the Learner's screen is the ask only when your reply names it and what it asks; a reply that names no try ends as the rules above say.");
+      expect(text).not.toContain("whenever a Quick try is on screen or code posts a try after your reply");
+    });
+
+    it(`${name}: never says it cannot see the Learner's screen (BP-2)`, () => {
+      expect(text).toContain("Never say you cannot see something on the Learner's screen: code tells you each Quick try on it, with its words and its choices.");
+      expect(sentences(text).filter((s) => /\bcan(?:no|')t see\b/i.test(s) && !/^Never say/.test(s))).toEqual([]);
+    });
+
+    it(`${name}: asked for a Quick try's answer, gives it in words and stops, with no conversion steps for the Learner (MP-1)`, () => {
+      expect(text).toContain(
+        'Asked for a Quick try\'s answer, say it in words as a story fact and stop: no conversion steps for the Learner to apply (no "divide by 100" or "times 100" for them), and never "whichever way the try asks".',
+      );
+    });
+
+    it(`${name}: teaches one idea a reply: points or basis points, never both, the other waits (G-T15)`, () => {
+      expect(text).toContain("One idea means one word or one move: a reply that explains points never also explains basis points; the other waits for its own reply.");
+    });
+
+    it(`${name}: takes every number in an example from the story, its Case Data or a calculate result (MP-3)`, () => {
+      expect(text).toContain(
+        "Every number in an example comes from the Topic's story, its Running example or Case Data, or a calculate result in this reply; for any other figure (a growth rate, a CAGR), call calculate first and quote its answer.",
+      );
     });
   }
 });

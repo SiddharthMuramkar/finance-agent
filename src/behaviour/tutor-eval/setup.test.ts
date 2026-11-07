@@ -115,5 +115,24 @@ describe("reading a turn back as the Learner sees it", () => {
     expect(p.ctx.widgetOk!(reply.widgets[0])).toBeNull();
     expect(reply.savedRule).toBeNull();
     expect(reply.parkOffer).toBe(false);
+    expect(reply.tools.map((t) => t.name)).toEqual(["open_widget"]);
+  });
+
+  // Round 10 (critic MP-3): T13 turn 8 said "Rs 1 lakh grows to Rs 2 lakh in 5 years: its CAGR is 14.87%", and the report
+  // kept no record of a calculate() call, so nobody could tell a calculator result from a figure the Tutor made up.
+  it("records each tool call the Tutor made in the turn: its name, its inputs and what code sent back", async () => {
+    const db = await testDb();
+    const p = await prepareCase(db, live("T5"), { map: oldMap, settings });
+    const inputs = { calculator: "cagr", inputs: { start: 100000, end: 200000, years: 5 }, currency: "inr" };
+    const { client } = scriptedClient([
+      { content: [{ type: "tool_use", id: "toolu_eval_calc", name: "calculate", input: inputs }] },
+      { content: [{ type: "text", text: "Say it grows from 1 lakh to 2 lakh in 5 years.\nWould a pro call that steady yearly growth its CAGR?" }] },
+    ]);
+    const after = await noteMark(db, p.learnerId);
+    const events = await collect(runTutorTurn({ db, client, map: oldMap, learnerId: p.learnerId, checkReplies: false }, "my dad keeps saying CAGR, what is that"));
+    const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
+    const text = events.flatMap((e) => (e.type === "text" ? [e.text] : [])).join("");
+    const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text, notesAfter: after });
+    expect(reply.tools).toEqual([{ name: "calculate", input: inputs, result: expect.stringMatching(/CAGR.*14\.87%/s), isError: false }]);
   });
 });

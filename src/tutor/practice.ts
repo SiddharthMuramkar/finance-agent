@@ -6,6 +6,7 @@ import { revealMove, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written
 import { loadCaseData } from "@/case-data/case-data";
 import { messages, practiceAnswers, sessionItems, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { fixLineFor } from "@/learner/known-mistakes";
 import { loadProgress } from "@/learner/memory";
 import { noteMethodUsed, parkedSkills, parkSkill, recordAnswerLogged, skillStates, unparkSkill } from "@/learner/skill-state";
 import { loadWidgetStates, saveWidgetState } from "@/learner/widget-state";
@@ -239,6 +240,25 @@ function dataOf(topic: Topic, check: Check, key: string, ref: Ref): QuickTryData
 /** The Learner's place when it is about a Check of a converted Topic, else null. */
 function convertedPlace(place: Place | null): (Place & { check: Check }) | null {
   return place && place.check && isConverted(place.topic) ? (place as Place & { check: Check }) : null;
+}
+
+/**
+ * The Quick try open at the Learner's converted Your turn, for this turn's facts (round 10, BP-2): its words and choices as
+ * the Learner reads them, and its answer (the right choice's words) only `withAnswer`, when the Learner asked for it.
+ * `practice` says the place is a converted Your turn at all; with no try open there, code posts the next one this turn.
+ */
+export async function openTryFor(db: Db, learnerId: number, place: Place | null, withAnswer: boolean): Promise<{ practice: boolean; openTry?: { ask: string; choices: string[]; answer?: string } }> {
+  const at = convertedPlace(place);
+  if (!at || !practiceStep(at.topic, at.step, at.check)) return { practice: false };
+  const session = await liveSession(db, learnerId, at.topic.id);
+  const open = session ? triesIn(await loadSessionItems(db, session.id, learnerId), at.check.id).open : undefined;
+  if (!open) return { practice: true };
+  const found = withAnswer ? quickTryItem(at.topic, open.key) : null;
+  const answer = found ? markChoice(found.item, "").expected : "";
+  return {
+    practice: true,
+    openTry: { ask: [open.prompt, open.halfDone].filter(Boolean).join(" "), choices: (open.choices ?? []).map((c) => c.text), ...(answer && { answer }) },
+  };
 }
 
 /** The Concept card for this turn's facts: at a converted Concept step and at a converted quiz Check, else undefined. */
@@ -754,7 +774,7 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
             : []),
           "Teach it again this way only, in a few short lines. The last step is the Learner's tap: write no practice question of your own.",
         ]
-      : ["Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply."]),
+      : ["Teach it again this way only, in a few short lines with numbers other than the try's. Code shows the next Quick try after your reply, and that try is the ask: write no ask or practice question of your own."]),
   ].join("\n");
 }
 
@@ -943,20 +963,6 @@ export type LadderFacts = { replyKind?: "feedback" | "offer_park" | RungKind; me
 
 const METHOD_NAMES: Record<Method, string> = { restate: "restate the rule", worked: "a worked example", boxes: "a half-done choice", widget: "the Widget in practice mode", drill5: "a choice drill of five" };
 
-/** A Known mistake's fix line, by its tag, from the Topic file: never the tag itself, which the Tutor must not repeat. */
-function mistakeWords(topic: Topic, tag: string): string | undefined {
-  for (const t of topic.templates) for (const m of t.mistakes) if (m.tag === tag) return m.fix;
-  for (const c of topic.checks) {
-    for (const q of c.quickTries) {
-      if (!isFixed(q)) continue;
-      for (const m of q.mistakes ?? []) if (m.tag === tag) return m.fix;
-      for (const ch of q.choices ?? []) if (ch.mistake?.tag === tag) return ch.mistake.fix;
-    }
-  }
-  for (const q of topic.questions) for (const c of q.choices) if (c.mistake?.tag === tag) return c.mistake.fix;
-  return undefined;
-}
-
 /**
  * The ladder's facts for this turn (spec #229, ticket #245): the Reply kind and method a code-written re-teach note
  * named; the frustration count; at a converted Your turn or Check, each Skill's state in one plain line; and, while a
@@ -982,9 +988,19 @@ export async function ladderFacts(db: Db, map: CourseMap, learnerId: number, bar
     if (count > 0) out.frustration = count;
   }
   const ruleOf = (id: string) => (place.topic.skills.find((s) => s.id === id)?.rule ?? "this idea").replace(/\.$/, "");
+  // Round 12 (F1): the last Known mistake reads the fix of the item it was made on, so a tag two items share never
+  // borrows another item's fix (Percent's "half a percent" once read the percent-change template's reverse slip).
+  const slips = skills.some((id) => states[id]?.lastMistake)
+    ? await db
+        .select({ skillId: practiceAnswers.skillId, tag: practiceAnswers.mistakeTag, itemId: practiceAnswers.itemId, templateId: practiceAnswers.templateId })
+        .from(practiceAnswers)
+        .where(and(eq(practiceAnswers.learnerId, learnerId), eq(practiceAnswers.topicId, place.topic.id), eq(practiceAnswers.verdict, "known_mistake")))
+        .orderBy(sql`${practiceAnswers.id} desc`)
+    : [];
   out.skillLines = skills.map((id) => {
     const s = states[id] ?? freshSkillState();
-    const mistake = s.lastMistake ? mistakeWords(place.topic, s.lastMistake) : undefined;
+    const made = slips.find((r) => r.skillId === id && r.tag === s.lastMistake);
+    const mistake = s.lastMistake ? (fixLineFor(place.topic, s.lastMistake, { skillId: id, itemId: made?.itemId, templateId: made?.templateId }) ?? undefined) : undefined;
     const how = isFluent(s) ? "fluent" : `not fluent yet, ${s.missesInRow} ${s.missesInRow === 1 ? "miss" : "misses"} in a row`;
     return `- ${ruleOf(id)}: ${how}${mistake ? `; last Known mistake: ${mistake}` : ""}.`;
   });

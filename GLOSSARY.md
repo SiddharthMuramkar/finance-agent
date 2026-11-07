@@ -25,7 +25,7 @@ The agent that teaches, explains and works through finance and economics with th
 _Avoid_: Assistant, bot
 
 **Reply kind**:
-What one Tutor reply sets out to do, such as feedback on an answer, a rule, a worked example, a hint, a drill, or an answer to the Learner's own question. Code chooses it when it knows the state, sends it to the Tutor, and records it with the turn's reply checks.
+What one Tutor reply sets out to do, such as feedback on an answer, a rule, a worked example, a hint, a drill, or an answer to the Learner's own question. Code chooses it when it knows the state, sends it to the Tutor, and records it with the turn's reply checks. A re-teach uses one method of the repair ladder: restate the rule, a worked example, a half-done choice (once "fill-in boxes": code shows the first step and the Learner taps the last), the Widget, or a choice drill of five.
 _Avoid_: Move, teaching move, action
 
 **Course Map**:
@@ -69,7 +69,7 @@ Every number in the open quiz questions and the next attempt's, which the Tutor 
 _Avoid_: Forbidden numbers, quiz numbers
 
 **Parked Skill**:
-A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it, on Quick tries or quiz questions. The Topic waits at its step while the Learner studies any other Topic: no Quick try, no Next, and Your turn cannot finish, though an open quiz can still be passed. Once 20 hours have passed, opening the Topic starts a drill of five on that Skill, and five answered tries end the park. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
+A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it, on Quick tries or quiz questions. The Topic waits at its step while the Learner studies any other Topic: no Quick try, no Next, and Your turn cannot finish, though an open quiz can still be passed. Once 20 hours have passed, opening the Topic starts a choice drill of five on that Skill, and five answered tries end the park. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
 _Avoid_: Skipped Skill, deferred Skill, review queue
 
 **Converted Topic**:

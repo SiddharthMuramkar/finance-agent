@@ -291,7 +291,7 @@ test("[F1] the mix-up cell shows its fix, with no opener streamed in", async ({}
   expect(r?.error, "the mix-up cell loads").toBeUndefined();
   expect(r?.openers, "openers the page asked for").toBe(0);
   const m = r!.mixup!;
-  expect(m.fix).toContain("That is basis points. Points are the new rate minus the old rate.");
+  expect(m.fix).toContain("Half a percent is a share of the old rate. The gap between two rates is in points.");
   expect(m.fixInView, "the fix is inside the conversation's view").toBe(true);
   expect(m.replyBelowFix, "a Tutor reply streamed in below the fix").toBe(false);
   expect(m.replies, "Tutor replies on the page (the seeded one only)").toBe(1);

@@ -143,7 +143,7 @@ describe("the fixture route", () => {
       const { learnerId, items } = await seed("mix-up");
       expect((await loadProgress(as.db, learnerId)).topics["num-percent-bps"]?.step).toBe("your_turn");
       const result = items.find((i) => i.kind === "quick_try_result")?.data;
-      expect(result).toEqual(expect.objectContaining({ verdict: "known_mistake", line: "That is basis points. Points are the new rate minus the old rate." }));
+      expect(result).toEqual(expect.objectContaining({ verdict: "known_mistake", line: "Half a percent is a share of the old rate. The gap between two rates is in points." }));
     });
 
     it("mix-up: a Tutor reply is stored before the try, so the page starts no opener under the answered try", async () => {

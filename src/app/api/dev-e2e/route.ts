@@ -171,8 +171,8 @@ const STATES: Record<string, Build> = {
     await walk(db, map, learnerId, now, TOPIC, (step) => step === "your_turn");
     const session = await sessionForTurn(db, now, learnerId, TOPIC);
     const tries = (await enterStepItems(db, map, learnerId, session.id, now)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as QuickTryData);
-    const wrong = tries[0]?.choices?.find((c) => c.text === "50 percentage points");
-    if (!wrong) throw new Error(`${TOPIC}'s first Quick try has no "50 percentage points" choice.`);
+    const wrong = tries[0]?.choices?.find((c) => c.text === "Rates rose half a percent");
+    if (!wrong) throw new Error(`${TOPIC}'s first Quick try has no "Rates rose half a percent" choice.`);
     const answered = await answerQuickTry(db, map, learnerId, tries[0].key, wrong.id, now);
     if (!answered.ok) throw new Error(`The test bed could not answer ${TOPIC}'s Quick try: ${answered.error}`);
   },

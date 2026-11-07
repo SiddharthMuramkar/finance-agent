@@ -217,6 +217,8 @@ describe("the re-teach note after a second miss in a row (ticket #248, lane R11)
   it("on another rung, still has the Tutor write no practice question of its own", async () => {
     const { note } = await secondMiss([]);
     expect(note).toContain("Method: restate");
-    expect(note).toContain("Write no practice question of your own");
+    // Round 9 (DA-1): code's next try is the ask, so the note asks for no ask of the Tutor's own either.
+    expect(note).toContain("write no ask or practice question of your own");
+    expect(note).not.toContain("then one ask");
   });
 });

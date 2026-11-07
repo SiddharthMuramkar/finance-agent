@@ -4,7 +4,7 @@
  * the files written to evidence/tutor-eval/.
  */
 import type { ReplyProblem } from "@/tutor/reply-checks";
-import type { Grade, SeenReply } from "./grading";
+import type { Grade, SeenReply, SeenTool } from "./grading";
 
 export const RUNS_PER_CASE = 3;
 
@@ -19,16 +19,20 @@ export type RunResult = {
   costUsd: number;
   /** What else is worth seeing: the turn's tools, its time, what code fixed. */
   note?: string;
+  /** A dialogue's turns, in order: each Learner message and the reply as they saw it. */
+  transcript?: { learner: string; reply: SeenReply }[];
 };
 
 export type CaseResult = {
   id: string;
   title: string;
-  kind: "live" | "aggregate" | "lint";
+  kind: "live" | "aggregate" | "lint" | "dialogue";
   status: "pass" | "fail" | "pending" | "skipped";
   /** Why the case could not run yet. */
   pending?: string;
   runs: RunResult[];
+  /** How many runs the case has and how many must pass, when not three of three (a dialogue's one run, D3b's two of three). */
+  bar?: { runs: number; passes: number };
 };
 
 export type EvalReport = {
@@ -43,11 +47,16 @@ export type EvalReport = {
   cases: CaseResult[];
 };
 
-/** A case passes only on three passing runs. A failed run fails it; a run not started leaves it skipped. */
-export function caseStatus(runs: RunResult[], expected = RUNS_PER_CASE): "pass" | "fail" | "skipped" {
-  if (runs.some((r) => r.status === "fail")) return "fail";
-  if (runs.length < expected || runs.some((r) => r.status === "skipped")) return "skipped";
-  return "pass";
+/**
+ * A case passes on `needed` passing runs of `expected` (by default three of three). It fails once too many runs failed
+ * to reach that; otherwise runs not started, or a dialogue the cap cut short with no failed turn, leave it skipped.
+ */
+export function caseStatus(runs: RunResult[], expected = RUNS_PER_CASE, needed = expected): "pass" | "fail" | "skipped" {
+  const passed = runs.filter((r) => r.status === "pass").length;
+  const failed = runs.filter((r) => r.status === "fail").length;
+  if (failed > expected - needed) return "fail";
+  if (passed >= needed) return "pass";
+  return "skipped";
 }
 
 /** The suite passes only when every case passed three times out of three and the cap stopped nothing. */
@@ -68,7 +77,7 @@ function header(r: EvalReport): string[] {
   return [
     `Tutor: ${r.tutor.model}, effort ${r.tutor.effort}, widget engine ${r.tutor.widgetEngine}. Grader: ${r.graderModel}. Instruction fingerprint ${r.fingerprint}.`,
     `Spent ${usd(r.spentUsd)} of the ${usd(r.capUsd)} cap. Started ${r.startedAt}, finished ${r.finishedAt}.`,
-    ...(r.budgetStop ? ["", `**${r.budgetStop}** Runs after that point were not started and count as not passed.`] : []),
+    ...(r.budgetStop ? ["", `**${r.budgetStop}** Runs after that point were not started and count as not passed. A dialogue the cap cut short is skipped, not judged, unless a turn that ran failed.`] : []),
   ];
 }
 
@@ -76,7 +85,7 @@ function table(r: EvalReport): string[] {
   return [
     "| Case | Title | Verdict | Runs passed |",
     "| --- | --- | --- | --- |",
-    ...r.cases.map((c) => `| ${c.id} | ${cell(c.title)} | ${c.status} | ${passedRuns(c)} of ${RUNS_PER_CASE} |`),
+    ...r.cases.map((c) => `| ${c.id} | ${cell(c.title)} | ${c.status} | ${passedRuns(c)} of ${c.bar?.runs ?? RUNS_PER_CASE}${c.bar && c.bar.passes !== c.bar.runs ? ` (needs ${c.bar.passes})` : ""} |`),
   ];
 }
 
@@ -87,6 +96,11 @@ function runDetail(c: CaseResult, run: RunResult): string[] {
     if (run.reply.fixed.length) out.push("", `Code fixed before showing: ${run.reply.fixed.join(", ")}.`);
     out.push("", run.reply.widgets.length ? `Widgets: ${run.reply.widgets.map((w) => `${w.id}${w.params ? ` ${JSON.stringify(w.params)}` : ""}`).join("; ")}.` : "Widgets: none.");
     if (run.reply.savedRule) out.push(`Saved rule: "${run.reply.savedRule}".`);
+    if (run.reply.tools?.length) out.push(`Tools: ${run.reply.tools.map(toolLine).join("; ")}.`);
+  }
+  for (const [i, t] of (run.transcript ?? []).entries()) {
+    out.push("", `Turn ${i + 1}. Learner: "${t.learner}"`, "", quote(t.reply.text || "(empty)"));
+    if (t.reply.tools?.length) out.push("", `Tools: ${t.reply.tools.map(toolLine).join("; ")}.`);
   }
   if (run.grade && run.grade.ok) out.push("", `Grader: ${run.grade.answers.map((a) => `${a.n} ${a.yes ? "yes" : "no"}${a.why ? ` (${a.why})` : ""}`).join("; ")}.`);
   if (run.grade && !run.grade.ok) out.push("", "The grader wrote:", "", quote(run.grade.text || "(nothing)"));
@@ -95,7 +109,24 @@ function runDetail(c: CaseResult, run: RunResult): string[] {
   return out;
 }
 
-/** The full report: the run's settings and spend, a table of cases, then every failed or skipped run in full. */
+/** A tool call in one line: its name, its inputs as JSON, and what came back. */
+const toolLine = (t: SeenTool) => `${t.name} ${JSON.stringify(t.input ?? {})} ${t.isError ? "failed" : "returned"}: ${t.result.replace(/\s+/g, " ").trim() || "(nothing)"}`;
+
+/**
+ * Every tool call of every run, passed or not, and of every dialogue turn (round 10, critic MP-3): the critics trace each
+ * number in a reply to a story fact, a choice label or one of these results.
+ */
+function toolCalls(r: EvalReport): string[] {
+  const lines = r.cases.flatMap((c) =>
+    c.runs.flatMap((run) => [
+      ...(run.reply?.tools ?? []).map((t) => `- ${c.id}, run ${run.run}: ${toolLine(t)}`),
+      ...(run.transcript ?? []).flatMap((turn, i) => (turn.reply.tools ?? []).map((t) => `- ${c.id}, run ${run.run}, turn ${i + 1} ("${turn.learner}"): ${toolLine(t)}`)),
+    ]),
+  );
+  return ["## Tool calls", "", ...(lines.length ? lines : ["None."]), ""];
+}
+
+/** The full report: the run's settings and spend, a table of cases, then every failed or skipped run in full, then every tool call. */
 export function renderReport(r: EvalReport): string {
   const pending = r.cases.filter((c) => c.status === "pending");
   const failed = r.cases.flatMap((c) => c.runs.filter((run) => run.status !== "pass").map((run) => [c, run] as const));
@@ -110,6 +141,7 @@ export function renderReport(r: EvalReport): string {
     "## Failures",
     "",
     ...(failed.length ? failed.flatMap(([c, run]) => runDetail(c, run)) : ["None.", ""]),
+    ...toolCalls(r),
   ].join("\n");
 }
 

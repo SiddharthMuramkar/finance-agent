@@ -1,7 +1,7 @@
 /**
  * Live Tutor tests (real API, ticket #236). One command: `npm run tutor:eval`. Kept out of `npm run check`.
  *
- * Runs T1 to T11 from the Percent Session (cases/*.json): each live case three times, each run on a fresh
+ * Runs T1 to T16 (cases/*.json): T1 to T11 from the Percent Session, T12 to T16 for the story-first voice (D3b). Each live case three times, each run on a fresh
  * in-memory Postgres through the real Tutor Turn and the real model, then the reply checks, the case's
  * conditions and an Opus 5.5 grader. The report (every failure in full) goes to evidence/tutor-eval/.
  *
@@ -33,7 +33,7 @@ const GRADER_MODEL = "claude-opus-5-5";
 const OUT = process.env.TUTOR_EVAL_OUT ?? join(process.cwd(), "evidence", "tutor-eval");
 const env = process.env;
 
-it("live Tutor tests T1 to T11", { timeout: 3_600_000 }, async () => {
+it("live Tutor tests T1 to T16", { timeout: 3_600_000 }, async () => {
   const settings = {
     model: env.TUTOR_EVAL_MODEL || DEFAULT_SETTINGS.model,
     effort: env.TUTOR_EVAL_EFFORT || DEFAULT_SETTINGS.effort,

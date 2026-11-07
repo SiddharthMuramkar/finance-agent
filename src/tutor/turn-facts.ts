@@ -7,7 +7,7 @@ import { caseDatasets, quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { quizUnavailable } from "@/learner/quiz";
 import { GO_DEEPER, OLD_CHIP_MESSAGES } from "./chips";
-import { cardForFacts, ladderFacts } from "./practice";
+import { cardForFacts, ladderFacts, openTryFor } from "./practice";
 import { blockedNumbersFrom, capFor, type OpenItem, type ReplyCheckContext, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
 import { isCodeWritten } from "./turn-status";
 
@@ -51,7 +51,18 @@ export interface TurnFacts {
   skillLines?: string[];
   /** While a Skill of the current Check is parked: when it comes back, and what the Tutor may still do. */
   parked?: string;
+  /**
+   * At a converted Your turn: the Quick try on the Learner's screen that they have not answered yet, as they read it (its
+   * words and choices, never which is right), so the Tutor never claims it cannot see it (round 10, BP-2). `answer` is the
+   * right choice's words, there only when the Learner asked for the answer (Reply kind hint), to say in words.
+   */
+  openTry?: OpenTry;
+  /** At a converted Your turn with no try open and nothing parked: code posts the next Quick try with this reply, which is its one ask. */
+  tryPosted?: boolean;
 }
+
+/** An open Quick try as the Tutor is told it (see `TurnFacts.openTry`). */
+export type OpenTry = { ask: string; choices: string[]; answer?: string };
 
 /** The currency every Topic's everyday examples use until its file names one (spec #229: ₹ by default). */
 export const DEFAULT_EXAMPLE_CURRENCY = "INR";
@@ -92,6 +103,10 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
   const card = cardForFacts(place);
   const cap = capFor(step, replyKind);
   const aim = replyKind && AIMS[replyKind];
+  // The try on screen, or the one code posts with this reply (round 10, BP-1 and BP-2); its answer only when asked for.
+  const tries = await openTryFor(db, learnerId, place, replyKind === "hint");
+  const openTry = tries.openTry;
+  const tryPosted = !openTry && tries.practice && !ladder.parked;
   return {
     step,
     ...(replyKind && { replyKind }),
@@ -108,6 +123,8 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
     ...(ladder.frustration && { frustration: ladder.frustration }),
     ...(ladder.skillLines.length && { skillLines: ladder.skillLines }),
     ...(ladder.parked && { parked: ladder.parked }),
+    ...(openTry && { openTry }),
+    ...(tryPosted && { tryPosted }),
   };
 }
 

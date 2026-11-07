@@ -4,8 +4,12 @@
  * checks (V1 to V7, src/tutor/reply-checks.ts) run first; then the case's conditions; then the grader's five
  * rubric questions and the case's own questions. Any "no", and a grade that cannot be read, fail the run.
  */
-import { blockedNumbersFrom, checkReply, countWords, fixReply, splitAsk, type ReplyCheckContext, type ReplyProblem, type ReplyWidget } from "@/tutor/reply-checks";
+import { asksIn, blockedNumbersFrom, checkReply, countWords, fixReply, splitAsk, sumAsked, type ReplyCheckContext, type ReplyProblem, type ReplyWidget } from "@/tutor/reply-checks";
+import type { ReplyChoicesData } from "@/tutor/session-item-kinds";
 import type { Condition } from "./case";
+
+/** The Choices code stored under a reply (D3a). */
+export type SeenChoice = ReplyChoicesData["choices"][number];
 
 /** The judge rubric, worded as TUTOR_SPEC section 7 words it. Each is a yes-or-no question. */
 export const RUBRIC = [
@@ -23,6 +27,12 @@ export const RUBRIC = [
  */
 export type SeenWidget = ReplyWidget & { labels: string[]; byCode?: boolean };
 
+/**
+ * One tool call the Tutor made in the turn: its name, its inputs and what code sent back (round 10, critic MP-3), so a critic
+ * can trace a number in the reply to a calculate() result rather than guess whether the Tutor made it up.
+ */
+export type SeenTool = { name: string; input: unknown; result: string; isError: boolean };
+
 /** One reply as the Learner sees it: after `fixReply`, with what code fixed noted, its Widgets, its saved rule and any park offer. */
 export type SeenReply = {
   text: string;
@@ -35,18 +45,22 @@ export type SeenReply = {
   parkOffer: boolean;
   /** What code showed below the reply in the same turn (the next Quick try), as the Learner reads it. */
   alsoShown: string[];
+  /** The Choices code stored under the reply in the same turn (a reply_choices item), or none. */
+  choices: SeenChoice[];
+  /** The Tutor's tool calls in the turn, in order. Not what the Learner sees: what the critics trace numbers to. */
+  tools: SeenTool[];
 };
 
 const BOLD = /\*\*(?=\S)[\s\S]*?\S\*\*|__(?=\S)[\s\S]*?\S__/g;
 
 /** The reply as the Learner sees it, from the turn's raw text and what it showed and saved. */
-export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[] }): SeenReply {
+export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[]; choices?: SeenChoice[]; tools?: SeenTool[] }): SeenReply {
   const draft = fixReply({ text: r.text, widgets: r.widgets, savedRule: r.savedRule ?? null });
   const fixed: string[] = [];
   if (/^[ \t]*#{1,6}[ \t]+/m.test(r.text)) fixed.push("headings");
   if (/[\p{Extended_Pictographic}➜➔➡→⇒]/u.test(r.text)) fixed.push("emoji or arrows");
   if ((r.text.match(BOLD)?.length ?? 0) > 1) fixed.push("extra bold");
-  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [] };
+  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [], choices: r.choices ?? [], tools: r.tools ?? [] };
 }
 
 const FENCE = /```[^\n]*\n[\s\S]*?(?:\n```|$)/g;
@@ -72,6 +86,35 @@ export function modeOf(w: ReplyWidget): unknown {
   return params?.inputs?.mode ?? params?.mode;
 }
 
+/**
+ * Indirect sum asks, which V8's reading misses (run 16, critics MP-1, MP-2, MP-4): a sum worked on other numbers, then
+ * "Now do the same steps on the Quick try's numbers", "Work it out", "Your turn to calculate". Each is read only in a
+ * question, an instruction or the ask (`asksIn`), so "Traders do the same thing every morning." stays a statement.
+ */
+const INDIRECT_SUM_ASKS: RegExp[] = [
+  /\b(?:do|try|repeat|redo|run|apply|use|follow)\s+(?:the\s+|that\s+|those\s+|this\s+)?same\s+(?:steps?|moves?|maths?|sums?|method|working|calculations?|rule)\b/i,
+  /\b(?:do|try)\s+(?:the\s+)?same\b[^.?!]{0,40}?\b(?:on|with|for)\b[^.?!]{0,40}?\bnumbers\b/i,
+  /\b(?:do|try|apply|use|run|repeat)\b[^.?!]{0,60}?\b(?:on|to|with)\s+(?:the\s+)?(?:quick try['’]s|try['’]s|card['’]s|widget['’]s|its|these|those|their|your|other|new)\s+(?:own\s+)?numbers\b/i,
+  /\bwork\s+(?:it|this|that|them|those|these)\s+out\b|^\W*work\s+out\b/i,
+  /\byour\s+turn\s+to\s+(?:calculate|compute|work|figure|count|convert|do\s+the\s+(?:maths?|sums?|arithmetic))\b/i,
+  /\b(?:now|then|next|you|try\s+to|go\s+ahead\s+and)\s+(?:calculate|compute|convert|figure\s+out|count\s+up)\b/i,
+];
+
+/** Verbs V8's instruction reading does not list, which open an indirect sum ask ("Now apply that to the card's numbers."). */
+const MORE_ASK_VERBS = /^\W*(?:(?:now|then|next|so),?\s+)?(?:apply|repeat|redo|follow|run)\b/i;
+
+/** The phrase of an indirect sum ask in the reply (see INDIRECT_SUM_ASKS), or null. */
+export function indirectSumAsk(text: string): string | null {
+  const more = sentences(text).filter((s) => MORE_ASK_VERBS.test(s));
+  for (const line of [...asksIn(text), ...more]) {
+    for (const pattern of INDIRECT_SUM_ASKS) {
+      const hit = pattern.exec(line.trim());
+      if (hit) return hit[0];
+    }
+  }
+  return null;
+}
+
 /** Every case condition the reply fails, each as a readable reason. */
 export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: ReplyCheckContext): string[] {
   const out: string[] = [];
@@ -91,6 +134,12 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
         break;
       }
       case "oneAsk": {
+        // A Quick try code posts after the reply is the reply's one ask (DA-1): the reply itself must ask nothing (round 10, G-T15).
+        if (reply.alsoShown.length) {
+          const own = ask ?? sentences(message).find((s) => s.includes("?"));
+          if (own) out.push(`The reply has two asks: its own ("${own}") and the Quick try code posted after it.`);
+          break;
+        }
         if (!ask) out.push("The reply ends with no ask: its last line neither asks nor tells the Learner what to do.");
         else if (prose(message).includes("?")) out.push(`The reply asks more than one thing: a question in the message as well as the ask ("${ask}").`);
         break;
@@ -155,6 +204,19 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
         if (labelled.length) out.push(`The Widget ${labelled.map((w) => `"${w.id}"`).join(", ")} has a "$" in its labels.`);
         break;
       }
+      case "noSum": {
+        // The reading V8 uses: questions, instructions and the ask; a sum said as a fact is allowed (ADR 0009).
+        // Indirect asks ("do the same steps on the Quick try's numbers") count too (run 16, MP-4).
+        const phrase = sumAsked(reply.text) ?? indirectSumAsk(reply.text);
+        if (phrase) out.push(`The reply asks for a sum ("${phrase}").`);
+        break;
+      }
+      case "choicesStored": {
+        const n = reply.choices.length;
+        if (!n) out.push("No Choices were stored under the reply.");
+        else if (n < 2 || n > 3) out.push(`${n} Choices were stored under the reply; there should be 2 or 3.`);
+        break;
+      }
     }
   }
   return out;
@@ -185,7 +247,15 @@ export function buildGraderPrompt(args: { stateNote: string; message: string; re
     "",
     args.reply.widgets.length ? `Shown with the reply: ${args.reply.widgets.map(describeWidget).join("; ")}.` : "No Widget was shown with the reply.",
     // Not the Tutor's words: code shows the next Quick try below a reply, so "the try below" in a reply points at something real.
-    ...(args.reply.alsoShown.length ? [`Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): ${args.reply.alsoShown.join("; ")}.`] : []),
+    // Round 10 (G-T15): that try is the reply's one ask (DA-1), so the reply itself asks nothing; two asks stay a no.
+    ...(args.reply.alsoShown.length
+      ? [
+          `Code then showed the Learner, below the reply (the Tutor did not write it): ${args.reply.alsoShown.join("; ")}.`,
+          "That Quick try is the reply's one ask: the reply itself must ask nothing (no question, no task, no invitation).",
+          'For "exactly one idea and one ask", a reply with no ask of its own passes the ask part; a reply that also asks something has two asks, a no.',
+        ]
+      : []),
+    'One idea is strict: a reply that teaches two ideas (say, what percentage points are and what basis points are) is a no to "exactly one idea and one ask", whatever its ask.',
     ...(args.reply.widgets.length ? ["A Widget's Guided Tasks (lines such as \"Move the new rate to 4%\") are optional play the Learner may ignore. They are not asks and not extra ideas: do not count them against \"one idea and one ask\"."] : []),
     // The reply check V5 keeps an open question's numbers out of a Widget's inputs, so sliders the Learner can move are not a leak.
     ...(args.reply.widgets.length ? ["A Widget's sliders are not a leak of an open quiz answer: code's reply checks already keep the open questions' numbers out of its inputs."] : []),

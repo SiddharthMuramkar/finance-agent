@@ -48,6 +48,13 @@ describe("the report", () => {
     expect(md).toMatch(/\| T3 \| Repeat miss \| pending \| 0 of 3 \|/);
   });
 
+  // Premerge T-1 (round 13): a dialogue the cap cuts short is skipped, not judged, so the cap line says so.
+  it("says a dialogue the cap cut short is skipped and not judged, unless a turn that ran failed", () => {
+    expect(renderReport(report)).toContain("A dialogue the cap cut short is skipped, not judged, unless a turn that ran failed.");
+    expect(renderSummary(report)).toContain("A dialogue the cap cut short is skipped, not judged, unless a turn that ran failed.");
+    expect(renderReport({ ...report, budgetStop: null })).not.toContain("A dialogue the cap cut short");
+  });
+
   it("lists every failure in full: each reason, the whole reply and its Widgets", () => {
     const md = renderReport(report);
     const failures = md.slice(md.indexOf("## Failures"));
@@ -59,6 +66,32 @@ describe("the report", () => {
     expect(failures).toContain("### T2, run 3");
     expect(failures).toContain("Not run: the spend cap was reached.");
     expect(md).toContain("num-percent-bps has no Skill pts_to_bp yet.");
+  });
+
+  // Round 10 (critic MP-3): a critic traces each number to a story fact, a choice label or a tool result, so the report keeps
+  // every tool call of every run, passed or not, and each dialogue turn's, with its inputs and result.
+  it("lists every tool call of every run and dialogue turn, with its inputs and result, passed runs too", () => {
+    const calc = { name: "calculate", input: { calculator: "cagr", inputs: { start: 100000, end: 200000, years: 5 } }, result: "CAGR: 14.87%", isError: false };
+    const withTools: EvalReport = {
+      ...report,
+      cases: [
+        { id: "T15", title: "Warm", kind: "live", status: "pass", runs: [{ ...pass(1), reply: seen({ text: "Ok.", widgets: [], tools: [calc] }) }] },
+        {
+          id: "T13",
+          title: "No sum",
+          kind: "dialogue",
+          status: "pass",
+          runs: [{ ...pass(1), transcript: [{ learner: "hi", reply: seen({ text: "Hi.", widgets: [] }) }, { learner: "my dad keeps saying CAGR", reply: seen({ text: "CAGR is...", widgets: [], tools: [calc] }) }] }],
+          bar: { runs: 1, passes: 1 },
+        },
+      ],
+    };
+    const md = renderReport(withTools);
+    const tools = md.slice(md.indexOf("## Tool calls"));
+    expect(tools).toContain('- T15, run 1: calculate {"calculator":"cagr","inputs":{"start":100000,"end":200000,"years":5}} returned: CAGR: 14.87%');
+    expect(tools).toContain('- T13, run 1, turn 2 ("my dad keeps saying CAGR"): calculate {"calculator":"cagr","inputs":{"start":100000,"end":200000,"years":5}} returned: CAGR: 14.87%');
+    expect(tools).not.toContain("turn 1");
+    expect(renderReport(report)).toMatch(/## Tool calls\n\nNone\./);
   });
 
   it("keeps a short summary for the job and the PR, and names every file", () => {

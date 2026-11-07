@@ -32,9 +32,13 @@ function shownCard(place: Pick<Place, "topic" | "step" | "check">): ConceptCard 
 /** What the Tutor is told at a converted Concept step: code showed the card and its Widget; the Tutor adds one sentence and one ask. */
 const CARD_SHOWN = "Code has shown this Concept card and its Widget in the conversation, already set to the card's numbers. Add one sentence and one ask; never write your own version of the card.";
 
-/** What the Tutor is told at a converted Your turn: code shows and marks the Quick tries, and finishes the step. */
-const QUICK_TRIES =
-  "Your turn: code shows Quick tries one at a time under your reply and marks each answer at once. Write no practice questions of your own and never mark an answer. Code finishes this step once every idea of the Check has two right answers in a row; you cannot finish it.";
+/**
+ * What the Tutor is told at a converted Your turn: code shows and marks the Quick tries, and finishes the step. The ask
+ * rule is the instructions' own (round 10; matched here in round 12, premerge F3): a try code posts after the reply is
+ * its one ask, and a try already on screen is the ask only when the reply names it.
+ */
+export const QUICK_TRIES =
+  "Your turn: code shows Quick tries one at a time under your reply and marks each answer at once. Write no practice questions of your own and never mark an answer. When code posts a try after your reply, that try is the reply's one ask: write no ask of your own. A try already on the Learner's screen is the ask only when your reply names it and what it asks; a reply that names no try ends as your rules say. Code finishes this step once every idea of the Check has two right answers in a row; you cannot finish it.";
 
 /**
  * The note code writes for an opener (no Learner message comes with it): teach the Learner's saved step.
@@ -151,6 +155,7 @@ export function stepContext(
   else if (practice && check?.card) lines.push("", `Concept card (on screen earlier): ${plain(cardText(check.card))}`, QUICK_TRIES);
   else if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
   if (practice && !check?.card) lines.push(QUICK_TRIES);
+  if (practice && facts) lines.push(...tryLines(facts));
   if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, exploreWidgetOf(topic)?.code));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
@@ -209,6 +214,23 @@ export function stepContext(
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");
+}
+
+/**
+ * At a converted Your turn, what is on the Learner's screen to tap (round 10, BP-1, BP-2): the open try's words and
+ * choices (the Tutor sees what the Learner sees, and never its answer unless the Learner asked for it), or that code
+ * posts the next try with this reply, which is then the reply's one ask.
+ */
+function tryLines(facts: TurnFacts): string[] {
+  const open = facts.openTry;
+  if (open) {
+    return [
+      `Quick try on the Learner's screen, not answered yet (code posts no new one this turn): "${open.ask}" Its choices: ${open.choices.map((c) => `"${c}"`).join("; ")}.`,
+      "You see this try as the Learner does: never say you cannot see it. When your reply names it (what it asks), it is the reply's one ask: write no ask of your own.",
+      ...(open.answer ? [`The Learner asked for its answer: "${open.answer}". Say it in words as a story fact and stop: no steps for the Learner to do, no ask of your own.`] : []),
+    ];
+  }
+  return facts.tryPosted ? ["Code posts the next Quick try with this reply: it is the reply's one ask, so write no ask of your own."] : [];
 }
 
 const CURRENCY_NAMES: Record<string, string> = { INR: "₹ (rupees)", USD: "$ (dollars)" };

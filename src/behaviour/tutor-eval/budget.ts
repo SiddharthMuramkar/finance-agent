@@ -25,18 +25,25 @@ export function requirePrice(model: string): void {
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
 
+/**
+ * What a hold is for: a live run (a Tutor Turn, its retry and a grade) or one turn of a dialogue (a Tutor Turn, no grade).
+ * Each kind keeps its own mean, so a dialogue's cheaper turns neither over-hold nor pull a live run's estimate down (round 10, F1).
+ */
+export type HoldKind = "run" | "dialogue_turn";
+
 export class Budget {
   spent = 0;
   private held = 0;
-  private costs: number[] = [];
+  private costs: Record<HoldKind, number[]> = { run: [], dialogue_turn: [] };
   /** Why the suite stopped starting runs; null while it has not. */
   stopped: string | null = null;
 
   constructor(readonly cap: number) {}
 
-  /** What the next run is expected to cost: the mean of the runs so far, or the first-run estimate. */
-  estimate(): number {
-    return this.costs.length ? this.costs.reduce((a, b) => a + b, 0) / this.costs.length : FIRST_RUN_ESTIMATE_USD;
+  /** What the next run (or dialogue turn) is expected to cost: the mean of that kind so far, or the first-run estimate. */
+  estimate(kind: HoldKind = "run"): number {
+    const costs = this.costs[kind];
+    return costs.length ? costs.reduce((a, b) => a + b, 0) / costs.length : FIRST_RUN_ESTIMATE_USD;
   }
 
   /** Holds `amount` for a run about to start. False, and stopped for good, when spend and holds would pass the cap. */
@@ -54,11 +61,11 @@ export class Budget {
     return true;
   }
 
-  /** Swaps a run's hold for what it really cost. */
-  settle(held: number, actual: number): void {
+  /** Swaps a run's (or a dialogue turn's) hold for what it really cost, into that kind's mean. */
+  settle(held: number, actual: number, kind: HoldKind = "run"): void {
     this.held = Math.max(0, this.held - held);
     this.spent += actual;
     // A run that failed before spending anything says nothing about what the next run costs: it must not pull the estimate to $0.
-    if (actual > 0) this.costs.push(actual);
+    if (actual > 0) this.costs[kind].push(actual);
   }
 }

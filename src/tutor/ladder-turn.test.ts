@@ -86,6 +86,9 @@ describe("the repair ladder on Quick tries", () => {
     const body = sent(reteach.requests);
     expect(body).toContain("Reply kind: reteach");
     expect(body).toContain("Method: restate");
+    // Round 9 (DA-1): code posts the next Quick try after this reply, and that try is the ask: no "then one ask".
+    expect(body).toContain("Code shows the next Quick try after your reply, and that try is the ask: write no ask or practice question of your own.");
+    expect(body).not.toContain("then one ask");
     expect((await skillStates(db, me, "pct-demo"))[first.skillId].methodsUsed).toEqual(["restate"]);
   });
 

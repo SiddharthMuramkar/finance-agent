@@ -65,6 +65,11 @@ describe("a converted Your turn", () => {
     const { events, sent } = await turn(db, "Ready.");
     expect(itemKinds(events)).toEqual([QUICK_TRY]);
     expect(sent).toContain("Write no practice questions of your own");
+    // Round 9 (DA-1), narrowed in round 10 and matched here in round 12 (premerge F3): a try code posts after the reply is
+    // its one ask; a try already on screen is the ask only when the reply names it.
+    expect(sent).toContain("When code posts a try after your reply, that try is the reply's one ask: write no ask of your own.");
+    expect(sent).toContain("A try already on the Learner's screen is the ask only when your reply names it and what it asks");
+    expect(sent).not.toContain("The Quick try on screen or under your reply is the ask");
     expect(sent).toContain("Do not call finish_teaching_step for your_turn");
   });
 
@@ -91,6 +96,29 @@ describe("a converted Your turn", () => {
     const tryAt = events.findIndex((e) => e.type === "item" && e.item.kind === QUICK_TRY);
     expect(tryAt).toBeGreaterThan(lastText);
     expect((await turn(db, { quickTryFollowUp: true })).events).toEqual([{ type: "not_allowed", message: NO_QUICK_TRY_FOLLOW_UP }]);
+  });
+
+  // Round 10 (critics BP-2, MP-1): the open try's words and choices reach the Tutor while it waits on screen, never its
+  // answer; its answer only when the Learner asks for it, to say in words.
+  it("tells the next turn the open try's words and choices, and its answer only when the Learner asks for it", async () => {
+    const db = await testDb();
+    const first = await atYourTurn(db);
+    const { sent } = await turn(db, "why does this matter");
+    expect(sent).toContain("Quick try on the Learner's screen, not answered yet");
+    expect(sent).toContain(first.prompt);
+    for (const c of first.choices ?? []) expect(sent).toContain(c.text);
+    expect(sent).not.toContain("The Learner asked for its answer");
+    const asked = (await turn(db, "just tell me the answer pls")).sent;
+    expect(asked).toContain('The Learner asked for its answer: \\"Up 1 point\\".');
+  });
+
+  it("tells the turn that posts the first try that code posts it with this reply", async () => {
+    const db = await testDb();
+    await turn(db, "Hi", "In 1994 the Fed held its rate at 3%.");
+    await saveFinishedStep(db, map, "story", new Date(), me);
+    await saveFinishedStep(db, map, "concept", new Date(), me);
+    const { sent } = await turn(db, "Ready.");
+    expect(sent).toContain("Code posts the next Quick try with this reply: it is the reply's one ask, so write no ask of your own.");
   });
 
   it("keeps the same items and the same open try on a reload", async () => {
