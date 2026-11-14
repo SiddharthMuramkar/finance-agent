@@ -1,0 +1,199 @@
+# Leverage, liquidity spirals and systemic risk: a foundation Topic taught through the books of Long-Term Capital Management.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked 2 Nov 2026): Report of the President's Working Group on Financial Markets, "Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management" (April 1999), https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; Federal Reserve History, Near Failure of Long-Term Capital Management, https://www.federalreservehistory.org/essays/ltcm-near-failure ; Federal Reserve Bank of Philadelphia, Working Paper 11-30/R, "Collateral Damage: Sizing and Assessing the Subprime CDO Crisis" (May 2012); Federal Reserve Board, Report Pursuant to Section 129 of the Emergency Economic Stabilization Act of 2008: Loan to Facilitate the Acquisition of Bear Stearns by JPMorgan Chase (Feb 2009), https://fcic-static.law.stanford.edu/cdn_media/fcic-docs/2009-12-28%20FRB%20Report%20on%20Acquisition%20of%20Bear%20Stearns%20by%20JPMorgan.pdf .
+id: crisis-leverage
+title: Leverage, liquidity spirals and systemic risk
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Borrowing turns a small fall in what assets are worth into a large fall in what owners have, so leverage changes what every share is worth."
+
+cases:
+  - id: ltcm-leverage-spiral-1998
+    title: The lenders to a heavily borrowed fund
+    data: [ltcm-capital-returned, ltcm-capital-start-1998, ltcm-assets-end-august]
+    asOf: 1998-09-01
+    story: >
+      Long-Term Capital Management (LTCM) is a hedge fund in Greenwich, Connecticut, founded in
+      1994, that looks for small price differences between similar securities and bets that they
+      will close. Each trade earns little, so the fund borrows to make the profit worth having.
+      It borrows mostly by repurchase agreements (repo): it sells a bond to a bank with a promise
+      to buy it back, which is a loan secured by the bond, and the bank lends less than the bond
+      is worth, so the fund must put up the difference from its own capital. Its derivatives
+      contracts work the same way, with collateral exchanged as prices move. At the end of 1997
+      the fund returned about $2.7 billion to its investors, which cut its capital by about
+      36 per cent, to $4.8 billion, without cutting its positions. The fund's own books, seen in
+      full only by the fund and, each in its own slice, by its lenders, show more than
+      $125 billion of assets on 31 August 1998 against that starting capital of $4.8 billion.
+      The fund has roughly 75 repo counterparties and about 50 counterparties for its
+      over-the-counter derivatives, and many of them hold similar trades of their own. In
+      August 1998 Russia devalued its currency and stopped payments on part of its debt, and
+      investors across the world have been moving money from riskier and harder-to-sell
+      securities into safe, easily sold ones such as US Treasury bonds. As of 1 September 1998,
+      suppose you are a lender to this fund: what would you want to know about its borrowing,
+      and what could go wrong for lenders as a group if the fund had to sell?
+    reveal: >
+      In August 1998 alone the fund lost $1.8 billion, bringing its loss of capital for the year
+      to over 50 per cent, and its capital fell to $2.3 billion. On 2 September it told its
+      investors and began seeking new capital. It found that selling was hard even though it was
+      not trying to sell everything at once: the Working Group wrote that "LTCM itself experienced
+      substantial difficulty in reducing the LTCM Fund's risk positions", while firms across the
+      market were pulling back from risk. On 18 September its officials called the president of the Federal Reserve Bank of New York, and
+      on 23 September 1998 fourteen banks and brokerage firms put up $3.625 billion for
+      90 per cent of the fund. The Fed arranged the meeting but lent nothing. Its worry,
+      according to the Fed's own history, was that if LTCM's many counterparties all tried to
+      leave their positions at once, a "fire sale" of assets could harm the wider economy.
+      The same chain ran on a far larger scale ten years later. The Federal Reserve Bank of
+      Philadelphia counted 727 subprime-linked collateralised debt obligations issued between
+      1999 and 2007, $641 billion in all, and estimated write-downs of $420 billion, 65 per cent
+      of the amount issued. And in March 2008 the Fed lent to help JPMorgan Chase buy Bear Stearns; its report
+      to Congress said that Bear's large presence in the repo and other markets, and the
+      potential for contagion to similar firms, raised significant concern that financial
+      markets would be seriously disrupted if it could not meet its obligations. In both
+      cases borrowed money, short-term collateralised funding and the same trades held by many
+      firms turned a loss in one place into a squeeze everywhere.
+
+concept: >
+  Leverage is the use of borrowed money. The balance-sheet leverage ratio is total assets
+  divided by the owner's capital (equity): a fund with $100 of assets and $5 of capital has a
+  ratio of 20 to 1. Leverage multiplies both gains and losses on the capital: a fall in the
+  value of assets of 1 / ratio (5 per cent here) wipes out all the capital. Much leveraged
+  borrowing is secured by the assets themselves, through repo or through collateral posted on
+  derivatives. The lender lends less than the asset is worth; the gap is the haircut, and the
+  borrower's capital covers it. When asset prices fall, or lenders get nervous and raise the
+  haircut, the borrower must post more collateral or repay part of the loan, and the usual way
+  to find the cash is to sell assets. If many borrowers hold the same assets and sell together,
+  prices fall further, which cuts collateral values and triggers more calls for cash and more
+  sales: a liquidity spiral, often called a fire sale. Systemic risk is the risk that trouble
+  at one firm, or in one market, passes through such links to many others. It grows with
+  leverage, with short-term funding that must be renewed, with many firms holding the same
+  positions, and with counterparties who are tied to the same firm.
+
+principle: >
+  Leverage turns a small fall in price into a large fall in capital, and when lenders want
+  their cash back, selling the assets pushes prices down for everyone holding them. Judge risk
+  by what happens when everyone needs liquidity at once, not by how a position behaves on
+  an average day.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read a leverage ratio and see how it magnifies gains and losses on capital."
+  - "Follow how haircuts and calls for collateral can start a fire sale."
+  - "Judge risk by what happens when everyone needs cash at once."
+
+# Claude-written quiz questions with hypothetical numbers; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: cl-q-leverage-ratio
+    prompt: >
+      31 August 1998: LTCM's books show more than $125 billion of assets against its starting capital of $4.8 billion. That is leverage of more than 25 to 1. What does that mean?
+    choices:
+      - { id: a, text: "It holds $25 of assets for every $1 of its own money" }
+      - { id: b, text: "It owes $25 of debt for every $1 of its own money", mistake: { tag: debt_for_assets, fix: "The 25 counts all assets per $1 of capital, not just the borrowed part." } }
+      - { id: c, text: "It earns 25 per cent a year on its own money", mistake: { tag: leverage_is_return, fix: "Leverage describes how much is borrowed, not what the fund earns." } }
+      - { id: d, text: "It can lose 25 per cent of its assets before it fails", mistake: { tag: multiple_is_a_loss, fix: "It is the other way round: the more it borrows, the smaller the fall that wipes it out." } }
+    answer: a
+    explanation: >
+      Balance-sheet leverage compares total assets with the fund's own capital: 25 to 1 means $25 of assets for each $1 of the fund's own money. Most of that $25 is borrowed, so the phrase counts assets, not debt.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), which states the balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+
+  - id: cl-q-wipeout
+    prompt: >
+      August 1998: Russia stops paying part of its debt. A fund like LTCM, run almost all on borrowed money, sees its assets slip a little. What happens to its own thin slice of capital?
+    choices:
+      - { id: a, text: "Its debts stay the same, so the slip can wipe the slice out" }
+      - { id: b, text: "Its debts shrink too, so its lenders share the loss", mistake: { tag: debts_shrink, fix: "Lenders are owed the same sum whatever the assets fetch. The owner loses first." } }
+      - { id: c, text: "It is safe until its assets fall by half", mistake: { tag: forgot_the_debt, fix: "Only the thin slice is the fund's own. A small slip already eats it." } }
+      - { id: d, text: "It goes only if its assets fall almost to nothing", mistake: { tag: used_debt_share, fix: "The borrowed part is huge, but a small fall already wipes out the owner's slice." } }
+    answer: a
+    explanation: >
+      Debts do not shrink when asset values fall, so the owner's thin slice takes the first losses. With so little of its own money under so many assets, a small fall is enough to use up all of it.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+  - id: cl-q-gain-and-loss
+    prompt: >
+      From 1994 LTCM hunted tiny price gaps, each trade earning little, so it borrowed to make them worth having. Picture a good year when its assets rise a little, before borrowing costs. Which headline fits?
+    choices:
+      - { id: a, text: "\"Fund's own money jumps far more than its assets: borrowing magnified it\"" }
+      - { id: b, text: "\"Fund's own money up by the same as its assets\"", mistake: { tag: ignored_leverage, fix: "Borrowing means the gain lands on a much smaller base of the fund's own money." } }
+      - { id: c, text: "\"Fund's own money flat: the gain goes to its lenders\"", mistake: { tag: gain_to_lenders, fix: "Lenders are owed a fixed sum. The gain belongs to the owner." } }
+      - { id: d, text: "\"Fund's own money up less than its assets: debt dilutes it\"", mistake: { tag: leverage_shrinks, fix: "Leverage multiplies a gain on the owner's money. It does not shrink it." } }
+    answer: a
+    explanation: >
+      Lenders are owed a fixed sum, so the whole gain on the assets lands on the fund's small slice of its own capital. The same leverage turns a small fall into a big loss of capital, which is why leverage cuts both ways.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999): https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+  - id: cl-q-haircut
+    prompt: >
+      Picture August 1998: a nervous bank lending to LTCM by repo raises its "haircut", the slice of the bond's value it won't lend against. The bond's price hasn't moved. What must LTCM do?
+    choices:
+      - { id: a, text: "Find cash or sell some bonds, though the price hasn't moved" }
+      - { id: b, text: "Nothing, because the bond's price is unchanged", mistake: { tag: price_only, fix: "A bigger haircut means a smaller loan on the same bond, so LTCM must repay part." } }
+      - { id: c, text: "Borrow more, since the bank now lends against more of the bond", mistake: { tag: haircut_backwards, fix: "The haircut is the part the bank won't lend against. Bigger means a smaller loan." } }
+      - { id: d, text: "Repay the whole loan at once", mistake: { tag: repay_all, fix: "The loan allowed shrinks, so only the gap is called, not the whole loan." } }
+    answer: a
+    explanation: >
+      A bigger haircut means a smaller loan on the same bond, so the fund must repay the gap or hand over more collateral even though the bond's price has not moved. The usual way to raise the cash is to sell.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), on repo and reverse repo as the funding of the fund's positions: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+  - id: cl-q-spiral
+    prompt: >
+      In 1998 many firms held trades like LTCM's. Picture their lenders all demanding more collateral at once, and every borrower dumping the same bond for cash. What happens to the bond, and to those who held on?
+    choices:
+      - { id: a, text: "Its price falls, shrinking everyone's collateral and forcing more sales" }
+      - { id: b, text: "Its price rises, because selling shows it is valuable", mistake: { tag: sale_signals_value, fix: "Many sellers and few buyers push a price down, not up." } }
+      - { id: c, text: "Its price holds, because each sale is small", mistake: { tag: small_sales, fix: "Small sales add up when everyone sells the same bond at once." } }
+      - { id: d, text: "Its price falls, but only the sellers are hurt", mistake: { tag: only_sellers, fix: "Everyone holding the bond, or lending against it, sees its collateral shrink too." } }
+    answer: a
+    explanation: >
+      A sale by many holders at once meets few buyers, so the price falls. Every holder's collateral is then worth less, which brings fresh demands for cash and more selling. This feedback is a liquidity spiral or fire sale; sellers are not the only ones hurt, because any holder, and any lender holding the bond as collateral, sees the lower price.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management, on the fear of a "rapid and widespread sale of assets, a fire sale, which could potentially impair the economy": https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+  - id: cl-q-systemic
+    prompt: >
+      1 September 1998: LTCM deals with about 75 repo lenders and 50 derivatives partners, many holding the same trades. People call the danger here "systemic risk". What does the phrase mean?
+    choices:
+      - { id: a, text: "One firm loses money on a bad investment", mistake: { tag: firm_level, fix: "That is one firm's own risk. Systemic means the trouble spreads to many others." } }
+      - { id: b, text: "Trouble at one firm spreads through loans and shared trades to many others" }
+      - { id: c, text: "Interest rates change during the year", mistake: { tag: rate_risk, fix: "That is interest-rate risk. Systemic risk is about trouble spreading from firm to firm." } }
+      - { id: d, text: "A firm files its accounts late", mistake: { tag: filing_risk, fix: "Late filing is a paperwork problem. Systemic risk is contagion between firms." } }
+    answer: b
+    explanation: >
+      Systemic risk is about contagion. One firm's loss is a firm-level risk; it becomes systemic when counterparties, shared positions or short-term funding spread the shock so that others are forced to sell or stop lending.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management, on the concern that LTCM's extensive list of counterparties exiting at the same time could impair the economy: https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+checks:
+  - id: cl-quiz-leverage
+    kind: quiz
+    questions:
+      - cl-q-leverage-ratio
+      - cl-q-wipeout
+      - cl-q-gain-and-loss
+      - cl-q-haircut
+      - cl-q-spiral
+      - cl-q-systemic
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cl-lender-view
+    kind: conversation
+    prompt: >
+      Suppose a fund holds assets 25 times its capital, funds most of them with short-term
+      repo loans, and shares many of its trades with other funds. A shock makes lenders more
+      nervous and prices of its assets drop a little. Explain how the fund's leverage and its
+      lenders' demands could turn that small drop into forced selling, why that selling could
+      matter to firms that never dealt with the fund, and what a lender should ask before
+      lending to a fund like this.
+    passCriteria: >
+      The Learner explains that with so little capital under so many assets, a small fall in
+      asset values can wipe out the thin slice of capital, so even a small drop is a large loss
+      on capital (naming a figure, such as about 4 per cent at 25 to 1, is welcome but not
+      needed). They
+      explain that repo and collateral calls (or higher haircuts) require cash when prices
+      fall, and that selling to raise it pushes prices down further, hitting the fund again
+      (a liquidity spiral). They explain that because other firms hold the same assets or lend
+      against them, the fall in price reaches them as lower collateral values and losses, so
+      the risk is systemic, not only the fund's own. They name sensible lender questions, such
+      as the fund's total leverage across all lenders, how large its positions are compared
+      with the market, how many others hold the same trades, and what collateral terms can
+      change. They do not claim to know whether or when a fund like this would fail.

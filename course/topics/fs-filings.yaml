@@ -1,0 +1,151 @@
+# Reading filings: S-1, 10-K, Indian annual report and Ind AS, taught through WeWork's governance clause.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: fs-filings
+title: "Reading filings: S-1, 10-K, Indian annual report and Ind AS"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Filings are where a valuation's inputs come from: the numbers, the risks, and who really controls the company you are valuing."
+
+cases:
+  - id: wework-governance-2019
+    title: WeWork's governance clause
+    asOf: 2019-08-14
+    story: >
+      On 14 August 2019 WeWork's parent, The We Company, filed its IPO prospectus (Form S-1) with
+      the US Securities and Exchange Commission. Readers who went past the revenue figures found
+      the founder and chief executive, Adam Neumann, all through the document. He would control
+      more than half of the voting power through Class B and Class C shares; a Class C share carried
+      20 votes. He could earn three blocks of "profits interests", each converting to a Class C
+      share, only if the company's public market value reached set thresholds: two blocks of
+      7.1 million at $50 billion and $72 billion, and a block of 9.4 million at $90 billion. The
+      company had lent him $362 million for the exercise of stock options, and he had borrowed from
+      banks against his shares. He had interests in buildings leased to WeWork, with minimum lease
+      obligations of $236.6 million on them. The risk factors said he was critical to the
+      business.
+    reveal: >
+      The IPO did not go ahead. Adam Neumann stepped down as chief executive on 24 September 2019, and on
+      30 September the company filed to withdraw its IPO. The profits-interest clause and the
+      related-party dealings had sat in plain view in the prospectus; the lesson is to read the
+      parts of a filing that describe who controls the company and who gets paid, not only the
+      financial tables.
+
+concept: >
+  Companies that sell shares to the public or have listed shares must file standard documents. In the
+  US, a company going public files a registration statement on Form S-1 containing the prospectus:
+  business, risk factors, management discussion, audited financial statements, executive pay and
+  related-party transactions (dealings with insiders). After listing, the annual report on Form
+  10-K carries Item 7 (management's discussion) and Item 8 (audited financial statements and
+  notes); quarterly reports are on Form 10-Q. In India the equivalent first step is the Draft Red
+  Herring Prospectus (DRHP) filed with SEBI, then the Red Herring Prospectus and the final
+  prospectus; after listing, the annual report carries the directors' report, management
+  discussion, auditors' report and financial statements prepared under Ind AS (the Indian
+  Accounting Standards). Read in layers: the summary, the risk factors, the notes, and the
+  sections on control and related parties.
+
+principle: >
+  The numbers are the company's version of its results; the notes, the related-party sections and
+  the share-class terms show who controls it and who gets paid. Read the document for both.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Find your way around a prospectus, an annual report and their Indian equivalents."
+  - "Read a filing in layers, from the summary to the notes."
+  - "See who controls a company and who gets paid, beyond the headline numbers."
+
+questions:
+  - id: fl-q-s1
+    prompt: >
+      A US company preparing its first sale of shares to the public files which document with the SEC?
+    choices:
+      - { id: a, text: "A registration statement on Form S-1" }
+      - { id: b, text: "An annual report on Form 10-K", mistake: { tag: periodic_for_ipo, fix: "A 10-K is the yearly report of a company already listed, not the filing for a first sale." } }
+      - { id: c, text: "A quarterly report on Form 10-Q", mistake: { tag: periodic_for_ipo, fix: "A 10-Q is a quarterly report for a company already listed; a first sale needs a registration statement." } }
+      - { id: d, text: "A current report on Form 8-K", mistake: { tag: event_for_ipo, fix: "An 8-K reports sudden events at a listed company; a first sale of shares needs an S-1." } }
+    answer: a
+    explanation: >
+      Form S-1 is the basic registration statement. Its first part is the prospectus. Forms 10-K, 10-Q and 8-K are periodic and event reports for companies that already have registered securities.
+    source: >
+      SEC, What is a Registration Statement?: https://www.sec.gov/resources-small-businesses/going-public/what-registration-statement
+
+  - id: fl-q-item8
+    prompt: >
+      In a US annual report on Form 10-K, where do you find the company's audited financial statements?
+    choices:
+      - { id: a, text: "Item 8, Financial Statements and Supplementary Data" }
+      - { id: b, text: "Item 1B, Unresolved Staff Comments", mistake: { tag: wrong_item, fix: "Item 1B lists SEC comments still open; the audited statements sit in Item 8." } }
+      - { id: c, text: "Item 7, Management's Discussion and Analysis", mistake: { tag: mdna_for_statements, fix: "Item 7 is management's own story of the results, not the audited statements." } }
+      - { id: d, text: "Item 15, Exhibits only", mistake: { tag: exhibits_for_statements, fix: "Item 15 lists exhibits and schedules; the audited statements themselves are in Item 8." } }
+    answer: a
+    explanation: >
+      Item 8 requires the audited financial statements. Item 7 is management's own discussion of the results.
+    source: >
+      SEC, How to Read a 10-K: https://www.sec.gov/answers/reada10k.htm
+
+  - id: fl-q-drhp
+    prompt: >
+      In India, which document does a company file with SEBI and the stock exchanges before a main-board IPO?
+    choices:
+      - { id: a, text: "A Draft Red Herring Prospectus (DRHP)" }
+      - { id: b, text: "A Form S-1", mistake: { tag: us_form_in_india, fix: "The S-1 is a US filing with the SEC; an Indian IPO files a DRHP with SEBI." } }
+      - { id: c, text: "A Form 10-K", mistake: { tag: periodic_for_ipo, fix: "A 10-K is a US yearly report for listed companies, not an Indian IPO document." } }
+      - { id: d, text: "An Ind AS conversion statement", mistake: { tag: invented_document, fix: "There is no such IPO filing; SEBI and the exchanges get the Draft Red Herring Prospectus." } }
+    answer: a
+    explanation: >
+      The issuer, through its lead manager, files a DRHP with SEBI and the exchanges. After SEBI's observations come the Red Herring Prospectus and the final prospectus.
+    source: >
+      SEBI board paper, Introduction of pre-filing of offer documents (November 2022), describing the existing DRHP process: https://www.sebi.gov.in/sebi_data/meetingfiles/nov-2022/1667447898345_1.pdf
+
+  - id: fl-q-related-party
+    prompt: >
+      WeWork's S-1 disclosed leases on buildings in which its chief executive had an ownership
+      interest. Which kind of disclosure is this?
+    choices:
+      - { id: a, text: "A related-party transaction" }
+      - { id: b, text: "A segment disclosure", mistake: { tag: segment_for_insider, fix: "Segment notes split results by business line; deals with the chief executive are related-party ones." } }
+      - { id: c, text: "A going-concern note", mistake: { tag: going_concern_for_insider, fix: "A going-concern note doubts survival; leases from the boss are a related-party deal." } }
+      - { id: d, text: "A non-GAAP reconciliation", mistake: { tag: non_gaap_for_insider, fix: "A non-GAAP reconciliation explains adjusted profit, not deals with insiders." } }
+    answer: a
+    explanation: >
+      Dealings between a company and its insiders (directors, executives, large holders and their relatives) are related-party transactions, which US rules (Regulation S-K Item 404) require registrants to disclose.
+    source: >
+      17 CFR 229.404 (Item 404), Transactions with related persons: https://www.law.cornell.edu/cfr/text/17/229.404 ; the WeWork facts from CNBC, 17 August 2019: https://www.cnbc.com/2019/08/17/wework-ipo-filing-strangest-and-most-alarming-things.html
+
+  - id: fl-q-votes
+    prompt: >
+      Each Class C share of The We Company carried 20 votes, while a Class A share carried one. What do investors call a setup where some shares carry far more votes than others?
+    choices:
+      - { id: a, text: "Dual-class shares" }
+      - { id: b, text: "A rights issue", mistake: { tag: confused_with_rights_issue, fix: "A rights issue offers holders new shares; it does not change votes per share." } }
+      - { id: c, text: "A stock split", mistake: { tag: confused_with_split, fix: "A split adds shares and cuts the price; each share keeps its vote." } }
+      - { id: d, text: "A buyback", mistake: { tag: confused_with_buyback, fix: "A buyback retires shares the company repurchases; it gives no share extra votes." } }
+    answer: a
+    explanation: >
+      Dual-class (or multi-class) shares give some holders more votes per share, so insiders can hold control with a small share of the economic ownership. At We Company, Class C shares carried 20 votes each.
+    source: >
+      WeWork (The We Company) Form S-1, 14 August 2019, on Class A and Class C votes: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html ; Fortune, Due to an Unusual Clause, WeWork Founder Could Make Millions If the Company Hits a Market Cap of $90 Billion, 15 August 2019: https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann
+
+checks:
+  - id: fl-quiz-filings
+    kind: quiz
+    questions:
+      - fl-q-s1
+      - fl-q-item8
+      - fl-q-drhp
+      - fl-q-related-party
+      - fl-q-votes
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fl-filing-view
+    kind: conversation
+    prompt: >
+      It is 14 August 2019 and you have WeWork's S-1. Beyond the revenue and loss figures, which
+      parts of the filing would you read to judge how the company is controlled and how insiders
+      are paid, and what would you want to find in them?
+    passCriteria: >
+      The Learner names parts of the prospectus beyond the financial tables: the risk factors, the
+      sections on principal shareholders and share classes (voting rights), executive compensation
+      (profits interests tied to market-value thresholds) and related-party transactions (the loan
+      to the chief executive, the credit line secured on his shares, leases on buildings he has an
+      interest in). They say what they would look for: who holds votes, whether pay rewards
+      long-term performance or just a high valuation, and whether insider dealings are on market
+      terms. Mentioning the notes to the financial statements is a plus.

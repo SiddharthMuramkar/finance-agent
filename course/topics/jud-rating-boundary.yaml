@@ -1,0 +1,200 @@
+# Judge Topic: a writer's claim about where "speculative" starts on Moody's scale, taken back to Moody's own scale.
+# The post is read from the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked 2 Nov 2026): Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!", Musings on Markets, Monday 2 Jun 2025: https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html ; Moody's Rating Scale card (the Investment Grade and Non-Investment Grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Moody's, Understanding credit ratings (symbol definitions): https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
+id: jud-rating-boundary
+title: "Judge: where does junk start?"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Ratings feed a company's cost of debt in a valuation, so you need to read exactly where a source draws the line between safe and speculative."
+
+cases:
+  - id: jud-rating-boundary-baa2-claim
+    title: A writer says where speculative grade starts
+    asOf: 2025-06-02
+    piece:
+      author: Aswath Damodaran
+      title: "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!"
+      published: 2025-06-02
+      url: https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 16 May 2025 Moody's lowered the United States from Aaa to Aa1. On 2 June 2025 Aswath
+      Damodaran, a valuation professor at NYU Stern, published a post on what sovereign ratings tell
+      us about default risk. In it he reports a Moody's update of default rates by rating class for
+      1983 to 2024, in one sentence: "a default rate of 24% for speculative grade sovereign debt
+      (Baa2 and below) as opposed to 1.8% for investment grade (Aaa to Baa1) sovereign debt." The
+      Learner's job is to judge that sentence, not the whole post. Moody's rates long-term debt on
+      one ladder of 21 symbols, best first: Aaa, Aa1, Aa2, Aa3, A1, A2, A3, Baa1, Baa2, Baa3, Ba1,
+      Ba2, Ba3, B1, B2, B3, Caa1, Caa2, Caa3, Ca, C. Moody's describes the letter classes in words.
+      Baa: "judged to be medium grade and subject to moderate credit risk; and as such may possess
+      certain speculative characteristics." Ba: "judged to be speculative and are subject to
+      substantial credit risk." Moody's publishes the ladder on a card and in its own explainer.
+      The Learner reads the sentence in the Library, goes back to Moody's scale, and works out where
+      the dividing line between investment grade and speculative grade falls on it, whether the
+      sentence puts it in the same place, and what that does and does not tell us about the two
+      default rates, which come from a Moody's study the Learner does not have.
+    reveal: >
+      Moody's own rating-scale card brackets Aaa down to Baa3 as Investment Grade and Ba1 down to C
+      as Non-Investment Grade, so the line falls between Baa3 and Ba1. The sentence puts it between
+      Baa1 and Baa2, two notches too high: Baa2 and Baa3 are investment grade on Moody's scale, not
+      speculative. The slip is easy to understand: Moody's words for the Baa class, "may possess
+      certain speculative characteristics", sound like the start of junk, but Moody's reserves the
+      word "speculative" for Ba and below, and its card draws the line after Baa3. The slip is in the
+      labels. The two percentages, 24% and 1.8%, belong to whatever grouping Moody's used in its study;
+      they were not checked here, so the Learner cannot say whether the study drew the line correctly
+      and the post mislabelled it, or whether the figures were computed for the grouping as written.
+      What survives is the post's broad point that default rates rise as ratings fall. What does not
+      survive is reading "Baa2 and below" as junk. Whether the post was later corrected was not
+      checked.
+
+concept: >
+  A credit rating is a position on an ordered ladder of notches, and agencies draw one line across
+  the ladder: investment grade above it, speculative grade (also called non-investment grade or high
+  yield, and colloquially junk) below it. Each agency uses its own symbols for the same idea. The line matters because rules and mandates are written around it, and each
+  agency publishes where it falls on its own scale. Judging a
+  writer's claim means going back to the named source, reading what it actually says, setting each
+  figure beside the source's own, and sorting the mistakes: a mislabel (the right number under the wrong name), a
+  period or unit mismatch (figures that do not cover the same thing), or an inference beyond the text
+  (the writer says more than the source does). A mislabel in a sentence does not by itself make its
+  figures wrong; it means they cannot be trusted until the grouping behind them is checked.
+
+principle: >
+  Check a claim against the source's own words and its own structure, not against what the wording
+  feels like. Say exactly what is wrong, say what is still right, and say what you could not check.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Find where each agency draws the line between investment and speculative grade."
+  - "Check a writer's claim against the source's own words and structure."
+  - "Sort mistakes into mislabels, mismatches and inferences beyond the text."
+
+questions:
+  - id: jrb-q-mislabel
+    prompt: >
+      May 2025, a made-up story: Priya's pension fund may hold only investment-grade bonds. On
+      Fitch's ladder, BBB- is the last investment-grade step and BB+ the first junk step. A new note
+      calls BBB- junk. If Priya trusts it, what happens?
+    choices:
+      - { id: a, text: "Nothing: BBB- is the weakest of the top group anyway", mistake: { tag: weakest_moved_down, fix: "Fitch keeps BBB- inside investment grade, so calling it junk changes what the fund holds." } }
+      - { id: b, text: "She sells BBB- bonds her fund is allowed to keep" }
+      - { id: c, text: "She keeps BB+ bonds her fund should have sold", mistake: { tag: line_wrong_way, fix: "BB+ is junk on Fitch's ladder and in the note, so she sells it either way." } }
+      - { id: d, text: "Nobody can say: each analyst draws the line where they like", mistake: { tag: scale_ignored, fix: "The agency publishes its scale, and that is what decides where the line falls." } }
+    answer: b
+    explanation: >
+      The agency's own scale decides where the line is. On Fitch's scale BBB- is the last
+      investment-grade notch, so the note moved the line up one notch, and a fund that may hold only
+      investment grade would sell bonds it is allowed to keep. Any default figures in the note are a
+      separate matter and would still need checking against the study they come from.
+    source: >
+      Fitch Ratings, Rating Definitions ('AAA' to 'BBB' investment grade and 'BB' to 'D' speculative grade, with + and - modifiers): https://www.fitchratings.com/products/rating-definitions ; method of reading a scale against its published grade groupings, as in Moody's Rating Scale
+      card (investment grade and non-investment grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Priya, her fund and the note are made up.
+  - id: jrb-q-notches
+    prompt: >
+      16 May 2025: Moody's moves the US from Aaa to Aa1. Your dad holds US Treasuries, reads that
+      the US lost its top rating, and wants to sell them all on Monday. What do you tell him?
+    choices:
+      - { id: a, text: "No need to panic: it is a one-notch downgrade, still investment grade" }
+      - { id: b, text: "Sell: losing Aaa means the US has dropped into junk", mistake: { tag: notch_as_grade, fix: "Aa1 is one notch below Aaa, still near the top of investment grade." } }
+      - { id: c, text: "No need to panic: a notch is just one basis point", mistake: { tag: notch_as_bp, fix: "Basis points measure yields and spreads; a notch is one step on the rating ladder." } }
+      - { id: d, text: "Sell: a notch means one tranche of US debt was cut", mistake: { tag: notch_as_tranche, fix: "A tranche is a slice of a bond issue; a notch is one rating step." } }
+    answer: a
+    explanation: >
+      Each step on Moody's ladder of 21 ratings is a notch, so Aaa to Aa1 is a one-notch downgrade.
+      Aa1 is still near the top of investment grade: a small step, even when it is the step off the
+      top. Whether to sell is his own call, but the rating has not turned his Treasuries into junk.
+    source: >
+      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; the 16 May 2025 move from Aaa to Aa1 as reported in Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!", Musings on Markets, 2 June 2025; your dad and his Treasuries are a made-up story.
+  - id: jrb-q-ratio
+    prompt: >
+      June 2025, a made-up story: Neha looks after her family's savings. A blogger says a study found
+      24% of one group of bonds defaulted against 1.8% of another, and calls the first group "about 13
+      times as likely to default". Before Neha moves any money on that line, what should she take from it?
+    choices:
+      - { id: a, text: "One group defaulted far more, but check how each group was drawn" }
+      - { id: b, text: "The big gap proves the first group's rating is the riskier one of the two", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
+      - { id: c, text: "Two default rates can never be set side by side", mistake: { tag: rates_incomparable, fix: "Setting one rate against another is a normal comparison; the question is what each covers." } }
+      - { id: d, text: "It only counts if the ratio is a whole number", mistake: { tag: whole_number_fixation, fix: "Whether the ratio is round does not matter; what the groups cover does." } }
+    answer: a
+    explanation: >
+      "About 13 times" is a fair way to set the two quoted rates side by side. It says nothing about
+      whether the groups were defined correctly, or whether the two rates cover the same period.
+    source: The two figures as the writer quotes them; no outside data is used.
+  - id: jrb-q-inference
+    prompt: >
+      June 2025, a made-up story: Farah, an intern on a bond desk, reads an agency line that debt in
+      one class "may possess certain weaker characteristics". A blogger writes that the agency
+      "defines this class as weak", and her boss wants to dump those bonds. What slip did the blogger make?
+    choices:
+      - { id: a, text: "Mixed up two units of measure", mistake: { tag: unit_blamed, fix: "No units are involved; the blogger changed what the sentence claims." } }
+      - { id: b, text: "Set two different years side by side", mistake: { tag: period_blamed, fix: "No years are compared; the slip is in the wording." } }
+      - { id: c, text: "Dropped the hedge: \"may\" became \"is\"" }
+      - { id: d, text: "No slip: the two sentences mean the same", mistake: { tag: hedge_ignored, fix: "\"May possess\" is a possibility; \"defines as weak\" is a firm statement." } }
+    answer: c
+    explanation: >
+      The source says debt "may possess" the characteristic; the writer says it is defined as having
+      it. Writers call a softening word like "may" a hedge, and dropping it turns a possibility into
+      a statement. The check is to put the source's sentence next to the writer's, word by word.
+    source: >
+      Method of comparing a claim with the source's wording; the quoted definition is hypothetical. The style of Moody's definitions is at https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
+  - id: jrb-q-period
+    prompt: >
+      June 2025, a made-up story: Omar is choosing a bond fund for his daughter's college money. A
+      blogger he follows reads two studies: 6% of bonds in one rating group defaulted within five
+      years, 2% in another within one year. He calls the first group "three times as risky". Before
+      Omar picks, what is the main problem?
+    choices:
+      - { id: a, text: "The figures are rounded, so the comparison between them is off", mistake: { tag: rounding_blamed, fix: "Rounding is minor; the real issue is a five-year window against a one-year window." } }
+      - { id: b, text: "The two cover different windows: five years against one" }
+      - { id: c, text: "A default rate says nothing about risk", mistake: { tag: default_not_risk, fix: "Default rates are a core risk measure; the problem is the unequal time windows." } }
+      - { id: d, text: "Percentages can never be compared", mistake: { tag: percent_incomparable, fix: "Percentages compare fine when they measure the same thing over the same window." } }
+    answer: b
+    explanation: >
+      A five-year figure piles up defaults over five years; a one-year figure covers a single year.
+      Analysts call the first a cumulative rate: it adds up over its whole window. The two are not
+      measured over the same window, so setting one against the other misleads.
+    source: >
+      Method of matching the period of compared figures; numbers are hypothetical. Default-study definitions of cumulative and annual rates: Moody's Ratings, Understanding credit ratings, https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
+  - id: jrb-q-what-survives
+    prompt: >
+      June 2025, a made-up story: Ananya edits a money newsletter and wants to quote a blogger tonight.
+      He draws the junk line one notch off, then quotes two default rates from an agency study she
+      has yet to read. What should her note to readers say?
+    choices:
+      - { id: a, text: "Both rates are wrong, because the label is wrong", mistake: { tag: one_slip_all_wrong, fix: "A wrong label does not make the quoted rates wrong; they are unchecked." } }
+      - { id: b, text: "Both rates are right, since the agency itself wrote the study they come from", mistake: { tag: source_as_proof, fix: "A good source still has to be read; the rates' grouping is unseen." } }
+      - { id: c, text: "The label is wrong; the rates stay \"unverified\" until she reads the study" }
+      - { id: d, text: "The label does not matter if the maths adds up", mistake: { tag: label_unimportant, fix: "A mislabelled group changes what the figures describe, whatever the maths." } }
+    answer: c
+    explanation: >
+      Fact-checkers call a figure nobody has yet checked against its source "unverified". A careful
+      note separates what has been shown wrong (the label, against the scale), what has been shown
+      right, and what is unverified (the rates, until the study's grouping is seen). Neither "all
+      wrong" nor "all fine" follows from one slip.
+    source: >
+      Method of separating a verified slip from unchecked figures; the scenario is generic and uses no outside data.
+
+checks:
+  - id: jrb-quiz-boundary
+    kind: quiz
+    questions: [jrb-q-mislabel, jrb-q-notches, jrb-q-ratio, jrb-q-inference, jrb-q-period, jrb-q-what-survives]
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: jrb-judge-sentence
+    kind: conversation
+    prompt: >
+      Take the one sentence of the post that reports default rates by rating group. Check it against
+      Moody's own scale and wording, and give your judgement: what is right, what is not, what kind
+      of slip it is if there is one, and what you could not check. Then say what you would conclude
+      about the two percentages.
+    passCriteria: >
+      The Learner goes back to Moody's own scale and wording (the Tutor supplies no figure of its
+      own), finds where Moody's draws the line between investment and speculative grade, and
+      compares that with the grouping in the sentence, saying plainly whether it matches. If it
+      does not, they name the kind of slip (a mislabel of the grouping, not an arithmetic error) and
+      note that wording such as "may possess certain speculative characteristics" is a hedge, not
+      the definition of a grade. They separate what survives (default rates rise as ratings fall; the label is checked) from what is
+      unchecked (the 24% and 1.8% come from a study they have not seen, so they cannot say which
+      grouping those figures belong to), and they do not claim the percentages are wrong or right
+      from the label alone. No forecast and no buy, sell or hold view.

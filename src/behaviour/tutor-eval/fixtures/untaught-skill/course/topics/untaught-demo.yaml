@@ -1,0 +1,293 @@
+# Fixture for the tutor eval case T8: a Check tests a Skill that no Concept card teaches, so the lesson lint must fail it on L1.
+id: untaught-demo
+title: Percent, points and basis points
+exampleCurrency: INR
+runningExample:
+  text: A savings rate goes from 4% to 5%.
+  numbers:
+    - 4
+    - 5
+terms:
+  - term: percentage point
+    means: The gap between two rates, found by taking the old rate from the new one.
+  - term: basis point
+    means: One hundredth of a percentage point.
+  - term: percent change
+    means: The move compared with where the rate started.
+skills:
+  - id: pts
+    rule: Points are the new rate minus the old rate.
+  - id: pts-to-bp
+    rule: Basis points are points times 100.
+    analogy: 100 paise make ₹1.
+  - id: bp-to-pts
+    rule: Points are basis points divided by 100.
+  - id: pct-change
+    rule: Percent change is the move divided by the old rate, times 100.
+    analogy: ₹10 more on ₹20 is big. ₹10 more on ₹500 is small.
+  - id: wording
+    rule: Up some percent compares the move with the old rate; points and bp are the
+      gap itself.
+templates:
+  - id: bp-from-move
+    skill: pts-to-bp
+    ask: A rate moves from {a}% to {b}%. How many basis points?
+    params:
+      a:
+        min: 1
+        max: 9
+        step: 0.25
+      d:
+        min: -1.2
+        max: 1.2
+        step: 0.05
+    derived:
+      b: plus(a, d)
+    answer: bp_from_move
+    unit: bp
+    decimals: 0
+    sign: magnitude
+    mistakes:
+      - tag: stopped_at_points
+        fix: That is the move in points. Times 100 gives basis points.
+      - tag: used_x10
+        fix: One point is 100 basis points, so multiply by 100, not 10.
+    halfDone:
+      shows: "First step, done for you: the move is {points} points."
+      asks: bp_from_points
+    avoid:
+      - 4
+      - 5
+      - 1
+      - 100
+      - 25
+      - 3.25
+  - id: points-from-bp
+    skill: bp-to-pts
+    ask: A bond yield rises by {bp} basis points. How many percentage points is
+      that?
+    params:
+      bp:
+        min: 10
+        max: 300
+        step: 5
+    answer: points_from_bp
+    unit: points
+    decimals: 2
+    sign: magnitude
+    mistakes:
+      - tag: divided_by_10
+        fix: "Divide by 100, not 10: 100 basis points make 1 point."
+      - tag: divided_by_1000
+        fix: "Divide by 100, not 1,000: 100 basis points make 1 point."
+    avoid:
+      - 4
+      - 5
+      - 1
+      - 100
+      - 25
+  - id: pct-change-move
+    skill: pct-change
+    ask: A rate goes from {a}% to {b}%. By what percent of the old rate did it
+      change, to one decimal place?
+    params:
+      a:
+        min: 1
+        max: 9
+        step: 0.5
+      d:
+        min: 0.25
+        max: 2
+        step: 0.25
+    derived:
+      b: plus(a, d)
+    answer: pct_change
+    unit: percent
+    decimals: 1
+    sign: either
+    mistakes:
+      - tag: mixed_percent_points
+        fix: That is the move in points. Divide it by the old rate, then times 100.
+    halfDone:
+      shows: "First step, done for you: the move is {points} points."
+      asks: pct_change
+    avoid:
+      - 4
+      - 5
+      - 1
+      - 100
+      - 25
+      - 3.25
+widgets:
+  - id: rate-play
+    code: |-
+      root = Widget("A rate to play with", [old, new, points])
+      $old = 3
+      $new = 3.25
+      old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")
+      new = Slider("new", "New rate", 0, 10, 0.01, $new, "percent")
+      points = TextContent("In points: " + @Round($new - $old, 2))
+cases:
+  - id: pct-demo-case
+    title: The Fed's first rise of 1994
+    asOf: 1994-02-03
+    story: The Fed has held its target at 3% for a year.
+    reveal: On 4 February 1994 it raised the target to 3.25%.
+concept: Points, basis points and percent change.
+principle: Say which of the three you mean.
+questions:
+  - id: pct-demo-headline
+    skill: wording
+    prompt: A rate goes from 2% to 3%. A headline says "rates up 50%". Which one is
+      true?
+    choices:
+      - id: right
+        text: "The headline is right: 1 point on a start of 2% is 50%."
+      - id: points
+        text: It should say up 1%.
+        mistake:
+          fix: Up 1% mixes points with percent. The move is 1 point, which is 50% of 2%.
+          tag: mixed_percent_points
+    answer: right
+    explanation: The move is 1 point. Divided by the old 2%, times 100, that is 50%.
+    source: Worked by hand.
+checks:
+  - id: pct-demo-check-1
+    kind: quiz
+    templates:
+      - bp-from-move
+      - points-from-bp
+    perAttempt: 2
+    passRule:
+      correct: 2
+    card:
+      title: One move, two ways
+      lines:
+        - A savings rate goes from 4% to 5%.
+        - "Points: 5 minus 4 is 1 percentage point."
+        - "Basis points: 1 point times 100 is 100 bp."
+        - 100 bp make 1 point, as 100 paise make ₹1.
+      writeDown: Points times 100 give basis points. Basis points divided by 100 give
+        points.
+      skills:
+        - pts-to-bp
+        - bp-to-pts
+      widget:
+        recipe: rate_move
+        inputs:
+          old: 4
+          new: 5
+          mode: show
+    quickTries:
+      - id: pct-demo-try-pts-1
+        skill: pts
+        ask: A rate goes from 3% to 3.5%. How many points did it move?
+        kind: number
+        answer: 0.5
+        unit: points
+        halfDone: "First step, done for you: the new rate is 3.5% and the old rate is
+          3%."
+      - id: pct-demo-try-pts-2
+        skill: pts
+        ask: A rate goes from 6% to 6.25%. How many points did it move?
+        kind: number
+        answer: 0.25
+        unit: points
+        mistakes:
+          - answer: 25
+            fix: That is basis points. Points are the new rate minus the old one.
+            tag: forgot_to_convert
+      - id: pct-demo-try-pts-3
+        skill: pts
+        ask: A rate falls from 7.5% to 7.2%. How many points did it fall?
+        kind: number
+        answer: -0.3
+        unit: points
+        sign: either
+      - template: bp-from-move
+        halfDone: true
+      - template: bp-from-move
+      - id: pct-demo-try-bp-half
+        skill: bp-to-pts
+        ask: 120 bp is how many points?
+        kind: number
+        answer: 1.2
+        unit: points
+        halfDone: "First step, done for you: 100 bp make 1 point, so divide by 100."
+        mistakes:
+          - answer: 12
+            fix: "Divide by 100, not 10: 100 bp make 1 point."
+            tag: divided_by_10
+      - template: points-from-bp
+  - id: pct-demo-check-2
+    kind: quiz
+    questions:
+      - pct-demo-headline
+    templates:
+      - pct-change-move
+    perAttempt: 2
+    passRule:
+      correct: 2
+    card:
+      title: Compared with the start
+      lines:
+        - "Same move: 4% to 5%."
+        - "The move is 1 point. Divide it by the old 4%, then times 100: 25%."
+        - ₹10 more on ₹20 is big. ₹10 more on ₹500 is small.
+        - Say up 1 point or up 100 bp. Up 25% is also true.
+      writeDown: Percent change is the move divided by the old rate, times 100.
+      skills:
+        - pct-change
+        - wording
+      widget:
+        recipe: rate_move
+        inputs:
+          old: 4
+          new: 5
+    quickTries:
+      - template: pct-change-move
+        halfDone: true
+      - template: pct-change-move
+      - id: pct-demo-try-word-1
+        skill: wording
+        ask: "A rate goes from 2% to 3%. True or false: rates rose 50%."
+        kind: truth
+        answer: true
+        halfDone: "First step, done for you: the move is 1 point on a start of 2%."
+      - id: pct-demo-try-word-2
+        skill: wording
+        ask: "A rate goes from 4% to 6%. True or false: rates rose 200%."
+        kind: truth
+        answer: false
+        mistakes:
+          - answer: true
+            fix: The move is 2 points on a start of 4%, which is 50%.
+            tag: mixed_percent_points
+      - id: pct-demo-try-word-3
+        skill: wording
+        ask: "A rate goes from 6% to 7%. True or false: it rose 1 point."
+        kind: truth
+        answer: true
+  - id: pct-demo-check-3
+    kind: conversation
+    prompt: The Fed moved from 3% to 3.25%. Say the move in points and in basis points.
+    passCriteria: Says a quarter of a point, and 25 basis points.
+    skills:
+      - wording
+    card:
+      title: How the Fed said it
+      lines:
+        - In 1994 the Fed moved its rate from 3% to 3.25%.
+        - That is 0.25 points, or 25 bp.
+        - Newspapers called it a quarter-point rise.
+      writeDown: A quarter of a point is 25 bp.
+      skills:
+        - wording
+      example:
+        - 3
+        - 3.25
+      widget:
+        widget: rate-play
+        values:
+          old: 3
+          new: 3.25

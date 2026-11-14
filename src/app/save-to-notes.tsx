@@ -1,0 +1,178 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useAnnounce } from "./announcer";
+import { Button, LinkButton, TextLink } from "./ui";
+
+/**
+ * What to save: a reply (its Session and turn), or a Widget of one (also its number in the reply; the explore Widget
+ * is number -1, and `widgetKey` is the key its Widget state is saved under in that Session).
+ */
+export type SaveTarget =
+  | { kind: "reply"; sessionId: number; turnSeq: number }
+  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; widgetKey?: string };
+
+/**
+ * Where the control is: not saved, saving, saved as item `id` on Topic `topicId` (`settled`: the "Saved to Notebook ✓" moment is over and
+ * the control is back to offering Save to Notebook, with a quiet Saved badge), or a failed save or Undo.
+ */
+export type SaveState =
+  | { status: "idle" | "saving" }
+  | { status: "saved"; id: number; topicId: string; settled?: boolean; error?: string }
+  | { status: "failed"; message: string };
+
+/** How long "Saved to Notebook ✓" stays before the control settles back. */
+export const SAVED_HOLD_MS = 1600;
+
+/** Lucide's bookmark (24 grid, stroke 1.75 from .btn-tertiary svg); filled once the item is in the Notebook. */
+function Bookmark({ filled }: { filled: boolean }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0">
+      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+    </svg>
+  );
+}
+
+/** Lucide's check, small, for the Saved badge. */
+function Check() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 shrink-0">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+/** Undo and Open Notebook: quiet underlined text in the row's muted colour, ink on hover (still links: underlined). */
+const QUIET_LINK = "inline-flex min-h-7 items-center text-[var(--muted)] decoration-[var(--line-strong)] hover:text-[var(--ink)] hover:decoration-current";
+
+/**
+ * What the Save to Notebook control shows (it announces nothing itself: the app announcer does). Idle: a quiet text button
+ * with a bookmark (a tertiary, muted until hovered). Saving: the same button with a spinner and "Saving…". Just saved:
+ * "Saved to Notebook ✓ · Undo · Open Notebook", in the success colour. A moment later (`settled`): the button again, its
+ * bookmark filled, with a small "Saved" badge, Undo and Open Notebook; the server keeps one saved item per reply or Widget,
+ * so pressing it again saves nothing twice. Failed: a visible alert and Retry.
+ */
+export function SaveToNotesView({
+  state,
+  what,
+  onSave,
+  onUndo,
+  label: savedLabel,
+}: {
+  state: SaveState;
+  what: "reply" | "Widget" | "rule";
+  onSave: () => void;
+  onUndo: () => void;
+  /** Words for the just-saved moment in place of "Saved to Notebook ✓" (the Learner's own rule: "Saved to your Notebook"). */
+  label?: string;
+}) {
+  const saved = state.status === "saved";
+  const justSaved = saved && !state.settled;
+  const label = `Save this ${what} to Notebook`;
+  // The control swaps one element for another as it changes; a keyboard Learner who pressed it keeps their place.
+  const root = useRef<HTMLSpanElement>(null);
+  const acted = useRef(false);
+  useEffect(() => {
+    if (!acted.current || state.status === "saving") return;
+    const lost = !document.activeElement || document.activeElement === document.body;
+    if (lost) root.current?.querySelector<HTMLElement>("[data-focus-target]")?.focus();
+  }, [state]);
+  const press = (action: () => void) => () => {
+    acted.current = true;
+    action();
+  };
+  return (
+    <span ref={root} className="relative inline-flex min-h-7 flex-wrap items-center gap-x-2 text-[13px] leading-[18px] text-[var(--muted)] print:hidden" data-testid="save-to-notes" data-save-state={state.status}>
+      {justSaved ? (
+        <span tabIndex={-1} data-focus-target className="inline-flex min-h-7 items-center font-medium text-[var(--success)] outline-none">
+          {savedLabel ?? "Saved to Notebook ✓"}
+        </span>
+      ) : state.status === "failed" ? (
+        <>
+          <span role="alert" className="text-[var(--danger)]">
+            {state.message}
+          </span>
+          <Button variant="secondary" size="sm" onClick={press(onSave)} aria-label={`Retry: ${label}`} data-focus-target>
+            Retry
+          </Button>
+        </>
+      ) : (
+        // -ml-2 takes back the tertiary's 8px padding, so the bookmark lines up with the reply's text.
+        <Button variant="tertiary" size="xs" onClick={press(onSave)} loading={state.status === "saving"} aria-label={label} data-focus-target className="-ml-2">
+          {state.status !== "saving" && <Bookmark filled={saved} />}
+          {state.status === "saving" ? "Saving…" : "Save to Notebook"}
+        </Button>
+      )}
+      {saved && (
+        <>
+          {state.error && (
+            <span role="alert" className="text-[var(--danger)]">
+              {state.error}
+            </span>
+          )}
+          {!justSaved && (
+            <span data-testid="saved-badge" className="inline-flex items-center gap-1 rounded-md bg-[var(--success-tint)] px-1.5 text-xs font-medium leading-5 text-[var(--success)]">
+              <Check />
+              Saved
+            </span>
+          )}
+          <span aria-hidden>·</span>
+          <LinkButton data-undo-save onClick={press(onUndo)} aria-label={`Undo: take this ${what} off your Notebook`} className={QUIET_LINK}>
+            Undo
+          </LinkButton>
+          <span aria-hidden>·</span>
+          <TextLink href={`/notebook#note-${state.topicId}`} className={QUIET_LINK}>
+            Open Notebook
+          </TextLink>
+        </>
+      )}
+    </span>
+  );
+}
+
+/**
+ * The quiet "Save to Notebook" action under a Tutor reply or a Widget. The server finds the Topic and takes
+ * the Widget's code from the stored reply or the Topic file: only the place and the slider numbers
+ * are sent. `getSettings` is read when the button is pressed, so it sends the numbers the Learner has now.
+ * The server keeps one saved item per reply or Widget, so even two tabs cannot save a duplicate.
+ */
+export function SaveToNotes({ target, getSettings, what }: { target: SaveTarget; getSettings?: () => Record<string, number>; what: "reply" | "Widget" }) {
+  const [state, setState] = useState<SaveState>({ status: "idle" });
+  const announce = useAnnounce();
+  const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => void (hold.current && clearTimeout(hold.current)), []);
+  const save = async () => {
+    setState({ status: "saving" });
+    try {
+      const body = target.kind === "widget" ? { ...target, settings: getSettings?.() ?? {} } : target;
+      const res = await fetch("/api/notes/saved", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = (await res.json().catch(() => null)) as { id?: number; topicId?: string } | null;
+      if (res.ok && typeof data?.id === "number" && typeof data.topicId === "string") {
+        const { id, topicId } = data;
+        setState({ status: "saved", id, topicId });
+        announce("Saved to Notebook");
+        if (hold.current) clearTimeout(hold.current);
+        hold.current = setTimeout(() => setState((now) => (now.status === "saved" ? { ...now, settled: true } : now)), SAVED_HOLD_MS);
+      } else setState({ status: "failed", message: "Could not save. Try again." });
+    } catch {
+      setState({ status: "failed", message: "Could not save. Try again." });
+    }
+  };
+  const undo = async () => {
+    if (state.status !== "saved") return;
+    const kept = state;
+    if (hold.current) clearTimeout(hold.current);
+    setState({ status: "saving" });
+    const res = await fetch("/api/notes/saved", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: kept.id }) }).catch(() => null);
+    // Already gone (removed in the Notebook in another tab) counts as undone.
+    if (res && (res.ok || res.status === 404)) {
+      setState({ status: "idle" });
+      announce("Removed from your Notebook");
+    } else {
+      // The note is still saved: back to the settled control (Undo works again), with a short reason.
+      setState({ ...kept, settled: true, error: "Could not undo. Try again." });
+      announce("Could not remove it from your Notebook");
+    }
+  };
+  return <SaveToNotesView state={state} what={what} onSave={() => void save()} onUndo={() => void undo()} />;
+}

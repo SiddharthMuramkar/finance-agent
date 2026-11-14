@@ -1,0 +1,173 @@
+# Venture finance and private rounds: a foundation Topic taught through WeWork's $47 billion round in January 2019.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): CNBC, WeWork rebranding as The We Company, SoftBank invests $2 billion (8 Jan 2019): https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html ; Reuters, WeWork gets $2 billion after SoftBank cuts planned investment (8 Jan 2019): https://reuters.com/article/markets/asia/wework-gets-2-billion-after-softbank-cuts-planned-investment-idUSKCN1P21OG ; The New York Times (7 Jan 2019); Fortune (8 Jan 2019); Bloomberg and Forbes (30 Sep 2019); Reuters (23 Oct 2019).
+id: cf-venture
+title: Venture finance and private rounds
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A private round's headline is the price of the newest shares, not a value for the company, and this Topic shows how to tell them apart."
+
+cases:
+  - id: wework-private-round-2019
+    title: WeWork's $47 billion private round
+    data:
+      - new-investment
+      - post-money-valuation
+      - lower-pre-money-valuation
+      - cut-back-plan
+      - softbank-total-invested
+      - revenue-first-nine-months-2018
+      - net-loss-first-nine-months-2018
+      - valuation-after-rescue
+    asOf: 2019-01-08
+    story: >
+      WeWork leases office buildings and rents desks and rooms in them. It is private, funded by
+      rounds of investment from venture investors, and its largest investor is SoftBank of Japan.
+      In the first nine months of 2018 it had revenue of $1.25 billion and a net loss of about
+      $1.22 billion. On 8 January 2019 it announced that SoftBank would invest $2 billion more,
+      bringing SoftBank's total to about $10 billion, and that WeWork would be renamed The We
+      Company. CNBC reported that most of SoftBank's recent investment was at a post-money
+      valuation of $47 billion, but that $1 billion of it was at a lower, pre-money valuation of
+      $20 billion. Reuters reported that the smaller deal left WeWork $1 billion to buy shares
+      from existing investors. In December SoftBank had discussed investing as much as $16
+      billion, which would have made it the majority owner, and cut the plan after its own
+      shares fell in the market turmoil at the end of 2018. You are asked what a
+      "$47 billion valuation" means, how much of the company each dollar invested buys, and what
+      the headline number leaves out.
+    reveal: >
+      In August 2019 WeWork's parent filed to go public, and its private valuation was tested. By
+      late September advisers said it would fetch about a quarter of $47 billion and reports put the
+      IPO valuation as low as $10 billion. WeWork withdrew its IPO filing on 30 September. On 22
+      October 2019 SoftBank agreed a rescue that took its stake to about 80 percent and valued
+      WeWork at less than $8 billion, a fall of more than 80 percent from January. SoftBank, which
+      had committed more than $13 billion in equity, held a company now valued at a fraction of
+      what it had paid in. The $47 billion had been the price of the newest shares times every share
+      in the company. It had never been a price at which the whole company could be sold for cash.
+
+concept: >
+  A private company sells new shares to investors in rounds. The pre-money valuation is what the
+  company is said to be worth before the new money; the post-money valuation is the pre-money
+  value plus the new money. The investor's ownership is the new money divided by the post-money
+  value: $10 million into a company with a $40 million pre-money valuation buys $10 / $50 = 20
+  percent. The price per share is pre-money valuation / shares outstanding before the round, and
+  the new money buys new shares at that price. Existing owners are diluted in proportion: their
+  share is multiplied by (1 - new investors' share), so a founder with 60 percent who sells 20
+  percent of the post-money company is left with 48 percent. The headline valuation is the
+  newest round's share price times all shares, including shares that were sold earlier at lower
+  prices. It is not a market price: no one has to be able to buy the whole company for that
+  amount, and new investors often get rights the earlier ones lack, such as a liquidation
+  preference (money back first when the company is sold), participation, anti-dilution
+  protection and board seats. Venture investors work backward: they estimate the value at the
+  exit (a sale or IPO), divide by the return they target, and find the ownership they need for
+  the money they put in.
+
+principle: >
+  A private-round valuation is the price of the newest shares times all shares, set by the terms
+  of one negotiation. Look beyond the headline to how much money went in, who got which rights,
+  and what the rest of the owners kept.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a pre-money valuation from a post-money one, and work out what a new investor owns."
+  - "Follow how a new round dilutes the founders and earlier investors."
+  - "Look past a headline valuation to the money that went in and the rights each investor got."
+
+questions:
+  - id: cv-q-ownership
+    prompt: >
+      8 January 2019. Dan, a business reporter, reads that most of SoftBank's recent investment in WeWork went in at a post-money valuation of $47 billion. His editor wants the story right before it runs: which value is SoftBank's new stake measured against?
+    choices:
+      - { id: a, text: "Against the post-money value: the pre-money value plus the new cash" }
+      - { id: b, text: "Against the pre-money value alone", mistake: { tag: used_pre_money, fix: "Pre-money is the value before the cash arrives. The stake is measured against the value after it." } }
+      - { id: c, text: "Against what the founders paid in earlier", mistake: { tag: used_founder_cost, fix: "Past payments do not set the stake. The post-money value does." } }
+      - { id: d, text: "Against the cash the company holds in the bank", mistake: { tag: used_cash, fix: "Cash alone is not the company's value. Use the post-money valuation." } }
+    answer: a
+    explanation: >
+      Post-money value is the pre-money value plus the new cash. A new investor's stake is its new money as a share of that post-money value. Measuring it against the pre-money value makes the stake look bigger than it is, and that is the usual mistake.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), the venture capital approach, pre-money and post-money value: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: cv-q-pre-money
+    prompt: >
+      January 2019. Lena works at WeWork and holds some of its shares. She sees the headline "$47 billion post-money" and her flatmate says the $47 billion is what WeWork was worth before SoftBank's new cash came in. Lena wants to know what her shares really sit on. Which line about the pre-money value is right?
+    choices:
+      - { id: a, text: "Pre-money includes the new cash, so it is higher than the $47 billion headline", mistake: { tag: swapped_pre_post, fix: "Post-money includes the new cash. Pre-money is the value before it." } }
+      - { id: b, text: "Post-money includes the new cash, so the pre-money value is lower than the $47 billion headline" }
+      - { id: c, text: "The two are the same figure", mistake: { tag: same_figure, fix: "Post-money includes the new cash; pre-money does not." } }
+      - { id: d, text: "Pre-money is the cash the investors put in", mistake: { tag: pre_money_is_cash, fix: "Pre-money is the company's value before the round, not the cash put in." } }
+    answer: b
+    explanation: >
+      Post-money is the pre-money value with the new money added. So the value before SoftBank's cash sits below the $47 billion headline, and Lena's flatmate has the two swapped.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: cv-q-price
+    prompt: >
+      A start-up raises a new round. New investors put in money and receive newly issued shares at a price set from the pre-money value. What happens to the founders' and earlier holders' stake?
+    choices:
+      - { id: a, text: "It is diluted: they keep the same number of shares but own a smaller slice of a bigger total" }
+      - { id: b, text: "It is untouched, because the new money goes into the company", mistake: { tag: no_dilution, fix: "New shares are added, so every earlier holder's slice gets smaller." } }
+      - { id: c, text: "It is wiped out, because new investors rank first", mistake: { tag: wiped_out, fix: "Earlier holders keep their shares. Only their percentage shrinks." } }
+      - { id: d, text: "It grows, because the company now holds more cash", mistake: { tag: cash_raises_stake, fix: "More cash does not raise a percentage. More shares dilute it." } }
+    answer: a
+    explanation: >
+      The round creates new shares. Earlier holders keep every share they had, but the total number of shares grows, so their slice of the company shrinks. That is dilution. They accept it because the new money should make the whole company worth more.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: cv-q-headline
+    prompt: >
+      A start-up announces a "$100 million valuation" after investors put in $10 million for new preferred shares. What does the $100 million most directly mean?
+    choices:
+      - { id: a, text: "The new share price multiplied by all shares outstanding; it is not a price at which the whole company could be bought for cash" }
+      - { id: b, text: "The amount of cash the company has in the bank", mistake: { tag: valuation_is_cash, fix: "A valuation is not cash on the balance sheet. Only the new money changed hands." } }
+      - { id: c, text: "The price at which any investor can buy the whole company today", mistake: { tag: buyable_price, fix: "A round prices only the newest shares. Nobody is offered the whole company at that price." } }
+      - { id: d, text: "The amount the founders received personally", mistake: { tag: founders_payout, fix: "Founders do not receive the valuation. It is a figure for the company." } }
+    answer: a
+    explanation: >
+      Post-money valuation is the price paid for the newest shares scaled up to every share. Only $10 million of new money changed hands; the rest is an implied figure that depends on the terms of that one deal.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: cv-q-vc-method
+    prompt: >
+      January 2019. Arjun runs a small venture fund and has just read about WeWork's $47 billion round. A young start-up with little profit yet asks him for money. He wants his stake to be worth many times his cheque at exit, when the company is sold or lists. How should he work out what share to ask for?
+    choices:
+      - { id: a, text: "Forward from today's profits, as for a share on the stock market", mistake: { tag: forward_from_profits, fix: "A start-up has little profit yet. The method works back from the exit." } }
+      - { id: b, text: "From the founders' wish for a high valuation", mistake: { tag: founders_ask, fix: "The investor's target return sets the stake, not the founders' wish." } }
+      - { id: c, text: "Backward from the exit: what the stake must be worth, then what share of the company that takes" }
+      - { id: d, text: "From the headline valuation of the last round", mistake: { tag: last_round_headline, fix: "The last round's headline is not the starting point. The exit and target return are." } }
+    answer: c
+    explanation: >
+      The investor starts at the end: what the company might be worth at exit, and how much the stake must be worth by then. Working back from those gives the share of the company the money must buy today. That is the venture capital approach.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), the venture capital approach: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+checks:
+  - id: cv-quiz-rounds
+    kind: quiz
+    questions:
+      - cv-q-ownership
+      - cv-q-pre-money
+      - cv-q-price
+      - cv-q-headline
+      - cv-q-vc-method
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cv-wework-round
+    kind: conversation
+    prompt: >
+      On 8 January 2019 WeWork announced a $2 billion investment from SoftBank. CNBC reported that
+      most of SoftBank's recent investment was at a post-money valuation of $47 billion, but that
+      $1 billion of it was at a lower, pre-money valuation of $20 billion. Say in your own words what pre-money and post-money mean, why $1 billion buys a
+      different slice of the company at a $20 billion pre-money valuation than at a $47 billion
+      post-money one, and why a $47 billion headline is not the same as a $47 billion cash price
+      for the company.
+    passCriteria: >
+      The Learner defines post-money as pre-money plus the new money, and says a stake is the new
+      money measured against post-money. They say a higher valuation means the same cheque buys a
+      smaller slice (about 4.8 percent at a $20 billion pre-money valuation, about 2.1 percent at
+      a $47 billion post-money one), and need not give exact figures. They explain that the headline is the
+      price of the newest shares scaled to all shares, set in one negotiation by one investor and
+      with specific terms, so it does not mean anyone could buy the whole company for that amount;
+      they may also mention preferences or other rights the new shares carry.

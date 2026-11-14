@@ -1,0 +1,3709 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "Widget": {
+      "$ref": "#/$defs/Widget"
+    },
+    "Card": {
+      "$ref": "#/$defs/Card"
+    },
+    "CardHeader": {
+      "$ref": "#/$defs/CardHeader"
+    },
+    "TextContent": {
+      "$ref": "#/$defs/TextContent"
+    },
+    "Callout": {
+      "$ref": "#/$defs/Callout"
+    },
+    "TextCallout": {
+      "$ref": "#/$defs/TextCallout"
+    },
+    "InlineHeader": {
+      "$ref": "#/$defs/InlineHeader"
+    },
+    "Table": {
+      "$ref": "#/$defs/Table"
+    },
+    "Col": {
+      "$ref": "#/$defs/Col"
+    },
+    "BarChart": {
+      "$ref": "#/$defs/BarChart"
+    },
+    "LineChart": {
+      "$ref": "#/$defs/LineChart"
+    },
+    "AreaChart": {
+      "$ref": "#/$defs/AreaChart"
+    },
+    "RadarChart": {
+      "$ref": "#/$defs/RadarChart"
+    },
+    "HorizontalBarChart": {
+      "$ref": "#/$defs/HorizontalBarChart"
+    },
+    "Series": {
+      "$ref": "#/$defs/Series"
+    },
+    "PieChart": {
+      "$ref": "#/$defs/PieChart"
+    },
+    "RadialChart": {
+      "$ref": "#/$defs/RadialChart"
+    },
+    "SingleStackedBarChart": {
+      "$ref": "#/$defs/SingleStackedBarChart"
+    },
+    "Slice": {
+      "$ref": "#/$defs/Slice"
+    },
+    "ScatterChart": {
+      "$ref": "#/$defs/ScatterChart"
+    },
+    "ScatterSeries": {
+      "$ref": "#/$defs/ScatterSeries"
+    },
+    "Point": {
+      "$ref": "#/$defs/Point"
+    },
+    "FormControl": {
+      "$ref": "#/$defs/FormControl"
+    },
+    "Label": {
+      "$ref": "#/$defs/Label"
+    },
+    "Select": {
+      "$ref": "#/$defs/Select"
+    },
+    "SelectItem": {
+      "$ref": "#/$defs/SelectItem"
+    },
+    "Slider": {
+      "$ref": "#/$defs/Slider"
+    },
+    "SwitchGroup": {
+      "$ref": "#/$defs/SwitchGroup"
+    },
+    "SwitchItem": {
+      "$ref": "#/$defs/SwitchItem"
+    },
+    "ChipItem": {
+      "$ref": "#/$defs/ChipItem"
+    },
+    "Chips": {
+      "$ref": "#/$defs/Chips"
+    },
+    "Stack": {
+      "$ref": "#/$defs/Stack"
+    },
+    "Tabs": {
+      "$ref": "#/$defs/Tabs"
+    },
+    "TabItem": {
+      "$ref": "#/$defs/TabItem"
+    },
+    "Accordion": {
+      "$ref": "#/$defs/Accordion"
+    },
+    "AccordionItem": {
+      "$ref": "#/$defs/AccordionItem"
+    },
+    "Steps": {
+      "$ref": "#/$defs/Steps"
+    },
+    "StepsItem": {
+      "$ref": "#/$defs/StepsItem"
+    },
+    "Separator": {
+      "$ref": "#/$defs/Separator"
+    },
+    "TagBlock": {
+      "$ref": "#/$defs/TagBlock"
+    },
+    "Tag": {
+      "$ref": "#/$defs/Tag"
+    },
+    "Icon": {
+      "$ref": "#/$defs/Icon"
+    },
+    "EntityList": {
+      "$ref": "#/$defs/EntityList"
+    },
+    "AnnuityChart": {
+      "$ref": "#/$defs/AnnuityChart"
+    },
+    "HistoryChart": {
+      "$ref": "#/$defs/HistoryChart"
+    },
+    "Calculator": {
+      "$ref": "#/$defs/Calculator"
+    },
+    "FormulaCard": {
+      "$ref": "#/$defs/FormulaCard"
+    },
+    "GuidedTasks": {
+      "$ref": "#/$defs/GuidedTasks"
+    },
+    "Stat": {
+      "$ref": "#/$defs/Stat"
+    },
+    "Verdict": {
+      "$ref": "#/$defs/Verdict"
+    },
+    "QuickCheck": {
+      "$ref": "#/$defs/QuickCheck"
+    },
+    "Predict": {
+      "$ref": "#/$defs/Predict"
+    },
+    "Versus": {
+      "$ref": "#/$defs/Versus"
+    },
+    "Breakeven": {
+      "$ref": "#/$defs/Breakeven"
+    },
+    "MoneyStack": {
+      "$ref": "#/$defs/MoneyStack"
+    },
+    "Waffle": {
+      "$ref": "#/$defs/Waffle"
+    },
+    "Pictogram": {
+      "$ref": "#/$defs/Pictogram"
+    },
+    "DrawTheLine": {
+      "$ref": "#/$defs/DrawTheLine"
+    },
+    "PriceTag": {
+      "$ref": "#/$defs/PriceTag"
+    },
+    "ShrinkingNote": {
+      "$ref": "#/$defs/ShrinkingNote"
+    },
+    "TimeTravel": {
+      "$ref": "#/$defs/TimeTravel"
+    },
+    "StepThrough": {
+      "$ref": "#/$defs/StepThrough"
+    },
+    "Rank": {
+      "$ref": "#/$defs/Rank"
+    },
+    "Waterfall": {
+      "$ref": "#/$defs/Waterfall"
+    },
+    "RateMove": {
+      "$ref": "#/$defs/RateMove"
+    },
+    "StoryScene": {
+      "$ref": "#/$defs/StoryScene"
+    },
+    "LingoCard": {
+      "$ref": "#/$defs/LingoCard"
+    },
+    "TimelineStrip": {
+      "$ref": "#/$defs/TimelineStrip"
+    },
+    "TwoPaths": {
+      "$ref": "#/$defs/TwoPaths"
+    },
+    "MoneyJar": {
+      "$ref": "#/$defs/MoneyJar"
+    },
+    "WhoPaysWhom": {
+      "$ref": "#/$defs/WhoPaysWhom"
+    },
+    "MythOrFact": {
+      "$ref": "#/$defs/MythOrFact"
+    },
+    "Headline": {
+      "$ref": "#/$defs/Headline"
+    },
+    "ChoiceCards": {
+      "$ref": "#/$defs/ChoiceCards"
+    },
+    "GuidedTask": {
+      "$ref": "#/$defs/GuidedTask"
+    },
+    "Step": {
+      "$ref": "#/$defs/Step"
+    },
+    "ValueLevers": {
+      "$ref": "#/$defs/ValueLevers"
+    },
+    "ValueBridge": {
+      "$ref": "#/$defs/ValueBridge"
+    },
+    "TerminalSeesaw": {
+      "$ref": "#/$defs/TerminalSeesaw"
+    },
+    "WaccStack": {
+      "$ref": "#/$defs/WaccStack"
+    },
+    "CashWaterfall": {
+      "$ref": "#/$defs/CashWaterfall"
+    },
+    "MultipleDecoder": {
+      "$ref": "#/$defs/MultipleDecoder"
+    }
+  },
+  "required": [
+    "Widget",
+    "Card",
+    "CardHeader",
+    "TextContent",
+    "Callout",
+    "TextCallout",
+    "InlineHeader",
+    "Table",
+    "Col",
+    "BarChart",
+    "LineChart",
+    "AreaChart",
+    "RadarChart",
+    "HorizontalBarChart",
+    "Series",
+    "PieChart",
+    "RadialChart",
+    "SingleStackedBarChart",
+    "Slice",
+    "ScatterChart",
+    "ScatterSeries",
+    "Point",
+    "FormControl",
+    "Label",
+    "Select",
+    "SelectItem",
+    "Slider",
+    "SwitchGroup",
+    "SwitchItem",
+    "ChipItem",
+    "Chips",
+    "Stack",
+    "Tabs",
+    "TabItem",
+    "Accordion",
+    "AccordionItem",
+    "Steps",
+    "StepsItem",
+    "Separator",
+    "TagBlock",
+    "Tag",
+    "Icon",
+    "EntityList",
+    "AnnuityChart",
+    "HistoryChart",
+    "Calculator",
+    "FormulaCard",
+    "GuidedTasks",
+    "Stat",
+    "Verdict",
+    "QuickCheck",
+    "Predict",
+    "Versus",
+    "Breakeven",
+    "MoneyStack",
+    "Waffle",
+    "Pictogram",
+    "DrawTheLine",
+    "PriceTag",
+    "ShrinkingNote",
+    "TimeTravel",
+    "StepThrough",
+    "Rank",
+    "Waterfall",
+    "RateMove",
+    "StoryScene",
+    "LingoCard",
+    "TimelineStrip",
+    "TwoPaths",
+    "MoneyJar",
+    "WhoPaysWhom",
+    "MythOrFact",
+    "Headline",
+    "ChoiceCards",
+    "GuidedTask",
+    "Step",
+    "ValueLevers",
+    "ValueBridge",
+    "TerminalSeesaw",
+    "WaccStack",
+    "CashWaterfall",
+    "MultipleDecoder"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Widget": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Slider"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
+              },
+              {
+                "$ref": "#/$defs/Stack"
+              },
+              {
+                "$ref": "#/$defs/Tabs"
+              },
+              {
+                "$ref": "#/$defs/Accordion"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/Card"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/FormControl"
+              },
+              {
+                "$ref": "#/$defs/Label"
+              },
+              {
+                "$ref": "#/$defs/Select"
+              },
+              {
+                "$ref": "#/$defs/SwitchGroup"
+              },
+              {
+                "$ref": "#/$defs/Chips"
+              },
+              {
+                "$ref": "#/$defs/Tag"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              },
+              {
+                "$ref": "#/$defs/ValueLevers"
+              },
+              {
+                "$ref": "#/$defs/ValueBridge"
+              },
+              {
+                "$ref": "#/$defs/TerminalSeesaw"
+              },
+              {
+                "$ref": "#/$defs/WaccStack"
+              },
+              {
+                "$ref": "#/$defs/CashWaterfall"
+              },
+              {
+                "$ref": "#/$defs/MultipleDecoder"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "title",
+        "children"
+      ],
+      "additionalProperties": false,
+      "description": "The widget's frame: a short title above its parts, in order. The title of a widget drawn from made-up numbers starts with \"Illustration:\"."
+    },
+    "Slider": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "percent",
+            "years",
+            "usd",
+            "inr"
+          ]
+        },
+        "quick": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "name",
+        "label",
+        "min",
+        "max",
+        "step",
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call. In Slider(name, label, min, max, step, value, unit) the Learner can set any number from min to max, on steps of `step` counted from min; the starting value sits on a step. A percent slider always moves in 0.01 steps, whatever step is written, so write 0.01 as a rate's step."
+    },
+    "AnnuityChart": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "number"
+        },
+        "payments": {
+          "type": "number"
+        },
+        "growthPercent": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "compareTo": {
+          "type": "string"
+        },
+        "firstYear": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "total",
+        "payments",
+        "growthPercent",
+        "ratePercent"
+      ],
+      "additionalProperties": false,
+      "description": "Bars for each yearly payment of a growing annuity (first payment now) and what each is worth today, by the tested present value formula. `compareTo` optionally shows a sourced Case Data figure \"caseId/datasetId\" (its latest point) beside the present value."
+    },
+    "HistoryChart": {
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "type": "string"
+        },
+        "scale": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "log"
+          ]
+        }
+      },
+      "required": [
+        "dataset"
+      ],
+      "additionalProperties": false,
+      "description": "A line chart of one checked Case Data dataset over its dates, with its source. It takes only the dataset's reference; the values come from the server, which withholds anything dated after the Case's as-of date until the reveal."
+    },
+    "Calculator": {
+      "type": "object",
+      "properties": {
+        "calculator": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "usd",
+            "inr"
+          ]
+        }
+      },
+      "required": [
+        "calculator",
+        "inputs"
+      ],
+      "additionalProperties": false,
+      "description": "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run here."
+    },
+    "FormulaCard": {
+      "type": "object",
+      "properties": {
+        "formula": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "sourced": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "fixed": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "formula",
+        "inputs",
+        "sourced",
+        "fixed"
+      ],
+      "additionalProperties": false,
+      "description": "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers)."
+    },
+    "GuidedTasks": {
+      "type": "object",
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GuidedTask"
+          }
+        }
+      },
+      "required": [
+        "tasks"
+      ],
+      "additionalProperties": false,
+      "description": "Guided Tasks under a widget: practice steps that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Never marked or saved."
+    },
+    "GuidedTask": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "done": {
+          "type": "boolean"
+        },
+        "show": {
+          "type": "boolean"
+        },
+        "values": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "text",
+        "done"
+      ],
+      "additionalProperties": false,
+      "description": "One Guided Task: a short instruction and the condition that completes it. Use it only inside GuidedTasks."
+    },
+    "Stat": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "you",
+            "src",
+            "neutral"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "One number, formatted for its unit (inr in lakh and crore). tone \"you\" marks the Learner's assumption, \"src\" a sourced figure."
+    },
+    "Verdict": {
+      "type": "object",
+      "properties": {
+        "test": {
+          "type": "boolean"
+        },
+        "ifTrue": {
+          "type": "string"
+        },
+        "ifFalse": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "test",
+        "ifTrue",
+        "ifFalse"
+      ],
+      "additionalProperties": false,
+      "description": "The sentence a comparison ends in; it rewrites itself as test changes."
+    },
+    "QuickCheck": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "answer": {
+          "type": "number"
+        },
+        "why": {
+          "type": "string"
+        },
+        "picked": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "question",
+        "options",
+        "answer",
+        "why"
+      ],
+      "additionalProperties": false,
+      "description": "Tap to answer: 2 to 4 options; answer is the right index from 0 (-1: a poll); why shows after the pick; picked is a $variable (-1 until picked)."
+    },
+    "Predict": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string"
+        },
+        "guess": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "number"
+        },
+        "actualLabel": {
+          "type": "string"
+        },
+        "revealsAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt",
+        "guess",
+        "min",
+        "max",
+        "step",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "Lock in a guess, then reveal actual (from a tool result or Case Data; while withheld, it waits until revealsAt)."
+    },
+    "Versus": {
+      "type": "object",
+      "properties": {
+        "leftLabel": {
+          "type": "string"
+        },
+        "leftValue": {
+          "type": "number"
+        },
+        "rightLabel": {
+          "type": "string"
+        },
+        "rightValue": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "better": {
+          "type": "string",
+          "enum": [
+            "higher",
+            "lower"
+          ]
+        }
+      },
+      "required": [
+        "leftLabel",
+        "leftValue",
+        "rightLabel",
+        "rightValue",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "Two options on one shared scale, with the winner and the margin. better: \"higher\" (default) or \"lower\"."
+    },
+    "Breakeven": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "target": {
+          "type": "number"
+        },
+        "control": {
+          "type": "number"
+        },
+        "tolerance": {
+          "type": "number"
+        },
+        "marker": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "markerLabel": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "rows",
+        "target",
+        "control"
+      ],
+      "additionalProperties": false,
+      "description": "Hunt for the flip point: rows, a calculate_range Query's rows over what the Slider bound to control sets, cross target there. marker: a sourced number or \"caseId/datasetId\"."
+    },
+    "MoneyStack": {
+      "type": "object",
+      "properties": {
+        "calculator": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "calculator",
+        "inputs"
+      ],
+      "additionalProperties": false,
+      "description": "A calculator's total (sip, emi, future_value, fixed_deposit, recurring_deposit, ppf) drawn as notes, coloured by what you put in and what it earned."
+    },
+    "Waffle": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "percent": {
+          "type": "number"
+        },
+        "compareTo": {
+          "type": "number"
+        },
+        "zoom": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "label",
+        "percent"
+      ],
+      "additionalProperties": false,
+      "description": "A 10 x 10 grid for percent, percentage points and basis points; compareTo outlines the other percent; zoom opens one square (100 basis points)."
+    },
+    "Pictogram": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "count": {
+          "type": "number"
+        },
+        "label": {
+          "type": "string"
+        },
+        "perIcon": {
+          "type": "string"
+        },
+        "compareTo": {
+          "type": "number"
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "you",
+            "src",
+            "neutral"
+          ]
+        }
+      },
+      "required": [
+        "object",
+        "count",
+        "label"
+      ],
+      "additionalProperties": false,
+      "description": "The thing itself, count times (count may be fractional; compareTo shows the earlier count as outlines). object: gold-bar, coin, note-inr, note-usd, piggy-bank, house, car, phone, vada-pav, chai, basket, bank, govt, share, umbrella, ice-cream."
+    },
+    "DrawTheLine": {
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "drawn": {
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      },
+      "required": [
+        "dataset"
+      ],
+      "additionalProperties": false,
+      "description": "The Learner draws where a Case Data series went next (eight slices after its as-of date), then sees the record. drawn: a $variable, set as $drawn = []."
+    },
+    "PriceTag": {
+      "type": "object",
+      "properties": {
+        "item": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "years": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        }
+      },
+      "required": [
+        "item",
+        "price",
+        "ratePercent",
+        "years"
+      ],
+      "additionalProperties": false,
+      "description": "The price of one thing rising with the years; ratePercent and years: Slider $variables."
+    },
+    "ShrinkingNote": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "years": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        }
+      },
+      "required": [
+        "amount",
+        "ratePercent",
+        "years"
+      ],
+      "additionalProperties": false,
+      "description": "A note whose printed value stays while its buying power shrinks; ratePercent and years: Slider $variables."
+    },
+    "TimeTravel": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "maxYears": {
+          "type": "number"
+        },
+        "payments": {
+          "type": "number"
+        },
+        "growthPercent": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        }
+      },
+      "required": [
+        "amount",
+        "ratePercent",
+        "maxYears"
+      ],
+      "additionalProperties": false,
+      "description": "Present value as a journey: one coin from year maxYears to today, or with payments a row of coins (an annuity) brought to today."
+    },
+    "StepThrough": {
+      "type": "object",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Step"
+          }
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "additionalProperties": false,
+      "description": "A worked example or a cause-and-effect chain, one Step at a time with Back and Next."
+    },
+    "Step": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "highlight": {
+          "type": "string",
+          "enum": [
+            "you",
+            "src",
+            "neutral"
+          ]
+        },
+        "ask": {
+          "type": "number"
+        },
+        "askUnit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "body"
+      ],
+      "additionalProperties": false,
+      "description": "One step of a StepThrough: Step(title, body, highlight?, ask?, askUnit?). Use it only inside StepThrough."
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "correctOrder": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lowLabel": {
+          "type": "string"
+        },
+        "highLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt",
+        "items",
+        "correctOrder",
+        "reasons",
+        "lowLabel",
+        "highLabel"
+      ],
+      "additionalProperties": false,
+      "description": "Put 2 to 8 items in order, then check; correctOrder lists item indexes from low end to high; one reason per item."
+    },
+    "Waterfall": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "unit": {
+          "type": "string"
+        },
+        "totalLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "labels",
+        "values",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "A start, each change (costs negative) and the total bar, added up by code."
+    },
+    "RateMove": {
+      "type": "object",
+      "properties": {
+        "oldRate": {
+          "type": "number"
+        },
+        "newRate": {
+          "type": "number"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "show",
+            "practice"
+          ]
+        }
+      },
+      "required": [
+        "oldRate",
+        "newRate"
+      ],
+      "additionalProperties": false,
+      "description": "A rate move on a number line, with points, bp and percent of the old rate by code; \"practice\" asks for the bp first."
+    },
+    "StoryScene": {
+      "type": "object",
+      "properties": {
+        "cast": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "emoji",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "who": {
+                "type": "string"
+              },
+              "says": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "who",
+              "says"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "caption": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cast",
+        "beats"
+      ],
+      "additionalProperties": false,
+      "description": "A story one beat at a time: cast of 1 to 4 {id, emoji, name, role}, 2 to 5 beats {who: a cast id or \"narrator\", says, emoji}, an ISO date stamp. No numbers."
+    },
+    "LingoCard": {
+      "type": "object",
+      "properties": {
+        "term": {
+          "type": "string"
+        },
+        "pro": {
+          "type": "string"
+        },
+        "means": {
+          "type": "string"
+        },
+        "example": {
+          "type": "string"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "inStory": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "term",
+        "pro",
+        "means",
+        "example",
+        "emoji"
+      ],
+      "additionalProperties": false,
+      "description": "One piece of lingo: say it like a pro, plain meaning, everyday example; inStory turns the card to the word in the story."
+    },
+    "TimelineStrip": {
+      "type": "object",
+      "properties": {
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "date",
+              "label",
+              "emoji"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "hideAfter": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "beats"
+      ],
+      "additionalProperties": false,
+      "description": "Emoji moments on a line, oldest first: beats {date (ISO), label, emoji}; beats after hideAfter are locked."
+    },
+    "TwoPaths": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "left": {
+          "type": "object",
+          "properties": {
+            "emoji": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "choice": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "outcomeLine": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "emoji",
+            "name",
+            "choice",
+            "outcome",
+            "outcomeLine"
+          ],
+          "additionalProperties": false
+        },
+        "right": {
+          "type": "object",
+          "properties": {
+            "emoji": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "choice": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "outcomeLine": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "emoji",
+            "name",
+            "choice",
+            "outcome",
+            "outcomeLine"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "question",
+        "left",
+        "right"
+      ],
+      "additionalProperties": false,
+      "description": "Two characters, two choices; each reveals its outcome as 1 to 6 emoji and a line with no digits."
+    },
+    "MoneyJar": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "start": {
+          "type": "number"
+        },
+        "end": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "each": {
+          "type": "string"
+        },
+        "words": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "start",
+        "end",
+        "unit",
+        "words"
+      ],
+      "additionalProperties": false,
+      "description": "A jar that fills or drains 0 to 20 objects (unit: an emoji name), sized in words; numerals only in each."
+    },
+    "WhoPaysWhom": {
+      "type": "object",
+      "properties": {
+        "actors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "emoji",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "flows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "what": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "what",
+              "emoji"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "actors",
+        "flows"
+      ],
+      "additionalProperties": false,
+      "description": "Money moving between 2 to 4 actors {id, emoji, name}: 1 to 4 flows {from, to, what (6 words), emoji}; a tap replays one."
+    },
+    "MythOrFact": {
+      "type": "object",
+      "properties": {
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim": {
+                "type": "string"
+              },
+              "isFact": {
+                "type": "boolean"
+              },
+              "why": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "claim",
+              "isFact",
+              "why"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "cards"
+      ],
+      "additionalProperties": false,
+      "description": "2 to 4 cards {claim, isFact, why, emoji?}; each has Myth and Fact buttons and turns to the verdict and why. Not marked."
+    },
+    "Headline": {
+      "type": "object",
+      "properties": {
+        "paper": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "deck": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "paper",
+        "date",
+        "headline",
+        "source"
+      ],
+      "additionalProperties": false,
+      "description": "A period front page: paper, ISO date, headline (12 words), deck?, source URL."
+    },
+    "ChoiceCards": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "fix": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "answer": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "choices",
+        "answer"
+      ],
+      "additionalProperties": false,
+      "description": "Tap to choose: question, 2 to 4 choices {id, text, emoji?, fix?}, answer is the right id. Not marked."
+    },
+    "Stack": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {}
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "row",
+            "column"
+          ]
+        },
+        "gap": {
+          "type": "string",
+          "enum": [
+            "none",
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl",
+            "2xl"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "stretch",
+            "baseline"
+          ]
+        },
+        "justify": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "between",
+            "around",
+            "evenly"
+          ]
+        },
+        "wrap": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "children"
+      ],
+      "additionalProperties": false,
+      "description": "Flex container. direction: \"row\"|\"column\" (default \"column\"). gap: \"none\"|\"xs\"|\"s\"|\"m\"|\"l\"|\"xl\"|\"2xl\" (default \"m\"). align: \"start\"|\"center\"|\"end\"|\"stretch\"|\"baseline\". justify: \"start\"|\"center\"|\"end\"|\"between\"|\"around\"|\"evenly\"."
+    },
+    "Tabs": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TabItem"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Tabbed container"
+    },
+    "TabItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "value",
+        "trigger",
+        "content"
+      ],
+      "additionalProperties": false,
+      "description": "value is unique id, trigger is tab label, content is array of components"
+    },
+    "TextContent": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "small",
+            "default",
+            "large",
+            "small-heavy",
+            "large-heavy"
+          ]
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Text block. Supports markdown. Optional size: \"small\" | \"default\" | \"large\" | \"small-heavy\" | \"large-heavy\"."
+    },
+    "CardHeader": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Header with optional title and subtitle"
+    },
+    "Callout": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "info",
+            "warning",
+            "error",
+            "success",
+            "neutral"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "variant",
+        "title",
+        "description"
+      ],
+      "additionalProperties": false,
+      "description": "Callout banner. Optional visible is a reactive $boolean — auto-dismisses after 3s by setting $visible to false."
+    },
+    "TextCallout": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "neutral",
+            "info",
+            "warning",
+            "success",
+            "danger"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Text callout with variant, title, and description"
+    },
+    "Separator": {
+      "type": "object",
+      "properties": {
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        "decorative": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Visual divider between content sections"
+    },
+    "HorizontalBarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "grouped",
+            "stacked"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Horizontal bars; prefer when category labels are long or for ranked lists"
+    },
+    "Series": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "category",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "One data series"
+    },
+    "RadarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Spider/web chart; use for comparing multiple variables across one or more entities"
+    },
+    "PieChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "pie",
+            "donut"
+          ]
+        },
+        "appearance": {
+          "type": "string",
+          "enum": [
+            "circular",
+            "semiCircular"
+          ]
+        }
+      },
+      "required": [
+        "labels",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "Circular slices; use plucked arrays: PieChart(data.categories, data.values)"
+    },
+    "RadialChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "labels",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "Radial bars; use plucked arrays: RadialChart(data.categories, data.values)"
+    },
+    "SingleStackedBarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "labels",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "Single horizontal stacked bar; use plucked arrays: SingleStackedBarChart(data.categories, data.values)"
+    },
+    "ScatterChart": {
+      "type": "object",
+      "properties": {
+        "datasets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScatterSeries"
+          }
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "datasets"
+      ],
+      "additionalProperties": false,
+      "description": "X/Y scatter plot; use for correlations, distributions, and clustering"
+    },
+    "ScatterSeries": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Point"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "points"
+      ],
+      "additionalProperties": false,
+      "description": "Named dataset"
+    },
+    "Point": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false,
+      "description": "Data point with numeric coordinates"
+    },
+    "AreaChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "natural",
+            "step",
+            "stacked"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        },
+        "height": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd",
+            "percent"
+          ]
+        },
+        "yMin": {
+          "type": "number"
+        },
+        "yMax": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Filled first series with the others as lines, over one axis. Series overlap and never stack unless variant is \"stacked\"."
+    },
+    "BarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "grouped",
+            "stacked"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        },
+        "height": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd",
+            "percent"
+          ]
+        },
+        "yMin": {
+          "type": "number"
+        },
+        "yMax": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Vertical bars; use for comparing values across categories with one or more series"
+    },
+    "LineChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "natural",
+            "step"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        },
+        "height": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd",
+            "percent"
+          ]
+        },
+        "yMin": {
+          "type": "number"
+        },
+        "yMax": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Lines over categories; use for trends and continuous data over time"
+    },
+    "Table": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Col"
+          }
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "additionalProperties": false,
+      "description": "Data table — column-oriented. Each Col holds its own data array."
+    },
+    "Col": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "data": {},
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "action"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "data"
+      ],
+      "additionalProperties": false,
+      "description": "Column definition — holds label + data array"
+    },
+    "TagBlock": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ]
+        }
+      },
+      "required": [
+        "tags"
+      ],
+      "additionalProperties": false,
+      "description": "tags is an array of strings; optional size sm | md | lg"
+    },
+    "Steps": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepsItem"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Step-by-step guide"
+    },
+    "StepsItem": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "details"
+      ],
+      "additionalProperties": false,
+      "description": "title and details text for one step"
+    },
+    "InlineHeader": {
+      "type": "object",
+      "properties": {
+        "heading": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "heading"
+      ],
+      "additionalProperties": false,
+      "description": "Compact section heading with an optional one-line description, for use inside cards."
+    },
+    "EntityList": {
+      "type": "object",
+      "properties": {
+        "rows": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "left": {
+                "type": "string"
+              },
+              "right": {
+                "type": "string"
+              },
+              "rightVariant": {
+                "default": "text",
+                "type": "string",
+                "enum": [
+                  "text",
+                  "number"
+                ]
+              }
+            },
+            "required": [
+              "left",
+              "right",
+              "rightVariant"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "size": {
+          "default": "default",
+          "type": "string",
+          "enum": [
+            "small",
+            "default"
+          ]
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "left": {
+              "type": "string"
+            },
+            "right": {
+              "type": "string"
+            },
+            "rightVariant": {
+              "default": "text",
+              "type": "string",
+              "enum": [
+                "text",
+                "number"
+              ]
+            }
+          },
+          "required": [
+            "left",
+            "right",
+            "rightVariant"
+          ],
+          "additionalProperties": false
+        },
+        "footer": {
+          "type": "object",
+          "properties": {
+            "left": {
+              "type": "string"
+            },
+            "right": {
+              "type": "string"
+            },
+            "rightVariant": {
+              "default": "text",
+              "type": "string",
+              "enum": [
+                "text",
+                "number"
+              ]
+            }
+          },
+          "required": [
+            "left",
+            "right",
+            "rightVariant"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "rows",
+        "size"
+      ],
+      "additionalProperties": false,
+      "description": "Two-column key/value rows (left label, right value). size 'default' supports optional header and footer rows; rightVariant 'number' uses tabular numbers."
+    },
+    "Accordion": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AccordionItem"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Collapsible sections"
+    },
+    "AccordionItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "value",
+        "trigger",
+        "content"
+      ],
+      "additionalProperties": false,
+      "description": "value is unique id, trigger is section title"
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              },
+              {
+                "$ref": "#/$defs/Tabs"
+              },
+              {
+                "$ref": "#/$defs/Stack"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
+              },
+              {
+                "$ref": "#/$defs/WhoPaysWhom"
+              },
+              {
+                "$ref": "#/$defs/MythOrFact"
+              },
+              {
+                "$ref": "#/$defs/Headline"
+              },
+              {
+                "$ref": "#/$defs/ChoiceCards"
+              }
+            ]
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "card",
+            "sunk",
+            "clear"
+          ]
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "row",
+            "column"
+          ]
+        },
+        "gap": {
+          "type": "string",
+          "enum": [
+            "none",
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl",
+            "2xl"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "stretch",
+            "baseline"
+          ]
+        },
+        "justify": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "between",
+            "around",
+            "evenly"
+          ]
+        },
+        "wrap": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "children"
+      ],
+      "additionalProperties": false,
+      "description": "Styled container. variant: \"card\" (default, elevated) | \"sunk\" (recessed) | \"clear\" (transparent). Always full width. Accepts all Stack flex params (default: direction \"column\"). Cards flex to share space in row/wrap layouts."
+    },
+    "FormControl": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Select"
+            },
+            {
+              "$ref": "#/$defs/Slider"
+            },
+            {
+              "$ref": "#/$defs/Chips"
+            }
+          ]
+        },
+        "hint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "input"
+      ],
+      "additionalProperties": false,
+      "description": "Field with label, input component, and optional hint text"
+    },
+    "Select": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SelectItem"
+          }
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "email": {
+              "type": "boolean"
+            },
+            "url": {
+              "type": "boolean"
+            },
+            "numeric": {
+              "type": "boolean"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "minLength": {
+              "type": "number"
+            },
+            "maxLength": {
+              "type": "number"
+            },
+            "pattern": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "value": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "small",
+            "medium",
+            "large"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "SelectItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false,
+      "description": "Option for Select"
+    },
+    "Chips": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "default": "multiple",
+          "type": "string",
+          "enum": [
+            "single",
+            "multiple"
+          ]
+        },
+        "items": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChipItem"
+          }
+        },
+        "rules": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "email": {
+              "type": "boolean"
+            },
+            "url": {
+              "type": "boolean"
+            },
+            "numeric": {
+              "type": "boolean"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "minLength": {
+              "type": "number"
+            },
+            "maxLength": {
+              "type": "number"
+            },
+            "pattern": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "defaultValue": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "A form field of compact selectable chips for choosing one or many short options; the selection is stored under `name`."
+    },
+    "ChipItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/$defs/Icon"
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false,
+      "description": "A single selectable chip inside a Chips group, with a value, label and optional icon."
+    },
+    "Icon": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "A lucide icon by kebab-case name (e.g. 'circle-check'). Optional category picks a topical fallback when the name doesn't resolve."
+    },
+    "Label": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Text label"
+    },
+    "SwitchGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SwitchItem"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "clear",
+            "card",
+            "sunk"
+          ]
+        },
+        "value": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Group of switch toggles"
+    },
+    "SwitchItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "defaultChecked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "Individual switch toggle"
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/$defs/Icon"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "neutral",
+            "info",
+            "success",
+            "warning",
+            "danger"
+          ]
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Styled tag/badge with optional Icon and variant"
+    },
+    "ValueLevers": {
+      "type": "object",
+      "properties": {
+        "caseId": {
+          "type": "string"
+        },
+        "revenue": {
+          "type": "number"
+        },
+        "margin": {
+          "type": "number"
+        },
+        "salesToCapital": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "failure": {
+          "type": "number"
+        },
+        "moved": {
+          "type": "number"
+        },
+        "mostLever": {
+          "type": "number"
+        },
+        "mostBy": {
+          "type": "number"
+        },
+        "caseStory": {
+          "type": "string"
+        },
+        "priceStory": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "revenue": {
+                  "type": "number"
+                },
+                "margin": {
+                  "type": "number"
+                },
+                "salesToCapital": {
+                  "type": "number"
+                },
+                "risk": {
+                  "type": "number"
+                },
+                "failure": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mode": {},
+        "market": {
+          "type": "number"
+        },
+        "caseChoice": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "caseId",
+        "revenue",
+        "margin",
+        "salesToCapital",
+        "risk",
+        "failure",
+        "moved",
+        "mostLever",
+        "mostBy"
+      ],
+      "additionalProperties": false,
+      "description": "Drawn by code: show_widget recipe value_levers."
+    },
+    "ValueBridge": {
+      "type": "object",
+      "properties": {
+        "caseId": {
+          "type": "string"
+        },
+        "cash": {
+          "type": "number"
+        },
+        "debt": {
+          "type": "number"
+        },
+        "options": {
+          "type": "number"
+        },
+        "leases": {}
+      },
+      "required": [
+        "caseId",
+        "cash",
+        "debt",
+        "options"
+      ],
+      "additionalProperties": false,
+      "description": "Drawn by code: show_widget recipe value_bridge."
+    },
+    "TerminalSeesaw": {
+      "type": "object",
+      "properties": {
+        "caseId": {
+          "type": "string"
+        },
+        "growthAfter": {
+          "type": "number"
+        },
+        "costAfter": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "caseId",
+        "growthAfter",
+        "costAfter"
+      ],
+      "additionalProperties": false,
+      "description": "Drawn by code: show_widget recipe terminal_seesaw."
+    },
+    "WaccStack": {
+      "type": "object",
+      "properties": {
+        "figures": {},
+        "source": {},
+        "riskFree": {
+          "type": "number"
+        },
+        "premium": {
+          "type": "number"
+        },
+        "relativeRisk": {
+          "type": "number"
+        },
+        "debtShare": {
+          "type": "number"
+        },
+        "caseId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "figures",
+        "source",
+        "riskFree",
+        "premium",
+        "relativeRisk",
+        "debtShare"
+      ],
+      "additionalProperties": false,
+      "description": "Drawn by code: show_widget recipe wacc_stack."
+    },
+    "CashWaterfall": {
+      "type": "object",
+      "properties": {
+        "base": {},
+        "growth": {
+          "type": "number"
+        },
+        "margin": {
+          "type": "number"
+        },
+        "salesToCapital": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "base",
+        "growth",
+        "margin",
+        "salesToCapital"
+      ],
+      "additionalProperties": false,
+      "description": "Drawn by code: show_widget recipe cash_waterfall."
+    },
+    "MultipleDecoder": {
+      "type": "object",
+      "properties": {
+        "subject": {},
+        "peers": {},
+        "assumptions": {},
+        "opening": {},
+        "growth": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "margin": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "subject",
+        "peers",
+        "assumptions",
+        "opening",
+        "growth",
+        "risk",
+        "margin"
+      ],
+      "additionalProperties": false,
+      "description": "Drawn by code: show_widget recipe multiple_decoder."
+    },
+    "Slice": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "category",
+        "value"
+      ],
+      "additionalProperties": false,
+      "description": "One slice with label and numeric value"
+    }
+  }
+}

@@ -1,0 +1,2 @@
+root = Widget("Your turn: which reading is right?", [move])
+move = RateMove(4, 5, "practice")

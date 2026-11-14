@@ -1,0 +1,405 @@
+# Spine Topic 9 (spec 2026-11-12, C2, C3, C4): how do you get from the business to one share? Taught through Damodaran's
+# February 2000 valuation of Amazon.com, the course's running company, with the Value bridge (B4) at explore, and
+# WeWork's lease obligations in its August 2019 prospectus as the claim a bridge must not leave out.
+# Amazon's valuation block is written once, in val-dcf (amazon-dcf-2000), and borrowed here with valuationFrom; every
+# figure the Widget and the computed questions show is worked out from it by the valuation engine (B1, D2).
+# Case sources (checked): Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, valuation done February
+# 2000); Amazon.com Form 10-K405 for 2000; WeWork (The We Company) Form S-1, 14 Aug 2019; Damodaran, "Runaway Story or
+# Meltdown in Motion?", 9 Sep 2019; Bloomberg, 7 Nov 2023; The Straits Times on the exit from bankruptcy.
+id: spine-09-to-one-share
+title: "How do you get from the business to one share?"
+goal: "Walk a value from the whole business to one share, and say who is paid before shareholders"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A share is worth what is left after everyone else is paid, so a good business can still be a poor share if lenders, landlords or option holders come first."
+minutes: 13
+exampleCurrency: USD
+
+cases:
+  - id: spine-09-amazon-2000
+    title: "Damodaran values Amazon.com"
+    data: [amazon-share-price-feb-2000, amazon-quarterly-high-2000, amazon-quarterly-low-2000]
+    # The datasets are imported once, under val-dcf's Case; this Case reads them under its own as-of date (no import of its own).
+    dataFrom: amazon-dcf-2000
+    # 3 February 2000: about $84 was that day's close, after the fourth-quarter results (as Spine Topic 1).
+    asOf: 2000-02-03
+    story: >
+      February 2000. Amazon.com's shares cost $84. Aswath Damodaran, a professor at New York
+      University, has valued Amazon's operations, the business itself, from his story of its future
+      cash. One more step is left before he can compare with the price: a share. Amazon has $26
+      million of cash and owes $349 million of debt. Its staff hold options to buy shares cheaply,
+      which he values at $2,892 million. There are 340.79 million shares. Who gets paid out of the
+      business before a shareholder sees anything, and which of these claims matters most?
+    reveal: >
+      The business was worth $15,170 million. Adding the cash and taking off the debt left $14,847
+      million; taking off the options left $11,955 million for shareholders, or $35.08 a share,
+      against the $84 price. (The bridge on screen re-works his figures from his rounded rates, so it
+      shows about $15.2 billion and $35; the gap is rounding.) The staff's options took a far bigger bite than the debt did.
+      The price fell through 2000: by the fourth quarter the shares had been as low as $14.88.
+    valuationFrom: amazon-dcf-2000
+  - id: spine-09-wework-2019
+    title: "WeWork's lease obligations"
+    asOf: 2019-08-14
+    story: >
+      On 14 August 2019 WeWork's parent, The We Company, published its IPO prospectus. WeWork
+      leases office buildings for years and rents desks in them on short contracts. The average first
+      term of its US leases was about 15 years; its members had committed, on average, for more than
+      15 months. At 30 June 2019 its balance sheet showed $17.9 billion of long-term lease
+      obligations, against $1.3 billion of long-term debt plus $2.7 billion of convertible notes owed
+      to its investors. The rent it had signed up to pay, not discounted, came to $47.2 billion,
+      including $13.1 billion on leases signed but not yet started. Should a valuation count the
+      leases before the shareholders?
+    reveal: >
+      On 9 September 2019 Damodaran valued WeWork counting the leases as debt: debt of $23.8 billion
+      including the lease commitments: about $22 billion of leases, counted his own way, plus about
+      $1.75 billion of other debt from its end-2018 accounts. It came to about $26 a share. WeWork withdrew its IPO on 30 September 2019. On 6 November
+      2023 it filed for Chapter 11 bankruptcy with nearly $19 billion of liabilities, and in the
+      restructuring it rejected leases it could not afford. The landlords had been ahead of the
+      shareholders all along.
+    valuationFrom: wework-leases-2019
+
+concept: >
+  A discounted cash flow gives the value of the business: its operations, worth the same whoever
+  funds them. A share is a claim on what is left. The bridge from one to the other adds what the
+  business does not need to run, such as cash, then takes off every claim that is paid first:
+  lenders' debt, leases that are promises to pay rent for years (they work like debt), and the value
+  of employee options, which will turn into new shares at a low price. What remains is equity value,
+  divided by the number of shares. The order matters because those claims are paid in full before
+  shareholders get anything, so a business can be worth a lot while its shares are worth little, or
+  nothing. A group of companies adds two more steps. Stakes it holds in other companies (cross
+  holdings) are not part of the operations the cash flows value, so they are added, like cash. And
+  when its accounts count the whole of a subsidiary it only partly owns, the part outside owners hold
+  (minority interests) is taken off, like debt. The bridge does not change the business; it changes
+  who owns how much of it.
+
+principle: >
+  A share gets what is left of the business after everyone ahead of it is paid. Before you compare
+  a value with a price, walk the bridge and count every claim: debt, leases, options and outside
+  owners of subsidiaries included, and add what the company owns in other companies.
+
+youllLearn:
+  - "Walk a value from the whole business to one share."
+  - "Name who is paid before shareholders, and which claim takes the biggest bite."
+  - "Count long leases as the promises to pay they are."
+
+terms:
+  - term: business value
+    means: What the whole business is worth to everyone with a claim on it, before cash, debt and options.
+    pro: The operating assets were worth about $15.2 billion.
+    example: "A house is worth its price, whoever holds the mortgage on it."
+    emoji: office-building
+    inStory: In the story, it is Damodaran's value of Amazon's operations.
+  - term: equity value
+    means: "What is left for shareholders: business value plus cash, less debt, leases and options."
+    pro: The common stock was worth about $12 billion, after the options.
+    example: "Your share of a house is its price less the mortgage still owed."
+    emoji: key
+    inStory: In the story, it is what is left for Amazon's shareholders after every claim.
+  - term: employee options
+    means: Rights the staff hold to buy shares cheaply later; their value comes off before a share is counted.
+    pro: The options were valued at $2,892 million.
+    example: "A coupon that lets a friend buy into your shop cheaply later takes a slice of what you own."
+    emoji: ticket
+    inStory: In the story, Amazon's staff hold options to buy shares cheaply.
+  - term: lease obligations
+    means: Rent a company has promised to pay for years ahead, counted like debt.
+    pro: Long-term lease obligations were $17.9 billion.
+    example: "A fifteen-year shop lease is owed even if the customers stop coming."
+    emoji: receipt
+    inStory: In the story, WeWork leases buildings for years and rents desks for months.
+  - term: minority interests
+    means: The part of a subsidiary owned by outside shareholders, taken off before the parent's own shareholders.
+    pro: Non-controlling interests, shown on the balance sheet below the parent's equity.
+    example: "If you own a little over half of a shop, the part your partner owns is not yours to count."
+    emoji: link
+    inStory: In the Check, Coffee Day's accounts count all of its logistics arm Sical, though other shareholders own part of it.
+
+skills:
+  - id: claims-first
+    rule: "Lenders, landlords, option holders and outside owners of subsidiaries are paid before shareholders; stakes in companies its accounts do not count in full are added, like cash; a share gets what is left."
+  - id: leases-debt
+    rule: "A long lease is a promise to pay, like debt; count it before the shareholders."
+
+primers:
+  - id: share-primer-equity
+    title: "Business value and share value"
+    lines:
+      - "Business value is what the whole company is worth, to everyone with a claim on it."
+      - "Equity value is the shareholders' part: business value plus cash, less debt, leases and options."
+      - "Match like with like: a whole-business measure goes with business value, a share measure with equity value."
+    term: equity value
+    quickTry:
+      id: share-primer-try
+      skill: claims-first
+      ask: "On 20 August 2019 a newspaper put the stock market value of IWG, a rival that rents out office space like WeWork, at $4.45 billion, counting its shares only. Which is it?"
+      kind: choice
+      answer: equity
+      choices:
+        - { id: equity, text: "Equity value: the shareholders' part" }
+        - id: business
+          text: "Business value: the whole company"
+          mistake: { tag: equity_as_business, fix: "It counts the shares only and leaves out IWG's debt, so it is the shareholders' part." }
+    elective: val-multiples
+    at: concept
+
+insight:
+  question: "Move the cash, the debt and the options on the bridge. Which claim takes the biggest bite out of what Amazon's shareholders get, and how far can debt go before they get nothing?"
+  written: "Lenders, landlords and option holders are paid before shareholders: for Amazon the staff's options took a far bigger bite than its debt, and enough debt leaves shareholders nothing while the business stays exactly the same."
+  foundWhen: "The Learner names the options as Amazon's biggest claim ahead of shareholders (bigger than its debt), and says that raising debt or leases can leave shareholders nothing without changing the business."
+  hints:
+    - "Set the options to nothing, then put them back. Compare that with setting the debt to nothing."
+    - "Now raise the debt until a share is worth nothing. WeWork's leases alone were bigger than Amazon's whole business. Did the business value move?"
+
+explore:
+  before: share-check
+  workbench:
+    recipe: value_bridge
+    case: spine-09-amazon-2000
+    title: "From Amazon's business to one share"
+    inputs: {}
+
+connections:
+  - text: "The DCF Topic builds the business value this bridge starts from."
+    topics: [val-dcf]
+  - text: "The balance sheet is where cash, debt, stakes in other companies and minority interests are written down; leases and debt shows how to count a lease as a promise to pay."
+    topics: [fs-balance, fs-leases-debt]
+  - text: "Reading a company's commitments means finding every promise to pay, on the balance sheet or off it, before the shareholders; multiples need the same bridge."
+    topics: [ana-commitments-debt, val-multiples]
+
+questions:
+  - id: share-q-lever
+    kind: which_lever
+    prompt: "From his story, which single change moves the value of one share most?"
+    skill: claims-first
+    explanation: "Every claim comes off dollar for dollar before shareholders, so the change that moves the most money ahead of them moves a share most."
+    computed:
+      case: spine-09-amazon-2000
+      changes:
+        - { id: options-none, label: "Options, from $2,892m to nothing", levers: { options: 0 } }
+        - { id: debt-up, label: "Debt, from $349m to $2,349m", levers: { debt: 2349 } }
+        - { id: cash-up, label: "Cash, from $26m to $1,026m", levers: { cash: 1026 } }
+        - { id: debt-none, label: "Debt, from $349m to nothing", levers: { debt: 0 } }
+
+  - id: share-q-predict
+    kind: predict
+    prompt: "Keep his business value for Amazon. If {change}, the value of one share will be:"
+    skill: claims-first
+    explanation: "The business does not move on the bridge; only the shareholders' part shrinks as the debt ahead of them grows."
+    computed:
+      case: spine-09-amazon-2000
+      changes:
+        - { id: four, label: "debt rose from $349m to $4,349m", levers: { debt: 4349 } }
+        - { id: eight, label: "debt rose from $349m to $8,349m", levers: { debt: 8349 } }
+      bands:
+        - { id: same, label: "Barely changed", min: 0.9 }
+        - { id: two-thirds, label: "About two thirds", min: 0.55, max: 0.9 }
+        - { id: third, label: "About a third", min: 0.2, max: 0.55 }
+        - { id: nothing, label: "Little or nothing left", max: 0.2 }
+
+  - id: share-q-direction-leases
+    kind: direction
+    prompt: "WeWork's balance sheet left out $13.1 billion of leases it had signed that had yet to start. Once you count them, which part of the bridge grows, and which way does a share move?"
+    skill: leases-debt
+    choices:
+      - { id: leases-up, text: "Debt and leases grow, so a share is worth less" }
+      - id: business-up
+        text: "Business value grows, so a share is worth more"
+        mistake: { tag: lease_as_asset, fix: "New space may earn rent later, but first each lease is a promise to pay, a claim ahead of shareholders." }
+      - id: none
+        text: "Nothing moves until the leases start"
+        mistake: { tag: promise_ignored, fix: "A signed lease is owed from the day it is signed, so it counts now." }
+    answer: leases-up
+    explanation: "A signed lease is a promise to pay rent for years, so it sits with debt, before the shareholders."
+    source: "WeWork (The We Company) Form S-1, 14 Aug 2019: $13.1 billion of executed non-cancelable leases not yet commenced. https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm"
+
+  - id: share-q-predict-wework
+    kind: predict
+    prompt: "Suppose you value WeWork counting its leases as debt. If {change}, the value of one share would be:"
+    skill: leases-debt
+    explanation: "The leases were most of what WeWork owed, so leaving them out hands the landlords' claim to the shareholders on paper; the rent is still owed."
+    computed:
+      case: spine-09-wework-2019
+      changes:
+        - { id: no-leases, label: "the leases were left out, leaving the $1.75 billion of other debt in its end-2018 accounts", levers: { debt: 1749.57 } }
+      bands:
+        - { id: same, label: "About the same", max: 1.2 }
+        - { id: half-again, label: "About half as much again", min: 1.2, max: 1.8 }
+        - { id: double, label: "Twice as much or more", min: 1.8 }
+
+  - id: share-q-direction-group
+    kind: direction
+    prompt: "At the end of March 2019 Coffee Day owned 17.12% of the IT company Mindtree. Its accounts also counted all of its logistics arm Sical, though it owned only a little over half of it. On the bridge from Coffee Day's business to one share, what happens to each?"
+    skill: claims-first
+    choices:
+      - { id: add-take, text: "The Mindtree stake is added; the part of Sical others own is taken off" }
+      - id: take-add
+        text: "The Mindtree stake is taken off; the part of Sical others own is added"
+        mistake: { tag: bridge_backwards, fix: "A stake in another company is something Coffee Day owns, so it is added. The part of Sical others own is theirs, so it comes off." }
+      - id: neither
+        text: "Neither moves: both are already in the business"
+        mistake: { tag: group_ignored, fix: "Mindtree is not part of Coffee Day's operations, so it is added on top; and the business counts all of Sical, so the outside owners' part comes off." }
+    answer: add-take
+    explanation: "A cross holding is owned but sits outside the operations, so it is added like cash; a minority interest is a slice of a subsidiary the parent counts in full, so it is taken off like debt."
+    source: "Coffee Day Enterprises Annual Report 2018-19: Mindtree, 2,74,56,012 shares (17.12%) in the associates table; non-controlling interests of ₹637.06 crore on the consolidated balance sheet; Sical held at a little over half (research note in docs/research/verify-coffee-day.json, to confirm against the report). https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf"
+
+  - id: share-q-direction-options
+    kind: direction
+    prompt: "Amazon grants its staff many more options, and the business stays the same. Which way does the value of one share move?"
+    skill: claims-first
+    choices:
+      - { id: down, text: "Down" }
+      - id: up
+        text: "Up: the staff will work harder"
+        mistake: { tag: options_as_free, fix: "Keep the business the same: then option holders take a bigger slice before shareholders." }
+      - id: same
+        text: "It stays the same: the business did not change"
+        mistake: { tag: claims_ignored, fix: "The business is the same, but more of it now goes to option holders first." }
+    answer: down
+    explanation: "Options turn into shares at a low price, so their value comes off before a share is counted."
+    source: "Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, February 2000): the value of the options is deducted from equity."
+
+  - id: share-q-hold
+    kind: cannot_hold
+    prompt: "Which bridge from business to share contradicts itself?"
+    skill: claims-first
+    choices:
+      - { id: bigger-debt, text: "Debt and leases are bigger than the whole business, yet each share is worth a lot" }
+      - id: small-claims
+        text: "Debt and options are small, so shareholders keep most of the business"
+        mistake: { tag: small_claims_fine, fix: "Small claims leave most of the business to shareholders. That holds together." }
+      - id: big-cash
+        text: "The company holds more cash than its debt and options together, so its shares are worth more than the business alone"
+        mistake: { tag: cash_fine, fix: "Cash is added on the bridge, so equity can top the business. That holds together." }
+    answer: bigger-debt
+    explanation: "When the claims ahead of shareholders are bigger than the business, nothing is left for a share."
+    source: "Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, February 2000): equity is the business plus cash, less debt."
+
+  - id: share-q-price-wework
+    kind: price_or_value
+    prompt: "In January 2019 investors bought WeWork shares in a funding round that put a value of $47 billion on the whole company, a different figure from the $47.2 billion of rent it owed. Is that a price or a value?"
+    skill: claims-first
+    choices:
+      - { id: price, text: "A price" }
+      - id: value
+        text: "A value"
+        mistake: { tag: price_for_value, fix: "Investors paid it in a deal, so it is a price, whatever the business was worth." }
+    answer: price
+    explanation: "A funding round is a price that investors paid; a value would come from WeWork's own future cash, after the leases."
+    source: "CNBC and Reuters, 8 Jan 2019, as cited in the val-multiples Topic: the January 2019 round valued WeWork at $47 billion."
+
+  - id: share-q-value-amazon
+    kind: price_or_value
+    prompt: "Damodaran put Amazon's common stock at $11,955 million, after the options. Is that a price or a value?"
+    skill: claims-first
+    choices:
+      - { id: value, text: "A value" }
+      - id: price
+        text: "A price"
+        mistake: { tag: value_for_price, fix: "Nobody paid it: he argued it from his story and the bridge, so it is a value." }
+    answer: value
+    explanation: "It is his estimate, walked from the business to the shareholders' part."
+    source: "Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, February 2000)."
+
+checks:
+  - id: share-check
+    kind: quiz
+    questions: [share-q-lever, share-q-predict, share-q-predict-wework, share-q-direction-leases, share-q-direction-group, share-q-direction-options, share-q-hold, share-q-price-wework, share-q-value-amazon]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: "From the business to one share"
+      lines:
+        - "A valuation first gives the business value: what the whole business is worth."
+        - "Add cash and stakes the accounts leave out; take off every claim paid first: debt, leases, options, minority interests."
+        - "What is left is equity value, shared among the shares."
+        - "The bridge never changes the business, only who owns how much of it."
+      writeDown: "A share gets what is left after lenders, landlords, option holders and outside owners of subsidiaries."
+      skills: [claims-first, leases-debt]
+    quickTries:
+      - id: share-try-claims-half
+        skill: claims-first
+        ask: "Amazon owes money to lenders, and its staff hold options. Out of the business, who is paid last?"
+        halfDone: "First step, done for you: lenders are owed a fixed sum, and options turn into new shares bought cheaply."
+        kind: choice
+        answer: shareholders
+        choices:
+          - { id: shareholders, text: "The shareholders" }
+          - id: lenders
+            text: "The lenders"
+            mistake: { tag: lenders_last, fix: "Lenders are owed a fixed sum and are paid first. Shareholders get what is left." }
+      - id: share-try-claims-2
+        skill: claims-first
+        ask: "Which claim took the bigger bite out of what Amazon's shareholders got?"
+        kind: choice
+        answer: options
+        choices:
+          - { id: options, text: "The staff's options" }
+          - id: debt
+            text: "The debt"
+            mistake: { tag: debt_biggest, fix: "Debt was $349 million; the options were $2,892 million." }
+      - id: share-try-claims-computed
+        skill: claims-first
+        kind: which_lever
+        ask: "From his story, which single change adds most to the value of one share?"
+        computed:
+          case: spine-09-amazon-2000
+          changes:
+            - { id: options-none, label: "Options, from $2,892m to nothing", levers: { options: 0 } }
+            - { id: debt-none, label: "Debt, from $349m to nothing", levers: { debt: 0 } }
+            - { id: cash-up, label: "Cash, from $26m to $1,026m", levers: { cash: 1026 } }
+      - id: share-try-cross-holding
+        skill: claims-first
+        ask: "WeWork's prospectus showed $218 million invested in other companies at the end of 2018. A valuation of its office business leaves them out. On the bridge to one share, where do they go?"
+        kind: choice
+        answer: added
+        choices:
+          - { id: added, text: "Added, like cash" }
+          - id: taken
+            text: "Taken off, like debt"
+            mistake: { tag: holding_as_claim, fix: "WeWork owns the stakes, so they add to what its shareholders have. Claims are what others are owed." }
+      - id: share-try-minority
+        skill: claims-first
+        ask: "A company's accounts count all of a subsidiary it owns a little over half of. On the bridge to one of the company's shares, what happens to the part outside owners hold?"
+        kind: choice
+        answer: taken
+        choices:
+          - { id: taken, text: "It is taken off, like debt" }
+          - id: kept
+            text: "It stays in: the accounts count all of it"
+            mistake: { tag: minority_kept, fix: "The accounts count all of it, so the outside owners' part must come off: it belongs to them." }
+      - id: share-try-leases-half
+        skill: leases-debt
+        ask: "WeWork's US leases ran about 15 years, but its members committed for about 15 months. If members leave, who still owes the rent?"
+        halfDone: "First step, done for you: a lease is a promise to pay the landlord for its whole term."
+        kind: choice
+        answer: wework
+        choices:
+          - { id: wework, text: "WeWork" }
+          - id: members
+            text: "The members who left"
+            mistake: { tag: members_pay, fix: "Members signed short contracts with WeWork. WeWork signed the long leases with landlords." }
+      - id: share-try-leases-2
+        skill: leases-debt
+        ask: "WeWork had signed up to pay $47.2 billion of future rent. On the bridge from business to one share, where does that promise belong?"
+        kind: choice
+        answer: claims
+        choices:
+          - { id: claims, text: "With debt, taken off before shareholders" }
+          - id: added
+            text: "Added to the business value"
+            mistake: { tag: lease_as_asset, fix: "Rent owed is money going out to landlords: a claim that comes first." }
+      - id: share-try-leases-3
+        skill: leases-debt
+        ask: "Two cafe chains run the same business. One owns its shops; the other rents them on twenty-year leases. Once leases count as debt, which leaves shareholders less?"
+        kind: choice
+        answer: renter
+        choices:
+          - { id: renter, text: "The one that rents on long leases" }
+          - id: owner
+            text: "The one that owns its shops"
+            mistake: { tag: owning_as_debt, fix: "Owning a shop is no promise to pay. Twenty years of rent is." }
+
+  - id: share-talk
+    kind: conversation
+    prompt: "Walk Amazon from its business to one share in your own words. Who is paid before the shareholders, and which claim surprised you most?"
+    passCriteria: "Starts from the value of the business; adds cash and takes off debt and the options (and says leases would come off too, like debt); says shareholders get what is left, divided among the shares; names a claim that surprised them, such as the options being far bigger than the debt."
+    skills: [claims-first, leases-debt]

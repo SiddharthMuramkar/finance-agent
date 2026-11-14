@@ -1,0 +1,457 @@
+# Spine Topic 2 (spec 2026-11-12, C2, C4): why money later is worth less, taught through the Mega Millions jackpot of
+# October 2018. It explores the written-ahead annuity Widget (C4: "The annuity Widget (existing)"), cut from the Present
+# value Elective. Case ids are unique across files, so the jackpot Case is "spine-02-jackpot-2018"; it reads the Case Data
+# imported once under present-value's mega-millions-2018 (dataFrom), so it needs no import of its own. The Check's
+# computed questions need a Case with a valuation block (lint L13, D4), and an annuity cannot hold one, so a second,
+# short Case borrows Amazon's from val-dcf (valuationFrom): what the discount rate does to a business whose cash comes
+# late, the bridge to Spine Topic 1.
+# Facts: course/topics/present-value.yaml (sources there and in the outline), spec Appendix B.4 for the payments.
+# Every figure a computed question shows is the engine's (ADR 0021); no sum is asked (ADR 0009).
+id: spine-02-money-later
+title: Why is money later worth less?
+goal: Bring payments made at different dates to today before comparing them, and find the rate that makes two offers equal.
+# Why it matters (spec A6): thirty words or fewer, in words.
+why: "A company is worth its future cash brought back to today. Money later is worth less, so how far off the cash is decides much of the value."
+minutes: 12
+exampleCurrency: USD
+
+cases:
+  - id: spine-02-jackpot-2018
+    title: The $1.537 billion Mega Millions jackpot
+    asOf: 2018-10-24
+    data: [advertised-annuity, cash-option, treasury-30-year, winner-cash-payment]
+    # The datasets are imported once, under present-value's Case; this Case reads them under its own as-of date.
+    dataFrom: mega-millions-2018
+    story: >
+      On 23 October 2018 a single ticket sold in Simpsonville, South Carolina matched all six
+      numbers in the US Mega Millions lottery. The advertised jackpot was $1.537 billion, but that
+      figure was the total of an annuity: 30 yearly payments, one now and one each year for the next
+      29 years. Each payment was 5% larger than the one before, starting at about $23.1 million, so
+      the last would be about $95.2 million. The same prize was also offered as one cash payment of
+      about $877.8 million. Both figures were before tax. The winner had 180 days to come forward
+      and choose. As of 24 October 2018 nobody knew who held the ticket or which option they would pick.
+    reveal: >
+      The winner stayed anonymous, came forward on 4 March 2019 and took the cash option: a one-time
+      payment of $877,784,124 before tax. The cash
+      figure was not a penalty for impatience made up by the lottery. It was roughly what the lottery
+      would have had to spend on bonds to fund the 30 payments: the present value of the annuity at
+      the interest rates of the time.
+  # The bridge to valuing a company: Damodaran's Amazon of February 2000 (Spine Topic 1), whose valuation block lives in
+  # val-dcf. Only the Check's computed questions use it; the explore step stays on the jackpot. Its as-of date is the
+  # jackpot's, since the earliest as-of date of a Topic's Cases gates what may be shown before the reveal, and the
+  # story looks back from there: everything in it was known by October 2018.
+  - id: spine-02-amazon-2000
+    title: Damodaran's Amazon, whose cash comes late
+    asOf: 2018-10-24
+    valuationFrom: amazon-dcf-2000
+    story: >
+      Looking back to February 2000, as in the first Topic. Amazon was an online retailer; in the
+      twelve months to September 1999 it sold $1,117 million and lost $410 million on its operations,
+      and its shares cost $84. Aswath Damodaran, a professor in New York, valued it from a story: losses
+      for some years, then profits, with most of the cash arriving many years later. He brought every
+      year's cash back to today at a cost of capital, his discount rate for the business, that started
+      at 12.84% a year and eased to 9.61% by year 10 as the company matured.
+    reveal: >
+      His story came to $35.08 a share against the $84 price. All of the value, and more, came from years
+      after year 10, because the first years lost money: the rate used to bring that late cash
+      back is one of the things the value depends on.
+
+concept: >
+  Money available today is worth more than the same amount later, because today's money can be
+  invested to grow. Present value turns a later payment into today's money by discounting it: for
+  each year of waiting, divide by one plus the yearly rate. For example,
+  {{formula:present-value amount=1000 ratePercent=10 years=5}}
+  A stream of payments is worth the sum of each payment's present value, so an advertised total that
+  adds up payments made at different dates is larger than what the stream is worth today. The higher
+  the rate, or the longer the wait, the less a later payment is worth, and the far-off payments
+  shrink the most. Two offers paid at different dates are worth the same at one rate: below it the
+  later money is worth more, above it the money now is. A company is valued the same way: its future
+  cash, year by year, is brought back to today.
+
+formulas: [present-value]
+
+principle: >
+  An advertised total that adds up payments made at different times overstates what they are worth.
+  Bring every payment to the same date before you compare, and ask which rate makes two offers equal:
+  that rate is the real question behind the choice.
+
+youllLearn:
+  - "See why money paid later is worth less than money in your hand."
+  - "Bring payments made at different dates to today before comparing them."
+  - "Find the rate at which two offers are worth the same, and use it to choose."
+
+terms:
+  - term: present value
+    means: What a later payment is worth in today's money, after allowing for the cost of waiting.
+    pro: We discount the cash flows to get their present value.
+    example: "$100 promised in a year is worth less than $100 in your hand today."
+    emoji: hourglass-not-done
+    inStory: In the story, the lottery offers money now or money spread over 30 years.
+  - term: discount rate
+    means: The yearly rate used to shrink a later payment into today's money.
+    pro: What discount rate are you using for those payments?
+    example: "If your bank pays 5 percent a year, $105 next year is worth $100 today."
+    emoji: chart-decreasing
+    inStory: In the story, a higher discount rate makes the later payments worth less.
+  - term: annuity
+    means: A stream of payments made at regular times, such as once a year.
+    pro: The prize is paid as a thirty-year annuity.
+    example: "A pension paid every month is an annuity: money arrives on a schedule."
+    emoji: calendar
+    inStory: In the story, the advertised jackpot is 30 yearly payments.
+  - term: cash option
+    means: The choice to take a smaller single payment today instead of the advertised annuity.
+    pro: Do you want the annuity or the cash option?
+    example: "A shop offers $900 now or $1,000 in a year: taking the $900 is the cash option."
+    emoji: coin
+    inStory: In the story, the winner has 180 days to come forward and choose.
+  - term: compounding
+    means: "Growth earned on growth: each year's gain joins the total, and the next year grows on that."
+    pro: Compounding does the heavy lifting over long horizons.
+    example: "Leave $100 in a deposit at 5%: next year the interest earns interest of its own."
+    emoji: seedling
+    inStory: In the story, each payment is 5% larger than the one before, growth on growth.
+
+scenes:
+  - id: ml-opening
+    step: story
+    recipe: story_scene
+    title: A record jackpot, two ways to take it
+    inputs:
+      cast:
+        - { id: lottery, emoji: ticket, name: The lottery, role: pays the prize }
+        - { id: analyst, emoji: thinking-face, name: An analyst, role: compares the offers }
+      beats:
+        - { who: narrator, says: "One ticket sold in South Carolina matches all six numbers.", emoji: ticket }
+        - { who: lottery, says: "The advertised jackpot is $1.537 billion, in 30 yearly payments.", emoji: trophy }
+        - { who: lottery, says: "Or take one cash payment of about $877.8 million now.", emoji: money-bag }
+        - { who: analyst, says: "Why is the cash so much smaller than the jackpot?", emoji: thinking-face }
+      caption: 24 October 2018, before the winner comes forward
+      date: "2018-10-24"
+  - id: ml-front-page
+    step: reveal
+    recipe: headline
+    title: The day the winner stepped forward
+    inputs:
+      paper: The morning paper
+      date: "2019-03-05"
+      headline: Record Mega Millions jackpot claimed, winner takes the cash option
+      deck: An imagined front page. A one-time payment of $877,784,124, before tax.
+      source: https://www.reuters.com/article/lifestyle/south-carolina-lottery-winner-claims-record-877-million-cash-prize-idUSKCN1QM09L/
+
+skills:
+  - id: discounting
+    rule: "Money later is worth less today: for each year of waiting, divide it by one plus the yearly rate."
+    analogy: "A dollar in hand can be put to work; a promised dollar cannot, until it arrives."
+  - id: equal-rate
+    rule: "Two offers paid at different dates are worth the same at one rate; above it the money now is worth more, below it the later money is."
+
+# The Insight (ADR 0001), found at explore with the annuity Widget. Words only.
+insight:
+  question: >
+    Move the interest rate and watch what the payments are worth today against the cash on offer.
+    Is there a rate where the choice flips? What would that rate mean for the winner?
+  written: >
+    There is one interest rate at which the whole stream of payments is worth exactly the cash on
+    offer. Below it the payments are worth more than the cash; above it the cash is worth more. So
+    taking the cash is a bet that the winner can earn more than that rate on the money.
+  foundWhen: >
+    The Learner finds, or closes in on, the rate where the payments and the cash are worth the same,
+    and says in their own words that below it the payments win and above it the cash wins, tying the
+    choice to what the winner could earn on the money. Noticing only that higher rates shrink the
+    payments is not yet enough.
+  hints:
+    - >
+      Start at no interest at all, where the payments are worth their advertised total, then raise the
+      rate slowly. Watch the gap between the payments and the cash close.
+    - >
+      Find where the gap disappears. If the winner could earn more than that on the cash, which offer
+      would they rather have?
+
+explore:
+  before: ml-check
+  requiredWhenPassed: false
+  widget: ml-annuity
+
+# The owner's annuity Widget, as the Present value Elective has it (spec C4: the annuity Widget, existing). Until the
+# Insight is settled the chart hides its verdict and break-even (code works both out); until the reveal the 30-year
+# Treasury quick button and task stay out. The second task ticks near the break-even code works out (spec B.4).
+widgets:
+  - id: ml-annuity
+    parts: [AnnuityChart, annuity_schedule]
+    code: |
+      root = Widget("What the jackpot payments are worth today", [rate, chart, steps])
+      $rate = 5
+      rate = Slider("rate", "Interest rate (discount rate)", 0, 10, 0.01, $rate, "percent", [{value: 0}])
+      chart = AnnuityChart(1537000000, 30, 5, $rate, "spine-02-jackpot-2018/cash-option", 2018)
+      steps = GuidedTasks([zero, even])
+      zero = GuidedTask("Set the rate to 0%: the payments are worth the advertised $1.537B", $rate == 0)
+      even = GuidedTask("Find the rate where the payments are worth the same as the cash", $rate >= 3.33 && $rate <= 3.43)
+    revealTask:
+      case: spine-02-jackpot-2018
+      dataset: treasury-30-year
+      text: "Set the 30-year Treasury yield of 24 Oct 2018: {before}%"
+      done: "$rate == {before}"
+      quick: { slider: rate, note: "30-yr Treasury, 24 Oct 2018" }
+
+found:
+  - when: { kind: ticked, widget: ml-annuity, task: 2 }
+    text: You found the rate where the jackpot payments are worth the same as the cash.
+
+# Primer (spec C3): Growth on growth, cut from the Growth and compounding Elective.
+primers:
+  - id: ml-primer-growth
+    title: Growth on growth
+    lines:
+      - "Growth compounds: each year's growth is earned on the new, bigger total."
+      - "At 5% a year, $100 becomes $105, then $110.25: the second year adds more than the first."
+      - "Discounting runs the same steps backwards, one year at a time."
+    term: compounding
+    quickTry:
+      id: ml-primer-try
+      skill: discounting
+      ask: "At 5% a year, $100 today grows to $110.25 in two years. What is $110.25 promised in two years worth today, at 5%?"
+      kind: choice
+      answer: hundred
+      choices:
+        - { id: hundred, text: "$100: discounting runs the same growth backwards" }
+        - { id: full, text: "$110.25: it is the same money", mistake: { tag: ignores_waiting, fix: "Money in two years is worth less today. Run the growth backwards to get today's worth." } }
+        - { id: more, text: "More than $110.25, because it has grown", mistake: { tag: later_is_bigger, fix: "Growing forward makes it bigger later; bringing it back to today makes it smaller." } }
+    elective: num-compounding
+    at: concept
+
+connections:
+  - text: >
+      A bond's yield is the market's discount rate for its payments. When yields rise, bond prices
+      fall, and the bonds whose payments are furthest away fall the most.
+    topics: [bond-pricing, bond-yield]
+  - text: >
+      A business is valued by bringing each year's cash back to today. When most of that cash comes
+      late, as for a young company, the discount rate matters, though often less than how big the
+      business gets and what it keeps.
+    topics: [val-dcf, spine-07-risk]
+
+questions:
+  # Price or value (D1).
+  - id: ml-q-cash-offer
+    kind: price_or_value
+    skill: equal-rate
+    prompt: >
+      October 2018. The lottery offers the winner about $877.8 million in cash in place of the 30
+      payments. Is that cash offer a price or a value?
+    choices:
+      - { id: price, text: "A price: what the lottery will pay today to swap the payments" }
+      - id: value
+        text: "A value: what the payments are worth to the winner"
+        mistake: { tag: price_for_value, fix: "The offer is what the lottery pays. What the payments are worth depends on the rate the winner can earn." }
+    answer: price
+    explanation: >
+      The cash is what the lottery will hand over today, so it is a price. What the 30 payments are
+      worth to a winner depends on the rate that winner could earn on money: a value. The two match
+      only at one rate.
+    source: "Mega Millions, Record jackpot won in South Carolina: https://www.megamillions.com/News/2018/Record-Mega-Millions-Jackpot-Won-in-South-Carolina.aspx"
+  # Direction (D1).
+  - id: ml-q-rates-rise
+    kind: direction
+    skill: discounting
+    prompt: >
+      Suppose interest rates had risen the week after the draw. Which way does that move what the 30
+      payments are worth today, and which payments move most?
+    choices:
+      - { id: down-late, text: "Down, and the last payments shrink the most" }
+      - id: down-even
+        text: "Down, and every payment shrinks by the same share"
+        mistake: { tag: discounted_once, fix: "Each year of waiting divides by one plus the rate again, so the furthest payments shrink most." }
+      - id: up
+        text: "Up, because a higher rate means more interest"
+        mistake: { tag: rate_direction, fix: "A higher rate is a higher price of waiting, so later money is worth less today." }
+      - id: same
+        text: "No change: the payments are fixed in dollars"
+        mistake: { tag: ignores_rate, fix: "The dollars are fixed, but their worth today depends on the rate." }
+    answer: down-late
+    explanation: >
+      A higher rate shrinks every later payment, and the effect builds with each year of waiting, so
+      the payments 25 or 29 years away lose the most of their worth today.
+    source: "CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money"
+  # Story that cannot hold (D1).
+  - id: ml-q-cannot-hold
+    kind: cannot_hold
+    skill: discounting
+    prompt: >
+      Three readers describe the jackpot. Which description contradicts itself?
+    choices:
+      - { id: zero-less, text: "At a 0% rate, the payments are worth less today than the $1.537 billion they add up to" }
+      - id: high-cash
+        text: "At a high enough rate, the cash option is worth more than the payments"
+        mistake: { tag: dull_is_fine, fix: "That one holds: a high rate shrinks the later payments below the cash." }
+      - id: last-less
+        text: "The last payment is the biggest, yet worth the least today"
+        mistake: { tag: dull_is_fine, fix: "That one holds: it is the largest in dollars but waits the longest." }
+    answer: zero-less
+    explanation: >
+      At a 0% rate waiting costs nothing, so each payment is worth its face amount and the stream is
+      worth exactly the advertised total. The other two hold: a high rate favours the cash, and the
+      last payment is the largest but the most discounted.
+    source: "Spec Appendix B.4 (the jackpot Explorable): at 0% the payments are worth the advertised $1,537.0M."
+  # Predict, then see (D1), computed from Amazon's valuation block: never marked wrong.
+  - id: ml-q-predict-rate
+    kind: predict
+    skill: discounting
+    prompt: "Amazon's cash arrives late, after years of losses. With {change} in place of Damodaran's 12.84%, his value of one Amazon share would be:"
+    explanation: "A higher rate shrinks every later year's cash, and Amazon's cash is nearly all late."
+    computed:
+      case: spine-02-amazon-2000
+      changes:
+        - { id: rate-16, label: "a starting cost of capital of 16%", levers: { costOfCapitalGrowing: 16 } }
+        - { id: rate-14, label: "a starting cost of capital of 14%", levers: { costOfCapitalGrowing: 14 } }
+      bands:
+        - { id: same, label: "About the same", min: 0.95 }
+        - { id: some, label: "Lower by a tenth to a third", min: 0.6, max: 0.95 }
+        - { id: most, label: "Lower by half or more", max: 0.6 }
+  # Which lever (D1), computed from Amazon's valuation block: the rate on the far years against the near ones.
+  - id: ml-q-far-rate
+    kind: which_lever
+    skill: discounting
+    prompt: >
+      In Damodaran's story all of Amazon's value, and more, comes from cash after year 10: the first
+      years lose money. Which single change lowers his value of one share most?
+    explanation: "The rate for the far years sets what all that late cash is worth, and the late cash holds all the value. The first years' rate only carries that worth back to today, so a point on it moves the value less."
+    computed:
+      case: spine-02-amazon-2000
+      changes:
+        - { id: far-one, label: "One more point on the rate for the far years: 10.61% from year 10, not 9.61%", levers: { costOfCapitalAfter: 10.61 } }
+        - { id: near-two, label: "Two more points on the rate for the first years: 14.84%, not 12.84%", levers: { costOfCapitalGrowing: 14.84 } }
+        - { id: smaller, label: "Sales in year 10 are $36bn, not $39bn", levers: { revenueYear10: 36000 } }
+        - { id: near-three, label: "Three more points on the rate for the first years: 15.84%, not 12.84%", levers: { costOfCapitalGrowing: 15.84 } }
+        - { id: far-two, label: "Two more points on the rate for the far years: 11.61% from year 10, not 9.61%", levers: { costOfCapitalAfter: 11.61 } }
+  # Not a judgement kind: choosing with the rate that makes the two equal.
+  - id: ml-q-choose
+    skill: equal-rate
+    prompt: >
+      A winner works out the one rate at which the payments and the cash are worth the same. She is
+      sure she can earn more than that rate, every year, on money she holds. Which should she take?
+    choices:
+      - { id: cash, text: "The cash: invested at her higher rate, it beats the payments" }
+      - id: payments
+        text: "The payments: they add up to more dollars"
+        mistake: { tag: later_is_bigger, fix: "Adding dollars from different dates ignores the cost of waiting. At her rate the payments are worth less than the cash." }
+      - id: either
+        text: "Either: at any rate the two are worth the same"
+        mistake: { tag: ignores_rate, fix: "They are equal at one rate only. Above it the cash is worth more." }
+    answer: cash
+    explanation: >
+      Above the rate where the two are equal, the payments shrink below the cash, so a winner who can earn more than that
+      rate is better off with the cash. A winner who could earn less, or wants forced saving, might
+      prefer the payments.
+    source: "Mega Millions, Record jackpot won in South Carolina: https://www.megamillions.com/News/2018/Record-Mega-Millions-Jackpot-Won-in-South-Carolina.aspx ; CFA Institute, Time Value of Money in Finance (2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money"
+  # Not a judgement kind: what an advertised total measures.
+  - id: ml-q-headline
+    skill: discounting
+    prompt: >
+      A headline reads "Winner gets $1.537 billion". Which describes that figure best?
+    choices:
+      - { id: total, text: "30 yearly payments, added up as if all were paid today" }
+      - id: worth
+        text: "What the prize is worth to the winner today"
+        mistake: { tag: ignores_waiting, fix: "Only the first payment is paid today. Every later one is worth less than its face amount." }
+      - id: cash
+        text: "The cash the winner can take now"
+        mistake: { tag: mixed_up_terms, fix: "The cash option was about $877.8 million, far less than the advertised total." }
+    answer: total
+    explanation: >
+      The advertised figure adds up 30 payments made over 29 years without discounting any of them, so
+      it is larger than what the stream is worth today at any positive rate.
+    source: "Mega Millions, Record jackpot won in South Carolina: https://www.megamillions.com/News/2018/Record-Mega-Millions-Jackpot-Won-in-South-Carolina.aspx"
+
+checks:
+  - id: ml-check
+    kind: quiz
+    questions: [ml-q-cash-offer, ml-q-rates-rise, ml-q-cannot-hold, ml-q-predict-rate, ml-q-far-rate, ml-q-choose, ml-q-headline]
+    perAttempt: 4
+    passRule:
+      correct: 3
+    card:
+      title: "Money later is worth less"
+      lines:
+        - "A dollar today can be invested, so a dollar paid later is worth less today."
+        - "To bring a payment back one year, divide it by one plus the rate. At 4%, $104 next year is $100 today."
+        - "The higher the rate, or the longer the wait, the less a later payment is worth."
+        - "Two offers paid at different dates are worth the same at one rate only."
+      writeDown: "Bring every payment to today before comparing; then ask which rate makes them equal."
+      skills: [discounting, equal-rate]
+      example: [104, 4, 100]
+    quickTries:
+      - id: ml-try-wait-half
+        skill: discounting
+        ask: "You are owed $500, either today or in three years. Which is worth more to you today?"
+        halfDone: "First step, done for you: money you hold today can earn interest for three years."
+        kind: choice
+        answer: today
+        choices:
+          - { id: today, text: "The $500 today" }
+          - { id: later, text: "The $500 in three years", mistake: { tag: later_is_bigger, fix: "The same dollars later are worth less: today's dollars could earn for three years." } }
+          - { id: same, text: "They are worth the same", mistake: { tag: ignores_waiting, fix: "Waiting has a cost, so the later $500 is worth less today." } }
+      - id: ml-try-two-years
+        skill: discounting
+        ask: "A friend promises you $1,000 in one year, or the same $1,000 in two years. Which is worth more to you today?"
+        kind: choice
+        answer: one
+        choices:
+          - { id: one, text: "The $1,000 in one year: it waits less" }
+          - { id: two, text: "The $1,000 in two years", mistake: { tag: later_is_bigger, fix: "The same dollars later are worth less: the extra year of waiting is discounted again." } }
+          - { id: same, text: "They are worth the same", mistake: { tag: discounted_once, fix: "Each year of waiting adds a discount, so the two-year promise is worth less today." } }
+      - id: ml-try-higher-rate
+        skill: discounting
+        ask: "True or false: at a higher discount rate, a payment due in ten years is worth more today."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "A higher rate shrinks a later payment more, so it is worth less today.", tag: rate_direction }
+      - id: ml-try-far-near
+        skill: discounting
+        ask: "Two payments of the same size, one due in 2 years and one in 20. The rate rises. Which loses more of its worth today?"
+        kind: choice
+        answer: far
+        choices:
+          - { id: far, text: "The one due in 20 years" }
+          - { id: near, text: "The one due in 2 years", mistake: { tag: discounted_once, fix: "The rise is felt once for every year of waiting, so the far payment loses more." } }
+          - { id: same, text: "Both lose the same", mistake: { tag: discounted_once, fix: "Each year of waiting repeats the discount, so the longer wait loses more." } }
+      - id: ml-try-equal-half
+        skill: equal-rate
+        ask: "Below the rate where the payments and the cash are worth the same, which is worth more today?"
+        halfDone: "First step, done for you: a lower rate shrinks the later payments less."
+        kind: choice
+        answer: payments
+        choices:
+          - { id: payments, text: "The payments" }
+          - { id: cash, text: "The cash", mistake: { tag: rate_direction, fix: "Below that rate the payments shrink less, so they are worth more than the cash." } }
+      - id: ml-try-equal-truth
+        skill: equal-rate
+        ask: "True or false: payments spread over years and one cash sum today can be worth the same at one rate."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "As the rate rises the payments shrink, so at one rate they are worth exactly the cash.", tag: ignores_rate }
+      - id: ml-try-equal-earn
+        skill: equal-rate
+        ask: "A winner can earn only a little interest, well below the rate where the payments and the cash are worth the same. Which offer is worth more to her?"
+        kind: choice
+        answer: payments
+        choices:
+          - { id: payments, text: "The payments" }
+          - { id: cash, text: "The cash", mistake: { tag: rate_direction, fix: "At her low rate the later payments shrink little, so they are worth more than the cash." } }
+          - { id: same, text: "They are worth the same to her", mistake: { tag: ignores_rate, fix: "They are equal at one rate only, and hers is well below it." } }
+
+  - id: ml-talk
+    kind: conversation
+    skills: [discounting, equal-rate]
+    prompt: >
+      October 2018. A friend says the lottery is cheating the winner: the jackpot is $1.537 billion,
+      yet the cash is about $877.8 million. In your own words, why can both figures describe the same
+      prize, and what would make the payments the better choice?
+    passCriteria: >
+      The Learner explains that the advertised figure adds up payments spread over 29 years, that each
+      later payment is worth less today once discounted at an interest rate, and that the cash is
+      roughly what the payments are worth today. They say the payments are the better choice for a
+      winner who could earn less than the rate that makes the two equal (or who values forced saving),
+      and the cash for one who could earn more. No figure needs to be worked out; the idea is what passes.

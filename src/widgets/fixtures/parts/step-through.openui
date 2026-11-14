@@ -1,0 +1,2 @@
+root = Widget("Illustration: one deposit, step by step", [steps])
+steps = StepThrough([Step("Start with what you put in", "You put in ₹10,000 today.", "you"), Step("Add a year of growth", "At 10% a year, one year adds ₹1,000.", "neutral"), Step("Work out the total", "After one year you hold ₹11,000. What is it after two years?", "src", 12100, "inr")])

@@ -1,0 +1,159 @@
+# Options and payoffs: a foundation Topic taught through 1987 portfolio insurance as a replicated put.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Carlson, A Brief History of the 1987 Stock Market Crash with a Discussion of the Federal Reserve Response, Federal Reserve Board FEDS 2007-13: https://www.federalreserve.gov/pubs/feds/2007/200713/ ; Elmer-DeWitt, "The Culprits Behind the Crash?", Time, 25 January 1988: https://time.com/archive/6711376/the-culprits-behind-the-crash ; Report of the Presidential Task Force on Market Mechanisms (Brady Report), January 1988, on the $60-90 billion of assets under portfolio insurance: https://sechistorical.org/digital-archive/report-of-the-presidential-task-force-on-market-mechanisms-brady-report/
+id: der-options
+title: Options and payoffs
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Employee options are claims on the company that come before ordinary shareholders, so valuing options is part of getting from the business to one share."
+
+cases:
+  - id: portfolio-insurance-1987-put
+    title: Portfolio insurance as a home-made put
+    asOf: 1987-10-16
+    story: >
+      Friday 16 October 1987. US shares have been falling all week: the S&P 500 is down more
+      than 9% over the five days. A new kind of product is now part of the market, portfolio
+      insurance, run by firms such as Leland O'Brien Rubinstein (LOR) for pension funds and other
+      big investors. By later official estimates it covered $60 billion to $90 billion of shares. A buyer wants the
+      protection of a put option on their share portfolio: a floor below which losses stop, with
+      the gains above kept. Buying puts on a whole portfolio is costly and hard to arrange, so the
+      insurer copies the put. A computer model tells the insurer how much of the portfolio to hold
+      in shares and how much to hold in cash. As prices fall, the model says to hold less in
+      shares, so the insurer sells stock index futures (selling futures is quicker and cheaper than
+      selling the shares themselves); as prices rise, it buys back. On 12 October the Wall Street
+      Journal had already warned that in a falling market portfolio insurance "could snowball
+      into a stunning rout for stocks". What does a put pay, how well can its payoff be copied
+      by trading, and what has to be true of the market for the copy to work?
+    reveal: >
+      On Monday 19 October 1987 the stock market crashed. The S&P 500 fell about 20% in a single
+      day, and the S&P 500 futures contract fell 29%, so futures traded at a deep discount to the
+      shares they track. Roughly 40% of the sales in the futures market by traders other than
+      market-makers came from portfolio insurers; one large institution sold thirteen
+      instalments of just under $100 million each, $1.1 billion in all, and Wells Fargo alone sold
+      $1.6 billion of futures. The Federal Reserve said on 20 October that it was ready to supply
+      liquidity to the financial system. A real put pays its floor whatever the market does, and
+      the person who sold it carries the risk. The copy only works if the insurer can keep
+      selling at prices close to those in its model; on that Monday prices fell faster than such
+      models allow for. The Federal Reserve paper says the selling pressure from portfolio
+      insurers "may have contributed" to the discount in the futures market. Because the models
+      sell more as prices fall, the selling could feed on itself.
+
+concept: >
+  An option gives its owner the right, but not the obligation, to trade at a fixed strike
+  price. A call is the right to buy, a put the right to sell. The buyer pays a premium up front.
+  At expiry a call is worth max(S - K, 0) and a put max(K - S, 0), where S is the share price and K
+  the strike. The buyer's profit is that payoff minus the premium, so the most the buyer can lose
+  is the premium, while the seller (writer) takes the premium and the opposite payoff, and can
+  lose far more. Before expiry an option is worth its intrinsic value plus time value, the
+  chance of moving further in the money. Owning shares plus a put (a protective put) gives a
+  floor on the loss at the cost of the premium. The same payoff can be copied by trading the
+  underlying asset in step with price moves (dynamic replication), but then the floor depends on
+  being able to trade at the prices the model expects.
+
+principle: >
+  An insurance floor made by trading is only as good as the market's ability to absorb the
+  trades. A bought option is a contract with a seller who carries the risk; a copied option is a
+  promise to keep trading, and it fails when many people try to do it at once.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Draw the payoff of a call and a put at expiry."
+  - "See why an option's buyer can lose at most the premium while its seller can lose far more."
+  - "Tell a bought floor from one copied by trading, which needs a market willing to trade."
+
+questions:
+  - id: op-q-call-profit
+    prompt: >
+      Zara paid a small premium for a call on a games company before its big launch. The launch is a hit, and at expiry the share sits well above her strike. Her friend asks how she did. What is the honest answer?
+    choices:
+      - { id: a, text: "The call is in the money, but the premium you paid comes out of the gain" }
+      - { id: b, text: "The call is in the money and the whole gain is yours: the premium no longer counts", mistake: { tag: forgot_premium, fix: "The premium was paid up front, so it still comes off the gain." } }
+      - { id: c, text: "The call is out of the money: you lose the premium", mistake: { tag: out_of_the_money_mixup, fix: "A share above the strike means in the money. The call pays something." } }
+      - { id: d, text: "The call is at the money: no gain, no loss", mistake: { tag: at_the_money_mixup, fix: "At the money means share equals strike. Here the share ended above the strike." } }
+    answer: a
+    explanation: >
+      A call pays the gap between the share price and the strike, and the premium paid up front comes off that gain. With a $50 strike, a $3 premium and the share at $58, Zara is $5 ahead, not $8.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (call and put payoffs, premium): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; payoff calculated as max(S - K, 0) minus premium
+
+  - id: op-q-put-profit
+    prompt: >
+      Sam thought a share was overpriced, so he paid a small premium for a put on it. At expiry the share has slumped well below his strike. His friend asks how the bet went. What is the honest answer?
+    choices:
+      - { id: a, text: "The put is out of the money and expires worthless", mistake: { tag: put_pays_on_a_rise, fix: "A put gains when the share ends below the strike, and this one ended well below it." } }
+      - { id: b, text: "The put is in the money; the premium comes off the gain" }
+      - { id: c, text: "The put pays you the whole strike price", mistake: { tag: paid_strike_not_gap, fix: "A put pays the gap between the strike and the share price, not the strike itself." } }
+      - { id: d, text: "The put is in the money and the premium no longer counts", mistake: { tag: forgot_premium, fix: "The premium was paid up front, so it still comes off the gain." } }
+    answer: b
+    explanation: >
+      A put pays the gap between the strike and the share price, and the premium paid up front comes off that gain. With a $100 strike, a $4 premium and the share at $80, Sam is $16 ahead. He loses only the premium if the share ends at or above the strike.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (call and put payoffs, premium): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; payoff calculated as max(K - S, 0) minus premium
+
+  - id: op-q-max-loss
+    prompt: >
+      What is the most that the buyer of a call option can lose, and the most that the seller (writer) of an uncovered call can lose?
+    choices:
+      - { id: a, text: "Buyer: the premium paid. Seller: unlimited, since the share price has no ceiling" }
+      - { id: b, text: "Buyer: unlimited. Seller: the premium received", mistake: { tag: roles_swapped, fix: "That swaps them: the buyer risks only the premium, the uncovered writer has no limit." } }
+      - { id: c, text: "Both can lose only the premium", mistake: { tag: writer_capped, fix: "The writer must sell at the strike however high the share goes, so the loss has no cap." } }
+      - { id: d, text: "Buyer: the strike price. Seller: the strike price", mistake: { tag: strike_as_loss, fix: "The buyer can walk away and lose only the premium; the strike is not the loss." } }
+    answer: a
+    explanation: >
+      The buyer can walk away, so the loss stops at the premium. The seller must sell at the strike however high the share has risen, so the loss grows without limit. Options are a zero-sum game between buyer and seller.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), Chapter 20 Review Questions (writing a call; why options are zero-sum): https://openstax.org/books/principles-finance/pages/20-review-questions
+
+  - id: op-q-protective-put
+    prompt: >
+      Dev owns a share he loves, but he needs the money for his wedding next spring and fears a crash before then. He buys a put with a strike a little below today's price. What does the put do for him?
+    choices:
+      - { id: a, text: "It removes every loss: you cannot lose money", mistake: { tag: insurance_is_free, fix: "You still lose the premium and the drop down to the strike." } }
+      - { id: b, text: "It gains when the share rises", mistake: { tag: put_gains_on_a_rise, fix: "A put gains when the share falls, not when it rises." } }
+      - { id: c, text: "It fixes the share at today's price, so he can no longer gain", mistake: { tag: fixes_the_price, fix: "The put sets a floor but leaves the upside. If the share rises he still gains." } }
+      - { id: d, text: "It puts a floor under your loss: the worst case is capped" }
+    answer: d
+    explanation: >
+      However far the share falls, the put lets Dev sell at the strike, so his loss stops there plus the premium he paid. Bought at $100 with a $90 strike and a $3 premium, the most he can lose is $13.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (options to limit one-sided risk): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; floor calculated as (purchase price - strike) + premium
+
+  - id: op-q-replicate-put
+    prompt: >
+      An investor wants to copy a put on a share portfolio by trading rather than by buying a put. As the market falls, what does the strategy tell the investor to do?
+    choices:
+      - { id: a, text: "Sell shares (or index futures), reducing exposure as prices fall" }
+      - { id: b, text: "Buy more shares as prices fall", mistake: { tag: buy_the_dip, fix: "A put gains as prices fall, so the copy sells into the fall instead of buying." } }
+      - { id: c, text: "Hold the same position, since a put needs no trading", mistake: { tag: static_copy, fix: "A put's exposure changes as prices move, so copying it needs trading all the way." } }
+      - { id: d, text: "Buy a call option on the portfolio", mistake: { tag: call_for_put, fix: "A call gains when prices rise; protection against a fall is a put." } }
+    answer: a
+    explanation: >
+      A put gains as the market falls, so its value behaves like a short position that grows as prices drop. The copy cuts shares as prices fall and buys them back as prices rise. This is the reverse of the "buy the dip" instinct.
+    source: >
+      Federal Reserve Board, Carlson, A Brief History of the 1987 Stock Market Crash (FEDS 2007-13), on portfolio insurance: https://www.federalreserve.gov/pubs/feds/2007/200713/
+
+checks:
+  - id: op-quiz-payoffs
+    kind: quiz
+    questions:
+      - op-q-call-profit
+      - op-q-put-profit
+      - op-q-max-loss
+      - op-q-protective-put
+      - op-q-replicate-put
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: op-insurance-copy
+    kind: conversation
+    prompt: >
+      An investor can have a floor under a portfolio either by buying a put or by copying the
+      put with a trading rule. Explain the difference in who bears the risk and in what must be
+      true of the market for each to deliver the floor.
+    passCriteria: >
+      The Learner says the bought put is a contract: the seller must pay the floor whatever
+      happens, so the risk sits with the seller and the buyer's cost is the premium. The copied
+      put is the investor's own promise to trade: it sells as prices fall and buys as they rise,
+      so it needs a market where the trades can be done at about the modelled prices, without gaps
+      and without the investor's own selling moving prices. They add that if many investors use
+      the same rule, their selling can feed on itself, and that a gap in prices breaks the floor.

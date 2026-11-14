@@ -1,0 +1,438 @@
+# Spine Topic 4 (spec 2026-11-12, C2, C4, Appendix D): how big can it get, taught through Uber as of 2 December 2014,
+# Damodaran's June value against the venture price. It explores Value levers in market mode: lever 1 is Uber's share of
+# a market, which feeds revenue in year 10 (Appendix D: "Market size and share feed lever 1").
+# The valuation block is Damodaran's June 2014 one (9 Jun 2014 post and ubervaluation.xls), written once on val-young's
+# Case uber-vc-narrative-2014 and borrowed here with valuationFrom; verify-uber-2014.json's correction says the
+# "Damodaran's story" chip must use these June inputs ($5,895m), since his December post gives no value of his own.
+# The block values the whole company in $ millions (per: company), against the June round's $17bn pre-money price.
+# Market mode values revenue as a share of a market, so each market is written as the pool of revenue Uber could share
+# in: his 20% slice of the fares (Damodaran: $100bn of taxi and car-service fares growing 6% a year; his breakeven, a
+# market about three times that). His 10% share of the first opens lever 1, which gives his $3,582m of year-10 revenue.
+# Facts: docs/research/verify-uber-2014.json (storyFacts, widgetFacts) and the outline's sources. Case ids are
+# unique across files, so the Case here is "spine-04-uber-2014". Every figure a computed question shows is the
+# engine's (ADR 0021); no sum is asked (ADR 0009).
+id: spine-04-growth
+title: "Growth: how big can it get?"
+goal: Turn a story about the market a young company can win into its future revenue, and weigh its effect on value.
+why: "A company's value starts with how big it can get, and for a young company that rests on a story about the market it can win."
+minutes: 12
+exampleCurrency: USD
+
+cases:
+  - id: spine-04-uber-2014
+    title: Uber, Damodaran against venture capital
+    asOf: 2014-12-02
+    valuationFrom: uber-vc-narrative-2014
+    story: >
+      In June 2014 Uber, still a private company about five years old, raised $1.2 billion from
+      venture capital investors (who buy stakes in young private companies) at a price of $17 billion
+      for the whole company, before counting their new money. Days later Aswath Damodaran, a valuation
+      professor at NYU Stern, valued it at about $5.9 billion as a car-service company, and published
+      his spreadsheet so anyone could try their own story. His story: taxis and car services worldwide
+      take about $100 billion of fares a year; Uber wins 10% of them within ten years; and it takes 20%
+      of each fare as its fee, its revenue, with drivers getting the rest. In July Bill Gurley, an Uber
+      investor and board member, argued that the market was far bigger once people give up owning
+      cars. On 2 December 2014 Uber has added car-pooling, a business service and deliveries in New
+      York, and value estimates of $40 billion and more are in the news.
+    reveal: >
+      Uber priced its shares at $45 on 9 May 2019, which valued it at about $82.4 billion, and began
+      trading the next day. In 2018 it had about $11.3 billion of revenue, only four years after 2014
+      and already about three times the $3.6 billion Damodaran's story had for year ten: the market
+      was far bigger than his story allowed. Back in 2014 he had written that to justify $17 billion
+      the market would have to be about three times his estimate, and when he ran Gurley's story (a
+      $300 billion market and a 40% share) through his own spreadsheet in July 2014, it came to $53.4
+      billion. In April 2019, from Uber's filing, he valued its equity at about $61.7 billion, below
+      the $82.4 billion it listed at, and called his June 2014 post his "first and fatally flawed
+      valuation of Uber". The values were far apart because the stories about the market were.
+
+concept: >
+  For a young company, revenue years from now is a story in three parts: how big the market is,
+  what share of it the company wins, and what slice of each sale it takes as its fee, its revenue. Damodaran's
+  Uber, for example, is a share of the world's taxi fares, with Uber taking a fifth of each fare.
+  This slice is not the margin: the margin is what Uber keeps of that revenue as profit, the next
+  Topic's lever.
+  Each part is a claim to argue: a market can be defined narrowly (taxis today) or widely (every
+  trip people might take instead of driving their own car), and a share or a slice depends on
+  rivals. A young company is early in its life cycle, with small revenue and most of its value in
+  what it might become, so the size of the market it can win moves its value more than any other
+  input. The sums are the same for everyone; the stories are not.
+
+principle: >
+  When two values for a young company sit far apart, look first at the story each tells about the
+  market, the share and the slice, then check that the numbers follow from it. Argue about the
+  story before you argue about the arithmetic.
+
+youllLearn:
+  - "Build a young company's revenue years from now from its market, share and slice."
+  - "See how much the story about the market moves a value."
+  - "Find the difference in story behind two values that sit far apart."
+
+terms:
+  - term: total market
+    means: All the sales in a market a company could win, before asking how much of it the company gets.
+    pro: How big is the total market?
+    example: "Every cup of coffee sold in a city, before asking how many are yours."
+    emoji: globe-showing-americas
+    inStory: In the story, Damodaran puts taxi and car-service fares at about $100 billion a year.
+  - term: market share
+    means: The part of a market's sales that one company wins.
+    pro: They hope to reach a tenth of the market.
+    example: "Your stall sells one cup in ten of all the coffee in town."
+    emoji: bar-chart
+    inStory: In the story, Uber's share grows from 1.5% to 10% in ten years.
+  - term: take rate
+    means: The slice of each sale a platform takes as its fee, which is its revenue; the rest goes to the sellers or drivers.
+    pro: The platform's take rate is about a fifth.
+    example: "An app takes $2 of a $10 ride as its fee and the driver gets $8."
+    emoji: coin
+    inStory: In the story, Uber takes 20% of each fare and drivers get the rest.
+  - term: life cycle
+    means: The stages a company passes through, from young and growing fast, to mature, to declining.
+    pro: It is early in its life cycle, so most of its value is growth.
+    example: "A new café proving itself, against a chain that has sold coffee for decades."
+    emoji: seedling
+    inStory: In the story, Uber is a few years old, small, and growing fast.
+  - term: compounding
+    means: "Growth earned on growth: each year's gain joins the total, and the next year grows on that."
+    pro: Compounding does the heavy lifting over long horizons.
+    example: "Leave $100 in a deposit at 5%: next year the interest earns interest of its own."
+    emoji: chart-increasing
+    inStory: In the story, a market growing 6% a year is far bigger after ten years.
+
+scenes:
+  - id: ug-opening
+    step: story
+    recipe: story_scene
+    title: A professor against the venture investors
+    inputs:
+      cast:
+        - { id: professor, emoji: teacher, name: A valuation professor, role: values Uber }
+        - { id: investor, emoji: man-office-worker, name: A venture investor }
+      beats:
+        - { who: investor, says: "We put in $1.2 billion at a $17 billion valuation.", emoji: money-bag }
+        - { who: narrator, says: "In June, Damodaran valued Uber at about $5.9 billion, as a car-service company.", emoji: thinking-face }
+        - { who: investor, says: "Think of everyone who might give up owning a car.", emoji: key }
+        - { who: narrator, says: "Now estimates of $40 billion and more are in the news.", emoji: newspaper }
+      caption: 2 December 2014, two stories about one company
+      date: "2014-12-02"
+  - id: ug-front-page
+    step: reveal
+    recipe: headline
+    title: Uber goes public
+    inputs:
+      paper: The morning paper
+      date: "2019-05-11"
+      headline: Uber prices shares at $45, closes first day at $41.57
+      deck: An imagined front page. About $82.4 billion once options and restricted stock are counted.
+      source: https://www.nytimes.com/2019/05/10/technology/uber-stock-price-ipo.html
+
+skills:
+  - id: market-story
+    rule: "Revenue years from now is a story in three parts: the size of the market, the share the company wins, and the slice of each sale it takes as its fee."
+    analogy: "A stall's takings are the town's coffee, times its share of the cups, times the price it charges for each."
+  - id: story-moves-value
+    rule: "For a young company the market it can win moves the value more than any other input, so values far apart are usually stories far apart."
+
+# The Insight (ADR 0001), found at explore with Value levers in market mode. Words only.
+insight:
+  question: >
+    Start from Damodaran's story, then change only the market Uber is sharing in, keeping its share,
+    margin and the rest. What happens to the value, and what does that say about the gap between his
+    value and the venture price?
+  written: >
+    The sums are the same in every story: market, share and slice give revenue, then margins and
+    reinvestment give cash. Change only the size of the market Uber can win and the value moves
+    several-fold, close to the venture price, so the gap between the professor and the investors is a
+    gap between stories about the market, not a sum one side got wrong.
+  foundWhen: >
+    The Learner switches the market (or moves the share) and sees the value move several-fold with
+    nothing else changed, and says in their own words that the professor and the investors differ
+    mainly in their story about how big Uber's market is, not in their arithmetic. Saying only that
+    the value went up is not yet enough.
+  hints:
+    - >
+      Keep every lever where his story sets it and switch to the bigger market. Each market button
+      is already Uber's slice of the fares, a fifth of them. Watch the value and the price marker.
+    - >
+      If the same sums can give his value and the investors' price, what are the two sides really
+      disagreeing about?
+
+explore:
+  before: ug-check
+  requiredWhenPassed: false
+  workbench:
+    recipe: value_levers
+    case: spine-04-uber-2014
+    title: How big can Uber get?
+    inputs:
+      caseStory: "Damodaran's June story"
+      mode:
+        kind: market
+        markets:
+          - label: "Uber's 20% slice of $100bn of fares"
+            # His $100bn of fares a year, at his 20% slice: $20bn of revenue to share in, growing 6% a year.
+            size: 20000
+            growthPercent: 6
+            source:
+              title: "Damodaran, A Disruptive Cab Ride to Riches: The Uber Payoff (9 Jun 2014), and ubervaluation.xls"
+              url: https://aswathdamodaran.blogspot.com/2014/06/a-disruptive-cab-ride-to-riches-uber.html
+          - label: "Uber's 20% slice of $300bn of fares"
+            # His breakeven: "the total market has to be ... three times bigger than my estimate (around $300 billion)".
+            size: 60000
+            growthPercent: 6
+            source:
+              title: "Damodaran, A Disruptive Cab Ride to Riches (9 Jun 2014): the market three times bigger, around $300bn"
+              url: https://aswathdamodaran.blogspot.com/2014/06/a-disruptive-cab-ride-to-riches-uber.html
+
+# Primer (spec C3): Growth on growth, cut from the Growth and compounding Elective.
+primers:
+  - id: ug-primer-growth
+    title: Growth on growth
+    lines:
+      - "Growth compounds: each year's growth is earned on the new, bigger total."
+      - "Damodaran's market of $100bn grows 6% a year, so in ten years it is about $179bn, not $160bn."
+      - "Ten years of growth multiply; they do not simply add up."
+    term: compounding
+    quickTry:
+      id: ug-primer-try
+      skill: market-story
+      ask: "A $100bn market growing 6% a year is about $179bn after ten years. Why not $160bn?"
+      kind: choice
+      answer: compounds
+      choices:
+        - { id: compounds, text: "Each year's 6% is earned on a bigger market than the year before" }
+        - { id: speeds, text: "Markets grow faster as they get older", mistake: { tag: growth_speeds_up, fix: "The rate stays 6% a year. It is the amount it works on that grows." } }
+        - { id: simple, text: "It should be $160bn: six percent of $100bn, ten times", mistake: { tag: simple_growth, fix: "That adds the first year's growth ten times. Each year's 6% is on the new, bigger market." } }
+    elective: num-compounding
+    at: concept
+
+connections:
+  - text: >
+      Damodaran's crowd valuation hands readers every step of the story, from the market to the slice,
+      and shows how far apart the values of different stories sit.
+    topics: [fol-uber-2014, val-young]
+  - text: >
+      Size is one lever; what the company keeps of each sale is the next, and a story about size must
+      agree with the story about margins and reinvestment.
+    topics: [spine-05-margins, spine-11-story-to-numbers]
+
+questions:
+  # Which lever (D1), computed from the June valuation block.
+  - id: ug-q-which-lever
+    kind: which_lever
+    skill: story-moves-value
+    prompt: >
+      From Damodaran's June story, which single change lifts the value most?
+    explanation: "For a young company the market it can win moves the value most."
+    computed:
+      case: spine-04-uber-2014
+      changes:
+        - { id: market-3x, label: "A market three times his, $300bn of fares", levers: { revenueYear10: 10745 } }
+        - { id: no-failure, label: "No chance of failure, not 10%", levers: { failureChance: 0 } }
+        - { id: rate-10, label: "Cost of capital 12% to 10% while it grows", levers: { costOfCapitalGrowing: 10 } }
+        - { id: lean, label: "Sales to capital 5 to 10", levers: { salesToCapital: 10 } }
+  # What the price assumes (D1), computed: which story is worth the $17bn venture price.
+  - id: ug-q-price
+    kind: price_assumes
+    skill: story-moves-value
+    prompt: >
+      In June, investors priced the whole of Uber at $17 billion, before their $1.2 billion went in.
+      Which story gets there?
+    explanation: "The price needed a market about three times his, with everything else as he set it."
+    computed:
+      case: spine-04-uber-2014
+      changes:
+        - { id: market-3x, label: "Three times his market, the same 10% share", levers: { revenueYear10: 10745 } }
+        - { id: market-2x, label: "Twice his market, the same 10% share", levers: { revenueYear10: 7163 } }
+        - { id: safe-cheap, label: "His market, no chance of failure and a 10% cost of capital", levers: { failureChance: 0, costOfCapitalGrowing: 10 } }
+        - { id: big-thin, label: "Three times his market, but a 30% margin", levers: { revenueYear10: 10745, marginTarget: 30 } }
+  # Predict, then see (D1), computed: never marked wrong.
+  - id: ug-q-predict
+    kind: predict
+    skill: market-story
+    prompt: "In his story Uber wins 10% of the market. With {change}, and everything else the same, his value will be:"
+    explanation: "Revenue years from now follows the share one for one, and the value follows revenue closely."
+    computed:
+      case: spine-04-uber-2014
+      changes:
+        - { id: share-20, label: "a 20% share instead", levers: { revenueYear10: 7163 } }
+        - { id: share-5, label: "only a 5% share", levers: { revenueYear10: 1791 } }
+      bands:
+        - { id: half, label: "About half", min: 0.3, max: 0.7 }
+        - { id: same, label: "About the same", min: 0.9, max: 1.1 }
+        - { id: double, label: "About double", min: 1.6, max: 2.4 }
+        - { id: tenfold, label: "About ten times", min: 5 }
+  # Direction (D1).
+  - id: ug-q-direction
+    kind: direction
+    skill: market-story
+    prompt: >
+      December 2014. Uber now runs car-pooling, a service for businesses and deliveries in New York.
+      Which part of its story moves, and which way?
+    choices:
+      - { id: market-up, text: "The market it can win, up" }
+      - id: slice-up
+        text: "The slice of each fare it takes as its fee, up"
+        mistake: { tag: lever_mixup, fix: "New services reach new customers and trips. That widens the market; the slice is a separate claim." }
+      - id: risk-down
+        text: "How risky it is, down"
+        mistake: { tag: lever_mixup, fix: "New lines of business widen what Uber can sell first. Risk is a separate lever, and new ventures add some." }
+      - id: margin-down
+        text: "Its operating margin, the profit left from each $1 of revenue, down"
+        mistake: { tag: lever_mixup, fix: "The first thing new services change is how big the market is. The margin is a separate lever." }
+    answer: market-up
+    explanation: >
+      Deliveries and shared rides reach trips that taxis never served, so the market Uber can win
+      grows. That is the argument Gurley made, and the reason Damodaran let readers pick wider markets.
+    source: "Damodaran, Up, Up and Away! A Crowd Valuation of Uber! (2 Dec 2014): https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html"
+  # Story that cannot hold (D1).
+  - id: ug-q-cannot-hold
+    kind: cannot_hold
+    skill: market-story
+    prompt: >
+      Three readers send Damodaran their Uber stories. Which one contradicts itself?
+    choices:
+      - { id: free-growth, text: "Uber wins 40% of a market three times bigger within ten years, and invests almost nothing to get there" }
+      - id: car-service
+        text: "Uber wins 10% of taxis and car services and takes a fifth of each fare as its fee"
+        mistake: { tag: dull_is_fine, fix: "That one holds: a modest share and Uber's own slice fit together." }
+      - id: no-cars
+        text: "The market grows because people give up owning cars, and Uber spends heavily to win them"
+        mistake: { tag: dull_is_fine, fix: "That one holds: a bigger market, paid for with heavy spending." }
+    answer: free-growth
+    explanation: >
+      Winning a large share of a much bigger market takes cars on the road, cities opened and riders
+      won, all paid for before the revenue arrives. Huge growth that costs nothing is the part that
+      cannot hold.
+    source: "Damodaran, Up, Up and Away! A Crowd Valuation of Uber! (2 Dec 2014): https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html"
+  # Price or value (D1).
+  - id: ug-q-pre-money
+    kind: price_or_value
+    skill: story-moves-value
+    prompt: >
+      June 2014. Venture capital investors put $1.2 billion into Uber at what the press reported as a "$17
+      billion valuation". Is the $17 billion a price or a value?
+    choices:
+      - { id: price, text: "A price: what investors paid for their stake, scaled up to the whole company" }
+      - id: value
+        text: "A value: the word valuation says so"
+        mistake: { tag: price_for_value, fix: "A round is what buyers paid. A value has to be argued from a story about the business's cash." }
+    answer: price
+    explanation: >
+      A funding round is a trade: investors paid a price for part of the company, and the press scaled
+      it up to the whole. Damodaran's $5.9 billion was a value, argued from a story.
+    source: "Uber blog, 4 Years In (6 Jun 2014), Wayback capture: http://web.archive.org/web/20140606180823/http://blog.uber.com/4years"
+  # Not a judgement kind: where a young company's value sits.
+  - id: ug-q-life-cycle
+    skill: story-moves-value
+    prompt: >
+      Uber in 2014 is a few years old, with small revenue that is growing fast. Where does most of its
+      value sit?
+    choices:
+      - { id: future, text: "In what it might become, many years from now" }
+      - id: cars
+        text: "In the cars it owns"
+        mistake: { tag: assets_for_value, fix: "Drivers own the cars. Uber's value is in the business it might build." }
+      - id: this-year
+        text: "In this year's profit"
+        mistake: { tag: profit_for_value, fix: "A young company has little profit yet. Its value is mostly in the years ahead." }
+    answer: future
+    explanation: >
+      Early in its life cycle a company has little revenue and less profit, so nearly all its value is
+      in the business it might become, which is why the story about the market matters so much.
+    source: "Damodaran, A Disruptive Cab Ride to Riches: The Uber Payoff (9 Jun 2014): https://aswathdamodaran.blogspot.com/2014/06/a-disruptive-cab-ride-to-riches-uber.html"
+
+checks:
+  - id: ug-check
+    kind: quiz
+    questions: [ug-q-which-lever, ug-q-price, ug-q-predict, ug-q-direction, ug-q-cannot-hold, ug-q-pre-money, ug-q-life-cycle]
+    perAttempt: 4
+    passRule:
+      correct: 3
+    card:
+      title: "How big can it get?"
+      lines:
+        - "Revenue years from now is a story in three parts: the market, the share won, the slice kept."
+        - "A made-up example: a $50bn market, a 10% share and a 30% slice give $1.5bn of revenue."
+        - "A young company is early in its life: most of its value is in what it might become."
+        - "So each part of the size story is a claim to argue, not a fact to look up."
+      writeDown: "Revenue later is market, times share, times slice: three claims to argue."
+      skills: [market-story, story-moves-value]
+      example: [50, 10, 30, 1.5]
+    quickTries:
+      - id: ug-try-slice-half
+        skill: market-story
+        ask: "Uber takes 20% of each fare it carries as its fee. Riders in its share of the market pay $1 billion of fares. Which is Uber's revenue?"
+        halfDone: "First step, done for you: drivers keep the other 80% of each fare."
+        kind: choice
+        answer: slice
+        choices:
+          - { id: slice, text: "$200 million: the slice it takes" }
+          - { id: fares, text: "$1 billion: every fare riders pay", mistake: { tag: gross_for_revenue, fix: "That is what riders pay in total. Uber's revenue is only the slice it takes." } }
+          - { id: drivers, text: "$800 million: the drivers' part", mistake: { tag: gross_for_revenue, fix: "The drivers keep that. Uber's revenue is the 20% it takes." } }
+      - id: ug-try-three-parts
+        skill: market-story
+        ask: "Which three parts make Uber's revenue years from now?"
+        kind: choice
+        answer: three
+        choices:
+          - { id: three, text: "The market's size, Uber's share of it, and the slice of each fare it takes" }
+          - { id: places, text: "Its cities, its countries and its drivers", mistake: { tag: lever_mixup, fix: "Those describe where it runs. Revenue comes from the market, the share and the slice." } }
+          - { id: margin, text: "The market's size and its margin", mistake: { tag: skipped_the_share, fix: "Uber wins only a share of the market, and takes only a slice of each fare. The margin comes later." } }
+      - id: ug-try-double-share
+        skill: market-story
+        ask: "True or false: if Uber's share doubles, with the same market and the same slice, its revenue doubles."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "Revenue is market, times share, times slice, so twice the share gives twice the revenue.", tag: added_not_chained }
+      - id: ug-try-deliveries
+        skill: market-story
+        ask: "Uber starts delivering parcels in New York. Which part of its revenue story moves first?"
+        kind: choice
+        answer: market
+        choices:
+          - { id: market, text: "The market it can win" }
+          - { id: slice, text: "The slice of each fare it takes", mistake: { tag: lever_mixup, fix: "A new service reaches new trips. That widens the market first." } }
+          - { id: share, text: "Its share of taxi rides", mistake: { tag: lever_mixup, fix: "Parcels are not taxi rides. The new service widens the market Uber can win." } }
+      - id: ug-try-gap-half
+        skill: story-moves-value
+        ask: "Two analysts use the same spreadsheet for Uber. One gets $6 billion, the other $53 billion. What most likely differs?"
+        halfDone: "First step, done for you: the same spreadsheet means the same sums."
+        kind: choice
+        answer: story
+        choices:
+          - { id: story, text: "Their stories about how big Uber's market is" }
+          - { id: slip, text: "One of them made a slip in the sums", mistake: { tag: arithmetic_for_story, fix: "The spreadsheet is the same. Values this far apart come from different stories." } }
+          - { id: rate, text: "A point or two of discount rate", mistake: { tag: lever_mixup, fix: "A point of discount rate moves a value a little, not ninefold. The market story moves it most." } }
+      - id: ug-try-gap-truth
+        skill: story-moves-value
+        ask: "True or false: when two values for a young company sit far apart, the gap usually comes from different stories rather than a slip in the sums."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "Damodaran's lesson from his December 2014 range of stories: big differences in value come almost always from different stories.", tag: arithmetic_for_story }
+      - id: ug-try-lever-computed
+        skill: story-moves-value
+        kind: which_lever
+        ask: "From his June story, which change lifts the value most?"
+        computed:
+          case: spine-04-uber-2014
+          changes:
+            - { id: market-2x, label: "A market twice his", levers: { revenueYear10: 7163 } }
+            - { id: no-failure, label: "No chance of failure", levers: { failureChance: 0 } }
+            - { id: rate-10, label: "Cost of capital 12% to 10%", levers: { costOfCapitalGrowing: 10 } }
+
+  - id: ug-talk
+    kind: conversation
+    skills: [market-story, story-moves-value]
+    prompt: >
+      December 2014. A friend says Damodaran's $5.9 billion must be a mistake, since investors paid $17
+      billion and the news now talks of $40 billion. In your own words, how can both come from the same
+      kind of sums, and which part of Uber's story would you argue about first?
+    passCriteria: >
+      The Learner explains that the value and the price can come from the same steps (market, share and
+      slice give revenue; margins and reinvestment give cash) with different stories, and that the
+      biggest difference is how big a market Uber can win. They name the part of the story they would
+      argue about first (most likely the market's size or Uber's share) with a reason, and treat the gap
+      to the price as a question about the story, not a sum to correct. No figure needs to be worked out.

@@ -1,0 +1,232 @@
+# Judge Topic: Damodaran's ROE post (18 Feb 2025), taken back to its own inputs and recomputed.
+# The post's text is in the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+# No Case Data: every figure comes from the post's stated inputs or from the Learner's own recomputation.
+id: jud-assumptions
+title: "Judge: the no-growth assumption in ROE versus earnings yield"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Every value rests on assumptions, and taking a writer's figure back to its inputs shows which assumption carries the result."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: jud-assumptions-roe-2025
+    title: Taking a back-to-basics post on ROE back to its own numbers
+    asOf: 2025-02-18
+    piece:
+      author: Aswath Damodaran
+      title: "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!"
+      published: 2025-02-18
+      url: https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 18 February 2025 Aswath Damodaran, a valuation professor at NYU Stern, published a post
+      meant to clear up what he called a confusion about return on equity (ROE). It began with a
+      LinkedIn thread that had taken his implied equity premium method to the Indian market and
+      assumed that, in an efficient market, the return on equity equals the cost of equity.
+      The post sets up two businesses, each started with $60 million of equity and a cost of equity
+      of 10%. Business A earns $15 million of net income a year forever; business B earns $3 million
+      a year forever. From these inputs it reports ROE of 25% and 5%, values of $150 million and
+      $30 million in an efficient market, price to book of 2.5 and 0.5, and the same earnings
+      yield (net income over market value) in both. It then makes further statements. Marking both
+      businesses to market value would give both an ROE of 10%. If half of A's $60 million were
+      research spending that accountants expense, A would report a loss of $15 million in the
+      first year and then an ROE of 50.00% on $30 million of book equity. If B's net income grew
+      50% a year for ten years, B's earnings yield would no longer equal its cost of equity even in
+      an efficient market. And buying low price-to-book shares, "a lazy variant of value investing",
+      would lead to holding bad businesses rather than undervalued ones. The Learner's job is not
+      to follow the post but to judge it: take each statement back to the inputs the post gives,
+      say in words whether it follows from them, and name what each result rests on. Nobody is
+      asked to redo a sum or to say what any share or index will do.
+    reveal: >
+      Recomputed from the post's own inputs (Damodaran, Musings on Markets, 18 Feb 2025), the
+      toy case ties out. A: 15/60 = 25%, value 15/0.10 = $150 million, price to book 150/60 = 2.5,
+      earnings yield 15/150 = 10%. B: 3/60 = 5%, value $30 million, price to book 0.5, earnings
+      yield 10%. The label point is also right: net income over market value is the earnings
+      yield, and it equals the cost of equity only because earnings are constant forever and the
+      price is fair. Marking to market gives 15/150 = 10% and 3/30 = 10%; ROE equals the cost of
+      equity exactly when book value equals market value (price to book of 1).
+      The R&D figure holds only with an assumption the post does not state. Reported ROE of 50.00%
+      is 15/30, which needs book equity to stay at $30 million: the $15 million of cash earned in
+      the loss year must be paid out. Retained, equity would be $60 million - $15 million = $45
+      million and later ROE 15/45 = 33.3%. The year-one figure is -15/60 = -25% on opening
+      equity. Capitalising the research gives 15/60 = 25%, so the distortion the post points to
+      is real, but the size depends on payout and the post mentions no tax.
+      The growth sentence needs a qualifier. Net income of 3 x 1.5^10 = $173.0 million in year ten
+      is not a value; the value depends on what the growth costs and earns. The Learner's
+      recomputation, assuming growth stops after ten years and new capital is raised as needed
+      (the course's reconstruction, not the post's): if growth needed no reinvestment, B would be worth
+      about $905.8 million and its earnings yield 0.33%; if new capital earned 20%, about $467.9
+      million (0.64%); if new capital earned exactly the 10% cost of equity, $30.0 million, and
+      the earnings yield stays at 10%. Growth by itself does not move the earnings yield off the
+      cost of equity; growth that earns more than the cost of equity does. This follows the
+      relation growth = retention x ROE and the price formulas on Damodaran's own valuation
+      pages. Growth of 50% a year with a 5% ROE cannot be funded from retained earnings at all.
+      The low price-to-book sentence is a statement about the toy world: there prices are fair, so
+      a low price to book reflects a low ROE. The post itself says, a few paragraphs later, that
+      either business can be a good, bad or neutral investment depending on its price relative to
+      fair value, so the sentence holds inside the efficient-pricing assumption and says nothing
+      about real mispricing. The verdict: the arithmetic is sound; three statements (R&D, growth,
+      low price to book) each rest on an assumption worth naming.
+
+concept: >
+  Judging a claim means going back to its inputs, saying in words whether the result follows from
+  them, then asking which assumption carries the result. Return on equity is net income over book equity, an accounting number; the
+  earnings yield is net income over market value, a market number; the two differ unless price
+  equals book. In the simplest case (earnings constant forever, no growth, a fair price), value is
+  net income divided by the cost of equity, so the earnings yield equals the cost of equity. Once
+  earnings grow, what matters is what the growth costs and what it earns: growth equals the
+  retained share of earnings times the return on equity, and growth that earns only the cost of
+  equity adds no value. Checking a claim for a mislabel (the wrong name for a ratio), a period
+  mismatch (a year with a one-off item set against a normal year) or an inference beyond the text
+  (a conclusion the stated assumptions do not support) catches most errors before the arithmetic does.
+
+principle: >
+  Take the writer's figure back to the inputs the writer gives, name the numerator and the
+  denominator of every ratio, check that the periods match, and write down every assumption you
+  had to add. A result that holds only under an assumption (no growth, constant earnings, a fair
+  price) should be cited with that assumption attached.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Take a claim back to the writer's own inputs and say whether it follows."
+  - "Name the numerator and the denominator of every ratio and check the periods match."
+  - "Find the assumption a result rests on and cite the two together."
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: ja-q-value-pb
+    prompt: >
+      Your uncle owns part of a small spice company. Every rupee the owners put in earns more than
+      they could get anywhere else at the same risk. If the market prices it fairly, what should a
+      share cost next to its "book value", the money the owners put in?
+    choices:
+      - { id: a, text: "More than book value" }
+      - { id: b, text: "Less than book value", mistake: { tag: pb_inverted, fix: "Below book is for firms that earn less than owners could get elsewhere." } }
+      - { id: c, text: "Exactly book value", mistake: { tag: pb_at_one, fix: "Price equals book only when the firm earns just what owners could get elsewhere." } }
+      - { id: d, text: "No one can say until next year", mistake: { tag: pb_needs_future_price, fix: "With steady earnings and a fair price, what it earns against what owners demand decides it." } }
+    answer: a
+    explanation: >
+      Traders call the least the owners will accept their cost of equity. A firm that earns more
+      than that on its owners' money is worth more than the money put in, so a fair price sits above
+      book value; one that earns less sits below it.
+    source: >
+      Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
+      on Markets, 18 February 2025 (value as net income over cost of equity); Damodaran, Determinants
+      of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
+  - id: ja-q-mislabel
+    prompt: >
+      February 2025, a made-up story: on a LinkedIn thread, a commenter tells Sameer to sell his
+      shares in a cement maker because its "return on equity" is low. But the commenter divided its
+      profit by what the stock market says it is worth, instead of by the money its owners put in. What is
+      his number really called?
+    choices:
+      - { id: a, text: "The earnings yield: profit against market price" }
+      - { id: b, text: "Return on equity, since the market price is the owners' true stake", mistake: { tag: roe_on_market_value, fix: "Return on equity divides net income by book equity, not by market value." } }
+      - { id: c, text: "The cost of equity: the least owners will accept", mistake: { tag: yield_as_cost, fix: "The cost of equity is what owners require; this figure is profit over market value." } }
+      - { id: d, text: "The payout ratio: the share of profit paid out", mistake: { tag: yield_as_payout, fix: "A payout ratio is dividends over profit; this is profit over market value." } }
+    answer: a
+    explanation: >
+      Net income over market value is the earnings yield. Return on equity divides net income by book
+      equity, which can give a very different figure. The error is a mislabel of what sits
+      underneath the ratio.
+    source: >
+      Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
+      on Markets, 18 February 2025.
+  - id: ja-q-period
+    prompt: >
+      February 2025, a made-up story: Leela is choosing one of two startups for her first angel
+      cheque. Pixel Foods earned 30% on its owners' money in an ordinary year. Quill Labs shows -20%,
+      but that was its first year, when it booked a one-off Rs 40 crore research bill. A blogger calls
+      Pixel "the far better business". What should Leela make of that comparison?
+    choices:
+      - { id: a, text: "Different kinds of year: Quill's has a one-off bill that Pixel's lacks" }
+      - { id: b, text: "Nothing: both are return on equity, so they compare directly as they are", mistake: { tag: same_label_same_basis, fix: "Same name, different years: one carries a one-off charge, so they are not alike." } }
+      - { id: c, text: "Q's figure must be a typo: a negative return is impossible", mistake: { tag: negative_impossible, fix: "Return on equity goes negative whenever a firm makes a loss." } }
+      - { id: d, text: "Only Pixel's figure needs restating at market value", mistake: { tag: market_value_restate, fix: "Market value is not the issue; the years being unlike is." } }
+    answer: a
+    explanation: >
+      Accountants call a charge like that bill one-off, or non-recurring. One figure carries it and
+      the other does not, so they describe different situations. A fair comparison uses a normal year
+      for both, or adjusts for the one-off. Return on equity can be negative when a firm makes a loss.
+    source: >
+      Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
+      on Markets, 18 February 2025 (the effect of expensed research spending on reported returns).
+  - id: ja-q-beyond-text
+    prompt: >
+      February 2025, a made-up story: Dev reads a passage showing that for a firm whose profit never
+      changes, priced fairly, the earnings yield equals the cost of equity. He decides to put his
+      savings into every stock whose earnings yield beats its cost of equity, calling them all
+      bargains. What do you tell him about his rule?
+    choices:
+      - { id: a, text: "It overreaches: the passage assumed steady profit and a fair price" }
+      - { id: b, text: "It is sound: the same logic fits every stock", mistake: { tag: rule_overextended, fix: "The equality was shown only under stated assumptions, not for every stock." } }
+      - { id: c, text: "It is meaningless: a yield and a cost of equity never compare", mistake: { tag: yield_cost_incomparable, fix: "The passage compares them itself; the slip is dropping its assumptions." } }
+      - { id: d, text: "It works, but only for shares listed in India", mistake: { tag: market_assumed, fix: "Nothing in the passage is about where shares are listed." } }
+    answer: a
+    explanation: >
+      Judges call a conclusion the text never drew an overreach, or an inference beyond the text. The
+      equality was derived under stated assumptions. Outside them, an earnings yield above the cost
+      of equity can reflect shrinking earnings or risk the cost of equity does not capture, so it does
+      not by itself show that a price is wrong.
+    source: >
+      Damodaran, Price Earnings Ratio (PE), on what determines the ratio (growth, payout, return on
+      equity and risk): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/peratio.htm
+  - id: ja-q-sustainable
+    prompt: >
+      Meera's bakery hands most of its profit to its owners and keeps the rest to buy new ovens. It
+      never sells new shares. What decides how fast its profit can grow?
+    choices:
+      - { id: a, text: "The share it keeps for ovens, and what those ovens earn" }
+      - { id: b, text: "Only the share it hands to the owners", mistake: { tag: payout_only, fix: "Paying out is half the story; growth also needs a return on the money kept." } }
+      - { id: c, text: "Only what the owners could earn elsewhere", mistake: { tag: cost_sets_growth, fix: "That is what owners demand; it does not set how fast profit grows." } }
+      - { id: d, text: "Nothing: growth has no link to the profit the bakery keeps", mistake: { tag: growth_unlinked, fix: "With no new shares, the profit it keeps is what pays for growth." } }
+    answer: a
+    explanation: >
+      With no new shares, growth is funded by the profit kept, so it depends on the share kept and
+      on what that money earns. Mixing up the share kept with the share paid out is the usual slip.
+    source: >
+      Damodaran, Determinants of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
+  - id: ja-q-implied-price
+    prompt: >
+      Your uncle spots a company whose profit is the same every year. Its earnings yield (profit
+      against the share price) is higher than its cost of equity (the least owners accept for the
+      risk). What does that hint about the price?
+    choices:
+      - { id: a, text: "It looks low for profit this steady" }
+      - { id: b, text: "It looks high for profit this steady", mistake: { tag: yield_gap_inverted, fix: "A higher yield than the cost of equity means a lower price, not a higher one." } }
+      - { id: c, text: "Nothing: the two can't be compared", mistake: { tag: yield_cost_incomparable, fix: "With steady earnings and a fair price the two are equal, so a gap is informative." } }
+      - { id: d, text: "The owners' book value must be wrong", mistake: { tag: book_blamed, fix: "Book value does not enter profit over market price." } }
+    answer: a
+    explanation: >
+      For steady earnings forever, a fair price makes the earnings yield equal the cost of equity.
+      A yield above it means the price is below that fair value, which could be cheapness or an
+      expectation that earnings will shrink.
+    source: >
+      Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
+      on Markets, 18 February 2025 (value of a no-growth firm as net income over cost of equity).
+
+checks:
+  - id: ja-quiz-recompute
+    kind: quiz
+    questions: [ja-q-value-pb, ja-q-mislabel, ja-q-period, ja-q-beyond-text, ja-q-sustainable, ja-q-implied-price]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ja-judge-post
+    kind: conversation
+    prompt: >
+      You've read Damodaran's 18 February 2025 post on return on equity and earnings yield. Tell me
+      in your own words what his two businesses, A and B, are there to show. Then pick one of his
+      claims (marking to market, the research-spending example, or 50% growth for ten years): does it
+      follow from what he says, or does it lean on something he doesn't state?
+    passCriteria: >
+      The Learner explains in words, from the post, what return on equity (profit over the owners'
+      money on the books), earnings yield (profit over market value), price to book and value each
+      measure, names what sits on top of and underneath each ratio, and says how A and B differ and
+      why. For the one claim they pick, they say in their own terms whether it follows from his
+      stated inputs and name any assumption they had to add; if they find a slip they call it a
+      mislabel, a period mismatch or an inference beyond the text. If they pick the growth claim,
+      they say it needs reinvestment and depends on what that reinvestment earns. They say whether
+      their claim depends on the market pricing shares fairly. They are not asked to redo any sum,
+      do not take any figure from the Tutor, do not claim to know what any market did afterwards,
+      and make no buy, sell or hold call.

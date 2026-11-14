@@ -1,0 +1,1 @@
+ALTER TABLE "turns" ADD COLUMN "started_topic" boolean DEFAULT false NOT NULL;

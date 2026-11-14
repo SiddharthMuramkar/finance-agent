@@ -1,0 +1,33 @@
+# Secrets: API keys and database URLs stay on this machine
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+.next/
+.vercel/
+.venv/
+__pycache__/
+
+# Scratch output from web tools
+.firecrawl/
+
+# Personal Claude Code settings, and worktrees made for Claude Code's parallel agents
+.claude/settings.local.json
+.claude/worktrees/
+
+# Build and type caches
+*.tsbuildinfo
+next-env.d.ts
+
+# Live Tutor test, sweep and replay reports (can hold Learner messages)
+evidence/tutor-eval/
+
+# Browser test bed (spec 2026-11-05, T-00): its build folder and reports
+.next-e2e/
+playwright-report/
+test-results/
+
+# F1 preview matrix: screenshots and numbers (scripts/preview-matrix.mjs)
+evidence/preview-matrix/

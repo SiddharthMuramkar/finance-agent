@@ -1,0 +1,225 @@
+# Valuing distressed firms: a foundation Topic taught through Coffee Day Enterprises in July 2019.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Business Today (31 Jul 2019): https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31 ; Hindustan Times / Bloomberg (31 Jul 2019); Coffee Day Enterprises Annual Report 2018-19 (borrowings at 31 Mar 2019 including current maturities, Rs 7,214.29 crore against Rs 5,049.90 crore; docs/research/verify-coffee-day.json): https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf ; Business Today (17 Aug 2019, company filing); Times of India (6 Jan 2020); Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+id: val-distress
+title: Valuing distressed firms
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A value that assumes a company survives is too high if it may not; this Topic shows how the chance of failure enters a valuation."
+
+cases:
+  - id: coffee-day-distress-2019
+    title: Coffee Day Enterprises in July 2019
+    data:
+      - market-value
+      - share-price-close
+      - promoter-holding
+      - promoter-holding-pledged
+      - loans-march-2019
+      - group-debt-31-july
+      - debt-without-sical
+    asOf: 2019-07-29
+    story: >
+      Coffee Day Enterprises runs Cafe Coffee Day, India's largest coffee chain, and sits on top of
+      a group of companies that includes a logistics business, Sical Logistics. It listed in
+      October 2015 at Rs 328 a share. Its stock market value peaked at Rs 6,678 crore on 19
+      September 2018 and was Rs 4,067.65 crore at the close on Monday 29 July 2019. The group
+      has been borrowing heavily to grow. Its audited accounts put total borrowings at Rs 7,214.29
+      crore at the end of March 2019, up 42.9 percent from Rs 5,049.90 crore a year earlier, and Sical Logistics had Rs 1,100
+      crore of debt. To bring debt down, the promoter, V. G. Siddhartha, sold the group's stake in
+      the software company Mindtree to Larsen & Toubro in March and April 2019, for up to Rs
+      3,269 crore. The promoter group owns 53.93 percent of Coffee Day Enterprises, and in June 2019 the company told the
+      exchanges that nearly 76 percent of that holding was pledged to lenders as security for
+      loans. If the share price fell far enough, lenders could take and sell the pledged shares.
+      The 2015 prospectus had already listed the promoter's personal guarantees and pledges as a
+      risk. It is the evening of 29 July 2019. You are
+      asked what the equity of a company like this is worth, and what could go wrong with the
+      value you estimate.
+    reveal: >
+      On the evening of 29 July Siddhartha went missing, and his body was found on 31 July. A
+      letter attributed to him, dated 27 July, spoke of pressure from a private equity partner
+      to buy back shares, pressure from lenders and a serious liquidity crunch. The shares fell
+      by the 20 percent daily limit on 30 and again on 31 July, to Rs 123.25. Stock market value
+      went from Rs 4,067.65 crore on 29 July to Rs 3,254.33 crore and then Rs 2,603.68 crore,
+      down 36 percent in two days. On 17 August the company disclosed that the group's debt on 31
+      July was Rs 4,970 crore, of which Coffee Day Enterprises' own consolidated debt without
+      Sical was Rs 3,472 crore, and that selling the Global Village Tech Park, a business park,
+      to Blackstone for Rs 2,600 to 3,000 crore could take debt down to about Rs 2,570 crore. By
+      January 2020 the promoter group's holding had fallen from 54 percent to 17 percent as
+      lenders invoked the pledges. Debt had not changed on the night of 29 July, yet the
+      value of the equity did: the chance of a forced sale of assets and shares had.
+    # Valuation inputs from docs/research/verify-*.json (spec B1, C2); npm run course:doc copies them into the registry.
+    valuation:
+      currency: INR
+      unit: crores
+      baseRevenue: 4264.48
+      growthPercent: [12, 12, 12, 12, 12, 10.4, 8.8, 7.2, 5.6, 4]
+      margin:
+        marginPercent: [10.055, 11.7775, 12.6387, 13.0694, 13.2847, 13.3923, 13.4462, 13.4731, 13.4865, 13.4933]
+        afterPercent: 13.5
+      taxPercent: 34.61
+      lossesCarried: 0
+      salesToCapital: 2
+      costOfCapitalPercent: [9.4, 9.4, 9.4, 9.4, 9.4, 9.32, 9.24, 9.16, 9.08, 9]
+      growthAfterPercent: 4
+      returnOnCapitalAfterPercent: 10
+      cash: 5220.93
+      debt: 7851.35
+      options: 0
+      shares: 21.1251719
+      per: share
+      failure:
+        chancePercent: 0
+        recovered: 1961.3
+      price:
+        value: 192.55
+        date: 2019-07-29
+      illustration: true
+      published:
+        note: "No published valuation of Coffee Day exists (none by Damodaran found). Illustrative survival story calibrated so the engine value (Rs 192.11) sits at the 29 Jul 2019 close (Rs 192.55, derived from market value 4,067.65 / 21.1251719 crore shares). Margin target 13.5% is ICRA's FY2019 consolidated OPBDIT/OI (EBITDA margin; 13.46% from the annual report) used as a mature EBIT margin, i.e. a generous story: FY2019 depreciation was 6.85% of revenue. Engine FCF years 1-10 (Rs crore): 58.2, 125.4, 174.2, 214.0, 250.2, 335.8, 428.6, 527.6, 630.2, 733.3; FCF yr11 585.4; terminal value 11,708.6; business value 6,688.8; terminal share 72.1%. With recovered 1,961.3: 17.0% chance -> Rs 154.05 (30 Jul close), 30.8% (30.77) -> Rs 123.25 (31 Jul close); equity reaches 0 at 85.8%."
+      notes:
+        - "Opens at 0% (the survival story). recovered = business value in a distress sale, in crores: no-growth value of existing assets, FY2019 EBIT 281.94 x (1-0.3461) / 9.4% (Damodaran's method b). Range marks are Damodaran/Altman 10-year cumulative default rates for BBB, BB and CCC. Synthetic-rating mark (Damodaran emerging-market table, FY2019 coverage 1.06x -> Ca2/CC): CC 10-year cumulative default 66.6% (Table 5)."
+      sources:
+        - title: Coffee Day Enterprises Annual Report 2018-19 (audited consolidated statements dated 24 May 2019)
+          url: https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf
+        - title: ICRA rationale, Coffee Day Enterprises, 10 Sep 2019
+          url: https://icra.in/Rating/ShowRationalReportFilePdf/88300
+        - title: Damodaran, Valuing Distressed and Declining Companies (June 2009), Table 5
+          url: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/NewDistress.pdf
+        - title: Damodaran country risk premiums, update of 1 Jan 2019 (archive ctryprem18.xls)
+          url: https://pages.stern.nyu.edu/~adamodar/pc/archives/ctryprem18.xls
+        - title: "The Hindu, 29 Jul 2019: 10-year G-sec closed at 6.41%"
+          url: https://www.thehindu.com/business/Economy/yields-decline-as-fm-says-no-rethink-on-raising-foreign-funds/article28750914.ece
+        - title: "Business Today, 31 Jul 2019: prices and market value"
+          url: https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
+        - title: "Business Today, 17 Aug 2019: group debt Rs 4,970 crore on 31 Jul"
+          url: https://www.businesstoday.in/latest/economy-politics/story/coffee-day-enterprises-discloses-debt-down-rs-4970-crore-slash-rs-2570-crore-global-village-sale-221819-2019-08-17
+        - title: Damodaran, Ratings, interest coverage ratios and default spreads (data as of January 2019; archived 5 Jul 2019)
+          url: http://web.archive.org/web/20190705150932/http://pages.stern.nyu.edu:80/~adamodar/New_Home_Page/datafile/ratings.htm
+        - title: "BusinessLine, 17 Aug 2019: external borrowings as on 31 Jul 2019"
+          url: https://www.thehindubusinessline.com/companies/coffee-day-enterprises-debt-at-rs-4970-crore/article29119177.ece
+      reproduces: false
+
+concept: >
+  A distressed firm is one that may not be able to meet its debts. Its value is not a single
+  number. If it survives, it is worth its going-concern value: discounted cash flow on the
+  business. If it fails, assets are sold, often quickly and at a discount, and the proceeds go
+  first to lenders (secured before unsecured) and only then to shareholders. Expected firm value
+  therefore weighs the two outcomes by the chance of each: probability of survival x going
+  concern value + probability of distress x distress sale value. Equity is what is left after
+  debt, so it behaves like an option: if asset value falls below the debt, shareholders lose at
+  most their stake, but if it rises above the debt they keep the gain. That is why shares of a
+  distressed firm can still have value when the assets are worth less than the debt, and why
+  that value is very sensitive to news. Good estimates use the market value of debt, a cost of
+  capital that reflects the distress (not an old regression beta), and an honest view of what
+  assets could fetch in a rush. Pledged shares and loan covenants can turn a price fall into
+  forced selling, which makes failure more likely.
+
+principle: >
+  In distress, value depends on the odds of survival and on what the assets would fetch if
+  forced to sell, not only on today's earnings. Equity is an option on what is left after debt,
+  and a fall in the price can itself raise the chance of failure.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Weigh a firm's value if it survives against what its assets would fetch in a forced sale."
+  - "See why shareholders' equity behaves like an option on what is left after debt."
+  - "Spot how a falling price can itself raise the chance of failure."
+
+questions:
+  - id: vd-q-going-liquidation
+    prompt: >
+      A firm owes its lenders a large sum. Run as a going concern, its business is worth more than that debt. Sold off in a rush (liquidation), its assets would fetch less than the debt. Which headline gets it right for the shareholders?
+    choices:
+      - { id: a, text: "They keep something if the business carries on, and get nothing if it is sold off in a rush" }
+      - { id: b, text: "They get whatever the assets fetch in a rush sale", mistake: { tag: ignored_debt, fix: "Lenders are paid first. Equity is only what is left after the debt." } }
+      - { id: c, text: "They are wiped out under both views", mistake: { tag: ignored_going_concern, fix: "If the business carries on it is worth more than its debt, so something is left." } }
+      - { id: d, text: "They get the full value of the business either way", mistake: { tag: ignored_debt, fix: "Debt comes off first, and a rush sale fetches less than a going concern." } }
+    answer: a
+    explanation: >
+      Equity is what is left after debt, because lenders are paid first. If the business carries on, it is worth more than the debt, so something is left for shareholders. In a rush sale all the proceeds go to lenders, who are still short, so shareholders get nothing.
+    source: >
+      Damodaran, The Value of Distressed Firms (Library), going-concern and distress sale value: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
+
+  - id: vd-q-option
+    prompt: >
+      A firm's assets are worth Rs 80 crore and it owes lenders Rs 100 crore in a year, and what the assets will be worth is very uncertain. Why might its shares still be worth something?
+    choices:
+      - { id: a, text: "Shareholders keep the gain if asset value rises above the debt and cannot lose more than their stake, like holding an option" }
+      - { id: b, text: "Debt is always cancelled when assets are worth less than the debt", mistake: { tag: debt_cancelled, fix: "Debt is not cancelled. Shareholders simply cannot lose more than their stake." } }
+      - { id: c, text: "Shares are always worth at least their face value", mistake: { tag: face_value, fix: "Face value is only a label. Share value depends on what is left after debt." } }
+      - { id: d, text: "Lenders must give shareholders part of the assets", mistake: { tag: lenders_share, fix: "Lenders are paid first. Shareholders gain only if asset value rises past the debt." } }
+    answer: a
+    explanation: >
+      Equity holders have limited liability. If asset value ends up above the Rs 100 crore, they keep the excess. If it ends up below, they lose the shares but no more. The more uncertain the asset value, the more that option is worth.
+    source: >
+      Damodaran, The Value of Distressed Firms (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
+
+  - id: vd-q-expected
+    prompt: >
+      A firm would be worth a lot if it survives and far less if it is forced into a distress sale. You think distress could happen, but survival is more likely. Which description of its value is the sensible one?
+    choices:
+      - { id: a, text: "Halfway between the two, since either could happen", mistake: { tag: equal_weights, fix: "The two outcomes are not equally likely. Weigh each by its chance." } }
+      - { id: b, text: "A blend of the two weighted by their chances, so closer to the survival value" }
+      - { id: c, text: "The survival value, because that is what the firm is meant to be worth", mistake: { tag: ignored_distress, fix: "Ignoring the chance of distress overstates the value. Weigh in the bad case too." } }
+      - { id: d, text: "The distress value, to be safe", mistake: { tag: only_worst_case, fix: "Planning for the worst alone is too gloomy. Weigh both cases by their chances." } }
+    answer: b
+    explanation: >
+      Expected value weighs each outcome by its chance. Survival is the likelier case, so the blend sits nearer the survival value, but the chance of distress still pulls it down. Ignoring that chance overstates the value.
+    source: >
+      Damodaran, The Value of Distressed Firms (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
+
+  - id: vd-q-enterprise
+    prompt: >
+      A heavily indebted company has shares, a lot of debt and some cash. Analysts want one figure for the whole business: the market value of the shares plus the debt, less the cash it holds. What do they call that figure?
+    choices:
+      - { id: a, text: "Market capitalisation", mistake: { tag: shares_only, fix: "Market capitalisation counts the shares alone. It leaves the debt out." } }
+      - { id: b, text: "Enterprise value" }
+      - { id: c, text: "Book value", mistake: { tag: accounting_value, fix: "Book value is an accounting figure, not the market price of the whole business." } }
+      - { id: d, text: "Net worth", mistake: { tag: net_worth, fix: "Net worth is assets less liabilities, which is a different thing." } }
+    answer: b
+    explanation: >
+      Enterprise value prices the whole business: the shares plus the debt, less the cash. In a heavily indebted company the shares are only a small part of it, so a small fall in the business's value can wipe out much of the equity.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation (enterprise value multiples): https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
+
+  - id: vd-q-pledge
+    prompt: >
+      A promoter has pledged most of his shares in the company to lenders as security for loans. What can happen if the share price falls sharply?
+    choices:
+      - { id: a, text: "Lenders can take ownership of the pledged shares and sell them, which can push the price down further" }
+      - { id: b, text: "The pledge is cancelled automatically", mistake: { tag: pledge_cancelled, fix: "A pledge stays until the loan is repaid. Nothing cancels it." } }
+      - { id: c, text: "The company must buy back the shares at the original price", mistake: { tag: forced_buyback, fix: "Nothing forces a buy-back. Lenders simply sell the shares." } }
+      - { id: d, text: "Nothing, because a pledge does not give lenders any rights over the shares", mistake: { tag: no_rights, fix: "A pledge does give lenders a claim on the shares if the security falls short." } }
+    answer: a
+    explanation: >
+      A pledge gives lenders a claim on the shares if the loan is not repaid or the security falls short. They may take the shares and sell them, adding supply to a falling market. That is why pledges raise the chance of a spiral in a distressed company.
+    source: >
+      Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), risk factor on the promoter's guarantees and pledges: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+checks:
+  - id: vd-quiz-distress
+    kind: quiz
+    questions:
+      - vd-q-going-liquidation
+      - vd-q-option
+      - vd-q-expected
+      - vd-q-enterprise
+      - vd-q-pledge
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: vd-coffee-day-equity
+    kind: conversation
+    prompt: >
+      On the evening of 29 July 2019 Coffee Day Enterprises has a stock market value of Rs 4,068
+      crore, borrowings of about Rs 7,214 crore and a promoter group holding 76 percent pledged. Say in
+      your own words why its shares might still have value, why one steady-growth value could
+      mislead, and what the pledge adds to the risk.
+    passCriteria: >
+      The Learner explains that equity is the part that remains once debt is paid and behaves like
+      an option, so it can still have value even if asset values are close to or below debt, but
+      that value depends heavily on the chance of survival. They say the valuation should weigh a
+      going-concern value against what assets would fetch in a forced sale, using a probability
+      of distress, and that going-concern DCF alone ignores the failure case. They explain that
+      the pledge lets lenders take and sell shares if the price falls, which can force the price
+      lower and make failure more likely, so the price and the risk affect each other.

@@ -1,0 +1,141 @@
+# Earnings quality and accounting fraud: a foundation Topic taught through Satyam.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: fs-earnings-quality
+title: Earnings quality and accounting fraud
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A value built on profit that cash does not back is built on sand; checking earnings quality tests the story before you value it."
+
+cases:
+  - id: satyam-2009
+    title: Satyam in early January 2009
+    asOf: 2009-01-06
+    story: >
+      Satyam Computer Services, based in Hyderabad, was India's fourth-largest software services
+      company, with more than 50,000 staff and customers that included many of the Fortune 500. Its shares
+      traded in Mumbai and, as American depositary receipts, on the New York Stock Exchange. Its
+      published accounts for the quarter to 30 September 2008 showed revenue of Rs 2,700 crore, an
+      operating profit of Rs 649 crore (a 24% margin), and cash and bank balances of Rs 5,361 crore
+      with receivables of Rs 2,651 crore. On 16 December 2008 the board announced that Satyam would
+      buy Maytas Properties for $1.3 billion and 51% of Maytas Infra for $300 million. These were
+      construction businesses in which the chairman, B. Ramalinga Raju, and other insiders held 35% of
+      Maytas Properties and 36% of Maytas Infra. Investors reacted at once: the ADRs fell 55% on the New York exchange that day to $5.70,
+      and in Mumbai the shares slumped about 31% on 17 December after the company withdrew the
+      deal within hours.
+    reveal: >
+      On 7 January 2009 Raju wrote to the board and the regulators and resigned. He said that cash
+      and bank balances of Rs 5,040 crore on the 30 September 2008 balance sheet did not exist (against
+      Rs 5,361 crore in the books), that accrued interest of Rs 376 crore was non-existent and that
+      receivables were overstated by Rs 490 crore (of Rs 2,651 crore in the books). For the
+      September quarter he said the company had reported revenue of Rs 2,700 crore and operating
+      profit of Rs 649 crore (a 24% margin), against actual revenue of Rs 2,112 crore and operating
+      profit of only Rs 61 crore (a 3% margin). The gap had grown over several years; he compared it to "riding a
+      tiger, not knowing how to get off without being eaten". The shares fell sharply that day, to
+      Rs 39.95 in Mumbai. The US Securities and Exchange Commission later alleged that officials had used false
+      invoices and forged bank statements to inflate results.
+
+concept: >
+  Earnings quality asks whether reported profit is real, repeatable and backed by cash. Profit is an
+  accounting number built on accruals (revenue recorded before cash arrives, costs spread over time);
+  cash is harder to fake and easier to check against a bank statement. Warning signs include profit
+  that grows without matching operating cash flow, receivables that grow faster than sales, large cash
+  balances earning little interest, spending on assets far from the business, dealings with
+  insiders, and margins far above peers. Accounting fraud is the extreme case, where the figures
+  are invented. The tools are the same as for ordinary analysis: tie profit to cash, check each
+  balance-sheet item against something outside the company, and ask what the money is being spent on.
+
+principle: >
+  Profit is an opinion and cash is a fact. When profit, cash and behaviour do not tell the same
+  story, believe the cash and ask why.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Ask whether reported profit is real, repeatable and backed by cash."
+  - "Recognise the warning signs that come before accounting fraud."
+  - "Check a company's figures against evidence from outside it."
+
+questions:
+  - id: eq-q-cash-share
+    prompt: >
+      December 2008. Priya, a junior auditor, is checking a client's year-end cash. The client's finance team
+      hands her neat printed bank statements, but her manager insists she write to each bank herself and
+      have the replies sent straight back to her. Her sign-off on the accounts depends on it. Why does he insist?
+    choices:
+      - { id: a, text: "A reply sent straight from the bank is far harder for the client to fake than papers it hands over" }
+      - { id: b, text: "Printed statements are always wrong, so they are worthless", mistake: { tag: dismissed_all_documents, fix: "Statements are useful, but the client controls them; a direct reply bypasses the client." } }
+      - { id: c, text: "It is a courtesy to the banks, not a test of the cash", mistake: { tag: missed_the_test, fix: "The letter tests the balance: the bank says what it holds, not the client." } }
+      - { id: d, text: "Letting the client forward the replies is just as good", mistake: { tag: let_client_handle_it, fix: "If the client handles the reply, it can alter it; it must come straight back." } }
+    answer: a
+    explanation: >
+      Evidence from outside the company, sent straight to the auditor, is the hardest kind to forge. Papers the client produces, or replies the client passes on, could have been altered on the way, so the auditor keeps control of the request and the reply.
+    source: >
+      A made-up example; the principle is from PCAOB, AS 2310 The Auditor's Use of Confirmation (the auditor keeps control of confirmation requests and replies): https://pcaobus.org/oversight/standards/auditing-standards/details/AS2310
+  - id: eq-q-margin
+    prompt: >
+      A software company reports quarterly revenue of Rs 2,700 crore and an operating profit of Rs 649 crore, a 24% margin
+      that an analyst finds unusually rich. What is the sensible first reaction for an analyst?
+    choices:
+      - { id: a, text: "Treat it as a claim to test against cash flow and outside evidence" }
+      - { id: b, text: "Take it as proof that the company is the best run in its industry", mistake: { tag: took_margin_as_proof, fix: "A margin is only the company's own claim; unusually high ones are the ones to test." } }
+      - { id: c, text: "Ignore it, because margins say nothing about quality", mistake: { tag: dismissed_the_margin, fix: "Margins matter; the point is to check that they are backed by cash." } }
+      - { id: d, text: "Assume the revenue must be understated", mistake: { tag: guessed_the_direction, fix: "Nothing points to understated revenue; a result this good is the thing to verify." } }
+    answer: a
+    explanation: >
+      An unusually rich margin is itself something to test. Profit rests on accounting judgement, so the next step is to see whether it turns into operating cash flow and whether outsiders can confirm the balances behind it.
+    source: >
+      Satyam's published standalone results for the quarter to 30 September 2008, released on 17 October 2008 and furnished to the SEC on Form 6-K (Exhibit 99.4): https://www.sec.gov/Archives/edgar/data/1106056/000114554908001838/u93365exv99w4.htm
+  - id: eq-q-cash-test
+    prompt: >
+      Which single check is hardest for a company to fake and most useful for testing reported profit?
+    choices:
+      - { id: a, text: "Compare profit with operating cash flow and confirm cash balances with the bank" }
+      - { id: b, text: "Read the chairman's letter in the annual report", mistake: { tag: trusts_own_words, fix: "The chairman's letter is the company's own words, the easiest part to dress up." } }
+      - { id: c, text: "Compare the company's margin with its own earlier margins only", mistake: { tag: self_comparison, fix: "Its own past margins come from the same books, so a fake can repeat there too." } }
+      - { id: d, text: "Check that reported profit grew every year", mistake: { tag: growth_as_proof, fix: "Steady profit growth comes from the same books; only cash and outside confirmation test it." } }
+    answer: a
+    explanation: >
+      Cash and bank balances can be confirmed with outside parties, and profit that does not turn into operating cash flow over time needs an explanation. The other checks rely on the company's own words.
+    source: >
+      PCAOB, AS 2310 The Auditor's Use of Confirmation (confirming balances with outside parties): https://pcaobus.org/oversight/standards/auditing-standards/details/AS2310
+
+  - id: eq-q-maytas
+    prompt: >
+      A company with Rs 5,361 crore of reported cash proposes to spend $1.6 billion on two construction
+      businesses owned partly by its chairman's family, in a line of business unrelated to its own.
+      Which concern is most relevant to earnings quality and governance?
+    choices:
+      - { id: a, text: "A related-party deal that does not fit the business and needs independent scrutiny" }
+      - { id: b, text: "Construction is always a worse business than software", mistake: { tag: sector_snobbery, fix: "The worry is who gains from the deal, not which industry is better." } }
+      - { id: c, text: "Companies should never use their cash", mistake: { tag: never_spend, fix: "Using cash is fine; the red flag is spending it on the chairman's family firms." } }
+      - { id: d, text: "A large deal is proof of a strong balance sheet", mistake: { tag: size_as_strength, fix: "A big deal proves nothing; one with insiders far from the core business needs scrutiny." } }
+    answer: a
+    explanation: >
+      Dealings with insiders and spending far from the core business are classic warning signs, and the purchase would have moved cash to the chairman's family firms.
+    source: >
+      Reuters, Satyam abandons plan to buy builders, 16 December 2008: https://www.reuters.com/article/marketsNews/idINN1628370020081216/
+
+checks:
+  - id: eq-quiz-quality
+    kind: quiz
+    questions:
+      - eq-q-cash-share
+      - eq-q-margin
+      - eq-q-cash-test
+      - eq-q-maytas
+      - bank:eab:MBA-ACC-FA-0050
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eq-satyam-view
+    kind: conversation
+    prompt: >
+      It is 6 January 2009. Satyam's published accounts show a 24% operating margin and Rs 5,361 crore
+      of cash, yet it tried to spend $1.6 billion on firms owned partly by its chairman's family.
+      What would you check to test whether its earnings and cash are real, and why does cash
+      matter more than profit here?
+    passCriteria: >
+      The Learner explains that profit rests on accruals and judgement while cash can be checked
+      outside the company. They propose concrete checks: compare profit with operating cash flow
+      over several years, confirm bank balances with the banks, check whether the cash
+      earns a sensible rate of interest (idle cash is a warning), look at receivables against sales, compare the margin with peers, and examine the
+      related-party nature of the Maytas deal. They conclude that profit and cash diverging, or cash
+      sitting idle while the company spends elsewhere, calls for scepticism.

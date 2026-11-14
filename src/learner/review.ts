@@ -1,0 +1,204 @@
+import { and, asc, eq, gt, inArray } from "drizzle-orm";
+import { questionLookup } from "@/bank/lookup";
+import { DEFAULT_REVIEW_CAP, reviewsDue } from "@/course/navigator";
+import type { CourseMap, QuizCheck } from "@/course/map";
+import { baseQuestionId, computedInstanceId, computedKeyedQuestion, isRight, parseTemplateInstanceId, publicQuestions, type PublicQuestion } from "@/course/quiz";
+import type { State } from "ts-fsrs";
+import { newCard, rate, type ReviewCardState } from "@/course/review";
+import { checkResults, quizAttempts, reviewCards, reviewLog } from "@/db/schema";
+import type { Db } from "@/db/types";
+import { readSettings } from "@/tutor/session-log";
+
+/**
+ * Spaced review in Learner Memory. Quiz questions only; the Course Navigator says which are due,
+ * `ts-fsrs` (course/review.ts) schedules them, and this file keeps each question's card in SQL.
+ * No model is involved, and nothing here touches a Topic's progress. Every card and Review belongs to
+ * one Learner: each Learner has their own card per question, and their own daily cap.
+ */
+
+type CardRow = typeof reviewCards.$inferSelect;
+
+const toState = (row: CardRow): ReviewCardState => ({
+  due: row.due,
+  stability: row.stability,
+  difficulty: row.difficulty,
+  scheduled_days: row.scheduledDays,
+  reps: row.reps,
+  lapses: row.lapses,
+  learning_steps: row.learningSteps,
+  state: row.state as State,
+  last_review: row.lastReview ?? undefined,
+});
+
+const toRow = (learnerId: number, questionId: string, c: ReviewCardState): CardRow => ({
+  learnerId,
+  questionId,
+  due: c.due,
+  stability: c.stability,
+  difficulty: c.difficulty,
+  elapsedDays: 0, // ts-fsrs 6 no longer keeps elapsed days on the card
+  scheduledDays: c.scheduled_days,
+  reps: c.reps,
+  lapses: c.lapses,
+  learningSteps: c.learning_steps,
+  state: c.state,
+  lastReview: c.last_review ?? null,
+});
+
+/**
+ * Gives a card to every question shown in a passed quiz Check that has none yet. The card is built
+ * by replaying the Learner's answers to that question in the Check's attempts: correct is Good,
+ * incorrect is Again. Only this Learner's passes, attempts and cards count. Safe to call any number of times.
+ */
+export async function enrollPassedQuestions(db: Db, map: CourseMap, learnerId: number): Promise<void> {
+  const passed = await db
+    .select({ checkId: checkResults.checkId })
+    .from(checkResults)
+    .where(and(eq(checkResults.learnerId, learnerId), eq(checkResults.passed, true)));
+  const checkIds = [...new Set(passed.map((p) => p.checkId))].filter((id) => map.check(id)?.kind === "quiz");
+  if (!checkIds.length) return;
+  const attempts = await db
+    .select()
+    .from(quizAttempts)
+    .where(and(eq(quizAttempts.learnerId, learnerId), inArray(quizAttempts.checkId, checkIds)))
+    .orderBy(asc(quizAttempts.id));
+  const lookup = await questionLookup(db, map, attempts.flatMap((a) => a.questionIds));
+  const have = new Set((await db.select({ id: reviewCards.questionId }).from(reviewCards).where(eq(reviewCards.learnerId, learnerId))).map((r) => r.id));
+  const events = new Map<string, { at: Date; correct: boolean }[]>();
+  for (const attempt of attempts) {
+    if (!attempt.submittedAt || !attempt.answers) continue;
+    const check = map.check(attempt.checkId) as QuizCheck;
+    for (const id of attempt.questionIds) {
+      const question = lookup.question(id);
+      // A computed question shown with a retry's seed is enrolled as its question, whose Reviews draw their own sets (D5).
+      const base = baseQuestionId(id);
+      // A typed question (a template instance) is never enrolled: its numbers are gone with the attempt, so it cannot come back.
+      if (!question || have.has(base) || parseTemplateInstanceId(id) || !check.questions.includes(base)) continue;
+      events.set(base, [...(events.get(base) ?? []), { at: attempt.submittedAt, correct: isRight(question, attempt.answers[id]) }]);
+    }
+  }
+  for (const [questionId, list] of events) {
+    let card = newCard(list[0].at);
+    for (const e of list) card = rate(card, e.correct, e.at);
+    const inserted = await db.insert(reviewCards).values(toRow(learnerId, questionId, card)).onConflictDoNothing().returning({ id: reviewCards.questionId });
+    if (inserted.length) await db.insert(reviewLog).values(list.map((e) => ({ learnerId, questionId, rating: e.correct ? 3 : 1, source: "quiz" as const, reviewedAt: e.at })));
+  }
+}
+
+/**
+ * Schedules a skip-ahead quiz's questions as Reviews (spec 2026-11-12 A8): each question that has no card yet gets one,
+ * rated by the Learner's one answer (right is Good, wrong is Again), so a lucky pass still brings them back. A computed
+ * question is kept by its own id; a template draw is never enrolled, since its numbers go with the attempt. Questions that
+ * already have a card keep it as it is. Safe to call twice.
+ */
+export async function enrollAnswered(db: Db, learnerId: number, answered: readonly { id: string; correct: boolean }[], at: Date): Promise<void> {
+  for (const { id, correct } of answered) {
+    if (parseTemplateInstanceId(id)) continue;
+    const questionId = baseQuestionId(id);
+    const card = rate(newCard(at), correct, at);
+    const inserted = await db.insert(reviewCards).values(toRow(learnerId, questionId, card)).onConflictDoNothing().returning({ id: reviewCards.questionId });
+    if (inserted.length) await db.insert(reviewLog).values({ learnerId, questionId, rating: correct ? 3 : 1, source: "quiz", reviewedAt: at });
+  }
+}
+
+/** The Review cap counts Reviews done over this rolling window, whatever the Sessions did. */
+const CAP_WINDOW_MS = 24 * 3600_000;
+
+export type ReviewState = {
+  /** The review to show now (most overdue first), or null when none is due or the cap is reached. */
+  question: PublicQuestion | null;
+  /** All reviews due, including those past the cap. */
+  dueCount: number;
+  /** Reviews done in the last 24 hours. */
+  done: number;
+  cap: number;
+};
+
+async function doneLastDay(db: Db, now: Date, learnerId: number): Promise<number> {
+  const since = new Date(now.getTime() - CAP_WINDOW_MS);
+  const rows = await db
+    .select({ id: reviewLog.id })
+    .from(reviewLog)
+    .where(and(eq(reviewLog.learnerId, learnerId), eq(reviewLog.source, "review"), gt(reviewLog.reviewedAt, since)));
+  return rows.length;
+}
+
+/** What the fixed review page shows this Learner: their next review, if any. Opening it makes no model call. */
+export async function reviewState(db: Db, map: CourseMap, now = new Date(), learnerId: number): Promise<ReviewState> {
+  await enrollPassedQuestions(db, map, learnerId);
+  const [cards, done, settings] = await Promise.all([
+    db.select().from(reviewCards).where(eq(reviewCards.learnerId, learnerId)),
+    doneLastDay(db, now, learnerId),
+    readSettings(db),
+  ]);
+  const cap = Number.isFinite(settings.reviewCap) ? settings.reviewCap : DEFAULT_REVIEW_CAP;
+  const lookup = await questionLookup(db, map, cards.map((c) => c.questionId));
+  const { offered, dueCount } = reviewsDue(lookup, cards, now, done, cap);
+  const card = offered[0];
+  if (!card) return { question: null, dueCount, done, cap };
+  const shown = shownForReview(map, learnerId, card);
+  return { question: publicQuestions(shown === card.questionId ? lookup : await questionLookup(db, map, [shown]), [shown])[0], dueCount, done, cap };
+}
+
+/**
+ * The ID a Review shows for a card. A computed question draws its shown changes from the Topic file's pool with a seed
+ * made from the Learner and the card's review count, so each Review shows a fresh set and the answer, sent back with the
+ * same ID before the count moves, is marked against the set it showed (D5). Any other question is its own ID.
+ */
+function shownForReview(map: CourseMap, learnerId: number, card: CardRow): string {
+  const instance = computedInstanceId(card.questionId, `${learnerId}.r${card.reps}`);
+  return computedKeyedQuestion(map, card.questionId) && computedKeyedQuestion(map, instance) ? instance : card.questionId;
+}
+
+export type ReviewAnswer =
+  | {
+      ok: true;
+      correct: boolean;
+      answer: string;
+      explanation: string;
+      /** A computed question's choices carry the figure code worked out for each (spec D2). */
+      choices: { id: string; text: string; figure?: string }[];
+      chosen: string | null;
+      nextDue: Date;
+      credit?: string;
+      verified: boolean;
+      mistake?: { tag?: string; fix: string };
+      /** A predict question (D1): where the result landed and its figure. Never marked wrong. */
+      predict?: { landed: string; figure: string };
+    }
+  | { ok: false; reason: string };
+
+/** Marks a review on the server and reschedules this Learner's card. Only the question currently offered them is accepted. */
+export async function answerReview(db: Db, map: CourseMap, questionId: string, choiceId: string, now = new Date(), learnerId: number): Promise<ReviewAnswer> {
+  const state = await reviewState(db, map, now, learnerId);
+  const question = (await questionLookup(db, map, [questionId])).question(questionId);
+  if (!question || state.question?.id !== questionId) return { ok: false, reason: "That question is not up for review right now." };
+  // A computed question's Review shows a seeded instance; its card is kept by the question's own ID.
+  const cardId = baseQuestionId(questionId);
+  const thisCard = and(eq(reviewCards.learnerId, learnerId), eq(reviewCards.questionId, cardId));
+  const [row] = await db.select().from(reviewCards).where(thisCard);
+  const chosen = question.choices.some((c) => c.id === choiceId) ? choiceId : null;
+  const correct = isRight(question, chosen);
+  const predict = question.judgement?.predict;
+  // A wrong pick that is a Known mistake shows its one-line fix, as a quiz Check does.
+  const hit = !correct && chosen ? question.choices.find((c) => c.id === chosen)?.mistake : undefined;
+  const card = rate(toState(row), correct, now);
+  await db.transaction(async (transaction) => {
+    const tx = transaction as unknown as Db;
+    await tx.update(reviewCards).set(toRow(learnerId, cardId, card)).where(thisCard);
+    await tx.insert(reviewLog).values({ learnerId, questionId: cardId, rating: correct ? 3 : 1, source: "review", reviewedAt: now });
+  });
+  return {
+    ok: true,
+    correct,
+    answer: question.answer,
+    explanation: question.explanation,
+    choices: question.choices.map(({ id, text, figure }) => ({ id, text, ...(figure && { figure }) })),
+    chosen,
+    nextDue: card.due,
+    ...(question.credit ? { credit: question.credit } : {}),
+    verified: question.verified ?? true,
+    ...(hit ? { mistake: { ...(hit.tag ? { tag: hit.tag } : {}), fix: hit.fix } } : {}),
+    ...(predict ? { predict: { landed: question.choices.find((c) => c.id === question.answer)?.text ?? question.answer, figure: predict.figure } } : {}),
+  };
+}

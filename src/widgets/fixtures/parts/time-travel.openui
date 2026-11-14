@@ -1,0 +1,3 @@
+root = Widget("What are payments in the future worth today?", [coin, row])
+coin = TimeTravel(100, 8, 30, 1, 0, "inr")
+row = TimeTravel(100, 8, 10, 10, 5, "inr")

@@ -1,0 +1,13 @@
+root = Widget("Illustration: ₹100 today vs ₹100 later", [rate, cards, chart, note, tasks])
+$rate = 7
+rate = Slider("ratePercent", "Yearly rate you could earn (the discount rate)", 0, 15, 0.5, $rate, "percent")
+cards = Stack([cardFwd, cardBack], "row")
+cardFwd = Card([InlineHeader("Forward: ₹100 today", "Grows for 1 year at your rate"), Calculator("future_value", {amount: 100, ratePercent: $rate, years: 1}, "inr")])
+cardBack = Card([InlineHeader("Backward: ₹100 next year", "Worth this much today"), Calculator("present_value", {amount: 100, ratePercent: $rate, years: 1}, "inr")])
+pv = Query("calculate_range", {calculator: "present_value", inputs: {amount: 100, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: 30, step: 1, currency: "inr"}, {rows: [], output: "", outputs: [], error: ""})
+chart = BarChart(pv.rows.label, [Series("What ₹100 paid then is worth today", pv.rows.value)], "grouped", "Years until the payment arrives", "Rupees today")
+note = TextCallout("info", "Read the chart", "Each bar is ₹100 paid in that year, valued today. The further away the payment, the less it is worth now. A higher rate shrinks the bars faster.")
+tasks = GuidedTasks([t1, t2, t3])
+t1 = GuidedTask("Set the rate to 0%: what happens to every bar?", $rate == 0)
+t2 = GuidedTask("Now set it to 12%: look at the bar for year 30", $rate == 12)
+t3 = GuidedTask("Bring it back to 7%", $rate == 7 && true)

@@ -1,0 +1,203 @@
+# Follow Topic: Damodaran's do-it-yourself valuation of Tesla (6 Feb 2020), a dated piece taught as a Case.
+# The post's text is in the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+id: fol-tesla-2020
+title: "Follow: Damodaran, Tesla valuation (Feb 2020)"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Damodaran reduces a story about Tesla to four levers and lets readers set them, the same way this course values a company."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-tesla-2020-diy
+    title: Damodaran lets readers choose their own Tesla story
+    asOf: 2020-02-06
+    piece:
+      author: Aswath Damodaran
+      title: "A Do-it-yourself (DIY) Valuation of Tesla: Of Investment Regrets and Disagreements!"
+      published: 2020-02-06
+      url: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 6 February 2020 Aswath Damodaran, a valuation professor at NYU Stern, published a blog post
+      about Tesla. A few days earlier he had valued the company at about $427 a share and, on 30
+      January, sold his own shares at $640. The stock then climbed to more than $900 within days.
+      Readers on both sides, those who thought he was too hopeful and those who thought he was too
+      cautious, attacked his valuation. He wrote that his number was "my" valuation of Tesla and not
+      "the" valuation, and he expected disagreement. So he redid the exercise as a menu: four levers
+      of value (growth, profitability, investment efficiency and risk), with data from the car and
+      technology industries beside each, so that readers could choose their own story and see the
+      value that follows. His own story had revenue of $125 billion in 2030, five times its 2019
+      level, an operating margin of 12% by 2025, $3 of revenue for each dollar invested in the first
+      five years, a 7% cost of capital and a 10% chance that the company fails. The Learner reads the
+      post in full, without stopping, and then explains each step of its argument.
+    reveal: >
+      Prices after 2020 cannot be compared with $427 without adjusting for share splits. Tesla split
+      its shares 5-for-1 (trading on the new basis from 31 August 2020) and 3-for-1 (from 25 August
+      2022), so one share of February 2020 became 15 shares, and his $427 is about $28.47 on today's
+      basis (CNBC; Reuters; Tesla Investor Relations). On 25 October 2021, after Hertz announced an
+      order for 100,000 cars, Tesla closed at a record $1,024.86, which put its market value just over
+      $1 trillion (AP; Reuters). That is about $341.62 on the basis after both splits. The stock then
+      lost about 65% in 2022 and closed the year at $123.18, after losing more than $700 billion of
+      market value that year (Wall Street Journal). Even that low price was about four times his $427
+      on the same basis. Set against the post: its four stories ran from about $106 to $2,106 a share
+      before the splits, and the price moved a long way in both directions around his number. The
+      lesson of the post stands apart from who was closer: a value follows from a story you can
+      name, and a price can sit far from a value for years in either direction.
+    # Valuation inputs from docs/research/verify-*.json (spec B1, C2); npm run course:doc copies them into the registry.
+    valuation:
+      currency: USD
+      unit: millions
+      baseRevenue: 24578
+      growthPercent: [25, 25, 25, 25, 25, 20.35, 15.7, 11.05, 6.4, 1.75]
+      margin:
+        marginPercent: [3.68392, 5.76294, 7.84196, 9.92098, 12, 12, 12, 12, 12, 12]
+        afterPercent: 12
+      taxPercent: 25
+      lossesCarried: 0
+      salesToCapital: 3
+      salesToCapitalByYear: [3, 3, 3, 3, 3, 2, 2, 2, 2, 2]
+      costOfCapitalPercent: [7, 7, 7, 7, 7, 7.08, 7.16, 7.24, 7.32, 7.4]
+      growthAfterPercent: 1.75
+      returnOnCapitalAfterPercent: 10
+      cash: 6514
+      debt: 14707.69
+      options: 8822.11
+      shares: 177
+      per: share
+      failure:
+        chancePercent: 10
+        recovered: 48694.82
+        recoveredPercentOfValue: 50
+      price:
+        value: 748.96
+        date: 2020-02-06
+        note: Close on the Case date, split-adjusted 49.9307 x 15 (Yahoo chart API).
+      published:
+        valuePerShare: 426.58
+        fcff: [-1199, -900, -377, 464, 1750, 492, 2314, 4668, 7395, 10221]
+        note: "Published as 'roughly $427' (Ode 30 Jan; DIY 6 Feb). Value picture: Value per share $426.58, TV 167,901, PV(TV) 84,402, PV(CF) 12,988, operating assets 97,390, adjustment for distress 4,869, debt 14,708, cash 6,514, value of equity 84,326 (before options), options 8,822, 177 shares. Crystal Ball Report!E56 base case 426.5783. Independent B1 engine: $426.578, FCFF equal to the table to the dollar, FCFF yr11 9,486, TV share of going-concern value 86.7%."
+      notes:
+        - "Straight-line convergence, not the B1 halving helper: margin_t = 12 - (12 - 1.60490) x (5 - t)/5 for t <= 5, then 12. Base 1.60490% = 394.45 / 24,578 (EBIT after R&D capitalisation and lease conversion; Valuation output!B4). Target 12% reached in year 5 (Input sheet!B24 = 0.12, B25 = 5)."
+        - "Author varied it: 3.00 in years 1-5, 2.00 in years 6-10. TeslaJan2020.xlsx Input sheet!B27 = 3, C27 = 2 (a constant, so the simulation moved only years 1-5); TeslaJan2020DIY.xlsx C27 = B27 x 2/3. B1 must take a per-year array: scalar 3 gives $452.64, scalar 2 gives $392.56."
+        - 13,419 book debt (11,634 + 1,785) + 1,288.69 lease debt
+        - 32m options, strike $350, 5 yrs, sd 40%, Black-Scholes on the $581 price; held fixed when levers move (as in his DIY sheet)
+        - Recovered = 50% of going-concern value of operating assets (Input sheet!B48 = 'V', B49 = 0.5; Valuation output!B23 = B21 x B49). 48,694.82 = 0.5 x 97,389.64 at his story; an engine moving levers must recompute it as 50% of the new going-concern value, or a fixed number reproduces only the base.
+      sources:
+        - title: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla: Of Investment Regrets and Disagreements! (6 Feb 2020)"
+          url: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html
+        - title: "Damodaran, An Ode to Luck: Revisiting my Tesla Valuation (30 Jan 2020)"
+          url: https://aswathdamodaran.blogspot.com/2020/01/an-ode-to-luck-revisiting-my-tesla.html
+        - title: Damodaran spreadsheet, My Valuation of Tesla in January 2020 (TeslaJan2020.xlsx)
+          url: https://pages.stern.nyu.edu/~adamodar/pc/blog/TeslaJan2020.xlsx
+        - title: Damodaran spreadsheet, A Do-it-Yourself Valuation of Tesla (TeslaJan2020DIY.xlsx)
+          url: https://pages.stern.nyu.edu/~adamodar/pc/blog/TeslaJan2020DIY.xlsx
+        - title: Damodaran, Tesla Simulation (Crystal Ball report, TeslaSimulationOutput.xlsx)
+          url: https://pages.stern.nyu.edu/~adamodar/pc/blog/TeslaSimulationOutput.xlsx
+        - title: Yahoo Finance chart data, TSLA daily 28 Jan - 13 Feb 2020 (split-adjusted; x15 for pre-split prices)
+          url: https://query1.finance.yahoo.com/v8/finance/chart/TSLA?period1=1580169600&period2=1581638400&interval=1d
+        - title: Damodaran, value picture TeslaJan20ValPicture.jpg (embedded in both posts)
+          url: https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjDw5HAlin3oQldw5djYREcTRFMiSILCyMELoa0I4GUXk6H88hcmveCpyzAHC53J6dvgDqFXnqP6H6ERBwNarEn0DefIA70x0qS2rBw_g1LeUQvFGhqi4CwpFkHTWHBErv9_0t74Moz2bc/s1600/TeslaJan20ValPicture.jpg
+      reproduces: true
+
+concept: >
+  A value per share comes from a story, and a story can be reduced to four levers. Growth is the
+  revenue the company will reach in ten years (the dollar figure is easier to judge than a growth
+  rate, because compounding is hard to feel). Profitability is the operating margin it can settle at
+  once growth slows (after operating costs, before interest). Investment efficiency is the sales
+  to capital ratio: the dollars of extra revenue each dollar of new investment supports, which sets
+  how much the company must reinvest. Risk has two parts: the cost of capital that discounts the
+  cash flows, and the chance that the company fails and its value as a going concern is lost.
+  Industry data gives each lever a range to test a story against, such as the margins of large
+  carmakers against those of large technology companies. Disagreement over a price is healthy; the
+  useful question is which lever each side is setting differently, and whether the four settings
+  are consistent with one another.
+
+principle: >
+  Own your valuation and say it is yours. Before arguing about a value, name the story behind it
+  and test each lever against the industry data. The most dangerous valuation is the one where each
+  assumption is picked on its own, the best case on every lever at once.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Reduce a valuation story to growth, margin, reinvestment and risk."
+  - "Test each of those levers against industry data."
+  - "Spot the danger of picking the best case on every lever at once."
+
+questions:
+  - id: ft-q-compounding
+    prompt: >
+      February 2020: Damodaran warns his Tesla readers that compounding is hard to feel. Say your cousin, a Tesla fan, expects revenue to grow 40% a year for five years. What shape is the climb?
+    choices:
+      - { id: a, text: "A straight line: each year adds the same dollars", mistake: { tag: simple_not_compound, fix: "Each year's 40% lands on a bigger base, so the climb steepens." } }
+      - { id: b, text: "It steepens: each year's growth builds on the year before" }
+      - { id: c, text: "It flattens, as growth fades on a bigger base", mistake: { tag: growth_fades, fix: "The rate stays at 40%. A bigger base means bigger dollar gains, not smaller." } }
+      - { id: d, text: "One jump in the first year, then flat", mistake: { tag: grew_once, fix: "The 40% repeats every year, so revenue keeps climbing for all five years." } }
+    answer: b
+    explanation: >
+      Compounding means each year's growth is earned on a bigger base, so the climb curves upward. That is why the post suggests judging the dollar revenue in ten years rather than the growth rate.
+    source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
+  - id: ft-q-reinvestment
+    prompt: >
+      In Damodaran's February 2020 Tesla story, each dollar Tesla invests brings in $3 of new revenue, a "sales-to-capital ratio" of 3. Your uncle asks: what does that say about the money Tesla must invest to grow?
+    choices:
+      - { id: a, text: "More than the revenue it adds, because capital is the bigger number", mistake: { tag: ratio_upside_down, fix: "A ratio of 3 means each dollar of capital brings $3 of sales. Capital is smaller." } }
+      - { id: b, text: "Less than the revenue it adds: each dollar invested supports several of sales" }
+      - { id: c, text: "About as much as it adds, a dollar for each dollar", mistake: { tag: ratio_of_one, fix: "That describes a ratio of 1. A ratio of 3 needs less capital." } }
+      - { id: d, text: "It doesn't matter, since profit alone pays for growth", mistake: { tag: ratio_ignored, fix: "The ratio sets how much must be reinvested, whatever the profit." } }
+    answer: b
+    explanation: >
+      Sales to capital says how many dollars of extra revenue each dollar of new investment supports. The higher it is, the less the company must reinvest to grow. A low ratio, such as the $1.37 the post gives for the median carmaker, would need far more capital for the same growth.
+    source: Sales-to-capital reinvestment, as set out in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
+  - id: ft-q-failure
+    prompt: >
+      Damodaran sold his own Tesla shares on 30 January 2020. His story gives Tesla a 10% chance of failing, when its assets would sell for far less than the going business. How does that chance enter his value?
+    choices:
+      - { id: a, text: "Weigh both outcomes by their chances, trimming the value a little" }
+      - { id: b, text: "Count failure as zero, since a failed firm is worthless", mistake: { tag: failure_worth_nothing, fix: "A failed firm's assets still sell for something. That has to be counted." } }
+      - { id: c, text: "Ignore it, since survival is far more likely", mistake: { tag: ignore_unlikely, fix: "A small chance of a big loss still lowers the value. It has to be counted." } }
+      - { id: d, text: "Value Tesla at the failure price, to be safe", mistake: { tag: worst_case_value, fix: "Valuing at the worst case ignores that survival is far more likely." } }
+    answer: a
+    explanation: >
+      Each outcome counts in proportion to its chance. Survival counts most, failure counts for its 10%, and the failure price is what the assets sell for, not zero. So the value sits a little below the survival value. This is the second part of the risk lever, apart from the cost of capital.
+    source: Expected value of two outcomes; the failure-probability adjustment is the second risk input in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", 6 February 2020.
+  - id: ft-q-rd
+    prompt: >
+      6 February 2020: your cousin, deciding whether to buy Tesla, reads that Damodaran counts its research spending (R&D) as an investment, written off over years. Which headline gets his Tesla profit right?
+    choices:
+      - { id: a, text: "His Tesla profit looks higher: most of this year's R&D is charged later" }
+      - { id: b, text: "He drops the R&D bill, so profit jumps by all of it", mistake: { tag: ignored_writeoff, fix: "Nothing is ignored: the R&D still gets charged, a piece each year." } }
+      - { id: c, text: "His write-offs pile an extra cost on Tesla, so profit falls", mistake: { tag: subtracted_only, fix: "It swaps one big charge this year for smaller yearly ones. Nothing extra is added." } }
+      - { id: d, text: "Same profit, new label: moving R&D changes nothing", mistake: { tag: relabel_only, fix: "Spreading the cost changes how much is charged this year, so profit changes." } }
+    answer: a
+    explanation: >
+      Treating R&D as an investment adds back the year's R&D expense and charges only the write-off for the year. When R&D is growing, that charge is smaller, so operating income (profit before interest) rises. That is how Damodaran's story improves Tesla's margin.
+    source: R&D capitalisation, as described in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
+checks:
+  - id: ft-quiz-levers
+    kind: quiz
+    questions: [ft-q-compounding, ft-q-reinvestment, ft-q-failure, ft-q-rd]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ft-follow-argument
+    kind: conversation
+    prompt: >
+      You have read Damodaran's do-it-yourself Tesla valuation as it stood on 6 February 2020. Explain,
+      in your own words and in order, each step of his argument: why he redid the valuation, the
+      four levers of value, what industry data he sets beside each lever, the four kinds of story he
+      builds from the choices, and how he ends. Then choose a setting for each lever yourself and say
+      what kind of company your choices describe.
+    passCriteria: >
+      The Learner explains why he redid it (the earlier value drew criticism from both sides; he says
+      it is his valuation, not the valuation, and welcomes disagreement) and names the four levers in
+      order: growth (revenue in ten years), profitability (target operating margin), investment
+      efficiency (sales to capital) and risk (cost of capital and the chance of failure). They say
+      what data he gives for each: the size and slow growth of the world auto industry, the
+      warning about compounding, the margins of carmakers against those of large technology
+      companies, the spread of sales to capital across carmakers, and the spread of costs of capital.
+      They describe his four stories (big auto, techy auto, FAANG-like auto and make-your-best
+      company) and his test for each: whether the story is plausible, not merely possible, with the
+      warning against picking the best assumption on every lever. They note how he ends, with his
+      choice to sell on his own valuation and no regret at selling before the rise he describes. Their own choices are
+      internally consistent with the company they describe. They do not claim to know how Tesla's
+      price or value later moved.

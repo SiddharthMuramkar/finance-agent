@@ -1,0 +1,213 @@
+# Valuing Indian companies, currency and country risk: a foundation Topic taught through Coffee Day's IPO price in 2015.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf ; Reuters in Business Standard (21 Oct 2015): https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html ; Reuters, Indian FX/debt factors to watch (23 Oct 2015); US Treasury daily par yield curve 2015; Business Standard (13 Oct 2015, CPI); Hindustan Times, Times of India and Bloomberg (2 Nov 2015); Damodaran, January 2016 Data Update 3: Country Risk and Pricing; Damodaran, Country Risk (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+id: val-india
+title: Valuing Indian companies, currency and country risk
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Valuing an Indian company means keeping rupees with rupees and putting country risk in one place, so nothing in the value is counted twice."
+
+cases:
+  - id: coffee-day-rupee-valuation-2015
+    title: Coffee Day's IPO, in rupees and in dollars
+    data:
+      - issue-price
+      - post-issue-shares
+      - revenue-fy15
+      - finance-costs-fy15
+      - net-loss-fy15
+      - india-10-year-yield
+      - us-10-year-yield
+      - rupee-per-dollar
+      - india-cpi-inflation
+    asOf: 2015-10-22
+    story: >
+      On 21 October 2015 Coffee Day Enterprises, the company behind Cafe Coffee Day, priced its
+      initial public offering at Rs 328 a share, the top of its Rs 316 to 328 range, raising Rs
+      1,150 crore. After the issue it will have 206,001,719 shares, so at the issue price the
+      company is worth about Rs 6,757 crore, roughly 1 billion dollars. In the year to 31 March
+      2015 its consolidated revenue was Rs 2,479 crore (Rs 2,549 crore with other income), it paid Rs 326 crore in finance costs and
+      it made a net loss of Rs 87 crore. Everything it earns is in rupees. Two funds are
+      considering the shares. A Mumbai fund thinks in rupees. A fund in New York thinks in dollars.
+      On 22 October the rupee is at 65.12 to the dollar and the 10-year Indian government bond
+      yields 7.58 percent, against 2.04 percent on a 10-year US Treasury (21 October). India's
+      consumer price inflation in September was 4.41 percent. Moody's rates India's government
+      debt Baa3, the lowest investment grade. Each fund wants a value for the shares and has to
+      choose a discount rate. It is 22 October 2015. You are asked how each should do it, and whether they can agree.
+    reveal: >
+      The shares listed on 2 November 2015 at Rs 313 on the BSE and Rs 317 on the NSE, below the
+      Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6 percent. Whichever
+      currency a fund had used, the market's first-day price was well below the issue price. The
+      currency question did play out. The gap between the two bond yields (1.0758 / 1.0204,
+      about 5.4 percent a year) pointed to a rupee falling from 65.12 to roughly 68.7 to the dollar
+      within a year. By 20 January 2016 it had reached about 68. In his January 2016 update Damodaran gave
+      India a Baa3 default spread of 2.44 percent, multiplied it by 1.34, the relative volatility of
+      emerging market equities against bonds, for a country risk premium of 3.28 percent, and added
+      it to a mature market premium of 6 percent. Rupee cash flows, a rupee discount rate and a
+      country risk premium belong together; a dollar investor who ignores any of them will
+      mis-price an Indian company.
+    # Valuation inputs from docs/research/verify-*.json (spec B1, C2); npm run course:doc copies them into the registry.
+    valuation:
+      currency: INR
+      unit: crores
+      baseRevenue: 2479.36
+      growthPercent: [15, 15, 15, 15, 15, 13, 11, 9, 7, 5]
+      margin:
+        marginPercent: [9.71, 12.355, 13.6775, 14.3388, 14.6694, 14.8347, 14.9173, 14.9587, 14.9793, 14.9897]
+        afterPercent: 15
+      taxPercent: 33.99
+      lossesCarried: 0
+      salesToCapital: 1.3
+      costOfCapitalPercent: [11.8, 11.8, 11.8, 11.8, 11.8, 11.54, 11.28, 11.02, 10.76, 10.5]
+      growthAfterPercent: 5
+      returnOnCapitalAfterPercent: 12
+      cash: 3679.63
+      debt: 4998.4
+      options: 0
+      shares: 20.6001719
+      per: share
+      price:
+        value: 328
+        date: 2015-10-21
+      illustration: true
+      published:
+        note: "No published valuation of the IPO found. Learner start story (illustrative): 15% growth for 5 years fading to 5%, margin 4.42% -> 15% (FY2015 consolidated EBITDA margin 15.13%), sales to capital 1.3 (prospectus cafe economics), cost of capital 11.8% -> 10.5%. Engine: Rs 89.32/share; FCF yrs 1-10 -103.3, -61.6, -37.9, -24.6, -17.5, 53.1, 139.1, 240.2, 354.2, 477.3; FCF yr11 464.6; TV 8,446.4; business value 3,158.8; terminal share 90.8%. A story worth the Rs 328 price: 20% growth fading to 5% (yr-10 revenue Rs 10,358 crore), margin 22%, sales to capital 2.0 -> Rs 328.49. What happened FY15->FY19 (14.52%/yr growth, margin 6.61%) -> Rs -51.79 with a flat 6.61% margin (headline Rs 0)."
+      notes:
+        - No credit rating in the prospectus ('there is no credit rating for the Issue'); lever left at 0% for the as-of date.
+      sources:
+        - title: Coffee Day Enterprises prospectus, 19 Oct 2015 (SEBI)
+          url: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+        - title: Damodaran country risk premiums, update of 1 Jan 2015 (archive ctryprem14.xls)
+          url: https://pages.stern.nyu.edu/~adamodar/pc/archives/ctryprem14.xls
+        - title: Reuters, Indian FX/debt factors to watch, 23 Oct 2015 (22 Oct closes)
+          url: https://www.reuters.com/article/world/us/indian-fxdebt-factors-to-watch-oct-23-idUSL3N12L3UP/
+        - title: "Business Standard/Reuters, 21 Oct 2015: priced at Rs 328"
+          url: https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
+        - title: "Business Today, 2 Nov 2015: listing"
+          url: https://www.businesstoday.in/markets/company-stock/story/coffee-day-shares-list-on-bse-plunge-within-minutes-in-trade-56487-2015-11-02
+      reproduces: false
+
+concept: >
+  A valuation is only consistent if the currency of the cash flows matches the currency of the
+  discount rate. Rupee cash flows contain expected Indian inflation, so they must be discounted at
+  a rupee rate, built from a rupee riskfree rate (the Indian government bond yield, if that
+  government is treated as default free) plus a premium for risk. To value the same cash flows in
+  dollars, convert them at the exchange rates the market expects and discount at a dollar rate. If
+  riskless returns differ between two currencies because expected inflation differs, the
+  currency with the higher rate is expected to lose value by about (1 + rupee rate) / (1 + dollar
+  rate) - 1 a year. Done consistently, the two approaches give the same value. Country risk
+  is a separate matter: investing in India carries risks of default, regulation and political
+  change that a mature market does not. One common way to add it is a country risk premium
+  (CRP): the country's default spread, taken from its sovereign rating, scaled up by the
+  extra volatility of equities relative to bonds. The cost of equity is then riskfree rate +
+  beta x (mature market premium + CRP). Choose where to put the risk (in the cash flows as
+  probabilities of bad outcomes, or in the discount rate) but not in both.
+
+principle: >
+  Match currency to currency: rupee cash flows with a rupee discount rate, dollar with dollar,
+  so inflation is counted once. Put country risk in one place only, and measure it, rather than
+  adding a vague extra percentage.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Match rupee cash flows with a rupee discount rate, and dollar with dollar."
+  - "See how a gap in expected inflation shows up in the expected path of the exchange rate."
+  - "Measure country risk and put it in one place only."
+
+questions:
+  - id: vi-q-consistency
+    prompt: >
+      22 October 2015. Priya, at the Mumbai fund, forecasts Coffee Day's cash flows in rupees, with prices rising at the rate she expects in India. A colleague says to discount them at a rate built on the US Treasury yield, because it is lower and makes the shares look worth more. A bad choice means the fund overpays. Which rate fits her cash flows?
+    choices:
+      - { id: a, text: "A rupee rate, built on the rupee riskfree rate, which includes expected Indian inflation" }
+      - { id: b, text: "A dollar rate, built on the US Treasury yield", mistake: { tag: wrong_currency, fix: "A dollar rate carries US inflation, which does not match rupee cash flows." } }
+      - { id: c, text: "Either one; the currency does not matter", mistake: { tag: currency_ignored, fix: "Currency matters: each rate carries its own country's inflation." } }
+      - { id: d, text: "A rate of zero, because inflation is already in the cash flows", mistake: { tag: zero_rate, fix: "Money still has a time value. Match a rupee rate to rupee cash flows." } }
+    answer: a
+    explanation: >
+      Rupee cash flows already include expected Indian inflation. A rupee rate includes the same inflation, so the two match. A dollar rate has US inflation in it, and mixing the currencies counts inflation wrongly.
+    source: >
+      Damodaran, Country Risk (Library), on consistency of currency in valuation: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+
+  - id: vi-q-depreciation
+    prompt: >
+      22 October 2015: Ravi, at the New York fund, wants to move his dollars into Indian government bonds, which pay far more than US Treasuries. His boss warns, "Mind the rupee." What is she worried about?
+    choices:
+      - { id: a, text: "The rupee is expected to weaken by about that extra yield each year" }
+      - { id: b, text: "Nothing real: the rupee should strengthen too, so he wins twice", mistake: { tag: rupee_strengthens, fix: "Rupee bonds pay more because the rupee is expected to weaken, not strengthen." } }
+      - { id: c, text: "Nothing real: the rupee will stay at 65.12 to the dollar", mistake: { tag: flat_rupee, fix: "If it stayed flat, rupee bonds would simply win. Expected weakening offsets the extra yield." } }
+      - { id: d, text: "The rupee is expected to lose the whole rupee yield each year", mistake: { tag: used_whole_rate, fix: "Only the gap between the two yields is offset, not the whole rupee yield." } }
+    answer: a
+    explanation: >
+      Higher rupee yields mostly pay for higher expected Indian inflation, so traders expect the rupee to lose value against the dollar by about the gap between the two riskless rates. If it fell less, rupee bonds would win; if it fell more, they would lose.
+    source: >
+      Damodaran, Country Risk (Library), on riskfree rates in different currencies and inflation differentials: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+
+  - id: vi-q-crp
+    prompt: >
+      22 October 2015. Priya is setting the return her Mumbai fund should demand on Coffee Day shares, its cost of equity. She starts from the rupee riskfree rate, what a safe Indian government bond pays. On top she has the usual premium for owning shares in a mature market, and an extra premium for India's country risk. Where does the country premium go?
+    choices:
+      - { id: a, text: "The country premium replaces the mature one", mistake: { tag: replaced_premium, fix: "The country premium is an extra layer on top of the mature one, not a replacement." } }
+      - { id: b, text: "Both sit on top of the riskfree rate, so country risk raises the cost of equity" }
+      - { id: c, text: "The country premium is taken off, because India is growing fast", mistake: { tag: subtracted_country_risk, fix: "Country risk is extra danger, so it raises the cost of equity and never lowers it." } }
+      - { id: d, text: "Neither: the riskfree rate alone is the cost of equity", mistake: { tag: riskfree_only, fix: "The riskfree rate is only the floor. Premiums add the reward for risk." } }
+    answer: b
+    explanation: >
+      The cost of equity starts at the riskfree rate, and both premiums sit on top of it, scaled by how risky the shares are. Country risk is added on top, in one place only, so it raises the return Priya's fund should demand.
+    source: >
+      Damodaran, Country Risk (Library), the country risk premium approach: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+
+  - id: vi-q-crp-method
+    prompt: >
+      22 October 2015: Priya's Mumbai fund is pricing Coffee Day shares. Her clue to India's risk: the extra yield lenders charge Baa3-rated India. Underplay it and the fund overpays. What should she do with it?
+    choices:
+      - { id: a, text: "Use that extra yield as it is: bonds already show India's risk", mistake: { tag: unscaled_spread, fix: "Shares swing more than India's bonds, so the bond spread is scaled up for them." } }
+      - { id: b, text: "Shrink it, because shares are safer than government bonds", mistake: { tag: scaled_down, fix: "Shares are riskier than government bonds, so the spread is scaled up, not down." } }
+      - { id: c, text: "Scale it up, because Indian shares swing more than India's bonds" }
+      - { id: d, text: "Drop it: Coffee Day's rupee earnings escape country risk", mistake: { tag: skipped_country_risk, fix: "All its earnings are in India, so India's risk hits it fully. Dropping it means overpaying." } }
+    answer: c
+    explanation: >
+      The extra yield lenders charge a government with India's Baa3 rating is its default spread. In the scaled default spread method it is scaled up by how much more volatile the country's shares are than its bonds, giving the country risk premium. Leaving it unscaled, or out, makes Coffee Day look safer than it is, so the fund would overpay.
+    source: >
+      Damodaran, Country Risk (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+
+  - id: vi-q-consistent
+    prompt: >
+      22 October 2015. Ravi, at the New York fund, values Coffee Day in dollars. He turns its rupee cash flows into dollars at exchange rates that assume the rupee weakens by about the gap between the two countries' bond yields, then discounts at a dollar rate. Priya, in Mumbai, discounts the rupee cash flows at a rupee rate. Ravi's boss asks whose value comes out higher. What should he say?
+    choices:
+      - { id: a, text: "About the same, if both of them work consistently" }
+      - { id: b, text: "Ravi's, much higher, because dollar rates are lower", mistake: { tag: ignored_conversion, fix: "The lower dollar rate is offset by cash flows that shrink as the rupee is expected to fall." } }
+      - { id: c, text: "Ravi's, much lower, because the rupee is expected to fall", mistake: { tag: double_counted_fall, fix: "The expected fall is already offset by the lower dollar rate. Count it once." } }
+      - { id: d, text: "There is no way to compare the two", mistake: { tag: cannot_compare, fix: "Both routes can be compared, and consistent ones agree." } }
+    answer: a
+    explanation: >
+      The lower dollar rate is offset by the lower value of the converted cash flows as the rupee is expected to fall, in proportion to the difference between the two riskfree rates. Both routes give the same value; mixing the routes is the mistake.
+    source: >
+      Damodaran, Country Risk (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+
+checks:
+  - id: vi-quiz-india
+    kind: quiz
+    questions:
+      - vi-q-consistency
+      - vi-q-depreciation
+      - vi-q-crp
+      - vi-q-crp-method
+      - vi-q-consistent
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: vi-two-funds
+    kind: conversation
+    prompt: >
+      A Mumbai fund values an Indian company in rupees and a New York fund values it in dollars.
+      On 22 October 2015 the rupee riskfree rate is about 7.6 percent and the dollar rate about
+      2.0 percent. Explain how each should choose its discount rate, why they can still reach the
+      same value, and where country risk should go.
+    passCriteria: >
+      The Learner explains that cash flows and discount rate must be in the same currency: rupee
+      flows with a rupee rate, dollar flows with a dollar rate. They say the rate difference
+      mostly reflects expected inflation, so a dollar investor converting rupee flows should
+      expect the rupee to weaken, and done consistently both funds reach about the same value. They
+      say country risk is an extra premium on the cost of equity (or an adjustment to the cash
+      flows) but should be counted in one place only, not both, and not by adding an unexplained
+      percentage.

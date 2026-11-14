@@ -1,0 +1,184 @@
+# Follow Topic: Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!" (5 Aug 2023).
+# The post's text is in the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+id: fol-erp
+title: "Follow: Damodaran, The Price of Risk (Aug 2023)"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "The equity risk premium is the price of risk inside every company's cost of capital; Damodaran shows why estimates of it differ."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-erp-price-of-risk
+    title: Damodaran explains why equity risk premium numbers disagree
+    asOf: 2023-08-05
+    piece:
+      author: Aswath Damodaran
+      title: "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!"
+      published: 2023-08-05
+      url: https://aswathdamodaran.blogspot.com/2023/08/the-price-of-risk-with-equity-risk.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 5 August 2023 Aswath Damodaran, a valuation professor at NYU Stern, published a blog post
+      about the equity risk premium (ERP), the extra return investors demand for owning shares
+      instead of a risk-free investment. He estimates one for the S&P 500 at the start of every
+      month and had used 5.00% for July 2023. In the preceding weeks readers had seen very different
+      numbers in print: a newspaper article put the premium at 1.1%, a news agency at 2.2%, and a
+      widely followed money manager called it negative. The post sets out to explain why the numbers
+      differ, not to claim that his is best. He first defines the premium and what drives it, then
+      walks through four ways of measuring it: the average of past returns, a forecast built from
+      past returns and the price-to-earnings ratio, the "Fed model" (earnings yield minus the
+      Treasury bond rate), and the implied premium backed out of today's index level. For August
+      2023 he reports 4.44% from the implied method and 0.41% from the Fed model, and he tests each
+      method on how well it has predicted later stock returns, while warning against using any of
+      them to time the market. The Learner reads the post in full, without stopping, and then
+      explains each step of its argument.
+    reveal: >
+      Damodaran's own series moved less than the stock market did. His implied premium was 5.94% at
+      the start of 2023 and 4.44% in August 2023. At the start of 2024 it was 4.60%, even though the
+      S&P 500 closed 2023 at 4,769.83, about 24% above its 2022 close of 3,839.50 (price change only,
+      dividends excluded). At the start of 2025 it was 4.33%, after a further rise of about 23% in
+      the index to 5,881.63 (Damodaran's historical implied ERP table, updated January 2026). The
+      earnings-yield gap that the Fed model uses behaved differently: with a 10-year Treasury rate
+      of 3.88% and an earnings yield of 4.64% at the start of 2024, the gap was about +0.76 points;
+      with a rate of 4.58% and an earnings yield of 4.14% at the start of 2025, it was about -0.44
+      points, below zero. Both patterns are what the post describes: the Fed-model gap can turn
+      negative without any change in the dividend-and-buyback cash flows, because it assumes no
+      growth, while the implied premium allows for it. Neither measure settled whether stocks were
+      cheap or dear. The post itself says the link between these measures and later returns is
+      noisy and not a basis for timing the market.
+
+concept: >
+  An equity risk premium is the price of risk for shares as a class: expected return on stocks =
+  risk-free rate + equity risk premium. It cannot be observed directly, so it is estimated, and the
+  method decides the number. A historical premium averages past returns over a chosen period (it is
+  stable but noisy, and depends on the period and risk-free rate chosen). The Fed model subtracts
+  the Treasury rate from the earnings yield (earnings divided by price); this is a fair measure of
+  expected return only if earnings never grow and companies pay out all earnings. An implied
+  premium is the discount rate at which the present value of expected future cash flows to
+  shareholders (dividends plus buybacks, with earnings growth) equals today's index level, like the
+  yield to maturity of a bond. The premium matters because it feeds every company's cost of equity
+  and cost of capital, so a premium that is too low or too high biases valuations the same way.
+
+principle: >
+  When two sources give different numbers for the same quantity, first ask what each number
+  assumes. A figure is a statement about a method, and the method's assumptions (growth, payout,
+  period) explain most of the gap. Choose the measure by what you will use it for, and be wary of
+  any single estimate that claims precision about the future.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Explain the equity risk premium as the price of risk for shares."
+  - "Compare historical, Fed model and implied estimates by what each assumes."
+  - "See how the premium feeds every company's cost of capital."
+
+questions:
+  - id: fe-q-fed-gap
+    prompt: >
+      August 2023: your uncle Raj is deciding whether to move his savings into stocks, and he swears
+      by the "Fed model". It sizes up the "equity risk premium", the extra reward stocks pay over a
+      safe government bond. Where does his model find that extra?
+    choices:
+      - { id: a, text: "Stocks' profit as a share of their price, less the bond's yield" }
+      - { id: b, text: "Stocks' earnings yield plus the bond's yield, since both are rewards to owners", mistake: { tag: premium_as_total, fix: "The premium is the extra return over the Treasury, a gap, not a total." } }
+      - { id: c, text: "Halfway between the two yields", mistake: { tag: premium_as_average, fix: "An average blends the two yields; the premium is the extra stocks earn over the Treasury." } }
+      - { id: d, text: "Only in how stocks did in the past", mistake: { tag: fed_as_history, fix: "That is the historical-average method. The Fed model starts from the earnings yield." } }
+    answer: a
+    explanation: >
+      Traders call profit as a share of price the earnings yield. The Fed model reads the gap between
+      the earnings yield and the Treasury rate as the premium. It
+      treats the earnings yield as the expected return on stocks, which is fair only if profits never
+      grow and are all paid out.
+    source: >
+      Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
+      5 August 2023 (section "The Fed Model: Earnings Yield and ERP").
+  - id: fe-q-why-too-low
+    prompt: >
+      August 2023: Raj's Fed model puts the premium at a tiny 0.41%, and he is ready to sell his
+      shares. Damodaran's preferred method, using the same month, gives 4.44%. He says the Fed model
+      leaves something out. What does it miss?
+    choices:
+      - { id: a, text: "It plugs in a higher safe rate than the other methods do", mistake: { tag: higher_riskfree_blamed, fix: "Both methods use the same safe rate; the gap comes from ignoring growth." } }
+      - { id: b, text: "Growth: it treats today's profit as if it never grows" }
+      - { id: c, text: "It counts share buybacks twice", mistake: { tag: buybacks_double, fix: "The Fed model uses earnings, not buybacks; what it leaves out is growth." } }
+      - { id: d, text: "It leans on a longer stretch of history", mistake: { tag: history_blamed, fix: "The Fed model uses today's yields, not history; it misses growth." } }
+    answer: b
+    explanation: >
+      The earnings yield equals the expected return only when growth is zero or companies earn
+      exactly their cost of equity. Allowing for growth and returns above the cost of equity raises
+      the expected return, and so the premium, above the earnings-yield figure.
+    source: >
+      Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
+      5 August 2023 (sections on the Fed model and the implied ERP).
+  - id: fe-q-implied-direction
+    prompt: >
+      Stocks crash 20%, yet companies still expect to pay out the same dividends and buybacks, and
+      bond yields stay put. What do traders say happens to the implied equity risk premium?
+    choices:
+      - { id: a, text: "It rises: you pay less for the same cash, so you expect to earn more" }
+      - { id: b, text: "It falls: a lower price means the market now sees much less risk ahead", mistake: { tag: lower_price_less_risk, fix: "A lower price for the same cash means a higher expected return, not less risk." } }
+      - { id: c, text: "It stays put, because the cash did not change", mistake: { tag: price_ignored, fix: "The premium depends on the price paid too, not only on the cash." } }
+      - { id: d, text: "It turns negative, since prices went down", mistake: { tag: fall_means_negative, fix: "A cheaper price raises the expected return; nothing here makes it negative." } }
+    answer: a
+    explanation: >
+      An implied premium is like a yield to maturity: the discount rate that makes expected cash
+      flows worth today's price. A lower price for the same cash flows means a higher implied
+      return, and with the risk-free rate unchanged a higher premium.
+    source: >
+      Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
+      5 August 2023 (section "Implied ERP"); the bond-yield analogy is his.
+  - id: fe-q-interval
+    prompt: >
+      August 2023: Zoya, 24, is planning her retirement savings. A website says stocks have beaten
+      bonds on average for decades, so she can count on that edge. But single years swing so wildly
+      that the average carries a wide band of doubt. What should she take from this "historical premium"?
+    choices:
+      - { id: a, text: "It is a rough estimate; the true figure could be well off" }
+      - { id: b, text: "It is exact: decades of data settle it", mistake: { tag: average_as_fact, fix: "Even decades of data leave a wide range, so the average is only an estimate." } }
+      - { id: c, text: "It will be at least that high again next year, since the past repeats", mistake: { tag: past_as_forecast, fix: "A historical average says nothing certain about next year's premium." } }
+      - { id: d, text: "The doubt is small enough to ignore", mistake: { tag: error_ignored, fix: "The band around an average is wide here, so the error cannot be ignored." } }
+    answer: a
+    explanation: >
+      Statisticians call that band of doubt the standard error, and for stock returns it is wide.
+      Even decades of data leave a wide range, which is why a historical average is an estimate and
+      not a fact.
+    source: >
+      Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
+      5 August 2023 (section "Historical Risk Premium").
+
+checks:
+  - id: fe-quiz-erp-measures
+    kind: quiz
+    questions:
+      - bank:eab:MBA-FIN-VAL-0037
+      - fe-q-fed-gap
+      - fe-q-why-too-low
+      - fe-q-implied-direction
+      - fe-q-interval
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fe-follow-argument
+    kind: conversation
+    prompt: >
+      You have read Damodaran's post on equity risk premiums as it stood on 5 August 2023. Explain,
+      in your own words and in order, each step of his argument: what puzzle he starts from, how he
+      defines the premium and what drives it, why it matters to different kinds of investors, the
+      four ways of measuring it and what each assumes, how he picks among them, and what he
+      advises in his conclusion. Then say, for a measure of your choice, what you would need to
+      believe about the future for its number to be a good estimate.
+    passCriteria: >
+      The Learner explains the puzzle (published premiums that differ widely, from negative to
+      about 5%) and that he aims to explain the differences, not to claim his is best. They give the
+      definition (expected return = risk-free rate + premium; the price of risk set by supply and
+      demand, driven by fundamentals and by mood, with a very low premium as a symptom of a bubble)
+      and why it matters (market timing, picking stocks, corporate finance through the cost of
+      capital). They name the four measures in order and what each assumes: the historical average
+      (the past repeats; noisy; depends on the period), the forecast from past returns and the
+      price-to-earnings ratio (a stable relationship; overlapping data overstates significance; wide
+      error), the Fed model (no growth and full payout, which is why it can go negative) and the
+      implied premium (dividends plus buybacks, near-term growth, excess returns). They state that he
+      prefers the implied premium for valuation because it moves with later stock returns, yet
+      cautions against using it to time the market because the predictions are noisy. They give his
+      closing advice: a true premium exists, estimation methods are not equal, and the use decides
+      the method. Their chosen measure and its required beliefs are consistent with what the post
+      says. They do not claim to know how premiums or markets moved after August 2023.

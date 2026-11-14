@@ -1,0 +1,459 @@
+# Spine Topic 3 (spec 2026-11-12, C2, C4): where the cash comes from, taught through Webvan's cash burn, as of its annual
+# report for 2000 (filed 2 April 2001). It explores the Cash waterfall (B4) on Webvan's year 2000, from its 1999 revenue.
+# Facts and the waterfall's one-year inputs: docs/research/verify-webvan.json (Case webvan-cash-2001, every figure
+# re-checked against the 10-K for 2000, the 10-Q for Q1 2001, the 8-K of July 2001 and the LA Times) and
+# course/topics/fs-cashflow.yaml. Case ids are unique across files, so the Case here is "spine-03-webvan-2001".
+# One Case (C2): the Check's computed questions (lint L13, D4) value Webvan itself, through the illustration block on
+# cf-capital-budgeting's Case webvan-centre-npv-2000 (Webvan's own 1999 plan, valued with Damodaran's method; no
+# published DCF of Webvan exists), borrowed with valuationFrom: what growth costs, the lever this Topic is about.
+# Every figure a computed question shows is the engine's (ADR 0021); no sum is asked (ADR 0009).
+id: spine-03-cash
+title: Where does the cash come from?
+goal: Follow one year of a business from revenue down to free cash flow, and read where its cash goes.
+why: "A company is worth the cash it can hand back, not the profit it reports, and growth must be paid for before it brings any cash in."
+minutes: 12
+exampleCurrency: USD
+
+cases:
+  - id: spine-03-webvan-2001
+    title: Webvan's cash burn
+    asOf: 2001-04-02
+    # Webvan's own plan as a valuation (an illustration: no published DCF of Webvan exists), written once on
+    # cf-capital-budgeting's Case webvan-centre-npv-2000 and borrowed here for the Check's computed questions.
+    valuationFrom: webvan-centre-npv-2000
+    story: >
+      Webvan is an online grocer that delivers to homes from large automated warehouses. It sold
+      shares to the public in November 1999, raising about $402.6 million, and in September 2000 it
+      bought its rival HomeGrocer. On 2 April 2001 it files its report for 2000. Sales grew from $13.3
+      million in 1999 to $178.5 million in 2000. But the cash went out fast: running the business used
+      $263.1 million more cash than its sales brought in, and $259.8 million more on property and
+      equipment, mostly for its warehouses. At the end of 2000 it had about $212 million left, in cash
+      and securities it could sell. The company says its money should last into the last quarter of
+      2001, and plans to spend only $10 million to $15 million on equipment this year; its auditors
+      warn it might not survive. Investors are asking where the cash went, and how much further it can
+      carry the business.
+    reveal: >
+      On 9 July 2001 Webvan shut all seven of its markets, which served about 750,000 customers, and
+      laid off nearly all of its 2,000 employees. It said it would file for bankruptcy protection, and
+      filed for Chapter 11 on 13 July 2001. Its accumulated deficit had reached $829.7 million by 31
+      March 2001; in that first quarter alone operations used $96.9 million of cash. The cash flow
+      statement had already shown it: $263.1 million used in operations in 2000, up from $58.8 million
+      in 1999, and $259.8 million spent on property and equipment, paid for from money raised from
+      investors in 1999. Once that money was spent, the business still used more cash than its sales brought in, so nothing was left to replace it. (A
+      TIME report put the cash burn at $480 million; that is a press estimate, not a filing figure.)
+
+concept: >
+  A business is worth the cash it can hand back to its owners, and that is not the same as the
+  profit it reports. Free cash flow starts from operating income, takes off tax, and then takes off
+  reinvestment: what growth costs in warehouses, equipment, systems and goods on the shelves (inventory). Reinvestment is
+  roughly the rise in sales divided by the sales each dollar invested brings in (sales to capital).
+  So a company that grows fast must spend before the extra sales arrive, and it can use cash even
+  when each sale makes a profit. The cash flow statement shows the same story from the other side:
+  cash used in operations, cash spent on long-lived assets (investing), and the cash raised from
+  shareholders and lenders that pays for both (financing). Cash on hand divided by the cash used
+  each month says how long the money lasts. The explore waterfall starts from Webvan's 1999 sales and
+  shows 2000. Webvan had lost so much already that its past losses cover any profit, so the tax step
+  stays at zero. The waterfall leaves out costs that used no cash, so it starts from an operating loss of about $320
+  million rather than the $453 million net loss, and its free cash flow lands near the cash that
+  operations and the warehouses used together.
+
+principle: >
+  Profit is an opinion; cash is a fact. Follow revenue down to free cash flow, ask what growth costs
+  and who is paying for it, and remember that fast growth is paid for before it pays.
+
+youllLearn:
+  - "Follow one year of a business from revenue to free cash flow."
+  - "See where growth spends cash before the new sales bring any in."
+  - "Ask who is paying for growth, and what happens when that money runs out."
+
+terms:
+  - term: free cash flow
+    means: The cash a business makes after tax and after paying for its growth, which could go to its owners.
+    pro: Free cash flow is what is left after reinvestment.
+    example: "A shop's takings, less its costs, tax and the new shelves it had to buy to sell more."
+    emoji: money-with-wings
+    inStory: In the story, Webvan's free cash flow was far below zero in 2000.
+  - term: reinvestment
+    means: "What growth costs: the money put into buildings, equipment, systems and goods on the shelves so that sales can rise."
+    pro: Reinvestment runs ahead of the revenue it brings.
+    example: "A bakery buys a second oven before it can sell twice the bread."
+    emoji: building-construction
+    inStory: In the story, Webvan spent $259.8 million on property and equipment, mostly for its warehouses, in 2000.
+  - term: net income
+    means: The profit or loss left at the bottom of the income statement, after every cost, interest and tax.
+    pro: Net income is the first line of the cash flow statement.
+    example: "What a stall earned in a year after paying for everything, cash or not."
+    emoji: receipt
+    inStory: In the story, Webvan's net loss for 2000 was $453.3 million.
+  - term: capital spending
+    means: Spending on things that last for years, such as warehouses, vehicles and machines.
+    pro: Capital spending is cash out now, and a cost spread over many years.
+    example: "A delivery firm buys a van it will drive for eight years."
+    emoji: delivery-truck
+    inStory: In the story, Webvan plans to cut its capital spending to $10 million to $15 million in 2001.
+  - term: cash burn
+    means: How fast a company uses up its cash because it spends more than it takes in.
+    pro: The company is burning cash every month.
+    example: "You spend more each month than you earn, so your savings shrink."
+    emoji: fire
+    inStory: In the story, Webvan used $263.1 million of cash in its operations in 2000.
+
+scenes:
+  - id: wc-opening
+    step: story
+    recipe: story_scene
+    title: Sales are soaring, and so is the spending
+    inputs:
+      cast:
+        - { id: webvan, emoji: delivery-truck, name: Webvan, role: an online grocer }
+        - { id: investor, emoji: thinking-face, name: An investor, role: reads the report }
+      beats:
+        - { who: narrator, says: "Webvan's sales grew from $13.3 million in 1999 to $178.5 million in 2000.", emoji: chart-increasing }
+        - { who: webvan, says: "Our orders are bigger and our warehouses are open.", emoji: package }
+        - { who: investor, says: "Then why did $263.1 million of cash go out in operations?", emoji: thinking-face }
+        - { who: narrator, says: "And $259.8 million more went on warehouses and equipment.", emoji: money-with-wings }
+      caption: 2 April 2001, the annual report for 2000
+      date: "2001-04-02"
+  - id: wc-front-page
+    step: reveal
+    recipe: headline
+    title: The day the vans stopped
+    inputs:
+      paper: The morning paper
+      date: "2001-07-10"
+      headline: Webvan shuts all seven markets and plans to file for bankruptcy
+      deck: An imagined front page. About 750,000 customers lose their grocer.
+      source: https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+
+skills:
+  - id: free-cash-flow
+    rule: "Free cash flow is operating income, less tax, less what growth costs: the cash left after paying for growth."
+    analogy: "A stall's takings are not its spare cash until it has paid for the extra goods it needs to sell."
+  - id: growth-uses-cash
+    rule: "Growth needs warehouses, equipment and goods on the shelves before the new sales arrive, so fast growth uses cash even when each sale is profitable."
+
+# The Insight (ADR 0001), found at explore with the Cash waterfall. Words only.
+insight:
+  question: >
+    Give Webvan a healthy margin, so each sale makes a profit, then move growth up and down. What
+    happens to free cash flow, and why?
+  written: >
+    Growth is paid for before it pays. The warehouses, equipment and groceries on the shelves that more sales need are bought
+    first, so a business that grows fast uses cash even when every sale makes a profit. Free cash flow
+    turns positive only when growth slows right down, or when each dollar invested brings in far more sales.
+  foundWhen: >
+    The Learner sees that with a positive margin free cash flow can still be far below zero, names
+    what growth costs (reinvestment) as the reason, and says that slower growth, or more sales for each
+    dollar invested, is what lets the cash come back. Saying only that the losses are too big is not
+    yet enough.
+  hints:
+    - >
+      The waterfall starts from the year before and shows the next one. Give it a profit on each sale, set growth to
+      zero and look at the step for what growth costs; then raise growth again and watch that step.
+    - >
+      With a profit on each sale, which step is pulling free cash flow down? Try slower growth together
+      with more sales for each dollar invested.
+
+explore:
+  before: wc-check
+  requiredWhenPassed: false
+  workbench:
+    recipe: cash_waterfall
+    title: From Webvan's 1999 sales to its 2000 cash
+    # Webvan's year 2000 from its 1999 revenue (10-K 2000): growth 1,241.3% ($13.305m to $178.456m); the operating
+    # margin before goodwill amortisation, deferred compensation and restructuring, -179.2%; sales to capital 0.70
+    # (revenue added over net capital spending plus working capital). Tax 35%, as the recipe's example; no tax is due
+    # on a loss, and Webvan carried losses forward: about $470m, its 2000 deferred tax asset for net operating
+    # losses ($164.4m, 10-K) at 35%, a derived figure. Derived figures from docs/research/verify-webvan.json.
+    inputs:
+      company:
+        name: Webvan
+        currency: USD
+        unit: millions
+        revenue: 13.305
+        taxPercent: 35
+        lossesCarried: 470
+        opening: { growth: 1241.3, margin: -179.2, salesToCapital: 0.7 }
+        source:
+          title: "Webvan Group, Form 10-K for 2000 (SEC EDGAR)"
+          url: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
+
+# Primers (spec C3): Three statements, one loop (cut from How the three statements link) and Spending that lasts (cut
+# from Capex, depreciation, amortisation and EBITDA).
+primers:
+  - id: wc-primer-loop
+    title: Three statements, one loop
+    lines:
+      - "Net income, from the income statement, is the first line of the cash flow statement."
+      - "The cash flow statement then adds back costs that used no cash and takes off cash tied up in goods waiting to be sold."
+      - "Its closing cash is the cash on the balance sheet, and a profit or loss also changes what the owners own."
+    term: net income
+    quickTry:
+      id: wc-primer-loop-try
+      skill: free-cash-flow
+      ask: "Webvan's income statement shows a net loss for 2000. Where does that loss turn up next?"
+      kind: choice
+      answer: cash-first
+      choices:
+        - { id: cash-first, text: "As the first line of the cash flow statement" }
+        - { id: nowhere, text: "Nowhere else: it stays on the income statement", mistake: { tag: one_statement, fix: "The three statements link: net income starts the cash flow statement and changes what the owners own." } }
+        - { id: revenue, text: "As a cut in next year's revenue", mistake: { tag: one_statement, fix: "A loss does not change sales. It starts the cash flow statement and lowers equity." } }
+    elective: fs-links
+    at: concept
+  - id: wc-primer-lasting
+    title: Spending that lasts
+    lines:
+      - "Capital spending buys things that last for years, such as warehouses and vans."
+      - "The cash leaves when they are bought, but profit shows only a slice of the cost each year."
+      - "So in a building year, cash can fall far faster than the losses show."
+    term: capital spending
+    quickTry:
+      id: wc-primer-lasting-try
+      skill: growth-uses-cash
+      ask: "Webvan pays for a warehouse it will use for many years. When does the cash leave?"
+      kind: choice
+      answer: now
+      choices:
+        - { id: now, text: "All of it when the warehouse is paid for" }
+        - { id: spread, text: "A slice each year, as it is used", mistake: { tag: cash_for_cost, fix: "The cost is spread over the years in profit. The cash leaves when it is paid." } }
+        - { id: never, text: "Never: a warehouse is an asset, not a cost", mistake: { tag: cash_for_cost, fix: "An asset still has to be paid for, in cash, when it is bought." } }
+    elective: fs-capex-dep
+    at: explore
+
+connections:
+  - text: >
+      The cash flow statement shows the same story from the other side: cash used in operations, cash
+      spent on long-lived assets, and the money from investors and lenders that pays for both.
+    topics: [fs-cashflow, fs-links]
+  - text: >
+      Growth adds value only when the money it costs earns more than investors require, which is the
+      question of what growth costs.
+    topics: [spine-06-growth-cost, fs-capex-dep]
+  - text: >
+      The waterfall's first steps, revenue less running costs to operating income, are the top lines of
+      the income statement; free cash flow is where it stops being a statement of profit.
+    topics: [fs-income]
+
+questions:
+  # Direction (D1).
+  - id: wc-q-cut-capex
+    kind: direction
+    skill: growth-uses-cash
+    prompt: >
+      April 2001. Webvan says it will spend only $10 million to $15 million on equipment in 2001, against
+      $259.8 million in 2000. In the waterfall, which step moves, and which way?
+    choices:
+      - { id: reinvest-down, text: "What growth costs falls, so free cash flow rises toward zero" }
+      - id: operating-up
+        text: "Operating income rises, because costs fall"
+        mistake: { tag: capex_in_costs, fix: "Spending on warehouses is not a running cost. It sits in what growth costs, below operating income." }
+      - id: revenue-up
+        text: "Revenue rises, because less is spent"
+        mistake: { tag: lever_mixup, fix: "Spending less on warehouses does not raise sales. If anything it slows their growth." }
+      - id: fcf-down
+        text: "Free cash flow falls, because it invests less"
+        mistake: { tag: sign_mixup, fix: "Investing less takes less off, so free cash flow rises, not falls." }
+    answer: reinvest-down
+    explanation: >
+      Capital spending sits in what growth costs, the last step before free cash flow. Cutting it
+      leaves more cash, though it also limits how fast sales can grow.
+    source: "Webvan Group, Form 10-K for 2000: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"
+  # Story that cannot hold (D1).
+  - id: wc-q-cannot-hold
+    kind: cannot_hold
+    skill: growth-uses-cash
+    prompt: >
+      Three analysts sketch Webvan's next year. Which sketch contradicts itself?
+    choices:
+      - { id: free-growth, text: "Sales grow tenfold, and it opens no warehouses and buys no vans" }
+      - id: flat
+        text: "Sales stay flat, and spending on warehouses all but stops"
+        mistake: { tag: dull_is_fine, fix: "That one holds: with no growth there is little to build." }
+      - id: profit-burn
+        text: "Each order turns a profit, yet free cash flow stays below zero while sales grow fast"
+        mistake: { tag: profit_for_cash, fix: "That one holds: fast growth is paid for before the new sales arrive." }
+    answer: free-growth
+    explanation: >
+      Ten times the sales needs warehouses, vans and groceries to deliver them. Growth that costs nothing
+      is the part that cannot hold; the other two sketches hold together.
+    source: "Webvan Group, Form 10-K for 2000: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"
+  # Price or value (D1).
+  - id: wc-q-ipo-price
+    kind: price_or_value
+    skill: free-cash-flow
+    prompt: >
+      November 1999. Investors pay $15 a share in Webvan's public offering, the cash that paid for its
+      warehouses. Is the $15 a price or a value?
+    choices:
+      - { id: price, text: "A price: what buyers paid for a share that day" }
+      - id: value
+        text: "A value: what Webvan's future cash was worth"
+        mistake: { tag: price_for_value, fix: "What buyers pay is a price. A value has to be argued from the business's future cash." }
+    answer: price
+    explanation: >
+      The $15 is what investors paid. A value would have to come from the cash the business could hand
+      back, and by April 2001 Webvan had produced none.
+    source: "Webvan Group, Form 10-K for 2000: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"
+  # Which lever (D1), computed from Webvan's own plan (an illustration block, borrowed by the Case).
+  - id: wc-q-which-lever
+    kind: which_lever
+    skill: growth-uses-cash
+    prompt: >
+      Take Webvan's own 1999 plan, valued as an illustration: each $1 it invests brings $10 of sales.
+      Which single change lowers the value of one share most?
+    explanation: "What growth costs is a lever of its own, beside how big the business gets, what it keeps and how risky it is. These values are an illustration built on Webvan's plan, not anyone's published value. The plan's sales for each dollar invested were far above what each dollar brought in the year the explore waterfall shows."
+    computed:
+      case: spine-03-webvan-2001
+      changes:
+        - { id: costly-growth, label: "Each $1 invested brings $3 of sales, not $10", levers: { salesToCapital: 3 } }
+        - { id: margin-down, label: "It keeps 10% of each sale once mature, not 12%", levers: { marginTarget: 10 } }
+        - { id: rate-up, label: "A starting cost of capital of 14.35%, not 12.35%", levers: { costOfCapitalGrowing: 14.35 } }
+        - { id: may-fail, label: "A 20% chance it fails, not none", levers: { failureChance: 20 } }
+        - { id: costly-growth-less, label: "Each $1 invested brings $7 of sales, not $10", levers: { salesToCapital: 7 } }
+  # Predict, then see (D1), computed from the same illustration: never marked wrong.
+  - id: wc-q-predict
+    kind: predict
+    skill: growth-uses-cash
+    prompt: "Webvan's own plan, valued as an illustration, has each $1 invested bringing $10 of sales. With {change}, the value of one share would be:"
+    explanation: "When growth costs more, more of every year's cash goes into paying for it. In the year the explore waterfall shows, each dollar Webvan invested brought far fewer sales than its plan assumed."
+    computed:
+      case: spine-03-webvan-2001
+      changes:
+        - { id: three, label: "only $3 of sales for each $1", levers: { salesToCapital: 3 } }
+        - { id: five, label: "only $5 of sales for each $1", levers: { salesToCapital: 5 } }
+      bands:
+        - { id: same, label: "About the same", min: 0.9 }
+        - { id: some, label: "Lower by a tenth to a third", min: 0.65, max: 0.9 }
+        - { id: most, label: "Lower by more than a third", max: 0.65 }
+  # Not a judgement kind: which figure says how fast the cash is going.
+  - id: wc-q-which-figure
+    skill: free-cash-flow
+    prompt: >
+      Webvan's report gives a net loss of $453.3 million, cash used in operations of $263.1 million, and
+      $259.8 million spent on property and equipment. Which tells you best how fast its cash is going?
+    choices:
+      - { id: cash-lines, text: "The cash used in operations and the spending on warehouses, together" }
+      - id: net-loss
+        text: "The net loss alone"
+        mistake: { tag: profit_for_cash, fix: "The loss includes costs that used no cash and leaves out warehouse spending. Cash comes from the cash flow statement." }
+      - id: operations
+        text: "The cash used in operations alone"
+        mistake: { tag: missed_capex, fix: "That leaves out the warehouses and vans, paid for in cash too." }
+    answer: cash-lines
+    explanation: >
+      The cash flow statement shows the cash: what operations used and what was spent on long-lived
+      assets. The net loss mixes in costs that used no cash, such as spreading the price it paid for HomeGrocer over the years, and paying staff in shares.
+    source: "Webvan Group, Form 10-K for 2000: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"
+  # Not a judgement kind: profit on each sale against cash.
+  - id: wc-q-profit-not-cash
+    skill: growth-uses-cash
+    prompt: >
+      A grocer makes a profit on every order, and its sales double every year. Its free cash flow is
+      most likely:
+    choices:
+      - { id: below, text: "Below zero: each year's growth needs warehouses and groceries on the shelves first" }
+      - id: above
+        text: "Above zero: every order is profitable"
+        mistake: { tag: profit_for_cash, fix: "A profit on each order is not cash in hand: the growth is paid for first." }
+      - id: zero
+        text: "Exactly zero: profit and spending cancel"
+        mistake: { tag: profit_for_cash, fix: "Nothing makes them cancel. Fast growth usually costs more than the profit brings in." }
+    answer: below
+    explanation: >
+      Doubling every year means building ahead of the new sales, and that spending comes before the
+      profit from those sales arrives.
+    source: "Damodaran, Investment Valuation (reinvestment and free cash flow to the firm): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/lectures/fcff.html"
+
+checks:
+  - id: wc-check
+    kind: quiz
+    questions: [wc-q-cut-capex, wc-q-cannot-hold, wc-q-ipo-price, wc-q-which-lever, wc-q-predict, wc-q-which-figure, wc-q-profit-not-cash]
+    perAttempt: 4
+    passRule:
+      correct: 3
+    card:
+      title: "From revenue to free cash flow"
+      lines:
+        - "Free cash flow is the cash a business makes after paying for its growth."
+        - "Start from operating income, take off tax, then take off what growth costs."
+        - "What growth costs is the rise in sales divided by the sales each dollar invested brings."
+        - "Sales rise $60, and each $1 invested brings $3 of sales: growth costs $20."
+      writeDown: "Profit is not cash: growth is paid for before it pays."
+      skills: [free-cash-flow, growth-uses-cash]
+      example: [60, 3, 20]
+    quickTries:
+      - id: wc-try-fcf-half
+        skill: free-cash-flow
+        ask: "A bakery makes a profit this year, then spends more than that profit on a second shop so it can sell more. After tax and that spending, its free cash flow is:"
+        halfDone: "First step, done for you: the second shop is what growth costs, and it comes off too."
+        kind: choice
+        answer: below
+        choices:
+          - { id: below, text: "Below zero" }
+          - { id: above, text: "Above zero, because it made a profit", mistake: { tag: profit_for_cash, fix: "The second shop comes off as well, and it cost more than the profit." } }
+          - { id: profit, text: "Equal to its profit", mistake: { tag: skipped_steps, fix: "Tax and what growth costs both come off before free cash flow." } }
+      - id: wc-try-steps
+        skill: free-cash-flow
+        ask: "On the way from operating income to free cash flow, what comes off?"
+        kind: choice
+        answer: tax-reinvest
+        choices:
+          - { id: tax-reinvest, text: "Tax, then what growth costs" }
+          - { id: revenue, text: "Revenue", mistake: { tag: skipped_steps, fix: "Revenue is above operating income. Below it come tax and what growth costs." } }
+          - { id: nothing, text: "Nothing: operating income is the cash", mistake: { tag: profit_for_cash, fix: "Tax is paid in cash, and so is the spending growth needs." } }
+      - id: wc-try-zero-growth
+        skill: free-cash-flow
+        ask: "True or false: in the waterfall, when sales stop growing, what growth costs drops to nothing."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "What growth costs is the rise in sales over sales for each dollar invested. No rise, no cost.", tag: skipped_steps }
+      - id: wc-try-cheaper-growth
+        skill: free-cash-flow
+        ask: "Sales rise by the same amount. Which change makes that growth cost less?"
+        kind: choice
+        answer: more-sales
+        choices:
+          - { id: more-sales, text: "Each dollar invested brings more sales" }
+          - { id: margin, text: "A higher margin", mistake: { tag: lever_mixup, fix: "The margin sets operating income. What growth costs depends on sales for each dollar invested." } }
+          - { id: tax, text: "A lower tax rate", mistake: { tag: lever_mixup, fix: "Tax comes off operating income. It does not change what growth costs." } }
+      - id: wc-try-double-half
+        skill: growth-uses-cash
+        ask: "A grocer makes a profit on each order and plans to double its sales next year. What happens to its cash first?"
+        halfDone: "First step, done for you: doubling sales needs more warehouses, vans and groceries on the shelves."
+        kind: choice
+        answer: falls
+        choices:
+          - { id: falls, text: "It falls: the growth is paid for before the new sales come in" }
+          - { id: rises, text: "It rises: more sales bring more cash", mistake: { tag: profit_for_cash, fix: "The new sales come later. The warehouses and groceries are paid for first." } }
+          - { id: same, text: "It stays the same", mistake: { tag: profit_for_cash, fix: "Building for twice the sales costs cash now." } }
+      - id: wc-try-run-out
+        skill: growth-uses-cash
+        ask: "True or false: a business that makes a profit on each sale can still run out of cash while it grows fast."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "Fast growth needs buildings and goods on the shelves first, and they can use up the cash before the profits arrive.", tag: profit_for_cash }
+      - id: wc-try-slow-burn
+        skill: growth-uses-cash
+        ask: "Webvan wants its cash to last longer. Which move helps soonest?"
+        kind: choice
+        answer: slow
+        choices:
+          - { id: slow, text: "Slow its growth and stop building warehouses" }
+          - { id: faster, text: "Grow faster, to reach a large size sooner", mistake: { tag: growth_is_free, fix: "Faster growth means more building first, so more cash goes out, not less." } }
+          - { id: more-orders, text: "Open new markets with new warehouses", mistake: { tag: growth_is_free, fix: "New warehouses are paid for in cash before their customers arrive." } }
+
+  - id: wc-talk
+    kind: conversation
+    skills: [free-cash-flow, growth-uses-cash]
+    prompt: >
+      April 2001. A friend says Webvan only needs bigger orders and more customers, and the cash problem
+      will fix itself. What do you tell your friend about where the cash went and who paid for it, and what
+      would you tell Webvan to change?
+    passCriteria: >
+      The Learner says the cash went both into running the business at a loss and into warehouses and
+      vehicles built ahead of the customers, paid for with money raised from investors. They explain
+      that growth needs spending before the new sales arrive, so a business can use cash even with a
+      profit on each order, and that slower growth or more sales for each dollar invested is what lets
+      the cash come back. No figure needs to be worked out; the idea is what passes.

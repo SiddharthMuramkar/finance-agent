@@ -1,0 +1,22 @@
+{
+  "id": "T4",
+  "title": "Explain that more simply",
+  "source": "Percent Session, the Learner's ask for the simple version (TUTOR_SPEC section 7, T4)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "concept",
+    "check": 1,
+    "history": [
+      {
+        "learner": "ok I'm ready, teach me this",
+        "tutor": "Say a savings rate goes from 4% to 5%. The move is 5% minus 4%, which is 1 percentage point. A basis point is one hundredth of a percentage point, so that same move is 100 basis points. Compared with where it started, a rise of 1 point on 4% is a rise of 25 percent of the old rate. Traders quote moves in basis points, and headlines often use percent, so always say which one you mean.\nWhich of the three would you use to tell a friend how far the rate moved?"
+      }
+    ],
+    "replyKind": "simpler"
+  },
+  "message": "Explain that more simply",
+  "pass": [{ "kind": "maxLines", "value": 4 }],
+  "graderChecks": ["Does it keep the same running example (the rate going from 4% to 5%)?", "Does it add no new analogy?"],
+  "notes": "Pass when: 4 lines or fewer. Same running example. No new analogy. The earlier explanation is replayed through the Tutor Turn with a scripted model, so it costs nothing."
+}

@@ -1,0 +1,40 @@
+{
+  "id": "T13",
+  "title": "No sum in 20 turns of the persona's lines",
+  "source": "Spec 2026-11-05, D3b (T13), Appendix D.1 D01 to D10 twice",
+  "kind": "dialogue",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1
+  },
+  "messages": [
+    "what even is a basis point lol",
+    "why did the bank change the rate",
+    "show me",
+    "is this like my credit card?",
+    "just tell me the answer pls",
+    "explain like I'm 5",
+    "why does money grow faster later on",
+    "my dad keeps saying CAGR, what is that",
+    "quiz me but make it fun",
+    "wait did people lose money in 1992??",
+    "what even is a basis point lol",
+    "why did the bank change the rate",
+    "show me",
+    "is this like my credit card?",
+    "just tell me the answer pls",
+    "explain like I'm 5",
+    "why does money grow faster later on",
+    "my dad keeps saying CAGR, what is that",
+    "quiz me but make it fun",
+    "wait did people lose money in 1992??"
+  ],
+  "runs": 1,
+  "pass": [
+    {
+      "kind": "noSum"
+    }
+  ],
+  "notes": "Pass when: none of the 20 replies asks for a sum (noSum, the same reading as V8). One run, one Session, the messages in order from Your turn of Check 1; the Session may move on to the Check as it goes. Its transcript is the Math police critic's input."
+}

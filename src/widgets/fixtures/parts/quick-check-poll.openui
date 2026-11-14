@@ -1,0 +1,3 @@
+root = Widget("Which would you take?", [poll])
+$pick = -1
+poll = QuickCheck("You win a lottery. Which would you take?", ["The lump sum now", "The yearly payments"], -1, "Both are defensible: it turns on what the money could earn in the meantime.", $pick)

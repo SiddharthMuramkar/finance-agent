@@ -1,0 +1,93 @@
+# The critics' record for each Spine Topic (spec 2026-11-12 C8, ADR 0020): a Spine Topic ships only when the course
+# check and the critics pass. The course check (scripts/check-course.mjs, src/course/critics-log.ts) fails a written
+# Spine Topic with no entry here, an entry missing one of the four lenses, or one with confirmed findings still open.
+#
+# After a critic round: add the round, name the commit that fixed its confirmed findings (quoted: YAML reads an id of
+# only digits as a number), and set open to the number of confirmed findings not fixed yet (0 to ship). The findings
+# themselves were in the build's branch reports, which the last commit of pull request 616 removed with the
+# rest of the handoff folder; they stay in that pull request's history.
+# The rubrics are this folder's beginner-persona.md, math-police.md, historian.md and widget-fit.md.
+topics:
+  spine-01-worth:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "3bd57ab"
+    open: 0
+    note: Round 3 found nothing. After it, the reveal's $91.50 high was restored as a high a month before the Case date (spec C5; the round-2 historian finding was that it read as a later rise).
+  spine-02-money-later:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "131125b"
+    open: 0
+    note: Round 3 (ws-i-round2) read the round-2 content (the far-rate question, the jackpot's Case Data through dataFrom); 2 confirmed, fixed. Findings in ws-i-round2-critics.json in pull request 616's history.
+  spine-03-cash:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "131125b"
+    open: 0
+    note: Round 3 (ws-i-round2) read the Topic rebuilt on one Webvan Case, its computed questions on Webvan's own plan; 2 confirmed, fixed. Findings in ws-i-round2-critics.json in pull request 616's history.
+  spine-04-growth:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "cdf4f01"
+    open: 0
+  spine-05-margins:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "131125b"
+    open: 0
+    note: Round 3 on the unit economics content, in two halves. Beginner persona and math police on ws-f2-spine (fixed in 0cb474f, ws-f2-spine-round2.json in pull request 616's history); historian and widget fit on ws-i-round2, 1 confirmed, fixed (ws-i-round2-critics.json in pull request 616's history).
+  spine-06-growth-cost:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "0cb474f"
+    open: 0
+    note: Round 3 on the reinvestment rate content, in two halves. Beginner persona and math police on ws-f2-spine (fixed in 0cb474f); historian and widget fit on ws-i-round2 confirmed nothing (ws-i-round2-critics.json in pull request 616's history).
+  spine-07-risk:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "46c4165"
+    open: 0
+  spine-08-far-future:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "7756465"
+    open: 0
+  spine-09-to-one-share:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "f07ec1e"
+    open: 0
+    note: Round 3 (ws-f3-spine round 2) read cross holdings, minority interests and dataFrom through all four lenses; 4 confirmed, fixed in f07ec1e (ws-f3-spine-round2.json in pull request 616's history).
+  spine-10-survival:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "7756465"
+    open: 0
+  spine-11-story-to-numbers:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "e69502c"
+    open: 0
+    note: The widget-fit finding that the $40bn talk is called a price is fixed outside the Topic file (a price label on the valuation block), and the Value levers bar's accessible name reads that label too since 7210580.
+  spine-12-price-or-value:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "131125b"
+    open: 0
+    note: Round 3 (ws-i-round2) read the T33 changes (the Topic's own pre-reveal stories, EV/EBITDA and PEG, the decoder's Icons and desk counts); 5 confirmed, fixed. The levers still run on Damodaran's 9 Sep 2019 block, which the round judged no as-of leak (no outcome or figure of his shows before the reveal); see the Topic header and ws-i-round2-critics.json in pull request 616's history.
+  spine-13-price-assumes:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "8eb771c"
+    open: 0
+  spine-14-being-wrong:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "3c5b952"
+    open: 0
+  spine-15-value-yourself:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "3c5b952"
+    open: 0

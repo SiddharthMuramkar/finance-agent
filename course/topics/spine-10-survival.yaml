@@ -1,0 +1,329 @@
+# Spine Topic 10 (spec 2026-11-12, C2, C3, C4): what if it does not survive? Taught through Coffee Day Enterprises at the
+# close of 29 July 2019, with Value levers in failure mode (Appendix D: the chance of failure becomes a main lever).
+# The Case's valuation block is written once, in val-distress (coffee-day-distress-2019), and borrowed here with
+# valuationFrom. No published valuation of Coffee Day exists: the block is an illustrative survival story, set so that a
+# company sure to survive is worth its 29 July price, with what is recovered in failure taken from Damodaran's method for
+# a distress sale. Every figure the Widget and the computed questions show is worked out from it by the engine (B1, D2).
+# Case sources (checked): Coffee Day Enterprises Annual Report 2018-19; ICRA rationale, 10 Sep 2019; Coffee Day IPO
+# prospectus (SEBI, Oct 2015); Business Today, 31 Jul and 17 Aug 2019; Hindustan Times, 31 Jul 2019; Times of India,
+# Jan 2020; Reuters, 24 Jan 2023; Securities Appellate Tribunal order, 5 Nov 2026 (Indian Kanoon); Damodaran, Valuing
+# Distressed and Declining Companies (2009).
+id: spine-10-survival
+title: "What if it does not survive?"
+goal: "Weigh a value that assumes survival against what is left if the company fails"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A valuation usually assumes the company lives for ever; for a firm carrying heavy debt, weighing in the chance it fails can matter more than any forecast."
+minutes: 12
+exampleCurrency: INR
+
+cases:
+  - id: spine-10-coffee-day-2019
+    title: "Coffee Day Enterprises in July 2019"
+    asOf: 2019-07-29
+    story: >
+      Coffee Day Enterprises runs Cafe Coffee Day, India's largest chain of coffee shops, and owns
+      businesses in logistics, tech parks and finance. It is deep in debt: at the end of March 2019
+      the group had borrowed about ₹7,200 crore, and its interest bill for the year was ₹456.32
+      crore. In March and April the group sold its stake in the IT company Mindtree and used the money
+      to pare that debt. Its 2015 prospectus had warned that the founder had pledged shares for group loans, which
+      lenders could take and sell if those loans went bad. On 29 July 2019 its market value closed at
+      ₹4,067.65 crore, about ₹192.55 a share, down from ₹6,678 crore in September 2018. The
+      Widget's survival story is an illustration, not a published valuation: it is set so that, if
+      Coffee Day is sure to survive, it is worth about that price. What should a valuation do about
+      the chance that it does not survive?
+    reveal: >
+      That evening the founder, V. G. Siddhartha, went missing; his body was found on 31 July. A
+      letter attributed to him, dated 27 July, spoke of pressure from a private equity partner and
+      from lenders, and of a serious shortage of cash. The shares fell by the 20% daily limit on 30
+      July, to ₹154.05, and again on 31 July, to ₹123.25: a market value of ₹2,603.68 crore, 36% below
+      29 July. On 17 August the company put the group's borrowings at ₹4,970 crore on 31 July. ICRA, an Indian rating agency, cut
+      its loans to BB+ (a weak borrower) on 8 August, and to D (in default) on 10 September, after a subsidiary was late paying its
+      lenders. As lenders took the pledged shares, the holding of the founder's family group (the promoters) fell from 54% to 17% by
+      January 2020. In 2023 the market regulator SEBI found that ₹3,535 crore had been moved out of the
+      group to a company linked to its founder; in November 2026 an appeals tribunal set that order
+      aside and ordered a fresh investigation. The market had stopped pricing a company sure to
+      survive.
+    valuationFrom: coffee-day-distress-2019
+
+concept: >
+  A discounted cash flow values a going concern: it assumes the business keeps running for ever.
+  For most companies that is fine. For a company with heavy debt, thin interest cover (operating profit only a little above the interest bill) and loans
+  backed by pledged shares, there is a real chance it fails first, and if it does, its assets are
+  sold in a hurry for far less than the business was worth alive. A value that ignores this is
+  too high. The fix is expected value: weigh the going-concern value by the chance the company
+  survives, and what is recovered in a distress sale by the chance it fails. The chance of
+  failure can be read from a bond rating's history of defaults, from the price of its bonds, or
+  argued from the story. Because what is recovered is so much less, each ten points more chance
+  of failure takes a bit more than a tenth off the value, and the debt still comes off in full before the
+  shareholders.
+
+principle: >
+  A value that assumes survival is too high for a company that may not survive. Weigh the
+  going concern against what is left in failure, by how likely each is, before you compare the
+  value with a price.
+
+youllLearn:
+  - "Weigh a going-concern value against what is left if the company fails."
+  - "Read heavy debt and pledged shares as signs that failure is likelier."
+  - "See a falling price as a market pricing in the chance of failure."
+
+terms:
+  - term: going concern
+    means: A business valued as if it keeps running for ever.
+    pro: The going-concern value assumes the firm survives.
+    example: "Valuing a tea stall as if it will open every morning for years to come."
+    emoji: hot-beverage
+    inStory: In the story, the Widget's survival story values Coffee Day as a going concern.
+  - term: distress sale
+    means: A hurried sale of a failing company's assets, for far less than the business was worth alive.
+    pro: The distress sale value is what is recovered in failure.
+    example: "Selling your furniture in a day because you must move tomorrow."
+    emoji: chart-decreasing
+    inStory: In the story, it is what lenders could get by selling Coffee Day's assets in a rush.
+  - term: chance of failure
+    means: How likely the company is to fail before its story plays out, out of a hundred.
+    pro: The probability of distress.
+    example: "The chance a new restaurant closes within its first few years."
+    emoji: warning
+    inStory: In the story, the survival story sets it at zero.
+  - term: expected value
+    means: Each outcome weighed by how likely it is, then added up.
+    pro: Value is the going concern and the distress sale, weighted by their probabilities.
+    example: "A raffle ticket that pays ₹300 one time in four is worth less than ₹300 before the draw."
+    emoji: game-die
+    inStory: In the story, survival and failure are weighed by their chances.
+  - term: pledged shares
+    means: Shares an owner hands to lenders as security for a loan; lenders can sell them if the loan goes bad.
+    pro: The promoter's shares were pledged for group loans.
+    example: "Leaving your gold with a lender, who may sell it if you miss repayments."
+    emoji: locked
+    inStory: In the story, the founder had pledged shares for group loans.
+
+skills:
+  - id: weigh-failure
+    rule: "A value that assumes survival must be weighed with what is left if the company fails, by how likely failure is."
+  - id: failure-signs
+    rule: "Heavy debt, thin interest cover and pledged shares make failure likelier; a falling price can be the market pricing that in."
+
+primers:
+  - id: survival-primer-expected
+    title: "Expected value"
+    lines:
+      - "Expected value weighs each outcome by how likely it is."
+      - "A company worth a lot if it survives and little if it fails is worth something in between."
+      - "The likelier failure is, the closer the value sits to what is left in failure."
+    term: expected value
+    quickTry:
+      id: survival-primer-try
+      skill: weigh-failure
+      ask: "A raffle ticket pays ₹300 one time in four, and nothing the other three times. Before the draw, is it worth the full ₹300?"
+      kind: choice
+      answer: less
+      choices:
+        - { id: less, text: "Less: most of the time it pays nothing" }
+        - id: full
+          text: "Yes: it pays ₹300 when it wins"
+          mistake: { tag: best_case_as_value, fix: "₹300 is the best outcome. Weigh it by how often it happens, one time in four." }
+    elective: num-probability
+    at: concept
+
+insight:
+  question: "The survival story assumes Coffee Day never fails. Raise the chance it fails, a step at a time: what happens to the value, and what does that say about valuing it as if it will surely survive?"
+  written: "A value that assumes survival is too high for a company that may not survive: a chance of failure of a few in ten, like the ones rating agencies see for weak borrowers, takes a large slice off, because what is left in a distress sale is far less than the business alive, and the debt still comes off in full."
+  foundWhen: "The Learner raises the chance of failure, sees the value fall well below the survival value, and says that valuing a heavily indebted company as if it will surely survive overstates it (what is recovered in failure is far less, and the debt is paid first)."
+  hints:
+    - "Watch the readout for the value if it survives, and the headline beside it, as you move the chance it fails."
+    - "Set the chance it fails to fifty. Is the value half of the survival value, or less? Lenders are paid in full first, out of the much smaller sum a distress sale brings."
+
+explore:
+  before: survival-check
+  workbench:
+    recipe: value_levers
+    case: spine-10-coffee-day-2019
+    title: "What if Coffee Day does not survive?"
+    inputs:
+      caseStory: "The survival story"
+      mode: { kind: failure }
+
+connections:
+  - text: "Distress and default sets out how to read a chance of failure from ratings and bond prices."
+    topics: [val-distress]
+  - text: "Expected value is the probability idea behind weighing survival against failure."
+    topics: [num-probability]
+  - text: "The bridge from business to share still runs: the debt comes off in full before the shareholders."
+    topics: [spine-09-to-one-share]
+
+questions:
+  - id: survival-q-predict
+    kind: predict
+    prompt: "Start from the survival story. If {change}, the value of one share will be:"
+    skill: weigh-failure
+    explanation: "In failure only a distress sale is recovered, far less than the business alive, and the debt is still paid first."
+    computed:
+      case: spine-10-coffee-day-2019
+      changes:
+        - { id: twenty, label: "the chance of failure is 20%", levers: { failureChance: 20 } }
+        - { id: forty, label: "the chance of failure is 40%", levers: { failureChance: 40 } }
+      bands:
+        - { id: same, label: "Barely changed", min: 0.9 }
+        - { id: three-quarters, label: "About three quarters", min: 0.65, max: 0.9 }
+        - { id: half, label: "About half", min: 0.4, max: 0.65 }
+        - { id: little, label: "Well under half", max: 0.4 }
+
+  - id: survival-q-lever
+    kind: which_lever
+    prompt: "From the survival story, which single change cuts the value of one share most?"
+    skill: weigh-failure
+    explanation: "In failure only a distress sale is recovered, far less than the business alive, so a real chance of failure cuts more than a point on the rate or growth that needs more money invested."
+    computed:
+      case: spine-10-coffee-day-2019
+      changes:
+        - { id: failure, label: "Chance of failure, 0% to 30%", levers: { failureChance: 30 } }
+        - { id: risk, label: "Cost of capital while it grows, 9.4% to 10.4%", levers: { costOfCapitalGrowing: 10.4 } }
+        - { id: reinvest, label: "Growth costs more: ₹1.50 of sales for each ₹1 invested, not ₹2", levers: { salesToCapital: 1.5 } }
+
+  - id: survival-q-direction
+    kind: direction
+    prompt: "A rating agency puts a company's loans on watch for a downgrade, and its lenders ask to be paid back early. Which lever moves, and which way?"
+    skill: failure-signs
+    choices:
+      - { id: failure-up, text: "The chance it fails, up" }
+      - id: margin-down
+        text: "What it keeps from each sale, down"
+        mistake: { tag: lever_mixup, fix: "Nothing changed in how it sells: the risk is about repaying lenders, which is the chance it fails." }
+      - id: size-down
+        text: "How big it gets, down"
+        mistake: { tag: lever_mixup, fix: "Nothing changed in how much it sells. Lenders pulling back makes failure likelier." }
+    answer: failure-up
+    explanation: "Lenders pulling back from a heavily indebted company make failure likelier, before anything changes in the business."
+    source: "Damodaran, Valuing Distressed and Declining Companies (2009), on the chance of distress: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/NewDistress.pdf"
+
+  - id: survival-q-mindtree
+    kind: direction
+    prompt: "In March and April 2019 the Coffee Day group sold its Mindtree stake and used the money to pare the group's debt. Which way did that move the chance it fails?"
+    skill: failure-signs
+    choices:
+      - { id: down, text: "Down" }
+      - id: up
+        text: "Up: it sold a good business"
+        mistake: { tag: sale_as_weakness, fix: "Less debt means less to repay, so failure gets less likely, even after selling a good business." }
+      - id: same
+        text: "No change: a sale does not touch the debt"
+        mistake: { tag: debt_untouched, fix: "Here the money went to pay down debt, so the lenders' claim shrank." }
+    answer: down
+    explanation: "Paying down debt lowers what must be repaid, which makes failure less likely."
+    source: "Coffee Day Enterprises Annual Report 2018-19: the Mindtree stake sold to L&T at ₹980 a share, the proceeds used to pare group debt. https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf"
+
+  - id: survival-q-hold
+    kind: cannot_hold
+    prompt: "Which story about a company contradicts itself?"
+    skill: failure-signs
+    choices:
+      - { id: zero, text: "Its interest bill takes nearly all its operating profit, and the chance it fails is zero" }
+      - id: growing
+        text: "Its sales grow every year and the chance it fails is low"
+        mistake: { tag: growth_is_fine, fix: "Growing sales and a low chance of failure sit well together." }
+      - id: paid-down
+        text: "It sells a business to pay down debt, and the chance it fails falls"
+        mistake: { tag: paydown_is_fine, fix: "Paying down debt does make failure less likely. That holds." }
+    answer: zero
+    explanation: "A company that can barely pay its interest has a real chance of failing; zero cannot hold."
+    source: "Coffee Day Enterprises Annual Report 2018-19: finance costs of ₹456.32 crore in the year to March 2019 and an interest coverage ratio of 1.47. https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf"
+
+  - id: survival-q-pricevalue
+    kind: price_or_value
+    prompt: "On 29 July 2019 Coffee Day's market value closed at ₹4,067.65 crore. Is that a price or a value?"
+    skill: weigh-failure
+    choices:
+      - { id: price, text: "A price" }
+      - id: value
+        text: "A value"
+        mistake: { tag: price_for_value, fix: "It is what the market paid for the shares that day: a price." }
+    answer: price
+    explanation: "A market value is today's share price times the shares: what buyers pay, not an argued value."
+    source: "Business Today, 31 Jul 2019: market value of ₹4,067.65 crore on 29 July. https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31"
+
+checks:
+  - id: survival-check
+    kind: quiz
+    questions: [survival-q-predict, survival-q-lever, survival-q-direction, survival-q-mindtree, survival-q-hold, survival-q-pricevalue]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: "Weigh survival against failure"
+      lines:
+        - "A discounted cash flow assumes the company survives for ever."
+        - "If it fails, its assets are sold in a hurry, for far less than the business alive."
+        - "Weigh the two by their chances: that is expected value."
+        - "The debt is still paid in full before the shareholders."
+      writeDown: "Ask what the value is if it survives, what is left if it fails, and how likely each is."
+      skills: [weigh-failure, failure-signs]
+    quickTries:
+      - id: survival-try-weigh-half
+        skill: weigh-failure
+        ask: "A company is worth much more if it survives than if it fails. Failure goes from no chance to some chance. What happens to its value?"
+        halfDone: "First step, done for you: part of the weight now sits on the much smaller value in failure."
+        kind: choice
+        answer: falls
+        choices:
+          - { id: falls, text: "It falls" }
+          - id: same
+            text: "It stays the same until it actually fails"
+            mistake: { tag: failure_ignored, fix: "A value weighs what might happen, not only what has happened." }
+      - id: survival-try-weigh-2
+        skill: weigh-failure
+        ask: "Two cafe chains have the same survival value. One has a real chance of failing. Which is worth more today?"
+        kind: choice
+        answer: safe
+        choices:
+          - { id: safe, text: "The one with no real chance of failing" }
+          - id: risky
+            text: "They are worth the same"
+            mistake: { tag: failure_ignored, fix: "The same survival value, weighed with a chance of failure, comes out lower." }
+      - id: survival-try-weigh-computed
+        skill: weigh-failure
+        kind: which_lever
+        ask: "From the survival story, which single change cuts the value of one share most?"
+        computed:
+          case: spine-10-coffee-day-2019
+          changes:
+            - { id: failure, label: "Chance of failure, 0% to 40%", levers: { failureChance: 40 } }
+            - { id: risk, label: "Cost of capital while it grows, 9.4% to 10.4%", levers: { costOfCapitalGrowing: 10.4 } }
+            - { id: reinvest, label: "Growth costs more: ₹1.50 of sales for each ₹1 invested, not ₹2", levers: { salesToCapital: 1.5 } }
+      - id: survival-try-signs-half
+        skill: failure-signs
+        ask: "In the year to March 2019 Coffee Day paid ₹456.32 crore in interest; its annual report put its interest cover at 1.47 times. Is that a sign failure is likelier?"
+        halfDone: "First step, done for you: interest cover says how many times operating profit covers the interest bill."
+        kind: choice
+        answer: likelier
+        choices:
+          - { id: likelier, text: "Yes: profit barely covers the interest" }
+          - id: safe
+            text: "No: profit still covers the interest"
+            mistake: { tag: thin_cover_safe, fix: "Profit covering interest less than one and a half times leaves little to spare if profit dips." }
+      - id: survival-try-signs-2
+        skill: failure-signs
+        ask: "Which sign says lenders could force a sale of the founder's shares?"
+        kind: choice
+        answer: pledged
+        choices:
+          - { id: pledged, text: "He had pledged shares for group loans" }
+          - id: revenue
+            text: "Revenue grew last year"
+            mistake: { tag: growth_as_risk, fix: "Growing revenue is good news. Pledged shares are what lenders can take and sell." }
+      - id: survival-try-signs-3
+        skill: failure-signs
+        ask: "A company's share price falls 20% in a day, though nothing in its cafes has changed. Which lever has the market most likely moved?"
+        kind: choice
+        answer: failure
+        choices:
+          - { id: failure, text: "The chance it fails" }
+          - id: margin
+            text: "What it keeps from each sale"
+            mistake: { tag: lever_mixup, fix: "Nothing changed in the cafes, so margins did not move overnight. Survival did." }
+
+  - id: survival-talk
+    kind: conversation
+    prompt: "In two or three sentences, say how you would value Coffee Day on 29 July 2019, given its debt. What would you weigh, and which part are you least sure of?"
+    passCriteria: "Weighs a survival (going-concern) value against what is left in a distress sale, by the chance of failure; ties that chance to the debt, the thin interest cover or the pledged shares; says the debt is paid before the shareholders; names the chance of failure or what is recovered as the part they are least sure of, with a reason."
+    skills: [weigh-failure, failure-signs]

@@ -1,0 +1,140 @@
+# Competition, market structure and pricing power: a foundation Topic taught through the Reliance Jio launch.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+id: eco-micro-competition
+title: Competition, market structure and pricing power
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "What a company keeps of each sale depends on what rivals allow, so competition sets the ceiling on the margin in a valuation story."
+
+cases:
+  - id: jio-launch-2016
+    title: Reliance Jio's free launch
+    asOf: 2016-09-01
+    story: >
+      On 1 September 2016, at the 42nd annual general meeting of Reliance Industries, chairman
+      Mukesh Ambani announced the tariffs of Reliance Jio, a new 4G mobile network that took six
+      years to build. Voice calls on Jio would be free. Data would cost about Rs 50 a gigabyte,
+      which Ambani called the cheapest in the world. A "free welcome offer" would give every
+      customer free voice and data from 5 September to 31 December 2016, after which there would
+      be just 10 simple plans, from Rs 19 a day for occasional users to Rs 149 a month for light
+      data users and Rs 4,999 a month for heavy users. Jio said it wanted 100 million users as
+      fast as possible. The market it was entering had a handful of large networks, led by Bharti
+      Airtel, Vodafone and Idea Cellular. India had a very large number of mobile users, and the BBC reported that
+      the telecom industry carried a combined debt of over $50 billion. Jio is backed by Reliance, the
+      country's largest private company, and is not expected to make a profit for about five
+      years. As of the afternoon of 1 September 2016 nobody knew how the existing networks would
+      respond or what would happen to their share prices.
+    reveal: >
+      The market answered within hours. On 1 September the shares of Bharti Airtel and Idea
+      Cellular fell by up to 9 per cent: Idea dropped 9 per cent to Rs 85 and Airtel
+      fell 8.99 per cent to Rs 302 during the day. By the close Idea was down about 10 per cent and Airtel
+      about 6 per cent. The BBC put the fall in Airtel's market value
+      at about $1.3 billion and Idea's at more than $500 million. Airtel had already cut its data
+      prices twice in anticipation, and Vodafone argued that its cheapest plans beat Jio's. Jio
+      launched officially on 5 September 2016 with its free offer. Analysts were split: customers
+      were the clear winners of a price war, but one analyst warned that a business group
+      controlling networks, content and start-ups could become a monopoly, and said India needed
+      three to five players for prices to normalise. The lesson is not that the incumbents were
+      foolish. Their pricing power rested on a few rivals who all wanted profits; a new entrant
+      with deep pockets and a different goal (customers first, profit in years) took that away.
+
+concept: >
+  A market's structure decides how much pricing power a firm has. In perfect competition many
+  sellers offer the same product, so each is a price taker. In monopolistic competition many
+  sellers offer slightly different products (a gym with its own classes and location) and each has
+  a little pricing power. In an oligopoly a few large sellers watch one another, and each price move
+  invites a response, which is why such sellers often avoid price wars. A monopoly has no close
+  rival. Pricing power comes from barriers to entry (licences, scale, essential inputs), from
+  differentiation and from switching costs. A threat to fight an entrant with a price war is
+  believable only if fighting really pays the incumbent once the entrant has arrived; a promise
+  that costs the promiser nothing to break does not change what a rational entrant does.
+
+principle: >
+  Before trusting a firm's margins, ask what protects them: who could enter, what they would charge,
+  and whether the incumbent could afford to fight. Pricing power that rests on rivals behaving
+  politely lasts only until someone arrives who is playing a different game.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell competitive markets from those with a few sellers or only one."
+  - "Find where a firm's pricing power comes from."
+  - "Judge whether a threat to fight a newcomer is believable."
+
+questions:
+  - id: mc-q-studios
+    prompt: >
+      January 2016. Isha quits her job to open a yoga studio in Pune, where dozens of studios open and close every year. Her brother says she can charge whatever she likes. Who's right?
+    choices:
+      - { id: a, text: "She can charge a bit extra for her style, but not much" }
+      - { id: b, text: "Her brother: her classes are unique, so any price works", mistake: { tag: overstated_power, fix: "Dozens of nearby studios are close rivals; push the price too far and members walk." } }
+      - { id: c, text: "Neither: with so many studios, every class costs the same", mistake: { tag: missed_differentiation, fix: "Studios differ in classes and place, so each can charge a little more." } }
+      - { id: d, text: "Neither: a few big gym chains will set her price", mistake: { tag: miscounted_sellers, fix: "Dozens of small studios is many sellers; no few giants set her price." } }
+    answer: a
+    explanation: >
+      Many sellers, slightly different products and easy entry make monopolistic competition. Isha can charge a bit more for her own style or a handy location, but if she pushes too far, members walk to the studio down the road, and new ones keep opening.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0013, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
+  - id: mc-q-empty-threat
+    prompt: >
+      March 2016. Zoya bets her family's savings on a new ice-cream brand. The market leader's boss vows to "fight any newcomer to the last rupee", but a price war would cost him more than sharing. Should she launch?
+    choices:
+      - { id: a, text: "Launch: fighting her would hurt him more, so it's a bluff" }
+      - { id: b, text: "Stay out: he said it in public, so he must mean it", mistake: { tag: believed_cheap_talk, fix: "Words cost nothing; ask whether fighting would pay him once Zoya has arrived." } }
+      - { id: c, text: "Launch, but brace for the long price war he'll start", mistake: { tag: assumed_follow_through, fix: "Once she's in, he picks what pays best, and sharing pays better than fighting." } }
+      - { id: d, text: "Wait a year and see whether he calms down", mistake: { tag: waited_it_out, fix: "Waiting changes nothing: after entry, sharing still beats fighting for him, so the threat is empty." } }
+    answer: a
+    explanation: >
+      A threat is credible only if carrying it out pays when the moment comes. After entry, the leader does better sharing the market than fighting, so a rational newcomer treats the vow as cheap talk and enters. Economists find this by reasoning backwards from the last move.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0019, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
+  - id: mc-q-commitment
+    prompt: >
+      May 2016. Zoya launched anyway, and the ice-cream leader's boss is stung. Before the next newcomer turns up, he wants his price-war threat taken seriously. Which move would actually scare them off?
+    choices:
+      - { id: a, text: "Build a cheaper-to-run plant now, so fighting would pay" }
+      - { id: b, text: "Repeat the threat in a full-page newspaper ad", mistake: { tag: louder_cheap_talk, fix: "An ad changes no costs or profits, so fighting still pays worse than sharing." } }
+      - { id: c, text: "Hire a famously ruthless new boss to sound tougher", mistake: { tag: swapped_the_boss, fix: "Same costs and profits after entry mean the same choice: sharing still pays better." } }
+      - { id: d, text: "Sign long fixed-price deals with shops, so prices can't move", mistake: { tag: tied_hands_wrong_way, fix: "Locking prices stops him cutting them, which makes a price war less believable." } }
+    answer: a
+    explanation: >
+      A threat becomes credible when the threatener changes its own payoffs so that carrying it out pays. A plant that lowers its costs, built before anyone enters and impossible to undo, makes fighting the better choice after entry, so a newcomer expects a price war and stays out. Economists call this a commitment device.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0020, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
+  - id: mc-q-charity-price
+    prompt: >
+      June 2016. Farah's accounting software barely sells to charities, so she offers registered ones the same licence 40% cheaper, once they show their papers. Why does checking the papers matter?
+    choices:
+      - { id: a, text: "It stops companies posing as charities to grab the discount" }
+      - { id: b, text: "It drives rival software firms out of the charity market", mistake: { tag: confused_with_predatory, fix: "The discount isn't aimed at rivals; it splits buyers into groups paying different prices." } }
+      - { id: c, text: "It lets her charge each charity its own top price", mistake: { tag: overstated_discrimination, fix: "Every registered charity gets the same discount; she prices groups, not each buyer." } }
+      - { id: d, text: "It's just paperwork; the price works the same without it", mistake: { tag: skipped_the_check, fix: "Without the check, every company would claim the cheaper price and her plan collapses." } }
+    answer: a
+    explanation: >
+      Charging groups you can tell apart different prices for the same product is group pricing, which economists call third-degree price discrimination. Charities usually have tighter budgets, so a lower price wins sales a single high price would lose. It only works if outsiders cannot claim the cheaper price, which is what the check is for. Student and senior discounts work the same way.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0022, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; the scenario is made up.
+
+checks:
+  - id: eco-micro-quiz-structure
+    kind: quiz
+    questions:
+      - mc-q-studios
+      - mc-q-empty-threat
+      - mc-q-commitment
+      - mc-q-charity-price
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-micro-jio-reasoning
+    kind: conversation
+    prompt: >
+      Reliance Jio is entering an Indian mobile market of a few large networks, with free voice calls and
+      data at about Rs 50 a gigabyte (free during its welcome offer). Picture yourself as an Airtel manager. In your own words, what gives Airtel
+      and Idea their pricing power today, how could an entrant like Jio threaten it, and what would have
+      to be true for a price war to stop?
+    passCriteria: >
+      The Learner names the earlier structure as an oligopoly of a few large networks whose pricing
+      power rested on limited competition and high entry barriers (spectrum, network cost). They
+      explain that Jio's backing by a large group and willingness to lose money for years removed
+      that protection, so incumbents would have to cut prices or lose customers. They identify at least
+      one way a price war can end, such as an entrant or incumbent running out of funds, rivals
+      accepting a stable split of customers, or consolidation into fewer players.

@@ -1,0 +1,180 @@
+# Follow Topic: Zitron's "The Subprime AI Crisis" (16 Sep 2024), a dated piece taught as a Case.
+# The article is pasted by the Learner and kept privately with their Session; it is never in the Library or the repo.
+# Everything below summarises its argument in our own words, from what was public on 16 Sep 2024.
+id: fol-subprime-ai
+title: "Follow: Zitron, The Subprime AI Crisis (Sep 2024)"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Zitron asks who pays for products sold below cost, the same question a valuation asks about margins that may never arrive."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-subprime-ai-zitron-2024
+    title: Zitron argues that cheap AI prices hide a funding problem
+    asOf: 2024-09-16
+    piece:
+      author: Ed Zitron
+      title: "The Subprime AI Crisis"
+      published: 2024-09-16
+      url: https://www.wheresyoured.at/subprimeai/
+      from: paste
+    story: >
+      On 16 September 2024 Ed Zitron, a technology writer and critic of the AI boom, published an
+      article in his newsletter Where's Your Ed At. It rests on figures reported in the press that
+      month. OpenAI, the maker of ChatGPT, was reported to be raising about $6.5 billion at a value
+      above $150 billion and to be seeking about $5 billion of bank credit as well. It was expected
+      to lose about $5 billion in 2024. Its revenue was reported as $3.5 to $4.5 billion in one
+      source and as above $2 billion in another. It was reported to be paying Microsoft about $4
+      billion for computing power, at about $1.30 an hour for a server chip that lists at $3.40 to
+      $4. Anthropic, a rival, was reported to be on course to lose about $2.7 billion in 2024. On 3
+      September 2024 Nvidia, the chipmaker, had lost $279 billion of market value in a day, the
+      largest one-day fall for a US company (Reuters). Zitron builds on these facts an argument that
+      the prices people pay for AI do not cover what it costs to provide, and he borrows the word
+      "subprime" from the 2007 mortgage crisis for it. He offers the price-rise step as his own
+      hypothesis, not as something measured. The Learner pastes the part of the article they are
+      studying, then explains each step of the argument. The Tutor works only from the text it has
+      been shown and says so when a passage has not been pasted.
+    reveal: >
+      Three things can be checked against later reports, though none settles the whole argument.
+      Funding: OpenAI closed $6.6 billion on 2 October 2024 at a $157 billion valuation, as
+      convertible notes whose conversion depended on its restructuring into a for-profit company,
+      and announced a $4 billion credit line from banks (Reuters; Bloomberg). On 31 March 2025 it
+      announced $40 billion at a $300 billion valuation, with SoftBank's $30 billion share paid in
+      stages and cut to $20 billion if the restructuring was not done by the end of 2025 (Reuters;
+      CNBC). The money kept coming, on larger terms. Prices: on 10 June 2025 OpenAI cut the price of
+      its o3 model by 80%, from $10 to $2 per million input tokens and from $40 to $8 per million
+      output tokens (VentureBeat; Neowin). The tenfold-to-hundredfold rise Zitron used as his
+      hypothetical had not arrived, and the price of that model fell sharply. Unsettled: whether
+      those prices cover what they cost to provide is not shown by these sources, because the cost
+      side is not public, so the "subsidy" claim stands as a reading of reported losses rather than
+      a measurement. Set against the article: it was right that the money needed was huge and rising,
+      and a price cut is what a competitive market, or a subsidy, would each produce. A price falling
+      cannot by itself tell the two apart.
+
+concept: >
+  A price below cost can be kept up only as long as someone pays the difference, so the question to
+  ask of any product sold at a loss is who is paying and for how long. Four checks are used here. The
+  first is to compare the price with the cost to serve and see how much of each sale is covered. The
+  second is to annualise a run rate (a recent month times twelve) and recognise that it assumes the
+  pace holds. The third is to compare the valuation with revenue, which says how much future growth
+  the price already assumes. The fourth is to ask what happens to the customers if the price rises,
+  which is the sense in which "subprime" is used: borrowers who cope only while the terms stay easy.
+  A claim about what would happen if prices rose is a hypothesis; it is judged by whether the steps
+  follow, not by whether it has happened yet.
+
+principle: >
+  When a writer argues that a business is sustained by subsidy, separate what was reported (losses,
+  funding, prices) from what is inferred (that prices must rise) and from what is borrowed from
+  another crisis (the label "subprime"). Check each step on its own, and do not let a well-chosen
+  analogy stand in for a step.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Ask who pays the difference when a product is sold below its cost."
+  - "Read a run rate and the assumption hidden inside it."
+  - "Separate what a writer reports from what they infer and what they borrow by analogy."
+
+questions:
+  - id: fsa-q-price-cost
+    prompt: >
+      Your friend Riya's app charges $1.00 each time someone uses it, but every use costs her $1.50
+      in computing. She is thrilled that usage is soaring. What should you tell her?
+    choices:
+      - { id: a, text: "Every use loses money, so someone has to fund the gap" }
+      - { id: b, text: "Great news: more uses means more profit", mistake: { tag: volume_fixes_loss, fix: "Each use loses money, so more uses means a bigger loss, not a profit." } }
+      - { id: c, text: "She breaks even once enough people sign up", mistake: { tag: breakeven_assumed, fix: "A price below the cost per use never breaks even; only a new price or cost can change that." } }
+      - { id: d, text: "Sales are growing fast, so the cost to serve hardly matters", mistake: { tag: revenue_only, fix: "Revenue alone hides the loss; compare the price with the cost to serve." } }
+    answer: a
+    explanation: >
+      The price is below the cost to serve, so every use adds to the loss. A business like that
+      survives only while someone, such as an investor, pays the difference.
+    source: Price against cost to serve; see the income statement in the course Topic fs-income.
+  - id: fsa-q-run-rate
+    prompt: >
+      An AI start-up made $200 million last month. Its press release boasts "$2.4 billion in
+      annualised revenue": last month times twelve. What is that headline quietly betting on?
+    choices:
+      - { id: a, text: "That it already earned $2.4 billion this past year", mistake: { tag: run_rate_as_earned, fix: "An annualised figure is a recent month scaled up, not revenue already earned." } }
+      - { id: b, text: "That last month's pace holds for a whole year" }
+      - { id: c, text: "That sales will drift back to normal", mistake: { tag: run_rate_as_fall, fix: "Annualising assumes the pace holds, not that it fades." } }
+      - { id: d, text: "That the company makes a profit", mistake: { tag: revenue_as_profit, fix: "A run rate is about revenue only; it says nothing about profit." } }
+    answer: b
+    explanation: >
+      An annualised run rate is a recent period scaled up. If the company was smaller earlier in the
+      year, past 12 months of revenue is lower; if growth slows, next year's revenue is lower too. It
+      says nothing about profit.
+    source: Run-rate definition (latest period scaled to a year); see the course Topic fs-revenue-runrate.
+  - id: fsa-q-spread
+    prompt: >
+      Your bank offers you a government bond yielding 4.0% and a company's bond of the same length
+      yielding 9.0%. What do traders call the gap between the two, and what does a wide gap signal?
+    choices:
+      - { id: a, text: "The credit spread; a wide one means a higher risk of not being repaid" }
+      - { id: b, text: "The credit spread; a wide one means the company is safer than the government", mistake: { tag: spread_reversed, fix: "A wider spread means more risk of not being repaid, not less." } }
+      - { id: c, text: "The coupon; the company's bond is shorter", mistake: { tag: spread_as_coupon, fix: "The coupon is the interest a bond promises. The gap between two yields is the spread." } }
+      - { id: d, text: "The duration; the company's bond is nearly risk free", mistake: { tag: spread_as_duration, fix: "Duration measures sensitivity to rates. The gap between two yields is the credit spread." } }
+    answer: a
+    explanation: >
+      The gap between a company bond's yield and the government yield of the same maturity is the
+      credit spread, quoted in basis points. A wider spread is the extra yield investors demand for
+      the chance that the borrower does not repay, among other things.
+    source: Spread = yield minus the government yield of the same maturity; 100 basis points = 1 percentage point.
+  - id: fsa-q-price-shock
+    prompt: >
+      Riya's app charges $20 a month per user and pays an AI supplier $12 a month to serve each one.
+      Then the supplier emails: the charge is going up to $36. She cannot raise her own price. What
+      just happened to her business?
+    choices:
+      - { id: a, text: "Every user now costs more than they pay" }
+      - { id: b, text: "Not much: $20 is still above the old $12", mistake: { tag: used_old_cost, fix: "That is the old charge. At the new charge, each user costs more than $20." } }
+      - { id: c, text: "She earns more, since costs and sales both rise", mistake: { tag: revenue_also_rises, fix: "Only the cost rises; the price she collects stays at $20." } }
+      - { id: d, text: "She passes the rise on, so there is no risk", mistake: { tag: pass_on_assumed, fix: "Here she cannot change her price, so she has to absorb the rise." } }
+    answer: a
+    explanation: >
+      The new charge is above the $20 she collects, so each user turns from a profit into a loss.
+      Customers that survive on today's low supplier price depend on it staying low, which is the
+      dependence the word subprime points at; whether the price in fact rises is a separate
+      question.
+    source: Margin per unit when an input cost changes; see the course Topic fs-income.
+  - id: fsa-q-valuation-revenue
+    prompt: >
+      At dinner your uncle says an AI company with $4 billion of yearly sales is "worth $100
+      billion". What does a price that high, next to its sales, bet on?
+    choices:
+      - { id: a, text: "Much faster growth to come" }
+      - { id: b, text: "Nothing: it means the company is cheap", mistake: { tag: high_means_cheap, fix: "A value far above revenue is expensive, not cheap; it prices in growth to come." } }
+      - { id: c, text: "Sales falling sharply next year", mistake: { tag: high_means_fall, fix: "A high price against revenue reflects hoped-for growth, not an expected fall." } }
+      - { id: d, text: "A big profit it already makes", mistake: { tag: value_means_profit, fix: "Value against revenue says nothing about current profit." } }
+    answer: a
+    explanation: >
+      A value many times revenue is justified only if revenue and margins grow a long way from here;
+      it says nothing about current profit.
+    source: Value-to-sales multiple, value set against revenue; see the course Topic val-multiples.
+
+checks:
+  - id: fsa-quiz-subsidy-arithmetic
+    kind: quiz
+    questions: [fsa-q-price-cost, fsa-q-run-rate, fsa-q-spread, fsa-q-price-shock, fsa-q-valuation-revenue]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fsa-follow-argument
+    kind: conversation
+    prompt: >
+      Paste the part of Zitron's article you are studying, which is dated 16 September 2024, and
+      explain in your own words and in order each step of his argument: what he says is happening, the
+      figures he leans on for funding, losses and prices, why he thinks the prices do not cover the
+      cost, how he moves from that to a crisis, and what he borrows from the mortgage crisis. Say which
+      steps rest on reported figures and which are his own hypothesis. If a step is in a part you have
+      not pasted, say so.
+    passCriteria: >
+      The Learner names the steps in order, from the text they pasted: the opening claim that the boom
+      is not sustainable; the funding (OpenAI's round and bank credit, and what they depend on); the
+      economics (losses and computing costs set against revenue); the point that new, costlier models
+      have not produced a mass-market product people pay for; the chain from companies building on AI
+      at prices below cost to a shock if the price rises; and the spread of the damage to large
+      technology firms. They separate reported figures (losses, funding amounts, discounts) from his
+      hypothesis (that prices would have to rise a great deal) and from the borrowed word subprime,
+      and say what the analogy does and does not show. They notice at least one point where the piece
+      gives two figures for the same thing (such as revenue) or a figure with a single source. They
+      say plainly which passages they have not pasted and do not describe them. They do not claim to
+      know what happened to OpenAI's funding or prices after 16 September 2024.

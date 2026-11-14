@@ -1,0 +1,10 @@
+root = Widget("Can Amazon keep more than a bookshop?", [levers])
+$revenue = 39
+$margin = 10
+$salesToCapital = 3
+$risk = 12.84
+$failure = 0
+$moved = 0
+$mostLever = 0
+$mostBy = 0
+levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "margin_marks", marks: [{label: "Barnes & Noble", percent: 7.94, source: {title: "Damodaran, Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"}}, {label: "Specialty retail", percent: 10, source: {title: "Damodaran, Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"}}]})

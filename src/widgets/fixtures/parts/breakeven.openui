@@ -1,0 +1,6 @@
+root = Widget("At what rate does the cash option win?", [rate, find])
+$rate = 3
+rate = Slider("rate", "Discount rate: what safe money earns a year", 0, 10, 0.1, $rate, "percent")
+cash = Query("case_data", {dataset: "mega-millions-2018/cash-option"}, {rows: [], label: "", unit: "", source: "", sourceUrl: "", asOf: "", revealed: false})
+curve = Query("calculate_range", {calculator: "growing_annuity_present_value", inputs: {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: 3}, vary: "ratePercent", from: 0, to: 10, step: 0.1}, {rows: [], output: "", outputs: []})
+find = Breakeven("Find the rate where the winner flips", curve.rows, @First(cash.rows.value), $rate, 0.05, "mega-millions-2018/treasury-30-year", "30-year US bond yield that week", "%")

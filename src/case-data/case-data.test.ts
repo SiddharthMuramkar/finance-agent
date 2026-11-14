@@ -1,0 +1,272 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { parseCourseMap } from "@/course/map";
+import type { Progress } from "@/course/navigator";
+import { and, eq } from "drizzle-orm";
+import { caseDataPoints, learners, OWNER_LEARNER_ID } from "@/db/schema";
+import type { Db } from "@/db/types";
+import { testDb } from "@/test/pglite";
+import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
+import { caseDataResponse, loadCaseData, revealedCases } from "./case-data";
+import { importCaseData, type CaseDatasetInput } from "./import";
+
+const map = parseCourseMap([
+  {
+    name: "pv.yaml",
+    text: `
+id: pv
+title: PV
+stage: foundation
+path: 1
+cases:
+  - { id: jackpot, title: A jackpot, asOf: 2018-10-24, story: Then., reveal: Later. }
+concept: Idea.
+principle: Lesson.
+checks:
+  - { id: pv-check, kind: conversation, prompt: Explain., passCriteria: Explains. }
+`,
+  },
+]).map!;
+
+const progress = (revealShown: boolean): Progress =>
+  ({ currentTopicId: null, topics: { pv: { step: revealShown ? "reveal" : "story", passedChecks: [], revealShown, status: "in_progress" } } }) as Progress;
+
+const dataset = (id: string, points: [string, number][], extra: Partial<CaseDatasetInput> = {}): CaseDatasetInput => ({
+  caseId: "jackpot",
+  id,
+  label: `Label ${id}`,
+  unit: "USD",
+  source: "A source",
+  sourceUrl: "https://example.org/source",
+  checkedOn: "2026-11-02",
+  checkNote: "Compared with the source.",
+  points: points.map(([date, value]) => ({ date, value })),
+  ...extra,
+});
+
+describe("Case Data under the as-of rule", () => {
+  let db: Db;
+  beforeEach(async () => {
+    db = await testDb();
+    await importCaseData(db, [
+      dataset("cash-option", [["2018-10-23", 877_800_000]]),
+      dataset("yield", [
+        ["2018-10-23", 3.37],
+        ["2018-10-24", 3.33],
+        ["2018-10-25", 3.35],
+        ["2019-03-04", 3.05],
+      ], { unit: "percent" }),
+      dataset("winner-choice", [["2019-03-04", 877_784_124]]),
+    ]);
+  });
+
+  it("before the reveal, a request returns nothing dated after the as-of date, and no dataset that is all hindsight", async () => {
+    const data = (await loadCaseData(db, map, progress(false), "jackpot"))!;
+    expect(data.revealed).toBe(false);
+    expect(data.asOf).toBe("2018-10-24");
+    expect(data.datasets.map((d) => d.id)).toEqual(["cash-option", "yield"]);
+    const dates = data.datasets.flatMap((d) => d.points.map((p) => p.date));
+    expect(dates.every((d) => d <= "2018-10-24")).toBe(true);
+    expect(data.datasets[1].points).toEqual([
+      { date: "2018-10-23", value: 3.37 },
+      { date: "2018-10-24", value: 3.33 },
+    ]);
+  });
+
+  it("a Learner with no progress yet is before the reveal", async () => {
+    const data = (await loadCaseData(db, map, { currentTopicId: null, topics: {} } as unknown as Progress, "jackpot"))!;
+    expect(data.datasets.flatMap((d) => d.points).every((p) => p.date <= "2018-10-24")).toBe(true);
+  });
+
+  it("after the reveal has been shown, returns every dataset in full, each with its source", async () => {
+    const data = (await loadCaseData(db, map, progress(true), "jackpot"))!;
+    expect(data.revealed).toBe(true);
+    expect(data.datasets.map((d) => [d.id, d.points.length])).toEqual([
+      ["cash-option", 1],
+      ["winner-choice", 1],
+      ["yield", 4],
+    ]);
+    expect(data.datasets[1]).toMatchObject({ source: "A source", sourceUrl: "https://example.org/source", unit: "USD" });
+  });
+
+  it("returns undefined for a Case that is not on the Course Map", async () => {
+    expect(await loadCaseData(db, map, progress(true), "nope")).toBeUndefined();
+  });
+
+  it("re-importing a dataset replaces its points instead of adding to them", async () => {
+    await importCaseData(db, [dataset("cash-option", [["2018-10-22", 878_000_000]], { source: "Corrected source" })]);
+    const data = (await loadCaseData(db, map, progress(true), "jackpot"))!;
+    expect(data.datasets.find((d) => d.id === "cash-option")).toMatchObject({
+      source: "Corrected source",
+      points: [{ date: "2018-10-22", value: 878_000_000 }],
+    });
+  });
+
+  it("refuses a dataset without a source URL or with a repeated date", async () => {
+    await expect(importCaseData(db, [dataset("bad", [["2018-10-23", 1]], { sourceUrl: "" })])).rejects.toThrow();
+    await expect(importCaseData(db, [dataset("bad", [["2018-10-23", 1], ["2018-10-23", 2]])])).rejects.toThrow(/repeated/);
+  });
+});
+
+describe("a Case that reads another Case's Case Data (dataFrom)", () => {
+  // Spine Topics 8 and 9 reuse Amazon's datasets, imported once under val-dcf's Case, under their own Case ids and dates.
+  const twoTopics = parseCourseMap([
+    {
+      name: "pv.yaml",
+      text: `
+id: pv
+title: PV
+stage: foundation
+path: 1
+cases:
+  - { id: jackpot, title: A jackpot, data: [cash-option, yield, winner-choice], asOf: 2018-10-24, story: Then., reveal: Later. }
+concept: Idea.
+principle: Lesson.
+checks:
+  - { id: pv-check, kind: conversation, prompt: Explain., passCriteria: Explains. }
+`,
+    },
+    {
+      name: "later.yaml",
+      text: `
+id: later
+title: Later
+stage: foundation
+path: 2
+cases:
+  - { id: jackpot-later, title: The jackpot again, data: [yield], dataFrom: jackpot, asOf: 2018-10-25, story: Then., reveal: Later. }
+concept: Idea.
+principle: Lesson.
+checks:
+  - { id: later-check, kind: conversation, prompt: Explain., passCriteria: Explains. }
+`,
+    },
+  ]).map!;
+  const at = (revealShown: boolean): Progress =>
+    ({ currentTopicId: null, topics: { later: { step: revealShown ? "reveal" : "story", passedChecks: [], revealShown, status: "in_progress" } } }) as Progress;
+
+  it("reads only the datasets it lists, from the Case they were imported under, under its own as-of date and reveal", async () => {
+    const db = await testDb();
+    await importCaseData(db, [
+      dataset("cash-option", [["2018-10-23", 877_800_000]]),
+      dataset("yield", [["2018-10-24", 3.33], ["2018-10-25", 3.35], ["2019-03-04", 3.05]], { unit: "percent" }),
+    ]);
+    const before = (await loadCaseData(db, twoTopics, at(false), "jackpot-later"))!;
+    expect(before.caseId).toBe("jackpot-later");
+    expect(before.datasets.map((d) => [d.id, d.points.map((p) => p.date)])).toEqual([["yield", ["2018-10-24", "2018-10-25"]]]);
+    const after = (await loadCaseData(db, twoTopics, at(true), "jackpot-later"))!;
+    expect(after.datasets.map((d) => [d.id, d.points.length])).toEqual([["yield", 3]]);
+  });
+
+  it("fails the course check when it names an unknown Case or a dataset that Case does not list", () => {
+    const file = (extra: string) => ({
+      name: "later.yaml",
+      text: `
+id: later
+title: Later
+stage: foundation
+path: 2
+cases:
+  - { id: jackpot-later, title: Again, ${extra}, asOf: 2018-10-25, story: Then., reveal: Later. }
+concept: Idea.
+principle: Lesson.
+checks:
+  - { id: later-check, kind: conversation, prompt: Explain., passCriteria: Explains. }
+`,
+    });
+    const pv = { name: "pv.yaml", text: "id: pv\ntitle: PV\nstage: foundation\npath: 1\ncases:\n  - { id: jackpot, title: J, data: [yield], asOf: 2018-10-24, story: S., reveal: R. }\nconcept: I.\nprinciple: L.\nchecks:\n  - { id: pv-check, kind: conversation, prompt: E., passCriteria: E. }\n" };
+    expect(parseCourseMap([pv, file("data: [yield], dataFrom: nope")]).errors.join("\n")).toMatch(/reads its Case Data from "nope", which is not a Case on the Course Map/);
+    expect(parseCourseMap([pv, file("data: [cash-option], dataFrom: jackpot")]).errors.join("\n")).toMatch(/which does not list dataset "cash-option"/);
+    expect(parseCourseMap([pv, file("data: [yield], dataFrom: jackpot")]).errors).toEqual([]);
+  });
+});
+
+describe("the Case Data route", () => {
+  it("before the reveal returns nothing dated after the as-of date, and everything once the reveal is shown", async () => {
+    const db = await testDb();
+    await importCaseData(db, [dataset("yield", [["2018-10-23", 3.37], ["2018-11-01", 3.4]], { unit: "percent" }), dataset("winner-choice", [["2019-03-04", 877_784_124]])]);
+    const before = await caseDataResponse(db, map, "jackpot", OWNER_LEARNER_ID);
+    expect(before.status).toBe(200);
+    expect(before.headers.get("Cache-Control")).toBe("no-store");
+    const body = await before.json();
+    expect(body.revealed).toBe(false);
+    expect(body.datasets.flatMap((d: { points: { date: string }[] }) => d.points.map((p) => p.date))).toEqual(["2018-10-23"]);
+
+    // Walk the Learner to the reveal through Learner Memory, as the Tutor's tools do.
+    const now = new Date("2026-11-02T10:00:00Z");
+    await saveFinishedStep(db, map, "story", now, OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "concept", now, OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "your_turn", now, OWNER_LEARNER_ID);
+    await saveCheckResult(db, map, { checkId: "pv-check", passed: true }, now, OWNER_LEARNER_ID);
+    const after = await (await caseDataResponse(db, map, "jackpot", OWNER_LEARNER_ID)).json();
+    expect(after.revealed).toBe(true);
+    expect(after.datasets.map((d: { id: string }) => d.id)).toEqual(["winner-choice", "yield"]);
+  });
+
+  it("answers under the given Learner's progress: one Learner's reveal shows another nothing after the as-of date", async () => {
+    const db = await testDb();
+    await importCaseData(db, [dataset("yield", [["2018-10-23", 3.37], ["2018-11-01", 3.4]], { unit: "percent" }), dataset("winner-choice", [["2019-03-04", 877_784_124]])]);
+    const [second] = await db.insert(learners).values({ name: "second" }).returning();
+    const now = new Date("2026-11-02T10:00:00Z");
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, now, OWNER_LEARNER_ID);
+    await saveCheckResult(db, map, { checkId: "pv-check", passed: true }, now, OWNER_LEARNER_ID);
+
+    const owner = await (await caseDataResponse(db, map, "jackpot", OWNER_LEARNER_ID)).json();
+    const other = await (await caseDataResponse(db, map, "jackpot", second.id)).json();
+    expect(owner.revealed).toBe(true);
+    expect(other.revealed).toBe(false);
+    expect(other.datasets.map((d: { id: string }) => d.id)).toEqual(["yield"]);
+    expect(other.datasets[0].points.map((p: { date: string }) => p.date)).toEqual(["2018-10-23"]);
+  });
+
+  it("answers 404 for an unknown Case", async () => {
+    expect((await caseDataResponse(await testDb(), map, "nope", OWNER_LEARNER_ID)).status).toBe(404);
+  });
+});
+
+describe("the Cases a page counts as revealed", () => {
+  it("lists a Case once its Topic's reveal has been shown, and none before", () => {
+    expect(revealedCases(map, progress(false))).toEqual([]);
+    expect(revealedCases(map, progress(true))).toEqual(["jackpot"]);
+  });
+});
+
+describe("importing Case Data safely", () => {
+  const dates = (n: number) => Array.from({ length: n }, (_, i) => new Date(Date.UTC(2000, 0, 1 + i)).toISOString().slice(0, 10));
+  const stored = async (db: Db) =>
+    (await db.select().from(caseDataPoints).where(and(eq(caseDataPoints.caseId, "jackpot"), eq(caseDataPoints.datasetId, "big")))).sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
+
+  it("crosses a chunk, and a re-import with one changed value and one dropped date matches the new file", async () => {
+    const db = await testDb();
+    const all = dates(5000);
+    await importCaseData(db, [dataset("big", all.map((d, i) => [d, i] as [string, number]))]);
+    expect(await stored(db)).toHaveLength(5000);
+    const next = all.slice(1).map((d, i) => [d, i === 0 ? 999 : i + 1] as [string, number]);
+    await importCaseData(db, [dataset("big", next)]);
+    const rows = await stored(db);
+    expect(rows).toHaveLength(4999);
+    expect(rows[0]).toMatchObject({ date: all[1], value: 999 });
+    expect(rows.some((r) => r.date === all[0])).toBe(false);
+    expect(rows.at(-1)).toMatchObject({ date: all[4999], value: 4999 });
+  });
+
+  it("leaves the original points readable when the second chunk of a re-import throws", async () => {
+    const db = await testDb();
+    const all = dates(4500);
+    await importCaseData(db, [dataset("big", all.map((d, i) => [d, i] as [string, number]))]);
+    let calls = 0;
+    const failing = {
+      execute: (q: Parameters<Db["execute"]>[0]) => {
+        calls++;
+        // Call 1 is the description, 2 and 3 the first two chunks.
+        if (calls === 3) return Promise.reject(new Error("connection lost"));
+        return db.execute(q);
+      },
+    };
+    await expect(importCaseData(failing, [dataset("big", all.map((d, i) => [d, i + 1000] as [string, number]))])).rejects.toThrow("connection lost");
+    const rows = await stored(db);
+    expect(rows).toHaveLength(4500);
+    expect(rows[4000]).toMatchObject({ value: 4000 });
+  });
+});

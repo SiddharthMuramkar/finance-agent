@@ -1,0 +1,159 @@
+# Follow Topic: Zitron's "OpenAI Is A Systemic Risk To The Tech Industry" (14 Apr 2025), a dated piece taught as a Case.
+# The piece is pasted by the Learner (never stored in the Library or the repo); the Tutor works only from what it has seen.
+id: fol-systemic-risk
+title: "Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Zitron traces who depends on one company's cash, which shows how a firm's commitments and partners shape its chance of survival, and its value."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-sysrisk-zitron-2025
+    title: Zitron maps who depends on whom around one AI company
+    asOf: 2025-04-14
+    piece:
+      author: Ed Zitron
+      title: "OpenAI Is A Systemic Risk To The Tech Industry"
+      published: 2025-04-14
+      url: https://www.wheresyoured.at/openai-is-a-systemic-risk-to-the-tech-industry-2/
+      from: paste
+    story: >
+      On 14 April 2025 Ed Zitron, who writes the newsletter Where's Your Ed At and is a sharp critic
+      of the AI boom, published a long essay arguing that OpenAI, the maker of ChatGPT, had become a
+      single point of failure for a web of other companies. The facts he started from were public
+      at the time: OpenAI had announced a funding round of up to $40 billion at a valuation of $300
+      billion, led by SoftBank, but only the first $10 billion was to come at once and the rest was
+      due later, with part of it tied to OpenAI turning itself into a for-profit company by the end
+      of 2025. SoftBank was reported to be borrowing to pay, and S&P had warned about its finances.
+      OpenAI was also buying computing power from Microsoft, Oracle and CoreWeave, and was a partner
+      in a data-centre programme called Stargate. The essay follows the money from the round, to
+      what OpenAI spends, to the companies that supply it, and asks what would happen to them if
+      OpenAI could not pay. The Learner pastes the part of the essay being studied, and then
+      explains each step of its argument. The Tutor can talk only about what has been pasted.
+    reveal: >
+      The funding condition the essay stressed was met. SoftBank said it completed a further $22.5
+      billion on 26 December 2025, so its commitment to OpenAI was fully funded at $41 billion
+      including $11 billion from other investors, for a stake of about 11% (SoftBank press release,
+      31 December 2025). OpenAI completed its conversion into a for-profit public benefit
+      corporation on 28 October 2025, valued at $500 billion, with Microsoft holding about 27%
+      (CNBC). The first Stargate site, in Abilene, Texas, was running on Oracle's cloud by September
+      2025 (CNBC, 23 September 2025). One of the links in the chain did break: CoreWeave's $9
+      billion purchase of Core Scientific, a data-centre owner it relied on, was voted down by
+      Core Scientific's shareholders and ended on 30 October 2025 (Reuters). That was a failed
+      deal, not a failure to pay. None of this settles the essay's other claims, such as how
+      OpenAI's revenue compares with its commitments or what a failure would do to its suppliers;
+      those were not tested by these events. The exercise is to judge the claims one at a time:
+      which were facts when written, which were inferences, and which were predictions.
+
+concept: >
+  A company is systemic when other companies' health depends on its own: they sell to it, lend to
+  it, lease to it or hold its shares, so its trouble reaches them. To test such a claim, follow the
+  money in a chain. Start with what the company has actually received, which can be less than what
+  was announced when a round is paid in stages or has conditions. Set its cash coming in against
+  the commitments it has signed. Look at who funds it, and how they fund themselves. Then look at
+  how much of each supplier's revenue comes from this one customer, and what fixed promises the
+  suppliers have made in turn, such as leases and debt. A chain is only as strong as its weakest
+  condition, and a careful reader separates facts, inferences from them and forecasts.
+
+principle: >
+  Treat a headline funding number as an announcement until you know how much is paid, when and on
+  what conditions. Then follow each dependency one link at a time, and keep what the writer states
+  as fact apart from what they infer and what they predict.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Test whether a company is systemic by following the money one link at a time."
+  - "Treat a headline funding number as an announcement until you know its terms."
+  - "Keep a writer's facts apart from their inferences and forecasts."
+
+questions:
+  - id: fsr-q-cash-received
+    prompt: >
+      An AI start-up announces a $400 million funding round. The small print: $100 million arrives
+      now, $200 million by the end of the year, and the last $100 million only if it restructures by
+      then. Which headline gets it right on announcement day?
+    choices:
+      - { id: a, text: "\"Start-up banks $400 million\"", mistake: { tag: counted_announced, fix: "An announced round is the most it may get, not cash received." } }
+      - { id: b, text: "\"Start-up promised up to $400 million; first payment in\"" }
+      - { id: c, text: "\"Start-up has $300 million in hand, with no strings attached\"", mistake: { tag: counted_promises, fix: "A payment due later is still a promise, not cash in hand today." } }
+      - { id: d, text: "\"Start-up has half the round in the bank\"", mistake: { tag: counted_half, fix: "Half is not in the terms; only the first payment has arrived." } }
+    answer: b
+    explanation: >
+      Only the first payment has arrived. The $200 million due later is a promise, and the last
+      $100 million is a promise that depends on a condition. An announced round is the most the
+      company may receive, not the cash it holds.
+    source: The stated hypothetical terms (staged commitments versus cash received).
+  - id: fsr-q-customer-share
+    prompt: >
+      Your uncle wants to buy shares in a cloud-computing firm. Its filing says one customer brought
+      in 60% of last year's sales and a second customer 15%. What should worry him?
+    choices:
+      - { id: a, text: "The firm leans on two customers; losing one could hurt badly" }
+      - { id: b, text: "Nothing: a big customer proves the product is popular", mistake: { tag: popularity_not_risk, fix: "Reliance on one buyer is a risk; it shows concentration, not broad demand." } }
+      - { id: c, text: "Its sales are overstated, because customers are counted twice", mistake: { tag: double_count_assumed, fix: "Nothing here says revenue is counted twice; the worry is dependence on few buyers." } }
+      - { id: d, text: "It must be a small firm, since big firms have many customers", mistake: { tag: size_assumed, fix: "Size does not settle it; many large firms depend on a few customers." } }
+    answer: a
+    explanation: >
+      When a few customers supply most of a firm's revenue, the firm's results depend on them. US
+      accounting rules require a company to disclose any customer that makes up 10% or more of its
+      revenue so readers can see this.
+    source: >
+      FASB ASC 280-10-50-42 (disclosure of major customers at 10% or more of revenue); the firm and
+      its figures are hypothetical.
+  - id: fsr-q-lease-pv
+    prompt: >
+      A data-centre company signs a 15-year lease, paying $100 million at the end of each year. Its
+      own customers are young AI start-ups. Which sentence about the lease is right?
+    choices:
+      - { id: a, text: "A large commitment that is owed whether or not its customers pay" }
+      - { id: b, text: "It is not a debt, because the building is rented rather than bought", mistake: { tag: lease_not_debt, fix: "Lease payments are a promise to pay, so the operator owes them like a loan." } }
+      - { id: c, text: "It matters only in a year when a payment falls due", mistake: { tag: due_dates_only, fix: "The payments are promised for all 15 years, so the commitment exists from signing." } }
+      - { id: d, text: "It is cancelled if its customers stop paying", mistake: { tag: customers_cancel, fix: "The landlord's claim does not depend on whether the operator's customers pay." } }
+    answer: a
+    explanation: >
+      The payments are a promise for fifteen years, however large the operator's own sales are. The
+      commitment is still large, and it is owed whether or not the tenant's own customers pay.
+    source: Lease commitments as obligations; see the course Topic fs-leases-debt.
+  - id: fsr-q-spend-gap
+    prompt: >
+      An AI company brings in about $600 million a year at today's pace. It has signed contracts to
+      spend twice that on computing over the next twelve months. If sales stay flat, where must the
+      rest of the money come from?
+    choices:
+      - { id: a, text: "Cash in the bank, new funding or higher sales" }
+      - { id: b, text: "The contracts themselves: signing one brings cash in", mistake: { tag: contract_as_cash, fix: "Signing a commitment creates a bill, not cash." } }
+      - { id: c, text: "Nowhere: it can drop the contracts at no cost", mistake: { tag: commitments_optional, fix: "Signed commitments are promises to pay; walking away usually has a cost." } }
+      - { id: d, text: "Profit, because a company with sales is profitable", mistake: { tag: revenue_as_profit, fix: "Revenue is not profit; costs come out of revenue first." } }
+    answer: a
+    explanation: >
+      The commitments are far larger than a year of revenue at the current pace. That gap has to be
+      met from cash on hand, new funding or higher revenue, which is why where the cash comes from
+      matters.
+    source: The stated hypothetical figures (revenue against commitments).
+
+checks:
+  - id: fsr-quiz-follow-the-money
+    kind: quiz
+    questions: [fsr-q-cash-received, fsr-q-customer-share, fsr-q-lease-pv, fsr-q-spend-gap]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fsr-follow-argument
+    kind: conversation
+    prompt: >
+      You have pasted the part of Ed Zitron's essay on OpenAI that you want to study, as it stood on
+      14 April 2025. Explain, in your own words and in order, each step of his argument: where he
+      starts, what he says about the money OpenAI has raised and the money it owes, how he links its
+      funders and suppliers to it, and what he concludes. Then pick three claims from your passage
+      and say, for each, whether it is a stated fact, an inference or a prediction, and what
+      evidence would settle it.
+    passCriteria: >
+      The Learner explains the steps they pasted, in the essay's order, and says so where they did
+      not paste a part. They describe the opening claim that the announced round is not all cash
+      yet and depends on conditions, the comparison of OpenAI's revenue with its commitments, the
+      chain of funding through SoftBank, and the chain of suppliers (computing, data centres, cloud
+      providers) with how much each depends on OpenAI, ending in the conclusion that a failure at
+      OpenAI would spread to those who depend on it. For their three chosen claims they correctly
+      separate a stated fact from an inference and a prediction, and name the kind of evidence
+      that would test each one (a filing, a company announcement, later results). They do not claim
+      to know how events turned out, and they do not give a view that the stocks of the companies
+      named should be bought or sold.

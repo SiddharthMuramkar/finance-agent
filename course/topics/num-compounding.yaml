@@ -1,0 +1,798 @@
+# Growth and compounding: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Converted to the new teaching (spec #229, ticket #247): Skills, Concept cards, Quick tries and typed Checks.
+# Split one idea per Check (#248): each card teaching one Skill, as a content-only restructure.
+# Spec 2026-11-12 H1: the log-return Check (cp-quiz-log-return) and its Skill left; log returns are Go deeper material
+# (goDeeper below) with no Check. Valuation never uses them. Its stored results are kept and ignored by the Navigator.
+# Every sum is said in words; the two Formula Cards (compound-growth, cagr) work the numbers.
+id: num-compounding
+title: Growth and compounding
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A company's value rests on how big it can get, and growth on growth is how small sales today become large sales ten years from now."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: sensex-1992
+    title: The Sensex from base 100 (1979) to 1992
+    data: [sensex-close]
+    asOf: 1992-03-31
+    story: >
+      The Sensex is the index of 30 leading shares on the Bombay Stock Exchange. Its base value
+      was set at 100 in the base year 1978-79, and the BSE has published it since January 1986.
+      It first closed above 1,000 on 25 July 1990. It ended 1991 at 1,908.85, up 82% on the
+      year, after the government's liberalising reforms. On 29 February 1992, Union Budget day,
+      it rose 9.37% to 3,017.68, its first close above 3,000. In March 1992 it closed above
+      4,000 for the first time and ended the month at 4,285. As of 31 March 1992 the index has
+      risen more than fortyfold in 13 years. Nobody knows what comes next.
+    reveal: >
+      The Sensex peaked with a close of 4,467 in April 1992. On 28 April 1992, as the Harshad
+      Mehta securities scam came to light, it fell 12.77 per cent in a day, the largest one-day
+      percentage fall in its history outside the Covid crash. The index lost 5 per cent in April
+      and 23 per cent in May. By April 1993 it stood at about 1,980, down about 56 per cent from
+      the peak (Mint, a secondary source). A 56 per cent fall needs a rise of about 126 per cent to get back to
+      the old high, because the index must double and then some from a smaller base. The long run
+      of about 33 per cent a year was real, but the last stretch had been far faster than that and
+      far less stable.
+
+concept: >
+  Growth compounds: each year's growth is earned on the new total, not on the starting amount.
+  {{formula:compound-growth amount=1000 ratePercent=10 years=3}}
+  Turned around, the compound annual growth rate (CAGR) is the one steady yearly rate that gets
+  from a start to an end over some years.
+  {{formula:cagr start=1000 end=1331 years=3}}
+  The rule of 72 says money doubles in about 72 divided by the yearly rate in percent, in years.
+  Falls and rises are not symmetric: after a fall, the rise needed to get back is bigger than
+  the fall, because it works on a smaller amount.
+
+# Go deeper material (spec 2026-11-12 H1): the Tutor may use it when the Learner presses Go deeper; no Check tests it.
+goDeeper: >
+  Analysts sometimes score growth with log returns instead of percent gains. Their use is that
+  the log returns of back-to-back periods simply add up to the log return of the whole stretch,
+  with no compounding to untangle. For a rise, a log return comes out a little smaller than the
+  ordinary percent gain, and a price that ends where it began has a log return of zero.
+
+formulas: [compound-growth, cagr]
+
+principle: >
+  Never average growth by dividing the total gain by the years; use a compound rate.
+  And ask whether the pace was steady: a long-run compound rate can hide a short, much faster,
+  more fragile final stretch.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how growth earned on growth builds up over the years."
+  - "Find the one steady yearly rate between a start and an end value."
+  - "Spot a long-run average that hides a short, fragile final spurt."
+
+restructure: content-only
+exampleCurrency: INR
+runningExample:
+  text: "₹1,000 grows 10% a year: ₹1,100 after one year, ₹1,210 after two and ₹1,331 after three."
+  numbers: [1000, 10]
+  scene:
+    cast:
+      - { id: asha, emoji: woman, name: Asha }
+      - { id: bank, emoji: bank, name: The bank }
+    beats:
+      - { who: narrator, says: "Asha puts ₹1,000 in a deposit that grows 10 percent a year.", emoji: seedling }
+      - { who: bank, says: "After one year she has ₹1,100.", emoji: coin }
+      - { who: asha, says: "Next year the 10 percent grows on ₹1,100, not ₹1,000.", emoji: thinking-face }
+      - { who: narrator, says: "So year two adds ₹110, a bit more than year one did." }
+
+terms:
+  - term: index
+    means: One number that tracks a basket of shares, so you can follow the whole market.
+    pro: The Sensex index closed higher today.
+    example: "Like a class average: one number that sums up many students' marks."
+    emoji: bar-chart
+    inStory: In the story, the Sensex tracks 30 leading shares on the Bombay Stock Exchange.
+  - term: compounding
+    means: "Growth earned on growth: each year's gain joins the total, and the next year grows on that."
+    pro: Compounding does the heavy lifting over long horizons.
+    example: "Leave ₹1,000 in a deposit: the interest earns interest of its own next year."
+    emoji: seedling
+    inStory: In the story, the Sensex climbs more than fortyfold in 13 years.
+  - term: CAGR
+    means: The one steady yearly rate that would take a start value to an end value.
+    pro: The fund delivered a CAGR of twelve percent over five years.
+    example: "A ₹1,000 deposit that became ₹1,331 in three years grew a steady 10 percent a year."
+    emoji: chart-increasing
+    inStory: In the story, one steady rate can sum up 13 years of climbing.
+  - term: bull run
+    means: A long stretch of rising prices, when most investors feel confident.
+    pro: The market is on a bull run.
+    example: "Your ₹10,000 of shares rising for months while everyone cheers."
+    emoji: ox
+    inStory: In the story, the Sensex keeps climbing from 1991 into 1992, past 3,000 and then 4,000.
+  - term: rule of 72
+    means: A shortcut that gives about the years money takes to double at a yearly rate.
+    pro: At eight percent, the rule of 72 says about nine years.
+    example: "₹1,000 at 6 percent a year is roughly ₹2,000 in twelve years."
+    emoji: hourglass-not-done
+    inStory: In the story, a fast-rising index doubles again and again.
+
+scenes:
+  - id: sensex-opening
+    step: story
+    recipe: story_scene
+    title: A market on a long climb
+    inputs:
+      cast:
+        - { id: index, emoji: bar-chart, name: The Sensex, role: tracks 30 leading shares }
+        - { id: broker, emoji: man-office-worker, name: A broker }
+        - { id: investor, emoji: woman, name: An investor }
+      beats:
+        - { who: narrator, says: "The Sensex was set at 100 in 1978-79, its base year.", emoji: bar-chart }
+        - { who: narrator, says: "It ended 1991 at 1,908.85, then passed 3,000 on Budget day.", emoji: chart-increasing }
+        - { who: broker, says: "In March 1992 it closed above 4,000 for the first time.", emoji: megaphone }
+        - { who: investor, says: "Up more than fortyfold in 13 years! Surely it keeps going?", emoji: thinking-face }
+      caption: 31 March 1992, nobody knows what comes next
+      date: "1992-03-31"
+  - id: growth-on-growth
+    step: concept
+    check: cp-quiz-compounding
+    recipe: money_jar
+    title: Growth on growth
+    inputs:
+      label: Asha's deposit
+      start: 4
+      end: 8
+      unit: coin
+      each: each coin is ₹1,000
+      words: twice as full, and filling faster each year
+  - id: down-then-up
+    step: concept
+    check: cp-quiz-fall-recover
+    recipe: two_paths
+    title: A fall and a rise
+    inputs:
+      question: A share falls and rises by the same percent, in a different order. Where do they end?
+      left:
+        emoji: woman
+        name: Asha
+        choice: Fell first, then rose
+        outcome: [chart-decreasing, chart-increasing]
+        outcomeLine: She ended a little below where she began.
+      right:
+        emoji: man
+        name: Ravi
+        choice: Rose first, then fell
+        outcome: [chart-increasing, chart-decreasing]
+        outcomeLine: He also ended a little below where he began.
+  - id: banker-shortcut
+    step: concept
+    check: cp-quiz-rule-72
+    recipe: story_scene
+    title: The banker's shortcut
+    inputs:
+      cast:
+        - { id: asha, emoji: woman, name: Asha }
+        - { id: banker, emoji: man-office-worker, name: The banker }
+      beats:
+        - { who: asha, says: "How long until my money doubles?", emoji: thinking-face }
+        - { who: banker, says: "Use the rule of 72. Seventy-two over the yearly rate, in percent.", emoji: hourglass-not-done }
+        - { who: asha, says: "So a faster rate means a shorter wait.", emoji: light-bulb }
+        - { who: banker, says: "Yes. It is a shortcut, so the answer is only about right.", emoji: check-mark-button }
+  - id: steady-rate-myths
+    step: concept
+    check: cp-quiz-steady-rate
+    recipe: myth_or_fact
+    title: One steady rate
+    inputs:
+      cards:
+        - claim: The CAGR is the total gain split evenly across the years.
+          isFact: false
+          why: That ignores growth on growth. The CAGR compounds.
+          emoji: cross-mark
+        - claim: The CAGR is the one steady yearly rate joining a start and an end.
+          isFact: true
+          why: Grow the start at that rate each year and you reach the end.
+          emoji: check-mark-button
+  - id: was-the-pace-steady
+    step: concept
+    check: cp-sensex-rate
+    recipe: story_scene
+    title: Was the pace steady?
+    inputs:
+      cast:
+        - { id: investor, emoji: woman, name: An investor }
+        - { id: analyst, emoji: nerd-face, name: An analyst }
+      beats:
+        - { who: investor, says: "Thirteen years of climbing. That is one steady pace, surely.", emoji: chart-increasing }
+        - { who: analyst, says: "A long-run rate can hide very different years.", emoji: magnifying-glass-tilted-left }
+        - { who: analyst, says: "So look at each stretch's rate, not only the whole run.", emoji: light-bulb }
+  - id: sensex-front-page
+    step: reveal
+    recipe: headline
+    title: The day the market fell
+    inputs:
+      paper: The morning paper
+      date: "1992-04-28"
+      headline: Sensex drops 12.77 percent as Harshad Mehta scam comes to light
+      deck: An imagined front page. The biggest one-day percentage fall in its history, outside the Covid crash.
+      source: https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
+  - id: long-run-hides
+    step: principle
+    recipe: two_paths
+    title: Judge every stretch
+    inputs:
+      question: Two readers see the same long-run growth rate. Who is better prepared?
+      left:
+        emoji: woman
+        name: Reader one
+        choice: Trusted the long-run rate alone
+        outcome: [thinking-face, warning]
+        outcomeLine: She missed that the last stretch was far faster and less stable.
+      right:
+        emoji: man
+        name: Reader two
+        choice: Checked each stretch's rate too
+        outcome: [magnifying-glass-tilted-left, check-mark-button]
+        outcomeLine: He spotted an uneven, fragile pace.
+
+skills:
+  - id: compound-growth
+    rule: "Each year, the total grows by the rate, so next year's gain is on a bigger amount."
+    analogy: "Interest left in a fixed deposit earns interest of its own."
+  - id: fall-and-recover
+    rule: "A fall and then a rise of the same percent do not cancel, because the rise works on a smaller amount."
+  - id: rule-of-72
+    rule: "To find about how many years money takes to double, divide 72 by the yearly rate in percent."
+  - id: cagr
+    rule: "CAGR is the one steady yearly rate that turns the start into the end over those years."
+  - id: steady-pace
+    rule: "A long-run CAGR can hide an uneven path, so find the CAGR of each stretch and compare them."
+
+templates:
+  - id: grow-amount
+    skill: compound-growth
+    ask: "Asha's ₹{amount} deposit grows {rate}% a year for {years} years. Which line on her statement shows growth on growth?"
+    label: "{value}: each year grows on the new, bigger total"
+    params:
+      amount: { min: 2000, max: 9000, step: 1000 }
+      rate: { min: 2, max: 12, step: 2 }
+      years: { min: 2, max: 3, step: 1 }
+    derived: { r: "times(rate, 0.01)", f: "plus(1, r)", first: "times(amount, f)" }
+    answer: compound_value
+    unit: inr
+    decimals: 0
+    sign: magnitude
+    mistakes:
+      - tag: simple_growth
+        fix: "That adds the first year's gain every year. Each year grows on the new, bigger total."
+        label: "{value}: the first year's gain added again each year"
+    halfDone:
+      shows: "First step, done for you: after one year it is ₹{first}."
+      asks: compound_value
+    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126]
+  - id: double-time
+    skill: rule-of-72
+    ask: "Before Diwali, Priya puts her first bonus in a deposit that grows {rate}% a year, hoping to double it for her sister's wedding. Which wait should the bank clerk quote her by the rule of 72?"
+    label: "About {value}: seventy-two over the yearly rate"
+    params:
+      rate: { min: 2, max: 24, step: 1 }
+    answer: rule_of_72_years
+    unit: years
+    decimals: 1
+    sign: magnitude
+    mistakes:
+      - tag: simple_doubling
+        fix: "That is 100 divided by the rate, as if growth never compounded. Divide 72 by the rate instead."
+        label: "About {value}: a hundred over the yearly rate, as if nothing compounded"
+    # 8, 9, 11 and 18 (and the answers 9 and 8) keep a draw apart from the rule-of-72 question and Quick tries (lint L9).
+    avoid: [10, 6, 12, 5, 23, 28, 33, 56, 126, 8, 9, 11, 18]
+  - id: steady-rate
+    skill: cagr
+    ask: "At Sunday lunch, Kabir's uncle says his fund went from {start} to {end} in {years} years and urges Kabir to put his savings in. Which line on the fund's factsheet gives its CAGR, the one steady yearly rate?"
+    label: "About {value} a year: one steady rate, growing on itself each year"
+    params:
+      start: { min: 100, max: 500, step: 100 }
+      g: { min: 20, max: 90, step: 10 }
+      years: { min: 2, max: 2, step: 1 }
+    derived: { r: "times(g, 0.01)", f: "plus(1, r)", grew: "times(f, f)", end: "times(start, grew)" }
+    answer: cagr_percent
+    unit: percent
+    decimals: 0
+    sign: magnitude
+    mistakes:
+      - tag: averaged_gain
+        fix: "That divides the total gain by the years. Find the one rate that, grown twice, gives the whole rise."
+        label: "About {value} a year: the whole gain split evenly across the years"
+    halfDone:
+      shows: "First step, done for you: the end divided by the start is {grew}."
+      asks: cagr_percent
+    # 144 keeps a draw apart from the card's worked example (100 became 144).
+    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126, 144]
+
+questions:
+  - id: cp-q-doubling-rate
+    skill: cagr
+    prompt: >
+      March 1992. Asha's savings pot ended two years at exactly four times where it started, growing the same each year. Before she picks where to save next, she asks two friends to describe that growth. Dev says it doubled every year. Tara says it grew 150% a year, the 300% gain split across the two years. Whose description would an analyst back?
+    choices:
+      - { id: a, text: "Dev's: it doubled every year, and two doublings make four times" }
+      - id: b
+        text: "Tara's: the 300% gain split evenly, 150% a year"
+        mistake: { fix: "Splitting the gain evenly ignores growth on growth, so it overstates the steady yearly rate.", tag: averaged_gain }
+      - id: c
+        text: "Neither: the yearly rate is the whole 300% gain"
+        mistake: { fix: "300% is the whole two-year rise. A yearly rate describes just one year.", tag: mixed_up_terms }
+      - id: d
+        text: "Both: any fair split of the gain gives the same yearly rate"
+        mistake: { fix: "Only growth earned on growth gives the honest steady rate; an even split does not.", tag: averaged_gain }
+    answer: a
+    explanation: >
+      Doubling every year means each year's growth is earned on the new, bigger total, and two doublings make four times. That is a steady 100% a year. Tara's even split ignores growth on growth, the common mistake.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
+
+  - id: cp-q-down-up
+    skill: fall-and-recover
+    prompt: >
+      Bombay, January 1992. Rohit puts his scooter savings into one share. In February it falls by half; in March it rises by half. His sister says the scooter is still on, since he is back where he started. Which one is true?
+    choices:
+      - { id: a, text: "Rohit is short: he ends below where he started" }
+      - id: b
+        text: "His sister is right: he is back where he started"
+        mistake: { fix: "The rise works on the smaller price the fall left, so it wins back only part of what was lost.", tag: back_where_started }
+      - id: c
+        text: "Rohit is ahead: he ends above where he started"
+        mistake: { fix: "A fall and then an equal rise always ends lower, never higher.", tag: too_big }
+      - id: d
+        text: "It depends on the price Rohit paid"
+        mistake: { fix: "Whatever the start price, a rise of the same percent after a fall ends lower.", tag: depends_on_start }
+    answer: a
+    explanation: >
+      Say Rohit paid ₹200. Half off leaves ₹100, and half of ₹100 added back gives ₹150, a quarter short of the start. Gains and losses apply to different bases, so they do not cancel.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-rule-72
+    skill: rule-of-72
+    prompt: >
+      A banker says, "At 8% a year your money doubles in about nine years." Which shortcut is she using?
+    choices:
+      - { id: a, text: "The rule of 72: seventy-two over the yearly rate" }
+      - id: b
+        text: "The rule of 100: a hundred over the yearly rate"
+        mistake: { fix: "That ignores compounding and gives too long a wait. The rule uses 72.", tag: simple_doubling }
+      - id: c
+        text: "The rule of 8: eight years for every doubling"
+        mistake: { fix: "The wait depends on the yearly rate, so it changes whenever the rate does.", tag: mixed_up_terms }
+      - id: d
+        text: "The CAGR rule: the steady rate between two values"
+        mistake: { fix: "The CAGR starts from two values. The doubling shortcut starts from a rate.", tag: mixed_up_terms }
+    answer: a
+    explanation: >
+      72 divided by 8 is 9, so about 9 years. Worked out exactly, it is just over 9 years.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Investor.gov (US SEC), What is compound interest: https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/what-compound-interest
+
+  - id: cp-q-three-years
+    skill: compound-growth
+    prompt: >
+      Asha's ₹2,000 deposit grows 20% a year for two years. Her friend says the second year adds the same rupees as the first. Is she right?
+    choices:
+      - { id: a, text: "No: the second year's 20% is earned on a bigger total" }
+      - id: b
+        text: "Yes: 20% of ₹2,000 is the same both years"
+        mistake: { fix: "That adds the first year's gain every year. The second year's gain is on the new, bigger total.", tag: simple_growth }
+      - id: c
+        text: "No: the second year adds nothing, because growth stops after one year"
+        mistake: { fix: "A deposit that grows 20% a year keeps growing each year.", tag: stops_after_one }
+      - id: d
+        text: "Yes: interest is always the same amount each year"
+        mistake: { fix: "That is simple interest. Compound growth earns on the gains too.", tag: simple_growth }
+    answer: a
+    explanation: >
+      Year one: 20% of ₹2,000 is ₹400, giving ₹2,400. Year two: 20% of ₹2,400 is ₹480, giving ₹2,880. Simple growth adds ₹400 twice and says ₹2,800, which misses the growth on the first year's gain.
+    source: >
+      Investor.gov (US SEC), What is compound interest: https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/what-compound-interest
+
+  - id: cp-q-index-rate
+    skill: cagr
+    prompt: >
+      An index rises from 100 to 4,285 in 13 years. Which is the best summary of its yearly growth?
+    choices:
+      - { id: a, text: "About a third a year, as one steady compound rate" }
+      - id: b
+        text: "About 322% a year, the total gain split across the years"
+        mistake: { fix: "That splits the total gain across the years, which ignores growth on growth.", tag: averaged_gain }
+      - id: c
+        text: "About 4,285% a year"
+        mistake: { fix: "That is close to the whole rise over 13 years, not one year's rate.", tag: too_big }
+      - id: d
+        text: "The same amount added every year"
+        mistake: { fix: "That is simple growth; an index compounds on its gains.", tag: simple_growth }
+    answer: a
+    explanation: >
+      The best summary is the index's CAGR: the one steady yearly rate that, compounded year after year, carries it from its start to its end. Splitting the total gain across the years, or adding the same amount each year, ignores growth on growth.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Sensex values: BSE, SENSEX@40 white paper (January 2026), https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
+
+  - id: cp-q-fall-rise-20
+    skill: fall-and-recover
+    prompt: >
+      Bombay, February 1992. Asha borrowed ₹2,000 from her father's shop till to buy a share. It falls 20% one month and rises 20% the next. She promised him every rupee back. What should she tell him?
+    choices:
+      - { id: a, text: "It is a little short of the ₹2,000, so she must top it up" }
+      - id: b
+        text: "It is all there: the two moves cancelled out"
+        mistake: { fix: "The 20% rise works on the smaller price, so it wins back less than the 20% fall took.", tag: back_where_started }
+      - id: c
+        text: "It is a little more than the ₹2,000, so she can keep the extra"
+        mistake: { fix: "A fall and then an equal rise always ends lower, never higher.", tag: too_big }
+      - id: d
+        text: "It has doubled, so he gets twice his money back"
+        mistake: { fix: "Nothing doubles here. The rise is on a smaller amount than the fall was.", tag: too_big }
+    answer: a
+    explanation: >
+      20% of ₹2,000 is ₹400, so the fall leaves ₹1,600. 20% of ₹1,600 is ₹320, so the rise ends at ₹1,920, below the ₹2,000 she owes.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-rise-fall
+    skill: fall-and-recover
+    prompt: >
+      Bombay, December 1991. Vikram's college fees are due in March, so he plans to sell his share at the price he paid. It rises 25% after a good results day, then gives back 25% in January. Which one is true?
+    choices:
+      - { id: a, text: "It ends lower than he paid, so he is short for the fees" }
+      - id: b
+        text: "It ends back at the price he paid"
+        mistake: { fix: "The 25% fall works on the bigger, risen price, so it takes away more than the rise added.", tag: back_where_started }
+      - id: c
+        text: "It ends higher than it started"
+        mistake: { fix: "An equal rise and fall end lower in either order, never higher.", tag: too_big }
+      - id: d
+        text: "It depends on whether the rise or the fall comes first"
+        mistake: { fix: "Either order ends in the same place: a little below the start.", tag: depends_on_order }
+    answer: a
+    explanation: >
+      Start at 100. A 25% rise gives 125. A 25% fall on 125 takes away 31.25, leaving 93.75, which is 6.25% below the start. The order does not matter: a fall then an equal rise ends just as low.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-recover-half
+    skill: fall-and-recover
+    prompt: >
+      Bombay, March 1992. Neha's cousin needs his money for his wedding in June, but his share halved in price last year. He says he will sell once it rises by the same 50% it fell. Is he waiting for the right rise?
+    choices:
+      - { id: a, text: "No: from half the price, it must double to get even" }
+      - id: b
+        text: "Yes: a rise as big as the fall wins it all back"
+        mistake: { fix: "The rise works on the smaller, halved price, so an equal-sized rise falls short.", tag: back_where_started }
+      - id: c
+        text: "No: a smaller rise will do, since the price is lower now"
+        mistake: { fix: "A rise on a smaller price needs to be bigger, not smaller, to win back the same rupees.", tag: too_small }
+      - id: d
+        text: "No: a halved share can never win it back"
+        mistake: { fix: "A big enough rise wins it back. It just has to be bigger than the fall.", tag: mixed_up_terms }
+    answer: a
+    explanation: >
+      From half the price it needs the same rupees again. That is a rise of 100%, twice the size of the 50% fall.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-recover-quarter
+    skill: fall-and-recover
+    prompt: >
+      Madras, March 1992. Mr Iyer's ₹4,000 in a unit fund has fallen by a fifth, and his daughter's college fees are due in July. His broker says the fund now needs to rise a bit more than a fifth to get him even. Is the broker right?
+    choices:
+      - { id: a, text: "Yes: the rise works on less money, so it must be a bit bigger" }
+      - id: b
+        text: "No: a rise of exactly a fifth wins it back"
+        mistake: { fix: "The rise works on the smaller amount, so a fifth of it is less than the fifth that was lost.", tag: back_where_started }
+      - id: c
+        text: "No: a rise a bit smaller than a fifth will do"
+        mistake: { fix: "A rise on a smaller amount must be bigger, not smaller, to win the same rupees back.", tag: too_small }
+      - id: d
+        text: "No: he needs double a fifth, no matter what"
+        mistake: { fix: "Two fifths would go well past the start. The rise only needs to be a little bigger.", tag: too_big }
+    answer: a
+    explanation: >
+      After a 20% fall from ₹4,000 it is ₹3,200. It needs ₹800 more, which is a quarter of ₹3,200, so a 25% rise, bigger than the 20% fall.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-fall-truth
+    skill: fall-and-recover
+    prompt: >
+      Bombay, 31 March 1992. This month the Sensex closed above 4,000 for the first time. Kabir has his first salary to invest, and a friend tells him a share that falls by some percent and then rises by the same percent always ends up even, so dips cost nothing. Which one is true?
+    choices:
+      - { id: a, text: "It always ends below where it started" }
+      - id: b
+        text: "It always ends back where it started"
+        mistake: { fix: "The rise works on the smaller amount the fall left, so it wins back less than was lost.", tag: back_where_started }
+      - id: c
+        text: "It ends above the start when the percent is large"
+        mistake: { fix: "It ends below for every percent. The bigger the percent, the further below it ends.", tag: too_big }
+      - id: d
+        text: "It depends on whether the fall or the rise comes first"
+        mistake: { fix: "Either order ends at the same place: down 20% then up 20%, or up then down, both end 4% lower.", tag: depends_on_order }
+    answer: a
+    explanation: >
+      The rise works on the smaller amount the fall left, so the same percent wins back less than was lost. Down 20% then up 20% ends at 96% of the start, and so does up 20% then down 20%.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-lingo-compounding
+    skill: compound-growth
+    prompt: >
+      What do analysts call growth that is earned on earlier growth, so each year's gain joins the total?
+    choices:
+      - { id: a, text: "Compounding" }
+      - id: b
+        text: "Simple interest"
+        mistake: { fix: "Simple interest pays on the starting amount only. It does not earn on earlier gains.", tag: simple_growth }
+      - id: c
+        text: "A base year"
+        mistake: { fix: "A base year is an index's starting point, not a kind of growth.", tag: mixed_up_terms }
+      - id: d
+        text: "A bull run"
+        mistake: { fix: "A bull run is a stretch of rising prices. It does not say how the growth builds.", tag: mixed_up_terms }
+    answer: a
+    explanation: >
+      Compounding means each year's gain joins the total, and the next year grows on that bigger total.
+    source: >
+      Investor.gov (US SEC), What is compound interest: https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/what-compound-interest
+
+  - id: cp-q-lingo-cagr
+    skill: cagr
+    prompt: >
+      What do analysts call the one steady yearly rate that joins a start value and an end value?
+    choices:
+      - { id: a, text: "The CAGR, or compound annual growth rate" }
+      - id: b
+        text: "The base rate"
+        mistake: { fix: "A base rate is a central bank's lending rate, not a growth rate between two values.", tag: mixed_up_terms }
+      - id: c
+        text: "The rule of 72"
+        mistake: { fix: "The rule of 72 is a shortcut for doubling time. It does not join two values.", tag: mixed_up_terms }
+      - id: d
+        text: "The total gain split evenly over the years"
+        mistake: { fix: "That ignores growth on growth. The CAGR is the one rate that, grown each year, joins the start and the end.", tag: averaged_gain }
+    answer: a
+    explanation: >
+      The CAGR is the steady rate that, grown year after year, turns the start into the end.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
+
+checks:
+  # One idea per Check (spec #229, "The Concept step"; part of #248): each card teaches one Skill and its Check tests it.
+  # The three old Check ids keep their place, so this is a content-only restructure; the three new Checks sit between.
+  - id: cp-quiz-compounding
+    kind: quiz
+    questions: [cp-q-three-years, cp-q-lingo-compounding]
+    templates: [grow-amount]
+    # The fixed question and two typed draws a try.
+    perAttempt: 3
+    passRule:
+      correct: 2
+    card:
+      title: "Growth on growth"
+      lines:
+        - "₹1,000 grows 10% a year. After one year it is ₹1,100."
+        - "Year two adds 10% of ₹1,100, which is ₹110: ₹1,210."
+        - "Year three adds 10% of ₹1,210, which is ₹121: ₹1,331."
+        - "Each year's gain is bigger, because it is earned on a bigger total."
+      writeDown: "Compounding: each year grows on the new total, not on the start."
+      skills: [compound-growth]
+      widget:
+        recipe: formula
+        title: "What ₹1,000 grows to at 10% a year"
+        inputs:
+          formula: compound-growth
+          slider: { symbol: years, label: "Years it grows", min: 1, max: 30, step: 1, start: 3 }
+          held: { amount: 1000, ratePercent: 10 }
+    quickTries:
+      - id: cp-try-grow-half
+        skill: compound-growth
+        ask: "Asha's ₹2,000 deposit grows 10% a year. Which describes its second year?"
+        kind: choice
+        answer: a
+        choices:
+          - { id: a, text: "It adds 10% of ₹2,200, a bigger gain than year one" }
+          - { id: b, text: "It adds 10% of ₹2,000 again, the same as year one", mistake: { tag: simple_growth, fix: "The second year's 10% is on ₹2,200, which is bigger than ₹2,000." } }
+          - { id: c, text: "It adds nothing, because growth happens only once", mistake: { tag: stops_after_one, fix: "A deposit that grows 10% a year keeps growing every year." } }
+        halfDone: "First step, done for you: after one year, ₹2,000 has grown by ₹200 to ₹2,200."
+      - { template: grow-amount, halfDone: true }
+      - { template: grow-amount }
+
+  - id: cp-quiz-fall-recover
+    kind: quiz
+    questions: [cp-q-down-up, cp-q-fall-rise-20, cp-q-rise-fall, cp-q-recover-half, cp-q-recover-quarter, cp-q-fall-truth]
+    # Two a try from six, so three tries never repeat a question.
+    perAttempt: 2
+    passRule:
+      correct: 2
+    card:
+      title: "A fall, then a rise"
+      lines:
+        - "A percent is always a share of the amount you have at that moment."
+        - "₹1,000 falls 20%: it loses ₹200 and is now ₹800."
+        - "A 20% rise on ₹800 adds only ₹160, so it ends at ₹960."
+        - "To get back to ₹1,000 it needs ₹200 more. ₹200 divided by ₹800 is 0.25, so a 25% rise."
+      writeDown: "A fall and an equal rise do not cancel: the rise works on a smaller amount."
+      skills: [fall-and-recover]
+      widget:
+        recipe: formula
+        title: "₹800 rising for one year"
+        inputs:
+          formula: compound-growth
+          slider: { symbol: ratePercent, label: "The rise after the fall", min: 0, max: 50, step: 1, start: 20 }
+          held: { amount: 800, years: 1 }
+    quickTries:
+      - id: cp-try-fall-half
+        skill: fall-and-recover
+        ask: "₹500 falls 40%, then rises 40%. Where does it end?"
+        kind: choice
+        answer: a
+        choices:
+          - { id: a, text: "Short of ₹500, because the rise works on the smaller ₹300" }
+          - { id: b, text: "Back at ₹500, because equal moves cancel", mistake: { tag: back_where_started, fix: "The rise is 40% of ₹300, which is only ₹120, so it ends below the start." } }
+          - { id: c, text: "Above ₹500, because a rise beats a fall", mistake: { tag: too_big, fix: "An equal rise after a fall never ends above the start." } }
+        halfDone: "First step, done for you: ₹500 down 40% is ₹300."
+      - id: cp-try-fall-truth
+        skill: fall-and-recover
+        ask: "A share falls 10% one day and rises 10% the next. True or false: it is back where it started."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "The 10% rise is on a smaller price, so it ends 1% below the start.", tag: back_where_started }
+      - id: cp-try-recover
+        skill: fall-and-recover
+        ask: "A price halves, from ₹400 to ₹200. The rise that wins it back is:"
+        kind: choice
+        answer: a
+        choices:
+          - { id: a, text: "Bigger than the fall: it must double the price" }
+          - { id: b, text: "The same size as the fall", mistake: { tag: back_where_started, fix: "The rise works on ₹200, and ₹200 more on ₹200 is a 100% rise, twice the fall." } }
+          - { id: c, text: "Smaller than the fall", mistake: { tag: too_small, fix: "A rise on a smaller price must be bigger to win the same rupees back." } }
+
+  - id: cp-quiz-rule-72
+    kind: quiz
+    questions: [cp-q-rule-72]
+    templates: [double-time]
+    perAttempt: 3
+    passRule:
+      correct: 2
+    card:
+      title: "Time to double"
+      lines:
+        - "The rule of 72 is a shortcut for how long money takes to double."
+        - "Divide 72 by the yearly rate in percent. The answer is about the number of years."
+        - "At 6% a year, 72 divided by 6 is 12, so about 12 years."
+        - "Check it: ₹1,000 at 6% for 12 years grows to about ₹2,012, close to double."
+      writeDown: "Years to double: about 72 divided by the yearly rate."
+      skills: [rule-of-72]
+      widget:
+        recipe: formula
+        title: "What ₹1,000 grows to at 6% a year"
+        inputs:
+          formula: compound-growth
+          slider: { symbol: years, label: "Years it grows", min: 1, max: 30, step: 1, start: 12 }
+          held: { amount: 1000, ratePercent: 6 }
+    quickTries:
+      - id: cp-try-72-half
+        skill: rule-of-72
+        ask: "Money grows 9% a year. Seventy-two over 9 is 8, and a hundred over 9 is about 11. By the rule of 72, it doubles in about:"
+        kind: choice
+        answer: a
+        choices:
+          - { id: a, text: "8 years" }
+          - { id: b, text: "11 years", mistake: { tag: simple_doubling, fix: "That is a hundred over the rate. The rule uses 72, and 72 over 9 is 8." } }
+          - { id: c, text: "648 years", mistake: { tag: mixed_up_terms, fix: "That multiplies 72 by the rate instead of dividing. A faster rate should mean a shorter wait." } }
+        halfDone: "First step, done for you: the rule says seventy-two over the yearly rate."
+      - id: cp-try-72-truth
+        skill: rule-of-72
+        ask: "True or false: by the rule of 72, faster yearly growth means a shorter wait to double."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "The rule divides 72 by the rate, so a bigger rate gives fewer years.", tag: simple_doubling }
+      - { template: double-time }
+
+  - id: cp-quiz-steady-rate
+    kind: quiz
+    questions: [cp-q-doubling-rate, cp-q-lingo-cagr]
+    templates: [steady-rate]
+    perAttempt: 3
+    passRule:
+      correct: 2
+    card:
+      title: "One steady rate"
+      lines:
+        - "CAGR, the compound annual growth rate, is the one steady yearly rate that gets from a start to an end."
+        - "₹1,000 became ₹1,331 in 3 years. Growing 10% a year does exactly that, so the CAGR is 10%."
+        - "Over 2 years, the CAGR is the one rate that, grown on itself twice, gives the whole rise."
+        - "100 became 144. 144 divided by 100 is 1.44, and 1.2 times 1.2 is 1.44. 1.2 is 1 plus 20%, so the CAGR is 20% a year."
+      writeDown: "CAGR is the one steady rate that joins the start and the end."
+      skills: [cagr]
+      widget:
+        recipe: formula
+        title: "The steady rate from 1,000 to 1,331"
+        inputs:
+          formula: cagr
+          slider: { symbol: years, label: "Years it took", min: 1, max: 10, step: 1, start: 3 }
+          held: { start: 1000, end: 1331 }
+    quickTries:
+      - id: cp-try-cagr-half
+        skill: cagr
+        ask: "An index goes from 100 to 121 in 2 years. A friend says its CAGR is 10.5%, the 21% gain split in two. Is she right?"
+        kind: choice
+        answer: a
+        choices:
+          - { id: a, text: "No: growing 10% a year, twice, already gives 21%" }
+          - { id: b, text: "Yes: the gain split across the years is the CAGR", mistake: { tag: averaged_gain, fix: "That ignores growth on growth. Growing 10% twice already gives 21%." } }
+          - { id: c, text: "No: the CAGR is the whole 21%", mistake: { tag: mixed_up_terms, fix: "The CAGR is one year's steady rate, not the whole rise." } }
+        halfDone: "First step, done for you: 121 divided by 100 is 1.21, and 1.1 times 1.1 is 1.21."
+      - { template: steady-rate, halfDone: true }
+      - { template: steady-rate }
+
+  - id: cp-sensex-rate
+    kind: conversation
+    skills: [steady-pace, cagr]
+    prompt: >
+      Bombay, 31 March 1992. Rohan wants to put his savings into shares. His friend points at the
+      Sensex, now 4,285 from its base of 100, splits the gain evenly over the 13 years, and says it
+      rose about 322% a year at one steady pace. Rohan recalls the index took about 11 years to
+      first close above 1,000, in July 1990, then more than quadrupled in under two years. In your
+      own words, what would you tell Rohan: is the friend's rate honest, and was the climb steady?
+    passCriteria: >
+      The Learner explains, in their own words, that growth compounds, so the total gain cannot be
+      split evenly over the years, and that the honest yearly rate is one steady compound rate (a
+      CAGR), far lower than the friend's 322%. They say the climb was not steady: about 11 years to
+      reach 1,000, then more than four times that in under two years, so the last stretch was far
+      faster than the early years. The Learner does not need to give or work out any number; the
+      idea is what passes.
+    card:
+      title: "Is the pace steady?"
+      lines:
+        - "A long-run CAGR can hide years that grew at very different speeds."
+        - "A made-up example: 100 became 600 in 10 years, about 20% a year."
+        - "The last 2 years went from 300 to 600, which is 2 times. About 1.41 times 1.41 is 2, so about 41% a year."
+        - "When the last stretch is far faster than the whole run, the pace was not steady."
+      writeDown: "Find the CAGR of each stretch, not only of the whole run."
+      skills: [steady-pace]
+      widget:
+        recipe: formula
+        title: "The steady rate of the last stretch"
+        inputs:
+          formula: cagr
+          slider: { symbol: years, label: "Years the stretch took", min: 1, max: 20, step: 1, start: 2 }
+          held: { start: 300, end: 600 }
+    quickTries:
+      - id: cp-try-pace-half
+        skill: steady-pace
+        ask: "An index grew about 3 times over its first 10 years. Then it more than tripled in just the next 2 years. Next to that long-run pace, those 2 years grew:"
+        kind: choice
+        answer: a
+        choices:
+          - { id: a, text: "Far faster than the long-run rate" }
+          - { id: b, text: "About the same as the long-run rate", mistake: { tag: averaged_gain, fix: "A bigger multiple in fewer years is a faster pace: more than tripling in 2 years beats tripling in 10." } }
+          - { id: c, text: "More slowly than the long-run rate", mistake: { tag: too_small, fix: "It more than tripled in 2 years, after taking 10 years to triple. That is much quicker." } }
+        halfDone: "First step, done for you: the last 2 years grew at least as much as the first 10, in far less time."
+      - id: cp-try-pace-truth
+        skill: steady-pace
+        ask: "An index grew about 25% a year over 10 years, but 73% a year in its last 2. True or false: its pace was steady."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "The last stretch grew far faster than the long-run rate, so the pace was uneven." }
+      - id: cp-try-pace-stretch
+        skill: steady-pace
+        ask: "A share doubled in its first 4 years, then more than doubled again in just the next 2 years. Which stretch grew faster each year?"
+        kind: choice
+        answer: a
+        choices:
+          - { id: a, text: "The last 2 years" }
+          - { id: b, text: "The first 4 years", mistake: { tag: averaged_gain, fix: "The first stretch doubled in 4 years. The last stretch more than doubled in only 2 years, which is faster." } }
+          - { id: c, text: "Both grew at the same speed", mistake: { tag: mixed_up_terms, fix: "The last stretch grew a bigger multiple in half the time." } }
+        halfDone: "First step, done for you: the last stretch grew a bigger multiple than the first, in half as many years."
+      - id: cp-try-pace-long-run
+        skill: steady-pace
+        ask: "True or false: a 10-year CAGR of 12% means every one of those years grew 12%."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "A CAGR is the one steady rate that joins the start and the end; the real years can differ a lot." }

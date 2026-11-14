@@ -1,0 +1,154 @@
+import { describe, expect, it, vi } from "vitest";
+import { eq } from "drizzle-orm";
+import { OWNER_LEARNER_ID, sessions as sessionsTable } from "@/db/schema";
+import type { Db } from "@/db/types";
+import { saveFinishedStep } from "@/learner/memory";
+import { testDb } from "@/test/pglite";
+import { scriptedClient } from "@/test/scripted-client";
+import { WIDGET_SHOWN } from "@/widgets/shown-widget";
+import { answerQuickTry, enterStepItems } from "./practice";
+import { plainWrongMap, PLAIN_WRONG } from "@/test/plain-wrong-map";
+import { CONCEPT_CARD, QUICK_TRY, STEP_DIVIDER, type QuickTryData } from "./session-item-kinds";
+import { loadSessionItems } from "./session-items";
+import { NO_QUICK_TRY_FOLLOW_UP, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
+import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
+
+/**
+ * Seam 1, Tutor Turn, in a converted Topic (spec #229, ticket #243): code shows the Concept card, its Widget and the
+ * Quick tries; the Tutor hears the card's text and the marked tries, and never writes practice of its own.
+ */
+
+const map = plainWrongMap();
+const me = OWNER_LEARNER_ID;
+
+async function turn(db: Db, input: TurnInput, text = "Okay.") {
+  const { client, requests } = scriptedClient([{ content: [{ type: "text", text }] }]);
+  const events: TurnEvent[] = [];
+  for await (const e of runTutorTurn({ db, client, map, learnerId: me }, input)) events.push(e);
+  return { events, requests, sent: requests.map((r) => JSON.stringify(r.messages)).join("\n") };
+}
+
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const itemKinds = (events: TurnEvent[]) => withoutChoices(events).flatMap((e) => (e.type === "item" ? [e.item.kind] : []));
+
+describe("a converted Concept step", () => {
+  it("Next shows the card and its Widget with no model call, and the Tutor is told to add one sentence and one ask", async () => {
+    const db = await testDb();
+    await turn(db, "Hi", "In 1994 the Fed held its rate at 3%.");
+    const { events, sent } = await turn(db, { next: "concept" }, "Points and basis points say one move two ways. Which is bigger?");
+    expect(itemKinds(events)).toEqual([STEP_DIVIDER, CONCEPT_CARD, WIDGET_SHOWN]);
+    expect(sent).toContain("Concept card on screen (code showed it; never write your own version): \\\"One move, two ways\\\": A savings rate goes from 4% to 5%.");
+    expect(sent).toContain("Add one sentence and one ask");
+    expect(sent).not.toContain("teach it now");
+    expect(sent).not.toContain("Concept: Points, basis points and percent change.");
+  });
+});
+
+describe("a converted Your turn", () => {
+  async function atYourTurn(db: Db) {
+    await turn(db, "Hi", "In 1994 the Fed held its rate at 3%.");
+    await saveFinishedStep(db, map, "story", new Date(), me);
+    await saveFinishedStep(db, map, "concept", new Date(), me);
+    const { events } = await turn(db, "Ready.");
+    const shown = events.flatMap((e) => (e.type === "item" && e.item.kind === QUICK_TRY ? [e.item.data as QuickTryData] : []));
+    return shown[0];
+  }
+
+  it("shows the first Quick try at the turn's start, and tells the Tutor it writes no practice and cannot finish the step", async () => {
+    const db = await testDb();
+    await turn(db, "Hi", "In 1994 the Fed held its rate at 3%.");
+    await saveFinishedStep(db, map, "story", new Date(), me);
+    await saveFinishedStep(db, map, "concept", new Date(), me);
+    const { events, sent } = await turn(db, "Ready.");
+    expect(itemKinds(events)).toEqual([QUICK_TRY]);
+    expect(sent).toContain("Write no practice questions of your own");
+    // Round 9 (DA-1), narrowed in round 10 and matched here in round 12 (premerge F3): a try code posts after the reply is
+    // its one ask; a try already on screen is the ask only when the reply names it.
+    // A7: the try on screen, or the one code posts, is the ask; the reply never describes it.
+    expect(sent).toContain("A Quick try open on screen, or the one code posts after your reply, is the reply's one ask: write no ask of your own, and never describe the try or repeat what it asks.");
+    expect(sent).not.toContain("A try already on the Learner's screen is the ask only when your reply names it and what it asks");
+    expect(sent).not.toContain("The Quick try on screen or under your reply is the ask");
+    expect(sent).toContain("Do not call finish_teaching_step for your_turn");
+  });
+
+  it("passes the results marked since the last reply into the next turn", async () => {
+    const db = await testDb();
+    const first = await atYourTurn(db);
+    await answerQuickTry(db, map, me, first.key, PLAIN_WRONG, new Date());
+    const { sent } = await turn(db, "Hmm.");
+    expect(sent).toContain("Quick try results since your last reply");
+    expect(sent).toContain('The Learner gave \\"Up 1\\": not right; the answer is');
+    // Told once: the turn after has nothing new.
+    expect((await turn(db, "Okay.")).sent.match(/Quick try results since your last reply/g)).toHaveLength(1);
+  });
+
+  it("follows a wrong answer with a short code-started turn that names the slip, then posts a fresh try", async () => {
+    const db = await testDb();
+    const first = await atYourTurn(db);
+    await answerQuickTry(db, map, me, first.key, PLAIN_WRONG, new Date());
+    const { events, sent } = await turn(db, { quickTryFollowUp: true }, "You typed the rates, not the move. Take the old rate from the new one first.");
+    expect(sent).toContain("Quick try follow-up by code:");
+    expect(sent).toContain("Name the slip in one sentence");
+    // The fresh try comes after the reply's text.
+    const lastText = events.findLastIndex((e) => e.type === "text");
+    const tryAt = events.findIndex((e) => e.type === "item" && e.item.kind === QUICK_TRY);
+    expect(tryAt).toBeGreaterThan(lastText);
+    expect((await turn(db, { quickTryFollowUp: true })).events).toEqual([{ type: "not_allowed", message: NO_QUICK_TRY_FOLLOW_UP }]);
+  });
+
+  it("follows up a Quick try answered in a Claude-era Session (a tab from before the switch) in the Topic's new Session", async () => {
+    const db = await testDb();
+    const first = await atYourTurn(db);
+    const [old] = await db.select().from(sessionsTable).where(eq(sessionsTable.learnerId, me));
+    await db.update(sessionsTable).set({ model: "claude-opus-5-5" }).where(eq(sessionsTable.id, old.id));
+    await answerQuickTry(db, map, me, first.key, PLAIN_WRONG, new Date());
+
+    const { events, sent, requests } = await turn(db, { quickTryFollowUp: true }, "You typed the rates, not the move.");
+    expect(events.some((e) => e.type === "not_allowed")).toBe(false);
+    expect(sent).toContain("Quick try follow-up by code:");
+    expect(sent).toContain("Name the slip in one sentence");
+    expect(requests[0].model).toBe("gpt-6.1-sol");
+    const all = await db.select().from(sessionsTable).where(eq(sessionsTable.learnerId, me)).orderBy(sessionsTable.id);
+    expect(all.map((s) => ({ older: s.older, model: s.model }))).toEqual([
+      { older: true, model: "claude-opus-5-5" },
+      { older: false, model: "gpt-6.1-sol" },
+    ]);
+  });
+
+  // Round 10 (critics BP-2, MP-1): the open try's words and choices reach the Tutor while it waits on screen, never its
+  // answer; its answer only when the Learner asks for it, to say in words.
+  it("tells the next turn the open try's words and choices, and its answer only when the Learner asks for it", async () => {
+    const db = await testDb();
+    const first = await atYourTurn(db);
+    const { sent } = await turn(db, "why does this matter");
+    expect(sent).toContain("Quick try on the Learner's screen, not answered yet");
+    expect(sent).toContain(first.prompt);
+    for (const c of first.choices ?? []) expect(sent).toContain(c.text);
+    expect(sent).not.toContain("The Learner asked for its answer");
+    const asked = (await turn(db, "just tell me the answer pls")).sent;
+    expect(asked).toContain('The Learner asked for its answer: \\"Up 1 point\\".');
+  });
+
+  it("tells the turn that posts the first try that code posts it with this reply", async () => {
+    const db = await testDb();
+    await turn(db, "Hi", "In 1994 the Fed held its rate at 3%.");
+    await saveFinishedStep(db, map, "story", new Date(), me);
+    await saveFinishedStep(db, map, "concept", new Date(), me);
+    const { sent } = await turn(db, "Ready.");
+    expect(sent).toContain("Code posts the next Quick try with this reply: it is the reply's one ask, so write no ask of your own.");
+  });
+
+  it("keeps the same items and the same open try on a reload", async () => {
+    const db = await testDb();
+    const first = await atYourTurn(db);
+    const [{ sessionId }] = await db.query.sessions.findMany({ columns: { id: true } }).then((rows) => rows.map((r) => ({ sessionId: r.id })));
+    const before = await loadSessionItems(db, sessionId, me);
+    expect(await enterStepItems(db, map, me, sessionId, new Date())).toEqual([]);
+    expect(await loadSessionItems(db, sessionId, me)).toEqual(before);
+    expect(before.filter((i) => i.kind === QUICK_TRY).map((i) => i.data)).toEqual([first]);
+  });
+});

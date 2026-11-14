@@ -1,0 +1,298 @@
+# Judge Topic: a writer's valuation of a company about to list, taken back to the company's own filing and recomputed.
+# The post is read from the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked 2 Nov 2026): Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 Oct 2013: https://aswathdamodaran.blogspot.com/2013/10/twitter-announces-ipo-valuation.html ; Twitter, Inc. Form S-1, 3 Oct 2013: https://www.sec.gov/Archives/edgar/data/1418091/000119312513390321/d564001ds1.htm ; Twitter, Inc. final prospectus (Rule 424(b)(4)), 6 Nov 2013: https://www.sec.gov/Archives/edgar/data/1418091/000119312513431301/d564001d424b4.htm ; Reuters, 7 Nov 2013: https://www.reuters.com/article/technology/twitter-shares-soar-in-frenzied-nyse-debut-idUSBRE99N1AE/ ; Twitter Form 10-K filings for 2013 to 2021 (the Case Data); Wired, 20 Aug 2015, and the Guardian live blog, 28 Oct 2022 (see the reveal).
+id: jud-ipo-forecast
+title: "Judge: Twitter's 2013 IPO valuation versus what happened"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A first valuation of a company is judged against what followed, and sorting its errors by kind shows which ones really moved the value."
+
+cases:
+  - id: jud-ipo-forecast-oct5-valuation
+    title: A writer values a company from its first filing
+    asOf: 2013-10-05
+    data: [twitter-annual-revenue, twitter-operating-income]
+    piece:
+      author: Aswath Damodaran
+      title: "Twitter announces IPO: The Valuation"
+      published: 2013-10-05
+      url: https://aswathdamodaran.blogspot.com/2013/10/twitter-announces-ipo-valuation.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 3 October 2013 Twitter filed its first S-1, the document a US company files with the
+      Securities and Exchange Commission before selling shares to the public for the first time. It
+      left the number of shares to be sold and the price blank. On the evening of 5 October 2013
+      Aswath Damodaran, a valuation professor at NYU Stern, published a post that valued the company
+      from that filing. He says the value of its equity is $9.97 billion and the value per share is
+      $17.36. The Learner's job is to judge the claims in that post, not to value Twitter again: take
+      each figure back to the filing, set it beside the filing's own figure, and say whether it ties,
+      and if not, what sort of slip it is and whether it matters. What the post says, in short: revenue for the twelve months
+      to 30 June 2013 was $448 million; first-half revenue was more than 100% higher than a year
+      earlier; 12.6% of first-half revenue came from selling access to Twitter's data; the company
+      has more than 215 million monthly users; the share count he uses is 574.44 million, the sum of
+      472.613 million shares "after the offering", 86.915 million restricted stock units, 0.117
+      million warrant shares and 14.791 million shares for an acquisition (MoPub); the 44.157 million
+      options are valued separately at $805 million; the company is assumed to raise about $1
+      billion at roughly $20 a share, which he adds to its cash; revenue is assumed to grow 55% a
+      year for five years and reach $11.5 billion in 2023, at a 25% operating margin measured after
+      treating research spending as an investment. The filing, as filed on 3 October, shows: revenue
+      of $316.9 million for 2012, $122.4 million for the first six months of 2012 (advertising $101.3
+      million, data licensing $21.1 million) and $253.6 million for the first six months of 2013
+      (advertising $221.4 million, data licensing $32.2 million); "more than 215 million" monthly
+      active users; a loss from operations of $77.1 million for 2012; 472,613,753 shares outstanding
+      on a pro forma basis at 30 June 2013 (that is, after the preferred stock converts into common
+      stock), in a capitalization table whose "pro forma as adjusted" column is not filled in;
+      44,157,061 options, 59,913,992 restricted stock
+      units outstanding at 30 June plus 27,002,040 granted after it, a warrant for 116,512 shares and
+      up to 14,791,464 shares for the MoPub acquisition, all excluded from the 472,613,753; and a plan
+      to use the proceeds of the offering for general corporate purposes. Twitter's annual revenue and
+      loss from operations for 2010 to 2012 are in the Case Data. As of 5 October 2013 the company
+      had not sold a share, and nobody knew the price it would be sold at.
+    reveal: >
+      What the filing shows, claim by claim. Ties out: the twelve months to June 2013 are 316.9 plus
+      253.6 less 122.4, which is $448.2 million; first-half revenue rose 107% (253.6 against 122.4);
+      the share count adds up to 574.44 million (472.613 + 86.916 + 0.117 + 14.791, with the 86.916
+      million being 59.914 million restricted stock units outstanding plus 27.002 million granted
+      after 30 June); and $9.97 billion divided by 574.44 million is $17.356, which rounds to the
+      $17.36 he gives. Small differences: data licensing was $32.2 million of $253.6 million, which is
+      12.7%, not 12.6%, and his two risk-premium weights (75% at 5.75% and 25% at 7.23%) give 6.12%,
+      not the 6.15% he writes; neither moves the value by more than a few cents. The market-share
+      remark also overshoots slightly: his Google and Facebook revenues of $75 billion and $60 billion
+      are 71% of his $190 billion market, not "60-70%". The slip that matters: the post calls 472.613
+      million the number of shares "after the offering" and adds about $1 billion of offering cash to
+      the value, but counts none of the shares sold to raise that cash. The S-1 shows 472,613,753
+      as the pro forma count before the sale, with the "as adjusted" count left blank, and the final
+      prospectus of 6 November 2013 confirms the arithmetic: 474,696,816 shares pro forma and 544,696,816
+      pro forma as adjusted, the 70,000,000 shares sold in the offering. At about $20 a share, $1 billion
+      means about 50 million new shares, and $9.97 billion over 574.44 plus 50 million is about $15.97 a
+      share, about 8% below $17.36. That is an inference beyond the filing in the post's text, not an
+      arithmetic slip; whether his spreadsheet counted the new shares elsewhere cannot be told from the
+      post. What happened after. Twitter priced its offering at $26.00 a share on 6 November 2013 (final
+      prospectus), 70 million shares for $1.82 billion before costs, which is about 50% above his $17.36.
+      On the first day, 7 November, the shares closed at $44.90, a rise of 73% on the offer price and a
+      market value of about $25 billion (Reuters). They closed at exactly $26 on 20 August 2015, the first
+      time they fell to the offer price (Wired). Twitter was taken private at $54.20 a share, about $44
+      billion, in a deal that closed on 27 October 2022 (Guardian). Against the post's story, from Twitter's
+      filings (the Case Data): his path of 55% a year from $448 million gives about $0.69, $1.08, $1.67,
+      $2.59 and $4.01 billion for the years to June 2014 to June 2018; Twitter's calendar-year revenue was
+      $1.40 billion in 2014, $2.22 billion in 2015, $2.53 billion in 2016, $2.44 billion in 2017 and $3.04
+      billion in 2018 (calendar years are only a rough match for years ending in June), so revenue ran ahead
+      of his path at first and fell behind it by 2017. The last annual report as a public company was for 2021,
+      with revenue of $5.08 billion; reaching $11.5 billion in 2023 from there would have needed about 50% growth a
+      year for two years. His 25% target was measured after treating research spending as capital; on the
+      accounting basis in its filings, Twitter's income from operations was 14.9% of revenue in 2018 at best
+      (453.3 on 3,042.4) and a loss of 9.7% in 2021, so the two are not on the same basis. What the judgement
+      is: the arithmetic was nearly all sound and the one slip in the share count was worth about 8%, much
+      smaller than the gap between his value and the prices that followed. His post said the offering price
+      was a pricing event and not a valuation event, so $26 and $44.90 do not show that his $17.36 was wrong;
+      what the later revenue and profit show is where his story ran ahead of and behind what the company did.
+      Check the claim for what it claimed.
+
+concept: >
+  To judge a claim, go back to the source it names and set each figure beside the source's own. Sort every difference into one
+  of four kinds: an arithmetic slip (the sum or ratio is wrong), a mislabel (the right number under
+  the wrong name), a period or basis
+  mismatch (two figures that do not cover the same time or are not measured the same way, such as a
+  margin that treats research spending as an investment against one that expenses it), or an inference
+  beyond the text (the writer says more than the source does). Then ask how big the effect is: would
+  fixing the slip move the result a little or a lot? A prospectus gives share counts at several stages. The
+  count "pro forma" assumes the preferred stock has converted into common stock; the count "pro forma
+  as adjusted" also adds the shares sold in the offering and the money raised. A per-share value divides a value by every share that shares in it, so the numerator and the share count must describe the same moment.
+  Arithmetic that ties out shows that the sums are right; it does not show that the story
+  behind the inputs is right. Later events are tested against the story, and only against what the
+  writer actually claimed.
+
+principle: >
+  Judge a claim in two steps. First take it back to the source and sort the differences by kind
+  and size, so that small slips are not mistaken for large ones. Then compare the story with what
+  followed, and only on what the writer claimed to know, never with hindsight on what he did not.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Sort differences into slips, mislabels, mismatches and overreach, then size each one."
+  - "Read the share counts in a prospectus and match them to the value being divided."
+  - "Judge a forecast only on what the writer claimed, without hindsight."
+
+questions:
+  - id: jip-q-ttm
+    prompt: >
+      October 2013, a made-up story: Priya, a junior reporter, reads a blog on Twitter's listing.
+      It quotes revenue for "the trailing twelve months to 30 June 2013". Her editor asks what
+      stretch of time that covers. What does "trailing twelve months" mean here?
+    choices:
+      - { id: a, text: "The latest twelve months already earned, July 2012 to June 2013" }
+      - { id: b, text: "Calendar 2012, the last full year in the filing", mistake: { tag: old_year_only, fix: "Trailing twelve months ends at the latest date reported, here 30 June 2013, not December 2012." } }
+      - { id: c, text: "The next twelve months, as the company forecasts them", mistake: { tag: trailing_as_forecast, fix: "Trailing means looking back: months already earned, not a forecast." } }
+      - { id: d, text: "The first half of 2013 stretched out to a full year", mistake: { tag: doubled_half, fix: "Stretching six months to a year assumes the pace holds; that is a run rate, not twelve months earned." } }
+    answer: a
+    explanation: >
+      "Trailing" means looking back. The trailing twelve months are the latest full year of results
+      that have already happened, here July 2012 to June 2013, so a fast-growing company is judged
+      on its newest year rather than an old calendar year or a guess about the next one.
+    source: >
+      Trailing twelve months as built from the revenue table of Twitter, Inc., Form S-1 (3 October 2013) in
+      Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
+  - id: jip-q-new-shares
+    prompt: >
+      October 2013, a made-up story: Aditi is deciding whether to buy into an app company's listing.
+      It has 100 million shares and sells 20 million new ones, keeping the cash. A blog she reads adds
+      the cash to the value but still shares it out over the old 100 million, and cheers that each
+      share is now worth more. What did the blog leave out?
+    choices:
+      - { id: a, text: "The new shares: the value is spread over more of them" }
+      - { id: b, text: "The cash: a listing raises no money at all for the company itself", mistake: { tag: cash_ignored, fix: "The listing did raise cash; the slip is in the share count." } }
+      - { id: c, text: "The old shares: they drop out of the count", mistake: { tag: old_shares_dropped, fix: "The old shares still exist; the new ones join them." } }
+      - { id: d, text: "Nothing: new cash always lifts each share", mistake: { tag: cash_always_lifts, fix: "New shares share the cash too, so the value per share rises far less." } }
+    answer: a
+    explanation: >
+      The cash raised belongs to all 120 million shares, old and new. Spreading a value over extra
+      new shares is called dilution. Counting the cash but not the shares sold to raise it makes each
+      share look worth more than it is.
+    source: >
+      The pro forma and pro forma as adjusted share counts are the two columns of the
+      capitalization table in Twitter, Inc., Form S-1 (3 October 2013).
+  - id: jip-q-pro-forma
+    prompt: >
+      5 October 2013: Rohan, a made-up investor, buys Twitter only if a blog's value per share beats
+      the listing price. The blog adds the cash the sale will raise, then divides by the S-1's "pro
+      forma" count. Should he trust it?
+    choices:
+      - { id: a, text: "Yes: pro forma already counts the shares sold at the listing", mistake: { tag: pro_forma_as_adjusted, fix: "Pro forma adds only the preferred stock turning into common; the sale comes in \"as adjusted\"." } }
+      - { id: b, text: "No: pro forma leaves out the preferred stock, so the value runs low", mistake: { tag: preferred_left_out, fix: "Pro forma already counts the preferred stock as common; what it lacks is the new shares." } }
+      - { id: c, text: "No: it skips the shares about to be sold, so he could overpay" }
+      - { id: d, text: "Yes: every count in the S-1 gives the same value per share", mistake: { tag: all_columns_same, fix: "Each count is a different moment; only \"pro forma as adjusted\" adds the shares sold." } }
+    answer: c
+    explanation: >
+      "Pro forma" changes the count only for the preferred stock turning into common shares. The
+      shares sold in the listing join only in "pro forma as adjusted", which Twitter's first S-1 had
+      not filled in: neither the number of shares nor the price was set yet. The blog counts the
+      sale's cash but not the shares sold to raise it, so each share looks worth more, and Rohan
+      could pay more than his own test allows.
+    source: >
+      Made-up story (Rohan and the blog are invented); the share counts follow the capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted, the last not filled in; Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
+  - id: jip-q-growth
+    prompt: >
+      A blogger expects a company's $200 million of revenue to grow 60% a year for five years,
+      ending near $2.1 billion. Your friend scoffs: take the first year's gain and repeat that same
+      amount five times, and you end near $800 million. What has your friend missed?
+    choices:
+      - { id: a, text: "Compounding: each year's growth builds on the year before" }
+      - { id: b, text: "Inflation", mistake: { tag: inflation_assumed, fix: "Inflation is not the issue; the friend applied growth to the starting revenue only." } }
+      - { id: c, text: "Taxes", mistake: { tag: tax_assumed, fix: "Revenue growth is measured before tax; the issue is what the growth is applied to." } }
+      - { id: d, text: "Nothing: growth simply adds the same amount on top each year", mistake: { tag: simple_adding, fix: "Each year's growth builds on a larger base, so adding the same amount understates it." } }
+    answer: a
+    explanation: >
+      Each year's 60% is earned on the larger revenue of the year before, which is compounding, so five
+      years of it lands near $2.1 billion. Adding the same slice each year ignores compounding and ends
+      near $800 million.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+  - id: jip-q-share-of-total
+    prompt: >
+      October 2013, a made-up story: Priya, a junior reporter, checks a blog against a company's
+      filing. The filing puts one revenue line at 12.0% of the total; the blog says 12.8%. Her editor
+      wants the headline "Blogger botches the numbers". What should she tell him?
+    choices:
+      - { id: a, text: "A small slip: it is only \"material\" if the value depends on it" }
+      - { id: b, text: "Run it: one slip sinks the whole valuation", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
+      - { id: c, text: "Drop it: within a point is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
+      - { id: d, text: "Drop it: the blogger surely used another base", mistake: { tag: base_assumed, fix: "Do not guess a base; check it against the filing." } }
+    answer: a
+    explanation: >
+      Editors and auditors call an error "material" when it is big enough to change the conclusion.
+      The gap is real but small, so the next step is to ask whether the figure feeds anything that
+      matters. Guessing that the blogger used a different base is not a check; the filing is.
+    source: >
+      The revenue table of Twitter, Inc., Form S-1 (3 October 2013) (a line as a share of total revenue).
+  - id: jip-q-weighted
+    prompt: >
+      Your cousin Arjun reads a blog about a company with two businesses. Most of its revenue (80%)
+      comes from a jumpy one that swings hard with the market; the rest comes from a calm one.
+      Which headline gets the whole company's beta (how hard it swings with the market) right?
+    choices:
+      - { id: a, text: "Mostly jumpy: the big business sets the tone, the calm one softens it a little" }
+      - { id: b, text: "Exactly halfway between jumpy and calm", mistake: { tag: simple_average, fix: "Halfway treats the small business like the big one; the bigger business should count for more." } }
+      - { id: c, text: "As jumpy as its jumpiest business", mistake: { tag: higher_beta_only, fix: "That leaves out the calm business, which makes the whole company a little steadier." } }
+      - { id: d, text: "As calm as its calmest business, since that one is steadier", mistake: { tag: lower_beta_only, fix: "The calm business is the small one, so it should count for less, not decide it." } }
+    answer: a
+    explanation: >
+      Analysts blend the betas of a company's businesses, letting each count by its share of
+      revenue. A company that is mostly a jumpy business is mostly jumpy; the small calm part only
+      softens it a little.
+    source: >
+      Weighted-average beta as used in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
+  - id: jip-q-basis
+    prompt: >
+      5 October 2013, a made-up story: Meera bet her brother dinner that an app would earn a 25%
+      margin. She spread its research spending over three years, like a machine; the app's report
+      charges it all to one year and shows 15%. Who pays?
+    choices:
+      - { id: a, text: "Meera pays: 15% is well short of the 25% she bet on", mistake: { tag: basis_ignored, fix: "The two margins treat research differently, so part of that gap is just accounting." } }
+      - { id: b, text: "Nobody yet: first measure both margins the same way" }
+      - { id: c, text: "Her brother pays: the app's report is a different document", mistake: { tag: report_dismissed, fix: "The report is the evidence; restate it her way, do not set it aside." } }
+      - { id: d, text: "Meera pays: her forecast sums must have been off", mistake: { tag: arithmetic_blamed, fix: "Nothing shows a slip in her sums; the two margins follow different rules." } }
+    answer: b
+    explanation: >
+      Meera's 25% spreads research spending over three years, the way a firm spreads the cost of a
+      machine it will use for years; the report's 15% charges the whole year's research at once. So
+      the gap mixes a real shortfall with an accounting one. Restate one margin the other way (for
+      example, spread the report's research spending over three years), and only then settle the bet.
+    source: >
+      Made-up story (Meera, her brother and the app are invented); the basis question follows Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life), against Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
+  - id: jip-q-arithmetic-story
+    prompt: >
+      A made-up story: Sana checks every number in a blog's valuation of an app company, and each one
+      ties out to the inputs the blogger states. She tells her study group "the maths is perfect, so
+      the value is right". What has she actually shown?
+    choices:
+      - { id: a, text: "That his inputs must be right too", mistake: { tag: inputs_from_ties, fix: "Numbers that tie out show the calculation, not that the inputs are right." } }
+      - { id: b, text: "The sums are right; the inputs and the story are a separate question" }
+      - { id: c, text: "That the market price must equal his value, since the sums are so clean", mistake: { tag: value_equals_price, fix: "His value is his estimate; the market price is set by buyers and sellers." } }
+      - { id: d, text: "That he made a mislabel somewhere", mistake: { tag: ties_means_mislabel, fix: "Numbers that tie out say nothing about a mislabel." } }
+    answer: b
+    explanation: >
+      Analysts say numbers "tie out" when each step follows from the inputs, so they check the
+      calculation from inputs to value. The inputs (growth, margin,
+      risk) are judgements, and they can only be tested against the filing and, later, against what the
+      company does.
+    source: >
+      The valuation method (inputs, then value) as laid out in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
+
+checks:
+  - id: jip-quiz-recompute
+    kind: quiz
+    questions:
+      - jip-q-ttm
+      - jip-q-new-shares
+      - jip-q-pro-forma
+      - jip-q-growth
+      - jip-q-share-of-total
+      - jip-q-weighted
+      - jip-q-basis
+      - jip-q-arithmetic-story
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: jip-judge-valuation
+    kind: conversation
+    prompt: >
+      Let's take Damodaran's 5 October 2013 valuation of Twitter back to its first S-1. Pick three of
+      his claims and tell me: does each one match the filing? If one doesn't, what kind of slip is
+      it, and is it big enough to move his $17.36 a share? What can't you tell from the post alone?
+    passCriteria: >
+      The Learner takes figures from the filing as the Case gives them, not from the Tutor's own
+      knowledge, and is not asked to redo any sum: the Tutor may show the filing's figure beside the
+      post's, and the Learner judges whether they match and why. They check at least three claims,
+      for example twelve-month revenue (built from the year 2012 rolled forward with the first six
+      months of 2013 and without the first six months of 2012), the share count behind the $17.36 a
+      share, or data licensing as a share of first-half revenue (the filing and the post differ only
+      slightly, which does not move the value). If they pick the share count, they say which column
+      of the capitalization table the post's 472.613 million comes from, whether the post's label
+      for it matches that column, and whether the shares sold in the offering are counted alongside
+      the offering cash the post adds. For any difference they name its kind (a mislabel, an
+      inference beyond the filing, a period or basis mismatch, or an arithmetic slip) and say in
+      words whether it is big enough to matter, compared with smaller differences. They say that
+      the post alone cannot show whether his spreadsheet counted the new shares elsewhere, and that
+      a calculation that ties out shows the arithmetic, not whether his growth and margin story is
+      right. They do not claim to know how Twitter's offering or later results turned out.

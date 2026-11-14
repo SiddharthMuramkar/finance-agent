@@ -1,0 +1,163 @@
+# Equity markets, exchanges, SEBI, NSE and BSE: a foundation Topic taught through SEBI's early powers and the 1992 market shock.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): SEBI, About SEBI: https://www.sebi.gov.in/about-sebi.html ; SEBI Act, 1992 (as amended, with footnotes): https://www.sebi.gov.in/acts/act15ac.html ; BSE, SENSEX@40 white paper: https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf ; BSE company overview: https://beta.bseindia.com/static/about/Company_Overview.html ; NSE, history and milestones: https://www.nseindia.com/static/national-stock-exchange/history-milestones ; RBI chronology 1991-2000: https://rbi.org.in/history/Brief_Chro1991to2000.html
+id: eq-markets
+title: Equity markets, exchanges, SEBI, NSE and BSE
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "The stock market is where a company's price is set every day: the price you compare your value with."
+
+cases:
+  - id: sebi-powers-1992
+    title: SEBI's first months, April 1992
+    asOf: 1992-04-30
+    story: >
+      The Bombay Stock Exchange (BSE), founded in 1875, is Asia's oldest exchange and home of the Sensex index. Since mid-1991 prices have risen sharply: the Sensex closed at 4,285 on 31
+      March 1992, up 42% in that month alone. The Securities and Exchange Board of India (SEBI) was set up in
+      1988 as a government body without a statute behind it. The SEBI Act, 1992 gave it legal force from 30 January
+      1992, three months ago. By the Act its duty is "to protect the interests of investors in
+      securities and to promote the development of, and to regulate, the securities market"; the Act lists the
+      ways it may do so, such as regulating the business of stock exchanges, registering and regulating stock
+      brokers, and prohibiting fraudulent and unfair trade practices. In the last week of April the market has
+      been shaken: on Tuesday 28 April the Sensex fell by 12.77% in a day. Newspapers report that
+      money from banks has found its way into share purchases through brokers. The Reserve Bank of India set up a committee
+      under its deputy governor, R. Janakiraman, on 30 April to look into the dealings. Share trading, bond dealing
+      and bank lending run through different institutions with different regulators. Who is in charge of
+      what, which powers would a market regulator need to stop something like this, and
+      what could it do today?
+    reveal: >
+      SEBI in 1992 had the duty to protect investors and regulate the market, but the powers it was given to act
+      quickly were limited. Parliament widened them in the Securities Laws (Amendment) Act, 1995. The SEBI Act
+      itself, in its footnotes, shows that the section giving the Board power to issue directions (Section 11B) was inserted by
+      Act 9 of 1995, with effect from 25 January 1995; the power to order investigations, and the power
+      to call for information and records from any bank about a securities transaction under investigation, were added later
+      still, by the 2002 amendment. Press accounts (Moneycontrol, India Today) link the scam to the 1995 amendment, but the order of events is the
+      safer fact: SEBI gained statutory status three months before the scam surfaced, and its powers were widened three years after. Meanwhile
+      the market's structure changed. The National Stock Exchange was incorporated in 1992, was recognised by SEBI as a stock exchange
+      in April 1993, and began operating in 1994 with a wholesale debt market followed shortly by its equity
+      market, with screen-based trading. Trading and settlement in dematerialised (electronic) securities began in 1995-96, and the
+      Nifty 50 index was launched. SEBI itself formulated insider trading regulations in 1992.
+
+concept: >
+  A stock exchange is a market where buyers and sellers of shares meet, through brokers, under
+  rules that set who may trade, how orders are matched and how trades are settled. It supports the
+  primary market, where companies issue new shares (an initial public offering, or IPO), by giving buyers a
+  place to sell later, and it provides the secondary market, where investors trade existing shares
+  with one another, which gives liquidity and a visible price. A broker brings buyers and
+  sellers together and earns a commission; a dealer trades from its own book and earns the spread between
+  the price at which it buys and the price at which it sells. A market order buys or sells at the
+  best price available now; a limit order names the price and waits. After a trade, clearing
+  confirms and nets it, settlement exchanges the shares and the money, and a clearing corporation can
+  stand in the middle as the central counterparty, guaranteeing that the seller gets paid even if the buyer fails. A depository
+  holds shares in electronic form. Because investors cannot easily check brokers, issuers or
+  each other, a market needs a regulator: in India SEBI, whose job is to protect investors, develop the
+  market and regulate it, by registering intermediaries, making rules, requiring disclosure, investigating
+  and punishing fraud. India has two main exchanges: the BSE, founded in 1875 and home of the Sensex, and the NSE,
+  which opened in 1994 with screen-based trading and publishes the Nifty 50. A market can only be as safe as the
+  rules, the institutions that settle trades and the regulator's power to enforce them.
+
+principle: >
+  Trust is what an exchange sells. The price discovery, the settlement guarantee and the regulator's
+  powers matter as much as the shares traded.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Follow a trade from the order through clearing to settlement."
+  - "Tell the primary market, where shares are issued, from the secondary market, where they change hands."
+  - "See why an exchange needs a regulator with real powers to protect investors."
+
+questions:
+  - id: em-q-primary
+    prompt: >
+      Nisha's family firm sells new shares to the public for the first time, and the cash pays for a new factory. A week later one buyer sells his shares to his neighbour. Which market is each trade in?
+    choices:
+      - { id: a, text: "First the primary market, then the secondary market" }
+      - { id: b, text: "Both are primary-market trades", mistake: { tag: both_primary, fix: "Only the firm's own sale of new shares is primary; investors swapping shares is secondary." } }
+      - { id: c, text: "First the secondary market, then the primary", mistake: { tag: markets_reversed, fix: "Primary means new shares from the company; it comes first, and the swapping comes after." } }
+      - { id: d, text: "Both are secondary-market trades", mistake: { tag: both_secondary, fix: "The first sale brought cash to the company itself, which makes it primary." } }
+    answer: a
+    explanation: >
+      New shares sold by the company are a primary market trade, and the cash goes to the company. Later trades between investors are secondary market trades; the company receives nothing.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 1.5 Markets and Participants (Primary and Secondary Markets): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
+
+  - id: em-q-broker-dealer
+    prompt: >
+      On Dalal Street, Mr Kapoor matches his clients' orders and takes a small fee on each. His rival buys shares for her own book and sells them on a little higher. What do traders call each of them?
+    choices:
+      - { id: a, text: "Kapoor is a broker, earning commission; his rival is a dealer, earning the spread" }
+      - { id: b, text: "Kapoor is a dealer; his rival is a broker", mistake: { tag: roles_flipped, fix: "Matching clients for a fee is broking; trading from your own book is dealing." } }
+      - { id: c, text: "Both are issuers selling their own shares", mistake: { tag: issuer_confusion, fix: "Issuers are companies raising money; these two only trade shares others issued." } }
+      - { id: d, text: "Both are brokers, since both earn only fees", mistake: { tag: fees_only, fix: "The rival earns the gap between her buying and selling prices, which makes her a dealer." } }
+    answer: a
+    explanation: >
+      Brokers bring buyers and sellers together and earn a commission. Dealers own the shares they trade and make money from the spread between the price at which they buy and the price at which they sell.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 1.5 Markets and Participants (Key Market Players): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
+
+  - id: em-q-limit
+    prompt: >
+      Shalini wants shares of a tea company quoted at Rs 52, but she will pay Rs 50 at most. On Monday she tells her broker, "Buy at Rs 50 or better." What happens to her order?
+    choices:
+      - { id: a, text: "It waits, and fills only if the price drops to Rs 50 or lower" }
+      - { id: b, text: "It fills at once at Rs 52", mistake: { tag: market_order, fix: "Paying the going price is a market order; her limit order waits for Rs 50." } }
+      - { id: c, text: "It fills at once at Rs 50", mistake: { tag: instant_fill, fix: "Sellers are asking Rs 52 right now, so an order at Rs 50 has to wait." } }
+      - { id: d, text: "It is cancelled, because her price is below the market", mistake: { tag: limit_cancelled, fix: "A limit below the market simply waits in line; it is not thrown out." } }
+    answer: a
+    explanation: >
+      A limit order names the worst price you will accept. A buy limit at Rs 50 waits until shares are available at Rs 50 or lower. A market order would have bought at the current price.
+    source: >
+      Yale ECON 252 (Financial Markets), Lecture 21, Chapter 4 (market orders, limit orders and stop orders): https://oyc.yale.edu/economics/econ-252-11/lecture-21
+
+  - id: em-q-sebi-duty
+    prompt: >
+      It is April 1992, and the SEBI Act has just given the market regulator legal force. Raju's father, a stockbroker, asks what job the Act actually gives SEBI. Which headline gets it right?
+    choices:
+      - { id: a, text: "SEBI to protect investors, develop the market and regulate it" }
+      - { id: b, text: "SEBI to set interest rates and the exchange rate", mistake: { tag: rbi_job, fix: "Interest rates and the rupee are the Reserve Bank's field, not SEBI's." } }
+      - { id: c, text: "SEBI to issue shares and trade them for profit", mistake: { tag: regulator_trades, fix: "SEBI watches over the market; it does not issue or trade shares itself." } }
+      - { id: d, text: "SEBI to supervise banks and cooperative societies", mistake: { tag: bank_supervisor, fix: "Banks answer to the Reserve Bank; SEBI's field is the securities market." } }
+    answer: a
+    explanation: >
+      The preamble gives SEBI three duties: protect the interests of investors in securities, promote the development of the securities market, and regulate it. Interest rates and banks are the Reserve Bank's field.
+    source: >
+      SEBI, About SEBI (Preamble): https://www.sebi.gov.in/about-sebi.html
+
+  - id: em-q-ccp
+    prompt: >
+      Arun sells shares on an exchange where a clearing corporation stands in the middle of every trade. On settlement day his buyer goes bust and pays nothing. What happens to Arun?
+    choices:
+      - { id: a, text: "He is still paid, because the clearing corporation guarantees the trade" }
+      - { id: b, text: "He must chase the buyer in court", mistake: { tag: chase_buyer, fix: "The clearing corporation is his counterparty, so it pays him and does the chasing." } }
+      - { id: c, text: "He loses both the shares and the money", mistake: { tag: total_loss, fix: "A central counterparty guarantees valid trades, so the seller is protected." } }
+      - { id: d, text: "The exchange cancels every trade that day", mistake: { tag: cancel_all, fix: "One failed buyer does not undo the market; the clearing corporation covers that trade." } }
+    answer: a
+    explanation: >
+      A central counterparty becomes the buyer to every seller and the seller to every buyer, guaranteeing settlement of valid trades. Sellers need not worry about whether each buyer can pay.
+    source: >
+      BSE, Company overview (BSE Clearing Limited acts as central counterparty to all trades with full novation, guaranteeing settlement): https://beta.bseindia.com/static/about/Company_Overview.html
+
+checks:
+  - id: em-quiz-markets
+    kind: quiz
+    questions:
+      - em-q-primary
+      - em-q-broker-dealer
+      - em-q-limit
+      - em-q-sebi-duty
+      - em-q-ccp
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: em-regulator-powers
+    kind: conversation
+    prompt: >
+      Your aunt bought shares through her broker this week, and the market has just fallen 10% in a day.
+      She asks who keeps her trade and her money safe: the exchange, her broker, the clearing corporation
+      or the market regulator. Which would you point her to first, and why, in your own words?
+    passCriteria: >
+      The Learner picks one of the four and gives a reason grounded in what it does: the clearing
+      corporation settles trades and guarantees them as central counterparty; the regulator protects
+      investors, makes rules, registers intermediaries and can investigate and direct; the exchange
+      provides the market and its trading rules; the broker acts for the client. A strong answer names
+      settlement safety (the clearing corporation) or the regulator's powers to investigate and direct as
+      what matters most in a sudden fall, and says in a phrase what at least one other player does.

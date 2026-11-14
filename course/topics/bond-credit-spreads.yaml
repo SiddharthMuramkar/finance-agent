@@ -1,0 +1,157 @@
+# Credit spreads, ratings and default: a foundation Topic taught through Long-Term Capital Management.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure
+id: bond-credit-spreads
+title: Credit spreads, ratings and default
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "The extra yield lenders demand from a company sets its cost of debt, part of the cost of capital that turns its future cash into a value today."
+
+cases:
+  - id: ltcm-1998-spreads
+    title: LTCM's spread trades
+    data: [debt-per-dollar-of-capital, annual-return, august-1998-loss, rescue-capital]
+    asOf: 1998-08-01
+    story: >
+      Long-Term Capital Management (LTCM) was a hedge fund founded in February 1994 by John
+      Meriwether, a former vice chairman of Salomon Brothers, and run by a team of market
+      experts that included two Nobel laureates. It used mathematical models to find small
+      price differences between similar securities, such as two bonds that should yield the
+      same but did not, and bet that the gap, or spread, would narrow. It called this
+      "market-neutral": it expected to profit whether prices went up or down. Its returns had
+      been 20% in 1994, 43% in 1995, 41% in 1996 and 17% in 1997. Each trade earned only a
+      sliver on every dollar, so the fund borrowed heavily to make the profit worth having:
+      at the end of 1997, after returning capital to its investors without cutting its
+      positions, it held about $30 of debt for every $1 of capital. It traded government
+      bonds, mortgage-backed securities and equities, and used swaps, forwards and options.
+      Financial trouble that had started in Southeast Asia in 1997 was still working through
+      markets. Suppose the spreads LTCM was betting on narrowing, instead widen. Why does a
+      small fall in the value of its assets threaten the fund's own capital?
+    reveal: >
+      In August 1998 Russia suddenly devalued its currency and stopped payments on its debt.
+      Investors rushed to safer and more liquid investments, and the spreads LTCM had bet on
+      narrowing widened in almost every case. The fund lost 44% of its value in August alone.
+      On 2 September it told investors of its August losses, and on 18 September its officials
+      called the president of the Federal Reserve Bank of New York. On 23 September 1998
+      fourteen banks and brokerage firms put up $3.625 billion to take 90% of the fund. The
+      Fed arranged the meeting but lent nothing. The fund's partners and other investors lost
+      heavily, the fund sold off its positions, and the last of the group's $3.6 billion was
+      returned by the end of 1999.
+
+concept: >
+  A credit spread is the extra yield a bond pays over a safe bond of the same maturity, usually
+  a government bond: a corporate bond yielding 7.9% against a 6.4% Treasury has a spread of 1.5
+  percentage points (150 basis points). The spread pays the lender for the chance the borrower
+  defaults (fails to make a required payment), for the loss if it does, and for holding a bond
+  that may be hard to sell. Rating agencies such as Moody's, S&P and Fitch grade that
+  chance: bonds rated BBB (Baa at Moody's) or higher are investment grade, and those below are
+  high-yield, or junk, bonds with wider spreads. In a scare, investors move to safe, liquid
+  assets and spreads widen, which lowers the price of risky bonds. A trade that bets spreads
+  will narrow loses money if they widen instead, and borrowing makes a small fall in asset
+  value a large fall in the owner's capital.
+
+principle: >
+  A spread is the price of risk, and it can widen when everyone wants safety at once. A bet
+  that is right on average can still break you if you borrow so much that you cannot wait.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read a credit spread as the extra pay for the risk of default."
+  - "Know what credit ratings say and where investment grade ends."
+  - "See why spreads widen when everyone wants safety at once."
+
+questions:
+  - id: cs-q-definition
+    prompt: >
+      June 1998. Rohan's dad buys a company bond that pays more than a government bond of the same length. His banker calls the gap the credit spread. What does that extra yield pay him for?
+    choices:
+      - { id: a, text: "The chance the company misses a payment, and a bond that is harder to sell" }
+      - { id: b, text: "The banker's fee for arranging the purchase", mistake: { tag: spread_as_fee, fix: "A spread is extra yield the bond itself pays, not a fee. It pays for default risk." } }
+      - { id: c, text: "The gap between a dealer's buying and selling prices", mistake: { tag: credit_vs_bid_ask, fix: "That is the bid-ask spread. A credit spread is extra yield over a safe government bond." } }
+      - { id: d, text: "The gap between 2-year and 10-year government yields", mistake: { tag: credit_vs_curve, fix: "That gap is the yield curve's slope. A credit spread compares a risky bond with a safe one." } }
+    answer: a
+    explanation: >
+      A credit spread is the extra yield a risky bond pays over a safe government bond of the same maturity. Lenders want it for the chance of default, the loss if it happens, and for a bond that may be hard to sell.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: cs-q-calculate
+    prompt: >
+      Meera overhears two traders at a bond desk: "The 10-year corporate trades 150 over the 10-year government." She nods, but she is lost. What does that mean?
+    choices:
+      - { id: a, text: "1.5 points more yield on the corporate bond" }
+      - { id: b, text: "$150 more in price per $1,000 bond", mistake: { tag: price_not_yield, fix: "Spreads are quoted in yield, not price. 150 is basis points of extra yield." } }
+      - { id: c, text: "1.5 points more yield on the government bond", mistake: { tag: spread_backwards, fix: "A credit spread is the extra yield on the riskier bond, so the corporate bond yields more." } }
+      - { id: d, text: "150% of the government bond's yield", mistake: { tag: bps_as_percent, fix: "150 means 150 basis points, which is 1.5 percentage points, not 150 percent." } }
+    answer: a
+    explanation: >
+      A spread quoted as 150 over means 150 basis points, 1.5 percentage points, of extra yield over the government bond of the same length. For example a corporate bond yielding 7.9% against a government bond at 6.4%. It is the extra pay for default risk.
+    source: >
+      Arithmetic on the definition in OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: cs-q-grade
+    prompt: >
+      July 1998. Neha runs a pension fund that may buy only investment-grade bonds. A broker offers her a company bond that S&P rates BBB. Is she allowed to buy it?
+    choices:
+      - { id: a, text: "Yes: BBB is the lowest rung of investment grade" }
+      - { id: b, text: "No: only AAA bonds count as investment grade", mistake: { tag: only_aaa_investment_grade, fix: "Investment grade runs from AAA all the way down to BBB. Only bonds below BBB are junk." } }
+      - { id: c, text: "No: BBB is junk, which is why it pays more", mistake: { tag: bbb_as_junk, fix: "Junk starts below BBB, at BB. BBB is the lowest investment-grade rating." } }
+      - { id: d, text: "Yes: any bond with a rating is investment grade", mistake: { tag: any_rating_investment_grade, fix: "Bonds rated BB or lower carry a rating too, but they are high-yield, or junk." } }
+    answer: a
+    explanation: >
+      On the S&P and Fitch scales, any bond rated BBB or higher (Baa or higher at Moody's) is investment grade. Bonds rated lower are high-yield, or junk, bonds, and they pay wider spreads.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: cs-q-widen
+    prompt: >
+      July 1998. Arjun holds a riskier company bond. Suppose a scare sends investors rushing into safe, easy-to-sell government bonds. What do traders say happens to his bond's spread, and to its price?
+    choices:
+      - { id: a, text: "The spread widens, and his bond's price falls" }
+      - { id: b, text: "The spread narrows, and his bond's price rises", mistake: { tag: flight_to_quality_backwards, fix: "In a scare lenders demand more pay for risk, so spreads widen and risky bond prices fall." } }
+      - { id: c, text: "Nothing changes, because his coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price moves. A wider spread pushes the price down." } }
+      - { id: d, text: "The spread widens, and his bond's price rises", mistake: { tag: yield_up_price_up, fix: "A wider spread means a higher yield on his bond, and a higher yield means a lower price." } }
+    answer: a
+    explanation: >
+      In a scare lenders demand more yield for credit and liquidity risk, so the risky bond's yield rises against the government bond's. Its fixed payments are then worth less, so its price falls.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management (Fleming and Liu): https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+  - id: cs-q-leverage
+    prompt: >
+      Kabir's fund holds $31 of assets for every $1 of its own money. The rest is borrowed. Prices dip. Who is in trouble first?
+    choices:
+      - { id: a, text: "Kabir: even a small dip wipes out his slice" }
+      - { id: b, text: "The lenders: they put in most of the money", mistake: { tag: lenders_share_loss, fix: "Lenders are repaid first. Kabir's thin slice of capital takes every loss until it is gone." } }
+      - { id: c, text: "Nobody, unless prices fall 30% or more", mistake: { tag: ratio_as_percent, fix: "Thirty-to-one leverage means a small fall is enough, not a fall of thirty percent." } }
+      - { id: d, text: "Nobody, until every asset is lost", mistake: { tag: ignored_leverage, fix: "Lenders must be repaid first, so Kabir's small capital is gone long before that." } }
+    answer: a
+    explanation: >
+      A fall of $1 on $31 of assets, about 3%, leaves nothing for the owners after repaying the loans. LTCM held about $30 of debt per $1 of capital at the end of 1997.
+    source: >
+      Arithmetic on the figure of $30 of debt for every $1 of capital in Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+checks:
+  - id: cs-quiz-spreads
+    kind: quiz
+    questions:
+      - cs-q-definition
+      - cs-q-calculate
+      - cs-q-grade
+      - cs-q-widen
+      - cs-q-leverage
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cs-ltcm-explain
+    kind: conversation
+    prompt: >
+      LTCM's trades bet that credit spreads would narrow, and the fund held about $30 of debt
+      for every $1 of capital. Suppose a financial scare hits and investors rush to safe,
+      liquid assets. Explain what would happen to the fund's trades, and what the leverage
+      would have to do with it.
+    passCriteria: >
+      The Learner says that in a scare investors move to safe, liquid assets, so spreads widen
+      and trades betting on narrowing lose at the same time. They explain
+      that at about $30 of debt per $1 of capital a loss of a few percent on the assets
+      exhausts the capital, so the fund could not wait for spreads to return to normal. They
+      may add that a correct bet is no use if it cannot be held.

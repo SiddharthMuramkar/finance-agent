@@ -1,0 +1,120 @@
+/**
+ * The no-sum rule (ADR 0009): the Learner never types a number, and the Tutor never asks for a sum. Numbers may be
+ * facts in a story or answer labels the Learner recognises; anything that needs working out is a sum.
+ *
+ * `sumAsk` is the one shared detector. Lint L10, reply check V8 and the story-recipe checks all call it. It is pure and
+ * has no `@/` imports, so `scripts/check-course.mjs` can load it under plain Node.
+ */
+
+const NUMBER = String.raw`[₹$€£]?\d[\d,]*(?:\.\d+)?%?`;
+const UNIT_WORD = /\b(?:basis points?|bps?|points?|percent|rupees|dollars|lakh|crore|notch(?:es)?|steps?|years?|months?|days?)\b|[₹$€£]|\d/i;
+
+/** Compute is a sum-verb, but not in the AI-compute nouns ("compute costs", "compute capacity"). */
+const COMPUTE = String.raw`compute(?!\s+(?:costs?|capacity|power|spend|agreements?|commitments?|deals?|budget))`;
+
+/**
+ * "work out" is a sum-verb when it has an object that is a number word ("work it out") or when it is asked of someone
+ * ("can you work out", "to work out"), or when it opens the text as an instruction ("Work out the EMI"). "ETFs work out
+ * a NAV each day" states a fact and is left alone.
+ */
+const WORK_OUT = String.raw`(?:^\s*work\s+out|work(?:ed|ing)?\s+(?:it|this|that)\s+out|(?:you|to|please|let['’]s|we can|can|could|try|then)\s+work(?:ed|ing)?\s+out)`;
+
+/** Patterns that match anywhere in the text, tried in order; the first match is the phrase returned. */
+const ANYWHERE: RegExp[] = [
+  // 1. Calculate verbs (and "add 50 bp", the same ask in plain words).
+  new RegExp(String.raw`\b(?:calculate|${COMPUTE}|${WORK_OUT}|figure\s+out|add\s+up|multiply|divide|subtract)\b`, "i"),
+  new RegExp(String.raw`\b(?:add|take away)\s+${NUMBER}`, "i"),
+  // 9. Recompute asks, in a Check prompt or in what a pass demands ("redo the arithmetic", "correct notch counts").
+  /\b(?:re-?comput\w*|redo the (?:arithmetic|sums?|maths?|calculations?)|do the (?:arithmetic|sums?|maths?)|(?:correct|right) notch counts?)\b/i,
+  // 3. "what's ... worth", within 60 characters.
+  /\bwhat(?:['’]s|\s+is|\s+was|\s+would|\s+will)\b[^.?!]{0,60}?\bworth\b/i,
+  // 4. Arithmetic between numbers (a bare x needs a space on both sides). One unit word may sit after the first number.
+  new RegExp(String.raw`${NUMBER}(?:\s+[a-z]+)?\s*(?:×|\*|÷|\/|\+|−|\s+x\s+|\btimes\b|\bplus\b|\bminus\b|\bdivided by\b|\bmultiplied by\b)\s*${NUMBER}`, "i"),
+  // 5. Conversion asks.
+  new RegExp(String.raw`\b(?:what is|convert|turn)\s+${NUMBER}[^.?!]*?\b(?:in|into)\s+(?:basis points|bps|points|percent|rupees|dollars)\b`, "i"),
+  // 6. Rounding asks.
+  /\bto\s+(?:\w+)\s+decimal\s+places?\b/i,
+  // 7. Change asks.
+  /\b(?:percent change|growth rate|return|ratio|margin)\b[^.?!]*\bfrom\b[^.?!]*\d[^.?!]*\bto\b[^.?!]*\d/i,
+  // 10. "What is the move from 6% to 6.5%?": a question for the size of a change between two numbers. "What do traders
+  // call the move from 6% to 6.5%?" asks for a name and is left alone.
+  /\bwhat(?:['’]s|\s+is|\s+was|\s+would\s+be|\s+will\s+be)\s+(?:the\s+)?(?:size\s+of\s+the\s+)?(?:move|change|rise|fall|jump|drop|gap|cut|hike|increase|decrease)\b[^.?!]*\bfrom\b[^.?!]*\d[^.?!]*\bto\b[^.?!]*\d/i,
+  // 11. "What is 1% of 5000?", "What would 10% of that be?": a share of something, asked as a figure.
+  new RegExp(String.raw`\bwhat(?:['’]s|\s+is|\s+was|\s+would|\s+will|\s+are)\s+(?:be\s+)?${NUMBER}%\s+of\b`, "i"),
+  // 12. "What do you owe after 2 years at 10%?": an amount owed, earned or paid over a time or at a rate.
+  new RegExp(String.raw`\bwhat\s+(?:do|does|did|would|will|should)\s+(?:you|they|we|it|he|she|i|the\s+\w+)\s+(?:owe|earn|get|pay|make|save|have|end\s+up\s+with)\b[^.?!]*\b(?:after|over|at)\s+${NUMBER}`, "i"),
+  // 13. "So 2 lakh at 5% earns what?": a number, then a money verb, then "what".
+  new RegExp(String.raw`${NUMBER}[^.?!]{0,60}?\b(?:earns?|grows?(?:\s+to)?|makes?|gives?|becomes?|pays?|owes?|comes?\s+to|adds?\s+up\s+to|is\s+worth)\s+what\b`, "i"),
+];
+
+const ASKED = String.raw`\bwhat(?:['’]s|\s+is|\s+was|\s+are|\s+were|\s+would\s+be|\s+will\s+be)\s+`;
+const FIGURE = String.raw`(?:present value|future value|margin|ratio|premium|cost of (?:equity|debt|capital)|revenue|difference|npa|rate|yield|total|average|payment|price|value|return|profit|loss|growth|spread|duration)\b`;
+
+/**
+ * "What is its operating margin?", "What is the present value of $5,000 ...?", "What was its revenue for the twelve
+ * months ...?": a question for a figure that has to be worked out. Only a sum when the text itself carries a number, so
+ * "What is the present value of a payment?" (a words question) is left alone.
+ */
+const QUANTITY_ASK = new RegExp(String.raw`${ASKED}(?:the\s+|its\s+|their\s+|that\s+|this\s+)?(?:[\w$%.,/-]+\s+){0,5}?${FIGURE}`, "i");
+const HAS_NUMBER = /\d/;
+
+/**
+ * The narrower pattern 8 used when only the message around the ask gives numbers: the ask names a figure of something
+ * ("its margin", "the margin here", "Infosys's revenue", "the difference between its revenue and its costs") and ends
+ * on it. A story or words question that only mentions a figure word ("What is the main reason the price fell?", "What
+ * is the big risk to their profit?", "What is the present value of a payment?", "What is yield?") is left alone.
+ */
+const OWNER = String.raw`(?:the|its|their|his|her|our|that|this|these|those|(?!(?:what|it|that|there|here|let|who|where|how|he|she)['’]s\b)\w+['’]s)`;
+const LINK_WORD = String.raw`(?:of|to|about|for|in|on|from|with|behind|by|at|between|than|into|over|under|and|or|but|the|a|an)`;
+const FIGURE_ASK = new RegExp(
+  String.raw`${ASKED}${OWNER}\s+(?:(?!${LINK_WORD}\b)[\w$%.,/-]+\s+){0,2}?${FIGURE}(?=(?:\s+(?:here|now|then|there|today|overall|in total))?\s*\?|\s+between\b)`,
+  "i",
+);
+
+/**
+ * A lingo ask names a word rather than a figure: "What is a yield?", "What does the yield mean?", "What is the difference
+ * between the repo rate and the reverse repo rate?". It points at nothing in the story ("its", "their", "Infosys's"), so
+ * numbers elsewhere in the message don't turn it into a sum. Only used when the context, not the ask, gives the numbers.
+ */
+const DEFINITION_ASK = /\bwhat(?:['’]s|\s+is|\s+are)\s+an?\s|\bwhat\s+(?:does|do)\b[^.?!]*\bmean\b|\bdifference\s+between\b/i;
+const STORY_REFERENCE = /\b(?:its|their|his|her|our)\b|\b(?!(?:what|it|that|there|here|let|who|where|how|he|she)['’]s\b)\w+['’]s\b/i;
+const lingoAsk = (sentence: string) => DEFINITION_ASK.test(sentence) && !STORY_REFERENCE.test(sentence);
+
+const HOW_MANY = /\bhow\s+(?:much|many)\b/i;
+
+/**
+ * What the text sits in. `numbers`: the message around it gives numbers to work from (V8 passes the ask's own line and
+ * the line above), even if `text` itself has none.
+ */
+export type SumAskContext = { numbers?: boolean };
+
+/**
+ * The phrase that makes `text` ask for a sum, or null when it asks a story or lingo question. V8 reads a reply one ask
+ * sentence at a time, so it passes `{ numbers: true }` when the statements beside the ask give numbers ("Infosys earned ₹30
+ * on ₹100 of sales. What is its margin?"): pattern 8 then fires on an ask that names a figure of something and ends on
+ * it (FIGURE_ASK), unless the ask is lingo ("What is a yield?").
+ */
+export function sumAsk(text: string, context: SumAskContext = {}): string | null {
+  for (const pattern of ANYWHERE) {
+    const hit = pattern.exec(text);
+    if (hit) return hit[0];
+  }
+  // 2. "how much" and "how many", but only in a sentence that has a digit, a currency sign or a unit word.
+  for (const sentence of text.split(/(?<=[.?!])\s+/)) {
+    const hit = HOW_MANY.exec(sentence);
+    if (hit && UNIT_WORD.test(sentence)) return hit[0];
+  }
+  // 8. A question for a figure ("What is its operating margin?") in text, or a message, that gives numbers to work it out from.
+  // When only the message gives the numbers, a lingo ask ("What is a yield?") stays a lingo ask, and the ask must name a
+  // figure of something and end on it (FIGURE_ASK), so a story question that mentions "price" or "rate" is left alone.
+  const ownNumbers = HAS_NUMBER.test(text);
+  if (context.numbers || ownNumbers) {
+    for (const sentence of text.split(/(?<=[.?!])\s+/)) {
+      if (!sentence.includes("?")) continue;
+      if (!ownNumbers && lingoAsk(sentence)) continue;
+      const hit = (ownNumbers ? QUANTITY_ASK : FIGURE_ASK).exec(sentence);
+      if (hit) return hit[0];
+    }
+  }
+  return null;
+}

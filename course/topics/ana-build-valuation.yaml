@@ -1,0 +1,344 @@
+# Analyse: build a valuation as of a past date, taught through two Cases: Amazon.com in February 2000
+# and, as a lesser-known company, Webvan at its share offering on 4 November 1999.
+# The Learner chooses the inputs, values the firm, and only then sees the other inputs and what happened.
+# No Case Data: every figure is stated in the stories; see docs/architecture.md.
+# Case sources (checked):
+#  - Amazon: Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, pages 31-34: inputs and output; valuation done February 2000); Amazon.com Form 10-K405 for 2000 (net sales, operating loss and quarterly share prices).
+#  - Webvan story (checked 2 Nov 2026): Webvan Group Form 424B1 prospectus dated 4 November 1999 (SEC accession 0000891618-99-004914, filed 5 Nov 1999): offer, shares, options, cash, loans, plan, capacity, the company's $300m / 12% / 4% claims, Forrester and sales figures. 10-year Treasury 5.95% on 4 Nov 1999: Federal Reserve H.15 release of 8 Nov 1999. 35% marginal rate: top federal corporate rate for 1999 (IRS Publication 542 table, Tax Policy Center).
+#  - Webvan reveal: the prospectus (Goldman Sachs projections, Goldman affiliates' $100.0m of Series D-2); New York Times 6 Nov 1999 (first-day close $24.875, $7.9bn); Form 10-K405 for 1999 (0000891618-00-001877); Form 10-K for 2000 (0001012870-01-001485: results, HomeGrocer merger on 5 Sep 2000, share prices); Form 10-Q for Q1 2001 (0001012870-01-500862); closure on 9 Jul 2001: Los Angeles Times 10 Jul 2001, CNET, BBC; Form 8-K of 27 Jul 2001 (0001021408-01-504054): Chapter 11 petition filed 13 Jul 2001, not 9 Jul.
+id: ana-build-valuation
+title: "Analyse: build a valuation as of a past date"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Here you value a company yourself as of a past date: write your story's inputs down first, then compare the value with the price."
+
+cases:
+  - id: amazon-2000-analyse
+    title: Build your own value for Amazon.com
+    asOf: 2000-02-01
+    story: >
+      It is February 2000. Amazon.com, the online retailer, trades on the Nasdaq at $84 a share.
+      You will build your own discounted cash flow valuation from what was public then. Revenue
+      for the twelve months to September 1999 was $1,117 million, with an operating loss of $410
+      million, a margin of about -36.7%. In 1998 revenue was $610 million and the loss from
+      operations $109 million (Amazon's 10-K405; the net loss was $125 million). The firm has $26 million of cash and $349 million of debt, about 341 million
+      shares, and employees hold about 38 million options with an exercise price of $13.375. The
+      Treasury bond yield is 6.5% and the marginal tax rate is 35%. Established specialty
+      retailers earn an operating margin of about 10%. Amazon spends on warehouses and systems as
+      it grows; assume it needs about $1 of new capital for every $3 of added revenue. Choose
+      your own path for ten years: how fast revenue grows, when the margin turns positive and
+      where it settles, what rate you discount at, and what stable growth rate you use after year
+      10. Write your inputs down first, as a story in words. The dcf calculator does the sums: it
+      follows the cash the business would free up each year into a value per share, taking cash,
+      debt and the options into account, so no figure is done by hand. Which of your beliefs moves
+      the value most, and what would you have to believe for $84 to be a fair price?
+      (You are valuing the firm as of February 2000 only. Do not try to say what happens next.)
+    reveal: >
+      Aswath Damodaran, a professor at New York University's Stern School of Business, valued
+      Amazon in February 2000 with a paper dated March 2000. He grew revenue 150%, 100%, 75%, 50%
+      and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6% in years 6 to 10, which
+      takes revenue to $39,006 million in year 10. His operating margin rose from -13.35% in year
+      1 to -1.68%, 4.16%, 7.08%, 8.54%, 9.27%, 9.64%, 9.82%, 9.91% and 9.95% in year 10. He
+      assumed $1 of capital for every $3 of added revenue, taxes of 0% in years 1 to 3, 16.13% in
+      year 4 and 35% after, and a cost of capital of 12.84% falling to 9.61% by year 10 as beta
+      fell towards 1. Stable growth was 6% after year 10. His result was $35.08 a share, against
+      $84, after subtracting $2,892 million for the options. What happened: in 2000 Amazon's net
+      sales were $2,762 million, close to his year-1 figure of about $2,793 million, but its
+      operating loss was $864 million, a margin of about -31%, far below his -13.35% for year 1.
+      The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and
+      $14.88 in the fourth quarter (Amazon's 10-K405 for 2000). Compare your own inputs with his:
+      his revenue path was one many could accept, but the whole value rested on the margin
+      reaching about 10% and on the discount rate falling. Your value, his value and the price are
+      three estimates of one firm, and the gaps between them come from stated inputs that can be
+      examined. The price falling does not prove either valuation right: a value and a price are
+      compared as questions.
+
+  - id: webvan-1999-analyse
+    title: Build your own value for Webvan at its public offering
+    asOf: 1999-11-04
+    story: >
+      It is the evening of Thursday 4 November 1999. Webvan Group, which delivers groceries ordered on
+      the internet, has priced its first sale of shares to the public: 25 million new shares at $15.00,
+      with an option for the underwriters to buy up to 3.75 million more. You will build your own
+      discounted cash flow valuation from what its prospectus, dated today, says. Webvan launched on 2
+      June 1999 with one automated distribution centre, in Oakland, designed for 8,000 orders a day. It
+      runs five days a week at under 20% of designed capacity. Net sales were about $3.8 million in the
+      three months to September, with an average order of about $71 since the launch. The net loss was
+      $35.1 million in the first half of 1999, and Webvan expects a net loss of $64 million to $65
+      million for the third quarter alone, including about $41.1 million of compensation expense (a
+      bonus and stock-based compensation). The company says a centre at designed capacity, seven days a
+      week with an average order of $103, would sell about $300 million a year and earn an operating
+      margin of 12%, against 4% for a traditional supermarket. It adds that the success of its system at
+      high volumes "has yet to be proven" and that no centre is expected to reach designed capacity for
+      several years. It plans a second centre in Atlanta in the second quarter of 2000, then two in 2000
+      and seven in 2001 under a July 1999 agreement with the engineering firm Bechtel to build up to 26
+      more over three years, at an estimated $25 million to $35 million each, with no firm commitment to
+      build them all. Forrester Research expects online grocery sales in the US to grow from $235
+      million in 1998 to $10.8 billion in 2003, about 2% of the grocery market. After the offering there
+      will be 321.8 million shares, and options on 67.5 million shares (average exercise price $3.88)
+      are outstanding. Cash was $21.8 million at 30 June 1999; counting the $275.0 million raised from
+      investors in July and August and about $350.5 million from this offering after fees, it is $647.2
+      million, plus $22.2 million of marketable securities. Loans and leases were about $18 million. The
+      10-year Treasury yield is 5.95% and the marginal tax rate is 35%. Choose your own path for ten
+      years: how many centres open and when, how full each one gets and how fast, the average order,
+      where the operating margin settles, the discount rate, and the stable growth rate after year 10.
+      Write your inputs down first, as a story in words. The dcf calculator does the sums: it follows
+      the cash the business would free up each year into a value per share, allowing for the cash,
+      debt and options, so no figure is done by hand. Which of your beliefs moves the value most, and
+      what would you have to believe for $15 to be a fair price? (You are valuing the firm as of November 1999 only. Do not try to say what happens next.)
+    reveal: >
+      The prospectus carried one outside view: Goldman Sachs, the lead underwriter, had told prospective
+      investors on a conference call that it projected revenue of $11.9 million and a net loss of $73.8
+      million for 1999, $120.0 million and $154.3 million for 2000, and $518.2 million and $302 million
+      for 2001, not counting stock compensation. Affiliates of Goldman had also bought $100.0 million of
+      the July preferred stock. On 5 November the shares closed at $24.875, 65% above the offer price,
+      valuing Webvan at $7.9 billion. The underwriters took their option in full, so Webvan sold 28.75
+      million shares, raising $431.3 million, or $402.6 million after costs, against the $350.5 million
+      expected. In 1999 net sales were $13.3 million and the net loss $144.6 million; at the end of the
+      year Oakland was at less than 25% of designed capacity and the average order for the year was
+      $77.65. In 2000 Webvan added centres in Atlanta and Chicago and on 5 September merged with
+      HomeGrocer. Net sales were $178.5 million ($55.6 million of it from HomeGrocer) and the net loss
+      $453.3 million. The average order was $104 for the year, so the order size the plan needed was
+      reached. But the annual report said no facility operated at or near designed capacity and none had
+      become profitable on a cash-flow basis, both of which the prospectus had said it could not assure.
+      Capital spending was $259.8 million and operations used $263.1 million of cash, and its auditors
+      expressed substantial doubt about its ability to continue. The shares traded between $2.28 and
+      $0.28 in the fourth quarter of 2000. On 9 July 2001, with the shares at 6 cents, Webvan ceased
+      operations in all seven of its markets, let go about 2,000 employees and said it would file for
+      Chapter 11 protection, which it did on 13 July. Compare your inputs with the company's and the
+      underwriter's, input by input: the order size was reached, but the fill rate and the margin the
+      plan needed were not. Your value, the company's claims, the underwriter's projections and the
+      price were four estimates of one firm, and the later failure does not by itself show which was
+      right on 4 November 1999: a value and a price are compared as questions.
+    # The same valuation as Case webvan-centre-npv-2000, whose block holds the figures and their sources (spec C2).
+    valuationFrom: webvan-centre-npv-2000
+
+  # A third Case, for Spine Topic 15 (spec C4): Zomato's IPO in rupees. Facts from docs/research/verify-zomato-2021.json;
+  # the outline keeps the Case verified: false until the owner checks it the usual way (spec C4).
+  - id: zomato-ipo-2021
+    title: "Zomato's IPO, valued in rupees"
+    asOf: 2021-07-21
+    story: >
+      It is 21 July 2021. Zomato, the Indian food-delivery company, has just sold shares to the public
+      for the first time, at Rs 76 a share (the price band was Rs 72 to Rs 76). It raised Rs 9,000 crore
+      of new money for the company, and Info Edge, an early investor, sold Rs 375 crore of its own
+      shares. The bids came to about 40 times the shares on offer. The prospectus of 19 July showed
+      revenue of Rs 19,937.89 million for the year to March 2021, down from Rs 26,047.37 million the
+      year before, when the pandemic shut restaurants, and a loss of Rs 8,164.28 million. Customers
+      ordered Rs 94,828.7 million of food through the app in the year (the gross order value), and
+      Zomato kept about 21 percent of it as revenue. Indian food delivery was a market of about
+      Rs 225,000 million in 2020, and Zomato had about 42 percent of it. After the offer there were
+      about 7,845 million shares. The shares start trading on 23 July. What would you have to believe
+      about the market, Zomato's share of it, the slice it keeps and its margin for Rs 76 to be a fair
+      price? (You are valuing the firm as of 21 July 2021 only. Do not try to say what happens next.)
+    reveal: >
+      Aswath Damodaran valued Zomato on 21 July 2021 (his post went up on 22 July) at Rs 40.79 a
+      share, about Rs 41, and called the stock too expensive at its offer price. His story: the food
+      delivery market grows 50 percent next year and 30 percent a year for four years after; Zomato
+      holds 40 percent of it and keeps 22 percent of what customers spend; its operating margin rises
+      to 35 percent by year 8; it needs Rs 1 of capital for each Rs 5 of added revenue next year, then
+      each Rs 2.5 and then each Rs 3; and there is a 10 percent chance it fails, in which case half the
+      value is recovered. The shares listed on 23 July at Rs 115 on the BSE, rose as high as Rs 138
+      and closed at Rs 125.85, up 65.6 percent, and reached a record Rs 169 on 16 November 2021. When
+      the lock-in on pre-IPO shares ended in July 2022 the stock fell to a low of Rs 40.55, and with
+      the price at Rs 41.65 Damodaran revalued it at Rs 35.32 a share, mostly because the rupee cost of
+      capital had risen. A price can run far ahead of a value and then come back to it; neither the
+      run-up nor the fall proves a valuation right.
+    valuation:
+      currency: INR
+      unit: millions
+      baseRevenue: 19937.89
+      growthPercent: [55.3563, 28.6625, 28.6485, 28.6344, 28.6199, 24.85, 19.7, 14.55, 9.4, 4.25]
+      margin:
+        marginPercent: [-10, 1.25, 6.875, 12.5, 18.125, 20.2256, 27.6128, 35, 35, 35]
+        afterPercent: 35
+      taxPercent: 30
+      lossesCarried: 0
+      salesToCapital: 5
+      salesToCapitalByYear: [5, 2.5, 2.5, 2.5, 3, 3, 3, 3, 3, 3]
+      costOfCapitalPercent: [10.2525, 10.2525, 10.2525, 10.2525, 10.2525, 9.996, 9.7395, 9.483, 9.2265, 8.97]
+      growthAfterPercent: 4.25
+      returnOnCapitalAfterPercent: 12
+      cash: 135959.7
+      debt: 1591.72
+      options: 73244.53
+      shares: 7946.68
+      per: share
+      failure:
+        chancePercent: 10
+        recovered: 138424.65
+        recoveredPercentOfValue: 50
+      price:
+        value: 76
+        date: 2021-07-19
+        note: Final offer price (price band Rs 72-76), prospectus dated 19 July 2021; shares first traded 23 July 2021. Damodaran's sheet used Rs 70 as 'Current stock price' (B21) and his post quotes 72-75.
+      published:
+        valuePerShare: 40.79
+        fcff: [-5304.86, -3053.09, -1319.74, -101.64, 4470.62, 7967.57, 17548.64, 29429.07, 34371.6, 38325.23]
+        note: "Damodaran, 'The Zomato IPO: A Bet on Big Markets and Platforms!' (blog dated 22 Jul 2021; he dates the valuation 21 Jul 2021 in his 2022 update). Spreadsheet ZomatoIPO.xlsx and the summary image in the post both show Rs 40.79 a share; text says 'value per share of 41 INR'. The B1 rules with the explicit arrays above return Rs 40.788 and every FCFF to the rupee-million cent."
+      notes:
+        - "Author varied it by year: 5 in year 1, 2.5 in years 2-4, 3 in years 5-10 ('Valuation output'!C43:L43; G43 = 'Input sheet'!B35). His input labels say 'years 2-5' = 2.5 and the summary image shows 2.50 under 'Years 2-5', but year 5 uses 3."
+        - "Damodaran's '+ Cash & Other Non-operating assets' line: cash and marketable securities 15,332.03 + IPO proceeds staying in the firm 90,000 + cross holdings / non-operating assets 30,627.67."
+        - "Damodaran's '- Debt & Minority Interests' line: book debt 1,534.63 + minority interests 57.09. No lease or R&D capitalisation."
+        - Black-Scholes (dilution-adjusted) value of 1,075.18 million employee options, strike 2, maturity 5 years, volatility 50%, at a stock price of 70 ('Option value'!D27).
+        - 6,660.97 million pre-IPO shares + 90,000 / 70 = 1,285.71 million new shares; Damodaran priced the fresh issue at Rs 70, not the final Rs 76 (at Rs 76 the prospectus count after the offer is 7,845.18 million).
+        - "Failure recovers 50% of the going-concern value, as his sheet ties it (Input sheet B56 = V, B57 = 0.5): Rs 138,424.65m at his own story, worked out afresh when a lever moves the story."
+      sources:
+        - title: "Aswath Damodaran, 'The Zomato IPO: A Bet on Big Markets and Platforms!', Musings on Markets, 22 Jul 2021"
+          url: https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html
+        - title: Damodaran, Zomato IPO valuation spreadsheet (ZomatoIPO.xlsx)
+          url: https://pages.stern.nyu.edu/~adamodar/pc/blog/ZomatoIPO.xlsx
+        - title: Damodaran, 'A DIY (Do-It-Yourself) Valuation of Zomato', 2 Aug 2021
+          url: https://aswathdamodaran.blogspot.com/2021/08/a-diy-do-it-yourse-valuation-of-zomato.html
+        - title: "Damodaran, 'A Zomato 2022 Update: Price, Value and the Gap!', 27 Jul 2022"
+          url: https://aswathdamodaran.substack.com/p/a-zomato-2022-update-price-value
+        - title: Zomato Limited, Prospectus dated 19 July 2021 (copy hosted by book-running lead manager Morgan Stanley)
+          url: https://www.morganstanley.com/content/dam/msdotcom/en/indiaofferdocuments/pdfs/Zomato_Limited_Prospectus.pdf
+        - title: Zomato Limited, Basis of Allotment advertisement, NSE archive, 22 Jul 2021
+          url: https://nsearchives.nseindia.com/corporate/ADV_INE758T01015_22JUL2021.pdf
+      reproduces: true
+
+concept: >
+  Building a valuation as of a past date means fixing the date, using only what was known then,
+  and writing every input down before computing. For a young company, set out four things: the
+  revenue path (growth fading year by year to a stable rate; or, when growth comes from opening
+  units such as distribution centres, built from the units: how many open each year, how full
+  each one gets and how fast, and what a full one sells), the operating margin path (from
+  today's margin towards what mature firms in the business earn; a company's own claim about its
+  mature margin is an input to test against that, not a fact), the reinvestment needed (new
+  revenue divided by sales-to-capital gives new capital spending; for units, what each costs to
+  build), and the discount rate (the cost of capital, which can fall as the firm matures and its
+  beta moves towards 1). Free cash flow to the firm each year = operating income x (1 - tax
+  rate) - reinvestment. Tax is zero while there are losses to carry forward. Terminal value =
+  free cash flow in year 11 / (cost of capital - stable growth), and stable growth should not
+  exceed the risk-free rate, or the firm would outgrow the economy for ever. Operating value +
+  cash - debt = value of equity; if the firm is selling new shares as of the valuation date,
+  count the cash it raises and the new shares. Subtract the value of employee options before
+  dividing by the shares: an option is worth at least the amount by which the value per share
+  exceeds its exercise price, so many low-priced options take a large part of the value. The
+  `dcf` calculator takes one flat discount rate, so use it for a quick version of the valuation
+  and say that a rate that falls over time will raise the value a little. Then compare the result
+  with the price as a question and with a second analyst's inputs, input by input, rather than
+  only the final numbers. Run sensitivity tests on the margin, the growth rate (or, for units,
+  how full they get) and the cost of capital, and say which one moves the value most. The valuation is practised on a past date only: do not forecast, and do
+  not turn a value into a buy, sell or hold call.
+
+principle: >
+  Write the inputs down before computing, test the ones that drive the value (including any claim
+  the company makes about its own margin or capacity), and compare your value with the price and
+  with other analysts' inputs as questions, never as verdicts.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Build a valuation as of a past date using only what was known then."
+  - "Write every input down before computing: revenue, margin, reinvestment and discount rate."
+  - "Find which input moves the value most with sensitivity tests."
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: abv-q-revenue
+    prompt: >
+      An analyst gives a young firm three years of fast growth, a little slower each year. How does the second and third year's growth work?
+    choices:
+      - { id: a, text: "Each year grows from where the year before ended, so the growth compounds" }
+      - { id: b, text: "The three growth rates are added into one and applied to the starting revenue", mistake: { tag: added_growth_rates, fix: "Each year grows from a bigger base, so growth compounds. Adding the rates undercounts." } }
+      - { id: c, text: "Only the last year's growth matters for year 3", mistake: { tag: used_last_growth_only, fix: "Year 3 starts where year 2 ended, so all three years of growth count." } }
+      - { id: d, text: "Growth cannot be set until the margin is chosen", mistake: { tag: margin_before_revenue, fix: "Revenue comes first. The growth path builds it, and the margin is applied to it." } }
+    answer: a
+    explanation: >
+      Growth compounds: each year starts from the bigger revenue the year before left behind. Adding the rates up and applying them to the start would undercount the path.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems (compound growth): https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: abv-q-reinvest
+    prompt: >
+      A firm assumes a sales-to-capital ratio of 3. Its revenue rises. Which sentence describes its reinvestment that year?
+    choices:
+      - { id: a, text: "A third of the added revenue is needed as new capital" }
+      - { id: b, text: "All of the added revenue is put back into the firm", mistake: { tag: all_of_the_added_revenue_is, fix: "Added revenue is not spent in full. Only a third of it is needed as new capital." } }
+      - { id: c, text: "Three times the added revenue is needed as new capital", mistake: { tag: three_times_the_added_revenu, fix: "The ratio is sales per dollar of capital: $3 of sales needs $1 of capital, not the reverse." } }
+      - { id: d, text: "A third of all the revenue the firm has after the rise", mistake: { tag: a_third_of_all_the_revenue_t, fix: "Only the added revenue needs new capital, not the revenue the firm already had." } }
+    answer: a
+    explanation: >
+      Reinvestment is the added revenue divided by the sales-to-capital ratio. With a ratio of 3, that is a third of the added revenue. It is subtracted from after-tax operating income to give free cash flow.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where reinvestment is set by a sales-to-capital ratio of 3.0: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+  - id: abv-q-terminal-share
+    prompt: >
+      In a valuation of a young company, most of the operating value comes from the terminal value, beyond year 10. What does a high terminal share tell the judge?
+    choices:
+      - { id: a, text: "The stable-growth and margin assumptions deserve the most testing" }
+      - { id: b, text: "The ten forecast years are now certain", mistake: { tag: the_ten_forecast_years_are_n, fix: "A big terminal share means the opposite: the later, less certain years carry the value." } }
+      - { id: c, text: "The company has already matured", mistake: { tag: the_company_has_already_matu, fix: "A young company with most of its value late is far from mature." } }
+      - { id: d, text: "The valuation must be wrong", mistake: { tag: the_valuation_must_be_wrong, fix: "A high share is a signal to test, not proof of an error." } }
+    answer: a
+    explanation: >
+      When most of the value sits beyond year 10, the stable-growth and margin assumptions drive the result, so they deserve the most testing. It is a prompt to test, not proof of an error.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+  - id: abv-q-options
+    prompt: >
+      A valuation gives a young firm's operating assets. The firm holds cash, owes debt and has employee options outstanding. Which sentence describes the path to the value per share that belongs to its shareholders?
+    choices:
+      - { id: a, text: "Start from the operating assets, add the cash, take off the debt and the options, then share the rest among the shares" }
+      - { id: b, text: "The same, but leave the employee options out", mistake: { tag: the_same_but_leave_the_emplo, fix: "Options are a claim on shareholders' value too, so they come off before sharing it out." } }
+      - { id: c, text: "Take the operating assets alone and share them among the shares", mistake: { tag: take_the_operating_assets_al, fix: "Cash adds to the equity and debt takes from it, so operating assets alone is not equity." } }
+      - { id: d, text: "The same, but add the options instead of taking them off", mistake: { tag: the_same_but_add_the_options, fix: "Options are a claim on shareholders, so they are taken off the value, not added." } }
+    answer: a
+    explanation: >
+      Equity is the operating assets plus cash less debt. The value of the employee options then comes off before dividing by the shares, because options are a claim on shareholders' value.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), pages 31-34 (the bridge from operating value to value per share, with options subtracted): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+  - id: abv-q-stable-growth
+    prompt: >
+      An analyst lets a young firm grow for ever after year 10 at a "stable" rate above the Treasury bond yield. Why do valuers push back?
+    choices:
+      - { id: a, text: "Growing faster than the economy for ever, the firm would one day be bigger than the economy" }
+      - { id: b, text: "Growth after year 10 never changes the value", mistake: { tag: late_growth_irrelevant, fix: "Most of a young firm's value sits after year 10, so that growth matters a lot." } }
+      - { id: c, text: "No firm is allowed to grow after year 10", mistake: { tag: no_growth_after_year_ten, fix: "Firms can keep growing. The limit is on growing faster than the economy for ever." } }
+      - { id: d, text: "The Treasury yield caps the firm's profit margin, not its growth", mistake: { tag: yield_caps_margin, fix: "The yield is a rough ceiling for the economy's growth, not for any margin." } }
+    answer: a
+    explanation: >
+      The risk-free rate is a rough ceiling for the long-run nominal growth of the economy, so a stable growth rate above it implies the firm eventually becomes larger than the economy.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where stable growth is capped by the Treasury bond yield: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+checks:
+  - id: abv-quiz-build
+    kind: quiz
+    questions:
+      - abv-q-revenue
+      - abv-q-reinvest
+      - abv-q-terminal-share
+      - abv-q-options
+      - abv-q-stable-growth
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: abv-build-explain
+    kind: conversation
+    prompt: >
+      It is February 2000 and Amazon trades at $84. Tell your story in a few lines: how big does it
+      get, how profitable, how risky? Which belief matters most? (The dcf calculator does the sums
+      if you want a number.)
+    passCriteria: >
+      The Learner tells a story in words before any number: growth that fades, a margin that
+      improves towards what mature firms earn, and a view of risk. They name the belief that moves
+      the value most (usually the long-run margin or the risk) and say what would change if it
+      were different. Any number comes from the dcf calculator; no arithmetic is asked of the
+      Learner. They treat the gap with the price as a question, not proof that the price is wrong,
+      and make no forecast of the share price and no buy, sell or hold call.
+  - id: abv-build-webvan
+    kind: conversation
+    prompt: >
+      It is 4 November 1999 and Webvan has priced its shares at $15. Tell your story in a few lines:
+      how fast do its distribution centres fill up, and does it earn like a supermarket or better? What would you have
+      to believe for $15 to be fair?
+    passCriteria: >
+      The Learner tells a story in words before any number: how quickly the distribution centres
+      open and fill (starting well below full, not at full capacity), and whether the margin looks
+      more like a supermarket's 4% or the company's hoped-for 12%. They name the belief that moves
+      the value most (usually how full the centres get or the long-run margin) and say what you
+      would have to believe for $15 to be fair. They note in words that the employee options are a
+      claim on shareholders. Any number comes from the dcf calculator; no arithmetic is asked of
+      the Learner. They treat the gap with the offer price as a question, not proof that the price
+      is wrong, and make no forecast of the share price and no buy, sell or hold call.

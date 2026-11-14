@@ -1,0 +1,4 @@
+DELETE FROM "insight_attempts" a USING "insight_attempts" b WHERE a.released IN ('found', 'told') AND b.released IN ('found', 'told') AND a.topic_id = b.topic_id AND a.id > b.id;--> statement-breakpoint
+DELETE FROM "note_items" a USING "note_items" b WHERE a.kind <> 'line' AND b.kind <> 'line' AND a.topic_id = b.topic_id AND a.kind = b.kind AND coalesce(a.session_id, -1) = coalesce(b.session_id, -1) AND coalesce(a.turn_seq, -1) = coalesce(b.turn_seq, -1) AND coalesce(a.widget_index, -99) = coalesce(b.widget_index, -99) AND a.id > b.id;--> statement-breakpoint
+CREATE UNIQUE INDEX "insight_attempts_settled_once" ON "insight_attempts" USING btree ("topic_id") WHERE "insight_attempts"."released" in ('found', 'told');--> statement-breakpoint
+CREATE UNIQUE INDEX "note_items_saved_once" ON "note_items" USING btree ("topic_id","kind",coalesce("session_id", -1),coalesce("turn_seq", -1),coalesce("widget_index", -99)) WHERE "note_items"."kind" <> 'line';

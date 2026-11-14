@@ -1,0 +1,122 @@
+[
+  {
+    "id": "D01",
+    "topic": "num-percent-bps",
+    "step": "story",
+    "message": "what even is a basis point lol"
+  },
+  {
+    "id": "D02",
+    "topic": "num-percent-bps",
+    "step": "concept",
+    "message": "why did the bank change the rate"
+  },
+  {
+    "id": "D03",
+    "topic": "num-percent-bps",
+    "step": "concept",
+    "message": "show me"
+  },
+  {
+    "id": "D04",
+    "topic": "num-percent-bps",
+    "step": "your_turn",
+    "message": "is this like my credit card?"
+  },
+  {
+    "id": "D05",
+    "topic": "num-percent-bps",
+    "step": "check",
+    "message": "just tell me the answer pls"
+  },
+  {
+    "id": "D06",
+    "topic": "num-compounding",
+    "step": "story",
+    "message": "explain like I'm 5"
+  },
+  {
+    "id": "D07",
+    "topic": "num-compounding",
+    "step": "concept",
+    "message": "why does money grow faster later on"
+  },
+  {
+    "id": "D08",
+    "topic": "num-compounding",
+    "step": "concept",
+    "message": "my dad keeps saying CAGR, what is that"
+  },
+  {
+    "id": "D09",
+    "topic": "num-compounding",
+    "step": "your_turn",
+    "message": "quiz me but make it fun"
+  },
+  {
+    "id": "D10",
+    "topic": "num-compounding",
+    "step": "reveal",
+    "message": "wait did people lose money in 1992??"
+  },
+  {
+    "id": "D11",
+    "topic": "num-probability",
+    "step": "story",
+    "message": "who even were these LTCM guys"
+  },
+  {
+    "id": "D12",
+    "topic": "num-probability",
+    "step": "concept",
+    "message": "what's expected value in normal words"
+  },
+  {
+    "id": "D13",
+    "topic": "num-probability",
+    "step": "concept",
+    "message": "so is this basically gambling"
+  },
+  {
+    "id": "D14",
+    "topic": "num-probability",
+    "step": "concept",
+    "message": "show me something cool"
+  },
+  {
+    "id": "D15",
+    "topic": "num-probability",
+    "step": "concept",
+    "message": "my friend says crypto is 50/50, is that how odds work"
+  },
+  {
+    "id": "D16",
+    "topic": "present-value",
+    "step": "story",
+    "message": "wait you can take the lottery all at once??"
+  },
+  {
+    "id": "D17",
+    "topic": "present-value",
+    "step": "concept",
+    "message": "why is money today worth more than later"
+  },
+  {
+    "id": "D18",
+    "topic": "present-value",
+    "step": "concept",
+    "message": "ok this is boring, make it a story"
+  },
+  {
+    "id": "D19",
+    "topic": "present-value",
+    "step": "your_turn",
+    "message": "is the annuity like getting pocket money every month?"
+  },
+  {
+    "id": "D20",
+    "topic": "present-value",
+    "step": "principle",
+    "message": "how does this touch my life"
+  }
+]

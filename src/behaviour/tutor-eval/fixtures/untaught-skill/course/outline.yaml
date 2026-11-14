@@ -1,0 +1,15 @@
+# Fixture for the tutor eval case T8: a one-Topic Course Map laid out like the repo's course/ folder.
+# Its Topic has a Check that tests a Skill no Concept card teaches, so `npm run course:check` run here must fail on L1.
+topics:
+  - id: untaught-demo
+    title: "Percent, points and basis points"
+    stage: foundation
+    subject: "Numbers & time value"
+    prerequisites: []
+    cases:
+      - title: "The Fed's first rise of 1994"
+        asOf: 1994-02-03
+        outcome: "On 4 February 1994 the Fed raised its target from 3% to 3.25%."
+        sources:
+          - https://www.federalreserve.gov/fomc/19940204default.htm
+        verified: true

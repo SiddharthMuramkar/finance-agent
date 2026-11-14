@@ -1,0 +1,305 @@
+{
+  "source": "Tutor replies that came with no Tutor Widget, from the live tutor-eval runs of ticket D3b (6 November 2026, runs 1 and 2, the eval test Learner). Text, Topic and step only: no Learner data.",
+  "replies": [
+    {
+      "id": "R01",
+      "topic": "num-probability",
+      "step": "story",
+      "text": "1 August 1998. Long-Term Capital Management, or LTCM, is a hedge fund: a private pool of investors' money that can trade almost anything. John Meriwether started it in February 1994. He was once vice chairman of the bond firm Salomon Brothers.\n\nThe fund finds two similar securities, such as bonds, whose prices have drifted slightly apart. Then it bets the gap will close. Each trade earns only a little, so the fund borrows heavily to make those gains bigger.\n\nAt the end of 1997, it gave some money back to investors but kept all its trades. Now it owes about 30 dollars for every dollar of its own money, which is called its capital.\n\nWhich would you check more carefully: the many small, likely gains or the rare, large loss?"
+    },
+    {
+      "id": "R02",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "That bank is made up: 4% to 5% is just an example to practise on. Real banks do change savings rates, though. A big reason is the central bank, the public body that steers a country's interest rates. When it raises its rate, banks usually pay more on savings too. In February 1994, the US central bank, called the Federal Reserve or \"the Fed,\" is about to make that kind of decision. Its rate stands at 3%."
+    },
+    {
+      "id": "R03",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Partly. A credit card works the other way round: you pay the interest, not the bank. Some card rates follow the central bank's rate, but many barely move with it. The language is the same either way. Suppose your card's yearly rate rose by 1 percentage point. A trader would call that 100 bp, just like our savings rate going from 4% to 5%. The paise rule still works: 100 bp make 1 point, as 100 paise make ₹1."
+    },
+    {
+      "id": "R04",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "It's because interest earns interest. That's called compounding. Put ₹100 in savings at 10% a year. In year 1 it earns ₹10, so you have ₹110. In year 2 the 10% is paid on ₹110, not ₹100. That year it earns ₹11, and you end with ₹121. Each year the pile is bigger, so the same rate adds more money. Over many years, that's why the growth seems to speed up later on."
+    },
+    {
+      "id": "R05",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "CAGR stands for compound annual growth rate. It's the one steady yearly rate that would carry a start value to an end value, with interest earning interest along the way. Take our ₹100 that became ₹121 over 2 years. Its CAGR is 10%. Real investments jump around from year to year. CAGR flattens those jumps into one even yearly rate, so two investments are easy to compare. That's why your dad uses it."
+    },
+    {
+      "id": "R06",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "You're a bond trader in New York, 3 February 1994. The Fed is about to announce its decision, and your desk speaks only in basis points.\n\nTake on the Quick try below."
+    },
+    {
+      "id": "R07",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Our story is set in February 1994, not 1992. I don't have figures on 1992 here, so I can't say what happened that year. In early 1994, nobody yet knows how things will turn out. What we do know is that many investors have borrowed cheaply to buy long-term bonds, which are loans to governments or companies that pay out over many years. Whether they gain or lose is what this Topic shows at its end."
+    },
+    {
+      "id": "R08",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Same answer as before, short version. Our bank is made up, so 4% to 5% is just for practice. In real life, banks often change savings rates after the central bank changes its own rate. The chain Widget, \"How a central bank's rate reaches your savings,\" walks through it in four steps. Banks also raise rates to win more deposits from savers."
+    },
+    {
+      "id": "R09",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "That's the Widget \"How a central bank's rate reaches your savings,\" already open in its tab in the Widget panel, where Next steps you through how a central bank's rate change reaches the rate your bank pays on savings."
+    },
+    {
+      "id": "R10",
+      "topic": "num-percent-bps",
+      "step": "check",
+      "text": "Okay. One idea at a time.\n\nA bank's savings rate goes from 4% to 5%. 5 minus 4 is 1. That gap is 1 percentage point, or 1 \"point\".\n\n**Points are the new rate minus the old rate.**\n\nDo you find points by subtracting or by dividing?"
+    },
+    {
+      "id": "R11",
+      "topic": "num-percent-bps",
+      "step": "check",
+      "text": "Fair. Let's start tiny.\n\nA savings rate goes from 4% to 5%. 5 minus 4 is 1. **That gap is 1 percentage point, or 1 \"point\".**\n\nIs a point the new rate minus the old one, or both added together?"
+    },
+    {
+      "id": "R12",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Same reason as before: interest earns interest. Your ₹100 at 10% earns ₹10 in year 1. In year 2, the 10% is paid on ₹110, so it earns ₹11. Every year the pile is bigger. The same rate on a bigger pile adds more money. That's why growth looks slow at first and fast later on. This idea is called compounding."
+    },
+    {
+      "id": "R13",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "CAGR means compound annual growth rate. It's the one even yearly rate that turns a starting amount into an ending amount, with interest earning interest. Our ₹100 grew to ₹121 over 2 years, so its CAGR is 10%. Real investments go up and down unevenly. CAGR smooths that into one steady yearly number, which makes two investments easy to compare."
+    },
+    {
+      "id": "R14",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "New role: you're the headline writer at a newspaper on 3 February 1994. Your editor wants rate moves said exactly right, and one slip means a correction in tomorrow's paper.\n\nYour first story is the Quick try below."
+    },
+    {
+      "id": "R15",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Our story is February 1994, not 1992, and I don't have figures on 1992 here. As of 3 February 1994, nobody knows yet whether investors will gain or lose. They've borrowed cheaply to hold long-term bonds, and the Fed is about to announce a decision. How that turns out is saved for the end of this Topic. No spoilers yet."
+    },
+    {
+      "id": "R16",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "Yes: **change times 100, then divide by the original.**\n\nWhen a price goes from ₹50 to ₹60, which price is the original?"
+    },
+    {
+      "id": "R17",
+      "topic": "num-probability",
+      "step": "story",
+      "text": "August 1998, Greenwich, Connecticut. John Meriwether, once a top bond trader at Salomon Brothers, runs a fund called Long-Term Capital Management, or LTCM. It is a hedge fund: a private pool of rich investors' money that trades freely.\n\nLTCM hunts for tiny price gaps between similar securities (bonds and other things that trade on markets). It bets those gaps will close, as they usually do. Each win is small.\n\nSo the fund borrows. For every dollar of its own money, called its capital, it now holds about 30 dollars of debt. Late in 1997 it handed some capital back to investors but kept its bets just as big.\n\nThat raises a question. What are many small, likely wins worth once you count one rare, large loss?\n\nWhy does LTCM borrow so heavily: because each trade wins big, or because each trade wins little?"
+    },
+    {
+      "id": "R18",
+      "topic": "num-probability",
+      "step": "story",
+      "text": "August 1998. John Meriwether, once a top boss at the bond trading firm Salomon Brothers, runs Long-Term Capital Management (LTCM). It's a hedge fund: a private fund for wealthy investors that can make almost any kind of bet.\n\nLTCM hunts for tiny price gaps between two very similar securities (things you can trade, like bonds) and bets that each gap will close. Each win is small. So the fund borrows heavily to make its trades bigger. It now holds about $30 of borrowed money for every $1 of its own.\n\nMost of the time, these trades bring in small, likely gains. The question is what that pile of small wins is worth once you also count a rare, large loss.\n\nIf you ran LTCM, which would worry you more: how often a trade loses, or how big the loss is when it does?"
+    },
+    {
+      "id": "R19",
+      "topic": "num-probability",
+      "step": "story",
+      "text": "August 1998. A fund called Long-Term Capital Management (LTCM) has been running since February 1994. Its founder is John Meriwether, a former vice chairman of the bond firm Salomon Brothers. LTCM is a hedge fund, a private pool of investors' money that trades in many markets.\n\nIts method sounds calm. It finds two similar securities, things like bonds that people buy and sell. Their prices have drifted slightly apart, and LTCM bets the gap will close. Each trade earns only a little, so the fund borrows heavily. It now holds about 30 dollars of debt for every dollar of its own money.\n\nMost trades should win a little. Rarely, one could lose a lot.\n\nIf a bet wins most of the time, does that make it a good bet?"
+    },
+    {
+      "id": "R20",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "That 4% to 5% savings rate is a made-up example, so no real bank changed it. Real banks do change savings rates, though. One big reason is the central bank, a country's top bank, which sets the rate banks pay to borrow from each other overnight. When that rate rises, banks often pay savers more. In our story, that central bank is the US Federal Reserve. On 3 February 1994 its rate stands at 3%, and its committee is about to decide whether to move it."
+    },
+    {
+      "id": "R21",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Because interest starts earning interest too. That's called compounding. Put ₹1,00,000 in at 10% a year. After one year you have ₹1,10,000, so you earned ₹10,000. In year two, the 10% applies to ₹1,10,000, not just your first ₹1,00,000. You end with ₹1,21,000, so year two earned ₹11,000. Each year the pile is bigger, so the same rate adds more money. We'll come back to this in a later Topic. For now we're sticking with how rate moves are described."
+    },
+    {
+      "id": "R22",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "CAGR stands for compound annual growth rate. It's the one steady yearly rate that takes money from where it started to where it ended. It counts interest earning interest along the way. Take the example from before: ₹1,00,000 grew to ₹1,21,000 in two years. The CAGR is 10%. That means growing 10% every year gets you exactly there. People use it to sum up growth over many years in one simple number."
+    },
+    {
+      "id": "R23",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Okay, game on. Picture yourself on a 1994 bond trading floor, where people buy and sell government loans all day. Your desk talks only in basis points.\n\nThe Quick try below is your first call. Tap the answer you'd shout across the floor."
+    },
+    {
+      "id": "R24",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Our story is set in 1994, not 1992. I have no figures on 1992 here, so I can't say who gained or lost that year. In February 1994, many investors had borrowed cheaply to buy long-term bonds, which are loans to governments that pay interest for years. Nobody knew yet what the Fed would do. What happened next comes at the end of this Topic. Until then, you're on the trading floor with the Quick try below."
+    },
+    {
+      "id": "R25",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Same as before, just shorter. A basis point is one hundredth of a percentage point. 100 basis points make 1 point, the way 100 paise make ₹1. The Widget on screen shows it. The rate moves from 4% to 5%, which is 1 point, and the next line says 100 bp. Traders use basis points because tiny moves are easier to say in whole numbers.\n\nSo is 1 basis point bigger or smaller than 1 percentage point?"
+    },
+    {
+      "id": "R26",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Short answer: in our example, no bank did. The 4% to 5% savings rate is made up so the numbers are easy to work with. Real banks change savings rates for a few reasons. The central bank may have moved its own rate. The bank may want more deposits to lend out. Or rival banks may be paying more. In our 1994 story, the rate everyone is watching belongs to the US Federal Reserve, and its committee hasn't decided yet."
+    },
+    {
+      "id": "R27",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Yes, it's the same chain, just from the other side. On savings, the bank pays you interest. On a credit card, you pay interest on what you owe. When the central bank raises its rate, card rates often rise too. A card rate going from 36% to 38% is still 2 points, or 200 basis points, measured exactly the same way.\n\nThe Quick try below is still waiting whenever you are."
+    },
+    {
+      "id": "R28",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Same reason as before: interest starts earning interest too. That's compounding. Your ₹1,00,000 at 10% earns ₹10,000 in year one. In year two the 10% works on ₹1,10,000, so it earns ₹11,000. The pile keeps getting bigger, so each year's interest is bigger too. A later Topic covers this properly."
+    },
+    {
+      "id": "R29",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "CAGR means compound annual growth rate. It's the one steady yearly rate that takes money from its starting amount to its ending amount. Our example works the same way: ₹1,00,000 became ₹1,21,000 in two years, and that's a CAGR of 10%. Your dad is using it to sum up years of growth in a single number."
+    },
+    {
+      "id": "R30",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "New game. You're a newspaper editor in 1994, and every rate move in your paper has to be printed correctly. One slip and readers write angry letters.\n\nYour first headline check is in the Quick try below. Tap your pick."
+    },
+    {
+      "id": "R31",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Our story is set in February 1994, not 1992. I have no figures on 1992 here, so I can't say who lost money that year. For 1994, what happened after the Fed's meeting stays secret until the end of this Topic, so I won't spoil it. Right now, nobody in the story knows what the Fed will do.\n\nYour headline check is still waiting in the Quick try below."
+    },
+    {
+      "id": "R32",
+      "topic": "num-percent-bps",
+      "step": "your_turn",
+      "text": "Fair. Let's make it tiny.\n\nA rate goes from 6% to 7%. That's 1 point. Just as ₹1 is 100 paise, 1 point is 100 bp.\n\nWhen a trader says \"100 bp\", is that a bigger move than 1 point, a smaller one, or the same?"
+    },
+    {
+      "id": "R33",
+      "topic": "num-percent-bps",
+      "step": "check",
+      "text": "Okay. Smaller steps.\n\nA bank's savings rate goes from 4% to 5%. 5 minus 4 is 1 point. **Points are the new rate minus the old rate.**\n\nIs a point the gap between two rates, or a share of the old rate?"
+    },
+    {
+      "id": "R34",
+      "topic": "num-percent-bps",
+      "step": "check",
+      "text": "Okay. One small idea first.\n\nA savings rate is the interest a bank pays on savings. Say it goes from 4% to 5%. 5 minus 4 is 1 percentage point. **Points are the new rate minus the old rate.**\n\nIs the move in points the gap between the two rates, or a share of the old rate?"
+    },
+    {
+      "id": "R35",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "A savings rate goes from 4% to 5%.\n5 minus 4 is 1, so the rate moved 1 percentage point (\"points\" for short).\n**Points are the new rate minus the old rate.**\nA rate goes from 6% to 8%: do points tell you the gap between 6 and 8, or the new rate?"
+    },
+    {
+      "id": "R36",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "A savings rate goes from 4% to 5%.\n5% minus 4% is 1 percentage point: that's how far the rate moved.\n**Points are the new rate minus the old rate.**\nIf a rate goes from 6% to 8%, do points measure the gap between the two rates or the new rate itself?"
+    },
+    {
+      "id": "R37",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "A savings rate goes from 4% to 5%.\nTo see how far it moved, take the old rate from the new one: 5 minus 4 is 1.\nThat gap is called 1 percentage point, or \"1 point\" for short.\nA rate goes from 6% to 8%: to say how far it moved, do you take the gap between them, or compare it with the 6%?"
+    },
+    {
+      "id": "R38",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "Yes: **change times 100, then divide by the original.**\n\nWhen a savings rate goes from 6% to 8%, which rate is the original?"
+    },
+    {
+      "id": "R39",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "Yes: **change times 100, then divide by the original.**\n\nIf a savings rate went from 5% down to 4%, which rate would be the original?"
+    },
+    {
+      "id": "R40",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "Yes: **change × 100, then divide by the original.**\nWhen a savings rate goes from 6% to 8%, which rate is the original?"
+    },
+    {
+      "id": "R41",
+      "topic": "num-probability",
+      "step": "story",
+      "text": "August 1998. Long-Term Capital Management (LTCM) is a hedge fund, a private investment pool for big investors. John Meriwether, a former vice chairman of the bond firm Salomon Brothers, founded it in February 1994.\n\nThe fund looks for two similar securities whose prices are slightly apart. It bets the gap will close. Each win is small, so the fund borrows heavily to make those small wins add up.\n\nAt the end of 1997 it gave some money back to its investors but kept its bets the same size. Now it holds about 30 dollars of debt for every dollar of its own.\n\nOn most days the fund makes small gains. A big loss is rare.\n\nFor a fund borrowing 30 to 1, which do you think matters more: the many small gains or the rare big loss?"
+    },
+    {
+      "id": "R42",
+      "topic": "num-probability",
+      "step": "story",
+      "text": "1 August 1998. An analyst is studying a fund called Long-Term Capital Management, or LTCM. It is a hedge fund, a private pool of investors' money that can trade almost anything. John Meriwether founded it in February 1994. He was once vice chairman of the bond firm Salomon Brothers.\n\nLTCM looks for tiny price gaps between very similar securities and bets that the gaps will close. Each win is small, so the fund borrows heavily to make those small wins add up. It now holds about 30 dollars of debt for every dollar of its own money, called its capital.\n\nThe analyst's puzzle is this. The fund has many small gains that are likely, and one large loss that is unlikely. What is the whole set of bets worth?\n\nEach of LTCM's trades earns only a little. Why do you think it borrows so much?"
+    },
+    {
+      "id": "R43",
+      "topic": "num-percent-bps",
+      "step": "story",
+      "text": "February 3, 1994, Washington. The Federal Reserve, America's central bank, steers one key rate: the federal funds rate, the interest banks charge each other on overnight loans. Today it stands at 3%. Many investors have borrowed cheaply to buy long-term bonds. Any move in that rate will reach them quickly.\n\nNow your question. Suppose a savings rate (the interest a bank pays on savings) goes from 4% to 5%. 5% minus 4% is 1 percentage point. **A basis point is one hundredth of a percentage point, so 1 point is 100 basis points.** Traders write that as 100 bp. Basis points let them name tiny moves in whole numbers.\n\nIf the Fed nudges its 3% rate, who would most likely describe the move in basis points: a bond trader or a headline writer?"
+    },
+    {
+      "id": "R44",
+      "topic": "num-percent-bps",
+      "step": "story",
+      "text": "3 February 1994, Washington. The interest rate the US Federal Reserve steers stands at 3%. Many investors have borrowed cheaply to buy long-term bonds. The Fed's committee is about to decide, and nobody knows what it will do.\n\nIf the Fed moves the rate, traders will say the move in basis points. Here's what that means.\n\nSay a savings rate, the interest a bank pays on savings, goes from 4% to 5%. 5% minus 4% is 1 percentage point, the gap between the two rates. **A basis point is one hundredth of a percentage point, so 1 point is 100 basis points.** Traders write it \"100 bp\" and say \"bips.\"\n\nIf the Fed nudged the rate by just a few basis points, would that be less than a full percentage point, or more?"
+    },
+    {
+      "id": "R45",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "The rate went from 4% to 5%.\n5% minus 4% is 1 percentage point.\n**Points are the new rate minus the old rate.**\nA rate goes from 6% to 7%: is \"1 point\" the gap between the two rates, or the new rate?"
+    },
+    {
+      "id": "R46",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "A savings rate goes from 4% to 5%.\n5 minus 4 is 1, so it moved 1 percentage point, or 1 point for short.\n**Points are the new rate minus the old rate.**\nA rate goes from 6% to 7%: is \"1 point\" the gap between the two rates, or a share of the old one?"
+    },
+    {
+      "id": "R47",
+      "topic": "num-percent-bps",
+      "step": "concept",
+      "text": "Yes: **change times 100, then divide by the original.**\n\nWhen a rate falls from 8% to 6%, which rate is the original?"
+    },
+    {
+      "id": "R48",
+      "topic": "num-percent-bps",
+      "step": "check",
+      "text": "That one stays yours to answer, so here is the method on other numbers. Points are the new rate minus the old rate. A rate going from 6% to 6.8% moved 6.8 minus 6, which is 0.8 of a point.\n\nWhen a rate moves in points, is that the gap between the two rates or a share of the old rate?"
+    },
+    {
+      "id": "R49",
+      "topic": "num-percent-bps",
+      "step": "story",
+      "text": "Fair question. Take a savings rate, the interest a bank pays on savings, going from 4% to 5%. 5% minus 4% is 1 percentage point, the gap between the two rates. **A basis point is one hundredth of a percentage point, so 1 point is 100 basis points.** Traders write it \"bp\" and say \"bips\".\n\nWhy use a unit that small? It's 3 February 1994. The Federal Reserve, America's central bank, steers an overnight rate that stands at 3%. Many investors have borrowed cheaply to buy long-term bonds, which are loans to governments that pay interest for years. The Fed's committee is about to decide. If it moves, traders will say it in basis points.\n\nIs a basis point bigger or smaller than a percentage point?"
+    },
+    {
+      "id": "R50",
+      "topic": "num-percent-bps",
+      "step": "story",
+      "text": "Fair question. A percentage point is the gap between two rates. Say a savings rate (the interest a bank pays on savings) goes from 4% to 5%. 5% minus 4% is 1 point. A basis point is one hundredth of a point. **100 basis points make 1 point**, so that move is 100 bp. Traders say \"bps\", pronounced \"bips\".\n\nThat word is about to matter. On 3 February 1994, the Federal Reserve (the Fed, America's central bank) holds its key overnight rate at 3%. Many investors have borrowed cheaply to buy long-term bonds, which are loans to governments that pay interest for years. The Fed is about to announce its decision, and nobody knows what it will be.\n\nIn the move from 4% to 5%, is 100 bp the gap between the two rates, or a share of the old rate?"
+    }
+  ]
+}

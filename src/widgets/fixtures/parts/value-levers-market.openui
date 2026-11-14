@@ -1,0 +1,11 @@
+root = Widget("How much of US retail could Amazon win?", [levers])
+$revenue = 1.7367603324
+$margin = 10
+$salesToCapital = 3
+$risk = 12.84
+$failure = 0
+$moved = 0
+$mostLever = 0
+$mostBy = 0
+$market = 0
+levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "market", markets: [{label: "US retail, excluding cars", size: 2245899, source: {title: "US Census Bureau, Monthly Retail Trade: estimates for 1999", url: "https://www2.census.gov/retail/releases/historical/mrts/sal99.html"}}]}, $market)

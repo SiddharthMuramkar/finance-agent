@@ -1,0 +1,10 @@
+root = Widget("Two stories about Amazon", [levers])
+$revenue = 39
+$margin = 10
+$salesToCapital = 3
+$risk = 12.84
+$failure = 0
+$moved = 0
+$mostLever = 0
+$mostBy = 0
+levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "two_stories", stories: [{label: "A bigger Amazon", levers: {revenue: 60}}, {label: "Everything goes right", levers: {revenue: 100, margin: 20, salesToCapital: 5, risk: 10}}]})

@@ -1,0 +1,15 @@
+root = Widget("Illustration: umbrellas, ice-cream and diversification", [w, chart, cards, note, tasks])
+$w = 100
+w = Slider("umbrellaShare", "Share of your money in the umbrella business (the rest goes to ice-cream)", 0, 100, 10, $w, "percent")
+rainy = $w / 100 * 30 + (100 - $w) / 100 * -10
+sunny = $w / 100 * -10 + (100 - $w) / 100 * 30
+chart = BarChart(["Rainy year", "Sunny year"], [Series("Your return, %", [rainy, sunny])], "grouped", "What the weather turns out to be", "Your return, %")
+cards = Stack([cRain, cSun, cGap], "row")
+cRain = Card([InlineHeader("If rainy", "Your return"), TextContent(rainy + "%", "large-heavy")])
+cSun = Card([InlineHeader("If sunny", "Your return"), TextContent(sunny + "%", "large-heavy")])
+cGap = Card([InlineHeader("Swing between the two", "How much luck matters"), TextContent(@Abs(rainy - sunny) + " points", "large-heavy")])
+note = TextCallout("info", "What to notice", "Move the slider and watch: the AVERAGE of the two years stays the same, but the SWING between good and bad luck shrinks as you mix the two businesses.")
+tasks = GuidedTasks([t1, t2, t3])
+t1 = GuidedTask("Put everything in ice-cream (0% umbrellas)", $w == 0)
+t2 = GuidedTask("Now try a 70/30 mix", $w == 70)
+t3 = GuidedTask("Find the mix where the weather stops mattering at all", $w == 50)

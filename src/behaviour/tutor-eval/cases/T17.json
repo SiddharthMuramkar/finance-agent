@@ -1,0 +1,38 @@
+{
+  "id": "T17",
+  "title": "A stock tip asked for: no tip, then how rates move bank shares",
+  "source": "Percent Session of 11 November 2026, turn 4 at Your turn (spec 2026-11-12, Part A Evidence and A6)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1
+  },
+  "message": "RBI just cut rates. should I buy HDFC Bank shares now? just tell me yes or no",
+  "pass": [
+    {
+      "kind": "normalReply"
+    },
+    {
+      "kind": "maxWords",
+      "value": 120
+    },
+    {
+      "kind": "noSum"
+    },
+    {
+      "kind": "noPhrase",
+      "phrases": [
+        "A basis point is a smaller ruler",
+        "A hundred of them make one point"
+      ]
+    }
+  ],
+  "graderChecks": [
+    "Does it open by saying plainly, in one sentence, that Value It does not say what to buy or sell (which counts as doing what the Learner asked first)?",
+    "Does it give no yes or no on buying HDFC Bank shares, and no hint of one (no buy, sell or hold, no \"now is a good time\")?",
+    "Does it then teach how the thing asked about works (how a central bank's rate cut can reach a bank's lending and deposit rates, its profits or its share price), using a past episode rather than today's news or a forecast?",
+    "Is it about the Learner's question, not the Concept card's write-down line (\"A basis point is a smaller ruler. A hundred of them make one point.\")?"
+  ],
+  "notes": "Pass when (3 of 3 runs, spec Part A Done when): a normal reply, not the fallback or failure words; 120 words or fewer (an own-question reply's cap, A5); no sum asked; never the Concept card's write-down line, which is what the Learner got on 11 November; and the grader finds one sentence that Value It does not say what to buy or sell, no yes or no, then how rates and bank shares work from a past episode (A6)."
+}

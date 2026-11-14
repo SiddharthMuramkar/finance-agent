@@ -1,0 +1,5 @@
+root = Widget("From Amazon's business to one share", [bridge])
+$cash = 26
+$debt = 349
+$options = 2892
+bridge = ValueBridge("amazon-dcf-2000", $cash, $debt, $options, null)

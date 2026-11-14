@@ -1,0 +1,29 @@
+{
+  "id": "T20",
+  "title": "A rejected draft, then three normal turns",
+  "source": "Percent Session of 11 November 2026, turn 7 and after (spec 2026-11-12, A1, A2 and Done when)",
+  "kind": "dialogue",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1
+  },
+  "messages": [
+    "What does that word mean?",
+    "ok so is 50 basis points the same as half a percent?",
+    "why do banks talk in basis points and not just percent?",
+    "got it. what should I look at next?"
+  ],
+  "runs": 3,
+  "checkReplies": true,
+  "rejectDraft": 1,
+  "pass": [
+    {
+      "kind": "normalReply"
+    },
+    {
+      "kind": "noSum"
+    }
+  ],
+  "notes": "Pass when (3 of 3 runs): with the reply checks on as in the app, the first turn (the Choice \"What does that word mean?\", a step-led turn whose reply is held and checked, the press that locked the Session on 11 November) has its first draft rejected and its retry accepted; then each of the next three typed turns finishes with a normal reply: no error or other trouble event, no fallback, none of the failure words (\"Something went wrong\", \"The turn failed\", \"invalid_request_error\"), and no sum asked. The run also fails on any replay_stripped_after_refusal incident: a heal would mean what was sent changed after it was sent (A1). The draft is the real model's, made to fail by padding it as stored past every word cap (reject-draft.ts); the padded step is stored without its raw output, as code stores any step it edits, so the retry and the three turns after it are the real model's, on a history that holds a rejected draft and an accepted retry."
+}

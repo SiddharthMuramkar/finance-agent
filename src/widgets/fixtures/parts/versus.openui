@@ -1,0 +1,6 @@
+root = Widget("Annuity or cash: which is worth more today?", [rate, duel])
+$rate = 3
+rate = Slider("rate", "Discount rate: what safe money earns a year", 0, 10, 0.1, $rate, "percent")
+schedule = Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: $rate}, {rows: [], presentValue: 0, presentValueText: ""})
+cash = Query("case_data", {dataset: "mega-millions-2018/cash-option"}, {rows: [], label: "", unit: "", source: "", sourceUrl: "", asOf: "", revealed: false})
+duel = Versus("Annuity, valued today", schedule.presentValue, "Cash, paid today", @First(cash.rows.value), "usd")

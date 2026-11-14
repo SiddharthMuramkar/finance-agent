@@ -1,0 +1,8 @@
+{
+  "id": "T8",
+  "title": "Lint on the current Topic",
+  "source": "TUTOR_SPEC section 7, T8",
+  "kind": "lint",
+  "failingFixture": "src/behaviour/tutor-eval/fixtures/untaught-skill",
+  "notes": "Pass when: L1 to L6 pass (the course check passes on the repo's Topics), and a test lesson whose Check tests an untaught Skill fails L1 (the course check, run in the fixture folder, fails and names L1). The fixture folder holds a course/ and docs/ laid out like the repo's. It can be written only once Topic files have Skills and the lesson lint exists (#237); until then the case is pending. No model is called."
+}

@@ -1,0 +1,294 @@
+# Spine Topic 13 (spec 2026-11-12 C4): "What does the price assume?" Value levers in match-the-price mode (Appendix D) on
+# Damodaran's Amazon of February 2000, with the implied equity risk premium at the end of 2007 as the same idea for a
+# whole market. Drawn from val-implied-erp and fol-erp. Amazon's valuation block is written once, in val-dcf
+# (amazon-dcf-2000), and reused here with valuationFrom. Every figure on a computed question's choices is worked out by
+# the engine from that block (spec D2); the lever settings in the labels are on the Widget's own steps.
+# Case sources (checked): docs/research/verify-amazon-risk-erp.json (amazon-dcf-2000, implied-erp-end-2007).
+id: spine-13-price-assumes
+title: "What does the price assume?"
+goal: "Read a price backwards into the story it needs, and judge whether that story is believable"
+why: "Every price carries a story about the business; reading it back tells you what buyers must believe, so you can argue with the beliefs instead of the number."
+minutes: 13
+exampleCurrency: USD
+
+cases:
+  - id: s13-amazon-at-84
+    title: "Amazon at $84: what would have to be true?"
+    asOf: 2000-02-03
+    story: >
+      February 2000. Amazon's shares trade at about $84. It sells books and music online and is losing money. Aswath
+      Damodaran, a professor at New York University, sets his story as four levers: $39 billion of sales in ten years,
+      with 10% of each sale kept as operating profit. It comes to about $35 a share. Then he turns the question round:
+      what would buyers at $84 have to believe?
+    reveal: >
+      The price did not hold: it fell through 2000, and by the fourth quarter the shares had been as low as $14.88. Ten years on, in 2009, Amazon sold $24,509 million with an operating income of $1,129
+      million, a margin of 4.6%: smaller and thinner than even Damodaran's story of $39,006 million at 9.95%, and far from
+      the bigger, richer company the $84 price needed. Sales passed his forecast in 2011, at $48,077 million, but the
+      margin that year was 1.79%. In his own words, his forecast revenues "were higher than the actual numbers every year
+      through 2010"; years later he called Amazon "a company that I have consistently under estimated". Reading the price
+      back did not say when the price would fall, or that it would; it said what buyers were betting on.
+    valuationFrom: amazon-dcf-2000
+  - id: s13-implied-erp-2007
+    title: "The implied equity risk premium at the end of 2007"
+    asOf: 2007-12-31
+    story: >
+      End of 2007. The S&P 500, an index of the 500 biggest US companies, stands at 1,468.36. Safe US government bonds
+      pay 4.02% a year. Damodaran reads the index the way you read Amazon's price: he asks what extra return buyers at that
+      level must expect from shares over the bonds, given the cash the companies are expected to pay out. His answer for
+      the start of 2008 is 4.37 points, up from 4.16 a year earlier. The usual advice is to take one premium from history
+      and use it every time.
+    reveal: >
+      A year later, on 31 December 2008, the S&P 500 stood at 903.25, down 38.5%; the Treasury bond rate had fallen to
+      2.21% and the dividend yield risen to 3.11%. Damodaran's implied premium for the start of 2009 was 6.43%, the highest
+      of the period. It fell back to 4.36% a year later, with the index at 1,115.10, and was 5.20% a year after that. The
+      premium moved with prices and expectations rather than being a fixed property of stocks: the price of risk is read
+      from prices, and it changes when they do.
+
+concept: >
+  A valuation usually runs forwards: set a story as levers, and the engine works out a value. It also runs backwards.
+  Start from the price, hold what you trust, and move the levers until the value meets the price: those settings are what
+  the price assumes. A price can usually be met by more than one story (a much bigger company, or a much richer one, or a
+  little of both), so the question is not "is the price right?" but "which of these stories would I have to believe, and do
+  I?". The same move works for a whole market: the premium for risk that makes expected cash flows worth the index's level
+  is the premium the price implies, and it changes whenever prices or expectations change.
+
+principle: >
+  Any price can be read back as a set of beliefs. Before calling a price too high or too low, find the stories that reach
+  it, name the lever each one leans on, and argue with those beliefs rather than with the number.
+
+youllLearn:
+  - "Run a valuation backwards, from the price to the story it needs."
+  - "Name the lever a price leans on, and judge whether that belief is believable."
+  - "Read the premium for risk a whole market's price implies."
+
+terms:
+  - term: what the price assumes
+    means: "The lever settings whose value equals today's price: the story buyers at that price are betting on."
+    pro: "Reverse engineering the price"
+    example: "To be worth the price, the company must grow twice as big as your story says."
+    emoji: magnifying-glass-tilted-left
+    inStory: "Damodaran turns the question round: under what circumstances is the $84 price justified?"
+  - term: equity risk premium
+    means: "The extra return investors want for holding shares instead of a safe government bond."
+    pro: "ERP"
+    example: "If safe bonds pay 4% and investors want 8% from shares, the premium is 4 points."
+    emoji: balance-scale
+    inStory: "Damodaran reads 4.37% from the S&P 500's level at the end of 2007."
+  - term: implied
+    means: "Read back from a price, rather than assumed from history."
+    pro: "Implied (as in implied premium, implied growth)"
+    example: "The premium the index's price implies is the one that makes its expected cash worth that price."
+    emoji: direct-hit
+    inStory: "The premium the index implied rose from 4.16% to 4.37% in a year."
+  - term: S&P 500
+    means: "An index that tracks the share prices of the 500 biggest US companies: one price for a large slice of the market."
+    example: "When people say the market fell, they often mean the S&P 500 fell."
+    emoji: bar-chart
+    inStory: "At the end of 2007 the S&P 500 stood at 1,468.36."
+
+skills:
+  - id: s13-read-back
+    rule: "Read a price backwards: hold what you trust and move the levers until the value meets the price; those settings are what the price assumes."
+    analogy: "Like asking what grade you need on the final to pass the course, instead of guessing your grade."
+  - id: s13-judge-beliefs
+    rule: "More than one story can reach a price; name the lever each leans on and ask whether you believe it."
+
+insight:
+  question: "Find a story worth the price. Then find a different one that also gets there. What would buyers at the price have to believe?"
+  written: "Any price can be read back as a set of beliefs: the price needed a far bigger or far richer company than the professor's story, and more than one story reaches it, so the useful question is which belief you would have to hold."
+  foundWhen: "The Learner reaches the price with a story of their own, sees that a different story also reaches it, and says what buyers at the price would have to believe about size or margin, rather than calling the price simply right or wrong."
+  hints:
+    - "The readout lists the one-lever routes to the price. Find a story that moves two levers a little each instead."
+    - "Try a bigger company at the same margin, then the same company with a richer margin. Do both get there?"
+
+explore:
+  before: s13-check
+  workbench:
+    recipe: value_levers
+    case: s13-amazon-at-84
+    title: "What does Amazon's $84 price assume?"
+    inputs:
+      caseStory: "Damodaran's story"
+      priceStory: { revenue: 60, margin: 12.5 }
+      mode: { kind: match_price }
+
+connections:
+  - text: "Spine Topic one sets a story forwards into a value; this Topic runs the same levers backwards from the price."
+    topics: [spine-01-worth, val-dcf]
+  - text: "The implied premium reads the price of risk from a whole market's level, the same move for an index."
+    topics: [val-implied-erp, fol-erp]
+  - text: "Knowing which lever a price leans on is where living with being wrong begins."
+    topics: [spine-14-being-wrong]
+
+questions:
+  - id: s13-q-size-alone
+    kind: price_assumes
+    prompt: "The price is $84. Keep the rest of Damodaran's story. Which of these stories gets there?"
+    skill: s13-read-back
+    explanation: "A company a good deal bigger and a little richer reaches the price; a bigger company or a richer one alone, by these amounts, falls short, and cheaper money helps least."
+    computed:
+      case: s13-amazon-at-84
+      changes:
+        - { id: both, label: "Sales of $72bn and an 11% margin", levers: { revenueYear10: 72000, marginTarget: 11 } }
+        - { id: bigger, label: "Sales of $60bn, margin still 10%", levers: { revenueYear10: 60000 } }
+        - { id: richer, label: "Sales still $39bn, a 15% margin", levers: { marginTarget: 15 } }
+        - { id: rate, label: "His story with a 10% cost of capital", levers: { costOfCapitalGrowing: 10 } }
+  - id: s13-q-two-routes
+    kind: price_assumes
+    prompt: "The price is $84. Which of these stories reaches it?"
+    skill: s13-judge-beliefs
+    explanation: "A much richer margin on the same sales also reaches the price: the same price, a different belief."
+    computed:
+      case: s13-amazon-at-84
+      changes:
+        - { id: richer, label: "Sales of $39bn, as his story, with a 17.5% margin", levers: { revenueYear10: 39000, marginTarget: 17.5 } }
+        - { id: bit-bigger, label: "Sales of $49bn with a 12.5% margin", levers: { revenueYear10: 49000, marginTarget: 12.5 } }
+        - { id: cheap-lean, label: "His story, a 10% cost of capital and $5 of sales for each $1 invested", levers: { costOfCapitalGrowing: 10, salesToCapital: 5 } }
+        - { id: risky-big, label: "Sales of $60bn, a 12.5% margin and a 20% chance it fails", levers: { revenueYear10: 60000, marginTarget: 12.5, failureChance: 20 } }
+  - id: s13-q-leans-on
+    kind: which_lever
+    prompt: "Start from a story worth the price: $60bn of sales in year 10 and a 12.5% margin. If one belief proves too hopeful, which change lowers the value most?"
+    skill: s13-judge-beliefs
+    explanation: "This story leans hardest on size: give back the extra sales and most of the gap to the professor's value returns."
+    computed:
+      case: s13-amazon-at-84
+      preset: { revenueYear10: 60000, marginTarget: 12.5 }
+      changes:
+        - { id: size-back, label: "Sales of $39bn, not $60bn", levers: { revenueYear10: 39000 } }
+        - { id: margin-back, label: "A margin of 10%, not 12.5%", levers: { marginTarget: 10 } }
+        - { id: riskier, label: "A cost of capital of 14%, not 12.84%", levers: { costOfCapitalGrowing: 14 } }
+        - { id: may-fail, label: "A 20% chance it fails, with nothing recovered", levers: { failureChance: 20 } }
+  - id: s13-q-predict
+    kind: predict
+    prompt: "Start from the story worth the price ($60bn of sales, a 12.5% margin). Now suppose {change}. The value will be:"
+    skill: s13-judge-beliefs
+    computed:
+      case: s13-amazon-at-84
+      preset: { revenueYear10: 60000, marginTarget: 12.5 }
+      changes:
+        - { id: thin, label: "margins end at 6%", levers: { marginTarget: 6 } }
+        - { id: fail, label: "it has a 20% chance of failing, with nothing recovered", levers: { failureChance: 20 } }
+        - { id: thinner, label: "margins end at 4%", levers: { marginTarget: 4 } }
+      bands:
+        - { id: most, label: "Still most of it", min: 0.6 }
+        - { id: fifth, label: "About a fifth of it", min: 0.1, max: 0.6 }
+        - { id: none, label: "Nothing left for shareholders", max: 0.1 }
+  - id: s13-q-cannot-hold
+    kind: cannot_hold
+    prompt: "A friend says: \"Damodaran's story is right, and $84 is a fair price for the shares.\" His story comes to about $35 a share. What do you say?"
+    skill: s13-read-back
+    choices:
+      - id: both-right
+        text: "Both cannot be true: if his story is right, a share is worth about $35"
+      - id: fine
+        text: "Both can be true at once"
+        mistake: { tag: two_values, fix: "One story gives one value. If his story is right, the shares are worth about $35, not $84." }
+      - id: price-wins
+        text: "The price is always right, so his story must be too"
+        mistake: { tag: price_is_value, fix: "A price is what buyers pay; it can sit far from a story's value for months." }
+    answer: both-right
+    explanation: "One story gives one value. If his story is right, the shares are worth about $35, so $84 cannot also be fair; one of the two beliefs has to give."
+    source: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (HighGrow.pdf, March 2000; valuation done February 2000): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
+  - id: s13-q-direction
+    kind: direction
+    prompt: "Suppose investors start to demand a much bigger premium for holding shares. For a company like Amazon, which lever moves, and which way?"
+    skill: s13-read-back
+    choices:
+      - id: risk-up
+        text: "How risky: the cost of capital goes up, so the value goes down"
+      - id: size-down
+        text: "How big it gets: sales go down"
+        mistake: { tag: lever_mixup, fix: "The premium is the price of risk. It feeds the cost of capital, not the size of the business." }
+      - id: risk-down
+        text: "How risky: the cost of capital goes down, so the value goes up"
+        mistake: { tag: wrong_way, fix: "A bigger premium means investors want more return, so the cost of capital rises and the value falls." }
+    answer: risk-up
+    explanation: "The equity risk premium is part of every company's cost of equity. A bigger premium raises the cost of capital, which lowers the value of the same cash flows."
+    source: "Damodaran, Historical Implied Equity Risk Premiums: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html"
+  - id: s13-q-price-or-value
+    kind: price_or_value
+    prompt: "\"At the end of 2007 the S&P 500's level implies a premium of 4.37% for holding stocks.\" Is that read from a price, or argued from a story about one business?"
+    skill: s13-read-back
+    choices:
+      - id: price
+        text: "Read from a price"
+      - id: value
+        text: "Argued from a story about one business"
+        mistake: { tag: value_for_price, fix: "The 4.37% comes from the index's level on the day: it is what the market's price assumes." }
+    answer: price
+    explanation: "An implied premium starts from the price and works back to the return that fits it, the same move as reading a story back from Amazon's $84."
+    source: "Damodaran, Historical Implied Equity Risk Premiums (2007 row, 4.37%): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html"
+
+checks:
+  - id: s13-check
+    kind: quiz
+    questions: [s13-q-size-alone, s13-q-two-routes, s13-q-leans-on, s13-q-predict, s13-q-cannot-hold, s13-q-direction, s13-q-price-or-value]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: "Run the valuation backwards"
+      lines:
+        - "Forwards: set a story as four levers, and the engine gives a value."
+        - "Backwards: start from the price and move the levers until the value meets it."
+        - "Those settings are what the price assumes, and there is usually more than one way there."
+        - "A market works the same way: its level implies a premium for risk."
+      writeDown: "A price is a set of beliefs. Find them, then ask if you hold them."
+      skills: [s13-read-back, s13-judge-beliefs]
+    quickTries:
+      - id: s13-try-which-way
+        skill: s13-read-back
+        ask: "Damodaran's story gives about $35 a share and the price is $84. To read the price back, which way must the story move?"
+        halfDone: "First step, done for you: $84 is more than $35, so the story must be worth more."
+        kind: choice
+        answer: up
+        choices:
+          - { id: up, text: "Towards a bigger, richer or cheaper-to-grow Amazon" }
+          - { id: down, text: "Towards a smaller Amazon with thinner margins", mistake: { tag: wrong_way, fix: "The price is above his value, so the story the price needs is worth more, not less." } }
+          - { id: none, text: "Nowhere: the price is simply wrong", mistake: { tag: verdict_first, fix: "Before calling the price wrong, find the story it needs; then judge that story." } }
+      - id: s13-try-alone
+        skill: s13-read-back
+        ask: "From Damodaran's story, a much bigger Amazon alone can reach $84, and so can a much richer margin alone, but cheaper money alone cannot. What does the $84 price lean on?"
+        kind: choice
+        answer: size-margin
+        choices:
+          - { id: size-margin, text: "Beliefs about how big Amazon gets and what it keeps" }
+          - { id: rate, text: "A belief that money is cheap", mistake: { tag: lever_mixup, fix: "Cheaper money alone never reaches the price, so the price must lean on size or margin." } }
+      - id: s13-try-index
+        skill: s13-read-back
+        ask: "The index's price rises while the cash its companies are expected to pay out stays the same. What happens to the premium the price implies?"
+        kind: choice
+        answer: falls
+        choices:
+          - { id: falls, text: "It falls: buyers accept a lower return for the same cash" }
+          - { id: rises, text: "It rises", mistake: { tag: wrong_way, fix: "Paying more for the same cash means a lower return, so the implied premium falls." } }
+          - { id: same, text: "It stays the same: a premium is fixed", mistake: { tag: fixed_premium, fix: "An implied premium is read from today's price, so it moves when the price moves." } }
+      - id: s13-try-two-stories
+        skill: s13-judge-beliefs
+        ask: "One story reaches $84 with a much bigger Amazon; another reaches $84 with much richer margins. What does the price alone tell you?"
+        halfDone: "First step, done for you: both stories give the same value, the price."
+        kind: choice
+        answer: either
+        choices:
+          - { id: either, text: "That buyers believe one of these, or a mix; the price cannot say which" }
+          - { id: bigger, text: "That buyers believe the bigger Amazon", mistake: { tag: one_story, fix: "Both stories reach the same price, so the price alone cannot pick between them." } }
+      - id: s13-try-wish
+        skill: s13-judge-beliefs
+        ask: "To reach a price you have to set every lever at its best at once: huge sales, rich margins, cheap growth and low risk. What is the fair reading?"
+        kind: choice
+        answer: wish
+        choices:
+          - { id: wish, text: "The price assumes everything goes right at once; ask whether you believe all of it" }
+          - { id: fine, text: "The price is fine, because a story reaches it", mistake: { tag: any_story, fix: "Some story always reaches a price; the question is whether that story is believable." } }
+      - id: s13-try-premium
+        skill: s13-judge-beliefs
+        ask: "End of 2007: the premium the index implies is 4.37%, up from 4.16% a year earlier. Which reading fits?"
+        kind: choice
+        answer: moved
+        choices:
+          - { id: moved, text: "Prices now assume investors want a little more for risk; it can move again" }
+          - { id: fixed, text: "Stocks have a fixed premium of 4.37%", mistake: { tag: fixed_premium, fix: "An implied premium is read from the day's prices, so it moves when prices or expectations move." } }
+  - id: s13-talk
+    kind: conversation
+    prompt: "Amazon is at $84. In two or three sentences, say what story the price assumes, which lever it leans on most, and whether you would believe it, and why."
+    passCriteria: "Names a story that reaches the price (a bigger company, richer margins, or both, compared with Damodaran's story), names the lever it leans on most, and gives a reason to believe or doubt it."
+    skills: [s13-read-back, s13-judge-beliefs]

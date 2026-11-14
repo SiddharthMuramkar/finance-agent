@@ -1,0 +1,168 @@
+# Follow Topic: Damodaran on the pricing game behind Twitter's IPO (28 Oct 2013), a dated piece taught as a Case.
+# The post's text is in the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+id: fol-twitter-ipo
+title: "Follow: Damodaran, Twitter IPO valuation (Oct 2013)"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Damodaran shows that an offer price is set by bankers and buyers, not by valuing the company, so price and value must be kept apart."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-twitter-ipo-end-game
+    title: Damodaran explains why an IPO is a pricing event, not a valuation event
+    asOf: 2013-10-28
+    piece:
+      author: Aswath Damodaran
+      title: "The Twitter IPO: Thoughts on the IPO End Game"
+      published: 2013-10-28
+      url: https://aswathdamodaran.blogspot.com/2013/10/the-twitter-ipo-thoughts-on-ipo-end-game.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 28 October 2013 Aswath Damodaran, a valuation professor at NYU Stern, published a blog
+      post about the coming stock market listing of Twitter, which had not yet sold a share to the
+      public. Twitter had just announced a price range of $17 to $20 a share for 70 million shares,
+      with an option to sell 10.5 million more, so the offering would raise between $1.19 billion
+      and $1.61 billion. A month earlier he had valued the company at $17.36 a share from its first
+      filing; with the latest amended filing, which had the third-quarter numbers, he now got $17.84,
+      from a story of about $11.2 billion of revenue in 2023 at a 25% operating margin. The price
+      range sat right next to his value. He did not take that as a sign that he was right. Instead
+      he asked what the bankers who set the range were doing, and he set out how he expected the
+      listing to unfold, who gains and who loses, and whether an auction would do the job better.
+      The Learner reads the post in full, without stopping, and then explains each step of its
+      argument.
+    reveal: >
+      Twitter priced the offering at $26 a share on 6 November 2013, well above the $17 to $20
+      range, raising about $1.8 billion and valuing the company at more than $18 billion on its
+      outstanding stock, options and restricted stock (NPR, quoting the Associated Press). Reuters
+      reported subscriptions of about 30 times the shares on offer. On the first day, 7 November,
+      the shares opened near $45, reached $50 and closed at $44.90, a rise of 73% on the offer
+      price and a market value of about $25 billion (Reuters). Set against the post: his $17.84 was
+      about 31% below the offer price and the close was about 2.5 times his value, so price and
+      value had pulled apart in the other direction from the one he expected; his guess that the
+      bankers saw a fair price near $25 was close to the $26 they set, but his script of a first-day
+      jump of 20% to 25% fell far short of 73%. The shares kept moving: they peaked above $73 around
+      the end of December 2013, and on 20 August 2015 they fell to the $26 offer price for the first time,
+      closing at exactly $26, a break-even for buyers at the offer (Wired). Twitter was taken
+      private at $54.20 a share, about $44 billion, in a deal that closed on 27 October 2022
+      (Independent, Bloomberg). The post argued that an IPO price is set by demand and bankers, not
+      by value, and that is why neither the price at the offer nor the first-day close settles what
+      Twitter was worth.
+
+concept: >
+  The price at which a company first sells shares is not a valuation; it is the result of a
+  negotiation between the company, its bankers and the investors the bankers expect to buy. Bankers
+  guarantee the offer price (underwriting), so setting it too high costs them far more than setting
+  it too low, and a share price that rises on the first day is good publicity for them and for the
+  buyers they favour. The old owners lose only on the small fraction of the company that is sold, so
+  they accept underpricing. Value, by contrast, comes from a story about growth, margins and risk
+  turned into cash flows. When the offer price and a careful value land close together, that can be
+  coincidence; when they differ, the gap tells you about demand and mood, not automatically about
+  the value.
+
+principle: >
+  Keep price and value apart. Ask what a price was set to do and by whom, then ask what story the
+  price implies; and do not take agreement between your value and the market's price as proof that
+  you are right.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Keep the price of a new share issue apart from its value."
+  - "See why bankers and old owners may both accept an offer price set low."
+  - "Ask what story a price implies, without taking agreement as proof."
+
+questions:
+  - id: ftw-q-proceeds
+    prompt: >
+      28 October 2013: Damodaran notes Twitter plans to sell 70 million shares at $17 to $20, with an option for 10.5 million more. A headline gives the most it could raise. Which figures is it using?
+    choices:
+      - { id: a, text: "The bottom of the range on the main block of shares", mistake: { tag: used_low_end, fix: "That gives the least. The most uses the top price on every share on offer." } }
+      - { id: b, text: "The top of the range on the main block only", mistake: { tag: left_out_option, fix: "Right price, but the 10.5 million extra shares are left out." } }
+      - { id: c, text: "The top of the range on every share, extra option included" }
+      - { id: d, text: "A price above the range, since demand may push it up", mistake: { tag: above_range, fix: "The headline uses the announced range. A hoped-for higher price is not in it." } }
+    answer: c
+    explanation: >
+      The most the listing can raise uses the highest price in the range on the most shares on offer: the main block plus the extra option. The bottom of the range on the main block gives the least.
+    source: >
+      Arithmetic as in Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets,
+      28 October 2013 (shares x price at each end of the range, with and without the extra option).
+  - id: ftw-q-owners-cost
+    prompt: >
+      October 2013: Twitter is selling only a small slice of the company to the public. Say its bankers price the listing a bit below fair value, as bankers often do. What do Twitter's existing owners give up?
+    choices:
+      - { id: a, text: "The discount on the whole company", mistake: { tag: discount_on_whole, fix: "The discount applies only to the shares sold, not to the whole company." } }
+      - { id: b, text: "The full worth of the shares sold", mistake: { tag: gave_away_all, fix: "Buyers still pay most of what those shares are worth. Owners lose only the discount." } }
+      - { id: c, text: "Only the discount, and only on the slice sold" }
+      - { id: d, text: "Nothing, because the buyers paid a price", mistake: { tag: cost_ignored, fix: "A discount is a real cost to the owners, even if small beside the whole company." } }
+    answer: c
+    explanation: >
+      The owners lose the gap between fair value and the price paid, on the shares sold only. Selling only a small slice limits the cost; discounting the whole company would have cost far more.
+    source: >
+      The reasoning of Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", 28 October 2013
+      (underpricing costs the owners only on the part sold).
+  - id: ftw-q-underwriting-skew
+    prompt: >
+      28 October 2013: Damodaran asks what Twitter's bankers are up to. They "underwrite" the listing, guaranteeing every share sells at the offer price. Why does that promise push them to price low?
+    choices:
+      - { id: a, text: "Too high leaves them stuck with unsold shares; a bit low costs little" }
+      - { id: b, text: "Regulators make offer prices sit below book value", mistake: { tag: regulator_rule, fix: "No rule ties the offer to book value. The bank's own guarantee drives it." } }
+      - { id: c, text: "A lower price raises the bank's percentage fee", mistake: { tag: fee_rises, fix: "A percentage fee shrinks with a lower price. The guarantee is what pulls the price down." } }
+      - { id: d, text: "Banks get paid only when the share price falls", mistake: { tag: paid_on_fall, fix: "Banks earn a fee on the sale. They gain nothing from a falling price." } }
+    answer: a
+    explanation: >
+      With the guarantee, the bank bears the loss if it cannot place the shares at the agreed price. Setting the price too high is costly to the bank; setting it somewhat low is cheap, and it also makes the offering easy to sell. This skew is one reason offerings tend to be priced below what the first buyers then pay.
+    source: >
+      Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets, 28 October
+      2013 ("the underwriting skew").
+  - id: ftw-q-close-values
+    prompt: >
+      October 2013: Damodaran values Twitter at $17.84 a share, and the bankers' range is $17 to $20. Your friend cheers: "His model is proven!" Damodaran disagrees. What does the match really tell you?
+    choices:
+      - { id: a, text: "The model is confirmed, since the market agrees with it", mistake: { tag: match_proves, fix: "Bankers set the range by testing demand, not from his model, so a match proves little." } }
+      - { id: b, text: "Very little: the range reflects demand, so the match may be luck" }
+      - { id: c, text: "The shares will be sold below their true value", mistake: { tag: match_means_discount, fix: "A match between his value and the range says nothing about a discount either way." } }
+      - { id: d, text: "Twitter's future cash flows are now certain", mistake: { tag: match_means_certain, fix: "No price range makes cash flows certain. Value rests on a story about the future." } }
+    answer: b
+    explanation: >
+      A value comes from a story about growth, margins and risk; an offer price comes from bankers testing demand. They can coincide by chance, so agreement is not a test of the model, and a gap between them would not by itself prove either is wrong.
+    source: >
+      Damodaran, "The Twitter IPO: Thoughts on the IPO End Game", Musings on Markets, 28 October
+      2013 (price versus value).
+
+checks:
+  - id: ftw-quiz-price-value
+    kind: quiz
+    questions:
+      - ftw-q-proceeds
+      - ftw-q-owners-cost
+      - ftw-q-underwriting-skew
+      - ftw-q-close-values
+      - bank:eab:MBA-FIN-VAL-0040
+      - bank:eab:MBA-FIN-VAL-0042
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ftw-follow-argument
+    kind: conversation
+    prompt: >
+      You have read Damodaran's post on the coming Twitter IPO as it stood on 28 October 2013.
+      Explain, in your own words and in order, each step of his argument: what he updated in his
+      valuation and why it moved only a little; why he says the closeness of the price range to his
+      value is not a vindication; the reasons he gives for thinking the bankers see a higher fair
+      price than the range; what he expects to happen on the offering and listing days; who he says
+      wins and who loses, and why the existing owners are not victims; and whether he thinks the
+      bankers are needed. Then say, from his argument alone, what he would conclude if the offer
+      price turned out to be higher than his value.
+    passCriteria: >
+      The Learner explains the update (third-quarter numbers and share count in the amended filing;
+      value from $17.36 to $17.84; the same story of revenue about $11.2 billion in 2023 and a 25%
+      operating margin), and that an IPO is a pricing event driven by demand and bankers, so the
+      match with the range is coincidence, not a vindication. They give the reasons for a higher
+      "fair price" in the bankers' mind (the underwriting guarantee skew, public relations and
+      first-day momentum, testing demand on the road show) and his rough guess of $25. They state his
+      script for the offering and listing days (a first-day jump of about 20% to 25%, others drawn in,
+      early owners selling later). They explain why existing owners lose little (only a small share
+      of the company is sold; they are experienced partners in the process) and who gains (bankers,
+      favoured allottees, the media). They report his question whether bankers are needed, with
+      auction as the alternative. They conclude that a price above his value would not by itself
+      show his value was wrong, because price is set by demand. They do not claim to know what the shares actually did, and they do not make a call to
+      buy or sell.

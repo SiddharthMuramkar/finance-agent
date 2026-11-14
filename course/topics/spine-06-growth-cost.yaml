@@ -1,0 +1,303 @@
+# Spine Topic 6 (spec 2026-11-12, C2, C4): what growth costs, taught through Webvan's plan for 26 more distribution
+# centres, as of its first annual report (30 March 2000). The Case's valuation block is the capital budgeting
+# Elective's (cf-capital-budgeting), taken with valuationFrom. No one published a valuation of Webvan: the block is an
+# illustration built from Webvan's own claims with Damodaran's February 2000 method, and the Topic says so.
+# Case facts: docs/research/verify-webvan.json (storyFacts, widgetFacts), each with its source below.
+# The Primer "Spending that lasts" is cut from the Elective fs-capex-dep (spec C3).
+# Stage, place and length live in course/outline.yaml.
+id: spine-06-growth-cost
+title: "What does growth cost?"
+goal: Judge whether a company's growth adds value by setting what new capital earns against what it costs
+why: "Growth needs money first; a company is worth more for growing only when that money earns more than it costs, which every valuation must check."
+minutes: 13
+exampleCurrency: USD
+
+cases:
+  - id: spine-06-webvan-growth
+    title: Webvan's plan for 26 more distribution centres
+    asOf: 2000-03-30
+    valuationFrom: webvan-centre-npv-2000
+    story: >
+      30 March 2000. Webvan, an online grocer, files its first annual report. It has delivered groceries since June 1999
+      from one distribution centre in Oakland, California, built to handle the volume of about 18
+      supermarkets. In 1999 it sold $13.3 million and lost $144.6 million, and at the end of the year Oakland ran at
+      under 25% of the capacity it was designed for. The plan: up to 26 more centres over three years, to be built
+      by Bechtel, which it puts at about $1.0 billion with no firm commitment, at $30 million to $35 million a centre, with $300 million to $350 million
+      of spending in 2000 alone. Webvan says a full centre, running seven days a week with an average order of about
+      $103 (against $77.65 in 1999), would sell about $300 million a year and keep 12% as operating profit, where a
+      traditional supermarket keeps about 4%. It sold its shares to the public at $15 in November 1999. Damodaran's
+      industry data of January 1999 showed grocers earning 15.66% a year on their capital, which cost them 8.75%, and
+      internet companies earning 4.63% on capital that cost them 15.27%. The values in this Topic's Widget are an
+      illustration built from Webvan's own claims with Damodaran's method; no one published a valuation of Webvan.
+      Will each new centre earn more than the money it ties up costs?
+    reveal: >
+      Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8 million on equipment and
+      buildings that year against a plan of $300 million to $350 million, and at the end of 2000 none of its centres
+      was running at or near the capacity it was designed for. It cut its 2001 spending plan to $10 million to $15
+      million. Its net loss in 2000 was $453.3 million. On 9 July 2001 it shut down in all seven of its markets and
+      said it would file for bankruptcy protection, and it filed on 13 July 2001. The investment case rested on each
+      centre reaching high volumes and an average order far above the one it had. Its payback claim was an EBITDA
+      figure, before tax, depreciation and head-office costs, that ignored the time value of money: the plan never showed
+      that the money tied up in a centre would earn more than it cost.
+
+concept: >
+  A company cannot grow for free. More sales need more capital first: warehouses, trucks, systems, stock. The money
+  a company puts back into the business to grow is its reinvestment; the share of its after-tax operating profit it
+  puts back is its reinvestment rate. Sales to capital says how many dollars of new sales each dollar of reinvestment brings. What that capital earns is the return on capital: the share of each new sale
+  kept after tax, times the sales each dollar brings in. Growth adds value only when the return on new capital is above the cost of capital, the return
+  investors could get elsewhere for the same risk. When it is above, a bigger company is worth more. When it is
+  below, every new dollar invested loses value, so growing faster cannot rescue the business. So the question about any
+  growth plan is not how fast, but what each new dollar will earn against what it costs. A company that must put
+  back nearly all its profit to grow a little earns little on that money; one that grows just as much while putting back
+  a small share earns a lot.
+
+principle: >
+  Growth is bought with capital. It adds value only when the new capital earns more than it costs; before you
+  cheer a growth plan, ask what each new dollar invested will earn.
+
+goDeeper: >
+  The same test sits behind return on equity, a company's profit set against the money its shareholders have put
+  in: a company that keeps earning more on its equity than shareholders could get elsewhere can grow into a higher
+  value, and one that earns less shrinks its value as it grows. A Learner who wants more can ask how Webvan's plan
+  would read on that measure.
+
+youllLearn:
+  - "See why growth needs money before it brings in sales."
+  - "Set what new capital earns against what it costs."
+  - "Tell a growth plan that adds value from one that only adds size."
+
+terms:
+  - term: reinvestment
+    means: The money a company puts back into the business, such as buildings and equipment, so that it can grow.
+    emoji: building-construction
+    pro: Reinvestment runs ahead of sales in the build-out years.
+    example: "A bakery spends $50,000 on a second oven before it can sell more bread."
+    inStory: Webvan planned $300 million to $350 million of spending in 2000 alone.
+  - term: reinvestment rate
+    means: The share of a company's after-tax operating profit that it puts back into the business to grow.
+    emoji: chart-increasing
+    pro: Their reinvestment rate is above one hundred percent while they build out.
+    example: "A shop earning $10,000 after tax that spends $4,000 on a new counter reinvests 40%."
+    inStory: Webvan had no operating profit, so its centres were paid for with investors' money, not earned profit.
+  - term: sales to capital
+    means: How many dollars of new sales each dollar invested in the business brings in.
+    emoji: shopping-cart
+    pro: A full centre turns over its capital fast; a part-empty one does not.
+    example: "A $10,000 food truck that sells $30,000 a year brings in $3 of sales for each $1."
+    inStory: Oakland ran at under a quarter of its capacity, so it brought in few sales for what it cost.
+  - term: return on capital
+    means: What a company earns each year, after tax, on the money tied up in its business.
+    emoji: coin
+    pro: Their return on capital sits well below their cost of capital.
+    example: "A $100,000 shop that earns $12,000 a year after tax returns 12% on its capital."
+    inStory: Grocers earned 15.66% on their capital in Damodaran's data of January 1999.
+  - term: EBITDA
+    means: Earnings before interest, tax, depreciation and amortisation, which leaves out the cost of the things a business must keep buying.
+    emoji: receipt
+    pro: The deck shows EBITDA turning positive in year two.
+    example: "A taxi that makes $40,000 a year before paying for the car still needs a new car every few years."
+    inStory: Webvan's payback claim for a centre was made in EBITDA.
+
+skills:
+  - id: growth-pays
+    rule: Growth adds value only when new capital earns more than it costs; below that, growing faster cannot rescue the value.
+  - id: capital-cost
+    rule: Growth needs capital first, and the fewer sales each dollar of capital brings, the more growth costs.
+
+primers:
+  - id: growth-cost-primer-spending
+    title: Spending that lasts
+    lines:
+      - Spending on things that last, such as a warehouse, leaves as cash now; profit shows only a slice of it each year.
+      - EBITDA leaves out that slice, so it ignores the cost of the very buildings the business must keep buying.
+      - Webvan's payback claim for a centre was made in EBITDA.
+    term: EBITDA
+    quickTry:
+      id: growth-cost-primer-try
+      skill: capital-cost
+      ask: A centre shows healthy EBITDA, but needs new vans and fridges every few years. Is its EBITDA the cash it leaves for its owners?
+      kind: choice
+      answer: no
+      choices:
+        - { id: no, text: "No: the vans and fridges still have to be paid for" }
+        - { id: yes, text: "Yes: EBITDA is the cash it makes", mistake: { tag: ebitda_is_cash, fix: "EBITDA is before paying for the things that wear out, so the cash left is less." } }
+    elective: fs-capex-dep
+    at: concept
+
+insight:
+  question: Make Webvan bigger on its own claims, then again with a supermarket's margin and the fewest sales for each dollar invested. When does getting bigger help shareholders?
+  written: Getting bigger adds value only while each new dollar invested earns more than it costs; once it earns less, a bigger Webvan only digs deeper early losses, and no size leaves anything for shareholders.
+  foundWhen: The Learner grows Webvan on its own claims and sees the value rise, then lowers the margin and the sales for each dollar invested until the return on new capital reads below its cost, sees that size no longer lifts the value while the early cash-flow bars dig deeper, and says growth pays only when new capital earns more than it costs.
+  hints:
+    - Watch the return on new capital beside the value while you move the size lever.
+    - Lower what it keeps and the sales for each dollar invested until the return reads below its cost, then move the size lever again and watch the early cash-flow bars.
+
+explore:
+  before: growth-cost-check
+  workbench:
+    recipe: value_levers
+    case: spine-06-webvan-growth
+    title: When does Webvan's growth pay?
+    inputs:
+      caseStory: Webvan's own claims
+      mode: { kind: roic }
+
+connections:
+  - text: Net present value judges one centre the same way, by the cash it adds after the money it ties up.
+    topics: [cf-capital-budgeting]
+  - text: Capital spending, depreciation and EBITDA show where the cost of growth hides in the accounts.
+    topics: [fs-capex-dep]
+  - text: Return on equity asks the same question from the shareholders' side.
+    topics: [fol-roe]
+
+questions:
+  - id: growth-cost-q-lever
+    kind: which_lever
+    prompt: Starting from Webvan's own claims, which one change cuts its value the most?
+    skill: growth-pays
+    explanation: A supermarket's margin leaves so little on each sale that the later years never pay back the early losses and the money spent on centres, so nothing is left for shareholders.
+    computed:
+      case: spine-06-webvan-growth
+      changes:
+        - { id: grocer-margin, label: "Margin 12% to a supermarket's 4%", levers: { marginTarget: 4 } }
+        - { id: half-size, label: "Revenue in year 10 $8.4bn to $4.2bn", levers: { revenueYear10: 4200 } }
+        - { id: grocer-capital, label: "Sales to capital 10 to a grocer's 4.16", levers: { salesToCapital: 4.16 } }
+        - { id: riskier, label: "Cost of capital 12.35% to 15%", levers: { costOfCapitalGrowing: 15 } }
+  - id: growth-cost-q-price
+    kind: price_assumes
+    prompt: Webvan sold its shares to the public at $15 in November 1999. Which story gets near that price?
+    skill: growth-pays
+    explanation: At its own size, only keeping more of every sale gets near the offer price; more sales for each dollar or cheaper money barely move it, and twice the size goes past it.
+    computed:
+      case: spine-06-webvan-growth
+      changes:
+        - { id: richer, label: "Its own size, keeping 17% of each sale", levers: { marginTarget: 17 } }
+        - { id: cheaper-money, label: "Its own claims at a 10% cost of capital", levers: { costOfCapitalGrowing: 10 } }
+        - { id: leaner, label: "Its own claims, with $16 of sales for each $1 invested", levers: { salesToCapital: 16 } }
+        - { id: twice, label: "Twice its own size, $16.8bn of revenue in year 10", levers: { revenueYear10: 16800 } }
+  - id: growth-cost-q-predict
+    kind: predict
+    prompt: "On Webvan's own claims, if by year 10 it reaches {change}, its value will be:"
+    skill: growth-pays
+    computed:
+      case: spine-06-webvan-growth
+      changes:
+        - { id: twice, label: "twice the planned size, $16.8bn of sales", levers: { revenueYear10: 16800 } }
+        - { id: half, label: "half the planned size, $4.2bn of sales", levers: { revenueYear10: 4200 } }
+      bands:
+        - { id: double, label: "About double or more", min: 1.6 }
+        - { id: same, label: "About the same", min: 0.8, max: 1.6 }
+        - { id: half, label: "About half", min: 0.3, max: 0.8 }
+        - { id: little, label: "Little or nothing", max: 0.3 }
+  - id: growth-cost-q-direction
+    kind: direction
+    prompt: At the end of 1999 Oakland ran at under a quarter of its designed capacity. If every new centre fills as slowly, which lever moves, and which way?
+    skill: capital-cost
+    choices:
+      - { id: cost-up, text: "What growth costs, up: fewer sales for each dollar invested" }
+      - { id: size-up, text: "How big it gets, up", mistake: { tag: centres_are_size, fix: "More centres that sit part empty add capital faster than sales, so growth costs more." } }
+      - { id: risk-down, text: "How risky it is, down", mistake: { tag: lever_mixup, fix: "Half-empty centres make the plan riskier if anything; the first lever they move is what growth costs." } }
+    answer: cost-up
+    explanation: A centre costs the same whether it is full or not, so a part-empty one brings in fewer sales for each dollar it cost.
+    source: "Webvan Group, Form 10-K405 for 1999, filed 30 Mar 2000: the Oakland centre ran at less than 25% of its designed capacity at 31 Dec 1999. https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt"
+  - id: growth-cost-q-hold
+    kind: cannot_hold
+    prompt: Which growth plan contradicts itself?
+    skill: growth-pays
+    choices:
+      - { id: losing-adds, text: "Each new centre earns less than the money in it costs, and each one adds to the company's value" }
+      - { id: slow-fill, text: "Build one centre at a time and fill each before building the next", mistake: { tag: slow_is_fine, fix: "A slow plan can hold together; it just grows less while it proves each centre pays." } }
+      - { id: grocer, text: "Keep a supermarket's margin and grow slowly", mistake: { tag: dull_is_fine, fix: "A modest plan is not a contradiction; nothing in it fights the rest." } }
+    answer: losing-adds
+    explanation: A centre that earns less than its money costs takes value away, so more of them cannot add value.
+    source: "Damodaran, The Dark Side of Valuation (HighGrow.pdf, March 2000), on growth, reinvestment and return on capital. https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
+  - id: growth-cost-q-pricevalue
+    kind: price_or_value
+    prompt: "On its first day of trading, 5 November 1999, Webvan's shares closed at $24.875, a market value of $7.9 billion. Is that about a price or a value?"
+    skill: growth-pays
+    choices:
+      - { id: price, text: "A price" }
+      - { id: value, text: "A value", mistake: { tag: price_for_value, fix: "Market value is what buyers paid for each share times the shares, so it is a price." } }
+    answer: price
+    explanation: It is what buyers paid that day, a price; a value would come from what the centres will earn against what they cost.
+    source: "New York Times, 6 Nov 1999, Webvan Stock Price Closes 65% Above Initial Offering. https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html"
+
+checks:
+  - id: growth-cost-check
+    kind: quiz
+    questions: [growth-cost-q-lever, growth-cost-q-price, growth-cost-q-predict, growth-cost-q-direction, growth-cost-q-hold, growth-cost-q-pricevalue]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: Growth is bought with capital
+      lines:
+        - More sales need more capital first, such as buildings, trucks and systems.
+        - Sales to capital says how many dollars of sales each dollar invested brings in.
+        - Return on capital is what that money earns a year, after tax.
+        - Growth adds value only when new capital earns more than it costs.
+      writeDown: Before cheering growth, ask what each new dollar earns against what it costs.
+      skills: [growth-pays, capital-cost]
+    quickTries:
+      - id: growth-cost-try-pays-half
+        skill: growth-pays
+        ask: In January 1999 the average internet company earned 4.63% a year on its capital, which cost it 15.27%. If its new money earned the same, would growing add value?
+        halfDone: "First step, done for you: 4.63% earned is less than the 15.27% the money costs."
+        kind: choice
+        answer: took
+        choices:
+          - { id: took, text: "No: each new dollar would take value away" }
+          - { id: added, text: "Yes: growing always adds value", mistake: { tag: growth_is_value, fix: "Growth adds value only when new capital earns more than it costs; here it earned far less." } }
+      - id: growth-cost-try-pays-grocer
+        skill: growth-pays
+        ask: In the same data grocers earned 15.66% a year on capital that cost them 8.75%. For a grocer like that, does growing add value?
+        kind: choice
+        answer: adds
+        choices:
+          - { id: adds, text: "Yes: new capital earns more than it costs" }
+          - { id: dull, text: "No: grocery is a slow business", mistake: { tag: exciting_is_value, fix: "A dull business still adds value by growing when its capital earns more than it costs." } }
+      - id: growth-cost-try-pays-two
+        skill: growth-pays
+        ask: Two shops grow equally fast. One earns more on new money than the money costs; the other earns less. Which should grow?
+        kind: choice
+        answer: first
+        choices:
+          - { id: first, text: "The one that earns more than its money costs" }
+          - { id: both, text: "Both, since both grow sales", mistake: { tag: growth_is_value, fix: "Sales growth alone is not value; the second shop loses value on every new dollar." } }
+      - id: growth-cost-try-pays-rate
+        skill: growth-pays
+        ask: Two shops grow equally fast. One puts back a third of its after-tax operating profit to do it, the other puts back all of it. Which earns more on its new money?
+        kind: choice
+        answer: third
+        choices:
+          - { id: third, text: "The one that puts back a third" }
+          - { id: all, text: "The one that puts back all of it", mistake: { tag: more_is_better, fix: "Putting back more for the same growth means each new dollar earns less, not more." } }
+      - id: growth-cost-try-capital-half
+        skill: capital-cost
+        ask: Oakland cost the same at any level of use, and it ran at under a quarter of its capacity. Does each dollar it cost bring in more sales than planned, or fewer?
+        halfDone: "First step, done for you: the building and equipment were paid for in full, but sales were a fraction of what it was built for."
+        kind: choice
+        answer: fewer
+        choices:
+          - { id: fewer, text: "Fewer" }
+          - { id: more, text: "More", mistake: { tag: cost_not_capacity, fix: "The cost was fixed and the sales were low, so each dollar brought in fewer sales than planned." } }
+      - id: growth-cost-try-capital-plan
+        skill: capital-cost
+        ask: Webvan said a full centre would sell about $300 million a year and cost $30 million to $35 million to build. What would make that growth cost more?
+        kind: choice
+        answer: slow-fill
+        choices:
+          - { id: slow-fill, text: "Centres that fill slowly" }
+          - { id: big-orders, text: "Bigger average orders", mistake: { tag: direction_mixup, fix: "Bigger orders bring in more sales from the same centre, so growth costs less, not more." } }
+      - id: growth-cost-try-capital-ratio
+        skill: capital-cost
+        ask: What does a sales to capital of 4 tell you about a business?
+        kind: choice
+        answer: four-sales
+        choices:
+          - { id: four-sales, text: "Each dollar invested brings in four dollars of sales" }
+          - { id: four-profit, text: "Each dollar invested earns four dollars of profit", mistake: { tag: sales_for_profit, fix: "It counts sales, not profit; what is kept depends on the margin." } }
+  - id: growth-cost-talk
+    kind: conversation
+    prompt: Tell Webvan's growth story in two or three sentences. What does each new centre cost, what will it earn on that money, and is that more than the money costs?
+    passCriteria: Says that growth needs the centres to be built first; ties what a centre earns to its margin and to how full it gets; compares that return with what the money costs; and says growth adds value only when the return is the higher of the two.
+    skills: [growth-pays]

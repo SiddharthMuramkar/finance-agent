@@ -1,0 +1,4 @@
+root = Widget("How much of Amazon's value sits after year 10?", [seesaw])
+$growthAfter = 6
+$costAfter = 9.61
+seesaw = TerminalSeesaw("amazon-dcf-2000", $growthAfter, $costAfter)

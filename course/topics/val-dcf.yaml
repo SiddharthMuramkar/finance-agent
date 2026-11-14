@@ -1,0 +1,223 @@
+# DCF valuation: a foundation Topic taught through Aswath Damodaran's February 2000 valuation of Amazon.com.
+# Case Data (the share price and Amazon's 2000 price range) lives in the database; see docs/architecture.md.
+# Case sources (checked): Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, valuation done February 2000), tables on cash flows and cost of capital; Amazon.com Form 10-K405 for 2000.
+id: val-dcf
+title: DCF valuation
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "This is the method behind every value in the course: a story about the business turned into future cash and brought back to today."
+
+cases:
+  - id: amazon-dcf-2000
+    title: Damodaran values Amazon.com
+    data: [amazon-share-price-feb-2000, amazon-quarterly-high-2000, amazon-quarterly-low-2000]
+    asOf: 2000-02-01
+    story: >
+      In February 2000 the online retailer Amazon.com traded at $84 a share. Aswath Damodaran, a
+      professor at New York University's Stern School of Business, valued it with a discounted cash
+      flow model. Its revenue for the twelve months to September 1999 was $1,117 million, with an
+      operating loss of $410 million (a margin of -36.71%). He assumed revenue would grow 150% in
+      the first year, then 100%, 75%, 50% and 30%, slowing to 6% in year 10 and in perpetuity, and
+      that the operating margin would improve to 9.95% in year 10 and 10% after that. After tax
+      and the spending on new capacity, he forecast free cash flow to the firm (in $ million) of
+      -931, -1,024, -989, -758, -408, -163, 177, 625, 1,174 and 1,788 in years 1 to 10. He
+      discounted them at a cost of capital of 12.84% in years 1 to 3, 12.83% in year 4, 12.81% in year 5, then 12.13%, 11.62%, 11.08%, 10.49% and 9.61% in years 6 to 10,
+      and valued the cash flows after year 10 as a perpetuity growing at 6%. The firm had
+      $26 million of cash and $349 million of debt, and employee options outstanding that he valued
+      at $2,892 million. Using these inputs, what story does this valuation tell about where Amazon's value
+      comes from, and does it lean on the years after year 10? How would you decide whether $84 is high or low?
+    reveal: >
+      Damodaran valued the cash flows after year 10 as growing 6% a year forever, discounted at a cost
+      of capital of about 9.61%, and published a terminal value of $52,148 million. The present value
+      of all the cash flows was $15,170 million for the operations. Adding cash and subtracting
+      debt gave equity of $14,847 million. After deducting the value of the options ($2,892
+      million), the value of the common stock was $11,955 million, or $35.08 a share on 340.79
+      million shares, against a price of $84. The price did not fall at once: in the first
+      quarter of 2000 the shares traded as high as $91.50. They then fell through the year, with a
+      low of $14.88 in the fourth quarter. A DCF value is an estimate that depends on its
+      assumptions, and a market price can stay far above or below it for months. The model also
+      shows how much of the value lay in a terminal value that rests on distant growth and margin
+      assumptions: here more than the whole value came from years after year 10, since the early
+      cash flows were negative.
+    # The same valuation as inputs (spec 2026-11-12, Appendix B.1), for Workbench Widgets and computed questions. Copied from
+    # src/finance/fixtures/amazon-2000.valuation.ts; Spine Topics reuse it with `valuationFrom: amazon-dcf-2000`. Dollars in
+    # millions; shares in millions. The engine gives $35.04 a share against the paper's $35.08: the paper rounds its costs
+    # of capital to two decimals. npm run course:doc writes it into src/finance/valuation-cases.generated.ts.
+    valuation:
+      currency: USD
+      unit: millions
+      # Revenue for the twelve months to September 1999.
+      baseRevenue: 1117
+      growthPercent: [150, 100, 75, 50, 30, 25.2, 20.4, 15.6, 10.8, 6]
+      # An operating loss of $410m on $1,117m, closing half the gap to 10% each year: 9.95% in year 10, 10% after.
+      margin: { startPercent: -36.71, targetPercent: 10, afterPercent: 10 }
+      taxPercent: 35
+      lossesCarried: 500
+      salesToCapital: 3
+      costOfCapitalPercent: [12.84, 12.84, 12.84, 12.83, 12.81, 12.13, 11.62, 11.08, 10.49, 9.61]
+      growthAfterPercent: 6
+      returnOnCapitalAfterPercent: 20
+      cash: 26
+      debt: 349
+      options: 2892
+      shares: 340.79
+      # About $84 was the close on 3 February 2000, after the fourth-quarter results (about $67.40 on 1 February); the
+      # paper says only "February 2000 ... $84", so the story stays at month level (docs/research/verify-amazon-risk-erp.json).
+      price: { value: 84, date: 2000-02-03, note: "The close on 3 February 2000, after the fourth-quarter results; the paper says only February 2000." }
+      published:
+        valuePerShare: 35.08
+        fcff: [-931, -1024, -989, -758, -408, -163, 177, 625, 1174, 1788]
+        note: "Terminal value $52,148m (1,881 / (9.6075% - 6%); the paper prints 9.61%), operating assets $15,170m, equity $14,847m before and $11,955m after the options, over 340.79m shares: $35.08 (his sheet: $35.0805). With the printed two-decimal costs of capital the engine gives $35.04; the gap is rounding."
+      sources:
+        - title: "Damodaran, The Dark Side of Valuation: Firms with no Earnings, no History and no Comparables. Can Amazon.com be valued? (March 2000; valuation done Feb 2000)"
+          url: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+        - title: "Damodaran, amazon2000.xls: the valuation spreadsheet, listed on his Company Valuations page as 'Amazon.com in January 2000'"
+          url: https://pages.stern.nyu.edu/~adamodar/pc/eqegs/amazon2000.xls
+        - title: "Damodaran, Valuation seminar slides (techval.pdf, March 2000): Amazon cost of capital"
+          url: https://pages.stern.nyu.edu/~adamodar/pdfiles/Seminars/techval.pdf
+        - title: "Amazon.com Form 10-K405 for 2000 (SEC EDGAR 0001032210-01-500087)"
+          url: https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+      reproduces: true
+
+concept: >
+  Discounted cash flow (DCF) valuation says that a business is worth the present value of the
+  cash it will produce. For the whole firm, forecast free cash flow to the firm (FCFF): operating
+  profit after tax, plus depreciation, less capital spending and the increase in working capital.
+  Discount each year's FCFF at the cost of capital (WACC), and add a terminal value for the years
+  beyond the forecast: TV = FCFF in the next year / (WACC - g), where g is a stable growth rate that
+  cannot exceed the long-run growth of the economy. The sum is the value of operating assets. Add
+  cash and subtract debt to get equity value, and subtract the value of employee options before
+  dividing by the number of shares. Discount free cash flow to equity at the cost of equity
+  instead if you value equity directly. For a young company the early cash flows are negative, so
+  most of the value is in the terminal value, and the result is very sensitive to the growth, margin
+  and discount-rate assumptions. Test them and say how value changes when they do.
+
+principle: >
+  A DCF is a set of explicit assumptions turned into a number. The number is only as good as the
+  assumptions, so state them, see which ones drive the value, and compare the result with the price
+  as a question rather than a verdict.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Value a business as the cash it will produce, brought back to today."
+  - "Turn the value of the whole business into a value per share."
+  - "Find which assumptions drive the value, and treat the gap to the price as a question."
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: dcf-q-pv
+    prompt: >
+      Leo will pay $110 next year and $121 the year after for your old bike. Dad says to shrink both payments back to today's money first. What is the result called?
+    choices:
+      - { id: a, text: "Present value: each payment shrunk back to today" }
+      - id: b
+        text: "Future value: each payment grown forward with interest"
+        mistake: { tag: pv_as_fv, fix: "Future value grows money forward. Dad shrank later cash back to today." }
+      - id: c
+        text: "Terminal value: what the years after a forecast are worth"
+        mistake: { tag: pv_as_terminal, fix: "Terminal value covers years after a forecast. These two payments sit inside it." }
+      - id: d
+        text: "Book value: the figure the accounts record"
+        mistake: { tag: pv_as_book, fix: "Book value is an accounting record, not later cash shrunk to today." }
+    answer: a
+    explanation: >
+      At a 10% discount rate each payment is worth $100 today, so together they are worth $200, less than the plain total of $231. This is their present value.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: dcf-q-terminal
+    prompt: >
+      Nisha's forecast for a cafe chain covers ten years, but the chain should run for ever, growing slowly. She packs the later years into one lump, its terminal value. When does it balloon?
+    choices:
+      - { id: a, text: "When growth creeps close to the discount rate" }
+      - id: b
+        text: "If the discount rate sits far above growth"
+        mistake: { tag: gap_backwards, fix: "A wide gap shrinks the lump. A narrow gap makes it balloon." }
+      - id: c
+        text: "Once the cafes are sold off at the end"
+        mistake: { tag: terminal_as_salvage, fix: "That is salvage value, a sale. Terminal value assumes the business carries on." }
+      - id: d
+        text: "Never, since years after the forecast are left out"
+        mistake: { tag: later_years_ignored, fix: "Later years are kept. Terminal value packs them into one lump." }
+    answer: a
+    explanation: >
+      For example, a year-11 cash flow of $50 growing at 3% for ever, at a 10% discount rate, is $50 over a 7-point gap: about $714. At an 8% discount rate the gap is 5 points and the lump is $1,000. That lump is then discounted back to today.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), Ch. 11 Summary (growing-perpetuity valuation, the same formula): https://openstax.org/books/principles-finance-2e/pages/11-summary
+
+  - id: dcf-q-bridge
+    prompt: >
+      Ravi's DCF has valued a firm's business. The firm also owes its lenders money and has some cash in the bank. What do the shareholders own?
+    choices:
+      - { id: a, text: "Add the cash, take off the debt: lenders come first" }
+      - id: b
+        text: "Debt gets added on, and the cash comes off"
+        mistake: { tag: bridge_backwards, fix: "Debt is owed to lenders, so it comes off. Cash goes on." }
+      - id: c
+        text: "Both the debt and the cash come off"
+        mistake: { tag: cash_removed, fix: "Cash belongs to the owners, so it is added, not removed." }
+      - id: d
+        text: "Just the business value; debt and cash change nothing"
+        mistake: { tag: no_bridge, fix: "Owners get what is left after lenders, so debt and cash change the answer." }
+    answer: a
+    explanation: >
+      Equity = operating value + cash - debt. For example, a business worth 1,000 that owes 300 and holds 50 in cash leaves 750 for the shareholders.
+    source: >
+      CFA Institute, refresher readings on equity valuation: https://www.cfainstitute.org/insights/professional-learning/refresher-readings ; the bridge is by definition.
+
+  - id: dcf-q-rate-up
+    prompt: >
+      In November 2025 Meher has valued a coffee chain with a discounted cash flow (DCF) model. Then interest rates rise, and her boss asks her to raise the discount rate while keeping every forecast the same. What happens to her value?
+    choices:
+      - { id: a, text: "It falls, and the far-off cash falls most" }
+      - { id: b, text: "It rises, as a higher rate means more return", mistake: { tag: rate_raises_value, fix: "A higher discount rate shrinks every present value, so the value falls." } }
+      - { id: c, text: "It stays put, as the forecasts did not change", mistake: { tag: rate_irrelevant, fix: "The discount rate is an input; raising it lowers what future cash is worth today." } }
+      - { id: d, text: "Only next year's cash changes", mistake: { tag: first_year_only, fix: "The rate touches every year, and the far years shrink most." } }
+    answer: a
+    explanation: >
+      A higher rate shrinks every present value, and the cash flows furthest away shrink most.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: dcf-q-young
+    prompt: >
+      In April 2025 Tara values a young delivery app that grows fast but still burns cash every year. Her model puts most of its value in the terminal value: the worth of all the years after her forecast ends. Before she shows her boss, she wants to know why. What explains it?
+    choices:
+      - { id: a, text: "Its cash is negative now; value comes once it matures" }
+      - { id: b, text: "Terminal values are always accurate", mistake: { tag: terminal_accurate, fix: "Terminal values are uncertain; they dominate because early cash is negative." } }
+      - { id: c, text: "Young companies have no discount rate", mistake: { tag: no_discount_rate, fix: "Young companies have a discount rate, often a high one." } }
+      - { id: d, text: "Later cash is discounted less", mistake: { tag: later_discounted_less, fix: "Later cash flows are discounted more, not less; value sits late because early cash is negative." } }
+    answer: a
+    explanation: >
+      When early free cash flows are negative, the positive value comes from later years and the perpetuity beyond the forecast, so the assumptions about margins, growth and the discount rate dominate.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+checks:
+  - id: dcf-quiz-method
+    kind: quiz
+    questions:
+      - dcf-q-pv
+      - dcf-q-terminal
+      - dcf-q-bridge
+      - dcf-q-rate-up
+      - dcf-q-young
+      - bank:eab:MBA-FIN-VAL-0004
+      - bank:eab:MBA-FIN-VAL-0006
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: dcf-amazon-explain
+    kind: conversation
+    prompt: >
+      Using the inputs given for Amazon, say in your own words how a discounted cash flow valuation
+      gets from the cash the business makes to a value for each share. Which two assumptions would
+      you pick as the ones that matter most, and how would you test them before comparing the result
+      with the $84 price?
+    passCriteria: >
+      The Learner tells the story in their own words: later free cash flows are brought back to
+      today at the cost of capital, a terminal value stands in for the years after the forecast, the
+      firm's cash and debt move the value from the whole business to its owners, the options are
+      allowed for, and the total is spread over the shares. They name key assumptions (long-run
+      operating margin, growth rate, terminal growth or cost of capital) and propose sensitivity
+      tests with different values. They treat the gap with the price as a question to explain, not
+      as proof that the price is wrong.

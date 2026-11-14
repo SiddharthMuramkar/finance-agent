@@ -1,0 +1,248 @@
+# Judge Topic: a writer's predictions in one dated piece, judged one claim at a time against what is now known.
+# The piece is pasted by the Learner and kept privately with the Session; it is never stored in the Library or the repo.
+# The figures in the story are the ones the piece uses or that were public on the as-of date; the Tutor supplies no figures of its own.
+id: jud-predicted-outcomes
+title: "Judge: Zitron's predictions versus later events"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A value is a forecast about a business, and scoring predictions claim by claim teaches you to judge your own story fairly once facts arrive."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: jud-po-cursor-fork
+    title: A forecast for an AI coding startup, claim by claim
+    asOf: 2025-08-06
+    piece:
+      author: Ed Zitron
+      title: "AI Is A Money Trap"
+      published: 2025-08-06
+      url: https://www.wheresyoured.at/ai-is-a-money-trap/
+      from: paste
+    story: >
+      On 6 August 2025 the writer Ed Zitron published "AI Is A Money Trap" on his newsletter. One
+      section is about Cursor, the AI coding tool made by the start-up Anysphere. The facts public
+      on that date: Anysphere had raised $900 million in June 2025 at a valuation of $9.9 billion,
+      and Cursor was reported to earn about $500 million a year at its annualised rate (its latest
+      month times twelve), which is a rate, not revenue already booked. OpenAI had tried to buy
+      Cursor and failed, and on 28 July 2025 the customer-service software firm NICE had agreed to
+      buy the AI start-up Cognigy for about $955 million. The piece makes several different kinds of
+      claim about Cursor. It says that Cursor changed its pricing and that some customers, including
+      one with an enterprise contract, were looking to leave; that its annualised revenue will drop
+      and its ability to raise money will suffer; that "there just doesn't seem to be the investor
+      hunger" to buy a company valued at $9.9 billion; that there have been "no exits and no IPOs";
+      and that Cursor "faces two options: die, or get acquired". It also says what would show the
+      writer wrong: if Cursor is just fine. The Learner pastes the piece, since it is not kept in the
+      Library, and works from the pasted text; the web page shows a later edit date, so the Learner
+      quotes the words they actually pasted. The task is not to take a side. It is to find each
+      claim, say what kind of claim it is, and say what record would settle it.
+    reveal: >
+      Judged one claim at a time, with the records now public. (1) "Annualised revenue will drop" and
+      "ability to raise money will suffer": on 13 November 2025 Cursor announced a $2.3 billion round
+      at a $29.3 billion post-money valuation, nearly three times the $9.9 billion of June (Reuters;
+      CNBC), and said it had crossed $1 billion in annualised revenue, about twice the figure in the
+      piece (a company statement about a rate, not audited revenue). Both sub-claims did not hold in
+      the next three months. (2) "Nobody will buy at $9.9 billion": SpaceX disclosed an option in
+      April 2026 to buy Cursor for $60 billion, agreed the all-stock purchase on 16 June 2026 and
+      closed it on 14 August 2026 (Reuters; SpaceX 8-K as reported), paying with about 389.3 million
+      of its own Class A shares, which is $154 a share on the $60 billion headline (our arithmetic).
+      That is about six times the June 2025 valuation and about twice the November 2025 one. The
+      buyer was a company that had listed on 12 June 2026, so the price was in newly listed stock.
+      (3) "Die, or get acquired": it was acquired, ten months after the piece. But the fork also had
+      a third branch the piece left out, staying independent and raising money at a higher price,
+      and Cursor took that branch for the first part of the period. The sale is consistent with the
+      fork; it does not show that the reasons given (customer cancellations, a fragile model) were
+      the cause, and Reuters pointed to a lack of access to computing power as what had held its
+      growth back, a different reason. (4) "No exits and no IPOs": the piece itself names NICE's
+      purchase of Cognigy, so the claim depends on what counts as an exit; a judge fixes the scope
+      before scoring it. (5) "If I'm wrong, Cursor will be just fine": the writer gave a test, which
+      is good practice, but "just fine" has no number or date, so it could only be scored loosely.
+      The Learner's own tally should say which claims were facts at the date, which were forecasts,
+      which could never lose, and which turned out right, wrong or undecided on the records. Not
+      checked: Cursor's revenue after its pricing change, and whether the customers described ever
+      left.
+
+  - id: jud-po-openai-pace
+    title: The pace needed to reach a revenue target
+    asOf: 2025-08-06
+    piece:
+      author: Ed Zitron
+      title: "AI Is A Money Trap"
+      published: 2025-08-06
+      url: https://www.wheresyoured.at/ai-is-a-money-trap/
+      from: paste
+    story: >
+      The same piece, published on 6 August 2025, also makes a numerical claim about OpenAI. By the
+      writer's own estimate OpenAI had made only about $5.26 billion so far in 2025, and he said it
+      would have trouble reaching the $12.7 billion revenue projection for the year and would
+      likely lose more than $10 billion in doing so. The $12.7 billion was a target OpenAI had
+      shared with investors, reported by CNBC in June 2025. Other numbers public that summer: OpenAI
+      said on 9 June 2025 that its annualised revenue run rate had reached $10 billion, excluding
+      Microsoft licensing revenue and large one-time deals, and The Information reported on 30 July
+      that it had reached $12 billion annualised, about $1 billion a month, with a 2025 cash burn
+      projection of $8 billion. The Learner takes the claim back to these figures. What do analysts
+      call the monthly revenue the rest of the year would need, and why would a sceptic set it
+      beside the latest monthly pace?
+      Say which words in the claim ("revenue", "so far", "lose") need a precise
+      measure before the claim can be scored.
+    reveal: >
+      The arithmetic on 6 August: $12.7 billion less $5.26 billion leaves $7.44 billion for the
+      remaining five months, about $1.49 billion a month. The latest reported pace was about $1
+      billion a month, so staying at that pace would have given about $10.3 billion for the year
+      (our arithmetic): the doubt was reasonable on the numbers then public, because it needed
+      continued growth. The records later: OpenAI's audited statements, reported by Ed Zitron in
+      June 2026 and said by the Financial Times to match the documents it saw, show 2025 revenue of
+      $13.07 billion (Fortune; Quartz), above the $12.7 billion target by $0.37 billion, or about
+      3%. The Information had reported about $4.3 billion for the first half, so the second half
+      was about $8.8 billion, about $1.46 billion a month against $0.72 billion a month in the first
+      half (our arithmetic), and monthly revenue was close to $2 billion by the end of the year
+      (Financial Times, as reported). So "trouble hitting" the projection did not hold; the claim
+      assumed the pace would stay near its summer level. On "lose more than $10 billion", the
+      measure decides: the statements show a loss from operations of $20.92 billion, a margin of
+      minus 160% on that revenue, so on that measure the claim held, and by a wide margin. But the
+      reported net loss was distorted by a non-cash charge of $41.55 billion from the conversion
+      to a for-profit company, and the $8 billion figure in the story was a cash burn projection,
+      not a loss. Two of the three words needed a measure: "revenue" was the year's revenue, not
+      the run rate, and "lose" was the operating loss, not the cash burn. The audited figures reach
+      us through the writer's report and the Financial Times, not through an OpenAI filing, and
+      OpenAI declined to comment on them.
+
+concept: >
+  A prediction in an essay is judged one claim at a time. First separate four kinds of sentence: a
+  fact about the date (it can be checked straight away), a number the writer used (it can be
+  recomputed), a forecast (it needs a measure and a date before it can be scored), and a fork such
+  as "A or B" that cannot lose. Then name the record that would settle each one and what result
+  would count as right or wrong, before looking at the outcome. Match the measure to the claim:
+  revenue booked in a period is not an annualised run rate (a recent month times twelve), an
+  operating loss is not a net loss or a cash burn, and the dollar price in an all-stock deal moves
+  with the buyer's share price. A required pace is the gap to the target divided by the months
+  left, compared with the latest pace.
+
+principle: >
+  Score each claim by its own words, its own measure and what was knowable on the date, then by the
+  record. A forecast can be right for the wrong reason or wrong with a sound argument, so judge
+  the reasoning and the result separately, and say plainly when a claim is too loose to be scored.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Separate facts, numbers, forecasts and forks that cannot lose."
+  - "Decide what record would settle a claim before looking at the outcome."
+  - "Judge the reasoning and the result of a forecast separately."
+
+questions:
+  - id: jud-po-q-required-pace
+    prompt: >
+      A company has booked $4 billion of revenue in the first seven months of a year. Its target for
+      the full year is $9 billion. A writer says it must now book "$1.0 billion a month" for the
+      five months left. Which description of that figure is right?
+    choices:
+      - { id: a, text: "The required pace: what is still to book, spread over the five months left" }
+      - { id: b, text: "The pace so far: what is already booked, spread over the seven months gone", mistake: { tag: used_pace_so_far, fix: "That is the pace so far. The required pace looks forward, at what is still to book." } }
+      - { id: c, text: "The whole $9 billion target spread over the five months left", mistake: { tag: ignored_booked_revenue, fix: "That ignores the $4 billion already booked. Only the gap to the target is left." } }
+      - { id: d, text: "A run rate: the latest period, scaled up to a year", mistake: { tag: mixed_pace_and_run_rate, fix: "A run rate scales the latest period. A required pace is the gap over the months left." } }
+    answer: a
+    explanation: >
+      The gap is $9 billion less $4 billion, which is $5 billion, spread over five months: $1.0
+      billion a month. Dividing the full-year target by the five months left ($1.8 billion) ignores
+      what is already booked, and dividing the amount booked by seven months gives the pace so far
+      ($0.57 billion), not the pace needed.
+    source: >
+      Arithmetic on the numbers in the question (target less amount booked, divided by months left).
+  - id: jud-po-q-run-rate
+    prompt: >
+      Wednesday 2 September 2026, 5 pm; Dev, a made-up business reporter, files at 6. A start-up's best month so far brought in $0.9 billion, and it calls that month, scaled to a year, its "annualised revenue" of $10.8 billion. A rival's draft says it "has made $10.8 billion this year". Which headline gets it right?
+    choices:
+      - { id: a, text: "\"Start-up's revenue runs at a $10.8 billion yearly pace\"" }
+      - { id: b, text: "\"Start-up has made $10.8 billion this year\"", mistake: { tag: run_rate_read_as_revenue, fix: "Annualised revenue is one month's pace. Revenue booked this year is only the months actually earned." } }
+      - { id: c, text: "\"Start-up will make $10.8 billion this year\"", mistake: { tag: run_rate_read_as_forecast, fix: "A run rate is not a forecast. It only says what a year would bring if that month repeated." } }
+      - { id: d, text: "\"Start-up has made $0.9 billion this year\"", mistake: { tag: one_month_read_as_year, fix: "$0.9 billion is the best month alone, not everything booked so far this year." } }
+    answer: a
+    explanation: >
+      Annualised revenue takes one month and carries it across a year: what the year would bring if that month repeated. It is neither revenue already booked nor a forecast, so the safe headline calls it a pace.
+    source: >
+      Definition of a run rate as a recent period scaled to a year, as in the Revenue and run rate Topic of this Course Map; Dev, the start-up and the rival are made up.
+  - id: jud-po-q-fork
+    prompt: >
+      Monday 12 October 2026; Lena, a made-up analyst, keeps a public scorecard of pundits' calls. One writes that a company "will have to be sold or shut down", and gives no date. Why will Lena find this call hard to score?
+    choices:
+      - { id: a, text: "Any future sale or closure confirms it, and with no date it can only lose if the company lasts for ever" }
+      - { id: b, text: "It is a statement about the past, so it cannot be tested", mistake: { tag: forecast_read_as_past, fix: "\"Will have to\" looks forward. It is a forecast, just one with no deadline." } }
+      - { id: c, text: "It is easy to score: it is wrong the moment the company raises money", mistake: { tag: one_event_taken_as_verdict, fix: "Raising money does not end it. With no date, a sale or closure can still come later." } }
+      - { id: d, text: "Only the writer can say whether it came true", mistake: { tag: writer_taken_as_judge, fix: "Anyone can score a call once it names a date and a measure. Ask for both." } }
+    answer: a
+    explanation: >
+      With two exits named and no deadline, nearly every future ends in one of them, so the claim
+      almost cannot lose. A judge asks for a date and a measure first, and scores the reasons given
+      separately from the result.
+    source: >
+      Reasoning about falsifiable forecasts (a claim must say what would count against it, and by
+      when); Lena, the pundit and the company are made up, and no outside figure is used.
+  - id: jud-po-q-all-stock
+    prompt: >
+      A buyer agrees to pay for a target with a fixed number of its own shares. Between the announcement and the closing, the buyer's share price falls. What happens to the deal's headline price in dollars, other things equal?
+    choices:
+      - { id: a, text: "It falls with the share price, because the number of shares is fixed" }
+      - { id: b, text: "It stays the same, because the share count was agreed on announcement day", mistake: { tag: it_stays_the_same_because_th, fix: "The count is fixed, but each share is worth less, so the dollar value falls." } }
+      - { id: c, text: "It rises, because the buyer must issue more shares", mistake: { tag: it_rises_because_the_buyer_m, fix: "A fixed-share deal never adds shares. The dollar value simply follows the price." } }
+      - { id: d, text: "It cannot change, because the target's board set the price", mistake: { tag: it_cannot_change_because_the, fix: "The board fixed the share count, not the dollars. The dollar value moves." } }
+    answer: a
+    explanation: >
+      With a fixed number of shares, the dollar value follows the share price down. Some deals instead fix the dollar value and let the number of shares move with the price; the Learner should read which one the deal uses.
+    source: >
+      Arithmetic on the numbers in the question (shares x price); the distinction between fixed-share
+      and fixed-value exchange ratios is described in the merger-agreement summaries that companies
+      file on SEC Form 8-K.
+  - id: jud-po-q-operating-margin
+    prompt: >
+      A writer says a company "lost billions", meaning its revenue was smaller than all its operating costs. What should a careful judge ask the writer to name?
+    choices:
+      - { id: a, text: "Which measure: an operating loss, a net loss, or a cash burn" }
+      - { id: b, text: "Nothing: every kind of loss is the same", mistake: { tag: nothing_every_kind_of_loss_i, fix: "They differ. Net loss adds interest and tax; cash burn counts cash that left." } }
+      - { id: c, text: "Only the currency the loss was reported in", mistake: { tag: only_the_currency_the_loss_w, fix: "The currency matters less than which line of the statements the loss is." } }
+      - { id: d, text: "Only the year, since a loss in any measure means the same", mistake: { tag: only_the_year_since_a_loss_i, fix: "The year matters, but so does the measure: operating, net or cash." } }
+    answer: a
+    explanation: >
+      Revenue less all operating costs is an operating result. A net loss also includes interest, tax and non-operating items, and a cash burn counts cash that actually left, which can differ from the accounting loss. Always name the measure.
+    source: >
+      Arithmetic on the numbers in the question (revenue less total costs and expenses, divided by
+      revenue); the operating-loss line as defined in the SEC's income statement building blocks:
+      https://www.sec.gov/files/income-statement-building-blocks.pdf
+  - id: jud-po-q-percent-change
+    prompt: >
+      Tuesday 15 July 2025, 6 pm; Ana's start-up newsletter goes out at 7. A founder says his made-up robotics firm's new round values it at "2.5 times" the last one. Which headline gets it right?
+    choices:
+      - { id: a, text: "\"Robot maker valued at 2.5 times its last round\"" }
+      - { id: b, text: "\"Robot maker's value rose 250%\"", mistake: { tag: multiple_read_as_percent_rise, fix: "'Times' counts the whole new value; 'rose' counts only the extra, so 250% overstates it." } }
+      - { id: c, text: "\"Robot maker's value rose 2.5%\"", mistake: { tag: multiple_read_as_small_percent, fix: "2.5% would be a tiny nudge. A value 2.5 times the old one is a big jump." } }
+      - { id: d, text: "\"Robot maker raises 2.5 times more cash\"", mistake: { tag: valuation_read_as_cash_raised, fix: "The multiple is about what the firm is valued at, not the cash raised in the round." } }
+    answer: a
+    explanation: >
+      "2.5 times" sets the whole new value against the old one. "Rose 250%" would count only the extra on top, so it overstates the jump, and "2.5%" shrinks it to almost nothing. The safe headline copies the founder's multiple as a multiple.
+    source: >
+      Meaning of a multiple against a percent increase (percent change = change divided by starting value), as in OpenStax, Prealgebra 2e (CC BY 4.0), 6.2 percent increase: https://openstax.org/books/prealgebra-2e/pages/6-2-solve-general-applications-of-percent ; the editor, founder and firm are made up.
+
+checks:
+  - id: jud-po-quiz-recompute
+    kind: quiz
+    questions:
+      - jud-po-q-required-pace
+      - jud-po-q-run-rate
+      - jud-po-q-fork
+      - jud-po-q-all-stock
+      - jud-po-q-operating-margin
+      - jud-po-q-percent-change
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: jud-po-judge-claims
+    kind: conversation
+    prompt: >
+      Pick three claims from the pasted piece about Cursor or OpenAI. Quote each one and say what
+      kind it is: a fact, a number, a forecast, or a fork that cannot lose. Then, in your own words:
+      why did the writer doubt OpenAI would hit its target? Stick to what was known on 6 August 2025.
+    passCriteria: >
+      The Learner quotes the writer's actual words from their pasted text and sorts three claims
+      into the right kinds: a fact about the date, a number the writer used, a forecast, or a fork
+      with no way to lose. For at least one they say, in words, what record would settle it (for
+      example a funding announcement or an audited statement). They explain in their own words
+      that the doubt rests on a required pace (what is still to book, spread over the months left)
+      set against the latest monthly pace; no arithmetic is asked or needed. They keep to what was
+      known on 6 August 2025, and make no forecast and no recommendation to buy, sell or hold.

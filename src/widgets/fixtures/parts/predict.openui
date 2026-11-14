@@ -1,0 +1,5 @@
+root = Widget("How fast did the Sensex really grow each year?", [guess, chart])
+$guess = 10
+growth = Query("calculate", {calculator: "cagr", inputs: {start: 100, end: 4285, years: 13}}, {rows: [], title: "", error: ""})
+guess = Predict("Your gut guess: a steady yearly rate from 1979 to 1992", $guess, 0, 60, 1, "percent", @First(growth.rows.value), "What it actually was")
+chart = HistoryChart("sensex-1992/sensex-close")

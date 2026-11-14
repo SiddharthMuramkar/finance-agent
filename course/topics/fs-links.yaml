@@ -1,0 +1,313 @@
+# How the three statements link (accrual accounting): a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: fs-links
+title: How the three statements link (accrual accounting)
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Following one profit through all three statements lets you check that the numbers behind a valuation story agree with each other."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: satyam-links-2008
+    title: Satyam's reported profit and cash (as of December 2008)
+    data: [q2-revenue-reported, q2-operating-profit-reported, q2-revenue-actual, q2-operating-profit-actual]
+    asOf: 2008-12-31
+    story: >
+      Satyam Computer Services, a Hyderabad software services company, reported for the quarter
+      ended 30 September 2008 revenue of Rs 2,700 crore and an operating profit of Rs 649 crore,
+      an operating margin of 24 per cent. Its balance sheet at that date showed cash and bank
+      balances of Rs 5,361 crore and debtors (money owed by customers) of Rs 2,651 crore. In
+      December 2008 investors force it to call off a planned purchase of two construction
+      companies partly owned by its founders. As of 31 December 2008, you are asked a single
+      question: if those profit figures were real, how would they have to show up on all three
+      statements, and where would you look for a mismatch if they were not?
+    reveal: >
+      On 7 January 2009 the chairman, B. Ramalinga Raju, wrote that for the September quarter the
+      company had reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (a 24 per
+      cent margin), against actual revenue of Rs 2,112 crore and an actual operating profit of Rs 61
+      crore (a 3 per cent margin). The difference of Rs 588 crore (649 - 61) was shown as cash: "artificial
+      cash and bank balances going up by Rs 588 crore in Q2 alone". The US SEC later said Satyam's
+      managers created more than 6,000 phony invoices and bogus bank statements, giving more than
+      1 billion dollars of fictitious cash, about half of total assets; Satyam paid a 10 million
+      dollar penalty to settle. A single false profit had to appear in the general ledger and the
+      financial statements, which is also why the fraud needed false bank statements to hold it together.
+
+concept: >
+  The three statements are one system. Under accrual accounting, revenue is recorded when it is
+  earned and expenses when they are incurred, whether or not cash moves. A sale on credit raises
+  revenue (income statement) and receivables (balance sheet), and brings no cash until the customer
+  pays. Net income flows into retained earnings in equity on the balance sheet, and it is the first
+  line of the cash flow statement, which then adjusts it for non-cash items (such as depreciation)
+  and changes in receivables, inventory and payables. The ending cash on the cash flow statement
+  must equal the cash on the balance sheet. So a profit has to turn up in more than one place.
+
+principle: >
+  Follow every profit around the loop. If the income statement says money was earned, then
+  receivables or cash must have grown on the balance sheet and the cash flow statement must
+  agree. A number that appears on one statement and not on the others, or that never turns into
+  collected cash, deserves suspicion.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how the income statement, balance sheet and cash flow statement fit together."
+  - "Follow a profit around all three statements."
+  - "Spot a profit that never turns into collected cash."
+
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+exampleCurrency: INR
+runningExample:
+  text: "A tailor sells ₹8,000 of suits on credit this month."
+  numbers: [8000]
+  scene:
+    cast:
+      - { id: ravi, emoji: man, name: Ravi, role: tailor }
+      - { id: asha, emoji: woman, name: Asha, role: customer }
+    beats:
+      - { who: narrator, says: "Ravi sews suits for Asha and writes ₹8,000 of sales today.", emoji: receipt }
+      - { who: asha, says: "I will pay you next month.", emoji: calendar }
+      - { who: narrator, says: "Sales are up and receivables are up. No cash has come in yet.", emoji: hourglass-not-done }
+
+terms:
+  - term: accrual accounting
+    means: Recording revenue when it is earned and costs when they are incurred, whether or not cash moves.
+    pro: Companies report on an accrual basis.
+    example: "You teach a class in March; the ₹5,000 fee arrives in April, but March still counts it."
+    emoji: calendar
+    inStory: Satyam's quarter showed revenue of Rs 2,700 crore and debtors of Rs 2,651 crore.
+  - term: receivables
+    means: Money customers owe the company for sales already made but not yet paid.
+    pro: Indian companies call receivables debtors.
+    example: "A tailor's ₹8,000 of suits that customers will pay for next month."
+    emoji: receipt
+    inStory: Satyam's balance sheet showed debtors of Rs 2,651 crore.
+  - term: the three statements
+    means: "The income statement, balance sheet and cash flow statement: three views of one set of accounts."
+    pro: Analysts check that the three statements tie together.
+    example: "Your marks, attendance and fee receipt must all tell one story about you."
+    emoji: notebook
+    inStory: The analyst asks where Satyam's profit would show up on all three statements.
+  # Source (checked 6 Nov 2026): US SEC, Beginners' Guide to Financial Statements, "Operating Margin = Income from Operations / Net Revenues": https://www.sec.gov/about/reports-publications/beginners-guide-financial-statements
+  - term: operating margin
+    means: Operating profit as a share of revenue, showing how much of each rupee of sales is left after running costs.
+    pro: Analysts compare operating margins across companies.
+    example: "A tea stall keeps ₹20 of every ₹100 of sales after paying for milk, tea and rent."
+    emoji: bar-chart
+    inStory: Satyam reported an operating margin of 24 per cent for the September quarter.
+  - term: general ledger
+    means: The company's master record of every entry, from which the three statements are built.
+    pro: Everything flows from the general ledger.
+    example: "A household notebook where every rupee in and out is written down once."
+    emoji: ledger
+    inStory: Any profit Satyam reported would be written in its ledger first.
+
+scenes:
+  - id: fl-s-story
+    step: story
+    recipe: story_scene
+    title: "Satyam's profit, as of December 2008"
+    inputs:
+      cast:
+        - { id: satyam, emoji: office-building, name: Satyam, role: software services company in Hyderabad }
+        - { id: analyst, emoji: woman-office-worker, name: An analyst, role: reads all three statements }
+      beats:
+        - { who: narrator, says: "December 2008: investors force Satyam to call off a planned purchase.", emoji: calendar }
+        - { who: satyam, says: "Our September quarter: revenue Rs 2,700 crore, operating profit Rs 649 crore.", emoji: bar-chart }
+        - { who: narrator, says: "Cash and bank balances: Rs 5,361 crore. Debtors: Rs 2,651 crore.", emoji: ledger }
+        - { who: analyst, says: "If that profit is real, it must show up on all three statements.", emoji: thinking-face }
+      caption: Where would a mismatch show up?
+      date: "2008-12-31"
+  - id: fl-s-credit
+    step: concept
+    check: fl-quiz-links
+    recipe: two_paths
+    title: "Cash sale or credit sale"
+    inputs:
+      question: Two tailors each sell a suit this month. How do their statements differ?
+      left:
+        emoji: man
+        name: Ravi
+        choice: Is paid in cash today
+        outcome: [money-bag, check-mark-button]
+        outcomeLine: Sales and cash both go up this month.
+      right:
+        emoji: woman
+        name: Meera
+        choice: Sells on credit, paid next month
+        outcome: [receipt, hourglass-not-done]
+        outcomeLine: Sales go up now, but the cash comes later.
+  - id: fl-s-trace
+    step: concept
+    check: fl-satyam-trace
+    recipe: who_pays_whom
+    title: "How a profit travels between the statements"
+    inputs:
+      actors:
+        - { id: income, emoji: scroll, name: Income statement }
+        - { id: balance, emoji: balance-scale, name: Balance sheet }
+        - { id: cash, emoji: money-bag, name: Cash flow statement }
+      flows:
+        - { from: income, to: balance, what: profit joins retained earnings, emoji: coin }
+        - { from: income, to: cash, what: profit is the first line, emoji: memo }
+        - { from: cash, to: balance, what: ending cash must match, emoji: link }
+  - id: fl-s-reveal
+    step: reveal
+    recipe: timeline
+    title: "From the quarter to the letter"
+    inputs:
+      beats:
+        - { date: "2008-09-30", label: Satyam's September quarter ends, emoji: calendar }
+        - { date: "2009-01-07", label: Chairman Raju writes to the board, emoji: envelope }
+  - id: fl-s-principle
+    step: principle
+    recipe: lingo_card
+    title: "Tie out the statements"
+    inputs:
+      term: tie out
+      pro: Analysts check that the three statements tie out.
+      means: Every profit must show up on all three statements, and ending cash must match.
+      example: "Your marks, attendance and fee receipt must all agree with each other."
+      emoji: link
+      inStory: Satyam's false profit had to appear in the ledger and the statements.
+
+questions:
+  - id: fl-q-credit-sale
+    prompt: >
+      A company makes a sale on credit, to be paid next quarter. What do the statements show this quarter?
+    choices:
+      - { id: a, text: "Revenue and receivables go up; operating cash flow is unchanged" }
+      - { id: b, text: "Revenue and cash both go up", mistake: { tag: credit_sale_cash_now, fix: "On credit, the customer has not paid yet, so no cash has come in." } }
+      - { id: c, text: "Only the balance sheet changes, with cash up", mistake: { tag: only_balance_sheet, fix: "The sale is revenue now, so the income statement changes too, and cash has not moved." } }
+      - { id: d, text: "Nothing, until the customer pays", mistake: { tag: wait_for_cash, fix: "That is cash accounting. Accrual accounting records the sale when it is earned." } }
+    answer: a
+    explanation: >
+      Under accrual accounting the sale is revenue now. The customer owes the money, so receivables rise; no cash has arrived, so operating cash flow does not rise.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.1 Cash versus Accrual Accounting: https://openstax.org/books/principles-finance-2e/pages/4-1-cash-versus-accrual-accounting
+
+  - id: fl-q-cash-change
+    prompt: >
+      Cash at the start and the end of a year both sit on the balance sheet. Which three kinds of cash flow on the cash flow statement explain the change?
+    choices:
+      - { id: a, text: "Operating, investing and financing" }
+      - { id: b, text: "Revenue, costs and tax", mistake: { tag: income_lines_for_cash, fix: "Those are income statement lines. The cash flow statement groups cash into operating, investing and financing." } }
+      - { id: c, text: "Assets, liabilities and equity", mistake: { tag: balance_sheet_for_cash, fix: "Those are the balance sheet's three parts, not the cash flow statement's sections." } }
+      - { id: d, text: "Receivables, inventory and payables", mistake: { tag: adjustments_for_sections, fix: "Those are adjustments inside operating cash flow, not the three sections." } }
+    answer: a
+    explanation: >
+      The change in cash is the total of operating, investing and financing cash flows. The ending cash must equal the cash on the balance sheet.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: fl-q-addback
+    prompt: >
+      On the indirect method, which of these is added back to net income to reach operating cash flow?
+    choices:
+      - { id: a, text: "Depreciation expense" }
+      - { id: b, text: "Dividends paid", mistake: { tag: dividends_in_operating, fix: "Dividends are financing, not an add-back in operating cash flow." } }
+      - { id: c, text: "Purchases of equipment", mistake: { tag: capex_in_operating, fix: "Equipment purchases are investing outflows." } }
+      - { id: d, text: "Repayment of a loan", mistake: { tag: loan_in_operating, fix: "Loan repayments are financing outflows." } }
+    answer: a
+    explanation: >
+      Depreciation reduced net income but cost no cash in the period, so it is added back. Dividends and loan repayments are financing; equipment purchases are investing.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows, operating activities: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: fl-q-error-all-three
+    prompt: >
+      By mistake, a clerk leaves out a real cash sale, paid for in full that day. Which statement is true as a result?
+    choices:
+      - { id: a, text: "All three statements are off: profit, cash and operating cash flow are each too low" }
+      - { id: b, text: "Only the income statement is affected", mistake: { tag: error_in_one_statement, fix: "The left-out sale also leaves retained earnings and cash too low on the balance sheet, and operating cash flow too low." } }
+      - { id: c, text: "Only the balance sheet is affected", mistake: { tag: error_balance_only, fix: "The left-out revenue also leaves profit too low on the income statement." } }
+      - { id: d, text: "Only the cash flow statement is affected", mistake: { tag: error_cash_only, fix: "The left-out revenue also leaves profit too low, and the cash it brought in is left off the balance sheet." } }
+    answer: a
+    explanation: >
+      The left-out revenue leaves net income too low (income statement). Retained earnings and cash in assets are too low by the same profit and cash (balance sheet). Operating inflows are too low by that cash (cash flow statement). One left-out entry spreads through the whole system.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.3 The Relationship between the Balance Sheet and the Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-3-the-relationship-between-the-balance-sheet-and-the-income-statement
+
+  - id: fl-q-depreciation
+    prompt: >
+      A company pays cash for a machine with a five-year life, using straight-line depreciation. In the first year, which statement is true?
+    choices:
+      - { id: a, text: "Depreciation lowers net income but costs no cash that year; the purchase is an investing outflow" }
+      - { id: b, text: "The whole price lowers net income in the first year", mistake: { tag: all_expensed_year_one, fix: "Depreciation spreads the price over the machine's life, one share each year." } }
+      - { id: c, text: "Depreciation lowers operating cash flow each year", mistake: { tag: depreciation_costs_cash, fix: "Depreciation costs no cash that year. The cash went out at purchase, under investing." } }
+      - { id: d, text: "Nothing changes on the income statement", mistake: { tag: no_income_effect, fix: "Depreciation is an expense each year, so it lowers net income." } }
+    answer: a
+    explanation: >
+      Straight-line depreciation spreads the price evenly over the machine's life, an expense that lowers net income. It costs no cash in the year, so it is added back in operating cash flow. The cash was paid at purchase and shows under investing activities.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.4 When Should a Company Capitalize or Expense an Item: https://openstax.org/books/principles-finance-2e/pages/4-4-when-should-a-company-capitalize-or-expense-an-item and 5.5 The Statement of Cash Flows.
+
+  - id: fl-q-accrual
+    prompt: >
+      What do accountants call recording revenue when it is earned, even if the cash comes later?
+    choices:
+      - { id: a, text: "Accrual accounting" }
+      - { id: b, text: "Cash accounting", mistake: { tag: cash_for_accrual, fix: "Cash accounting records revenue only when the money arrives." } }
+      - { id: c, text: "Depreciation", mistake: { tag: depreciation_for_accrual, fix: "Depreciation spreads the price of a big purchase over its life." } }
+      - { id: d, text: "Operating margin", mistake: { tag: margin_for_accrual, fix: "Operating margin is operating profit as a share of revenue, not a way of recording sales." } }
+    answer: a
+    explanation: >
+      Accrual accounting records revenue when it is earned and costs when they are incurred, whether or not cash moves.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.1 Cash versus Accrual Accounting: https://openstax.org/books/principles-finance-2e/pages/4-1-cash-versus-accrual-accounting
+
+  - id: fl-q-receivables
+    prompt: >
+      A customer buys on credit and will pay later. What do analysts call the money owed?
+    choices:
+      - { id: a, text: "Receivables, or debtors" }
+      - { id: b, text: "Payables", mistake: { tag: payables_for_receivables, fix: "Payables are what the company owes its suppliers." } }
+      - { id: c, text: "Retained earnings", mistake: { tag: retained_for_receivables, fix: "Retained earnings is profit kept in the business, not money owed by a customer." } }
+      - { id: d, text: "Revenue", mistake: { tag: revenue_for_receivables, fix: "Revenue is the sale itself. The unpaid amount sits on the balance sheet as a receivable." } }
+    answer: a
+    explanation: >
+      Money customers owe for sales already made is a receivable, which Indian companies often call debtors. It is a current asset.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.1 Cash versus Accrual Accounting: https://openstax.org/books/principles-finance-2e/pages/4-1-cash-versus-accrual-accounting
+
+  - id: fl-q-cooked
+    prompt: >
+      What do analysts call operating profit as a share of revenue?
+    choices:
+      - { id: a, text: "Operating margin" }
+      - { id: b, text: "Accrual accounting", mistake: { tag: accrual_for_margin, fix: "Accrual accounting is about when revenue and costs are recorded, not how much of the revenue is profit." } }
+      - { id: c, text: "Depreciation", mistake: { tag: depreciation_for_margin, fix: "Depreciation is an ordinary expense that spreads out a big purchase." } }
+      - { id: d, text: "Capital spending", mistake: { tag: capex_for_margin, fix: "Capital spending is money spent on long-term assets such as machines." } }
+    answer: a
+    explanation: >
+      Operating margin is operating profit as a share of revenue: how much of each rupee of sales is left after running costs. A profit reported on the income statement should also show up on the balance sheet and the cash flow statement.
+    source: >
+      US SEC, Beginners' Guide to Financial Statements, Financial Statement Ratios and Calculations ("Operating Margin = Income from Operations / Net Revenues"): https://www.sec.gov/about/reports-publications/beginners-guide-financial-statements
+
+checks:
+  - id: fl-quiz-links
+    kind: quiz
+    questions:
+      - fl-q-credit-sale
+      - fl-q-cash-change
+      - fl-q-addback
+      - fl-q-error-all-three
+      - fl-q-depreciation
+      - fl-q-accrual
+      - fl-q-receivables
+      - fl-q-cooked
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fl-satyam-trace
+    kind: conversation
+    prompt: >
+      A company reports an operating profit of Rs 649 crore for a quarter on revenue of Rs 2,700
+      crore. Explain how that profit should appear on the income statement, the balance sheet and
+      the cash flow statement. Then name two places you would look for a mismatch if the profit
+      were not real.
+    passCriteria: >
+      The Learner says the profit is the bottom of the income statement; on the balance sheet it
+      increases retained earnings and shows up as higher cash or higher receivables; and on the
+      cash flow statement net income is the starting line, adjusted for non-cash items and for
+      changes in receivables, with ending cash equal to the balance sheet cash. They name two
+      mismatches, for example: profit not turning into operating cash flow (growing receivables
+      or low cash conversion), ending cash that does not tie across the statements, or profit
+      and balances that independent evidence does not support.

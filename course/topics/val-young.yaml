@@ -1,0 +1,243 @@
+# Valuing young, loss-making companies: a foundation Topic taught through Uber in December 2014.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Aswath Damodaran, Up, Up and Away: The Crowd Valuation of Uber (2 Dec 2014): https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html ; The New York Times (9 and 10 May 2019); WSJ (10 May 2019); CNBC (9 May 2019).
+id: val-young
+title: Valuing young, loss-making companies
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A young company has no history to project, so its value is a story about market size, share, margins and survival, set as numbers."
+
+cases:
+  - id: uber-vc-narrative-2014
+    title: Uber, Damodaran against venture capital
+    data:
+      - damodaran-valuation-june-2014
+      - venture-capital-value-low
+      - venture-capital-value-high
+      - valuation-talk-december-2014
+      - gross-receipts-2014-assumed
+      - gross-receipts-2015-projected
+      - share-of-gross-receipts-kept
+      - market-urban-car-service
+      - market-all-car-service
+      - market-logistics
+      - market-mobility
+    asOf: 2014-12-02
+    story: >
+      Uber is five years old and still private. It says it operates in 51 countries and about
+      230 cities, and has added carpooling, a service for businesses and a delivery service in
+      New York. Almost nothing about its finances is public. In June 2014 the valuation
+      professor Aswath Damodaran treated it as an urban car service company and valued it at
+      $6 billion. Venture capital investors were then paying prices that implied $17 to $18
+      billion, and by 2 December 2014 estimates of $40 billion and higher are being talked
+      about. Business Insider has reported that Uber projects gross receipts (the fares paid by
+      riders) of $10 billion in 2015, three times 2014, which was itself more than three times
+      2013. Uber originally kept 20 percent of those receipts as its revenue. Damodaran assumes
+      gross receipts of $3.5 billion for 2014, so revenue of about $700 million, and says he
+      cannot tell whether Uber covers its operating costs. On 2 December he publishes a new
+      exercise and invites readers to build their own value. Step one is the size of the
+      market Uber could win: about $100 billion if it is an urban car service company, $150
+      billion with all car services, $205 billion if it also does logistics (moving and local
+      delivery) and $285 billion if it becomes a general mobility company, including mass
+      transit and car sharing. You have to decide what Uber's story is, and what value follows
+      from it.
+    reveal: >
+      Uber went public on 9 May 2019. It priced its shares at $45, near the bottom of its $44 to
+      $50 range, which valued it at $82.4 billion once options and restricted stock were counted
+      (about $75 billion on shares outstanding). That was above the $76 billion of its last
+      private round in August 2018 and below the $100 billion the company had forecast to some
+      investors and the $120 billion some bankers had floated. On its first day of trading the
+      shares fell to a close of $41.57, down 7.6 percent from the offer price, which made it
+      worth about $76.5 billion. The 2014 estimates, from $6 billion to $40 billion and more,
+      were each a story about the Uber of 2014. What the market paid in 2019 followed the story it
+      then chose to believe about market size, margins and survival, and that story kept
+      changing as new facts arrived.
+    # Valuation inputs from docs/research/verify-*.json (spec B1, C2); npm run course:doc copies them into the registry.
+    valuation:
+      currency: USD
+      unit: millions
+      baseRevenue: 300
+      growthPercent: [156.1667, 52.6034, 30.2784, 20.8155, 15.749, 12.6959, 10.7236, 9.3915, 8.4648, 13.2263]
+      margin:
+        marginPercent: [7, 10.6667, 14.3333, 18, 21.6667, 25.3333, 29, 32.6667, 36.3333, 40]
+        afterPercent: 40
+      taxPercent: 40
+      taxPercentByYear: [31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+      lossesCarried: 0
+      salesToCapital: 5
+      costOfCapitalPercent: [12, 12, 12, 12, 12, 11.2, 10.4, 9.6, 8.8, 8]
+      growthAfterPercent: 2.5
+      returnOnCapitalAfterPercent: 25
+      cash: 0
+      debt: 0
+      options: 0
+      shares: 1
+      per: company
+      failure:
+        chancePercent: 10
+        recovered: 0
+      price:
+        value: 17000
+        date: 2014-06-06
+        note: "Not a market price: the venture round's pre-money valuation ($1.2bn of new money at $17bn pre-money, about $18.2bn post-money). Damodaran's value excludes the new cash, so pre-money is the like-for-like figure."
+      published:
+        valuePerShare: 5894.89
+        fcff: [-56.58, 4.21, 75.71, 155.68, 242.76, 336.14, 435.45, 540.6, 651.72, 775.93]
+        note: Value of operating assets after a 10% chance of failure (6,549.88 x 0.9); cash and debt taken as nil, so this is the value compared with the venture price. Spreadsheet Valuation!B25 = 5,894.8895. The post's graphic prints 'Value of operating assets = $6,595', a transposition of 6,550 (6,595 x 0.9 would be 5,935.5).
+      sources:
+        - title: "Damodaran, A Disruptive Cab Ride to Riches: The Uber Payoff (9 Jun 2014)"
+          url: https://aswathdamodaran.blogspot.com/2014/06/a-disruptive-cab-ride-to-riches-uber.html
+        - title: Damodaran, Intrinsic Valuation of Uber spreadsheet (ubervaluation.xls; linked from the post as www.stern.nyu.edu/~adamodar/pc/blog/ubervaluation.xls)
+          url: https://pages.stern.nyu.edu/~adamodar/pc/blog/ubervaluation.xls
+        - title: Uber blog, 4 Years In (6 Jun 2014), Wayback capture
+          url: http://web.archive.org/web/20140606180823/http://blog.uber.com/4years
+      reproduces: true
+
+concept: >
+  A young company has little history, often no profit, and sometimes no revenue, so past
+  numbers cannot be projected forward. Discounted cash flow can still be used if value is built
+  from a story, in steps. First, how big is the market the company could serve? Second, what
+  share could it win, which gives revenue in a future year? Third, what operating margin could it
+  earn once it is mature, and how fast would it turn from loss to profit? Fourth, how much must
+  it reinvest to grow (for example, sales per dollar of capital)? Fifth, what is the chance it
+  survives at all? A value that assumes survival can be weighted by that chance against what is
+  left if it fails. Each part of the story maps to a number: a bigger market story raises
+  revenue, a "winner takes most" story raises the share, a "better than rivals" story raises the
+  margin. Multiples such as EV/revenue are used because earnings are negative, but they ignore
+  margins and growth, so peers must be chosen with similar profiles. Venture capital pricing
+  works the other way round: investors estimate the value at exit and discount it at a high target
+  return, then divide the money they put in by the post-money value to get their ownership.
+
+principle: >
+  The value of a young company is a story turned into numbers. Ask what you must believe about
+  market size, share, margin, reinvestment and survival for a price to hold, and then ask whether
+  you believe it.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Build the value of a young company from a story about market size, share and margin."
+  - "Allow for reinvestment and for the chance the company does not survive."
+  - "Ask what you must believe for a price to hold, and whether you believe it."
+
+questions:
+  - id: vy-q-revenue-path
+    prompt: >
+      At a pitch night a founder says her market will be huge in ten years and she will win a small slice of it. Which two parts of her story set her revenue?
+    choices:
+      - { id: a, text: "The market's size, and her slice of it" }
+      - id: b
+        text: "The size of the market, and nothing else"
+        mistake: { tag: whole_market, fix: "She wins only a slice of the market, not all of it." }
+      - id: c
+        text: "Her slice alone, whatever the market's size"
+        mistake: { tag: share_alone, fix: "A slice means nothing until it is applied to the size of the market." }
+      - id: d
+        text: "How confident and polished she sounds on stage"
+        mistake: { tag: confidence_as_input, fix: "Confidence is not a number in the story. Market size and slice are." }
+    answer: a
+    explanation: >
+      Revenue is the market's size times the firm's share of it. In a young-company valuation, the market-size and market-share choices set the revenue path. A big market with a tiny slice and a small market with a big slice can tell very different stories.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), steps for estimating revenues: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-margin
+    prompt: >
+      Founder Zoya promises investors that once her app is grown up, it will keep 20 cents of every dollar of sales as operating profit. Which part of her story is that?
+    choices:
+      - id: a
+        text: "Market size: how big the prize could be"
+        mistake: { tag: margin_as_market, fix: "Market size sets revenue. The margin says how much of the revenue is kept as profit." }
+      - { id: b, text: "Operating margin: how profitable it gets once mature" }
+      - id: c
+        text: "Survival chance: how likely the app is to make it"
+        mistake: { tag: margin_as_survival, fix: "Survival is a separate part of the story. Margin is about profitability." }
+      - id: d
+        text: "Tax rate: the government's share of the profit"
+        mistake: { tag: margin_as_tax, fix: "Margin is before tax, so the tax rate is a separate input." }
+    answer: b
+    explanation: >
+      Operating income = revenue x operating margin, so a firm with $10 billion of sales and a 20 percent margin earns $2 billion before tax. Margin is the part of the story about how profitable the business becomes when it matures.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-survival
+    prompt: >
+      A DCF says a young firm is worth $500 million if it survives and $20 million if it fails. You give it a 40 percent chance of surviving. How should you value it?
+    choices:
+      - { id: a, text: "Weigh both outcomes by their chances: well below $500 million" }
+      - id: b
+        text: "Take $500 million, since DCF shows the firm at its best"
+        mistake: { tag: survival_assumed, fix: "A value that assumes survival overstates a firm that may fail." }
+      - id: c
+        text: "Assume failure and call it $20 million"
+        mistake: { tag: failure_assumed, fix: "Ignoring the survival case understates it. Both outcomes count, by their chances." }
+      - id: d
+        text: "Split the difference, whatever the odds"
+        mistake: { tag: odds_ignored, fix: "Halfway ignores your odds. The likelier outcome pulls the value toward itself." }
+    answer: a
+    explanation: >
+      Weighing 40 percent on $500 million and 60 percent on $20 million gives about $212 million. A value that assumes survival overstates a firm that may not survive.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), on survival and failure: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-story-input
+    prompt: >
+      An investor says "this company will expand from taxis into delivery and freight". Which input in a young-company valuation does that story mainly change?
+    choices:
+      - { id: a, text: "The size of the market it can serve" }
+      - { id: b, text: "The tax rate", mistake: { tag: story_as_tax, fix: "New lines of business widen the market; the tax rate is a separate input." } }
+      - { id: c, text: "The risk-free rate", mistake: { tag: story_as_riskfree, fix: "The risk-free rate comes from government bonds, not the company's story." } }
+      - { id: d, text: "The discount rate, because the story makes the company riskier", mistake: { tag: story_as_risk, fix: "New lines of business mainly widen the market it can serve; the story is about size, not risk." } }
+    answer: a
+    explanation: >
+      Adding delivery and freight widens the market the company could win, so potential revenue rises. Whether the extra revenue is profitable, and whether the company can win it, are separate parts of the story.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), on defining and sizing the market: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-runway
+    prompt: >
+      Your friend Isha runs a start-up that loses money. It has a pile of cash and burns through some of it every month. What do investors call how long that cash lasts?
+    choices:
+      - { id: a, text: "Runway: if the cash runs out first, the story ends" }
+      - id: b
+        text: "Margin: the profit each sale leaves"
+        mistake: { tag: runway_as_margin, fix: "Margin is profit per sale. The time the cash lasts is the runway." }
+      - id: c
+        text: "Dividend: what it pays shareholders from its cash"
+        mistake: { tag: runway_as_dividend, fix: "A loss-making company has no profit to pay out. The time its cash lasts is the runway." }
+      - id: d
+        text: "Burn rate: the time the cash will last"
+        mistake: { tag: runway_as_burn, fix: "Burn rate is the cash spent each month. How long the cash lasts is the runway." }
+    answer: a
+    explanation: >
+      The runway is how long the cash lasts at the current burn rate. A young company's survival depends on raising new money before it runs out, which is why survival probability belongs in the valuation.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+checks:
+  - id: vy-quiz-young
+    kind: quiz
+    questions:
+      - vy-q-revenue-path
+      - vy-q-margin
+      - vy-q-survival
+      - vy-q-story-input
+      - vy-q-runway
+      - bank:eab:MBA-FIN-VAL-0012
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: vy-uber-stories
+    kind: conversation
+    prompt: >
+      By December 2014 one careful analyst has valued Uber at $6 billion (in June 2014), venture
+      investors pay prices implying $17 to $18 billion, and some people talk of $40 billion and more. They can
+      all be using the same discounted cash flow method. Explain how, and which parts of the
+      story you would need to settle before choosing between them.
+    passCriteria: >
+      The Learner explains that the value of a young company comes from the story behind the
+      inputs, not from the method: the size of the market (urban car service against all
+      transport), the share Uber could win, the operating margin once mature, how much it must
+      reinvest, and the chance it survives. They say a small market, low share or thin margin
+      gives a low value and the opposite gives a high one, so the disagreement is about the
+      story. They name at least three of those inputs and say what evidence would support one
+      story over another (growth in receipts, what Uber keeps of each fare, competition).

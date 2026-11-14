@@ -1,0 +1,174 @@
+# Statistics (mean, variance, correlation, regression): a foundation Topic taught through the 1987 crash.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: num-statistics
+title: "Statistics: mean, variance, correlation, regression"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "The risk in a valuation is often measured from past returns; knowing what an average or a spread can and cannot say keeps that measure honest."
+
+cases:
+  - id: crash-1987
+    title: The 1987 crash
+    asOf: 1987-10-16
+    story: >
+      It is the close of trading on Friday 16 October 1987. The S&P 500, the index of 500 large US
+      companies, has fallen more than 9% over the week. That is one of the largest one-week declines
+      of the previous couple of decades. The decline began on Wednesday and has continued for the
+      rest of the week. Stock-index futures, contracts that let investors bet on or protect against
+      index moves, trade alongside the shares in Chicago. Many large investors use computer-driven
+      strategies, such as portfolio insurance, that trade stock-index futures. Markets reopen on Monday
+      19 October, and risk managers are asking how large a fall is possible and how likely it is.
+    reveal: >
+      On Monday 19 October 1987 the S&P 500 fell about 20% in a single day, and the other major US
+      stock indices fell by roughly a fifth too. The S&P 500 futures contract fell 29%. A fall of that size is so far outside the odds of a normal
+      distribution fitted to ordinary days that it is effectively impossible in such a model. One
+      amplifier was portfolio insurance, a strategy that sells index futures as prices fall to limit
+      losses, which covered tens of billions of dollars of funds. When markets dived, the insurers sold
+      together, which pushed prices down further. The statistics had measured calm; the crash
+      showed their limit.
+
+concept: >
+  The mean is the average of a set of numbers. Variance is the average squared distance from the
+  mean, and the standard deviation (its square root) is a typical size of the distance, in the
+  same units as the data, which makes it the usual measure of risk. For a sample, divide by n - 1
+  rather than n. Correlation (r, between -1 and +1) measures how strongly two series move together
+  in a straight line; it does not show that one causes the other, and r squared is the share of the
+  variation the line explains. Regression fits a line (y = a + b x) to describe how one variable
+  changes with another; the slope b is the expected change in y for a one-unit change in x. If
+  returns are assumed normal, about 68% of days fall within one standard deviation of the mean and
+  about 95% within two. Real markets have fatter tails than the normal curve: rare extremes happen
+  far more often than the model says, and relationships such as correlations can change in a crisis.
+
+principle: >
+  Statistics describe the past sample you fed them. Before trusting one, ask what period it
+  covers, what it assumes about extremes, and what could make the relationship change.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Describe a set of returns by its average and its typical spread."
+  - "Read correlation and a fitted line without mistaking them for cause."
+  - "Ask what a statistic assumes about rare extremes."
+
+questions:
+  - id: st-q-sd
+    prompt: >
+      A fund's daily returns bounced around all week, some up and some down. An analyst reports that the
+      standard deviation of those returns is about 2.7%. A friend says "so it makes 2.7% a day?" What does that figure really tell you?
+    choices:
+      - { id: a, text: "How far a typical day strays from the week's average return" }
+      - { id: b, text: "The average daily return for the week", mistake: { tag: confused_with_mean, fix: "The average is the mean; the standard deviation measures the spread around it." } }
+      - { id: c, text: "The size of the worst day in the week", mistake: { tag: confused_with_worst_day, fix: "The worst day is only one point; the standard deviation describes a typical stray, not the extreme." } }
+      - { id: d, text: "The total return earned over the week", mistake: { tag: confused_with_total, fix: "A total adds the returns up; the standard deviation says how widely they scatter." } }
+    answer: a
+    explanation: >
+      The standard deviation is the typical distance of a day's return from the average. A larger figure means a bumpier ride, so two funds with the same average can still feel very different to hold. Analysts divide by one less than the number of days (n - 1) when the days are only a sample.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread
+  - id: st-q-sigma
+    prompt: >
+      A stock's daily returns usually stray only a little from their average; that typical stray is its standard deviation. One morning the stock crashes, far beyond anything its usual swings suggest. What does a normal-curve model say about a day like that?
+    choices:
+      - { id: a, text: "It is so far beyond what the model allows that the model treats it as effectively impossible" }
+      - { id: b, text: "It is a routine day, the kind that comes along every week", mistake: { tag: took_it_for_routine, fix: "Routine days stay near the typical stray; this crash went far past it." } }
+      - { id: c, text: "It is a smaller move than usual, because it happened in a single day", mistake: { tag: flipped_big_and_small, fix: "A day's move is judged against the typical stray, and this one dwarfs it." } }
+      - { id: d, text: "It is rare but expected, the kind of day that comes along every year or two", mistake: { tag: understated_the_move, fix: "That describes a merely unusual day; this crash sits far beyond even those." } }
+    answer: a
+    explanation: >
+      A normal model lets big days happen now and then, but a move far beyond the usual swings gets so little room in its tails that the model all but rules it out. Real markets do have such crashes, which is the warning in the next question.
+    source: >
+      The normal-curve rule is in OpenStax 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is made up.
+
+  - id: st-q-tails
+    prompt: >
+      August 1987. Leela's bank model, built on five calm years, swears its big mining stock can't drop 10% in a day. One Tuesday it does, and her boss wants answers. Why did the model miss it?
+    choices:
+      - { id: a, text: "Calm years never showed the model a truly wild day" }
+      - { id: b, text: "The model got the stock's average day wrong", mistake: { tag: blamed_the_mean, fix: "The average can be right while the model still badly underrates rare, extreme days." } }
+      - { id: c, text: "Price swings can't be measured, so models are useless", mistake: { tag: denied_the_measure, fix: "Swings can be measured; the trouble is assuming calm-year swings describe crash days." } }
+      - { id: d, text: "The drop was impossible, so the price feed is broken", mistake: { tag: trusted_model_over_data, fix: "When reality beats the model, the model is wrong; the drop really happened." } }
+    answer: a
+    explanation: >
+      Extreme moves are far more common than a normal distribution fitted to ordinary days implies, which is why risk managers talk about fat tails. A model built on calm years has never seen a wild day, so it calls one impossible. A statistic is only as good as the sample and the shape assumed for it.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is made up.
+
+  - id: st-q-queues
+    prompt: >
+      June 1987. Meera's analyst says queue time and shopper mood have a "strong negative correlation". Her boss hears "negative", calls the link weak and plans to sack cashiers. What does "negative" mean here?
+    choices:
+      - { id: a, text: "Longer queues go with grumpier shoppers, and tightly so" }
+      - { id: b, text: "The link is weak, just as her boss says", mistake: { tag: sign_read_as_strength, fix: "'Negative' gives the direction; 'strong' still means the two move tightly together." } }
+      - { id: c, text: "It proves long queues cause the grumpy shoppers", mistake: { tag: correlation_as_cause, fix: "Correlation shows two things moving together; on its own it can't prove a cause." } }
+      - { id: d, text: "The finding is bad news, so bin the study", mistake: { tag: negative_as_bad_news, fix: "'Negative' isn't a verdict; it means one goes up as the other goes down." } }
+    answer: a
+    explanation: >
+      A correlation runs from -1 to +1. The sign gives the direction: negative means more queueing goes with less happiness. Closeness to -1 or +1 gives the strength, so a strong negative correlation is a tight link, and sacking cashiers would likely make shoppers grumpier. It still says nothing on its own about cause.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0030, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: st-q-ads
+    prompt: >
+      September 1987. Whenever Rohan's shoe shops run more newspaper ads, they sell more shoes. Now he wants a big loan to double his ads for the festive season. Which advice would you give him, and why?
+    choices:
+      - { id: a, text: "Wait: the festive rush may be lifting both ads and sales" }
+      - { id: b, text: "Go: sales rise with ads, so the ads must cause them", mistake: { tag: correlation_as_cause, fix: "Rising together doesn't prove cause; the festive rush could be lifting both." } }
+      - { id: c, text: "Wait: newspaper ads never change what people buy", mistake: { tag: ads_never_work, fix: "Ads can work; the snag is that moving together alone can't prove they do." } }
+      - { id: d, text: "Wait: he needs years more sales data first", mistake: { tag: blamed_the_period, fix: "More history won't help if a hidden cause keeps moving ads and sales together." } }
+    answer: a
+    explanation: >
+      Ads and sales can climb together because something else drives both, such as the festive rush (a confounder), or because the cause runs backwards: shops spend more on ads when they already expect strong sales. To know whether ads lift sales, Rohan needs a test, such as running ads in some towns and holding them back in others.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0029, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: st-q-std-error
+    prompt: >
+      July 1987. Ananya asks a few dozen random café customers what they spend a week. Her boss will reprice 300 cafés on her average, and her bonus rides on it. How can she make it more trustworthy?
+    choices:
+      - { id: a, text: "Ask many more customers, still picked at random" }
+      - { id: b, text: "Ask only her most loyal regulars instead", mistake: { tag: picked_the_sample, fix: "Regulars spend differently; a hand-picked crowd skews the average however many you ask." } }
+      - { id: c, text: "Ask the very same people again next month", mistake: { tag: repeated_the_sample, fix: "The same people repeat the same luck; only more random customers average it out." } }
+      - { id: d, text: "Round every answer to the nearest rupee first", mistake: { tag: rounded_the_answers, fix: "Rounding just blurs the answers; the gap shrinks only with more randomly chosen customers." } }
+    answer: a
+    explanation: >
+      The typical gap between a sample's average and the true average of everyone is called the standard error. It shrinks as a random sample grows, because luck in who you happened to ask averages out. Picking the sample by hand adds a bias that more answers cannot fix.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0015, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: st-q-two-funds
+    prompt: >
+      January 1987. Kavya parks her company's spare cash in two funds that rarely move in step. Her boss scoffs: "Two funds, same bumpy ride. Just pick one." Who's right?
+    choices:
+      - { id: a, text: "Kavya: when one fund dips, the other often holds steady" }
+      - { id: b, text: "Her boss: a mix always swings as much as its parts", mistake: { tag: ignored_correlation, fix: "That holds only when the funds move in perfect step; loose links smooth the ride." } }
+      - { id: c, text: "Her boss: mixing two funds makes the swings wilder", mistake: { tag: mix_wilder_than_parts, fix: "A mix can't swing more than its wildest part, and loose links calm it further." } }
+      - { id: d, text: "Neither: only each fund's own swings matter", mistake: { tag: correlation_irrelevant, fix: "How funds move together matters: when one dips and the other holds, the mix dips less." } }
+    answer: a
+    explanation: >
+      This is diversification. A mix is exactly as bumpy as the average of its parts only when they move in perfect step. When their correlation is below 1, some ups of one fund offset downs of the other, so the mix is calmer than the average of its parts.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-FIN-VAL-0045, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/valuation-and-capital-markets.json ; the scenario is made up.
+
+checks:
+  - id: st-quiz-statistics
+    kind: quiz
+    questions:
+      - st-q-sd
+      - st-q-sigma
+      - st-q-tails
+      - st-q-queues
+      - st-q-ads
+      - st-q-std-error
+      - st-q-two-funds
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: st-crash-view
+    kind: conversation
+    prompt: >
+      It is the evening of 16 October 1987, and the S&P 500 has fallen more than 9% this week. A risk
+      manager says "our model, fitted to the past five calm years, says a daily fall of 10% or
+      more has essentially zero probability, so we are safe". Picture yourself as a sceptical colleague:
+      what is wrong with that reasoning, in terms of the average, the spread and the shape of the curve?
+    passCriteria: >
+      The Learner explains that the model's mean and standard deviation come from a calm sample, so a
+      normal curve built on them puts almost no probability on extreme moves; a fall that large
+      would be many standard deviations from the mean. They point out that markets have fat tails, that
+      volatility and correlations can rise sharply in a crisis, and that a sample describes the past
+      conditions it came from. They suggest remedies such as stress tests, longer or crisis-inclusive
+      samples, or not relying on a normal-distribution probability for tail risk.

@@ -1,0 +1,5 @@
+root = Widget("Webvan's 2000, from revenue to cash", [waterfall])
+$growth = 1241.3
+$margin = -179.2
+$salesToCapital = 0.7
+waterfall = CashWaterfall({company: {name: "Webvan", currency: "USD", unit: "millions", revenue: 13.305, taxPercent: 35, opening: {growth: 1241.3, margin: -179.2, salesToCapital: 0.7}, source: {title: "Webvan Group, Form 10-K for 2000 (SEC EDGAR)", url: "https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"}}}, $growth, $margin, $salesToCapital)

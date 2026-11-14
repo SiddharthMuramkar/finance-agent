@@ -1,0 +1,15 @@
+root = Widget("Practice: three quick questions on present value", [intro, q1Card, q2Card, q3Card, score])
+$q1 = ""
+$q2 = ""
+$q3 = ""
+intro = TextContent("Assume the discount rate is above zero unless the question says otherwise.", "small")
+q1Card = Card([InlineHeader("Question 1", "Which is worth more TODAY, at the same discount rate?"), FormControl("Your answer", q1Sel), q1Fb])
+q1Sel = Select("q1", [SelectItem("a", "₹1,000 paid in 5 years"), SelectItem("b", "₹1,000 paid in 10 years"), SelectItem("c", "They are worth the same today")], "Pick an answer", null, $q1)
+q1Fb = TextContent($q1 == "" ? "" : ($q1 == "a" ? "Right. The sooner money arrives, the fewer years it is discounted, so it is worth more today." : "Not quite. Think about the bar chart: the further away a payment is, the shorter its bar."))
+q2Card = Card([InlineHeader("Question 2", "The discount rate goes UP. What happens to the present value of a payment due in 10 years?"), FormControl("Your answer", q2Sel), q2Fb])
+q2Sel = Select("q2", [SelectItem("a", "It goes up"), SelectItem("b", "It goes down"), SelectItem("c", "It stays the same")], "Pick an answer", null, $q2)
+q2Fb = TextContent($q2 == "" ? "" : ($q2 == "b" ? "Right. A higher rate means waiting costs you more in lost earnings, so future money is worth less today." : "Not quite. If you could earn more on money today, how attractive is it to wait 10 years for it?"))
+q3Card = Card([InlineHeader("Question 3", "The discount rate is exactly 0%. What is ₹1,000 paid in 10 years worth today?"), FormControl("Your answer", q3Sel), q3Fb])
+q3Sel = Select("q3", [SelectItem("a", "Less than ₹1,000"), SelectItem("b", "Exactly ₹1,000"), SelectItem("c", "More than ₹1,000")], "Pick an answer", null, $q3)
+q3Fb = TextContent($q3 == "" ? "" : ($q3 == "b" ? "Right. At 0% there is nothing to gain by having the money sooner, so timing doesn't change its value." : "Not quite. Remember the first guided task on the ₹100 widget: what happened to every bar at 0%?"))
+score = TextCallout("neutral", "Your score so far", ($q1 == "a" ? 1 : 0) + ($q2 == "b" ? 1 : 0) + ($q3 == "b" ? 1 : 0) + " out of 3")

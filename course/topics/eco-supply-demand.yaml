@@ -1,0 +1,157 @@
+# Supply, demand and prices: a foundation Topic taught through India's 2019 onion price shock.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: eco-supply-demand
+title: Supply, demand and prices
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "The prices of what a company sells and buys move with supply and demand, and they decide how much it sells and what it keeps."
+
+cases:
+  - id: onion-prices-2019
+    title: India's onion price shock
+    asOf: 2019-09-01
+    data:
+      - retail-onion-price
+      - wholesale-onion-price
+    story: >
+      On 1 September 2019 the onion, the most politically sensitive vegetable in India, is already
+      getting dearer. The all-India average retail price in August was Rs 24.82 a kilogram, against
+      Rs 21.60 a year earlier; the average wholesale price was Rs 1,991 a quintal (100 kg). Onions are
+      harvested in two main rounds: the rabi crop in March to June, which is stored, and the kharif
+      (summer-sown) crop from October to December. From July to October the market lives on stored
+      onions, so the new crop is still weeks away. Prices swing a lot from year to year: in 2018 the
+      all-India average retail price fell from Rs 42.69 a kilogram in January to Rs 16.72 in May, low
+      enough to hurt farmers.
+    reveal: >
+      Prices climbed every month: the all-India average retail price was Rs 38.30 a kilogram in
+      September, Rs 47.02 in October, Rs 61.08 in November and Rs 82.17 for the first days of
+      December. On 10 December the daily average reached Rs 101.35 a kilogram, five times the
+      Rs 19.69 of a year earlier. Untimely and prolonged rain in September and October damaged the
+      standing kharif crop and held up transport; combined kharif and late-kharif production was estimated at
+      54.73 lakh tonnes, against 69.91 lakh tonnes the year before, a fall of about 22%. The government
+      set a minimum export price of $850 a tonne on 13 September and banned onion exports altogether
+      from 29 September, put stock limits on traders and approved imports. The ban sent prices up in
+      Bangladesh, Nepal and Sri Lanka, which buy much of India's onion.
+
+concept: >
+  A market's price is where the quantity buyers want (demand) equals the quantity sellers offer
+  (supply). A change in the price of the good itself moves us along a curve; a change in anything
+  else, such as incomes, the price of a substitute, input costs or the weather, shifts the whole
+  curve. A supply shock (a failed harvest) shifts supply left: price rises and quantity falls. How
+  far the price rises depends on elasticity. Demand for a staple with few substitutes is inelastic,
+  meaning quantity barely changes when price does, so a small drop in supply produces a large rise
+  in price. Price controls interfere: a ceiling set below the market price creates a shortage, and a
+  restriction on exports moves supply into the home market, lowering the price there but raising it abroad.
+
+principle: >
+  When a price moves a lot, ask first what shifted, supply or demand, and how sensitive buyers
+  and sellers are to price. Prices carry information; policies that suppress them move the problem
+  rather than remove it.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how a price settles where what buyers want meets what sellers offer."
+  - "Tell a shift in supply from a shift in demand."
+  - "Judge what price controls and export curbs really do."
+
+questions:
+  - id: sd-q-retail-rise
+    prompt: >
+      The all-India average retail price of onions was higher in August 2019 than a year earlier. If demand stayed the same, which change would push the price up like that?
+    choices:
+      - { id: a, text: "Less supply reaching the market, for example when growers send less to market" }
+      - { id: b, text: "More supply reaching the market", mistake: { tag: flipped_supply, fix: "More supply pushes the price down, not up." } }
+      - { id: c, text: "Fewer buyers wanting onions", mistake: { tag: flipped_demand, fix: "Weaker demand also lowers the price." } }
+      - { id: d, text: "A price ceiling set below the market price", mistake: { tag: mixed_up_ceiling, fix: "A ceiling holds the price down, and it would not lift it." } }
+    answer: a
+    explanation: >
+      With demand steady, a higher price points to less supply arriving, as when growers send less to market. More supply, fewer buyers or a price ceiling would all hold the price down.
+    source: >
+      Ministry of Consumer Affairs data, in PIB, Rise in Prices of Onions, 6 December 2019: https://pib.gov.in/Pressreleaseshare.aspx?PRID=1595294&lang=2&reg=48
+  - id: sd-q-flood
+    prompt: >
+      A drought destroys part of a staple vegetable crop and delays the next harvest, while demand for the vegetable stays the same. What happens to the equilibrium price and quantity sold?
+    choices:
+      - { id: a, text: "Price rises and quantity falls" }
+      - { id: b, text: "Price rises and quantity rises", mistake: { tag: both_rise, fix: "Less supply raises the price but cuts the amount sold; both rising needs more demand." } }
+      - { id: c, text: "Price falls and quantity falls", mistake: { tag: price_falls, fix: "A smaller crop with the same demand pushes the price up, not down." } }
+      - { id: d, text: "Price and quantity do not change", mistake: { tag: no_shift, fix: "The drought shifts supply left, so the meeting point moves." } }
+    answer: a
+    explanation: >
+      The supply curve shifts left. With demand unchanged, the new intersection is at a higher price and a lower quantity. Because buyers have few substitutes, the price rise is large.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.1 Microeconomics: https://openstax.org/books/principles-finance-2e/pages/3-1-microeconomics ; and OpenStax Principles of Microeconomics 3e, 3.3 Changes in Equilibrium Price and Quantity: https://openstax.org/books/principles-microeconomics-3e/pages/3-key-concepts-and-summary
+
+  - id: sd-q-ban
+    prompt: >
+      A country that exports onions bans exports while its home price is rising. What is the immediate effect the ban aims at, and what happens in the countries that import from it?
+    choices:
+      - { id: a, text: "More onions stayed in the home market, lowering the domestic price; prices rose in the countries that import them" }
+      - { id: b, text: "Domestic demand fell; prices fell abroad", mistake: { tag: ban_cuts_demand, fix: "A ban keeps supply at home; it does not cut demand." } }
+      - { id: c, text: "Domestic supply fell; prices rose at home and abroad", mistake: { tag: ban_cuts_home_supply, fix: "Onions stay home, so home supply rises and the home price tends to fall." } }
+      - { id: d, text: "No effect on either, since exports were a small share of production", mistake: { tag: ban_no_effect, fix: "Taking supply out of importers' markets lifts their prices, however small the share." } }
+    answer: a
+    explanation: >
+      Keeping exports at home raises supply to domestic buyers (aiming to lower the price there) and removes supply from importing countries, where prices tend to rise.
+    source: >
+      OpenStax, Principles of Microeconomics 3e, 3.3 Changes in Equilibrium Price and Quantity: https://openstax.org/books/principles-microeconomics-3e/pages/3-key-concepts-and-summary ; a made-up example of the mechanism.
+  - id: sd-q-rent-cap
+    prompt: >
+      March 2019. Arjun has a new job and must find a flat within a month. His city caps rents well below
+      what tenants would pay in an open market. What is his hunt most likely to look like?
+    choices:
+      - { id: a, text: "Few vacant flats and long queues: at the capped rent, more people want flats than landlords offer" }
+      - { id: b, text: "Plenty of empty flats to pick from, since rents are cheap", mistake: { tag: ceiling_makes_surplus, fix: "A cap below the market rent brings more renters and fewer flats: a shortage, not a surplus." } }
+      - { id: c, text: "Nothing changes, because the cap is only a number on paper", mistake: { tag: ceiling_does_not_bind, fix: "A cap set below the market rent bites; only a cap above it changes nothing." } }
+      - { id: d, text: "Rents climb past the cap as landlords build more", mistake: { tag: flipped_ceiling, fix: "A low cap gives landlords less reason to build, and the law stops rent rising past it." } }
+    answer: a
+    explanation: >
+      A rent ceiling set below the equilibrium rent is binding. At the lower rent more people want flats and landlords offer fewer, so there is a shortage. The flats go by queues, contacts or side payments instead of price, and Arjun may have to search for a long time.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0034, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; and OpenStax, Principles of Microeconomics 3e, 3.4 Price Ceilings and Price Floors: https://openstax.org/books/principles-microeconomics-3e/pages/3-4-price-ceilings-and-price-floors ; the scenario is made up.
+  - id: sd-q-recession
+    prompt: >
+      October 2008. Meera plans next quarter's orders for a supermarket chain, and forecasters expect a
+      recession to cut household incomes. Her shoppers treat premium craft beer as a treat, buy fresh milk
+      every week whatever they earn, and turn to store-brand pasta when money is tight. A bad order and
+      she is left with unsold stock or empty shelves. How should she change her orders?
+    choices:
+      - { id: a, text: "Cut craft beer the most, trim milk a little, and order more store-brand pasta" }
+      - { id: b, text: "Cut all three by the same share, since every household has less to spend", mistake: { tag: same_cut_for_all, fix: "Falling income hits goods differently: treats fall most, staples barely, cheap swaps rise." } }
+      - { id: c, text: "Cut milk the most, since shoppers buy it most often", mistake: { tag: staple_falls_most, fix: "Necessities hold up when incomes fall; shoppers keep buying milk." } }
+      - { id: d, text: "Order more craft beer, since people treat themselves in hard times", mistake: { tag: luxury_rises, fix: "Demand for a luxury moves with income, so it falls most in a recession." } }
+      - { id: e, text: "Cut store-brand pasta too, since lower incomes lower demand for everything", mistake: { tag: inferior_falls, fix: "Demand for a cheap swap like store-brand pasta rises when incomes fall." } }
+    answer: a
+    explanation: >
+      How demand responds to income depends on the good. A luxury like craft beer falls by more than income does, a necessity like milk barely moves, and an inferior good like store-brand pasta gains as shoppers trade down. So Meera cuts beer hardest, trims milk slightly and stocks more pasta.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0037, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; and OpenStax, Principles of Microeconomics 3e, 5.4 Elasticity in Areas Other Than Price: https://openstax.org/books/principles-microeconomics-3e/pages/5-4-elasticity-in-areas-other-than-price ; the scenario is made up.
+
+checks:
+  - id: sd-quiz-prices
+    kind: quiz
+    questions:
+      - sd-q-retail-rise
+      - sd-q-flood
+      - sd-q-ban
+      - bank:eab:MBA-ECON-0001
+      - bank:eab:MBA-ECON-0002
+      - sd-q-rent-cap
+      - sd-q-recession
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: sd-onion-view
+    kind: conversation
+    prompt: >
+      It is 1 September 2019 and onion prices are rising while the new crop is still weeks away.
+      Picture yourself as a trader watching the market: what could push the price up from here, why the size of the
+      move depends on how buyers react to price, and what options the government has to ease
+      prices and what each would do to prices at home and abroad.
+    passCriteria: >
+      The Learner explains that a bad harvest shifts supply left, and that demand for onions is
+      inelastic (a staple with few substitutes, bought in similar quantities whatever the price), so
+      the equilibrium price must rise a lot to ration the smaller quantity. They discuss at least two
+      policy options, for example restricting exports (more supply at home, lower domestic price,
+      higher prices for importing countries), limiting trader stocks (aimed at hoarding), imports or
+      release of government stocks (more supply), and note that price controls can create
+      shortages or hurt farmers. A mention that fresh crop arrivals would ease the price is a plus.

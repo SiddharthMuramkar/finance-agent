@@ -1,0 +1,1 @@
+ALTER TABLE "library_sources" ADD COLUMN "quote_words" integer;

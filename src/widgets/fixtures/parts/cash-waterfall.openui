@@ -1,0 +1,5 @@
+root = Widget("Amazon's next year, from revenue to cash", [waterfall])
+$growth = 150
+$margin = -13.355
+$salesToCapital = 3
+waterfall = CashWaterfall({caseId: "amazon-dcf-2000"}, $growth, $margin, $salesToCapital)

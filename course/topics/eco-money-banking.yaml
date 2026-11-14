@@ -1,0 +1,147 @@
+# Money, banks and credit creation: a foundation Topic taught through the 1992 securities scam.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): BSE, SENSEX@40 white paper (January 2026) for the 28 April 1992 fall of 12.77 per cent; Mint for the April 1993 level (secondary source).
+# Spec 2026-11-12 H2: the money multiplier is a classroom upper limit, not how lending is decided; capital, the demand for
+# loans and the policy rate limit lending. Source: Bank of England, "Money creation in the modern economy", Quarterly
+# Bulletin 2014 Q1.
+id: eco-money-banking
+title: Money, banks and credit creation
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Borrowed money can lift prices above values for a while; knowing where bank credit comes from helps you tell a boom's price from a company's value."
+
+cases:
+  - id: harshad-mehta-1992
+    title: The 1992 securities scam
+    asOf: 1992-02-01
+    story: >
+      Since the economic reforms of mid-1991, the Bombay stock market has been on a run. The Sensex
+      stood at about 1,194 in April 1991 and has passed 2,000 by mid-January 1992, with a few brokers
+      buying heavily. Where is the money coming from? Part of the answer lies in how Indian banks
+      manage their holdings of government bonds. Banks use "ready forward"
+      deals: a secured loan of about 15 days from one bank to another, made against government
+      securities. The borrowing bank sells the securities to the lending bank and buys them back at
+      the end at a slightly higher price. In practice the securities do not always move. Instead the
+      borrowing bank issues a "bank receipt" (BR), a paper that says it holds the securities on the
+      lender's behalf. Brokers sit between the banks and arrange these deals. Banks hold deposits
+      from ordinary people and firms, and lend to firms and to each other. As of 1 February 1992 nothing
+      is known to be wrong, and the share prices keep rising.
+    reveal: >
+      The scam came to light in late April 1992 when the State Bank of India reported a shortfall in
+      government securities, about Rs 500 crore missing from its books. Mehta had obtained fake bank
+      receipts through officials of the Bank of Karad and the Metropolitan Cooperative Bank. Lenders
+      handed over cash against receipts that were backed by no securities at all, and the broker sent
+      that cash into shares. Estimates of the size differ by source: Forbes India says about
+      Rs 1,000 crore was siphoned out of the banking system and about Rs 3,500 crore manipulated;
+      India Today puts the scam at nearly Rs 4,000 crore. The Sensex had gone from 1,194 to 4,467
+      (up 274 per cent) between April 1991 and April 1992. After the exposure it fell sharply: on
+      28 April 1992 it fell 12.77 per cent in a day, the largest one-day percentage fall in its
+      history outside the Covid crash (BSE). It then dropped from 4,467 to about 1,980 in the year
+      to April 1993, down 56 per cent (Mint, a secondary source). The CBI arrested Mehta in
+      November 1992. The lesson: the share prices were lifted by bank credit that had no real
+      backing.
+
+concept: >
+  Most of what we call money is bank deposits. When a bank lends, it credits the borrower's account,
+  so the loan creates a new deposit: the bank does not hand out savings it already held. Textbooks
+  add a money multiplier: if every bank kept a fixed fraction of its deposits as reserves and lent
+  out the rest, each rupee of reserves could end up supporting several rupees of deposits. That chain
+  is a classroom upper limit, not how lending is decided (Bank of England, 2014). What does limit
+  lending is the bank's capital, the owners' own money that rules require to grow with its loans;
+  the demand for loans from people and firms who want to borrow; and the policy rate the central
+  bank sets, which drives the price of every loan. Credit is therefore money, and credit that flows
+  into asset markets can push prices up for as long as the lending continues. Banks protect their
+  lending with collateral such as government securities.
+
+principle: >
+  Ask what backs a boom. Prices lifted by credit last only as long as lenders keep lending and the
+  collateral they rely on really exists; an asset market funded by borrowed money is only as sound as
+  the paper behind the loans.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how a bank loan creates a new deposit, and so new money."
+  - "Name what limits bank lending: capital, demand for loans and the policy rate."
+  - "Ask what backs a boom built on borrowed money."
+
+questions:
+  - id: mb-q-multiplier
+    prompt: >
+      Asha's economics textbook says a bank keeps a fifth of every deposit as reserves and lends out the rest, again and again down a chain of banks, so Rs 1,000 of reserves can end up as Rs 5,000 of deposits. Her cousin works at a bank. What would he say about that chain?
+    choices:
+      - { id: a, text: "It is a classroom upper limit, not how his bank decides what to lend" }
+      - { id: b, text: "It is exactly how his bank decides how much to lend", mistake: { tag: multiplier_as_practice, fix: "Banks do not wait for deposits or reserves before they lend. The chain is only a classroom upper limit." } }
+      - { id: c, text: "It is wrong because lending cannot create money at all", mistake: { tag: thought_money_only_moves, fix: "A loan does create a new deposit, which is money. What the chain gets wrong is what limits lending." } }
+      - { id: d, text: "It works only when the central bank prints new notes", mistake: { tag: needed_the_printer, fix: "Bank lending itself creates deposits, with no new notes needed." } }
+    answer: a
+    explanation: >
+      A bank lends when it finds a borrower it judges good for the money at the going rate, and the loan creates the deposit. The textbook chain only says how far deposits could stretch on a fixed reserve rule; in practice the bank's capital, the demand for loans and the policy rate limit lending.
+    source: >
+      Bank of England, "Money creation in the modern economy", Quarterly Bulletin 2014 Q1 (McLeay, Radia and Thomas): https://www.bankofengland.co.uk/quarterly-bulletin/2014/q1/money-creation-in-the-modern-economy
+  - id: mb-q-multiplier-ratio
+    prompt: >
+      A shopkeeper asks his bank for a loan to stock up before Diwali. Which of these really limits how much the bank lends, to him and to everyone else?
+    choices:
+      - { id: a, text: "Its capital, how many people want to borrow, and the central bank's policy rate" }
+      - { id: b, text: "Only the savings its depositors have already placed with it", mistake: { tag: loan_from_pocket, fix: "A bank does not lend out savings it holds; the loan creates a new deposit. Capital, demand for loans and the policy rate limit it." } }
+      - { id: c, text: "Only its reserves, through the money multiplier", mistake: { tag: multiplier_as_practice, fix: "The multiplier is a classroom upper limit. In practice capital, demand for loans and the policy rate limit lending." } }
+      - { id: d, text: "Nothing at all: a bank can lend as much as it likes", mistake: { tag: no_limit, fix: "A bank must hold capital against its loans, needs willing borrowers, and pays a price for money set by the policy rate." } }
+    answer: a
+    explanation: >
+      Rules require a bank's own capital to grow with its loans, so capital caps how far it can go. It can lend only to people and firms who want to borrow at the rate it offers. And the policy rate the central bank sets drives what every loan costs, so it moves both the bank's willingness to lend and the demand for loans.
+    source: >
+      Bank of England, "Money creation in the modern economy", Quarterly Bulletin 2014 Q1 (McLeay, Radia and Thomas): https://www.bankofengland.co.uk/quarterly-bulletin/2014/q1/money-creation-in-the-modern-economy
+
+  - id: mb-q-loan-creates-deposit
+    prompt: >
+      A bank makes a Rs 5 lakh loan by crediting the borrower's account. What happens to the total of
+      bank deposits in the economy, before the borrower spends anything?
+    choices:
+      - { id: a, text: "It rises by Rs 5 lakh, because the loan created a new deposit" }
+      - { id: b, text: "It is unchanged, because the bank only moved money from its own pocket", mistake: { tag: loan_from_pocket, fix: "The bank does not hand over existing money; crediting the account makes a brand-new deposit." } }
+      - { id: c, text: "It falls by Rs 5 lakh, because the bank has less to lend", mistake: { tag: loan_shrinks_deposits, fix: "Lending adds to deposits; the new loan sits in the borrower's account." } }
+    answer: a
+    explanation: >
+      Crediting the borrower's account makes a brand-new deposit: the loan creates the deposit, and
+      this is how banks create most of the money in an economy. When the borrower spends, the deposit
+      moves to someone else's account; it does not vanish.
+    source: >
+      Bank of England, "Money creation in the modern economy", Quarterly Bulletin 2014 Q1 (McLeay, Radia and Thomas): https://www.bankofengland.co.uk/quarterly-bulletin/2014/q1/money-creation-in-the-modern-economy
+
+  - id: mb-q-bank-receipt
+    prompt: >
+      In a 1992 ready forward deal, the lending bank handed over cash and received a bank receipt (BR) from
+      the borrowing bank. What was the receipt supposed to show?
+    choices:
+      - { id: a, text: "That the borrowing bank held government securities on the lender's behalf as security for the loan" }
+      - { id: b, text: "That the lender had received a share certificate in the broker's company", mistake: { tag: share_for_bond, fix: "A BR stood for government securities held for the lender, not shares in a broker's firm." } }
+      - { id: c, text: "That the loan was guaranteed by the Reserve Bank", mistake: { tag: rbi_guarantee, fix: "The Reserve Bank guaranteed nothing; the receipt was only the borrowing bank's promise." } }
+    answer: a
+    explanation: >
+      A BR stood in for the securities that secured the roughly 15-day loan: the lender relied on the
+      receipt rather than holding the securities itself.
+    source: >
+      India Today, "Lessons unlearnt: The story of big bull Harshad Mehta and bank frauds in India", 20 October 2020: https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
+
+checks:
+  - id: eco-money-quiz-credit
+    kind: quiz
+    questions:
+      - mb-q-multiplier
+      - mb-q-multiplier-ratio
+      - mb-q-loan-creates-deposit
+      - mb-q-bank-receipt
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-money-scam-reasoning
+    kind: conversation
+    prompt: >
+      Share prices in early 1992 are climbing fast while a few brokers buy heavily. Using what you know about
+      ready forward deals and bank receipts, suggest how money held in Indian banks could end up funding
+      share purchases, and what would make the price rise fragile.
+    passCriteria: >
+      The Learner explains that banks lend against collateral, that in ready forward deals
+      government securities (or bank receipts standing in for them) are the collateral, and that a broker
+      sitting between the banks could draw cash from them and use it to buy shares if the receipts were
+      not checked against real securities. They say that this credit, which is money, would push share
+      prices up, and that prices would depend on the flow continuing and the collateral being real.

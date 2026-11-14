@@ -1,0 +1,9 @@
+{
+  "id": "T10",
+  "title": "Rupee lesson, any Widget: no dollar sign",
+  "source": "Percent Session, the Widget whose slider showed a dollar sign (TUTOR_SPEC section 7, T10)",
+  "kind": "aggregate",
+  "over": ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T11"],
+  "pass": [{ "kind": "noDollar" }],
+  "notes": "Pass when: no \"$\" in tutor text or widget labels, over every live reply of the run."
+}

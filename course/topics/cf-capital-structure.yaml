@@ -1,0 +1,165 @@
+# Capital structure and Modigliani-Miller: a foundation Topic taught through the Coffee Day group's debt.
+# Case sources (checked): Hindustan Times/Bloomberg 31 Jul 2019; Coffee Day Enterprises Annual Report 2018-19 (borrowings at 31 Mar 2019, docs/research/verify-coffee-day.json): https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf ; Business Today 31 Jul 2019 and 17 Aug 2019.
+id: cf-capital-structure
+title: Capital structure and Modigliani-Miller
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Borrowing changes who carries a company's risk, not what the business earns, so it changes the company's value less than it seems to."
+
+cases:
+  - id: coffee-day-leverage-2019
+    title: The Coffee Day group's debt
+    asOf: 2019-07-26
+    story: >
+      Coffee Day Enterprises runs the Cafe Coffee Day chain, with about 1,700 outlets, and belongs
+      to a group founded by V.G. Siddhartha that also holds a logistics company, Sical Logistics,
+      and property. It listed on the stock exchanges in 2015, selling shares at Rs 328 each. By late
+      July 2019 the founder's family and companies (the promoter group) held 53.93% of Coffee Day
+      Enterprises, and exchange filings for June 2019 showed that about 76% of those shares had
+      been pledged as security for loans. Coffee Day's audited accounts put its total borrowings at Rs 7,214.29
+      crore at the end of March 2019, 42.9% more than the Rs 5,049.90 crore of a year earlier, and Sical's debt at Rs 1,100
+      crore. The group had been selling assets to repay lenders: in April 2019 it sold a 20% stake in
+      the software firm Mindtree to Larsen and Toubro. The company's market value had peaked at Rs
+      6,678 crore on 19 September 2018. What does it mean for shareholders and lenders that the
+      promoters' shares are pledged? What would Modigliani and Miller say about the mix of debt
+      and equity, and what real-world costs of debt do they leave out?
+    reveal: >
+      The founder wrote a letter dated 27 July 2019 to the board saying he could not take any more
+      pressure from one of the company's private equity partners to buy back shares, and referring
+      to pressure from lenders and a serious liquidity crunch. He was found dead on 31 July 2019. The
+      shares fell by the 20% limit on two successive days. On 17 August the company disclosed that
+      the group's debt on 31 July was Rs 4,970 crore, of which Rs 4,796 crore was secured, with Rs
+      1,622 crore in the property subsidiary Tanglin Developments, Rs 1,488 crore in Sical and Rs
+      1,097 crore in Coffee Day Global, which runs the cafes. It said the sale of the Global Village
+      Tech Park in Bengaluru to Blackstone would reduce the debt by about Rs 2,400 crore. The
+      promoters' stake fell from 54% in July 2019 to 17% by January 2020 as lenders enforced pledges.
+      Borrowing against shares had put the founder's ownership, not only the business's assets,
+      at risk.
+
+concept: >
+  Capital structure is the mix of debt and equity a firm uses. Modigliani and Miller showed that in
+  a perfect market, with no taxes, bankruptcy costs or information gaps, the value of a firm is set
+  by its operating cash flows and risk, not by how they are split between lenders and shareholders.
+  More debt makes equity riskier, so the cost of equity rises exactly enough to leave the weighted
+  average cost of capital unchanged: re = ru + (ru - rd) x D/E. In the real world interest is
+  tax-deductible, which makes debt cheaper, but a heavy debt load raises the chance and cost of
+  financial distress: lost customers and suppliers, forced asset sales, and conflicts between
+  lenders and shareholders. The trade-off theory says a firm should borrow until the extra tax
+  benefit equals the extra expected distress cost. Pledging shares as collateral adds another
+  risk: if the share price falls, lenders can ask for more security or sell the shares, and the
+  borrower can lose control at the worst moment. Measures such as interest cover (EBIT divided by
+  interest) and debt to EBITDA show how much room a firm has.
+
+principle: >
+  Debt does not create value in itself. It shifts risk to shareholders and adds tax savings that
+  must be weighed against the cost of being unable to pay. Ask what happens to the firm, and to its
+  owners, in a bad year.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why, in a perfect market, the split between debt and equity leaves a firm's value unchanged."
+  - "Weigh the tax saving on debt against the cost of being unable to pay."
+  - "Ask what heavy debt or pledged shares do to a firm and its owners in a bad year."
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: cs-q-tax-shield
+    prompt: >
+      Rahul's company takes a long-term loan and pays interest every year. Interest comes off profit before tax, and tax is 25%. What does the tax saving look like?
+    choices:
+      - { id: a, text: "A quarter of the interest, growing as debt grows" }
+      - id: b
+        text: "All of the interest, so borrowing ends up costing nothing"
+        mistake: { tag: debt_is_free, fix: "Only the tax on the interest is saved, a quarter of it here, so debt is not free." }
+      - id: c
+        text: "One quarter of the whole loan, each year"
+        mistake: { tag: saving_on_debt, fix: "The saving comes from the interest, not the loan amount." }
+      - id: d
+        text: "Nothing at all, since tax is worked out before interest"
+        mistake: { tag: interest_after_tax, fix: "Interest is deducted before tax, which is why the tax bill falls." }
+    answer: a
+    explanation: >
+      Interest is deducted before tax, so the tax bill falls by a quarter of the interest. For example, Rs 1,000 crore of debt at 8% costs Rs 80 crore of interest a year and saves Rs 20 crore of tax.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
+
+  - id: cs-q-roe
+    prompt: >
+      Tara buys a cafe partly with a bank loan. Each year the cafe earns more than the loan's interest costs. What happens to the return on Tara's own money?
+    choices:
+      - { id: a, text: "It climbs above what the cafe earns: leverage helps her" }
+      - id: b
+        text: "Nothing changes; borrowing makes no difference to owners"
+        mistake: { tag: borrowing_neutral, fix: "The cafe earns more than the loan costs, so the gap goes to Tara." }
+      - id: c
+        text: "It shrinks, since interest always eats into returns"
+        mistake: { tag: interest_always_hurts, fix: "Interest is less than the cafe earns, so Tara keeps the gap." }
+      - id: d
+        text: "She ends up earning the bank's interest rate"
+        mistake: { tag: owners_get_loan_rate, fix: "Owners keep what the assets earn after interest, not the lender's rate." }
+    answer: a
+    explanation: >
+      Borrowing at less than the assets earn lifts the owners' return, and would lower it if the assets earned less than the interest. For example, a Rs 100 lakh cafe earning Rs 10 lakh a year, with Rs 40 lakh borrowed at 6%, leaves Tara Rs 7.6 lakh on her Rs 60 lakh, about 12.7%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.1 The Concept of Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-1-the-concept-of-capital-structure
+
+  - id: cs-q-cover
+    prompt: >
+      Your uncle Raj lends to a firm whose yearly earnings are only twice its interest bill. One weak year could leave the interest unpaid. What should Raj make of that?
+    choices:
+      - { id: a, text: "Worry a little: its interest cover is thin" }
+      - id: b
+        text: "Relax, since a low cover means the firm is very safe"
+        mistake: { tag: low_cover_safe, fix: "A low cover means little room for earnings to fall before interest goes unpaid." }
+      - id: c
+        text: "Check debt to equity instead; this gap tells him nothing"
+        mistake: { tag: cover_as_gearing, fix: "Debt to equity compares funding sources. Earnings against interest is interest cover, and it matters." }
+      - id: d
+        text: "Cheer, as owners clearly earn a high return on equity"
+        mistake: { tag: cover_as_roe, fix: "Return on equity is what owners earn. Earnings against interest is interest cover." }
+    answer: a
+    explanation: >
+      Interest cover sets earnings before interest and tax against the interest bill, here 2 times. If earnings halved, they would only just pay the interest, with nothing left for shareholders, so a low cover is a thin margin of safety.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
+
+  - id: cs-q-pledge
+    prompt: >
+      In March 2025 Raj, the founder and main shareholder of a listed company, takes a personal loan by pledging most of his shares to the lender as security. His sister asks about the danger. What is the big extra risk?
+    choices:
+      - { id: a, text: "A falling share price can force a sale and cost him control" }
+      - { id: b, text: "The loan's interest gets taxed twice", mistake: { tag: double_tax, fix: "Tax is not the issue; a falling price can force a sale of the pledged shares." } }
+      - { id: c, text: "His company must now pay a bigger dividend", mistake: { tag: dividend_forced, fix: "The pledge binds the owner, not the company's dividend." } }
+      - { id: d, text: "His pledged shares can no longer trade", mistake: { tag: pledge_freezes_trading, fix: "Pledged shares still trade in the market; the lender can sell them if the price falls." } }
+    answer: a
+    explanation: >
+      The lender's security is the share price. If it falls, the lender can demand top-up collateral or sell the shares, which can push the price down further.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure (costs of financial distress): https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure ; the collateral mechanism is standard secured-loan practice.
+
+checks:
+  - id: cs-quiz-structure
+    kind: quiz
+    questions:
+      - cs-q-tax-shield
+      - cs-q-roe
+      - cs-q-cover
+      - cs-q-pledge
+      - bank:eab:MBA-FIN-CF-0034
+      - bank:eab:MBA-FIN-CF-0037
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cs-debt-explain
+    kind: conversation
+    prompt: >
+      A group controlled by one family has borrowed heavily, and about three quarters of the
+      family's shares are pledged to lenders. Explain what Modigliani and Miller's result says
+      about the choice of debt versus equity, which real-world costs it leaves out, and why the
+      pledged shares make the position more fragile.
+    passCriteria: >
+      The Learner says that in a perfect market the mix of debt and equity does not change firm
+      value, because the cost of equity rises as debt rises. They say the result leaves out taxes
+      (which favour debt) and costs of financial distress, and name some such costs (forced asset
+      sales, lost suppliers or customers, conflicts with lenders). They explain that a share-price
+      fall can trigger demands for more security or a sale of pledged shares, so owners can lose
+      control and the price can fall further.

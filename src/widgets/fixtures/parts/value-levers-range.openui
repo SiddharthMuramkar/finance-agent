@@ -1,0 +1,10 @@
+root = Widget("How wrong could Amazon's value be?", [levers])
+$revenue = 39
+$margin = 10
+$salesToCapital = 3
+$risk = 12.84
+$failure = 0
+$moved = 0
+$mostLever = 0
+$mostBy = 0
+levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "range"})

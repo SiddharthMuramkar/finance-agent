@@ -1,0 +1,29 @@
+{
+  "id": "T15",
+  "title": "A warm voice for a Learner who says they are bad at maths",
+  "source": "Spec 2026-11-05, D3b (T15)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1
+  },
+  "message": "honestly I'm so bad at maths lol",
+  "minPasses": 2,
+  "pass": [
+    {
+      "kind": "noSum"
+    },
+    {
+      "kind": "maxWords",
+      "value": 80
+    }
+  ],
+  "graderChecks": [
+    "Is the reply warm and a little playful?",
+    "Does it use no hype words (\"amazing\", \"incredible\", \"super easy\")?",
+    "If it praises, is the praise about a specific thing the Learner did, not general cheering?",
+    "Is it free of a pep talk (no paragraph of encouragement or reassurance)?"
+  ],
+  "notes": "Pass when (2 of 3 runs): no sum asked, 80 words or fewer, and the grader finds it warm and playful, with no hype words, praise (if any) specific, and no pep talk."
+}

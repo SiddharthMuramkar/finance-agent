@@ -1,0 +1,156 @@
+# Follow Topic: Damodaran on sovereign ratings and default risk (2 Jun 2025), a dated piece taught as a Case.
+# The post's text is in the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+id: fol-sov-ratings
+title: "Follow: Damodaran, sovereign ratings and default risk (Jun 2025)"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A country's rating feeds the country risk in a company's cost of capital and value; Damodaran shows what a rating change does and does not change."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-sov-ratings-aftermath
+    title: Damodaran on what a sovereign rating change does and does not change
+    asOf: 2025-06-02
+    piece:
+      author: Aswath Damodaran
+      title: "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!"
+      published: 2025-06-02
+      url: https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 16 May 2025, after trading closed on a Friday, Moody's cut the credit rating of the United
+      States from Aaa to Aa1. Standard and Poor's had made the same cut in 2011 and Fitch in 2023, so
+      Moody's was the last of the three big agencies to move. On 2 June 2025 Aswath Damodaran, a
+      valuation professor at NYU Stern, published a blog post about it. He did not argue about American
+      debt and politics; he used the moment to explain how sovereign default happens, how the agencies
+      rate governments, how well those ratings have predicted default, and what a downgrade changes for
+      the way analysts value companies. By then two weeks of market prices were in. On 30 May 2025,
+      the date he uses for his own figures, the US 10-year Treasury yield was 4.41% (US Treasury). The
+      Learner reads the post in full, without stopping, and then explains each step of its argument.
+    reveal: >
+      The post was written about the first two weeks. The months after it can be read from the US
+      Treasury's daily par yield curve. The 10-year yield, 4.41% on 30 May 2025, was 4.46% on 2 June,
+      reached its low for the year of 3.97% on 22 October, and ended 2025 at 4.18% on 31 December. The
+      30-year yield moved from 4.92% to 4.84% over the same dates, and the 2-year yield fell from
+      3.89% to 3.47%. So the yields did not climb to a lasting higher level after the downgrade, which
+      fits Damodaran's reading that the move was small, expected and mostly about pride. The data
+      cannot prove it: many other things moved yields through 2025, and a single rating action
+      cannot be separated from them. What it does show is that a downgrade the market had been
+      expecting, for a borrower whose default risk was priced at only a small spread over Aaa
+      to begin with, did not by itself lift the cost of government borrowing for long.
+
+concept: >
+  A sovereign credit rating is an agency's opinion of how likely a government is to default on its
+  debt, written on a letter scale. At Moody's the top is Aaa, then Aa1, Aa2, Aa3, A1 and so on down;
+  Baa3 is the last grade counted as investment grade and Ba1 the first counted as speculative.
+  Ratings help because investors already know the scale, but they come with limits: they tend to
+  lag events, the agencies tend to follow one another, and the scale hides how small the gap between
+  neighbouring grades can be. A rating change matters most to a market when it is a surprise. The
+  link to valuation is the riskfree rate. If a government can default, its bond yield contains a
+  default spread, so a cleaner riskfree rate is the government bond yield minus that spread, and the
+  equity risk premium, measured as the expected return on stocks minus the riskfree rate, shifts the
+  other way so that the expected return on the market stays the same.
+
+principle: >
+  Ask what a rating change adds that the market did not already know, and how large the gap in default
+  risk between the old and new grade really is. Judge an agency's opinion by its record, not by its
+  letter alone.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read the sovereign rating ladder and where investment grade ends."
+  - "Ask what a rating change tells a market that it did not already know."
+  - "Link a government's default risk to the riskfree rate used in valuation."
+
+questions:
+  - id: fsv-q-riskfree
+    prompt: >
+      After Moody's cut the US on 16 May 2025, Damodaran says a Treasury yield may hold a "default spread", the charge for default risk. Your aunt values firms. Which riskfree rate should she use?
+    choices:
+      - { id: a, text: "The yield with the default spread taken off" }
+      - { id: b, text: "The yield as quoted, since Treasuries are riskfree", mistake: { tag: yield_as_riskfree, fix: "Part of the yield pays for default risk, so the quoted yield is not riskfree." } }
+      - { id: c, text: "The yield plus the spread, to be safe", mistake: { tag: added_spread, fix: "Adding the spread counts default risk twice. It has to come off." } }
+      - { id: d, text: "The default spread on its own", mistake: { tag: spread_as_rate, fix: "The spread is only the default part. The riskfree rate is what is left of the yield." } }
+    answer: a
+    explanation: >
+      The bond yield is the riskfree rate plus the default spread, so the riskfree rate is the yield with the spread taken off. Adding the spread would count default risk twice.
+    source: >
+      Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!",
+      Musings on Markets, 2 June 2025 (riskfree rate = government bond rate minus default spread).
+  - id: fsv-q-erp
+    prompt: >
+      June 2025: your aunt trims her riskfree rate a little, taking the default spread out of the Treasury yield. Stock prices don't move. What happens to the equity risk premium she measures?
+    choices:
+      - { id: a, text: "It widens; the market's expected return stays put" }
+      - { id: b, text: "It narrows, because the riskfree rate fell", mistake: { tag: premium_narrows, fix: "The premium is the expected return minus the riskfree rate. A lower riskfree rate widens it." } }
+      - { id: c, text: "It widens, and the expected return rises with it", mistake: { tag: return_moves_too, fix: "Prices set the expected return, so it holds. Only its split between the two parts moves." } }
+      - { id: d, text: "It stays put, and the expected return falls", mistake: { tag: premium_fixed, fix: "Prices set the expected return, so it holds. The premium is what absorbs the change." } }
+    answer: a
+    explanation: >
+      The premium is the expected return minus the riskfree rate, so a lower riskfree rate widens it. The expected return is what stock prices imply, so it does not change; only how it is split between riskfree rate and premium does.
+    source: >
+      Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!",
+      Musings on Markets, 2 June 2025 (premium measured against the adjusted riskfree rate).
+  - id: fsv-q-grade-line
+    prompt: >
+      16 May 2025: Moody's cuts the US from Aaa to Aa1. Your uncle panics at dinner: "Is America junk now?" What do you tell him?
+    choices:
+      - { id: a, text: "No: Aa1 is the second-best grade; junk starts below Baa3" }
+      - { id: b, text: "Yes: losing the top grade makes it junk", mistake: { tag: top_or_junk, fix: "Junk starts only below Baa3. Aa1 is still the second-best grade." } }
+      - { id: c, text: "Almost: Aa1 is the last grade before junk", mistake: { tag: aa1_last_investment, fix: "The A and Baa grades all sit below Aa1. Junk starts at Ba1." } }
+      - { id: d, text: "No, because a government can never be rated junk", mistake: { tag: sovereigns_never_junk, fix: "Agencies do rate some governments junk. America is just far above that line." } }
+    answer: a
+    explanation: >
+      Moody's investment grades run from Aaa down to Baa3. Ba1 is the first speculative (non-investment, or junk) grade. Aa1 is the second-highest grade, so America is nowhere near junk.
+    source: >
+      Moody's, global rating scale, "Understanding Ratings"
+      (https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html) and the
+      Moody's global scale reference card (https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf).
+  - id: fsv-q-surprise
+    prompt: >
+      Long before its 16 May 2025 cut, Moody's had put the US on "negative outlook". Damodaran says that took away the surprise. Why does a cut that follows a warning move prices less?
+    choices:
+      - { id: a, text: "Investors priced in a likely cut when the warning came" }
+      - { id: b, text: "A one-grade cut never changes default risk", mistake: { tag: cut_changes_nothing, fix: "A cut does signal a bit more risk. The warning had already moved prices." } }
+      - { id: c, text: "Bond prices react only to the borrower's own news", mistake: { tag: own_news_only, fix: "Prices react to any news about default risk, including an agency's warning." } }
+      - { id: d, text: "Outlooks legally bind the agency to cut", mistake: { tag: outlook_binding, fix: "An outlook is an opinion, not a promise. Prices move because it is news." } }
+    answer: a
+    explanation: >
+      Prices move on news. An outlook change tells investors a cut is possible, so part of the effect arrives then, and the cut itself adds less. A cut does signal somewhat higher risk, only not by much for a single grade at the top of the scale.
+    source: >
+      Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!",
+      Musings on Markets, 2 June 2025 (lack of surprise: Moody's discloses outlooks before changes).
+
+checks:
+  - id: fsv-quiz-ratings-riskfree
+    kind: quiz
+    questions: [fsv-q-riskfree, fsv-q-erp, fsv-q-grade-line, fsv-q-surprise]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fsv-follow-argument
+    kind: conversation
+    prompt: >
+      You have read Damodaran's post on sovereign ratings and default risk as it stood on 2 June 2025.
+      Explain, in your own words and in order, each step of his argument: why he wrote it and how he
+      frames it, his history of sovereign default and what it costs, how the agencies rate
+      governments, how well the ratings have predicted default and where they fall short, the
+      lead-in to the US rating change and how he reads the market's reaction, and what it means for
+      the riskfree rate and equity risk premium. Then say which of his three reasons for the market's
+      reaction you find strongest and why.
+    passCriteria: >
+      The Learner gives his framing: he uses the rating change as a launching pad to discuss default
+      risk, ratings and valuation instead of arguing about US debt politics. They cover, in order,
+      default history and its costs (many defaults are on foreign currency debt but local currency
+      defaults persist, and default hurts economies, borrowing costs, trade and banks), how the
+      agencies rate sovereigns, and the record: default rates rise as ratings fall, but ratings are
+      upward biased, agencies herd, they are too late, and they can overreact in a crisis. They give
+      the lead-in (S&P in 2011, Fitch in 2023, Moody's negative outlook in November 2023, debt to GDP
+      and political dysfunction) and his three reasons for the muted reaction: little surprise, private
+      capital is the larger source of funding, and the gap between Aaa and Aa1 is small. They explain
+      the valuation consequence: riskfree rate = government bond rate minus the default spread, a higher
+      equity risk premium for the US, the same expected return on the market, and his conclusion that
+      the conventional approach still works. They may note that the post slips in one place: it calls
+      Baa2 and below speculative where Moody's line falls between Baa3 and Ba1, and they should treat
+      his default-rate figures as his reading of Moody's table. They do not claim to know where yields
+      went after 30 May 2025.

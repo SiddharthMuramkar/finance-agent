@@ -1,0 +1,5 @@
+root = Widget("At what rate does the cash option win?", [rate, verdict])
+$rate = 3
+rate = Slider("rate", "Discount rate: what safe money earns a year", 0, 10, 0.1, $rate, "percent")
+schedule = Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: $rate}, {rows: [], presentValue: 0, presentValueText: ""})
+verdict = Verdict(schedule.presentValue > 877800000, "At this rate the annuity is worth more today.", "At this rate the cash option is worth more today.")

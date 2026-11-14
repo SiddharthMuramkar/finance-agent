@@ -1,0 +1,296 @@
+# Spine Topic 5 (spec 2026-11-12, C2, C4): what a company keeps of each sale, taught through Damodaran's do-it-yourself
+# valuation of Tesla, 6 February 2020. The Case's valuation block is the Follow Topic's (fol-tesla-2020), taken with
+# valuationFrom, so every figure a Widget or computed question shows comes from the one engine (B1, ADR 0018).
+# Case facts: docs/research/verify-tesla-2020.json (storyFacts, widgetFacts), each with its source below.
+# Stage, place and length live in course/outline.yaml.
+id: spine-05-margins
+title: "Margins: what does it keep?"
+goal: Judge a company's margin against what its rivals keep, and see how far that moves its value
+why: "What a company keeps of each sale moves its value more than almost anything, and its rivals decide how much it can keep."
+minutes: 12
+exampleCurrency: USD
+
+cases:
+  - id: spine-05-tesla-margins
+    title: Damodaran lets readers choose their own Tesla story
+    asOf: 2020-02-06
+    valuationFrom: fol-tesla-2020-diy
+    story: >
+      6 February 2020. Tesla's revenue in 2019 was $24.6 billion, and it kept almost none of it as
+      operating profit. Its shares closed at $748.96 that day (prices here are as quoted at the time). A week earlier
+      Aswath Damodaran, a valuation professor at NYU Stern, had valued it at about $427 a share. His story: revenue of about $125 billion in 2030, five times 2019, and an
+      operating margin of 12% by 2025. Today he publishes a menu so that readers can set their own story, and beside
+      the margin lever he puts what others keep. In 2019 the median global carmaker kept 3.01% of its sales, and none
+      of the 20 largest kept as much as 10%; Toyota, the best of them, kept 8.46%. The median technology company kept
+      10.25%, and Apple, Microsoft, Alphabet, Amazon, Facebook and Netflix together kept 19.87%. He also warns that if
+      costs fall for every carmaker alike, buyers get cheaper cars and no maker earns sky-high margins. Is Tesla a
+      carmaker or a technology company, and what will it keep?
+    reveal: >
+      In his own update a week earlier, raising the margin he expected from 10% to 12% had added $115.31 a share, the
+      largest single piece of his move from $190.36 to $426.58. On 13 February 2020 he told CNBC that Tesla's price
+      needed revenue like Volkswagen's and margins like Apple's. Tesla then split its shares 5-for-1 (August 2020) and
+      3-for-1 (August 2022), so one February 2020 share became 15 and his $427 is about $28.47 on today's basis. On 25
+      October 2021, after Hertz ordered 100,000 cars, Tesla closed at a record $1,024.86, a market value just over $1
+      trillion (about $341.62 after both splits). It then lost about 65% in 2022 and closed the year at $123.18, still
+      about four times his value on the same basis. His menu of stories ran from about $106 to $2,106 a share before
+      the splits. A value follows from a story you can name, and a price can sit far from a value for years.
+
+concept: >
+  An operating margin is the share of each sale a company keeps after its running costs, before interest and tax.
+  In a valuation it is the second lever: what the company keeps once it has grown up. Because it applies to every
+  sale in every year, a few points of margin move a value a long way. A company does not choose its margin alone.
+  When a business earns fat margins, rivals come in, cut prices and copy what works, until margins drift towards what
+  the industry earns. So the best guide to a mature margin is what similar companies keep: the median, the best of
+  them, and the reason this company would sit above them. A margin above every rival's needs an edge rivals cannot
+  copy, such as a brand, a patent, software or a cost no one else can match. Underneath the margin sit the unit
+  economics: what one unit, here one car, sells for against what it costs to make and sell. The margin rises only
+  when the gap per car grows as a share of its price, and a cost cut every rival shares ends up in lower prices,
+  not in a fatter margin.
+
+principle: >
+  A margin is a claim against rivals, not a wish. Set it against what similar companies keep, and go above all of
+  them only when you can name what they cannot copy.
+
+goDeeper: >
+  Damodaran's update a week before the post split his change in value into pieces: the base year, a lower cost of
+  capital, faster growth, a higher margin, a lower chance of failure, net debt and options. The margin was the
+  largest piece, about half of the whole change. A Learner who wants more can ask which pieces moved
+  the value up and which moved it down.
+
+youllLearn:
+  - "See why what a company keeps of each sale moves its value so far."
+  - "Judge a margin against what rivals keep, from the median to the best."
+  - "Name the edge a company needs to keep more than all of its rivals."
+
+terms:
+  - term: operating margin
+    means: The share of each sale a company keeps after its running costs, before interest and tax.
+    emoji: bar-chart
+    pro: Its operating margin was under one percent last year.
+    example: "A shop that keeps 10 cents of every dollar it takes has a 10% operating margin."
+    inStory: Tesla kept almost none of its 2019 sales as operating income.
+  - term: mature margin
+    means: The operating margin a company settles at once its fast growth is over.
+    emoji: chart-increasing
+    pro: We assume a mature margin of twelve percent by 2025.
+    example: "A young shop may keep nothing while it opens branches, then 8 cents a dollar once it stops."
+    inStory: Damodaran's story has Tesla's margin reaching 12% by 2025.
+  - term: industry median
+    means: The margin of the middle company when all the companies in an industry are lined up from lowest to highest.
+    emoji: balance-scale
+    pro: The median carmaker keeps about three percent.
+    example: "Of five shops keeping 2, 4, 5, 7 and 9 cents a dollar, the median keeps 5 cents."
+    inStory: The median global carmaker kept 3.01% of its sales in 2019.
+  - term: unit economics
+    means: What one unit sells for against what it costs to make and sell; the margin is that gap as a share of the price.
+    emoji: receipt
+    pro: The unit economics only work if each car sells for more than it costs.
+    example: "A juice stall sells a cup for $3, spends $2 making it, and keeps $1 a cup."
+    inStory: Damodaran warns that if costs fall for every maker alike, buyers get cheaper cars, not makers fatter gaps per car.
+  - term: competitive edge
+    means: Something a company has that rivals cannot copy, which lets it keep more of each sale than they do.
+    emoji: crown
+    pro: Their edge is the software, not the cars.
+    example: "A bakery with a secret recipe can charge more than the one next door."
+    inStory: A Tesla that keeps more than Toyota needs an edge other carmakers cannot copy.
+
+skills:
+  - id: margin-moves
+    rule: A few points of margin move a value a long way, because they apply to every sale in every year.
+  - id: rivals-cap
+    rule: A mature margin is judged against what rivals keep; above all of them it needs an edge they cannot copy.
+
+insight:
+  question: Move what Tesla keeps across the marks on the margin lever. What kind of company does the price of the day ask Tesla to be?
+  written: The price needed Tesla to keep more of each sale than any large carmaker, nearer what the technology giants keep; since rivals cap a margin, the price was a bet that Tesla escapes its rivals.
+  foundWhen: The Learner sets the margin on a carmaker's mark, sees the value fall far below the price, and says the price needs a margin above every carmaker's, closer to the technology companies'.
+  hints:
+    - Put the margin on the best carmaker's mark and compare the value with the price.
+    - Now slide the margin towards the technology giants' mark until the value meets the price.
+
+explore:
+  before: margins-check
+  workbench:
+    recipe: value_levers
+    case: spine-05-tesla-margins
+    title: What can Tesla keep?
+    inputs:
+      caseStory: Damodaran's story
+      priceStory: { margin: 17.5 }
+      mode:
+        kind: margin_marks
+        marks:
+          - label: Median global carmaker
+            percent: 3.01
+            source: { title: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020), global auto margins in 2019", url: "https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html" }
+          - label: Toyota, the best large carmaker
+            percent: 8.46
+            source: { title: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020), the 20 largest auto companies", url: "https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html" }
+          - label: Tech giants together
+            percent: 19.87
+            source: { title: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020), FAANG and Microsoft margins", url: "https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html" }
+
+connections:
+  - text: The income statement shows where operating income comes from, line by line, before interest and tax.
+    topics: [fs-income]
+  - text: Competition and market power explain why rivals pull a fat margin back down, and when they cannot.
+    topics: [eco-micro-competition]
+  - text: Damodaran's whole post sets all four levers against industry data, so readers can build their own Tesla.
+    topics: [fol-tesla-2020]
+
+questions:
+  - id: margins-q-lever
+    kind: which_lever
+    prompt: From Damodaran's story, which one change moves Tesla's value the most?
+    skill: margin-moves
+    explanation: What it keeps moves the value most, because a margin applies to every sale in every year.
+    computed:
+      case: spine-05-tesla-margins
+      changes:
+        - { id: toyota-margin, label: "Margin 12% to Toyota's 8.46%", levers: { marginTarget: 8.46 } }
+        - { id: smaller, label: "Revenue in 2030 $125bn to $100bn", levers: { revenueYear10: 100000 } }
+        - { id: riskier, label: "Cost of capital 7% to 8%", levers: { costOfCapitalGrowing: 8 } }
+        - { id: fails-more, label: "Chance it fails 10% to 20%", levers: { failureChance: 20 } }
+        - { id: tech-margin, label: "Margin 12% to 15%", levers: { marginTarget: 15 } }
+  - id: margins-q-price
+    kind: price_assumes
+    prompt: Tesla closed at $748.96 on 6 February 2020. Which story gets near that price?
+    skill: rivals-cap
+    explanation: With the rest of his story kept, only a margin near the tech giants' gets near the price; a somewhat bigger Tesla or cheaper money falls well short.
+    computed:
+      case: spine-05-tesla-margins
+      changes:
+        - { id: tech-margin, label: "His size, keeping 18% of each sale", levers: { marginTarget: 18 } }
+        - { id: toyota, label: "Toyota's size, with Toyota's 8.46% margin", levers: { revenueYear10: 285000, marginTarget: 8.46 } }
+        - { id: bigger, label: "Revenue of $150bn in 2030, keeping 12%", levers: { revenueYear10: 150000 } }
+        - { id: cheap-money, label: "His story at a 6% cost of capital", levers: { costOfCapitalGrowing: 6 } }
+  - id: margins-q-predict
+    kind: predict
+    prompt: "If Tesla ends up keeping {change} instead of the 12% in his story, its value will be:"
+    skill: margin-moves
+    computed:
+      case: spine-05-tesla-margins
+      changes:
+        - { id: carmaker-median, label: "the median carmaker's 3.01%", levers: { marginTarget: 3.01 } }
+        - { id: toyota, label: "Toyota's 8.46%", levers: { marginTarget: 8.46 } }
+      bands:
+        - { id: most, label: "Most of it is still there", min: 0.75 }
+        - { id: half, label: "About half", min: 0.35, max: 0.75 }
+        - { id: fifth, label: "About a fifth", min: 0.1, max: 0.35 }
+        - { id: none, label: "Nothing left for shareholders", max: 0.1 }
+  - id: margins-q-direction
+    kind: direction
+    prompt: Cheaper batteries cut the cost of an electric car for every carmaker, and rivals cut their prices. What happens to what Tesla keeps of each sale?
+    skill: rivals-cap
+    choices:
+      - { id: margin-flat, text: "No lasting rise: the saving goes to buyers" }
+      - { id: margin-up, text: "It keeps more of each sale", mistake: { tag: own_cost_only, fix: "Its own costs fall, but rivals' fall too and they cut prices, so the saving goes to buyers." } }
+      - { id: risk-up, text: "Only its risk changes", mistake: { tag: lever_mixup, fix: "Rivals' price cuts act on what each sale keeps, the margin, not on risk; here they stop it rising." } }
+    answer: margin-flat
+    explanation: A cost cut every rival shares is passed on to buyers as lower prices, so no maker gets to keep it as a higher margin.
+    source: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020): if the cost cuts apply to all competitors, none of the manufacturers will be making sky high margins. https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html"
+  - id: margins-q-hold
+    kind: cannot_hold
+    prompt: Which Tesla story contradicts itself?
+    skill: rivals-cap
+    choices:
+      - { id: copied, text: "Rivals can copy everything Tesla does, and it still keeps a software company's margin" }
+      - { id: dull, text: "Tesla grows to Toyota's size and keeps a carmaker's margin", mistake: { tag: dull_is_fine, fix: "A big carmaker with a carmaker's margin is a modest story, but nothing in it fights the rest." } }
+      - { id: edge, text: "Tesla keeps more than other carmakers because its software is hard to copy", mistake: { tag: edge_is_a_reason, fix: "This one names an edge rivals cannot copy, so it holds together; whether it is true is the bet." } }
+    answer: copied
+    explanation: If rivals can copy everything, they compete the extra margin away, so a software company's margin cannot last.
+    source: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020), on margins and competition. https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html"
+  - id: margins-q-pricevalue
+    kind: price_or_value
+    prompt: "On 3 February 2020 Tesla's market value passed $140 billion. Is that about a price or a value?"
+    skill: margin-moves
+    choices:
+      - { id: price, text: "A price" }
+      - { id: value, text: "A value", mistake: { tag: price_for_value, fix: "Market value is the share price times the shares: what buyers paid, so a price." } }
+    answer: price
+    explanation: Market value is what buyers paid for each share times the shares, so it is a price, whatever it is compared with.
+    source: "CNBC, 3 Feb 2020, Tesla stock soars, hitting $700 per share for the first time. https://www.cnbc.com/2020/02/03/tesla-stock-soars-hitting-700-per-share-for-the-first-time.html"
+
+checks:
+  - id: margins-check
+    kind: quiz
+    questions: [margins-q-lever, margins-q-price, margins-q-predict, margins-q-direction, margins-q-hold, margins-q-pricevalue]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: What it keeps, against what rivals keep
+      lines:
+        - The operating margin is the share of each sale a company keeps after its running costs.
+        - It applies to every sale in every year, so a few points move the value a long way.
+        - Per car, it is the gap between price and cost, as a share of the price. Rivals cut prices until that gap shrinks.
+        - In 2019 the median carmaker kept 3.01%, Toyota 8.46%, and the tech giants together 19.87%.
+      writeDown: Judge a margin against rivals. Above all of them, name what they cannot copy.
+      skills: [margin-moves, rivals-cap]
+    quickTries:
+      - id: margins-try-moves-half
+        skill: margin-moves
+        ask: A company that keeps 3 cents of every dollar it sells starts keeping 5 cents, every year from now on. Does that move its value a little or a lot?
+        halfDone: "First step, done for you: 2 more cents on 3 is two thirds more profit, on every sale, in every year."
+        kind: choice
+        answer: lot
+        choices:
+          - { id: lot, text: "A lot" }
+          - { id: little, text: "A little", mistake: { tag: small_sounding, fix: "Two cents sounds small, but it is two thirds more profit on every sale for years, so it adds up to a lot." } }
+      - id: margins-try-moves-update
+        skill: margin-moves
+        ask: In January 2020 Damodaran's value for Tesla rose from about $190 to about $427 a share. Which change added the most?
+        kind: choice
+        answer: margin
+        choices:
+          - { id: margin, text: "A higher margin" }
+          - { id: growth, text: "Faster growth", mistake: { tag: growth_first, fix: "Growth added a lot, but the higher margin added more: about half of the whole rise." } }
+          - { id: rate, text: "A lower cost of capital", mistake: { tag: rate_first, fix: "The lower rate helped, but much less than the higher margin, which added about half the rise." } }
+      - id: margins-try-moves-computed
+        skill: margin-moves
+        kind: which_lever
+        ask: From Damodaran's story, which change moves Tesla's value the most?
+        computed:
+          case: spine-05-tesla-margins
+          changes:
+            - { id: tech-median, label: "Margin 12% to the tech median, 10.25%", levers: { marginTarget: 10.25 } }
+            - { id: riskier, label: "Cost of capital 7% to 8%", levers: { costOfCapitalGrowing: 8 } }
+            - { id: safer, label: "Chance it fails 10% to 0%", levers: { failureChance: 0 } }
+      - id: margins-try-rivals-half
+        skill: rivals-cap
+        ask: None of the 20 largest carmakers kept 10% of its sales in 2019. Damodaran's story has Tesla keeping 12%. What does that story need?
+        halfDone: "First step, done for you: 12% is more than every large carmaker keeps."
+        kind: choice
+        answer: edge
+        choices:
+          - { id: edge, text: "An edge other carmakers cannot copy" }
+          - { id: size, text: "Only more sales than the others", mistake: { tag: size_for_margin, fix: "Selling more is size. Keeping more of each sale than every rival needs something they cannot copy." } }
+      - id: margins-try-rivals-guide
+        skill: rivals-cap
+        ask: Which is the better first guide to what a carmaker will keep once it stops growing fast?
+        kind: choice
+        answer: rivals
+        choices:
+          - { id: rivals, text: "What large carmakers keep today" }
+          - { id: today, text: "What it keeps itself today", mistake: { tag: today_is_mature, fix: "A fast-growing company often keeps little while it spends to grow; a mature margin is judged against grown-up rivals." } }
+          - { id: software, text: "What software companies keep", mistake: { tag: wrong_rivals, fix: "One more copy of software costs almost nothing to make; every car costs money to build." } }
+      - id: margins-try-rivals-shared
+        skill: rivals-cap
+        ask: A new way to make batteries cheaply is open to every carmaker. Who ends up with most of the saving?
+        kind: choice
+        answer: buyers
+        choices:
+          - { id: buyers, text: "Buyers, through lower prices" }
+          - { id: makers, text: "The carmakers, through higher margins", mistake: { tag: own_cost_only, fix: "A saving every rival shares gets competed away in price cuts, so buyers keep most of it." } }
+      - id: margins-try-unit
+        skill: margin-moves
+        ask: A carmaker keeps selling each car at the same price, but each one now costs less to build than before. What happens to its margin?
+        kind: choice
+        answer: up
+        choices:
+          - { id: up, text: "It goes up: the gap per car is wider" }
+          - { id: same, text: "It stays the same, because it sells the same cars", mistake: { tag: units_not_gap, fix: "The margin is the gap per car as a share of its price; a cheaper car at the same price widens it." } }
+  - id: margins-talk
+    kind: conversation
+    prompt: Tell Tesla's margin story in two or three sentences. What will it keep once its fast growth is over, which rivals are you comparing it with, and why could it stay above them or not? Could that story explain the price of the day?
+    passCriteria: Names a mature margin or a range; compares it with carmakers, technology companies or both; gives a reason Tesla could keep more than its rivals, or doubts one; and treats the gap between that story and the price as a question, not a verdict.
+    skills: [rivals-cap]

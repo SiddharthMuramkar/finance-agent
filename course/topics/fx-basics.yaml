@@ -1,0 +1,170 @@
+# Exchange rates and parity: a foundation Topic taught through the 1991 rupee devaluation.
+# Case sources (checked): RBI Chronology of Events 1991-2000: https://rbi.org.in/history/Brief_Chro1991to2000.html ; Mint, India's tryst with currency devaluation (2016): https://livemint.com/Money/08f2pqhy1c2Yh2OYTItwDL/Indias-tryst-with-currency-devaluation.html ; IMF, India: Economic Reform and Growth, ch. III: http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+id: fx-basics
+title: Exchange rates and parity
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A company that sells or borrows abroad earns and owes other currencies, so exchange rates move its cash, and the value its story leads to."
+
+cases:
+  - id: rupee-devaluation-1991
+    title: The 1991 rupee devaluation
+    asOf: 1991-06-30
+    story: >
+      At the end of June 1991 India was in the middle of an external payments crisis. Foreign
+      exchange reserves had fallen to a level that would not pay for even a month of imports.
+      Commercial lenders abroad had almost stopped lending to India since mid-1990, and large
+      amounts of money held by non-resident Indians had been withdrawn. The authorities kept
+      paying their debts only by squeezing imports and by emergency financing from the
+      International Monetary Fund. The rupee was not allowed to float: it was fixed by the RBI
+      against a basket of currencies, and the RBI adjusted the rate in small daily steps.
+      Suppose policymakers decide to cut the rupee's value against other currencies.
+      If you sat at the RBI that week, would you make one big cut, or a small one first to see how
+      the market takes it?
+    reveal: >
+      On 1 July 1991 the RBI cut the rupee's value by about 9%. Two days later, on 3 July,
+      it cut it by a further 11%. The RBI's own chronology puts the cumulative devaluation at
+      about 18% in US dollar terms; the IMF's account says 19%. The two steps compound:
+      the rupee kept 91% of its dollar value after the first, and 89% of that after the second,
+      which leaves 0.91 x 0.89 = 81% of the original, a fall of 19%. C. Rangarajan, then a
+      deputy governor, later wrote that the plan, code-named "hop, skip and jump", was always for
+      two stages, to test the market with the first dose. After the first step the market grew
+      nervous and expected a larger fall, so the second was brought forward. In March 1992
+      India introduced a dual exchange rate, and in March 1993 the two rates were unified in a
+      system managed by the market.
+
+concept: >
+  An exchange rate is the price of one currency in terms of another, and it can be quoted
+  either way: if one Mexican peso costs $0.0625, one dollar costs 16 pesos. When it takes
+  more dollars to buy a peso the peso has appreciated, and when it takes fewer it has
+  depreciated; one currency's appreciation is the other's depreciation. A devaluation is an
+  official cut in the value of a currency that a government has fixed against others.
+  Percentage changes need care: a rupee that goes from 75 to 80 per dollar has lost 6.25% of its
+  dollar value, while the dollar has gained 6.7% in rupees. Two successive cuts, 10% and then
+  20% of the new value, leave 0.90 x 0.80 = 72% of the original value: a 28% fall, not 30%. Over the long term, a currency's value should tend
+  toward purchasing power parity (PPP): the exchange rate at which the same traded goods cost
+  the same in both countries, since otherwise people would buy where it is cheaper and sell
+  where it is dearer. In the short and medium run exchange rates often stray from PPP. A related
+  relation, covered interest parity, says a currency with the lower interest rate trades at a
+  forward premium that offsets the interest saved, so borrowing abroad and hedging the currency
+  gains nothing.
+
+principle: >
+  A change in an exchange rate is a change in relative prices: it moves what imports cost, what
+  exports earn and what foreign debts weigh, all at once. Always say which currency's value you
+  are measuring and in which direction.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read an exchange rate quoted either way round."
+  - "Tell appreciation from depreciation, and measure each from the right base."
+  - "Know why currencies drift toward the same price for the same goods over time."
+
+questions:
+  - id: fx-q-invert
+    prompt: >
+      Lena lands in Mexico City. Her bank app prices a peso in dollars, a tiny number; the airport board prices a dollar in pesos, a big one. Is she seeing two prices?
+    choices:
+      - { id: a, text: "No: it is one rate, read from each currency's side" }
+      - { id: b, text: "Yes: the peso has two official prices, one per side", mistake: { tag: flip_is_new_rate, fix: "Flipping the quote changes nothing. It is the same rate read from the other currency's side." } }
+      - { id: c, text: "Yes: the peso was devalued while her plane was flying", mistake: { tag: flip_is_devaluation, fix: "A devaluation is a government cutting a fixed rate. Reading a quote the other way moves nothing." } }
+      - { id: d, text: "No: the board is showing next month's forward rate", mistake: { tag: flip_is_forward, fix: "A forward rate is for a later date. This is the same rate, today, quoted the other way." } }
+    answer: a
+    explanation: >
+      A rate can be quoted from either side: dollars for one peso, or pesos for one dollar. Traders call the flipped version the inverse quote. It is the same price, so a tiny number on one side means a big number on the other.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-appreciate
+    prompt: >
+      The price of one Mexican peso rises from $0.0625 to $0.0800. What has happened to the peso?
+    choices:
+      - { id: a, text: "It has appreciated" }
+      - { id: b, text: "It has depreciated", mistake: { tag: direction_flipped, fix: "A peso now costs more dollars, so it has risen in value, not fallen." } }
+      - { id: c, text: "It has been devalued by its government", mistake: { tag: devalue_for_float, fix: "Devaluation is a government cutting a fixed rate; here the peso's price went up." } }
+      - { id: d, text: "Nothing: only the dollar has moved", mistake: { tag: one_side_only, fix: "A rate is two currencies at once: if the dollar fell against it, the peso rose." } }
+    answer: a
+    explanation: >
+      It now costs more dollars to buy a peso, so the price of the peso has risen: it has appreciated, and the dollar has depreciated against it. Devaluation applies only when a government deliberately lowers a fixed rate.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-exporter
+    prompt: >
+      Maria, a potter in Oaxaca, sells mugs to a Texas shop for dollars. One spring the peso weakens, and her nephew calls it bad news for her. Who gets it right?
+    choices:
+      - { id: a, text: "Maria: each dollar she earns now changes into more pesos" }
+      - { id: b, text: "The nephew: a weak peso makes everything Maria sells worth less", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more at home." } }
+      - { id: c, text: "Neither: the shop pays the same dollars, so nothing changes", mistake: { tag: ignored_conversion, fix: "The dollars are the same, but changing them into pesos now gives her more." } }
+      - { id: d, text: "The nephew: her Texas shop must now pay her more dollars", mistake: { tag: buyer_pays_more, fix: "Her dollar price has not moved. The peso's fall changes what those dollars buy at home." } }
+    answer: a
+    explanation: >
+      A weaker peso means one dollar buys more pesos. Maria's dollar price has not changed, so the same sale brings home more pesos. That is why exporters often welcome a weak home currency.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-percent
+    prompt: >
+      An Indian student pays fees in dollars. The rupee goes from INR 75 = USD 1 to INR 80 = USD 1, and her father reads the news. What did the rupee just do?
+    choices:
+      - { id: a, text: "The rupee gained value, because 80 is a bigger number than 75", mistake: { tag: bigger_number_stronger, fix: "A bigger number of rupees per dollar means each rupee buys less. The rupee lost value." } }
+      - { id: b, text: "The rupee and the dollar moved by exactly the same percentage", mistake: { tag: same_percent_both_ways, fix: "Each move is measured from a different starting point, so the two percentages differ." } }
+      - { id: c, text: "The rupee was revalued by its government", mistake: { tag: revalued_means_up, fix: "Revaluation raises a fixed rate. Here the rupee lost value against the dollar." } }
+      - { id: d, text: "The rupee lost value; the dollar gained" }
+    answer: d
+    explanation: >
+      It now takes more rupees to buy one dollar, so each rupee buys less: the rupee lost value and the dollar gained. It is one move seen from two sides, and because each side is measured from its own starting point the two percentages differ a little (the rupee fell about 6.25%, the dollar rose about 6.67%).
+    source: >
+      Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-compound
+    prompt: >
+      Ravi has saved for a year of study abroad. On Monday his government cuts its currency's value; on Wednesday it cuts again. His roommate says the second cut compounds the first. What does compounds mean here?
+    choices:
+      - { id: a, text: "The second cut is taken from the already-lowered value" }
+      - { id: b, text: "The second cut cancels the first and starts over", mistake: { tag: second_cut_resets, fix: "The first cut stays. The second is stacked on top, taken from the lower value." } }
+      - { id: c, text: "The second cut is to interest rates, not the currency", mistake: { tag: compound_means_interest, fix: "Compounding here means one cut stacked on another, not a change in interest rates." } }
+      - { id: d, text: "The second cut doubles the size of the first one", mistake: { tag: compound_means_double, fix: "Compounding means stacking, not doubling. The second cut works on what the first cut left." } }
+    answer: a
+    explanation: >
+      Each cut is taken from whatever value is left. The second cut bites a currency already worth less, so together the two cuts take a little less than their sizes simply added.
+    source: >
+      Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-ppp
+    prompt: >
+      Priya drives from Seattle to Vancouver and spots the same car model at a dealer on each side of the border. Her economist uncle says exchange rates drift toward purchasing power parity. If parity held for this car, what would Priya find?
+    choices:
+      - { id: a, text: "The two price tags show the same number", mistake: { tag: same_number_means_parity, fix: "Parity is about value after changing the money, not matching numbers." } }
+      - { id: b, text: "One country is cheaper", mistake: { tag: bigger_number_cheaper, fix: "At parity the converted prices are equal. Neither side is cheaper." } }
+      - { id: c, text: "The prices match once the money is changed" }
+      - { id: d, text: "A government must change its rate", mistake: { tag: parity_is_an_order, fix: "Parity describes prices lining up. It is not an order to any government." } }
+    answer: c
+    explanation: >
+      A $20,000 car at C$1.30 to the dollar should cost about C$26,000 in Canada. If it were much cheaper there, buyers would shift there until prices and exchange rates lined up.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.2 Demand and Supply Shifts in Foreign Exchange Markets: https://openstax.org/books/principles-economics-3e/pages/29-2-demand-and-supply-shifts-in-foreign-exchange-markets
+
+checks:
+  - id: fx-quiz-rates
+    kind: quiz
+    questions:
+      - fx-q-invert
+      - fx-q-appreciate
+      - fx-q-exporter
+      - fx-q-percent
+      - fx-q-compound
+      - fx-q-ppp
+      - bank:eab:MBA-ECON-0050
+      - bank:eab:MBA-ECON-0052
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fx-devaluation-explain
+    kind: conversation
+    prompt: >
+      Anil's aunt sells cotton shirts to shops in Dubai. The morning after the government cuts the
+      rupee's value, she calls him, delighted. Say in your own words why the cut is good news for her.
+    passCriteria: >
+      The Learner says, in any words, that her shirts now look cheaper to buyers abroad, so she can win
+      more orders, or that each dirham or dollar she earns now changes into more rupees. Either idea is
+      enough; no numbers are needed.

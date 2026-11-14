@@ -1,0 +1,1747 @@
+/* Cascade layers, declared before any import so nothing can reorder them: OpenUI's widget kit (@layer openui)
+   sits above Tailwind's reset, which can't strip its styles, and below the utilities, which still win. */
+@layer theme, base, openui, components, utilities;
+@import "tailwindcss";
+/* OpenUI's component kit for generated widgets, imported from this one place only (OpenUI's rule for layered
+   styles). GenuiTheme (src/widgets/genui-theme.tsx) points its colours and fonts at our tokens. Only the sheets of
+   the parts the Widget library keeps are imported (the whole kit was 363 KB, mostly its chat shell and the parts we
+   dropped); src/widgets/openui-css.test.ts checks that every class the kept parts draw has its sheet here. Each sheet
+   wraps itself in @layer openui; the defaults (spacing, type, colours) are the one file that does not. */
+@import "@openuidev/react-ui/layered/styles/openui-defaults.css" layer(openui);
+@import "@openuidev/react-ui/layered/styles/accordion.css";
+@import "@openuidev/react-ui/layered/styles/callout.css";
+@import "@openuidev/react-ui/layered/styles/card.css";
+@import "@openuidev/react-ui/layered/styles/cardHeader.css";
+@import "@openuidev/react-ui/layered/styles/charts.css";
+@import "@openuidev/react-ui/layered/styles/chips.css";
+@import "@openuidev/react-ui/layered/styles/entityList.css";
+@import "@openuidev/react-ui/layered/styles/formControl.css";
+@import "@openuidev/react-ui/layered/styles/iconButton.css";
+@import "@openuidev/react-ui/layered/styles/inlineHeader.css";
+@import "@openuidev/react-ui/layered/styles/inlineMarkdownRenderer.css";
+@import "@openuidev/react-ui/layered/styles/label.css";
+@import "@openuidev/react-ui/layered/styles/markDownRenderer.css";
+@import "@openuidev/react-ui/layered/styles/select.css";
+@import "@openuidev/react-ui/layered/styles/separator.css";
+@import "@openuidev/react-ui/layered/styles/skeleton.css";
+@import "@openuidev/react-ui/layered/styles/steps.css";
+@import "@openuidev/react-ui/layered/styles/switchGroup.css";
+@import "@openuidev/react-ui/layered/styles/switchItem.css";
+@import "@openuidev/react-ui/layered/styles/table.css";
+@import "@openuidev/react-ui/layered/styles/tabs.css";
+@import "@openuidev/react-ui/layered/styles/tag.css";
+@import "@openuidev/react-ui/layered/styles/tagBlock.css";
+@import "@openuidev/react-ui/layered/styles/textCallout.css";
+@import "@openuidev/react-ui/layered/styles/textContent.css";
+@import "@openuidev/react-ui/layered/styles/textContentWrapper.css";
+@import "@openuidev/react-ui/layered/styles/tooltipWrapper.css";
+
+/* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens (ADR 0013): semantic tokens, one literal colour per theme; old names declared once in Light as
+   var(--new), never in Dark; Widget accent families unchanged. Components use them as `bg-[var(--wash)]`; Dark is these
+   values switching under `.dark`, so components need no dark: colour variants (a dark: display swap, such as the theme
+   toggle's sun and moon, is fine). */
+/* Light (default). Screen and print. White paper, an ink ramp and one royal blue for what can be pressed, is selected
+   or is current. Status colours always come with an icon or a word. The Widget accent families below are only for
+   Widgets: a FILL (--mint, --coral, --sun, --violet) never carries text; text uses the -ink variants. */
+:root {
+  color-scheme: light;
+  /* Page frame (A1): the gutter beside the page, the gap between columns, and the widest the page grows. */
+  --gutter: clamp(12px, 1.6vw, 32px);
+  --gap: clamp(16px, 1.6vw, 28px);
+  --page-max: 2200px;
+  /* Surfaces: the page, a wash band, a raised card or field, a Widget frame */
+  --paper: #ffffff;
+  --wash: #f6f7f9;
+  --raised: #ffffff;
+  --frame: #ffffff;
+  /* Text: ink, a second ink, muted (secondary text), faint (placeholders, disabled) */
+  --ink: #0b0d12;
+  --ink-2: #30353f;
+  --muted: #5f6571;
+  --faint: #8b919b;
+  /* Lines: a hairline rule, a decorative line, a strong line for control edges (3:1 or better) */
+  --rule: #e2e5ea;
+  --line: #c6cad2;
+  --line-strong: #868c97;
+  /* The one accent: royal blue for links, the selected and the current, and the focus ring */
+  --accent: #1f3fae;
+  --accent-fill: #1f3fae;
+  --ring: #1f3fae;
+  --accent-hover: #1a3596;
+  --accent-pressed: #152b7a;
+  --accent-deep: #152b7a;   /* darker than the fill: frozen, no longer drawn (ADR 0014) */
+  --on-accent: #ffffff;
+  --accent-tint: #eef2fc;
+  --accent-tint-2: #e3e9fa;
+  --accent-line: #a9b8ec;
+  /* The primary button's fill (royal blue in Light, near-white in Dark) and the disabled fill */
+  --fill: #1f3fae;
+  --on-fill: #ffffff;
+  --fill-hover: #1a3596;
+  --fill-active: #152b7a;
+  --dim: #e2e5ea;
+  --on-dim: #8b919b;
+  /* Status, always with an icon or a word */
+  --success: #18794e;
+  --success-tint: #edf7f1;
+  --warning: #a15c07;
+  --warning-tint: #fdf5e6;
+  --danger: #b42318;
+  --danger-tint: #fdf1ef;
+  --danger-hover: #9a1d14;
+  --on-danger: #ffffff;
+  --data: #c6cad2;          /* neutral chart data */
+  /* Widget accent families. fill / ink (text) / tint (card) / tag */
+  --mint: #12b886;          /* 'you' and gains */
+  --mint-ink: #0b7a5a;
+  --mint-tint: #ddf7ec;
+  --mint-tag: #d2f4e6;
+  --coral: #ff6b57;         /* losses and warnings */
+  --coral-ink: #bd2f1e;
+  --coral-tint: #ffe6e1;
+  --coral-tag: #ffddd6;
+  --coral-fill: #bd2f1e;    /* danger button fill under white text (5.9:1) */
+  --coral-deep: #8f2012;    /* danger button lip */
+  --sun: #ffc233;           /* history and stories */
+  --sun-ink: #8a5a00;
+  --sun-tint: #fff1c9;
+  --sun-tag: #ffe49a;
+  --violet: #8b5cf6;        /* lingo */
+  --violet-ink: #6d3ad9;
+  --violet-tint: #ebe2ff;
+  --violet-tag: #e4d9ff;
+  /* Widget names: 'you' is mint, 'src' (sourced history) is sunflower */
+  --you: #0b7a5a;
+  --you-line: #12b886;
+  --you-tint: #ddf7ec;
+  --you-tag: #d2f4e6;
+  --you-tag-ink: #0b7a5a;
+  --src: #8a5a00;
+  --src-line: #ffc233;
+  --src-tint: #fff1c9;
+  --src-tag: #ffe49a;
+  --src-tag-ink: #8a5a00;
+  /* Not colour-checked: Widgets' soft drop shadow, and the shadows of floating layers */
+  --shadow: rgb(11 13 18 / 0.22);
+  --shadow-pop: 0 0 0 1px var(--rule), 0 8px 24px -12px rgb(11 13 18 / 0.2);
+  --shadow-modal: 0 0 0 1px var(--rule), 0 24px 64px -24px rgb(11 13 18 / 0.32);
+  /* Old names, declared ONCE here and never in Dark: each follows its new name, which switches under .dark. They
+     resolve on <html>, where .dark also applies, so Widgets and code still on the old names follow both themes. */
+  --bg: var(--paper);
+  --field: var(--raised);
+  --bubble: var(--wash);
+  --hairline: var(--rule);
+  --border: var(--line);
+  --edge: var(--line-strong);
+  --brand: var(--accent);
+  --brand-main: var(--accent-fill);
+  --brand-hover: var(--accent-hover);
+  --brand-pressed: var(--accent-pressed);
+  --brand-deep: var(--accent-deep);
+  --brand-ink: var(--on-accent);
+  --brand-tint: var(--accent-tint);
+  --brand-soft: var(--accent-tint);
+  --brand-line: var(--accent-line);
+  /* Theme-independent: royal blue, the Band's colour (white text on it in both themes) */
+  --royal: #1f3fae;
+  /* A Band (spec F1, F5): a full-width royal-blue brand surface, the same in both themes, so these are declared once here
+     and never in Dark. On it: white text (8.8:1), secondary text in white at 72% (5.4:1), decorative rules in white at 18%,
+     and a white button with an ink label (19.4:1). Paint a Band with the .band class rather than these one by one. */
+  --band: var(--royal);
+  --on-band: #ffffff;
+  --on-band-2: rgb(255 255 255 / 0.72);
+  --band-rule: rgb(255 255 255 / 0.18);
+  --on-band-button-ink: #0b0d12;
+  /* A card on a Band: white here, the Theme's --frame in Dark (declared again there) */
+  --band-card: #ffffff;
+  /* The key-number colour (spec F2, F5): eyebrows, step numbers and a Widget's one key number. It is the Theme's accent,
+     declared once here, so it is #1f3fae in Light and #6aa1ff in Dark; never on something that can be pressed (F4). */
+  --key-number: var(--accent);
+  /* Computed: hover and press washes, and the 20% accent halo around a focused field */
+  --hover: color-mix(in srgb, var(--ink) 5%, transparent);
+  --press: color-mix(in srgb, var(--ink) 9%, transparent);
+  --accent-halo: color-mix(in srgb, var(--accent) 20%, transparent);
+  /* Motion: colour and underline transitions only, no movement on controls */
+  --dur-press: 100ms;
+  --dur-ui: 140ms;
+  --dur-underline: 180ms;
+  --dur-enter: 200ms;
+  --dur-exit: 140ms;
+  --dur-panel: 200ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-ui: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* Layout and type */
+  --header-h: 56px;
+  --text-chat: 16px;
+  --lh-chat: 26px;
+  --text-reading: var(--text-chat);
+  --lh-reading: var(--lh-chat);
+  --text-ui: 14px;
+  --lh-ui: 20px;
+  --text-small: 13px;
+  --lh-small: 18px;
+}
+
+/* The same tokens as Tailwind colours (bg-brand, text-muted, border-border, bg-bubble, text-ink ...). "inline" keeps the
+   var() reference, so the .dark values still switch; the older bg-[var(--brand)] spelling keeps working beside them. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-bubble: var(--bubble);
+  --color-field: var(--field);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-pressed: var(--brand-pressed);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-line: var(--brand-line);
+  --color-ring: var(--ring);
+  --color-you: var(--you);
+  --color-you-line: var(--you-line);
+  --color-src: var(--src);
+  --color-src-line: var(--src-line);
+  --color-danger: var(--danger);
+  --color-brand-main: var(--brand-main);
+  --color-brand-deep: var(--brand-deep);
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-coral: var(--coral);
+  --color-coral-ink: var(--coral-ink);
+  --color-sun: var(--sun);
+  --color-sun-ink: var(--sun-ink);
+  --color-violet: var(--violet);
+  --color-violet-ink: var(--violet-ink);
+  --color-paper: var(--paper);
+  --color-wash: var(--wash);
+  --color-raised: var(--raised);
+  --color-frame: var(--frame);
+  --color-ink-2: var(--ink-2);
+  --color-faint: var(--faint);
+  --color-rule: var(--rule);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-pressed: var(--accent-pressed);
+  --color-accent-deep: var(--accent-deep);
+  --color-on-accent: var(--on-accent);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-tint-2: var(--accent-tint-2);
+  --color-accent-line: var(--accent-line);
+  --color-fill: var(--fill);
+  --color-on-fill: var(--on-fill);
+  --color-fill-hover: var(--fill-hover);
+  --color-fill-active: var(--fill-active);
+  --color-dim: var(--dim);
+  --color-on-dim: var(--on-dim);
+  --color-success: var(--success);
+  --color-success-tint: var(--success-tint);
+  --color-warning: var(--warning);
+  --color-warning-tint: var(--warning-tint);
+  --color-danger-tint: var(--danger-tint);
+  --color-danger-hover: var(--danger-hover);
+  --color-on-danger: var(--on-danger);
+  --color-data: var(--data);
+  --color-hover: var(--hover);
+  --color-press: var(--press);
+  --color-band: var(--band);
+  --color-on-band: var(--on-band);
+  --color-on-band-2: var(--on-band-2);
+  --color-band-rule: var(--band-rule);
+  --color-band-card: var(--band-card);
+  --color-key-number: var(--key-number);
+}
+
+/* OpenUI's kit colours, mapped to the tokens above at :root. Unlayered, so this beats the kit's own defaults (which follow
+   the system's light or dark setting, not ours) and also reaches popovers the kit opens outside a widget. The tokens
+   switch under .dark, so one block serves both modes. genui-theme.tsx holds the same mapping; a test keeps them equal. */
+:root,
+:root.dark {
+  --openui-background: var(--bg);
+  --openui-foreground: var(--field);
+  --openui-popover-background: var(--field);
+  --openui-sunk-light: color-mix(in srgb, var(--ink) 2%, transparent);
+  --openui-sunk: color-mix(in srgb, var(--ink) 4%, transparent);
+  --openui-sunk-deep: color-mix(in srgb, var(--ink) 8%, transparent);
+  --openui-elevated-light: color-mix(in srgb, var(--ink) 4%, transparent);
+  --openui-elevated: color-mix(in srgb, var(--ink) 8%, transparent);
+  --openui-elevated-strong: color-mix(in srgb, var(--ink) 16%, transparent);
+  --openui-elevated-intense: color-mix(in srgb, var(--ink) 32%, transparent);
+  --openui-highlight-subtle: color-mix(in srgb, var(--ink) 2%, transparent);
+  --openui-highlight: color-mix(in srgb, var(--ink) 4%, transparent);
+  --openui-highlight-strong: color-mix(in srgb, var(--ink) 8%, transparent);
+  --openui-highlight-intense: color-mix(in srgb, var(--ink) 30%, transparent);
+  --openui-inverted-background: var(--ink);
+  --openui-chat-user-response-bg: var(--bubble);
+  --openui-chat-user-response-text: var(--ink);
+  --openui-border-interactive-emphasis: color-mix(in srgb, var(--ink) 40%, transparent);
+  --openui-text-accent-secondary: color-mix(in srgb, var(--brand-ink) 70%, transparent);
+  --openui-text-accent-tertiary: color-mix(in srgb, var(--brand-ink) 40%, transparent);
+  --openui-text-neutral-primary: var(--ink);
+  --openui-text-neutral-secondary: var(--muted);
+  --openui-text-neutral-tertiary: var(--muted);
+  --openui-text-neutral-link: var(--brand);
+  --openui-text-brand: var(--brand);
+  --openui-text-accent-primary: var(--brand-ink);
+  --openui-text-info-primary: var(--ink);
+  --openui-text-info-inverted: var(--brand-ink);
+  --openui-text-success-primary: var(--ink);
+  --openui-text-success-inverted: var(--brand-ink);
+  --openui-text-alert-primary: var(--ink);
+  --openui-text-alert-inverted: var(--brand-ink);
+  --openui-text-danger-primary: var(--ink);
+  --openui-text-danger-secondary: var(--coral-ink);
+  --openui-text-danger-tertiary: var(--coral-ink);
+  --openui-interactive-accent-default: var(--brand-main);
+  --openui-interactive-accent-hover: var(--brand-hover);
+  --openui-interactive-accent-pressed: var(--brand-pressed);
+  --openui-interactive-accent-disabled: color-mix(in srgb, var(--brand-main) 40%, transparent);
+  --openui-info-background: transparent;
+  --openui-success-background: transparent;
+  --openui-alert-background: transparent;
+  --openui-danger-background: transparent;
+  --openui-border-default: var(--border);
+  --openui-border-interactive: var(--border);
+  --openui-border-interactive-selected: var(--brand-main);
+  --openui-border-accent: var(--brand-line);
+  --openui-border-accent-emphasis: var(--brand-main);
+  --openui-border-info: var(--line);
+  --openui-border-info-emphasis: var(--line-strong);
+  --openui-border-success: var(--mint);
+  --openui-border-success-emphasis: var(--mint-ink);
+  --openui-border-alert: var(--sun);
+  --openui-border-alert-emphasis: var(--sun-ink);
+  --openui-border-danger: var(--coral);
+  --openui-border-danger-emphasis: var(--coral-ink);
+}
+/* Dark. Screen only: print falls back to Light. Near-black paper and neutral greys (enjoy.dev), no navy; the primary
+   button inverts to a near-white fill with a near-black label; the accent is a lighter blue that reads on near-black.
+   Only the new names are declared here: an old name (--bg, --brand ...) follows its new name from Light. The Widget
+   families keep their values; their tints are 8% alpha, so they sit on whatever surface is under them. */
+@media screen {
+  :root.dark {
+    color-scheme: dark;
+    --paper: #0b0b0b;
+    --wash: #161616;
+    --raised: #1d1d1d;
+    --frame: #0f0f0f;
+    --band-card: var(--frame); /* a card on a Band is the Theme's frame colour (spec F1) */
+    --ink: #f5f5f7;           /* 18:1 on --paper */
+    --ink-2: #d1d1d6;
+    --muted: #98989d;
+    --faint: #6e6e73;
+    --rule: #1f1f1f;
+    --line: #2a2a2a;
+    --line-strong: #6e6e73;
+    --accent: #6aa1ff;
+    --accent-fill: #6aa1ff;
+    --ring: #6aa1ff;
+    --accent-hover: #93bbff;
+    --accent-pressed: #93bbff;
+    --accent-deep: #2a4f99;   /* darker than the fill: frozen, no longer drawn (ADR 0014) */
+    --on-accent: #0b0d12;
+    --accent-tint: #101a2e;
+    --accent-tint-2: #14223d;
+    --accent-line: #2a3f66;
+    --fill: #f5f5f7;          /* the inverting primary: near-white fill, near-black label */
+    --on-fill: #0b0b0b;
+    --fill-hover: #e5e5ea;
+    --fill-active: #d1d1d6;
+    --dim: #2a2a2a;
+    --on-dim: #6e6e73;
+    --success: #5bc68e;
+    --success-tint: #0f2118;
+    --warning: #e9b04f;
+    --warning-tint: #251c0b;
+    --danger: #ff7a6e;
+    --danger-tint: #2a1311;
+    --danger-hover: #ff9a90;
+    --on-danger: #0b0d12;
+    --data: #3a3a3c;
+    --mint: #66cdaa;
+    --mint-ink: #66cdaa;
+    --mint-tint: #66cdaa14;
+    --mint-tag: #1e3b3a;
+    --coral: #f28b7d;
+    --coral-ink: #f28b7d;
+    --coral-tint: #f28b7d14;
+    --coral-tag: #43262f;
+    --coral-fill: #c04332;    /* danger button fill under white text (5.1:1) */
+    --coral-deep: #7e2a20;
+    --sun: #e8be5c;
+    --sun-ink: #e8be5c;
+    --sun-tint: #e8be5c14;
+    --sun-tag: #3f3727;
+    --violet: #b09af2;
+    --violet-ink: #b09af2;
+    --violet-tint: #b09af214;
+    --violet-tag: #33294f;
+    --you: #66cdaa;
+    --you-line: #66cdaa;
+    --you-tint: #66cdaa14;
+    --you-tag: #1e3b3a;
+    --you-tag-ink: #66cdaa;
+    --src: #e8be5c;
+    --src-line: #e8be5c;
+    --src-tint: #e8be5c14;
+    --src-tag: #3f3727;
+    --src-tag-ink: #e8be5c;
+    --shadow: rgb(0 0 0 / 0.5);
+    --shadow-pop: 0 0 0 1px var(--line), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+    --shadow-modal: 0 0 0 1px var(--line), 0 24px 64px -16px rgb(0 0 0 / 0.8);
+  }
+}
+
+/* Base rules: pointer cursor on whatever presses, no grey tap flash, no double-tap zoom delay. */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  [role="button"],
+  summary,
+  label[for],
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    cursor: pointer;
+  }
+  button,
+  [role="button"],
+  summary,
+  a,
+  input,
+  select,
+  label {
+    touch-action: manipulation;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* The Study Workspace owns the window: the page itself never scrolls, so nothing outside the two columns can be dragged
+   or bounced. main[data-route="study"] is on /study and on a past Session. */
+html:has(main[data-route="study"]),
+html:has(main[data-route="study"]) body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text, system-ui), -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Figures in generated widgets stay in tabular numbers like the rest of the app: the kit's `font` shorthand
+   resets them, so a table's column of numbers would not line up. Widgets inherit the body's Inter (ADR 0014). */
+.genui * {
+  font-variant-numeric: tabular-nums;
+}
+.genui :is(strong, b, th) {
+  font-weight: 500;
+}
+/* The one key figure in a Widget is semibold. A later mark in the same Widget is demoted (A3b). Unlayered, so it beats utilities. */
+.genui [data-key-figure] {
+  font-weight: 600;
+}
+.genui [data-key-figure][data-key-figure-extra] {
+  font-weight: 500;
+}
+/* A Widget's one key number (spec 2026-11-12, F2; ADR 0022): the accent, never underlined, and at least 20px. markKeyFigures
+   sets data-key-number on a lead key figure that holds a number, and data-key-number-small when it is drawn below 20px. */
+.genui [data-key-number] {
+  color: var(--key-number);
+  text-decoration: none;
+}
+.genui [data-key-number][data-key-number-small] {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+/* The composer fade (spec §3): a 24px band so text never looks cut off behind the composer. */
+.fade-above {
+  height: 24px;
+  background: linear-gradient(to top, var(--bg), transparent);
+}
+
+/* Pressable: a press moves the control 1px down and in, and takes the pressed colour, within 90ms. It uses :active, not
+   :hover, so a finger on a touch screen gets it too. A control names its pressed colour with --pressed-bg (the primary
+   button sets --brand-pressed); without one the press goes to the quiet --hairline. */
+/* A readable line on a reading page: 34em is 544px at the 16 px chat font. The conversation uses reading-block. */
+@utility measure {
+  max-width: 34em;
+}
+
+/* The reading block (spec 2026-11-11, C1): the one centred column the conversation's lines share, in the thread and
+   under it. 34em (544 px at the 16 px chat), or the chat column less 16 px each side when that is narrower: room for
+   the thread's scrollbar gutters on both edges, so the thread and the composer get the same width and the same centre. */
+@utility reading-block {
+  width: min(34em, 100cqw - 32px);
+  margin-inline: auto;
+}
+
+/* The type scale (ADR 0013): Inter for text, Inter Tight for the three display sizes, weights 400/500/600 only. */
+@utility type-display {
+  font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  font-size: 40px;
+  line-height: 44px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+@utility type-h1 {
+  font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+}
+@utility type-h2 {
+  font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.016em;
+}
+@utility type-h3 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+@utility type-reading {
+  font-size: var(--text-reading);
+  line-height: var(--lh-reading);
+  font-weight: 400;
+}
+@utility type-ui {
+  font-size: var(--text-ui);
+  line-height: var(--lh-ui);
+}
+@utility type-small {
+  font-size: var(--text-small);
+  line-height: var(--lh-small);
+}
+@utility type-eyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+@utility type-button {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+@utility type-button-lg {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+/* Cards that fill the page: as many 340px-or-wider columns as fit. */
+@utility card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--gap);
+}
+
+/* The Study Workspace's columns (spec 2026-11-11, C2a): the conversation takes --chat-share percent of the width the two
+   columns share (the frame less the Split handle's column, which is --gap wide), the Widget panel the rest, and neither
+   goes under 360 px. The server sets --split-saved on the frame from the `split` cookie; it applies from 1024 px up,
+   where the Split handle shows. Below that the default holds. No transition: the columns move with the hand. */
+.workspace-split {
+  --chat-share: 45;
+  display: grid;
+  grid-template-columns: minmax(360px, calc((100% - var(--gap)) * var(--chat-share) / 100)) var(--gap) minmax(360px, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+@media (width >= 1024px) {
+  .workspace-split { --chat-share: var(--split-saved, 45); }
+}
+
+/* The Split handle (C2b): a 1 px rule and a grip. Hover, focus and a drag turn the rule accent. No lift, no shadow. */
+.split-handle {
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+}
+.split-handle [data-split-line] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 0.5px);
+  width: 1px;
+  background: var(--rule);
+  transition: background-color var(--dur-ui) var(--ease-ui);
+}
+.split-handle [data-split-grip] {
+  position: absolute;
+  top: calc(50% - 16px);
+  left: calc(50% - 2px);
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+.split-handle:hover [data-split-line],
+.split-handle:focus-visible [data-split-line],
+html[data-splitting] .split-handle [data-split-line] {
+  left: calc(50% - 1px);
+  width: 2px;
+  background: var(--accent);
+}
+.split-handle:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+html[data-splitting],
+html[data-splitting] * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+@media (forced-colors: active) {
+  .split-handle [data-split-line],
+  .split-handle [data-split-grip] {
+    background: ButtonText;
+  }
+  .split-handle:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+@utility pressable {
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background-color var(--dur-ui) var(--ease-out),
+    border-color var(--dur-ui) var(--ease-out),
+    color var(--dur-ui) var(--ease-out),
+    opacity var(--dur-ui) var(--ease-out);
+  &:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(1px) scale(0.98);
+    background-color: var(--pressed-bg, var(--hairline));
+  }
+}
+
+/* Rising bars: the Value It mark (src/app/rising-bars.tsx). Four solid bars, short to tall, in the accent fill (royal
+   blue in Light, the Dark accent in Dark), with 1px corners: flat and sharp (ADR 0013), no gradient, no pill ends. Each
+   grows from the bottom after the one before (the delays are inline). Full height is the resting state, so with reduced
+   motion (which turns animation off below) the mark simply shows. .bars-on-brand sits on a filled surface and takes its
+   text colour: white on the royal-blue band, the label colour on a filled button (white in Light, near-black in Dark). */
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.bar {
+  display: block;
+  border-radius: 1px;
+  background: var(--accent-fill);
+  transform-origin: bottom;
+  animation: bar-rise 520ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+.bars-on-brand .bar {
+  background: currentColor;
+}
+/* The app header redraws on every page, so its mark stays still instead of rising each time. */
+.bars-still .bar {
+  animation: none;
+}
+@keyframes bar-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* Story parts (wave 3 Widget parts, ticket E2a). Motion is transform and opacity only: feedback 100 to 150 ms, entrances
+   200 to 300 ms, nothing over 400 ms. The reduced-motion rule below turns every animation and transition off. */
+@keyframes story-step { from { opacity: 0; } }
+@utility story-step { animation: story-step 160ms var(--ease-out) both; }
+
+@keyframes jar-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes jar-out {
+  to {
+    opacity: 0;
+  }
+}
+@utility jar-in {
+  animation: jar-in 150ms var(--ease-out) both;
+}
+@utility jar-out {
+  animation: jar-out 150ms var(--ease-out) both;
+}
+/* WhoPaysWhom (ticket E2b): the arrow draws in 300 ms with its Icon riding along it. */
+@keyframes flow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes flow-ride {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@utility flow-draw {
+  animation: flow-draw 300ms var(--ease-out) both;
+}
+@utility flow-ride {
+  animation: flow-ride 300ms var(--ease-out) both;
+}
+/* The LingoCard: two faces on one card that turns over (300 ms). Both faces share one grid cell, so the card is as tall as the taller. */
+.lingo-turn {
+  perspective: 900px;
+}
+.lingo-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 300ms var(--ease-out);
+}
+.lingo-inner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+.lingo-face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.lingo-face-back {
+  transform: rotateY(180deg);
+}
+
+/* A loading block: a hairline with a quiet light sweeping across (a still hairline for reduced motion). */
+@keyframes skeleton-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@utility skeleton {
+  border-radius: 4px;
+  background-color: var(--hairline);
+  background-image: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--bg) 70%, transparent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s linear infinite;
+}
+
+/* A Learner's slider (spec 2026-11-12, B5 and F2): a 16px royal-blue thumb on a track that fills with the accent up to
+   --range-fill. The thumb's hit area is 44px each way, drawn transparent around the dot, so a finger lands on it; the
+   focus ring is drawn as a ring around the dot. Every slider in the product uses it. */
+@utility range-you {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 44px;
+  background-color: transparent;
+  background-image: linear-gradient(to right, var(--accent) var(--range-fill, 0%), var(--hairline) var(--range-fill, 0%));
+  background-size: 100% 4px;
+  background-repeat: no-repeat;
+  background-position: center;
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 4px;
+    background: transparent;
+  }
+  &::-moz-range-track {
+    height: 4px;
+    border-radius: 4px;
+    background: transparent;
+  }
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 44px;
+    height: 44px;
+    margin-top: -20px;
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-fill) 7px, var(--paper) 7.5px, var(--paper) 8.5px, transparent 9px);
+  }
+  &::-moz-range-thumb {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-fill) 7px, var(--paper) 7.5px, var(--paper) 8.5px, transparent 9px);
+  }
+  &:focus-visible {
+    outline: none;
+  }
+  &:focus-visible::-webkit-slider-thumb {
+    background: radial-gradient(circle, var(--accent-fill) 7px, var(--paper) 7.5px, var(--paper) 9px, var(--ring) 9.5px, var(--ring) 11px, transparent 11.5px);
+  }
+  &:focus-visible::-moz-range-thumb {
+    background: radial-gradient(circle, var(--accent-fill) 7px, var(--paper) 7.5px, var(--paper) 9px, var(--ring) 9.5px, var(--ring) 11px, transparent 11.5px);
+  }
+}
+
+/* Thin, quiet scrollbars for the chat and the Widget panel (the thumb shows on hover, not at rest). */
+@utility quiet-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  &:hover {
+    scrollbar-color: var(--border) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx), 16/26 (ADR 0013). Calm and plain: spacing and weight
+   carry the structure. Headings and bold stay ink; only links take the accent, underlined, so colour means "pressable".
+   Tables, rules and code are hairlines on paper, never boxes in boxes. A Widget drawn inside a reply (a saved reply in the
+   Notebook) keeps its own look: every rule below the first two stops at .genui. */
+.md {
+  overflow-wrap: break-word;
+  line-height: var(--lh-chat);
+}
+.md > * + * {
+  margin-top: 12px;
+}
+.md > * + :is(h1, h2, h3, h4) {
+  margin-top: 24px;
+}
+.md > :is(h1, h2, h3, h4) + * {
+  margin-top: 4px;
+}
+.md :is(h1, h2, h3, h4, strong):not(:where(.genui *)) {
+  color: var(--ink);
+  font-weight: 600;
+}
+.md h1:not(:where(.genui *)) {
+  font-size: 18px;
+  line-height: 26px;
+  letter-spacing: -0.01em;
+}
+.md :is(h2, h3, h4):not(:where(.genui *)) {
+  font-size: 16px;
+  line-height: 26px;
+}
+.md ul:not(:where(.genui *)) {
+  list-style: disc;
+  padding-left: 20px;
+}
+.md ol:not(:where(.genui *)) {
+  list-style: decimal;
+  padding-left: 24px;
+}
+.md li:not(:where(.genui *)) + li {
+  margin-top: 4px;
+}
+.md li:not(:where(.genui *))::marker {
+  color: var(--muted);
+}
+/* Links and Citation numbers: the accent, underlined (the audit's kind=link); the underline thickens on hover. */
+.md a:not(:where(.genui *)) {
+  color: var(--accent);
+  text-decoration: underline 1px;
+  text-underline-offset: 3px;
+  transition: color var(--dur-ui) var(--ease-ui);
+}
+.md a:not(:where(.genui *)):hover {
+  text-decoration-thickness: 2px;
+}
+.md a:not(:where(.genui *)):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* A citation marker: a small raised number linking to the Library passage behind the claim. */
+.md sup a.cite:not(:where(.genui *)) {
+  margin-left: 2px;
+  padding: 0 2px;
+  font-size: 12px;
+  font-weight: 500;
+  text-underline-offset: 2px;
+}
+.md blockquote:not(:where(.genui *)) {
+  border-left: 2px solid var(--line);
+  padding-left: 16px;
+  color: var(--ink-2);
+}
+.md code:not(:where(.genui *)) {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--wash);
+  padding: 0 4px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.875em;
+}
+.md pre:not(:where(.genui *)) {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--wash);
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 20px;
+}
+.md pre code:not(:where(.genui *)) {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+/* A reply's folded sources ride in a fence but are not code: no box around them. */
+.md pre:has(.sources-fold) {
+  overflow: visible;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+}
+.md table:not(:where(.genui *)) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.md :is(th, td):not(:where(.genui *)) {
+  border-bottom: 1px solid var(--rule);
+  padding: 8px 16px 8px 0;
+  text-align: left;
+  vertical-align: top;
+}
+.md th:not(:where(.genui *)) {
+  border-bottom-color: var(--line);
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+.md hr:not(:where(.genui *)) {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin-block: 24px;
+}
+
+/* Save to Notebook under a Tutor reply (thread.tsx): always shown under the newest reply, on a touch screen (no hover) and
+   once it is saving, saved or failed. Under an older reply an idle Save fades in while the reply is hovered or holds focus:
+   opacity only, so it stays in the page, in the Tab order and in the accessibility tree. */
+[data-reply-actions] {
+  transition: opacity var(--dur-ui) var(--ease-ui);
+}
+@media (hover: hover) {
+  .reply:not(:hover, :focus-within) [data-reply-actions="on-hover"]:has([data-save-state="idle"]) {
+    opacity: 0;
+  }
+}
+
+/* Printing (the Notebook page): always the light look on white paper, whatever the Learner's mode,
+   with the page margins left to the printer. Controls carry `print:hidden` in their markup. */
+@media print {
+  :root,
+  :root.dark {
+    color-scheme: light !important;
+    --paper: #ffffff;
+    --wash: #ffffff;
+    --raised: #ffffff;
+    --frame: #ffffff;
+    --ink: #000000;
+    --ink-2: #1f2329;
+    --muted: #474c55;
+    --rule: #d0d4da;
+    --line: #a9aeb7;
+    --line-strong: #6b717c;
+  }
+  body {
+    background: #ffffff;
+  }
+  main {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+/* Steps in a generated widget: the step title reads as the step's name, in ink, not the kit's muted grey. */
+.genui .openui-step-title {
+  color: var(--ink);
+}
+
+/* Design primitives (ADR 0013, ADR 0014). src/app/primitives/ picks these classes and sets
+   data-affordance; the look lives here, from tokens only. One set of control rules for the app and for Widgets:
+   a face, a 1px rim and a label, colour steps on hover and press, nothing moves. */
+@layer components {
+  /* ---- Block 1: app controls (ADR 0013). Flat: no lip, no pill, no lift, no drop shadow. ---- */
+  /* .btn (button or link-as-button), .chip and .btn-icon: a face, a 1px rim and a label, all set per tier below */
+  .btn,
+  .chip {
+    --face: var(--paper);
+    --rim: var(--line);
+    --label: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--rim);
+    border-radius: 8px;
+    background-color: var(--face);
+    color: var(--label);
+    font-weight: 500;
+    text-decoration: none;
+    user-select: none;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-ui) var(--ease-out),
+      border-color var(--dur-ui) var(--ease-out),
+      color var(--dur-ui) var(--ease-out),
+      box-shadow var(--dur-ui) var(--ease-out);
+  }
+
+  /* Sizes: md 36, xs 28, sm 32, lg 44; a chip is 28; an icon button is a 32px square ghost. */
+  .btn {
+    min-height: 36px;
+    padding: 0 16px;
+    font-size: var(--text-ui);
+    line-height: 20px;
+  }
+  .btn-xs {
+    min-height: 28px;
+    padding: 0 8px;
+    gap: 6px;
+    font-size: var(--text-small);
+    line-height: 18px;
+  }
+  .btn-sm {
+    min-height: 32px;
+    padding: 0 12px;
+    font-size: var(--text-small);
+    line-height: 18px;
+  }
+  .btn-lg {
+    min-height: 44px;
+    padding: 0 20px;
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .chip {
+    min-height: 28px;
+    padding: 0 12px;
+    font-size: var(--text-small);
+    line-height: 18px;
+  }
+  .btn-icon {
+    --face: transparent;
+    --rim: transparent;
+    --label: var(--ink-2);
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+  }
+  .btn-icon svg,
+  .btn-tertiary svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.75;
+  }
+
+  /* Tiers: secondary (outline), primary (the one fill per pane), tertiary (text only), danger (destructive confirms). */
+  .btn-secondary {
+    --face: var(--paper);
+    --rim: var(--line);
+    --label: var(--ink);
+  }
+  .btn-primary {
+    --face: var(--fill);
+    --rim: var(--fill);
+    --label: var(--on-fill);
+  }
+  .btn-tertiary {
+    --face: transparent;
+    --rim: transparent;
+    --label: var(--muted);
+  }
+  .btn-danger {
+    --face: var(--danger);
+    --rim: var(--danger);
+    --label: var(--on-danger);
+  }
+  /* An outline danger (the Settings Start over entry): a secondary with a danger edge and label, so it does not
+     compete with Save. The confirm step keeps the filled danger. */
+  .btn-danger-outline {
+    --face: transparent;
+    --rim: var(--danger);
+    --label: var(--danger);
+  }
+
+  /* Selected (a toggle that is on, a chip whose item is showing): an accent tint, an accent rim and an inner accent line. */
+  .btn[aria-pressed="true"],
+  .chip[aria-pressed="true"],
+  .chip[data-state="showing"] {
+    --face: var(--accent-tint);
+    --rim: var(--accent);
+    --label: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--rim);
+  }
+  /* A showing chip is a 1px accent edge on the tint, no inner line (the border is already the rim). */
+  .chip[data-state="showing"] {
+    box-shadow: none;
+  }
+  /* An icon that is on: a tint and an accent icon, no rim. */
+  .btn-icon[aria-pressed="true"] {
+    --face: var(--accent-tint);
+    --rim: transparent;
+    --label: var(--accent);
+    box-shadow: none;
+  }
+
+  .btn:not(:disabled),
+  .chip:not(:disabled) {
+    cursor: pointer;
+  }
+  .btn[aria-busy="true"] {
+    cursor: progress;
+  }
+
+  /* Hover: a colour step, never a lift. Press: a deeper step, faster. Nothing moves. */
+  @media (hover: hover) {
+    .btn:hover:not(:disabled):not([aria-disabled="true"]),
+    .chip:hover:not(:disabled):not([aria-disabled="true"]) {
+      background-color: color-mix(in srgb, var(--face) 96%, var(--ink));
+    }
+    .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]):not([aria-pressed="true"]),
+    .chip:not([aria-pressed="true"]):not([data-state="showing"]):hover:not(:disabled) {
+      border-color: var(--ink-2);
+    }
+    .btn-tertiary:hover:not(:disabled):not([aria-disabled="true"]),
+    .btn-icon:not([aria-pressed="true"]):not([aria-current="page"]):hover:not(:disabled):not([aria-disabled="true"]) {
+      color: var(--ink);
+    }
+    .btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+      background-color: var(--fill-hover);
+      border-color: var(--fill-hover);
+    }
+    .btn-danger:hover:not(:disabled):not([aria-disabled="true"]) {
+      background-color: var(--danger-hover);
+      border-color: var(--danger-hover);
+    }
+    .btn-danger-outline:hover:not(:disabled):not([aria-disabled="true"]):not([aria-pressed="true"]) {
+      background-color: var(--danger-tint);
+      border-color: var(--danger);
+    }
+  }
+  .btn:active:not(:disabled):not([aria-disabled="true"]),
+  .chip:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: color-mix(in srgb, var(--face) 92%, var(--ink));
+    transition-duration: var(--dur-press);
+  }
+  .btn-primary:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--fill-active);
+    border-color: var(--fill-active);
+  }
+  .btn-danger:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
+    border-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
+  }
+
+  /* Focus: a 2px ring at a 2px offset, on every control. */
+  .btn:focus-visible,
+  .chip:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Disabled (not busy): see-through, a hairline rim and a faint label; a disabled fill becomes the dim fill. */
+  .btn:disabled:not([aria-busy="true"]),
+  .btn[aria-disabled="true"],
+  .chip:disabled {
+    --face: transparent;
+    --rim: var(--rule);
+    --label: var(--faint);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .btn-tertiary:disabled:not([aria-busy="true"]),
+  .btn-icon:disabled:not([aria-busy="true"]) {
+    --rim: transparent;
+  }
+  .btn-primary:disabled:not([aria-busy="true"]),
+  .btn-primary[aria-disabled="true"],
+  .btn-danger:disabled:not([aria-busy="true"]),
+  .btn-danger[aria-disabled="true"] {
+    --face: var(--dim);
+    --rim: var(--dim);
+    --label: var(--on-dim);
+  }
+
+  /* The button sheet at /dev/widgets#buttons shows each state without a mouse: data-force pins the look. */
+  .btn[data-force="hover"],
+  .chip[data-force="hover"] {
+    background-color: color-mix(in srgb, var(--face) 96%, var(--ink));
+  }
+  .btn-secondary[data-force="hover"],
+  .chip:not([data-state="showing"])[data-force="hover"] {
+    border-color: var(--ink-2);
+  }
+  .btn-tertiary[data-force="hover"],
+  .btn-icon[data-force="hover"] {
+    color: var(--ink);
+  }
+  .btn-primary[data-force="hover"] {
+    background-color: var(--fill-hover);
+    border-color: var(--fill-hover);
+  }
+  .btn-danger[data-force="hover"] {
+    background-color: var(--danger-hover);
+    border-color: var(--danger-hover);
+  }
+  .btn[data-force="pressed"],
+  .chip[data-force="pressed"] {
+    background-color: color-mix(in srgb, var(--face) 92%, var(--ink));
+  }
+  .btn-primary[data-force="pressed"] {
+    background-color: var(--fill-active);
+    border-color: var(--fill-active);
+  }
+  .btn-danger[data-force="pressed"] {
+    background-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
+    border-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
+  }
+  .btn[data-force="focus"],
+  .chip[data-force="focus"] {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Radios and checkboxes outside Widgets: an 18px box with a strong 1px edge (3:1 or better), the accent when checked. */
+  input[type="radio"],
+  input[type="checkbox"] {
+    appearance: none;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    transition:
+      border-color var(--dur-ui) var(--ease-out),
+      background-color var(--dur-ui) var(--ease-out);
+  }
+  input[type="radio"] {
+    border-radius: 50%;
+  }
+  input[type="checkbox"] {
+    border-radius: 4px;
+  }
+  @media (hover: hover) {
+    input[type="radio"]:not(:checked):not(:disabled):hover,
+    input[type="checkbox"]:not(:checked):not(:disabled):hover {
+      border-color: var(--ink-2);
+    }
+  }
+  input[type="radio"]:checked {
+    border-color: var(--accent);
+    background: radial-gradient(circle, var(--accent) 0 38%, var(--paper) 42%);
+  }
+  /* The tick is --on-fill on --fill: white on royal blue in Light, near-black on near-white in Dark. */
+  input[type="checkbox"]:checked {
+    border-color: var(--fill);
+    background: var(--fill)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E")
+      center / 12px no-repeat;
+  }
+  :root.dark input[type="checkbox"]:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%230B0B0B' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
+  }
+  input[type="radio"]:focus-visible,
+  input[type="checkbox"]:focus-visible,
+  input[type="radio"][data-force="focus"] {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  input[type="radio"]:disabled,
+  input[type="checkbox"]:disabled {
+    opacity: 0.5;
+  }
+
+  /* Inline links: the accent, underlined, so they never read as plain words; the underline fills in on hover. */
+  .link {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+    text-underline-offset: 3px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+      color var(--dur-ui) var(--ease-out),
+      text-decoration-color var(--dur-underline) var(--ease-out);
+  }
+  .link:hover,
+  .link[data-force="hover"] {
+    color: var(--accent-hover);
+    text-decoration-color: currentColor;
+  }
+  .link:focus-visible,
+  .link[data-force="focus"] {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* A button that acts like a link (Edit, Delete, Undo, a row title that posts a form): same underline, no button chrome. */
+  .link-button {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: inherit;
+  }
+
+  /* Text fields: a strong 1px edge on paper. .field is one input; .field-shell is a box around a bare field (the composer:
+     a textarea with buttons inside), which takes the focus look when its .field-bare is focused. */
+  .field,
+  .field-shell {
+    border: 1px solid var(--line-strong);
+    background-color: var(--paper);
+    color: var(--ink);
+    transition:
+      border-color var(--dur-ui) var(--ease-out),
+      box-shadow var(--dur-ui) var(--ease-out);
+  }
+  .field {
+    min-height: 36px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: var(--text-ui);
+    line-height: 20px;
+  }
+  .field-shell {
+    border-radius: 10px;
+  }
+  .field-bare {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    outline: none;
+  }
+  .field::placeholder,
+  .field-bare::placeholder {
+    color: var(--muted);
+  }
+  @media (hover: hover) {
+    .field:hover:not(:focus):not(:disabled),
+    .field-shell:hover:not(:has(.field-bare:focus)) {
+      border-color: var(--ink-2);
+    }
+  }
+  .field[data-force="hover"] {
+    border-color: var(--ink-2);
+  }
+  .field:focus,
+  .field[data-force="focus"],
+  .field-shell:has(.field-bare:focus) {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-halo);
+    outline: none;
+  }
+  /* An icon button that is on also gets a 1px accent rim, so its state is not carried by hue alone (WCAG 1.4.11). */
+  .btn-icon[aria-pressed="true"] {
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  /* Menu rows (MenuItem, MenuLink): flat 32px rows on a popover, a wash on hover and focus, the ring inset. */
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--ink);
+    font-size: var(--text-ui);
+    line-height: 20px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--dur-ui) var(--ease-out);
+  }
+  .menu-item:hover,
+  .menu-item:focus-visible,
+  .menu-item[data-force="hover"] {
+    background-color: var(--hover);
+  }
+  .menu-item:active,
+  .menu-item[data-force="pressed"] {
+    background-color: var(--press);
+  }
+  .menu-item:focus-visible,
+  .menu-item[data-force="focus"] {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+  }
+  .menu-item:disabled {
+    background-color: transparent;
+    color: var(--faint);
+    cursor: not-allowed;
+  }
+
+  /* Every floating layer (menus, the Topic options, the Undo toast): raised, 12px corners, the pop shadow. */
+  .popover {
+    border-radius: 12px;
+    background-color: var(--raised);
+    box-shadow: var(--shadow-pop);
+    padding: 4px;
+  }
+
+  /* Static tags: flat, 6px (controls are 8px), no shadow, no pointer, a dot. */
+  .tag {
+    --tag-bg: var(--hairline);
+    --tag-ink: var(--muted);
+    --tag-dot: var(--edge);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    color: var(--tag-ink);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    box-shadow: none;
+    cursor: default;
+  }
+  .tag::before {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tag-dot);
+  }
+  /* A family Tag is a neutral tag with a coloured dot. The face and the words stay the neutral tag's (ADR 0014). */
+  .tag[data-tone="mint"] { --tag-dot: var(--mint); }
+  .tag[data-tone="coral"] { --tag-dot: var(--coral); }
+  .tag[data-tone="sun"] { --tag-dot: var(--sun); }
+  .tag[data-tone="violet"] { --tag-dot: var(--violet); }
+  .tag[data-tone="brand"] {
+    --tag-bg: var(--brand-tint);
+    --tag-ink: var(--brand);
+    --tag-dot: var(--brand-main);
+  }
+  /* Status tones for the app's chrome (passed, due, failed): the status colour on its tint, always with words. */
+  .tag[data-tone="success"] {
+    --tag-bg: var(--success-tint);
+    --tag-ink: var(--success);
+    --tag-dot: var(--success);
+  }
+  .tag[data-tone="warning"] {
+    --tag-bg: var(--warning-tint);
+    --tag-ink: var(--warning);
+    --tag-dot: var(--warning);
+  }
+  .tag[data-tone="danger"] {
+    --tag-bg: var(--danger-tint);
+    --tag-ink: var(--danger);
+    --tag-dot: var(--danger);
+  }
+
+  /* Any other stop outside Widgets (a bare link, a summary, a focusable box) gets the same 2px ring, at no specificity. */
+  :where(a[href], summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Motion and forced colours (Block 1) */
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .chip,
+    .link,
+    .field,
+    .field-shell,
+    .menu-item,
+    input[type="radio"],
+    input[type="checkbox"] {
+      transition: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .btn,
+    .chip,
+    .field,
+    .field-shell {
+      border-color: ButtonText;
+    }
+    .btn[aria-pressed="true"],
+    .chip[aria-pressed="true"],
+    .chip[data-state="showing"],
+    .btn-icon[aria-current="page"] {
+      forced-color-adjust: none;
+      border-color: Highlight;
+      box-shadow: inset 0 0 0 1px Highlight;
+    }
+    .btn:disabled,
+    .chip:disabled {
+      border-color: GrayText;
+      color: GrayText;
+    }
+    /* Forced colours drop the border colour and the halo, so a focused field needs a real outline. */
+    .field:focus,
+    .field-shell:has(.field-bare:focus) {
+      outline: 2px solid Highlight;
+      outline-offset: 1px;
+    }
+    input[type="radio"],
+    input[type="checkbox"] {
+      appearance: auto;
+    }
+  }
+
+}
+
+/* A Widget's "More settings" accordion trigger is a button (the kit's): a flat edge, the same as every other control (ADR 0014). */
+.genui .openui-accordion-trigger {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 6px 12px !important;
+}
+.genui .openui-accordion-trigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Home (src/app/_landing/landing.tsx): the public sales page, in enjoy.dev's editorial rhythm (ADR 0013). A 12-column
+   grid, Inter for text and Inter Tight (--font-display) at 600 for display type, 1px hairlines between sections instead
+   of boxed cards, a steady section rhythm and one royal-blue band. Built from the tokens above, so Light and Dark both
+   work; the band alone is always light, as Enjoy's closing band is. */
+.home {
+  --home-section: 150px;
+  --home-gutter: 20px;
+  --home-header: 56px;
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text, system-ui), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+}
+@media (width < 1100px) {
+  .home { --home-section: 120px; }
+}
+@media (width < 760px) {
+  .home { --home-section: 88px; --home-gutter: 16px; }
+  .home-nav-page { display: none; }
+}
+.home [id] { scroll-margin-top: calc(var(--home-header) + 24px); }
+
+/* Layout */
+.home-wrap { width: min(1240px, 100% - 96px); margin-inline: auto; }
+@media (width < 760px) {
+  .home-wrap { width: calc(100% - 32px); }
+}
+.home-cols { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--home-gutter); }
+.home-section { padding-top: var(--home-section); }
+.home-rule { height: 1px; border: 0; margin: 0; background: var(--rule); }
+
+/* Type: Inter Tight at 600 for display, Inter for text; never heavier than 600 (ADR 0013). */
+.home-display { font-family: var(--font-display, system-ui), system-ui, sans-serif; font-weight: 600; }
+.home-statement {
+  font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  font-size: clamp(32px, 3.4vw, 40px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.home-h2 {
+  font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 38px;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+.home-h3 {
+  font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: -0.014em;
+}
+@media (width < 760px) {
+  .home-h2 { font-size: 28px; line-height: 34px; }
+}
+.home-statement > span,
+.home-h2 > span { display: block; }
+/* Faint is for display sizes only (3.2:1 in Light). */
+.home-faint { color: var(--faint); }
+.home-lede { font-size: 20px; line-height: 1.45; letter-spacing: -0.012em; color: var(--ink-2); text-wrap: pretty; }
+.home-body { font-size: 15px; line-height: 1.55; color: var(--muted); text-wrap: pretty; }
+@media (width < 760px) {
+  .home-lede { font-size: 18px; }
+}
+/* The eyebrow over a heading (Terrastack): small capitals in the key-number blue, one of the blue marks in a reading area
+   (spec 2026-11-12 F2); on a Band it is the Band's secondary white. */
+.home-eyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--key-number);
+}
+
+/* Header: sticky, solid page colour, 56px, a hairline the width of the content column */
+.home-header { position: sticky; top: 0; z-index: 20; background: var(--paper); }
+.home-header-row {
+  height: var(--home-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.home-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+/* A header link: a ghost, as the app header's page links are (no underline, no surface at rest; a wash on hover). */
+.home-nav {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-ui) var(--ease-out),
+    color var(--dur-ui) var(--ease-out);
+}
+@media (hover: hover) {
+  .home-nav:hover { background: var(--wash); color: var(--ink); }
+}
+@media (width < 760px) {
+  .home-nav.home-nav-page { display: none; }
+}
+/* The public page showing (the About page): ink at 600 and a 2px accent bar laid on the header's bottom hairline, as the
+   app header marks its current page (ui.tsx's TAB). The link is 32px, centred in the 56px row over its 1px hairline, so
+   the bar drops by half the leftover height to cover the hairline. Highlight in forced colours. */
+.home-nav[aria-current="page"] { position: relative; color: var(--ink); font-weight: 600; }
+.home-nav[aria-current="page"]::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 12px;
+  bottom: calc((var(--home-header) - 1px - 32px) / -2 - 1px);
+  height: 2px;
+  background: var(--accent);
+}
+@media (forced-colors: active) {
+  .home-nav[aria-current="page"]::after { forced-color-adjust: none; background: Highlight; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-nav { transition: none; }
+}
+
+/* The bars inside a main button take the button's label colour. */
+.home .btn .bar { background: currentColor; }
+
+/* Motion with meaning on Home (spec 2026-11-12 E9, as ADR 0014 allows): the Explorable's match line arrives with a short
+   fade and rise when the visitor finds the rate. Nothing moves for a visitor who asked for reduced motion. */
+@keyframes home-arrive {
+  from { opacity: 0; transform: translateY(4px); }
+}
+.home-arrive { animation: home-arrive 240ms var(--ease-out) both; }
+@media (prefers-reduced-motion: reduce) {
+  .home-arrive { animation: none; }
+}
+
+/* A Band (spec F1): a full-width royal-blue brand surface, the same in both themes and always light (Enjoy's closing
+   band). Put .band on a block that spans the page; the Band tokens are in :root. On it, text is white (8.8:1) and
+   .band-faint is white at 72% (5.4:1); a link is white and underlined; a .btn is white with an ink label, so no pad is
+   needed; a rule is white at 18%; the focus ring is white. A .band-card inside is white in Light and the Theme's frame in
+   Dark, and reads like the page: none of the Band's rules reach into it. Home's closing band is .home-band, the same
+   rules under its first name (its faint line is .home-faint). The button's hover and press faces are Light's accent
+   tints, written out because the Band does not follow the Theme. */
+.band,
+.home-band { background: var(--band); color: var(--on-band); color-scheme: light; }
+.band .band-faint,
+.band .home-faint,
+.home-band .home-faint { color: var(--on-band-2); }
+.band a:not(.btn):not(.band-card):not(.band-card *),
+.home-band a:not(.btn) { color: var(--on-band); text-decoration-line: underline; text-underline-offset: 3px; }
+.band hr:not(.band-card *),
+.home-band hr { border-color: var(--band-rule); }
+.band .home-rule:not(.band-card *),
+.home-band .home-rule { background: var(--band-rule); }
+.band .btn:not(.band-card *),
+.home-band .btn {
+  --face: var(--on-band);
+  --rim: var(--on-band);
+  --label: var(--on-band-button-ink);
+  background-color: var(--on-band);
+  border-color: var(--on-band);
+  color: var(--on-band-button-ink);
+}
+.band .btn:not(.band-card *) .bar,
+.home-band .btn .bar { background: var(--band); }
+@media (hover: hover) {
+  .band .btn:not(.band-card *):hover,
+  .home-band .btn:hover { background-color: #eef2fc; border-color: #eef2fc; }
+}
+.band .btn:not(.band-card *):active,
+.home-band .btn:active { background-color: #e3e9fa; border-color: #e3e9fa; }
+.band :focus-visible:not(.band-card *),
+.home-band :focus-visible { outline-color: var(--on-band); }
+.band-card { background: var(--band-card); color: var(--ink); }
+/* A floating layer that is a card on a Band (the Topic bar's menus and All steps list) keeps the popover's raised face. */
+.band-card.popover { background-color: var(--raised); }
+/* Home's type on a Band (About's opening, F1, E11): the lede is white, running text and the eyebrow the Band's 72% white. */
+.band .home-lede:not(.band-card *) { color: var(--on-band); }
+.band .home-body:not(.band-card *),
+.band .home-eyebrow:not(.band-card *),
+.home-band .home-eyebrow { color: var(--on-band-2); }
+@media screen {
+  :root.dark .band-card { color-scheme: dark; }
+}
+

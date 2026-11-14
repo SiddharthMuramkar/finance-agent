@@ -1,0 +1,143 @@
+import { describe, expect, it } from "vitest";
+import { insightAttempts, learners, misconceptions, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
+import type { Db } from "@/db/types";
+import { presentValueOnly } from "@/test/present-value-map";
+import { testDb } from "@/test/pglite";
+import { addLine, editLine, loadNotes, removeLine } from "./notes";
+
+const map = presentValueOnly({ withConnections: true });
+const topic = map.topic("present-value")!;
+const insight = topic.insight!;
+
+async function pass(db: Db) {
+  await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, step: "principle", status: "passed" });
+}
+async function settle(db: Db, released: "found" | "told", words: string) {
+  await db.insert(insightAttempts).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, reported: released === "found" ? "found" : "asked_to_be_told", released, words, toolCallId: `t-${released}` });
+}
+const note = async (db: Db) => (await loadNotes(db, map, OWNER_LEARNER_ID)).find((n) => n.topicId === topic.id)!;
+
+describe("a Topic Note", () => {
+  it("lists every Topic in course order and fills in nothing before the Topic is passed", async () => {
+    const db = await testDb();
+    await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, step: "concept", status: "in_progress" });
+    await settle(db, "found", "Waiting makes it worth less");
+    const notes = await loadNotes(db, map, OWNER_LEARNER_ID);
+    expect(notes.map((n) => n.topicId)).toEqual(map.topics.map((t) => t.id));
+    expect(notes[0].passed).toBe(false);
+    expect(notes[0].filled).toBeUndefined();
+  });
+
+  it("is filled in by code once the Topic is passed: Formula Cards with example numbers, principle, Connections and mistakes", async () => {
+    const db = await testDb();
+    await pass(db);
+    await db.insert(misconceptions).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
+    const filled = (await note(db)).filled!;
+    expect(filled.formulas.map((f) => f.formulaId)).toEqual(topic.formulas);
+    expect(filled.formulas.length).toBeGreaterThan(0);
+    // Every card carries a number for each of its symbols, so it can be drawn and worked out by code.
+    for (const f of filled.formulas) expect(Object.keys(f.values).length).toBeGreaterThan(0);
+    expect(filled.principle).toBe(topic.principle);
+    expect(filled.connections.map((c) => c.text)).toEqual(topic.connections.map((c) => c.text));
+    expect(filled.connections.length).toBeGreaterThan(0);
+    expect(filled.connections[0].titles.length).toBeGreaterThan(0);
+    expect(filled.mistakes).toEqual(["Added the interest instead of dividing"]);
+  });
+
+  it("shows the Learner's own words for an Insight they found, without the written Insight", async () => {
+    const db = await testDb();
+    await pass(db);
+    await settle(db, "found", "Waiting makes it worth less");
+    const filled = (await note(db)).filled!;
+    expect(filled.insight).toEqual({ ownWords: "Waiting makes it worth less" });
+  });
+
+  it("shows the written Insight beside the Learner's words when the Tutor had to tell it", async () => {
+    const db = await testDb();
+    await pass(db);
+    await settle(db, "told", "Just tell me");
+    const filled = (await note(db)).filled!;
+    expect(filled.insight).toEqual({ ownWords: "Just tell me", written: insight.written });
+  });
+
+  it("is built from the current Topic file on every read", async () => {
+    const db = await testDb();
+    await pass(db);
+    const edited = presentValueOnly({ withConnections: true });
+    edited.topic("present-value")!.principle = "A new principle.";
+    expect((await loadNotes(db, edited, OWNER_LEARNER_ID))[0].filled!.principle).toBe("A new principle.");
+    expect((await note(db)).filled!.principle).toBe(topic.principle);
+  });
+});
+
+describe("the Learner's own lines", () => {
+  it("are added to, edited on and deleted from any Topic, passed or not", async () => {
+    const db = await testDb();
+    const added = await addLine(db, map, topic.id, "  Discount rate is the price of waiting  ", new Date(), OWNER_LEARNER_ID);
+    expect(added.ok && added.line.text).toBe("Discount rate is the price of waiting");
+    if (!added.ok) throw new Error("not added");
+    expect((await note(db)).lines.map((l) => l.text)).toEqual(["Discount rate is the price of waiting"]);
+    expect((await note(db)).filled).toBeUndefined();
+
+    const edited = await editLine(db, added.line.id, "Rate = price of waiting", new Date(), OWNER_LEARNER_ID);
+    expect(edited.ok && edited.line.text).toBe("Rate = price of waiting");
+    expect((await note(db)).lines.map((l) => l.text)).toEqual(["Rate = price of waiting"]);
+
+    expect(await removeLine(db, added.line.id, OWNER_LEARNER_ID)).toBe(true);
+    expect((await note(db)).lines).toEqual([]);
+    expect(await removeLine(db, added.line.id, OWNER_LEARNER_ID)).toBe(false);
+  });
+
+  it("refuse empty or over-long text, an unknown Topic and an unknown line", async () => {
+    const db = await testDb();
+    expect((await addLine(db, map, topic.id, "   ", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    expect((await addLine(db, map, topic.id, "x".repeat(2001), new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    expect((await addLine(db, map, "no-such-topic", "hello", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    expect((await editLine(db, 999, "hello", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    const added = await addLine(db, map, topic.id, "keep", new Date(), OWNER_LEARNER_ID);
+    if (!added.ok) throw new Error("not added");
+    expect((await editLine(db, added.line.id, "", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    expect((await note(db)).lines.map((l) => l.text)).toEqual(["keep"]);
+  });
+});
+
+describe("Topic Notes for two Learners", () => {
+  it("each Learner's note shows only their own pass, Insight, mistakes and lines", async () => {
+    const db = await testDb();
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    const second = row.id;
+    await pass(db);
+    await settle(db, "found", "Waiting makes it worth less");
+    await db.insert(misconceptions).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
+    await addLine(db, map, topic.id, "The owner's line", new Date(), OWNER_LEARNER_ID);
+    await addLine(db, map, topic.id, "The second Learner's line", new Date(), second);
+
+    const owners = (await loadNotes(db, map, OWNER_LEARNER_ID)).find((n) => n.topicId === topic.id)!;
+    expect(owners.passed).toBe(true);
+    expect(owners.filled).toMatchObject({ insight: { ownWords: "Waiting makes it worth less" }, mistakes: ["Added the interest instead of dividing"] });
+    expect(owners.lines.map((l) => l.text)).toEqual(["The owner's line"]);
+
+    const theirs = (await loadNotes(db, map, second)).find((n) => n.topicId === topic.id)!;
+    expect(theirs.passed).toBe(false);
+    expect(theirs.filled).toBeUndefined();
+    expect(theirs.lines.map((l) => l.text)).toEqual(["The second Learner's line"]);
+  });
+
+  it("another Learner's line is no such line: editing or deleting it answers 404 and leaves it alone", async () => {
+    const db = await testDb();
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    const owners = await addLine(db, map, topic.id, "Mine", new Date(), OWNER_LEARNER_ID);
+    if (!owners.ok) throw new Error("not added");
+    expect(await editLine(db, owners.line.id, "Changed", new Date(), row.id)).toMatchObject({ ok: false, status: 404 });
+    expect(await removeLine(db, owners.line.id, row.id)).toBe(false);
+    expect((await note(db)).lines.map((l) => l.text)).toEqual(["Mine"]);
+  });
+});
+
+describe("editing a line that is gone", () => {
+  it("says 404 itself, not by its wording", async () => {
+    const db = await testDb();
+    expect(await editLine(db, 9999, "hello", new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: false, status: 404 });
+    expect(await editLine(db, 9999, "", new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: false, status: 400 });
+  });
+});

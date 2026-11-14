@@ -1,0 +1,11 @@
+root = Widget("Value one yourself", [levers])
+$revenue = 39
+$margin = 10
+$salesToCapital = 3
+$risk = 12.84
+$failure = 0
+$moved = 0
+$mostLever = 0
+$mostBy = 0
+$case = 0
+levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "all_open", cases: [{id: "amazon-dcf-2000", label: "Amazon, Feb 2000"}, {id: "coffee-day-rupee-valuation-2015", label: "Coffee Day, Oct 2015"}, {id: "zomato-ipo-2021", label: "Zomato, Jul 2021"}]}, 0, $case)

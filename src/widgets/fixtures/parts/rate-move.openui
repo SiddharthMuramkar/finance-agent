@@ -1,0 +1,6 @@
+root = Widget("How far did the savings rate move?", [control, move, tasks])
+$new = 5
+control = Slider("control", "New rate", 0, 20, 0.01, $new, "percent")
+move = RateMove(4, $new)
+tasks = GuidedTasks([task1])
+task1 = GuidedTask("Move the new rate to 4% and read the lines again", $new == 4)

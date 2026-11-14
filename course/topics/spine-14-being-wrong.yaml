@@ -1,0 +1,321 @@
+# Spine Topic 14 (spec 2026-11-12, C4 row 14; Appendix D: fol-tesla-2020, jud-ipo-forecast, mkt-behavioural).
+# Case: Damodaran's Tesla valuation of January 2020 and his do-it-yourself post of 6 Feb 2020. Facts from
+# docs/research/verify-tesla-2020.json (every figure re-opened at source) and the Elective fol-tesla-2020; the
+# valuation inputs are the Elective's block, borrowed with valuationFrom. Every figure on a computed question's choices
+# is worked out by code from that block (spec D2); the file names only the lever settings.
+# Stage, place on the Spine and length agree with course/outline.yaml.
+id: spine-14-being-wrong
+title: "How do you live with being wrong?"
+goal: "Give a value as a range, and name the lever that would change your mind"
+why: "Every valuation rests on guesses; seeing the range they give and the lever that matters most tells you what to watch and when to change your mind."
+minutes: 14
+exampleCurrency: USD
+
+cases:
+  - id: tesla-being-wrong-2020
+    title: "Damodaran's Tesla valuation and its critics, January to February 2020"
+    asOf: 2020-02-06
+    valuationFrom: fol-tesla-2020-diy
+    story: >
+      30 January 2020. Aswath Damodaran, a professor in New York, puts Tesla's value at about $427 a share. His story:
+      about $126 billion of sales in 2030, keeping 12% of each sale, a 7% cost of capital and a one-in-ten chance it
+      fails. That morning, with the price at $640, he sells his own shares. He knows four of his guesses could be wrong:
+      how big Tesla gets, what it keeps of each sale, what its growth costs and how risky it is. So he has a computer
+      draw those four 100,000 times from a spread of likely values. Eight times in ten the value lands between about
+      $237 and $673. Within a week the price closes at $887, and by 6 February readers on both sides tell him he is wrong.
+    reveal: >
+      Tesla later split each February 2020 share into 15, so later prices must be counted per February 2020 share to
+      compare with $427. Counted that way, the price closed at a record of about $5,124 in October 2021, when Tesla's
+      market value passed $1 trillion, and it stayed far above his value even after a hard fall in 2022. His own post's
+      stories had run from about $106 to $2,106 a share, so the price sat inside the stories he could name. He did not
+      call the buyers fools: on 13 February he said the price needed Volkswagen-like revenue and Apple-like margins, two
+      levers set far above his own story.
+
+concept: >
+  A value rests on guesses about the future, so it is a range, not one number. Move each lever across what you think is
+  likely and the value moves across a range. Rank the levers by how far they move it: being wrong on the top lever
+  changes the value most, so that is the one to watch, and the news that moves it is the news that should change your
+  mind. When a price sits outside your range, ask which lever the buyers are setting differently, before you call
+  either side wrong. Moving one lever at a time gives a narrower range than his simulation, which moved four guesses
+  together; both say the same thing: a value is a range.
+
+principle: >
+  A value is a range, not a point. Know which lever moves it most, watch that lever, and change your mind when the
+  news about it changes, not when the price does.
+
+youllLearn:
+  - "Give a value as a range from the guesses behind it."
+  - "Rank the levers by how much they move the value."
+  - "Change your mind on news about the story, not on the price alone."
+
+terms:
+  - term: range of values
+    means: "The low and the high a value could be, given the guesses behind it."
+    pro: "My value is a range, not a point, and the margin sets most of its width."
+    example: "His Tesla story gave $427, but eight in ten of his simulated values fell between about $237 and $673."
+    inStory: "In the story, his computer turns one value into a range."
+  - term: simulation
+    means: "Valuing a company many times, each time drawing every guess from a spread of likely values."
+    pro: "We ran 100,000 trials on the four inputs we are least sure of."
+    example: "Rolling two dice a thousand times to see how often each total comes up."
+    inStory: "In the story, Damodaran draws four of his Tesla guesses 100,000 times."
+  - term: percentile
+    means: "Where a value sits in a range: the 90th percentile is higher than nine values in ten."
+    pro: "The price is above the 90th percentile of our values."
+    example: "A child at the 90th percentile for height is taller than nine children in ten."
+    inStory: "In the story, the 90th percentile of his Tesla values is $673."
+  - term: anchoring
+    means: "Holding on to a first number and judging everything after it against that number."
+    pro: "Don't anchor on the price you paid."
+    example: "Someone who bought a share at $500 judges every later price by the $500 they paid."
+    inStory: "In the story, he sold at $640; judging every later price against that $640 would be anchoring."
+
+skills:
+  - id: range-rank
+    rule: "A value built from guesses is a range; rank the levers by how far they move it, and watch the top one."
+  - id: change-mind
+    rule: "Change your value when the news changes a lever, not because the price moved."
+
+insight:
+  question: "Set the levers to what you think is likely for Tesla, then find the lever that would change your value most."
+  written: "His value was one point in a range; Tesla's margin moved the value most, so news about margins was what should change his mind, not the price."
+  foundWhen: "The Learner gives the value as a range (a low and a high, or says it is not one number) and names the margin, or the lever the Widget ranks first, as the one that would change their mind."
+  hints:
+    - "Look at the readout: it gives your range and the levers by effect."
+    - "Which lever, moved across what is likely, swings the value furthest? That is the one whose news matters."
+
+explore:
+  before: wrong-check
+  workbench:
+    recipe: value_levers
+    case: tesla-being-wrong-2020
+    title: "How wrong could Tesla's value be?"
+    inputs:
+      caseStory: "Damodaran's story"
+      # Each band is the 10th to 90th percentile of the spread his own simulation drew for that guess
+      # (docs/research/verify-tesla-2020.json, simulationSetup and leversRankedByEffect). His simulation moved sales to
+      # capital in years 1-5 only; the lever scales all ten years, so its swing here is wider than in his runs.
+      mode:
+        kind: range
+        bands:
+          revenue: [91, 171]
+          margin: [9.23, 15.28]
+          salesToCapital: [2.2, 3.8]
+          risk: [6.36, 7.64]
+
+connections:
+  - text: "Margins are where Tesla's story was argued hardest; the Spine's Topic on margins caps them by what rivals allow."
+    topics: [spine-05-margins]
+  - text: "Damodaran's Tesla post lets readers set each lever from industry data."
+    topics: [fol-tesla-2020]
+  - text: "Judging a first valuation against what happened sorts the errors that mattered from those that did not."
+    topics: [jud-ipo-forecast]
+
+questions:
+  - id: wrong-q-lever
+    kind: which_lever
+    prompt: "From his story, which change moves Tesla's value most?"
+    skill: range-rank
+    explanation: "Each change is a step you could easily be wrong by; the margin step swings his value furthest, so the margin is the guess to watch."
+    computed:
+      case: tesla-being-wrong-2020
+      changes:
+        - { id: margin, label: "What it keeps: margin 12% to 15%", levers: { marginTarget: 15 } }
+        - { id: revenue, label: "How big it gets: revenue in 2030 about $126bn to $150bn", levers: { revenueYear10: 150000 } }
+        - { id: reinvest, label: "What growth costs: a quarter more sales per $1 invested than his story", levers: { salesToCapital: 3.75 } }
+        - { id: risk, label: "How risky: cost of capital 7% to 6.5%", levers: { costOfCapitalGrowing: 6.5 } }
+  - id: wrong-q-least
+    kind: which_lever
+    prompt: "From his story, which change moves Tesla's value least?"
+    skill: range-rank
+    explanation: "A change to a lever low in the ranking costs little if you get it wrong."
+    computed:
+      case: tesla-being-wrong-2020
+      changes:
+        - { id: margin, label: "What it keeps: margin 12% to 10%", levers: { marginTarget: 10 } }
+        - { id: revenue, label: "How big it gets: revenue in 2030 about $126bn to $100bn", levers: { revenueYear10: 100000 } }
+        - { id: risk, label: "How risky: cost of capital 7% to 7.5%", levers: { costOfCapitalGrowing: 7.5 } }
+  - id: wrong-q-predict
+    kind: predict
+    prompt: "If {change}, his value will be:"
+    skill: range-rank
+    computed:
+      case: tesla-being-wrong-2020
+      changes:
+        - { id: vw, label: "his margin ends at 8.3% (Volkswagen's), not 12%", levers: { marginTarget: 8.3 } }
+        - { id: toyota, label: "his margin ends at 8.46% (Toyota's), not 12%", levers: { marginTarget: 8.46 } }
+      bands:
+        - { id: most, label: "Most of it is left", min: 0.75 }
+        - { id: half, label: "About half", min: 0.35, max: 0.75 }
+        - { id: little, label: "Little or nothing", max: 0.35 }
+  - id: wrong-q-price
+    kind: price_assumes
+    prompt: "On 6 February the price is $748.96. Which story gets there?"
+    skill: change-mind
+    explanation: "Of these four, only the higher margin reaches the price. Moved alone, a lever gets there only when set far from his story: a margin above any large carmaker's, or revenue near Volkswagen's."
+    computed:
+      case: tesla-being-wrong-2020
+      changes:
+        - { id: margin, label: "His story with an 18% margin", levers: { marginTarget: 18 } }
+        - { id: revenue, label: "His story with $171bn of revenue in 2030", levers: { revenueYear10: 171000 } }
+        - { id: safe, label: "His story with no chance of failure", levers: { failureChance: 0 } }
+        - { id: cheap, label: "His story with a 6.36% cost of capital", levers: { costOfCapitalGrowing: 6.36 } }
+  - id: wrong-q-direction
+    kind: direction
+    prompt: "Rivals learn to build electric cars as cheaply as Tesla and cut their prices. Which lever moves, and which way?"
+    skill: change-mind
+    choices:
+      - id: margin-down
+        text: "What it keeps, down"
+      - id: size-up
+        text: "How big it gets, up"
+        mistake: { tag: lever_mixup, fix: "Cheaper rivals push prices down, so Tesla keeps less of each sale. If anything it sells fewer cars, not more." }
+      - id: risk-down
+        text: "How risky it is, down"
+        mistake: { tag: lever_mixup, fix: "Rivals catching up makes the story less sure, not safer; and first it squeezes what each sale keeps." }
+    answer: margin-down
+    explanation: "Damodaran warned that if every maker cuts costs together, buyers get cheap cars and no maker keeps sky-high margins."
+    source: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla, 6 Feb 2020: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html"
+  - id: wrong-q-pv
+    kind: price_or_value
+    prompt: "Five days after he sells, Tesla closes at $887.06. A reader writes: 'So his $427 missed.' The $887.06 is:"
+    skill: change-mind
+    choices:
+      - id: price
+        text: "A price, which does not by itself show his value is off"
+      - id: value
+        text: "A value, which proves his was too low"
+        mistake: { tag: price_for_value, fix: "It is what buyers paid that day: a price. A price far from a value says the two stories differ, not which is right." }
+    answer: price
+    explanation: "A price is what buyers pay; it can sit far from a value for years, in either direction."
+    source: "CNBC, 4 Feb 2020: https://www.cnbc.com/2020/02/04/tesla-stock-surging-yet-again-tsla-jumps-past-800-in-early-trading.html"
+  - id: wrong-q-hold
+    kind: cannot_hold
+    prompt: "Which Tesla story contradicts itself?"
+    skill: range-rank
+    choices:
+      - id: no-factories
+        text: "Sales grow twelvefold in ten years and it builds almost no new factories"
+      - id: steady
+        text: "Sales grow fivefold and it builds factories as it goes"
+        mistake: { tag: dull_is_fine, fix: "Growth paid for with new factories holds together. Twelve times the sales with no new factories does not." }
+    answer: no-factories
+    explanation: "Selling many more cars needs factories first; growth that costs nothing is a wish."
+    source: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla, 6 Feb 2020: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html"
+  - id: wrong-q-news
+    kind: direction
+    prompt: "Suppose Tesla's next report shows its margin already above 12% and still rising. Which lever should move in your story, and which way?"
+    skill: change-mind
+    choices:
+      - id: margin-up
+        text: "What it keeps, up"
+      - id: none
+        text: "None: stick with your first number"
+        mistake: { tag: anchoring, fix: "That is anchoring. News about the top lever is exactly what should move your value." }
+      - id: risk-up
+        text: "How risky it is, up"
+        mistake: { tag: lever_mixup, fix: "A higher margin is what it keeps; it does not make the story riskier." }
+    answer: margin-up
+    explanation: "Change your mind when the news moves a lever, most of all the top one."
+    source: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla, 6 Feb 2020: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html"
+
+checks:
+  - id: wrong-check
+    kind: quiz
+    questions: [wrong-q-lever, wrong-q-least, wrong-q-predict, wrong-q-price, wrong-q-direction, wrong-q-pv, wrong-q-hold, wrong-q-news]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: "A value is a range"
+      lines:
+        - "A value rests on guesses about the future, so it is a range, not one number."
+        - "Move each lever across what is likely, and the value moves across a range."
+        - "Rank the levers by how far they move it. The top one is the guess to watch."
+        - "When the price sits outside your range, ask which lever the buyers set differently."
+      writeDown: "A value is a range. Watch the lever that moves it most."
+      skills: [range-rank, change-mind]
+    quickTries:
+      - id: wrong-try-range-half
+        skill: range-rank
+        ask: "His simulation gave one in ten values below $237 and one in ten above $673. Which statement of his value is fairer?"
+        halfDone: "First step, done for you: each guess was drawn from a spread, so the values spread too."
+        kind: choice
+        answer: range
+        choices:
+          - id: range
+            text: "Most likely between about $237 and $673, centred near $400"
+          - id: point
+            text: "Exactly $427"
+            mistake: { tag: false_precision, fix: "$427 is one story. With the guesses spread, the honest answer is a range." }
+      - id: wrong-try-percentile
+        skill: range-rank
+        ask: "On 6 February the price is $748.96, and his 90th percentile is $673. Where does the price sit in his range?"
+        kind: choice
+        answer: above
+        choices:
+          - id: above
+            text: "Above nine of every ten of his values"
+          - id: middle
+            text: "In the middle of his range"
+            mistake: { tag: percentile_mixup, fix: "The 90th percentile is higher than nine values in ten; the price is above even that." }
+      - id: wrong-try-rank-half
+        skill: range-rank
+        ask: "Margin swings his value most. Which guess should he watch most closely?"
+        halfDone: "First step, done for you: the top of the ranking is where being wrong costs most."
+        kind: choice
+        answer: margin
+        choices:
+          - id: margin
+            text: "What Tesla keeps of each sale"
+          - id: risk
+            text: "The cost of capital"
+            mistake: { tag: rank_mixup, fix: "The cost of capital moves his value far less than the margin, so being wrong there costs less." }
+      - id: wrong-try-lever
+        skill: range-rank
+        kind: which_lever
+        ask: "From his story, which change lifts Tesla's value most?"
+        computed:
+          case: tesla-being-wrong-2020
+          changes:
+            - { id: margin, label: "What it keeps: margin 12% to 14%", levers: { marginTarget: 14 } }
+            - { id: reinvest, label: "What growth costs: a sixth more sales per $1 invested than his story", levers: { salesToCapital: 3.5 } }
+            - { id: risk, label: "How risky: cost of capital 7% to 6.75%", levers: { costOfCapitalGrowing: 6.75 } }
+      - id: wrong-try-anchor
+        skill: change-mind
+        ask: "He sold at $640. The price then closes at $887. Which reason to change his value is a good one?"
+        kind: choice
+        answer: news
+        choices:
+          - id: news
+            text: "New figures show Tesla keeping more of each sale"
+          - id: price
+            text: "The price went up after he sold"
+            mistake: { tag: price_not_news, fix: "A price rising is not news about the business. Change the value when a lever's news changes." }
+      - id: wrong-try-news-half
+        skill: change-mind
+        ask: "Rivals' new electric cars sell well and cost less. Which part of his story should he look at again?"
+        halfDone: "First step, done for you: cheaper rivals squeeze what each Tesla sale keeps."
+        kind: choice
+        answer: margin
+        choices:
+          - id: margin
+            text: "What Tesla keeps of each sale"
+          - id: shares
+            text: "How many shares Tesla has"
+            mistake: { tag: lever_mixup, fix: "Rivals cutting prices hits the margin first; the share count did not change." }
+      - id: wrong-try-pv
+        skill: change-mind
+        ask: "Suppose the price later fell back near $427. Would that show his value was right?"
+        kind: choice
+        answer: no
+        choices:
+          - id: no
+            text: "No: a price moving does not prove a value right"
+          - id: yes
+            text: "Yes: the price came back to his value"
+            mistake: { tag: price_as_verdict, fix: "A price moves on buyers' stories. Judge a value by whether its levers held up." }
+  - id: wrong-talk
+    kind: conversation
+    prompt: "Give your own range for Tesla as of February 2020, and name the lever that would make you change it. What news would move that lever?"
+    passCriteria: "Gives the value as a range (a low and a high, or says it is not one number), names one lever as the one that would change their mind with a reason tied to how far it moves the value, and names a kind of news about the business (not the price) that would move it."
+    skills: [range-rank, change-mind]

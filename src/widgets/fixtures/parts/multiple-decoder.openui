@@ -1,0 +1,5 @@
+root = Widget("What does WeWork's $47 billion assume?", [decoder])
+$growth = 60
+$risk = 7.97
+$margin = 12.5
+decoder = MultipleDecoder({name: "WeWork", multiple: 25.8, source: {title: "WeWork (The We Company) Form S-1, 14 Aug 2019, and its $47bn January 2019 round", url: "https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm"}, icon: "office-building", note: "604,000 desks"}, [{name: "IWG", multiple: 1.56, source: {title: "IWG plc annual results 2018 and interim results 2019 (EV/Sales computed, IAS 17)", url: "https://investors.iwgplc.com/~/media/Files/I/IWG-IR/reports-and-presentations/2019/iwg-hy-announcement-2019-final.pdf"}, icon: "cityscape", note: "602,535 desks"}], {taxPercent: 25, salesToCapital: 1.68, growthAfterPercent: 1.6}, {growth: 60, risk: 7.97, margin: 12.5}, $growth, $risk, $margin)

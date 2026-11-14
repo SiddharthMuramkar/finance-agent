@@ -1,0 +1,158 @@
+# Cost of capital and WACC: a foundation Topic taught through Eurotunnel's financing cost.
+# Case sources (checked): New York Times / Bloomberg 17 Jan 2006 (2005 revenue); The Guardian 28 Nov 2006; BBC News 15 Jan 2007.
+id: cf-wacc
+title: Cost of capital and WACC
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "The cost of capital is the return a company's lenders and owners require, which turns its future cash into a value today."
+
+cases:
+  - id: eurotunnel-wacc-2006
+    title: Eurotunnel's financing cost
+    asOf: 2006-09-01
+    story: >
+      Eurotunnel owns and runs the twin rail tunnels under the English Channel, which opened in
+      1994 after a build that cost far more than planned. The company paid for the tunnels mostly
+      with borrowed money. By September 2006 it owed about 6.2 billion pounds and paid about 330
+      million pounds a year in interest. Its revenue in 2005 was 541 million pounds, up from 538
+      million in 2004, as more lorries, coaches and cars used its shuttle trains. The company was
+      negotiating with its creditors to cut its debt and avoid bankruptcy. Every provider of
+      money to a firm expects a return: lenders get interest, which is tax-deductible, and
+      shareholders expect dividends or share-price gains. The weighted average cost of capital
+      (WACC) is the return the firm's assets must earn to satisfy all of them. What does it say
+      about the tunnel that its interest bill is so large next to its revenue? What does that tell you about
+      the return the tunnel's operations would have to earn, and who is bearing the risk?
+    reveal: >
+      Creditors approved a rescue plan in Paris on 27 November 2006 by a single vote, 28 of 53
+      creditors. The plan cut the debt from 6.2 billion to 2.84 billion pounds, which the Paris
+      commercial court backed on 15 January 2007. Shareholders were left with 13% of the new
+      company, and bank lenders received a mixture of cash and a hybrid note of 1.3 billion pounds
+      convertible into 87% of it. The cost of capital had been set by the borrowing, not by the
+      tunnel's earnings: lenders ended up owning most of the equity, because the business could not
+      earn the return that the debt required.
+
+concept: >
+  The weighted average cost of capital is the average return that a firm's capital providers
+  require, weighted by the market value of each source: WACC = (E/V) x Re + (D/V) x Rd x (1 - T),
+  where E is the market value of equity, D of debt, V = D + E, Re the cost of equity, Rd the pre-tax
+  cost of debt and T the tax rate. Debt is cheaper than equity because lenders are paid first and
+  because interest is tax-deductible, which is why the after-tax cost of debt is Rd x (1 - T).
+  The cost of equity can be estimated with the CAPM: Re = risk-free rate + beta x equity risk
+  premium. Use market values for the weights, not book values, because they show what investors
+  actually have at stake. WACC is the right discount rate for a project only if the project has the
+  same risk as the firm's business; a riskier venture needs a higher rate. A firm whose assets
+  earn less than its WACC is destroying value, and a firm borrowing so much that interest takes a
+  large share of revenue leaves little for anyone else: the cost of capital then rises for both
+  lenders and shareholders.
+
+principle: >
+  Every pound of capital has a price. A project or business is worth funding only if it earns
+  more than the average price of the money used, adjusted for its own risk.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Build a firm's average cost of capital from what lenders and shareholders each require."
+  - "See why debt costs less than equity once tax is counted."
+  - "Use a higher rate for a project that is riskier than the firm's usual business."
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: wc-q-calc
+    prompt: >
+      Ananya's firm is funded mostly by shareholders and partly by loans, and loan interest cuts her tax bill. Her banker blends the two costs into one, the WACC. What goes into that blend?
+    choices:
+      - { id: a, text: "Each cost, weighted by its share of funding, debt after tax" }
+      - id: b
+        text: "Weighted costs, with the loan taken before tax"
+        mistake: { tag: pre_tax_debt, fix: "Interest is tax-deductible, so the debt cost enters after tax." }
+      - id: c
+        text: "A plain average of the two, ignoring the weights"
+        mistake: { tag: equal_weights, fix: "The weights matter: the bigger piece of funding pulls the blend toward its cost." }
+      - id: d
+        text: "Just the shareholders' cost, since owners come first"
+        mistake: { tag: equity_only, fix: "WACC blends all funding, debt as well as equity." }
+    answer: a
+    explanation: >
+      WACC blends the costs by the market-value weights, with debt after tax. For a firm 60% equity at 12% and 40% debt at 6% with 25% tax: 0.6 x 12% + 0.4 x 6% x 0.75 = 9.0%. Ignoring the tax shield would give 9.6%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.3 Calculating the Weighted Average Cost of Capital: https://openstax.org/books/principles-finance-2e/pages/17-3-calculating-the-weighted-average-cost-of-capital
+
+  - id: wc-q-capm
+    prompt: >
+      March 2006: Dev is putting his bonus into one of two shares. One is steady; the other swings 1.5 times as much as the market. Why should the jumpy one promise more?
+    choices:
+      - { id: a, text: "More swing means more risk, so investors demand a bigger reward" }
+      - id: b
+        text: "It is sure to earn more, so Dev cannot lose"
+        mistake: { tag: reward_guaranteed, fix: "The bigger return is expected, not promised. A jumpy share can fall hard in a bad year." }
+      - id: c
+        text: "Swings even out over time, so it shouldn't promise more"
+        mistake: { tag: risk_unpaid, fix: "Nobody carries extra risk for free, so the riskier share must offer a bigger expected return." }
+      - id: d
+        text: "Its price per share is lower, and cheap shares grow faster"
+        mistake: { tag: price_not_risk, fix: "A share's price tag does not set its return. How much it swings with the market does." }
+    answer: a
+    explanation: >
+      This is the idea behind the CAPM, the model finance uses for the return shareholders expect. Start from the risk-free rate, what a safe government bond pays. Add the market premium, the extra reward for holding shares at all. Beta, how much a share swings with the market, scales that premium: Dev's jumpy share has a beta of 1.5, so it carries one and a half times the premium.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
+
+  - id: wc-q-tax-shield
+    prompt: >
+      Your family firm borrows from the bank at 8%. Every rupee of interest it pays trims its tax bill. Next to that 8%, where does the loan's real cost sit?
+    choices:
+      - { id: a, text: "Below 8%: the tax saving makes debt cheaper after tax" }
+      - id: b
+        text: "Right at 8%, because tax has nothing to do with interest"
+        mistake: { tag: tax_ignored, fix: "Interest is deductible, so the tax bill falls and the real cost drops below 8%." }
+      - id: c
+        text: "Above 8%, since the firm pays tax on top"
+        mistake: { tag: tax_added, fix: "Tax is not added to interest. Deducting interest saves tax, which lowers the cost." }
+      - id: d
+        text: "At the shareholders' rate, the cost of equity"
+        mistake: { tag: debt_as_equity, fix: "Shareholders' return is the cost of equity. Lenders are paid the cost of debt." }
+    answer: a
+    explanation: >
+      Interest is deductible, so the tax bill falls by a quarter of the interest. With a 25% tax rate, this tax shield leaves the after-tax cost of debt at about 6%, below the 8% the lender charges.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
+
+  - id: wc-q-market-weights
+    prompt: >
+      In July 2025 Omar works out his firm's weighted average cost of capital (WACC), the blended cost of its debt and its shares. His accounts show the shares at the amount raised years ago; on the market today they are worth far more. His mentor says to weight by today's market values. Why?
+    choices:
+      - { id: a, text: "They show what investors have at stake today" }
+      - { id: b, text: "Market values never move", mistake: { tag: market_static, fix: "Market values change all the time; they matter because they show what investors have at stake now." } }
+      - { id: c, text: "The accounts are never audited", mistake: { tag: book_unaudited, fix: "Book values are audited; they are just old amounts, not today's stakes." } }
+      - { id: d, text: "Tax law says so", mistake: { tag: tax_rule, fix: "No tax law sets the weights; market values match the returns investors need today." } }
+    answer: a
+    explanation: >
+      The required returns apply to the money investors have at risk today, which is the market value of their claims, not the historical amount recorded in the accounts.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.3 Calculating the Weighted Average Cost of Capital: https://openstax.org/books/principles-finance-2e/pages/17-3-calculating-the-weighted-average-cost-of-capital
+
+checks:
+  - id: wc-quiz-wacc
+    kind: quiz
+    questions:
+      - wc-q-calc
+      - wc-q-capm
+      - wc-q-tax-shield
+      - wc-q-market-weights
+      - bank:eab:MBA-FIN-CF-0031
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: wc-tunnel-explain
+    kind: conversation
+    prompt: >
+      Eurotunnel's interest bill was about 330 million pounds a year by September 2006, some 61% of
+      its 2005 revenue of 541 million pounds. Explain what the weighted average cost of capital is, why such a heavy debt load
+      makes it hard for a business to earn it, and how cutting the debt would change who bears the
+      risk.
+    passCriteria: >
+      The Learner defines WACC as the weighted average of what lenders and shareholders require
+      (debt after tax, equity by market value) and the return the assets must earn to satisfy
+      them. They say interest of about 61% of its 2005 revenue leaves little to cover operating costs and
+      reward shareholders, so the assets cannot earn the required return, and that cutting debt
+      moves risk to lenders who take equity, or to the remaining shareholders, instead of leaving
+      it as a fixed claim. The prompt gives the 61%, so no figure needs to be worked out.

@@ -1,0 +1,39 @@
+{
+  "id": "T18",
+  "title": "A skip asked for: say how, never that Topics are locked",
+  "source": "Percent Session of 11 November 2026, turns 5 and 6 at Your turn (spec 2026-11-12, Part A Evidence and A6)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1
+  },
+  "message": "I already know percentages. Can I skip this and go straight to the DCF valuation topic? How do I do that?",
+  "pass": [
+    {
+      "kind": "normalReply"
+    },
+    {
+      "kind": "maxWords",
+      "value": 120
+    },
+    {
+      "kind": "noSum"
+    },
+    {
+      "kind": "noPhrase",
+      "phrases": [
+        "A basis point is a smaller ruler",
+        "I can't move you",
+        "I cannot move you",
+        "fastest way on"
+      ]
+    }
+  ],
+  "graderChecks": [
+    "Does it say that the Course Map lists every Topic and that any of them, the one on discounted cash flow included, can be opened from there?",
+    "Does it say that, since the Learner already knows this Topic, they can take its Check now with \"I know this: quiz me\" on the Topic Start card?",
+    "Is it free of any claim that Topics are locked, that passing this Check is the only way on, or that the Tutor cannot help them move?"
+  ],
+  "notes": "Pass when (3 of 3 runs, spec Part A Done when): a normal reply; 120 words or fewer; no sum asked; none of the lock-out lines of 11 November (\"I can't move you to another Topic myself. Passing this Check is the fastest way on.\") or the Concept card's write-down line; and the grader finds the Course Map (every Topic, any can be opened) and \"I know this: quiz me\" on the Topic Start card (A6, A8). \"Course Map\" and \"I know this: quiz me\" are app words the Tutor may use."
+}

@@ -1,0 +1,163 @@
+# Follow Topic: Ed Zitron, "AI Is A Money Trap" (6 Aug 2025), a dated piece taught as a Case.
+# The article is pasted by the Learner (never stored in the Library or the repo); the Tutor works only from what it has seen.
+id: fol-money-trap
+title: "Follow: Zitron, AI Is A Money Trap (Aug 2025)"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Zitron questions run-rate revenue and high revenue multiples, two numbers a valuation story should check before it uses them."
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-money-trap-cursor
+    title: Zitron questions the money behind AI start-ups
+    asOf: 2025-08-06
+    piece:
+      author: Ed Zitron
+      title: AI Is A Money Trap
+      published: 2025-08-06
+      url: https://www.wheresyoured.at/ai-is-a-money-trap/
+      from: paste
+    story: >
+      On 6 August 2025 the technology writer Ed Zitron published "AI Is A Money Trap" on his
+      newsletter. It was written when venture investors were pouring money into artificial
+      intelligence start-ups at rising valuations, and press reports were quoting leaked
+      "annualised" revenue figures for them. Zitron questioned whether those businesses could earn
+      back what had been put in. His main example was Cursor, an AI coding tool made by the
+      start-up Anysphere. He used a figure of about $500 million of annualised revenue, roughly
+      $42 million a month, set against a valuation of about $9.9 billion (the price of its June 2025
+      round, which raised a little over $900 million). He argued that Cursor's biggest supplier was
+      also the model maker it depended on, that it had changed its pricing and usage limits, and
+      that start-ups at these valuations had few ways to be sold or listed. He also gave other
+      examples, among them Perplexity (valued at $18 billion on about $150 million of annualised
+      revenue) and Cognition (reported to be seeking a $10 billion valuation). The Learner pastes
+      the article, a part at a time, and explains each step of its argument.
+    reveal: >
+      Three months later, on 13 November 2025, Cursor announced that it had closed a $2.3 billion
+      funding round at a $29.3 billion post-money valuation, nearly triple its value in June
+      (CNBC; Bloomberg). Accel and Coatue co-led the round, with Thrive Capital, DST Global,
+      Andreessen Horowitz, Nvidia and Google among the investors. The company said it had crossed
+      $1 billion in annualised revenue, about double the figure Zitron used, and had more than 300
+      employees. Its chief executive said it was not looking to go public soon. The Wall Street
+      Journal described it as the company's third round of 2025 and about 12 times its January
+      value. Set against the piece: new investors paid a price almost three times the one Zitron
+      called hard to justify, so the claim that such valuations had no buyers did not hold for this
+      round. What the round did not settle is the economics he questioned. The $1 billion is the
+      company's own annualised figure, the same kind of number he distrusted; none of these reports
+      showed what Cursor paid its model suppliers or whether it made a profit. A funding round shows
+      what investors would pay, not what the business earns.
+
+concept: >
+  An "annualised" or "run-rate" revenue figure takes one recent period (usually a month) and
+  multiplies it up to a year. It says what revenue would be if that period simply repeated, not what
+  was earned, and it flatters a business that is growing fast or has one-off boosts. A valuation
+  is a price investors agreed to pay for a share of the company, often expressed as a multiple of
+  that revenue; a high multiple means the buyers expect the revenue, or the share of it that
+  becomes profit, to grow a great deal. Gross margin is what is left of each sale after the direct
+  cost of delivering it. When the biggest direct cost is bought from a supplier that can raise its
+  prices or compete, revenue growth does not by itself mean profit. Whether a funding round proves
+  the business works is a separate question from whether it proves investors are willing to pay.
+
+principle: >
+  Ask of any big revenue figure how it was measured, over what period, and how much of each dollar
+  is left after the cost of supplying it. Ask of any valuation what has to be true for the
+  buyer to earn a return, and who the next buyer could be. Treat a funding round as evidence of
+  what investors would pay, not as proof that the business earns money.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read an annualised revenue figure for what it does and does not say."
+  - "See why gross margin matters when the biggest cost is bought from a supplier."
+  - "Treat a funding round as evidence of what investors would pay, not of profit."
+
+questions:
+  - id: fmt-q-runrate
+    prompt: >
+      Your cousin's start-up just had its best month ever: $20 million of sales. Next day a news site
+      says it has "$240 million in annualised revenue", twelve times that one month. What does
+      "annualised" mean here?
+    choices:
+      - { id: a, text: "Sales already earned over the past twelve months", mistake: { tag: run_rate_as_earned, fix: "Annualised revenue is a month scaled up, not twelve months already earned." } }
+      - { id: b, text: "One month's pace stretched out to a year" }
+      - { id: c, text: "A forecast that sales grow twelve times", mistake: { tag: run_rate_as_forecast, fix: "Annualising repeats one period for a year; it forecasts no growth at all." } }
+      - { id: d, text: "Sales plus profit for the year", mistake: { tag: profit_mixed_in, fix: "Annualised revenue uses revenue only; profit is not added to it." } }
+    answer: b
+    explanation: >
+      An annualised figure repeats one period for a year. It is not revenue already earned over
+      twelve months, and it quietly assumes the best month comes round again and again.
+    source: The run-rate definition (one period's revenue scaled to a year).
+  - id: fmt-q-lastyear
+    prompt: >
+      Sales at a fast-growing start-up climbed every month, from $10 million in January to $32
+      million in December. Its pitch deck quotes "annualised revenue" from December alone. Which
+      headline gets it right?
+    choices:
+      - { id: a, text: "\"December, stretched to a year, runs well ahead of the real year\"" }
+      - { id: b, text: "\"Annualised revenue is the twelve months added up, so it is exact\"", mistake: { tag: run_rate_as_sum, fix: "Annualising scales one month up; it does not add the twelve real months." } }
+      - { id: c, text: "\"Annualised revenue falls short of the real year\"", mistake: { tag: growth_ignored, fix: "In a growing company the last month is the biggest, so scaling it up overshoots." } }
+      - { id: d, text: "\"Steady growth makes the two match\"", mistake: { tag: steady_means_equal, fix: "Even steady growth leaves the last month above the year's average month." } }
+    answer: a
+    explanation: >
+      The twelve months actually added up to $252 million, but December scaled up gives $384 million.
+      A fast-growing company's annualised figure runs well ahead of its real year.
+    source: Run-rate scaling of a single month, against the year's actual monthly revenue; the figures are hypothetical.
+  - id: fmt-q-multiple
+    prompt: >
+      In a new funding round, a start-up's valuation triples while its annualised revenue only
+      doubles. The valuation grew faster than the revenue. What does that mean for the price
+      investors now pay for each dollar of its revenue?
+    choices:
+      - { id: a, text: "It went up: each dollar of sales now costs more" }
+      - { id: b, text: "It went down: more revenue makes each dollar cheaper", mistake: { tag: only_revenue_watched, fix: "The valuation rose faster than revenue, so each dollar of revenue costs more." } }
+      - { id: c, text: "It is unchanged, because both numbers rose", mistake: { tag: both_rose_same, fix: "Both rose, but at different speeds, so the price per dollar of revenue moved." } }
+      - { id: d, text: "No one can say without the profit", mistake: { tag: profit_needed, fix: "Value against revenue needs no profit figure; it compares only those two numbers." } }
+    answer: a
+    explanation: >
+      When the valuation rises faster than revenue, each dollar of revenue is priced higher. Traders
+      say the revenue multiple went up: investors are paying more for the same sales, betting on
+      growth to come.
+    source: A price-to-revenue multiple (value set against revenue); the start-up is hypothetical.
+  - id: fmt-q-margin
+    prompt: >
+      Your friend resells an AI model as a writing app. Of every $100 a customer pays, $70 goes to the
+      model's maker and $10 to servers. The model's maker can raise its price whenever it likes. What
+      does that mean for your friend?
+    choices:
+      - { id: a, text: "Any price rise comes straight out of a thin slice" }
+      - { id: b, text: "Nothing: sales stay at $100 either way", mistake: { tag: revenue_unchanged, fix: "Revenue stays but costs rise, so what is left for the company shrinks." } }
+      - { id: c, text: "Good news: the app now resells a pricier, better model", mistake: { tag: dearer_is_better, fix: "A dearer input is a bigger cost for the company, not a gain." } }
+      - { id: d, text: "The model's maker pays for the rise", mistake: { tag: supplier_pays, fix: "The supplier sets the price; the company, as buyer, pays it." } }
+    answer: a
+    explanation: >
+      The app keeps only a thin slice of each $100 after paying its supplier and its servers, so a
+      rise in the supplier's price eats straight into its gross margin if it cannot pass the increase
+      on. The supplier's pricing power matters as much as the app's own sales.
+    source: Gross margin, revenue less direct cost; see the course Topic fs-ratios.
+
+checks:
+  - id: fmt-quiz-runrate-margin
+    kind: quiz
+    questions: [fmt-q-runrate, fmt-q-lastyear, fmt-q-multiple, fmt-q-margin]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fmt-follow-argument
+    kind: conversation
+    prompt: >
+      Paste Ed Zitron's "AI Is A Money Trap" (6 August 2025) into the Passage panel, a part at a
+      time if it is long. Then explain, in your own words and in order, each step of his argument:
+      what he asks about where the money goes, why he distrusts leaked annualised revenue, what he
+      says about Cursor's costs and its relationship with its supplier, the choice he says Cursor
+      faces, what he says about ways for such start-ups to exit, and how he extends the point to
+      other companies. Say which of his claims are facts he cites and which are his judgements, and
+      what you would need to see in a later filing or funding round to test each.
+    passCriteria: >
+      The Learner has pasted the article, and explains only the steps they have actually pasted (the
+      Tutor says so about any passage it has not seen). In order, they cover: the questions he raises
+      about where the money is going; why annualised or run-rate revenue is a weak number (a month
+      scaled by twelve, not revenue earned); Cursor's roughly $500 million annualised revenue against
+      a roughly $9.9 billion valuation and its dependence on its main model supplier, with the
+      pricing changes; his statement that Cursor must die or be acquired; his argument that
+      acquirers and listings are unlikely at these valuations and the housing analogy; and the
+      extension to Perplexity, Cognition and the larger labs. They separate figures he cites from
+      his judgements, and name a way each could be tested (gross margin and supplier cost in a
+      filing, who is willing to buy at the price, audited versus annualised revenue). They do not
+      claim to know what happened to Cursor or these valuations after August 2025.

@@ -1,0 +1,167 @@
+# Bond basics and pricing: a foundation Topic taught through the 1994 bond sell-off.
+# Case Data (the Treasury yield history) lives in the database; see docs/architecture.md.
+# Case sources (checked): US Treasury Daily Par Yield Curve Rates 1993-94 (Case Data); Fortune, The Great Bond Massacre (Oct 1994): https://fortune.com/article/the-great-bond-massacre-fortune-1994 ; FRED GS10 monthly averages cross-checked; Federal Reserve, FOMC statement of 4 February 1994: https://www.federalreserve.gov/fomc/19940204default.htm
+id: bond-pricing
+title: Bond basics and pricing
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A bond is the simplest thing to value: fixed payments brought back to today. A company is valued the same way, with payments nobody promised."
+
+cases:
+  - id: bond-selloff-1994
+    title: The 1994 bond sell-off
+    data: [treasury-10y]
+    asOf: 1994-01-31
+    story: >
+      On 31 January 1994 the US Treasury's 10-year par yield was 5.70% a year, and its
+      3-month yield 3.05%. The Federal Reserve's overnight rate had averaged about 3.05%
+      through the month. A 10-year Treasury bond issued that day at its face value would
+      therefore carry a coupon of about 5.7%: for every $1,000 of face value, $57 a year,
+      paid in two halves, and the $1,000 back after ten years. Nobody could say where yields
+      would go next, and a bond's price depends on where they go. Suppose you buy one of these
+      10-year bonds at par today and yields on new 10-year bonds then move by a couple of
+      percentage points, up or down. What happens to the price of the bond you hold in each case?
+    reveal: >
+      On 4 February 1994 the Federal Reserve began tightening. Its statement said the Committee had
+      "decided to increase slightly the degree of pressure on reserve positions"; the federal funds
+      rate moved from about 3.00% to 3.25%, and the Fed kept raising it through the year.
+      Bond yields moved far more than that first step. The US Treasury's 10-year par yield
+      went from 5.81% on 3 February to 5.94% on 4 February, 6.15% by 28 February and 7.49%
+      by 9 May. The 10-year yield, as a monthly average, went from 5.75% in January to 7.96%
+      in November 1994 (the daily peak was 8.05% on 7 November), a rise of 221 basis points.
+      A 5.70% ten-year bond bought at par in January and valued at a 7.96% yield is worth
+      about $846 per $1,000 of face value, a loss of about 15% in price terms, even though
+      the issuer was the US Treasury and every promised payment was still safe. The sell-off
+      became known as the great bond massacre.
+
+concept: >
+  A bond is a loan split into tradable pieces. The issuer promises fixed payments: a
+  coupon (the coupon rate times the face value, usually paid every six months) and the face
+  value at maturity. The bond's price is the present value of those promised payments,
+  discounted at the yield investors demand on similar bonds today (the market yield). Each
+  payment is discounted just as in present value, so the price falls when the market yield
+  rises and rises when it falls. If the coupon rate equals the market yield the bond sells
+  at par (its face value). If the coupon is higher, the bond sells at a premium, and if
+  lower, at a discount. The longer the bond's life, and the lower its coupon, the more its
+  price moves for a given change in yield.
+
+principle: >
+  A bond's coupon is fixed, so only its price can adjust when market yields move. Safe
+  bonds still lose value when rates rise: the risk is the price, not the payments. The
+  longer the wait for the money, the larger that loss.
+
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See a bond's price as the value today of its promised payments."
+  - "Know why bond prices fall when market yields rise."
+  - "See why longer bonds lose more when rates move up."
+
+questions:
+  - id: bp-q-inverse
+    prompt: >
+      31 January 1994. Kavya buys a 10-year US Treasury bond at par with a coupon of about 5.7%. Suppose yields on new 10-year bonds then rise. What happens to the price of her bond?
+    choices:
+      - { id: a, text: "It falls, because new bonds now pay more than hers" }
+      - { id: b, text: "It rises, because higher yields make bonds worth more", mistake: { tag: yield_up_price_up, fix: "Price and yield move opposite ways. Her fixed coupon now looks worse, so buyers pay less." } }
+      - { id: c, text: "It stays put, because her coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, so the price is what adjusts when market yields move." } }
+      - { id: d, text: "It stays put, because the Treasury will surely pay", mistake: { tag: safe_means_stable_price, fix: "Safe payments do not protect the price. The risk here is rates, not default." } }
+    answer: a
+    explanation: >
+      Her bond's fixed payments are now discounted at a higher market yield, so their value today, which is the price, falls. The coupon stays the same; the price drops until a buyer would earn the new market yield.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: bp-q-par
+    prompt: >
+      Ravi holds a $1,000 bond paying 6% a year. Today buyers want exactly 6% from bonds like it. He wants to sell. Which asking price would you pick for him?
+    choices:
+      - { id: a, text: "$1,000: the coupon matches what buyers want" }
+      - { id: b, text: "More than $1,000: the bond pays a coupon on top", mistake: { tag: coupon_as_premium, fix: "Every bond pays a coupon. A premium appears only when the coupon beats what buyers demand." } }
+      - { id: c, text: "Less than $1,000: buyers always want a bargain", mistake: { tag: discount_by_default, fix: "A discount appears only when buyers want more than the coupon pays. Here the two match." } }
+      - { id: d, text: "It depends only on the years left to maturity", mistake: { tag: maturity_alone, fix: "When the coupon matches what buyers demand, the bond sells at face value whatever its maturity." } }
+    answer: a
+    explanation: >
+      When the coupon rate equals the market yield, the present value of the payments equals the face value, so the bond sells at par.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: bp-q-discount
+    prompt: >
+      Dev holds an old bond with a 4% coupon. Suppose similar new bonds now pay 6%. He must sell it next Monday to pay for his sister's wedding. How will buyers price his bond?
+    choices:
+      - { id: a, text: "Below face value, at a discount, since new bonds pay more" }
+      - { id: b, text: "Above face value, at a premium, since it is older", mistake: { tag: age_as_premium, fix: "Age earns no premium. A coupon below what new bonds pay means a discount." } }
+      - { id: c, text: "At face value, since that is what it repays", mistake: { tag: confused_face_with_price, fix: "Face value is what comes back at the end. Today's price follows what new bonds pay." } }
+    answer: a
+    explanation: >
+      A buyer can get 6% on a new bond, so will pay less than face value for one paying only 4%. The price falls until the bond's yield matches the market's. That is a discount.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: bp-q-five-year
+    prompt: >
+      Your bond pays a 6% coupon and has five years left. New bonds like it now pay only 5%. A buyer walks up and asks your price. What do you tell her, and why?
+    choices:
+      - { id: a, text: "Above $1,000: your coupon beats new bonds" }
+      - { id: b, text: "Exactly $1,000: that is what gets repaid", mistake: { tag: confused_face_with_price, fix: "Face value is only what is repaid. A coupon above the market yield pushes the price up." } }
+      - { id: c, text: "Below $1,000: the market yield is lower", mistake: { tag: flipped_yield_effect, fix: "A lower market yield makes the fixed coupon more attractive, so the price rises, not falls." } }
+      - { id: d, text: "Nobody can say until the bond matures", mistake: { tag: price_fixed_at_maturity, fix: "A bond is priced every day. Buyers compare its coupon with what new bonds pay today." } }
+    answer: a
+    explanation: >
+      The coupon is above the market yield, so buyers pay more than face value: a premium. OpenStax's worked example puts the price near $1,044. The longer the bond, the bigger the premium, because the better coupon lasts longer.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk (worked example: 6% coupon, 5-year bond $1,043.76 at 5%): https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
+
+  - id: bp-q-longer
+    prompt: >
+      Anil and Zara each buy a 6% bond at par. Anil's matures in five years, Zara's in 30. Suppose market yields then fall to 5%. Whose bond jumps more in price, and why?
+    choices:
+      - { id: a, text: "Zara's, because her better coupon lasts 30 years" }
+      - { id: b, text: "Anil's, because his money comes back sooner", mistake: { tag: short_moves_more, fix: "Money back sooner leaves less time for the rate change to bite, so the short bond moves less." } }
+      - { id: c, text: "Both the same, because they share one coupon", mistake: { tag: same_coupon_same_move, fix: "Same coupon, different lengths. The longer bond's payments sit further out, so its price moves more." } }
+      - { id: d, text: "Neither, because prices move only when yields rise", mistake: { tag: price_moves_one_way, fix: "Prices move both ways. Falling yields push the prices of existing bonds up." } }
+    answer: a
+    explanation: >
+      The 30-year bond's payments are spread further into the future, so a change in the discount rate compounds over more years. In OpenStax's worked example, at a 5% yield the 30-year bond is worth $1,154.54 against $1,043.76 for the five-year bond.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
+
+  - id: bp-q-1994
+    prompt: >
+      You bought a 10-year bond at par with a 5% coupon, paid half-yearly. Now new 10-year bonds pay 7%. A buyer wants yours. What will she offer?
+    choices:
+      - { id: a, text: "Less than you paid: new bonds pay 7%" }
+      - { id: b, text: "What you paid: the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price is not. It adjusts when market yields move." } }
+      - { id: c, text: "More than you paid: yields are higher", mistake: { tag: yield_up_price_up, fix: "Higher yields push bond prices down, because buyers can get 7% elsewhere." } }
+      - { id: d, text: "What you paid, plus two points a year", mistake: { tag: added_yield_gap, fix: "Yield and price move in opposite directions. The yield gap is not added to the price." } }
+    answer: a
+    explanation: >
+      New bonds pay 7%, so buyers will pay less than face value for your 5% coupon. A rise of two points in the yield costs the holder a sizeable slice of the price.
+    source: >
+      Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+checks:
+  - id: bp-quiz-price-yield
+    kind: quiz
+    questions:
+      - bp-q-inverse
+      - bp-q-par
+      - bp-q-discount
+      - bp-q-five-year
+      - bp-q-longer
+      - bp-q-1994
+      - bank:eab:MBA-FIN-VAL-0035
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: bp-selloff-explain
+    kind: conversation
+    prompt: >
+      Suppose market yields on US Treasury bonds rise sharply, though the government is certain
+      to pay every coupon and the face value. Would the prices of bonds already held change,
+      and why? Why would a 30-year bond be hit harder than a 2-year bond?
+    passCriteria: >
+      The Learner explains that a bond's price is the present value of its fixed payments
+      discounted at the market yield, so when yields rose the same payments were worth less
+      today. They say the safety of the payments does not protect the price, and that a longer
+      bond has more of its payments far in the future, where a higher discount rate takes the
+      larger bite, so its price moves more.

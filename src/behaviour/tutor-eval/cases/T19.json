@@ -1,0 +1,42 @@
+{
+  "id": "T19",
+  "title": "Why am I learning this: one link to valuing a company, from a story",
+  "source": "Percent Session of 11 November 2026, turn 2 at Your turn (spec 2026-11-12, Part A Evidence, A6 and H6)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1
+  },
+  "message": "Why am I learning basis points? How does this connect to valuing a stock?",
+  "pass": [
+    {
+      "kind": "normalReply"
+    },
+    {
+      "kind": "maxWords",
+      "value": 120
+    },
+    {
+      "kind": "noSum"
+    },
+    {
+      "kind": "noPhrase",
+      "phrases": [
+        "starts from a rate",
+        "start from a rate",
+        "starts with a rate",
+        "start with a rate",
+        "begins with a rate",
+        "begins from a rate",
+        "A basis point is a smaller ruler"
+      ]
+    }
+  ],
+  "graderChecks": [
+    "Does it link basis points to valuing a company in one or two sentences, in its own words: through the Topic's \"why it matters\" line when the Topic has one, otherwise through one lever of a valuation story (how big the business gets, what it keeps, what growth costs, or how risky it is, such as the rate used to discount its future cash)?",
+    "Does it avoid saying or implying that a valuation starts from a rate? A valuation starts from a story about the business.",
+    "Does it then return to the step, without a lecture on valuation?"
+  ],
+  "notes": "Pass when (3 of 3 runs): a normal reply; 120 words or fewer; no sum asked; never \"Valuing a company ... starts from a rate\" (what the Learner got on 11 November, which H6 corrects: a valuation starts from a story about the business); and the grader finds one link to valuing a company in the Tutor's own words. A6 gives every Topic file a \"why\" line of 30 words or fewer that the Course Navigator message passes on; until Percent's file has one, the Tutor links the idea to one lever of a valuation story, as its instructions say."
+}

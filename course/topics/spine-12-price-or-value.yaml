@@ -1,0 +1,403 @@
+# Spine Topic 12 (spec 2026-11-12, C4): is a price a value? Multiples and comparables, on WeWork at $47 billion against IWG.
+# Facts: docs/research/verify-wework-2019.json (cases wework-iwg-multiples-2019, wework-leases-2019, wework-private-round-2019),
+# and the Electives this Topic draws on (Appendix D): val-multiples (Case wework-iwg-multiples-2019), fol-twitter-ipo,
+# cf-venture and mkt-ipo-float. Everything before the reveal keeps to what was known on 20 Aug 2019: the decoder opens on
+# a plain story of the Topic's own (sales growing by half, a tenth of each sale kept, a 9% cost of capital), and the Check's
+# computed questions start from another, the Topic's own too (13% kept, a one-in-four chance of failure). Neither is anyone's
+# published valuation. Damodaran's 9 Sep 2019 story and its $26 a share are in the reveal only.
+# What stays his: the engine behind the levers is his block (wework-leases-2019), whose growth path, cost of capital, leases
+# and cash were set on 9 Sep, and whose cash counts $3.5bn of hoped-for IPO money. It is the only sourced valuation of
+# WeWork, so the Topic names no figure from it before the reveal and moves the levers around it instead.
+id: spine-12-price-or-value
+title: "Is a price a value? Multiples and comparables"
+# Stage, place on the Spine, length's outline entry and drawsOn live in course/outline.yaml.
+minutes: 13
+exampleCurrency: USD
+goal: "Read a multiple as a price, and say what growth, margins and risk it would need to hold"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "Multiples are the quickest way people price a company; reading one back as a story about the business tells you whether that price could ever be a value."
+youllLearn:
+  - "Tell a multiple, which is a price, from a value argued from the business."
+  - "Pick a comparable and say where it differs from the company you are pricing."
+  - "Keep what the whole business is worth apart from what its shares are worth."
+
+cases:
+  - id: s12-wework-iwg
+    title: WeWork at $47 billion against IWG
+    asOf: 2019-08-20
+    story: >
+      It is 20 August 2019. WeWork leases office buildings and rents desks in them to members on
+      short contracts. In January SoftBank put $2 billion more into WeWork, most of it at a valuation of $47 billion.
+      On 14 August it filed to sell shares to the public: in 2018 it sold $1.82 billion and lost
+      $1.93 billion, and its revenue was growing 86% a year. The $47 billion is about 26 times its
+      2018 revenue. Today a newspaper sets WeWork beside IWG, the owner of Regus, which is listed in
+      London and makes a small profit. The two have about the same number of desks, yet IWG's
+      shares are worth $4.45 billion, about a tenth as much: about 1.4 times its 2018 revenue. Is
+      $47 billion what WeWork is worth, or a price that needs a story?
+    reveal: >
+      On 9 September 2019 Aswath Damodaran published his own story: sales growing 60% a year for five
+      years, a margin of 12.5% from year 6, a cost of capital near 8%, and a one-in-five chance that
+      WeWork fails. It came to about $26 a share, about $10 billion for the shares before the
+      hoped-for money from the listing, far below $47 billion. The
+      market did not pay the multiple either. By late September reports put the IPO valuation as
+      low as $10 billion. Adam Neumann stepped down as chief executive on 24 September and the IPO
+      was withdrawn on 30 September. On 22 October SoftBank's rescue valued WeWork at about $8
+      billion, a cut of more than 80% from January: still pricier for its sales than IWG, but
+      nowhere near 26 times.
+    # Damodaran's 9 Sep 2019 valuation, written once in fs-leases-debt.yaml (wework-leases-2019): dollars and shares in
+    # millions. Cash counts the $3.5bn of hoped-for IPO money and $218.44m of non-operating assets; debt counts
+    # $22,062.91m of leases. The price is the sheet's placeholder ($30), not a market price: no question reads it.
+    valuationFrom: wework-leases-2019
+
+concept: >
+  A multiple divides a price by a measure of the business, such as its revenue. It is quick: if a
+  rival sells for so many times its sales, the same multiple can be laid on the company you are
+  pricing. But a multiple is still a price, set by what buyers pay, and a comparable is useful only
+  when it really is alike. Behind every multiple sits a view of the future: how fast sales grow,
+  how much of each sale is kept, and how risky that cash is. Two companies with the same sales
+  deserve very different multiples when those views differ. So before you borrow a rival's
+  multiple, or accept a company's own, ask what growth, margins and risk it needs, and whether the
+  business looks like that. Sales are only one measure to divide by. Buyers also use EV/EBITDA, which
+  sets the whole business against its earnings before interest, tax and the wear on its assets, and
+  the PEG ratio, which sets a price-to-earnings multiple against the growth that is expected to
+  justify it. Each one hides the same three beliefs; each one is still a price.
+
+# Go deeper (H1): beyond the Topic's Checks, for a Learner who asks. No Check, Skill or Lingo term tests it.
+goDeeper: >
+  Which measure you divide by changes what the multiple hides. A price-to-earnings multiple rests on
+  profit after interest, so it mixes in how much the company has borrowed; EV/EBITDA sets the whole
+  business against earnings before interest and before the wear on its assets, which makes two
+  companies with different debts easier to set side by side, though it flatters a business whose
+  equipment wears out and must be replaced, as aircraft and office fit-outs do. The PEG ratio goes a step further
+  and divides a price-to-earnings multiple by the growth expected over the next few years, so a
+  higher multiple may be called cheap when the growth is faster. A PEG near one is treated as fair by
+  habit rather than by arithmetic, and it says nothing about risk, so it is a shorthand for a
+  shorthand: useful for a first sort, never for a verdict.
+
+principle: >
+  A multiple is a price in shorthand, not a value. Read it back as the growth, margins and risk it
+  needs, then ask whether the company's own story can deliver them.
+
+terms:
+  - term: multiple
+    means: A price divided by a measure of the business, such as its revenue or its profit.
+    pro: It trades at twenty-six times sales.
+    example: "A café that sells for $2 million and takes $1 million a year sells at two times sales."
+    emoji: label
+    inStory: In the story, WeWork's $47 billion is about 26 times its 2018 revenue.
+  - term: comparable
+    means: A similar company whose price is used to judge another company's price.
+    pro: IWG is the closest listed comparable.
+    example: "To price a corner shop, you look at what similar corner shops nearby sold for."
+    emoji: balance-scale
+    inStory: In the story, IWG has about as many desks as WeWork, and a stock market price.
+  - term: enterprise value
+    means: What the whole business is worth, to its lenders and its shareholders together.
+    pro: On enterprise value to sales, IWG looks far cheaper.
+    example: "A shop whose owners' stake is worth $1 million and which owes the bank $1 million is a $2 million business."
+    emoji: office-building
+    inStory: In the story, IWG's $4.45 billion counts its shares only, not its debt.
+  - term: EV/EBITDA
+    means: What the whole business costs for each dollar of its earnings before interest, tax and the wear on its assets.
+    pro: It trades at ten times EBITDA.
+    example: "A café bought for $2 million whose takings less its running costs are $200,000 a year sells at ten times."
+    emoji: ledger
+    inStory: In the story, IWG makes a small profit, so it has earnings to set the whole business against; WeWork's losses were bigger than its sales, so it is priced against its sales.
+  - term: justified multiple
+    means: The multiple a story about growth, margins and risk can support.
+    pro: The justified multiple sits far below what the market pays.
+    example: "A café that will never grow justifies a lower multiple than one opening a new branch every year."
+    emoji: magnifying-glass-tilted-left
+    inStory: In the explore step, the decoder shows the multiple your story justifies.
+
+skills:
+  - id: s12-price
+    rule: "A multiple is a price: what buyers pay for each dollar of sales or profit, not what the business is worth."
+  - id: s12-story
+    rule: "A high multiple holds only if its story does: fast growth, rich margins or low risk."
+
+primers:
+  - id: s12-primer-ev
+    title: Business value and share value
+    lines:
+      - "Enterprise value is what the whole business is worth, to its lenders and its shareholders together."
+      - "Shareholders own what is left once the lenders are paid, with any spare cash added back."
+      - "Revenue pays lenders and shareholders alike, so set shares against sales only for companies with like debts."
+    term: enterprise value
+    quickTry:
+      id: s12-primer-try
+      skill: s12-price
+      ask: "IWG's shares are worth $4.45 billion, and it owes more than it holds in cash. Is its whole business worth more or less than its shares?"
+      kind: choice
+      answer: more
+      choices:
+        - { id: more, text: "More than its shares" }
+        - id: less
+          text: "Less than its shares"
+          mistake: { tag: debt_shrinks_business, fix: "Debt is a claim on the business, so the whole business is the shares plus what lenders are owed." }
+    elective: val-multiples
+    at: concept
+
+insight:
+  question: "Set the decoder so it justifies WeWork's multiple, then IWG's. What did you have to believe each time?"
+  written: "A multiple hides a view on growth, risk and margins: WeWork's needed years of fast growth and a rich margin from the start, and more still if the margin comes only after years of losses, while IWG's fits a slow-growing business."
+  foundWhen: "The Learner gets near WeWork's multiple and near IWG's, and says the gap comes from what each story assumes about growth and margins (or risk), not from the desks the two companies have."
+  hints:
+    - "Hold the cost of capital still and push growth and margin up together until you reach WeWork."
+    - "Now bring growth down to nine percent a year and nudge the margin up two or three points: that is where IWG sits."
+
+explore:
+  before: s12-check
+  # The decoder takes WeWork's and IWG's multiples and its openings from these inputs; the Case binds the Workbench to
+  # this Topic's Case and is checked, not drawn (multiple_decoder's optional case).
+  workbench:
+    recipe: multiple_decoder
+    case: s12-wework-iwg
+    inputs:
+      subject:
+        name: WeWork
+        multiple: 25.8
+        # Its picture and its one plain figure on the scale: workstations at 30 Jun 2019, from the S-1 (verify file).
+        icon: office-building
+        note: "604,000 desks"
+        source:
+          title: "WeWork's $47bn January 2019 round (CNBC) over its 2018 revenue in the S-1 of 14 Aug 2019, computed"
+          url: https://www.cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html
+      peers:
+        - name: IWG
+          icon: cityscape
+          note: "602,535 desks"
+          multiple: 1.44
+          source:
+            title: "IWG's $4.45bn market value (WSJ via Toronto Star, 20 Aug 2019) over its 2018 revenue at $1.2153 a pound (FRED), computed"
+            url: https://www.thestar.com/business/wework-is-valued-10-times-greater-than-this-profitable-public-rival/article_4f3a25b8-c326-50f6-aefc-6e39d447bee4.html
+      # Held still while the three levers move, from WeWork's own filing-based figures; the opening is a plain story of the
+      # Topic's own (sales growing by half a year, a tenth of each sale kept, a 9% cost of capital), not anyone's valuation.
+      assumptions: { taxPercent: 25, salesToCapital: 1.68, growthAfterPercent: 1.6 }
+      opening: { growth: 50, risk: 9, margin: 10 }
+
+connections:
+  - text: "A multiple folds the four levers of a value into one number, and relative valuation is where that shorthand is taught in full."
+    topics: [spine-01-worth, val-multiples]
+  - text: "A funding round and a first day of trading are prices too, each set by what buyers would pay that week."
+    topics: [cf-venture, mkt-ipo-float]
+  - text: "A company whose shares were priced far above a sober value, and what its multiple assumed, is a story of its own."
+    topics: [fol-twitter-ipo, spine-13-price-assumes]
+
+questions:
+  - id: s12-q-lever
+    kind: which_lever
+    prompt: "Take one story for WeWork: sales grow fast for five years, it keeps 13% of each sale once it is grown up, and there is a one-in-four chance it never gets there. Which one change moves the value of a share most?"
+    skill: s12-story
+    explanation: "A small change in what WeWork keeps of each sale moves the value far more than a change in risk or in the chance of failure."
+    computed:
+      case: s12-wework-iwg
+      # The Topic's own story, not anyone's valuation: 13% kept once grown up, a one-in-four chance of failure.
+      preset: { marginTarget: 13, failureChance: 25 }
+      changes:
+        - { id: margin, label: "It keeps 11% of each sale, not 13%", levers: { marginTarget: 11 } }
+        - { id: risk-nine, label: "Its cost of capital is a point higher, at 9%", levers: { costOfCapitalGrowing: 9 } }
+        - { id: no-failure, label: "It is certain to survive", levers: { failureChance: 0 } }
+        - { id: risk-ten, label: "Its cost of capital is 10%", levers: { costOfCapitalGrowing: 10 } }
+  - id: s12-q-predict
+    kind: predict
+    prompt: "In that story WeWork keeps 13% of each sale once it is grown up, with a one-in-four chance it never gets there. Suppose instead that {change}. The value of a share will be:"
+    skill: s12-story
+    explanation: "WeWork's value rests on the margin it reaches years from now, so a few points either way change it out of all proportion."
+    computed:
+      case: s12-wework-iwg
+      preset: { marginTarget: 13, failureChance: 25 }
+      changes:
+        - { id: margin-11, label: "it ends up keeping 11% of each sale", levers: { marginTarget: 11 } }
+        - { id: margin-12, label: "it ends up keeping 12% of each sale", levers: { marginTarget: 12 } }
+        - { id: fifteen, label: "it ends up keeping 15% of each sale", levers: { marginTarget: 15 } }
+      bands:
+        - { id: none, label: "Nothing left for shareholders", max: 0.1 }
+        - { id: quarter, label: "About a quarter of it", min: 0.15, max: 0.45 }
+        - { id: twothirds, label: "About two thirds of it", min: 0.5, max: 0.85 }
+        - { id: double, label: "Not far off double", min: 1.4, max: 2.2 }
+  - id: s12-q-round
+    kind: price_or_value
+    prompt: "In January 2019 SoftBank put money into WeWork at a $47 billion valuation. Is the $47 billion about a price or a value?"
+    skill: s12-price
+    choices:
+      - { id: price, text: "A price" }
+      - id: value
+        text: "A value"
+        mistake: { tag: price_for_value, fix: "It is what one investor paid for new shares, scaled up to the whole company: a price, whatever the headline calls it." }
+    answer: price
+    explanation: "A funding round sets what a buyer pays for the newest shares. Nobody argued it from WeWork's future cash."
+    source: "CNBC, 8 Jan 2019: https://www.cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html"
+  - id: s12-q-analyst
+    kind: price_or_value
+    prompt: "An analyst works out what WeWork's future cash is worth today. Is her answer about a price or a value?"
+    skill: s12-price
+    choices:
+      - { id: value, text: "A value" }
+      - id: price
+        text: "A price"
+        mistake: { tag: value_for_price, fix: "Nobody paid her figure: she argued it from the business's future cash, so it is a value." }
+    answer: value
+    explanation: "A value comes from a story about the business's future cash; a price is what someone pays."
+    source: "Damodaran, Narrative and Numbers (Columbia Business School Publishing, 2017), on price and value"
+  - id: s12-q-runrate
+    kind: direction
+    prompt: "WeWork's filing says its revenue was running at $3.3 billion a year by 30 June 2019, up 86% in a year. Which lever does that speak to, and which way?"
+    skill: s12-story
+    choices:
+      - { id: size-up, text: "How big it gets, up" }
+      - id: margin-up
+        text: "What it keeps of each sale, up"
+        mistake: { tag: lever_mixup, fix: "Faster sales say how big it gets. WeWork still lost money, so they say nothing yet about what it keeps." }
+      - id: risk-down
+        text: "How risky it is, down"
+        mistake: { tag: lever_mixup, fix: "Growth in sales is size. Risk is how sure the cash is, which fast growth alone does not settle." }
+    answer: size-up
+    explanation: "Sales growing fast is evidence for the size lever: how big WeWork could get."
+    source: "WeWork Form S-1, 14 Aug 2019: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm"
+  - id: s12-q-leases
+    kind: direction
+    prompt: "WeWork owes rent on long leases, while its members can leave on short contracts. Which lever moves, and which way?"
+    skill: s12-story
+    choices:
+      - { id: risk-up, text: "How risky it is, up" }
+      - id: size-up
+        text: "How big it gets, up"
+        mistake: { tag: lever_mixup, fix: "The leases fix WeWork's costs; they do not add sales. The mismatch makes the cash less sure." }
+      - id: margin-up
+        text: "What it keeps of each sale, up"
+        mistake: { tag: lever_mixup, fix: "Fixed rent with members who can leave is a danger to the margin, not a boost: if desks empty, the rent is still due." }
+    answer: risk-up
+    explanation: "Rent is owed for years while income can walk away in months, so the cash is less sure: risk goes up, and a riskier business deserves a lower multiple."
+    source: "WeWork Form S-1, 14 Aug 2019: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm"
+  - id: s12-q-hold
+    kind: cannot_hold
+    prompt: "Which story for WeWork contradicts itself?"
+    skill: s12-story
+    choices:
+      - { id: free-growth, text: "Sales grow sixty percent a year for five years and it opens almost no new buildings" }
+      - id: spends
+        text: "Sales grow fast and it leases and fits out many new buildings first"
+        mistake: { tag: spending_is_contradiction, fix: "Spending ahead of growth is how a desk business grows. Growth with no new buildings is what cannot hold." }
+      - id: iwg-like
+        text: "Sales grow slowly and it keeps a thin margin, like IWG"
+        mistake: { tag: dull_is_fine, fix: "A dull story can still hold together. It just justifies a low multiple." }
+    answer: free-growth
+    explanation: "WeWork sells desks in buildings it leases, so more sales need more buildings first. Growth costs money."
+    source: "WeWork Form S-1, 14 Aug 2019: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm"
+  - id: s12-q-gap
+    kind: direction
+    prompt: "WeWork and IWG have about the same number of desks, yet IWG's shares sell for about a tenth of WeWork's price. For that gap to hold, which levers must WeWork's story set higher than IWG's?"
+    skill: s12-story
+    choices:
+      - { id: growth-margin, text: "How big it gets and what it keeps, both far higher" }
+      - id: risk
+        text: "How risky it is, higher"
+        mistake: { tag: risk_raises_multiple, fix: "More risk means a higher cost of capital, which pulls a multiple down, not up." }
+      - id: desks
+        text: "None: the same desks are worth the same"
+        mistake: { tag: same_size_same_value, fix: "Desks today are the same; the multiple prices what those desks become, which is growth and margin." }
+    answer: growth-margin
+    explanation: "A buyer pays more for each dollar of sales only if that dollar becomes more cash later: faster growth, a richer margin, or both."
+    source: "WSJ (Konrad Putzier) via Toronto Star, 20 Aug 2019: https://www.thestar.com/business/wework-is-valued-10-times-greater-than-this-profitable-public-rival/article_4f3a25b8-c326-50f6-aefc-6e39d447bee4.html"
+
+checks:
+  - id: s12-check
+    kind: quiz
+    questions: [s12-q-lever, s12-q-predict, s12-q-round, s12-q-analyst, s12-q-runrate, s12-q-leases, s12-q-hold, s12-q-gap]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: A multiple is a price in shorthand
+      lines:
+        - "A multiple divides a price by a measure such as revenue."
+        - "WeWork's $47 billion was about 26 times its 2018 revenue."
+        - "Buyers pay a high multiple only for fast growth, rich margins or low risk."
+        - "So read a multiple back as the story it needs."
+      writeDown: "A multiple is a price. Ask what story it needs."
+      skills: [s12-price, s12-story]
+    quickTries:
+      - id: s12-try-forbes-half
+        skill: s12-price
+        ask: "Forbes divides WeWork's $47 billion by its 2018 revenue and gets about 26. Is that multiple a price or a value?"
+        halfDone: "First step, done for you: the $47 billion is what investors paid for new shares, scaled up to the whole company."
+        kind: choice
+        answer: price
+        choices:
+          - { id: price, text: "A price" }
+          - id: value
+            text: "A value"
+            mistake: { tag: price_for_value, fix: "Dividing a price by revenue still gives a price, just in shorthand." }
+      - id: s12-try-iwg-cap
+        skill: s12-price
+        ask: "On 20 August 2019 IWG's shares are worth $4.45 billion on the stock market. Is that a price or a value?"
+        kind: choice
+        answer: price
+        choices:
+          - { id: price, text: "A price" }
+          - id: value
+            text: "A value"
+            mistake: { tag: price_for_value, fix: "It is what buyers pay for IWG's shares today: a price." }
+      - id: s12-try-comparable
+        skill: s12-price
+        ask: "You want to borrow a rival's multiple to price WeWork's desks. Which company is the better comparable?"
+        kind: choice
+        answer: iwg
+        choices:
+          - { id: iwg, text: "IWG, which also rents desks in offices it leases" }
+          - id: software
+            text: "A fast-growing software company"
+            mistake: { tag: growth_not_alike, fix: "A comparable must run a business like WeWork's. Fast growth alone does not make a software firm alike." }
+      - id: s12-try-ebitda
+        skill: s12-price
+        ask: "Two companies that rent out office desks earn the same before interest, tax and the wear on their assets. One has borrowed heavily and the other hardly at all. You want one multiple that holds up across that gap. Which do you reach for?"
+        kind: choice
+        answer: ev
+        choices:
+          - { id: ev, text: "EV/EBITDA, which prices the whole business, lenders included" }
+          - id: pe
+            text: "A price-to-earnings multiple on the shares"
+            mistake: { tag: equity_multiple_hides_debt, fix: "Profit after interest already carries the debt, so two companies that borrow differently are no longer alike." }
+          - id: peg
+            text: "The PEG ratio, because growth settles it"
+            mistake: { tag: peg_hides_debt, fix: "PEG divides a share multiple by growth. It says nothing about who has borrowed what." }
+      - id: s12-try-gap-half
+        skill: s12-story
+        ask: "Buyers pay about 26 times sales for WeWork's shares and about 1.4 times for IWG's. Which belief best explains the gap?"
+        halfDone: "First step, done for you: a buyer pays more for each dollar of sales only if that dollar becomes more cash later."
+        kind: choice
+        answer: grow-keep
+        choices:
+          - { id: grow-keep, text: "WeWork will grow much faster and keep more of each sale" }
+          - id: riskier
+            text: "WeWork is the riskier of the two"
+            mistake: { tag: risk_raises_multiple, fix: "More risk pulls a multiple down. The gap needs faster growth or a richer margin." }
+          - id: desks
+            text: "WeWork has far more desks"
+            mistake: { tag: same_size_same_value, fix: "The two have about the same number of desks." }
+      - id: s12-try-least
+        skill: s12-story
+        kind: which_lever
+        ask: "Take the same story for WeWork, with its one-in-four chance of never getting there. Which one change moves the value of a share least?"
+        computed:
+          case: s12-wework-iwg
+          preset: { marginTarget: 13, failureChance: 25 }
+          changes:
+            - { id: risk-nine, label: "Its cost of capital is a point higher, at 9%", levers: { costOfCapitalGrowing: 9 } }
+            - { id: margin, label: "It keeps 12% of each sale, not 13%", levers: { marginTarget: 12 } }
+            - { id: no-failure, label: "It is certain to survive", levers: { failureChance: 0 } }
+      - id: s12-try-story
+        skill: s12-story
+        ask: "Which story could justify a multiple as high as WeWork's?"
+        kind: choice
+        answer: fast-rich
+        choices:
+          - { id: fast-rich, text: "Fast growth for years and, in time, a margin above IWG's" }
+          - id: slow-thin
+            text: "Slow growth and a thin margin"
+            mistake: { tag: dull_story_high_multiple, fix: "A slow, thin story justifies a low multiple, like IWG's." }
+  - id: s12-talk
+    kind: conversation
+    prompt: "WeWork was priced at about 26 times its 2018 revenue and IWG's shares at about 1.4 times. In two or three sentences, say what WeWork's multiple assumes about growth, margins and risk, and what you would want to see before you believed it."
+    passCriteria: "Treats the multiple as a price, not a value; names at least two of growth, margin and risk as what the multiple assumes; says what evidence about WeWork would have to hold, such as fast growth turning into profit; uses IWG as a comparable with a reason it differs."
+    skills: [s12-story]

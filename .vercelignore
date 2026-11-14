@@ -1,0 +1,4 @@
+# Keep local secrets out of CLI deploys: production reads its settings from Vercel's environment variables.
+.env
+.env.*
+!.env.example

@@ -1,0 +1,1 @@
+ALTER TABLE "reply_checks" ADD COLUMN "reply_kind" text;

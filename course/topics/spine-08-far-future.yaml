@@ -1,0 +1,314 @@
+# Spine Topic 8 (spec 2026-11-12, C2, C4): what about the years you cannot forecast? Taught through Damodaran's February
+# 2000 valuation of Amazon.com, the course's running company, with the Terminal seesaw (B4) at explore.
+# The Case's valuation block is written once, in val-dcf (amazon-dcf-2000), and borrowed here with valuationFrom; every
+# figure the Widget and the computed questions show is worked out from it by the valuation engine (B1, D2).
+# Case sources (checked): Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, valuation done February
+# 2000); Amazon.com Form 10-K405 for 2000 (quarterly share price highs and lows).
+id: spine-08-far-future
+title: "What about the years you cannot forecast?"
+goal: "Say how much of a value rests on the years after the forecast, and which two settings it hangs on"
+# Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
+why: "A young company's value mostly sits in years nobody can forecast, so knowing what those years rest on tells you which assumptions to argue about."
+minutes: 12
+exampleCurrency: USD
+
+cases:
+  - id: spine-08-amazon-2000
+    title: "Damodaran values Amazon.com"
+    data: [amazon-share-price-feb-2000, amazon-quarterly-high-2000, amazon-quarterly-low-2000]
+    # The datasets are imported once, under val-dcf's Case; this Case reads them under its own as-of date (no import of its own).
+    dataFrom: amazon-dcf-2000
+    # 3 February 2000: about $84 was that day's close, after the fourth-quarter results (as Spine Topic 1).
+    asOf: 2000-02-03
+    story: >
+      February 2000. Amazon.com is an online retailer, and its shares cost $84. Aswath Damodaran, a
+      professor at New York University, forecasts the cash it will have left each year, after paying
+      to run and to grow the business, for ten years. In his story Amazon spends heavily to grow, so
+      it loses cash in each of the first six years, close to $1 billion at worst, and only turns
+      cash-positive in year 7, reaching about $1.8 billion in year 10. While it grows, investors want
+      12.84% a year, easing to 9.61% by year 10 as Amazon matures. Nobody can forecast year 11, year
+      30 or year 60 one by one. So for everything after year 10 he sets a few things once, and two
+      matter most: Amazon grows 6% a year for ever, and investors still want 9.61% a year. How much
+      of his value comes from the years he cannot forecast?
+    reveal: >
+      Damodaran's published terminal value, for everything after year 10, was $52,148 million at
+      year 10. Brought back to today and added to the ten years of cash, it gave the whole business a
+      value of $15,170 million, and $35.08 a share once its debts and other claims were taken off,
+      against the $84 price. (The Widget re-works his figures from his rounded rates, so it shows
+      about $35; the gap is rounding.) The
+      first ten years were worth less than nothing today, because six of them lost cash: more than
+      the whole value came from the years after year 10. The price fell through 2000: by the fourth
+      quarter the shares had been as low as $14.88. A value that rests on the far future rests on a few settings, above all two,
+      that nobody can check for decades.
+    valuationFrom: amazon-dcf-2000
+
+concept: >
+  A forecast covers a few years, usually ten, but a business can run for decades. Terminal value
+  packs every year after the forecast into one lump at year 10: next year's cash flow divided by the
+  gap between the cost of capital and growth for ever. That lump is then discounted back to today
+  like any other cash flow. Two settings drive it: growth after year 10, which cannot beat the
+  economy for ever, and the cost of capital after year 10, usually lower than in the risky growth
+  years. The closer growth comes to the cost of capital, the bigger the lump. The cost of capital
+  in the growth years only changes how far the lump and the early cash are discounted back, so a point on it moves the
+  value far less than a point on either far-future setting. For a young company
+  that loses cash in its early years, the forecast years can be worth less than nothing today, so
+  the terminal value can hold more than all of the value. That is not a mistake in the model; it is
+  where the story says the cash will come from. It means the far-future settings deserve the
+  hardest questions. One oddity: when the far future shrinks, the share of value after the forecast
+  can rise, because the losing early years weigh more against a smaller whole; read the money, not
+  the percentage.
+
+principle: >
+  For a young company most of the value sits after the forecast. Before you trust a value, ask how
+  much of it the terminal value holds, and whether growth for ever and the far-future cost of
+  capital are set where a mature company could really sit.
+
+youllLearn:
+  - "See how much of a value sits in the years after the forecast."
+  - "Name the two settings the far future rests on, and how each moves the value."
+  - "Spot a far-future story that cannot hold."
+
+terms:
+  - term: terminal value
+    means: Every year after the forecast, packed into one lump at the end of it.
+    pro: The terminal value at year 10 was $52,148 million.
+    example: "A shop you plan in detail for ten years, then sum up as one lump for all the years after."
+    emoji: hourglass-done
+    inStory: In the story, it is everything after year 10, set above all by two settings.
+  - term: stable growth
+    means: The growth a mature company keeps up for ever; it cannot beat the whole economy for ever.
+    pro: Growth after year 10 is 6% a year in perpetuity.
+    example: "A grown tree still adds a little wood each year, but it no longer doubles."
+    emoji: deciduous-tree
+    inStory: In the story, Amazon grows 6% a year for ever after year 10.
+  - term: forecast period
+    means: The years forecast one by one, before the terminal value takes over.
+    pro: A ten-year explicit forecast period.
+    example: "Planning a trip day by day for the first week, then guessing the rest."
+    emoji: spiral-calendar
+    inStory: In the story, Damodaran forecasts ten years one by one.
+  - term: cost of capital
+    means: The return investors need each year, given the risk, used to turn future cash into today's.
+    pro: The cost of capital falls to 9.61% in the stable phase.
+    example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
+    emoji: balance-scale
+    inStory: In the story, investors want 9.61% a year from Amazon after year 10.
+
+skills:
+  - id: far-weight
+    rule: "For a young company, most of the value, sometimes more than all of it, sits after the forecast years."
+  - id: far-settings
+    rule: "The value after the forecast rests on growth for ever and the cost of capital then; the closer the two, the bigger it is, and each moves the value far more than the rate in the growth years."
+
+insight:
+  question: "On the seesaw, how much of Amazon's value sits after the tenth year? Then move the two far-future settings and watch the value a share and the side for after the tenth year."
+  written: "More than all of Amazon's value sat after the tenth year: the first ten years were worth less than nothing today, and everything rested on two far-future settings nobody can check."
+  foundWhen: "The Learner says the years after the tenth year hold more than the whole value (the first ten years are worth less than nothing today), and that small moves in growth or the cost of capital after the tenth year move the value a lot."
+  hints:
+    - "Look at the left side of the seesaw. Are the first ten years worth something or less than nothing today?"
+    - "Now lower growth after the tenth year a point, then put it back and raise the cost of capital after the tenth year. Watch the value a share and the money on each side, not the headline share: it can climb as the value falls, because the losing early years weigh more against a smaller whole."
+
+explore:
+  before: far-check
+  workbench:
+    recipe: terminal_seesaw
+    case: spine-08-amazon-2000
+    title: "How much of Amazon's value sits after year 10?"
+    inputs: {}
+
+connections:
+  - text: "The DCF Topic sets out the terminal value and discounts it with the other cash flows."
+    topics: [val-dcf]
+  - text: "The cost of capital after the tenth year is the rate the risk Topic builds, for a company grown up and safer."
+    topics: [spine-07-risk]
+  - text: "Building a valuation yourself means choosing growth for ever and checking it against the economy."
+    topics: [ana-build-valuation]
+
+questions:
+  - id: far-q-lever
+    kind: which_lever
+    prompt: "From his story, which single change moves the value a share most?"
+    skill: far-settings
+    explanation: "Growth for ever and the rate after the forecast change the size of the lump itself, through the gap between them; the rate in the growth years only changes how far the lump and the early cash are discounted."
+    computed:
+      case: spine-08-amazon-2000
+      changes:
+        - { id: cost-after, label: "Cost of capital after year 10, 9.61% to 10.5%", levers: { costOfCapitalAfter: 10.5 } }
+        - { id: growth-after, label: "Growth after year 10, 6% to 5.5%", levers: { growthAfter: 5.5 } }
+        - { id: cost-growing, label: "Cost of capital in years 1 to 10, starting at 13.84% instead of 12.84%", levers: { costOfCapitalGrowing: 13.84 } }
+      shown: 3
+
+  - id: far-q-least
+    kind: which_lever
+    prompt: "From his story, which single change moves the value a share least?"
+    skill: far-settings
+    explanation: "The rate in the growth years only changes how far the lump and the early cash are discounted. Growth for ever and the rate after the forecast change the size of the lump itself."
+    computed:
+      case: spine-08-amazon-2000
+      changes:
+        - { id: cost-growing, label: "Cost of capital in years 1 to 10, starting at 11.84% instead of 12.84%", levers: { costOfCapitalGrowing: 11.84 } }
+        - { id: cost-after, label: "Cost of capital after year 10, 9.61% to 8.5%", levers: { costOfCapitalAfter: 8.5 } }
+        - { id: growth-after, label: "Growth after year 10, 6% to 7%", levers: { growthAfter: 7 } }
+      shown: 3
+
+  - id: far-q-predict
+    kind: predict
+    prompt: "If {change} instead of 6%, the value a share will be:"
+    skill: far-settings
+    explanation: "Growth for ever is one of the two settings the terminal value rests on, and here the terminal value holds the whole value."
+    computed:
+      case: spine-08-amazon-2000
+      changes:
+        - { id: three, label: "growth after year 10 is 3%", levers: { growthAfter: 3 } }
+        - { id: zero, label: "growth after year 10 is 0%", levers: { growthAfter: 0 } }
+      bands:
+        - { id: same, label: "About the same", min: 0.9 }
+        - { id: most, label: "About two thirds to nine tenths", min: 0.6, max: 0.9 }
+        - { id: half, label: "About half", min: 0.4, max: 0.6 }
+        - { id: third, label: "A third or less", max: 0.4 }
+
+  - id: far-q-direction
+    kind: direction
+    prompt: "In year 12, rivals copy Amazon's warehouses, so from then on it can only grow more slowly than the 6% a year he assumed for ever. Which far-future setting moves, and which way?"
+    skill: far-settings
+    choices:
+      - { id: growth-down, text: "Growth after year 10, down" }
+      - id: rate-down
+        text: "Cost of capital after year 10, down"
+        mistake: { tag: lever_mixup, fix: "Rivals catching up slow the growth. The cost of capital is about risk, a different setting." }
+      - id: none
+        text: "Neither: year 12 is too far away to matter"
+        mistake: { tag: far_years_ignored, fix: "Year 12 sits inside the terminal value, and here that holds the whole value." }
+    answer: growth-down
+    explanation: "Slower growth for ever shrinks the terminal value, which is where Amazon's value sits."
+    source: "Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, February 2000): stable growth after year 10 at 6%."
+
+  - id: far-q-hold
+    kind: cannot_hold
+    prompt: "Which story about Amazon after year 10 contradicts itself?"
+    skill: far-settings
+    choices:
+      - { id: faster, text: "It grows faster than its cost of capital, every year, for ever" }
+      - id: slow
+        text: "It grows a little slower than the whole economy, for ever"
+        mistake: { tag: dull_is_fine, fix: "Slow growth for ever is a modest story, and it holds together." }
+      - id: steady
+        text: "It grows with the economy and keeps investing to do so"
+        mistake: { tag: steady_is_fine, fix: "Growth paid for by investment is how a mature company grows. It holds." }
+    answer: faster
+    explanation: "No company can outgrow its cost of capital for ever: the lump would be infinite, and it would end up bigger than the economy."
+    source: "The val-dcf Topic: g is a stable growth rate that cannot exceed the long-run growth of the economy, and growth at or above the cost of capital gives no finite value."
+
+  - id: far-q-pricevalue
+    kind: price_or_value
+    prompt: "Damodaran's terminal value for Amazon was $52,148 million at year 10. Is that a price or a value?"
+    skill: far-weight
+    choices:
+      - { id: value, text: "A value" }
+      - id: price
+        text: "A price"
+        mistake: { tag: value_for_price, fix: "Nobody paid $52,148 million for anything: he argued it from two settings, so it is a value." }
+    answer: value
+    explanation: "It is his estimate of the far future, argued from growth for ever and the cost of capital then."
+    source: "Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, February 2000)."
+
+  - id: far-q-weight
+    kind: direction
+    prompt: "A second analyst forecasts Amazon for fifteen years instead of ten, with the same story. What happens to the share of value in the terminal value?"
+    skill: far-weight
+    choices:
+      - { id: smaller, text: "It gets smaller: five more years are forecast one by one" }
+      - id: bigger
+        text: "It gets bigger: the lump starts later"
+        mistake: { tag: longer_is_bigger, fix: "Forecasting more years moves their cash out of the lump, so the lump holds less." }
+      - id: same
+        text: "It stays the same: the story did not change"
+        mistake: { tag: split_is_fixed, fix: "The value may stay put, but more of it now sits in the forecast years." }
+    answer: smaller
+    explanation: "The same cash is split differently: years 11 to 15 move from the lump into the forecast."
+    source: "Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, February 2000): a ten-year forecast, then a terminal value."
+
+checks:
+  - id: far-check
+    kind: quiz
+    questions: [far-q-lever, far-q-least, far-q-predict, far-q-direction, far-q-hold, far-q-pricevalue, far-q-weight]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: "The years you cannot forecast"
+      lines:
+        - "A forecast runs ten years, but the business runs on."
+        - "Terminal value packs every year after year 10 into one lump, then brings it back to today."
+        - "It rests on two settings: growth for ever, and the cost of capital then."
+        - "The closer growth comes to the cost of capital, the bigger the lump."
+      writeDown: "Ask how much of the value sits after year 10, and what it rests on."
+      skills: [far-weight, far-settings]
+    quickTries:
+      - id: far-try-weight-half
+        skill: far-weight
+        ask: "In his story Amazon loses cash in years 1 to 6. Where must most of its value come from?"
+        halfDone: "First step, done for you: six years of losses pull the value of the forecast years down."
+        kind: choice
+        answer: after
+        choices:
+          - { id: after, text: "The years after year 10" }
+          - id: early
+            text: "Years 1 to 6"
+            mistake: { tag: losses_as_value, fix: "Years of losing cash take value away. The value must come from later years." }
+      - id: far-try-weight-2
+        skill: far-weight
+        ask: "The seesaw says the years after year 10 hold more than all of the value. What does that say about years 1 to 10?"
+        kind: choice
+        answer: negative
+        choices:
+          - { id: negative, text: "Together they are worth less than nothing today" }
+          - id: error
+            text: "The model has made a mistake"
+            mistake: { tag: over_whole_is_error, fix: "It is no mistake: early losses make the forecast years worth less than nothing." }
+      - id: far-try-weight-3
+        skill: far-weight
+        ask: "Which company leans harder on the years after its forecast?"
+        kind: choice
+        answer: young
+        choices:
+          - { id: young, text: "A young company that loses cash while it grows" }
+          - id: utility
+            text: "A mature water company with steady cash every year"
+            mistake: { tag: mature_as_young, fix: "Steady cash every year puts plenty of value inside the forecast years." }
+      - id: far-try-settings-half
+        skill: far-settings
+        ask: "Growth after year 10 creeps from 6% up toward the 9.61% cost of capital. What happens to the terminal value?"
+        halfDone: "First step, done for you: the gap between the cost of capital and growth gets narrower."
+        kind: choice
+        answer: balloons
+        choices:
+          - { id: balloons, text: "It balloons" }
+          - id: shrinks
+            text: "It shrinks"
+            mistake: { tag: gap_backwards, fix: "A narrower gap means dividing by a smaller number, so the lump grows." }
+      - id: far-try-settings-2
+        skill: far-settings
+        ask: "Two analysts both have Amazon growing 3% a year for ever after year 10. One says investors want 9% then, the other 12%. Whose terminal value is bigger?"
+        kind: choice
+        answer: low-rate
+        choices:
+          - { id: low-rate, text: "The 9% one" }
+          - id: high-rate
+            text: "The 12% one"
+            mistake: { tag: rate_backwards, fix: "A higher rate widens the gap over growth, so the lump is smaller." }
+      - id: far-try-settings-computed
+        skill: far-settings
+        kind: which_lever
+        ask: "From his story, which single change lifts the value a share most?"
+        computed:
+          case: spine-08-amazon-2000
+          changes:
+            - { id: cost-after, label: "Cost of capital after year 10, 9.61% to 8.5%", levers: { costOfCapitalAfter: 8.5 } }
+            - { id: growth-after, label: "Growth after year 10, 6% to 6.5%", levers: { growthAfter: 6.5 } }
+            - { id: cost-growing, label: "Cost of capital in years 1 to 10, starting at 11.84% instead of 12.84%", levers: { costOfCapitalGrowing: 11.84 } }
+
+  - id: far-talk
+    kind: conversation
+    prompt: "In two or three sentences, say where Amazon's value sits, in the forecast years or after them, and which of the two far-future settings you trust least, and why."
+    passCriteria: "Says the years after year 10 hold most or more than all of the value (the early years lose cash); names growth for ever or the cost of capital after year 10 as the setting they trust least, with a reason tied to the story (rivals, the size of the economy, how risky a mature Amazon would be)."
+    skills: [far-weight, far-settings]

@@ -1,0 +1,2 @@
+root = Widget("Asha's savings jar", [jar])
+jar = MoneyJar("Asha's savings", 3, 6, "coin", "each coin is ₹1 lakh", "about twice as full")

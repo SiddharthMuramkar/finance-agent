@@ -1,0 +1,207 @@
+import { describe, expect, it } from "vitest";
+import { oldPercentOnly } from "@/test/old-percent-map";
+import { testDb } from "@/test/pglite";
+import { scriptedClient } from "@/test/scripted-client";
+import { Budget } from "./budget";
+import { seen } from "./grading";
+import { CASES_DIR, loadCases, type EvalCase } from "./case";
+import type { EvalReport } from "./report";
+import type { SuiteDeps } from "./run-suite";
+import { chooseSetting, DEFAULT_PAIRS, parsePairs, renderSweep, runSweep, summarisePair, sweepFiles } from "./sweep";
+
+const map = oldPercentOnly(); // Percent before its conversion (a fixture), with its old Widget
+const all = loadCases(CASES_DIR).cases;
+const pick = (...ids: string[]) => ids.map((id) => all.find((c) => c.id === id)!) as EvalCase[];
+
+const T1_REPLY =
+  "Sure. This one shows a rate moving from 2% to 3%. The three numbers under the line each answer a different question.\nWhich of the three numbers is the move in basis points?";
+const yesTo = (n: number) => JSON.stringify({ answers: Array.from({ length: n }, (_, i) => ({ n: i + 1, answer: "yes", why: "ok" })) });
+
+/** Suite dependencies on a scripted model; `reply` says what the Tutor writes for this pair. */
+function suiteDeps(pair: { model: string; effort: string }, budget: Budget, reply: string, graderCost: number): SuiteDeps {
+  return {
+    map,
+    settings: { model: pair.model, effort: pair.effort, widgetEngine: "off" },
+    graderModel: "gpt-6.1-sol",
+    fingerprint: "test",
+    budget,
+    newDb: testDb,
+    tutorClient: () =>
+      scriptedClient([
+        { content: [{ type: "tool_use", id: `toolu_${Math.random().toString(36).slice(2)}`, name: "open_widget", input: { id: "rate-change-three-ways" } }] },
+        { content: [{ type: "text", text: reply }] },
+      ]).client,
+    grade: async (_s, prompt) => ({ text: yesTo((prompt.match(/^\d+\. /gm) ?? []).length), costUsd: graderCost }),
+    courseCheck: async () => ({ passed: true, output: "" }),
+    concurrency: 1,
+  };
+}
+
+describe("parsePairs", () => {
+  it("reads model:effort pairs, trimming spaces and dropping repeats", () => {
+    expect(parsePairs(" gpt-6.1-sol:high, gpt-6.1-sol:low ,gpt-6.1-sol:high")).toEqual([
+      { model: "gpt-6.1-sol", effort: "high" },
+      { model: "gpt-6.1-sol", effort: "low" },
+    ]);
+  });
+  it("defaults to the model at three efforts", () => {
+    expect(parsePairs(undefined).map((p) => `${p.model}:${p.effort}`)).toEqual(DEFAULT_PAIRS.split(","));
+    expect(parsePairs("  ").length).toBe(3);
+  });
+  it("refuses a pair with no effort, an unknown effort or a model with no price", () => {
+    expect(() => parsePairs("gpt-6.1-sol")).toThrow(/model:effort/);
+    expect(() => parsePairs("gpt-6.1-sol:huge")).toThrow(/effort/);
+    expect(() => parsePairs("gpt-nope-1:low")).toThrow(/no price/);
+  });
+});
+
+describe("a sweep", () => {
+  it("runs the suite once per pair on its own budget and reports a pass rate and a cost per pair", async () => {
+    const seen: string[] = [];
+    const report = await runSweep(pick("T1"), parsePairs("gpt-6.1-sol:high,gpt-6.1-sol:low"), {
+      capUsd: 5,
+      suiteDeps: (pair, budget) => {
+        seen.push(`${pair.model}:${pair.effort}`);
+        return suiteDeps(pair, budget, T1_REPLY, pair.effort === "low" ? 0.02 : 0.08);
+      },
+    });
+    expect(seen).toEqual(["gpt-6.1-sol:high", "gpt-6.1-sol:low"]);
+    const [high, low] = report.pairs.map(summarisePair);
+    expect(high).toMatchObject({ runsPassed: 3, runsTotal: 3, passed: true, turns: 3 });
+    expect(high.spentUsd).toBeCloseTo(0.24);
+    expect(high.costPerTurn).toBeCloseTo(0.08);
+    expect(low.costPerTurn).toBeCloseTo(0.02);
+    // The cheapest pair that passes everything is the choice.
+    expect(chooseSetting(report.pairs.map(summarisePair))?.effort).toBe("low");
+    const text = renderSweep(report);
+    expect(text).toMatch(/gpt-6.1-sol.*low.*3 of 3/);
+    expect(text).toMatch(/Chosen setting: gpt-6.1-sol, effort low/);
+  });
+
+  it("stops a pair at its own cap and does not let it win, and says so", async () => {
+    const report = await runSweep(pick("T1"), parsePairs("gpt-6.1-sol:high,gpt-6.1-sol:low"), {
+      capUsd: 0.5,
+      suiteDeps: (pair, budget) => suiteDeps(pair, budget, T1_REPLY, pair.effort === "high" ? 0.3 : 0.01),
+    });
+    const [high, low] = report.pairs.map(summarisePair);
+    expect(high.passed).toBe(false);
+    expect(high.budgetStop).toMatch(/cap/);
+    expect(high.spentUsd).toBeLessThanOrEqual(0.5);
+    expect(low.passed).toBe(true);
+    expect(renderSweep(report)).toMatch(/Stopped: spent/);
+  });
+
+  it("names no setting when nothing passes everything, and puts every failure in full", async () => {
+    const report = await runSweep(pick("T1"), parsePairs("gpt-6.1-sol:low"), {
+      capUsd: 5,
+      suiteDeps: (pair, budget) => suiteDeps(pair, budget, "## Heading\nBad reply with no ask.", 0.01),
+    });
+    const [s] = report.pairs.map(summarisePair);
+    expect(s.passed).toBe(false);
+    expect(s.runsPassed).toBe(0);
+    expect(chooseSetting([s])).toBeNull();
+    const text = renderSweep(report);
+    expect(text).toMatch(/No setting passed everything/);
+    expect(text).toMatch(/### T1, run 1/);
+  });
+
+  it("keeps going when one pair throws, and records why", async () => {
+    const report = await runSweep(pick("T1"), parsePairs("gpt-6.1-sol:high,gpt-6.1-sol:low"), {
+      capUsd: 5,
+      suiteDeps: (pair, budget) => {
+        if (pair.effort === "high") throw new Error("no key");
+        return suiteDeps(pair, budget, T1_REPLY, 0.01);
+      },
+    });
+    const [a, b] = report.pairs.map(summarisePair);
+    expect(a).toMatchObject({ passed: false, error: "no key" });
+    expect(b.passed).toBe(true);
+  });
+
+  it("does not pass a pair while a case is pending, and says cases are still pending instead of choosing", () => {
+    const base: EvalReport = {
+      startedAt: "2026-11-04T10:00:00.000Z",
+      finishedAt: "2026-11-04T10:05:00.000Z",
+      tutor: { model: "gpt-6.1-sol", effort: "low", widgetEngine: "off" },
+      graderModel: "gpt-6.1-sol",
+      fingerprint: "x",
+      capUsd: 5,
+      spentUsd: 0.3,
+      budgetStop: null,
+      cases: [
+        { id: "T1", title: "a", kind: "live", status: "pass", runs: [1, 2, 3].map((run) => ({ run, status: "pass" as const, reasons: [], costUsd: 0.1 })) },
+        { id: "T3", title: "b", kind: "live", status: "pending", pending: "later", runs: [] },
+      ],
+    };
+    const s = summarisePair({ pair: { model: "gpt-6.1-sol", effort: "low" }, report: base });
+    expect(s).toMatchObject({ passed: false, runsPassed: 3, runsTotal: 3, pending: ["T3"] });
+    expect(chooseSetting([s])).toBeNull();
+    const text = renderSweep({ startedAt: base.startedAt, finishedAt: base.finishedAt, capUsd: 5, pairs: [{ pair: { model: "gpt-6.1-sol", effort: "low" }, report: base }] });
+    expect(text).toMatch(/Cases are still pending/);
+    expect(text).not.toMatch(/Chosen setting/);
+  });
+
+  // Round 10 (F2-sweep): the sweep loads the T13 dialogue (one run of 20 turns) but counted three runs for every case and
+  // turns only from live cases, so runsTotal was 2 too high and the cost per turn left out the dialogue's 20 turns.
+  it("counts a dialogue's one run and every one of its turns", () => {
+    const reply = seen({ text: "x", widgets: [] });
+    const report: EvalReport = {
+      startedAt: "2026-11-06T10:00:00.000Z",
+      finishedAt: "2026-11-06T10:05:00.000Z",
+      tutor: { model: "gpt-6.1-sol", effort: "medium", widgetEngine: "on" },
+      graderModel: "gpt-6.1-sol",
+      fingerprint: "x",
+      capUsd: 8,
+      spentUsd: 0.46,
+      budgetStop: null,
+      cases: [
+        { id: "T15", title: "a", kind: "live", status: "pass", runs: [1, 2, 3].map((run) => ({ run, status: "pass" as const, reasons: [], costUsd: 0.02 })), bar: { runs: 3, passes: 2 } },
+        {
+          id: "T13",
+          title: "b",
+          kind: "dialogue",
+          status: "pass",
+          runs: [{ run: 1, status: "pass", reasons: [], costUsd: 0.4, transcript: Array.from({ length: 20 }, (_, i) => ({ learner: `m${i}`, reply })) }],
+          bar: { runs: 1, passes: 1 },
+        },
+      ],
+    };
+    const s = summarisePair({ pair: { model: "gpt-6.1-sol", effort: "medium" }, report });
+    expect(s).toMatchObject({ runsPassed: 4, runsTotal: 4, casesPassed: 2, casesTotal: 2, turns: 23, passed: true });
+    expect(s.costPerTurn).toBeCloseTo(0.46 / 23);
+  });
+
+  // Premerge T-1 (round 13): a dialogue the cap cut short is skipped now, but the turns it ran were real Tutor turns and
+  // were paid for, so they still count in the cost per turn.
+  it("counts the turns a dialogue ran before the cap stopped it, though the run is skipped", () => {
+    const reply = seen({ text: "x", widgets: [] });
+    const report: EvalReport = {
+      startedAt: "2026-11-06T10:00:00.000Z",
+      finishedAt: "2026-11-06T10:05:00.000Z",
+      tutor: { model: "gpt-6.1-sol", effort: "medium", widgetEngine: "on" },
+      graderModel: "gpt-6.1-sol",
+      fingerprint: "x",
+      capUsd: 8,
+      spentUsd: 0.34,
+      budgetStop: "Stopped: spent $0.34, and the next run (about $0.02) would pass the $0.35 cap.",
+      cases: [
+        {
+          id: "T13",
+          title: "b",
+          kind: "dialogue",
+          status: "skipped",
+          runs: [{ run: 1, status: "skipped", reasons: ["Not run past turn 17: Stopped"], costUsd: 0.34, transcript: Array.from({ length: 17 }, (_, i) => ({ learner: `m${i}`, reply })) }],
+          bar: { runs: 1, passes: 1 },
+        },
+      ],
+    };
+    const s = summarisePair({ pair: { model: "gpt-6.1-sol", effort: "medium" }, report });
+    expect(s).toMatchObject({ runsPassed: 0, runsTotal: 1, turns: 17, passed: false });
+    expect(s.costPerTurn).toBeCloseTo(0.34 / 17);
+  });
+
+  it("writes a dated report and a latest copy, in Markdown and JSON", async () => {
+    const report = await runSweep(pick("T1"), parsePairs("gpt-6.1-sol:low"), { capUsd: 5, suiteDeps: (p, b) => suiteDeps(p, b, T1_REPLY, 0.01) });
+    expect(Object.keys(sweepFiles(report)).sort()).toEqual(["sweep-latest.json", "sweep-latest.md", expect.stringMatching(/^sweep-.*\.json$/), expect.stringMatching(/^sweep-.*\.md$/)].sort());
+  });
+});
