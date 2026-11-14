@@ -1,0 +1,309 @@
+Library search baseline, raw output (#24)
+Run on 2026-11-14 against Neon branch rag-baseline-2026-11-14 (a fresh child of main), read only.
+Question set: scripts/library/eval/questions.json, 78 questions from #20/#21 plus 12 Signal Case questions (#24) = 90; 5 scoped; 9 hindsight probes.
+Commands (the second env file sets DATABASE_URL and DATABASE_URL_UNPOOLED to the branch; it overrides .env):
+  node --env-file=.env --env-file=<branch env file> scripts/library-score.mjs
+  node --env-file=.env --env-file=<branch env file> scripts/library-score.mjs --voyage
+Keyword ranking found on the branch: bm25 (lakebase_bm25 index). Vector model: voyage-4, 1024 dimensions.
+
+==================== RUN 1: keyword only ====================
+Library search score (bm25 keyword only), 90 questions
+  hits@5 76/90 (84%), hits@1 54/90, mean reciprocal rank 0.69
+  judged hits@5 (also counting other-source passages read and judged to answer, see alsoExpect) 83/90 (92%)
+  without the Signal Case questions (78): hits@5 68/78, hits@1 49/78, MRR 0.72
+  by source (Signal Case questions left out): openstax-principles-finance-2e 36/42, yale-econ-251 6/6, yale-econ-252 4/7, fed-explained 3/3, nyfed-explainers 5/5, damodaran-papers 7/8, damodaran-blog 3/3, sec-anthropic-s1 4/4
+  MISS Why is a dollar today worth more than a dollar next year?
+       expected m00047, m00009, m00048; got yale-econ-251/lecture-7 (ECON 251 Financial Theory: Lecture 7 - Shakespeare) | damodaran-blog/post-4939519881908671034 (Many a slip between the cup & the lip: From forwar) | yale-econ-251/lecture-6 (ECON 251 Financial Theory: Lecture 6 - Irving Fish) | yale-econ-251/lecture-9 (ECON 251 Financial Theory: Lecture 9 - Yield Curve) | yale-econ-251/lecture-14 (ECON 251 Financial Theory: Lecture 14 - Quantifyin)
+  MISS How do I work out the present value of a series of equal payments?
+       expected m00053, m00056; got yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr) | openstax-principles-finance-2e/m00062 (10.2 Bond Valuation: Time Value Connection) | yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr) | openstax-principles-finance-2e/m00052 (8.1 Perpetuities: What Is a Perpetuity?) | yale-econ-252/lecture-10 (ECON 252 Financial Markets: ECON 252 (2011) - Lect)
+  MISS How do you value a payment that goes on forever?
+       expected m00052; got yale-econ-251/lecture-15 (ECON 251 Financial Theory: Lecture 15 - Uncertaint) | yale-econ-251/lecture-20 (ECON 251 Financial Theory: Lecture 20 - Dynamic He) | yale-econ-252/lecture-8 (ECON 252 Financial Markets: ECON 252 (2011) - Lect) | yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr) | yale-econ-251/lecture-12 (ECON 251 Financial Theory: Lecture 12 - Overlappin)
+  MISS What are the weaknesses of a discounted cash flow valuation?
+       expected m00069; got damodaran-papers/paper-multiples (Damodaran: Download paper (pdf): page 2) | damodaran-papers/paper-valuesurvey (Damodaran: Survey paper on Valuation: page 56) | damodaran-papers/paper-NewDistress (Damodaran: Download paper as pdf file: page 18) | damodaran-papers/paper-NewDistress (Damodaran: Download paper as pdf file: page 34) | damodaran-papers/paper-riskvalue (Damodaran: Download paper (pdf): page 12)
+  MISS What does beta measure in the capital asset pricing model?
+       expected m00095; got damodaran-papers/paper-riskvalue (Damodaran: Download paper (pdf): page 8) | damodaran-papers/paper-beta (Damodaran: Download pdf file: page 5) | damodaran-papers/paper-ERP2009 (Damodaran: Download paper as pdf file: page 4) | damodaran-papers/paper-ERP2011 (Damodaran: 2011 Edition: page 4) | damodaran-papers/paper-ERP2012 (Damodaran: 2012 Edition,: page 4)
+  MISS How does borrowing more change the value of a firm when there are taxes?
+       expected m00109, m00110; got damodaran-blog/post-4188640721953021235 (January 2018 Data Update 8: Debt and Taxes) | damodaran-papers/paper-divtaxes (Damodaran: Dow: page 17) | damodaran-blog/post-2534528507683866882 (January 2018 Data Update 3: Taxing Questions on Va) | damodaran-blog/post-4188640721953021235 (January 2018 Data Update 8: Debt and Taxes) | damodaran-blog/post-332417098694841857 (January 2019 Data Update 7: Debt, neither poison n)
+  MISS How does psychology explain bubbles and investor mistakes?
+       expected yale-econ-252/lecture-11, yale-econ-252/lecture-12; got damodaran-blog/post-7083691116325114314 (Macro and Market Timers) | damodaran-blog/post-7024085609936664412 (Bubble, Bubble, Toil and Trouble: The Costs and Be) | yale-econ-252/lecture-1 (ECON 252 Financial Markets: ECON 252 (2011) - Lect) | damodaran-blog/post-732495313170207487 (Investment Advice from the Federal Reserve: Unusua) | damodaran-blog/post-2353024986123002823 (The Wisdom and Madness of Crowds: Market Prices as)
+  MISS What do forward and futures contracts do for someone who wants to hedge?
+       expected yale-econ-252/lecture-15, openstax-principles-finance-2e/m00130; got damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 29) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 30) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 33) | openstax-principles-finance-2e/m00129 (20.3 Exchange Rates and Risk: Hedging: Forward Con) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 13)
+  MISS How should operating leases and R&D expenses be treated in valuation?
+       expected damodaran-papers/paper-newlease, damodaran-papers/paper-R&D; got damodaran-blog/post-3867320618728195454 (Are accountants learning?) | damodaran-papers/paper-valcre (Damodaran: Download pdf file: page 35) | damodaran-blog/post-1430480500312946902 (META Lesson 2: Accounting Inconsistencies and Cons) | damodaran-blog/post-1430480500312946902 (META Lesson 2: Accounting Inconsistencies and Cons) | damodaran-blog/post-1807025299296313298 (Data Update 1 for 2026: The Push and Pull of Data!)
+  MISS Robert Shiller on bubbles and irrational exuberance
+       expected yale-econ-252; got damodaran-blog/post-7024085609936664412 (Bubble, Bubble, Toil and Trouble: The Costs and Be) | damodaran-blog/post-5054054542921228018 (A “Fairly Highly Valued” Market: A Fed Chair Opine) | damodaran-blog/post-8630166128148615279 (Superman and Stocks: It&#39;s not the Cape (CAPE),) | damodaran-spreadsheets/post-5054054542921228018-shillecapebacktest (Spreadsheet ShilleCAPEBacktest.xlsx (from the post) | yale-econ-251/lecture-25 (ECON 251 Financial Theory: Lecture 25 - The Levera)
+  MISS If interest rates go up, what happens to the value today of payments I get later?
+       expected m00047, m00048, m00053, m00062; got yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr) | yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr) | yale-econ-251/lecture-18 (ECON 251 Financial Theory: Lecture 18 - Modeling M) | yale-econ-251/lecture-17 (ECON 251 Financial Theory: Lecture 17 - Callable B) | yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr)
+  MISS How do you value a company like Amazon that loses money but grows very fast?
+       expected damodaran-papers/paper-younggrowth, damodaran-papers/paper-HighGrow, damodaran-papers; got damodaran-blog/post-8335472796086005815 (The Ride Sharing Business: Is a Bar Mitzvah moment) | damodaran-blog/post-4178776672740018954 (Apple and Amazon at a Trillion $: Looking Back and) | damodaran-blog/post-7844237472228352378 (User and Subscriber Businesses: The Good, the Bad ) | damodaran-blog/post-5476657371064897371 (Managing across the Corporate Life Cycle: CEOs and) | damodaran-blog/post-5785171128225938651 (When the pieces add up to too much: Micro Dreams a)
+  MISS How do I work out the average yearly growth rate of an index that went from 100 to 4,000 in 13 years?
+       expected m00050, m00078; got openstax-principles-finance-2e/m00009 (1.8 Concepts of Time and Value) | damodaran-spreadsheets/post-681009557050307392-spacex2026ipo (Spreadsheet SpaceX2026IPO.xlsx (from the post "To ) | yale-econ-251/lecture-25 (ECON 251 Financial Theory: Lecture 25 - The Levera) | openstax-principles-finance-2e/m00023 (3.6 Sources and Characteristics of Economic Data: ) | damodaran-spreadsheets/post-7406162886242889749-erpdaily (Spreadsheet ERPDaily.xls (from the post "January 2)
+  MISS Why is the average of yearly returns different from the compound growth rate?
+       expected m00078, damodaran-papers, yale-econ-252; got damodaran-blog/post-7927599534837107471 (Data Update 6 for 2020: Profitability, Returns and) | damodaran-papers/paper-ERP2011 (Damodaran: 2011 Edition: page 23) | openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | damodaran-blog/post-7014444115972089581 (Equity Risk Premiums: The 2012 Edition) | damodaran-papers/paper-ERP2009 (Damodaran: Download paper as pdf file: page 23)
+  author-named questions (5): name left in the query 4/5; scoped by the source filter 5/5, MRR 1.00
+
+Signal Case questions (12):
+  no as-of limit: hits@5 8/12, hits@1 5/12, MRR 0.51
+  with the Case's as-of date: hits@5 9/12, hits@1 5/12, MRR 0.57
+  by Case, hits@5 no limit / as of: mega-millions-2018 2/3 / 2/3, amazon-2000 1/2 / 1/2, wework-2019 2/2 / 2/2, fed-1994 2/2 / 2/2, sensex-1992 1/3 / 2/3
+  AS-OF MISS If interest rates go up, what happens to the value today of payments I get later? (as of 2018-10-24); got yale-econ-251/lecture-10 | yale-econ-251/lecture-10 | yale-econ-251/lecture-18 | yale-econ-251/lecture-17 | yale-econ-251/lecture-10
+  AS-OF MISS How do you value a company like Amazon that loses money but grows very fast? (as of 2000-02-03); got yale-econ-251/lecture-11 | yale-econ-251/lecture-13 | openstax-principles-finance-2e/m00050 | openstax-principles-finance-2e/m00049 | yale-econ-251/lecture-18
+  AS-OF MISS Why is the average of yearly returns different from the compound growth rate? (as of 1992-03-31); got openstax-principles-finance-2e/m00093 | openstax-principles-finance-2e/m00050 | openstax-principles-finance-2e/m00009 | openstax-principles-finance-2e/m00055 | openstax-principles-finance-2e/m00093
+
+Hindsight probes (as-of rule on):
+  "Mega Millions jackpot winner cash option or annuity in 2018" (as of 2018-10-24): 5 results; none mention later events
+  "What happened to Treasury yields and interest rates after 2018?" (as of 2018-10-24): 5 results; none mention later events
+  "stock market crash pandemic" (as of 2018-10-24): 5 results; none mention later events
+  "inflation in 2021 and 2022" (as of 2018-10-24): 5 results; 2 mention later events:
+    post-4584335410966158672-countryinflationrates dated: later years 2019,2020,2021,2022; outcome words none
+    post-8546048539899178584-twitterfeb2014 dated: later years 2019,2020,2021,2022,2023; outcome words none
+  "Anthropic IPO prospectus valuation" (as of 2018-10-24): 5 results; none mention later events
+  "Uber valuation before its IPO" (as of 2014-06-10): 5 results; none mention later events
+  "the leverage cycle and the subprime mortgage crisis crash" (as of 2007-06-01): 5 results; none mention later events
+  "quantitative easing balance sheet expansion of the Federal Reserve" (as of 2008-06-01): 5 results; none mention later events
+  "the October 1987 stock market crash and portfolio insurance" (as of 1987-10-16): 5 results; none mention later events
+
+==================== RUN 2: keyword + Voyage vectors (--voyage) ====================
+Library search score (bm25 + Voyage vectors (combined; 1 Voyage call)), 90 questions
+  hits@5 81/90 (90%), hits@1 64/90, mean reciprocal rank 0.78
+  judged hits@5 (also counting other-source passages read and judged to answer, see alsoExpect) 86/90 (96%)
+  without the Signal Case questions (78): hits@5 72/78, hits@1 59/78, MRR 0.82
+  by source (Signal Case questions left out): openstax-principles-finance-2e 39/42, yale-econ-251 6/6, yale-econ-252 5/7, fed-explained 3/3, nyfed-explainers 5/5, damodaran-papers 7/8, damodaran-blog 3/3, sec-anthropic-s1 4/4
+  MISS Why is a dollar today worth more than a dollar next year?
+       expected m00047, m00009, m00048; got yale-econ-251/lecture-7 (ECON 251 Financial Theory: Lecture 7 - Shakespeare) | yale-econ-251/lecture-6 (ECON 251 Financial Theory: Lecture 6 - Irving Fish) | yale-econ-251/lecture-9 (ECON 251 Financial Theory: Lecture 9 - Yield Curve) | yale-econ-251/lecture-6 (ECON 251 Financial Theory: Lecture 6 - Irving Fish) | openstax-principles-finance-2e/m00046 (7 Time Value of Money I: Single Payment Value: Why)
+  MISS What does beta measure in the capital asset pricing model?
+       expected m00095; got damodaran-papers/paper-beta (Damodaran: Download pdf file: page 5) | damodaran-papers/paper-ERP2011 (Damodaran: 2011 Edition: page 4) | damodaran-papers/paper-ERP2009 (Damodaran: Download paper as pdf file: page 4) | damodaran-papers/paper-ERP2012 (Damodaran: 2012 Edition,: page 4) | damodaran-papers/paper-riskvalue (Damodaran: Download paper (pdf): page 8)
+  MISS How does borrowing more change the value of a firm when there are taxes?
+       expected m00109, m00110; got damodaran-papers/paper-divtaxes (Damodaran: Dow: page 17) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 18) | damodaran-blog/post-4188640721953021235 (January 2018 Data Update 8: Debt and Taxes) | damodaran-papers/paper-valuesurvey (Damodaran: Survey paper on Valuation: page 43) | damodaran-blog/post-1015588734760127227 (Data Update 7 for 2026: Debt and Taxes)
+  MISS What do forward and futures contracts do for someone who wants to hedge?
+       expected yale-econ-252/lecture-15, openstax-principles-finance-2e/m00130; got damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 29) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 33) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 30) | openstax-principles-finance-2e/m00129 (20.3 Exchange Rates and Risk: Hedging: Forward Con) | openstax-principles-finance-2e/m00129 (20.3 Exchange Rates and Risk: Hedging: Forward Con)
+  MISS How should operating leases and R&D expenses be treated in valuation?
+       expected damodaran-papers/paper-newlease, damodaran-papers/paper-R&D; got damodaran-papers/paper-valcre (Damodaran: Download pdf file: page 35) | damodaran-blog/post-3867320618728195454 (Are accountants learning?) | damodaran-papers/paper-valcre (Damodaran: Download pdf file: page 33) | damodaran-blog/post-1430480500312946902 (META Lesson 2: Accounting Inconsistencies and Cons) | damodaran-papers/paper-returnmeasures (Damodaran: Measuring Returns: page 30)
+  MISS Robert Shiller on bubbles and irrational exuberance
+       expected yale-econ-252; got damodaran-blog/post-5054054542921228018 (A “Fairly Highly Valued” Market: A Fed Chair Opine) | damodaran-blog/post-7024085609936664412 (Bubble, Bubble, Toil and Trouble: The Costs and Be) | yale-econ-251/lecture-25 (ECON 251 Financial Theory: Lecture 25 - The Levera) | yale-econ-251/lecture-1 (ECON 251 Financial Theory: Lecture 1 - Why Finance) | damodaran-blog/post-732495313170207487 (Investment Advice from the Federal Reserve: Unusua)
+  MISS If interest rates go up, what happens to the value today of payments I get later?
+       expected m00047, m00048, m00053, m00062; got yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr) | yale-econ-251/lecture-21 (ECON 251 Financial Theory: Lecture 21 - Dynamic He) | yale-econ-251/lecture-17 (ECON 251 Financial Theory: Lecture 17 - Callable B) | yale-econ-251/lecture-18 (ECON 251 Financial Theory: Lecture 18 - Modeling M) | yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr)
+  MISS How do I work out the average yearly growth rate of an index that went from 100 to 4,000 in 13 years?
+       expected m00050, m00078; got openstax-principles-finance-2e/m00009 (1.8 Concepts of Time and Value) | openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | openstax-principles-finance-2e/m00068 (11.2 Dividend Discount Models (DDMs): Advantages a) | damodaran-spreadsheets/post-681009557050307392-spacex2026ipo (Spreadsheet SpaceX2026IPO.xlsx (from the post "To ) | openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu)
+  MISS Why is the average of yearly returns different from the compound growth rate?
+       expected m00078, damodaran-papers, yale-econ-252; got openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | damodaran-papers/paper-ERP2011 (Damodaran: 2011 Edition: page 23) | damodaran-papers/paper-ERP2012 (Damodaran: 2012 Edition,: page 25) | openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | damodaran-papers/paper-ERP2009 (Damodaran: Download paper as pdf file: page 23)
+  author-named questions (5): name left in the query 4/5; scoped by the source filter 5/5, MRR 1.00
+
+Signal Case questions (12):
+  no as-of limit: hits@5 9/12, hits@1 5/12, MRR 0.57
+  with the Case's as-of date: hits@5 9/12, hits@1 4/12, MRR 0.49
+  by Case, hits@5 no limit / as of: mega-millions-2018 2/3 / 2/3, amazon-2000 2/2 / 1/2, wework-2019 2/2 / 2/2, fed-1994 2/2 / 2/2, sensex-1992 1/3 / 2/3
+  AS-OF MISS If interest rates go up, what happens to the value today of payments I get later? (as of 2018-10-24); got yale-econ-251/lecture-10 | yale-econ-251/lecture-21 | yale-econ-251/lecture-17 | yale-econ-251/lecture-18 | yale-econ-251/lecture-10
+  AS-OF MISS How do you value a company like Amazon that loses money but grows very fast? (as of 2000-02-03); got openstax-principles-finance-2e/m00102 | openstax-principles-finance-2e/m00120 | yale-econ-251/lecture-11 | openstax-principles-finance-2e/m00069 | yale-econ-251/lecture-13
+  AS-OF MISS Why is the average of yearly returns different from the compound growth rate? (as of 1992-03-31); got openstax-principles-finance-2e/m00093 | openstax-principles-finance-2e/m00093 | openstax-principles-finance-2e/m00009 | openstax-principles-finance-2e/m00050 | openstax-principles-finance-2e/m00009
+
+Hindsight probes (as-of rule on):
+  "Mega Millions jackpot winner cash option or annuity in 2018" (as of 2018-10-24): 5 results; none mention later events
+  "What happened to Treasury yields and interest rates after 2018?" (as of 2018-10-24): 5 results; none mention later events
+  "stock market crash pandemic" (as of 2018-10-24): 5 results; none mention later events
+  "inflation in 2021 and 2022" (as of 2018-10-24): 5 results; 1 mention later events:
+    post-4584335410966158672-countryinflationrates dated: later years 2019,2020,2021,2022; outcome words none
+  "Anthropic IPO prospectus valuation" (as of 2018-10-24): 5 results; none mention later events
+  "Uber valuation before its IPO" (as of 2014-06-10): 5 results; none mention later events
+  "the leverage cycle and the subprime mortgage crisis crash" (as of 2007-06-01): 5 results; none mention later events
+  "quantitative easing balance sheet expansion of the Federal Reserve" (as of 2008-06-01): 5 results; none mention later events
+  "the October 1987 stock market crash and portfolio insurance" (as of 1987-10-16): 5 results; none mention later events
+
+==================== COUNTS (aggregate SQL on the branch) ====================
+
+Passages with no embedding, per source (embedding is null):
+  source                          kind      passages  no_embedding  no_published_on  no_latest_year
+  damodaran-blog                  dated         6572             0                0            3246
+  damodaran-papers                dated         4022             0                0            2574
+  damodaran-spreadsheets          dated         6490             0                0               0
+  fed-explained                   timeless       236             0                0             137
+  nyfed-explainers                timeless        52             0               52              21
+  openstax-principles-finance-2e  timeless      1043             0                0             870
+  sec-anthropic-s1                dated         1384             0                0             831
+  yale-econ-251                   timeless      1252             0                0            1141
+  yale-econ-252                   timeless       942             0                0               0
+  total                                        21993             0
+
+Why yale-econ-252 is hidden before 2012: latest_year histogram (latestYear() in src/library/ingest.ts reads heading + text).
+  latest_year  passages  heading contains "(2011)"  text contains "2011"
+  2011              929                       929                    18
+  2012                4                         4                     1
+  2013                1                         1                     1
+  2014                1                         1                     0
+  2015                1                         1                     0
+  2018                1                         1                     0
+  2019                2                         2                     0
+  2020                2                         2                     2
+  2060                1                         1                     0
+  So 929 of 942 passages take their latest year from the course year in the heading, not from the lecture text.
+
+Case-topic phrases, dated Damodaran passages on or before the Case's as-of date (text ilike the phrase):
+  phrase        as-of       source                  passages  on/before as-of  documents  documents before
+  Amazon        2000-02-03  damodaran-blog              283                0        118                 0
+  Amazon        2000-02-03  damodaran-papers             31                0          6                 0
+  Amazon        2000-02-03  damodaran-spreadsheets      226                0         34                 0
+  WeWork        2019-08-14  damodaran-blog               52                0         12                 0
+  WeWork        2019-08-14  damodaran-spreadsheets       24                0          2                 0
+  Sensex        1992-03-31  all three Damodaran          30                0         22                 0
+  basis point   1994-02-03  all three Damodaran          18                0         15                 0
+  lottery       2018-10-24  damodaran-blog                3                3          3                 3
+
+As-of rule hidden counts. Rule (same as allowed() in src/library/search.ts): a passage shows when
+published_on <= as-of, or its source is timeless and coalesce(latest_year, 0) < the as-of year.
+Passages per source (total 21993): openstax 1043, yale251 1252, yale252 942, fed 236, nyfed 52, dblog 6572, dpapers 4022, dsheets 6490, s1 1384
+Hidden by the as-of rule, per Case as-of date (76 dates, 126 Case entries):
+as-of      cases hidden hid% openstax  yale251  yale252      fed    nyfed    dblog  dpapers  dsheets       s1
+1979-10-06     1  19776  90%      166       85      942       87       28     6572     4022     6490     1384
+1987-10-16     3  19763  90%      164       79      942       82       28     6572     4022     6490     1384
+1990-06-30     1  19758  90%      163       77      942       81       27     6572     4022     6490     1384
+1991-03-31     1  19755  90%      163       74      942       81       27     6572     4022     6490     1384
+1991-06-30     1  19755  90%      163       74      942       81       27     6572     4022     6490     1384
+1991-07-01     1  19755  90%      163       74      942       81       27     6572     4022     6490     1384
+1991-07-31     1  19755  90%      163       74      942       81       27     6572     4022     6490     1384
+1992-02-01     1  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1992-03-31     2  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1992-04-01     1  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1992-04-30     1  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1993-09-30     1  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1994-01-31     1  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1994-02-03     3  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1994-06-30     1  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1994-09-30     1  19753  90%      163       74      942       79       27     6572     4022     6490     1384
+1997-07-01     1  19744  90%      161       69      942       78       26     6572     4022     6490     1384
+1998-08-01     3  19742  90%      161       67      942       78       26     6572     4022     6490     1384
+1998-09-01     1  19742  90%      161       67      942       78       26     6572     4022     6490     1384
+1999-11-04     2  19715  90%      161       64      942       78       26     6572     3998     6490     1384
+1999-11-05     1  19715  90%      161       64      942       78       26     6572     3998     6490     1384
+2000-02-01     3  19714  90%      160       64      942       78       26     6572     3998     6490     1384
+2000-02-03     6  19714  90%      160       64      942       78       26     6572     3998     6490     1384
+2000-03-30     2  19714  90%      160       64      942       78       26     6572     3998     6490     1384
+2000-05-01     1  19714  90%      160       64      942       78       26     6572     3998     6490     1384
+2000-06-12     1  19714  90%      160       64      942       78       26     6572     3998     6490     1384
+2001-04-02     2  19697  90%      152       55      942       78       26     6572     3998     6490     1384
+2001-12-01     1  19697  90%      152       55      942       78       26     6572     3998     6490     1384
+2004-07-19     1  18728  85%      145       49      942       77       23     6572     3046     6490     1384
+2006-09-01     1  18070  82%      145       44      942       77       22     6572     2394     6490     1384
+2006-12-31     2  18070  82%      145       44      942       77       22     6572     2394     6490     1384
+2007-12-19     1  17630  80%      144       36      942       77       22     6572     1963     6490     1384
+2007-12-31     2  17630  80%      144       36      942       77       22     6572     1963     6490     1384
+2008-09-12     1  17309  79%      143       22      942       66       21     6572     1669     6490     1384
+2008-09-30     1  17285  79%      143       22      942       66       21     6548     1669     6490     1384
+2008-12-16     1  17106  78%      143       22      942       66       21     6505     1533     6490     1384
+2008-12-31     1  17046  78%      143       22      942       66       21     6497     1481     6490     1384
+2009-01-06     1  17036  77%      141       17      942       64       20     6497     1481     6490     1384
+2010-05-01     1  16077  73%      138        0      942       62       20     6292      749     6490     1384
+2013-09-03     3  12948  59%      133        0        0       53       17     5421        0     5940     1384
+2013-10-05     1  12739  58%      133        0        0       53       17     5335        0     5817     1384
+2013-10-28     1  12648  58%      133        0        0       53       17     5293        0     5768     1384
+2014-01-27     1  12590  57%      131        0        0       53       16     5250        0     5756     1384
+2014-12-02     5  11523  52%      131        0        0       53       16     4813        0     5126     1384
+2015-10-13     1  10596  48%      129        0        0       52       16     4412        0     4603     1384
+2015-10-21     1  10508  48%      129        0        0       52       16     4376        0     4551     1384
+2015-10-22     2  10508  48%      129        0        0       52       16     4376        0     4551     1384
+2016-09-01     1   9610  44%      125        0        0       50       16     4003        0     4032     1384
+2018-08-15     1   8127  37%      121        0        0       48       14     3210        0     3350     1384
+2018-09-12     1   8115  37%      121        0        0       48       14     3198        0     3350     1384
+2018-10-24     3   8048  37%      121        0        0       48       14     3161        0     3320     1384
+2019-01-08     1   7927  36%      120        0        0       45       14     3101        0     3263     1384
+2019-04-11     2   7682  35%      120        0        0       45       14     2958        0     3161     1384
+2019-07-26     1   7584  34%      120        0        0       45       14     2921        0     3100     1384
+2019-07-29     2   7584  34%      120        0        0       45       14     2921        0     3100     1384
+2019-08-14     6   7575  34%      120        0        0       45       14     2912        0     3100     1384
+2019-08-20     2   7575  34%      120        0        0       45       14     2912        0     3100     1384
+2019-09-01     1   7561  34%      120        0        0       45       14     2898        0     3100     1384
+2019-09-19     1   7503  34%      120        0        0       45       14     2864        0     3076     1384
+2020-02-06     3   7182  33%      112        0        0       25       14     2699        0     2948     1384
+2020-02-28     2   7084  32%      112        0        0       25       14     2655        0     2894     1384
+2021-07-21     2   5316  24%       55        0        0        4       14     2149        0     1710     1384
+2022-09-23     1   4510  21%       13        0        0        0       14     1797        0     1302     1384
+2022-12-31     2   4328  20%       13        0        0        0       14     1680        0     1237     1384
+2023-03-08     1   4032  18%       13        0        0        0       13     1538        0     1084     1384
+2023-08-05     1   3807  17%       13        0        0        0       13     1419        0      978     1384
+2024-09-16     1   3167  14%       12        0        0        0       12     1058        0      701     1384
+2025-02-18     2   2747  12%       11        0        0        0       12      787        0      553     1384
+2025-04-14     1   2645  12%       11        0        0        0       12      721        0      517     1384
+2025-06-02     2   2596  12%       11        0        0        0       12      675        0      514     1384
+2025-08-06     3   2520  11%       11        0        0        0       12      599        0      514     1384
+2026-09-29     1   1573   7%        0        0        0        0        9      120        0       60     1384
+2026-10-06     2   1573   7%        0        0        0        0        9      120        0       60     1384
+2026-10-13     1   1558   7%        0        0        0        0        9      105        0       60     1384
+2026-10-26     1    152   1%        0        0        0        0        9       83        0       60        0
+2026-10-28     5    128   1%        0        0        0        0        9       59        0       60        0
+
+Case entries per as-of date:
+  1979-10-06: hist-macro-regimes:volcker-disinflation-1979
+  1987-10-16: der-options:portfolio-insurance-1987-put, num-statistics:crash-1987, risk-portfolio:crash-1987-portfolio-insurance
+  1990-06-30: eco-gdp-cycles:india-pre-1991
+  1991-03-31: fx-bop:india-bop-1990-91
+  1991-06-30: fx-basics:rupee-devaluation-1991
+  1991-07-01: in-economy:india-reforms-1991
+  1991-07-31: eco-trade:import-squeeze-1991
+  1992-02-01: eco-money-banking:harshad-mehta-1992
+  1992-03-31: eq-history:sensex-boom-1992, num-compounding:sensex-1992
+  1992-04-01: in-gsec:sgl-ready-forward-1992
+  1992-04-30: eq-markets:sebi-powers-1992
+  1993-09-30: der-forwards:metallgesellschaft-1993-stack-roll
+  1994-01-31: bond-pricing:bond-selloff-1994
+  1994-02-03: bond-yield-curve:curve-flattening-1994, eco-central-banks:fed-tightening-1994, num-percent-bps:fed-hike-1994
+  1994-06-30: bond-yield:orange-county-1994
+  1994-09-30: der-hedging:orange-county-1994-hedge-or-bet
+  1997-07-01: fx-regimes-crises:thai-baht-1997
+  1998-08-01: bond-credit-spreads:ltcm-1998-spreads, der-option-pricing:ltcm-1998-option-pricing, num-probability:ltcm-1998
+  1998-09-01: crisis-leverage:ltcm-leverage-spiral-1998
+  1999-11-04: ana-build-valuation:webvan-1999-analyse, mkt-behavioural:webvan-ipo-bubble-1999
+  1999-11-05: fs-capex-dep:webvan-build-out-1999
+  2000-02-01: ana-build-valuation:amazon-2000-analyse, risk-capm:amazon-cost-of-equity-2000, val-dcf:amazon-dcf-2000
+  2000-02-03: spine-01-worth:spine-01-amazon-2000, spine-07-risk:spine-07-amazon-rate, spine-08-far-future:spine-08-amazon-2000, spine-09-to-one-share:spine-09-amazon-2000, spine-13-price-assumes:s13-amazon-at-84, spine-15-value-yourself:amazon-yourself-2000
+  2000-03-30: cf-capital-budgeting:webvan-centre-npv-2000, spine-06-growth-cost:spine-06-webvan-growth
+  2000-05-01: mkt-efficiency:blodget-grantham-2000
+  2000-06-12: ana-decide-between:forbes-claims-sorted-2000
+  2001-04-02: fs-cashflow:webvan-cash-2001, spine-03-cash:spine-03-webvan-2001
+  2001-12-01: sov-default-country-risk:argentina-default-2001
+  2004-07-19: cf-payout:microsoft-special-dividend-2004
+  2006-09-01: cf-wacc:eurotunnel-wacc-2006
+  2006-12-31: real-assets:us-housing-index-2006, struct-securitisation:subprime-aaa-2006-tranches
+  2007-12-19: funds-passive:buffett-protege-bet-2007
+  2007-12-31: spine-13-price-assumes:s13-implied-erp-2007, val-implied-erp:implied-erp-end-2007
+  2008-09-12: ins-risk-transfer:aig-cds-collateral-2008
+  2008-09-30: fs-balance:satyam-balance-2008
+  2008-12-16: gov-ethics:satyam-maytas-deal-2008
+  2008-12-31: fs-links:satyam-links-2008
+  2009-01-06: fs-earnings-quality:satyam-2009
+  2010-05-01: num-econometrics:reinhart-rogoff-2010
+  2013-09-03: ana-india-transfer:rupee-2013-09-currency-consistent-value, der-rates-fx:rbi-fcnr-swap-2013, in-rbi-policy:rbi-package-2013
+  2013-10-05: jud-ipo-forecast:jud-ipo-forecast-oct5-valuation
+  2013-10-28: fol-twitter-ipo:fol-twitter-ipo-end-game
+  2014-01-27: eco-inflation-real:india-inflation-2014
+  2014-12-02: fol-uber-2014:fol-uber-2014-crowd, jud-narrative-numbers:jud-nn-uber-2014-post, spine-04-growth:spine-04-uber-2014, spine-11-story-to-numbers:s11-uber-2014-inputs, val-young:uber-vc-narrative-2014
+  2015-10-13: fs-ratios:coffee-day-2015
+  2015-10-21: mkt-ipo-float:coffee-day-ipo-structure-2015
+  2015-10-22: spine-15-value-yourself:coffee-day-yourself-2015, val-india:coffee-day-rupee-valuation-2015
+  2016-09-01: eco-micro-competition:jio-launch-2016
+  2018-08-15: credit-analysis:ilfs-credit-2018
+  2018-09-12: private-credit:ilfs-mf-redemptions-2018
+  2018-10-24: present-value:mega-millions-2018, spine-02-money-later:spine-02-jackpot-2018, spine-02-money-later:spine-02-amazon-2000
+  2019-01-08: cf-venture:wework-private-round-2019
+  2019-04-11: jud-narrative-numbers:jud-nn-uber-s1-2019, spine-11-story-to-numbers:s11-uber-s1-2019
+  2019-07-26: cf-capital-structure:coffee-day-leverage-2019
+  2019-07-29: spine-10-survival:spine-10-coffee-day-2019, val-distress:coffee-day-distress-2019
+  2019-08-14: ana-who-pays-whom:wework-cash-chain-2019, fs-filings:wework-governance-2019, fs-income:wework-s1-2019, fs-leases-debt:wework-leases-2019, fs-revenue-runrate:wework-run-rate-2019, spine-09-to-one-share:spine-09-wework-2019
+  2019-08-20: spine-12-price-or-value:s12-wework-iwg, val-multiples:wework-iwg-multiples-2019
+  2019-09-01: eco-supply-demand:onion-prices-2019
+  2019-09-19: fs-tax:india-tax-cut-2019
+  2020-02-06: fol-tesla-2020:fol-tesla-2020-diy, spine-05-margins:spine-05-tesla-margins, spine-14-being-wrong:tesla-being-wrong-2020
+  2020-02-28: ana-india-transfer:yesbank-2020-02-ratios-and-price, val-banks:yes-bank-valuation-2020
+  2021-07-21: ana-build-valuation:zomato-ipo-2021, spine-15-value-yourself:zomato-yourself-2021
+  2022-09-23: eco-fiscal-debt:uk-mini-budget-2022
+  2022-12-31: bank-regulation:svb-regulation-2022, bond-duration:svb-securities-2022
+  2023-03-08: crisis-bank-runs:svb-run-2023
+  2023-08-05: fol-erp:fol-erp-price-of-risk
+  2024-09-16: fol-subprime-ai:fol-subprime-ai-zitron-2024
+  2025-02-18: fol-roe:fol-roe-back-to-basics, jud-assumptions:jud-assumptions-roe-2025
+  2025-04-14: fol-systemic-risk:fol-sysrisk-zitron-2025
+  2025-06-02: fol-sov-ratings:fol-sov-ratings-aftermath, jud-rating-boundary:jud-rating-boundary-baa2-claim
+  2025-08-06: fol-money-trap:fol-money-trap-cursor, jud-predicted-outcomes:jud-po-cursor-fork, jud-predicted-outcomes:jud-po-openai-pace
+  2026-09-29: jud-units-periods:jud-units-bp-2026
+  2026-10-06: jud-rating-conflict:jud-rc-zitron-junk-range, jud-units-periods:jud-units-sofr-2026
+  2026-10-13: jud-units-periods:jud-units-run-rate-2026
+  2026-10-26: ana-commitments-debt:anthropic-s1-commitments-2026
+  2026-10-28: ana-anthropic-s1:anthropic-s1-2026-damodaran-reading, ana-anthropic-s1:anthropic-s1-2026-zitron-reading, jud-filing-vs-claim:jud-fvc-damodaran-h1-claims, jud-filing-vs-claim:jud-fvc-zitron-s1-claims, jud-rating-conflict:jud-rc-damodaran-bb-plus
