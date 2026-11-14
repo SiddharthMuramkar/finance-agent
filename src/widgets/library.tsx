@@ -38,6 +38,7 @@ import { Step, WAVE2_PARTS } from "./primitives/wave2";
 import { WAVE3_PARTS } from "./primitives/wave3";
 import { BENCH_PARTS } from "./workbench/parts";
 import { ValueLevers } from "./workbench/value-levers-part";
+import { defineRateSizes } from "./primitives/signal-prototype/rate-sizes";
 
 // The OpenUI component library the Tutor writes widgets with: OpenUI's ready-made kit (charts,
 // tables, tabs, callouts) beside our own code-backed parts (Slider, Calculator, AnnuityChart,
@@ -113,6 +114,9 @@ const Slider = defineComponent({
   props: sliderProps,
   component: SliderView,
 });
+
+/** PROTOTYPE (ticket #5, Prototype B): the Signal rates card, spec §6.5. Its two slider slots take this library's Slider. */
+const RateSizes = defineRateSizes(Slider.ref);
 
 type Loaded = { data: CaseData; dataset: CaseDataset } | null | undefined;
 
@@ -706,6 +710,8 @@ const kit = openuiLibrary.extend({
       // A Workbench Widget's part stands alone in its Widget (ADR 0018), so no container lists it.
       ValueLevers,
       ...BENCH_PARTS,
+      // PROTOTYPE: the Signal rates card is drawn by its recipe only, so, like a Workbench part, no container lists it.
+      RateSizes,
     ],
   },
 });
@@ -721,6 +727,7 @@ function kitPart(name: string) {
 const WIDGET_PARTS = [
   ...["Slider", ...OUR_PARTS.map((c) => c.name)],
   ...NEW_PARTS.map((c) => c.name),
+  RateSizes.name,
   ...["Stack", "Tabs", "Accordion", "Steps", "Separator"],
   ...["Card", "CardHeader", "TextContent", "Callout", "TextCallout", "InlineHeader"],
   "Table",
@@ -914,7 +921,7 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
   },
   {
     name: "Things to count",
-    components: ["MoneyStack", "Pictogram", "Waffle", "RateMove", "PriceTag", "ShrinkingNote", "TimeTravel", "Waterfall"],
+    components: ["MoneyStack", "Pictogram", "Waffle", "RateMove", "RateSizes", "PriceTag", "ShrinkingNote", "TimeTravel", "Waterfall"],
   },
   {
     name: "Our parts: numbers from code",

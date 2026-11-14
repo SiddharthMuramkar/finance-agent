@@ -247,6 +247,9 @@
     },
     "MultipleDecoder": {
       "$ref": "#/$defs/MultipleDecoder"
+    },
+    "RateSizes": {
+      "$ref": "#/$defs/RateSizes"
     }
   },
   "required": [
@@ -331,7 +334,8 @@
     "TerminalSeesaw",
     "WaccStack",
     "CashWaterfall",
-    "MultipleDecoder"
+    "MultipleDecoder",
+    "RateSizes"
   ],
   "additionalProperties": false,
   "$defs": {
@@ -440,6 +444,9 @@
               },
               {
                 "$ref": "#/$defs/ChoiceCards"
+              },
+              {
+                "$ref": "#/$defs/RateSizes"
               },
               {
                 "$ref": "#/$defs/Stack"
@@ -1770,6 +1777,48 @@
       ],
       "additionalProperties": false,
       "description": "Tap to choose: question, 2 to 4 choices {id, text, emoji?, fix?}, answer is the right id. Not marked."
+    },
+    "RateSizes": {
+      "type": "object",
+      "properties": {
+        "fromRate": {
+          "type": "number"
+        },
+        "toRate": {
+          "type": "number"
+        },
+        "oldRate": {
+          "type": "number"
+        },
+        "newRate": {
+          "type": "number"
+        },
+        "called": {
+          "type": "number"
+        },
+        "control": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Slider"
+          }
+        },
+        "deeper": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Slider"
+          }
+        }
+      },
+      "required": [
+        "fromRate",
+        "toRate",
+        "oldRate",
+        "newRate",
+        "control",
+        "deeper"
+      ],
+      "additionalProperties": false,
+      "description": "Signal rates card (prototype). Only code draws it, from the rate Widget's call mode: never write it."
     },
     "Stack": {
       "type": "object",

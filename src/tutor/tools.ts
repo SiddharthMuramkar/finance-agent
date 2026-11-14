@@ -379,6 +379,9 @@ export function toolCode(
   const TALK_ABOUT_IT = "Write no openui-lang block in this reply. Say in one sentence what the Widget shows at these numbers; do not ask the Learner to move or set anything.";
   const GUIDED_TASKS = "Its Guided Tasks (optional play, never set as work; they tick themselves):";
   const PRACTICE_ASK = "It asks the Learner for the move itself and has its own answer box: end your reply with that one question, and do not say where to type.";
+  // PROTOTYPE (ticket #5, Prototype B): the Signal card asks its own call and holds its answer back until then (spec §8.1).
+  const CALL_ASK =
+    "It asks the Learner to tap each reading of the move they believe before it shows any size: write only a short lead (the move, and to tap each reading they think is right), and never say which readings are right until they have tapped.";
 
   /**
    * An open quiz keeps its numbers from the Widgets the Tutor sets (V5 of the reply checks, spec #229): the same rule the
@@ -787,8 +790,8 @@ export function toolCode(
           if (blocked.length) return { ok: false, text: `Not shown: ${blocked.join(" ")}` };
           const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe", ...(scene && { scene }) };
           // A practice-mode Widget asks its own question and marks the typed answer, so the reply only asks it (ticket #248, T5).
-          const practice = (built.params as { inputs?: { mode?: unknown } } | undefined)?.inputs?.mode === "practice";
-          const talk = practice ? `${TALK_ABOUT_IT} ${PRACTICE_ASK}` : TALK_ABOUT_IT;
+          const mode = (built.params as { inputs?: { mode?: unknown } } | undefined)?.inputs?.mode;
+          const talk = mode === "practice" ? `${TALK_ABOUT_IT} ${PRACTICE_ASK}` : mode === "call" ? `${TALK_ABOUT_IT} ${CALL_ASK}` : TALK_ABOUT_IT;
           const outcome = await storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${talk}`);
           // A title the Learner already has saved state for opens at the recipe's own numbers, not where they last left it.
           const key = widgetKey(built.title);

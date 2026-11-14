@@ -134,7 +134,9 @@ describe("widget instructions", () => {
     // the Workbench group's note and Value levers' mode and market arguments add about 950 more.
     // Review F4 bound the Workbench levers to their $variables (reactive() must wrap the schema last), so each lever prop's
     // signature reads "$binding<number>": 25 props at 10 characters, exactly 250 more.
-    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700 + 1_000 + 450 + 950 + 250);
+    // PROTOTYPE (ticket #5, Prototype B): the RateSizes part (the Signal rates card) adds its signature, a one-line
+    // description and its name in the Widget's part list: 257 characters, though the Tutor never writes it.
+    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700 + 1_000 + 450 + 950 + 250 + 260);
   });
 
   it("include all nine story parts (wave 3, tickets E2a and E2b), in a group of their own", () => {

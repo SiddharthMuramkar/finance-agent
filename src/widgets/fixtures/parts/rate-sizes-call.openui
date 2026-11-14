@@ -1,0 +1,10 @@
+root = Widget("One move, three sizes", [sizes, tasks])
+$old = 4
+$new = 5
+control = Slider("new", "New rate", 2, 7, 0.01, $new, "percent")
+oldControl = Slider("old", "Old rate", 1, 8, 0.01, $old, "percent")
+$called = 0
+sizes = RateSizes(4, 5, $old, $new, $called, [control], [oldControl])
+tasks = GuidedTasks([task1, task2])
+task1 = GuidedTask("Move the new rate to the old rate, {old}%, and watch all three sizes shrink to nothing", $new == $old, $called > 0 && $old >= 2 && $old <= 7, {old: $old})
+task2 = GuidedTask("Set the old rate to 2% and read the percent size again", $old == 2, $called > 0)

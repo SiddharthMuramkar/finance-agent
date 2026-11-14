@@ -35,7 +35,8 @@ export type KeyedWidget = { key: string; code: string; explore: boolean; /** A w
  * readouts by code. Undefined for a Widget with no sliders on the rates (practice mode, or any other Widget).
  */
 export function rateMoveSliders(code: string): RateChangeSliders | undefined {
-  const m = /RateMove\(\$(\w+),\s*\$(\w+)/.exec(code);
+  // PROTOTYPE (ticket #5, Prototype B): the Signal card (rate_move mode call) takes the live rates as its third and fourth arguments.
+  const m = /RateMove\(\$(\w+),\s*\$(\w+)/.exec(code) ?? /RateSizes\([\d.]+,\s*[\d.]+,\s*\$(\w+),\s*\$(\w+)/.exec(code);
   return m ? { old: `$${m[1]}`, new: `$${m[2]}` } : undefined;
 }
 
