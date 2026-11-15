@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { LOGIN_LINK_EXPIRED, MATRIX_PAGES, type MatrixPage } from "../src/dev/preview-matrix";
+import { LOGIN_LINK_EXPIRED, MATRIX_PAGES } from "../src/dev/preview-matrix";
 import { hydrated, quietDevtools, replyLanded, seed, settled, type State } from "./support/app";
 import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 
@@ -39,16 +39,23 @@ async function visit(page: Page, state: State, path: string) {
   await hydrated(page);
 }
 
+/**
+ * The Signal site's pages (decision #7: Home, How it works, Examples, the case pages and About) are drawn to the Signal
+ * spec's own components (its §5: text links with no underline until hover, whole-row question links, its chips and
+ * pills), not to the app's, so these audits judge the app's pages and the sign-in page only. The site chrome around the
+ * sign-in page is judged here too: its controls carry `data-affordance` like the app's. Whether the site's links should be
+ * underlined at rest as ADR 0018 asks of the app is the owner's open question (#32).
+ */
+const SIGNAL_SITE = new Set(["home", "about", "how-it-works", "examples", "case-amazon"]);
+
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
-    for (const path of ["/", "/login", "/about"]) {
-      test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path}`, async ({ page }) => {
-        await page.goto(path);
-        await hydrated(page);
-        await clean(page, path);
-      });
-    }
+    test("[A3b] /login", async ({ page }) => {
+      await page.goto("/login");
+      await hydrated(page);
+      await clean(page, "/login");
+    });
   });
 
   test("[A3b] /welcome", async ({ page }) => {
@@ -125,11 +132,8 @@ const F4_RULES: readonly F4Rule[] = ["readingLinks", "bandLinks", "bandButtons",
  */
 const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 
-/** Home signed out: the matrix shoots Home signed in, so the hero Band's white Join early access button is judged here. */
-const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
-
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {
-  for (const cell of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED, HOME_SIGNED_OUT]) {
+  for (const cell of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED].filter((c) => !SIGNAL_SITE.has(c.id))) {
     test(`[F4] ${cell.id} (${cell.path})`, async ({ page }) => {
       if (cell.signedOut) await page.context().clearCookies();
       else await seed(page, cell.seed!);
@@ -145,8 +149,8 @@ test.describe("[F4] what can be pressed stays obvious on every page of the previ
       expect(found, `${cell.path}: ${JSON.stringify(look)}`).toEqual(Object.fromEntries(Object.keys(found).map((rule) => [rule, []])));
       if (known) expect(look[known.rule].length, `${cell.id}: ${known.rule} is clean now, so remove its F4_KNOWN row (${known.why})`).toBeGreaterThan(0);
       expect(look.counts.pressable, `${cell.path} has controls to judge`).toBeGreaterThan(0);
-      // Every page of the matrix but the Course Map, the Notebook and Settings stands on at least one Band (F1): Home's
-      // closing, About's opening and closing, the sign-in strip, and the Topic bar on every /study cell.
+      // Every page judged here but the Course Map, the Notebook and Settings stands on at least one Band (F1): the sign-in
+      // strip, and the Topic bar on every /study cell.
       if (!["course-map", "notebook", "settings"].includes(cell.id)) expect(look.counts.bands, `${cell.path} has a Band`).toBeGreaterThan(0);
     });
   }

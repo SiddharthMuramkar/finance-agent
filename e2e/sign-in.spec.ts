@@ -69,16 +69,15 @@ test("login page: Google first, an email link second, passcode behind a link, er
   await expect(page.locator('input[name="passcode"]')).toBeVisible();
 });
 
-// Spec 2026-11-12 G1 and F1: the sign-in page has the public header (Sign in marked as the page showing, no second
-// primary) and a Band across the top that holds its heading.
-test("[G1, F1] the login page has the public header and its heading on a Band", async ({ page }) => {
+// Spec 2026-11-12 F1 and Signal spec 4.1 to 4.3: the sign-in page stands in the site chrome (its nav and footer, as on every
+// public page) and a Band across the top holds its heading.
+test("[G1, F1] the login page has the site nav and its heading on a Band", async ({ page }) => {
   await page.goto("/login");
-  const header = page.locator("header.home-header");
-  await expect(header.getByRole("link", { name: "Sign in", exact: true })).toHaveAttribute("aria-current", "page");
-  // Below 760 px the header's page links hide (G9's phone); About is in the footer there.
-  const about = page.viewportSize()!.width < 760 ? page.locator("footer") : header;
+  const nav = page.locator("header.v-nav");
+  await expect(nav).toHaveCount(1);
+  // At 860 px and below the nav's page links fold into its Menu (4.2); the footer carries About there.
+  const about = page.viewportSize()!.width <= 860 ? page.locator("footer.v-footer") : nav;
   await expect(about.getByRole("link", { name: "About", exact: true })).toBeVisible();
-  await expect(header.getByText("Join early access")).toHaveCount(0);
   const strip = page.locator('[data-band="sign-in-strip"]');
   await expect(strip.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
   const look = await strip.evaluate((band) => ({ face: getComputedStyle(band).backgroundColor, ink: getComputedStyle(band.querySelector("h1")!).color }));
@@ -125,7 +124,8 @@ test("a Google-linked Learner reaches their progress and signs out with one clic
   await expect(menu).toContainText("asha@e2e.example");
   await menu.getByRole("menuitem", { name: "Sign out" }).click();
   await page.waitForURL((url) => url.pathname === "/");
-  await expect(page.locator('a[href="/login"]').first()).toBeVisible();
+  // Signed out: Home offers Sign in (in the nav, or in the footer once the nav folds into Menu at 860 px and below).
+  await expect(page.locator('a[href="/login"]:visible').first()).toBeVisible();
   const after = await context.cookies();
   expect(after.find((c) => c.name === "better-auth.session_token")?.value ?? "").toBe("");
   expect(after.find((c) => c.name === "fa_access")?.value ?? "").toBe("");
@@ -172,10 +172,13 @@ test("a waiting person sees Waiting and can sign out", async ({ page, context })
   await page.waitForURL((url) => url.pathname === "/login");
   await expect(page.getByRole("heading", { name: "Waiting for approval" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Check again" })).toBeVisible();
-  // G1: she is signed in, so the public header never offers Sign in or Join early access; her status screen has Sign out.
+  // Signal spec 4.2: she is an applicant, so the site nav shows "Request in review", never Sign in or Join early access;
+  // her status screen has Sign out.
   await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { name: "Waiting for approval" })).toBeVisible();
-  await expect(page.locator("header.home-header").getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
-  await expect(page.locator("header.home-header").getByText("Join early access")).toHaveCount(0);
+  const nav = page.locator("header.v-nav");
+  await expect(nav.getByText("Request in review")).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
+  await expect(nav.getByText("Join early access")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.waitForURL((url) => url.pathname === "/");

@@ -88,13 +88,13 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
   return (
     <header className={`v-nav${scrolled ? " scrolled" : ""}`} data-site-section="nav">
       <div className="v-wrap v-nav-row">
-        <Link href="/" className="v-brand">
+        <Link href="/" className="v-brand" data-affordance="nav">
           <Glyph size={22} grow={grow} />
           {BRAND}
         </Link>
         <nav aria-label="Main" className="v-navlinks">
           {NAV.map((link) => (
-            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined}>
+            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined} data-affordance="nav">
               {link.label}
             </Link>
           ))}
@@ -102,14 +102,14 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
         <div className="v-nav-right">
           {viewer.state === "visitor" && (
             <>
-              <Link href="/login" className="v-tlink ink v-signin">
+              <Link href="/login" className="v-tlink ink v-signin" data-affordance="nav">
                 {chrome.signIn}
               </Link>
               <PrimaryCta viewer={viewer} size="md" />
             </>
           )}
           {viewer.state === "applicant" && (
-            <Link href="/login" className="v-status-link">
+            <Link href="/login" className="v-status-link" data-affordance="nav">
               <Pill tone="wait">
                 <span className="v-dot" aria-hidden="true" />
                 {chrome.inReview}
@@ -129,13 +129,19 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
       </div>
       {open && (
         <nav id="site-menu" aria-label="Menu" className="v-sheet">
-          <Link href="/">{chrome.home}</Link>
+          <Link href="/" data-affordance="nav">
+            {chrome.home}
+          </Link>
           {NAV.map((link) => (
-            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined}>
+            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined} data-affordance="nav">
               {link.label}
             </Link>
           ))}
-          {viewer.state === "visitor" && <Link href="/login">{chrome.signIn}</Link>}
+          {viewer.state === "visitor" && (
+            <Link href="/login" data-affordance="nav">
+              {chrome.signIn}
+            </Link>
+          )}
         </nav>
       )}
     </header>

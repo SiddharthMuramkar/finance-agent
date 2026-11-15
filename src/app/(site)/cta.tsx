@@ -29,7 +29,7 @@ export function ContinueButton({ button, size = "md" }: { button: HomeButton; si
   const className = `v-btn v-btn-primary v-continue${sized(size)}`;
   if (button.kind === "open") {
     return (
-      <Link href="/study" className={className}>
+      <Link href="/study" className={className} data-affordance="button">
         {face}
       </Link>
     );
@@ -48,13 +48,13 @@ export function PrimaryCta({ viewer, size = "lg" }: { viewer: Viewer; size?: Siz
   if (viewer.state === "member") return <ContinueButton button={viewer.button} size={size} />;
   if (viewer.state === "applicant") {
     return (
-      <Link href="/examples" className={`v-btn v-btn-primary${sized(size)}`}>
+      <Link href="/examples" className={`v-btn v-btn-primary${sized(size)}`} data-affordance="button">
         {cta.applicant.label}
       </Link>
     );
   }
   return (
-    <Link href={cta.visitor.href} className={`v-btn v-btn-primary${sized(size)}`} data-join="">
+    <Link href={cta.visitor.href} className={`v-btn v-btn-primary${sized(size)}`} data-affordance="button" data-join="">
       {cta.visitor.label}
     </Link>
   );
