@@ -7,8 +7,9 @@ import { dayStartIst } from "./spend";
 
 // The Spend caps (decision #13): limits at each layer of a turn, so each layer has a known worst case. Turn admission
 // (turn-admission.ts) checks a new turn against the daily caps here before it takes the Learner's lock: turns and
-// dollars per Learner per day, and dollars for everyone per day (the global ceiling). The numbers are `settings` rows,
-// edited on /admin. A day starts at midnight India time, the same rule as Spend's month (spend.ts). The dollars are
+// dollars per Learner per day, and dollars for everyone per day (the global ceiling). It refuses a resume past the
+// resume limit (turn-status.ts), and the turn's Step ledger (step-ledger.ts) holds it to the step limit. The numbers
+// are `settings` rows, edited on /admin. A day starts at midnight India time, the same rule as Spend's month (spend.ts). The dollars are
 // the `usage` step rows' estimates, so the evals, the library refresh and Voyage are not counted: only the OpenAI
 // project's hard limit catches those.
 
@@ -27,6 +28,12 @@ export const CAP_MESSAGES: Record<CapHit, string> = {
   learner_usd: "You have reached today's limit for the Tutor. It comes back at midnight, India time. Your Widgets still work.",
   global_usd: "The Tutor is paused for today: it has reached its daily limit. It comes back at midnight, India time. Your Widgets still work.",
 };
+
+/** What the Learner reads when a turn has had all its resumes (after cut-offs, or Retries after failures). */
+export const RESUME_LIMIT_MESSAGE = "This reply has used all its tries, so the Tutor stops it here. Send a new message to carry on.";
+
+/** The caps as numbers (readSettings). */
+export type Caps = Awaited<ReturnType<typeof readSettings>>["caps"];
 
 /** How much of each daily cap is used today. */
 export type DailyUse = { learnerTurns: number; learnerUsd: number; globalUsd: number };
@@ -60,8 +67,8 @@ export async function dailyUse(db: Db, learnerId: number, now: Date): Promise<Da
  * counts toward the global ceiling, which stops everyone. The check runs before the turn, so a Learner can go past a
  * dollar cap by one turn at most.
  */
-export async function checkQuota(db: Db, learnerId: number, now: Date): Promise<CapHit | null> {
-  const [{ caps }, [learner], use] = await Promise.all([readSettings(db), db.select().from(learners).where(eq(learners.id, learnerId)), dailyUse(db, learnerId, now)]);
+export async function checkQuota(db: Db, learnerId: number, now: Date, given?: Caps): Promise<CapHit | null> {
+  const [caps, [learner], use] = await Promise.all([given ?? readSettings(db).then((s) => s.caps), db.select().from(learners).where(eq(learners.id, learnerId)), dailyUse(db, learnerId, now)]);
   const owner = learner !== undefined && isOwnerLearner(learner);
   if (!owner && use.learnerTurns >= caps.learnerTurnsPerDay) return "learner_turns";
   if (!owner && use.learnerUsd >= caps.learnerUsdPerDay) return "learner_usd";
@@ -69,11 +76,13 @@ export async function checkQuota(db: Db, learnerId: number, now: Date): Promise<
   return null;
 }
 
-/** The caps the owner edits on /admin: each one's `settings` key, its words, and the largest value the form takes. */
+/** The caps the owner edits on /admin: each one's `settings` key, its words, and the values the form takes. */
 export const CAP_FIELDS = [
-  { key: "turns_per_learner_day", label: "Turns per Learner per day", hint: "You have no cap of your own.", dollars: false, max: 10_000 },
-  { key: "usd_per_learner_day", label: "Dollars per Learner per day", hint: "Estimated, from each step's tokens.", dollars: true, max: 1_000 },
-  { key: "usd_global_day", label: "Dollars for everyone per day", hint: "Your own turns count too. 0 pauses the Tutor.", dollars: true, max: 10_000 },
+  { key: "turns_per_learner_day", label: "Turns per Learner per day", hint: "You have no cap of your own.", dollars: false, min: 0, max: 10_000 },
+  { key: "usd_per_learner_day", label: "Dollars per Learner per day", hint: "Estimated, from each step's tokens.", dollars: true, min: 0, max: 1_000 },
+  { key: "usd_global_day", label: "Dollars for everyone per day", hint: "Your own turns count too. 0 pauses the Tutor.", dollars: true, min: 0, max: 10_000 },
+  { key: "steps_per_turn", label: "Model steps per turn", hint: "All its runs together. The last step writes the reply.", dollars: false, min: 1, max: 100 },
+  { key: "resumes_per_turn", label: "Resumes per turn", hint: "After a cut-off, or a Retry after a failure.", dollars: false, min: 0, max: 20 },
 ] as const;
 
 export type CapKey = (typeof CAP_FIELDS)[number]["key"];
@@ -90,14 +99,14 @@ export async function capValues(db: Db): Promise<Record<CapKey, string>> {
 }
 
 /**
- * Saves the caps /admin sent, all or none: each a number from 0 to its field's largest value, whole for a count and to
- * the cent for dollars. False, with nothing saved, when any is missing or out of range.
+ * Saves the caps /admin sent, all or none: each a number within its field's range, whole for a count and to the cent
+ * for dollars. False, with nothing saved, when any is missing or out of range.
  */
 export async function saveCaps(db: Db, sent: (key: CapKey) => string | null): Promise<boolean> {
   const rows: { key: CapKey; value: string }[] = [];
   for (const field of CAP_FIELDS) {
     const text = sent(field.key)?.trim() ?? "";
-    if (!(field.dollars ? DOLLARS : WHOLE).test(text) || Number(text) > field.max) return false;
+    if (!(field.dollars ? DOLLARS : WHOLE).test(text) || Number(text) < field.min || Number(text) > field.max) return false;
     rows.push({ key: field.key, value: String(Number(text)) });
   }
   await db

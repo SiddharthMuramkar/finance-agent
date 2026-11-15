@@ -212,7 +212,8 @@ function CapsSection({ caps, done }: { caps: Record<CapKey, string>; done: Admin
       </h2>
       <DoneLine done={done} section="caps" />
       <p className="measure mb-3 text-sm leading-5 text-[var(--muted)]">
-        A new turn past a cap does not run: the Learner reads that today&apos;s limit is reached. A day starts at midnight, India time.
+        A new turn past a daily cap does not run, nor does a resume past its limit: the Learner reads that the limit is reached. A day starts at
+        midnight, India time.
       </p>
       <form action="/api/admin/caps" method="post" className="flex flex-col gap-3">
         {CAP_FIELDS.map((f) => (
@@ -225,7 +226,7 @@ function CapsSection({ caps, done }: { caps: Record<CapKey, string>; done: Admin
               name={f.key}
               type="number"
               required
-              min={0}
+              min={f.min}
               max={f.max}
               step={f.dollars ? 0.01 : 1}
               defaultValue={caps[f.key]}

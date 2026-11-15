@@ -270,7 +270,8 @@ describe("/admin", () => {
     expect(caps).toMatch(/<form[^>]* action="\/api\/admin\/caps" method="post"/);
     const input = (name: string) => caps.match(new RegExp(`<input[^>]*name="${name}"[^>]*>`))?.[0] ?? "";
     const value = (name: string) => input(name).match(/value="([^"]*)"/)?.[1];
-    expect([value("turns_per_learner_day"), value("usd_per_learner_day"), value("usd_global_day")]).toEqual(["120", "2.5", "30"]);
+    expect(["turns_per_learner_day", "usd_per_learner_day", "usd_global_day", "steps_per_turn", "resumes_per_turn"].map(value)).toEqual(["120", "2.5", "30", "10", "2"]);
+    expect(input("steps_per_turn")).toContain('min="1"');
     expect(input("turns_per_learner_day")).toContain('step="1"');
     expect(input("usd_global_day")).toContain('step="0.01"');
     expect(caps).toMatch(/<button type="submit"[^>]*class="btn btn-secondary[^"]*"[^>]*>Save caps<\/button>/);
