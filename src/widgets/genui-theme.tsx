@@ -160,7 +160,7 @@ export function GenuiTheme({ children }: { children: ReactNode }) {
   }, []);
   return (
     <div ref={root} className="genui" style={COLOUR_STYLE}>
-      <ThemeProvider mode="light" cssSelector=".genui" lightTheme={GENUI_THEME} darkTheme={GENUI_THEME}>
+      <ThemeProvider mode="light" cssSelector=".genui" lightTheme={GENUI_THEME}>
         {children}
       </ThemeProvider>
     </div>

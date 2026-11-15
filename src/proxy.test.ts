@@ -68,7 +68,7 @@ describe("The signed-out gate", () => {
 
   it("serves any .png or .webp file under /landing-assets/ signed out, the link-preview image among them", async () => {
     expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
-    expect(allowed(await proxy(request("/landing-assets/workspace-dark.webp")))).toBe(true);
+    expect(allowed(await proxy(request("/landing-assets/workspace.webp")))).toBe(true);
   });
 
   // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.

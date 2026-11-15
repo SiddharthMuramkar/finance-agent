@@ -78,7 +78,7 @@ const INVENTORY: Record<string, Use> = {
 };
 
 // Spec 2026-11-12 F1 and F5 (ADR 0022): "the test that lists where an accent fill may appear gains the Bands". A Band is a
-// full-width royal surface (--band, which is --royal, the same in both themes) with white text on it, and F1 names the only
+// full-width royal surface (--band, which is --royal) with white text on it, and F1 names the only
 // places one may stand. This inventory holds every place src/ paints one: "band" (a Band surface, with the F1 place it is),
 // or "mapping" (globals.css: the Band tokens, their Tailwind names and the .band and .home-band rules that paint a Band
 // and what sits on it, which paint nothing until a page puts the class on a block). A new Band changes its file's count, so

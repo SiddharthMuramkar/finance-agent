@@ -264,12 +264,11 @@ async function seededLongSession() {
   return cookie.slice(cookie.indexOf("=") + 1);
 }
 
-async function studyContext(browser, cookie, { size = "laptop", scheme = "light", theme = "light", touch = false } = {}) {
+async function studyContext(browser, cookie, { size = "laptop", scheme = "light", touch = false } = {}) {
   const viewport = SIZES[size];
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1, colorScheme: scheme, hasTouch: touch });
   const { hostname } = new URL(BASE);
   await context.addCookies([
-    { name: "theme", value: theme, domain: hostname, path: "/" },
     { name: "fa_access", value: cookie, domain: hostname, path: "/", httpOnly: true },
   ]);
   const page = await context.newPage();
@@ -386,8 +385,8 @@ async function studyChecks(browser, cookie) {
     await context.close();
   }
 
-  await step("theme: with the OS dark and the app light, --openui-text-neutral-primary equals --ink", async () => {
-    const { context: dark, page: p } = await studyContext(browser, cookie, { scheme: "dark", theme: "light" });
+  await step("theme: with the OS set to dark, the one Light theme holds: --openui-text-neutral-primary equals --ink", async () => {
+    const { context: dark, page: p } = await studyContext(browser, cookie, { scheme: "dark" });
     try {
       const [ink, openui] = await p.evaluate(() => {
         const probe = (value) => {

@@ -67,12 +67,12 @@ describe("IconButton", () => {
   it("shows its label as the tooltip, or the tip when one is given", () => {
     expect(renderToStaticMarkup(<IconButton label="Close">x</IconButton>)).toContain('title="Close"');
     const tipped = renderToStaticMarkup(
-      <IconButton label="Theme: Light" tip="Switch to dark theme">
+      <IconButton label="Settings" tip="Open your settings">
         x
       </IconButton>,
     );
-    expect(tipped).toContain('aria-label="Theme: Light"');
-    expect(tipped).toContain('title="Switch to dark theme"');
+    expect(tipped).toContain('aria-label="Settings"');
+    expect(tipped).toContain('title="Open your settings"');
   });
 });
 

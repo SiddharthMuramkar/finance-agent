@@ -1677,7 +1677,7 @@ html[data-splitting] * {
   .home-arrive { animation: none; }
 }
 
-/* A Band (spec F1): a full-width royal-blue brand surface, the same in both themes and always light (Enjoy's closing
+/* A Band (spec F1): a full-width royal-blue brand surface, always light (Enjoy's closing
    band). Put .band on a block that spans the page; the Band tokens are in :root. On it, text is white (8.8:1) and
    .band-faint is white at 72% (5.4:1); a link is white and underlined; a .btn is white with an ink label, so no pad is
    needed; a rule is white at 18%; the focus ring is white. A .band-card inside is white and reads like the page: none of the Band's rules reach into it. Home's closing band is .home-band, the same
