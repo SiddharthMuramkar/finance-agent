@@ -126,5 +126,39 @@
     "url": "https://www.federalreserve.gov/monetarypolicy/fomc_historical.htm",
     "fetchedOn": "2026-11-15",
     "fetch": "python3 -I scripts/library/sources.py fomc-historical <scratch> <scratch>/fomc-historical.documents.json (crawls the year pages fomchistorical1979.htm to fomchistorical2001.htm: statements from February 1994, dated by the meeting or their Release Date line; minutes from February 1993, dated by the \"Released\" date on the year page; Records of Policy Actions to 1992 from PDF, dated by their press-release cover or a week after the next meeting; a PDF goes in only when its text layer passes scripts/library/text-layer.mjs (needs Node 22.18+ for type stripping); scans and every other skip are listed with the reason in <scratch>/fomc-historical.dropped.json; transcripts, Greenbooks, Bluebooks and Beige Books are left out)"
+  },
+  {
+    "id": "sec-amazon-1997-2000",
+    "title": "Amazon.com, Inc., annual and quarterly reports for 1997 to 1999 (SEC filings, 1998-2000)",
+    "kind": "dated",
+    "licence": "Public SEC filing",
+    "licenceUrl": "https://www.sec.gov/os/accessing-edgar-data",
+    "credit": "Amazon.com, Inc., Forms 10-K405, 10-K and 10-Q for fiscal 1997 to 1999, each dated by its filing date (SEC EDGAR)",
+    "url": "https://www.sec.gov/edgar/browse/?CIK=1018724",
+    "fetchedOn": "2026-11-15",
+    "fetch": "python3 -I scripts/library/sources.py sec-amazon-1997-2000 <scratch> <scratch>/sec-amazon-1997-2000.documents.json (the filings in AMAZON_FILINGS of scripts/library/sources.py, the 10-K405 filed 1998-03-30 to the 10-K filed 2000-03-29; each read from its full-submission .txt, first <DOCUMENT> only, with the plain-text reader; the EDGAR submissions API, its 1990s rows through the filings.files pages, confirms each accession, form and filing date; SEC_UA declared, 0.6 s between requests)"
+  },
+  {
+    "id": "sec-webvan-1999-2001",
+    "title": "Webvan Group, Inc., S-1, IPO prospectus and annual reports (SEC filings, 1999-2001)",
+    "kind": "dated",
+    "licence": "Public SEC filing",
+    "licenceUrl": "https://www.sec.gov/os/accessing-edgar-data",
+    "credit": "Webvan Group, Inc., Form S-1, final prospectus (Form 424B1) and Forms 10-K405 and 10-K, each dated by its filing date (SEC EDGAR)",
+    "url": "https://www.sec.gov/edgar/browse/?CIK=1092657",
+    "fetchedOn": "2026-11-15",
+    "fetch": "python3 -I scripts/library/sources.py sec-webvan-1999-2001 <scratch> <scratch>/sec-webvan-1999-2001.documents.json (the filings in WEBVAN_FILINGS of scripts/library/sources.py: S-1 filed 1999-08-06, 424B1 filed 1999-11-05, 10-K405 filed 2000-03-30, 10-K filed 2001-04-02; each read from its full-submission .txt, first <DOCUMENT> only, with the plain-text reader; the EDGAR submissions API confirms each accession, form and filing date; SEC_UA declared, 0.6 s between requests)"
+  },
+  {
+    "id": "sec-wework-s1-2019",
+    "title": "The We Company, Form S-1 (filed 14 August 2019)",
+    "kind": "dated",
+    "licence": "Public SEC filing",
+    "licenceUrl": "https://www.sec.gov/os/accessing-edgar-data",
+    "credit": "The We Company, Form S-1 registration statement, accession 0001193125-19-220499, filed 2019-08-14 (SEC EDGAR)",
+    "url": "https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm",
+    "fetchedOn": "2026-11-15",
+    "publishedOn": "2019-08-14",
+    "fetch": "python3 -I scripts/library/sources.py sec-wework-s1-2019 <scratch> <scratch>/sec-wework-s1-2019.documents.json (the S-1 as filed on 2019-08-14 only: its amendments of 2019-09-04 and 2019-09-13 come after every WeWork Case date; the EDGAR submissions API confirms the accession, primary document and filing date; read as flowing HTML, the contents targets as headings; User-Agent declared)"
   }
 ]

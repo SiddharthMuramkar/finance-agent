@@ -622,19 +622,23 @@ def sec_filing(cik, accession, document, title, scratch, out, published_on=None,
 
 
 PAGE_NUMBER = re.compile(r"\s*(page\s*)?((F|II|A)-)?(\d{1,3}|[ivxlc]{1,6})\s*", re.I)
+TOC_BACK_LINK = re.compile(r'<a\s[^>]*href="[^"]*#toc[^"]*"[^>]*>\s*Table\s+of\s+Contents\s*</a>', re.I)
 
 
 def flowing_html_sections(markup):
     """A filing typeset as one flowing HTML document (no page boxes), read with html_blocks + sections_from_blocks. Its section titles are
     the paragraphs that hold a table-of-contents target (<A NAME="toc...">), so those become headings; the "Table of Contents" back-link
-    at the top of every page, the contents table itself and bare page numbers are left out."""
-    body = re.sub(r'<h5[^>]*>\s*<a href="[^"]*#toc">\s*Table of Contents\s*</a>\s*</h5>', "", markup, flags=re.I)
+    at the top of every page (in a <p> or an <h5>), the contents table itself and bare page numbers are left out. A target that is not
+    inside a <p> (an empty <div>) heads nothing."""
+    body = TOC_BACK_LINK.sub("", markup)
     pieces, at, low = [], 0, body.lower()
     for anchor in re.finditer(r'<a name="toc[^"]*">', body, re.I):
         start = low.rfind("<p", 0, anchor.start())
         end = low.find("</p>", anchor.end())
         if start < at or end < 0:
             continue  # a second anchor in a heading already rewritten
+        if low.find("</p>", start, anchor.start()) >= 0:
+            continue  # the nearest <p> before the target closed before it: the target is not in a paragraph
         pieces += [body[at:start], "<h2>", body[body.find(">", start) + 1 : end], "</h2>"]
         at = end + len("</p>")
     body = "".join(pieces) + body[at:]
