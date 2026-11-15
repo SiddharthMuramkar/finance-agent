@@ -24,7 +24,7 @@ const yesTo = (n: number) => JSON.stringify({ answers: Array.from({ length: n },
 function deps(over: Partial<SuiteDeps> & { reply?: string; graderText?: (prompt: string) => string; graderCost?: number } = {}): SuiteDeps {
   return {
     map,
-    settings: { model: "gpt-6.1-sol", effort: "medium", widgetEngine: "off" },
+    settings: { model: "gpt-6.1-sol", effort: "medium" },
     graderModel: "gpt-6.1-sol",
     fingerprint: "test",
     budget: new Budget(5),

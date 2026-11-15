@@ -11,7 +11,7 @@ import { recipeById } from "@/widgets/recipes";
 import { figuresFromTutor, recipeInputsIn } from "@/widgets/recipes/set-workbench";
 import { readWidget } from "@/widgets/widget-reading";
 import { SKIP_AHEAD_LINES, stepContext, valuationIdLine } from "./context";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { turnFacts, type TurnFacts } from "./turn-facts";
 
 /**
@@ -232,7 +232,7 @@ describe("what the Topic Start card offers, in each turn's context (A8)", () => 
   });
 
   it("is what the instructions' skip rule waits for before naming the Choice", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain('"I know this: quiz me" on the Topic Start card, but only when the Course Navigator message says the card offers it');
+    expect(ENGINE_INSTRUCTIONS).toContain('"I know this: quiz me" on the Topic Start card, but only when the Course Navigator message says the card offers it');
     for (const line of Object.values(SKIP_AHEAD_LINES)) expect(line.startsWith("Topic Start card: ")).toBe(true);
   });
 });

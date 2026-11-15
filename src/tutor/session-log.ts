@@ -5,7 +5,7 @@ import { navigate } from "@/course/navigator";
 import { learnerState, messages, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "./instructions";
 import { rejectedSeqsOf } from "./reply-records";
 import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model";
 
@@ -17,14 +17,14 @@ import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model"
 export type { Effort, Message } from "./model";
 /**
  * The stored settings and their defaults, written the first time. There is no model setting: every Session runs on
- * TUTOR_MODEL (ADR 0015), so a `model` or `widget_compose_model` row left from before the switch is never read.
+ * TUTOR_MODEL (ADR 0015), so a `model` or `widget_compose_model` row left from before the switch is never read. There
+ * is no widget engine setting either: every Session freezes the engine (#19), so a `widget_engine` row is never read.
  */
 export const DEFAULT_SETTINGS = {
   effort: DEFAULT_EFFORT,
   session_idle_hours: "6",
   compact_at_tokens: "200000",
   review_cap: "10",
-  widget_engine: "on",
   // The Spend caps (decision #13, quota.ts), editable on /admin: a Learner's turns and dollars a day, everyone's dollars a
   // day, and each turn's steps (all its runs together) and resumes.
   turns_per_learner_day: "120",
@@ -53,8 +53,6 @@ export async function readSettings(db: Db) {
     compactAtTokens: Number(get("compact_at_tokens")),
     /** The most spaced reviews offered over the last 24 hours. */
     reviewCap: Number(get("review_cap")),
-    /** The widget engine (ADR 0005): "on" freezes new and refrozen Sessions with show_widget. Read only by frozenNow. */
-    widgetEngine: get("widget_engine") === "on" ? ("on" as const) : ("off" as const),
     /**
      * The Spend caps (quota.ts). Turn admission checks the daily ones before a new turn takes the Learner's lock, and the
      * resume limit before a resume; the step limit goes with the turn to its Step ledger (step-ledger.ts).
@@ -194,7 +192,7 @@ export async function sessionForTurn(db: Db, now: Date, learnerId: number, topic
 export async function refreezeIfChanged(db: Db, session: Session): Promise<Session> {
   // A Claude-era Session is retired before any turn runs in it (retireLegacySessions), never refrozen.
   if (isLegacySession(session)) throw new Error(`Session ${session.id} was frozen for ${session.model}, not ${TUTOR_MODEL}: it should have been retired.`);
-  const { instructions, tools, fingerprint } = await frozenNow(db, session);
+  const { instructions, tools, fingerprint } = await frozenNow(db);
   if (session.fingerprint === fingerprint) return session;
   const [{ last }] = await db.select({ last: max(messages.seq) }).from(messages).where(eq(messages.sessionId, session.id));
   const [row] = await db
@@ -258,23 +256,15 @@ export async function closedInFavourOf(db: Db, learnerId: number, shownId: numbe
   return shown !== undefined && live !== undefined && shown.older && isLegacySession(shown) && !isLegacySession(live) && shown.topicId === live.topicId;
 }
 
-/** Whether a Session was frozen with the widget engine: its tools include show_widget. Engine-only behaviour reads this, never the setting. */
-export function usesWidgetEngine(session: { tools: unknown } | undefined): boolean {
-  return Array.isArray(session?.tools) && session.tools.some((t) => (t as { name?: unknown })?.name === "show_widget");
-}
-
 /**
- * The instructions, tools, model and effort a Session freezes now, with their fingerprint. The widget engine's
- * (ADR 0005) when the `widget_engine` setting is "on", or when the Session already has show_widget: one way per
- * Session, so no history ever holds a show_widget call its tools no longer list. Off, today's exactly, so the
- * fingerprint of every Session without the engine is unchanged.
+ * The instructions, tools, model and effort a Session freezes now, with their fingerprint: the widget engine's (ADR
+ * 0005), the only Widget lane since #19.
  */
-export async function frozenNow(db: Db, session?: { tools: unknown }) {
-  const { effort, widgetEngine } = await readSettings(db);
+export async function frozenNow(db: Db) {
+  const { effort } = await readSettings(db);
   const model = TUTOR_MODEL;
-  const engine = widgetEngine === "on" || usesWidgetEngine(session);
-  const instructions = engine ? ENGINE_INSTRUCTIONS : TUTOR_INSTRUCTIONS;
-  const tools: ToolDefinition[] = engine ? ENGINE_TOOLS : TUTOR_TOOLS;
+  const instructions = ENGINE_INSTRUCTIONS;
+  const tools = ENGINE_TOOLS;
   return { instructions, tools, model, effort, fingerprint: fingerprint(instructions, tools) };
 }
 

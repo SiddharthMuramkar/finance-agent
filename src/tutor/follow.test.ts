@@ -5,7 +5,7 @@ import { scriptedClient, type ScriptedRequest } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
 import { loadPastes, PASTE_PREFIX } from "./pasted";
 import { listSessions, loadSession } from "./transcript";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 
@@ -227,7 +227,7 @@ describe("Follow Topics: text the Learner pastes", () => {
 
 describe("Follow Topics: the Tutor's instructions", () => {
   it("say to work only from text the Tutor has seen, and to say plainly when it has not seen a passage", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("Work only from the text you have actually been given");
-    expect(TUTOR_INSTRUCTIONS).toContain("say plainly that you have not seen it");
+    expect(ENGINE_INSTRUCTIONS).toContain("Work only from the text you have actually been given");
+    expect(ENGINE_INSTRUCTIONS).toContain("say plainly that you have not seen it");
   });
 });

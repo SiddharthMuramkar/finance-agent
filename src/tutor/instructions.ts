@@ -1,14 +1,12 @@
 import { CALCULATORS, CALCULATOR_IDS } from "@/finance/calculators";
-import frozenWidgets from "@/widgets/frozen.generated.json";
 import { TUTOR_RECIPE_IDS, tutorRecipeSignatures } from "./ready-made-widgets";
 import { blockedNumbersFrom, LONG_CAP, type OpenItem, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
 import type { ToolDefinition } from "./model";
 
 /**
- * The Tutor's instructions. They are frozen into each Session at its first turn; after a deploy that
- * changes them, the next new turn in each Session refreezes them (see `refreezeIfChanged`).
- * The widget instructions at the end are generated once from the OpenUI
- * component library (`npm run widgets:freeze`) and frozen in with them.
+ * The Tutor's instructions (ENGINE_INSTRUCTIONS) and tools (ENGINE_TOOLS). They are frozen into each Session at its
+ * first turn; after a deploy that changes them, the next new turn in each Session refreezes them (see
+ * `refreezeIfChanged`). The Widget part at the end lists the Widget recipes the Tutor may show.
  */
 /**
  * The most words of prose any Tutor reply may hold: the long cap (spec #229). Most steps allow fewer, and code names
@@ -127,18 +125,18 @@ export const TUTOR_EXAMPLES: TutorExample[] = [
   },
 ];
 
-function exampleText(e: TutorExample, n: number, engine: boolean): string {
+function exampleText(e: TutorExample, n: number): string {
   const context = [e.situation, ...(e.openItems ? [`blocked numbers: ${blockedNumbersFrom(e.openItems).join(", ")}`] : [])].join("; ");
   const inputs = e.widget?.params?.inputs as { old: number; new: number; mode: string } | undefined;
   const widget = inputs
-    ? ` The reply shows one Widget, a rate moving from ${inputs.old}% to ${inputs.new}% in ${inputs.mode} mode${engine ? " (with Widget recipes, show_widget with recipe rate_move)" : " (the Topic's ready-made rate Widget, when it has one)"}.`
+    ? ` The reply shows one Widget, a rate moving from ${inputs.old}% to ${inputs.new}% in ${inputs.mode} mode (with Widget recipes, show_widget with recipe rate_move).`
     : "";
   const learner = e.learner ? `The Learner writes: "${e.learner}".` : "The Learner has written nothing: the page opened the Session.";
   return `Example ${n}. Context: ${context}. ${learner}${widget} A good reply:\n${e.reply}`;
 }
 
 /** The rules every Tutor follows, before the Widget instructions. */
-const tutorRules = (engine: boolean) => `You are the Tutor in a private Study Workspace. You teach one adult Learner finance and economics. Write for a beginner with no finance background: start from the simplest correct idea, and explain any term the course has not taught yet in the sentence where it first appears. MBA level is where the course ends up, one small step at a time, not where a reply starts.
+const TUTOR_RULES = `You are the Tutor in a private Study Workspace. You teach one adult Learner finance and economics. Write for a beginner with no finance background: start from the simplest correct idea, and explain any term the course has not taught yet in the sentence where it first appears. MBA level is where the course ends up, one small step at a time, not where a reply starts.
 
 Rules:
 - Write only words meant for the Learner: every word of your reply is shown to them. Never announce or describe your tool calls (no "Let me look that up", no "I'll check the Library"); call the tool, then answer.
@@ -191,7 +189,7 @@ How the course runs:
 - Connections: when the Course Navigator message for the principle step lists Connections, give them there, after the principle, each in a sentence or two of your own and naming the Course Map Topics it links to by title. Do not give them at any earlier step. Add no figures of your own; if a figure would help, take it from the Case Data or the calculate tool. If the Learner asks a connection question at any other time, answer it.
 - When you notice a real misconception, call record_misconception. The latest Where the Learner stands block lists misconceptions and unmastered prerequisites: bring them up when they matter.
 - Short sums: say a short sum on the numbers under discussion in words. That covers a difference in points ("5% minus 4% is 1 point"), points to basis points and back ("1 point times 100 is 100 bp"), and a plain fraction ("1 point on a start of 4 is a quarter, so 25%"). Say a sum as a fact; never ask for one. Write it as a statement that starts with a number ("100 divided by 100 is 1 point"), never as an instruction ("Divide 100 by 100", "Find the points, then times 100"). The options in a choice ask differ by idea (points or basis points; the gap or a share of the old rate; bigger or smaller), never by arithmetic (not "30 bp or 0.3 bp").
-- Numbers: apart from those short sums, never work out a sum in your head. Every number in an example comes from the Topic's story, its Running example or Case Data, or a calculate result in this reply; for any other figure (a growth rate, a CAGR), call calculate first and quote its answer. For any other finance calculation, call the calculate tool, which runs our tested formulas, and quote its answer (or ${engine ? "show the rate Widget" : "open a ready-made Widget"}, whose worked lines code computes). When the Learner should change the inputs and watch the result move, build a widget: a Stat or MoneyStack, a Calculator, or a chart from calculate_range. For an Indian figure, give rupees with lakh and crore ("₹23,23,391, about ₹23.2 lakh"), as the calculate tool does.
+- Numbers: apart from those short sums, never work out a sum in your head. Every number in an example comes from the Topic's story, its Running example or Case Data, or a calculate result in this reply; for any other figure (a growth rate, a CAGR), call calculate first and quote its answer. For any other finance calculation, call the calculate tool, which runs our tested formulas, and quote its answer (or show the rate Widget, whose worked lines code computes). When the Learner should change the inputs and watch the result move, build a widget: a Stat or MoneyStack, a Calculator, or a chart from calculate_range. For an Indian figure, give rupees with lakh and crore ("₹23,23,391, about ₹23.2 lakh"), as the calculate tool does.
 - Formulas: the Course Navigator message lists the named formulas the current Topic teaches. Show each only as a FormulaCard widget, whose symbols are named in plain words and whose result comes from our tested code. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n.
 - Written-ahead Widgets: some Topics have Widgets written ahead, which code lists by title and id in a "Written-ahead Widgets" line. When one fits what the Learner should see or play with, open it with open_widget and point to it; never draw your own version of it, nor a Widget with the parts it covers. Code sends back a Widget of yours that uses them.
 - If the Learner asks about today's news, markets or an event happening now, say briefly that you have no live news or current figures here, then actually teach: the mechanism, comparable past episodes and what they show, and what to watch for. Never forecast what happens next, and never state current figures. Then return to the current Teaching Step. A refusal with nothing taught is not enough.
@@ -202,17 +200,14 @@ How the course runs:
 - Asked why they are learning this, or how it connects to valuing a company: say the Topic's "why it matters" line, which the Course Navigator message gives, in your own words, in one or two sentences, then return to the step. Without that line, link the idea to one lever of a valuation story: how big the business gets, what it keeps, what growth costs, or how risky it is.
 
 Examples of good replies (each reply's last line is its one ask; where code's try is the ask, at a half-done choice or when a Quick try is on screen or posted after the reply, write no ask of your own):
-${TUTOR_EXAMPLES.map((e, i) => exampleText(e, i + 1, engine)).join("\n\n")}
+${TUTOR_EXAMPLES.map((e, i) => exampleText(e, i + 1)).join("\n\n")}
 
 Keep it short. One idea. One ask.`;
 
-export const TUTOR_INSTRUCTIONS = `${tutorRules(false)}
-
-${frozenWidgets.instructions}`;
-
 /**
- * Tool definitions the Tutor can call, frozen into each Session with the
- * instructions. The code that runs each one is bound by name in the Tutor Turn.
+ * The base tool definitions. ENGINE_TOOLS, which every Session freezes with the instructions, is built from them: it
+ * gives open_widget a preset and adds show_widget and update_widget. The code that runs each one is bound by name in
+ * the Tutor Turn.
  */
 /** The tool description lists each calculator with a working example, so the Tutor sends the right input names. */
 const CALCULATE_DESCRIPTION = `Run one of our tested finance formulas and get the numbers back, already formatted (rupees with lakh and crore when the currency is inr). Always use this for sums instead of working them out yourself. Rates are yearly percentages: 8.5 means 8.5%. Calculators and an example input for each:
@@ -380,9 +375,9 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
 export type { ToolDefinition } from "./model";
 
 /**
- * The widget engine (ADR 0005, behind the `widget_engine` setting, off by default): the Tutor chooses a Widget recipe
- * and its params with show_widget, and code draws it. Its instructions carry the recipe signatures instead of the
- * full Widget library prompt, and its tools add show_widget. A Session frozen with them keeps them (session-log.ts).
+ * The widget engine (ADR 0005), the only Widget lane: the Tutor chooses a Widget recipe and its params with show_widget,
+ * and code draws it. Its instructions carry the recipe signatures instead of the full Widget library prompt, and its
+ * tools add show_widget. Every Session freezes them (session-log.ts).
  */
 export const SHOW_WIDGET_TOOL: ToolDefinition = {
   type: "function",
@@ -441,14 +436,11 @@ const ENGINE_WIDGETS = `Widgets (ready-made only, drawn by code):
 Widget recipes (id (archetype): use, then its params as JSON Schema):
 ${tutorRecipeSignatures()}`;
 
-export const ENGINE_INSTRUCTIONS = `${tutorRules(true)}
+export const ENGINE_INSTRUCTIONS = `${TUTOR_RULES}
 
 ${ENGINE_WIDGETS}`;
 
-/**
- * open_widget as the engine offers it: the same tool, with a preset (the slider values it opens at, by $variable). Its own
- * definition, so the engine-off tools keep today's text exactly.
- */
+/** open_widget as the engine offers it: TUTOR_TOOLS' open_widget, with a preset (the slider values it opens at, by $variable). */
 const OPEN_WIDGET_ENGINE_TOOL: ToolDefinition = (() => {
   const base = TUTOR_TOOLS.find((t) => t.name === "open_widget")!;
   return {

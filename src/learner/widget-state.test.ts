@@ -1,16 +1,17 @@
 import type { PGlite } from "@electric-sql/pglite";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/pglite";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import * as schema from "@/db/schema";
 import { learners, OWNER_LEARNER_ID, widgetState } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
+import { saveItemAfterLatest } from "@/tutor/session-items";
 import { listSessions } from "@/tutor/transcript";
 import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
+import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { loadSaved, saveToNotes } from "./saved";
 import { loadWidgetStates, saveWidgetState } from "./widget-state";
 
@@ -19,6 +20,9 @@ import { loadWidgetStates, saveWidgetState } from "./widget-state";
  * Guided Tasks are saved per (Session, Widget key) and read back with the Session; another Learner's Session is no
  * such Session (404). Scripted model client, in-memory Postgres with the real migrations.
  */
+
+// The Companion Widget (E4a) is off here: the reply's one Widget is the one each test shows.
+vi.mock("@/tutor/companion", () => ({ pickCompanion: () => null }));
 
 const map = presentValueOnly({ withoutQuiz: true, withoutInsight: true });
 
@@ -29,17 +33,18 @@ const WIDGET = [
   "steps = GuidedTasks([t1])",
   't1 = GuidedTask("Set the rate to 3%", $rate == 3)',
 ].join("\n");
-const REPLY = ["Try it.", "", "```openui-lang", WIDGET, "```"].join("\n");
+const REPLY = "Try it.";
 
 const say = (text: string): ScriptedReply => ({ content: [{ type: "text", text }] });
 
 async function turn(db: Db, learnerId: number, message: string, reply: string) {
-  // The reply draws its own Widget, which only a Session without the widget engine may do (ADR 0007).
-  await engineOff(db);
   const events: TurnEvent[] = [];
   for await (const e of runTutorTurn({ db, client: scriptedClient([say(reply)]).client, map, learnerId }, message)) events.push(e);
   expect(events.at(-1)).toMatchObject({ type: "done" });
   const [session] = await listSessions(db, learnerId);
+  // The reply's Widget, stored after it as show_widget stores one (ADR 0005).
+  const data = { id: "toolu_rates", recipe: "", params: {}, title: "Rates", code: WIDGET, source: "recipe" };
+  await saveItemAfterLatest(db, learnerId, session.id, { kind: WIDGET_SHOWN, data }, new Date(), "tutor");
   return session.id;
 }
 

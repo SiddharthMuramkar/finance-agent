@@ -283,7 +283,7 @@ export async function runSuite(cases: EvalCase[], deps: SuiteDeps): Promise<Eval
   return {
     startedAt,
     finishedAt: new Date().toISOString(),
-    tutor: { model: deps.settings.model, effort: deps.settings.effort, widgetEngine: deps.settings.widgetEngine },
+    tutor: { model: deps.settings.model, effort: deps.settings.effort },
     graderModel: deps.graderModel,
     fingerprint: deps.fingerprint,
     capUsd: deps.budget.cap,

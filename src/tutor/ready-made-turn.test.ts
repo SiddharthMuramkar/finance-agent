@@ -10,7 +10,6 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { readSettings } from "./session-log";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { withoutChoices } from "@/test/choices";
 
@@ -51,7 +50,6 @@ const items = (events: TurnEvent[]) => withoutChoices(events).flatMap((e) => (e.
 describe("a new Session's tools", () => {
   it("freezes show_widget, open_widget and update_widget, without compose_widget and without quick_check", async () => {
     const db = await testDb();
-    expect((await readSettings(db)).widgetEngine).toBe("on");
     const { requests } = await run(db, [say("Hello.")], "Hi");
     const names = requests[0].tools.map((t) => t.name);
     expect(names).toEqual(expect.arrayContaining(["show_widget", "open_widget", "update_widget"]));

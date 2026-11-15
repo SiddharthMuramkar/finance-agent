@@ -21,7 +21,7 @@ import { checkTabNow } from "@/learner/quiz";
 import { noteMethodUsed, recordAnswer, skillStates } from "@/learner/skill-state";
 import { scriptedClient } from "@/test/scripted-client";
 import { submitQuizAnswers } from "@/tutor/check-results";
-import { ENGINE_TOOLS, TUTOR_TOOLS } from "@/tutor/instructions";
+import { ENGINE_TOOLS } from "@/tutor/instructions";
 import { answerQuickTry, nextQuickTry, quickTryItem } from "@/tutor/practice";
 import { QUICK_TRY, QUICK_TRY_RESULT, REPLY_CHOICES, type QuickTryData, type QuickTryResultData, type ReplyChoicesData } from "@/tutor/session-item-kinds";
 import { liveSession } from "@/tutor/session-log";
@@ -37,8 +37,8 @@ import { seen, type SeenChoice, type SeenReply, type SeenTool, type SeenWidget }
 /** What placing a Learner needs from a case: a live case, or a dialogue (which has no answer). */
 export type Placed = Pick<LiveCase, "id" | "topic" | "state" | "pending"> & { answer?: LiveCase["answer"] };
 
-/** The model, effort and widget engine the Tutor runs on in this throwaway database. */
-export type TutorSettings = { model: string; effort: string; widgetEngine: "on" | "off" };
+/** The model and effort the Tutor runs on in this throwaway database. */
+export type TutorSettings = { model: string; effort: string };
 
 export type Prepared = {
   learnerId: number;
@@ -82,9 +82,9 @@ export function skillIdsOf(topic: Topic): string[] {
   return [];
 }
 
-/** Writes the Tutor's model, effort and widget engine into the throwaway database, before any Session is made. */
+/** Writes the Tutor's model and effort into the throwaway database, before any Session is made. */
 export async function saveTutorSettings(db: Db, s: TutorSettings): Promise<void> {
-  for (const [key, value] of [["model", s.model], ["effort", s.effort], ["widget_engine", s.widgetEngine]] as const) {
+  for (const [key, value] of [["model", s.model], ["effort", s.effort]] as const) {
     await db.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } });
   }
 }
@@ -197,7 +197,7 @@ export async function prepareCase(db: Db, c: Placed, opts: { map?: CourseMap; se
     ...topic.checks.map((ch) => ch.id),
     ...topic.questions.map((q) => q.id),
     ...widgets.map((w) => w.id),
-    ...new Set([...TUTOR_TOOLS, ...ENGINE_TOOLS].map((t) => t.name)),
+    ...ENGINE_TOOLS.map((t) => t.name),
   ];
   const ctx: ReplyCheckContext = {
     step: STEP_KIND[place.step] ?? "none",

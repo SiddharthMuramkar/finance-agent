@@ -1,17 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { loadCourseMap } from "@/course/map";
 import { QUICK_TRIES } from "./context";
-import { ENGINE_INSTRUCTIONS, TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 
 /**
  * The Tutor's voice (spec 2026-11-05, D3b): a warm storyteller who teaches the word first and never asks for a number.
  * The frozen text drops the flat rules ("No hype", "no cheering", "Praise in one to three words") and the fill-in boxes.
  */
 describe("the Tutor's frozen instructions", () => {
-  for (const [name, text] of [
-    ["widget engine off", TUTOR_INSTRUCTIONS],
-    ["widget engine on", ENGINE_INSTRUCTIONS],
-  ] as const) {
+  for (const [name, text] of [["the widget engine's", ENGINE_INSTRUCTIONS]] as const) {
     describe(name, () => {
       it("hold none of the flat-voice rules or the fill-in boxes", () => {
         for (const gone of ["No hype", "no cheering", "Praise in one to three words", "fill-in boxes", "Box 2"]) expect(text).not.toContain(gone);
@@ -211,18 +208,18 @@ describe("the Tutor's frozen instructions", () => {
 // Spec 2026-11-12 A6 and H6: three kinds of question get written-ahead behaviour in the Tutor's instructions.
 describe("written-ahead answers to a tip, a skip request and 'why am I learning this' (A6, H6)", () => {
   it("a tip request: one sentence that Value It does not say what to buy or sell, then how it works from a past episode", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("say in one sentence that Value It does not say what to buy or sell");
-    expect(TUTOR_INSTRUCTIONS).toMatch(/from a past episode/);
+    expect(ENGINE_INSTRUCTIONS).toContain("say in one sentence that Value It does not say what to buy or sell");
+    expect(ENGINE_INSTRUCTIONS).toMatch(/from a past episode/);
   });
   it("a skip request: the Course Map opens any Topic, and \"I know this: quiz me\" on the Topic Start card takes the Check now", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("The Course Map lists every Topic, and any of them can be opened from there");
-    expect(TUTOR_INSTRUCTIONS).toContain('"I know this: quiz me" on the Topic Start card');
-    expect(TUTOR_INSTRUCTIONS).toContain("never say you cannot help them move");
+    expect(ENGINE_INSTRUCTIONS).toContain("The Course Map lists every Topic, and any of them can be opened from there");
+    expect(ENGINE_INSTRUCTIONS).toContain('"I know this: quiz me" on the Topic Start card');
+    expect(ENGINE_INSTRUCTIONS).toContain("never say you cannot help them move");
   });
   it("why am I learning this: the Topic's why line in the Tutor's own words; valuation starts from a story, never a rate", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain(`say the Topic's "why it matters" line`);
-    expect(TUTOR_INSTRUCTIONS).toContain("Never say that valuation starts from a rate.");
-    expect(TUTOR_INSTRUCTIONS.replace("Never say that valuation starts from a rate.", "")).not.toMatch(/starts from a rate/);
+    expect(ENGINE_INSTRUCTIONS).toContain(`say the Topic's "why it matters" line`);
+    expect(ENGINE_INSTRUCTIONS).toContain("Never say that valuation starts from a rate.");
+    expect(ENGINE_INSTRUCTIONS.replace("Never say that valuation starts from a rate.", "")).not.toMatch(/starts from a rate/);
   });
 });
 
@@ -234,7 +231,7 @@ describe("the skip-ahead Choice as the Tutor names it (A6, A8)", () => {
     const { ALLOWED_APP_WORDS } = await import("./reply-checks");
     const t18 = JSON.stringify((await import("@/behaviour/tutor-eval/cases/T18.json")).default);
     expect(SKIP_AHEAD_CHOICE).toBe("I know this: quiz me");
-    expect(TUTOR_INSTRUCTIONS).toContain(`"${SKIP_AHEAD_CHOICE}" on the Topic Start card`);
+    expect(ENGINE_INSTRUCTIONS).toContain(`"${SKIP_AHEAD_CHOICE}" on the Topic Start card`);
     expect(ALLOWED_APP_WORDS).toContain(SKIP_AHEAD_CHOICE);
     expect(t18).toContain(`\\"${SKIP_AHEAD_CHOICE}\\" on the Topic Start card`);
   });

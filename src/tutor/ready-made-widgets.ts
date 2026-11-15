@@ -114,7 +114,7 @@ function presetOf(params: Record<string, unknown> | undefined): Record<string, n
 /**
  * The reply check's Widget validator (V4) for a Topic: a known written-ahead id or Tutor recipe, a valid preset or valid
  * params, and no quick_check. null means valid, otherwise the reason. The tools refuse every invalid Widget before it is
- * stored, so this is for a check that reads a finished reply (T10 fails a fence in an engine Session).
+ * stored, so this is for a check that reads a finished reply (T10 fails a fence in a reply).
  */
 export function widgetValidator(writtenAhead: readonly { id: string; code: string }[]): (w: ReplyWidget) => string | null {
   return (w) => {

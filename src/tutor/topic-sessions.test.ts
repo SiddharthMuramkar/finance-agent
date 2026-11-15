@@ -8,9 +8,8 @@ import { learnerSummary, loadCheckResults, loadProgress, openCurrentTopic, saveF
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { profileInput, saveProfile } from "@/learner/profile";
 import { OPENING_PREFIX } from "./context";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { presentValueOnly } from "@/test/present-value-map";
-import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
@@ -127,10 +126,10 @@ describe("one Session per Topic", () => {
   });
 
   it("the Tutor's instructions point it to the latest Where the Learner stands block, and to this Topic alone", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("the latest Where the Learner stands block");
-    expect(TUTOR_INSTRUCTIONS).not.toContain("The summary at the start of a Session");
-    expect(TUTOR_INSTRUCTIONS).not.toContain("when the first message holds");
-    expect(TUTOR_INSTRUCTIONS).toContain("This conversation is about one Topic");
+    expect(ENGINE_INSTRUCTIONS).toContain("the latest Where the Learner stands block");
+    expect(ENGINE_INSTRUCTIONS).not.toContain("The summary at the start of a Session");
+    expect(ENGINE_INSTRUCTIONS).not.toContain("when the first message holds");
+    expect(ENGINE_INSTRUCTIONS).toContain("This conversation is about one Topic");
   });
 
   it("a refused turn stays on screen, but every row of it is left out of later requests, in the same Session", async () => {
@@ -210,7 +209,7 @@ describe("one Session per Topic", () => {
     // As the expand migration left it: a Session that may hold several Topics, Older by default.
     const [old] = await db
       .insert(sessionsTable)
-      .values({ learnerId: OWNER_LEARNER_ID, instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "present-value" })
+      .values({ learnerId: OWNER_LEARNER_ID, instructions: ENGINE_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "present-value" })
       .returning();
     await db.insert(messages).values({ sessionId: old.id, seq: 0, role: "user", content: "An old question about the Sensex." });
     expect(await texts(db)).toEqual([]);
@@ -411,7 +410,6 @@ describe("a deploy that changes the Tutor's instructions", () => {
 
   it("refreezes instructions and tools at the next new turn in the same Session, keeps its model and effort, folds the history, and never sends earlier reasoning again", async () => {
     const db = await testDb();
-    await engineOff(db);
     await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     const reply = (n: number): ScriptedReply => ({ content: [{ type: "text", text: `Reply ${n}.` }, replay(n)] });
     await turn(db, "One", [reply(1)]);
@@ -424,7 +422,7 @@ describe("a deploy that changes the Tutor's instructions", () => {
     const four = await turn(db, "Four", [reply(4)]);
     expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     for (const request of [...three.requests, ...four.requests]) {
-      if (!request.compaction) expect(request.instructions).toBe(TUTOR_INSTRUCTIONS);
+      if (!request.compaction) expect(request.instructions).toBe(ENGINE_INSTRUCTIONS);
       // Existing Sessions keep their model and effort (spec #229).
       expect(request.model).toBe("gpt-6.1-sol");
       if (!request.compaction) expect(request.effort).toBe("low");
@@ -445,7 +443,6 @@ describe("a deploy that changes the Tutor's instructions", () => {
 
   it("keeps the refreeze's summary in every later request when the turn before the refreeze was refused", async () => {
     const db = await testDb();
-    await engineOff(db);
     await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "One", [say("Reply 1.")]);
     await turn(db, "Something odd", [{ content: [{ type: "text", text: "I can't help with tha" }], stop_reason: "refusal" }]);
@@ -467,7 +464,7 @@ describe("the Course Map's passed rows", () => {
     const db = await testDb();
     await db
       .insert(sessionsTable)
-      .values({ learnerId: OWNER_LEARNER_ID, instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "bonds" });
+      .values({ learnerId: OWNER_LEARNER_ID, instructions: ENGINE_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "bonds" });
     await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Tell me about the lottery.", [say("Picture October 2018.")]);
     await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);

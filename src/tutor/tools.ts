@@ -20,7 +20,7 @@ import { storyContextFor } from "@/course/scenes";
 import { shownWidgetOf, WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
-import { usesWidgetEngine, withoutRejected } from "./session-log";
+import { withoutRejected } from "./session-log";
 import { rejectedRows } from "./reply-gate";
 import { loadWrittenAhead, openedItem, saveOpenedState } from "./written-ahead";
 import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, sliderSpecs, TUTOR_RECIPE_IDS } from "./ready-made-widgets";
@@ -290,15 +290,13 @@ export function toolCode(
     topicId: string | null;
     rows: { seq: number; role: string; content: unknown }[];
     items: StoredItem[];
-    /** The Session was frozen with the widget engine: ready-made Widgets only, one a reply (ADR 0007). */
-    engine: boolean;
     /** The turn took Next: the items Next stored (a step's Widget chip) sit just before its message. */
     next: boolean;
   };
 
   async function replyScope(tx: Db): Promise<ReplyScope | null> {
     const [row] = await tx
-      .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, input: turns.input, topicId: sessions.topicId, tools: sessions.tools })
+      .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, input: turns.input, topicId: sessions.topicId })
       .from(turns)
       .leftJoin(sessions, eq(sessions.id, turns.sessionId))
       .where(eq(turns.id, turnId));
@@ -315,7 +313,6 @@ export function toolCode(
       topicId: row.topicId ?? null,
       rows,
       items,
-      engine: usesWidgetEngine({ tools: row.tools }),
       next: turnKind({ input: row.input }) === "next",
     };
   }
@@ -356,10 +353,9 @@ export function toolCode(
     return { slots, keys };
   }
 
-  /** One Widget per reply: the reply so far has drawn one of its own, or code has shown one in it. */
+  /** One Widget per reply (ADR 0007): the reply so far has drawn, opened or updated one, or code has shown one in it. */
   async function widgetInReply(tx: Db, scope: ReplyScope): Promise<boolean> {
-    if (scope.engine) return (await replyWidgets(tx, scope)).slots > 0;
-    return replySoFar(scope).includes(FENCE_OPEN) || itemsSoFar(scope).some((i) => i.kind === WIDGET_SHOWN);
+    return (await replyWidgets(tx, scope)).slots > 0;
   }
 
   const ONE_WIDGET = "Not shown: this reply already has a Widget, and a reply shows one Widget. Talk about the one on screen; show another in a later reply if it still helps.";
@@ -599,8 +595,8 @@ export function toolCode(
           if (topic && exploreHeldBack(topic, progress.topics[topic.id]) === widget.id) {
             return { ok: false, text: `Not opened: "${widget.title}" is this Topic's explore Widget, which code shows when the explore step begins. Do not open it or draw your own version before then; teach this in words.` };
           }
-          // One Widget a reply (ADR 0007), in a Session frozen with the widget engine.
-          if (scope?.engine && (await widgetInReply(tx, scope))) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not opened") };
+          // One Widget a reply (ADR 0007).
+          if (scope && (await widgetInReply(tx, scope))) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not opened") };
           // A preset sets its sliders: each must be one of the Widget's, in range and on its step, and none may use an open quiz's numbers.
           const set = preset && Object.keys(preset).length ? normalizePreset(preset) : undefined;
           if (set) {
@@ -634,7 +630,6 @@ export function toolCode(
         }),
     },
     // The widget engine (ADR 0005): the Tutor chooses a recipe and params, code compiles, checks and stores the Widget.
-    // Always bound, whatever the widget_engine setting says, so a Session frozen with it always resumes.
     show_widget: {
       parse: (input) => showInput.parse(input),
       run: ({ recipe: id, params }, context) =>
@@ -726,10 +721,8 @@ export function toolCode(
           const widget = open.find((w) => w.key === key.trim());
           if (!widget) return { ok: false, text: `Not updated: no open Widget has the key "${key}". Open Widgets: ${open.map((w) => `"${w.key}"`).join(", ") || "none"}.` };
           // One Widget a reply: this one must be the reply's own, unless the reply has none yet.
-          if (scope.engine) {
-            const { slots, keys } = await replyWidgets(tx, scope);
-            if (slots > 0 && !keys.has(widget.key)) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not updated") };
-          }
+          const { slots, keys } = await replyWidgets(tx, scope);
+          if (slots > 0 && !keys.has(widget.key)) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not updated") };
           const ranges = sliderSpecs(widget.code);
           const problems: string[] = [];
           const set: Record<string, number> = {};

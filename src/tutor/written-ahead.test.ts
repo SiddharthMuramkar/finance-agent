@@ -3,11 +3,9 @@ import { WIDGET_OPENED } from "@/course/written-ahead";
 import { saveFinishedStep } from "@/learner/memory";
 import { oldPercentOnly } from "@/test/old-percent-map";
 import { presentValueOnly } from "@/test/present-value-map";
-import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
-import { REPLY_CHECK_PREFIX } from "./turn-status";
-import { loadSession, loadThread } from "./transcript";
+import { loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import { withoutChoices } from "@/test/choices";
@@ -30,17 +28,6 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 
 const text = (t: string) => ({ content: [{ type: "text", text: t }] });
 const open = (id: string, toolId = "toolu_open") => ({ content: [{ type: "tool_use", id: toolId, name: "open_widget", input: { id } }] });
-const fence = (code: string) => ["```openui-lang", code, "```"].join("\n");
-const CAGR = fence(
-  [
-    'root = Widget("One rate move, two ways to describe it", [rate, calc, steps])',
-    "$rate = 4",
-    'rate = Slider("rate", "New rate", 0, 10, 0.01, $rate, "percent")',
-    'calc = Calculator("cagr", {start: 4, end: $rate, years: 1})',
-    "steps = GuidedTasks([up])",
-    'up = GuidedTask("Set the new rate to 6%", $rate == 6)',
-  ].join("\n"),
-);
 type Request = { messages: { role: string; content?: unknown }[] };
 const toolResults = (request: Request) =>
   request.messages.flatMap((m) => (Array.isArray(m.content) ? (m.content as { type: string; content?: unknown; is_error?: boolean }[]).filter((b) => b.type === "tool_result") : []));
@@ -106,78 +93,12 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     expect(String(result.content)).toMatch(/Not opened: this Topic has no written-ahead Widget "annuity-today". Its written-ahead Widgets: rate-change-three-ways/);
     expect(withoutChoices(events).some((e) => e.type === "item")).toBe(false);
   });
-
-  it("sends a Tutor-drawn growth-rate calculator in Percent back through the correction turn, naming the written-ahead Widget to open", async () => {
-    const db = await testDb();
-    await engineOff(db);
-    // The Show me Choice: a step-led turn, held and checked (a typed message streams with no retry, A5).
-    const { client, requests } = scriptedClient([text(`Here is a box.\n${CAGR}`), open("rate-change-three-ways", "toolu_fix"), text("")]);
-    const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me."));
-    // The draft is held and checked (ADR 0008): the Learner sees only the retry, which opens the written-ahead Widget.
-    expect(events.map((e) => e.type)).toEqual(["item", "item", "done"]);
-    const correction = String(requests[1].messages.at(-1)!.content);
-    expect(correction.startsWith(REPLY_CHECK_PREFIX)).toBe(true);
-    expect(correction).toMatch(/this Widget uses the Compound annual growth rate calculator \(cagr\), which the written-ahead Widget "One rate change, said three ways" covers/);
-    expect(correction).toMatch(/call open_widget with id "rate-change-three-ways"/);
-    // The Tutor's own version is gone on reload; the written-ahead Widget stands instead.
-    const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
-    expect((await loadSession(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Show me."]);
-    const thread = await loadThread(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID);
-    expect(withoutChoices(thread).filter((e) => e.role === "item").map((e) => e.role === "item" && e.kind)).toEqual([WIDGET_OPENED]);
-  });
-
-  it("sends back a Widget the Tutor draws under a written-ahead Widget's title, its own version of it", async () => {
-    const own = fence(
-      [
-        'root = Widget("One rate change, said three ways", [old, steps])',
-        "$old = 4",
-        'old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")',
-        "steps = GuidedTasks([up])",
-        'up = GuidedTask("Set it to 5%", $old == 5)',
-      ].join("\n"),
-    );
-    const db = await testDb();
-    await engineOff(db);
-    // The Show me Choice: a step-led turn, held and checked (a typed message streams with no retry, A5).
-    const { client, requests } = scriptedClient([text(own), open("rate-change-three-ways", "toolu_fix"), text("")]);
-    await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me."));
-    expect(String(requests[1].messages.at(-1)!.content)).toMatch(/this Widget has the title of the written-ahead Widget "One rate change, said three ways"\. Never draw your own version: call open_widget/);
-  });
-
-  it("lets the Tutor draw a calculator the Topic's written-ahead Widgets do not cover", async () => {
-    const emi = fence(
-      [
-        'root = Widget("What a home loan costs", [rate, calc, steps])',
-        "$rate = 8.5",
-        'rate = Slider("ratePercent", "Interest rate", 5, 14, 0.01, $rate, "percent")',
-        'calc = Calculator("emi", {principal: 5000000, ratePercent: $rate, years: 20})',
-        "steps = GuidedTasks([ten])",
-        'ten = GuidedTask("Set the rate to 10%", $rate == 10)',
-      ].join("\n"),
-    );
-    const db = await testDb();
-    await engineOff(db);
-    const { client, requests } = scriptedClient([text(emi)]);
-    const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me a loan"));
-    expect(requests).toHaveLength(1);
-    expect(events.some((e) => e.type === "correction")).toBe(false);
-  });
 });
 
 // ADR 0001: the Learner plays with the explore Widget only once the concept is named, and code, not the Tutor's
 // instructions, holds that. Present value's explore Widget is its written-ahead annuity Widget.
 describe("the explore Widget before the explore step", () => {
   const pv = presentValueOnly({ withoutQuiz: true });
-  const ANNUITY = fence(
-    [
-      'root = Widget("How the payments shrink", [rate, chart, steps])',
-      "$rate = 5",
-      'rate = Slider("rate", "Interest rate", 0, 10, 0.01, $rate, "percent")',
-      "chart = AnnuityChart(1000, 10, 0, $rate)",
-      "steps = GuidedTasks([high])",
-      'high = GuidedTask("Set the rate to 8%", $rate == 8)',
-    ].join("\n"),
-  );
 
   it("refuses to open it at the story step, stores nothing, and leaves it off the Written-ahead Widgets line", async () => {
     const db = await testDb();
@@ -188,18 +109,6 @@ describe("the explore Widget before the explore step", () => {
     expect(String(result.content)).toMatch(/Not opened: "What the annuity is worth today" is this Topic's explore Widget/);
     expect(withoutChoices(events).some((e) => e.type === "item")).toBe(false);
     expect(contextOf(requests[0])).not.toContain("annuity-worth-today");
-  });
-
-  it("sends back an annuity chart the Tutor draws at the story step without telling it to open the explore Widget", async () => {
-    const db = await testDb();
-    await engineOff(db);
-    // The Show me Choice: a step-led turn, held and checked (a typed message streams with no retry, A5).
-    const { client, requests } = scriptedClient([text(`Look.\n${ANNUITY}`), text("")]);
-    await collect(runTutorTurn({ db, client, map: pv, learnerId: OWNER_LEARNER_ID }, "Show me."));
-    const correction = String(requests[1].messages.at(-1)!.content);
-    expect(correction).toMatch(/this Widget uses .*which the written-ahead Widget "What the annuity is worth today" covers/);
-    expect(correction).toMatch(/do not open it yet/);
-    expect(correction).not.toMatch(/call open_widget with id "annuity-worth-today"/);
   });
 
   it("opens it once the explore step has begun", async () => {

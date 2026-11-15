@@ -365,9 +365,8 @@ describe("a reply checked before the Learner sees it", () => {
     expect(live).toMatch(/Bonds/);
   });
 
-  it("in an engine Session, sends a reply with an openui-lang fence back for the retry (V4)", async () => {
+  it("sends a reply with an openui-lang fence back for the retry (V4)", async () => {
     const db = await testDb();
-    await db.insert(settings).values({ key: "widget_engine", value: "on" }).onConflictDoUpdate({ target: settings.key, set: { value: "on" } });
     await atConcept(db);
     const fence = "```openui-lang\nroot = Widget(\"PV\", [])\n```";
     const { events, requests } = await run(db, [say(`Here it is.\n${fence}\nWhat do you see?`), say(SHORT)]);

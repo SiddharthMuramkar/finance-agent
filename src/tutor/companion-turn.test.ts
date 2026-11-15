@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { OWNER_LEARNER_ID, sessions as sessionsTable } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { WIDGET_OPENED } from "@/course/written-ahead";
@@ -245,14 +244,6 @@ describe("a Widget when it fits (B6; was a Widget with every reply)", () => {
     const done = events.find((e) => e.type === "done") as Extract<TurnEvent, { type: "done" }>;
     expect(await widgetsOfTurn(db, done.ref.sessionId, done.ref.turnSeq)).toEqual([]);
     expect((await sources(db)).at(-1)).toBe("none");
-  });
-
-  it("gives none in an engine-off Session, with widget_source null", async () => {
-    const db = await testDb();
-    await engineOff(db);
-    const { sessionId, turnSeq } = await turn(db, "What is a basis point?", [say(CONCEPT)]);
-    expect(await widgetsOfTurn(db, sessionId, turnSeq)).toEqual([]);
-    expect(await sources(db)).toEqual([null]);
   });
 
   it("applies the migration that adds reply_checks.widget_source on PGlite", async () => {

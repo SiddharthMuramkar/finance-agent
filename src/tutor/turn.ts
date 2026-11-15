@@ -8,9 +8,8 @@ import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { newReplyWidgetProblems } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
-import { coveredParts, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
+import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
@@ -46,7 +45,6 @@ import {
   type Message,
   type Session,
   type Shown,
-  usesWidgetEngine,
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
@@ -310,7 +308,6 @@ function watchForStop(db: Db, turnId: number) {
   return { signal: controller.signal, end: () => clearInterval(timer) };
 }
 
-const WIDGET_OPEN = "```openui-lang\n";
 export { withoutOpenWidget };
 
 /**
@@ -906,7 +903,6 @@ async function* runLockedTurn(
   };
   await answerTruncated();
   const stoppedNow = () => stopReason === "stopped" || stop.aborted;
-  const engine = usesWidgetEngine(activeSession);
   const covering = activeSession.topicId ? map.topic(activeSession.topicId) : undefined;
   // The facts the reply is held to: worked out again when a tool moved the Learner's step during the draft, or on a resume.
   const moved = draftHeld.some((e) => e.type === "item" && e.item.kind === STEP_DIVIDER);
@@ -922,24 +918,12 @@ async function* runLockedTurn(
     // A resumed turn's record may already reject rows after `replyFrom` (a failed retry before its fallback): never judged again.
     const text = replyTextAfter(withoutRejected(log.rows, rejected), replyFrom);
     const items = await loadSessionItems(db, session.id, learnerId);
-    // Without the widget engine an openui-lang fence is checked as before: it draws, keeps the Widget rules, leaves written-ahead parts alone.
-    let fenceProblems: ReturnType<typeof newReplyWidgetProblems> = [];
-    if (!engine && text.includes(WIDGET_OPEN)) {
-      const heldBack = covering ? exploreHeldBack(covering, (await loadProgress(db, learnerId)).topics[covering.id]) : null;
-      const covered = covering ? coveredParts(covering).map((w) => (w.id === heldBack ? { ...w, held: true } : w)) : [];
-      const openBefore = drawnWidgets(replyTexts(log.rows.filter((r) => r.seq < turnSeq)), items);
-      // A Widget code showed in this reply (reply-items.ts) stays on screen, a rejected draft's included: a fence would be a second.
-      const shownInReply = itemsOfReply(items).some((i) => i.kind === WIDGET_SHOWN);
-      fenceProblems = newReplyWidgetProblems(text, openBefore.map((w) => w.code), covered, shownInReply);
-    }
     // A formula marker the Tutor wrote that cannot be drawn shows as nothing on screen: say so in the server log.
     if (hasMarkers(text)) {
       const problems = markerProblems(text);
       if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
     }
     const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, {
-      engine,
-      fenceProblems,
       savedRule: savedRuleOf(items.filter((i) => i.afterSeq >= turnSeq)),
       writtenAhead: covering ? writtenAheadWidgets(covering) : undefined,
     });
@@ -1211,15 +1195,12 @@ async function* runLockedTurn(
   // code opened one in a step-led turn, code may add the step's scene or, asked what a word means, a Lingo card. It is picked last, once every Widget code stores in the turn is stored (a Next's
   // step Widget, start_again's or a step's items, a re-teach's practice Widget), so the gate sees them all and a turn
   // never gets two. Only the Topic complete card, never a Widget, comes after it: the turn still ends at that card.
-  // Only in Sessions frozen with the widget engine on, and never after a Stop. The browser gets it before the reply's text.
-  let widgetSource: string | null = null;
-  if (engine) {
-    const companion = await companionWidget();
-    widgetSource = companion.source;
-    if (companion.item) {
-      const at = toSend.findIndex((e) => e.type === "text");
-      toSend.splice(at < 0 ? toSend.length : at, 0, { type: "item", item: companion.item });
-    }
+  // Never after a Stop. The browser gets it before the reply's text.
+  const companion = await companionWidget();
+  const widgetSource = companion.source;
+  if (companion.item) {
+    const at = toSend.findIndex((e) => e.type === "text");
+    toSend.splice(at < 0 ? toSend.length : at, 0, { type: "item", item: companion.item });
   }
   // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
   const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());

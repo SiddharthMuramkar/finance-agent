@@ -1,4 +1,3 @@
-import { engineOff } from "@/test/engine-off";
 import { describe, expect, it } from "vitest";
 import { importLibrary, type LibraryFile } from "@/library/ingest";
 import { scriptedClient } from "@/test/scripted-client";
@@ -91,26 +90,6 @@ describe("Tutor replies cite Library passages", () => {
           { n: 2, title: "Stocks", href: "/passages/3", credit: null },
         ]),
     );
-  });
-
-  it("never puts a marker inside a widget block, so inline widgets still draw", async () => {
-    const db = await testDb();
-    await engineOff(db);
-    const widget = '```openui-lang\nroot = Widget("PV", [])\n```';
-    const { client } = scriptedClient([
-      {
-        content: [
-          { type: "text", text: "Prose", citations: [cite("/passages/2", "PV", 1, 2, "x")] },
-          { type: "text", text: `\n\n${widget.slice(0, 20)}` },
-          { type: "text", text: widget.slice(20), citations: [cite("/passages/2", "PV", 1, 2, "x")] },
-          { type: "text", text: "\n\nAfter." },
-        ],
-      },
-    ]);
-
-    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
-
-    expect(streamed(events)).toBe(`Prose[1](/passages/2?blocks=1-2)\n\n${widget}\n\nAfter.${foldText([{ n: 1, title: "PV", href: "/passages/2", credit: null }])}`);
   });
 
   it("never shows the heading of a cited passage the as-of rule hides now, live or after a reload", async () => {

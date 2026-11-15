@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { parse, stringify } from "yaml";
 import { describe, expect, it, vi } from "vitest";
-import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
@@ -12,7 +11,7 @@ import { APIConnectionError, APIConnectionTimeoutError, APIError, Authentication
 import { sql } from "drizzle-orm";
 import { describeFailure } from "./failures";
 import { ResponseFailed } from "./openai-items";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { OPENING_PREFIX } from "./context";
 import { plainFormulaText } from "@/finance/formula-text";
 import { type Line, listSessions, loadCurrentSession, loadSession } from "./transcript";
@@ -22,7 +21,6 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, saveJump, saveReturnToDefaultPath, learnerSummary } from "@/learner/memory";
 import { profileInput, saveProfile } from "@/learner/profile";
-import frozenWidgets from "@/widgets/frozen.generated.json";
 
 // The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
 // src/tutor/companion-turn.test.ts tests the companion.
@@ -74,7 +72,6 @@ describe("Tutor Turn", () => {
 
   it("uses gpt-6.1-sol at medium effort, frozen at Session start and replayed every request; a stored model setting is never read (ADR 0015)", async () => {
     const db = await testDb();
-    await engineOff(db);
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: "First." }] },
       { content: [{ type: "text", text: "Second." }] },
@@ -90,7 +87,7 @@ describe("Tutor Turn", () => {
       expect(request.model).toBe("gpt-6.1-sol");
       for (const banned of ["tool_choice", "temperature", "top_p", "top_k"]) expect(request).not.toHaveProperty(banned);
       expect(request.effort).toBe("medium");
-      expect(request.instructions).toBe(TUTOR_INSTRUCTIONS);
+      expect(request.instructions).toBe(ENGINE_INSTRUCTIONS);
       expect(request.maxOutputTokens).toBe(16000);
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
@@ -101,6 +98,8 @@ describe("Tutor Turn", () => {
         { name: "search_library" },
         { name: "record_misconception" },
         { name: "open_widget" },
+        { name: "show_widget" },
+        { name: "update_widget" },
         { name: "calculate" },
         { name: "suggest_choice" },
       ]);
@@ -271,12 +270,12 @@ describe("Tutor Turn", () => {
       expect(context).toContain("Formulas this Topic teaches");
       expect(context).toContain('"growing-annuity-present-value"');
       expect(context).toContain("ratePercent");
-      expect(TUTOR_INSTRUCTIONS).toContain("Show each only as a FormulaCard widget");
+      expect(ENGINE_INSTRUCTIONS).toContain("Show each only as a FormulaCard widget");
     });
 
     it("tells the Tutor that made-up numbers before the reveal must not match the real outcome, and sends the Concept to take them from at the your-turn step", async () => {
-      expect(TUTOR_INSTRUCTIONS).toContain("a made-up number must never match the Case's real outcome or anything else you know happened after the as-of date");
-      expect(TUTOR_INSTRUCTIONS).toContain("Take hypothetical numbers from the Concept or Check prompt in the Course Navigator message");
+      expect(ENGINE_INSTRUCTIONS).toContain("a made-up number must never match the Case's real outcome or anything else you know happened after the as-of date");
+      expect(ENGINE_INSTRUCTIONS).toContain("Take hypothetical numbers from the Concept or Check prompt in the Course Navigator message");
       // The step where a live run leaked the outcome: code sends the Topic's Concept, never the reveal.
       const db = await testDb();
       for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
@@ -357,7 +356,7 @@ describe("Tutor Turn", () => {
     });
 
     it("tells the Tutor the pacing rule in its instructions", () => {
-      expect(TUTOR_INSTRUCTIONS).toContain("never finish a step that began in the same turn");
+      expect(ENGINE_INSTRUCTIONS).toContain("never finish a step that began in the same turn");
     });
 
     it("saves the current Topic, Teaching Step and reveal, and after a break the Topic's Session carries on with them", async () => {
@@ -808,91 +807,10 @@ describe("Tutor Turn", () => {
      * question, whose reply streams behind the stream guard with no retry (A5), so the widget corrections are tested here.
      */
     const STEP_LED = "Show me.";
-    const good =
-      '```openui-lang\nroot = Widget("PV", [rate, chart, steps])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\nsteps = GuidedTasks([zero])\nzero = GuidedTask("Set the rate to 0%", $rate == 0)\n```';
     const bad = '```openui-lang\nroot = Widget("PV", [chart])\nchart = LineChart([1, 2, 3])\n```';
     const text = (t: string) => ({ content: [{ type: "text", text: t }] });
-    /** The correction request's text, or undefined when the reply needed none. */
-    const correctionAsked = (requests: { messages: { role: string; content?: unknown }[] }[]) =>
-      requests.length > 1 ? String(requests[1].messages.at(-1)!.content) : undefined;
-
-    it("sends a new Widget with a slider and no Guided Task back for one correction turn", async () => {
-      const noTasks = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
-      const db = await testDb();
-      await engineOff(db);
-      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Here it is.\n${noTasks}` }] }, { content: [{ type: "text", text: `Here it is.\n${good}` }] }]);
-      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, STEP_LED));
-      expect(correctionAsked(requests)).toMatch(/slider.*Guided Task/i);
-      // The reply is held until checked (ADR 0008): the Learner sees only the retry, as one text.
-      expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
-      expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
-        { role: "user", text: STEP_LED },
-        { role: "assistant", text: `Here it is.\n${good}` },
-      ]);
-    });
-
-    it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
-      const db = await testDb();
-    await engineOff(db);
-      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hi." }] }]);
-      await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hello"));
-      expect(requests[0].instructions).toContain(frozenWidgets.instructions);
-    });
-
-    it("sends a kit chart with no axis labels back for one correction turn", async () => {
-      const unlabelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])])\n```';
-      const labelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])], "grouped", "When", "Rate in percent")\n```';
-      const db = await testDb();
-      await engineOff(db);
-      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: unlabelled }] }, { content: [{ type: "text", text: labelled }] }]);
-      await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, STEP_LED));
-      expect(correctionAsked(requests)).toMatch(/bars: this BarChart has no axis labels/);
-
-      const fine = await testDb();
-      await engineOff(fine);
-      const once = scriptedClient([{ content: [{ type: "text", text: labelled }] }]);
-      await collect(runTutorTurn({ db: fine, client: once.client, learnerId: OWNER_LEARNER_ID }, STEP_LED));
-      expect(correctionAsked(once.requests)).toBeUndefined();
-    });
 
     describe("with a Widget already open", () => {
-      const history = (title: string) => `\`\`\`openui-lang\nroot = Widget("${title}", [chart])\nchart = HistoryChart("mega-millions-2018/treasury-30-year")\n\`\`\``;
-      const queried = (title: string) =>
-        `\`\`\`openui-lang\nroot = Widget("${title}", [line])\nd = Query("case_data", {dataset: "mega-millions-2018/treasury-30-year"}, {rows: []})\nline = LineChart(d.rows.date, [Series("Yield", d.rows.value)], "linear", "Date", "Percent")\n\`\`\``;
-      const sentText = (request: { messages: { content?: unknown }[] }) => JSON.stringify(request.messages);
-
-      it("tells the Tutor the open Widgets' titles and to update one by reusing its title", async () => {
-        const db = await testDb();
-        await engineOff(db);
-        const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text("Look at the chart.")]);
-        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
-        expect(sentText(requests[0])).not.toContain("Open Widgets");
-        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "And now?"));
-        const context = requests[1].messages.filter((m) => m.role === "system").map((m) => String(m.content)).join("\n");
-        expect(context).toContain('Open Widgets (tabs in the Widget panel): "Long-term interest rates".');
-        expect(context).toMatch(/write it again in full under exactly the same title: code replaces it in its tab/);
-      });
-
-      it("sends a new Widget drawing the same Case Data as an open Widget back for one correction turn", async () => {
-        const db = await testDb();
-        await engineOff(db);
-        const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Rates around the draw")), text(queried("Long-term interest rates"))]);
-        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
-        const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, STEP_LED));
-        expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
-        expect(String(requests[2].messages.at(-1)!.content)).toMatch(/same Case Data \(mega-millions-2018\/treasury-30-year\) as the open Widget "Long-term interest rates"/);
-      });
-
-      it("lets the Tutor update an open Widget in place by reusing its title, with no correction turn", async () => {
-        const db = await testDb();
-        await engineOff(db);
-        const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Long-term interest rates"))]);
-        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
-        const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
-        expect(requests).toHaveLength(2);
-        expect(events.some((e) => e.type === "correction")).toBe(false);
-      });
-
       it("never holds the Widgets already stored to the new rules: a stored slider Widget with no Guided Task reloads unchanged", async () => {
         const db = await testDb();
         const old = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
@@ -905,53 +823,6 @@ describe("Tutor Turn", () => {
         const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Thanks"));
         expect(events.some((e) => e.type === "correction")).toBe(false);
       });
-    });
-
-    it("a valid widget needs no correction turn", async () => {
-      const db = await testDb();
-      await engineOff(db);
-      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Here it is.\n${good}\nDrag the rate.` }] }]);
-      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, STEP_LED));
-      expect(requests).toHaveLength(1);
-      expect(events.some((e) => e.type === "correction")).toBe(false);
-    });
-
-    it("detects an invalid widget on the server, allows one correction turn, and the corrected widget replaces the broken one on reload", async () => {
-      const db = await testDb();
-      await engineOff(db);
-      const { client, requests } = scriptedClient([
-        { content: [{ type: "text", text: `Here it is.\n${bad}\nDrag the rate.` }] },
-        { content: [{ type: "text", text: `Here it is.\n${good}\nDrag the rate.` }] },
-      ]);
-      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, STEP_LED));
-
-      expect(requests).toHaveLength(2);
-      const correction = requests[1].messages.at(-1)!;
-      expect(correction.role).toBe("user");
-      expect(String(correction.content)).toMatch(/LineChart/);
-      expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
-
-      // History stays add-only: both replies and the correction request are stored, and a reload shows the retry.
-      expect(await db.select().from(messages)).toHaveLength(4);
-      expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
-        { role: "user", text: STEP_LED },
-        { role: "assistant", text: `Here it is.\n${good}\nDrag the rate.` },
-      ]);
-    });
-
-    it("sends a Formula Card with a rate bound to no slider back for one correction turn, naming the symbol", async () => {
-      const unbound = '```openui-lang\nroot = Widget("PV", [card])\ncard = FormulaCard("present-value", {ratePercent: 5}, {}, {amount: 1000, years: 5})\n```';
-      const fixed = '```openui-lang\nroot = Widget("PV", [rate, card, steps])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.5, $rate, "percent")\ncard = FormulaCard("present-value", {ratePercent: $rate}, {}, {amount: 1000, years: 5})\nsteps = GuidedTasks([zero])\nzero = GuidedTask("Set the rate to 0%", $rate == 0)\n```';
-      const db = await testDb();
-      await engineOff(db);
-      const { client, requests } = scriptedClient([
-        { content: [{ type: "text", text: `Here it is.\n${unbound}` }] },
-        { content: [{ type: "text", text: fixed }] },
-      ]);
-      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, STEP_LED));
-      expect(requests).toHaveLength(2);
-      expect(String(requests[1].messages.at(-1)!.content)).toMatch(/input "ratePercent" is bound to no Slider/);
-      expect(events.map((e) => e.type)).toEqual(["text", "item", "done"]);
     });
 
     it("gives up after one retry, and the fallback leaves the broken Widget out", async () => {
@@ -1430,7 +1301,6 @@ describe("surviving cut-offs and failures", () => {
 
   it("a changed fingerprint of instructions and tools refreezes them in the same Session, with no notice, and folds the history before the reply", async () => {
     const db = await testDb();
-    await engineOff(db);
     const { client, requests } = scriptedClient([
       { content: [text("One.")] },
       { content: [{ type: "compaction", items: [{ type: "compaction", encrypted_content: "Summary of the Session so far." }] }] },
@@ -1445,13 +1315,13 @@ describe("surviving cut-offs and failures", () => {
     // The fold runs under the new instructions; the reply's request carries the summary and no reply from before the change.
     expect(requests).toHaveLength(3);
     expect(requests[1].compaction).toBe(true);
-    expect(requests.at(-1)!.instructions).toBe(TUTOR_INSTRUCTIONS);
+    expect(requests.at(-1)!.instructions).toBe(ENGINE_INSTRUCTIONS);
     expect(JSON.stringify(requests.at(-1)!.messages)).toContain("Summary of the Session so far.");
     expect(JSON.stringify(requests.at(-1)!.messages)).not.toContain("One.");
     // The Session keeps its model and effort (spec #229: existing Sessions keep theirs).
     expect(requests.at(-1)).toMatchObject({ model: "gpt-6.1-sol", effort: "high" });
     const [session] = await db.select().from(sessionsTable);
-    expect(session).toMatchObject({ model: "gpt-6.1-sol", effort: "high", instructions: TUTOR_INSTRUCTIONS });
+    expect(session).toMatchObject({ model: "gpt-6.1-sol", effort: "high", instructions: ENGINE_INSTRUCTIONS });
   });
 
   it("the calculate tool runs the tested formula and answers with formatted numbers; bad input is an error result the Tutor can read", async () => {
@@ -1571,8 +1441,8 @@ describe("Learner Profile in the Tutor Turn", () => {
   });
 
   it("the instructions say the profile is used only when the Learner asks how an idea applies to them, never as advice", () => {
-    expect(TUTOR_INSTRUCTIONS).toMatch(/Learner Profile/);
-    expect(TUTOR_INSTRUCTIONS).toMatch(/only when the Learner asks how an idea applies to them/);
-    expect(TUTOR_INSTRUCTIONS).toMatch(/never advice/i);
+    expect(ENGINE_INSTRUCTIONS).toMatch(/Learner Profile/);
+    expect(ENGINE_INSTRUCTIONS).toMatch(/only when the Learner asks how an idea applies to them/);
+    expect(ENGINE_INSTRUCTIONS).toMatch(/never advice/i);
   });
 });

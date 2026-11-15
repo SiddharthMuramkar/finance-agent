@@ -32,7 +32,7 @@ import { saveJump } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { TUTOR_MODEL } from "@/tutor/model";
 import { tutorClient } from "@/tutor/tutor-client";
-import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "@/tutor/instructions";
 import { fingerprint } from "@/tutor/session-log";
 import { runTutorTurn, type TutorClient } from "@/tutor/turn";
 import type { TurnUsage } from "@/tutor/usage";
@@ -345,7 +345,7 @@ function renderReport(records: AskRecord[], verdict: Verdict, startedAt: Date, s
     `# Generative widgets live probe, ${startedAt.toISOString()}`,
     "",
     `Tutor: ${PRODUCTION.model} at ${PRODUCTION.effort} effort (production's settings), each ask on a fresh throwaway in-memory database.`,
-    `Instruction fingerprint: ${fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)}. Frozen widget instructions: ${frozen.instructions.length.toLocaleString("en-US")} characters (about ${tokens.toLocaleString("en-US")} tokens).`,
+    `Instruction fingerprint: ${fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS)}. Frozen widget instructions: ${frozen.instructions.length.toLocaleString("en-US")} characters (about ${tokens.toLocaleString("en-US")} tokens).`,
     `Asks run: ${ran} of ${records.length}. Tutor spend: $${spent.toFixed(3)} (budget $${BUDGET}). Wall clock: ${seconds.toFixed(0)} s.`,
     "",
     "## Verdict",
