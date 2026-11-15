@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { OWNER_LEARNER_ID } from "@/db/schema";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OWNER_LEARNER_ID, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
@@ -17,6 +17,12 @@ vi.mock("@/tutor/turn", async (importOriginal) => {
   const real = await importOriginal<typeof import("@/tutor/turn")>();
   return { ...real, runTutorTurn: (deps: TurnDeps, input: TurnInput) => (fake.turn ?? real.runTutorTurn)(deps, input) };
 });
+
+/** BotID's verdict (issue #33): `botid/server` is stubbed, a person by default; a test sets a bot or a check that throws. */
+const HUMAN = { isHuman: true, isBot: false, isVerifiedBot: false, bypassed: false };
+const BOT = { isHuman: false, isBot: true, isVerifiedBot: false, bypassed: false };
+const botid = vi.hoisted(() => ({ check: vi.fn() }));
+vi.mock("botid/server", () => ({ checkBotId: botid.check }));
 
 const { POST, PING_MS } = await import("./route");
 
@@ -41,10 +47,17 @@ function reader(response: Response) {
   };
 }
 
+beforeEach(() => {
+  botid.check.mockReset();
+  botid.check.mockResolvedValue(HUMAN);
+});
 afterEach(() => {
   vi.useRealTimers();
   fake.turn = undefined;
 });
+
+/** How many turns the database holds: a refused request must leave it at zero. */
+const turnCount = async () => (await as.db.select({ id: turns.id }).from(turns)).length;
 
 describe("POST /api/turn", () => {
   it("answers a Stop with nothing running as { stopping: false }, never a 409", async () => {
@@ -101,5 +114,60 @@ describe("POST /api/turn", () => {
     for (let e = await next(); e; e = await next()) events.push(e);
     expect(events.at(-1)).toEqual({ type: "error", kind: "error", message: expect.stringMatching(/^Something went wrong on our side\. Everything so far is saved\. Press Retry\. Reference: [2-9A-Z]{6}$/) });
     for (const word of ["400", "invalid_request_error", "request_id", "signature"]) expect(JSON.stringify(events)).not.toContain(word);
+  });
+});
+
+describe("POST /api/turn: BotID Basic on the start of a turn (issue #33)", () => {
+  it("a bot gets 403 { error: 'bot' } and no turn starts, for every kind of turn", async () => {
+    as.db = await testDb();
+    botid.check.mockResolvedValue(BOT);
+    const started = vi.fn();
+    fake.turn = async function* () {
+      started();
+    };
+    for (const body of [{ message: "What is present value?" }, { opener: true }, { resume: true }, { next: "complete" }, { quizFollowUp: true }]) {
+      const response = await post(body);
+      expect(response.status, JSON.stringify(body)).toBe(403);
+      expect(await response.json()).toEqual({ error: "bot" });
+    }
+    expect(started).not.toHaveBeenCalled();
+    expect(await turnCount()).toBe(0);
+  });
+
+  it("a person gets the turn as before: checked once, with BotID's development verdict set to human", async () => {
+    as.db = await testDb();
+    as.client = scriptedClient([{ content: [{ type: "text", text: "Present value is today's worth of a later sum." }] }]).client;
+    const response = await post({ message: "What is present value?" });
+    expect(response.status).toBe(200);
+    const next = reader(response);
+    const events: StreamEvent[] = [];
+    for (let e = await next(); e; e = await next()) events.push(e);
+    expect(events.map((e) => e.type)).toContain("done");
+    expect(await turnCount()).toBe(1);
+    expect(botid.check).toHaveBeenCalledTimes(1);
+    expect(botid.check).toHaveBeenCalledWith({ developmentOptions: { bypass: "HUMAN" } });
+  });
+
+  it("never checks a Stop, so a Stop always reaches the running turn", async () => {
+    as.db = await testDb();
+    botid.check.mockResolvedValue(BOT);
+    const response = await post({ stop: true });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ stopping: false });
+    expect(botid.check).not.toHaveBeenCalled();
+  });
+
+  it("checks nothing for a request it refuses anyway (no kind, an empty message)", async () => {
+    as.db = await testDb();
+    expect((await post({})).status).toBe(400);
+    expect((await post({ message: "   " })).status).toBe(400);
+    expect(botid.check).not.toHaveBeenCalled();
+  });
+
+  it("fails closed: a check that throws (Vercel OIDC off) starts no turn", async () => {
+    as.db = await testDb();
+    botid.check.mockRejectedValue(new Error("The 'x-vercel-oidc-token' header is missing from the request."));
+    await expect(post({ message: "What is present value?" })).rejects.toThrow(/x-vercel-oidc-token/);
+    expect(await turnCount()).toBe(0);
   });
 });

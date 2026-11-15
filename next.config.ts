@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withBotId } from "botid/next/config";
 
 // OpenUI ships as one file, and a bundler cannot tell which of its parts a page uses. Three changes trim it (the
 // numbers are in docs/architecture.md): a loader that marks its top-level calls as pure and drops its chat shell;
@@ -63,4 +64,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// BotID (issue #33, src/auth/bot-protection.ts): withBotId adds rewrites that send the browser's challenge under
+// /149e9513-…/ to Vercel's BotID service, and lets only those paths be framed by this site (its rule comes after ours,
+// so it wins there). src/proxy.ts's matcher skips that segment, so a signed-out visitor can load the challenge.
+export default withBotId(nextConfig);
