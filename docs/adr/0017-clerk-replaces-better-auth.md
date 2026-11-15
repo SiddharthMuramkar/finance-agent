@@ -1,6 +1,6 @@
 # Clerk replaces Better Auth: Waitlist sign-up, admin by Clerk role, passcodes only locally
 
-Status: accepted, 2026-11-15. Ticket: [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) (Clerk replaces Better Auth + platform security). Supersedes the sign-in parts of ADR 0014, which came from [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15): Better Auth, the Resend emails, the access states worked out in the app and the "What brings you here?" reasons. Confirms and extends #15: passcodes are the local and test door only.
+Status: accepted, 2026-11-15. Ticket: [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) (Clerk replaces Better Auth + platform security). Supersedes ADR 0014, which came from [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15): Better Auth sign-in, approval on `/admin`, the access states worked out in the app, the "What brings you here?" reasons table, the Resend emails, and the `/pending` and `/login` pages. Three of its rules stay (see Consequences). Confirms and extends #15: passcodes are the local and test door only.
 
 ## Context
 
@@ -11,6 +11,7 @@ ADR 0014 built sign-in in the app with Better Auth: a Google OAuth client, email
 - Clerk replaces Better Auth and the passcode door for real people. It is a direct clerk.com account on the Free plan for now.
 - Sign-in is Google and an email link, sent and hosted by Clerk.
 - Sign-up uses Clerk's Waitlist mode: `/join` shows Clerk's Waitlist, a person waits, the owner approves them in Clerk, and Clerk sends the "you're in" email. Resend is not needed.
+- `/pending` and `/login` go. Clerk's `/sign-in` and `/sign-up` pages and the Waitlist on `/join` take their place.
 - The access states are no longer worked out in the app: Clerk holds them. The "What brings you here?" choices are dropped for now.
 - The owner is the person whose Clerk `publicMetadata.role` is `"admin"`, read from the session claim. `/admin` checks that claim.
 - Fresh start, with no user migration. After Clerk is live: take a Neon snapshot, delete the old Learners (those with no Clerk id) and their history, and drop the Better Auth tables.
