@@ -194,8 +194,8 @@ export function HowMoves() {
         </div>
         <ol>
           {MOVE_NAMES.map((name, i) => (
-            <li key={name}>
-              <Button unstyled aria-current={i === active ? "step" : undefined} onClick={() => go(i)}>
+            <li key={name} aria-current={i === active ? "step" : undefined}>
+              <Button unstyled onClick={() => go(i)}>
                 {name}
               </Button>
             </li>
