@@ -76,7 +76,7 @@ questions:
     explanation: >
       A portfolio's expected return is the weighted average of its holdings' expected returns, so it sits between them and leans towards whichever holds more money. Spreading money out lowers risk; it does not add return.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Summary): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 15.2 Risk and Return to Multiple Assets (Summary): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-firm-specific
     prompt: >
@@ -90,7 +90,7 @@ questions:
     explanation: >
       Events that hit one company, like a lawsuit or a failed product, are firm-specific (unsystematic) risk. In a large portfolio they are offset by the other holdings. Systematic risk, the risk of holding the market, never goes away through diversification.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-correlation
     prompt: >
@@ -104,7 +104,7 @@ questions:
     explanation: >
       The lower the correlation, the more one holding's losses are offset by another's gains and the more the portfolio's risk falls. The airline example in OpenStax shows that adding a similar stock removes little risk, while adding a dissimilar one removes much more.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Diversification): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 15.2 Risk and Return to Multiple Assets (Diversification): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-market-fall
     prompt: >
@@ -118,7 +118,7 @@ questions:
     explanation: >
       Systematic risk, from interest rates, recessions or panics, moves almost all shares together. More shares reduce firm-specific risk but never remove market risk, which is why some funds also bought portfolio insurance.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
 
   - id: rp-q-insurance
     prompt: >

@@ -72,7 +72,7 @@ questions:
     explanation: >
       A rate can be quoted from either side: dollars for one peso, or pesos for one dollar. Traders call the flipped version the inverse quote. It is the same price, so a tiny number on one side means a big number on the other.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-appreciate
     prompt: >
@@ -86,7 +86,7 @@ questions:
     explanation: >
       It now costs more dollars to buy a peso, so the price of the peso has risen: it has appreciated, and the dollar has depreciated against it. Devaluation applies only when a government deliberately lowers a fixed rate.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-exporter
     prompt: >
@@ -100,7 +100,7 @@ questions:
     explanation: >
       A weaker peso means one dollar buys more pesos. Maria's dollar price has not changed, so the same sale brings home more pesos. That is why exporters often welcome a weak home currency.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-percent
     prompt: >
@@ -114,7 +114,7 @@ questions:
     explanation: >
       It now takes more rupees to buy one dollar, so each rupee buys less: the rupee lost value and the dollar gained. It is one move seen from two sides, and because each side is measured from its own starting point the two percentages differ a little (the rupee fell about 6.25%, the dollar rose about 6.67%).
     source: >
-      Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+      Arithmetic on the definitions in OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-compound
     prompt: >
@@ -128,7 +128,7 @@ questions:
     explanation: >
       Each cut is taken from whatever value is left. The second cut bites a currency already worth less, so together the two cuts take a little less than their sizes simply added.
     source: >
-      Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+      Arithmetic on the definitions in OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-ppp
     prompt: >
