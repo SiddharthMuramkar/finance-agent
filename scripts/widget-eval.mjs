@@ -2,8 +2,8 @@
 // browser and measures what comes back.
 //
 // It signs in to a LOCAL production server that runs against a Neon TEST BRANCH, always as the tools Learner (never the
-// owner), and for each prompt starts that Learner over, reaches the Study Workspace with a Topic started (the same
-// path as scripts/browser-check.mjs part 4), waits for the opening turn to finish, types the prompt and presses Send.
+// owner), and for each prompt starts that Learner over, reaches the Study Workspace with a Topic started, waits for
+// the opening turn to finish, types the prompt and presses Send.
 // From that moment (t0) it records first pixel, interactive and done times, whether a "Drawing…" skeleton or chip
 // stayed up for more than 12 s, then reads the Session's rows from the database to find which lane served the Widget
 // (recipe, compose, fallback, a fence in the reply, or none) and runs the automatic checks on its code.
