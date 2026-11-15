@@ -124,7 +124,8 @@ this is not a pass.
 - **npm**, weekly: one PR with all minor and patch updates. Major updates are never opened. A new release waits 7 days
   before Dependabot offers it (`cooldown`); security updates do not wait.
 - **GitHub Actions**, weekly: one PR with all updates. Third-party actions are pinned to a commit SHA, and Dependabot
-  updates the SHA.
+  updates the SHA. A new release waits 7 days here too (`cooldown`): the auto-merge run uses the PR's new
+  `dependabot/fetch-metadata` with a write token.
 - Branch names use `-`, not `/`, so Vercel makes no preview deploy for them (`vercel.json`).
 
 `.github/workflows/dependabot-auto-merge.yml` turns on auto-merge (squash) for a Dependabot PR when its update type is

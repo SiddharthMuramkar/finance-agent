@@ -29,6 +29,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # The same wait as npm, for the same reason: a minor or patch PR merges without a person, and the auto-merge run
+    # uses the PR's new dependabot/fetch-metadata with a write token. Security updates do not wait.
+    cooldown:
+      default-days: 7
     groups:
       github-actions:
         patterns: ["*"]

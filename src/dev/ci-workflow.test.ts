@@ -185,3 +185,10 @@ describe("one Node version everywhere", () => {
     }
   });
 });
+
+describe("Dependabot", () => {
+  it("makes every ecosystem wait 7 days for a new release, since its minor and patch PRs merge without a person", () => {
+    const config = parse(readFileSync(join(process.cwd(), ".github", "dependabot.yml"), "utf8"));
+    for (const update of config.updates) expect(update.cooldown?.["default-days"], update["package-ecosystem"]).toBeGreaterThanOrEqual(7);
+  });
+});
