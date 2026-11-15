@@ -1,0 +1,68 @@
+import { describe, expect, it } from "vitest";
+import sources from "../../scripts/library/sources.json";
+import { EFFR_NOTICE, NYFED_REFERENCE_RATE_NOTICE, passageNotices, SOFR_NOTICE } from "./credits";
+import { librarySourceInput } from "./ingest";
+
+const source = (id: string) => {
+  const s = sources.find((x) => x.id === id);
+  if (!s) throw new Error(`no source ${id}`);
+  return s;
+};
+
+// The forms each owner asks for (#26; research/library-licences.md on branch research-library-licences).
+describe("credit lines in the form each source's owner asks for", () => {
+  it("OpenStax: the line its book page asks for on every digital page view, with authors, publisher and licence", () => {
+    const { credit, licence, licenceUrl } = source("openstax-principles-finance-2e");
+    expect(credit).toContain("Access for free at https://openstax.org/books/principles-finance-2e/pages/1-why-it-matters");
+    expect(credit).toMatch(/^Julie Dahlquist and Rainford Knight, Principles of Finance 2e \(OpenStax/);
+    expect(credit).toContain("CC BY-NC-SA 4.0");
+    expect([licence, licenceUrl]).toEqual(["CC BY-NC-SA 4.0", "https://creativecommons.org/licenses/by-nc-sa/4.0/"]);
+  });
+
+  it("Open Yale Courses: [Name], [Course Title] (Yale University: Open Yale Courses), http://oyc.yale.edu (Accessed Date). License: Creative Commons BY-NC-SA", () => {
+    const oyc = /^[^,]+, [^(]+ \(Yale University: Open Yale Courses\), http:\/\/oyc\.yale\.edu \(Accessed [A-Z][a-z]+ \d{1,2}, \d{4}\)\. License: Creative Commons BY-NC-SA$/;
+    for (const id of ["yale-econ-251", "yale-econ-252"]) {
+      const s = source(id);
+      expect(s.credit).toMatch(oyc);
+      // The access date is the day the copy was taken.
+      expect(s.credit).toContain(`(Accessed ${new Date(`${s.fetchedOn}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })})`);
+    }
+    expect(source("yale-econ-251").credit).toMatch(/^John Geanakoplos, Financial Theory /);
+    expect(source("yale-econ-252").credit).toMatch(/^Robert Shiller, Financial Markets /);
+  });
+
+  it("New York Fed: “© [year] Federal Reserve Bank of New York. Content from the New York Fed subject to the Terms of Use at newyorkfed.org.”", () => {
+    expect(source("nyfed-explainers").credit).toMatch(/^© \d{4} Federal Reserve Bank of New York\. Content from the New York Fed subject to the Terms of Use at newyorkfed\.org\.$/);
+  });
+
+  it("the Damodaran blog's licence link no longer points at his NYU site guide, which covers pages.stern.nyu.edu and not the blog", () => {
+    const blog = source("damodaran-blog");
+    expect(blog.licenceUrl).not.toContain("pages.stern.nyu.edu");
+    expect(blog.licenceUrl).toContain("section107");
+    expect(blog.licence).toMatch(/^All rights reserved/);
+  });
+
+  it("every source still loads: its record passes the load schema", () => {
+    for (const s of sources) {
+      // Extra keys (fetch, publishedOn) are dropped by the schema, as the load script drops them.
+      expect({ id: s.id, ok: librarySourceInput.safeParse(s).success }).toEqual({ id: s.id, ok: true });
+    }
+  });
+});
+
+describe("the New York Fed reference-rate notice", () => {
+  it("fills in the Terms of Use form for SOFR and EFFR, naming Value It as the publisher", () => {
+    expect(SOFR_NOTICE).toBe(
+      "The Secured Overnight Financing Rate (SOFR) is subject to the Terms of Use posted at newyorkfed.org. The New York Fed is not responsible for publication of the SOFR by Value It, does not sanction or endorse any particular republication, and has no liability for your use.",
+    );
+    expect(EFFR_NOTICE).toContain("publication of the EFFR by Value It");
+    expect(NYFED_REFERENCE_RATE_NOTICE).toMatch(/^The Secured Overnight Financing Rate \(SOFR\) and Effective Federal Funds Rate \(EFFR\) information is subject to the Terms of Use posted at newyorkfed\.org\./);
+  });
+
+  it("goes on passages from the NY Fed's SOFR and EFFR pages only", () => {
+    expect(passageNotices({ sourceId: "nyfed-explainers", ref: "markets-reference-rates-sofr#3" })).toEqual([SOFR_NOTICE]);
+    expect(passageNotices({ sourceId: "nyfed-explainers", ref: "markets-reference-rates-effr#1" })).toEqual([EFFR_NOTICE]);
+    expect(passageNotices({ sourceId: "nyfed-explainers", ref: "markets-primarydealers#1" })).toEqual([]);
+    expect(passageNotices({ sourceId: "openstax-principles-finance-2e", ref: "markets-reference-rates-sofr#1" })).toEqual([]);
+  });
+});

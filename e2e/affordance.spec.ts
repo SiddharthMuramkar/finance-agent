@@ -8,18 +8,18 @@ import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 /**
  * A3b: every button looks like a button, every link like a link, every tag like a tag (spec 2026-11-05, ticket A3b,
  * Appendix C.3, as ADR 0018 amends it: flat controls, signified by a face, an edge or a strong ghost label; nothing in the
- * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982, in Light and in Dark (Dark until #32 lands).
+ * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982.
  */
 
-const PROJECTS = ["mbp14", "mbp14-dark"];
+const PROJECTS = ["mbp14"];
 
 test.beforeEach(async ({ page }, info) => {
-  test.skip(!PROJECTS.includes(info.project.name), "measured at 1512×982, Light and Dark");
+  test.skip(!PROJECTS.includes(info.project.name), "measured at 1512×982");
   await quietDevtools(page);
 });
 
-async function clean(page: Page, where: string) {
-  const audit = await auditAffordances(page);
+async function clean(page: Page, where: string, opts: { letOff?: string } = {}) {
+  const audit = await auditAffordances(page, opts);
   expect(
     {
       interactiveWithoutSignifier: audit.interactiveWithoutSignifier,
@@ -39,16 +39,36 @@ async function visit(page: Page, state: State, path: string) {
   await hydrated(page);
 }
 
+/**
+ * The Signal site's pages (decision #7: Home, How it works, Examples, the case pages and About) are judged like every other
+ * page, but for the few Signal spec §5 components whose look the spec draws against the app's rules, while the owner
+ * decides which rule wins (#32):
+ * - text links (`.v-tlink`) and whole-row question links (`.v-qrow`, "Play →") have no underline until hover (§5.2),
+ *   where ADR 0018 underlines a link in a reading area at rest;
+ * - an FAQ row (`.v-faq summary`, §5.17) shows a "+" drawn in CSS, not a chevron icon;
+ * - the Tutor demo's question chips (`.v-qchip`) are pills, and a case page's Previous and Next cards (`.v-linkcard`, a
+ *   whole card that is a link) keep a card's 14 px corners, where ADR 0018 caps a control's corners at 12 px.
+ * Only these, only inside `#main`, are let off, and only the look rules (signifier, flatness, F4's link and blue-word
+ * rules). Everything else on those pages, the site chrome included, is judged. When the owner decides, either the site
+ * follows ADR 0018 and its selector leaves this list, or the ADR makes room for the Signal spec here.
+ */
+const SIGNAL_SITE = new Set(["home", "home-signed-out", "about", "how-it-works", "examples", "case-amazon"]);
+const SIGNAL_SPEC_LOOKS = ["#main .v-tlink", "#main .v-qrow", "#main .v-faq summary", "#main .v-qchip", "#main .v-linkcard"].join(", ");
+
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
-    for (const path of ["/", "/login", "/about"]) {
-      test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path}`, async ({ page, baseURL }, info) => {
-        // Signed out keeps the Learner's theme: the dark project is a Learner who chose Dark.
-        if (info.project.name.endsWith("-dark")) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL! }]);
+    test("[A3b] /login", async ({ page }) => {
+      await page.goto("/login");
+      await hydrated(page);
+      await clean(page, "/login");
+    });
+
+    for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000"]) {
+      test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path} (the Signal site)`, async ({ page }) => {
         await page.goto(path);
         await hydrated(page);
-        await clean(page, path);
+        await clean(page, path, { letOff: SIGNAL_SPEC_LOOKS });
       });
     }
   });
@@ -83,16 +103,6 @@ test.describe("affordance audit is clean", () => {
     });
   }
 
-  // The header toggle switches the theme at once, and the page it switched is still clean.
-  test("/settings after the header toggle", async ({ page }) => {
-    await visit(page, "many-topics", "/settings");
-    const before = await page.locator("html").getAttribute("data-theme");
-    const after = before === "dark" ? "light" : "dark";
-    await page.getByTestId("theme-toggle").click();
-    await expect(page.locator("html")).toHaveAttribute("data-theme", after);
-    await clean(page, `/settings after the toggle (${after})`);
-  });
-
   test("[A5] /settings with the account menu open", async ({ page }) => {
     await visit(page, "many-topics", "/settings");
     await page.getByTestId("account-menu-button").click();
@@ -126,7 +136,7 @@ test.describe("affordance audit is clean", () => {
  * area a link is the accent and underlined, and blue words that can be pressed are underlined or sit on a face; on a Band
  * a button is white with an ink label and a link is white and underlined; nothing that can be pressed is drawn like a key
  * number (the accent at 20px or more, 600 or heavier, never underlined). F1 rides along: no two Bands touch. Each page
- * is opened as the matrix opens it (its seed, or signed out with the theme kept), in Light and in Dark.
+ * is opened as the matrix opens it (its seed, or signed out).
  */
 type F4Rule = "readingLinks" | "bandLinks" | "bandButtons" | "keyNumberLook" | "bareBlueWords" | "bandsTouching";
 const F4_RULES: readonly F4Rule[] = ["readingLinks", "bandLinks", "bandButtons", "keyNumberLook", "bareBlueWords", "bandsTouching"];
@@ -137,13 +147,13 @@ const F4_RULES: readonly F4Rule[] = ["readingLinks", "bandLinks", "bandButtons",
  */
 const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 
-/** Home signed out: the matrix shoots Home signed in, so the hero Band's white Join early access button is judged here. */
+/** Home signed out: the matrix shoots Home signed in, so the visitor's Home (its Join early access) is judged here. */
 const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
 
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {
   for (const cell of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED, HOME_SIGNED_OUT]) {
     test(`[F4] ${cell.id} (${cell.path})`, async ({ page }) => {
-      if (cell.signedOut) await page.context().clearCookies({ name: /^(?!theme$)/ });
+      if (cell.signedOut) await page.context().clearCookies();
       else await seed(page, cell.seed!);
       await page.goto(cell.path);
       await hydrated(page);
@@ -151,15 +161,16 @@ test.describe("[F4] what can be pressed stays obvious on every page of the previ
         await expect(page.getByTestId("workspace-frame")).toBeVisible();
         await settled(page);
       }
-      const look = await pressLook(page);
+      const look = await pressLook(page, SIGNAL_SITE.has(cell.id) ? { letOff: SIGNAL_SPEC_LOOKS } : {});
       const known = F4_KNOWN[cell.id];
       const found = Object.fromEntries(F4_RULES.filter((rule) => rule !== known?.rule).map((rule) => [rule, look[rule]]));
       expect(found, `${cell.path}: ${JSON.stringify(look)}`).toEqual(Object.fromEntries(Object.keys(found).map((rule) => [rule, []])));
       if (known) expect(look[known.rule].length, `${cell.id}: ${known.rule} is clean now, so remove its F4_KNOWN row (${known.why})`).toBeGreaterThan(0);
       expect(look.counts.pressable, `${cell.path} has controls to judge`).toBeGreaterThan(0);
-      // Every page of the matrix but the Course Map, the Notebook and Settings stands on at least one Band (F1): Home's
-      // closing, About's opening and closing, the sign-in strip, and the Topic bar on every /study cell.
-      if (!["course-map", "notebook", "settings"].includes(cell.id)) expect(look.counts.bands, `${cell.path} has a Band`).toBeGreaterThan(0);
+      // Every page judged here but the Course Map, the Notebook, Settings and the Signal site's pages (whose sections are the
+      // Signal spec's, with no royal-blue Band) stands on at least one Band (F1): the sign-in strip, and the Topic bar on
+      // every /study cell. On the Signal pages a Band would still be judged by every Band rule above.
+      if (!["course-map", "notebook", "settings"].includes(cell.id) && !SIGNAL_SITE.has(cell.id)) expect(look.counts.bands, `${cell.path} has a Band`).toBeGreaterThan(0);
     });
   }
 });
@@ -171,35 +182,31 @@ const lookOf = (el: Element) => {
 };
 const STILL = { transform: "none", translate: "none", scale: "none", shadow: "none" };
 
-// The primary fill at rest, on hover and on press, per theme (the --fill, --fill-hover and --fill-active tokens).
-const FILL = {
-  light: ["rgb(31, 63, 174)", "rgb(26, 53, 150)", "rgb(21, 43, 122)"],
-  dark: ["rgb(245, 245, 247)", "rgb(229, 229, 234)", "rgb(209, 209, 214)"],
-} as const;
-const INK_2 = { light: "rgb(48, 53, 63)", dark: "rgb(209, 209, 214)" } as const;
+// The primary fill at rest, on hover and on press (the --fill, --fill-hover and --fill-active tokens: the spec's blues).
+const FILL = ["rgb(31, 63, 174)", "rgb(26, 53, 150)", "rgb(21, 43, 122)"] as const;
+const INK_2 = "rgb(48, 53, 63)";
 
 test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seed(page, "many-topics");
   await page.goto("/settings");
   await hydrated(page);
-  const theme = (await page.locator("html").getAttribute("data-theme")) === "dark" ? "dark" : "light";
   const primary = page.locator('[data-affordance="button"].btn-primary:visible').first();
   await expect(primary).toBeVisible();
   const look = () => primary.evaluate(lookOf);
 
   const rest = await look();
-  expect(rest).toMatchObject({ background: FILL[theme][0], ...STILL });
+  expect(rest).toMatchObject({ background: FILL[0], ...STILL });
   await primary.hover();
-  await expect.poll(async () => (await look()).background).toBe(FILL[theme][1]);
+  await expect.poll(async () => (await look()).background).toBe(FILL[1]);
   expect(await look()).toMatchObject({ ...STILL, top: rest.top });
   await page.mouse.down();
-  await expect.poll(async () => (await look()).background).toBe(FILL[theme][2]);
+  await expect.poll(async () => (await look()).background).toBe(FILL[2]);
   expect(await look()).toMatchObject({ ...STILL, top: rest.top });
   // Let go away from the button (no click), so the form is not sent.
   await page.mouse.move(2, 2);
   await page.mouse.up();
-  await expect.poll(async () => (await look()).background).toBe(FILL[theme][0]);
+  await expect.poll(async () => (await look()).background).toBe(FILL[0]);
 
   // Colour transitions only, and quick: the longest is the 140ms --dur-ui.
   const longest = await primary.evaluate((el) => Math.max(...getComputedStyle(el).transitionDuration.split(",").map((d) => parseFloat(d) * (d.trim().endsWith("ms") ? 0.001 : 1))));
@@ -211,7 +218,7 @@ test("[ADR 0018] pressing is flat: a press changes colour, never position", asyn
   await expect(secondary).toBeVisible();
   const secondaryRest = await secondary.evaluate(lookOf);
   await secondary.hover();
-  await expect.poll(async () => (await secondary.evaluate(lookOf)).border).toBe(INK_2[theme]);
+  await expect.poll(async () => (await secondary.evaluate(lookOf)).border).toBe(INK_2);
   expect(await secondary.evaluate(lookOf)).toMatchObject({ ...STILL, top: secondaryRest.top });
   await page.mouse.move(2, 2);
 
@@ -300,10 +307,8 @@ const WIDGET_PRESS = [
 for (const { fixture, selector, kind, width } of WIDGET_PRESS) {
   test(`[A4] a press inside a Widget changes colour, never position (${fixture})`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    const dark = test.info().project.name.endsWith("-dark");
-    await page.goto(`/dev/widgets?fixture=${fixture}&width=${width}${dark ? "&theme=dark" : ""}`);
+    await page.goto(`/dev/widgets?fixture=${fixture}&width=${width}`);
     await expect(page.getByTestId("widget-card")).toBeVisible();
-    const theme = dark ? "dark" : "light";
     const control = page.locator(selector).first();
     await expect(control).toBeVisible();
     const rest = await control.evaluate(lookOf);
@@ -314,7 +319,7 @@ for (const { fixture, selector, kind, width } of WIDGET_PRESS) {
     expect(hover, "on hover").toMatchObject({ ...STILL, top: rest.top });
     // A button's and a chip's edge darkens to ink-2 on hover; the ghost icon button steps its face instead (spec A4 test 7).
     if (kind === "icon button") await expect.poll(async () => (await control.evaluate(lookOf)).background, "the icon button's face steps on hover").not.toBe(rest.background);
-    else await expect.poll(async () => (await control.evaluate(lookOf)).border, `the ${kind}'s edge on hover`).toBe(INK_2[theme]);
+    else await expect.poll(async () => (await control.evaluate(lookOf)).border, `the ${kind}'s edge on hover`).toBe(INK_2);
     await page.mouse.down();
     await page.waitForTimeout(150);
     const pressed = await control.evaluate(lookOf);
@@ -337,11 +342,10 @@ const FIXTURES = ["audit", "parts"].flatMap((group) => readdirSync(`src/widgets/
 
 test("[A4] no Widget control lifts, moves or is rounder than 12px", async ({ page }) => {
   test.setTimeout(240_000);
-  const dark = test.info().project.name.endsWith("-dark");
   const stillRaised: string[] = [];
   const alreadyFlat: string[] = [];
   for (const fixture of FIXTURES) {
-    await page.goto(`/dev/widgets?fixture=${fixture}&width=860${dark ? "&theme=dark" : ""}`);
+    await page.goto(`/dev/widgets?fixture=${fixture}&width=860`);
     await expect(page.getByTestId("widget-card")).toBeVisible();
     const notFlat = (await auditAffordances(page)).notFlat;
     if (fixture in NOT_FLAT_YET) {
@@ -353,9 +357,8 @@ test("[A4] no Widget control lifts, moves or is rounder than 12px", async ({ pag
 });
 
 test("[A4] the kit's callouts have no tinted face", async ({ page }) => {
-  const dark = test.info().project.name.endsWith("-dark");
   for (const fixture of ["05-pv-100-today-vs-later", "07-sip-1000-month"]) {
-    await page.goto(`/dev/widgets?fixture=${fixture}&width=860${dark ? "&theme=dark" : ""}`);
+    await page.goto(`/dev/widgets?fixture=${fixture}&width=860`);
     const card = page.getByTestId("widget-card");
     await expect(card).toBeVisible();
     const tinted = await card.evaluate((root) => {
@@ -375,20 +378,18 @@ test("[A4] the kit's callouts have no tinted face", async ({ page }) => {
   }
 });
 
-// With SHOTS=A4, the 1512×982 projects save the flat Widget controls on /study and on the Story scene, Light and Dark.
+// With SHOTS=A4, the 1512×982 projects save the flat Widget controls on /study and on the Story scene.
 test("[A4] screenshots: a flat Widget on /study and the Story scene", async ({ page }) => {
   test.skip(process.env.SHOTS !== "A4", "only with SHOTS=A4");
   const shots = join("docs", "specs", "img", "2026-11-11");
   mkdirSync(shots, { recursive: true });
-  const dark = test.info().project.name.endsWith("-dark");
-  const theme = dark ? "dark" : "light";
   await seed(page, "concept-widget");
   await page.goto("/study");
   await expect(page.getByTestId("workspace-frame")).toBeVisible();
   await hydrated(page);
   await expect(page.locator(WIDGET_CONTENT).first()).toBeVisible();
-  await page.screenshot({ path: join(shots, `A4-study-widget-${theme}.png`) });
-  await page.goto(`/dev/widgets?fixture=story-scene&width=860${dark ? "&theme=dark" : ""}`);
+  await page.screenshot({ path: join(shots, `A4-study-widget-light.png`) });
+  await page.goto(`/dev/widgets?fixture=story-scene&width=860`);
   await expect(page.getByTestId("widget-card")).toBeVisible();
-  await page.screenshot({ path: join(shots, `A4-story-scene-${theme}.png`) });
+  await page.screenshot({ path: join(shots, `A4-story-scene-light.png`) });
 });

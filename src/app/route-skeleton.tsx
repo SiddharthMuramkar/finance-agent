@@ -4,7 +4,6 @@
 import type { ReactNode } from "react";
 import { splitStyle } from "./split";
 import { readSplit } from "./split-cookie";
-import { readTheme } from "./theme-cookie";
 import { AppHeader, SignedInFrame, type HeaderPage } from "./ui";
 
 /** One hairline block. className sizes it. */
@@ -27,7 +26,7 @@ export function SkeletonLines({ count = 3, className = "" }: { count?: number; c
 export async function ReadingSkeleton({ current, children }: { current: HeaderPage; children: ReactNode }) {
   return (
     <main data-testid="route-skeleton" aria-busy="true" className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-16">
-      <AppHeader current={current} theme={await readTheme()} />
+      <AppHeader current={current} />
       <div className="w-full space-y-6 pt-8">{children}</div>
     </main>
   );
@@ -43,7 +42,7 @@ export async function WorkspaceSkeleton() {
   return (
     <SignedInFrame>
       <main data-testid="route-skeleton" data-route="study" aria-busy="true" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3">
-        <AppHeader current="workspace" theme={await readTheme()} />
+        <AppHeader current="workspace" />
         <div data-testid="topic-bar-skeleton" className="band -mx-[var(--gutter)] h-[76px] shrink-0" />
         <div className="workspace-split min-h-0 flex-1 overflow-hidden pt-3" style={splitStyle(await readSplit())}>
           <div className="flex min-h-0 flex-col gap-4">

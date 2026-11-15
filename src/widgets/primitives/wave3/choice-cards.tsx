@@ -66,7 +66,7 @@ export function ChoiceCardsView({ question, choices, answer, picked, onPick }: P
         })}
       </div>
       <div role="status" data-testid="choice-status" className="mt-2 min-h-6 text-sm font-medium leading-5">
-        {chosen && (right ? <p className="flex items-center gap-1.5 text-base font-medium text-[var(--success)]"><Check size={16} strokeWidth={1.75} aria-hidden /> Yes</p> : <p className="flex items-center gap-1.5 text-base font-medium text-[var(--danger)]"><X size={16} strokeWidth={1.75} aria-hidden /> {chosen.fix || "Not quite. Try another."}</p>)}
+        {chosen && (right ? <p className="flex items-center gap-1.5 text-base font-medium text-[var(--ink)]"><Check size={16} strokeWidth={1.75} color="var(--success)" aria-hidden /> Yes</p> : <p className="flex items-center gap-1.5 text-base font-medium text-[var(--ink)]"><X size={16} strokeWidth={1.75} color="var(--danger)" aria-hidden /> {chosen.fix || "Not quite. Try another."}</p>)}
       </div>
     </section>
   );

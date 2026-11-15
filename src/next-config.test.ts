@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import nextConfig from "../next.config";
 
-describe("Home and the About page are never cached as pages", () => {
-  // Each is one address for two pages keyed by the cookie: the About page's header knows who is signed in (spec 2026-11-12 G1).
-  for (const source of ["/", "/about"]) {
-    it(`${source} is private and no-store, so one address can serve two pages keyed by the cookie`, async () => {
+// Decision #7: every public site page's nav and CTAs follow the viewer state (Signal spec 7.1), so one address serves
+// several pages keyed by the cookie.
+const SITE = ["/", "/how-it-works", "/examples", "/examples/:slug", "/about"];
+
+describe("The public site's pages are never cached as pages", () => {
+  for (const source of SITE) {
+    it(`${source} is private and no-store, so one address can serve several pages keyed by the cookie`, async () => {
       const rules = await nextConfig.headers!();
       const value = rules
         .filter((r) => r.source === source)
@@ -19,7 +22,7 @@ describe("Home and the About page are never cached as pages", () => {
   it("they are the only private, no-store addresses", async () => {
     const rules = await nextConfig.headers!();
     const noStore = rules.filter((r) => r.headers.some((h) => h.key === "Cache-Control" && /no-store/.test(h.value)));
-    expect(noStore.map((r) => r.source)).toEqual(["/", "/about"]);
+    expect(noStore.map((r) => r.source)).toEqual(SITE);
   });
 });
 

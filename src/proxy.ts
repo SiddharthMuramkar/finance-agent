@@ -6,12 +6,17 @@ import { destinationOrDefault, safeDestination } from "@/auth/destination";
 import { learnerFromCookie } from "@/auth/learners";
 import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
+import { EXAMPLE_SLUGS, examplePath } from "@/site/examples";
 
 /** The only files a signed-out visitor may fetch besides Home: the link-preview image (site-metadata.ts). */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
-/** The pages a signed-out visitor may read, matched exactly: Home and the About page. */
-const PUBLIC_PAGES = new Set(["/", "/about"]);
+/**
+ * The pages a signed-out visitor may read, matched exactly (decision #7): the Signal site's Home, How it works,
+ * Examples, About and the five case pages. The case pages come from the same list as the pages' generateStaticParams,
+ * so the gate and the pages always agree; an unknown slug still goes to the login.
+ */
+const PUBLIC_PAGES = new Set(["/", "/how-it-works", "/examples", "/about", ...EXAMPLE_SLUGS.map(examplePath)]);
 
 /** Developer pages, open without a sign-in outside production only. In production the page itself also answers 404. */
 const DEV_PAGE = /^\/dev(?:\/|$)/;
@@ -60,7 +65,7 @@ async function signedInAtLogin(request: NextRequest, atGate: "passcode" | "accou
 /**
  * Every page and API route needs a sign-in: a verified passcode cookie, or (optimistically) a Better
  * Auth session cookie while Better Auth is on (Google or email links). Signed out, only a GET or HEAD of a public page
- * ("/" Home and "/about", matched exactly), the link-preview image and the login page, and a POST to the sign-out route,
+ * (PUBLIC_PAGES, matched exactly), the link-preview image and the login page, and a POST to the sign-out route,
  * get through; a write to a public page or any Server Action call answers 401; other pages redirect to the login, remembering a
  * GET or HEAD's page as `next`. Verified signed in, the login page skips its form and goes to the safe `next` or /study;
  * an optimistic Better Auth cookie alone never does (it is fully checked first), so a stale cookie, or a

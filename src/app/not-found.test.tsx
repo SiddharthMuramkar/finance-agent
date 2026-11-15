@@ -1,10 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
-
-import type { ThemeId } from "./theme";
-
-let theme: ThemeId = "light";
-vi.mock("./theme-cookie", () => ({ readTheme: async () => theme }));
+import { describe, expect, it } from "vitest";
 
 const { default: NotFound } = await import("./not-found");
 
@@ -20,11 +15,11 @@ describe("Branded not-found page", () => {
     expect(html).toMatch(/<a[^>]*href="\/study"[^>]*>Back to your Topic<\/a>/);
   });
 
-  it("keeps the remembered theme in its toggle", async () => {
-    theme = "dark";
-    expect(await render()).toContain('aria-label="Switch to light theme"');
-    theme = "light";
-    expect(await render()).toContain('aria-label="Switch to dark theme"');
+  // Decision #17: one Light theme, so the header has no theme toggle.
+  it("has no theme toggle", async () => {
+    const html = await render();
+    expect(html).not.toContain('data-testid="theme-toggle"');
+    expect(html).not.toMatch(/Switch to (?:dark|light) theme/);
   });
 
   it("says Topic, never lesson or Continue", async () => {

@@ -10,7 +10,7 @@ import { say, script, seed, settled } from "./support/app";
  */
 
 test.beforeEach(async ({}, info) => {
-  test.skip(info.project.name !== "mbp14" && info.project.name !== "mbp14-dark", "one viewport per theme is enough here");
+  test.skip(info.project.name !== "mbp14", "one viewport is enough here");
 });
 
 /** The Choices under the latest reply: two or three outline buttons, words only (ADR 0008, A2). */
@@ -28,7 +28,7 @@ async function expectChoices(page: Page) {
   return choices;
 }
 
-test("after each of 5 scripted replies 2–3 Choices show, and a tapped Choice posts its words", async ({ page }, info) => {
+test("after each of 5 scripted replies 2–3 Choices show, and a tapped Choice posts its words", async ({ page }) => {
   test.setTimeout(180_000);
   await seed(page, "concept-widget");
   await page.goto("/study");
@@ -70,10 +70,10 @@ test("after each of 5 scripted replies 2–3 Choices show, and a tapped Choice p
   await expect(page.getByTestId("help-chip")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Show me in a widget/ })).toHaveCount(0);
 
-  // A2 (spec 2026-11-11): the Choices under a reply at 1512 × 982, Light and Dark.
+  // A2 (spec 2026-11-11): the Choices under a reply at 1512 × 982.
   if (process.env.SHOTS === "A2") {
     const shots = join("docs", "specs", "img", "2026-11-11");
     mkdirSync(shots, { recursive: true });
-    await page.screenshot({ path: join(shots, `A2-choices-${info.project.name.endsWith("-dark") ? "dark" : "light"}.png`) });
+    await page.screenshot({ path: join(shots, `A2-choices-light.png`) });
   }
 });

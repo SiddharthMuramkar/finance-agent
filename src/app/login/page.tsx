@@ -3,7 +3,8 @@ import { betterAuthOn, googleSignInOn } from "@/auth/better-auth";
 import { destinationOrDefault, googleCallbackURL, safeDestination } from "@/auth/destination";
 import { emailLinkOn } from "@/auth/email-link";
 import { currentSignIn } from "@/auth/session";
-import { HomeFooter, HomeHeader, type PublicSignIn } from "../_landing/chrome";
+import type { Viewer } from "@/site/viewer";
+import { SiteShell } from "../(site)/site-chrome";
 import { Button, PrimaryButton, TextLink, secondaryButtonClass } from "../ui";
 import { EmailLinkForm } from "./email-link-form";
 import { GoogleButton } from "./google-button";
@@ -95,7 +96,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const signIn = betterAuthOn(process.env) ? await currentSignIn() : null;
   if (signIn?.kind === "waiting") {
     return (
-      <Shell title="Waiting for approval" signIn="waiting">
+      <Shell title="Waiting for approval" viewer={{ state: "applicant" }}>
         <AccountStatus email={signIn.user.email} next={next}>
           The owner of Value It lets each new person in. Nothing is emailed when they do, so press Check again later.
         </AccountStatus>
@@ -104,7 +105,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   }
   if (signIn?.kind === "denied") {
     return (
-      <Shell title="Access not approved" signIn="waiting">
+      <Shell title="Access not approved">
         <AccountStatus email={signIn.user.email} next={next}>
           The owner of Value It hasn&apos;t let this account in. If that&apos;s a mistake, ask the person who shared Value It with you.
         </AccountStatus>
@@ -164,29 +165,25 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 }
 
 /**
- * The page: the public header (G1; `signIn` "waiting" for the status screens, else signed out, because the proxy sends a
- * signed-in Learner on before this page draws), a Band across the top holding the page's one heading (F1: the sign-in
- * page's and the Waiting screen's top strip), then the narrow single-task column, ending on the way back Home.
+ * The page: the site chrome (Signal spec 4.2, 4.3: the nav shows "Request in review" to someone waiting for the owner;
+ * everyone else here is signed out, because the proxy sends a signed-in Learner on before this page draws), a Band across
+ * the top holding the page's one heading (F1: the sign-in page's and the Waiting screen's top strip), then the narrow
+ * single-task column, ending on the way back Home.
  */
-function Shell({ title, signIn, children }: { title: string; signIn?: PublicSignIn; children: ReactNode }) {
+function Shell({ title, viewer = { state: "visitor" }, children }: { title: string; viewer?: Viewer; children: ReactNode }) {
   return (
-    <div className="home">
-      <HomeHeader current="login" signIn={signIn} />
-      <main>
-        <div data-band="sign-in-strip" className="band">
-          <div className="mx-auto max-w-sm px-6 py-8">
-            <h1 className="type-h1">{title}</h1>
-          </div>
+    <SiteShell viewer={viewer}>
+      <div data-band="sign-in-strip" className="band">
+        <div className="mx-auto max-w-sm px-6 py-8">
+          <h1 className="type-h1">{title}</h1>
         </div>
-        <div className="mx-auto flex max-w-sm flex-col gap-5 px-6 pb-16 pt-8">
-          {children}
-          <TextLink href="/" className="self-start text-sm">
-            ← Back to home
-          </TextLink>
-        </div>
-      </main>
-      {/* The public footer (G1, G9): on a phone the header hides its page links, and About is reached from here. */}
-      <HomeFooter />
-    </div>
+      </div>
+      <div className="mx-auto flex max-w-sm flex-col gap-5 px-6 pb-16 pt-8">
+        {children}
+        <TextLink href="/" className="self-start text-sm">
+          ← Back to home
+        </TextLink>
+      </div>
+    </SiteShell>
   );
 }

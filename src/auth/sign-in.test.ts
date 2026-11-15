@@ -60,7 +60,7 @@ const startOverRoute = await import("@/app/api/start-over/route");
 const settingsRoute = await import("@/app/api/settings/route");
 const { default: SettingsPage } = await import("@/app/settings/page");
 const { default: CourseMapPage } = await import("@/app/course/page");
-const { loadHomeButton } = await import("@/app/_landing/landing");
+const { loadHomeButton } = await import("@/site/home-button");
 
 const OWNER_PASSCODE = "correct horse battery";
 const TEST_PASSCODE = "staple gun";

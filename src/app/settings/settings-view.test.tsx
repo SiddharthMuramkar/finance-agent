@@ -9,10 +9,10 @@ const view = (props: Partial<Parameters<typeof SettingsView>[0]> = {}) =>
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the Settings page", () => {
-  it("six cards in order: Account, Appearance, About you, Your Topics, Developer details, Start over", () => {
+  it("five cards in order: Account, About you, Your Topics, Developer details, Start over", () => {
     const html = view();
     const ids = [...html.matchAll(/<section[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
-    expect(ids).toEqual(["account", "appearance", "about-you", "your-topics", "developer-details", "start-over"]);
+    expect(ids).toEqual(["account", "about-you", "your-topics", "developer-details", "start-over"]);
     const t = text(html);
     expect(t.indexOf("Settings")).toBeGreaterThanOrEqual(0);
     expect(t).not.toMatch(/Dark mode/);
@@ -30,7 +30,7 @@ describe("the Settings page", () => {
   it("draws each section as a hairline rule with no box, and Start over as a danger rule, not a red box", () => {
     const html = view();
     const sections = [...html.matchAll(/<section class="([^"]*)" id="([^"]+)"/g)].map((m) => [m[2], m[1]] as const);
-    expect(sections.map(([id]) => id)).toEqual(["account", "appearance", "about-you", "your-topics", "developer-details", "start-over"]);
+    expect(sections.map(([id]) => id)).toEqual(["account", "about-you", "your-topics", "developer-details", "start-over"]);
     for (const [id, cls] of sections) {
       expect(cls, id).toMatch(/^border-t /);
       if (id !== "start-over") expect(cls, id).toContain("border-[var(--line)]");
@@ -96,39 +96,23 @@ describe("the Settings page", () => {
 
   it("Account names the Learner, says Signed in with a passcode until an email exists, and signs out by form post", () => {
     const html = view();
-    const card = html.slice(html.indexOf('id="account"'), html.indexOf('id="appearance"'));
+    const card = html.slice(html.indexOf('id="account"'), html.indexOf('id="about-you"'));
     expect(text(card)).toContain("Asha");
     expect(text(card)).toContain("Signed in with a passcode");
     expect(card).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
 
     const withEmail = view({ account: { name: "Asha", email: "asha@example.com" } });
-    const emailCard = withEmail.slice(withEmail.indexOf('id="account"'), withEmail.indexOf('id="appearance"'));
+    const emailCard = withEmail.slice(withEmail.indexOf('id="account"'), withEmail.indexOf('id="about-you"'));
     expect(text(emailCard)).toContain("asha@example.com");
     expect(text(emailCard)).not.toContain("Signed in with a passcode");
   });
 
-  it("has an Appearance section with two radios, Light and Dark (no Match my Mac)", () => {
+  // Decision #17: one Light theme, so Settings has no Appearance section and no theme radios.
+  it("has no Appearance section and no theme choice", () => {
     const html = view();
-    const t = text(html);
-    expect(t).toContain("Appearance");
-    for (const w of ["Light", "Dark"]) expect(t).toContain(w);
-    for (const w of ["Match my Mac", "Day theme", "Night theme", "Always use one theme", "Paper", "Midnight", "Forest"]) expect(t).not.toContain(w);
-    expect(html.match(/type="radio"/g)).toHaveLength(2);
-    expect(html).toContain('data-testid="tile-light"');
-    expect(html).toContain('data-testid="tile-dark"');
-  });
-
-  it("checks Light by default and the saved theme's radio otherwise", () => {
-    const radios = (html: string) =>
-      [...html.matchAll(/<label[^>]*>([\s\S]*?)<\/label>/g)]
-        .map((m) => m[1])
-        .filter((label) => label.includes('name="theme"'))
-        .map((label) => ({ label: text(label).trim(), checked: /<input[^>]*checked=""/.test(label) }));
-    expect(radios(view())).toEqual([
-      { label: "Light", checked: true },
-      { label: "Dark", checked: false },
-    ]);
-    expect(radios(view({ theme: "dark" })).filter((r) => r.checked).map((r) => r.label)).toEqual(["Dark"]);
+    expect(html).not.toContain('id="appearance"');
+    expect(text(html)).not.toMatch(/Appearance|Dark/);
+    expect(html).not.toContain('name="theme"');
   });
 
   it("fills About you with what was saved, says it is private and never that changes wait for the next Session", () => {

@@ -137,12 +137,15 @@ function recordResponses(page) {
   return { rows: () => Promise.all(pending), count: () => pending.length };
 }
 
-/** What drew on Home: the hero's Explorable, section 2's Value levers, and no Showcase Widget (E8: those load late). */
+/**
+ * What drew on Home (the Signal site, src/app/(site)/page.tsx): the hero's Tutor demo widget, the levers story's widget,
+ * and no other widget (the questions list draws only static pictures).
+ */
 async function whatDrew(page) {
   return page.evaluate(() => ({
-    hero: !!document.querySelector('[data-testid="home-widget"] input[type="range"]'),
-    levers: !!document.querySelector('[data-testid="home-value-levers"] input[type="range"]'),
-    leversWired: !document.querySelector('[data-testid="home-value-levers-slot"]'),
+    hero: !!document.querySelector('[data-site-section="hero"] input[type="range"]'),
+    levers: !!document.querySelector('[data-site-section="levers"] input[type="range"]'),
+    leversWired: !!document.querySelector('[data-site-section="levers"]'),
     showcaseWidgets: document.querySelectorAll('[data-testid="showcase-widget"]').length,
   }));
 }
@@ -155,7 +158,7 @@ async function quiet(page, quietMs, timeout) {
 
 /** The build's client chunks for Home's components that draw without the general Widget renderer. */
 function manifestChunks() {
-  const file = join(DIST, "server/app/page_client-reference-manifest.js");
+  const file = join(DIST, "server/app/(site)/page_client-reference-manifest.js");
   if (!existsSync(file)) return { error: `${file} is missing` };
   const sandbox = { globalThis: {} };
   sandbox.globalThis = sandbox;
@@ -164,14 +167,14 @@ function manifestChunks() {
   } catch (error) {
     return { error: `${file} could not be read: ${error.message}` };
   }
-  const page = sandbox.__RSC_MANIFEST?.["/page"];
-  if (!page?.clientModules) return { error: `${file} has no clientModules for /page` };
-  const want = { hero: /src\/app\/_landing\/home-widget\.tsx/, levers: /src\/app\/_landing\/home-value-levers\.tsx|src\/widgets\/workbench\/value-levers-view\.tsx/ };
+  const page = sandbox.__RSC_MANIFEST?.["/(site)/page"];
+  if (!page?.clientModules) return { error: `${file} has no clientModules for /(site)/page` };
+  const want = { hero: /src\/components\/signal\/JackpotWidget\.tsx/, levers: /src\/components\/signal\/LeversWidget\.tsx/ };
   const found = { hero: new Set(), levers: new Set() };
   for (const [key, entry] of Object.entries(page.clientModules)) {
     for (const [part, pattern] of Object.entries(want)) if (pattern.test(key)) for (const chunk of entry.chunks ?? []) found[part].add(chunk);
   }
-  if (!found.hero.size) return { error: `${file} lists no client module for src/app/_landing/home-widget.tsx` };
+  if (!found.hero.size) return { error: `${file} lists no client module for src/components/signal/JackpotWidget.tsx` };
   return { hero: [...found.hero], levers: [...found.levers] };
 }
 

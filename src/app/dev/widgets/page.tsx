@@ -6,7 +6,7 @@ import { WidgetHarness } from "./harness";
 import { HARNESS_WIDTHS, type HarnessWidth } from "./widths";
 
 // The Widget harness (developer tool): any fixture Widget program, drawn by the real WidgetView in a frame like the
-// Study aside, at a chosen width and theme. It does not exist in production. Reads fixtures and Case Data JSON on the
+// Study aside, at a chosen width. It does not exist in production. Reads fixtures and Case Data JSON on the
 // server; needs no database and no model call.
 export const dynamic = "force-dynamic";
 
@@ -45,7 +45,6 @@ export default async function WidgetsDevPage({ searchParams }: { searchParams: P
       code={readFixture(fixture)}
       title={fixture}
       width={(HARNESS_WIDTHS as readonly number[]).includes(width) ? (width as HarnessWidth) : 480}
-      theme={first(params.theme) === "dark" ? "dark" : "light"}
       values={parseState(first(params.state))}
       cases={loadCases()}
     />

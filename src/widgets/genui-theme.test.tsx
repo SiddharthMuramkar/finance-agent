@@ -4,8 +4,7 @@ import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary, useTheme } from "@openuidev/react-ui";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { THEMES } from "@/app/theme";
-import { CHART_PALETTES, CHART_SERIES, CHART_SURFACES, FONT, GENUI_THEMES, GenuiTheme, kitVariable, rootDeclarations } from "./genui-theme";
+import { CHART_PALETTE, CHART_SERIES, CHART_SURFACES, FONT, GENUI_THEME, GenuiTheme, kitVariable, rootDeclarations } from "./genui-theme";
 import { widgetLibrary } from "./library";
 
 const kitStylesheet = readFileSync(createRequire(import.meta.url).resolve("@openuidev/react-ui/layered/styles/index.css"), "utf8");
@@ -31,16 +30,16 @@ function ThemeReport() {
 
 describe("OpenUI's kit drawn in our tokens", () => {
   // The kit hands colours out from the middle of the list (getDistributedColors), so these name the picks for the
-  // six-colour Light list: one series index 3, two series indexes 2 and 4, three series indexes 2 to 4.
-  it("draws one series in our palette, not the kit's blue", () => {
+  // four-colour list: one series index 2 (blue), two series indexes 1 and 3 (ink, muted), three series indexes 1 to 3.
+  it("draws one series in our blue, not the kit's", () => {
     const html = kitChart('Series("x", [1, 2])');
-    expect(seriesColours(html)).toEqual(["#8b5cf6"]);
+    expect(seriesColours(html)).toEqual(["#1f3fae"]);
     expect(html).not.toMatch(/#42a5f5/i);
   });
 
   it("gives two and three series colours from our list, in its order", () => {
-    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])'))).toEqual(["#8a5a00", "#bd2f1e"]);
-    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])', 'Series("z", [3, 4])'))).toEqual(["#8a5a00", "#8b5cf6", "#bd2f1e"]);
+    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])'))).toEqual(["#0b0d12", "#5f6571"]);
+    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])', 'Series("z", [3, 4])'))).toEqual(["#0b0d12", "#1f3fae", "#5f6571"]);
   });
 
   it("is light on the server, with the kit's text in our ink and its type in our font", () => {
@@ -66,18 +65,16 @@ describe("OpenUI's kit drawn in our tokens", () => {
     expect(html).toMatch(/style="[^"]*--openui-border-default:var\(--border\)/);
   });
 
-  it("sets only variables the kit's stylesheet reads, in every theme", () => {
-    for (const theme of Object.values(GENUI_THEMES)) {
-      for (const [key, value] of Object.entries(theme)) {
-        if (Array.isArray(value)) continue; // chart palettes are read in code, not from CSS
-        expect(kitStylesheet, key).toContain(`${kitVariable(key)}:`);
-      }
+  it("sets only variables the kit's stylesheet reads", () => {
+    for (const [key, value] of Object.entries(GENUI_THEME)) {
+      if (Array.isArray(value)) continue; // chart palettes are read in code, not from CSS
+      expect(kitStylesheet, key).toContain(`${kitVariable(key)}:`);
     }
   });
 
-  it("keeps the kit's colours at :root in globals.css, equal to the widget wrapper's, so popovers and the dark class agree", () => {
+  it("keeps the kit's colours at :root in globals.css, equal to the widget wrapper's, so popovers agree", () => {
     const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-    const block = css.match(/:root,\s*:root\.dark \{([^}]*)\}/)?.[1] ?? "";
+    const block = css.split(":root {").slice(1).map((rest) => rest.slice(0, rest.indexOf("}"))).find((b) => b.includes("--openui-")) ?? "";
     const declared = Object.fromEntries([...block.matchAll(/(--openui-[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
     expect(declared).toEqual(rootDeclarations());
   });
@@ -89,31 +86,23 @@ describe("OpenUI's kit drawn in our tokens", () => {
       expect(root[`--openui-text-${family}-primary`], family).toBe("var(--ink)");
     }
     expect(root["--openui-border-info"]).toBe("var(--line)");
-    expect(root["--openui-border-success"]).toBe("var(--mint)");
-    expect(root["--openui-border-alert"]).toBe("var(--sun)");
-    expect(root["--openui-border-danger"]).toBe("var(--coral)");
+    expect(root["--openui-border-success"]).toBe("var(--gain)");
+    expect(root["--openui-border-alert"]).toBe("var(--wait)");
+    expect(root["--openui-border-danger"]).toBe("var(--loss)");
   });
 
-  /** The declarations of one theme's block in globals.css: Light's is the plain :root block, the others are named by data-theme. */
-  const themeBlock = (id: string) => {
-    const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-    const selector = id === "light" ? ":root" : ":root.dark";
-    // The block that sets the page's colours (--paper); the kit's mapping block at :root.dark does not.
-    const blocks = css.split(`${selector} {`).slice(1).map((rest) => rest.slice(0, rest.indexOf("}")));
-    return (blocks.find((block) => block.includes("--paper:")) ?? "").toLowerCase();
-  };
-
-  it("takes every chart colour of each theme from that theme's own block in globals.css", () => {
-    for (const id of THEMES) {
-      const block = themeBlock(id);
-      for (const colour of CHART_PALETTES[id]) {
-        expect(block, `${id} ${colour}`).toContain(colour);
-      }
-    }
-  });
-
-  /** A token's literal hex in one theme's block. */
-  const tokenHex = (block: string, token: string) => new RegExp(`--${token}:\\s*(#[0-9a-f]{6})`).exec(block)?.[1];
+  /** Every token of the :root block that sets the page's colours (--paper), with var(--other) followed to its literal. */
+  const tokens = (() => {
+    const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const block = css.split(":root {").slice(1).map((rest) => rest.slice(0, rest.indexOf("}"))).find((b) => b.includes("--paper:")) ?? "";
+    const raw = Object.fromEntries([...block.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim().toLowerCase()]));
+    const resolve = (name: string, depth = 0): string | undefined => {
+      const value = raw[name];
+      const next = value?.match(/^var\(--([\w-]+)\)$/)?.[1];
+      return next && depth < 8 ? resolve(next, depth + 1) : value;
+    };
+    return resolve;
+  })();
   /** WCAG 2 contrast ratio of two hex colours. */
   const contrast = (a: string, b: string) => {
     const lum = (hex: string) =>
@@ -125,26 +114,21 @@ describe("OpenUI's kit drawn in our tokens", () => {
     return (hi + 0.05) / (lo + 0.05);
   };
 
-  // Issue #457, WCAG 2.2 SC 1.4.11: a chart series' mark is needed to read the chart, and a legend does not exempt it, so
-  // every series reaches 3:1 against the surface the chart sits on. Light's mint, sunflower and coral fills do not (1.5 to
-  // 2.6:1), so Light's series take their -ink tokens; in Dark each -ink is its fill.
-  it("paints each chart series in its token, at least 3:1 against the chart surface in both themes", () => {
-    for (const id of THEMES) {
-      const block = themeBlock(id);
-      expect(CHART_PALETTES[id], id).toEqual(CHART_SERIES.map((token) => tokenHex(block, token)));
-      for (const surface of CHART_SURFACES) {
-        const under = tokenHex(block, surface)!;
-        for (const colour of CHART_PALETTES[id]) expect(contrast(colour, under), `${id}: ${colour} on --${surface}`).toBeGreaterThanOrEqual(3);
-      }
+  // WCAG 2.2 SC 1.4.11: a chart series' mark is needed to read the chart, and a legend does not exempt it, so every series
+  // reaches 3:1 against the surface the chart sits on.
+  it("paints each chart series in its token, at least 3:1 against the chart surface", () => {
+    expect(CHART_PALETTE).toEqual(CHART_SERIES.map((token) => tokens(token)));
+    for (const surface of CHART_SURFACES) {
+      const under = tokens(surface)!;
+      for (const colour of CHART_PALETTE) expect(contrast(colour, under), `${colour} on --${surface}`).toBeGreaterThanOrEqual(3);
     }
   });
 
-  it("kit follows the tokens: two themes, and Light's chart series run ink-2, mint-ink, sun-ink, violet, coral-ink", () => {
-    expect(Object.keys(GENUI_THEMES).sort()).toEqual(["dark", "light"]);
-    expect(GENUI_THEMES.light.defaultChartPalette!.slice(0, 5)).toEqual(["#30353f", "#0b7a5a", "#8a5a00", "#8b5cf6", "#bd2f1e"]);
-    const palettes = THEMES.map((id) => JSON.stringify(GENUI_THEMES[id].defaultChartPalette));
-    expect(new Set(palettes).size).toBe(THEMES.length);
-    expect(GENUI_THEMES.dark.defaultChartPalette!.slice(0, 5)).toEqual(["#d1d1d6", "#66cdaa", "#e8be5c", "#b09af2", "#f28b7d"]);
+  // Decision #17, spec §2.1: one theme, one palette; blue in the middle (one series is yours), neutrals around it, and no
+  // green or red standing for a plain series.
+  it("kit follows the tokens: one theme, and the chart series run line-strong, ink, blue, muted", () => {
+    expect(GENUI_THEME.defaultChartPalette).toEqual(["#868c97", "#0b0d12", "#1f3fae", "#5f6571"]);
+    for (const token of ["gain", "loss", "wait", "mint", "coral"]) expect(CHART_PALETTE, token).not.toContain(tokens(token));
   });
 
   it("sets Widgets in the app's Inter", () => {
@@ -152,16 +136,14 @@ describe("OpenUI's kit drawn in our tokens", () => {
     expect(css).not.toContain("--font-widget");
     expect(css).not.toMatch(/\.genui \{\s*font-family/);
     expect(css).toContain(`font-family: ${FONT};`);
-    for (const theme of Object.values(GENUI_THEMES)) {
-      expect(theme.fontWeightMedium).toBe("500");
-      expect(theme.fontWeightBold).toBe("500");
-      expect(theme.fontWeightHeavy).toBe("500");
-      for (const [key, value] of Object.entries(theme)) {
-        if (typeof value !== "string" || !/^text(?:Body|Heading|Label|Numbers|Code)/.test(key)) continue;
-        expect(value, key).toMatch(/^(400|500) /);
-        if (value.includes("SFMono")) expect(value).toContain("monospace");
-        else expect(value).toContain(FONT);
-      }
+    expect(GENUI_THEME.fontWeightMedium).toBe("500");
+    expect(GENUI_THEME.fontWeightBold).toBe("500");
+    expect(GENUI_THEME.fontWeightHeavy).toBe("500");
+    for (const [key, value] of Object.entries(GENUI_THEME)) {
+      if (typeof value !== "string" || !/^text(?:Body|Heading|Label|Numbers|Code)/.test(key)) continue;
+      expect(value, key).toMatch(/^(400|500) /);
+      if (value.includes("SFMono")) expect(value).toContain("monospace");
+      else expect(value).toContain(FONT);
     }
   });
 
@@ -185,6 +167,6 @@ describe("OpenUI's kit drawn in our tokens", () => {
         <Renderer response={code} library={widgetLibrary} />
       </GenuiTheme>,
     );
-    expect(seriesColours(html), 'import the kit from "@openuidev/react-ui", not "@openuidev/react-ui/genui-lib"').toEqual(["#8b5cf6"]);
+    expect(seriesColours(html), 'import the kit from "@openuidev/react-ui", not "@openuidev/react-ui/genui-lib"').toEqual(["#1f3fae"]);
   });
 });
