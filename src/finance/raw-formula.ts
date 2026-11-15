@@ -1,4 +1,4 @@
-// The one raw-formula detector (ADR 0002): finds a formula typed out as symbols or arithmetic, such as
+// The one raw-formula detector (ADR 0003): finds a formula typed out as symbols or arithmetic, such as
 // "PV = amount / (1 + r)^n" or "1,210 / 1.21 = 1,000". The course check and the behaviour runner both
 // call it, so there is one definition of "typed formula".
 // No imports, so `scripts/check-course.mjs` can run it under plain Node.

@@ -54,7 +54,7 @@ describe("Tutor Turn", () => {
 
     const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "What is present value?"));
 
-    // The reply is held until code has checked it (ADR 0008), then sent as one text.
+    // The reply is held until code has checked it (ADR 0006), then sent as one text.
     expect(events).toEqual([
       { type: "text", text: "Present value starts with a story." },
       // The reply's Choices (D3a), stored after it.
@@ -70,7 +70,7 @@ describe("Tutor Turn", () => {
     expect(line.ref).toEqual((events.at(-1) as { ref: unknown }).ref);
   });
 
-  it("uses gpt-6.1-sol at medium effort, frozen at Session start and replayed every request; a stored model setting is never read (ADR 0015)", async () => {
+  it("uses gpt-6.1-sol at medium effort, frozen at Session start and replayed every request; a stored model setting is never read (ADR 0007)", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: "First." }] },
@@ -179,7 +179,7 @@ describe("Tutor Turn", () => {
       { type: "text", text: expect.stringContaining(OPENING_PREFIX) },
       { type: "text", text: "Why discount?" },
     ]);
-    // The reply as the API returned it: its text, then its raw output with a reasoning item first (ADR 0015).
+    // The reply as the API returned it: its text, then its raw output with a reasoning item first (ADR 0007).
     expect(responses[0].content).toEqual([
       firstReply[0],
       { type: "replay", items: [expect.objectContaining({ type: "reasoning" }), expect.objectContaining({ type: "message", phase: "final_answer" })] },
@@ -803,7 +803,7 @@ describe("Tutor Turn", () => {
 
   describe("widgets", () => {
     /**
-     * The Show me Choice: a step-led turn, held, checked and then shown (ADR 0008). A message the Learner types is an own
+     * The Show me Choice: a step-led turn, held, checked and then shown (ADR 0006). A message the Learner types is an own
      * question, whose reply streams behind the stream guard with no retry (A5), so the widget corrections are tested here.
      */
     const STEP_LED = "Show me.";
@@ -1106,7 +1106,7 @@ describe("surviving cut-offs and failures", () => {
     const first = scriptedClient([{ content: [text("Saved part. "), finish("story")] }, { content: [text("Unsaved part.")], delayMs: 400 }]);
     // A Choice pressed: a step-led turn, held (a typed message streams, A5; own-question-stream.test.ts covers its resume).
     const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150, learnerId: OWNER_LEARNER_ID }, "What happened next?"));
-    // Nothing of a reply shows before its checks (ADR 0008).
+    // Nothing of a reply shows before its checks (ADR 0006).
     expect(events.filter((e) => e.type === "text")).toEqual([]);
     const resume = scriptedClient([{ content: [text("Resumed part.")] }]);
     const resumed = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));

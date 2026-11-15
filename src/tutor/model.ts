@@ -2,7 +2,7 @@ import type { Citation } from "./citations";
 import type { ApiUsage } from "./usage";
 
 /**
- * The one model the app runs on, and the shapes the Tutor Turn works in (ADR 0015).
+ * The one model the app runs on, and the shapes the Tutor Turn works in (ADR 0007).
  *
  * Every model call goes to OpenAI's gpt-6.1-sol through the Responses API. The Tutor Turn never sees an OpenAI
  * type: it speaks the app's own transcript format below, stored unchanged in `messages.content`, and one adapter

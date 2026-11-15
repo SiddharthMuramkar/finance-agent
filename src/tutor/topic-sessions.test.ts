@@ -22,7 +22,7 @@ import { startTurn, turnKind, updateTurn } from "./turn-status";
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
- * One Session per Topic (ADR 0004, spec #119): the Tutor Turn on in-memory Postgres with the real
+ * One Session per Topic (ADR 0005, spec #119): the Tutor Turn on in-memory Postgres with the real
  * migrations and the scripted Tutor client. A Session is one Learner's whole conversation about one
  * Topic; the model is sent only that Topic's messages.
  */

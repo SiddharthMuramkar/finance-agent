@@ -33,7 +33,7 @@ if (!map) fail("Course Map is invalid", errors);
 // Topics and L14's computed questions valued through the engine), with written-ahead presets only: recipe presets need the recipes, which plain Node cannot load, so
 // src/course/lesson-presets.test.ts checks those under vitest (part of npm run check).
 const lesson = lessonLintErrors(map.topics);
-if (lesson.length) fail("Lesson lint for converted Topics (spec #229, ADR 0006)", lesson);
+if (lesson.length) fail("Lesson lint for converted Topics (spec #229, ADR 0001)", lesson);
 
 // The shape of every Spine Topic: its Case, Workbench, Insight, card, terms, Quick tries, Check, why line and length.
 const spine = spineCheckErrors(map.topics);
@@ -44,7 +44,7 @@ const critics = criticsLogErrors(map.topics, existsSync(CRITICS_LOG_PATH) ? read
 if (critics.length) fail("Spine Topics without a passing critics' record (spec 2026-11-12 C8)", critics);
 
 const typed = formulaCheckErrors(map.topics);
-if (typed.length) fail("Typed formulas in the Course Map (ADR 0002)", typed);
+if (typed.length) fail("Typed formulas in the Course Map (ADR 0003)", typed);
 
 const writtenAhead = writtenAheadCheckErrors(map.topics);
 if (writtenAhead.length) fail("Written-ahead Widgets that cannot be drawn or worked", writtenAhead);

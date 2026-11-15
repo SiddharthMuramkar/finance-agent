@@ -88,7 +88,7 @@ const tool = (id: string, name: string, input: Record<string, unknown>): Scripte
 const RATE_MOVE = { recipe: "rate_move", params: { title: "A savings rate from 4% to 5%", inputs: { old: 4, new: 5, mode: "show" }, refs: {}, facts: {} } };
 /**
  * A press of the "What happened next?" Choice: a step-led reply, which a Companion Widget may follow. A message the
- * Learner types is an own question, whose reply changes the Widget only when the Tutor opens one (B6, ADR 0019).
+ * Learner types is an own question, whose reply changes the Widget only when the Tutor opens one (B6, ADR 0008).
  */
 const STEP_LED = "What happened next?";
 const CONCEPT = "A basis point is one hundredth of a percentage point. Traders use it because small moves matter on big loans.\n\nWhich word would you use for a tiny rate move?";
@@ -264,7 +264,7 @@ describe("a Widget when it fits (B6; was a Widget with every reply)", () => {
     expect(await widgetsOfTurn(db, sessionId, turnSeq)).toEqual([]);
   });
 
-  it("adds none to an own question's reply: the Widget changes only when the Tutor opens one (B6, ADR 0019), and widget_source is none", async () => {
+  it("adds none to an own question's reply: the Widget changes only when the Tutor opens one (B6, ADR 0008), and widget_source is none", async () => {
     const db = await testDb();
     await atConcept(db);
     const own = await turn(db, "Why do traders bother with such tiny units?", [say(CONCEPT)]);

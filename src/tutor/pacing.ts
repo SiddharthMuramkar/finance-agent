@@ -8,7 +8,7 @@ import { liveSession } from "./session-log";
 import { loadSessionItems, STEP_DIVIDER, type SessionItem } from "./session-items";
 
 /**
- * Pacing (ADR 0001, 0006): whether the Learner's current Teaching Step has been taught yet. A step is taught in one
+ * Pacing (ADR 0001): whether the Learner's current Teaching Step has been taught yet. A step is taught in one
  * reply and finished, its Check marked or its Insight attempt recorded only in a later turn, once the Learner has
  * answered; code holds that, not the prompt. There is no column for it: the answer is read from the marks code
  * already leaves when it moves the Learner on, and every reader asks here.

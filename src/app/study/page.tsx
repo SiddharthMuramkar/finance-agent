@@ -60,7 +60,7 @@ export default async function WorkspacePage() {
   // A step that finishes from what the Learner did in a Widget (its `doneWhen`) is finished now, from the saved Widget
   // state; its divider and Widget chip are stored for the step that begins. Most renders have no such step and do nothing.
   await finishStepFromWidget(db, map, learnerId, new Date());
-  // The Learner's shown Session: the current Topic's own (ADR 0004), or the Topic alone before its first turn (the page
+  // The Learner's shown Session: the current Topic's own (ADR 0005), or the Topic alone before its first turn (the page
   // then starts the opener); a Topic passed in a turn stays shown until the Learner chooses. Rendering makes no Session.
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);

@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { guardSentence, StreamGuard, tellsToBuyOrSell, type GuardFacts } from "./stream-guard";
 
 /**
- * The stream guard (spec 2026-11-12, A5; ADR 0017): an own-question reply shows sentence by sentence, and a sentence
+ * The stream guard (spec 2026-11-12, A5; ADR 0006): an own-question reply shows sentence by sentence, and a sentence
  * holding a Blocked number, a line telling the Learner to buy, sell or hold something, or an internal word or id never
- * shows. The sentences below are the spec's and ADR 0017's, and lines a Tutor reply about the Percent Topic would hold.
+ * shows. The sentences below are the spec's and ADR 0006's, and lines a Tutor reply about the Percent Topic would hold.
  */
 
 const facts: GuardFacts = { blockedNumbers: [], internalWords: ["num-percent-bps", "pb-check-1"] };

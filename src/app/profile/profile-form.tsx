@@ -14,7 +14,7 @@ export type ProfileValues = Record<ProfileField, string>;
 export const PROFILE_PRIVACY =
   "This is private. The Tutor is given it with your messages, and it is kept in your Session's record. The Tutor uses it only when you ask how an idea applies to you, never as advice.";
 
-/** ADR 0013's text field (.field): a strong 1px edge (3:1 or better), the accent edge and a 3px halo on focus. */
+/** The text field (.field): a strong 1px edge (3:1 or better), the accent edge and a 3px halo on focus. */
 const inputClass = "field mt-1.5 w-full";
 
 /** The four optional questions, each limited to 200 characters. Pure markup, so it renders the same on the server. */

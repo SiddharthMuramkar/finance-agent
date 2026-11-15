@@ -46,7 +46,7 @@ export async function openStepWidget(db: Db, map: CourseMap, progress: Progress,
   return item;
 }
 
-/** The chip item for a written-ahead Widget opened already set (ADR 0007): its id and title, and the preset the Tutor gave it. */
+/** The chip item for a written-ahead Widget opened already set (ADR 0009): its id and title, and the preset the Tutor gave it. */
 export function openedItem(widget: { id: string; title: string }, preset?: Record<string, number>): SessionItem {
   return { kind: WIDGET_OPENED, data: { id: widget.id, title: widget.title, ...(preset && Object.keys(preset).length ? { preset } : {}) } };
 }

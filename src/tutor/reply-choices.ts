@@ -10,7 +10,7 @@ import { loadSessionItems, saveItemAfterLatest, type StoredItem } from "./sessio
 import { currentTopicId, liveSession } from "./session-log";
 
 /**
- * The Choices of a Tutor Turn (spec 2026-11-05, D3a; ADR 0010): code stores two or three after every checked reply as a
+ * The Choices of a Tutor Turn (spec 2026-11-05, D3a; ADR 0008): code stores two or three after every checked reply as a
  * reply_choices item, and resolves a press from the stored item, so the words posted are always the words shown.
  */
 

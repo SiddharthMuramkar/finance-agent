@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { cappedTabs, MAX_TABS, sameTab, type TabWidget } from "./widget-tabs";
 import { updatedInPlace, type WidgetItem } from "./widget-panel";
 
-// Spec 2026-11-12 B6, ADR 0019: "The panel lists at most six Widgets. The seventh replaces the oldest that is neither
+// Spec 2026-11-12 B6, ADR 0008: "The panel lists at most six Widgets. The seventh replaces the oldest that is neither
 // written ahead nor showing. Opening the same recipe at new numbers updates its tab in place." Each expected list is
 // written by hand from that rule.
 

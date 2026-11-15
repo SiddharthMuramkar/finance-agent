@@ -4,7 +4,7 @@ import { accentFamiliesPainted, familyMisuses, paintsOf, visibleBoxes, type Acce
 /**
  * The one measuring module of the browser test bed (spec 2026-11-05, Appendix C.2 and C.3, ticket T-00). Each function
  * runs the spec's console script in the page. No ticket writes a second measuring helper. Appendix C as amended by
- * ADR 0013 (flat controls); where they differ, ADR 0013 wins.
+ * ADR 0018 (flat controls); where they differ, ADR 0018 wins.
  */
 
 /** What Widgets draw: inside GenuiTheme (.genui), or a Widget view the app renders outside it (marked data-widget-content). */
@@ -29,7 +29,7 @@ export type Affordances = {
   pointerOnStatic: string[];
   staticLooksPressable: string[];
   tooSmall: string[];
-  /** ADR 0013 and ADR 0014: a control, in the app or in a Widget, with a drop or lip shadow, a transform, or corners over 12px. */
+  /** ADR 0018: a control, in the app or in a Widget, with a drop or lip shadow, a transform, or corners over 12px. */
   notFlat: string[];
   counts: { interactive?: number; tags?: number };
 };
@@ -125,7 +125,7 @@ export function measureLayout(page: Page, opts: { prose?: string; cardsAsColumns
 }
 
 /**
- * Appendix C.3 as ADR 0013 amends it: what can be pressed looks pressable, and what cannot does not. A clean page returns
+ * Appendix C.3 as ADR 0018 amends it: what can be pressed looks pressable, and what cannot does not. A clean page returns
  * five empty lists. A control (button, icon, chip, nav, option, step, a menu row) needs a name, a pointer (progress while
  * busy) and one signifier: a face that differs from what it sits on (1.05:1 or more), an edge (1.2:1 or more), a
  * background image, or, for a ghost (an icon, a nav link, a tertiary button, a menu row), a label of 4.5:1 or more on its
@@ -134,7 +134,7 @@ export function measureLayout(page: Page, opts: { prose?: string; cardsAsColumns
  * kind. A radio or checkbox passes when checked or when its edge is 3:1 or more; a text field when its edge (or its
  * .field-shell's) is 3:1 or more. An option row also needs an edge and 44px; a step 24px. notFlat lists controls
  * anywhere, Widgets included, with a shadow that has an offset or blur, a transform, or corners over 12px (an icon
- * button may be round). Widgets are judged the same way as the app (ADR 0014): nothing inside one may lift, move or be
+ * button may be round). Widgets are judged the same way as the app (ADR 0018): nothing inside one may lift, move or be
  * rounder than 12px. A range input, anywhere, is signified by a name and a pointer; every
  * other input keeps the 3:1 edge rule.
  */
@@ -281,7 +281,7 @@ export type PressLook = {
 };
 
 /**
- * Spec 2026-11-12 F4 (ADR 0022), what can be pressed stays obvious: in a reading area a link is the accent and underlined
+ * Spec 2026-11-12 F4 (ADR 0018), what can be pressed stays obvious: in a reading area a link is the accent and underlined
  * and a button has a face; on a Band a button is white with an ink label and a link is white and underlined; and nothing
  * that can be pressed uses the key-number style. Also F1's "two Bands never touch", by their drawn boxes. A Band is
  * `.band` or `.home-band`; a `.band-card` inside one is a reading area again. Colours are compared as the browser
@@ -349,7 +349,7 @@ export function pressLook(page: Page): Promise<PressLook> {
 
 /**
  * Which Widget accent FAMILIES (mint, coral, sun, violet) the visible elements of the page paint; `within` counts only
- * inside a selector (Widgets: WIDGET_CONTENT) and `outside` only outside one (the chrome, which ADR 0013 keeps free of them). The page gives the raw material: every
+ * inside a selector (Widgets: WIDGET_CONTENT) and `outside` only outside one (the chrome, which stays free of them until #32 lands). The page gives the raw material: every
  * variant of each family that its stylesheets declare (--mint, --mint-ink, --mint-tint, --mint-tag, --coral-fill, ...),
  * resolved in the current theme from getComputedStyle(document.documentElement), and each element's background,
  * gradients, borders, SVG fill and stroke, and the colour of its own text. src/dev/accent-families.ts composites each
@@ -419,7 +419,7 @@ export async function accentFamilies(page: Page, opts: { within?: string; outsid
         if (s.stroke !== "none" && parseFloat(s.strokeWidth) > 0) on.push({ color: s.stroke, kind: "stroke" });
       }
       if (Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) on.push({ color: s.color, kind: "text" });
-      // ADR 0013: count only the part of the page asked for, e.g. inside Widgets, or the chrome outside them.
+      // Count only the part of the page asked for, e.g. inside Widgets, or the chrome outside them.
       const inScope = (!within || !!el.closest(within)) && (!outside || !el.closest(outside));
       return {
         parent: el.parentElement ? index.get(el.parentElement) ?? -1 : -1,
@@ -458,7 +458,7 @@ function shadowLifts(shadow: string): boolean {
 
 /**
  * rotate, or a 2D matrix with rotation or skew. rotateY and translate have b = c = 0. A quarter turn (90°, 180°, 270°: a
- * disclosure chevron turned to say "open") is an icon's orientation, not a tilt, so it does not count; ADR 0014's ban is
+ * disclosure chevron turned to say "open") is an icon's orientation, not a tilt, so it does not count; ADR 0018's ban is
  * on the sticker's slant.
  */
 export function isTilted(rotate: string, transform: string): boolean {

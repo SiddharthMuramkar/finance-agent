@@ -376,7 +376,7 @@ export function toolCode(
       .map((p) => p.message);
   }
 
-  /** The Case Data references the as-of rule allows the Learner now (ADR 0003). */
+  /** The Case Data references the as-of rule allows the Learner now (ADR 0013). */
   async function allowedRefs(tx: Db): Promise<Set<string>> {
     const progress = await loadProgress(tx, learnerId);
     return new Set((await caseDataFor(tx, map, navigate(map, progress), learnerId)).flatMap((c) => c.datasets.map((d) => `${c.caseId}/${d.id}`)));
@@ -415,7 +415,7 @@ export function toolCode(
       parse: (input) => searchInput.parse(input),
       run: async ({ query, source }) => searchResultBlocks(await searchLibrary({ db, map, embedQuery, learnerId }, query, { source })),
     },
-    // Choices (D3a, ADR 0010): the Tutor may suggest one. It writes nothing: after the reply, code reads the call from the
+    // Choices (D3a, ADR 0008): the Tutor may suggest one. It writes nothing: after the reply, code reads the call from the
     // log, keeps a valid label as the first Choice and silently drops a bad one (recorded with the turn's usage).
     suggest_choice: {
       parse: (input) => z.object({ label: z.unknown() }).passthrough().parse(input ?? {}),
@@ -629,7 +629,7 @@ export function toolCode(
           return { ok: true, text: lines.join("\n"), items: [item], ...(widgetStates && { widgetStates }) };
         }),
     },
-    // The widget engine (ADR 0005): the Tutor chooses a recipe and params, code compiles, checks and stores the Widget.
+    // The widget engine (ADR 0009): the Tutor chooses a recipe and params, code compiles, checks and stores the Widget.
     show_widget: {
       parse: (input) => showInput.parse(input),
       run: ({ recipe: id, params }, context) =>
@@ -662,7 +662,7 @@ export function toolCode(
               return { ok: true, text: `Already on screen: the Topic's explore Workbench is open in the Widget panel as its "Explore" tab, so nothing new was drawn. Point the Learner to it and talk about what it shows.` };
             }
           }
-          // ADR 0018: a Workbench's Case figures come from a Topic file; figures the Tutor typed make it an Illustration.
+          // ADR 0010: a Workbench's Case figures come from a Topic file; figures the Tutor typed make it an Illustration.
           const inputs = (built.params as { inputs?: unknown }).inputs;
           if (figuresFromTutor(id, inputs, recipeInputsIn(map.topics, id)) && !built.title.startsWith(ILLUSTRATION)) {
             built = recipe.build({ ...(built.params as Record<string, unknown>), title: asIllustration(built.title).slice(0, 90).trim() });
@@ -684,7 +684,7 @@ export function toolCode(
           // An Illustration only where no input or Case Data path covers the same number.
           const covered = illustrationProblems(id, built.params);
           if (covered.length) return { ok: false, text: `Not shown: ${covered.join(" ")} Call show_widget again without it, or teach this in words.` };
-          // Real figures only from Case Data the as-of rule allows the Learner now (ADR 0003).
+          // Real figures only from Case Data the as-of rule allows the Learner now (ADR 0013).
           const allowed = await allowedRefs(tx);
           const unknown = built.refs.filter((ref) => !allowed.has(ref));
           if (unknown.length) {

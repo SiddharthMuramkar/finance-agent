@@ -87,6 +87,76 @@ describe("snapshotBeforeMigrating", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  describe("in a production build (the gate fails closed)", () => {
+    const prod = { ...env, VERCEL_ENV: "production" };
+
+    it("fails the deploy when NEON_API_KEY is missing or empty, and names the opt-out", async () => {
+      for (const NEON_API_KEY of [undefined, "", "  "]) {
+        const fetch = vi.fn();
+        const error = await snapshotBeforeMigrating({ ...prod, NEON_API_KEY }, 1, { fetch, sleep, now }).catch((e: Error) => e);
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toMatch(/NEON_API_KEY is not set/);
+        expect((error as Error).message).toMatch(/NEON_SNAPSHOT=off/);
+        expect(fetch).not.toHaveBeenCalled();
+      }
+    });
+
+    it("fails the deploy when NEON_PROJECT_ID is missing or empty, and never prints the key", async () => {
+      for (const NEON_PROJECT_ID of [undefined, ""]) {
+        const fetch = vi.fn();
+        const error = await snapshotBeforeMigrating({ ...prod, NEON_PROJECT_ID }, 1, { fetch, sleep, now }).catch((e: Error) => e);
+        expect((error as Error).message).toMatch(/NEON_PROJECT_ID is not set/);
+        expect((error as Error).message).not.toContain(KEY);
+        expect(fetch).not.toHaveBeenCalled();
+      }
+    });
+
+    it("names both variables when both are missing", async () => {
+      const error = await snapshotBeforeMigrating({ VERCEL_ENV: "production", DATABASE_URL_UNPOOLED: env.DATABASE_URL_UNPOOLED }, 3, { fetch: vi.fn() }).catch((e: Error) => e);
+      expect((error as Error).message).toMatch(/NEON_API_KEY and NEON_PROJECT_ID are not set/);
+    });
+
+    it("with NEON_SNAPSHOT=off, migrates without a snapshot and warns loudly, with or without the Neon variables", async () => {
+      for (const opted of [{ ...prod, NEON_SNAPSHOT: "off" }, { VERCEL_ENV: "production", DATABASE_URL_UNPOOLED: env.DATABASE_URL_UNPOOLED, NEON_SNAPSHOT: "off" }]) {
+        const fetch = vi.fn();
+        const warn = vi.fn();
+        const result = await snapshotBeforeMigrating(opted, 2, { fetch, sleep, now, warn });
+        expect(result).toMatchObject({ taken: false, reason: expect.stringMatching(/NEON_SNAPSHOT=off/) });
+        expect(fetch).not.toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toMatch(/WARNING.*NEON_SNAPSHOT=off.*no restore point/s);
+        expect(warn.mock.calls[0][0]).not.toContain(KEY);
+      }
+    });
+
+    it("still snapshots normally when both variables are set", async () => {
+      const { fetch } = neon(happy());
+      const result = await snapshotBeforeMigrating(prod, 1, { fetch, sleep, now });
+      expect(result.taken).toBe(true);
+    });
+  });
+
+  it("fails the deploy when a Neon call does not answer in time, instead of hanging the build", async () => {
+    const signals: (AbortSignal | null | undefined)[] = [];
+    const fetch = vi.fn((_url: string, init: RequestInit = {}) => {
+      signals.push(init.signal);
+      // A call that never answers until its signal aborts it.
+      return new Promise<Response>((_, reject) => init.signal?.addEventListener("abort", () => reject(init.signal!.reason), { once: true }));
+    });
+    const error = await snapshotBeforeMigrating(env, 1, { fetch, sleep, now, timeoutMs: 20 }).catch((e: Error) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/Neon API GET \/projects\/proj-1\/endpoints\/ep-calm-sky-123456 did not answer in 0\.02 s; failing the deploy/);
+    expect((error as Error).message).not.toContain(KEY);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]).toBeInstanceOf(AbortSignal);
+  });
+
+  it("gives every Neon call a time limit", async () => {
+    const { fetch } = neon(happy());
+    await snapshotBeforeMigrating(env, 1, { fetch, sleep, now });
+    expect(fetch.mock.calls.every(([, init]) => init?.signal instanceof AbortSignal)).toBe(true);
+  });
+
   it("snapshots the branch behind DATABASE_URL_UNPOOLED and waits for Neon to finish", async () => {
     const { fetch, calls } = neon(happy());
     const result = await snapshotBeforeMigrating(env, 2, { fetch, sleep, now });

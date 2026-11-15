@@ -12,7 +12,7 @@ import { becomePerson, fixture, test } from "./support/people";
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
-// A dark project is a Learner who chose Dark (ADR 0013), signed out too: the theme cookie stays when the sign-in goes.
+// A dark project is a Learner who chose Dark, signed out too: the theme cookie stays when the sign-in goes.
 /** Spec 2026-11-12 G9: on the phone project every signed-in page shows only the phone note, so cases that go on there skip. */
 const onPhone = (name: string) => name.startsWith("p390");
 const PHONE_SKIP = "a signed-in page shows only the phone note below 768 px (e2e/phone-note.spec.ts)";
@@ -32,7 +32,7 @@ test("login page: Google first, an email link second, passcode behind a link, er
   const google = page.getByRole("button", { name: "Continue with Google" });
   await expect(google).toBeVisible();
   await expect(google).toHaveAttribute("data-affordance", "button");
-  // ADR 0013: flat, so no lip or drop shadow; it is signified by a 1px edge or a fill instead.
+  // ADR 0018: flat, so no lip or drop shadow; it is signified by a 1px edge or a fill instead.
   const look = await google.evaluate((el) => {
     const s = getComputedStyle(el);
     return { shadow: s.boxShadow, edge: parseFloat(s.borderTopWidth), fill: s.backgroundColor, height: el.getBoundingClientRect().height, dark: document.documentElement.classList.contains("dark") };

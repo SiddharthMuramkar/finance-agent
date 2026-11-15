@@ -17,7 +17,7 @@ import { withoutChoices } from "@/test/choices";
 // src/tutor/companion-turn.test.ts tests the companion.
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
-// Seam 1, the Tutor Turn (spec #229, ticket #242, ADR 0007): ready-made Widgets only, opened already set, one a reply.
+// Seam 1, the Tutor Turn (spec #229, ticket #242, ADR 0009): ready-made Widgets only, opened already set, one a reply.
 // present-value's annuity-worth-today Widget has a $rate slider (0 to 10, in 0.01 steps) and a $years-less program.
 
 const map = presentValueOnly({ withoutInsight: true });

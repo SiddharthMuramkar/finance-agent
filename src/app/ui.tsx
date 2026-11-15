@@ -1,4 +1,4 @@
-// Shared look pieces of the design system (ADR 0013, issue #43). Colours come only from the tokens in
+// Shared look pieces of the design system (ADR 0015 for colour, ADR 0018 for the rest; issue #43). Colours come only from the tokens in
 // globals.css, so Light and Dark need no per-piece variants. Server-safe: no "use client" here; the only
 // client pieces rendered are ThemeToggle, AccountMenu and NavLink.
 
@@ -14,7 +14,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 /**
  * Small uppercase label above a block (spec §2), e.g. "SPACED REVIEW", in the key-number blue: the eyebrow is one of the
- * blue marks in a reading area (spec 2026-11-12 F2, ADR 0022). It is never pressable. className adds spacing.
+ * blue marks in a reading area (spec 2026-11-12 F2). It is never pressable. className adds spacing.
  */
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <p className={`type-eyebrow text-key-number ${className}`}>{children}</p>;
@@ -50,7 +50,7 @@ export type { ButtonProps, ChipState } from "./primitives";
 export { NavLink };
 
 /**
- * A section of a reading page (ADR 0013: hairlines, not boxes). "box" is a page's one framed panel: a hairline edge, 12px
+ * A section of a reading page (ADR 0018: hairlines, not boxes). "box" is a page's one framed panel: a hairline edge, 12px
  * corners, the raised surface and 20px padding. "rule" is a 1px --line hairline above, no box (it was an ink rule). className adds layout.
  */
 export function Card({ variant = "box", children, className = "", ...props }: { variant?: "box" | "rule"; children: ReactNode; className?: string } & React.HTMLAttributes<HTMLElement>) {
@@ -125,7 +125,7 @@ function GearMark() {
 }
 
 /**
- * App header (ADR 0013, ticket A5): 56px, on the paper, over a 1px --rule hairline. At the left the h1 wordmark (the still
+ * App header (ADR 0018, ticket A5): 56px, on the paper, over a 1px --rule hairline. At the left the h1 wordmark (the still
  * bars and "Value It", no pill) linking to Home, then three ghost page links (Study, Course Map, Notebook; each with a dot
  * while its page loads). Pushed right, three 32px ghost icons with tooltips: the theme toggle, a gear to Settings and the
  * account menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
@@ -184,7 +184,7 @@ export function ReadingPage({ current, theme, account, children }: { current?: H
   return (
     <main className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-16">
       <AppHeader current={current} theme={theme} account={account} />
-      {/* ADR 0013: the header sits flush at the top; the content starts 32px under its hairline, the page ends on 64px of air. */}
+      {/* The header sits flush at the top; the content starts 32px under its hairline, the page ends on 64px of air. */}
       <div data-testid="reading-column" className="w-full pt-8">
         {children}
       </div>

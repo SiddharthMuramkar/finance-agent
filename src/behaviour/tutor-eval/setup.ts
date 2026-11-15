@@ -207,7 +207,7 @@ export async function prepareCase(db: Db, c: Placed, opts: { map?: CourseMap; se
     openItems,
     internalWords,
     widgetOk: (w) => {
-      if (w.id === DRAWN) return "it was drawn during the chat; Widgets are ready-made (ADR 0007)";
+      if (w.id === DRAWN) return "it was drawn during the chat; Widgets are ready-made (ADR 0009)";
       if (w.kind === "recipe") {
         const recipe = recipeById(w.id);
         if (!recipe) return `there is no recipe "${w.id}"`;

@@ -11,7 +11,7 @@ import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model"
 
 /**
  * Sessions and their add-only message log: the stored settings a Session is frozen from, which
- * Session a turn runs in (one per Learner and Topic, ADR 0004), and the history sent to the model.
+ * Session a turn runs in (one per Learner and Topic, ADR 0005), and the history sent to the model.
  */
 
 export type { Effort, Message } from "./model";
@@ -45,10 +45,10 @@ export async function readSettings(db: Db) {
   const rows = await db.select().from(settings);
   const get = (key: string) => rows.find((r) => r.key === key)?.value;
   return {
-    /** The one model (ADR 0015); not a stored setting. */
+    /** The one model (ADR 0007); not a stored setting. */
     model: TUTOR_MODEL,
     effort: get("effort") as Effort,
-    /** How long a gap counts as a break; it never starts a new Session (ADR 0004). */
+    /** How long a gap counts as a break; it never starts a new Session (ADR 0005). */
     idleHours: Number(get("session_idle_hours")),
     compactAtTokens: Number(get("compact_at_tokens")),
     /** The most spaced reviews offered over the last 24 hours. */
@@ -263,7 +263,7 @@ export async function closedInFavourOf(db: Db, learnerId: number, shownId: numbe
 
 /**
  * The instructions, tools, model and effort a Session freezes now, with their fingerprint: the widget engine's (ADR
- * 0005), the only Widget lane since #19.
+ * 0009), the only Widget lane since #19.
  */
 export async function frozenNow(db: Db) {
   const { effort } = await readSettings(db);
@@ -289,7 +289,7 @@ export type Row = { seq: number } & Message;
  *   not its text, so every tool_use keeps its tool_result. An edited row also loses its `replay` block, so the
  *   adapter sends it rebuilt from what is left (openai-items.ts);
  * - in a turn where the checks rejected a row, sends every row after the earliest rejected one without its `replay`
- *   block too (A1, ADR 0016, `withoutReplayAfterEdits`): the accepted retry was written with the rejected draft and the
+ *   block too (A1, ADR 0007, `withoutReplayAfterEdits`): the accepted retry was written with the rejected draft and the
  *   correction before it in its turn, so its reasoning item no longer belongs to what is sent, and the API refuses it
  *   while that turn is current (the compaction after the reply, or a resumed turn). Everything else replays unchanged.
  * `rows` is the Session as the Learner saw it (rejected text left out too); rows appended later are kept whole.
@@ -361,7 +361,7 @@ export function withoutRejected<R extends { seq: number; role: string; content?:
 }
 
 /**
- * An edit of what was sent (A1, ADR 0016): from the earliest row code left out or changed in a turn (`at`), up to the
+ * An edit of what was sent (A1, ADR 0007): from the earliest row code left out or changed in a turn (`at`), up to the
  * next turn's first row (`until`). Every row after `at` in that span was written with the edited row before it.
  */
 export type HistoryEdit = { at: number; until: number };

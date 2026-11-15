@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +16,7 @@
     "test": "vitest run",
     "course:check": "node scripts/check-course.mjs",
     "course:doc": "node scripts/check-course.mjs --write",
-    "check": "npm run typecheck && npm run lint && npm run course:check && npm run test && node scripts/check-theme-contrast.mjs",
+    "check": "npm run typecheck && npm run lint && npm run course:check && node scripts/check-adr-cites.mjs && npm run test && node scripts/check-theme-contrast.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate",
     "case-data:import": "node --env-file=.env scripts/import-case-data.mjs",
@@ -51,6 +54,7 @@
     "@openuidev/react-ui": "0.18.1",
     "@vercel/analytics": "^2.0.1",
     "better-auth": "1.7.17",
+    "botid": "1.5.13",
     "drizzle-orm": "0.45.4",
     "htmlparser2": "12.0.0",
     "lucide-react": "1.71.0",

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { DeniedPerson, PendingInvite, PersonWithAccess, SignInMethod, WaitingRequest } from "@/auth/access";
-import { CAP_FIELDS, type CapKey } from "@/tutor/quota";
+import { CAP_FIELDS, UNPRICED_STEP_USD, type CapKey } from "@/tutor/quota";
 import type { SpendReport } from "@/tutor/spend";
 import { overBudget, seconds, SPEED_BUDGETS, WIDGET_SAVE_BUDGET, SPEED_WINDOW_DAYS, type SpeedReport, type Spread } from "@/tutor/speed";
 import { shortDate } from "../past-sessions";
@@ -8,7 +8,7 @@ import { Button, Card, PrimaryButton, Tag } from "../ui";
 import { ApproveButton, RowActions } from "./admin-controls";
 import { ADMIN_DONE, type AdminDone, type AdminSection } from "./done";
 
-/** A section's heading: Settings' (Inter Tight 18/24 at 600), under the section's hairline (ADR 0013). */
+/** A section's heading: Settings' (Inter Tight 18/24 at 600), under the section's hairline (ADR 0018). */
 const heading = "mb-3 [font-family:var(--font-display)] text-[18px] font-semibold leading-6 tracking-[-0.012em]";
 /** A list: hairlines between the rows and under the last, as Settings → Your Topics. */
 const list = "divide-y divide-[var(--rule)] border-b border-[var(--rule)]";
@@ -263,7 +263,7 @@ export type AdminViewProps = {
 };
 
 /**
- * The /admin page's body (ADR 0014): who may use Value It. Sections under Settings' hairline rules, no boxes (ADR 0013):
+ * The /admin page's body (ADR 0014): who may use Value It. Sections under Settings' hairline rules, no boxes (ADR 0018):
  * Waiting (people who signed in and wait: Approve or Deny), People with access (the owner first, as You; Remove access
  * for the rest; then the invites nobody has used yet), Spend (what each person's Tutor has cost, this month and all
  * time, most this month first), Tutor speed (turn times by Reply kind against the A9 budgets, read only), Denied (only
@@ -360,7 +360,8 @@ export function AdminView({ waiting, people, invited, denied, signupOpen, spend,
             </p>
             {spend.total.unpricedSteps > 0 && (
               <p className="measure mb-3 text-xs leading-4 text-[var(--warning)]">
-                {steps(spend.total.unpricedSteps)} used a model with no price in the table, so they are missing from these figures.
+                Unpriced: {steps(spend.total.unpricedSteps)}, missing from these figures. A step has no price when it was cut short before OpenAI reported its usage
+                (Stop, a cut-off, a failure), or when its model has no price in the table. The daily caps count each one at {usd(UNPRICED_STEP_USD)}.
               </p>
             )}
             <div className="overflow-x-auto">

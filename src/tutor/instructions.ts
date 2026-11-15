@@ -30,7 +30,7 @@ export type TutorExample = {
   replyKind: ReplyKind;
 };
 
-/** An open quiz question for the examples: a move from 4.00% to 4.60%, and what a basis point is (ADR 0009: the idea separates the choices, not arithmetic). */
+/** An open quiz question for the examples: a move from 4.00% to 4.60%, and what a basis point is (ADR 0002: the idea separates the choices, not arithmetic). */
 const EXAMPLE_QUIZ: OpenItem[] = [
   {
     prompt: "A central bank moves its rate from 4.00% to 4.60%, and traders call it a 60 basis point move. What is one basis point?",

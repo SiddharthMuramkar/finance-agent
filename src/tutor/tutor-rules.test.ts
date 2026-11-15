@@ -116,7 +116,7 @@ describe("Appendix A's examples", () => {
     }
   });
 
-  it("show an open quiz that asks for an idea, not a sum (ADR 0009, critic MP-3)", () => {
+  it("show an open quiz that asks for an idea, not a sum (ADR 0002, critic MP-3)", () => {
     for (const e of TUTOR_EXAMPLES) {
       for (const item of e.openItems ?? []) {
         expect(sumAsk(item.prompt)).toBeNull();

@@ -3,7 +3,7 @@ import { THEME_SWATCH, TOGGLE_LABEL, type ThemeId } from "../src/app/theme";
 import { hydrated, seed } from "./support/app";
 
 /**
- * Two modes, one toggle (ADR 0013): everyone starts in Light, whatever the computer says; old cookies still open; the
+ * Two modes, one toggle: everyone starts in Light, whatever the computer says; old cookies still open; the
  * header's sun/moon toggle switches at once and is remembered across a reload and across pages; Settings' two radios
  * share its choice. Every case sets its own cookie and colour scheme, so it runs on mbp14 only.
  */

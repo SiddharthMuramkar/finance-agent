@@ -90,7 +90,7 @@ describe("show_widget and the widget engine", () => {
     expect(context).not.toMatch(/write it again|openui-lang/);
   });
 
-  it("marks a Workbench an Illustration when its Case figures are the Tutor's, not a Topic file's (ADR 0018)", async () => {
+  it("marks a Workbench an Illustration when its Case figures are the Tutor's, not a Topic file's (ADR 0010)", async () => {
     // Webvan's year as course/topics/spine-03-cash.yaml gives it to the cash_waterfall Workbench.
     const webvan = {
       name: "Webvan",

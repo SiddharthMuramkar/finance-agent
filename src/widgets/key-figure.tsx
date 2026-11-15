@@ -1,7 +1,7 @@
 import { createElement, type ElementType, type ReactNode } from "react";
 
 /**
- * A Widget's one key figure (spec 2026-11-11, A3b, ADR 0014). The element carries `data-key-figure` and no weight
+ * A Widget's one key figure (spec 2026-11-11, A3b). The element carries `data-key-figure` and no weight
  * class of its own; CSS sets it to 600. `markKeyFigures` keeps the first mark in a Widget and demotes the rest.
  */
 export function KeyFigure({ as = "span", className, children }: { as?: ElementType; className?: string; children?: ReactNode }) {

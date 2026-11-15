@@ -19,7 +19,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** Every saved value there has ever been, with the theme it opens (ADR 0013: only Dark's own values open Dark). */
+/** Every saved value there has ever been, with the theme it opens (only Dark's own values open Dark). */
 const MIGRATION: [string | null, ThemePref][] = [
   ["dark", "dark"],
   ["single:dark", "dark"],

@@ -9,7 +9,7 @@
 /**
  * A way of teaching one Skill again: restate the rule, a worked example, a half-done choice (`boxes`: the first step is
  * shown and the last step is a tap), the Skill's Widget, a choice drill of five (`drill5`). The ids are stored in
- * `skill_state.methodsUsed`, so they stay; only their meaning changed (ADR 0009).
+ * `skill_state.methodsUsed`, so they stay; only their meaning changed (ADR 0002).
  */
 export type Method = "restate" | "worked" | "boxes" | "widget" | "drill5";
 

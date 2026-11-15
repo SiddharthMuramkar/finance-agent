@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Owner } from "@/auth/owner";
@@ -81,7 +81,7 @@ describe("/admin", () => {
     expect(ids).toEqual(["waiting", "people", "spend", "speed", "denied", "invite", "caps", "sign-up"]);
     const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => text(m[1]).trim());
     expect(headings).toEqual(["Waiting 2", "People with access", "Spend", "Tutor speed", "Denied", "Invite an email", "Spend caps", "Sign-up"]);
-    // ADR 0013: each section is a hairline rule with no box.
+    // ADR 0018: each section is a hairline rule with no box.
     for (const [, cls] of html.matchAll(/<section class="([^"]*)" id="/g)) expect(cls).toMatch(/^border-t border-\[var\(--line\)\]/);
     // The header's account menu is the owner's (accountFor), and no page link is marked current.
     expect(html).not.toContain('aria-current="page"');
@@ -153,7 +153,11 @@ describe("/admin", () => {
       expect(t).toContain("Tutor model calls only");
       expect(t).toContain("India time");
       expect(t).toMatch(/\$1\.24 this month \$8\.74 all time 1 turn /);
-      expect(t).toContain("1 step used a model with no price in the table");
+      // A step has no price when it was cut short before OpenAI reported its usage, or its model has no price.
+      expect(t).toContain("Unpriced: 1 step, missing from these figures.");
+      expect(t).toContain("cut short before OpenAI reported its usage");
+      expect(t).toContain("its model has no price in the table");
+      expect(t).toContain("The daily caps count each one at $0.66.");
       // Asha spent more this month than the owner, so she comes first.
       expect(t.indexOf("asha@gmail.com")).toBeLessThan(t.indexOf("owner@x.com"));
       expect(t).toMatch(/asha@gmail\.com Asha Last active 10 Nov 2026 1 \$1\.23 \$1\.23/);
@@ -233,6 +237,9 @@ describe("/admin", () => {
 
   it("still draws the page before migration 0037, saying the speed numbers are not available yet", async () => {
     jar.db = await testDbThrough("0036_session_items_turn");
+    // Only 0037's speed numbers are missing here: migration 0039's Learner column (issue #33), which Drizzle names in
+    // every Learner it writes or reads back, is put in by hand.
+    await jar.db.execute(sql`alter table learners add column clerk_user_id text`);
     const learner = await seed(jar.db);
     jar.owner = { learner, user: OWNER };
     const html = await render();

@@ -14,8 +14,9 @@ import { dayStartIst } from "./spend";
 // project's hard limit catches those.
 
 /**
- * What a step with no price counts as (cost_usd null, for example after a TUTOR_MODEL change): the worst step, 200,000
- * prompt tokens with a cold cache and 16,000 out (decision #13's w), so a model change cannot hide spend.
+ * What a step with no price counts as (cost_usd null: a step cut short before OpenAI reported its usage, or a model
+ * with no row in the price table after a TUTOR_MODEL change): the worst step, 200,000 prompt tokens with a cold cache
+ * and 16,000 out (decision #13's w), so neither can hide spend.
  */
 export const UNPRICED_STEP_USD = 0.66;
 

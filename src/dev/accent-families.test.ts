@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { ACCENT_FAMILIES, accentFamiliesPainted, familyMisuses, familyOf, over, paintsOf, parseColors, visibleBoxes, type AccentTokens, type Box, type LaidOutNode, type MisuseNode, type Paint, type PaintKind } from "./accent-families";
 
 /**
- * The Widget accent families (ADR 0013: they belong to Widgets; the app's chrome paints none of them). The token tables
+ * The Widget accent families, until #32 lands (ADR 0015 maps them to the Signal colours): they belong to Widgets; the app's chrome paints none of them. The token tables
  * are read from src/app/globals.css, Light (`:root`) and Dark (`:root.dark`), the way the page resolves them at runtime:
  * every --mint*, --coral*, --sun*, --violet* variant, and every other hex token (the chrome's surfaces, text, lines,
  * accent, status and ring colours) as a neutral that must never count as a Widget accent.
@@ -22,7 +22,7 @@ const THEMES = {
 } as const;
 const accentsOf = (t: Record<string, string>): AccentTokens => Object.fromEntries(Object.entries(t).filter(([k]) => familyOf(k)));
 // --you* and --src* are Widget names whose values ARE accent variants; painting them paints the accent. --danger is
-// a status colour of its own since ADR 0013, so it is a neutral: no chrome token may count as a Widget accent.
+// a status colour of its own, so it is a neutral: no chrome token may count as a Widget accent.
 const ALIASES = /^--(you|src)\b/;
 const neutralsOf = (t: Record<string, string>) => Object.entries(t).filter(([k]) => !familyOf(k) && !ALIASES.test(k));
 const rgb = (hex: string) => parseColors(hex)[0];

@@ -32,7 +32,10 @@ export type SpendFigures = {
   /** Since midnight on the 1st, India time. */
   monthUsd: number;
   allTimeUsd: number;
-  /** Steps whose model has no price in the table, so their cost is missing from the dollars. */
+  /**
+   * Steps with no price, so their cost is missing from the dollars: cut short before OpenAI reported their usage
+   * (cutShortStepUsage), or run on a model with no price in the table. The daily caps count each at UNPRICED_STEP_USD.
+   */
   unpricedSteps: number;
   /** When their latest turn started; null with no turns. */
   lastActiveAt: Date | null;

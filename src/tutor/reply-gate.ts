@@ -10,7 +10,7 @@ import { PARAGRAPH, textOf } from "./transcript";
 import { REPLY_CHECK_PREFIX } from "./turn-status";
 
 /**
- * The reply gate (spec #229, ticket #239, ADR 0008): code holds the Tutor's whole reply, fixes what it can, checks it
+ * The reply gate (spec #229, ticket #239, ADR 0006): code holds the Tutor's whole reply, fixes what it can, checks it
  * (V1 to V7), and gives it one retry while the turn is young; after that it falls back. This module holds the pure
  * part: what the draft is, what it broke, what the retry is told, which rows a rejected reply drops and the trimmed
  * fallback. turn.ts runs the loop around it, and reply-records.ts keeps the record.
@@ -34,7 +34,7 @@ const isCorrection = (r: Row) => r.role === "user" && textOf(r.content).startsWi
 
 /**
  * The rows of the turn at `turnSeq` that the reply checks rejected, by seq: the one rule for which rows a rejected reply
- * drops (ADR 0008), for the live turn, a resumed turn and the tools alike. A rejected reply drops every assistant row it
+ * drops (ADR 0006), for the live turn, a resumed turn and the tools alike. A rejected reply drops every assistant row it
  * wrote and the correction message code sent about it. Never a tool result, the Learner's message or the context: a
  * rejected row keeps its tool calls in later requests (`withoutRejected`), because they ran and their effects stand, and
  * OpenAI refuses a function call sent without its output as it refuses an output without its call.

@@ -12,7 +12,7 @@ import { loadStepUsages } from "./usage";
 
 /** The per-turn limits (decision #13) through a whole Tutor Turn: the step limit (its Step ledger) and the resume limit. */
 
-/** The Show me Choice: a step-led turn, whose reply is held until checked (ADR 0008). */
+/** The Show me Choice: a step-led turn, whose reply is held until checked (ADR 0006). */
 const STEP_LED = "Show me.";
 const emi = { type: "tool_use", id: "toolu_limit_emi", name: "calculate", input: { calculator: "emi", inputs: { principal: 5_000_000, ratePercent: 8.5, years: 20 } } };
 const reply = { type: "text", text: "On a 50 lakh loan at 8.5% for 20 years, the EMI is about 43,391 rupees a month." };

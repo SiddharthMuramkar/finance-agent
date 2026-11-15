@@ -1,7 +1,7 @@
 import type { Currency } from "./calculators";
 import type { FormulaId } from "./formula-ids";
 
-// The formula registry: every named formula a Formula Card can show (ADR 0002). Each entry points at a
+// The formula registry: every named formula a Formula Card can show (ADR 0003). Each entry points at a
 // tested Finance Calculation, so the symbols' plain-word names and every result come from code and the
 // Tutor never types a formula. Adding a formula means writing and testing its calculator first.
 

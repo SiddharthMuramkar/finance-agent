@@ -87,7 +87,7 @@ describe("Widget recipes", () => {
     });
   }
 
-  it("has a Workbench archetype only a recipe can have: the Tutor's free-form kinds leave it out (B2, ADR 0018)", () => {
+  it("has a Workbench archetype only a recipe can have: the Tutor's free-form kinds leave it out (B2, ADR 0010)", () => {
     expect(recipeById("value_levers")?.archetype).toBe(WORKBENCH);
     expect(ARCHETYPES as readonly string[]).not.toContain(WORKBENCH);
   });
@@ -109,7 +109,7 @@ describe("Widget recipes", () => {
     expect(built.ok && built.refs).toEqual(["reference/gold-inr-10g"]);
   });
 
-  it("makes any Widget with facts an Illustration (ADR 0003)", () => {
+  it("makes any Widget with facts an Illustration (ADR 0009)", () => {
     const shown = defineRecipe({
       id: "test_fact",
       archetype: "Check",

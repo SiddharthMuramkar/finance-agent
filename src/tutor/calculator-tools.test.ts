@@ -3,7 +3,7 @@ import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "./instructions";
 import { bindTools } from "./tools";
 
 describe("hosted code execution", () => {
-  it("is not offered: every tool is an OpenAI function tool with our code bound to it (ADR 0015)", () => {
+  it("is not offered: every tool is an OpenAI function tool with our code bound to it (ADR 0007)", () => {
     expect(ENGINE_TOOLS.every((t) => t.type === "function" && t.strict === false)).toBe(true);
     expect(ENGINE_TOOLS.map((t) => t.name)).not.toContain("code_execution");
     const bound = bindTools(ENGINE_TOOLS, {
