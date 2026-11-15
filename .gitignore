@@ -31,3 +31,6 @@ test-results/
 
 # F1 preview matrix: screenshots and numbers (scripts/preview-matrix.mjs)
 evidence/preview-matrix/
+
+# Database dumps (docs/backup-and-restore.md) never go in git: the Library holds text licensed for private search only
+*.dump
