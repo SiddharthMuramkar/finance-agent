@@ -160,5 +160,16 @@
     "fetchedOn": "2026-11-15",
     "publishedOn": "2019-08-14",
     "fetch": "python3 -I scripts/library/sources.py sec-wework-s1-2019 <scratch> <scratch>/sec-wework-s1-2019.documents.json (the S-1 as filed on 2019-08-14 only: its amendments of 2019-09-04 and 2019-09-13 come after every WeWork Case date; the EDGAR submissions API confirms the accession, primary document and filing date; read as flowing HTML, the contents targets as headings; User-Agent declared)"
+  },
+  {
+    "id": "investor-gov-explainers",
+    "title": "Investor.gov explainers, glossary and Investor Bulletins (U.S. Securities and Exchange Commission)",
+    "kind": "timeless",
+    "licence": "US government work, not subject to copyright (17 U.S.C. §105); text only, third-party pictures and videos left out",
+    "licenceUrl": "https://www.investor.gov/disclaimer",
+    "credit": "U.S. Securities and Exchange Commission, Investor.gov (Office of Investor Education and Assistance): explainer pages, glossary entries and Investor Bulletins",
+    "url": "https://www.investor.gov/",
+    "fetchedOn": "2026-11-15",
+    "fetch": "python3 -I scripts/library/sources.py investor-gov <scratch> <scratch>/investor-gov-explainers.documents.json (the 58 pages in INVESTOR_GOV_PAGES of scripts/library/sources.py, picked from investor.gov/sitemap.xml; each page fetched as HTML, cached in <scratch>/investor-gov/, and read for its own body text only: no navigation, date line, jump links, link lists, videos, pictures or staff-views disclaimer; no page date kept, so the latest-year rule dates each passage by its text; a page with no text is listed and skipped)"
   }
 ]

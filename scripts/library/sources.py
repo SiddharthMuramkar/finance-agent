@@ -3,7 +3,7 @@
 Run from the laptop, with a scratch folder OUTSIDE this repo (downloads are cached there):
   python3 -I scripts/library/sources.py <source> <scratch dir> <documents.json>
 where <source> is one of: damodaran-papers, yale-econ-251, yale-econ-252, fed-explained,
-nyfed, fomc-historical, sec-anthropic-s1, sec-amazon-1997-2000, sec-webvan-1999-2001, sec-wework-s1-2019. Each writes a JSON
+nyfed, investor-gov, fomc-historical, sec-anthropic-s1, sec-amazon-1997-2000, sec-webvan-1999-2001, sec-wework-s1-2019. Each writes a JSON
 list of documents ({ref, title, url, publishedOn, sections}) for `npm run library:load`, which cleans, cuts, repairs and checks
 the text. Nothing extracted is written into the repo: the source text lives only in the private database.
 
@@ -331,6 +331,144 @@ def nyfed(scratch, out):
             docs.append({"ref": page.replace("/", "-"), "title": f"New York Fed: {title}", "url": f"https://www.newyorkfed.org/{page}", "publishedOn": None, "sections": sections})
     Path(out).write_text(json.dumps(docs))
     print(f"{len(docs)} pages, {sum(len(p.split()) for d in docs for s in d['sections'] for p in s['paragraphs'])} words")
+
+
+# ---------------------------------------------------------------- Investor.gov explainers (#38)
+
+INVESTOR_GOV = "https://www.investor.gov/"
+
+# Paths from the site's sitemap (investor.gov/sitemap.xml, 2026-11-15): compounding, saving and risk, how markets work, the
+# investment products (stocks, bonds, funds), four Investor Bulletins and the glossary entries the course leans on. Left out:
+# pages on 2020s products (crypto assets, tokenized securities, Trump Accounts), fraud alerts and enforcement news.
+INVESTOR_GOV_PAGES = [
+    "additional-resources/information/youth/teachers-classroom-resources/what-compound-interest",
+    "additional-resources/information/youth/teachers-classroom-resources/risk-and-return",
+    "additional-resources/information/youth/teachers-classroom-resources/what-diversification",
+    "additional-resources/information/youth/teachers-classroom-resources/why-save-and-invest",
+    "introduction-investing/investing-basics/save-and-invest/small-savings-add-big-money",
+    "introduction-investing/investing-basics/save-and-invest/understand-what-it-means-invest",
+    "introduction-investing/investing-basics/save-and-invest/diversify-your-investments",
+    "introduction-investing/investing-basics/save-and-invest/gauge-your-risk-tolerance",
+    "introduction-investing/investing-basics/save-and-invest/learn-about-investment-options",
+    "introduction-investing/investing-basics/save-and-invest/pay-credit-cards-or-other-high-interest",
+    "introduction-investing/investing-basics/what-risk",
+    "introduction-investing/getting-started/asset-allocation",
+    "introduction-investing/getting-started/assessing-your-risk-tolerance",
+    "introduction-investing/getting-started/understanding-fees",
+    "introduction-investing/getting-started/five-questions-ask-you-invest",
+    "introduction-investing/getting-started/researching-investments/how-read-10-k",
+    "introduction-investing/investing-basics/how-stock-markets-work/public-companies",
+    "introduction-investing/investing-basics/how-stock-markets-work/market-participants",
+    "introduction-investing/investing-basics/how-stock-markets-work/types-orders",
+    "introduction-investing/investing-basics/how-stock-markets-work/stock-purchases-and-sales-long-and",
+    "introduction-investing/investing-basics/investment-products/stocks",
+    "introduction-investing/investing-basics/investment-products/bonds-or-fixed-income-products/bonds",
+    "introduction-investing/investing-basics/investment-products/bonds-or-fixed-income-products",  # corporate bonds
+    "introduction-investing/investing-basics/investment-products/bonds-or-fixed-income-products/high",  # high-yield corporate bonds
+    "introduction-investing/investing-basics/investment-products/bonds-or-fixed-income-products-0",  # municipal bonds
+    "introduction-investing/investing-basics/investment-products/bonds-or-fixed-income-products/savings",  # savings bonds
+    "introduction-investing/investing-basics/investment-products/certificates-deposit-cds",
+    "introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-funds-etfs/mutual-funds",
+    "introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-2",  # exchange-traded funds
+    "introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-4",  # index funds
+    "introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-5",  # money market funds
+    "introduction-investing/investing-basics/investment-products/real-estate-investment-trusts-reits",
+    "introduction-investing/investing-basics/investment-products/commodities",
+    "introduction-investing/investing-basics/investment-products/international-investing",
+    "introduction-investing/investing-basics/investment-products/private-investment-funds/hedge-funds",
+    "introduction-investing/investing-basics/investment-products/private-investment-funds/private-equity",
+    "introduction-investing/investing-basics/investment-products/annuities",
+    "introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-86",  # interest rates up, fixed-rate bond prices down
+    "introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/mutual-fund-and-etf-fees-and-expenses-investor-bulletin",
+    "introduction-investing/general-resources/news-alerts/alerts-bulletins/characteristics-mutual-funds-exchange-traded-funds",
+    "introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24",  # exchange-traded funds
+    "introduction-investing/investing-basics/glossary/compound-interest",
+    "introduction-investing/investing-basics/glossary/basis-point",
+    "introduction-investing/investing-basics/glossary/coupon-rate",
+    "introduction-investing/investing-basics/glossary/yield",
+    "introduction-investing/investing-basics/glossary/yield-curve",
+    "introduction-investing/investing-basics/glossary/zero-coupon-bond",
+    "introduction-investing/investing-basics/glossary/callable-or-redeemable-bonds",
+    "introduction-investing/investing-basics/glossary/treasury-securities",
+    "introduction-investing/investing-basics/glossary/price-earnings-pe-ratio",
+    "introduction-investing/investing-basics/glossary/market-capitalization",
+    "introduction-investing/investing-basics/glossary/dividend",
+    "introduction-investing/investing-basics/glossary/expense-ratio",
+    "introduction-investing/investing-basics/glossary/net-asset-value",
+    "introduction-investing/investing-basics/glossary/initial-public-offering-ipo",
+    "introduction-investing/investing-basics/glossary/prospectus",
+    "introduction-investing/investing-basics/glossary/form-10-k",
+    "introduction-investing/investing-basics/glossary/dollar-cost-averaging",
+]
+
+# Where a page's own text ends: the link lists under these headings.
+INVESTOR_GOV_STOP = re.compile(r"(additional|related|more) (information|resources|reading|links)|for more information|related investor (alerts|bulletins)", re.I)
+# The staff-views disclaimer under every Investor Bulletin and Alert, and the service note on some pages.
+INVESTOR_GOV_DISCLAIMER = re.compile(r"represents the views of the staff|has provided this information as a service to investors", re.I)
+
+
+def element_inner(markup, start):
+    """The inner HTML of the element whose opening tag starts at markup[start], up to its matching closing tag (nested ones counted)."""
+    tag = re.match(r"<(\w+)", markup[start:]).group(1)
+    open_end = markup.find(">", start) + 1
+    depth = 1
+    for m in re.finditer(rf"<(/?){tag}\b[^>]*>", markup[open_end:], re.I):
+        depth += -1 if m.group(1) else 1
+        if depth == 0:
+            return markup[open_end : open_end + m.start()]
+    return markup[open_end:]
+
+
+def _drop_link_only(markup, tag):
+    """Removes each <p> or <li> whose text is all links (a jump list to the page's own sections, a list of other pages)."""
+
+    def keep(m):
+        inner = m.group(2)
+        rest = re.sub(r"<a\b[^>]*>.*?</a>|<br\s*/?>|<[^>]+>|&nbsp;|\s", "", inner, flags=re.I | re.S)
+        return "" if not rest and re.search(r"<a\b", inner, re.I) else m.group(0)
+
+    return re.sub(rf"(<{tag}\b[^>]*>)(.*?)</{tag}>", keep, markup, flags=re.I | re.S)
+
+
+def investor_gov_page(markup):
+    """One Investor.gov page as {title, sections}: the text of the page's own body (the first body field inside <article>: an
+    article's or glossary entry's field--name-body, a bulletin's article-body), so the navigation, the date line, the featured cards
+    and the footer stay out. Jump links and link-only lines go, the link lists under "Additional information" and the like end the
+    text, and the staff-views disclaimer goes. Videos and pictures are left out (text only)."""
+    heading = re.search(r'<h1[^>]*field--name-title[^>]*>(.*?)</h1>', markup, re.S) or re.search(r"<title>(.*?)</title>", markup, re.S)
+    title = " ".join(html.unescape(re.sub(r"<[^>]+>", "", heading.group(1) if heading else "")).split()).removesuffix(" | Investor.gov")
+    start = markup.find("<article")
+    if start < 0:
+        return {"title": title, "sections": []}
+    article = element_inner(markup, start)
+    body = re.search(r'<div\b[^>]*class="[^"]*\b(field--name-body|article-body)\b[^"]*"', article)
+    if not body:
+        return {"title": title, "sections": []}
+    inner = _drop_link_only(_drop_link_only(element_inner(article, body.start()), "p"), "li")
+    blocks = []
+    for kind, text in html_blocks(inner):
+        if kind == "h" and INVESTOR_GOV_STOP.fullmatch(text.strip(" :")):
+            break
+        if not INVESTOR_GOV_DISCLAIMER.search(text):
+            blocks.append((kind, text))
+    return {"title": title, "sections": sections_from_blocks(blocks)}
+
+
+def investor_gov(scratch, out, pages=None):
+    """Investor.gov explainers (the SEC's Office of Investor Education and Assistance), one document per page in INVESTOR_GOV_PAGES,
+    fetched as HTML (cached in <scratch>/investor-gov/) and read with investor_gov_page. Timeless: no page date is kept, so the
+    latest-year rule dates each passage by its text. A page with no text is listed and skipped."""
+    docs = []
+    for page in INVESTOR_GOV_PAGES if pages is None else pages:
+        url = INVESTOR_GOV + page
+        markup = fetch(url, Path(scratch) / "investor-gov" / (page.replace("/", "-") + ".html"))
+        found = investor_gov_page(markup)
+        if not found["sections"]:
+            print(f"no text on {url}")
+            continue
+        docs.append({"ref": page.replace("/", "-"), "title": f"Investor.gov: {found['title']}", "url": url, "publishedOn": None, "sections": found["sections"]})
+    Path(out).write_text(json.dumps(docs))
+    print(f"Investor.gov: {len(docs)} pages, {sum(len(p.split()) for d in docs for s in d['sections'] for p in s['paragraphs'])} words")
 
 
 # ---------------------------------------------------------------- FOMC historical records (#38)
@@ -910,6 +1048,8 @@ def main():
         fed_explained(scratch, out)
     elif source == "nyfed":
         nyfed(scratch, out)
+    elif source == "investor-gov":
+        investor_gov(scratch, out)
     elif source == "fomc-historical":
         fomc_historical(scratch, out)
     elif source == "sec-anthropic-s1":
