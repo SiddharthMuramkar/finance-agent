@@ -1418,7 +1418,10 @@ html[data-splitting] * {
     border-radius: 50%;
     background: var(--tag-dot);
   }
-  /* A family Tag is a neutral tag with a coloured dot. The face and the words stay the neutral tag's (ADR 0014). */
+  /* A family Tag is a neutral tag with a coloured dot. The face and the words stay the neutral tag's (ADR 0014). The
+     provenance dots: you is blue, src (sourced) is ink, the record (spec §2.1). */
+  .tag[data-tone="you"] { --tag-dot: var(--you); }
+  .tag[data-tone="src"] { --tag-dot: var(--src); }
   .tag[data-tone="mint"] { --tag-dot: var(--mint); }
   .tag[data-tone="coral"] { --tag-dot: var(--coral); }
   .tag[data-tone="sun"] { --tag-dot: var(--sun); }

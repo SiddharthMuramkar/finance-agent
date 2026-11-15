@@ -168,6 +168,9 @@ describe("Tag", () => {
   it("reads YOUR ASSUMPTION and SOURCED", () => {
     expect(renderToStaticMarkup(<Tag kind="you" />).toUpperCase()).toContain("YOUR ASSUMPTION");
     expect(renderToStaticMarkup(<Tag kind="src" />).toUpperCase()).toContain("SOURCED");
+    // Decision #17: the provenance dots follow the Signal colours, you in blue and sourced in ink (the record).
+    expect(renderToStaticMarkup(<Tag kind="you" />)).toContain('data-tone="you"');
+    expect(renderToStaticMarkup(<Tag kind="src" />)).toContain('data-tone="src"');
   });
 });
 

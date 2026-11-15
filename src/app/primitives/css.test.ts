@@ -125,7 +125,7 @@ describe("Block 2 is gone, and the one control set is flat (ADR 0014)", () => {
   });
 
   it("a family tag tone sets only its dot", () => {
-    for (const family of ["mint", "coral", "sun", "violet"]) {
+    for (const family of ["you", "src", "mint", "coral", "sun", "violet"]) {
       const tone = rule(`.tag[data-tone="${family}"]`);
       expect(tone).toContain(`--tag-dot: var(--${family});`);
       expect(tone).not.toContain("--tag-bg");
