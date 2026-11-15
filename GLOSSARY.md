@@ -47,7 +47,7 @@ The whole conversation between one Learner and the Tutor about one Topic.
 Where a signed-in Learner studies: the conversation beside the Widget panel.
 
 **Reply kind**:
-What a Tutor reply is for: feedback, rule, worked example, Quick try, re-teach, hint, or an answer to the Learner's own question.
+What a Tutor reply is for: feedback, rule, worked example, Quick try, re-teach, hint, an answer to the Learner's own question, or an offer to park a Skill.
 
 **Step-led reply**:
 A reply that moves the teaching on at the current Teaching Step.
@@ -203,7 +203,7 @@ An optional small goal inside a Widget, such as finding the break-even.
 The only form a named formula takes: each symbol is named in words, and every result comes from tested maths.
 
 **Illustration**:
-A Widget or example whose numbers are made up, and which says so.
+A Widget or drawing whose numbers are made up, and which is labelled "Illustration".
 
 ### Signal
 

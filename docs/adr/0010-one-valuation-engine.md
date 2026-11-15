@@ -1,6 +1,6 @@
 # Every valuation number comes from one tested valuation engine, including the Signal Levers widget
 
-Status: accepted, 2026-11-14. Tickets: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?) and [#18](https://github.com/SiddharthMuramkar/finance-agent/issues/18) (Levers model source of truth, option C). Written new from the archived ADR 0018, with its Workbench Widgets and where a Case's valuation inputs live. Replaces the Signal spec's prototype levers maths (§6.2.1) and its §6.2.4 acceptance table: the spec will follow the engine.
+Status: accepted, 2026-11-14. Tickets: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows) and [#18](https://github.com/SiddharthMuramkar/finance-agent/issues/18) (Levers model source of truth, option C). Written new from the archived ADR 0018, with its Workbench Widgets and where a Case's valuation inputs live. Replaces the Signal spec's prototype levers maths (§6.2.1) and its §6.2.4 acceptance table: the spec will follow the engine.
 
 ## Context
 

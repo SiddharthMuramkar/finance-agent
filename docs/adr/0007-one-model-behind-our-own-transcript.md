@@ -1,6 +1,6 @@
 # The Tutor runs on one OpenAI model behind the app's own transcript format
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archived ADRs 0015 and 0016.
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADRs 0015 and 0016.
 
 ## Context
 

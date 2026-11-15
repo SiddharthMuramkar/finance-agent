@@ -1,6 +1,6 @@
 # Controls are flat everywhere, sections are hairlines, and pictures are line Icons
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (resolution: start fresh, one new ADR for each decision the code still follows). Written new from the flat-controls part of archived ADR old 0013 (without its two modes, its one accent and its colours), archived ADR old 0014 ("Flat, icon-only Widgets", without its accent families) and the F4 rule of archived ADR old 0022. Colours are ADR 0015.
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Written new from the flat-controls part of archived ADR old 0013 (without its two modes, its one accent and its colours), archived ADR old 0014 ("Flat, icon-only Widgets", without its accent families) and the F4 rule of archived ADR old 0022. Colours are ADR 0015.
 
 ## Context
 
@@ -21,7 +21,7 @@ The old app had 3D buttons with a lip that sank when pressed, pill chips, boxes 
 - The gates fail on the raised look: `src/app/primitives/css.test.ts` (no lip, `translateY(`, `999px` or utility drop shadow, with a `KNOWN` list that can only shrink), `src/widgets/look.test.ts`, the browser audit in `e2e/support/measure.ts` (`notFlat`, `auditAffordances`, `pressLook`), `e2e/targets.spec.ts`, `src/dev/is-tilted.test.ts` and `src/icons/no-emoji.test.ts`.
 - Exact sizes, corner radii, the header height and the type scale are tuning. The tests and `globals.css` hold them, not this ADR.
 - One runtime dependency, `lucide-react`. A Topic file or Tutor param that names an emoji with no Icon fails the course check.
-- The Signal spec raises a live widget's shell with a shadow and 18px corners (§1.1 rule 4, §4.5) and has status pills (§5.4). The controls stay flat under the spec too. If the site work for #17 brings that shell or those pills into the app, the frame and pill rules here narrow with it.
+- The Signal spec raises a live widget's shell with a shadow and 18px corners (§1.1 rule 4, §4.5) and has status pills (§5.4). The controls stay flat under the spec too. If the site work for #17 (#32) brings that shell or those pills into the app, the frame and pill rules here narrow with it.
 
 ## Alternatives considered
 

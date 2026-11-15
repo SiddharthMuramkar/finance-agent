@@ -1,6 +1,6 @@
 # A reply changes the Widget only when a better one fits, and every reply ends with two or three Choices
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archived ADRs 0010 and 0019, and the Choices part of archived ADR 0014 (flat, icon-only Widgets).
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADRs 0010 and 0019, and the Choices part of archived ADR 0014 (flat, icon-only Widgets).
 
 ## Context
 

@@ -4,7 +4,7 @@ Status: accepted, 2026-11-14. Ticket: [#5](https://github.com/SiddharthMuramkar/
 
 ## Context
 
-The Signal spec has five live widgets: Jackpot, Four levers, Compounding, Rates and WeWork. They show on public pages (the case page in full, the hero in compact form), where no Tutor runs. The Study Workspace opens Widgets only through recipes (ADR 0009): `show_widget`, then OpenUI Lang, then our parts. The rates widget was built both ways. Through OpenUI it bent the spec: it refused bad input instead of clamping it, moved in 0.01 steps, added Guided Tasks, had no modes and saved taps as a number. As a plain component it matched the spec, but it had no Tutor path, no save and no tests.
+The Signal spec has five live widgets: Jackpot, Four levers, Compounding, Rates and WeWork. They show on public pages (an Example in full, the hero in compact form), where no Tutor runs. The Study Workspace opens Widgets only through recipes (ADR 0009): `show_widget`, then OpenUI Lang, then our parts. The rates widget was built both ways. Through OpenUI it bent the spec: it refused bad input instead of clamping it, moved in 0.01 steps, added Guided Tasks, had no modes and saved taps as a number. As a plain component it matched the spec, but it had no Tutor path, no save and no tests.
 
 ## Decision
 

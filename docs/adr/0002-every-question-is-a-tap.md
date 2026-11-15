@@ -1,6 +1,6 @@
 # Learners never type numbers: every question is a tap, and Spine Checks test judgement
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archived ADRs 0009 and 0021.
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADRs 0009 and 0021.
 
 ## Context
 
