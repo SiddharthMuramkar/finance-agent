@@ -8,7 +8,10 @@ A Widget that the model writes as code arrives last (after its prose and hundred
 
 ## Decision
 
-- The Tutor never writes Widget code and never draws a Widget of its own. Two older lanes still do, for Sessions frozen before this decision: `compose_widget`, which a new Session's tools no longer list, and the engine-off lane, where the Tutor writes the Widget into its reply. [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) deletes both (owner, 2026-11-15).
+- The Tutor never writes Widget code and never draws a Widget of its own. Two older lanes still let it:
+  - `compose_widget`. A new Session's tools do not list it. Only a Session frozen with it keeps it.
+  - The engine-off lane, where the Tutor writes the Widget into its reply. A Session frozen without the widget engine keeps it. A new Session gets it too when the stored `widget_engine` setting is "off". The default is "on"; tests and the Tutor eval can set "off".
+  - Whether to delete these lanes is still open on [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19).
 - The Tutor names a Widget recipe and its params with `show_widget`, or opens a written-ahead Widget with `open_widget`, at a preset.
 - Code parses the params against the recipe's schema, compiles the Widget, runs the Widget checks and stores it. A reply carries at most one Widget. A problem goes back to the Tutor as a tool error, so it can retry in the same turn.
 - Every number on a Widget has a known origin, in one of three kinds of param:
@@ -21,7 +24,7 @@ A Widget that the model writes as code arrives last (after its prose and hundred
 
 - Widgets look the same each time, use the right currency and arrive fast, because code draws them.
 - The Tutor can only show what a recipe or a Topic file covers. Topics without recipes teach in words until someone writes the recipes and presets.
-- Until #19 deletes them, a Session frozen with `compose_widget` or without the widget engine keeps that lane's code, so a saved call still resumes.
+- While the old lanes stay, a Session frozen with `compose_widget` or without the widget engine keeps that lane's code, so a saved call still resumes.
 - Each new recipe is code work: a schema, its checks, its tests and a line in the Tutor's instructions.
 
 ## Alternatives considered

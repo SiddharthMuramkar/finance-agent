@@ -382,7 +382,7 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
 export type { ToolDefinition } from "./model";
 
 /**
- * The widget engine (ADR 0009, behind the `widget_engine` setting, off by default): the Tutor chooses a Widget recipe
+ * The widget engine (ADR 0009, behind the `widget_engine` setting, on by default): the Tutor chooses a Widget recipe
  * and its params with show_widget, and code draws it. Its instructions carry the recipe signatures instead of the
  * full Widget library prompt, and its tools add show_widget. A Session frozen with them keeps them (session-log.ts).
  */
