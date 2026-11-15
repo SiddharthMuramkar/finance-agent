@@ -700,13 +700,15 @@ async function* runLockedTurn(
    * the reply's request carries the summary under the new instructions and no reply from before the change. No summary (or a failed call): the turn carries on uncompacted.
    * Returns the call's step, saved once the turn has its turn seq: a call with no summary or a failed one is a step too
    * (a failed one unpriced), but not one the API refused. A cut-off or a Stop here ends the turn before it has a turn
-   * seq, so that call goes unsaved.
+   * seq: that call is saved at once, unpriced, under the seq the turn's message takes.
    */
   async function* foldHistory(): AsyncGenerator<TurnEvent, ((n: number) => StepUsage) | undefined> {
     progress("Thinking…");
     const start = performance.now();
     // Aborted when the fold is given up (a cut-off, a failure), so its request does not run on in the background.
     const giveUp = new AbortController();
+    // A Stop that came before the call: the client checks its signal first, so nothing is sent.
+    const sent = !stop.aborted;
     try {
       const final = await beforeDeadline(client.compact({ model: session.model, messages: [...log.messages] }, { signal: AbortSignal.any([stop, giveUp.signal]) }), deadline, stop);
       const ms = Math.round(performance.now() - start);
@@ -718,11 +720,22 @@ async function* runLockedTurn(
       return (n) => stepUsage(session.model, n, final.usage, ["compaction"], ms, final.stopReason);
     } catch (error) {
       giveUp.abort();
-      if (error instanceof CutOff || error instanceof StopRequested || stop.aborted) throw error;
+      const ms = Math.round(performance.now() - start);
+      if (error instanceof CutOff || error instanceof StopRequested || stop.aborted) {
+        // The turn ends here, before it has a turn seq, but OpenAI bills the request. It is saved under the seq the turn's
+        // message takes (its resume's or Retry's, or the Learner's next message's, when no summary comes in first), so it
+        // counts in the daily caps, and in that turn's steps.
+        if (sent) {
+          const why = error instanceof CutOff ? "cut_off" : "stopped";
+          await stepLedger({ db, sessionId: session.id, turnSeq: log.nextSeq, now }, Infinity)
+            .save(session.model, (n) => cutShortStepUsage(session.model, n, undefined, ["compaction"], ms, why))
+            .catch((e: unknown) => console.error("A fold cut short could not save its usage", e));
+        }
+        throw error;
+      }
       console.warn("The refreeze fold failed; the turn carries on uncompacted.", error);
       // A request the API refused with an HTTP error ran no model and is not billed, so it is no step.
       if (refusedBeforeRunning(error)) return undefined;
-      const ms = Math.round(performance.now() - start);
       return (n) => cutShortStepUsage(session.model, n, undefined, ["compaction"], ms, "failed");
     }
   }
@@ -802,7 +815,9 @@ async function* runLockedTurn(
         yield* flush();
         progress("Thinking…");
         const events = stream[Symbol.asyncIterator]();
-        open = stream;
+        // The request starts on the first read, below. A Stop (or a cut) that came first, while the history was being
+        // saved, means the client sends nothing (it checks its signal before the request), so there is no step to save.
+        open = stop.aborted || cut.signal.aborted ? undefined : stream;
         let stepHasText = false;
         stepShown = "";
         // Citation markers follow each cited block.
@@ -1110,9 +1125,10 @@ async function* runLockedTurn(
       open = true;
       const summary = await client.compact({ model: session.model, messages: sent }, { signal: AbortSignal.any([stop, outOfTime.signal]) });
       open = false;
+      // Saved before the summary is stored, as the loop saves a step before its message: a failed store keeps its cost.
+      await saveStep(session.model, (n) => stepUsage(session.model, n, summary.usage, ["compaction"], Math.round(performance.now() - start), summary.stopReason));
       // The summary stands in for everything before it from the next request on.
       if (isCompaction(summary.content)) await log.append({ role: "assistant", content: summary.content });
-      await saveStep(session.model, (n) => stepUsage(session.model, n, summary.usage, ["compaction"], Math.round(performance.now() - start), summary.stopReason));
     } catch (error) {
       console.warn("The compaction failed; the Session carries on uncompacted.", error);
       if (open && !refusedBeforeRunning(error)) {

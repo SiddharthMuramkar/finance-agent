@@ -1,11 +1,11 @@
 import { onPercentTopic } from "@/test/percent-topic";
-import { eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { APIError } from "openai";
 import { describe, expect, it } from "vitest";
 import { CONVERTED_TOPIC_DATA, topicFileOf } from "@/course/lesson-fixture";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { OWNER_LEARNER_ID, sessions, settings } from "@/db/schema";
+import { OWNER_LEARNER_ID, sessions, settings, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { engineOff } from "@/test/engine-off";
@@ -187,6 +187,67 @@ describe("a compaction cut short", () => {
     expect((await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq)).map((s) => [s.step, s.tools, s.stopReason, s.costUsd])).toEqual([
       [1, ["compaction"], "failed", null],
       [2, [], "end_turn", 0],
+    ]);
+  });
+
+  it("the fold after a refreeze, when the Learner presses Stop, is saved unpriced and counts in the daily caps", async () => {
+    const db = await testDb();
+    await engineOff(db);
+    await turn(db, "Hello", [say("One.")]);
+    await db.update(sessions).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
+    // Stop while the fold's request is out: the turn ends before it has a turn seq.
+    const { requests } = await turn(db, "Hello again", [{ content: [], hold: never }], { stopAfter: 1 });
+
+    expect(requests.map((r) => r.compaction ?? false)).toEqual([true]);
+    const rows = await db.select().from(usageRows).where(eq(usageRows.kind, "step")).orderBy(asc(usageRows.id));
+    expect(rows.map((r) => [r.tools, r.stopReason, r.costUsd])).toEqual([
+      [[], "end_turn", 0],
+      [["compaction"], "stopped", null],
+    ]);
+    expect((await dailyUse(db, OWNER_LEARNER_ID, new Date())).learnerUsd).toBeCloseTo(UNPRICED_STEP_USD);
+  });
+
+  it("the fold after a refreeze, when the turn's time runs out, is saved unpriced: its resume's steps come after it", async () => {
+    const db = await testDb();
+    await engineOff(db);
+    await cap(db, "steps_per_turn", "3");
+    await turn(db, "Hello", [say("One.")]);
+    await db.update(sessions).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
+    const first = await turn(db, "Hello again", [{ content: [], hold: never }], { deps: { timeBudgetMs: 3000 } });
+    expect(first.events.at(-1)).toEqual({ type: "cut_off" });
+
+    // The resume folds again (no summary came in), then writes the reply with the turn's last step.
+    const resumed = await turn(db, { resume: true }, [say("Not a summary."), say("Two.")]);
+    expect(resumed.requests.map((r) => [r.compaction ?? false, r.toolChoice])).toEqual([
+      [true, undefined],
+      [false, "none"],
+    ]);
+    const done = doneOf(resumed.events);
+    expect((await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq)).map((s) => [s.step, s.tools, s.stopReason, s.costUsd])).toEqual([
+      [1, ["compaction"], "cut_off", null],
+      [2, ["compaction"], "compaction", 0],
+      [3, [], "end_turn", 0],
+    ]);
+  });
+
+  it("the compaction after a reply is saved before its summary is stored, so a failed store keeps its cost", async () => {
+    const db = await onPercentTopic(await testDb());
+    await cap(db, "compact_at_tokens", "1000");
+    // The summary's row cannot be written (as when the database drops the connection).
+    await db.execute(
+      sql.raw(`create function no_summary() returns trigger language plpgsql as $$
+        begin if new.content::text like '%The summary of the Session%' then raise exception 'the database went away'; end if; return new; end $$`),
+    );
+    await db.execute(sql.raw(`create trigger no_summary before insert on messages for each row execute function no_summary()`));
+    const long: ScriptedReply = { ...say("An EMI is the same payment every month."), usage: { input_tokens: 2005, input_tokens_details: { cached_tokens: 2000 }, output_tokens: 50 } };
+    const summary: ScriptedReply = { content: [{ type: "compaction", items: [{ type: "compaction", encrypted_content: "The summary of the Session." }] }], usage: { input_tokens: 2055, output_tokens: 40 } };
+    const { events, requests } = await turn(db, "What is an EMI?", [long, summary]);
+
+    expect(requests.map((r) => r.compaction ?? false)).toEqual([false, true]);
+    const done = doneOf(events);
+    expect((await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq)).map((s) => [s.step, s.tools, s.stopReason, s.costUsd !== null && s.costUsd > 0])).toEqual([
+      [1, [], "end_turn", true],
+      [2, ["compaction"], "compaction", true],
     ]);
   });
 
