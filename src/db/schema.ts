@@ -140,7 +140,7 @@ export const invites = pgTable("invites", {
 
 /**
  * The people the owner denied on /admin (ADR 0014), one row per Better Auth `user`. Checked first on
- * every request (src/auth/access.ts), so one row locks someone out even with an invite, the open
+ * every request (by src/auth/access.ts, deleted with Better Auth in issue #33; PR C drops this table), so one row locks someone out even with an invite, the open
  * Sign-up switch or a linked Learner. Keyed on the user, not the email, so Google and the email link
  * (one `user` per address) are both covered. Approving deletes the row; the Learner was never touched,
  * so their progress comes back. A deleted `user` takes its row with it and comes back as Waiting.
@@ -165,7 +165,7 @@ export const rateLimit = pgTable("rate_limit", {
 });
 
 /**
- * One sign-in email asked for (src/auth/email-throttle.ts): an HMAC of the address under
+ * One sign-in email asked for (by src/auth/email-throttle.ts, deleted with Better Auth in issue #33; PR C drops this table): an HMAC of the address under
  * BETTER_AUTH_SECRET, never the address, and when. Counted per address per hour and across all
  * addresses per day; rows older than a day are deleted.
  */

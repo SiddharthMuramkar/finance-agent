@@ -78,10 +78,6 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
 
 export type HeaderPage = "workspace" | "course" | "notebook" | "settings";
 
-/**
- * Who the header's account menu names: the signed-in Learner, with the email of their Google or email-link account when
- * linked, and, for the owner only, `admin`: how many people wait on /admin (see accountFor).
- */
 /** Who the header names (src/app/account.ts): the email an account's session carries, `passcode` for the test door, `admin` for the Admin row. */
 export type HeaderAccount = { name: string; email?: string; passcode?: true; admin?: true };
 

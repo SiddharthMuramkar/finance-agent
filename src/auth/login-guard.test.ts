@@ -21,7 +21,7 @@ const signedIn = (response: Response) => (response.headers.get("set-cookie") ?? 
 describe("A right passcode", () => {
   beforeEach(async () => {
     db = await testDb();
-    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("PASSCODES", `test:${PASSCODE}`);
     vi.stubEnv("SESSION_SECRET", "test-secret");
   });
   afterEach(() => vi.unstubAllEnvs());
@@ -37,7 +37,7 @@ describe("A right passcode", () => {
 describe("Passcode login attempts", () => {
   beforeEach(async () => {
     db = await testDb();
-    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("PASSCODES", `test:${PASSCODE}`);
     vi.stubEnv("SESSION_SECRET", "test-secret");
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-11-02T09:00:00Z"));
@@ -88,7 +88,7 @@ describe("Passcode login attempts", () => {
 describe("Where the passcode lands", () => {
   beforeEach(async () => {
     db = await testDb();
-    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("PASSCODES", `test:${PASSCODE}`);
     vi.stubEnv("SESSION_SECRET", "test-secret");
   });
   afterEach(() => vi.unstubAllEnvs());

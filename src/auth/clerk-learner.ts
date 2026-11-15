@@ -3,10 +3,12 @@ import { learners } from "../db/schema.ts";
 import type { Db } from "../db/types.ts";
 import type { Identity } from "./identity.ts";
 import type { Learner } from "./learners.ts";
-import { OWNER_NAME, TOOLS_NAME, passcodeList } from "./passcode.ts";
+import { TOOLS_NAME, passcodeList } from "./passcode.ts";
 
-// The Learner a signed-in account enters as (issue #33). Imports are relative with extensions, as in google-learner.ts,
-// which still loads this file under Node's type stripping (scripts/invites.mjs).
+// The Learner a signed-in account enters as (issue #33).
+
+/** The name of Learner 1, the migrations' owner Learner that the tests seed: never an account's. */
+const SEED_OWNER_NAME = "owner";
 
 /** The most " (n)" suffixes tried before giving up on a display name (a clash this deep means something is wrong). */
 const MAX_SUFFIX = 50;
@@ -17,7 +19,7 @@ const MAX_SUFFIX = 50;
  * Learner, nor an account a passcode person's.
  */
 export function reservedNames(env: Record<string, string | undefined> = process.env): Set<string> {
-  return new Set([OWNER_NAME, TOOLS_NAME, ...passcodeList(env).keys()].map((n) => n.toLowerCase()));
+  return new Set([SEED_OWNER_NAME, TOOLS_NAME, ...passcodeList(env).keys()].map((n) => n.toLowerCase()));
 }
 
 /** A display name made safe to store: spaces collapsed, at most 60 characters, never empty. */
@@ -25,8 +27,8 @@ export function cleanName(name: string | null | undefined): string {
   return (name ?? "").replace(/\s+/g, " ").trim().slice(0, 60).trim() || "Learner";
 }
 
-/** The column that links a Learner to its account: Better Auth's user until the cutover, Clerk's from then on. */
-export type AccountLink = { authUserId: string } | { clerkUserId: string };
+/** The column that links a Learner to its account: its Clerk user. */
+export type AccountLink = { clerkUserId: string };
 
 const randomHex = () => Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) => b.toString(16).padStart(2, "0")).join("");
 
