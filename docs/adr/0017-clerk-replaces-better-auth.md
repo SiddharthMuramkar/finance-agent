@@ -10,8 +10,8 @@ ADR 0014 built sign-in in the app with Better Auth: a Google OAuth client, email
 
 - Clerk replaces Better Auth and the passcode door for real people. It is a direct clerk.com account on the Free plan for now.
 - Sign-in is Google and an email link, sent and hosted by Clerk.
-- Sign-up uses Clerk's Waitlist mode: `/join` shows Clerk's Waitlist, a person waits, the owner approves them in Clerk, and Clerk sends the "you're in" email. Resend is not needed.
-- `/pending` and `/login` go. Clerk's `/sign-in` and `/sign-up` pages and the Waitlist on `/join` take their place.
+- Sign-up uses Clerk's Waitlist mode: `/join` shows Clerk's Waitlist, a person waits, the owner approves them in Clerk, and Clerk sends the "You're in" email. Resend is not needed.
+- ADR 0014's `/pending` page is dropped, and `/login` goes: it redirects to `/sign-in`. Clerk's `/sign-in` and `/sign-up` pages and the Waitlist on `/join` take their place.
 - The access states are no longer worked out in the app: Clerk holds them. The "What brings you here?" choices are dropped for now.
 - The owner is the person whose Clerk `publicMetadata.role` is `"admin"`, read from the session claim. `/admin` checks that claim.
 - Fresh start, with no user migration. After Clerk is live: take a Neon snapshot, delete the old Learners (those with no Clerk id) and their history, and drop the Better Auth tables.
@@ -22,7 +22,7 @@ ADR 0014 built sign-in in the app with Better Auth: a Google OAuth client, email
 ## Consequences
 
 - Less sign-in code to own and guard: Clerk hosts the sign-in, the emails and the waiting list.
-- Approval moves from `/admin` to the Clerk dashboard.
+- Approval moves from `/admin` to the Clerk dashboard. `/admin` stays for the owner, with Spend and Tutor speed.
 - Everyone who signed in before the cut-over starts again from nothing, and their old history is gone. The snapshot is the only way back.
 - Production needs its own Google OAuth client for Clerk, Clerk DNS records on the domain and Clerk keys in Vercel.
 - Sign-in depends on Clerk's service and its Free plan limits. Moving away later means a user migration.
