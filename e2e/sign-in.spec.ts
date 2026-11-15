@@ -75,14 +75,11 @@ test("[G1, F1] the sign-in page has the public header and its heading on a Band"
   expect(look).toEqual({ face: "rgb(31, 63, 174)", ink: "rgb(255, 255, 255)" });
 });
 
-test("the passcode form signs the tools Learner in, and a wrong passcode comes back to /sign-in", async ({ page }, info) => {
+// No wrong passcode is typed here: every project shares one server and one address, and five wrong ones pause the door
+// for everyone for 15 minutes (src/auth/login-guard.test.ts covers the wrong passcode and the pause).
+test("the passcode form signs the tools Learner in", async ({ page }, info) => {
   test.skip(onPhone(info.project.name), PHONE_SKIP);
   await page.goto("/sign-in");
-  await page.locator('input[name="passcode"]').fill("not the passcode");
-  await page.getByRole("button", { name: "Enter" }).click();
-  await page.waitForURL((url) => url.pathname === "/sign-in" && url.searchParams.get("wrong") === "1");
-  await expect(page.locator("form").getByRole("alert")).toBeVisible();
-
   await page.locator('input[name="passcode"]').fill("e2e-passcode");
   await page.getByRole("button", { name: "Enter" }).click();
   await page.waitForURL((url) => url.pathname !== "/sign-in");
