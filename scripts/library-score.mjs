@@ -38,7 +38,7 @@ let judgedHits5 = 0;
 let hits1 = 0;
 let rr = 0;
 const misses = [];
-const groupOf = (qu) => qu.sources?.[0] ?? (qu.expect?.[0]?.includes("/") ? qu.expect[0].split("/")[0] : "openstax-principles-finance-2e");
+const groupOf = (qu) => qu.sources?.[0] ?? (qu.expect?.[0]?.includes("/") ? qu.expect[0].split("/")[0] : set.source);
 const byGroup = {};
 for (const question of set.questions) {
   const { q } = question;
