@@ -48,7 +48,7 @@ import {
   type Shown,
   usesWidgetEngine,
 } from "./session-log";
-import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
+import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { FINISH_NOTE, OLD_CONTINUE_TEXT, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import type { NextName } from "./next";
@@ -241,8 +241,6 @@ export type TurnDeps = {
   notify?: (event: ProgressEvent) => void;
   /** Tells the route the id of the turn that holds the Learner's lock, once it does, so the browser can tie its Stop to that turn. */
   onTurn?: (turnId: number) => void;
-  /** compose_widget's model client (and a test's shorter limit); left out, the real OpenAI client, made on first use. */
-  composer?: Composer;
   /**
    * True for the evals: no Spend cap applies (decision #13). No daily cap or resume limit in turn admission, and the turn
    * keeps its steps in the no-limit Step ledger. Left out, every cap applies.
@@ -455,15 +453,15 @@ async function* runLockedTurn(
   const map = deps.map ?? loadCourseMap();
   const now = deps.now ?? (() => new Date());
   const runStart = performance.now();
-  const effects: ToolEffects = { saveFailed: false, items: [], notify: deps.notify, deadline, stop, pageWidgets: deps.widgets };
+  const effects: ToolEffects = { saveFailed: false, items: [], notify: deps.notify, pageWidgets: deps.widgets };
   const progress = (label: string) => deps.notify?.({ type: "progress", label });
 
   let session: Session;
   let log: Log;
   let turnSeq: number;
   let code: Record<string, ToolCode>;
-  // The turn's Step ledger (step-ledger.ts): its loop steps, numbered once across the Tutor's steps and the extra ones
-  // tools save (compose_widget's), and how many are left under the step limit. Made once the turn has its turn seq.
+  // The turn's Step ledger (step-ledger.ts): its model steps, numbered once across the Tutor's steps, a fold and a
+  // compaction, and how many are left under the step limit. Made once the turn has its turn seq.
   let ledger: StepLedger | undefined;
   let stepsReady = false;
   const ledgerNow = (): StepLedger => {
@@ -471,8 +469,6 @@ async function* runLockedTurn(
     return (ledger ??= deps.noLimits ? noLimitLedger(at) : stepLedger(at, stepLimit));
   };
   const saveStep = (model: string, make: (n: number) => StepUsage) => ledgerNow().save(model, make);
-  // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
-  effects.saveStep = (model, make) => (stepsReady ? saveStep(model, make) : Promise.resolve());
   // This turn's facts (turn-facts.ts), the place they were worked out for, and whether the turn closes a passed Topic.
   let facts: TurnFacts | undefined;
   let placeAtStart: Place | null = null;
@@ -503,7 +499,7 @@ async function* runLockedTurn(
   if (resumed) {
     ({ session, log, turnSeq } = resumed);
     stepsReady = true;
-    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     const at = navigate(map, await loadProgress(db, learnerId));
     liveFacts = await turnFacts(db, map, learnerId, at, { learnerText: turn.input ?? undefined, now: now() });
     ownQ = await isOwnAt(at, liveFacts.quizOpen, turnSeq);
@@ -569,7 +565,7 @@ async function* runLockedTurn(
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes, startFacts)
         : plainContext;
     const learnerBlocks: { type: "text"; text: string }[] = [{ type: "text", text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
-    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
     // The first turn after a refreeze folds the history from before it into a summary, before the reply.
@@ -998,7 +994,7 @@ async function* runLockedTurn(
 
   /**
    * The turn's Widget and where it came from: the step's (code stored one: a card preset, the reveal or explore Widget,
-   * a re-teach's practice Widget), the Tutor's (its own show_widget, compose_widget, open_widget or update_widget), or a
+   * a re-teach's practice Widget), the Tutor's (its own show_widget, open_widget or update_widget), or a
    * Companion Widget code stores now. Called once, after every Widget code stores in the turn (the end of runLockedTurn).
    */
   const companionWidget = async (): Promise<{ source: string; item?: SessionItem }> => {

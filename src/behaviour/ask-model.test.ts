@@ -19,11 +19,13 @@ describe("askModel", () => {
     expect(res.costUsd).toBeCloseTo((5_000 * 2 + 4_000 * 0.1 + 1_000 * 2.5 + 2_000 * 10) / 1e6, 8);
   });
 
-  it("says max_tokens for a reply cut off at its limit, and refusal for a refusal", async () => {
+  it("says max_tokens for a reply cut off at its limit, and refusal for a refusal or output the content filter cut", async () => {
     const cut = await askModel(fake({ status: "incomplete", incomplete_details: { reason: "max_output_tokens" }, output: [], output_text: "{\"a\":" }).client, { input: "x", maxOutputTokens: 10 });
     expect(cut.stopReason).toBe("max_tokens");
     const refused = await askModel(fake({ status: "completed", output: [{ type: "message", content: [{ type: "refusal", refusal: "No." }] }], output_text: "" }).client, { input: "x", maxOutputTokens: 10 });
     expect(refused.stopReason).toBe("refusal");
+    const filtered = await askModel(fake({ status: "incomplete", incomplete_details: { reason: "content_filter" }, output: [], output_text: "" }).client, { input: "x", maxOutputTokens: 10 });
+    expect(filtered.stopReason).toBe("refusal");
   });
 
   it("counts input apart from the cached and cache-written tokens, and prices an unknown model at nothing", () => {

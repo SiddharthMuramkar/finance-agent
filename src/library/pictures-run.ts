@@ -50,7 +50,7 @@ const textOf = (m: PictureResponse): string =>
 
 /**
  * Why the reply ended, in the words the cache keeps: `max_tokens` for a reading cut off at its limit, `refusal` for a
- * refusal part or output cut by the content filter (as for the Tutor and compose_widget), else `end_turn`.
+ * refusal part or output cut by the content filter (as for the Tutor and askModel), else `end_turn`.
  */
 function stopReasonOf(m: PictureResponse): string {
   if ((m.output ?? []).some((item) => item.content?.some((part) => part.type === "refusal"))) return "refusal";

@@ -116,18 +116,6 @@ describe("[S3] the Widget the prompt's own turn showed (bar 1, A Widget with eve
     expect(lane.widgetsShown).toBe(1);
   });
 
-  it("names a composed Widget's lane from its source", async () => {
-    const { db, pool, sessionId, promptSeq } = await opened();
-    await db.insert(messages).values([
-      { sessionId, seq: 3, role: "user", content: "draw it" },
-      { sessionId, seq: 4, role: "assistant", content: text("Here it is.") },
-    ]);
-    await db.insert(sessionItems).values({ learnerId: me, sessionId, afterSeq: 4, kind: "widget_shown", data: { code: "root = Chart()", title: "Composed", source: "compose" } });
-    const lane = await readLane(pool, me, promptSeq);
-    expect(lane.lane).toBe("compose");
-    expect(lane.code).toBe("root = Chart()");
-  });
-
   it("never counts a Companion Widget as the Tutor's lane: a reply with only code's Companion has lane none", async () => {
     const { db, pool, sessionId, promptSeq } = await opened();
     await db.insert(messages).values([

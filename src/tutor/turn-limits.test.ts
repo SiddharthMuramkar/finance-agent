@@ -1,17 +1,12 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { loadCourseMap } from "@/course/map";
-import { navigate } from "@/course/navigator";
 import { OWNER_LEARNER_ID, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { loadProgress } from "@/learner/memory";
 import { onPercentTopic } from "@/test/percent-topic";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
-import type { ComposeClient } from "./compose";
-import { ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
 import { RESUME_LIMIT_MESSAGE } from "./quota";
-import { frozenNow, readSettings } from "./session-log";
+import { readSettings } from "./session-log";
 import { runTutorTurn, STEP_LIMIT, type TurnEvent } from "./turn";
 import { loadStepUsages } from "./usage";
 
@@ -73,53 +68,23 @@ describe("the step limit", () => {
   });
 });
 
-/** A Session frozen with compose_widget in its tools, as an older build froze it (new Sessions are not offered it, ADR 0007). */
-async function withCompose(db: Db) {
-  await cap(db, "widget_engine", "on");
-  const place = navigate(loadCourseMap(), await loadProgress(db, OWNER_LEARNER_ID));
-  const frozen = await frozenNow(db, { tools: ENGINE_TOOLS_WITH_COMPOSE });
-  await db.insert(sessions).values({ ...frozen, learnerId: OWNER_LEARNER_ID, topicId: place?.topic.id ?? null, older: false, createdAt: new Date() });
-}
-
-/** A compose model that answers at once and reports its tokens, so compose_widget saves its call as a step of the turn. */
-const composer: { client: ComposeClient } = {
-  client: { create: () => Promise.resolve({ content: [{ type: "text", text: "Sorry, I cannot." }], stop_reason: "end_turn", usage: { input_tokens: 3000, output_tokens: 400 } }) },
-};
-const compose = { type: "tool_use", id: "toolu_limit_compose", name: "compose_widget", input: { brief: "A SIP the Learner stretches over the years", archetype: "Grow" } };
-
-describe("the step limit and compose_widget's own step (decision #30)", () => {
-  it("counts the step compose_widget saves inside its tool run once, and at once: the step after it is the last", async () => {
+describe("the step limit after a refreeze's fold (decision #30)", () => {
+  it("with no step left after the fold, sends no request for the reply, and the turn still ends with a reply", async () => {
     const db = await onPercentTopic(await testDb());
-    await withCompose(db);
-    await cap(db, "steps_per_turn", "3");
-    const { client, requests } = scriptedClient([{ content: [compose] }, { content: [{ type: "text", text: "Drag the years." }] }]);
-    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID, composer }, "Draw me something new"));
+    await collect(runTutorTurn({ db, client: scriptedClient([{ content: [reply] }]).client, learnerId: OWNER_LEARNER_ID }, "What is an EMI?"));
+    // A deploy changed the instructions: the next turn refreezes the Session and folds its history first, which is a step.
+    await db.update(sessions).set({ fingerprint: "an-earlier-build" });
+    await cap(db, "steps_per_turn", "1");
+    const summary = { content: [{ type: "compaction", items: [{ type: "compaction", id: "cmp_1", encrypted_content: "Summary." }] }], stop_reason: "compaction", usage: { input_tokens: 2100, output_tokens: 300 } };
+    const { client, requests } = scriptedClient([summary]);
+    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "And for 10 years?"));
 
-    // Step 1 called the tool, step 2 was the compose call, so step 3 (the reply) may call no tool.
-    expect(requests.map((r) => r.toolChoice)).toEqual([undefined, "none"]);
-    const done = events.at(-1);
-    if (done?.type !== "done") throw new Error(`the turn ended with ${done?.type}`);
-    const steps = await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq);
-    expect(steps.map((s) => [s.step, s.tools])).toEqual([
-      [1, ["compose_widget"]],
-      [2, ["compose_widget"]],
-      [3, []],
-    ]);
-  });
-
-  it("with no step left after the compose call, sends no request for the reply, and the turn still ends with a reply", async () => {
-    const db = await onPercentTopic(await testDb());
-    await withCompose(db);
-    await cap(db, "steps_per_turn", "2");
-    const { client, requests } = scriptedClient([{ content: [compose] }]);
-    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID, composer }, "Draw me something new"));
-
-    expect(requests).toHaveLength(1);
+    expect(requests.map((r) => Boolean(r.compaction))).toEqual([true]);
     const done = events.at(-1);
     if (done?.type !== "done") throw new Error(`the turn ended with ${done?.type}`);
     expect(done.stopReason).toBe(STEP_LIMIT);
-    expect((await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq)).map((s) => s.step)).toEqual([1, 2]);
-    expect(await db.select({ status: turns.status, stopReason: turns.stopReason }).from(turns)).toEqual([{ status: "finished", stopReason: STEP_LIMIT }]);
+    expect((await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq)).map((s) => s.tools)).toEqual([["compaction"]]);
+    expect((await db.select({ status: turns.status, stopReason: turns.stopReason }).from(turns)).at(-1)).toEqual({ status: "finished", stopReason: STEP_LIMIT });
     expect(events.filter((e) => e.type === "error")).toEqual([]);
   });
 });

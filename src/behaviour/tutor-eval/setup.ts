@@ -235,7 +235,7 @@ export async function noteMark(db: Db, learnerId: number): Promise<number> {
 
 /**
  * What the Tutor itself stored in one turn, from the turn's successful tool calls: the ids of the Widgets its show_widget
- * and compose_widget calls stored (a shown Widget's id is its tool call's id), and whether it opened a written-ahead one.
+ * calls stored (a shown Widget's id is its tool call's id), and whether it opened a written-ahead one.
  * A Widget item that is not among them was stored by code (the Concept card's, the reveal's, a re-teach's).
  */
 async function tutorStored(db: Db, sessionId: number, turnSeq: number): Promise<{ shown: Set<string>; opened: boolean }> {
@@ -244,7 +244,7 @@ async function tutorStored(db: Db, sessionId: number, turnSeq: number): Promise<
     .from(toolCalls)
     .innerJoin(turns, eq(turns.id, toolCalls.turnId))
     .where(and(eq(turns.sessionId, sessionId), eq(turns.turnSeq, turnSeq), eq(toolCalls.isError, false)));
-  return { shown: new Set(calls.filter((c) => c.name === "show_widget" || c.name === "compose_widget").map((c) => c.id)), opened: calls.some((c) => c.name === "open_widget") };
+  return { shown: new Set(calls.filter((c) => c.name === "show_widget").map((c) => c.id)), opened: calls.some((c) => c.name === "open_widget") };
 }
 
 /** A tool result's text as code sent it back: a string, or the text of its blocks. Long results are cut, since a critic needs only the figures. */

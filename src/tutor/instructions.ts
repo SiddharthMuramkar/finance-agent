@@ -1,7 +1,5 @@
 import { CALCULATORS, CALCULATOR_IDS } from "@/finance/calculators";
 import frozenWidgets from "@/widgets/frozen.generated.json";
-import { RECIPE_IDS } from "@/widgets/recipes";
-import { ARCHETYPES } from "@/widgets/recipes/define";
 import { TUTOR_RECIPE_IDS, tutorRecipeSignatures } from "./ready-made-widgets";
 import { blockedNumbersFrom, LONG_CAP, type OpenItem, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
 import type { ToolDefinition } from "./model";
@@ -406,31 +404,6 @@ export const SHOW_WIDGET_TOOL: ToolDefinition = {
   },
 };
 
-/** The free-form lane (UX audit ★.4, lane 2): the same model (gpt-6.1-sol), in a separate call, writes a Widget no recipe covers, within 12 seconds. */
-export const COMPOSE_WIDGET_TOOL: ToolDefinition = {
-  type: "function",
-  strict: false,
-  name: "compose_widget",
-  description:
-    "Have a Widget drawn free-form when no recipe fits the idea. Give a short brief (what the Learner should see and move, and which Case Data references or calculator it uses), its archetype, and any parts it must use. Code has it written, checks it like any Widget, and puts it in the Widget panel. If drawing takes longer than 12 seconds or fails, code shows the closest recipe instead (your fallback, if you give one) and the result says so in one line for you to tell the Learner. One Widget per reply.",
-  parameters: {
-    type: "object",
-    properties: {
-      brief: { type: "string", description: "What the Widget shows and what the Learner moves, in one to three sentences, with its title and any Case Data references." },
-      archetype: { type: "string", enum: [...ARCHETYPES], description: "The kind of idea it teaches." },
-      mustUse: { type: "array", items: { type: "string" }, description: 'Parts it must use, e.g. ["Breakeven"]. Optional.' },
-      fallback: {
-        type: "object",
-        description: "Optional: the recipe and params (as for show_widget) to show if drawing fails.",
-        properties: { recipe: { type: "string", enum: RECIPE_IDS }, params: { type: "object" } },
-        required: ["recipe", "params"],
-      },
-    },
-    required: ["brief", "archetype"],
-    additionalProperties: false,
-  },
-};
-
 /** Moves an open Widget's sliders instead of drawing a new one (UX audit ★.4). */
 export const UPDATE_WIDGET_TOOL: ToolDefinition = {
   type: "function",
@@ -497,8 +470,5 @@ const OPEN_WIDGET_ENGINE_TOOL: ToolDefinition = (() => {
   };
 })();
 
-/** The engine's tools (ADR 0007): open_widget with a preset, show_widget and update_widget. compose_widget is not offered. */
+/** The engine's tools (ADR 0007): open_widget with a preset, show_widget and update_widget. */
 export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [OPEN_WIDGET_ENGINE_TOOL, SHOW_WIDGET_TOOL, UPDATE_WIDGET_TOOL] : [t]));
-
-/** The engine's tools for a Session frozen while compose_widget was offered: it keeps the tools it was frozen with (ADR 0005). */
-export const ENGINE_TOOLS_WITH_COMPOSE: ToolDefinition[] = ENGINE_TOOLS.flatMap((t) => (t.name === "show_widget" ? [t, COMPOSE_WIDGET_TOOL] : [t]));

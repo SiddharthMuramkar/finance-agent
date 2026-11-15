@@ -5,7 +5,7 @@ import { navigate } from "@/course/navigator";
 import { learnerState, messages, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 import { rejectedSeqsOf } from "./reply-records";
 import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model";
 
@@ -274,9 +274,7 @@ export async function frozenNow(db: Db, session?: { tools: unknown }) {
   const model = TUTOR_MODEL;
   const engine = widgetEngine === "on" || usesWidgetEngine(session);
   const instructions = engine ? ENGINE_INSTRUCTIONS : TUTOR_INSTRUCTIONS;
-  // compose_widget is not offered to new Sessions (ADR 0007); a Session whose tools already list it keeps it.
-  const keepsCompose = Array.isArray(session?.tools) && session.tools.some((t) => (t as { name?: unknown })?.name === "compose_widget");
-  const tools: ToolDefinition[] = engine ? (keepsCompose ? ENGINE_TOOLS_WITH_COMPOSE : ENGINE_TOOLS) : TUTOR_TOOLS;
+  const tools: ToolDefinition[] = engine ? ENGINE_TOOLS : TUTOR_TOOLS;
   return { instructions, tools, model, effort, fingerprint: fingerprint(instructions, tools) };
 }
 

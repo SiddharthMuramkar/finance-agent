@@ -74,7 +74,7 @@ const toolUses = (rows: readonly Row[], fromSeq: number) =>
     .flatMap((r) => (r.content as { type?: string; id?: string; name?: string; input?: { id?: unknown } }[]).filter((b) => b?.type === "tool_use"));
 
 /**
- * The Widgets the draft itself showed: those its own show_widget, compose_widget and open_widget calls stored. Items
+ * The Widgets the draft itself showed: those its own show_widget and open_widget calls stored. Items
  * code stored (a step's own Widget, a Concept card's preset, a Next's) are never the draft's.
  */
 export function toolWidgets(rows: readonly Row[], fromSeq: number, items: readonly StoredItem[]): ReplyWidget[] {
@@ -82,7 +82,7 @@ export function toolWidgets(rows: readonly Row[], fromSeq: number, items: readon
   const later = items.filter((i) => i.afterSeq >= fromSeq);
   const used = new Set<number>();
   return uses.flatMap((use): ReplyWidget[] => {
-    if (use.name === "show_widget" || use.name === "compose_widget") {
+    if (use.name === "show_widget") {
       const shown = later.find((i) => i.kind === WIDGET_SHOWN && i.data.id === use.id);
       if (!shown) return [];
       const recipe = typeof shown.data.recipe === "string" && shown.data.recipe ? shown.data.recipe : String(shown.data.title ?? "Widget");

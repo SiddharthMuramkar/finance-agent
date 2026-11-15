@@ -6,7 +6,7 @@
 // the opening turn to finish, types the prompt and presses Send.
 // From that moment (t0) it records first pixel, interactive and done times, whether a "Drawing…" skeleton or chip
 // stayed up for more than 12 s, then reads the Session's rows from the database to find which lane served the Widget
-// (recipe, compose, fallback, a fence in the reply, or none) and runs the automatic checks on its code.
+// (recipe, a fence in the reply, or none) and runs the automatic checks on its code.
 // It saves one screenshot of the Widget panel per prompt. The Purpose / Concrete / Delight scores (0 to 2) are NOT
 // computed here: a person or a model fills them in from the screenshots and passes them back with --scores.
 // This makes about 20 to 25 real Tutor turns (a few cents each) on the test branch.
@@ -132,7 +132,7 @@ const pct = (rows, pick) => {
 /** The ★.10 summary and targets from the rows. */
 function summarize(rows) {
   const recipe = rows.filter((r) => r.lane === "recipe");
-  const freeform = rows.filter((r) => r.lane === "compose" || r.lane === "fallback" || r.lane === "fence");
+  const freeform = rows.filter((r) => r.lane === "fence");
   const served = rows.filter((r) => r.lane !== "none");
   const archetypes = new Set(rows.map((r) => r.archetype).filter(Boolean));
   const score = (key) => mean(rows.map((r) => r.scores?.[key]?.score));
@@ -165,7 +165,7 @@ function summarize(rows) {
     purposeMean: score("purpose"),
     concreteMean: score("concrete"),
     delightMean: score("delight"),
-    lanes: Object.fromEntries(["recipe", "compose", "fallback", "fence", "none"].map((l) => [l, rows.filter((r) => r.lane === l).length])),
+    lanes: Object.fromEntries(["recipe", "fence", "none"].map((l) => [l, rows.filter((r) => r.lane === l).length])),
   };
   const t = (name, target, actual, pass) => ({ name, target, actual, pass: actual == null ? null : pass });
   const targets = [

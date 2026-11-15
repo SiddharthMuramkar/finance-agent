@@ -168,13 +168,13 @@ export const FIRST_JUDGE_CALL_USD = 0.15;
 export const FIRST_PROMPT_TURNS_USD = 0.6;
 
 /**
- * The most output one Tutor step can write (src/tutor/turn.ts MAX_TOKENS; compose_widget's is also 16 000, so this bounds it
- * too). The reserve for a try whose usage never settled prices each step at this.
+ * The most output one Tutor step can write (src/tutor/turn.ts MAX_TOKENS). The reserve for a try whose usage never
+ * settled prices each step at this.
  */
 export const TUTOR_MAX_OUTPUT_TOKENS = 16_000;
 /**
- * How far apart the two matching usage reads of a settled try are: longer than compose_widget's 12 s cap
- * (COMPOSE_LIMIT_MS), so a compose call in flight when its turn was cut off has saved its step by the second read.
+ * How far apart the two matching usage reads of a settled try are: long enough that a step still being written when
+ * its turn was cut off has saved its usage by the second read.
  */
 export const SETTLE_POLL_MS = 15_000;
 /** How long an unfinished try's usage is watched before the reserve is charged instead. */

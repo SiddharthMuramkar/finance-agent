@@ -12,18 +12,16 @@ import { messages, practiceAnswers, sessions, toolCalls, turns } from "@/db/sche
 import { widgetControls, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
 import { declaredSettings } from "@/widgets/settings";
 import { widgetKey } from "@/widgets/widget-state";
-import { ARCHETYPES, asIllustration, ILLUSTRATION } from "@/widgets/recipes/define";
+import { asIllustration, ILLUSTRATION } from "@/widgets/recipes/define";
 import { figuresFromTutor, recipeInputsIn } from "@/widgets/recipes/set-workbench";
 import { recipeById } from "@/widgets/recipes";
 import { headlineParamsForScene, isStoryRecipeId, storyChecks } from "@/widgets/recipes/set-story";
 import { storyContextFor } from "@/course/scenes";
-import { shownWidgetOf, WIDGET_SHOWN, type ComposeTimings, type ShownWidget } from "@/widgets/shown-widget";
+import { shownWidgetOf, WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
-import { openaiComposeClient, COMPOSE_LABEL, composeLimitMs, composeProgram, fallbackCandidates, type ComposeClient, type Composed } from "./compose";
 import { usesWidgetEngine, withoutRejected } from "./session-log";
 import { rejectedRows } from "./reply-gate";
-import { stepUsage, type StepUsage } from "./usage";
 import { loadWrittenAhead, openedItem, saveOpenedState } from "./written-ahead";
 import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, sliderSpecs, TUTOR_RECIPE_IDS } from "./ready-made-widgets";
 import { checkReply, type ReplyWidget } from "./reply-checks";
@@ -42,7 +40,7 @@ import { replyItems } from "./reply-items";
 import { startAgainItems, storeStepDivider } from "./practice";
 import { openWidgetsForTurn } from "./widget-context";
 import { textOf } from "./transcript";
-import { TUTOR_MODEL, type Message, type RunnableTool, type ToolCode, type ToolDefinition, type ToolResultBlock, type ToolUseBlock } from "./model";
+import { type Message, type RunnableTool, type ToolCode, type ToolDefinition, type ToolResultBlock, type ToolUseBlock } from "./model";
 import { JUST_TELL_ME } from "./chips";
 import { ownRuleOf, OWN_RULE_SAVED } from "./own-rule-item";
 import { turnKind } from "./turn-status";
@@ -97,18 +95,9 @@ export type ToolEffects = {
   notify?: (event: ProgressEvent) => void;
   /** Widget states tool calls saved (update_widget), which the Tutor Turn streams to the browser as they are saved. */
   widgetStates?: WidgetStateEvent[];
-  /** The turn's deadline (a performance.now() time): compose_widget ends its model call well before it. */
-  deadline?: number;
-  /** Aborts when the Learner presses Stop: compose_widget gives up its model call. */
-  stop?: AbortSignal;
-  /** Saves an extra usage step (the compose model's call) under the turn's next step number; left out, none is saved. */
-  saveStep?: (model: string, make: (step: number) => StepUsage) => Promise<void>;
   /** What the page's Widgets showed when the turn was sent (TurnDeps.widgets), over what the Session saved. */
   pageWidgets?: WidgetStates;
 };
-
-/** compose_widget's model client and, for tests, a shorter limit than 12 s. */
-export type Composer = { client: ComposeClient; limitMs?: number };
 
 /** A plain-word label for what the turn is doing now ("Searching the Library…"), shown by the writing indicator. */
 export type ProgressEvent = { type: "progress"; label: string };
@@ -124,7 +113,6 @@ export const TOOL_LABELS: Record<string, string> = {
   start_again: "Starting again…",
   open_widget: "Opening a Widget…",
   show_widget: "Drawing the Widget…",
-  compose_widget: COMPOSE_LABEL,
   update_widget: "Updating the Widget…",
   finish_teaching_step: "Moving to the next step…",
 };
@@ -216,7 +204,6 @@ export function toolCode(
   effects: ToolEffects,
   turn: ToolTurn,
   embedQuery?: QueryEmbedder,
-  composer?: Composer,
 ): Record<string, ToolCode> {
   const { id: turnId, learnerId } = turn;
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
@@ -264,7 +251,7 @@ export function toolCode(
    * "one Widget a reply" against what the others stored, so two calls in one message must not read the reply together.
    */
   let widgetLane: Promise<unknown> = Promise.resolve();
-  const WIDGET_CALLS = new Set(["show_widget", "compose_widget", "open_widget", "update_widget"]);
+  const WIDGET_CALLS = new Set(["show_widget", "open_widget", "update_widget"]);
   function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
     if (!WIDGET_CALLS.has(name)) return onceNow(toolCallId, name, effect);
     const run = widgetLane.then(() => onceNow(toolCallId, name, effect));
@@ -422,80 +409,8 @@ export function toolCode(
     return { ok: true, text: lines.join("\n"), items: [item] };
   }
 
-  /**
-   * compose_widget inside `once`: shows the program the compose model wrote when it passes the checks, else the
-   * closest recipe that builds and passes them, else nothing (the Tutor teaches in words).
-   */
-  async function showComposed(tx: Db, toolCallId: string, input: ComposeInput, composed: Composed | null): Promise<Outcome> {
-    const scope = await replyScope(tx);
-    if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
-    if (await widgetInReply(tx, scope)) return { ok: false, text: ONE_WIDGET };
-    if (!composed) return { ok: false, text: "Not shown: the Widget could not be drawn. Teach this in words." };
-    if (!composed.ok && composed.reason === "stopped") return { ok: false, text: "Not shown: the Learner pressed Stop." };
-    const allowed = await allowedRefs(tx);
-    let reason: NonNullable<ComposeTimings["fallbackReason"]>;
-    let why: string;
-    if (composed.ok) {
-      const parts = widgetParts(composed.code);
-      const missing = input.mustUse.filter((p) => !parts.components.includes(p));
-      const unknown = parts.datasets.filter((d) => !allowed.has(d));
-      const problems = [
-        ...(parts.title?.trim() ? [] : ["It has no title."]),
-        ...(missing.length ? [`It does not use ${missing.join(", ")}.`] : []),
-        ...(unknown.length ? [`${unknown.join(", ")} is not in the Case Data code sent for this step.`] : []),
-        ...(await shownProblems(tx, scope, composed.code)),
-      ];
-      if (!problems.length) {
-        const title = parts.title!.trim();
-        const data: ShownWidget = {
-          id: toolCallId,
-          recipe: "",
-          params: { brief: input.brief, archetype: input.archetype, mustUse: input.mustUse },
-          title,
-          code: composed.code,
-          source: "compose",
-          timings: { composeMs: composed.ms },
-        };
-        return storeShown(tx, scope, data, `Shown by code: "${title}", drawn free-form, is in the Widget panel, with a chip where you called compose_widget. ${TALK_ABOUT_IT}`);
-      }
-      reason = "checks";
-      why = `the free-form Widget did not pass the checks (${problems.join(" ")})`;
-    } else {
-      reason = composed.reason === "timeout" ? "timeout" : "failed";
-      why = composed.reason === "timeout" ? "drawing it took too long" : "it could not be drawn";
-    }
-    for (const candidate of fallbackCandidates(input.archetype, input.fallback)) {
-      const built = recipeById(candidate.recipe)?.build(candidate.params);
-      if (!built?.ok || built.refs.some((ref) => !allowed.has(ref))) continue;
-      if ((await shownProblems(tx, scope, built.code)).length) continue;
-      const data: ShownWidget = {
-        id: toolCallId,
-        recipe: candidate.recipe,
-        params: built.params,
-        title: built.title,
-        code: built.code,
-        source: "fallback",
-        timings: { composeMs: composed.ms, fallbackReason: reason },
-      };
-      return storeShown(
-        tx,
-        scope,
-        data,
-        `Shown by code instead: "${built.title}", a ready-made Widget (recipe ${candidate.recipe}), because ${why}. Say so to the Learner in one short line (for example "I used a ready-made Widget because drawing a new one took too long"). ${TALK_ABOUT_IT}`,
-      );
-    }
-    return { ok: false, text: `Not shown: ${why}, and no ready-made Widget fits. Teach this in words.` };
-  }
-
   const openInput = z.object({ id: z.string().min(1), preset: z.record(z.string(), z.number()).optional() });
   const showInput = z.object({ recipe: z.string(), params: z.unknown() });
-  const composeInput = z.object({
-    brief: z.string().min(1),
-    archetype: z.enum(ARCHETYPES),
-    mustUse: z.array(z.string()).default([]),
-    fallback: z.object({ recipe: z.string(), params: z.unknown() }).optional(),
-  });
-  type ComposeInput = z.output<typeof composeInput>;
   const updateInput = z.object({ key: z.string().min(1), values: z.record(z.string(), z.number()) });
   const calculateInput = z.object({ calculator: z.string(), inputs: z.unknown(), currency: z.enum(["usd", "inr"]).optional() });
 
@@ -797,39 +712,6 @@ export function toolCode(
           const reset = await saveOpenedState(tx, learnerId, { sessionId: scope.sessionId, widgetKey: key, code: built.code, ticked: had.ticked }, now());
           return reset.ok ? { ...outcome, widgetStates: [reset.event] } : outcome;
         }),
-    },
-    // The free-form lane (UX audit ★.4): the compose model writes the Widget within 12 s, outside the transaction, and
-    // `once` checks and stores it (or the closest recipe). A repeat or a resume finds the saved result and never asks
-    // the model again.
-    compose_widget: {
-      parse: (input) => composeInput.parse(input),
-      run: async (input: ComposeInput, context) => {
-        const toolCallId = context?.toolUse.id;
-        if (!toolCallId) throw new Error("Missing tool call ID.");
-        const [done] = await db.select({ id: toolCalls.toolCallId }).from(toolCalls).where(eq(toolCalls.toolCallId, toolCallId));
-        let composed: Composed | null = null;
-        const scope = done ? null : await replyScope(db);
-        if (scope && !(await widgetInReply(db, scope))) {
-          composer ??= { client: openaiComposeClient() };
-          composed = await composeProgram(composer.client, {
-            model: TUTOR_MODEL,
-            brief: input.brief,
-            archetype: input.archetype,
-            mustUse: input.mustUse,
-            limitMs: composeLimitMs(effects.deadline, performance.now(), composer.limitMs),
-            stop: effects.stop,
-          });
-          // The compose model's call is an extra step of the turn: its tokens and cost count in the turn's usage.
-          const spent = composed;
-          if (spent.ms > 0 || spent.usage) {
-            const stopReason = spent.ok ? spent.stopReason : (spent.stopReason ?? spent.reason);
-            await effects
-              .saveStep?.(TUTOR_MODEL, (n) => stepUsage(TUTOR_MODEL, n, spent.usage, ["compose_widget"], spent.ms, stopReason))
-              .catch((e) => console.error("compose_widget could not save its usage", e));
-          }
-        }
-        return once(toolCallId, "compose_widget", (tx) => showComposed(tx, toolCallId, input, composed));
-      },
     },
     // Moves the sliders of a Widget already open (UX audit ★.4): saves its state and tells the browser. It never ticks a
     // Guided Task: they tick themselves from their conditions as the sliders move.

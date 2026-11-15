@@ -1,7 +1,6 @@
-import { eq } from "drizzle-orm";
 import { describe, expect, it, vi } from "vitest";
 import { WIDGET_OPENED } from "@/course/written-ahead";
-import { OWNER_LEARNER_ID, sessions } from "@/db/schema";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { saveFinishedStep } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
@@ -11,9 +10,7 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
-import { fingerprint, frozenNow, readSettings, refreezeIfChanged } from "./session-log";
-import { toolCode } from "./tools";
+import { readSettings } from "./session-log";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { withoutChoices } from "@/test/choices";
 
@@ -64,20 +61,6 @@ describe("a new Session's tools", () => {
     expect(system).toContain("- rate_move (");
   });
 
-  it("a Session stored with compose_widget keeps it on refreeze, and its code stays bound so a saved call resumes", async () => {
-    const db = await testDb();
-    const { sessionId } = await run(db, [say("Hello.")], "Hi");
-    // The Session as an older build froze it: the engine's tools with compose_widget.
-    await db.update(sessions).set({ tools: ENGINE_TOOLS_WITH_COMPOSE, fingerprint: "an older freeze" }).where(eq(sessions.id, sessionId));
-    const [stored] = await db.select().from(sessions).where(eq(sessions.id, sessionId));
-    const refrozen = await refreezeIfChanged(db, stored);
-    expect((refrozen.tools as { name: string }[]).map((t) => t.name)).toContain("compose_widget");
-    expect(refrozen.fingerprint).toBe(fingerprint(refrozen.instructions, ENGINE_TOOLS_WITH_COMPOSE));
-    // A Session without it does not get it back or gain it.
-    expect((await frozenNow(db, { tools: ENGINE_TOOLS })).tools.map((t) => t.name)).not.toContain("compose_widget");
-    const code = toolCode(db, map, () => new Date(), "m", { saveFailed: false }, { id: 1, learnerId: OWNER_LEARNER_ID });
-    expect(Object.keys(code)).toContain("compose_widget");
-  });
 });
 
 describe("one Widget per reply", () => {
