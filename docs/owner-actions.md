@@ -10,7 +10,7 @@ Written 2026-11-15, when map #2 closed. Tick a box when a step is done.
 |---|---|---|
 | 1 | [Enforce the firewall](#1-enforce-the-firewall) | On or after 2026-11-17 |
 | 2 | [Better Stack account and heartbeat URL](#2-better-stack-account-and-heartbeat-url) | Before the first invite |
-| 3 | [Sign in once, then the agent makes you admin](#3-sign-in-once-then-the-agent-makes-you-admin) | When Clerk is live |
+| 3 | [Join, then the agent makes you admin](#3-join-then-the-agent-makes-you-admin) | When Clerk is live |
 | 4 | [Waitlist smoke test with a 2nd email](#4-waitlist-smoke-test-with-a-2nd-email) | Right after step 3 |
 | 5 | [Google OAuth client for Clerk production](#5-google-oauth-client-for-clerk-production) | When you add Google sign-in |
 | 6 | [OpenStax reuse request](#6-openstax-reuse-request) | Now |
@@ -18,9 +18,10 @@ Written 2026-11-15, when map #2 closed. Tick a box when a step is done.
 | 8 | [Lawyer check on CC BY](#8-lawyer-check-on-cc-by) | Before any paid launch |
 | 9 | [OpenAI hard spend limit, old key revoked](#9-openai-hard-spend-limit-old-key-revoked) | Now |
 | 10 | [2nd copy of the backups on your laptop](#10-2nd-copy-of-the-backups-on-your-laptop) | After each backup run |
-| 11 | [Decide on the Preview `ANTHROPIC_API_KEY`](#11-decide-on-the-preview-anthropic_api_key) | Any time |
+| 11 | [Decide on the 2 unused `ANTHROPIC_API_KEY` copies](#11-decide-on-the-2-unused-anthropic_api_key-copies) | Any time |
 | 12 | [Tune the spend caps](#12-tune-the-spend-caps) | After the first real turns |
 | 13 | [Write the owner content](#13-write-the-owner-content) | Before the first invite |
+| 14 | [Run the Waitlist](#14-run-the-waitlist) | Before the beta starts, then on a fixed rhythm |
 
 ## 1. Enforce the firewall
 
@@ -67,25 +68,30 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 5. Put the heartbeat URL into Vercel Production as a secret. Run this on the VPS and paste the URL when it asks:
 
    ```sh
-   vercel env add BETTERSTACK_HEARTBEAT_URL --environment production --sensitive
+   vercel env add BETTERSTACK_HEARTBEAT_URL --environment production --sensitive --scope <team> --project finance-agent
    ```
+
+   No folder on the VPS is linked to Vercel, so the command names the team and the project. `<team>` is the same as in step 1.
 
 6. The value reaches the live site at the next production deploy (the next merge to `main`). Within 15 minutes after that deploy, Better Stack shows the heartbeat as "up".
 
-## 3. Sign in once, then the agent makes you admin
+## 3. Join, then the agent makes you admin
 
 - [ ] Done
 
 **Why.** In Clerk, admin is `publicMetadata.role = "admin"` on your user. The agent can set it only after your Clerk user exists. `/admin` needs it.
 
+Sign-up is a Waitlist. In Waitlist mode, `/sign-in` works only for a user who already exists. The new production Clerk has no users, so `/sign-in` does not know you and sends no link. You join first, like any Learner.
+
 **When.** When Clerk is live in production (the Clerk PR for #33 is merged).
 
-**How.**
+**How.** Email link only for now. Google comes later (step 5).
 
-1. Open `https://www.value-it.xyz/sign-in`. Enter your email. Open the link in the email. (Email link only for now. Google comes later, see step 5.)
-2. If Clerk puts you on the waitlist, tell the agent. It approves you, then you sign in again.
-3. Tell the agent "signed in". It sets `role=admin` with the Clerk CLI.
-4. Sign out and sign in again, so your session gets the role. Open `/admin`. It must load.
+1. Open `https://www.value-it.xyz/join`. Join with your email.
+2. Tell the agent. It approves your waitlist entry. (You can also click Approve in the Clerk dashboard, Waitlist.)
+3. Open the "you're in" email. Its link opens `/sign-up`. Finish with the email link. Now your Clerk user exists.
+4. Tell the agent "signed up". It sets `role=admin` with the Clerk CLI.
+5. Sign out. Sign in again at `/sign-in`, so your session gets the role. Open `/admin`. It must load.
 
 ## 4. Waitlist smoke test with a 2nd email
 
@@ -125,9 +131,11 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 
 - [ ] Done
 
-**Why.** Decisions #26 and #27. The Library now uses OpenStax *Principles of Finance* 1st edition, which is CC BY 4.0. The owner decided that the reuse request still goes out. The 2nd edition's web page forbids use in "generative AI offerings" without written permission, and commercial use needs permission.
+**Why.** Decisions #26 and #27. Today the Library uses OpenStax *Principles of Finance* 2nd edition. The 2nd edition's web page forbids use in "generative AI offerings" without written permission, and commercial use needs permission. Decision #27 moves the Library to the 1st edition, which is CC BY 4.0. That move is PR #38. It is live only after #38 merges and the production Library is loaded again. The owner decided that the reuse request goes out in both cases.
 
-**When.** Now. It must be done before any paid launch.
+**When.** Now. It must be done before any paid launch. Before you send the form, ask the agent which edition the live Library uses. Name that edition in the form.
+
+<!-- Orchestrator: after the #38 production load passes, say "1st edition" here and in Appendix A. If #38 does not load, keep this text. -->
 
 **How.** Fill in the OpenStax reuse request form: <https://riceuniversity.tfaforms.net/52>. Points to include are in [Appendix A](#appendix-a-openstax-reuse-request-points).
 
@@ -184,33 +192,42 @@ Ask 3 questions:
 
 **When.** After each backup run: after each Library load, and once a month.
 
-**How.** On the laptop (`vps` is your SSH name for the VPS):
+**How.** On the VPS, the dumps are in `/root/backups/`. The subfolder `/root/backups/copy2/` holds every dump again, each with its checksum file (`.dump.sha256`). Copy only `copy2`. On the laptop (`vps` is your SSH name for the VPS):
 
 ```sh
-scp -r vps:/root/backups ~/value-it-backups-$(date +%F)
+scp -r vps:/root/backups/copy2 ~/value-it-backups-$(date +%F)
+cd ~/value-it-backups-$(date +%F)
+for f in *.dump.sha256; do shasum -a 256 -c "$f"; done    # on Linux: sha256sum -c "$f"
 ```
 
-Then compare checksums. They must match:
+Each line must end with `OK`. If a line says `FAILED`, copy again and tell the agent.
 
-```sh
-ssh vps 'cd /root/backups && sha256sum *'
-cd ~/value-it-backups-$(date +%F) && sha256sum *    # on macOS: shasum -a 256 *
-```
+Keep the folder private (an encrypted disk, not a shared folder). `docs/backup-and-restore.md` (from the #8 PR) explains the files.
 
-Keep the folder private (an encrypted disk, not a shared folder). `docs/backup-and-restore.md` (from the #8 PR) lists the file names.
-
-## 11. Decide on the Preview `ANTHROPIC_API_KEY`
+## 11. Decide on the 2 unused `ANTHROPIC_API_KEY` copies
 
 - [ ] Done
 
-**Why.** The Production copy is already removed. A Preview copy is still in Vercel. No code reads it: the Tutor uses OpenAI now (#3), and previews are off (#11). A key that nobody uses can still leak.
+**Why.** No code reads `ANTHROPIC_API_KEY`: the Tutor uses OpenAI now (#3). The Vercel Production copy is already removed. 2 copies are left:
+
+- Vercel Preview. Previews are off (#11).
+- A GitHub Actions secret on the repo (set 2026-11-14). No workflow reads it, on any branch or in the history.
+
+A key that nobody uses can still leak. The 2 copies can hold different keys.
 
 **When.** Any time.
 
 **Options.**
 
-- **A. Remove it (recommended).** Say yes, and the agent runs `vercel env rm ANTHROPIC_API_KEY --environment preview --confirm-name ANTHROPIC_API_KEY`. Then you revoke the key in the Anthropic console, if nothing else uses it.
-- **B. Keep it.** Nothing changes.
+- **A. Remove both (recommended).** Say yes, and the agent runs:
+
+  ```sh
+  vercel env rm ANTHROPIC_API_KEY --environment preview --confirm-name ANTHROPIC_API_KEY --scope <team> --project finance-agent
+  gh secret delete ANTHROPIC_API_KEY -R SiddharthMuramkar/finance-agent
+  ```
+
+  Then, in the Anthropic console, revoke each key that nothing else uses.
+- **B. Keep them.** Nothing changes.
 
 ## 12. Tune the spend caps
 
@@ -232,28 +249,42 @@ Keep the folder private (an encrypted disk, not a shared folder). `docs/backup-a
 
 **Why.** The public site shows placeholders. Only you can write these words (spec §14).
 
-**When.** Before the first invite.
+**When.** Before the first invite. The Learner quotes come later, from the first Learners.
 
-**How.** Write them and give them to the agent: the founder's note (2–3 sentences), the contact email, the wait-time promise (or none), the hero copy, and which market and currency come first. See item 8 in `docs/roadmap.md`.
+**How.** Write them and give them to the agent:
+
+- the founder's note (2–3 sentences)
+- the contact email
+- the wait-time promise (or none)
+- the hero copy
+- which market and currency come first
+- the "not affiliated" line on About (for the valuation author that the site names): say if the wording is enough
+- later, Learner quotes: real sentences from early Learners, never invented
+
+See item 8 in `docs/roadmap.md`.
+
+## 14. Run the Waitlist
+
+- [ ] Done
+
+**Why.** Sign-up is a Clerk Waitlist (#33). Nobody is approved automatically. If nobody approves, people wait and get no answer (`docs/roadmap.md`, item 9).
+
+**When.** Choose the first people before the beta starts (target: end of November 2026). Then approve on a fixed rhythm.
+
+**How.**
+
+1. List the first 20 people. Send them `https://www.value-it.xyz/join`.
+2. Choose a rhythm, for example twice a week.
+3. On each of those days, open the Clerk dashboard, Waitlist. Approve the people you want. Clerk sends each one the "you're in" email. Or give the agent the emails to approve.
+4. Decide what a person who waits hears. This ties to the wait-time promise (step 13).
 
 ## Commands the agent was not allowed to run
 
 The agent stopped before these commands. Run them yourself, or say yes and the agent runs them. The orchestrator adds the rest of the list.
 
-- [ ] Delete the Neon branch `rag-baseline-2026-11-14`. The baseline numbers are in #24, and Library evals now use a fresh copy of `main`.
-- [ ] Delete the Neon preview branches `preview/docs/architecture`, `preview/feat/21-signal-models` and `preview/chore/tracker-setup`.
-- [ ] Remove the 6 stale Preview `DATABASE_URL*` env vars of those 3 Git branches.
+None so far.
 
-```sh
-neon branches delete rag-baseline-2026-11-14 --project-id <project-id>
-neon branches delete preview/docs/architecture --project-id <project-id>
-neon branches delete preview/feat/21-signal-models --project-id <project-id>
-neon branches delete preview/chore/tracker-setup --project-id <project-id>
-vercel env ls preview    # find the 6 DATABASE_URL* rows for those 3 branches
-vercel env rm <NAME> --environment preview --git-branch <branch> --confirm-name <NAME>
-```
-
-`<project-id>` is the Neon project id (`neon projects list`).
+Not on this list: the stale Neon branches (`rag-baseline-2026-11-14`, `preview/docs/architecture`, `preview/feat/21-signal-models` and `preview/chore/tracker-setup`) and their 6 Preview `DATABASE_URL*` env vars. Your yes of 2026-11-15 covers them. The agent deletes them in the final clean-up, after this PR merges. You do not need to do anything.
 
 <!-- Orchestrator: add one bullet per command below, with why and the exact command. -->
 
@@ -262,7 +293,7 @@ vercel env rm <NAME> --environment preview --git-branch <branch> --confirm-name 
 Not a draft from the research. These are the points to put in the form, from `research/library-licences.md`:
 
 - Who: Value It, an online valuation course. Today it is a free beta for about 20 invited Learners. A paid offer may come later.
-- What: *Principles of Finance*. Value It uses the 1st edition (CC BY 4.0, GitHub commit `3b7fc65c52`). The 2nd edition text is 99.5% the same.
+- What: *Principles of Finance*. Today the Library uses the 2nd edition. It moves to the 1st edition (CC BY 4.0, GitHub commit `3b7fc65c52`) with #38. The 2nd edition text is 99.5% the same. Name the edition that is live when you send the form (step 6).
 - How Value It uses it: it keeps the text in a private search index, cut into passages of at most 300 words. It sends each passage to Voyage AI to make a search vector. A signed-in Learner can read a passage. The AI tutor puts passages into its prompt and quotes short parts with a credit and a link.
 - What Value It does not do: it does not train a model on the book, and it does not sell the text.
 - The ask: written permission for use in a generative AI offering, now in the free beta and later in a paid offer.

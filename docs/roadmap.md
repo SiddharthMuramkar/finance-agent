@@ -85,7 +85,7 @@ Written 2026-11-15.
 - **Question:** Who gets the 20 invites? How often does the owner approve? What happens to people who are never approved?
 - **Why it matters:** Sign-up is a Clerk Waitlist (#33). Nobody is approved automatically. A forgotten waitlist leaves people waiting with no answer.
 - **Blocks:** The beta start (target: end of November 2026).
-- **First step:** The owner lists the first 20 people and picks a rhythm (for example, approve twice a week). Decide what a person who waits hears. This ties to the wait-time promise (item 8).
+- **First step:** The owner lists the first 20 people and picks a rhythm (for example, approve twice a week). Decide what a person who waits hears. This ties to the wait-time promise (item 8). Only the owner can do this (`docs/owner-actions.md`, step 14).
 - **Status:** Open.
 
 ### 10. Evals in CI
@@ -103,11 +103,11 @@ Written 2026-11-15.
 
 | Part | Status |
 |---|---|
-| Remove stale secrets | Partly done. Production `ANTHROPIC_API_KEY` and `THESYS_API_KEY` are already removed. Production `PASSCODE`, `PASSCODES` and `SESSION_SECRET` go with the Clerk clean-up (#33). The Preview `ANTHROPIC_API_KEY` is an owner decision (`docs/owner-actions.md`, step 11). |
+| Remove stale secrets | Partly done. Production `ANTHROPIC_API_KEY` and `THESYS_API_KEY` are already removed. Production `PASSCODE`, `PASSCODES` and `SESSION_SECRET` go with the Clerk clean-up (#33). 2 unused copies of `ANTHROPIC_API_KEY` are left: Vercel Preview and a GitHub Actions repo secret. They are an owner decision (`docs/owner-actions.md`, step 11). |
 | Document `CRON_SECRET` | Open. Planned in `docs/agents/platform.md` (Clerk PR, #33). |
 | Local secret scanning (gitleaks) | Open. More important now: the repo is public. |
 | Align Node versions (Vercel 26, CI 24, VPS 22) | In progress. The CI PR pins Node 24 (`.nvmrc` and `engines`). |
-| Clean up Neon branches after an off-Neon dump | In progress. The dump comes with #8. The deletions wait for the owner (`docs/owner-actions.md`, last section). |
+| Clean up Neon branches after an off-Neon dump | In progress. The first off-Neon dump ran on 2026-11-15 (#8). The agent deletes the stale Neon branches and their 6 Preview env vars in the final clean-up, after this PR merges (the owner said yes on 2026-11-15). |
 | Actions-minutes budget for the private repo | Not needed now. The repo is public again, so minutes are free. Look again if it goes private. |
 | Ignore the `AGENTS.md` that `next dev` writes | Done in the PR that adds this file. |
 
