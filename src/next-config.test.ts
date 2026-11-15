@@ -38,6 +38,10 @@ describe("BotID (decision #10)", () => {
     const rules = await nextConfig.headers!();
     const framed = rules.filter((r) => r.headers.some((h) => h.key === "X-Frame-Options"));
     expect(framed.map((r) => r.headers.find((h) => h.key === "X-Frame-Options")?.value)).toEqual(["DENY", "SAMEORIGIN"]);
+    expect(framed.map((r) => r.headers.find((h) => h.key === "Content-Security-Policy")?.value)).toEqual([
+      "frame-ancestors 'none'",
+      "frame-ancestors 'self'",
+    ]);
     expect(framed[1].source).toMatch(/^\/149e9513-01fa-4fb0-aad4-566afd725d1b\//);
   });
 });
