@@ -1,0 +1,1 @@
+ALTER TABLE "turns" ADD COLUMN "runs" integer DEFAULT 1 NOT NULL;

@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import type { DeniedPerson, PendingInvite, PersonWithAccess, SignInMethod, WaitingRequest } from "@/auth/access";
+import { CAP_FIELDS, UNPRICED_STEP_USD, type CapKey } from "@/tutor/quota";
 import type { SpendReport } from "@/tutor/spend";
 import { overBudget, seconds, SPEED_BUDGETS, WIDGET_SAVE_BUDGET, SPEED_WINDOW_DAYS, type SpeedReport, type Spread } from "@/tutor/speed";
 import { shortDate } from "../past-sessions";
-import { Card, PrimaryButton, Tag } from "../ui";
+import { Button, Card, PrimaryButton, Tag } from "../ui";
 import { ApproveButton, RowActions } from "./admin-controls";
 import { ADMIN_DONE, type AdminDone, type AdminSection } from "./done";
 
@@ -199,6 +200,52 @@ function DoneLine({ done, section }: { done: AdminDone | null; section: AdminSec
   );
 }
 
+/**
+ * The Spend caps (decision #13, quota.ts): one number per cap, saved together by /api/admin/caps. A plain form post, so
+ * it works without scripts; its button is a secondary one (Invite is the page's one primary button).
+ */
+function CapsSection({ caps, done }: { caps: Record<CapKey, string>; done: AdminDone | null }) {
+  return (
+    <Card variant="rule" id="caps" aria-labelledby="caps-heading">
+      <h2 id="caps-heading" className={heading}>
+        Spend caps
+      </h2>
+      <DoneLine done={done} section="caps" />
+      <p className="measure mb-3 text-sm leading-5 text-[var(--muted)]">
+        A new turn past a daily cap does not run, nor does a resume past its limit: the Learner reads that the limit is reached. A day starts at
+        midnight, India time.
+      </p>
+      <form action="/api/admin/caps" method="post" className="flex flex-col gap-3">
+        {CAP_FIELDS.map((f) => (
+          <div key={f.key} className="flex flex-col gap-1">
+            <label htmlFor={`cap-${f.key}`} className="text-sm font-medium leading-5">
+              {f.label}
+            </label>
+            <input
+              id={`cap-${f.key}`}
+              name={f.key}
+              type="number"
+              required
+              min={f.min}
+              max={f.max}
+              step={f.dollars ? 0.01 : 1}
+              defaultValue={caps[f.key]}
+              aria-describedby={`cap-${f.key}-hint`}
+              className="field w-full tabular-nums"
+            />
+            <p id={`cap-${f.key}-hint`} className="text-xs leading-4 text-[var(--muted)]">
+              {f.hint}
+            </p>
+          </div>
+        ))}
+        <Button type="submit" variant="secondary" className="self-start">
+          Save caps
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
 export type AdminViewProps = {
   waiting: readonly WaitingRequest[];
   people: readonly PersonWithAccess[];
@@ -209,6 +256,8 @@ export type AdminViewProps = {
   spend: SpendReport;
   /** Tutor speed over the last 30 days (src/tutor/speed.ts). */
   speed: SpeedReport;
+  /** The Spend caps as stored, by `settings` key (src/tutor/quota.ts). */
+  caps: Record<CapKey, string>;
   /** The result of the change that just sent the owner back here (?done=), if any. */
   done: AdminDone | null;
 };
@@ -218,10 +267,10 @@ export type AdminViewProps = {
  * Waiting (people who signed in and wait: Approve or Deny), People with access (the owner first, as You; Remove access
  * for the rest; then the invites nobody has used yet), Spend (what each person's Tutor has cost, this month and all
  * time, most this month first), Tutor speed (turn times by Reply kind against the A9 budgets, read only), Denied (only
- * when someone is: Approve lets them back with their progress), Invite an email (the page's one primary button) and
- * Sign-up (the switch, read-only, with the command that turns it). A change's result shows in the section it lands in.
+ * when someone is: Approve lets them back with their progress), Invite an email (the page's one primary button), Spend
+ * caps (the daily limits a new turn is checked against) and Sign-up (the switch, read-only, with the command that turns it). A change's result shows in the section it lands in.
  */
-export function AdminView({ waiting, people, invited, denied, signupOpen, spend, speed, done }: AdminViewProps) {
+export function AdminView({ waiting, people, invited, denied, signupOpen, spend, speed, caps, done }: AdminViewProps) {
   return (
     <div>
       <h1 className="type-h1">Admin</h1>
@@ -311,7 +360,8 @@ export function AdminView({ waiting, people, invited, denied, signupOpen, spend,
             </p>
             {spend.total.unpricedSteps > 0 && (
               <p className="measure mb-3 text-xs leading-4 text-[var(--warning)]">
-                {steps(spend.total.unpricedSteps)} used a model with no price in the table, so they are missing from these figures.
+                Unpriced: {steps(spend.total.unpricedSteps)}, missing from these figures. A step has no price when it was cut short before OpenAI reported its usage
+                (Stop, a cut-off, a failure), or when its model has no price in the table. The daily caps count each one at {usd(UNPRICED_STEP_USD)}.
               </p>
             )}
             <div className="overflow-x-auto">
@@ -425,6 +475,8 @@ export function AdminView({ waiting, people, invited, denied, signupOpen, spend,
               </PrimaryButton>
             </form>
           </Card>
+
+          <CapsSection caps={caps} done={done} />
 
           <Card variant="rule" id="sign-up" aria-labelledby="sign-up-heading">
             <h2 id="sign-up-heading" className={heading}>

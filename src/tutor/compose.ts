@@ -6,6 +6,7 @@ import { RECIPES, recipeById } from "@/widgets/recipes";
 import { isStoryRecipeId } from "@/widgets/recipes/set-story";
 import { scriptedTutor } from "@/dev/e2e-mode";
 import { e2eComposeClient } from "@/dev/e2e-tutor";
+import { refusedBeforeRunning } from "./failures";
 import type { ApiUsage } from "./usage";
 
 /**
@@ -139,7 +140,16 @@ export function programIn(reply: string): string | null {
 
 export type Composed =
   | { ok: true; code: string; ms: number; usage?: ApiUsage; stopReason: string | null }
-  | { ok: false; reason: "timeout" | "stopped" | "failed"; error: string; ms: number; usage?: ApiUsage; stopReason?: string | null };
+  | {
+      ok: false;
+      reason: "timeout" | "stopped" | "failed";
+      error: string;
+      ms: number;
+      usage?: ApiUsage;
+      stopReason?: string | null;
+      /** The API refused the call with an HTTP error, so no model ran and nothing was billed. */
+      refused?: boolean;
+    };
 
 /**
  * Asks the compose model for the program, aborted after `limitMs` or when `stop` aborts (the Learner pressed Stop).
@@ -180,7 +190,7 @@ export async function composeProgram(
   } catch (error) {
     if (input.stop?.aborted) return { ok: false, reason: "stopped", error: "the Learner pressed Stop", ms: ms() };
     if (timeout.aborted) return { ok: false, reason: "timeout", error: `it took longer than ${Math.round(input.limitMs / 1000)} seconds`, ms: ms() };
-    return { ok: false, reason: "failed", error: error instanceof Error ? error.message : String(error), ms: ms() };
+    return { ok: false, reason: "failed", error: error instanceof Error ? error.message : String(error), ms: ms(), ...(refusedBeforeRunning(error) && { refused: true }) };
   }
 }
 

@@ -69,6 +69,15 @@ export function newFailureRef(): string {
 }
 
 /**
+ * Whether the API refused the request with an HTTP error (a bad request, a rate limit, a server error) before any model
+ * ran: OpenAI bills nothing for it. An error after the response started streaming has no HTTP status, and neither has a
+ * dropped connection, so either may have been billed.
+ */
+export function refusedBeforeRunning(error: unknown): boolean {
+  return error instanceof APIError && typeof error.status === "number";
+}
+
+/**
  * The provider's own words, request id and HTTP status for a failed API call (OpenAI's message is the one inside its
  * error body; a failed response has a code and no status); for any other error, its message (a programmer's words,
  * which the Learner never reads either).

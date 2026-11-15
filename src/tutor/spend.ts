@@ -19,6 +19,12 @@ export function monthStartIst(now: Date): Date {
   return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), 1) - IST_OFFSET_MS);
 }
 
+/** The start of `now`'s day in India time: midnight, as an instant. The daily caps (quota.ts) count from here. */
+export function dayStartIst(now: Date): Date {
+  const local = new Date(now.getTime() + IST_OFFSET_MS);
+  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()) - IST_OFFSET_MS);
+}
+
 /** One person's (or one bucket's) figures. Dollars are estimates at list prices. */
 export type SpendFigures = {
   /** Tutor replies asked for: one per turn, by a message or by pressing Next; a retry or resume is the same turn. */
@@ -26,7 +32,10 @@ export type SpendFigures = {
   /** Since midnight on the 1st, India time. */
   monthUsd: number;
   allTimeUsd: number;
-  /** Steps whose model has no price in the table, so their cost is missing from the dollars. */
+  /**
+   * Steps with no price, so their cost is missing from the dollars: cut short before OpenAI reported their usage
+   * (cutShortStepUsage), or run on a model with no price in the table. The daily caps count each at UNPRICED_STEP_USD.
+   */
   unpricedSteps: number;
   /** When their latest turn started; null with no turns. */
   lastActiveAt: Date | null;

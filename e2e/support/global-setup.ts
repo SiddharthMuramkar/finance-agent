@@ -25,11 +25,11 @@ const WARM_MS = 120_000;
 
 /**
  * `next dev` compiles each route the first time it is asked for, and the test server always starts cold. The first test
- * a shard runs used to pay for that inside its own 30 s: on main 742881b (#317) the seed route took 3.9 s, `/study`
+ * a shard runs used to pay for that inside its own 30 s: on one CI run the seed route took 3.9 s, `/study`
  * 15.2 s and the opener's `/api/turn` 6.1 s, so `e2e/message-row.spec.ts`, first in shard 2, timed out with no bug in
  * the app. Here, before any test, the routes nearly every test opens are visited once in a real browser: the story seed,
  * `/study` until its opener has finished, and `/course`; and `/notebook`, whose cold compile alone took 24.8 s inside
- * `e2e/header.spec.ts`'s 30 s on a slow runner (PR #615, shard 5). Then the tools Learner is started over to a fresh
+ * `e2e/header.spec.ts`'s 30 s on a slow CI runner. Then the tools Learner is started over to a fresh
  * one, so the first test finds the same state it would have found without the warm-up.
  *
  * Best effort: a step that fails only logs a warning. The tests themselves then fail on whatever is broken, each with

@@ -1,4 +1,3 @@
-import { createHash, timingSafeEqual } from "node:crypto";
 import { sql, type SQL } from "drizzle-orm";
 import { blogDocuments, blogPictures, bloggerFeed } from "./blog.ts";
 import { importLibraryDocument, passagesToEmbed, saveEmbeddings, type Executor, type LibraryFile } from "./ingest.ts";
@@ -6,6 +5,7 @@ import { loadReadings, recordDocument, saveReading } from "./picture-cache.ts";
 import { READER_MODEL, readParams, unreadPictures, type PictureReadings } from "./pictures.ts";
 import { toReading, type PictureClient } from "./pictures-run.ts";
 import { prepareDocuments, type PreparedPassage } from "./prepare.ts";
+import { STALE_AFTER_MS } from "./refresh-run.ts";
 import { keywordRanking } from "./search.ts";
 import { fetchSpreadsheet, readWorkbook, spreadsheetLinks, workbookDocument } from "./spreadsheets.ts";
 import { VOYAGE_MODEL } from "./voyage.ts";
@@ -27,8 +27,8 @@ export const RESERVE_MS = 40_000;
 export const PICTURE_CALL_TIMEOUT_MS = 60_000;
 /** A few posts a run: each one can hold many pictures (a model call each) and spreadsheets. */
 export const MAX_POSTS_PER_RUN = 5;
-/** A run still `running` after this long is dead (the function was cut off); the next run marks it failed. */
-export const STALE_AFTER_MS = 10 * 60_000;
+/** When a `running` run counts as dead: in refresh-run.ts, which the health check also reads. */
+export { STALE_AFTER_MS };
 /** The first run, with no earlier one to continue from, looks back this far. */
 export const FIRST_LOOKBACK_DAYS = 8;
 /** Picture text stays out of the Library until the owner decides (#108): its numbers agreed with the stronger model's re-read in only 7 of 40. Readings are still stored, so placing them later costs nothing. */
@@ -67,12 +67,7 @@ export type RefreshResult =
 
 // ---- Access -----------------------------------------------------------------------------------
 
-/** True only for `Authorization: Bearer <CRON_SECRET>`; no secret set means nobody gets in. */
-export function isCronRequest(authorization: string | null, secret: string | undefined): boolean {
-  if (!secret || !authorization) return false;
-  const digest = (s: string) => createHash("sha256").update(s).digest();
-  return timingSafeEqual(digest(authorization), digest(`Bearer ${secret}`));
-}
+export { isCronRequest } from "../auth/cron.ts";
 
 // ---- The run log and lock ---------------------------------------------------------------------
 
