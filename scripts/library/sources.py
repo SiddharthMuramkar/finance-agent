@@ -382,7 +382,7 @@ def flowing_html_sections(markup):
     """A filing typeset as one flowing HTML document (no page boxes), read with html_blocks + sections_from_blocks. Its section titles are
     the paragraphs that hold a table-of-contents target (<A NAME="toc...">), so those become headings; the "Table of Contents" back-link
     at the top of every page, the contents table itself and bare page numbers are left out."""
-    body = re.sub(r'<h5[^>]*>\s*<a href="#toc">\s*Table of Contents\s*</a>\s*</h5>', "", markup, flags=re.I)
+    body = re.sub(r'<h5[^>]*>\s*<a href="[^"]*#toc">\s*Table of Contents\s*</a>\s*</h5>', "", markup, flags=re.I)
     pieces, at, low = [], 0, body.lower()
     for anchor in re.finditer(r'<a name="toc[^"]*">', body, re.I):
         start = low.rfind("<p", 0, anchor.start())
