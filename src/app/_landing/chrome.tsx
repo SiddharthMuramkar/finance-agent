@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { JOIN_PATH, SIGN_IN_PATH } from "@/auth/destination";
 import { BarsReplay } from "../bars-replay";
 import { RisingBars } from "../rising-bars";
 import { Button, ButtonLink, SignOutButton } from "../ui";
 import { copy } from "./copy";
 import { ShareToLaptop } from "./share-to-laptop";
 
-// The public chrome, shared by every public page (Home at "/", the About page at "/about" and the sign-in page at
-// "/login"): the header, the footer, the lockup and the main button. A server component that reads nothing itself: each
+// The public chrome, shared by every public page (Home at "/", the About page at "/about", and the sign-in pages at
+// "/sign-in", "/sign-up" and "/join"): the header, the footer, the lockup and the main button. A server component that reads nothing itself: each
 // page reads the sign-in state and passes it in (spec 2026-11-12 G1, E11), so the header always knows who is there.
 
 /**
@@ -16,14 +17,14 @@ import { ShareToLaptop } from "./share-to-laptop";
  */
 export type HomeButton = { kind: "resume" | "start"; topic: string } | { kind: "next"; label: string } | { kind: "open" };
 
-/** The public page showing, marked current in the header. Home itself marks none. */
-export type HomePage = "about" | "login";
-
 /**
- * Who the public header is drawn for (G1): a signed-in Learner, someone signed in with an account that waits for the
- * owner or was denied (ADR 0014: their status screen on /login carries its own Sign out), or nobody (undefined).
+ * The public page showing, marked in the header. Home itself marks none. `sign-in` is /sign-in; `join` is the joining
+ * flow (/join, the Waitlist, and /sign-up, where its invitation lands), which marks no link but drops Join early access.
  */
-export type PublicSignIn = "learner" | "waiting";
+export type HomePage = "about" | "sign-in" | "join";
+
+/** Who the public header is drawn for (G1): a signed-in Learner, or nobody (undefined). */
+export type PublicSignIn = "learner";
 
 /** The signed-in button's words: "Resume" or "Start" over the Topic's whole title (E7), What comes next, or Open. */
 function ButtonWords({ button }: { button: HomeButton }) {
@@ -54,9 +55,8 @@ export function Lockup({ size }: { size: number }) {
  * The public header (G1: one of the two headers; the app's is AppHeader in ui.tsx): the lockup, then ghost links. Always
  * How it works, Examples and About; then by `signIn`:
  * - a Learner: the Study Workspace and Sign out, never Sign in or Join early access;
- * - waiting or denied: nothing more (their status screen has Check again and Sign out, and they cannot study yet);
- * - nobody: Sign in and Join early access, except on the sign-in page itself, where Sign in is the page showing and the
- *   page's own Google button is its one primary.
+ * - nobody: Sign in and Join early access, except on the sign-in pages themselves, where the page's own form is its one
+ *   primary: /sign-in marks Sign in as the page showing, and the joining flow (/join, /sign-up) just drops Join.
  * `current` marks that public page's link as the page showing (aria-current, ink at 600, and a 2px accent bar on the
  * header's hairline, as the app header does).
  */
@@ -84,12 +84,12 @@ export function HomeHeader({ signIn, current }: { signIn?: PublicSignIn; current
                 </a>
                 <SignOutButton>{copy.signOut}</SignOutButton>
               </>
-            ) : signIn === "waiting" ? null : (
+            ) : (
               <>
-                <a href="/login" data-affordance="nav" className="home-nav" aria-current={current === "login" ? "page" : undefined}>
+                <a href={SIGN_IN_PATH} data-affordance="nav" className="home-nav" aria-current={current === "sign-in" ? "page" : undefined}>
                   {copy.signIn}
                 </a>
-                {current !== "login" && <HomeMainButton className="" />}
+                {current !== "sign-in" && current !== "join" && <HomeMainButton className="" />}
               </>
             )}
           </div>
@@ -126,8 +126,8 @@ export function HomeFooter() {
 }
 
 /**
- * Home's main button. Signed out, it opens the sign-in page (`signedOutLabel`, Join early access by default) and is marked
- * `data-join`, so Home can count Join pressed by section (E10). Signed in, it is the Learner's own button, and it reads in
+ * Home's main button. Signed out, it opens /join, Clerk's Waitlist (`signedOutLabel`, Join early access by default; issue
+ * #33), and is marked `data-join`, so Home can count Join pressed by section (E10). Signed in, it is the Learner's own button, and it reads in
  * full (E7): "Resume" or "Start" with the Topic's title on a second line that wraps, never cut off. On a screen narrower
  * than 768 px a signed-in Learner cannot study, so there it is "Send this to my laptop" instead, which opens the phone's
  * share sheet with the site's address. `icon` goes before the label.
@@ -135,7 +135,7 @@ export function HomeFooter() {
 export function HomeMainButton({ button, signedOutLabel = copy.cta, icon, className = "btn-lg max-w-full" }: { button?: HomeButton; signedOutLabel?: string; icon?: ReactNode; className?: string }) {
   if (!button) {
     return (
-      <ButtonLink href="/login" className={className} data-join="">
+      <ButtonLink href={JOIN_PATH} className={className} data-join="">
         {icon}
         <span className="min-w-0 truncate">{signedOutLabel}</span>
       </ButtonLink>

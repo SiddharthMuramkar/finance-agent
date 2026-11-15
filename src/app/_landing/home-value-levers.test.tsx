@@ -166,7 +166,7 @@ describe("Now value a company (E4)", () => {
 
   it('signed out, says "Sign in to see what happened next →" under the Widget, to the sign-in page (E4)', async () => {
     await draw({ signedOut: true });
-    const link = host.querySelector<HTMLAnchorElement>('a[href="/login"]')!;
+    const link = host.querySelector<HTMLAnchorElement>('a[href="/sign-in"]')!;
     expect(link.textContent).toBe("Sign in to see what happened next →");
     const frame = host.querySelector('[data-testid="home-value-levers"]')!;
     expect(frame.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

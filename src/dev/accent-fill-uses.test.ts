@@ -86,12 +86,12 @@ type BandPlace =
   | "Home's How every Topic works"
   | "Home's closing"
   | "About's opening"
-  | "the sign-in and Waiting pages' top strip"
+  | "the sign-in pages' top strip"
   | "the Topic bar";
 type BandUse = { uses: number; verdict: "band" | "mapping"; place?: BandPlace; why: string };
 
 /** F1's list of the places a Band is used, word for word from the spec, so a row cannot name a place of its own. */
-const F1_PLACES: readonly BandPlace[] = ["Home's hero", "Home's How every Topic works", "Home's closing", "About's opening", "the sign-in and Waiting pages' top strip", "the Topic bar"];
+const F1_PLACES: readonly BandPlace[] = ["Home's hero", "Home's How every Topic works", "Home's closing", "About's opening", "the sign-in pages' top strip", "the Topic bar"];
 
 const BAND_INVENTORY: Record<string, BandUse> = {
   "src/app/globals.css": {
@@ -103,7 +103,7 @@ const BAND_INVENTORY: Record<string, BandUse> = {
   "src/app/_landing/landing.tsx": { uses: 1, verdict: "band", place: "Home's hero", why: "Home's hero (E1): the promise and the main button in white, with the jackpot Explorable on a white band-card" },
   "src/app/_landing/how-topics-work.tsx": { uses: 1, verdict: "band", place: "Home's How every Topic works", why: "Home's section 3 (E1, E5): the four moves of every Topic, kept apart from the hero by section 2 and from the closing by sections 4 and 5" },
   "src/app/_landing/about.tsx": { uses: 1, verdict: "band", place: "About's opening", why: "The About page's title and lede (E11), kept apart from the closing band by the page's sections" },
-  "src/app/login/page.tsx": { uses: 1, verdict: "band", place: "the sign-in and Waiting pages' top strip", why: "The strip under the public header that holds the sign-in page's heading, the Waiting and Access not approved screens' included" },
+  "src/app/sign-in/auth-page.tsx": { uses: 1, verdict: "band", place: "the sign-in pages' top strip", why: "The strip under the public header that holds the heading of /sign-in, /sign-up and /join (issue #33)" },
   "src/app/workspace-parts.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar across the Study Workspace (F3): title, goal, step bar, All steps and Topic options, above both columns" },
   "src/app/route-skeleton.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar's empty Band while /study loads, so the skeleton and the page draw the same rows" },
 };

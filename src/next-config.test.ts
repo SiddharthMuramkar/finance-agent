@@ -70,3 +70,11 @@ describe("Security headers", () => {
     expect(policy.split(", ").sort()).toEqual(["browsing-topics=()", "camera=()", "geolocation=()", "interest-cohort=()", "microphone=()", "payment=()", "usb=()"]);
   });
 });
+
+describe("The old sign-in address (issue #33)", () => {
+  it("/login answers 308 to /sign-in, so old links and bookmarks still reach the sign-in (Next.js keeps the query)", async () => {
+    const rules = await nextConfig.redirects!();
+    const login = rules.filter((r) => r.source.startsWith("/login"));
+    expect(login).toEqual([{ source: "/login", destination: "/sign-in", permanent: true }]);
+  });
+});

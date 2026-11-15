@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-// Vercel Analytics records each page's address. A sign-in link lands on /login?link=<token>, and that token signs
-// someone in once, so it must never reach the analytics: SiteAnalytics drops it before the event is sent.
+// Vercel Analytics records each page's address. A Clerk invitation carries its one-time ticket in the address, as an old
+// emailed sign-in link (/login?link=<token>) did, so neither may reach the analytics: SiteAnalytics drops them first.
 
 const seen = vi.hoisted(() => ({ props: null as null | Record<string, unknown> }));
 vi.mock("@vercel/analytics/next", () => ({

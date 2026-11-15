@@ -18,12 +18,12 @@ describe("The About page [S4]", () => {
     expect(html).toMatch(new RegExp(`<h1[^>]*>${aboutCopy.title}</h1>`));
     const header = part(html, "header");
     expect(header).toMatch(/<a href="\/about"[^>]*aria-current="page"[^>]*>About<\/a>/);
-    expect(header).toMatch(/<a href="\/login"[^>]*>Sign in<\/a>/);
+    expect(header).toMatch(/<a href="\/sign-in"[^>]*>Sign in<\/a>/);
     // Join early access is a ButtonLink, which writes its href after its other attributes: read the link's own href.
     const headerLinks = [...new DOMParser().parseFromString(html, "text/html").querySelectorAll("header a")];
     const joins = headerLinks.filter((a) => a.textContent!.includes("Join early access"));
     expect(joins).toHaveLength(1);
-    expect(joins[0].getAttribute("href")).toBe("/login");
+    expect(joins[0].getAttribute("href")).toBe("/join");
     const footer = part(html, "footer");
     expect(words(footer)).toContain(copy.footer);
     expect(footer).toMatch(/<a href="\/about"[^>]*>About<\/a>/);
@@ -82,9 +82,9 @@ describe("The About page [S4]", () => {
     }
   });
 
-  it("the closing band offers Join early access to the sign-in page", () => {
+  it("the closing band offers Join early access, to /join (Clerk's Waitlist, issue #33)", () => {
     const band = html.slice(html.indexOf("home-band"));
     expect(band.match(/home-band/g)).toHaveLength(1);
-    expect(band).toMatch(/href="\/login"/);
+    expect(band).toMatch(/href="\/join"/);
   });
 });

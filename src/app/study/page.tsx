@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { SIGN_IN_PATH } from "@/auth/destination";
 import { currentLearner } from "@/auth/session";
 import { loadCourseMap } from "@/course/map";
 import { exploreAsSeen, exploreWidgetFor } from "@/course/explore-widget";
@@ -46,9 +47,9 @@ async function WorkspaceShell({ account, children }: { account?: HeaderAccount; 
 }
 
 export default async function WorkspacePage() {
-  // The proxy already sends a signed-out visitor to the login; this check also comes before any Learner data is read.
+  // The proxy already sends a signed-out visitor to the sign-in; this check also comes before any Learner data is read.
   const learner = await currentLearner();
-  if (!learner) redirect("/login");
+  if (!learner) redirect(SIGN_IN_PATH);
   const map = loadCourseMap();
   const db = getDb();
   const learnerId = learner.id;

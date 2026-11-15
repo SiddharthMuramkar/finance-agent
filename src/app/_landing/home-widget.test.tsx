@@ -238,11 +238,11 @@ describe("Home's Explorable", () => {
     await draw({ signedOut: true });
     const link = shown("explorable-status")!.querySelector("a");
     expect(link?.textContent).toBe("Sign in to learn why →");
-    expect(link?.getAttribute("href")).toBe("/login");
+    expect(link?.getAttribute("href")).toBe("/sign-in");
     act(() => root.unmount());
     host.remove();
     await draw();
-    expect(host.querySelector('a[href="/login"]')).toBeNull();
+    expect(host.querySelector('a[href="/sign-in"]')).toBeNull();
   });
 
   it("without the cash option's Case Data, still shows the worth but no gap, meter, guess or match", async () => {

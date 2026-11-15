@@ -2,11 +2,11 @@
 
 import { Analytics, type BeforeSendEvent } from "@vercel/analytics/next";
 
-// Vercel Analytics, minus the sign-in tokens (ADR 0014, issue #33). An emailed sign-in link lands on /login?link=<token>,
-// and a Clerk invitation on /sign-up?__clerk_ticket=<ticket>; Analytics records every page's full address, query
-// included. Each token signs someone in once, so it is dropped before any event leaves the browser. A client file because the filter is a function, which a server layout can't pass.
+// Vercel Analytics, minus the sign-in tokens (ADR 0014, issue #33). A Clerk invitation lands on
+// /sign-up?__clerk_ticket=<ticket>, and a sign-in link emailed before the Clerk cutover on /login?link=<token> (now sent
+// on to /sign-in, query kept); Analytics records every page's full address, query included. Each token signs someone in once, so it is dropped before any event leaves the browser. A client file because the filter is a function, which a server layout can't pass.
 
-/** The emailed link's `link`, and Clerk's own `__clerk_*` (an invitation's `__clerk_ticket`, a `__clerk_handshake`; issue #33). */
+/** The old emailed link's `link`, and Clerk's own `__clerk_*` (an invitation's `__clerk_ticket`, a `__clerk_handshake`; issue #33). */
 const isSignInParam = (key: string) => key === "link" || key.startsWith("__clerk_");
 
 /** The event without the sign-in parameters; null (sent nowhere) for an address that can't be read, rather than risk a token. */

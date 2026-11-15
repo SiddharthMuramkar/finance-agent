@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
+import { SIGN_IN_PATH } from "@/auth/destination";
 import { valuationCase } from "@/finance/valuation-cases";
 import { leverSpecs, openingSettings, sameSettings, valueLeversStories, valueLeversTasks, type LeverSettings } from "@/widgets/workbench/value-levers-model";
 import { ValueLeversView } from "@/widgets/workbench/value-levers-view";
@@ -93,7 +94,7 @@ export function HomeValueLevers({ signedOut = false, canOpenTopic = false, caseI
             </div>
           )}
           {signedOut ? (
-            <a href="/login" data-affordance="link" className="link mt-3 inline-block text-sm font-medium">
+            <a href={SIGN_IN_PATH} data-affordance="link" className="link mt-3 inline-block text-sm font-medium">
               {words.signIn}
             </a>
           ) : canOpenTopic ? (

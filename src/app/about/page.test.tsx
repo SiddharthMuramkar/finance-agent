@@ -63,6 +63,7 @@ describe("The About page knows who is there, and reads nothing else private [G1,
     const band = html.slice(html.indexOf("home-band"));
     expect(band).toContain("Open Study Workspace");
     expect(band).not.toContain("Join early access");
-    expect(band).not.toContain('href="/login"');
+    expect(band).not.toContain('href="/join"');
+    expect(band).not.toContain('href="/sign-in"');
   });
 });

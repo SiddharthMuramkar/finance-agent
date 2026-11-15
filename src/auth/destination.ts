@@ -4,6 +4,12 @@ export const DEFAULT_DESTINATION = "/study";
 /** Where a signed-out request is sent: Clerk's sign-in, or the passcode form while the passcode door is open. */
 export const SIGN_IN_PATH = "/sign-in";
 
+/** Where a stranger asks for early access: Clerk's Waitlist (issue #33). */
+export const JOIN_PATH = "/join";
+
+/** Where a Waitlist invitation lands: Clerk's sign-up. */
+export const SIGN_UP_PATH = "/sign-up";
+
 // Any origin works: only "does it stay on this origin" matters, so a fixed stand-in avoids needing the real host.
 const BASE = "https://site.invalid";
 const WHITESPACE_OR_CONTROL = /[\s\u0000-\u001f\u007f]/;
@@ -13,7 +19,7 @@ const ENCODED_SLASH = /%(?:2f|5c)/i;
 const under = (path: string, root: string) => path === root || path.startsWith(`${root}/`);
 
 /** The sign-in pages (Clerk's, the passcode form, the old /login and the Waitlist): never a place to land after signing in. */
-const AUTH_PAGES = [SIGN_IN_PATH, "/sign-up", "/join", "/login"];
+const AUTH_PAGES = [SIGN_IN_PATH, SIGN_UP_PATH, JOIN_PATH, "/login"];
 
 /**
  * The destination rule: a `next` value is safe only if it is a path on this site that is

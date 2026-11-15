@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { SIGN_IN_PATH } from "@/auth/destination";
 import type { CaseData } from "@/case-data/case-data";
 import { linearScale } from "@/widgets/plot/scales";
 import { track } from "../analytics";
@@ -155,7 +156,7 @@ export function HomeExplorable({ annuity, cases, signedOut = false }: { annuity:
           </p>
         )}
         {signedOut && (
-          <a href="/login" data-affordance="link" className="link inline-block text-sm font-medium">
+          <a href={SIGN_IN_PATH} data-affordance="link" className="link inline-block text-sm font-medium">
             {words.signIn}
           </a>
         )}

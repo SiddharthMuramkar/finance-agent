@@ -102,7 +102,7 @@ describe("Home [E1]", () => {
     expect(d.querySelector('[data-testid="home-value-levers"] [data-testid="value-levers"]')).not.toBeNull();
     expect(d.querySelector('[data-testid="value-levers-headline"]')?.textContent).toBe("Your story is worth $35 a share");
     expect(d.querySelectorAll('input[type="range"]').length).toBeGreaterThanOrEqual(4);
-    const link = d.querySelector('a[href="/login"]');
+    const link = d.querySelector('a[href="/sign-in"]');
     expect(link?.textContent).toBe("Sign in to see what happened next →");
     expect(two).not.toContain("Open this Topic");
   });
@@ -193,7 +193,7 @@ describe("Home's look", () => {
     const header = (h: string) => h.slice(h.indexOf("<header"), h.indexOf("</header>"));
     const about = /<a href="\/about" data-affordance="nav" class="home-nav[^"]*">About<\/a>/;
     expect(header(html)).toMatch(about);
-    expect(header(html)).toMatch(/<a href="\/login" data-affordance="nav" class="home-nav[^"]*">Sign in<\/a>/);
+    expect(header(html)).toMatch(/<a href="\/sign-in" data-affordance="nav" class="home-nav[^"]*">Sign in<\/a>/);
     const inHtml = renderToStaticMarkup(<LandingView stats={stats} button={{ kind: "open" }} widget={widget} showcases={showcases} />);
     expect(header(inHtml)).toMatch(about);
     expect(header(inHtml)).toMatch(/<a href="\/study" data-affordance="nav" class="home-nav[^"]*">Study Workspace<\/a>/);
@@ -204,7 +204,7 @@ describe("Home's look", () => {
     }
     expect(header(html).indexOf('href="/#how-it-works"')).toBeLessThan(header(html).indexOf('href="/#examples"'));
     expect(header(html).indexOf('href="/#examples"')).toBeLessThan(header(html).indexOf('href="/about"'));
-    expect(header(html).indexOf('href="/about"')).toBeLessThan(header(html).indexOf('href="/login"'));
+    expect(header(html).indexOf('href="/about"')).toBeLessThan(header(html).indexOf('href="/sign-in"'));
     expect(header(inHtml).indexOf('href="/about"')).toBeLessThan(header(inHtml).indexOf('href="/study"'));
     expect(header(html)).not.toContain("aria-current");
   });
@@ -314,12 +314,12 @@ describe("Home's Showcases, as tabs [E6]", () => {
 });
 
 describe("Home, signed out", () => {
-  it("offers Join early access in the header, hero and closing Band, every one to the sign-in page and marked for analytics", () => {
+  it("offers Join early access in the header, hero and closing Band, every one to /join (Clerk's Waitlist, issue #33) and marked for analytics", () => {
     const joins = [...doc(html).querySelectorAll("a[data-join]")];
     expect(joins.map((a) => [a.getAttribute("href"), a.textContent, a.closest("[data-home-section]")?.getAttribute("data-home-section")])).toEqual([
-      ["/login", "Join early access", "header"],
-      ["/login", "Join early access", "hero"],
-      ["/login", "Join early access", "closing"],
+      ["/join", "Join early access", "header"],
+      ["/join", "Join early access", "hero"],
+      ["/join", "Join early access", "closing"],
     ]);
   });
 
@@ -350,7 +350,7 @@ describe("Home, signed out", () => {
 
   it("links Sign in in the header to the sign-in page, and offers no Sign out", () => {
     const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
-    expect(header).toMatch(/<a[^>]*href="\/login"[^>]*>Sign in<\/a>/);
+    expect(header).toMatch(/<a[^>]*href="\/sign-in"[^>]*>Sign in<\/a>/);
     expect(html).not.toContain("Sign out");
     expect(html).not.toContain("/api/logout");
   });
@@ -385,7 +385,7 @@ describe("Home's Explorable, signed out", () => {
   });
 
   it("offers Sign in to learn why → in the card, after its state line, to the sign-in page", () => {
-    expect(html).toMatch(/<a href="\/login" data-affordance="link" class="link[^"]*">Sign in to learn why →<\/a>/);
+    expect(html).toMatch(/<a href="\/sign-in" data-affordance="link" class="link[^"]*">Sign in to learn why →<\/a>/);
     expect(html.indexOf("Sign in to learn why")).toBeGreaterThan(html.indexOf(copy.widget.start));
   });
 
@@ -430,10 +430,11 @@ describe("Home, signed in", () => {
     expect(header).toMatch(/href="\/study"[^>]*>Study Workspace<\/a><form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
   });
 
-  it("never says Join early access or Sign in, nor links to the login", () => {
+  it("never says Join early access or Sign in, nor links to the sign-in or /join", () => {
     expect(inText).not.toContain("Join early access");
     expect(inText).not.toContain("Sign in");
-    expect(inHtml).not.toContain('href="/login"');
+    expect(inHtml).not.toContain('href="/sign-in"');
+    expect(inHtml).not.toContain('href="/join"');
     expect(inHtml).not.toContain("data-join=");
   });
 
@@ -551,7 +552,7 @@ describe("Home's page, signed in", () => {
     const out = renderToStaticMarkup(await LandingPage({}));
     expect(out).toContain("Sign in");
     expect(out).toContain(`>${TITLE}</h2>`);
-    expect(out).toMatch(/<a[^>]*href="\/login"[^>]*>Sign in to learn why →<\/a>/);
+    expect(out).toMatch(/<a[^>]*href="\/sign-in"[^>]*>Sign in to learn why →<\/a>/);
   });
 
   // E4: signed in, section 2 says "Open this Topic →" and opens Spine Topic 1. An outline Topic with no file is only
