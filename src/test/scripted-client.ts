@@ -31,7 +31,7 @@ type Reply = Exclude<ScriptedReply, { error: Error }>;
 
 export type ScriptedOptions = {
   /**
-   * Plays OpenAI's replay check (spec 2026-11-12, "One new test double"; ADR 0016); on unless a test turns it off. Every
+   * Plays OpenAI's replay check (spec 2026-11-12, "One new test double"; ADR 0007); on unless a test turns it off. Every
    * reasoning item a step returns is stamped with a fingerprint of its own step and of its turn up to it, and a request
    * is refused with the API's 400 when it replays a reasoning item from an edited step, a reasoning item in the current
    * turn whose turn no longer reads as it did (an edit before it, or an item from another turn: `current_turn`), a step
@@ -170,7 +170,7 @@ function assertToolCallsAnswered(messages: StepRequest["messages"]) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// The replay check: how OpenAI treats the raw output a stateless request sends back (ADR 0015, ADR 0016)
+// The replay check: how OpenAI treats the raw output a stateless request sends back (ADR 0007)
 // ---------------------------------------------------------------------------------------------------------------
 
 /**

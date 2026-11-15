@@ -10,7 +10,7 @@ import type { Tone } from "../wave1/tones";
 
 // StepThrough: a worked example with Back and Next. The numbers in a step's words light up in teal (yours), amber
 // (sourced) or neutral (worked out). A step with `ask` is a faded step: the number stays hidden until the Learner
-// taps Show the number (nothing is typed, ADR 0009). Formulas are never typed here (ADR 0002): a step whose words contain one is replaced by a pointer to the
+// taps Show the number (nothing is typed, ADR 0002). Formulas are never typed here (ADR 0003): a step whose words contain one is replaced by a pointer to the
 // Formula Card. Practice only: nothing is marked or saved.
 
 export const stepProps = z.object({

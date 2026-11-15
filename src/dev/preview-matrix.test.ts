@@ -50,8 +50,8 @@ describe("preview matrix [S3]", () => {
 
   // Spec §6.2: side gutter <= 32 px at 1280, 1512 and 1920, and no gutter row at 1024, so F1's "the same except where
   // §6 names a looser bound" keeps 32 there (A1's 17 px is its own /study test, not a §6 threshold). Prose line length
-  // 45-80, 60-75 from 1440 up and 50-75 at 1280 (ADR 0013's 16 px chat in the conversation column); header <= 56; Widget panel >= 52 % (spec 2026-11-11, C2a: the 45 / 55 default split, R21).
-  it("the thresholds are §6.2's at every viewport, with ADR 0013's 1280 band", () => {
+  // 45-80, 60-75 from 1440 up and 50-75 at 1280 (ADR 0015's 16 px chat in the conversation column); header <= 56; Widget panel >= 52 % (spec 2026-11-11, C2a: the 45 / 55 default split, R21).
+  it("the thresholds are §6.2's at every viewport, with ADR 0015's 1280 band", () => {
     for (const project of ["mbp14", "mbp14-dark", "w1920", "w1920-dark"]) {
       expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 60, lineMax: 75 });
     }

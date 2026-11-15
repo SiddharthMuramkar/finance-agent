@@ -113,7 +113,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     // The Show me Choice: a step-led turn, held and checked (a typed message streams with no retry, A5).
     const { client, requests } = scriptedClient([text(`Here is a box.\n${CAGR}`), open("rate-change-three-ways", "toolu_fix"), text("")]);
     const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me."));
-    // The draft is held and checked (ADR 0008): the Learner sees only the retry, which opens the written-ahead Widget.
+    // The draft is held and checked (ADR 0006): the Learner sees only the retry, which opens the written-ahead Widget.
     expect(events.map((e) => e.type)).toEqual(["item", "item", "done"]);
     const correction = String(requests[1].messages.at(-1)!.content);
     expect(correction.startsWith(REPLY_CHECK_PREFIX)).toBe(true);

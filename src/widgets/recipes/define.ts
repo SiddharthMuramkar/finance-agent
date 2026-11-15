@@ -2,11 +2,11 @@ import { z } from "zod";
 import { CASE_DATA_REFERENCE } from "../tool-specs";
 
 /**
- * Widget recipes (ADR 0005): the Tutor chooses a recipe and its params with show_widget, and code compiles them
+ * Widget recipes (ADR 0009): the Tutor chooses a recipe and its params with show_widget, and code compiles them
  * into an OpenUI Lang program. The program is checked by the same Widget checks as one the Tutor writes, and is
  * stored and drawn like one, so saving, Notes, Widget state and old Sessions keep working unchanged.
  *
- * A recipe's params come in three kinds, so every number has a known origin (ADR 0003):
+ * A recipe's params come in three kinds, so every number has a known origin (ADR 0009):
  * - `inputs`: slider ranges and starting values, and the calculator or formula inputs the Widget works out in the
  *   browser through our tested code;
  * - `refs`: Case Data references ("caseId/datasetId", "reference/<id>"), checked against the Case Data the as-of
@@ -22,7 +22,7 @@ import { CASE_DATA_REFERENCE } from "../tool-specs";
 export const ARCHETYPES = ["Grow", "Compare", "History", "Formula", "Predict", "Check", "Rank", "Chain", "Convert", "Story", "Lingo"] as const;
 
 /**
- * A Workbench Widget's archetype (spec 2026-11-12, B2; ADR 0018): several controls feeding one headline number, checked under
+ * A Workbench Widget's archetype (spec 2026-11-12, B2; ADR 0010): several controls feeding one headline number, checked under
  * the Workbench budget. Only a recipe has it: it is not one of ARCHETYPES, so the Tutor can never ask for one free-form.
  */
 export const WORKBENCH = "workbench" as const;
@@ -89,7 +89,7 @@ export type RecipeSpec<I extends Obj, R extends Obj, F extends Obj> = {
   /** The OpenUI Lang program. `title` already carries "Illustration:" when the params hold facts. */
   compile: (p: RecipeParams<z.output<I>, z.output<R>, z.output<F>>) => string;
   /**
-   * Inputs that carry a Case's figures from a Topic file (ADR 0018). The Tutor's signature names them without their
+   * Inputs that carry a Case's figures from a Topic file (ADR 0010). The Tutor's signature names them without their
    * shape: it copies them from the Topic file as written, and figures it types make the Widget an Illustration.
    */
   topicInputs?: readonly string[];
@@ -107,7 +107,7 @@ export type Recipe = {
   examples: unknown[];
   /** The full params schema (title, inputs, refs, facts). */
   schema: z.ZodType;
-  /** Inputs that carry a Case's figures from a Topic file (ADR 0018); see RecipeSpec. */
+  /** Inputs that carry a Case's figures from a Topic file (ADR 0010); see RecipeSpec. */
   topicInputs?: readonly string[];
   /** Parses raw params and compiles them; never throws. */
   build(raw: unknown): Built;
@@ -240,7 +240,7 @@ export function program(title: string, children: readonly string[], statements: 
 export function recipeSignature(recipe: Recipe): string {
   const json = z.toJSONSchema(recipe.schema, { io: "input", unrepresentable: "any" }) as Record<string, unknown>;
   delete json.$schema;
-  // A Case's figures are copied from the Topic file, not typed (ADR 0018), so the Tutor is not shown their shape.
+  // A Case's figures are copied from the Topic file, not typed (ADR 0010), so the Tutor is not shown their shape.
   const inputs = (json.properties as Record<string, { properties?: Record<string, unknown> }> | undefined)?.inputs?.properties;
   for (const key of recipe.topicInputs ?? []) {
     if (inputs?.[key]) inputs[key] = { description: "A Case's figures with their source: copy them from the Topic file as written; figures you type make the Widget an Illustration" };

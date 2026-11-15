@@ -177,7 +177,7 @@ test("[C1] readingBlock measures a centred block, an off-centre one, and a child
   expect(short.edges.find((e) => e.name === "assistant-message")?.right).toBeCloseTo(short.block!.right - 5, 1);
 });
 
-// A7a (ADR 0014): inside a Widget the four families are thin marks only; no fill, no family text, no lift, no tilt,
+// A7a (ADR 0015): inside a Widget the four families are thin marks only; no fill, no family text, no lift, no tilt,
 // nothing over 600, and 600 only on the one key figure. `widgetLook` lists what breaks that, on fixed pages styled by
 // the real globals.css, Light and Dark.
 const MISUSED = `
@@ -246,7 +246,7 @@ test("[A7a] widgetLook fails when the scope matches nothing", async ({ page }) =
   await expect(widgetLook(page, { within: '[data-testid="no-such-part"]' })).rejects.toThrow(/no-such-part/);
 });
 
-// A7a (guard): since A4, `auditAffordances` judges Widget controls by default (ADR 0014: one set of control rules).
+// A7a (guard): since A4, `auditAffordances` judges Widget controls by default (ADR 0015: one set of control rules).
 test("[A7a] auditAffordances: a lipped button and a 16px-radius button inside a Widget are not flat", async ({ page }) => {
   await themed(
     page,

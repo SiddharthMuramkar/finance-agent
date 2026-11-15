@@ -29,7 +29,7 @@ const rateText = (percent: number) => String(Math.round(percent * 100) / 100);
 
 /**
  * The rate_move Widget's three lines (#530): one move said the way a reporter, a trader and a headline say it, as
- * story and lingo quotes, never as a worked sum (ADR 0009: numbers appear only as facts in a story). 5% to 5.2% reads
+ * story and lingo quotes, never as a worked sum (ADR 0002: numbers appear only as facts in a story). 5% to 5.2% reads
  * "The rate climbs from 5% to 5.2%: up 0.2 points", "Traders call that 20 bp", "Up 4% on the old rate". A fall says
  * "drops", "down" and "a fall of"; a move from 0% says there is no percent change; no move says so. The arithmetic
  * runs here, in whole basis points, and no line says "minus", "times" or "divided". The RateMove Widget calls this

@@ -179,7 +179,7 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
   const { page: p } = cell;
   const out: Result = { cell: `${cell.project}/${p.id}`, file: cell.file, layout: null, affordances: null, focus: null, accents: null, look: null, scrollWidth: 0, innerWidth: 0 };
   try {
-    // Signed out keeps the theme cookie: a dark cell is a Learner who chose Dark (ADR 0013), not the computer's setting.
+    // Signed out keeps the theme cookie: a dark cell is a Learner who chose Dark, not the computer's setting.
     if (p.signedOut) await page.context().clearCookies({ name: /^(?!theme$)/ });
     else await seed(page, p.seed!);
     let openers = 0;
@@ -287,14 +287,14 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
   expect(failing, "failing cells (each is a finding)").toEqual([]);
 });
 
-// ADR 0013: accent families live only inside Widgets. The chrome (header, chat, Topic bar, panel frame) paints none.
-test("[ADR 0013] /study with a Widget paints no accent family outside Widget content", async ({}, info) => {
+// ADR 0015: accent families live only inside Widgets. The chrome (header, chat, Topic bar, panel frame) paints none.
+test("[ADR 0015] /study with a Widget paints no accent family outside Widget content", async ({}, info) => {
   const r = saved(info.project.name, info.project.outputDir).find((x) => x.cell === `${info.project.name}/study-concept-widget`);
   expect(r?.accents, `accent families painted outside Widget content (${r?.error ?? "measured"})`).not.toBeNull();
   expect(r!.accents!, `accent families painted in the chrome: ${JSON.stringify(r!.accentVia)}`).toEqual([]);
 });
 
-test("[ADR 0014] /study Widgets paint families only as thin marks", async ({}, info) => {
+test("[ADR 0015] /study Widgets paint families only as thin marks", async ({}, info) => {
   const rows = saved(info.project.name, info.project.outputDir).filter((x) => x.cell.includes("/study-") && x.look);
   expect(rows.length).toBeGreaterThan(0);
   const bad = rows.filter((r) => r.look && Object.values(r.look).some((list) => list.length > 0));

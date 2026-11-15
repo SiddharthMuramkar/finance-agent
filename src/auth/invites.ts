@@ -2,7 +2,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { invites, learners, settings, user } from "../db/schema.ts";
 import type { Db } from "../db/types.ts";
 
-// The invite list and the Sign-up switch (ADR 0011). Since ADR 0014 anyone may sign in and then waits
+// The invite list and the Sign-up switch (ADR 0014). Anyone may sign in and then waits
 // for the owner; an invite lets an email in at once, skipping the wait, and Approve on /admin writes one.
 // Imports only packages and relative files with their extensions, so scripts/invites.mjs can run it with
 // Node's type stripping.
@@ -181,7 +181,7 @@ async function signedUpLearner(db: Db, email: string) {
  * Takes an email off the list. A Learner who already signed up keeps access: sign-in finds the Learner
  * linked to their account before it reads the invite. To take access away, Remove access on /admin
  * denies their account (ADR 0014), which holds whatever the invite list and the Sign-up switch say; it
- * replaces ADR 0011's order of removing the invite, closing sign-up and archiving the Learner.
+ * replaces ADR 0014's order of removing the invite, closing sign-up and archiving the Learner.
  */
 export async function removeInvite(db: Db, email: string): Promise<boolean> {
   const gone = await db.delete(invites).where(eq(invites.email, inviteEmail(email))).returning();

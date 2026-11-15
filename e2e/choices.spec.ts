@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { say, script, seed, settled } from "./support/app";
 
 /**
- * D3a: every Tutor reply ends with two or three tap-to-answer Choices (ADR 0010). At the Concept step one of them is
+ * D3a: every Tutor reply ends with two or three tap-to-answer Choices (ADR 0008). At the Concept step one of them is
  * "What does 'basis point' mean?"; tapping it posts the Choice by its index and the Learner's bubble reads its words.
  * The message box still sends typed text.
  */
@@ -13,7 +13,7 @@ test.beforeEach(async ({}, info) => {
   test.skip(info.project.name !== "mbp14" && info.project.name !== "mbp14-dark", "one viewport per theme is enough here");
 });
 
-/** The Choices under the latest reply: two or three outline buttons, words only (ADR 0014, A2). */
+/** The Choices under the latest reply: two or three outline buttons, words only (ADR 0008, A2). */
 async function expectChoices(page: Page) {
   const choices = page.getByTestId("choices").last().getByTestId("choice");
   // The Choices come back once the page has re-read the Learner's place after the turn.

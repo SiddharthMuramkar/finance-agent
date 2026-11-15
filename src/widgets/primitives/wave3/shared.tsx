@@ -13,7 +13,7 @@ export function resolveIcon(name: unknown): IconName | null {
 }
 
 /**
- * One line Icon from the named set (ADR 0014), or nothing when the name matches none. Decorative by default: the words
+ * One line Icon from the named set (ADR 0015), or nothing when the name matches none. Decorative by default: the words
  * beside it carry the meaning. Give `label` when the picture names someone the words do not (RateMove's speakers, issue 480).
  */
 export function Pic({ name, size, label }: { name: unknown; size: IconSize; label?: string }) {

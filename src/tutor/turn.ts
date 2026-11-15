@@ -146,7 +146,7 @@ export type TurnEvent =
   /** What the turn is doing now, in plain words ("Thinking…", "Searching the Library…"), for the writing indicator. */
   | ProgressEvent
   /**
-   * The Learner pressed Stop: the held reply is dropped, so no text is shown or saved as the Tutor's reply (ADR 0008).
+   * The Learner pressed Stop: the held reply is dropped, so no text is shown or saved as the Tutor's reply (ADR 0006).
    * Always followed by "done", so the browser never resumes the turn.
    */
   | { type: "stopped" }
@@ -223,7 +223,7 @@ export type TurnDeps = {
   retryWithinMs?: number;
   /**
    * False shows the model's reply as it came, with no fixes, checks, retry or fallback: for the tutor eval, which replays
-   * recorded replies and grades the model's own first reply. Left out, every reply is checked (ADR 0008).
+   * recorded replies and grades the model's own first reply. Left out, every reply is checked (ADR 0006).
    */
   checkReplies?: boolean;
   /** Voyage query embeddings for Library search; without them search uses keyword results only. */
@@ -334,7 +334,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   if (deps.shown && !(await showsCurrentTopic(db, deps.map ?? loadCourseMap(), learnerId, deps.shown))) {
     // A resume may still carry on the tab's own unfinished turn, which may itself have moved the Learner to the next Topic.
     const latest = resuming ? await latestTurn(db, learnerId) : undefined;
-    // Or the tab still shows the Claude-era Session this turn's Session replaced (ADR 0015): it hears of the new one only on
+    // Or the tab still shows the Claude-era Session this turn's Session replaced (ADR 0007): it hears of the new one only on
     // "done", so a resume from it (a Widget Retry that let go of the stream) still draws that turn once it has finished.
     const replaced = latest !== undefined && "sessionId" in deps.shown && (await closedInFavourOf(db, learnerId, deps.shown.sessionId, latest.sessionId));
     const ownTurn =
@@ -398,7 +398,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   // A Quick-try follow-up reads the Quick try's result from the Topic's live Session, so it is worked out before a
   // Claude-era Session holding that result is closed below.
   const quickTryNote = typeof input === "object" && "quickTryFollowUp" in input ? await quickTryFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId) : undefined;
-  // A Claude-era Session of the current Topic is closed before anything is written to it (ADR 0015), and the Topic gets a
+  // A Claude-era Session of the current Topic is closed before anything is written to it (ADR 0007), and the Topic gets a
   // fresh Session at once, so a Next or a follow-up taken now stores its items there.
   const topicNow = await currentTopicId(db, deps.map ?? loadCourseMap(), learnerId);
   if (await retireLegacySessions(db, learnerId, topicNow)) await sessionForTurn(db, now(), learnerId, topicNow);
@@ -545,7 +545,7 @@ async function* runLockedTurn(
 ): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
   const { db } = deps;
   const { learnerId } = turn;
-  // A replay refusal heals once (A2, ADR 0016): the request goes again without raw output, the Session's marker moves past
+  // A replay refusal heals once (A2, ADR 0007): the request goes again without raw output, the Session's marker moves past
   // what was stored so later turns send that history without it too, and the heal is counted.
   const client = healingClient(deps.client, async ({ error, at }) => {
     const provider = providerDetails(error);
@@ -621,7 +621,7 @@ async function* runLockedTurn(
     liveFacts = await turnFacts(db, map, learnerId, at, { learnerText: turn.input ?? undefined, now: now() });
     ownQ = await isOwnAt(at, liveFacts.quizOpen, turnSeq);
     if (ownQ) liveFacts = ownQuestionFacts(liveFacts);
-    // What the browser showed is cleared: a stored draft not yet checked never shows before its checks (ADR 0008). A
+    // What the browser showed is cleared: a stored draft not yet checked never shows before its checks (ADR 0006). A
     // streamed reply (A5) shows again the text it stored, which was guarded and shown already, and streams on after it.
     replayed = ownQ && deps.checkReplies !== false ? await turnText(log.rows, turnSeq, { db, map, learnerId }) : "";
     yield { type: "replay", text: replayed };
@@ -750,8 +750,8 @@ async function* runLockedTurn(
     }
     liveFacts = facts;
   }
-  // An own-question reply streams behind the stream guard (A5, ADR 0017); every other reply is held, checked, then shown
-  // (ADR 0008). With the checks off (the tutor eval) nothing is guarded: the reply is shown as it came.
+  // An own-question reply streams behind the stream guard (A5, ADR 0006); every other reply is held, checked, then shown
+  // (ADR 0006). With the checks off (the tutor eval) nothing is guarded: the reply is shown as it came.
   const live = ownQ && deps.checkReplies !== false && liveFacts !== undefined;
   let guardStopped: { hit: GuardHit; stepShown: string; anyShown: boolean } | undefined;
   const liveStream = (prior: string) => (live && liveFacts ? { guard: new StreamGuard({ blockedNumbers: liveFacts.blockedNumbers, internalWords: liveFacts.internalWords }), prior } : undefined);
@@ -833,8 +833,8 @@ async function* runLockedTurn(
 
   /**
    * Runs Tool Runner over the log's messages and saves each loop step. In a held turn nothing of the reply streams: its
-   * text, items and Widget states go to `held`, in order, and are sent only once code has checked the reply (ADR 0008).
-   * In a streamed turn (`live`, A5 and ADR 0017) the same events go to the browser as they come, the text through the
+   * text, items and Widget states go to `held`, in order, and are sent only once code has checked the reply (ADR 0006).
+   * In a streamed turn (`live`, A5 and ADR 0006) the same events go to the browser as they come, the text through the
    * stream guard a sentence at a time; on a hit the runner is aborted and `guardStopped` says where the stream stopped.
    * Progress labels, pings and a failed save reach the browser at once either way. Returns the replies' text.
    */
@@ -956,7 +956,7 @@ async function* runLockedTurn(
       await beforeDeadline(Promise.resolve(pending).catch(() => {}), deadline);
       await Promise.resolve(steps.return?.()).catch(() => {});
       // Every stored tool call gets its result; the reply being streamed was never stored, so it is not taken from the runner.
-      // The held reply is dropped (ADR 0008): what the step had written is never stored or shown.
+      // The held reply is dropped (ADR 0006): what the step had written is never stored or shown.
       const all = runner.params.messages;
       for (; saved < all.length; saved++) if (all[saved].role !== "assistant") await log.append(all[saved]);
       stopReason = "stopped";
@@ -982,7 +982,7 @@ async function* runLockedTurn(
   // A resumed streamed reply showed its stored text again (its replay): what it writes now follows that.
   if (!complete) yield* loop(draftHeld, liveStream(replayed));
 
-  // The reply checks (ADR 0008). Rows the Learner never sees: the draft's text, the correction, a failed retry
+  // The reply checks (ADR 0006). Rows the Learner never sees: the draft's text, the correction, a failed retry
   // (`rejectedRows` holds the rule). A resume starts from what the run before it had rejected: its record, saved at each
   // rejection, or for older rows the correction message.
   const rejected = resumed ? rejectedRows(log.rows, turnSeq, { saved: await turnRejectedSeqs(db, session.id, turnSeq) }) : new Set<number>();
@@ -1119,7 +1119,7 @@ async function* runLockedTurn(
     if (widgets.length) return { source: widgets.length > toolWidgets(log.rows, turnSeq, items).length ? "step" : "tutor" };
     // An open Widget the Tutor moved with update_widget is the reply's one Widget too (replyWidgets in tools.ts).
     if ((await widgetsUpdatedInTurn(db, turn.id)).size) return { source: "tutor" };
-    // An own-question reply changes the Widget only when the Tutor opens one: no Companion Widget (B6, ADR 0019).
+    // An own-question reply changes the Widget only when the Tutor opens one: no Companion Widget (B6, ADR 0008).
     if (stoppedNow() || !covering || ownQ) return { source: "none" };
     const at = [placeNow, placeAtStart].find((p) => p?.topic.id === covering.id);
     const shown = items.flatMap((i) => (i.kind === WIDGET_SHOWN ? [i.data as ShownWidget] : []));
@@ -1194,7 +1194,7 @@ async function* runLockedTurn(
 
   if (stoppedNow()) {
     // Stop: the held reply is dropped. Every stored tool call has its result; the items tools stored stay. A streamed
-    // reply's items already went to the browser, and the page drops the text it showed (ADR 0017 keeps ADR 0008's Stop).
+    // reply's items already went to the browser, and the page drops the text it showed (ADR 0006).
     stopReason = "stopped";
     await rejectReply();
     toSend = live ? [] : nonText(draftHeld);
@@ -1284,7 +1284,7 @@ async function* runLockedTurn(
   // the Topic complete card. Code stores each before anything is released, so the Companion gate below sees them all.
   const after: TurnEvent[] = [];
 
-  // Two or three Choices under every checked reply (ADR 0010), stored after it. None once the Topic is passed (in an
+  // Two or three Choices under every checked reply (ADR 0008), stored after it. None once the Topic is passed (in an
   // earlier turn or this one: its Topic complete card offers what comes next), or after a Stop (the page then shows
   // code's own set).
   let droppedChoice: string | null = null;
@@ -1321,7 +1321,7 @@ async function* runLockedTurn(
     for (const item of items) after.push({ type: "item", item });
   }
 
-  // A Widget when it fits (spec 2026-11-12, B6, ADR 0019; was E4a's Widget with every reply): when neither the Tutor nor
+  // A Widget when it fits (spec 2026-11-12, B6, ADR 0008; was E4a's Widget with every reply): when neither the Tutor nor
   // code opened one in a step-led turn, code may add the step's scene or, asked what a word means, a Lingo card. It is picked last, once every Widget code stores in the turn is stored (a Next's
   // step Widget, start_again's or a step's items, a re-teach's practice Widget), so the gate sees them all and a turn
   // never gets two. Only the Topic complete card, never a Widget, comes after it: the turn still ends at that card.
@@ -1377,7 +1377,7 @@ async function* runLockedTurn(
 /**
  * The Session a Next turn pinned when its Complete this Topic passed that Topic (it is no longer the current
  * Topic's), or undefined. Read from the turn, so a Retry finds it too. A Claude-era Session pinned before the
- * switch (ADR 0015) is closed, and the closing reply goes to a fresh Session of that Topic instead. A resumed turn
+ * switch (ADR 0007) is closed, and the closing reply goes to a fresh Session of that Topic instead. A resumed turn
  * of any kind left in a Claude-era Session of a Topic that is no longer current is pinned the same way, so it is
  * answered in that Topic and starts nothing in the next one.
  */

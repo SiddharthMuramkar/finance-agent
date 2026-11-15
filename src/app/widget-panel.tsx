@@ -467,7 +467,7 @@ function eyebrowFor(item: WidgetItem, topicTitle: string | undefined): string {
 }
 
 /**
- * A Widget's kind Icon, for its Widget panel tab (spec 2026-11-11, ticket A1b, ADR 0014): its archetype's Icon
+ * A Widget's kind Icon, for its Widget panel tab (spec 2026-11-11, ticket A1b, ADR 0015): its archetype's Icon
  * (`KIND_ICON`), else `widget` when it has no archetype. One Icon per kind, so the tabs never show a story's cast.
  */
 export function kindIconOf(code: string): IconName {
@@ -524,7 +524,7 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
     onPick(key);
   };
   if (guard.timedOut) return <DrawingFailed retry={guard.retry} compact />;
-  // Showing takes the selected look from `.chip[data-state="showing"]` (ADR 0013), like every other showing chip.
+  // Showing takes the selected look from `.chip[data-state="showing"]` (ADR 0015), like every other showing chip.
   const look = state === "drawing" ? "skeleton text-[var(--muted)]!" : "";
   return (
     <span className="my-3 block">

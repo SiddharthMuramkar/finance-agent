@@ -27,7 +27,7 @@ import { loadProgress } from "./memory";
 import { restartTopic } from "./restart";
 
 /**
- * Starting one Topic over (B3a, ADR 0004 amendment): the Topic's progress rows move into a snapshot and are
+ * Starting one Topic over (B3a, ADR 0005 amendment): the Topic's progress rows move into a snapshot and are
  * cleared, the live Session becomes an Earlier attempt, and nothing of another Topic or Learner changes.
  * In-memory Postgres with the real migrations.
  */

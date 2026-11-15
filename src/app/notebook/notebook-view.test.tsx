@@ -210,7 +210,7 @@ describe("notebook rows", () => {
     expect(html).toMatch(/<h2[^>]*class="type-h2"[^>]*>Older sessions<\/h2>/);
   });
 
-  // ADR 0013: hairlines, not boxes. Each row is a hairline rule with a numbered marker; the row whose Resume is the
+  // ADR 0015: hairlines, not boxes. Each row is a hairline rule with a numbered marker; the row whose Resume is the
   // page's primary is the one active row (an accent line and an accent number).
   it("draws each row as a hairline rule with no box, numbered in order, with one active row", () => {
     const sections = [...html.matchAll(/<section class="([^"]*)" id="note-/g)].map((m) => m[1]);
@@ -284,7 +284,7 @@ describe("Undo after a removal", () => {
   it("shows a toast that says what went and offers Undo", () => {
     const html = renderToStaticMarkup(<UndoToast message="Removed from notes." onUndo={() => {}} />);
     expect(html).toMatch(/role="status"/);
-    // ADR 0013 (C15): a floating layer is a .popover with the pop shadow, not a utility drop shadow.
+    // ADR 0015 (C15): a floating layer is a .popover with the pop shadow, not a utility drop shadow.
     expect(html).toMatch(/<div role="status" class="popover /);
     expect(html).not.toMatch(/shadow-(?:sm|md|lg|xl)/);
     expect(html).toContain("Removed from notes.");

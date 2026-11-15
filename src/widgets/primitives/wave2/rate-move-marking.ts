@@ -3,7 +3,7 @@ import type { FixedItem } from "@/teaching/mark";
 import type { IconName } from "@/icons/names";
 
 // What the RateMove part says and marks, kept out of the "use client" part so the rate_move recipe (run on the
-// server) can read the same labels. Practice is a tap (ADR 0009): code builds the readings and marks the tapped
+// server) can read the same labels. Practice is a tap (ADR 0002): code builds the readings and marks the tapped
 // id, so no typed number is ever read.
 
 /** The labels of the three worked lines, in order. */
@@ -36,7 +36,7 @@ const POINTS_AS_BPS_FIX = "That reads points as basis points. One point is 100 b
 const PERCENT_FIX = "That is a percent. The move in points is the new rate minus the old rate; basis points are points times 100.";
 
 /**
- * The readings of "which reading is right?" for a rate move, built with the choice engine (ADR 0009): the right
+ * The readings of "which reading is right?" for a rate move, built with the choice engine (ADR 0002): the right
  * reading in points and basis points, the x10 slip (points times 10, said in bps) and the percent mix-up (the points
  * said as a percent). 4% to 5% gives "Up 1 point, or 100 bps", "Up 10 bps", "Up 1%". Same seed, same order.
  */

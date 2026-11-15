@@ -7,7 +7,7 @@ import { Card, PrimaryButton, Tag } from "../ui";
 import { ApproveButton, RowActions } from "./admin-controls";
 import { ADMIN_DONE, type AdminDone, type AdminSection } from "./done";
 
-/** A section's heading: Settings' (Inter Tight 18/24 at 600), under the section's hairline (ADR 0013). */
+/** A section's heading: Settings' (Inter Tight 18/24 at 600), under the section's hairline (ADR 0015). */
 const heading = "mb-3 [font-family:var(--font-display)] text-[18px] font-semibold leading-6 tracking-[-0.012em]";
 /** A list: hairlines between the rows and under the last, as Settings → Your Topics. */
 const list = "divide-y divide-[var(--rule)] border-b border-[var(--rule)]";
@@ -214,7 +214,7 @@ export type AdminViewProps = {
 };
 
 /**
- * The /admin page's body (ADR 0014): who may use Value It. Sections under Settings' hairline rules, no boxes (ADR 0013):
+ * The /admin page's body (ADR 0014): who may use Value It. Sections under Settings' hairline rules, no boxes (ADR 0015):
  * Waiting (people who signed in and wait: Approve or Deny), People with access (the owner first, as You; Remove access
  * for the rest; then the invites nobody has used yet), Spend (what each person's Tutor has cost, this month and all
  * time, most this month first), Tutor speed (turn times by Reply kind against the A9 budgets, read only), Denied (only

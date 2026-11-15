@@ -19,7 +19,7 @@ import { requestStop } from "./turn-status";
 import type { ProgressEvent } from "./tools";
 
 /**
- * Seam 1, Tutor Turn: replies checked before the Learner sees them (spec #229, ticket #239, ADR 0008). The scripted
+ * Seam 1, Tutor Turn: replies checked before the Learner sees them (spec #229, ticket #239, ADR 0006). The scripted
  * client stands in for the model; the Learner stands at the concept step, whose word limit is 80.
  */
 
@@ -28,7 +28,7 @@ const say = (text: string): ScriptedReply => ({ content: [{ type: "text", text }
 const texts = (events: TurnEvent[]) => events.filter((e): e is Extract<TurnEvent, { type: "text" }> => e.type === "text");
 
 /**
- * A press of the Show me Choice: a step-led turn, held, checked and then shown (ADR 0008), whose fallback is the reply cut
+ * A press of the Show me Choice: a step-led turn, held, checked and then shown (ADR 0006), whose fallback is the reply cut
  * to its cap. A message the Learner types is an own question, whose reply streams behind the stream guard instead (A5,
  * own-question-stream.test.ts), so the held gate is tested on step-led turns.
  */

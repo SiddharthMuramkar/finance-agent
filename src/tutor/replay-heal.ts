@@ -2,11 +2,11 @@ import { APIError } from "openai";
 import type { Message, ModelClient, StepEvent, StepRequest, StepResult, StepStream } from "./model";
 
 /**
- * A Session heals itself (spec 2026-11-12, A2; ADR 0016). The Tutor sends each stored step back with its raw OpenAI
+ * A Session heals itself (spec 2026-11-12, A2; ADR 0007). The Tutor sends each stored step back with its raw OpenAI
  * output (`replay`: reasoning items, ids, exact arguments). When the API refuses a request because of those replayed
  * items (encrypted reasoning it cannot verify, a reasoning item with nothing after it, an item id it will not take),
  * the turn does not fail: the request is sent once more with every `replay` block left out, which the API always
- * accepts (an edited step is sent that way already, ADR 0015), and the heal is recorded. A second refusal fails the
+ * accepts (an edited step is sent that way already, ADR 0007), and the heal is recorded. A second refusal fails the
  * turn the normal way (A3). Each heal is a bug in what is sent (A1), so each one is counted.
  */
 

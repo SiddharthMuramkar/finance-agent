@@ -14,7 +14,7 @@ import { ValueLeversView } from "./value-levers-view";
 // The ValueLevers part (spec 2026-11-12, B3): Value levers in the Widget library, so a Widget recipe (value_levers) can
 // draw it and the Study Workspace keeps its work like any Widget's. Each lever and the move record are $variables the
 // program declares, so the Learner's settings are Widget state (saved, restored, told to the Tutor) and the Things to try
-// are saved ticks. Only a recipe draws it (ADR 0018): widgetRuleProblems holds a Workbench part to standing alone. A Spine
+// are saved ticks. Only a recipe draws it (ADR 0010): widgetRuleProblems holds a Workbench part to standing alone. A Spine
 // Topic's mode (Appendix D) arrives as a literal prop, parsed by the same function the Widget check uses; in market mode the
 // market chosen is one more $variable; in all open mode the story is saved through SaveStoryContext, which the Topic flow
 // wires to the Notebook.

@@ -4,7 +4,7 @@ import type { Db } from "@/db/types";
 import { isMissingTable } from "./reply-records";
 
 /**
- * Tutor incidents (spec 2026-11-12, A2; ADR 0016): one `tutor_incidents` row each time code repaired a Session instead
+ * Tutor incidents (spec 2026-11-12, A2; ADR 0007): one `tutor_incidents` row each time code repaired a Session instead
  * of failing the turn. Each one is a bug in what is sent to the model (A1), so every one is counted. Like the reply
  * checks' records, writes fail soft: until migration 0037 is applied a missing table is logged once, and a record that
  * cannot be written never fails the turn it would describe.

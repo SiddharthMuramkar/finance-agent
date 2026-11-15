@@ -100,7 +100,7 @@ export type MatrixThresholds = { gutterMax: number; headerMax: number; panelMinP
 /**
  * The §6.2 thresholds a project's cells are held to. Side gutter <= 32 px (§6.2 names 1280, 1512 and 1920 and no
  * looser bound at 1024, so 32 holds there too; A1's 17 px is its own /study test, not a §6 threshold). Prose line
- * length 45-80, 60-75 from 1440 up, and 50-75 at 1280 (ADR 0013's gates): the reply spans the reading block,
+ * length 45-80, 60-75 from 1440 up, and 50-75 at 1280 (ADR 0015's gates): the reply spans the reading block,
  * min(544, conversation - 32) px (spec 2026-11-11, C1), about 63 characters of Inter at 1280 and 67 from 1512 up;
  * layout.spec holds the same bands. Header <= 56 px. Widget
  * panel >= 52 % of the viewport: the 45 / 55 default split gives it 52.4 % (spec 2026-11-11, C2a, R21).

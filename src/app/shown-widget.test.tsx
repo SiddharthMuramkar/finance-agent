@@ -4,7 +4,7 @@ import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { widgetsIn, type ThreadLine } from "./thread";
 
-// A Widget code drew from a recipe (show_widget, ADR 0005) is a Session item carrying its own code: the thread draws it
+// A Widget code drew from a recipe (show_widget, ADR 0009) is a Session item carrying its own code: the thread draws it
 // where the Tutor called show_widget, like a written-ahead Widget it opened, and it counts as open for the next turn.
 
 const built = recipeById("history_case")!.build({ title: "Gold in rupees", inputs: {}, refs: { dataset: "reference/gold-inr-10g" }, facts: {} });

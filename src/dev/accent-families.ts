@@ -167,7 +167,7 @@ export function accentFamiliesPainted(tokens: AccentTokens, paints: Paint[]): Ac
 export type MisuseNode = PaintedNode & { rect: Box; label: string };
 
 /**
- * Family colour used as a fill or as text, which ADR 0014 does not allow. A fill is a background or a gradient on a box
+ * Family colour used as a fill or as text, which ADR 0015 does not allow. A fill is a background or a gradient on a box
  * bigger than a dot (shorter side over 4 px and longer side over 16 px): a 2 px rule, an 8 px dot and a 14 px marker
  * pass. Text is the element's own text colour, including an SVG `<text>` fill. Borders, strokes and other SVG fills
  * (a chart series) never count.
