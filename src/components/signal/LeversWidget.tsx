@@ -290,6 +290,31 @@ export function LeverLab({
   );
 }
 
+/**
+ * The home scroll story's stage (spec §7.2.3): the lever lab in a widget shell, with no head, presets, Go deeper or foot.
+ * The page drives it step by step: `live` false for the opening (no lever draggable), `focus` and `band` for one lever's
+ * step, all four live for "Your turn".
+ */
+export function LeverStage({
+  values,
+  live = true,
+  focus = null,
+  band = null,
+  onChange,
+}: {
+  values: Levers;
+  live?: boolean;
+  focus?: LeverKey | null;
+  band?: LeverKey | null;
+  onChange?: (key: LeverKey, value: number) => void;
+}) {
+  return (
+    <WidgetShell kind="levers-story" caseSlug={LEVERS_CASE} compact={false} label="The lever lab: Amazon, February 2000">
+      <LeverLab values={values} live={live} focus={focus} band={band} onChange={onChange} />
+    </WidgetShell>
+  );
+}
+
 /** Go deeper's year strip (§6.2.3): ten bars around a zero line, in dollars a share today. */
 function YearStrip({ flows }: { flows: number[] }) {
   const biggest = Math.max(0.2, ...flows.map(Math.abs));

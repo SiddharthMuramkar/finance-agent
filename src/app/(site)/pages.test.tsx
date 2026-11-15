@@ -58,10 +58,10 @@ describe("Home", () => {
     expect(text).toContain("Is a $1.537B jackpot really worth $1.537B?");
     expect(text).toContain("The Tutor picked this widget. Tested code draws it.");
     expect(html).toMatch(/data-widget="jackpot" data-case="mega-millions-2018"/);
-    expect(html).toMatch(/data-widget="levers" data-case="amazon-2000"/);
+    expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
     expect(text).toContain("110 Topics wait inside.");
-    expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 18%.");
+    expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
   it("offers a visitor Join early access and Play a real case, with the early-access note", async () => {

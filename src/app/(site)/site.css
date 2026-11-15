@@ -243,6 +243,9 @@
 .v-power { border-left: 2px solid var(--blue-line); padding-left: 14px; }
 .v-lab { position: sticky; top: calc(var(--nav-h) + 20px); align-self: start; display: grid; gap: 12px; }
 .v-hint { text-align: center; font-size: 14px; color: var(--muted); min-height: 1.5em; }
+.v-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.v-win { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+.v-win .v-pill { vertical-align: 1px; }
 
 /* Colour language (7.2.4) */
 .v-colours { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
@@ -400,6 +403,11 @@
   .v-story-grid { grid-template-columns: minmax(0, 1fr); }
   .v-story-grid .v-lab { order: -1; top: var(--nav-h); z-index: 5; background: var(--paper); margin-inline: calc(-1 * var(--gutter-x)); padding: 8px var(--gutter-x); }
   .v-story-grid .v-lab .v-hint { display: none; }
+  /* The stage as a full-bleed strip (7.2.3): no shadow or border, 84 px levers, a 30 px value, 14 px lever values, no units. */
+  .v-story-grid .v-lab .sig-w { --lv-h: 84px; box-shadow: none; border: 0; border-radius: 0; padding: 0; }
+  .v-story-grid .v-lab .sig-lab-value { font-size: 30px; }
+  .v-story-grid .v-lab .sig-lever-value { font-size: 14px; }
+  .v-story-grid .v-lab .sig-lever-unit { display: none; }
   .v-step, .v-step:first-child, .v-step:last-child { min-height: 52vh; }
   .v-hiw { grid-template-columns: minmax(0, 1fr); }
   .v-rail { top: var(--nav-h); background: var(--paper); margin-inline: calc(-1 * var(--gutter-x)); padding: 8px var(--gutter-x); grid-template-columns: auto minmax(0, 1fr); align-items: center; border-bottom: 1px solid var(--rule); }

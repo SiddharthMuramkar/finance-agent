@@ -4,7 +4,7 @@
 
 export { CompoundWidget } from "./CompoundWidget";
 export { JackpotWidget } from "./JackpotWidget";
-export { LeversWidget } from "./LeversWidget";
+export { LeversWidget, LeverStage, leverText } from "./LeversWidget";
 export { RatesWidget } from "./RatesWidget";
 export { WeWorkWidget } from "./WeWorkWidget";
 export type { SignalCall, SignalEvent, SignalWidgetProps, Verdict } from "./parts";

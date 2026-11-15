@@ -74,6 +74,11 @@ export const home = {
     yourTurnH2: "Now it’s your story.",
     yourTurnBody: "**Drag any lever.** Green means your change adds value to his story. Red means it takes value away. *Find a story worth the $84 price.*",
     fullCase: "Open the full case, with what happened next",
+    presets: "Try a story",
+    win: {
+      pill: "You reached the price",
+      line: (rev: string, margin: string) => `Your story needs ${rev} of sales in year 10 and a margin of ${margin}. Would you have believed that in 2000?`,
+    },
     hints: {
       intro: "Scroll to meet the four levers.",
       lever: (n: number) => `Lever ${n} of 4. Drag it. The shaded band is as far as it can move the value on its own.`,
