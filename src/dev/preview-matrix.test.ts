@@ -72,7 +72,8 @@ describe("preview matrix [S3]", () => {
     expect(prose).toEqual({
       home: null, about: null, "study-story": null, "study-story-scene": null, "study-lingo": null, "study-concept-widget": null, "study-quiz-open": null,
       "study-mixup-fix": null, "study-topic-complete": null,
-      "course-map": "if-any", notebook: "required", settings: "required", login: null,
+      "course-map": "if-any", notebook: "required", settings: "required",
+      "how-it-works": null, examples: null, "case-amazon": null, login: null,
     });
     expect(LOGIN_LINK_EXPIRED.prose ?? null).toBeNull();
     // Settings (A5) is a card-grid at every matrix viewport and A1 says "Running paragraphs inside cards use `measure`":
