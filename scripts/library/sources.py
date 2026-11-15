@@ -461,7 +461,11 @@ def investor_gov(scratch, out, pages=None):
     docs = []
     for page in INVESTOR_GOV_PAGES if pages is None else pages:
         url = INVESTOR_GOV + page
-        markup = fetch(url, Path(scratch) / "investor-gov" / (page.replace("/", "-") + ".html"))
+        try:
+            markup = fetch(url, Path(scratch) / "investor-gov" / (page.replace("/", "-") + ".html"))
+        except Exception as e:  # a page the site has since moved or removed
+            print(f"skipped {url}: {e}")
+            continue
         found = investor_gov_page(markup)
         if not found["sections"]:
             print(f"no text on {url}")
