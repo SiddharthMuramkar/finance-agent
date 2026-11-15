@@ -716,6 +716,11 @@
       "outcome": ["withdrew its IPO", "withdrew its share sale", "withdrew its offering", "pulled its IPO", "IPO was pulled", "IPO was withdrawn", "failed IPO", "WeWork's collapse", "collapse of WeWork", "filed for bankruptcy", "Neumann stepped down", "Neumann was ousted", "SoftBank rescue", "SoftBank bailout"]
     },
     {
+      "q": "Webvan IPO price and first day of trading",
+      "asOf": "1999-11-04",
+      "outcome": ["24.875", "65% above", "7.9 billion", "$7.9bn", "acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
+    },
+    {
       "q": "Webvan distribution centres, warehouses and cash after its IPO",
       "asOf": "1999-11-05",
       "outcome": ["acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]

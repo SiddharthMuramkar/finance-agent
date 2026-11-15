@@ -48,6 +48,13 @@ const DOCUMENTS: Record<string, SourceDocument[]> = {
   ],
   "sec-webvan-1999-2001": [
     doc(
+      "s-1-0000891618-99-003537",
+      "https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-003537.txt",
+      "1999-08-06",
+      "PROSPECTUS SUMMARY",
+      "Webvan expects the initial public offering price of its shares to be between $11 and $13 a share, and plans to list on the Nasdaq National Market.",
+    ),
+    doc(
       "424b1-0000891618-99-004914",
       "https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt",
       "1999-11-05",
@@ -131,7 +138,7 @@ describe("the sources added in #38", () => {
     const db = await libraryDb();
     const touched = probes.filter((p) => p.case === "amazon-2000" || p.case === "wework-2019" || /webvan/i.test(p.q));
     // One probe per Webvan Case date in course/outline.yaml.
-    expect(touched.filter((p) => /webvan/i.test(p.q)).map((p) => p.asOf)).toEqual(["1999-11-05", "2000-03-30", "2001-04-02"]);
+    expect(touched.filter((p) => /webvan/i.test(p.q)).map((p) => p.asOf)).toEqual(["1999-11-04", "1999-11-05", "2000-03-30", "2001-04-02"]);
 
     for (const probe of touched) {
       const shown = await search(db, probe.q, probe.asOf);
@@ -144,8 +151,11 @@ describe("the sources added in #38", () => {
     const db = await libraryDb();
     const refs = async (q: string, asOf: string) => (await search(db, q, asOf)).map((r) => r.ref.split("#")[0]);
 
-    expect(await refs("Amazon share price and valuation in February 2000", "2000-02-01")).toEqual(["10-q-0000891020-99-001938"]);
+    expect(await refs("Amazon share price and valuation in February 2000", "2000-02-01")).toContain("10-q-0000891020-99-001938");
+    expect(await refs("Amazon share price and valuation in February 2000", "2000-02-01")).not.toContain("10-k-0000891020-00-000622");
     expect(await refs("Amazon share price and valuation", "2000-03-29")).toContain("10-k-0000891020-00-000622");
+    expect(await refs("Webvan IPO price and first day of trading", "1999-11-04")).toEqual(["s-1-0000891618-99-003537"]);
+    expect(await refs("Webvan IPO price and first day of trading", "1999-11-05")).toContain("424b1-0000891618-99-004914");
     expect(await refs("Webvan distribution centers capital spending", "2000-03-29")).not.toContain("10-k405-0000891618-00-001877");
     expect(await refs("Webvan distribution centers capital spending", "2000-03-30")).toContain("10-k405-0000891618-00-001877");
     expect(await refs("Webvan cash burn and funding", "2001-04-01")).not.toContain("10-k-0001012870-01-001485");
