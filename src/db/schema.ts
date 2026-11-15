@@ -688,8 +688,8 @@ export const libraryDocuments = pgTable(
 );
 
 /**
- * One run of the model comparison script (npm run compare:models): which models answered, who
- * graded, the written report and the recommendation. Saved from the laptop; the app never reads it.
+ * One run of the old model comparison script (src/comparison, deleted in #19): which models answered, who graded, the
+ * written report and the recommendation. The app never reads it. The table goes in a later migration (#33 PR C).
  */
 export const modelComparisonRuns = pgTable("model_comparison_runs", {
   id: serial("id").primaryKey(),

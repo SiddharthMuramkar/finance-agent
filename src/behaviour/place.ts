@@ -25,8 +25,8 @@ export async function finishForPlacement(db: Db, map: CourseMap, step: TeachingS
 }
 
 /**
- * Puts a fresh Learner at the Teaching Step a test question needs, by saving progress directly. The comparison
- * and behaviour runs pass the tools Learner (`freshToolsLearner`), so they never place anyone else.
+ * Puts a fresh Learner at the Teaching Step a test question needs, by saving progress directly. The behaviour
+ * runs pass the tools Learner (`freshToolsLearner`), so they never place anyone else.
  */
 export async function placeLearner(db: Db, map: CourseMap, at: "story" | "explore" | "your_turn" | "check", learnerId: number) {
   await ensureTopicStarted(db, map, new Date(), learnerId);

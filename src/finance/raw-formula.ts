@@ -1,6 +1,6 @@
 // The one raw-formula detector (ADR 0002): finds a formula typed out as symbols or arithmetic, such as
-// "PV = amount / (1 + r)^n" or "1,210 / 1.21 = 1,000". The course check, the behaviour runner and,
-// later, the model comparison all call it, so there is one definition of "typed formula".
+// "PV = amount / (1 + r)^n" or "1,210 / 1.21 = 1,000". The course check and the behaviour runner both
+// call it, so there is one definition of "typed formula".
 // No imports, so `scripts/check-course.mjs` can run it under plain Node.
 
 /** What the detector leaves out before it looks: formula markers, code fences (widgets, sources), links and Markdown link targets (a Citation marker's `?blocks=3-5`). */
