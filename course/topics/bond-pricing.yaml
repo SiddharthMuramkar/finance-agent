@@ -68,7 +68,7 @@ questions:
     explanation: >
       Her bond's fixed payments are now discounted at a higher market yield, so their value today, which is the price, falls. The coupon stays the same; the price drops until a buyer would earn the new market yield.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: bp-q-par
     prompt: >
@@ -82,7 +82,7 @@ questions:
     explanation: >
       When the coupon rate equals the market yield, the present value of the payments equals the face value, so the bond sells at par.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: bp-q-discount
     prompt: >
@@ -95,7 +95,7 @@ questions:
     explanation: >
       A buyer can get 6% on a new bond, so will pay less than face value for one paying only 4%. The price falls until the bond's yield matches the market's. That is a discount.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: bp-q-five-year
     prompt: >
@@ -109,7 +109,7 @@ questions:
     explanation: >
       The coupon is above the market yield, so buyers pay more than face value: a premium. OpenStax's worked example puts the price near $1,044. The longer the bond, the bigger the premium, because the better coupon lasts longer.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk (worked example: 6% coupon, 5-year bond $1,043.76 at 5%): https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 20.4 Interest Rate Risk (worked example: 6% coupon, 5-year bond $1,043.76 at 5%): https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
 
   - id: bp-q-longer
     prompt: >
@@ -123,7 +123,7 @@ questions:
     explanation: >
       The 30-year bond's payments are spread further into the future, so a change in the discount rate compounds over more years. In OpenStax's worked example, at a 5% yield the 30-year bond is worth $1,154.54 against $1,043.76 for the five-year bond.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
 
   - id: bp-q-1994
     prompt: >
@@ -137,7 +137,7 @@ questions:
     explanation: >
       New bonds pay 7%, so buyers will pay less than face value for your 5% coupon. A rise of two points in the yield costs the holder a sizeable slice of the price.
     source: >
-      Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      Worked with the present value method of OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
 checks:
   - id: bp-quiz-price-yield

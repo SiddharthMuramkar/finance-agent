@@ -72,7 +72,7 @@ questions:
     explanation: >
       A credit spread is the extra yield a risky bond pays over a safe government bond of the same maturity. Lenders want it for the chance of default, the loss if it happens, and for a bond that may be hard to sell.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
 
   - id: cs-q-calculate
     prompt: >
@@ -86,7 +86,7 @@ questions:
     explanation: >
       A spread quoted as 150 over means 150 basis points, 1.5 percentage points, of extra yield over the government bond of the same length. For example a corporate bond yielding 7.9% against a government bond at 6.4%. It is the extra pay for default risk.
     source: >
-      Arithmetic on the definition in OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+      Arithmetic on the definition in OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
 
   - id: cs-q-grade
     prompt: >
@@ -100,7 +100,7 @@ questions:
     explanation: >
       On the S&P and Fitch scales, any bond rated BBB or higher (Baa or higher at Moody's) is investment grade. Bonds rated lower are high-yield, or junk, bonds, and they pay wider spreads.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
 
   - id: cs-q-widen
     prompt: >

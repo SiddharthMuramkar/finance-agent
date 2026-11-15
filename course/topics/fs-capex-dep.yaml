@@ -118,7 +118,7 @@ questions:
     explanation: >
       Depreciation spreads the cost of a lasting asset over the years it is used. The cash left Dev's bank on day one, but each year's profit bears only a slice.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-ebitda-blind-spot
     prompt: >
@@ -132,7 +132,7 @@ questions:
     explanation: >
       EBITDA is profit before interest, tax, depreciation and amortisation. With depreciation added back, the cost of the warehouses never shows up in it, so Asha should read it next to capex.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-bechtel
     prompt: >
@@ -160,7 +160,7 @@ questions:
     explanation: >
       Amortisation spreads the cost of something you cannot touch, such as software or a licence, over its useful life. Depreciation does the same for physical things like Dev's oven.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-lingo-fixed-assets
     prompt: >
@@ -188,7 +188,7 @@ questions:
     explanation: >
       EBITDA is earnings before interest, taxes, depreciation and amortisation. For a trucking firm, adding depreciation back leaves out the cost of the trucks it must keep buying.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
 checks:
   - id: cx-quiz-depreciation

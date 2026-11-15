@@ -86,6 +86,58 @@ export function repairBrokenLigatures(text: string, vocabulary: Set<string>): { 
   return { text: out, fixed };
 }
 
+/** Two-letter words that may stand in a run of joined words; a longer part must be in the vocabulary. */
+const SHORT_WORDS = new Set(["of", "to", "in", "on", "at", "by", "as", "is", "it", "be", "an", "or", "no", "so", "up", "we", "he", "if", "do", "us"]);
+
+const known = (part: string, vocabulary: Set<string>) => (part.length === 2 ? SHORT_WORDS.has(part) : part.length > 2 && vocabulary.has(part));
+
+/** Whether `token` is two or three known words run together ("thewriter", "hashadaccess"). */
+function runTogether(token: string, vocabulary: Set<string>, parts = 1): boolean {
+  for (let i = 2; i <= token.length - 2; i++) {
+    if (!known(token.slice(0, i), vocabulary)) continue;
+    const tail = token.slice(i);
+    if (known(tail, vocabulary) || (parts < 2 && runTogether(tail, vocabulary, parts + 1))) return true;
+  }
+  return false;
+}
+
+/**
+ * Lowercase words the vocabulary does not know but that split into two or three words it does:
+ * the spaces some PDF text layers lose ("thewriter hashadaccess"). `corruptionReasons` cannot see
+ * these, because each run looks like one long word. The vocabulary should come from clean text of
+ * the same kind (never from the text under test, which would know its own runs).
+ */
+export function joinedWords(text: string, vocabulary: Set<string>): string[] {
+  return (text.match(/\b[a-z]{5,}\b/g) ?? []).filter((token) => !vocabulary.has(token) && runTogether(token, vocabulary));
+}
+
+/**
+ * Why a PDF's text layer should not go into the Library at all: more than a tenth of its passages
+ * corrupted (after the same ligature repair the load does), or more than one word in a hundred
+ * run together with its neighbours. An empty list means the text layer is clean enough to load;
+ * the load still drops any single corrupted passage.
+ */
+export function textLayerReasons(
+  doc: SourceDocument,
+  vocabulary: Set<string>,
+  { maxCorruptedShare = 0.1, maxJoinedShare = 0.01 }: { maxCorruptedShare?: number; maxJoinedShare?: number } = {},
+): string[] {
+  const passages = cutPassages(doc).map((p) => repairBrokenLigatures(p.text, vocabulary).text);
+  if (!passages.length) return ["no text layer"];
+  const reasons: string[] = [];
+  const corrupted = passages.map(corruptionReasons).filter((r) => r.length);
+  if (corrupted.length / passages.length > maxCorruptedShare) {
+    reasons.push(`${corrupted.length} of ${passages.length} passages corrupted (${[...new Set(corrupted.flat())].join(", ")})`);
+  }
+  const text = passages.join(" ");
+  const words = (text.match(/\b[a-z]{2,}\b/g) ?? []).length;
+  const joined = joinedWords(text, vocabulary);
+  if (joined.length / Math.max(words, 1) > maxJoinedShare) {
+    reasons.push(`joined words: ${joined.length} of ${words} (${[...new Set(joined)].slice(0, 4).join(", ")})`);
+  }
+  return reasons;
+}
+
 /** One PDF page as extracted: its text and how many pictures it holds. */
 export type PdfPage = { number: number; text: string; images: number };
 

@@ -84,7 +84,7 @@ questions:
     explanation: >
       The agent (manager) is entrusted with the owner's interests but may abuse the position to pursue personal goals. The conflict between management and shareholders is the standard example.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
 
   - id: ge-q-related-party
     prompt: >
@@ -98,7 +98,7 @@ questions:
     explanation: >
       The chairman is a buyer's agent and a seller's owner at the same time, which is the agency problem in its sharpest form. Each rupee above fair value moves company money to him.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
 
   - id: ge-q-board-role
     prompt: >
@@ -112,7 +112,7 @@ questions:
     explanation: >
       The board hires and fires the chief executive and oversees management as a fiduciary for shareholders. That is why its independence matters.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), Chapter 2 Summary (2.2 and 2.3): https://openstax.org/books/principles-finance/pages/2-summary
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), Chapter 2 Summary (2.2 and 2.3): https://openstax.org/books/principles-finance-2e/pages/2-summary
 
   - id: ge-q-incentives
     prompt: >
@@ -126,7 +126,7 @@ questions:
     explanation: >
       Long-term pay such as stock encourages long-term thinking and ties the managers' wealth to the owners'. Penalising poor performance and unethical behaviour is another measure. Letting managers decide their own pay worsens the conflict.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
 
   - id: ge-q-audit-committee
     prompt: >
