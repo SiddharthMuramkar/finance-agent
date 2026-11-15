@@ -14,7 +14,7 @@ import { connectionsCheckErrors } from "../src/course/connections-check.ts";
 import { youllLearnCheckErrors } from "../src/course/youll-learn-check.ts";
 import { homeAnnuityCheckErrors, writtenAheadCheckErrors, writtenAheadCheckWarnings } from "../src/course/written-ahead-check.ts";
 import { goalCheckErrors } from "../src/course/goal-check.ts";
-import { HOME_WIDGET } from "../src/app/_landing/home-widget-spec.ts";
+import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
 

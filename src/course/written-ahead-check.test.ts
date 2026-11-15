@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 import { loadCourseMap, parseCourseMap, type Topic } from "./map";
-import { HOME_WIDGET } from "../app/_landing/home-widget-spec";
+import { HOME_WIDGET } from "../site/home-widget-spec";
 import { homeAnnuityCheckErrors, writtenAheadCheckErrors } from "./written-ahead-check";
 
 // The course check covers every written-ahead Widget (spec #119, "Owner tooling › The course check"): it can be
