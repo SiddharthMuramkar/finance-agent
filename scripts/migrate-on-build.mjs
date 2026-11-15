@@ -1,5 +1,5 @@
 // Applies the pending database migrations during Vercel's production build, before `next build` (npm run vercel-build).
-// A failed migration fails the build, so a deploy never goes live on a database that is behind the code (issue #549).
+// A failed migration fails the build, so a deploy never goes live on a database that is behind the code.
 // Preview and local builds skip it: only VERCEL_ENV=production touches the database, and CI's `npm run build` does not
 // run this script at all. It uses the same direct connection (DATABASE_URL_UNPOOLED) as drizzle.config.ts and runs the
 // same `drizzle-kit migrate` as `npm run db:migrate`, which applies every pending file in one transaction.
