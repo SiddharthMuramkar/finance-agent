@@ -93,3 +93,16 @@ export async function hydrated(page: Page) {
   await page.waitForFunction(() => document.querySelector(".openui-accordion-trigger:not([data-affordance])") === null);
 }
 
+
+/**
+ * Waits until a public site page (src/app/(site), or the sign-in page in the site chrome) has hydrated: React has taken
+ * over the site nav, so a click on a link is a client-side navigation and a click on a button runs its handler. A click
+ * before that is a plain browser load of the next page, or nothing at all, depending on how fast the page loaded: the
+ * flake D1 hit on a cold server (PR #20). React marks each DOM node it owns with a `__reactFiber` key.
+ */
+export async function siteReady(page: Page) {
+  await page.waitForFunction(() => {
+    const nav = document.querySelector("header.v-nav");
+    return nav !== null && Object.keys(nav).some((key) => key.startsWith("__reactFiber"));
+  });
+}
