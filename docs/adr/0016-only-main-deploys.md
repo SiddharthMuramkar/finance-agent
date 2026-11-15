@@ -1,6 +1,6 @@
 # Only main deploys to production, behind checks, a snapshot and expand-then-contract migrations
 
-Status: accepted, 2026-11-14. Tickets: [#9](https://github.com/SiddharthMuramkar/finance-agent/issues/9) (Vercel Hobby or Pro for the beta?, Pro now) and [#11](https://github.com/SiddharthMuramkar/finance-agent/issues/11) (Gate production deploys, migrations and previews).
+Status: accepted, 2026-11-14. Tickets: [#9](https://github.com/SiddharthMuramkar/finance-agent/issues/9) (Vercel Hobby or Pro for the beta?, Pro now) and [#11](https://github.com/SiddharthMuramkar/finance-agent/issues/11) (Gate production deploys, migrations and previews). Amended on 2026-11-15 by [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33): the agent now runs Vercel setup, and production stays Git-only.
 
 ## Context
 
@@ -10,7 +10,7 @@ A merge to `main` makes Vercel migrate the database, build and deploy. Before th
 
 - Previews are off (`{"main": true, "**": false}`), so only `main` builds. The stale preview Neon branches are deleted (the owner confirms).
 - The Vercel team is on Pro. Production takes Git deploys only (the Vercel Deployment Policy, a Pro feature).
-- Agents may not run the Vercel CLI. Claude Code deny rules block it.
+- No one deploys to production by hand. At first, Claude Code deny rules blocked the Vercel CLI for agents. Since #33, the agent runs Vercel setup with a team token kept in the macOS Keychain, the Deployment Policy still refuses every production deploy that is not from Git, and no Vercel token goes in GitHub.
 - A production deploy passes Deployment Checks, takes a Neon snapshot and runs migrations after `next build`.
 - Every migration is expand-then-contract: first add what the new code needs, deploy, and only later remove what the old code used.
 

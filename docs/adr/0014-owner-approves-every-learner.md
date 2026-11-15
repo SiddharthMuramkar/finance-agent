@@ -1,6 +1,6 @@
 # Anyone can ask in with Google or an email link; the owner approves each person on /admin
 
-Status: accepted, 2026-11-14. Tickets: [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6) (Sign-in launch plan, option B: Google and email links together), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) (Join flow, option C: the spec's pages) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15) (Keep or remove the passcode door, option B: tests only). Written new from the archived ADRs 0011 and 0014 (anyone can ask).
+Status: accepted, 2026-11-14; sign-in parts superseded by ADR 0017 (Clerk) on 2026-11-15. Tickets: [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6) (Sign-in launch plan, option B: Google and email links together), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) (Join flow, option C: the spec's pages) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15) (Keep or remove the passcode door, option B: tests only). Written new from the archived ADRs 0011 and 0014 (anyone can ask).
 
 ## Context
 
