@@ -29,15 +29,18 @@ const staticValueImports = (text: string) =>
 const dynamicImports = (text: string) => [...text.matchAll(new RegExp(String.raw`import\(\s*${SOURCE}\s*\)`, "g"))].map((m) => m.index);
 
 /**
- * True when a `process.env.NODE_ENV` test comes before the import inside the same function: no function or arrow starts
- * between the last such test and the import.
+ * True when a `process.env.NODE_ENV` test comes before the import inside the same function (no function or arrow
+ * starts between the last such test and the import), pointing the safe way: `!== "production"` around the import, or
+ * `=== "production"` with a `return` before it.
  */
 function guarded(text: string, at: number): boolean {
   const before = text.slice(0, at);
   const guard = before.lastIndexOf("process.env.NODE_ENV");
   if (guard < 0) return false;
   const between = before.slice(guard);
-  return !/\bfunction\b|=>/.test(between);
+  if (/\bfunction\b|=>/.test(between)) return false;
+  if (/^process\.env\.NODE_ENV\s*!==?\s*["']production["']/.test(between)) return true;
+  return /^process\.env\.NODE_ENV\s*===?\s*["']production["']/.test(between) && /\breturn\b/.test(between);
 }
 
 describe("the test people never ship", () => {
@@ -73,5 +76,8 @@ describe("the test people never ship", () => {
     expect(check('async function f() {\n  if (process.env.NODE_ENV === "production") return;\n  await import("@/dev/e2e-identity");\n}')).toBe(true);
     expect(check('if (process.env.NODE_ENV !== "production") {}\nconst f = async () => import("@/dev/e2e-identity");')).toBe(false);
     expect(check('const f = async () => import("@/dev/e2e-identity");')).toBe(false);
+    // The test must point the right way: load it only off production, or only after production has returned.
+    expect(check('async function f() {\n  if (process.env.NODE_ENV !== "production" && on) {\n    await import("@/dev/e2e-identity");\n  }\n}')).toBe(true);
+    expect(check('async function f() {\n  if (process.env.NODE_ENV === "production") {\n    await import("@/dev/e2e-identity");\n  }\n}')).toBe(false);
   });
 });
