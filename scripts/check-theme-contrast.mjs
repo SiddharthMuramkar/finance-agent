@@ -27,9 +27,10 @@ const SPEC = {
   wait: '#f97316', 'wait-ink': '#a84b00', 'wait-tint': '#fff1e3', 'wait-line': '#fbc592',
   overlay: 'rgba(255,255,255,.9)',
 };
-// The only other literal colours: the app's strong line for control edges, the translucent whites on a Band (spec F1),
-// and the Widgets' drop shadow (not colour-checked).
-const CHROME = { 'line-strong': '#868c97', 'on-band-2': 'rgb(255 255 255 / 0.72)', 'band-rule': 'rgb(255 255 255 / 0.18)', shadow: 'rgb(11 13 18 / 0.22)' };
+// The only other literal colours: the app's strong line for control edges, what sits on a Band (spec F1: white, white
+// at 72%, white at 18% and the white button's ink label), and the Widgets' drop shadow (not colour-checked).
+const CHROME = { 'line-strong': '#868c97', 'on-band': '#ffffff', 'on-band-2': 'rgb(255 255 255 / 0.72)', 'band-rule': 'rgb(255 255 255 / 0.18)',
+  'on-band-button-ink': '#0b0d12', shadow: 'rgb(11 13 18 / 0.22)' };
 // Every other colour name, and the spec token it points at (decision #17): you is blue, src is ink (the record), mint is
 // gain, coral is loss, sunflower is the record, violet is neutral, and success, warning and danger are gain, careful and
 // loss. Older names follow their newer names.
@@ -49,7 +50,7 @@ const POINTS = {
   bg: 'paper', field: 'raised', bubble: 'wash', hairline: 'rule', border: 'line', edge: 'line-strong',
   brand: 'accent', 'brand-main': 'accent-fill', 'brand-hover': 'accent-hover', 'brand-pressed': 'accent-pressed', 'brand-deep': 'accent-deep',
   'brand-ink': 'on-accent', 'brand-tint': 'accent-tint', 'brand-soft': 'accent-tint', 'brand-line': 'accent-line',
-  royal: 'blue', band: 'royal', 'on-band': 'on-blue', 'on-band-button-ink': 'ink', 'band-card': 'paper', 'key-number': 'accent',
+  royal: 'blue', band: 'royal', 'band-card': 'paper', 'key-number': 'accent',
 };
 
 // ---------- parsing ----------

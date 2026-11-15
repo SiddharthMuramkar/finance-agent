@@ -179,13 +179,14 @@
   /* Royal blue, the Band's colour: the spec's blue */
   --royal: var(--blue);
   /* A Band (spec F1, F5): a full-width royal-blue brand surface. On it: white text (8.8:1), secondary text in white at
-     72% (5.4:1), decorative rules in white at 18%, and a white button with an ink label (19.4:1). Paint a Band with the
-     .band class rather than these one by one. */
+     72% (5.4:1), decorative rules in white at 18%, and a white button with an ink label (19.4:1). What sits on a Band is
+     fixed chrome, written out (the contrast script holds each value). Paint a Band with the .band class rather than these
+     one by one. */
   --band: var(--royal);
-  --on-band: var(--on-blue);
+  --on-band: #ffffff;
   --on-band-2: rgb(255 255 255 / 0.72);
   --band-rule: rgb(255 255 255 / 0.18);
-  --on-band-button-ink: var(--ink);
+  --on-band-button-ink: #0b0d12;
   /* A card on a Band: white */
   --band-card: var(--paper);
   /* The key-number colour (spec F2, F5): eyebrows, step numbers and a Widget's one key number. It is the accent, blue;
