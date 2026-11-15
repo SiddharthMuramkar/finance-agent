@@ -103,5 +103,17 @@
     "fetchedOn": "2026-11-02",
     "publishedOn": "2026-10-26",
     "fetch": "python3 -I scripts/library/sources.py sec-anthropic-s1 <scratch> <scratch>/sec-anthropic-s1.documents.json (EDGAR submissions API confirms the accession and filing date; User-Agent declared)"
+  },
+  {
+    "id": "openstax-principles-finance-1e",
+    "title": "Principles of Finance (OpenStax, 1st edition)",
+    "kind": "timeless",
+    "licence": "CC BY 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "credit": "Julie Dahlquist and Rainford Knight, Principles of Finance (OpenStax, 2022), CC BY 4.0; text from the OpenStax GitHub repository at commit 3b7fc65c52, cut into passages",
+    "url": "https://github.com/openstax/osbooks-principles-finance/tree/3b7fc65c527ef51dbee24689691f19947fb72fb2",
+    "fetchedOn": "2026-11-15",
+    "publishedOn": "2025-12-04",
+    "fetch": "gh api repos/openstax/osbooks-principles-finance/tarball/3b7fc65c527e > <scratch>/osbooks-principles-finance-3b7fc65c527e.tar.gz && mkdir <scratch>/openstax-1e && tar -xzf <scratch>/osbooks-principles-finance-3b7fc65c527e.tar.gz -C <scratch>/openstax-1e && python3 -I scripts/library/openstax.py <scratch>/openstax-1e/openstax-osbooks-principles-finance-3b7fc65 principles-finance <scratch>/openstax-principles-finance-1e.documents.json https://github.com/openstax/osbooks-principles-finance/blob/3b7fc65c527ef51dbee24689691f19947fb72fb2 (the last commit before OpenStax changed the licence to CC BY-NC-SA, 2025-12-04; its LICENSE file and collection metadata say CC BY 4.0; each passage links to its module's CNXML file at that commit)"
   }
 ]
