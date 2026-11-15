@@ -5,6 +5,7 @@ import { ACCESS_COOKIE, learnerToken } from "@/auth/passcode";
 import { accessDenials, learners, OWNER_LEARNER_ID, user } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
+import nextConfig from "../next.config";
 
 let db: Db;
 vi.mock("@/db/client", () => ({ getDb: () => db }));
@@ -358,5 +359,17 @@ describe("Cookies at the gate (Google sign-in, C1b)", () => {
     expect(matcher.test("/api/authx")).toBe(true);
     expect(matcher.test("/api/turn")).toBe(true);
     expect(matcher.test("/study")).toBe(true);
+  });
+
+  it("keeps BotID's challenge paths out of the proxy, signed out (matcher, decision #10)", async () => {
+    // A signed-out visitor loads the challenge before signing in, so the proxy must never send it to the login.
+    const matcher = new RegExp(`^${config.matcher[0]}$`);
+    const rewrites = await nextConfig.rewrites!();
+    const sources = (Array.isArray(rewrites) ? rewrites : [...(rewrites.beforeFiles ?? []), ...(rewrites.afterFiles ?? [])])
+      .filter((r) => r.destination.startsWith("https://api.vercel.com/bot-protection/"))
+      .map((r) => r.source.replace("/:path*", "/a/b.js"));
+    expect(sources).toHaveLength(2);
+    for (const source of sources) expect(matcher.test(source), source).toBe(false);
+    expect(matcher.test("/149e9513-01fa-4fb0-aad4-566afd725d1bx")).toBe(true);
   });
 });

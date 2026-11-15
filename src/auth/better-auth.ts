@@ -2,11 +2,13 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth, type BetterAuthOptions, type User } from "better-auth";
 import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
-import { magicLink, testUtils } from "better-auth/plugins";
+import { captcha, magicLink, testUtils } from "better-auth/plugins";
+import { checkBotId } from "botid/server";
 import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
+import { BOT_CHECKED } from "./bot-protection";
 import { EMAIL_LINK_SECONDS, emailLinkOn, nameFromEmail, sendSignInLink } from "./email-link";
 
 // Sign-in through Better Auth: Google (ADR 0011) and email links (ADR 0014). Off unless Google or email
@@ -82,6 +84,10 @@ export function authOptions(db: Db, env: Env) {
     },
     // The test bed's helpers exist only under e2eEnabled (never production, never Vercel); src/auth/no-test-utils.test.ts pins this.
     plugins: [
+      // BotID Basic on the two sign-in POSTs (decision #10, bot-protection.ts), after the rate limit and before any email
+      // is sent or Google address returned: a bot gets 403 VERIFICATION_FAILED, and a check that throws (Vercel OIDC off) or takes 10 s
+      // answers 500, so it fails closed. Outside production BotID calls everyone human; `bypass` only says so without a warning.
+      captcha({ provider: "vercel-botid", endpoints: BOT_CHECKED, checkBotId: () => checkBotId({ developmentOptions: { bypass: "HUMAN" } }) }),
       ...(emailLinkOn(env) ? [magicLink({ expiresIn: EMAIL_LINK_SECONDS, storeToken: "hashed", sendMagicLink: sendSignInLink(db, env) })] : []),
       ...(e2eEnabled(env) ? [testUtils()] : []),
       nextCookies(), // stays last

@@ -102,5 +102,8 @@ export const config = {
   // path segments, so "/api/login-anything" is still checked.
   // The login page itself goes through the proxy, so a signed-in visit can skip the form.
   // `api/cron/library-refresh` (exactly) skips it too: Vercel Cron has no passcode cookie, and the route checks CRON_SECRET itself.
-  matcher: ["/((?!api/login(?:/|$)|api/auth(?:/|$)|api/cron/library-refresh$|_next/static|_next/image|favicon.ico|icon.svg).*)"],
+  // BotID's challenge segment (withBotId's rewrites in next.config.ts) skips it as a whole segment: the visitor is still signed out.
+  matcher: [
+    "/((?!api/login(?:/|$)|api/auth(?:/|$)|api/cron/library-refresh$|149e9513-01fa-4fb0-aad4-566afd725d1b/|_next/static|_next/image|favicon.ico|icon.svg).*)",
+  ],
 };
