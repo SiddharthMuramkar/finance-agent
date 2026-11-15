@@ -395,7 +395,7 @@ export const usageRows = pgTable(
     tools: jsonb("tools").notNull().$type<string[]>(),
     stopReason: text("stop_reason"),
     durationMs: integer("duration_ms").notNull(),
-    /** US dollars; null when the model has no row in the price table. */
+    /** US dollars; null when the model has no row in the price table, or the step was cut short with no usage report. */
     costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -494,6 +494,11 @@ export const turns = pgTable(
      * can send it again if it was never stored. A code-written note's fixed prefix records the turn's kind (`turnKind`).
      */
     input: text("input"),
+    /**
+     * How many runs the turn has had: 1, and one more for each resume (after a cut-off, or a Retry after a failure). The
+     * resume limit reads it (decision #13). 1 on a turn from before migration 0038.
+     */
+    runs: integer("runs").notNull().default(1),
     /** When the current run of the turn started; a resume starts a new run. */
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
