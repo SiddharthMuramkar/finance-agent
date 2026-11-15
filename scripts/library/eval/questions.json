@@ -714,6 +714,16 @@
       "q": "what happened to WeWork after its IPO filing",
       "asOf": "2019-08-14",
       "outcome": ["withdrew its IPO", "withdrew its share sale", "withdrew its offering", "pulled its IPO", "IPO was pulled", "IPO was withdrawn", "failed IPO", "WeWork's collapse", "collapse of WeWork", "filed for bankruptcy", "Neumann stepped down", "Neumann was ousted", "SoftBank rescue", "SoftBank bailout"]
+    },
+    {
+      "q": "Webvan distribution centres, warehouses and cash after its IPO",
+      "asOf": "1999-11-05",
+      "outcome": ["filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
+    },
+    {
+      "q": "Webvan cash burn and funding",
+      "asOf": "2001-04-02",
+      "outcome": ["filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
     }
   ]
 }
