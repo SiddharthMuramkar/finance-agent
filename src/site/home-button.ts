@@ -40,10 +40,3 @@ export async function loadHomeButton(learnerId?: number): Promise<HomeButton> {
     return { kind: "open" };
   }
 }
-
-/** The Continue button's sub-line: the Topic it opens, What comes next, or the Study Workspace. */
-export function continueLine(button: HomeButton, fallback: string): string {
-  if (button.kind === "resume" || button.kind === "start") return button.topic;
-  if (button.kind === "next") return button.label;
-  return fallback;
-}

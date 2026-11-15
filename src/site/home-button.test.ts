@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import { loadCourseMap, parseCourseMap, type Topic } from "@/course/map";
 import { navigate, type Progress, type TopicProgress } from "@/course/navigator";
 import { presentValueOnly } from "@/test/present-value-map";
-import { continueLine, homeButton } from "./home-button";
+import { continueLine } from "./continue-line";
+import { homeButton } from "./home-button";
 
 // The member's Continue button keeps the old Home's button rule (moved from _landing/landing.test.tsx).
 vi.mock("@/db/client", () => ({
