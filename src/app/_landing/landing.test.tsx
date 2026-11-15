@@ -340,12 +340,12 @@ describe("Home, signed out", () => {
     }
   });
 
-  // ADR 0014: anyone may join, with Google or an email link, and the owner lets each person in.
-  it("says how to join, Google or an email link, and that people are let in one at a time", () => {
+  // ADR 0017: anyone may join, with an email link only for now (Google comes later), and the owner lets each person in.
+  it("says how to join, with an email link, and that people are let in one at a time", () => {
     const closing = plain(section(html, 5));
-    expect(closing).toContain("Join with Google or an email link.");
+    expect(closing).toContain("Join with an email link.");
     expect(closing).toContain("we let people in one at a time");
-    expect(text).not.toMatch(/invite list|Google account/);
+    expect(text).not.toMatch(/invite list|Google/);
   });
 
   it("links Sign in in the header to the sign-in page, and offers no Sign out", () => {

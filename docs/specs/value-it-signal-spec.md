@@ -1494,7 +1494,7 @@ FAQ, in order:
 | 3 | Where do the facts come from? | From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage. |
 | 4 | Does the AI make up the charts? | No. The Tutor chooses which widget to open and at which numbers; tested code draws it. Made-up numbers are labelled Illustration. |
 | 5 | What does it cost? | Nothing during early access. No price has been decided yet. |
-| 6 | How do I get in? | Join early access with Google or an email link. We let people in by hand while the course grows, and email you when you’re in. |
+| 6 | How do I get in? | Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in. |
 | 7 | Can I start again? | Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted. |
 | 8 | Do you track me? | There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. |
 
@@ -1511,7 +1511,7 @@ About, sourcing flow: **Real event** (A past moment whose outcome is known, like
 
 Non-affiliation line: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
 
-Early access: **Join** (Sign up with Google or an email link. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
+Early access: **Join** (Sign up with an email link. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
 
 ---
 

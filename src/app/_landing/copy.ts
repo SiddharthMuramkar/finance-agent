@@ -16,15 +16,15 @@ export const copy = {
   // The header's and footer's links.
   nav: { howItWorks: "How it works", examples: "Examples", about: "About" },
   signIn: "Sign in",
-  // The signed-out main button, in the header, hero and closing band. Every one opens the sign-in page, which offers
-  // Google or an email link (ADR 0014).
+  // The signed-out main button, in the header, hero and closing band. Every one opens /join, Clerk's Waitlist. Clerk
+  // signs people in with an email link only for now; Google comes later (ADR 0017).
   cta: "Join early access",
   // Under the hero's button, signed out only: a signed-in Learner has already joined. On a screen narrower than 768 px it
   // adds `phoneNote` (E7), so a visitor on a phone knows before they join.
   ctaNote: "Free during early access.",
   phoneNote: "Studying needs a laptop or tablet today.",
   // Under the closing band's button, signed out only: the offer, from the old "Free during early access" section (E1).
-  closingNote: "Free during early access. Join with Google or an email link. While the course grows, we let people in one at a time.",
+  closingNote: "Free during early access. Join with an email link. While the course grows, we let people in one at a time.",
   // Shown instead of "Sign in" when the Learner is already signed in. Both open /study.
   studyWorkspace: "Study Workspace",
   openStudyWorkspace: "Open Study Workspace",

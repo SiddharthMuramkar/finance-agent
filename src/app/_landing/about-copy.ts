@@ -70,7 +70,7 @@ export const aboutCopy = {
       { q: "Where do the facts and figures come from?", a: "From real past Cases with known outcomes. The figures a Widget draws come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage." },
       { q: "Does the AI make up the charts?", a: "No. The Tutor chooses which Widget to open and at which numbers; code draws it from a tested design. Every number in a Widget comes from tested code or a checked dataset, and made-up numbers are labelled Illustration." },
       { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
-      { q: "Who can join?", a: "We are letting people in from an invite list while the course grows. Join early access with your Google account." },
+      { q: "Who can join?", a: "Join early access with an email link. We let people in by hand while the course grows, and email you when you're in." },
       { q: "Can I start again?", a: "Yes. You can start one Topic over, and its earlier attempt stays in your Notebook. Or start everything over in Settings: you get a fresh, empty start with the same sign-in, and your old record is archived, not deleted." },
       { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics. It records the page's address, where you came from, and your browser, device and country, and it sets no cookie." },
     ],
