@@ -429,6 +429,16 @@ export function useFirstCall({ onCall, onEvent }: Pick<SignalWidgetProps, "onCal
   );
 }
 
+/** A chart column's bar width (§5.8): 62% of its slot, from 3 to 14 px. */
+export const barWidth = (slot: number) => Math.min(14, Math.max(3, slot * 0.62));
+
+/** A bar path with its top corners rounded (3px at most) and square at the baseline (§5.8). */
+export function topRoundedBar(x: number, y: number, w: number, h: number, radius = 3): string {
+  if (h <= 0 || w <= 0) return "";
+  const r = Math.min(radius, w / 2, h);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+
 /** A value to `d` decimals with its percent sign: `5.00%`. */
 export const percent = (value: number, decimals = 2) => `${value.toFixed(decimals)}%`;
 
