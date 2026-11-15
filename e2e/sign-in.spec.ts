@@ -52,10 +52,11 @@ test("while Clerk is off, the sign-in page is the passcode door, with wrong pass
   // No Clerk card while Clerk is off: nothing loads or calls it.
   await expect(page.locator(".cl-rootBox")).toHaveCount(0);
 
+  // The form's own alert: Next.js keeps a route announcer (also role=alert) beside it after a navigation.
   await page.goto("/sign-in?wrong=1");
-  await expect(page.getByRole("alert")).toHaveText("That passcode didn't work. Check it and try again.");
+  await expect(page.locator("form").getByRole("alert")).toHaveText("That passcode didn't work. Check it and try again.");
   await page.goto("/sign-in?locked=1");
-  await expect(page.getByRole("alert")).toContainText("Too many wrong passcodes");
+  await expect(page.locator("form").getByRole("alert")).toContainText("Too many wrong passcodes");
 });
 
 // Spec 2026-11-12 G1 and F1: the sign-in page has the public header (Sign in marked as the page showing, no second
@@ -80,7 +81,7 @@ test("the passcode form signs the tools Learner in, and a wrong passcode comes b
   await page.locator('input[name="passcode"]').fill("not the passcode");
   await page.getByRole("button", { name: "Enter" }).click();
   await page.waitForURL((url) => url.pathname === "/sign-in" && url.searchParams.get("wrong") === "1");
-  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.locator("form").getByRole("alert")).toBeVisible();
 
   await page.locator('input[name="passcode"]').fill("e2e-passcode");
   await page.getByRole("button", { name: "Enter" }).click();
@@ -109,6 +110,8 @@ test("a signed-in person skips the sign-in page and lands where they were going"
 
 test("an account's Learner shows their email, and signs out with one click", async ({ page, context }, info) => {
   test.skip(onPhone(info.project.name), PHONE_SKIP);
+  // Four pages, the first of them (Settings, Home after the sign-out) compiled cold by the dev server on a first run.
+  test.slow();
   const asha = await becomePerson(page, { person: "asha" });
   expect(asha.email).toBe(PEOPLE.asha);
   const before = await context.cookies();

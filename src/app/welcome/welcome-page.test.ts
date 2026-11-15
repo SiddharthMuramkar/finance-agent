@@ -20,7 +20,8 @@ const as = vi.hoisted(() => ({ db: undefined as unknown as Db, learnerId: 0 }));
 vi.mock("@/db/client", () => ({ getDb: () => as.db }));
 vi.mock("@/auth/session", () => {
   const learner = async () => ({ id: as.learnerId, name: "test", archivedAt: null, showDeveloperDetails: false, createdAt: new Date() });
-  return { currentLearnerId: async () => as.learnerId, isSignedIn: async () => true, currentLearner: learner, signedInLearner: learner };
+  const currentSignIn = async () => ({ kind: "learner", learner: await learner(), via: "passcode" });
+  return { currentLearnerId: async () => as.learnerId, isSignedIn: async () => true, currentLearner: learner, signedInLearner: learner, currentSignIn };
 });
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 // Pages render outside a mounted app router here; the real redirect stays.

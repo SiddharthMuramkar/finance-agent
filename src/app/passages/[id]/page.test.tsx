@@ -10,6 +10,7 @@ vi.mock("@/auth/session", () => ({
   currentLearnerId: async () => 1,
   signedInLearner: async () => ({ id: 1, name: "owner" }),
   isSignedIn: async () => true,
+  currentSignIn: async () => ({ kind: "learner", learner: { id: 1, name: "owner" }, via: "passcode" }),
 }));
 vi.mock("@/library/library", () => ({
   loadPassageView: async () => ({ status: "hidden", asOf: "2008-09-15" }),
