@@ -15,7 +15,7 @@ One line per decision, in number order. Each record says what was decided and wh
 - [0011](0011-signal-widgets-are-fixed-components.md): Each Signal widget is one fixed React component with two doors
 - [0012](0012-only-the-call-starts-a-turn.md): Only the Learner's call in a widget starts a Tutor turn
 - [0013](0013-as-of-rule-hides-hindsight.md): Before the reveal, nothing after a Case's as-of date reaches the Learner
-- [0014](0014-owner-approves-every-learner.md): Superseded by 0017, and only partly built. Was: anyone asks in with Google or an email link, and the owner approves each person on /admin. Still holds: the owner approves each person, Google and email links, no passcode in production
+- [0014](0014-owner-approves-every-learner.md): Superseded by 0017, and only partly built. Was: anyone asks in with Google or an email link, and the owner approves each person on /admin. Still holds: the owner approves each person, no passcode in production
 - [0015](0015-one-light-theme-colour-language.md): One Light theme across the whole app, in the Signal colour language
 - [0016](0016-only-main-deploys.md): Only main deploys to production, behind checks, a snapshot and expand-then-contract migrations
 - [0017](0017-clerk-replaces-better-auth.md): Clerk replaces Better Auth: Waitlist sign-up, admin by Clerk role, passcodes only locally

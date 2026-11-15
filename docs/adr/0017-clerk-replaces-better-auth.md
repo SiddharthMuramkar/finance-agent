@@ -1,6 +1,6 @@
 # Clerk replaces Better Auth: Waitlist sign-up, admin by Clerk role, passcodes only locally
 
-Status: accepted, 2026-11-15. Ticket: [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) (Clerk replaces Better Auth + platform security). Supersedes ADR 0014, which came from [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15): Better Auth sign-in, approval on `/admin`, the access states worked out in the app, the "What brings you here?" reasons table, the Resend emails, and the `/pending` and `/login` pages. Three of its rules stay (see Consequences). Confirms and extends #15: passcodes are the local and test door only.
+Status: accepted, 2026-11-15. Ticket: [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) (Clerk replaces Better Auth + platform security). Supersedes ADR 0014, which came from [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15): Better Auth sign-in, approval on `/admin`, the access states worked out in the app, the "What brings you here?" reasons table, the Resend emails, and the `/pending` and `/login` pages. Two of its rules stay (see Consequences). Confirms and extends #15: passcodes are the local and test door only.
 
 ## Context
 
@@ -9,7 +9,7 @@ ADR 0014 built sign-in in the app with Better Auth: a Google OAuth client, email
 ## Decision
 
 - Clerk replaces Better Auth and the passcode door for real people. It is a direct clerk.com account on the Free plan for now.
-- Sign-in is Google and an email link, sent and hosted by Clerk.
+- Sign-in is an email link and Google, both hosted by Clerk. Production goes live with the email link only, and Google follows later (owner, 2026-11-15).
 - Sign-up uses Clerk's Waitlist mode: `/join` shows Clerk's Waitlist, a person waits, the owner approves them in Clerk, and Clerk sends the "You're in" email. Resend is not needed.
 - ADR 0014's `/pending` page is dropped, and `/login` goes: it redirects to `/sign-in`. Clerk's `/sign-in` and `/sign-up` pages and the Waitlist on `/join` take their place.
 - The access states are no longer worked out in the app: Clerk holds them. The "What brings you here?" choices are dropped for now.
@@ -24,10 +24,10 @@ ADR 0014 built sign-in in the app with Better Auth: a Google OAuth client, email
 - Less sign-in code to own and guard: Clerk hosts the sign-in, the emails and the waiting list.
 - Approval moves from `/admin` to the Clerk dashboard. `/admin` stays for the owner, with Spend and Tutor speed.
 - Everyone who signed in before the cut-over starts again from nothing, and their old history is gone. The snapshot is the only way back.
-- Production needs its own Google OAuth client for Clerk, Clerk DNS records on the domain and Clerk keys in Vercel.
+- Production needs Clerk DNS records on the domain and Clerk keys in Vercel. Google sign-in there also needs its own Google OAuth client for Clerk, so it comes after go-live. Until then, everyone signs in with an email link.
 - Sign-in depends on Clerk's service and its Free plan limits. Moving away later means a user migration.
 - The simulated Learner and the browser tests keep signing in with a passcode, against a local server only.
-- ADR 0014's other rules stay: the owner approves each person, Google and email links are both live, and production has no passcode.
+- Two of ADR 0014's rules stay: the owner approves each person, and production has no passcode. Its rule that Google and email links are both live before the first invite does not: the email link comes first, Google later.
 
 ## Alternatives considered
 
