@@ -287,7 +287,7 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
   expect(failing, "failing cells (each is a finding)").toEqual([]);
 });
 
-// Until #17 lands and ADR 0015 remaps the tokens (--mint to gain, --coral to loss): accent families live only inside Widgets. The chrome (header, chat, Topic bar, panel frame) paints none.
+// Until #32 lands and ADR 0015 remaps the tokens (--mint to gain, --coral to loss): accent families live only inside Widgets. The chrome (header, chat, Topic bar, panel frame) paints none.
 test("/study with a Widget paints no accent family outside Widget content", async ({}, info) => {
   const r = saved(info.project.name, info.project.outputDir).find((x) => x.cell === `${info.project.name}/study-concept-widget`);
   expect(r?.accents, `accent families painted outside Widget content (${r?.error ?? "measured"})`).not.toBeNull();

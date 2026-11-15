@@ -63,7 +63,7 @@ describe("the contrast guard", () => {
     expect(edge.output).toContain("--line-strong on --paper");
   });
 
-  // Until #17 lands, an old name (--bg, --brand ...) is declared once, in Light, as var(--new), so it follows its new name in
+  // Until #32 lands, an old name (--bg, --brand ...) is declared once, in Light, as var(--new), so it follows its new name in
   // both themes; one declared again in Dark would split the two names, so it fails by name.
   it("old names follow their new names from Light, and Dark may not declare them", () => {
     const real = run(REAL);

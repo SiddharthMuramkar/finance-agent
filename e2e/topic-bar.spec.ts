@@ -14,7 +14,7 @@ async function stripReady(strip: Locator) {
 }
 
 /**
- * #313, and spec 2026-11-12 F3 (a royal Band until #17 lands, when ADR 0015 replaces it): the compact Topic bar, now a Band across the Study
+ * #313, and spec 2026-11-12 F3 (a royal Band until #32 lands, when ADR 0015 replaces it): the compact Topic bar, now a Band across the Study
  * Workspace above both columns. On the Percent Topic (four Checks) the bar is one row from 44rem: the title over the goal
  * on the left, the current-step line ("Your turn — Step 3 of 15", with All steps) over the step bar on the right, then
  * Topic options. About 76 px tall at 1512, 1024 and 768 (measured: 76, 76, 76). The step

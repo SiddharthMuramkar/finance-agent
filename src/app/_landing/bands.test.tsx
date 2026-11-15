@@ -8,7 +8,7 @@ import { homeAnnuity } from "./home-widget-data";
 import { LandingView } from "./landing";
 import { loadShowcases } from "./showcase-widgets";
 
-// Spec 2026-11-12 F1, until #17 lands (ADR 0015 replaces the royal Band): a Band is a full-width royal surface, and two Bands never touch: between any two there is
+// Spec 2026-11-12 F1, until #32 lands (ADR 0015 replaces the royal Band): a Band is a full-width royal surface, and two Bands never touch: between any two there is
 // a reading area with something in it. Checked on the markup of every page that has more than one (Home and About, signed
 // in and out); the browser test in e2e/affordance.spec.ts checks the drawn boxes on every page of the preview matrix.
 

@@ -53,7 +53,7 @@ describe("primitives", () => {
     for (const html of [item, link]) expect(html).not.toMatch(/shadow|border|rounded/);
   });
 
-  // The app's chrome uses status tones (always with words), never a Widget accent family (ADR 0015).
+  // The app's chrome uses status tones, always with words (ADR 0015: colour is never the only signal), and, until #32 lands, never a Widget accent family.
   it("offer success, warning and danger tones", () => {
     const tones: TagTone[] = ["success", "warning", "danger"];
     for (const tone of tones) {

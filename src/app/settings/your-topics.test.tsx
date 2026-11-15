@@ -36,7 +36,7 @@ describe("Your Topics", () => {
   it("lists each Topic in the order given with its status Tag and a secondary Start over Button", () => {
     const html = renderToStaticMarkup(<YourTopicsSection topics={topics} />);
     expect(html.indexOf("Percent")).toBeLessThan(html.indexOf("Present value"));
-    // ADR 0015 (critic 7): a passed Topic is the success Tag, never the Widgets' mint.
+    // Critic 7: a passed Topic is the success Tag, with its word (ADR 0015: colour is never the only signal), never the Widgets' mint.
     expect(html).toMatch(/data-affordance="tag" data-tone="success"[^>]*>Passed</);
     expect(html).not.toContain('data-tone="mint"');
     expect(html).toMatch(/data-affordance="tag"[^>]*>In progress</);

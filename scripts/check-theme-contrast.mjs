@@ -1,6 +1,6 @@
 // scripts/check-theme-contrast.mjs
 // Zero-dependency guard for the two colour themes, Light and Dark. Run: node scripts/check-theme-contrast.mjs [path/to/tokens.css] [colour-only.json]
-// Exits 1 if any rule fails. Rules: the two themes' rules, until #17 lands and ADR 0015 leaves one Light theme; they amend
+// Exits 1 if any rule fails. Rules: the two themes' rules, until #32 lands and ADR 0015 leaves one Light theme; they amend
 // Appendix A.3 of docs/specs/2026-11-05-story-first-full-screen-google-sign-in.md, and the Band and key-number pairs of
 // the valuation-first spec (spec 2026-11-12, decisions F1 and F5, Appendix C).
 import { readFileSync } from 'node:fs';
@@ -18,12 +18,12 @@ const CHART_SERIES = ['ink-2', 'mint-ink', 'sun-ink', 'violet', 'coral-ink', 'li
 const CHART_SURFACES = ['paper', 'raised', 'wash', 'frame'];
 const COLOUR_ONLY = process.argv[3] ? JSON.parse(readFileSync(process.argv[3], 'utf8')) : CHART_SERIES.flatMap(f => CHART_SURFACES.map(b => [f, b]));
 
-// The semantic tokens, declared as a literal colour in both themes until #17 lands.
+// The semantic tokens, declared as a literal colour in both themes until #32 lands.
 const SEMANTIC = ['paper', 'wash', 'raised', 'frame', 'ink', 'ink-2', 'muted', 'faint', 'rule', 'line', 'line-strong',
   'accent', 'accent-fill', 'ring', 'accent-hover', 'accent-pressed', 'accent-deep', 'on-accent', 'accent-tint', 'accent-tint-2', 'accent-line',
   'fill', 'on-fill', 'fill-hover', 'fill-active', 'dim', 'on-dim',
   'success', 'success-tint', 'warning', 'warning-tint', 'danger', 'danger-tint', 'danger-hover', 'on-danger', 'data'];
-// The Widget accent families, frozen in both themes until #17 lands (ADR 0015 maps them to the Signal colours).
+// The Widget accent families, frozen in both themes until #32 lands (ADR 0015 maps them to the Signal colours).
 const FAMILY = ['mint', 'mint-ink', 'mint-tint', 'mint-tag', 'coral', 'coral-ink', 'coral-tint', 'coral-tag', 'coral-fill', 'coral-deep',
   'sun', 'sun-ink', 'sun-tint', 'sun-tag', 'violet', 'violet-ink', 'violet-tint', 'violet-tag',
   'you', 'you-line', 'you-tint', 'you-tag', 'you-tag-ink', 'src', 'src-line', 'src-tint', 'src-tag', 'src-tag-ink'];
@@ -46,7 +46,7 @@ const INVARIANT = { royal: '#1f3fae', 'on-band': '#ffffff', 'on-band-2': 'rgb(25
 // The one Band token that follows the Theme: a card on a Band is white in Light and the Theme's --frame in Dark (F1).
 const BAND_CARD = { light: '#ffffff', dark: 'var(--frame)' };
 
-// Light is frozen: a value changes only with LIGHT_FROZEN, until #17 brings the Signal values (ADR 0015). Dark freezes the Widget families, and its
+// Light is frozen: a value changes only with LIGHT_FROZEN, until #32 brings the Signal values (ADR 0015). Dark freezes the Widget families, and its
 // accent #6aa1ff since spec F5 (Appendix C's Dark rows are measured on it).
 const LIGHT_FROZEN = { paper: '#ffffff', wash: '#f6f7f9', raised: '#ffffff', frame: '#ffffff', ink: '#0b0d12', 'ink-2': '#30353f', muted: '#5f6571', faint: '#8b919b',
   rule: '#e2e5ea', line: '#c6cad2', 'line-strong': '#868c97',

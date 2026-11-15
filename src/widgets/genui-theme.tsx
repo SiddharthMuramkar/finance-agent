@@ -114,7 +114,7 @@ const FONTS = {
  * Mint stays the Learner's own series and sunflower history, as everywhere else. A series' mark is needed to read the
  * chart (WCAG 2.2 SC 1.4.11; a legend does not exempt it), so each must reach 3:1 against the chart's surface. Light's
  * mint, sunflower and coral fills do not (1.5 to 2.6:1), so the series take their -ink tokens; in Dark each -ink is its
- * fill. The contrast script checks every [series, surface] pair at 3:1 in both themes until #17 lands (issue #457).
+ * fill. The contrast script checks every [series, surface] pair at 3:1 in both themes until #32 lands (issue #457).
  */
 export const CHART_SERIES = ["ink-2", "mint-ink", "sun-ink", "violet", "coral-ink", "line-strong"] as const;
 /** The surfaces a kit chart sits on: the page, a wash band, a raised card, and the Widget frame. */

@@ -181,7 +181,7 @@ async function signedUpLearner(db: Db, email: string) {
  * Takes an email off the list. A Learner who already signed up keeps access: sign-in finds the Learner
  * linked to their account before it reads the invite. To take access away, Remove access on /admin
  * denies their account (ADR 0014), which holds whatever the invite list and the Sign-up switch say; it
- * replaces ADR 0014's order of removing the invite, closing sign-up and archiving the Learner.
+ * replaces the older order of removing the invite, closing sign-up and archiving the Learner.
  */
 export async function removeInvite(db: Db, email: string): Promise<boolean> {
   const gone = await db.delete(invites).where(eq(invites.email, inviteEmail(email))).returning();

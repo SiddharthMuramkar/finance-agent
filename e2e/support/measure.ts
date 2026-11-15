@@ -349,7 +349,7 @@ export function pressLook(page: Page): Promise<PressLook> {
 
 /**
  * Which Widget accent FAMILIES (mint, coral, sun, violet) the visible elements of the page paint; `within` counts only
- * inside a selector (Widgets: WIDGET_CONTENT) and `outside` only outside one (the chrome, which stays free of them until #17 lands). The page gives the raw material: every
+ * inside a selector (Widgets: WIDGET_CONTENT) and `outside` only outside one (the chrome, which stays free of them until #32 lands). The page gives the raw material: every
  * variant of each family that its stylesheets declare (--mint, --mint-ink, --mint-tint, --mint-tag, --coral-fill, ...),
  * resolved in the current theme from getComputedStyle(document.documentElement), and each element's background,
  * gradients, borders, SVG fill and stroke, and the colour of its own text. src/dev/accent-families.ts composites each

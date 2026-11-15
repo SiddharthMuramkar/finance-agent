@@ -14,7 +14,7 @@ const OfferUndo = createContext<(offer: UndoOffer) => void>(() => {});
 /** Called by a part of the Notebook right after it removed something, so the Learner can take it back. */
 export const useOfferUndo = () => useContext(OfferUndo);
 
-/** The toast after a removal in the Notebook: what went, and Undo. A floating layer (ADR 0018's .popover: raised, 12px corners, the pop shadow), fixed at the bottom of the screen; never printed. */
+/** The toast after a removal in the Notebook: what went, and Undo. A floating layer (ADR 0018: only a floating layer has a shadow), in the .popover look: raised, 12px corners, the pop shadow, fixed at the bottom of the screen; never printed. */
 export function UndoToast({ message, failed = false, onUndo }: { message: string; failed?: boolean; onUndo: () => void }) {
   return (
     <div

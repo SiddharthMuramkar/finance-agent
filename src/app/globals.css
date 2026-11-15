@@ -39,7 +39,7 @@
 /* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens: semantic tokens, one literal colour per theme until #17 lands (ADR 0015 then points each at its Signal meaning); old names declared once in Light as
+/* Design tokens: semantic tokens, one literal colour per theme until #32 lands (ADR 0015 then points each at its Signal meaning); old names declared once in Light as
    var(--new), never in Dark; Widget accent families unchanged. Components use them as `bg-[var(--wash)]`; Dark is these
    values switching under `.dark`, so components need no dark: colour variants (a dark: display swap, such as the theme
    toggle's sun and moon, is fine). */

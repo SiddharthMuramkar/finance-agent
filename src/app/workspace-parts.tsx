@@ -87,7 +87,7 @@ export function OptionRow({ name, checked, onChange, children }: { name: string;
 }
 
 /**
- * The Topic bar (spec 2026-11-12 F3; a royal Band until #17 lands, when ADR 0015 replaces it): a Band across the whole Study Workspace, under the header and above both
+ * The Topic bar (spec 2026-11-12 F3; a royal Band until #32 lands, when ADR 0015 replaces it): a Band across the whole Study Workspace, under the header and above both
  * the conversation and the Widget panel, for the whole Topic. On the left its title and its goal, which wraps (two lines
  * at the widths the Study Workspace runs at) and is never cut short (G2); on the right the step bar from the Course
  * Navigator's step sequence (StepStrip) with All steps, then Topic options. Where the bar is narrower than 44rem (a container

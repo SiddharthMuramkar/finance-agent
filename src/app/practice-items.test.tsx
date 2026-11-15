@@ -163,7 +163,7 @@ describe("a Quick try's result", () => {
   it("shows its line: Right., a Known mistake's fix, or Not quite.", () => {
     const right = draw(QUICK_TRY_RESULT, { key: "k", verdict: "right", line: "Right." });
     expect(right).toContain(">Right.<");
-    // A tick in the success colour beside the words, never mint and never colour alone (ADR 0015).
+    // A tick in the success colour beside the words, never colour alone (ADR 0015), and never mint.
     expect(right).toMatch(/<svg[^>]*data-result="right"[^>]*text-\[var\(--success\)\]/);
     expect(right).not.toMatch(/--you|--mint/);
     expect(draw(QUICK_TRY_RESULT, { key: "k", verdict: "wrong", line: "Not quite." })).toMatch(/<svg[^>]*data-result="wrong"[^>]*text-\[var\(--danger\)\]/);

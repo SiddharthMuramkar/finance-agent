@@ -443,7 +443,7 @@ function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], setting
       return { label: "Revenue in year 10", text: `${moneyText(revenue, block)} of a ${moneyText(size, block)} market` };
     }
     case "margin_marks":
-      // The marks on lever 2 are ticks; this readout names them, so their words sit beside the Widget once (ADR 0015).
+      // The marks on lever 2 are ticks; this readout names them, so their words sit beside the Widget once (ADR 0015: colour is never the only signal).
       return { label: "Rivals' margins", text: mode.marks.map((m) => `${m.label} ${percentReading2(m.percent)}`).join(", ") };
     case "roic": {
       const earns = returnOnNewCapital(settings.margin, settings.salesToCapital, block.taxPercent);

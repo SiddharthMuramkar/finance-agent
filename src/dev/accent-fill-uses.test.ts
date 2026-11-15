@@ -75,7 +75,7 @@ const INVENTORY: Record<string, Use> = {
   },
 };
 
-// Spec 2026-11-12 F1 and F5, until #17 lands (ADR 0015 replaces the royal Band): "the test that lists where an accent fill may appear gains the Bands". A Band is a
+// Spec 2026-11-12 F1 and F5, until #32 lands (ADR 0015 replaces the royal Band): "the test that lists where an accent fill may appear gains the Bands". A Band is a
 // full-width royal surface (--band, which is --royal, the same in both themes) with white text on it, and F1 names the only
 // places one may stand. This inventory holds every place src/ paints one: "band" (a Band surface, with the F1 place it is),
 // or "mapping" (globals.css: the Band tokens, their Tailwind names and the .band and .home-band rules that paint a Band

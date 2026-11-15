@@ -8,7 +8,7 @@ import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 /**
  * A3b: every button looks like a button, every link like a link, every tag like a tag (spec 2026-11-05, ticket A3b,
  * Appendix C.3, as ADR 0018 amends it: flat controls, signified by a face, an edge or a strong ghost label; nothing in the
- * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982, in Light and in Dark (Dark until #17 lands).
+ * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982, in Light and in Dark (Dark until #32 lands).
  */
 
 const PROJECTS = ["mbp14", "mbp14-dark"];
