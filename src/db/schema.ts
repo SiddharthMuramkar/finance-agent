@@ -502,6 +502,11 @@ export const turns = pgTable(
      * can send it again if it was never stored. A code-written note's fixed prefix records the turn's kind (`turnKind`).
      */
     input: text("input"),
+    /**
+     * How many runs the turn has had: 1, and one more for each resume (after a cut-off, or a Retry after a failure). The
+     * resume limit reads it (decision #13). 1 on a turn from before migration 0038.
+     */
+    runs: integer("runs").notNull().default(1),
     /** When the current run of the turn started; a resume starts a new run. */
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),

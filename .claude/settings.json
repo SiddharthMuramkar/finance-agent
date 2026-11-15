@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Bash(npm run vercel-build *)",
+      "Bash(node *scripts/migrate-on-build.mjs*)",
+      "Bash(npm run db:migrate *)",
+      "Bash(*drizzle-kit migrate*)",
+      "Bash(*drizzle-kit/bin.cjs migrate*)",
+      "Bash(*drizzle-kit push*)",
+      "Bash(*drizzle-kit/bin.cjs push*)",
+      "Bash(*vercel *--prod*)",
+      "Bash(*vercel *--target*production*)",
+      "Bash(*vercel promote*)",
+      "Bash(*vercel rollback*)"
+    ]
+  }
+}

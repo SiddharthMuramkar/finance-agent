@@ -32,7 +32,8 @@ function shownOf(value: unknown): Shown | undefined {
  * Runs one Tutor turn (a message, Next, a widget report, Finish this reply, the opener the page starts for a Session
  * with no messages, or the quiz follow-up it starts after a missed quiz), or resumes the last one, and streams its events as
  * newline-delimited JSON. A send while another turn runs gets a 409, and so does a send from a tab
- * whose Topic is no longer the Learner's current one (`stale`). A Stop is answered at once, never with a 409:
+ * whose Topic is no longer the Learner's current one (`stale`). A turn past a Spend cap (quota.ts) gets a 429 with the
+ * "limit reached" words. A Stop is answered at once, never with a 409:
  * `{ stopping: true }` when the Learner's running turn was asked to stop, `{ stopping: false }` when none was running.
  * A turn BotID calls a bot gets a 403 `{ error: "bot" }` and never starts.
  */
@@ -81,6 +82,8 @@ export async function POST(request: Request) {
   if (first && !first.done && first.value.type === "busy") return Response.json({ error: first.value.message }, { status: 409 });
   if (first && !first.done && first.value.type === "stale") return Response.json({ error: first.value.message, stale: true }, { status: 409 });
   if (first && !first.done && first.value.type === "not_allowed") return Response.json({ error: first.value.message }, { status: 409 });
+  // A Spend cap: a 429, never a 409, which a resume would wait out as a turn running elsewhere.
+  if (first && !first.done && first.value.type === "over_limit") return Response.json({ error: first.value.message, limit: true }, { status: 429 });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

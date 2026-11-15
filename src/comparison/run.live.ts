@@ -90,7 +90,7 @@ async function ask(q: TeachingQuestion, model: string) {
   let failed = "";
   let resumes = 0;
   for (const turn of q.turns) {
-    const t = await takeWholeTurn((input) => runTutorTurn({ db, client: modelClient, map, learnerId }, input), turn);
+    const t = await takeWholeTurn((input) => runTutorTurn({ db, client: modelClient, map, learnerId, noLimits: true }, input), turn);
     replies.push(t.text.trim());
     for (const k of Object.keys(total) as (keyof typeof total)[]) total[k] += t.usage[k];
     resumes += t.resumes;

@@ -4,6 +4,7 @@ import { signupOpen } from "@/auth/invites";
 import { signedInOwner } from "@/auth/owner";
 import { getDb } from "@/db/client";
 import { tutorSpeed } from "@/tutor/speed";
+import { capValues } from "@/tutor/quota";
 import { spendByPerson } from "@/tutor/spend";
 import { accountFor } from "../account";
 import { readTheme } from "../theme-cookie";
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * /admin (ADR 0014): the owner approves, denies and invites, sees what each person's Tutor costs (Spend) and how fast it
- * answers (Tutor speed, spec 2026-11-12 A9). Only the owner's own Google or email-link session sees it
+ * answers (Tutor speed, spec 2026-11-12 A9), and sets the Spend caps (decision #13). Only the owner's own Google or email-link session sees it
  * (signedInOwner: never the passcode); everyone else gets the not-found page, as for an address that isn't there. The
  * check runs before anything streams, so the 404 is a real one: that is why this page has no loading.tsx, whose
  * skeleton would send a 200 first. The changes themselves are form posts to /api/admin/*, which check the owner again.
@@ -25,7 +26,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   if (!owner) notFound();
   const db = getDb();
   const now = new Date();
-  const [waiting, people, invited, denied, open, spend, speed, theme, account, { done }] = await Promise.all([
+  const [waiting, people, invited, denied, open, spend, speed, caps, theme, account, { done }] = await Promise.all([
     waitingRequests(db),
     peopleWithAccess(db),
     pendingInvites(db),
@@ -33,6 +34,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     signupOpen(db),
     spendByPerson(db, now),
     tutorSpeed(db, now),
+    capValues(db),
     readTheme(),
     accountFor(db, owner.learner),
     searchParams,
@@ -40,7 +42,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   return (
     <SignedInFrame>
       <ReadingPage theme={theme} account={account}>
-        <AdminView waiting={waiting} people={people} invited={invited} denied={denied} signupOpen={open} spend={spend} speed={speed} done={adminDone(done)} />
+        <AdminView waiting={waiting} people={people} invited={invited} denied={denied} signupOpen={open} spend={spend} speed={speed} caps={caps} done={adminDone(done)} />
       </ReadingPage>
     </SignedInFrame>
   );
