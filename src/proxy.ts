@@ -23,7 +23,18 @@ const DEV_PAGE = /^\/dev(?:\/|$)/;
 const SIGN_OUT = "/api/logout";
 
 const under = (path: string, root: string) => path === root || path.startsWith(`${root}/`);
-const isPublicPage = (path: string) => PUBLIC_PAGES.has(path) || AUTH_ROOTS.some((root) => under(path, root));
+const isAuthPage = (path: string) => AUTH_ROOTS.some((root) => under(path, root));
+const isPublicPage = (path: string) => PUBLIC_PAGES.has(path) || isAuthPage(path);
+
+/**
+ * A signed-out Server Action call that must get through: a POST to the sign-in or sign-up pages while Clerk runs.
+ * @clerk/nextjs's ClerkProvider calls its own Server Action (`invalidateCacheAction`, which only expires a throwaway
+ * cookie) inside clerk-js `setActive`, before the new session's cookie is written; refused, `setActive` would wait for
+ * it forever and a sign-in would never finish. The app defines no Server Actions of its own (proxy.test.ts checks), so
+ * only Clerk's can run here.
+ */
+const isClerkSignInAction = (request: NextRequest) =>
+  request.method === "POST" && request.headers.has("next-action") && isAuthPage(request.nextUrl.pathname) && clerkOn(process.env);
 
 /** Next.js's own query parameters (such as `_rsc`), never part of a page the Learner meant to open. */
 const isInternalParam = (key: string) => key === "_rsc" || key.startsWith("__next");
@@ -55,11 +66,13 @@ async function testBedPersonAtGate(request: NextRequest): Promise<boolean> {
 /**
  * Every page and API route needs a sign-in: a verified Clerk session (`account`, checked by clerkMiddleware before this
  * runs), or a verified passcode cookie while the door is open. Signed out, only a GET or HEAD of a public page (Home,
- * /about and /join, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, and a
- * POST to the sign-out route, get through; a write to a public page or any Server Action call answers 401; an API
- * route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`. Signed in, a GET or
- * HEAD of exactly /sign-in skips the form and goes to the safe `next` or /study: every sign-in here is fully verified
- * and every account has a Learner (learnerForClerkUser), so /sign-in and /study can never send anyone back and forth.
+ * /about and /join, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, a
+ * POST to the sign-out route, and while Clerk runs a Server Action call on /sign-in and /sign-up (Clerk's own, which
+ * finishes a sign-in: isClerkSignInAction), get through; any other write to a public page or Server Action call
+ * answers 401; an API route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`.
+ * Signed in, a GET or HEAD of exactly /sign-in skips the form and goes to the safe `next` or /study: every sign-in here
+ * is fully verified and every account has a Learner (learnerForClerkUser), so /sign-in and /study can never send anyone
+ * back and forth.
  */
 async function gate(request: NextRequest, account: boolean): Promise<Response> {
   const { pathname } = request.nextUrl;
@@ -74,7 +87,8 @@ async function gate(request: NextRequest, account: boolean): Promise<Response> {
     return NextResponse.next();
   }
 
-  // A Server Action call or any write to a public page would run server code: refuse it outright.
+  if (isClerkSignInAction(request)) return NextResponse.next();
+  // Any other Server Action call, or any write to a public page, would run server code: refuse it outright.
   if (request.headers.has("next-action") || (isPublicPage(pathname) && !read)) {
     return NextResponse.json({ error: "Sign-in required" }, { status: 401 });
   }

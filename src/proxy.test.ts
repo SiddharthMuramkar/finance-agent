@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
@@ -71,12 +73,12 @@ describe("The signed-out gate", () => {
     }
   });
 
-  it("refuses a write to a public page and any Server Action call", async () => {
+  it("refuses a write to a public page and any Server Action call while Clerk is off", async () => {
     for (const path of ["/", "/about", "/join", "/sign-in", "/sign-up/x"]) {
       expect((await proxy(request(path, { method: "POST" }))).status, path).toBe(401);
-      expect((await proxy(request(path, { headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
+      expect((await proxy(request(path, { method: "POST", headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
     }
-    expect((await proxy(request("/course", { headers: { "Next-Action": "abc" } }))).status).toBe(401);
+    expect((await proxy(request("/course", { method: "POST", headers: { "Next-Action": "abc" } }))).status).toBe(401);
   });
 
   it("serves any .png or .webp file under /landing-assets/ signed out, the link-preview image among them", async () => {
@@ -242,6 +244,23 @@ describe("With Clerk on (issue #33)", () => {
     for (const path of ["/", "/about", "/join", "/sign-in", "/sign-up"]) expect(allowed(await proxy(request(path))), path).toBe(true);
   });
 
+  it("signed out, lets a Server Action call reach the sign-in and sign-up pages, where Clerk's setActive makes one", async () => {
+    // @clerk/nextjs's ClerkProvider calls its own Server Action (invalidateCacheAction) before clerk-js writes the new
+    // session cookie, so the call comes signed out; refused, setActive would wait for it forever (review of PR B).
+    const action = { method: "POST", headers: { "Next-Action": "abc" } };
+    for (const path of ["/sign-in", "/sign-in/factor-one", "/sign-in/verify", "/sign-in/sso-callback", "/sign-up", "/sign-up/verify-email-address"]) {
+      expect(allowed(await proxy(request(path, action))), path).toBe(true);
+    }
+    // Only a Server Action call, only by POST, and only there.
+    for (const path of ["/sign-in", "/sign-up/x"]) {
+      expect((await proxy(request(path, { method: "POST" }))).status, path).toBe(401);
+      expect((await proxy(request(path, { method: "PUT", headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
+    }
+    for (const path of ["/", "/about", "/join", "/sign-inx", "/sign-upx", "/course", "/api/turn", "/api/logout"]) {
+      expect((await proxy(request(path, action))).status, path).toBe(401);
+    }
+  });
+
   it("still lets the passcode door's cookie through on a developer's machine, and never on Vercel", async () => {
     const cookie = await ownersCookie();
     expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
@@ -300,5 +319,27 @@ describe("The matcher", () => {
     expect(sources).toHaveLength(2);
     for (const source of sources) expect(matcher.test(source), source).toBe(false);
     expect(matcher.test("/149e9513-01fa-4fb0-aad4-566afd725d1bx")).toBe(true);
+  });
+});
+
+describe("Server Actions", () => {
+  /** Every .ts and .tsx file under src, tests left out. */
+  function* sources(dir: string): Generator<string> {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) yield* sources(path);
+      else if (/\.(ts|tsx)$/.test(name) && !/\.test\.(ts|tsx)$/.test(name)) yield path;
+    }
+  }
+  const USE_SERVER = /^\s*["']use server["'];?\s*$/m;
+
+  it("the app defines none of its own, so the signed-out call the gate lets through on /sign-in can only be Clerk's", () => {
+    // A Server Action of ours would be callable signed out from /sign-in (isClerkSignInAction): adding one means
+    // narrowing that rule first.
+    expect(USE_SERVER.test('"use server";\nexport async function act() {}')).toBe(true);
+    expect(USE_SERVER.test('async function act() {\n  "use server";\n}')).toBe(true);
+    const files = [...sources(join(import.meta.dirname))];
+    expect(files.length).toBeGreaterThan(100);
+    expect(files.filter((path) => USE_SERVER.test(readFileSync(path, "utf8")))).toEqual([]);
   });
 });
