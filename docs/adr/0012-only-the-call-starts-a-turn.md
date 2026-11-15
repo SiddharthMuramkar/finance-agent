@@ -1,6 +1,6 @@
 # Only the Learner's call in a widget starts a Tutor turn
 
-Status: accepted, 2026-11-14. Ticket: #16 (Tutor-widget event contract: option B, with V1 and S1). Builds on ADR 0011 (events leave the component as typed callbacks).
+Status: accepted, 2026-11-14. Ticket: [#16](https://github.com/SiddharthMuramkar/finance-agent/issues/16) (Tutor-widget event contract: option B, with V1 and S1). Builds on ADR 0011 (events leave the component as typed callbacks).
 
 ## Context
 

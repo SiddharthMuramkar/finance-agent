@@ -1,6 +1,6 @@
 # Before the reveal, nothing after a Case's as-of date reaches the Learner
 
-Status: accepted, 2026-11-15. Tickets: #24 (What does Library search score today?) and #25 (How strict should the as-of rule be for timeless sources?, option A now, option B after the beta).
+Status: accepted, 2026-11-15. Tickets: [#24](https://github.com/SiddharthMuramkar/finance-agent/issues/24) (What does Library search score today?) and [#25](https://github.com/SiddharthMuramkar/finance-agent/issues/25) (How strict should the as-of rule be for timeless sources?, option A now, option B after the beta).
 
 ## Context
 

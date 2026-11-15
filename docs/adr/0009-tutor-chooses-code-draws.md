@@ -1,6 +1,6 @@
 # The Tutor chooses a Widget recipe; tested code draws it, and every number has a known origin
 
-Status: accepted, 2026-11-14. Ticket: #4 (Restore design docs from the archive?), which asked for fresh ADRs for the rules the code follows today. Written new from the archived ADRs 0003, 0005 and 0007. Narrowed by ADR 0011 for the five Signal widgets. The as-of rule for Case Data is ADR 0013.
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?), which asked for fresh ADRs for the rules the code follows today. Written new from the archived ADRs 0003, 0005 and 0007. Narrowed by ADR 0011 for the five Signal widgets. The as-of rule for Case Data is ADR 0013.
 
 ## Context
 

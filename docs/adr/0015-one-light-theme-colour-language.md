@@ -1,6 +1,6 @@
 # One Light theme across the whole app, in the Signal colour language
 
-Status: accepted, 2026-11-14. Ticket: #17 (Colour language and theme scope, option C: whole app, one Light theme). Supersedes the archived "two modes" ADR (old 0013, "Flat controls, one accent, two modes"), and with it old 0012 ("Two themes, Light and Dark"). Also replaces the accent families of old 0014 ("Flat, icon-only Widgets") and the royal-blue Band of old 0022. The archived ADRs are not in this repo.
+Status: accepted, 2026-11-14. Ticket: [#17](https://github.com/SiddharthMuramkar/finance-agent/issues/17) (Colour language and theme scope, option C: whole app, one Light theme). Supersedes the archived "two modes" ADR (old 0013, "Flat controls, one accent, two modes"), and with it old 0012 ("Two themes, Light and Dark"). Also replaces the accent families of old 0014 ("Flat, icon-only Widgets") and the royal-blue Band of old 0022. The archived ADRs are not in this repo.
 
 ## Context
 

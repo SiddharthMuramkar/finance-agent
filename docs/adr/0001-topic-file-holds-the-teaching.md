@@ -1,6 +1,6 @@
 # The Topic file holds the teaching; code holds the sequence and marks every answer
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (resolution: start fresh, one new ADR for each decision the code still follows). Rewritten from archive ADRs 0006 and 0001.
+Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (resolution: start fresh, one new ADR for each decision the code still follows). Rewritten from archived ADRs 0006 and 0001.
 
 ## Context
 
@@ -15,13 +15,6 @@ When the Tutor invented each lesson turn by turn, it re-explained every miss in 
 - Code picks the Reply kind (feedback, rule, worked example, Quick try, re-teach, hint, own question, offer to park) and the next method on a fixed ladder after two misses in a row.
 - The Tutor only words the reply. It never writes its own version of a card and never marks a question it asked itself.
 
-## Considered Options
-
-- **The Tutor teaches freely from concept text:** nothing to write ahead, but nothing marks practice or remembers which Skill was missed, which is what produced the Percent Session.
-- **A lesson table in the database:** editable without a deploy, but the course check runs in CI with no database, and a Topic would live in two places.
-- **Discovery led by the Tutor inside the concept step:** fewer turns, but nothing stops the Tutor from stating the Insight first.
-- **A structured reply where the Tutor returns its chosen move and marks the answer:** code could read the choice, but marking and sequencing would still rest on the model.
-
 ## Consequences
 
 - A teaching gap is a content bug the course check catches (a Check that tests a Skill no earlier card teaches fails), not a prompt to tune.
@@ -29,3 +22,10 @@ When the Tutor invented each lesson turn by turn, it re-explained every miss in 
 - Progress rows store each Teaching Step, so dropping or adding a step needs a data migration.
 - New stored state: one Skill-state row per Learner, Topic and Skill, and a log of every practice answer.
 - A Topic takes one or two more turns because of the explore step.
+
+## Alternatives considered
+
+- **The Tutor teaches freely from concept text:** nothing to write ahead, but nothing marks practice or remembers which Skill was missed, which is what produced the Percent Session.
+- **A lesson table in the database:** editable without a deploy, but the course check runs in CI with no database, and a Topic would live in two places.
+- **Discovery led by the Tutor inside the concept step:** fewer turns, but nothing stops the Tutor from stating the Insight first.
+- **A structured reply where the Tutor returns its chosen move and marks the answer:** code could read the choice, but marking and sequencing would still rest on the model.

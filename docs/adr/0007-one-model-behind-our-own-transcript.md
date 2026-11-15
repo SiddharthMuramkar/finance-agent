@@ -1,6 +1,6 @@
 # The Tutor runs on one OpenAI model behind the app's own transcript format
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archive ADRs 0015 and 0016.
+Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archived ADRs 0015 and 0016.
 
 ## Context
 
@@ -15,14 +15,6 @@ The Tutor and the paid test harnesses moved from Anthropic's models to OpenAI's.
 - **A Learner never reads provider text.** A failure shows a fixed line and a short reference. Provider messages show only under developer details.
 - **Changing `TUTOR_MODEL` retires every live Session.** On the Learner's next turn, a Session frozen on another model becomes an Older session and a fresh one opens at the same step, progress kept.
 
-## Considered Options
-
-- **Keep the old provider and add OpenAI behind a setting:** two providers to price, test and keep in step, against the owner's choice.
-- **Store the transcript as OpenAI items:** every old conversation, the screen and most scripted tests would change, and the database would hold a vendor's shapes.
-- **Let OpenAI keep the conversation (`previous_response_id`):** less to send, but we could not edit the history the reply checks edit, and tests could not replay it.
-- **Never send raw output back:** no refusals, but the model would lose its reasoning between tool calls in one turn and pay to reason again.
-- **Heal by starting the Topic over:** it works, but the Learner loses the conversation.
-
 ## Consequences
 
 - One key, `OPENAI_API_KEY`, in `.env` and in Vercel.
@@ -30,3 +22,11 @@ The Tutor and the paid test harnesses moved from Anthropic's models to OpenAI's.
 - A heal costs one more request, and the history before the marker is sent without raw output from then on.
 - Compaction is opaque: we cannot read or correct its summary.
 - A model change costs every Learner a fresh conversation, so it is a deliberate step, not a tweak.
+
+## Alternatives considered
+
+- **Keep the old provider and add OpenAI behind a setting:** two providers to price, test and keep in step, against the owner's choice.
+- **Store the transcript as OpenAI items:** every old conversation, the screen and most scripted tests would change, and the database would hold a vendor's shapes.
+- **Let OpenAI keep the conversation (`previous_response_id`):** less to send, but we could not edit the history the reply checks edit, and tests could not replay it.
+- **Never send raw output back:** no refusals, but the model would lose its reasoning between tool calls in one turn and pay to reason again.
+- **Heal by starting the Topic over:** it works, but the Learner loses the conversation.

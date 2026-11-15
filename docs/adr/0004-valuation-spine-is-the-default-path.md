@@ -1,6 +1,6 @@
 # A valuation Spine of fifteen Topics is the default path; the other Topics are Electives met through Primers
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archive ADR 0020.
+Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archived ADR 0020.
 
 ## Context
 
@@ -14,16 +14,16 @@ The Course Map held 95 Topics in textbook order. A new Learner started on percen
 - **Skip ahead.** "I know this: quiz me" opens one mixed quiz with one question per Skill. Missing no more than one passes the whole Topic and schedules its questions as Reviews. One attempt per Topic per day.
 - The course check enforces each Spine Topic's shape: one Case with an as-of date, one Workbench Widget, one Insight, judgement Checks (ADR 0002), at most two Primers, and 15 minutes or less.
 
-## Considered Options
-
-- **Reorder the 95 Topics so discounted cash flow comes sooner:** one list stays, but the Topic still rests on 24 prerequisites and one paragraph.
-- **Convert all 95 Topics first:** a large writing cost, most of it on Topics valuation never uses.
-- **Delete or hide the Foundation Topics:** a shorter map, but Learners would lose passes, and a Learner who wants bonds or currencies would have nowhere to go.
-- **Lock Topics behind their prerequisites:** a firm order, but it fences in the Learner who already knows a Topic. Skip ahead serves that Learner instead.
-
 ## Consequences
 
 - Fifteen Spine Topics to write and pass through the course check and the critics before each ships. Until a Spine Topic exists, the default path skips it.
 - Nothing a Learner has is lost: every pass, Session, Topic Note and Review stays.
 - Passing an Elective does not pass the Spine Topic built from it, but skip ahead is offered.
 - Skip ahead is a second way to pass a Topic. Its questions return as Reviews, so a lucky pass still comes back before it is forgotten.
+
+## Alternatives considered
+
+- **Reorder the 95 Topics so discounted cash flow comes sooner:** one list stays, but the Topic still rests on 24 prerequisites and one paragraph.
+- **Convert all 95 Topics first:** a large writing cost, most of it on Topics valuation never uses.
+- **Delete or hide the Foundation Topics:** a shorter map, but Learners would lose passes, and a Learner who wants bonds or currencies would have nowhere to go.
+- **Lock Topics behind their prerequisites:** a firm order, but it fences in the Learner who already knows a Topic. Skip ahead serves that Learner instead.

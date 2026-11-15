@@ -1,6 +1,6 @@
 # Only main deploys to production, behind checks, a snapshot and expand-then-contract migrations
 
-Status: accepted, 2026-11-14. Tickets: #9 (Vercel Hobby or Pro for the beta?, Pro now) and #11 (Gate production deploys, migrations and previews).
+Status: accepted, 2026-11-14. Tickets: [#9](https://github.com/SiddharthMuramkar/finance-agent/issues/9) (Vercel Hobby or Pro for the beta?, Pro now) and [#11](https://github.com/SiddharthMuramkar/finance-agent/issues/11) (Gate production deploys, migrations and previews).
 
 ## Context
 

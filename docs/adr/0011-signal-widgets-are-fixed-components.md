@@ -1,6 +1,6 @@
 # Each Signal widget is one fixed React component with two doors
 
-Status: accepted, 2026-11-14. Ticket: #5 (Widget engine for the 5 Signal widgets, option A: shared core, two doors). Narrows ADR 0009 for the five Signal widgets: they are fixed components, not compiled OpenUI Lang programs.
+Status: accepted, 2026-11-14. Ticket: [#5](https://github.com/SiddharthMuramkar/finance-agent/issues/5) (Widget engine for the 5 Signal widgets, option A: shared core, two doors). Narrows ADR 0009 for the five Signal widgets: they are fixed components, not compiled OpenUI Lang programs.
 
 ## Context
 
