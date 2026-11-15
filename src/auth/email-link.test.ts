@@ -25,6 +25,11 @@ describe("emailLinkOn", () => {
     expect(emailLinkOn({})).toBe(false);
   });
 
+  it("is off while BETTER_AUTH_URL is not a bare https address, so no link points at a broken host", () => {
+    for (const address of ["app.example", "https://app.example/login", "http://app.example"]) expect(emailLinkOn({ ...BASE, BETTER_AUTH_URL: address }), address).toBe(false);
+    expect(emailLinkOn({ ...BASE, BETTER_AUTH_URL: "https://app.example/" })).toBe(true);
+  });
+
   it("is on in the test bed without Resend, but still needs the secret and the URL", () => {
     const testBed = { E2E: "1", BETTER_AUTH_SECRET: BASE.BETTER_AUTH_SECRET, BETTER_AUTH_URL: BASE.BETTER_AUTH_URL };
     expect(emailLinkOn(testBed)).toBe(true);

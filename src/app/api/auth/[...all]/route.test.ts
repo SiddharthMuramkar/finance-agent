@@ -39,6 +39,20 @@ describe("/api/auth/*", () => {
     expect(as.calls).toBe(0);
   });
 
+  it("answers 404 while BETTER_AUTH_URL is not the site's bare address, so a typo turns sign-in off rather than failing", async () => {
+    as.db = await testDb();
+    vi.stubEnv("BETTER_AUTH_SECRET", "a-test-secret-of-at-least-32-characters!");
+    vi.stubEnv("GOOGLE_CLIENT_ID", "test-client");
+    vi.stubEnv("GOOGLE_CLIENT_SECRET", "test-secret");
+    vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("EMAIL_FROM", "Value It <sign-in@value-it.xyz>");
+    for (const address of ["www.value-it.xyz", "https://www.value-it.xyz/api/auth", "http://www.value-it.xyz"]) {
+      vi.stubEnv("BETTER_AUTH_URL", address);
+      for (const handler of [route.GET, route.POST]) expect((await handler(okRequest())).status, address).toBe(404);
+    }
+    as.db = undefined;
+  });
+
   it("is Better Auth's handler once all four Google settings are set", async () => {
     as.db = await testDb();
     vi.stubEnv("BETTER_AUTH_URL", "http://localhost:3000");

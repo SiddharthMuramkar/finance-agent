@@ -188,6 +188,18 @@ describe("which ways in are on", () => {
     expect(betterAuthOn(halfGoogle)).toBe(true);
   });
 
+  it("the site's address must be bare https (http only on this machine): anything else closes both doors, and Better Auth gets it trimmed", async () => {
+    const db = await testDb();
+    for (const address of ["www.value-it.xyz", "https://www.value-it.xyz/api/auth", "https://www.value-it.xyz?x=1", "http://www.value-it.xyz", "ftp://value-it.xyz"]) {
+      const env = { ...ENV, ...EMAIL, BETTER_AUTH_URL: address };
+      expect(googleSignInOn(env), address).toBe(false);
+      expect(betterAuthOn(env), address).toBe(false);
+    }
+    expect(authOptions(db, { ...ENV, BETTER_AUTH_URL: " https://www.value-it.xyz/ " }).baseURL).toBe("https://www.value-it.xyz");
+    expect(googleSignInOn({ ...ENV, BETTER_AUTH_URL: "https://www.value-it.xyz/" })).toBe(true);
+    expect(googleSignInOn({ ...ENV, BETTER_AUTH_URL: "http://127.0.0.1:3100" })).toBe(true);
+  });
+
   it("the magic-link plugin exists only with email links, and rate limits live in the database", async () => {
     const db = await testDb();
     const ids = (env: Record<string, string>) => authOptions(db, env).plugins.map((p) => p.id);

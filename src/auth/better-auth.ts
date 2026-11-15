@@ -8,6 +8,7 @@ import * as schema from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { EMAIL_LINK_SECONDS, emailLinkOn, nameFromEmail, sendSignInLink } from "./email-link";
+import { siteAddress } from "./site-address";
 
 // Sign-in through Better Auth: Google (ADR 0011) and email links (ADR 0014). Off unless Google or email
 // links are configured (betterAuthOn): then nothing is built, /api/auth/* answers 404, and every page
@@ -26,12 +27,12 @@ const EMAIL_LINK_REQUESTS = 10;
 
 /**
  * True when Google sign-in is configured: BETTER_AUTH_SECRET, BETTER_AUTH_URL (the host of the redirect URI
- * Google checks letter for letter), GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are all set. Decides the Google
- * provider and button, so a half-set Google shows no button rather than one that fails when pressed (Better Auth
- * refuses to start without the client secret).
+ * Google checks letter for letter, as a bare address: siteAddress), GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+ * are all set. Decides the Google provider and button, so a half-set Google shows no button rather than one
+ * that fails when pressed (Better Auth refuses to start without the client secret).
  */
 export function googleSignInOn(env: Env = process.env): boolean {
-  return [env.BETTER_AUTH_SECRET, env.BETTER_AUTH_URL, env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET].every((v) => Boolean(v?.trim()));
+  return [env.BETTER_AUTH_SECRET, env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET].every((v) => Boolean(v?.trim())) && siteAddress(env) !== null;
 }
 
 /** True when Better Auth runs at all: Google sign-in or email links (email-link.ts), or both, are on. */
@@ -60,7 +61,7 @@ export function newUserGate() {
 /** Better Auth's options for this app, over the given database (PGlite in tests, Neon in the app). */
 export function authOptions(db: Db, env: Env) {
   return {
-    baseURL: env.BETTER_AUTH_URL,
+    baseURL: siteAddress(env) ?? undefined,
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, { provider: "pg", schema }),
     // Google asks for openid, email and profile only (the provider's defaults); no offline access.

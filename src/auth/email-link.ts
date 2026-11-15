@@ -4,6 +4,7 @@ import { e2eEnabled } from "@/dev/e2e-mode";
 import { destinationOrDefault } from "./destination";
 import { claimEmailSend } from "./email-throttle";
 import { inviteEmail } from "./invites";
+import { siteAddress } from "./site-address";
 
 // Email-link sign-in (ADR 0014): Better Auth's magic link, sent through Resend with a plain fetch (one
 // POST, so no SDK). Any address works, iCloud included; the person then waits for the owner like a
@@ -18,11 +19,12 @@ export const EMAIL_LINK_SECONDS = 15 * 60;
 
 /**
  * True when email links are on: BETTER_AUTH_SECRET and BETTER_AUTH_URL (the host written into every
- * link) are set, it is not a preview (which never spends production's mail quota), and either the test
- * bed is on (links go to its in-memory outbox) or Resend is configured (RESEND_API_KEY and EMAIL_FROM).
+ * link, as a bare address: siteAddress) are set, it is not a preview (which never spends production's
+ * mail quota), and either the test bed is on (links go to its in-memory outbox) or Resend is configured
+ * (RESEND_API_KEY and EMAIL_FROM).
  */
 export function emailLinkOn(env: Env = process.env): boolean {
-  if (!env.BETTER_AUTH_SECRET?.trim() || !env.BETTER_AUTH_URL?.trim()) return false;
+  if (!env.BETTER_AUTH_SECRET?.trim() || siteAddress(env) === null) return false;
   if (env.VERCEL_ENV === "preview") return false;
   if (e2eEnabled(env)) return true;
   return Boolean(env.RESEND_API_KEY?.trim() && env.EMAIL_FROM?.trim());
