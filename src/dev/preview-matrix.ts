@@ -1,8 +1,8 @@
 /**
- * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 13 pages in the one Light theme
+ * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 16 pages in the one Light theme
  * (decision #17), plus one `/login?error=INVALID_TOKEN` (expired sign-in link) shot per project; and (spec 2026-11-12 G9,
- * F6) a phone, 390 px wide, for the public pages only (Home, About and sign-in): the Study Workspace shows only its phone
- * note there.
+ * F6) a phone, 390 px wide, for the public pages only (the Signal site's Home, How it works, Examples, a case page, About,
+ * and sign-in): the Study Workspace shows only its phone note there.
  * Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs both read it, and src/dev/preview-matrix.test.ts
  * checks its shape.
  */
@@ -32,13 +32,13 @@ export type MatrixProse = "required" | "if-any";
 
 export type MatrixPage = {
   id: string; path: string; seed: MatrixSeed | null; kind: MatrixKind; signedOut: boolean; prose?: MatrixProse;
-  /** A public page (Home, About, sign-in): shot at the phone width too (G9). */
+  /** A public page (the Signal site and sign-in): shot at the phone width too (G9). */
   public?: true;
   /** Each card of a multi-column grid is its own column: its paragraphs are measured inside it (measureLayout's `cardsAsColumns`). */
   cardsAsColumns?: true;
 };
 
-/** The thirteen pages and states of the spec, in the order they are shot. Login pages run last (they sign the Learner out). */
+/** The sixteen pages and states, in the order they are shot. Signed-out pages run last (they sign the Learner out). */
 export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "home", path: "/", seed: "story", kind: "reading", signedOut: false, public: true },
   // The About page (spec 2026-11-11, D1): public and static, Home's layout, so it has no reading column to measure.
@@ -57,6 +57,10 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
   // Settings (A5) is all cards in a card-grid of 2+ columns at every matrix viewport; A1: "Running paragraphs inside
   // cards use `measure`", so card text is running prose, measured per card (each card is its own column).
   { id: "settings", path: "/settings", seed: "story", kind: "reading", signedOut: false, prose: "required", cardsAsColumns: true },
+  // The Signal site's other pages (spec 7.3 to 7.5), as a visitor sees them: one case page stands for the five.
+  { id: "how-it-works", path: "/how-it-works", seed: null, kind: "reading", signedOut: true, public: true },
+  { id: "examples", path: "/examples", seed: null, kind: "reading", signedOut: true, public: true },
+  { id: "case-amazon", path: "/examples/amazon-2000", seed: null, kind: "reading", signedOut: true, public: true },
   { id: "login", path: "/login", seed: null, kind: "login", signedOut: true, public: true },
 ];
 
@@ -76,7 +80,7 @@ export const MATRIX_DIR = "evidence/preview-matrix";
 
 export const projectName = (viewportId: string) => viewportId;
 
-/** Every cell: 4 viewports x (13 pages + the expired-link login) = 56, plus the phone's 3 public pages + the expired-link login = 4: 60. */
+/** Every cell: 4 viewports x (16 pages + the expired-link login) = 68, plus the phone's 6 public pages + the expired-link login = 7: 75. */
 export function matrixCells(): MatrixCell[] {
   const cells: MatrixCell[] = [];
   for (const viewport of MATRIX_VIEWPORTS) {

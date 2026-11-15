@@ -6,11 +6,11 @@ describe("preview matrix [S3]", () => {
     const cells = matrixCells();
     const desktop = cells.filter((c) => c.viewport.id !== "p390");
     const main = desktop.filter((c) => c.page.id !== LOGIN_LINK_EXPIRED.id);
-    expect(MATRIX_PAGES).toHaveLength(13);
-    expect(main).toHaveLength(4 * 13); // 52
+    expect(MATRIX_PAGES).toHaveLength(16);
+    expect(main).toHaveLength(4 * 16); // 64
     expect(desktop.filter((c) => c.page.id === LOGIN_LINK_EXPIRED.id)).toHaveLength(4); // one per desktop project
-    expect(desktop).toHaveLength(56);
-    expect(cells).toHaveLength(60); // and the phone's 4 (G9)
+    expect(desktop).toHaveLength(68);
+    expect(cells).toHaveLength(75); // and the phone's 7 (G9)
     expect(MATRIX_PAGES.find((p) => p.id === "about")).toMatchObject({ path: "/about" });
     expect(new Set(cells.map((c) => c.project)).size).toBe(5);
     // Decision #17: one Light theme, so every cell is Light and no project is a dark twin.
@@ -21,11 +21,11 @@ describe("preview matrix [S3]", () => {
   });
 
   // Spec 2026-11-12 G9 and F6: the public pages at 390 px wide; nothing of the Study Workspace there.
-  it("shoots Home, About and sign-in at 390 px wide, and no other page", () => {
+  it("shoots the Signal site's pages and sign-in at 390 px wide, and no other page", () => {
     const phone = matrixCells().filter((c) => c.viewport.id === "p390");
     expect(MATRIX_VIEWPORTS.find((v) => v.id === "p390")).toMatchObject({ width: 390, height: 844 });
     expect([...new Set(phone.map((c) => c.project))]).toEqual(["p390"]);
-    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/login", "/login?error=INVALID_TOKEN"]);
+    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/login", "/login?error=INVALID_TOKEN"]);
   });
 
   // Spec §8.3 (colour-liveliness) "Inputs: screenshots of 6 states (reply with Story scene, Lingo card, Choices, Course

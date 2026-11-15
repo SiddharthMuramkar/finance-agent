@@ -196,7 +196,7 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
         await expect(page.getByTestId("assistant-message")).not.toHaveCount(0, { timeout: 30_000 }).catch(() => {});
         await settled(page);
       }
-    } else if (p.kind === "reading" && p.path !== "/" && p.path !== "/about") {
+    } else if (p.kind === "reading" && !p.public) {
       await expect(page.getByTestId("reading-column")).toBeVisible();
       await page.waitForLoadState("networkidle");
     } else {
