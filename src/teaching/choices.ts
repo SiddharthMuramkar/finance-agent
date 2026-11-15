@@ -1,5 +1,5 @@
 /**
- * The choice engine (ADR 0009): the Learner never types a number, so every number item becomes 2 to 4 answer choices
+ * The choice engine (ADR 0002): the Learner never types a number, so every number item becomes 2 to 4 answer choices
  * to tap. The right answer is one choice and each Known mistake's value is another, labelled in the item's unit
  * ("50 bp", "0.5 points", "₹2,420"), so a wrong tap is a named mix-up with its own one-line fix.
  *

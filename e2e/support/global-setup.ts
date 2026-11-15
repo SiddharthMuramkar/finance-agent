@@ -4,7 +4,7 @@ import { chromium, request, type FullConfig, type LaunchOptions } from "@playwri
 /**
  * Warms the test server, then signs the tools Learner in once through the real login route and saves the cookie every
  * test starts with. The dark projects' copy (`tools-dark.json`, beside it) adds the cookie `theme=dark`: the site opens in
- * Light for everyone and never reads the computer's setting (ADR 0013), so a dark project is a Learner who chose Dark.
+ * Light for everyone and never reads the computer's setting, so a dark project is a Learner who chose Dark.
  */
 export default async function globalSetup(config: FullConfig) {
   const { baseURL, storageState, launchOptions } = config.projects[0].use;
@@ -25,11 +25,11 @@ const WARM_MS = 120_000;
 
 /**
  * `next dev` compiles each route the first time it is asked for, and the test server always starts cold. The first test
- * a shard runs used to pay for that inside its own 30 s: on main 742881b (#317) the seed route took 3.9 s, `/study`
+ * a shard runs used to pay for that inside its own 30 s: on one CI run the seed route took 3.9 s, `/study`
  * 15.2 s and the opener's `/api/turn` 6.1 s, so `e2e/message-row.spec.ts`, first in shard 2, timed out with no bug in
  * the app. Here, before any test, the routes nearly every test opens are visited once in a real browser: the story seed,
  * `/study` until its opener has finished, and `/course`; and `/notebook`, whose cold compile alone took 24.8 s inside
- * `e2e/header.spec.ts`'s 30 s on a slow runner (PR #615, shard 5). Then the tools Learner is started over to a fresh
+ * `e2e/header.spec.ts`'s 30 s on a slow CI runner. Then the tools Learner is started over to a fresh
  * one, so the first test finds the same state it would have found without the warm-up.
  *
  * Best effort: a step that fails only logs a warning. The tests themselves then fail on whatever is broken, each with

@@ -48,7 +48,7 @@ youllLearn:
   - "Use the accounting equation to see where a false number must be hiding."
   - "Ask what outside evidence backs the biggest items."
 
-# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0002).
 exampleCurrency: INR
 runningExample:
   text: "A family owns a flat and savings worth ₹50 lakh and owes ₹30 lakh on a home loan."

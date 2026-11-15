@@ -87,7 +87,7 @@ function apiCalls(page: Page) {
   return calls;
 }
 
-/** B1's frame, from ADR 0013's token table: white (--frame), one 1 px --rule edge, no shadow, 12 px corners at most. */
+/** B1's frame (ADR 0018: a shadow only on a floating layer): white (--frame), one 1 px --rule edge, no shadow, 12 px corners at most. */
 async function expectPlainFrame(page: Page, selector: string, dark: boolean) {
   const frame = await frameLook(page, selector);
   expect(frame.backgroundColor, selector).toBe(dark ? "rgb(15, 15, 15)" : "rgb(255, 255, 255)");

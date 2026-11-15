@@ -32,10 +32,10 @@ describe("the You'll learn course check", () => {
     }
   });
 
-  it("rejects a typed formula, with the raw-formula rule of ADR 0002", () => {
+  it("rejects a typed formula, with the raw-formula rule of ADR 0003", () => {
     const errors = youllLearnCheckErrors([topicWith("fresh", [good[0], "Learn that value = cash / rate."])]);
     expect(errors).toHaveLength(1);
-    expect(errors[0]).toContain("Topic fresh types a formula in You'll learn bullet 2 (ADR 0002): an equals sign");
+    expect(errors[0]).toContain("Topic fresh types a formula in You'll learn bullet 2 (ADR 0003): an equals sign");
   });
 
   it("rejects a bullet that repeats the written Insight", () => {

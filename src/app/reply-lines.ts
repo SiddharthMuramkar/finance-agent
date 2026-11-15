@@ -108,7 +108,7 @@ export function replayReply(c: ReplyCursor, text: string): Placed {
 }
 
 /**
- * The Learner stopped the reply: the reply in progress is dropped (ADR 0008, kept for streamed replies by ADR 0017), so
+ * The Learner stopped the reply: the reply in progress is dropped, streamed or not (ADR 0006), so
  * the words a streamed own-question reply had shown go too, as a reload would show it, and only the Stopped note stays
  * where the reply ended. Items the turn showed (a step divider, a Widget) stay, as they are saved.
  */

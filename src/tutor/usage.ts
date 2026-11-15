@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { costUsd } from "./pricing";
+import { costUsd, PRICES } from "./pricing";
 import { replyCheckSummaries, type ReplyCheckSummary } from "./reply-records";
 
 /**
@@ -70,6 +70,31 @@ export function stepUsage(model: string, step: number, reported: ApiUsage | unde
     costUsd: costUsd(model, t),
     stopReason,
   };
+}
+
+/**
+ * A step cut short before its response finished: Stop, the stream guard, a cut-off, a failure, or compose_widget's time
+ * limit. The request was sent, so OpenAI bills its prompt and whatever it wrote, but it reports usage only on a finished
+ * response. With a report (the response finished after all) the step is priced from it. Without one its tokens are 0
+ * and its cost is null, which the daily caps count as the worst step (UNPRICED_STEP_USD, quota.ts).
+ */
+export function cutShortStepUsage(model: string, step: number, reported: ApiUsage | undefined, tools: string[], durationMs: number, stopReason: string): StepUsage {
+  const usage = stepUsage(model, step, reported, tools, durationMs, stopReason);
+  return reported ? usage : { ...usage, costUsd: null };
+}
+
+/** The stop reasons a step cut short is saved with: Stop, the stream guard, a cut-off, a failure, compose_widget's time limit. */
+const CUT_SHORT_REASONS: ReadonlySet<string> = new Set(["stopped", "guard", "cut_off", "failed", "timeout"]);
+
+/**
+ * Why a turn's cost is unknown, in words, or null when it is known. A step has no cost when it was cut short before
+ * OpenAI reported its usage (cutShortStepUsage), or when its model has no price in the table.
+ */
+export function unknownCostReason(usage: TurnUsage): string | null {
+  if (usage.costUsd !== null) return null;
+  const cutShort = usage.steps.some((s) => s.costUsd === null && s.stopReason !== null && CUT_SHORT_REASONS.has(s.stopReason));
+  const why = [cutShort && "a step was cut short before OpenAI reported its usage", !(usage.model in PRICES) && `no price for ${usage.model}`];
+  return why.filter(Boolean).join(", and ") || "a step has no price";
 }
 
 /** Adds the steps up into the turn's totals. Cost is null if any step could not be priced. */

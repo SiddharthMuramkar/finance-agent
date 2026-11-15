@@ -39,6 +39,14 @@ export const currentSignIn = cache(async function currentSignIn(): Promise<SignI
   return learner ? { kind: "learner", learner, via: "passcode" } : { kind: "signed-out" };
 });
 
+/**
+ * True when the sign-in is the admin's: an account whose token says admin (Clerk `publicMetadata.role = "admin"`, which
+ * only the owner sets). Never a passcode, which carries no identity.
+ */
+export function isAdminSignIn(signIn: SignIn): signIn is Extract<SignIn, { via: "account" }> {
+  return signIn.kind === "learner" && signIn.via === "account" && signIn.identity.admin;
+}
+
 /** The signed-in Learner of this request, or null when it is signed out. */
 export async function currentLearner(): Promise<Learner | null> {
   const signIn = await currentSignIn();
@@ -57,6 +65,16 @@ export async function isSignedIn() {
  */
 export async function currentLearnerId(): Promise<number> {
   return (await signedInLearner()).id;
+}
+
+/**
+ * Who takes a Tutor turn: the signed-in Learner's id, and whether it is the admin (isAdminSignIn), whose turns have no
+ * daily cap of their own (quota.ts). One sign-in read. A signed-out request is sent to the sign-in instead.
+ */
+export async function currentTurnTaker(): Promise<{ learnerId: number; admin: boolean }> {
+  const signIn = await currentSignIn();
+  if (signIn.kind !== "learner") redirect(SIGN_IN_PATH);
+  return { learnerId: signIn.learner.id, admin: isAdminSignIn(signIn) };
 }
 
 /** The signed-in Learner (with its Settings choices); a signed-out request is sent to the sign-in instead. */

@@ -97,7 +97,7 @@ function skillOfTry(topic: Topic, q: QuickTry): string | undefined {
 }
 
 /**
- * True when code can show the try: it makes 2 or more choices (ADR 0009). A fixed number try with no Known mistake, or a
+ * True when code can show the try: it makes 2 or more choices (ADR 0002). A fixed number try with no Known mistake, or a
  * template with none, makes only the right answer, so code never shows it (and lint L10 fails it).
  */
 function showable(topic: Topic, q: QuickTry): boolean {
@@ -854,7 +854,7 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
   const [line] = await resultLines(db, map, learnerId, items, [result]);
   const rule = map.topic(tried.topicId)?.skills.find((s) => s.id === tried.data.skillId)?.rule;
   // On the half-done choice rung the reply teaches on the numbers of the half-done try code posts after the reply, so the
-  // reply and that try are one item, not two; the try's last step is a tap, so the reply asks nothing (ADR 0009).
+  // reply and that try are one item, not two; the try's last step is a tap, so the reply asks nothing (ADR 0002).
   const posted = action.method === "boxes" ? await halfDoneTryAfterReteach(db, map, learnerId, sessionId, tried.data.skillId) : null;
   return [
     `${QUICK_TRY_FOLLOW_UP_PREFIX} the Learner missed a Quick try on the same idea twice in a row:`,

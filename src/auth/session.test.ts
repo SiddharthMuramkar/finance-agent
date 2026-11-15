@@ -24,7 +24,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/auth/identity", () => ({ currentIdentity: async () => jar.identity }));
 
-const { currentLearner, currentSignIn, signedInLearner } = await import("./session");
+const { currentLearner, currentSignIn, currentTurnTaker, signedInLearner } = await import("./session");
 
 const SECRET = "test-secret";
 const ASHA: Identity = { userId: "user_asha", email: "asha@x.com", firstName: "Asha", admin: false };
@@ -113,5 +113,33 @@ describe("signedInLearner", () => {
   it("returns the account's Learner", async () => {
     jar.identity = ASHA;
     expect((await signedInLearner()).clerkUserId).toBe("user_asha");
+  });
+});
+
+describe("currentTurnTaker: whose turn, and whether the caps treat it as the admin's", () => {
+  beforeEach(async () => {
+    jar.db = await testDb();
+    jar.cookie = undefined;
+    jar.identity = null;
+    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("PASSCODES", "tools:tools-pass");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("is the admin only for an account whose token says admin; a passcode never is", async () => {
+    jar.identity = { ...ASHA, admin: true };
+    const admin = await currentTurnTaker();
+    expect(admin).toEqual({ learnerId: expect.any(Number), admin: true });
+    jar.identity = { userId: "user_noor", email: "noor@x.com", firstName: "Noor", admin: false };
+    expect(await currentTurnTaker()).toEqual({ learnerId: expect.any(Number), admin: false });
+
+    jar.identity = null;
+    const tools = await toolsLearner();
+    jar.cookie = await learnerToken(tools.id, SECRET);
+    expect(await currentTurnTaker()).toEqual({ learnerId: tools.id, admin: false });
+  });
+
+  it("sends a signed-out request to /sign-in", async () => {
+    await expect(currentTurnTaker()).rejects.toThrow("NEXT_REDIRECT /sign-in");
   });
 });

@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CHART_SERIES, CHART_SURFACES } from "@/widgets/genui-theme";
 
-// Issue #457, spec 2026-11-05 §4 rule 4 and spec 2026-11-11 A10a (ADR 0014), seam S7. The family colours (--mint, --coral,
+// Issue #457, spec 2026-11-05 §4 rule 4 and spec 2026-11-11 A10a (ADR 0015), seam S7. The family colours (--mint, --coral,
 // --sun and --violet, plus --you-line and --src-line, the mint and sunflower under their older names) appear in a Widget only
 // as thin marks: a 1-2 px edge or rule, a dot or an Icon stroke beside words that already say what it means. This inventory
 // holds every place src/ paints one, with its verdict: "mark" (a thin mark beside words), "mapping" (the token mappings in
@@ -19,7 +19,7 @@ const INVENTORY: Record<string, Use> = {
   "src/app/globals.css": {
     uses: 13,
     verdict: "mapping",
-    why: "Name mappings for Tailwind (--color-*) and OpenUI (--openui-border-*), which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent since ADR 0013, no mint)",
+    why: "Name mappings for Tailwind (--color-*) and OpenUI (--openui-border-*), which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent, no mint)",
   },
   "src/app/_landing/home-explorable.tsx": {
     uses: 3,
@@ -75,7 +75,7 @@ const INVENTORY: Record<string, Use> = {
   },
 };
 
-// Spec 2026-11-12 F1 and F5 (ADR 0022): "the test that lists where an accent fill may appear gains the Bands". A Band is a
+// Spec 2026-11-12 F1 and F5, until #32 lands (ADR 0015 replaces the royal Band): "the test that lists where an accent fill may appear gains the Bands". A Band is a
 // full-width royal surface (--band, which is --royal, the same in both themes) with white text on it, and F1 names the only
 // places one may stand. This inventory holds every place src/ paints one: "band" (a Band surface, with the F1 place it is),
 // or "mapping" (globals.css: the Band tokens, their Tailwind names and the .band and .home-band rules that paint a Band
@@ -164,7 +164,7 @@ describe("accent fills and the 3:1 rule", () => {
     for (const [file, use] of Object.entries(INVENTORY)) expect(use.why.length, file).toBeGreaterThan(20);
   });
 
-  // Spec 2026-11-11 A10a test 6 (ADR 0014): a family in a Widget is a thin mark beside words. Every Widget file's row is a
+  // Spec 2026-11-11 A10a test 6 (ADR 0015): a family in a Widget is a thin mark beside words. Every Widget file's row is a
   // "mark"; the kit's theme is the one "colour-only" row (its chart series), and globals.css holds only the mappings.
   it("has every Widget row as a mark, the kit's theme as the one colour-only row, and globals.css as the mappings", () => {
     // Home's Explorable (the owner's design E, #609) and section 3's step cards (E5) are Home's Widgets drawn by code, so

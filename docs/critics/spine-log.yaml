@@ -1,4 +1,4 @@
-# The critics' record for each Spine Topic (spec 2026-11-12 C8, ADR 0020): a Spine Topic ships only when the course
+# The critics' record for each Spine Topic (spec 2026-11-12 C8, ADR 0004): a Spine Topic ships only when the course
 # check and the critics pass. The course check (scripts/check-course.mjs, src/course/critics-log.ts) fails a written
 # Spine Topic with no entry here, an entry missing one of the four lenses, or one with confirmed findings still open.
 #

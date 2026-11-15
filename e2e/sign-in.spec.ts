@@ -11,7 +11,7 @@ import { PEOPLE, becomePerson, test } from "./support/people";
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
-// A dark project is a Learner who chose Dark (ADR 0013), signed out too: the theme cookie stays when the sign-in goes.
+// A dark project is a Learner who chose Dark, signed out too: the theme cookie stays when the sign-in goes.
 /** Spec 2026-11-12 G9: on the phone project every signed-in page shows only the phone note, so cases that go on there skip. */
 const onPhone = (name: string) => name.startsWith("p390");
 const PHONE_SKIP = "a signed-in page shows only the phone note below 768 px (e2e/phone-note.spec.ts)";
@@ -41,7 +41,7 @@ test("while Clerk is off, the sign-in page is the passcode door, with wrong pass
   await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { level: 1, name: "Enter your passcode" })).toBeVisible();
   const enter = page.getByRole("button", { name: "Enter" });
   await expect(enter).toBeVisible();
-  // ADR 0013: flat, so no lip or drop shadow; the page's one primary, at the large size, filled with --fill.
+  // ADR 0018: flat, so no lip or drop shadow; the page's one primary, at the large size, filled with --fill.
   const look = await enter.evaluate((el) => {
     const s = getComputedStyle(el);
     return { shadow: s.boxShadow, fill: s.backgroundColor, height: el.getBoundingClientRect().height, dark: document.documentElement.classList.contains("dark") };

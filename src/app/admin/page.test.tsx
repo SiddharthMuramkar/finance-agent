@@ -3,13 +3,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ClerkDirectory } from "@/auth/clerk-directory";
 import type { Admin } from "@/auth/owner";
-import { learners, replyChecks, sessions, turns, tutorIncidents, usageRows } from "@/db/schema";
+import { learners, replyChecks, sessions, settings, turns, tutorIncidents, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb, testDbThrough } from "@/test/pglite";
+import { readSettings } from "@/tutor/session-log";
 
 /**
- * /admin (issue #33): the admin's page for what the Tutor costs and how fast it answers; who may come in is Clerk's,
- * so the page links there. Anyone else gets the not-found page, decided by signedInAdmin (tested in
+ * /admin (issue #33): the admin's page for what the Tutor costs, how fast it answers and its Spend caps; who may come
+ * in is Clerk's, so the page links there. Anyone else gets the not-found page, decided by signedInAdmin (tested in
  * src/auth/owner.test.ts, mocked here). The figures are read from a real database; each person's email from Clerk
  * (src/auth/clerk-directory.ts, mocked here).
  */
@@ -40,8 +41,8 @@ vi.mock("next/navigation", () => ({
 
 const { default: AdminPage, dynamic } = await import("./page");
 
-const open = () => AdminPage();
-const render = async () => renderToStaticMarkup(await open());
+const open = (search: { done?: string } = {}) => AdminPage({ searchParams: Promise.resolve(search) });
+const render = async (search?: { done?: string }) => renderToStaticMarkup(await open(search));
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
 /** The HTML of one section, by its id. */
 const section = (html: string, id: string) => {
@@ -80,18 +81,18 @@ describe("/admin", () => {
     expect(jar.asked).toEqual([]);
   });
 
-  it("has the sections in order: Spend, Tutor speed, Who may come in", async () => {
+  it("has the sections in order: Spend, Tutor speed, Who may come in, Spend caps", async () => {
     const html = await render();
     expect(html).toMatch(/<h1 class="type-h1">Admin<\/h1>/);
     const ids = [...html.matchAll(/<section[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
-    expect(ids).toEqual(["spend", "speed", "people"]);
+    expect(ids).toEqual(["spend", "speed", "people", "caps"]);
     const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => text(m[1]).trim());
-    expect(headings).toEqual(["Spend", "Tutor speed", "Who may come in"]);
-    // ADR 0013: each section is a hairline rule with no box.
+    expect(headings).toEqual(["Spend", "Tutor speed", "Who may come in", "Spend caps"]);
+    // ADR 0018: each section is a hairline rule with no box.
     for (const [, cls] of html.matchAll(/<section class="([^"]*)" id="/g)) expect(cls).toMatch(/^border-t border-\[var\(--line\)\]/);
     // The header's account menu is the admin's (accountFor), and no page link is marked current.
     expect(html).not.toContain('aria-current="page"');
-    // Who may come in has nothing to press: it is changed in Clerk. (Spend may hold its own forms, such as #36's caps.)
+    // Who may come in has nothing to press: it is changed in Clerk. The Spend caps are the page's one form.
     expect(section(html, "people")).not.toMatch(/<form|<button|btn-primary/);
   });
 
@@ -147,7 +148,11 @@ describe("/admin", () => {
       expect(t).toContain("Tutor model calls only");
       expect(t).toContain("India time");
       expect(t).toMatch(/\$1\.24 this month \$8\.74 all time 1 turn /);
-      expect(t).toContain("1 step used a model with no price in the table");
+      // A step has no price when it was cut short before OpenAI reported its usage, or its model has no price.
+      expect(t).toContain("Unpriced: 1 step, missing from these figures.");
+      expect(t).toContain("cut short before OpenAI reported its usage");
+      expect(t).toContain("its model has no price in the table");
+      expect(t).toContain("The daily caps count each one at $0.66.");
       // Asha spent more this month than the owner, so she comes first.
       expect(t.indexOf("asha@gmail.com")).toBeLessThan(t.indexOf("owner@x.com"));
       expect(t).toMatch(/asha@gmail\.com Asha Last active 10 Nov 2026 1 \$1\.23 \$1\.23/);
@@ -242,9 +247,27 @@ describe("/admin", () => {
     expect(t).toMatch(/Sessions repaired instead of failing the turn 0 /);
   });
 
+  it("shows the Spend caps as stored, on one form, with a secondary Save button and the result of a save", async () => {
+    await readSettings(jar.db);
+    await jar.db.update(settings).set({ value: "2.5" }).where(eq(settings.key, "usd_per_learner_day"));
+    const caps = section(await render({ done: "caps_saved" }), "caps");
+    expect(caps).toMatch(/<form[^>]* action="\/api\/admin\/caps" method="post"/);
+    const input = (name: string) => caps.match(new RegExp(`<input[^>]*name="${name}"[^>]*>`))?.[0] ?? "";
+    const value = (name: string) => input(name).match(/value="([^"]*)"/)?.[1];
+    expect(["turns_per_learner_day", "usd_per_learner_day", "usd_global_day", "steps_per_turn", "resumes_per_turn"].map(value)).toEqual(["120", "2.5", "30", "10", "2"]);
+    expect(input("steps_per_turn")).toContain('min="1"');
+    expect(input("turns_per_learner_day")).toContain('step="1"');
+    expect(input("usd_global_day")).toContain('step="0.01"');
+    expect(caps).toMatch(/<button type="submit"[^>]*class="btn btn-secondary[^"]*"[^>]*>Save caps<\/button>/);
+    expect(caps).toMatch(/<p role="status"[^>]*>Saved\. The next turn uses the new caps\.<\/p>/);
+    expect(section(await render({ done: "bad_caps" }), "caps")).toMatch(/<p role="alert"[^>]*>Each cap must be a number/);
+    // An unknown or hand-typed code shows nothing.
+    expect(section(await render({ done: "approved" }), "caps")).not.toMatch(/role="(status|alert)"/);
+  });
+
   it("still draws the page before migration 0037, saying the speed numbers are not available yet", async () => {
     jar.db = await testDbThrough("0036_session_items_turn");
-    // Only 0037's speed numbers are missing here: migration 0038's Learner column (issue #33), which Drizzle names in
+    // Only 0037's speed numbers are missing here: migration 0039's Learner column (issue #33), which Drizzle names in
     // every Learner it writes or reads back, is put in by hand.
     await jar.db.execute(sql`alter table learners add column clerk_user_id text`);
     jar.admin = { learner: await seed(jar.db), identity: OWNER };

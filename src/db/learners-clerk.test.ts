@@ -49,7 +49,7 @@ describe("database: learners.clerk_user_id (issue #33)", () => {
   });
 
   it("is an expand step: every Learner from before is kept, with no Clerk user", async () => {
-    const db = await testDbThrough("0037_valuation_first");
+    const db = await testDbThrough("0038_turn_runs");
     await db.execute(sql`insert into learners (name) values ('before-clerk')`);
     const before = (await db.execute(sql`select id, name, auth_user_id from learners order by id`)) as unknown as { rows: { id: number; name: string; auth_user_id: string | null }[] };
     await migrateToLatest(db);

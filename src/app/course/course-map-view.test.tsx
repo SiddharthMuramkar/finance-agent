@@ -57,7 +57,7 @@ describe("the Course Map page", () => {
     expect(html).toMatch(/<div class="[^"]*md:grid-cols-2[^"]*"><div data-recommended-next/);
   });
 
-  // ADR 0013: Terrastack's numbered markers, never a dot or a ring that could read as a radio button.
+  // ADR 0018: Terrastack's numbered markers, never a dot or a ring that could read as a radio button.
   it("numbers each Topic by its place in its group, accents the current one and checks a passed one", () => {
     const html = render();
     expect(row(html, "statements")).toMatch(/data-marker="todo"[^>]*class="[^"]*text-\[var\(--muted\)\][^"]*"[^>]*>\d{2}<\/span>/);

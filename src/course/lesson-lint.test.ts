@@ -361,7 +361,7 @@ describe("the lesson lint", () => {
   });
 });
 
-describe("lint L10: no typed number and no sum (ADR 0009)", () => {
+describe("lint L10: no typed number and no sum (ADR 0002)", () => {
   /** Turns every fixed Quick try into a True or False one, so no typed try is left. */
   const allTruth = (x: Topic) => {
     for (const c of x.checks)
@@ -379,7 +379,7 @@ describe("lint L10: no typed number and no sum (ADR 0009)", () => {
 
   it("fails a Quick try with kind: number, in the spec's words", () => {
     expect(l10(lintReadyTopic())).toContain(
-      'L10: Quick try "pct-demo-try-pts-1" is typed (kind: number): make it kind: choice (ADR 0009) (Topic "pct-demo")',
+      'L10: Quick try "pct-demo-try-pts-1" is typed (kind: number): make it kind: choice (ADR 0002) (Topic "pct-demo")',
     );
   });
 

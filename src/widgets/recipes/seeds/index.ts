@@ -76,7 +76,7 @@ export const loanCost = calculatorRecipe({
 
 const formulaIds = FORMULAS.map((f) => f.id) as [string, ...string[]];
 
-/** Own the formula: a Formula Card (ADR 0002) with one symbol on a slider. */
+/** Own the formula: a Formula Card (ADR 0003) with one symbol on a slider. */
 export const formula = defineRecipe({
   id: "formula",
   archetype: "Formula",
@@ -106,7 +106,7 @@ export const formula = defineRecipe({
   ],
   compile: ({ title, inputs: p, refs }) => {
     const f = formulaById(p.formula)!;
-    // Every symbol exactly once, or the card would only say "Working it out…" (ADR 0002: the card shows the formula).
+    // Every symbol exactly once, or the card would only say "Working it out…" (ADR 0003: the card shows the formula).
     const given = [p.slider.symbol, ...Object.keys(p.held), ...Object.keys(refs.sourced)];
     const missing = f.symbols.filter((s) => !given.includes(s.key)).map((s) => s.key);
     const twice = given.filter((k, i) => given.indexOf(k) !== i);

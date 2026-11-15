@@ -10,11 +10,11 @@ import { textsIn } from "./topic-texts.ts";
 import { presetValueProblems } from "./written-ahead-check.ts";
 import { isIconName } from "../icons/names.ts";
 
-// The lesson lint (spec #229, ADR 0006): the course check's rules for the teaching a converted Topic's file holds.
+// The lesson lint (spec #229, ADR 0001): the course check's rules for the teaching a converted Topic's file holds.
 // L1 a Check tests only what a card at or before it teaches; L2 enough Quick tries and questions; L3 short cards;
 // L4 valid Widget presets; L5 the Topic's currency; L6 no negative stems; L7 Check questions move apart from the
 // worked examples; L8 every Quick try's Skill is one its own Check tests; L9 template draws move apart from the fixed
-// questions and Quick tries of the same Check; L10 no typed number and no sum (ADR 0009); L11 every emoji name in a Topic file is an Icon name; Draws: every template draws and marks its own answer right, and fixed
+// questions and Quick tries of the same Check; L10 no typed number and no sum (ADR 0002); L11 every emoji name in a Topic file is an Icon name; Draws: every template draws and marks its own answer right, and fixed
 // tries are sound; L12 every wrong choice has a mix-up fix; L13 a Spine Topic's quiz Check tests judgement (spec
 // 2026-11-12 D4); L14 a computed question has a clear right answer, worked out through the valuation engine (D2).
 // Pure, with no "@/" imports, so `scripts/check-course.mjs` runs it under plain Node.
@@ -520,7 +520,7 @@ function lintL12(t: Topic, add: Add) {
 const L10_DRAWS = 20;
 
 /**
- * L10 (ADR 0009): the Learner never types a number and a stem never asks for a sum. It fails a Quick try with kind
+ * L10 (ADR 0002): the Learner never types a number and a stem never asks for a sum. It fails a Quick try with kind
  * number, a template whose draws do not each give two distinct choices, and any question prompt, Quick-try ask, template
  * ask, conversation Check prompt or conversation Check passCriteria that `sumAsk` matches. It runs on every Topic; `L10_NOT_YET_STORY` lists those still
  * to be rewritten.
@@ -528,7 +528,7 @@ const L10_DRAWS = 20;
 function lintL10(t: Topic, add: Add) {
   const say = (where: string, text: string) => {
     const hit = sumAsk(text);
-    if (hit) add("L10", `${where} asks for a sum ("${hit}"); ask about the story or the words instead (ADR 0009): ${quoted(text)}`);
+    if (hit) add("L10", `${where} asks for a sum ("${hit}"); ask about the story or the words instead (ADR 0002): ${quoted(text)}`);
   };
   for (const q of t.questions) say(`question "${q.id}" prompt`, q.prompt);
   for (const x of t.templates) {
@@ -545,7 +545,7 @@ function lintL10(t: Topic, add: Add) {
         }
       }
       if (bad) {
-        add("L10", `template "${x.id}" gives fewer than 2 distinct choices${halfDone ? " (half-done)" : ""} when it draws ${quoted(bad)}; add a Known mistake that gives another value (ADR 0009)`);
+        add("L10", `template "${x.id}" gives fewer than 2 distinct choices${halfDone ? " (half-done)" : ""} when it draws ${quoted(bad)}; add a Known mistake that gives another value (ADR 0002)`);
         break;
       }
     }
@@ -557,7 +557,7 @@ function lintL10(t: Topic, add: Add) {
     }
     for (const q of c.quickTries) {
       if (!isFixed(q)) continue;
-      if (q.kind === "number") add("L10", `Quick try "${q.id}" is typed (kind: number): make it kind: choice (ADR 0009)`);
+      if (q.kind === "number") add("L10", `Quick try "${q.id}" is typed (kind: number): make it kind: choice (ADR 0002)`);
       say(`Quick try "${q.id}" ask`, q.ask);
     }
   }

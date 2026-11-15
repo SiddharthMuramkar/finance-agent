@@ -9,7 +9,7 @@ import { AppearanceSettings } from "./settings-controls";
 import { SettingsView } from "./settings-view";
 
 // The Appearance section on the Settings page, with the header's theme toggle on screen too: both read the one store,
-// so a pick in either shows in the other at once (ADR 0013: two radios, Light and Dark; no Match my Mac).
+// so a pick in either shows in the other at once (two radios, Light and Dark; no Match my Mac).
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

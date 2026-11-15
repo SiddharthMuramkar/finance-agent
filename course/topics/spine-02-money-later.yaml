@@ -6,7 +6,7 @@
 # short Case borrows Amazon's from val-dcf (valuationFrom): what the discount rate does to a business whose cash comes
 # late, the bridge to Spine Topic 1.
 # Facts: course/topics/present-value.yaml (sources there and in the outline), spec Appendix B.4 for the payments.
-# Every figure a computed question shows is the engine's (ADR 0021); no sum is asked (ADR 0009).
+# Every figure a computed question shows is the engine's, and no sum is asked (ADR 0002).
 id: spine-02-money-later
 title: Why is money later worth less?
 goal: Bring payments made at different dates to today before comparing them, and find the rate that makes two offers equal.

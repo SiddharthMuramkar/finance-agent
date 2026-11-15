@@ -78,7 +78,7 @@ describe("the parked line", () => {
     expect(html).toContain('data-testid="parked-line"');
     expect(html).toContain("Back tomorrow after Thu 3:00 pm");
     expect(html).toContain('href="/course"');
-    // An inline link the affordance audit knows: underlined, in the accent (ADR 0013).
+    // An inline link the affordance audit knows: underlined, in the accent (ADR 0018).
     expect(html).toMatch(/<a(?=[^>]*data-affordance="link")(?=[^>]*href="\/course")/);
   });
 });

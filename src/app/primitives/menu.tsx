@@ -1,7 +1,7 @@
 "use client";
 
 // The pop-up menus (the account menu and the Topic options menu): one row look and one lot of menu behaviour, so every
-// menu opens, moves and closes the same way. Rows are flat 32px `.menu-item` rows (ADR 0013): a wash on hover and focus,
+// menu opens, moves and closes the same way. Rows are flat 32px `.menu-item` rows (ADR 0018): a wash on hover and focus,
 // the focus ring inset; the menu itself is a `.popover`. They carry role="menuitem", which the affordance audit judges.
 
 import Link from "next/link";

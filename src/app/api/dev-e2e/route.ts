@@ -178,7 +178,7 @@ const STATES: Record<string, Build> = {
   },
   /**
    * F1 matrix (#481, §8.3 "reply with Story scene"): a Story reply that code gives the step's written-ahead scene. The
-   * Learner presses a Choice: an own question's reply gets no Companion Widget (B6, ADR 0019).
+   * Learner presses a Choice: an own question's reply gets no Companion Widget (B6, ADR 0008).
    */
   "story-scene": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);
@@ -190,7 +190,7 @@ const STATES: Record<string, Build> = {
    */
   lingo: async (db, map, learnerId, now) => {
     await STATES["concept-widget"](db, map, learnerId, now);
-    // Choices pressed: an own question's reply gets no Companion Widget (B6, ADR 0019).
+    // Choices pressed: an own question's reply gets no Companion Widget (B6, ADR 0008).
     await turn(db, map, learnerId, "concept-two-ways", "Show me.");
     await turn(db, map, learnerId, "concept-percent-change", "What does that word mean?");
   },

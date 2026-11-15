@@ -7,7 +7,7 @@ import { parsedTasks } from "./guided-tasks";
 import { lenientTaskCode, sliderLandings } from "./slider-landing";
 import { dragStep, landedValue, nearStop, nextValue, readingValue, settledValue, sliderStep, snappedValue, spokenValue, steppedValue, withinOneStep } from "./slider-steps";
 
-// Every slider reaches every step with the range, the −/+ buttons and the quick chips; nothing is typed (ADR 0009).
+// Every slider reaches every step with the range, the −/+ buttons and the quick chips; nothing is typed (ADR 0002).
 
 const rates = [
   'root = Widget("Rates", [old, years])',

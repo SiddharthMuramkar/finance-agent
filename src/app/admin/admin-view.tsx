@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 import type { ClerkDirectory } from "@/auth/clerk-directory";
+import { CAP_FIELDS, UNPRICED_STEP_USD, type CapKey } from "@/tutor/quota";
 import type { SpendReport } from "@/tutor/spend";
 import { overBudget, seconds, SPEED_BUDGETS, WIDGET_SAVE_BUDGET, SPEED_WINDOW_DAYS, type SpeedReport, type Spread } from "@/tutor/speed";
 import { shortDate } from "../past-sessions";
 import { TextLink } from "../primitives/link";
-import { Card, Tag } from "../ui";
+import { Button, Card, Tag } from "../ui";
+import { ADMIN_DONE, type AdminDone, type AdminSection } from "./done";
 
-/** A section's heading: Settings' (Inter Tight 18/24 at 600), under the section's hairline (ADR 0013). */
+/** A section's heading: Settings' (Inter Tight 18/24 at 600), under the section's hairline (ADR 0018). */
 const heading = "mb-3 [font-family:var(--font-display)] text-[18px] font-semibold leading-6 tracking-[-0.012em]";
 /** A list: hairlines between the rows and under the last, as Settings → Your Topics. */
 const list = "divide-y divide-[var(--rule)] border-b border-[var(--rule)]";
@@ -214,7 +216,8 @@ function SpendSection({ spend, directory, you }: { spend: SpendReport; directory
       </p>
       {spend.total.unpricedSteps > 0 && (
         <p className="measure mb-3 text-xs leading-4 text-[var(--warning)]">
-          {steps(spend.total.unpricedSteps)} used a model with no price in the table, so they are missing from these figures.
+          Unpriced: {steps(spend.total.unpricedSteps)}, missing from these figures. A step has no price when it was cut short before OpenAI reported its usage
+          (Stop, a cut-off, a failure), or when its model has no price in the table. The daily caps count each one at {usd(UNPRICED_STEP_USD)}.
         </p>
       )}
       {!directory.answered && spend.people.length > 0 && (
@@ -310,6 +313,63 @@ function PeopleSection() {
   );
 }
 
+/** The result of the last change, when it belongs to this section: a status, or an alert when nothing was saved. */
+function DoneLine({ done, section }: { done: AdminDone | null; section: AdminSection }) {
+  if (!done || ADMIN_DONE[done].section !== section) return null;
+  const { text, problem } = ADMIN_DONE[done];
+  return (
+    <p role={problem ? "alert" : "status"} className={`measure mb-3 text-sm leading-5 ${problem ? "text-[var(--danger)]" : "text-[var(--success)]"}`}>
+      {text}
+    </p>
+  );
+}
+
+/**
+ * The Spend caps (decision #13, quota.ts): one number per cap, saved together by /api/admin/caps. A plain form post, so
+ * it works without scripts; its button is a secondary one.
+ */
+function CapsSection({ caps, done }: { caps: Record<CapKey, string>; done: AdminDone | null }) {
+  return (
+    <Card variant="rule" id="caps" aria-labelledby="caps-heading">
+      <h2 id="caps-heading" className={heading}>
+        Spend caps
+      </h2>
+      <DoneLine done={done} section="caps" />
+      <p className="measure mb-3 text-sm leading-5 text-[var(--muted)]">
+        A new turn past a daily cap does not run, nor does a resume past its limit: the Learner reads that the limit is reached. A day starts at
+        midnight, India time.
+      </p>
+      <form action="/api/admin/caps" method="post" className="flex flex-col gap-3">
+        {CAP_FIELDS.map((f) => (
+          <div key={f.key} className="flex flex-col gap-1">
+            <label htmlFor={`cap-${f.key}`} className="text-sm font-medium leading-5">
+              {f.label}
+            </label>
+            <input
+              id={`cap-${f.key}`}
+              name={f.key}
+              type="number"
+              required
+              min={f.min}
+              max={f.max}
+              step={f.dollars ? 0.01 : 1}
+              defaultValue={caps[f.key]}
+              aria-describedby={`cap-${f.key}-hint`}
+              className="field w-full tabular-nums"
+            />
+            <p id={`cap-${f.key}-hint`} className="text-xs leading-4 text-[var(--muted)]">
+              {f.hint}
+            </p>
+          </div>
+        ))}
+        <Button type="submit" variant="secondary" className="self-start">
+          Save caps
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
 export type AdminViewProps = {
   /** Spend per person (src/tutor/spend.ts). */
   spend: SpendReport;
@@ -319,18 +379,23 @@ export type AdminViewProps = {
   directory: ClerkDirectory;
   /** The admin's own Clerk user id, so their row reads You. */
   you: string;
+  /** The Spend caps as stored, by `settings` key (src/tutor/quota.ts). */
+  caps: Record<CapKey, string>;
+  /** The result of the change that just sent the admin back here (?done=), if any. */
+  done: AdminDone | null;
 };
 
 /**
- * The /admin page's body (issue #33), read only. Sections under Settings' hairline rules, no boxes (ADR 0013): Spend
- * (what each person's Tutor has cost, this month and all time, most this month first), Tutor speed (turn times by
- * Reply kind against the A9 budgets) and Who may come in (links to Clerk, where that is decided).
+ * The /admin page's body (issue #33). Sections under Settings' hairline rules, no boxes (ADR 0018): Spend (what each
+ * person's Tutor has cost, this month and all time, most this month first), Tutor speed (turn times by Reply kind
+ * against the A9 budgets), Who may come in (links to Clerk, where that is decided) and Spend caps (the daily limits a
+ * new turn is checked against, the page's one form). A save's result shows in the caps section.
  */
-export function AdminView({ spend, speed, directory, you }: AdminViewProps) {
+export function AdminView({ spend, speed, directory, you, caps, done }: AdminViewProps) {
   return (
     <div>
       <h1 className="type-h1">Admin</h1>
-      <p className="measure mt-2 text-sm leading-5 text-[var(--muted)]">What the Tutor costs and how fast it answers. Who may come in is decided in Clerk.</p>
+      <p className="measure mt-2 text-sm leading-5 text-[var(--muted)]">What the Tutor costs, how fast it answers, and its daily caps. Who may come in is decided in Clerk.</p>
       <div className="mt-8 grid gap-x-[var(--gap)] gap-y-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="flex min-w-0 flex-col gap-8">
           <SpendSection spend={spend} directory={directory} you={you} />
@@ -338,6 +403,7 @@ export function AdminView({ spend, speed, directory, you }: AdminViewProps) {
         </div>
         <div className="flex min-w-0 flex-col gap-8">
           <PeopleSection />
+          <CapsSection caps={caps} done={done} />
         </div>
       </div>
     </div>

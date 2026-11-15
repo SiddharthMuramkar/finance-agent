@@ -6,11 +6,11 @@ import type { YourTopic } from "@/learner/your-topics";
 import { AppearanceSettings, DeveloperDetailsSwitch, StartOverButton } from "./settings-controls";
 import { YourTopicsSection } from "./your-topics";
 
-/** A section's heading: Inter Tight 18/24 at 600, under the section's ink rule (ADR 0013). Your Topics repeats it. */
+/** A section's heading: Inter Tight 18/24 at 600, under the section's ink rule (ADR 0018). Your Topics repeats it. */
 const heading = "mb-3 [font-family:var(--font-display)] text-[18px] font-semibold leading-6 tracking-[-0.012em]";
 
 /**
- * The Settings page's body (A5): six sections, each under Enjoy's ink rule with no box (ADR 0013), the first five in masonry columns (#529) — Account (who is signed in, and Sign out), Appearance
+ * The Settings page's body (A5): six sections, each under Enjoy's ink rule with no box (ADR 0018), the first five in masonry columns (#529) — Account (who is signed in, and Sign out), Appearance
  * (Light or Dark; the header's theme toggle shares its choice), About you (the Learner Profile form),
  * Your Topics (B3b: start one Topic over; its Card fills A5's `id="your-topics"` slot between About you and Developer details),
  * Developer details, and Start over (the danger zone, full width, last). An account shows the email its Clerk session

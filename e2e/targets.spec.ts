@@ -40,7 +40,7 @@ test("[A1] Widget panel width at 1512 is 52 % of the viewport or more", async ({
   expect((await measureLayout(page)).panelWidthPct).toBeGreaterThanOrEqual(52);
 });
 
-test("[A2] header height is 56 px or less and the chat body font is 16 px (ADR 0013)", async ({ page }) => {
+test("[A2] header height is 56 px or less and the chat body font is 16 px", async ({ page }) => {
   await study(page);
   const m = await measureLayout(page);
   expect(m.headerHeight).toBeLessThanOrEqual(56);
@@ -53,7 +53,7 @@ test("[A3b] interactive elements without a signifier, non-interactive elements w
   const audit = await auditAffordances(page);
   expect(audit.interactiveWithoutSignifier).toEqual([]);
   expect(audit.pointerOnStatic).toEqual([]);
-  // ADR 0014: anywhere, Widgets included, no control lifts on a shadow, moves or is rounder than 12px.
+  // ADR 0018: anywhere, Widgets included, no control lifts on a shadow, moves or is rounder than 12px.
   expect(audit.notFlat).toEqual([]);
 });
 
@@ -85,7 +85,7 @@ test("[D1a] typed-number inputs in the Learner UI: none on an open quiz", async 
   await expect(page.locator('input[type="number"]:not([aria-label="Chunk seed"]), input[inputmode="numeric"]')).toHaveCount(0);
 });
 
-// B6 (ADR 0019) replaces E4a's "Widget on 100 % of replies": a reply changes the Widget only when a better one fits.
+// B6 (ADR 0008) replaces E4a's "Widget on 100 % of replies": a reply changes the Widget only when a better one fits.
 test("[B6] a Widget when it fits (scripted): the step's own Widget, a Lingo card when a word is asked, else the panel stays", async ({ page }) => {
   // The opener plays a Widget-free script and lands (with the story step's own scene) before anything is counted.
   await seed(page, "story");

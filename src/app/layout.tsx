@@ -15,9 +15,9 @@ import { THEME_INIT_SCRIPT } from "./theme";
 // Public metadata for search results and shared links; signed-in pages sit behind the login gate.
 export const metadata: Metadata = siteMetadata;
 
-// The type (ADR 0013): Inter for text (--font-text, which body uses) and Inter Tight for headings (--font-display).
+// The type (spec §3.2): Inter for text (--font-text, which body uses) and Inter Tight for headings (--font-display).
 // Self-hosted by next/font at build time, so no page calls Google. Inter carries latin-ext too, for the rupee sign (₹).
-// Widgets use Inter too (ADR 0014): .genui inherits the body's font.
+// Widgets use Inter too: .genui inherits the body's font.
 const text = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-text", display: "swap" });
 const display = Inter_Tight({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 

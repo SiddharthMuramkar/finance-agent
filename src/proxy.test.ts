@@ -346,4 +346,16 @@ describe("Server Actions", () => {
     expect(files.length).toBeGreaterThan(100);
     expect(files.filter((path) => USE_SERVER.test(readFileSync(path, "utf8")))).toEqual([]);
   });
+
+  it("keeps BotID's challenge paths out of the proxy, signed out (matcher, issue #33)", async () => {
+    // The browser loads the challenge with no say over its cookies, so the proxy must never send it to the login.
+    const matcher = new RegExp(`^${config.matcher[0]}$`);
+    const rewrites = await nextConfig.rewrites!();
+    const sources = (Array.isArray(rewrites) ? rewrites : [...(rewrites.beforeFiles ?? []), ...(rewrites.afterFiles ?? [])])
+      .filter((r) => r.destination.startsWith("https://api.vercel.com/bot-protection/"))
+      .map((r) => r.source.replace("/:path*", "/a/b.js"));
+    expect(sources).toHaveLength(2);
+    for (const source of sources) expect(matcher.test(source), source).toBe(false);
+    expect(matcher.test("/149e9513-01fa-4fb0-aad4-566afd725d1bx")).toBe(true);
+  });
 });

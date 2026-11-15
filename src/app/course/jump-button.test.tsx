@@ -21,7 +21,7 @@ describe("the prerequisite warning", () => {
     expect(html).toContain("Bond prices builds on Present value, Compounding");
   });
 
-  // ADR 0013: a warning is the warning tint with a triangle and words, not the sunflower Widget family.
+  // A warning is the warning tint with a triangle and words (ADR 0015: colour is never the only signal), not the sunflower Widget family.
   it("is a quiet warning box with a triangle, not a Widget colour", () => {
     expect(html).toContain("bg-[var(--warning-tint)]");
     expect(html).not.toContain("--src-line");

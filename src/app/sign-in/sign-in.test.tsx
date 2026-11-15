@@ -68,7 +68,7 @@ describe("/sign-in with the passcode door open (a developer's machine, the test 
   it("posts to /api/login with one full-width primary, Enter, and leads back to Home", async () => {
     const html = await render();
     expect(html).toMatch(/<form[^>]*action="\/api\/login"[^>]*method="post"/);
-    // ADR 0013: the page's one primary, full width at the 44px large size.
+    // ADR 0018: the page's one primary, full width at the 44px large size.
     expect(html).toMatch(/<button type="submit"[^>]*class="btn btn-primary btn-lg w-full"[^>]*>Enter<\/button>/);
     expect(html.match(/btn-primary/g)).toHaveLength(1);
     expect(html).toMatch(/<a[^>]*href="\/"[^>]*>← Back to home<\/a>/);

@@ -1,15 +1,19 @@
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { OWNER_LEARNER_ID, turns } from "@/db/schema";
+import { OWNER_LEARNER_ID, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
+import { CAP_MESSAGES } from "@/tutor/quota";
+import { readSettings } from "@/tutor/session-log";
 import type { StreamEvent, TurnDeps, TurnEvent, TurnInput, TutorClient } from "@/tutor/turn";
 
 /** The /api/turn route: Stop answered at once, pings while a turn runs, progress in the stream. */
 
-const as = vi.hoisted(() => ({ db: undefined as unknown as Db, client: undefined as TutorClient | undefined }));
+/** `admin`: the request's sign-in is the admin's (identity.admin, issue #33), whose turns have no daily cap of their own. */
+const as = vi.hoisted(() => ({ db: undefined as unknown as Db, client: undefined as TutorClient | undefined, admin: false }));
 vi.mock("@/db/client", () => ({ getDb: () => as.db }));
-vi.mock("@/auth/session", () => ({ currentLearnerId: async () => OWNER_LEARNER_ID }));
+vi.mock("@/auth/session", () => ({ currentLearnerId: async () => OWNER_LEARNER_ID, currentTurnTaker: async () => ({ learnerId: OWNER_LEARNER_ID, admin: as.admin }) }));
 vi.mock("@/tutor/tutor-client", () => ({ tutorClient: () => as.client }));
 /** A Tutor Turn that stands in for the real one, when a test sets it: one that fails past its own catch. */
 const fake = vi.hoisted(() => ({ turn: undefined as undefined | ((deps: TurnDeps, input: TurnInput) => AsyncGenerator<TurnEvent>) }));
@@ -54,6 +58,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   fake.turn = undefined;
+  as.admin = false;
 });
 
 /** How many turns the database holds: a refused request must leave it at zero. */
@@ -65,6 +70,35 @@ describe("POST /api/turn", () => {
     const response = await post({ stop: true });
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ stopping: false });
+  });
+
+  it("answers a turn past a Spend cap with a 429 and the limit words, never a 409 a resume would wait out", async () => {
+    as.db = await testDb();
+    await readSettings(as.db);
+    await as.db.update(settings).set({ value: "0" }).where(eq(settings.key, "usd_global_day"));
+    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Never sent." }] }]);
+    as.client = client;
+    const response = await post({ message: "Hello" });
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: CAP_MESSAGES.global_usd, limit: true });
+    expect(requests).toHaveLength(0);
+  });
+
+  it("passes the admin's sign-in to the caps: their turn runs past a Learner's daily cap, anyone else's gets the 429", async () => {
+    as.db = await testDb();
+    await readSettings(as.db);
+    await as.db.update(settings).set({ value: "0" }).where(eq(settings.key, "turns_per_learner_day"));
+    const { client } = scriptedClient([{ content: [{ type: "text", text: "Present value is today's worth." }] }]);
+    as.client = client;
+    const capped = await post({ message: "Hello" });
+    expect(capped.status).toBe(429);
+    expect(await capped.json()).toEqual({ error: CAP_MESSAGES.learner_turns, limit: true });
+
+    as.admin = true;
+    const response = await post({ message: "Hello" });
+    expect(response.status).toBe(200);
+    await response.text();
+    expect(await turnCount()).toBe(1);
   });
 
   it("opens the stream on the first progress, pings while the model is silent, and a Stop ends the turn", async () => {
