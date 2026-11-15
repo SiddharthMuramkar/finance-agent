@@ -4,7 +4,7 @@ import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { near, niceUp, oneFigure, onStep, type BenchLever, type BenchReading } from "./bench";
 import { topicStorySchema, valueLeversModeSchema, type Market, type TopicStory, type ValueLeversMode } from "./data-schemas";
 
-// Value levers, the first Workbench Widget (spec 2026-11-12, B3; ADR 0018), as pure functions over one Case's valuation
+// Value levers, the first Workbench Widget (spec 2026-11-12, B3; ADR 0010), as pure functions over one Case's valuation
 // block: the four Levers and "More settings" with their ranges, the value a story gives (from the one valuation engine,
 // through applyLevers), the headline, the bar, the cash-flow bars, the stories, the Things to try and when each ticks, and
 // which lever has moved the value most. Every word that names a figure (the price, its date, the currency) comes from the
@@ -443,7 +443,7 @@ function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], setting
       return { label: "Revenue in year 10", text: `${moneyText(revenue, block)} of a ${moneyText(size, block)} market` };
     }
     case "margin_marks":
-      // The marks on lever 2 are ticks; this readout names them, so their words sit beside the Widget once (ADR 0014).
+      // The marks on lever 2 are ticks; this readout names them, so their words sit beside the Widget once (ADR 0015: colour is never the only signal).
       return { label: "Rivals' margins", text: mode.marks.map((m) => `${m.label} ${percentReading2(m.percent)}`).join(", ") };
     case "roic": {
       const earns = returnOnNewCapital(settings.margin, settings.salesToCapital, block.taxPercent);

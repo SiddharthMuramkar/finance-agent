@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { OWNER_LEARNER_ID, usageRows } from "@/db/schema";
+import { TUTOR_MODEL } from "./model";
 import { loadCurrentSession } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { sumSteps, unknownCostReason, type StepUsage } from "./usage";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -73,5 +75,27 @@ describe("usage per Tutor turn", () => {
     await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hi"));
     const [step] = (await db.select().from(usageRows)).filter((r) => r.kind === "step");
     expect(step).toMatchObject({ inputTokens: 0, outputTokens: 0 });
+  });
+});
+
+describe("a turn whose cost is unknown", () => {
+  const step = (costUsd: number | null, stopReason: string): StepUsage => ({
+    step: 1,
+    tools: [],
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    thinkingTokens: null,
+    durationMs: 0,
+    costUsd,
+    stopReason,
+  });
+
+  it("says why: a step cut short before OpenAI reported its usage, or a model with no price in the table", () => {
+    expect(unknownCostReason(sumSteps(TUTOR_MODEL, [step(0.01, "end_turn")], 0))).toBeNull();
+    for (const why of ["stopped", "guard", "cut_off", "failed", "timeout"])
+      expect(unknownCostReason(sumSteps(TUTOR_MODEL, [step(null, why), step(0.01, "end_turn")], 0))).toBe("a step was cut short before OpenAI reported its usage");
+    expect(unknownCostReason(sumSteps("a-new-model", [step(null, "end_turn")], 0))).toBe("no price for a-new-model");
   });
 });

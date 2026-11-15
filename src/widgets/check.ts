@@ -69,7 +69,7 @@ function partProblems(children: unknown): string[] {
 export const WIDGET_BUDGET = { controls: 1, numbers: 3, visuals: 1, words: 25, callouts: 1, tasks: 3 } as const;
 
 /**
- * The Workbench budget (spec 2026-11-12, B2; ADR 0018): up to four controls at rest and one more under "More settings", all
+ * The Workbench budget (spec 2026-11-12, B2; ADR 0010): up to four controls at rest and one more under "More settings", all
  * feeding one headline number, one visual, at most three numbers at rest, 40 words and three Guided Tasks. Only a Widget
  * recipe can be a Workbench, so only the recipe tests hold a Widget to it; a Widget the Tutor writes keeps WIDGET_BUDGET.
  */
@@ -432,7 +432,7 @@ export function widgetRuleProblems(code: string, open: readonly string[] = []): 
   if (!root) return [];
   const nodes = [...walkNodes(root.props.children)];
   const problems: string[] = [];
-  // Only a recipe can be a Workbench (ADR 0018): its part stands alone, as the recipe draws it, so no Widget can add parts
+  // Only a recipe can be a Workbench (ADR 0010): its part stands alone, as the recipe draws it, so no Widget can add parts
   // around one and claim the Workbench budget.
   const workbench = nodes.filter((n) => WORKBENCH_PARTS.has(n.typeName));
   if (workbench.length && (nodes.length !== 1 || !Array.isArray(root.props.children) || root.props.children.length !== 1)) {

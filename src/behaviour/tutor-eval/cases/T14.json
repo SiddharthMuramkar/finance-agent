@@ -18,5 +18,5 @@
   "graderChecks": [
     "Does the reply text hold no menu of options for the Learner to choose from (no list of follow-ups such as \"we could do A, B or C\")?"
   ],
-  "notes": "Pass when (2 of 3 runs): code stored a reply_choices item with 2 or 3 Choices, and the reply's own text offers no menu: the Choices carry the next move (ADR 0010)."
+  "notes": "Pass when (2 of 3 runs): code stored a reply_choices item with 2 or 3 Choices, and the reply's own text offers no menu: the Choices carry the next move (ADR 0008)."
 }

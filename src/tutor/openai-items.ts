@@ -52,6 +52,8 @@ export function toResponseCreateParams(request: StepRequest): ResponseCreatePara
     model: request.model,
     input: [instructionsItem(request.instructions), ...toInputItems(request.messages)],
     tools: request.tools.map(({ name, description, parameters, strict }) => ({ type: "function", name, description, parameters, strict })),
+    // The tools stay listed on a last step (the cached prefix is unchanged); "none" only stops the model calling them.
+    ...(request.toolChoice && { tool_choice: request.toolChoice }),
     reasoning: { effort: request.effort, context: "current_turn" },
     max_output_tokens: request.maxOutputTokens,
     store: false,

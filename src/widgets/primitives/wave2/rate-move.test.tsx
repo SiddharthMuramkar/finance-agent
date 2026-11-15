@@ -209,7 +209,7 @@ describe("RateMove, practice mode", () => {
 });
 
 // #480, A1b: a speaker Icon on each worked line and a direction Icon by the arrow, in show and practice mode; the words
-// and the arithmetic stay the same (ADR 0002). The speakers keep their names (reporter, trader, headline) as aria-label.
+// and the arithmetic stay the same (ADR 0003). The speakers keep their names (reporter, trader, headline) as aria-label.
 describe("RateMove's characters are Icons (#480, A1b)", () => {
   const speakers = [
     ["woman", "reporter"],

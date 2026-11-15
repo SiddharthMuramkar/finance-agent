@@ -1,6 +1,6 @@
 # Percent, percentage points and basis points: a foundation Topic taught through a short Case.
 # Case Data (the sourced figures) lives in the database; see docs/architecture.md.
-# Converted (spec #229): four Checks (one idea each, #248), each with a Concept card and Quick tries. Every sum is said in words (ADR 0002).
+# Converted (spec #229): four Checks (one idea each, #248), each with a Concept card and Quick tries. Every sum is said in words (ADR 0003).
 id: num-percent-bps
 title: Percent, percentage points and basis points
 # Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.

@@ -21,7 +21,7 @@ import { VERDICT_PACING_REJECTION } from "./tools";
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
- * Seam 1, Tutor Turn: the pacing rule (ADR 0001, 0006). A step code moved the Learner onto outside a Tutor reply has
+ * Seam 1, Tutor Turn: the pacing rule (ADR 0001). A step code moved the Learner onto outside a Tutor reply has
  * not been taught, so the turn that first speaks of it cannot record its Check verdict, whichever way the step was reached.
  */
 

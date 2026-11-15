@@ -7,8 +7,8 @@ import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 
 /**
  * A3b: every button looks like a button, every link like a link, every tag like a tag (spec 2026-11-05, ticket A3b,
- * Appendix C.3, as ADR 0013 amends it: flat controls, signified by a face, an edge or a strong ghost label; nothing in the
- * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0014). Measured at 1512×982.
+ * Appendix C.3, as ADR 0018 amends it: flat controls, signified by a face, an edge or a strong ghost label; nothing in the
+ * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982.
  */
 
 const PROJECTS = ["mbp14"];
@@ -18,8 +18,8 @@ test.beforeEach(async ({ page }, info) => {
   await quietDevtools(page);
 });
 
-async function clean(page: Page, where: string) {
-  const audit = await auditAffordances(page);
+async function clean(page: Page, where: string, opts: { letOff?: string } = {}) {
+  const audit = await auditAffordances(page, opts);
   expect(
     {
       interactiveWithoutSignifier: audit.interactiveWithoutSignifier,
@@ -39,14 +39,36 @@ async function visit(page: Page, state: State, path: string) {
   await hydrated(page);
 }
 
+/**
+ * The Signal site's pages (decision #7: Home, How it works, Examples, the case pages and About) are judged like every other
+ * page, but for the few Signal spec §5 components whose look the spec draws against the app's rules, while the owner
+ * decides which rule wins (#32):
+ * - text links (`.v-tlink`) and whole-row question links (`.v-qrow`, "Play →") have no underline until hover (§5.2),
+ *   where ADR 0018 underlines a link in a reading area at rest;
+ * - an FAQ row (`.v-faq summary`, §5.17) shows a "+" drawn in CSS, not a chevron icon;
+ * - the Tutor demo's question chips (`.v-qchip`) are pills, and a case page's Previous and Next cards (`.v-linkcard`, a
+ *   whole card that is a link) keep a card's 14 px corners, where ADR 0018 caps a control's corners at 12 px.
+ * Only these, only inside `#main`, are let off, and only the look rules (signifier, flatness, F4's link and blue-word
+ * rules). Everything else on those pages, the site chrome included, is judged. When the owner decides, either the site
+ * follows ADR 0018 and its selector leaves this list, or the ADR makes room for the Signal spec here.
+ */
+const SIGNAL_SITE = new Set(["home", "home-signed-out", "about", "how-it-works", "examples", "case-amazon"]);
+const SIGNAL_SPEC_LOOKS = ["#main .v-tlink", "#main .v-qrow", "#main .v-faq summary", "#main .v-qchip", "#main .v-linkcard"].join(", ");
+
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
-    for (const path of ["/", "/login", "/about"]) {
-      test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path}`, async ({ page }) => {
+    test("[A3b] /login", async ({ page }) => {
+      await page.goto("/login");
+      await hydrated(page);
+      await clean(page, "/login");
+    });
+
+    for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000"]) {
+      test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path} (the Signal site)`, async ({ page }) => {
         await page.goto(path);
         await hydrated(page);
-        await clean(page, path);
+        await clean(page, path, { letOff: SIGNAL_SPEC_LOOKS });
       });
     }
   });
@@ -110,7 +132,7 @@ test.describe("affordance audit is clean", () => {
 });
 
 /**
- * Spec 2026-11-12 F4 (ADR 0022): what can be pressed stays obvious, over every page of the preview matrix. In a reading
+ * Spec 2026-11-12 F4 (ADR 0018): what can be pressed stays obvious, over every page of the preview matrix. In a reading
  * area a link is the accent and underlined, and blue words that can be pressed are underlined or sit on a face; on a Band
  * a button is white with an ink label and a link is white and underlined; nothing that can be pressed is drawn like a key
  * number (the accent at 20px or more, 600 or heavier, never underlined). F1 rides along: no two Bands touch. Each page
@@ -125,7 +147,7 @@ const F4_RULES: readonly F4Rule[] = ["readingLinks", "bandLinks", "bandButtons",
  */
 const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 
-/** Home signed out: the matrix shoots Home signed in, so the hero Band's white Join early access button is judged here. */
+/** Home signed out: the matrix shoots Home signed in, so the visitor's Home (its Join early access) is judged here. */
 const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
 
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {
@@ -139,15 +161,16 @@ test.describe("[F4] what can be pressed stays obvious on every page of the previ
         await expect(page.getByTestId("workspace-frame")).toBeVisible();
         await settled(page);
       }
-      const look = await pressLook(page);
+      const look = await pressLook(page, SIGNAL_SITE.has(cell.id) ? { letOff: SIGNAL_SPEC_LOOKS } : {});
       const known = F4_KNOWN[cell.id];
       const found = Object.fromEntries(F4_RULES.filter((rule) => rule !== known?.rule).map((rule) => [rule, look[rule]]));
       expect(found, `${cell.path}: ${JSON.stringify(look)}`).toEqual(Object.fromEntries(Object.keys(found).map((rule) => [rule, []])));
       if (known) expect(look[known.rule].length, `${cell.id}: ${known.rule} is clean now, so remove its F4_KNOWN row (${known.why})`).toBeGreaterThan(0);
       expect(look.counts.pressable, `${cell.path} has controls to judge`).toBeGreaterThan(0);
-      // Every page of the matrix but the Course Map, the Notebook and Settings stands on at least one Band (F1): Home's
-      // closing, About's opening and closing, the sign-in strip, and the Topic bar on every /study cell.
-      if (!["course-map", "notebook", "settings"].includes(cell.id)) expect(look.counts.bands, `${cell.path} has a Band`).toBeGreaterThan(0);
+      // Every page judged here but the Course Map, the Notebook, Settings and the Signal site's pages (whose sections are the
+      // Signal spec's, with no royal-blue Band) stands on at least one Band (F1): the sign-in strip, and the Topic bar on
+      // every /study cell. On the Signal pages a Band would still be judged by every Band rule above.
+      if (!["course-map", "notebook", "settings"].includes(cell.id) && !SIGNAL_SITE.has(cell.id)) expect(look.counts.bands, `${cell.path} has a Band`).toBeGreaterThan(0);
     });
   }
 });
@@ -163,7 +186,7 @@ const STILL = { transform: "none", translate: "none", scale: "none", shadow: "no
 const FILL = ["rgb(31, 63, 174)", "rgb(26, 53, 150)", "rgb(21, 43, 122)"] as const;
 const INK_2 = "rgb(48, 53, 63)";
 
-test("[ADR 0013] pressing is flat: a press changes colour, never position", async ({ page }) => {
+test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seed(page, "many-topics");
   await page.goto("/settings");
@@ -208,7 +231,7 @@ for (const [state, selector] of [
   ["story", '[data-testid="choice"]'],
   ["quiz-open", 'label:has(input[type="radio"])'],
 ] as const) {
-  test(`[ADR 0013] a press on /study (${state}) changes colour, never position`, async ({ page }) => {
+  test(`[ADR 0018] a press on /study (${state}) changes colour, never position`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await seed(page, state);
     await page.goto("/study");
@@ -264,7 +287,7 @@ for (const state of ["concept-widget", "quiz-open"] as const) {
       if (stop.style !== "solid" || stop.width !== "2px" || stop.offset !== "2px") wrong.push(`${stop.kind} "${stop.name}": ${stop.style} ${stop.width} offset ${stop.offset}`);
     }
     expect(wrong).toEqual([]);
-    // The Topic bar's finished steps are step segments (ADR 0013), no longer chips; the chat's Widget chip is a chip.
+    // The Topic bar's finished steps are step segments, no longer chips; the chat's Widget chip is a chip.
     for (const kind of ["nav", "icon", "button", "step"]) expect([...reached], `Tab reaches a ${kind}`).toContain(kind);
     if (state === "concept-widget") {
       expect([...reached], "Tab reaches a chip").toContain("chip");

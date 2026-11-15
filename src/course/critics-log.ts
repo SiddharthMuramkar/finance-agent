@@ -2,7 +2,7 @@ import { parse } from "yaml";
 import type { Topic } from "./map.ts";
 
 /**
- * The critics gate for the Spine (spec 2026-11-12 C8, ADR 0020): "A Spine Topic ships only when the course check and the
+ * The critics gate for the Spine (spec 2026-11-12 C8, ADR 0004): "A Spine Topic ships only when the course check and the
  * critics pass." The critics are agents, not code, so what the course check can hold is their record: one entry per
  * written Spine Topic in docs/critics/spine-log.yaml, read by all four lenses, with no confirmed finding left open.
  */

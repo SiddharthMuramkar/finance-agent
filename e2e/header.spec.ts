@@ -3,7 +3,7 @@ import { hydrated, seed } from "./support/app";
 import { measureLayout } from "./support/measure";
 
 /**
- * A5 and ADR 0013: the slim, flat header. A plain wordmark, three ghost page links (the current one ink at weight 600 over
+ * A5 and ADR 0018: the slim, flat header. A plain wordmark, three ghost page links (the current one ink at weight 600 over
  * a 2px accent bar on the header's hairline), then Settings gear and account as 32px ghost icons (no theme toggle: one
  * Light theme, decision #17); one line and at most 56px tall at 1512 and 1024; the gear opens Settings; the account menu, a popover, signs out to Home.
  */
@@ -97,7 +97,7 @@ test("[A5] the account menu names the Learner and Sign out ends on Home, signed 
   const menu = page.getByTestId("account-menu");
   await expect(menu).toBeVisible();
   await expect(menu).toContainText("tools");
-  // A floating layer (ADR 0013): 12px corners and the pop shadow, the only shadow in the header.
+  // A floating layer (ADR 0018): 12px corners and the pop shadow, the only shadow in the header.
   const look = await menu.evaluate((el) => ({ radius: getComputedStyle(el).borderTopLeftRadius, shadow: getComputedStyle(el).boxShadow }));
   expect(look.radius).toBe("12px");
   expect(look.shadow).not.toBe("none");
@@ -106,7 +106,7 @@ test("[A5] the account menu names the Learner and Sign out ends on Home, signed 
   await expect(page.getByRole("link", { name: "Sign in", exact: true }).first()).toBeVisible();
 });
 
-test("[ADR 0013] the header is flat: a 56px row over a 1px hairline, 32px ghost controls with 8px corners and no shadow", async ({ page }) => {
+test("[ADR 0018] the header is flat: a 56px row over a 1px hairline, 32px ghost controls with 8px corners and no shadow", async ({ page }) => {
   await course(page);
   const header = page.locator("header");
   const box = await header.evaluate((el) => {
@@ -136,7 +136,7 @@ test("[ADR 0013] the header is flat: a 56px row over a 1px hairline, 32px ghost 
   expect(scroll.scroll).toBeLessThanOrEqual(scroll.client + 1);
 });
 
-test("[ADR 0013] the page showing is marked three ways: aria-current, ink at weight 600, and a 2px accent bar on the hairline", async ({ page }) => {
+test("[A5] the page showing is marked three ways: aria-current, ink at weight 600, and a 2px accent bar on the hairline", async ({ page }) => {
   await course(page);
   const [ink, ink2, accent] = [await token(page, "--ink"), await token(page, "--ink-2"), await token(page, "--accent")];
   const tabs = await page.locator("header").evaluate((header) => {
@@ -184,7 +184,7 @@ test("[ADR 0013] the page showing is marked three ways: aria-current, ink at wei
   expect(gear.gap).toBeLessThanOrEqual(0.5);
 });
 
-test("[ADR 0013] the page links never move between pages, and each is named by its label alone", async ({ page }) => {
+test("[A5] the page links never move between pages, and each is named by its label alone", async ({ page }) => {
   await seed(page, "many-topics");
   let first: number[] | null = null;
   for (const path of ["/study", "/course", "/notebook", "/settings"]) {

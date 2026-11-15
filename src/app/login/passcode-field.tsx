@@ -23,7 +23,7 @@ export function PasscodeField() {
         autoComplete="current-password"
         className="field h-11 w-full pl-3 pr-12 text-[15px]"
       />
-      {/* Placed by offsets, not a transform: a control never moves or carries a transform (ADR 0013). */}
+      {/* Placed by offsets, not a transform: a control never moves or carries a transform (ADR 0018). */}
       <IconButton label={eye.label} pressed={shown} onClick={() => setShown(!shown)} className="absolute right-1.5 top-1.5 !h-8 !w-8">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />

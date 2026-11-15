@@ -7,7 +7,7 @@ import { TimelineStripView } from "./timeline-strip";
 import { TwoPathsView } from "./two-paths";
 
 // Issue #450 (R-E2a): the story parts must look alive in a still frame, not only while they move. Each part shows a
-// character, an object or a story moment at rest, with its accent as a thin edge carrying its meaning (ADR 0014), and
+// character, an object or a story moment at rest, with its accent as a thin edge carrying its meaning (ADR 0015), and
 // a toggle that stays open takes the app's pressed look.
 
 let page: Page | null = null;
@@ -191,7 +191,7 @@ describe("TwoPaths reveal", () => {
 
 // CL-1 (R-E2a fix round 1): the at-rest frame of TwoPaths was two plain cards. At rest it must already read as a story:
 // both characters' Icons in hairline circles on cards with a 2 px sunflower top edge, each choice beside a thought-balloon
-// Icon, an "or" between the paths, and a closed "what happened" slot that waits for the Learner (A9b, ADR 0014).
+// Icon, an "or" between the paths, and a closed "what happened" slot that waits for the Learner (A9b).
 describe("TwoPaths at rest", () => {
   const paths = (
     <TwoPathsView

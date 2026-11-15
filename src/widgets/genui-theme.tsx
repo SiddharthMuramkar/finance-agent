@@ -10,7 +10,7 @@ import { markKeyFigures } from "./key-figure";
 // entry bundles a private copy of the theme context.
 
 /**
- * Widgets' font: the body's Inter stack (ADR 0014). `.genui` inherits it; a `:root` token cannot name `--font-text`,
+ * Widgets' font: the body's Inter stack. `.genui` inherits it; a `:root` token cannot name `--font-text`,
  * because that variable is set on `<body>`, not on `<html>`.
  */
 export const FONT = 'var(--font-text, system-ui), -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -46,7 +46,7 @@ const COLOURS: Theme = {
   textNeutralLink: "var(--brand)",
   textBrand: "var(--brand)",
   textAccentPrimary: "var(--brand-ink)",
-  // Callout titles are ink. A family shows only as a thin edge, never as a fill or as coloured words (ADR 0014).
+  // Callout titles are ink. A family shows only as a thin edge, never as a fill or as coloured words (ADR 0015).
   textInfoPrimary: "var(--ink)",
   textInfoInverted: "var(--brand-ink)",
   textSuccessPrimary: "var(--ink)",
@@ -90,7 +90,7 @@ export function rootDeclarations(): Record<string, string> {
 /** A kit weight above 500 becomes 500. 400 stays 400. */
 const capWeight = (value: string) => value.replace(/^(?:560|600|700)(?=\s)/, "500");
 
-/** The kit's type styles at its own sizes, in Inter, with no weight above 500 (ADR 0014). Code keeps its monospace face. */
+/** The kit's type styles at its own sizes, in Inter, with no weight above 500. Code keeps its monospace face. */
 const FONTS = {
   ...Object.fromEntries(
     Object.entries(defaultLightTheme).flatMap(([key, value]) => {

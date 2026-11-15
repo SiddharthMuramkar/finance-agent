@@ -3,7 +3,7 @@ import type { CourseMap, Primer, Topic } from "./map";
 import type { Place } from "./navigator";
 
 /**
- * Primers (spec 2026-11-12, C3; ADR 0020): a two-minute stop inside a Spine Topic that teaches one idea the Topic needs.
+ * Primers (spec 2026-11-12, C3; ADR 0004): a two-minute stop inside a Spine Topic that teaches one idea the Topic needs.
  * Code shows it as one Session item when the Learner enters the Teaching Step the Topic file names (`at`): at most three
  * lines, one Lingo term as a card, one Quick try (marked like any other, by its key), optionally a Widget preset stored
  * after it, and a link to the Elective that teaches the idea in depth. "I know this" passes over it. Pure and

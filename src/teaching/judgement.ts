@@ -1,5 +1,5 @@
 /**
- * Computed judgement questions (spec 2026-11-12, D1 to D3, D5; ADR 0021): a which-lever, what-the-price-assumes or
+ * Computed judgement questions (spec 2026-11-12, D1 to D3, D5; ADR 0002): a which-lever, what-the-price-assumes or
  * predict question whose right choice, choice figures and mix-up fixes code works out with the valuation engine from a
  * Case's `valuation:` block. The Topic file holds only the words and the lever changes, so a changed Case input changes
  * the answer and every figure with no edit to the question.

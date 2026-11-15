@@ -26,7 +26,11 @@ export function referenceRateNotice(name: string, dataName: string, verb: "is" |
 export const SOFR_NOTICE = referenceRateNotice("Secured Overnight Financing Rate (SOFR)", "SOFR");
 export const EFFR_NOTICE = referenceRateNotice("Effective Federal Funds Rate (EFFR)", "EFFR");
 
-/** The notice for SOFR and EFFR together, for any page or widget that shows or explains either rate. */
+/**
+ * The notice for SOFR and EFFR together, for any page or widget that shows or explains either rate. None does today beyond
+ * the Library passages from those two pages (passageNotices): the Signal Rates widget is a worked example with no outside
+ * figures (spec §6.5.2), so it carries none.
+ */
 export const NYFED_REFERENCE_RATE_NOTICE = referenceRateNotice(
   "Secured Overnight Financing Rate (SOFR) and Effective Federal Funds Rate (EFFR) information",
   "SOFR and EFFR information",

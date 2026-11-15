@@ -221,6 +221,13 @@ export function useTurnStream({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...request, ...(shownRef.current && { shown: shownRef.current }), ...(widgets && { widgets: widgets.all() }) }),
         });
+        if (res.status === 429) {
+          // A Spend cap (limit reached): nothing ran or was saved, and waiting would not help, so the Learner reads why.
+          const { error: limit } = (await res.json()) as { error: string };
+          if (!("resume" in request)) setMessages(takeBack(reply, userId));
+          fail(limit);
+          return;
+        }
         if (res.status === 409) {
           const { error: busy, stale } = (await res.json()) as { error: string; stale?: boolean };
           if (stale && "resume" in request) {
@@ -291,7 +298,7 @@ export function useTurnStream({
               continue;
             }
             if (event.type === "stopped") {
-              // The Learner stopped the reply, and "done" follows. Never a resume. The held reply is dropped (ADR 0008): no text
+              // The Learner stopped the reply, and "done" follows. Never a resume. The held reply is dropped (ADR 0006): no text
               // was shown, so no empty reply bubble is left, only the Stopped note.
               finished = true;
               update(() => ({ waiting: null, progress: null }));

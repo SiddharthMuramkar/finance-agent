@@ -11,15 +11,28 @@ import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model"
 
 /**
  * Sessions and their add-only message log: the stored settings a Session is frozen from, which
- * Session a turn runs in (one per Learner and Topic, ADR 0004), and the history sent to the model.
+ * Session a turn runs in (one per Learner and Topic, ADR 0005), and the history sent to the model.
  */
 
 export type { Effort, Message } from "./model";
 /**
  * The stored settings and their defaults, written the first time. There is no model setting: every Session runs on
- * TUTOR_MODEL (ADR 0015), so a `model` or `widget_compose_model` row left from before the switch is never read.
+ * TUTOR_MODEL (ADR 0007), so a `model` or `widget_compose_model` row left from before the switch is never read.
  */
-export const DEFAULT_SETTINGS = { effort: DEFAULT_EFFORT, session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10", widget_engine: "on" };
+export const DEFAULT_SETTINGS = {
+  effort: DEFAULT_EFFORT,
+  session_idle_hours: "6",
+  compact_at_tokens: "200000",
+  review_cap: "10",
+  widget_engine: "on",
+  // The Spend caps (decision #13, quota.ts), editable on /admin: a Learner's turns and dollars a day, everyone's dollars a
+  // day, and each turn's steps (all its runs together) and resumes.
+  turns_per_learner_day: "120",
+  usd_per_learner_day: "5",
+  usd_global_day: "30",
+  steps_per_turn: "10",
+  resumes_per_turn: "2",
+};
 
 export type Session = typeof sessions.$inferSelect;
 
@@ -32,16 +45,27 @@ export async function readSettings(db: Db) {
   const rows = await db.select().from(settings);
   const get = (key: string) => rows.find((r) => r.key === key)?.value;
   return {
-    /** The one model (ADR 0015); not a stored setting. */
+    /** The one model (ADR 0007); not a stored setting. */
     model: TUTOR_MODEL,
     effort: get("effort") as Effort,
-    /** How long a gap counts as a break; it never starts a new Session (ADR 0004). */
+    /** How long a gap counts as a break; it never starts a new Session (ADR 0005). */
     idleHours: Number(get("session_idle_hours")),
     compactAtTokens: Number(get("compact_at_tokens")),
     /** The most spaced reviews offered over the last 24 hours. */
     reviewCap: Number(get("review_cap")),
-    /** The widget engine (ADR 0005): "on" freezes new and refrozen Sessions with show_widget. Read only by frozenNow. */
+    /** The widget engine (ADR 0009): "on" freezes new and refrozen Sessions with show_widget. Read only by frozenNow. */
     widgetEngine: get("widget_engine") === "on" ? ("on" as const) : ("off" as const),
+    /**
+     * The Spend caps (quota.ts). Turn admission checks the daily ones before a new turn takes the Learner's lock, and the
+     * resume limit before a resume; the step limit goes with the turn to its Step ledger (step-ledger.ts).
+     */
+    caps: {
+      learnerTurnsPerDay: Number(get("turns_per_learner_day")),
+      learnerUsdPerDay: Number(get("usd_per_learner_day")),
+      globalUsdPerDay: Number(get("usd_global_day")),
+      stepsPerTurn: Number(get("steps_per_turn")),
+      resumesPerTurn: Number(get("resumes_per_turn")),
+    },
   };
 }
 
@@ -181,13 +205,13 @@ export async function refreezeIfChanged(db: Db, session: Session): Promise<Sessi
   return row;
 }
 
-/** Whether a Session was frozen for another model than TUTOR_MODEL: a Claude-era Session (ADR 0015), never sent to OpenAI. */
+/** Whether a Session was frozen for another model than TUTOR_MODEL: a Claude-era Session (ADR 0007), never sent to OpenAI. */
 export function isLegacySession(session: { model: string }): boolean {
   return session.model !== TUTOR_MODEL;
 }
 
 /**
- * Closes the Learner's live Claude-era Sessions for a Topic (null: the every-Topic-passed Session), ADR 0015. Each is
+ * Closes the Learner's live Claude-era Sessions for a Topic (null: the every-Topic-passed Session), ADR 0007. Each is
  * marked older, so it stays readable under Older sessions, and the Topic's next turn makes a fresh Session at the
  * Learner's saved step (their progress, misconceptions and profile reach it through code's context). One that holds
  * no message yet is simply refrozen in place, so no empty Older Session appears. Runs under the Learner's row lock,
@@ -241,7 +265,7 @@ export function usesWidgetEngine(session: { tools: unknown } | undefined): boole
 
 /**
  * The instructions, tools, model and effort a Session freezes now, with their fingerprint. The widget engine's
- * (ADR 0005) when the `widget_engine` setting is "on", or when the Session already has show_widget: one way per
+ * (ADR 0009) when the `widget_engine` setting is "on", or when the Session already has show_widget: one way per
  * Session, so no history ever holds a show_widget call its tools no longer list. Off, today's exactly, so the
  * fingerprint of every Session without the engine is unchanged.
  */
@@ -250,7 +274,7 @@ export async function frozenNow(db: Db, session?: { tools: unknown }) {
   const model = TUTOR_MODEL;
   const engine = widgetEngine === "on" || usesWidgetEngine(session);
   const instructions = engine ? ENGINE_INSTRUCTIONS : TUTOR_INSTRUCTIONS;
-  // compose_widget is not offered to new Sessions (ADR 0007); a Session whose tools already list it keeps it.
+  // compose_widget is not offered to new Sessions (ADR 0009); a Session whose tools already list it keeps it.
   const keepsCompose = Array.isArray(session?.tools) && session.tools.some((t) => (t as { name?: unknown })?.name === "compose_widget");
   const tools: ToolDefinition[] = engine ? (keepsCompose ? ENGINE_TOOLS_WITH_COMPOSE : ENGINE_TOOLS) : TUTOR_TOOLS;
   return { instructions, tools, model, effort, fingerprint: fingerprint(instructions, tools) };
@@ -272,7 +296,7 @@ export type Row = { seq: number } & Message;
  *   not its text, so every tool_use keeps its tool_result. An edited row also loses its `replay` block, so the
  *   adapter sends it rebuilt from what is left (openai-items.ts);
  * - in a turn where the checks rejected a row, sends every row after the earliest rejected one without its `replay`
- *   block too (A1, ADR 0016, `withoutReplayAfterEdits`): the accepted retry was written with the rejected draft and the
+ *   block too (A1, ADR 0007, `withoutReplayAfterEdits`): the accepted retry was written with the rejected draft and the
  *   correction before it in its turn, so its reasoning item no longer belongs to what is sent, and the API refuses it
  *   while that turn is current (the compaction after the reply, or a resumed turn). Everything else replays unchanged.
  * `rows` is the Session as the Learner saw it (rejected text left out too); rows appended later are kept whole.
@@ -344,7 +368,7 @@ export function withoutRejected<R extends { seq: number; role: string; content?:
 }
 
 /**
- * An edit of what was sent (A1, ADR 0016): from the earliest row code left out or changed in a turn (`at`), up to the
+ * An edit of what was sent (A1, ADR 0007): from the earliest row code left out or changed in a turn (`at`), up to the
  * next turn's first row (`until`). Every row after `at` in that span was written with the edited row before it.
  */
 export type HistoryEdit = { at: number; until: number };

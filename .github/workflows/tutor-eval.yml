@@ -5,7 +5,8 @@ name: Tutor eval
 # its job name is not in the ruleset on main. It runs only on PRs that change what the Tutor is told.
 #
 # The repo is public. This workflow uses `pull_request` only, never `pull_request_target` or `workflow_run`, so a
-# PR from a fork gets no secret and the job skips, saying so. That is intended.
+# PR from a fork gets no secret. Without the OPENAI_API_KEY secret the `tutor-eval` job is skipped (grey, not green), and
+# `tutor-eval key` says "skipped: no OPENAI_API_KEY" in a notice and in the run's summary. That is intended.
 on:
   pull_request:
     paths:
@@ -46,47 +47,71 @@ concurrency:
 
 permissions:
   contents: read
-  # The summary is posted as a PR comment.
-  pull-requests: write
 
 jobs:
+  # Is the key here? A job's `if` cannot read secrets, so this job looks and tells the next one.
+  key:
+    name: tutor-eval key
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    outputs:
+      present: ${{ steps.key.outputs.present }}
+    steps:
+      - id: key
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "OPENAI_API_KEY is set: the live Tutor tests run in the job tutor-eval."
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Tutor eval skipped::skipped: no OPENAI_API_KEY (a PR from a fork, or the secret is not set). The live Tutor tests did not run."
+            {
+              echo "### Tutor eval: skipped: no OPENAI_API_KEY"
+              echo "The live Tutor tests did not run: this is a PR from a fork, or the repository secret OPENAI_API_KEY is not set."
+              echo "The job tutor-eval shows as skipped. Nothing was tested, so this is not a pass."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   tutor-eval:
+    needs: key
+    if: needs.key.outputs.present == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    permissions:
+      contents: read
+      # The summary is posted as a PR comment.
+      pull-requests: write
     steps:
-      - name: Skip without the API key
-        if: env.OPENAI_API_KEY == ''
-        run: |
-          echo "No OPENAI_API_KEY secret here (a PR from a fork, or the secret is not set), so the live Tutor tests are skipped." | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@v7
-        if: env.OPENAI_API_KEY != ''
-      - uses: actions/setup-node@v7
-        if: env.OPENAI_API_KEY != ''
         with:
-          node-version: 24
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
           cache: npm
-      - if: env.OPENAI_API_KEY != ''
-        run: npm ci
+      - run: npm ci
       - name: Run the live Tutor tests
         id: eval
-        if: env.OPENAI_API_KEY != ''
+        # Only this step gets the key, so no install script from a package can read it.
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         # npm run tutor:eval reads .env, as on the laptop; here it is empty and the key comes from the secret.
         run: |
           touch .env
           npm run tutor:eval
       - name: Job summary
-        if: always() && env.OPENAI_API_KEY != ''
+        if: always()
         run: |
           if [ -f evidence/tutor-eval/summary.md ]; then cat evidence/tutor-eval/summary.md >> "$GITHUB_STEP_SUMMARY"; else echo "The live Tutor tests wrote no report: see the run's log." >> "$GITHUB_STEP_SUMMARY"; fi
       - name: PR comment
-        if: always() && env.OPENAI_API_KEY != '' && hashFiles('evidence/tutor-eval/summary.md') != ''
+        if: always() && hashFiles('evidence/tutor-eval/summary.md') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file evidence/tutor-eval/summary.md
       - uses: actions/upload-artifact@v5
-        if: always() && env.OPENAI_API_KEY != ''
+        if: always()
         with:
           name: tutor-eval
           path: evidence/tutor-eval/

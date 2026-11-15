@@ -1,4 +1,4 @@
-// The icon-only button: a 32px square ghost (ADR 0013). Kept apart from the header so any client control can use it.
+// The icon-only button: a 32px square ghost (ADR 0018). Kept apart from the header so any client control can use it.
 
 /**
  * A button that is only an icon, 32x32, transparent until hovered, its SVG drawn at 16px with a 1.75 stroke. label names

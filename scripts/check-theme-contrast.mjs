@@ -246,7 +246,7 @@ if (!raw) {
       if (!(f in raw) || !(b in raw)) { check(false, `colour-only pair [${f}, ${b}] names a fill token and a surface token`); continue; }
       const r = ratio(f, b); check(r >= 3, `--${f} on --${b} ${r.toFixed(2)}:1 (min 3, colour alone carries the meaning)`);
     }
-    // --accent-deep (= --brand-deep) is frozen but no longer drawn: Widget controls are flat (ADR 0014). It keeps its old
+    // --accent-deep (= --brand-deep) is frozen but no longer drawn: Widget controls are flat (ADR 0018). It keeps its old
     // promise, darker than the primary's face.
     check(L(S('accent-deep')) < L(S('accent-fill')), '--accent-deep is darker than --accent-fill');
     const order = ['paper', 'raised', 'wash', 'rule', 'line', 'line-strong'].map(k => L(S(k)));

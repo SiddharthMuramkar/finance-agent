@@ -433,8 +433,15 @@ export const barWidth = (slot: number) => Math.min(14, Math.max(3, slot * 0.62))
 export function topRoundedBar(x: number, y: number, w: number, h: number, radius = 3): string {
   if (h <= 0 || w <= 0) return "";
   const r = Math.min(radius, w / 2, h);
-  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+  return `M${px(x)},${px(y + h)}V${px(y + r)}Q${px(x)},${px(y)} ${px(x + r)},${px(y)}H${px(x + w - r)}Q${px(x + w)},${px(y)} ${px(x + w)},${px(y + r)}V${px(y + h)}Z`;
 }
+
+/**
+ * An SVG coordinate at 2 decimals. A chart is drawn on the server and again in the browser to hydrate, and Node and Chrome
+ * can differ in the last digit of Math.pow, which the jackpot's and compounding's bars are built on: unrounded, the two
+ * wrote different paths and React reported a hydration mismatch (spec §13 row 24: no console errors).
+ */
+export const px = (n: number) => Math.round(n * 100) / 100;
 
 /** A value to `d` decimals with its percent sign: `5.00%`. */
 export const percent = (value: number, decimals = 2) => `${value.toFixed(decimals)}%`;

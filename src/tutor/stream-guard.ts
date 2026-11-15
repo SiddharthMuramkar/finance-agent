@@ -1,7 +1,7 @@
 import { appWordsIn, blockedNumbersIn, prose } from "./reply-checks";
 
 /**
- * The stream guard (spec 2026-11-12, A5; ADR 0017). An own-question reply streams to the Learner as the model writes it,
+ * The stream guard (spec 2026-11-12, A5; ADR 0006). An own-question reply streams to the Learner as the model writes it,
  * but never word by word: text is held to the end of a sentence, and the whole sentence is tested before it shows for
  * the three things that may never appear: a Blocked number, a sentence that tells the Learner to buy, sell or hold
  * something, and an internal word or id (V6's app words). On a hit the stream stops: the sentence is never shown, and

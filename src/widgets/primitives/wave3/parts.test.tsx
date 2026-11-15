@@ -131,7 +131,7 @@ describe("StoryScene", () => {
   });
 
   // #528: in the Widget panel (the size container named pane) the stage grows with the panel's height, centred, and
-  // the cast grows from its 32/40 px floor to 40 px, then 48 px in a tall panel (A1b, ADR 0014).
+  // the cast grows from its 32/40 px floor to 40 px, then 48 px in a tall panel (A1b).
   it("grows its stage and cast with the Widget panel's height", () => {
     show(scene);
     const stage = byId(page!, "story-stage")!.className;

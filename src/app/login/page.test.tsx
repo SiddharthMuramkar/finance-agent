@@ -60,7 +60,7 @@ describe("The passcode page", () => {
     const html = await render({});
     expect(html).toMatch(/<form[^>]*action="\/api\/login"[^>]*method="post"/);
     expect(html).toMatch(/<button[^>]*type="submit"[^>]*>Enter<\/button>/);
-    // ADR 0013: the page's one primary, full width at the 44px large size.
+    // ADR 0018: the page's one primary, full width at the 44px large size.
     expect(html).toMatch(/<button type="submit"[^>]*class="btn btn-primary btn-lg w-full"[^>]*>Enter<\/button>/);
   });
 

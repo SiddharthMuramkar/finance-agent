@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { accentFamilies, auditAffordances, measureLayout, readingBlock, widgetLook } from "./support/measure";
+import { accentFamilies, auditAffordances, measureLayout, pressLook, readingBlock, widgetLook } from "./support/measure";
 
 /**
  * The measuring helper itself (e2e/support/measure.ts, F1's `{ prose }` option), on fixed pages: no app, no server
@@ -176,7 +176,7 @@ test("[C1] readingBlock measures a centred block, an off-centre one, and a child
   expect(short.edges.find((e) => e.name === "assistant-message")?.right).toBeCloseTo(short.block!.right - 5, 1);
 });
 
-// A7a (ADR 0014; spec §2.2 rules 5 and 6): inside a Widget the signal colours are small marks only; no fill, no family
+// A7a (ADR 0015 and ADR 0018; spec §2.2 rules 5 and 6): inside a Widget the signal colours are small marks only; no fill, no family
 // text, no lift, no tilt, nothing over 600, and 600 only on the one key figure. `widgetLook` lists what breaks that, on
 // fixed pages styled by the real globals.css.
 const MISUSED = `
@@ -243,7 +243,7 @@ test("[A7a] widgetLook fails when the scope matches nothing", async ({ page }) =
   await expect(widgetLook(page, { within: '[data-testid="no-such-part"]' })).rejects.toThrow(/no-such-part/);
 });
 
-// A7a (guard): since A4, `auditAffordances` judges Widget controls by default (ADR 0014: one set of control rules).
+// A7a (guard): since A4, `auditAffordances` judges Widget controls by default (ADR 0018: one set of control rules).
 test("[A7a] auditAffordances: a lipped button and a 16px-radius button inside a Widget are not flat", async ({ page }) => {
   await styled(
     page,
@@ -254,4 +254,41 @@ test("[A7a] auditAffordances: a lipped button and a 16px-radius button inside a 
   const { notFlat } = await auditAffordances(page);
   expect(notFlat.some((n) => n.includes('"Lipped"'))).toBe(true);
   expect(notFlat.some((n) => n.includes('"Rounded"'))).toBe(true);
+});
+
+// The audits' `letOff` (affordance.spec.ts, the Signal pages): a control inside `letOff` is not judged for its signifier,
+// its flatness or the F4 link and blue-word rules, and is counted; every other rule, and every control outside it, still is.
+test("[A3b, F4] letOff lets off only the controls inside it, and only for the look rules", async ({ page }) => {
+  await styled(
+    page,
+    `<main style="padding:24px">
+    <p><a href="#a" class="spec-look" data-affordance="link" style="color:var(--accent);text-decoration:none">Spec link</a></p>
+    <p><a href="#b" data-affordance="link" style="color:var(--accent);text-decoration:none">Bare link</a></p>
+    <button class="spec-look" data-affordance="button" style="border-radius:999px;border:1px solid #000;cursor:pointer">Pill</button>
+    <button class="spec-look" data-affordance="button" style="border:1px solid #000;cursor:pointer;height:12px;font-size:8px">Tiny</button>
+    <span class="spec-look" style="cursor:pointer">Static</span></main>`,
+  );
+  const all = await auditAffordances(page);
+  expect(all.interactiveWithoutSignifier).toEqual(['a "Spec link"', 'a "Bare link"']);
+  expect(all.notFlat).toEqual(['button "Pill" radius']);
+  const some = await auditAffordances(page, { letOff: ".spec-look" });
+  expect(some.interactiveWithoutSignifier).toEqual(['a "Bare link"']);
+  expect(some.notFlat).toEqual([]);
+  expect(some.tooSmall.some((n) => n.startsWith('button "Tiny"'))).toBe(true);
+  expect(some.pointerOnStatic).toEqual(['span "Static"']);
+  expect(some.counts.letOff).toBe(3);
+
+  const look = await pressLook(page, { letOff: ".spec-look" });
+  expect(look.readingLinks.map((w) => w.split(" rgb")[0])).toEqual(['a "Bare link"']);
+  expect(look.bareBlueWords.map((w) => w.split(":")[0])).toEqual(['a "Bare link"']);
+  expect(look.counts.letOff).toBe(3);
+  expect((await pressLook(page)).readingLinks).toHaveLength(2);
+});
+
+// An inset ring (inset 0 0 0 1px, no offset or blur) is drawn exactly like a border, so it is a button's edge (the Signal
+// widgets' quiet button); a ring too faint to see, or a soft inset glow, is not.
+test("[A3b] auditAffordances reads an inset ring as an edge", async ({ page }) => {
+  const button = (shadow: string, label: string) => `<button data-affordance="button" style="background:#fff;border:0;cursor:pointer;height:40px;box-shadow:${shadow}">${label}</button>`;
+  await styled(page, `<main style="background:#fff;padding:24px">${button("inset 0 0 0 1px #e2e5ea", "Ring")}${button("inset 0 0 0 1px #fbfbfc", "Faint")}${button("inset 0 2px 6px #000", "Glow")}</main>`);
+  expect((await auditAffordances(page)).interactiveWithoutSignifier).toEqual(['button "Faint"', 'button "Glow"']);
 });

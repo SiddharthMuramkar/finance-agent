@@ -1,7 +1,7 @@
 import { valuationBlock, type ValuationBlock } from "./valuation-case.ts";
 import { VALUATION_CASES } from "./valuation-cases.generated.ts";
 
-// The Valuation Cases a Workbench Widget can be bound to (spec 2026-11-12, B3; ADR 0018): every `valuation:` block in
+// The Valuation Cases a Workbench Widget can be bound to (spec 2026-11-12, B3; ADR 0010): every `valuation:` block in
 // course/topics, by Case id, as `npm run course:doc` copies them into valuation-cases.generated.ts. No file system and
 // no database, so the browser (Home's Value levers, signed out), the server (what the Tutor is told) and the course check
 // read the same figures. Each block is parsed once, on first use.

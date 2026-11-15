@@ -6,7 +6,7 @@ import { secondaryButtonClass } from "./ui";
  * The Topic complete card (src/tutor/topic-complete.ts), the last item of a passed Topic's conversation: the
  * principle in a line or two, "Saved to your Notebook ✓", What comes next ("Next Topic: <title> →", or "New in
  * <Topic>: Check N →" for a Due Check) and the Course Map. It stays on screen until the Learner chooses.
- * The pass is marked in the success status (ADR 0013, status is never colour alone; #479): a success-tint fill under ink
+ * The pass is marked in the success status (ADR 0015, status is never colour alone; #479): a success-tint fill under ink
  * text, a hairline border and a success "Topic complete ✓" eyebrow, whose words and tick say it. Tokens only.
  */
 export function TopicCompleteCard({ card }: { card: TopicCompleteData }) {

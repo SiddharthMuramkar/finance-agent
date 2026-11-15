@@ -23,7 +23,7 @@ describe("no page-level width cap in the app", () => {
   });
 });
 
-// ADR 0013 (superseding A2's 15/24): the chat is 16/26, set once as --text-chat and --lh-chat. The chat files take their size
+// The flat restyle (superseding A2's 15/24): the chat is 16/26, set once as --text-chat and --lh-chat. The chat files take their size
 // from those tokens, never a fixed size of their own, so the two lines in globals.css are the one place to change it.
 describe("the chat type comes from its tokens", () => {
   it("thread.tsx and message-box.tsx size chat text with --text-chat, and name no fixed chat size", () => {

@@ -147,6 +147,9 @@ function LeverControl({
       <div
         ref={track}
         className="sig-lever-track"
+        // The drawn lever is the drag target (its range input is the keyboard's and the screen reader's way in), so while
+        // it is live its pointer is meant: the affordance audit lets it show one. A lever that is off shows none.
+        data-allow-pointer={enabled ? "" : undefined}
         style={compact ? { height: 140 } : undefined}
         onPointerDown={down}
         onPointerMove={move}

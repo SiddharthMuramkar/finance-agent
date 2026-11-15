@@ -17,7 +17,7 @@ import { ValueBridgeView } from "./value-bridge-view";
 import { waccStackLevers } from "./wacc-stack-model";
 import { WaccStackView } from "./wacc-stack-view";
 
-// The five Workbench parts that follow Value levers (spec 2026-11-12, B4; ADR 0018), in the Widget library so their recipes
+// The five Workbench parts that follow Value levers (spec 2026-11-12, B4; ADR 0010), in the Widget library so their recipes
 // can draw them and the Study Workspace keeps their work like any Widget's: each lever is a $variable the program declares
 // (saved, restored, told to the Tutor), the Things to try are saved ticks, and the Topic file's figures arrive as literal
 // props, parsed by the same functions the Widget check uses (registry.ts). Only a recipe draws them: widgetRuleProblems holds

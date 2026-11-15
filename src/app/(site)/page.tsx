@@ -41,7 +41,7 @@ export default async function HomePage() {
           <div className="v-row">
             <PrimaryCta viewer={viewer} />
             {secondary && (
-              <Link href={secondary.href} className="v-btn v-btn-secondary v-btn-lg">
+              <Link href={secondary.href} className="v-btn v-btn-secondary v-btn-lg" data-affordance="button">
                 {secondary.label}
               </Link>
             )}

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withBotId } from "botid/next/config";
 
 // OpenUI ships as one file, and a bundler cannot tell which of its parts a page uses. Three changes trim it (the
 // numbers are in docs/architecture.md): a loader that marks its top-level calls as pure and drops its chat shell;
@@ -9,6 +10,9 @@ const STUBS = "./src/widgets/openui-stubs";
 
 /** The public site's addresses (src/app/(site)), each drawn per viewer: Home, How it works, Examples, a case page, About. */
 const PUBLIC_SITE_PAGES = ["/", "/how-it-works", "/examples", "/examples/:slug", "/about"];
+
+/** Browser features no page uses, turned off for every page and anything it embeds (issue #33). */
+const PERMISSIONS_POLICY = ["camera", "microphone", "geolocation", "payment", "usb", "interest-cohort", "browsing-topics"].map((f) => `${f}=()`).join(", ");
 
 const nextConfig: NextConfig = {
   // The browser test bed (E2E=1, spec 2026-11-05 T-00) builds into its own folder, so it never shares a lock or a
@@ -40,6 +44,8 @@ const nextConfig: NextConfig = {
   },
   // "/" (Home) is public, so no other site may frame any page (clickjacking), browsers must not guess content types,
   // and other sites see only our origin as the referrer. Only frame-ancestors is set: a full script CSP would need nonces.
+  // HSTS keeps browsers on HTTPS for two years, subdomains included (no `preload`: that list is hard to leave), and
+  // Permissions-Policy turns off device and tracking features the app never uses (issue #33).
   async headers() {
     return [
       // The public site's pages (decision #7) are each one address for two or three pages, keyed only by the cookie: the
@@ -52,10 +58,15 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+          { key: "Permissions-Policy", value: PERMISSIONS_POLICY },
         ],
       },
     ];
   },
 };
 
-export default nextConfig;
+// BotID (issue #33, src/auth/bot-protection.ts): withBotId adds rewrites that send the browser's challenge under
+// /149e9513-…/ to Vercel's BotID service, and lets only those paths be framed by this site (its rule comes after ours,
+// so it wins there). src/proxy.ts's matcher skips that segment, so a signed-out visitor can load the challenge.
+export default withBotId(nextConfig);
