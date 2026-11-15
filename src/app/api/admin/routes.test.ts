@@ -29,6 +29,10 @@ vi.mock("@/auth/better-auth", () => {
       on(env) ? { api: { getSession: async () => (jar.account ? { session: { id: "s1" }, user: jar.account } : null) } } : null,
   };
 });
+// Until these routes go (issue #33), the signed-in account stands in for a Clerk session, and only the owner's is admin.
+vi.mock("@/auth/identity", () => ({
+  currentIdentity: async () => jar.account && { userId: jar.account.id, email: jar.account.email, firstName: jar.account.name, admin: jar.account.id === "u-owner" },
+}));
 
 const accessRoute = await import("./access/route");
 const invitesRoute = await import("./invites/route");

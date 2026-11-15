@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
-import { betterAuthOn, googleSignInOn } from "@/auth/better-auth";
+import { googleSignInOn } from "@/auth/better-auth";
 import { destinationOrDefault, googleCallbackURL, safeDestination } from "@/auth/destination";
 import { emailLinkOn } from "@/auth/email-link";
-import { currentSignIn } from "@/auth/session";
 import { HomeFooter, HomeHeader, type PublicSignIn } from "../_landing/chrome";
-import { Button, PrimaryButton, TextLink, secondaryButtonClass } from "../ui";
+import { PrimaryButton, TextLink } from "../ui";
 import { EmailLinkForm } from "./email-link-form";
 import { GoogleButton } from "./google-button";
 import { PasscodeField } from "./passcode-field";
@@ -29,38 +28,11 @@ function Or() {
 }
 
 /**
- * The status screen for someone signed in with an account that may not enter (ADR 0014), under its title in the Band: who they are signed in as,
- * "Check again" (a fresh /login, which the proxy forwards once they are approved) and Sign out (the same form post as
- * everywhere else). No sign-in form: they are signed in already.
- */
-function AccountStatus({ email, next, children }: { email: string; next: string | null; children: ReactNode }) {
-  return (
-    <>
-      <p className={muted}>
-        You&apos;re signed in as <span className="break-all font-medium text-[var(--ink)]">{email}</span>. {children}
-      </p>
-      <div className="flex flex-wrap items-center gap-3">
-        {/* A plain link, so the whole page loads again and the proxy decides afresh (it forwards an approved person). */}
-        <a href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} data-affordance="button" className={secondaryButtonClass}>
-          Check again
-        </a>
-        <form action="/api/logout" method="post">
-          <Button type="submit" variant="secondary">
-            Sign out
-          </Button>
-        </form>
-      </div>
-    </>
-  );
-}
-
-/**
  * The sign-in page. With accounts on (Google, email links or both; never on a preview), in this order (ADR 0014):
  * 1. `?link=<token>`, where an emailed sign-in link lands: "Finish signing in", one button that sends the token to
  *    Better Auth's verify. Never automatic, so a mail scanner opening the link uses nothing up.
- * 2. Someone signed in who waits for the owner, or was denied: their status, Check again and Sign out.
- * 3. `?error=INVALID_TOKEN`: "That sign-in link has expired", with the sign-in below it.
- * 4. Sign in: Google (the page's one primary), "or", then the email link (secondary beside Google, the primary
+ * 2. `?error=INVALID_TOKEN`: "That sign-in link has expired", with the sign-in below it.
+ * 3. Sign in: Google (the page's one primary), "or", then the email link (secondary beside Google, the primary
  *    without it), and the passcode behind a link.
  * With accounts off the page is the passcode form alone, exactly as before (C1b); `?passcode=1` shows it too.
  */
@@ -87,27 +59,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             Sign in
           </PrimaryButton>
         </form>
-      </Shell>
-    );
-  }
-
-  // Only a Better Auth session can wait or be denied, so the passcode page never reads one.
-  const signIn = betterAuthOn(process.env) ? await currentSignIn() : null;
-  if (signIn?.kind === "waiting") {
-    return (
-      <Shell title="Waiting for approval" signIn="waiting">
-        <AccountStatus email={signIn.user.email} next={next}>
-          The owner of Value It lets each new person in. Nothing is emailed when they do, so press Check again later.
-        </AccountStatus>
-      </Shell>
-    );
-  }
-  if (signIn?.kind === "denied") {
-    return (
-      <Shell title="Access not approved" signIn="waiting">
-        <AccountStatus email={signIn.user.email} next={next}>
-          The owner of Value It hasn&apos;t let this account in. If that&apos;s a mistake, ask the person who shared Value It with you.
-        </AccountStatus>
       </Shell>
     );
   }

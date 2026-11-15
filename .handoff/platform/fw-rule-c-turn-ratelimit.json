@@ -1,0 +1,19 @@
+{
+  "name": "Rate limit POST /api/turn",
+  "description": "20 per 60s per IP; log only (tune before 429)",
+  "active": true,
+  "conditionGroup": [
+    {
+      "conditions": [
+        { "type": "method", "op": "eq", "value": "POST" },
+        { "type": "path", "op": "eq", "value": "/api/turn" }
+      ]
+    }
+  ],
+  "action": {
+    "mitigate": {
+      "action": "rate_limit",
+      "rateLimit": { "algo": "fixed_window", "window": 60, "limit": 20, "keys": ["ip"], "action": "log" }
+    }
+  }
+}

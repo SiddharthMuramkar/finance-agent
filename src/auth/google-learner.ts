@@ -1,15 +1,15 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { learners } from "../db/schema.ts";
 import type { Db } from "../db/types.ts";
+import { makeLearner as makeLinkedLearner, reservedNames } from "./clerk-learner.ts";
 import { inviteFor, signupOpen } from "./invites.ts";
 import type { Learner } from "./learners.ts";
-import { OWNER_NAME, TOOLS_NAME, passcodeList } from "./passcode.ts";
 
 /** The fields of a Better Auth `user` (Google or email link) this module reads. */
 export type AuthUser = { id: string; email: string; name: string };
 
-/** The most " (n)" suffixes tried before giving up on a display name (a clash this deep means something is wrong). */
-const MAX_SUFFIX = 50;
+/** The reserved names now live in clerk-learner.ts, beside the Clerk linking that outlives this file (issue #33). */
+export { reservedNames };
 
 async function linkedLearner(db: Db, userId: string): Promise<Learner | null> {
   const [found] = await db
@@ -20,37 +20,10 @@ async function linkedLearner(db: Db, userId: string): Promise<Learner | null> {
   return found ?? null;
 }
 
-/**
- * Names a Learner made through sign-in (Google or an email link) never takes as they are, compared in
- * any case: `owner` and `tools`, and every name on the passcode list, so a passcode sign-in (which
- * finds its Learner by name) can never open a signed-in person's Learner, nor a sign-in a passcode
- * person's.
- */
-export function reservedNames(env: Record<string, string | undefined> = process.env): Set<string> {
-  return new Set([OWNER_NAME, TOOLS_NAME, ...passcodeList(env).keys()].map((n) => n.toLowerCase()));
-}
-
-/** A display name made safe to store: spaces collapsed, at most 60 characters, never empty. */
-function cleanName(name: string): string {
-  return name.replace(/\s+/g, " ").trim().slice(0, 60).trim() || "Learner";
-}
-
-/**
- * A new active Learner for this signed-in user, under the display name or, when that is reserved or
- * taken by another active Learner, "<name> (2)", "<name> (3)" and so on. Never `signInAs`, which would
- * hand back the other person's Learner. When this user's other first request won, theirs is returned.
- */
+/** A new active Learner for this signed-in user, under their display name (clerk-learner.ts's makeLearner rules). */
 async function makeLearner(db: Db, user: AuthUser, reserved: Set<string>): Promise<Learner | null> {
-  const base = cleanName(user.name);
-  for (let n = 1; n <= MAX_SUFFIX; n++) {
-    const name = n === 1 ? base : `${base} (${n})`;
-    if (reserved.has(name.toLowerCase())) continue;
-    // Either unique index may refuse: the name (someone else has it) or the user (a racing request won).
-    const [made] = await db.insert(learners).values({ name, authUserId: user.id }).onConflictDoNothing().returning();
-    if (made) return made;
-    const raced = await linkedLearner(db, user.id);
-    if (raced) return raced;
-  }
+  const made = await makeLinkedLearner(db, user.name, { authUserId: user.id }, () => linkedLearner(db, user.id), reserved);
+  if (made) return made;
   console.warn(`learner_name_exhausted: no free name for Google user ${user.id}`);
   return null;
 }

@@ -84,8 +84,8 @@ async function html(page: Promise<ReactElement>) {
 }
 const json = async (response: Response | Promise<Response>) => (await response).json();
 
-/** The redirect to the login a page or route throws when the request is signed out. */
-const toLogin = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/login;/) };
+/** The redirect to the sign-in a page or route throws when the request is signed out. */
+const toLogin = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/sign-in;/) };
 const toWelcome = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/welcome;/) };
 
 async function drain(events: AsyncIterable<unknown>) {

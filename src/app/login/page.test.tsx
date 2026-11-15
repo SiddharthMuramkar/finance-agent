@@ -1,16 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { SignIn } from "@/auth/session";
-
-// Who is signed in comes from currentSignIn (tested in src/auth/session.test.ts); here it is whatever a test says.
-const who = vi.hoisted(() => ({ signIn: { kind: "signed-out" } as SignIn, asked: 0 }));
-vi.mock("@/auth/session", () => ({
-  currentSignIn: async () => {
-    who.asked++;
-    return who.signIn;
-  },
-}));
-
 const { default: LoginPage } = await import("./page");
 const { passcodeEye } = await import("./passcode-field");
 
@@ -102,11 +91,7 @@ const emailOn = () => {
 const buttons = (html: string) => Object.fromEntries([...html.matchAll(/<button[^>]*class="([^"]*)"[^>]*>(?:<[^>]+>)*([^<]+)</g)].map((m) => [m[2], m[1]]));
 
 describe("The sign-in page with accounts on (ADR 0014)", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-    who.signIn = { kind: "signed-out" };
-    who.asked = 0;
-  });
+  afterEach(() => vi.unstubAllEnvs());
 
   it("offers Google first, then the email link as a secondary, then the passcode behind a link", async () => {
     googleOn();
@@ -183,37 +168,6 @@ describe("The sign-in page with accounts on (ADR 0014)", () => {
     expect(html).not.toContain("Sign-in didn&#x27;t work");
   });
 
-  it("tells a waiting person they wait, by email, with Check again and Sign out, and no sign-in form", async () => {
-    googleOn();
-    emailOn();
-    who.signIn = { kind: "waiting", user: { id: "u1", email: "noor@icloud.com", name: "Noor" } };
-    const html = await render({ next: "/course" });
-    expect(html).toMatch(/<h1 class="type-h1">Waiting for approval<\/h1>/);
-    expect(text(html)).toContain("noor@icloud.com");
-    expect(html).toMatch(/<a[^>]*href="\/login\?next=%2Fcourse"[^>]*>Check again<\/a>/);
-    expect(html).toMatch(/<form[^>]* action="\/api\/logout" method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
-    expect(html).not.toContain("Continue with Google");
-    expect(html).not.toContain("Email me a sign-in link");
-    expect(html).not.toContain('name="passcode"');
-  });
-
-  it("tells a denied person they are not approved, with Check again and Sign out", async () => {
-    emailOn();
-    who.signIn = { kind: "denied", user: { id: "u2", email: "spam@x.com", name: "Spam" } };
-    const html = await render({});
-    expect(html).toMatch(/<h1 class="type-h1">Access not approved<\/h1>/);
-    expect(text(html)).toContain("spam@x.com");
-    expect(html).toMatch(/<a[^>]*href="\/login"[^>]*>Check again<\/a>/);
-    expect(html).toMatch(/action="\/api\/logout"/);
-    expect(html).not.toContain("Waiting for approval");
-  });
-
-  it("a sign-in link outranks the waiting screen, so opening one for another address still works", async () => {
-    emailOn();
-    who.signIn = { kind: "waiting", user: { id: "u1", email: "noor@icloud.com", name: "Noor" } };
-    expect(await render({ link: "AbC" })).toMatch(/<h1 class="type-h1">Finish signing in<\/h1>/);
-  });
-
   it("an old not_invited error, or any other code, gets the plain message", async () => {
     googleOn();
     emailOn();
@@ -223,14 +177,6 @@ describe("The sign-in page with accounts on (ADR 0014)", () => {
       expect(html, error).not.toContain("not on the list");
       expect(html, error).toContain("Continue with Google");
     }
-  });
-
-  it("asks who is signed in only while accounts are on, so the passcode page reads no session", async () => {
-    await render({});
-    expect(who.asked).toBe(0);
-    emailOn();
-    await render({});
-    expect(who.asked).toBe(1);
   });
 });
 

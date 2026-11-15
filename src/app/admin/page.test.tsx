@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Owner } from "@/auth/owner";
+import type { Admin as Owner } from "@/auth/owner";
 import { accessDenials, account, invites, learners, replyChecks, sessions, turns, tutorIncidents, usageRows, user } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb, testDbThrough } from "@/test/pglite";
@@ -14,7 +14,7 @@ const jar = vi.hoisted(() => ({ db: undefined as unknown as Db, owner: null as n
 
 vi.mock("@/db/client", () => ({ getDb: () => jar.db }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }), headers: async () => new Headers() }));
-vi.mock("@/auth/owner", () => ({ signedInOwner: async () => jar.owner }));
+vi.mock("@/auth/owner", () => ({ signedInAdmin: async () => jar.owner }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: () => {}, push: () => {} }),
   usePathname: () => "/admin",
@@ -63,7 +63,7 @@ describe("/admin", () => {
   beforeEach(async () => {
     jar.db = await testDb();
     const learner = await seed(jar.db);
-    jar.owner = { learner, user: OWNER };
+    jar.owner = { learner, identity: { userId: OWNER.id, email: OWNER.email, firstName: OWNER.name, admin: true } };
   });
   afterEach(() => vi.unstubAllEnvs());
 
@@ -236,7 +236,7 @@ describe("/admin", () => {
     // every Learner it writes or reads back, is put in by hand.
     await jar.db.execute(sql`alter table learners add column clerk_user_id text`);
     const learner = await seed(jar.db);
-    jar.owner = { learner, user: OWNER };
+    jar.owner = { learner, identity: { userId: OWNER.id, email: OWNER.email, firstName: OWNER.name, admin: true } };
     const html = await render();
     const speed = section(html, "speed");
     expect(text(speed)).toContain("Not available yet");

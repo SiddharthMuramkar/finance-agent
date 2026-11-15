@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { type Owner, signedInOwner } from "@/auth/owner";
+import { type Admin as Owner, signedInAdmin as signedInOwner } from "@/auth/owner";
 import { sameOrigin } from "@/auth/same-origin";
 import { type AdminDone, doneAddress } from "../../admin/done";
 

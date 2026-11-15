@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { deniedPeople, peopleWithAccess, pendingInvites, waitingRequests } from "@/auth/access";
 import { signupOpen } from "@/auth/invites";
-import { signedInOwner } from "@/auth/owner";
+import { signedInAdmin as signedInOwner } from "@/auth/owner";
 import { getDb } from "@/db/client";
 import { tutorSpeed } from "@/tutor/speed";
 import { spendByPerson } from "@/tutor/spend";

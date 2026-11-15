@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     }
     if (action === "deny") {
       if (form.get("confirm") !== DENY_CONFIRM) return badRequest("Confirm Deny first.");
-      const result = await denyAccess(getDb(), userId, { ownerUserId: owner.user.id });
+      const result = await denyAccess(getDb(), userId, { ownerUserId: owner.identity.userId });
       const done = result === "denied" ? "denied" : result === "no_user" ? "gone" : "owner_stays";
       console.info(`Admin: deny user ${userId}: ${done}`);
       return done;

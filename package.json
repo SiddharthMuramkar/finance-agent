@@ -47,6 +47,7 @@
     "@assistant-ui/react": "0.15.32",
     "@assistant-ui/react-markdown": "0.14.24",
     "@better-auth/drizzle-adapter": "1.7.17",
+    "@clerk/nextjs": "7.10.0",
     "@formulajs/formulajs": "4.6.1",
     "@neondatabase/serverless": "1.2.0",
     "@openuidev/lang-core": "1.0.2",

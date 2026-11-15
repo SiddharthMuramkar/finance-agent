@@ -1,0 +1,14 @@
+{
+  "name": "build",
+  "requires": "build-ready",
+  "targets": [
+    "production"
+  ],
+  "blocks": "deployment-alias",
+  "timeout": 3600,
+  "source": {
+    "kind": "git-provider",
+    "provider": "github",
+    "externalCheckName": "build"
+  }
+}

@@ -1,5 +1,8 @@
-/** Where the Learner lands after the passcode when there is no safe destination. */
+/** Where the Learner lands after signing in when there is no safe destination. */
 export const DEFAULT_DESTINATION = "/study";
+
+/** Where a signed-out request is sent: Clerk's sign-in, or the passcode form while the passcode door is open. */
+export const SIGN_IN_PATH = "/sign-in";
 
 // Any origin works: only "does it stay on this origin" matters, so a fixed stand-in avoids needing the real host.
 const BASE = "https://site.invalid";
@@ -9,9 +12,12 @@ const ENCODED_SLASH = /%(?:2f|5c)/i;
 
 const under = (path: string, root: string) => path === root || path.startsWith(`${root}/`);
 
+/** The sign-in pages (Clerk's, the passcode form, the old /login and the Waitlist): never a place to land after signing in. */
+const AUTH_PAGES = [SIGN_IN_PATH, "/sign-up", "/join", "/login"];
+
 /**
  * The destination rule: a `next` value is safe only if it is a path on this site that is
- * neither the sign-in page nor an API route. Returns the resolved path and query (never the
+ * neither a sign-in page nor an API route. Returns the resolved path and query (never the
  * original text), or null when the value isn't safe. The value is used as delivered, never
  * decoded; an encoded slash or backslash is refused, so no later decoding can make a "//".
  */
@@ -28,8 +34,8 @@ export function safeDestination(next: unknown): string | null {
     return null;
   }
   if (url.origin !== BASE) return null;
-  // Checked on the resolved path, so dot segments such as "/a/../login" can't slip past.
-  if (under(url.pathname, "/login") || under(url.pathname, "/api")) return null;
+  // Checked on the resolved path, so dot segments such as "/a/../sign-in" can't slip past.
+  if (AUTH_PAGES.some((page) => under(url.pathname, page)) || under(url.pathname, "/api")) return null;
   return url.pathname + url.search;
 }
 

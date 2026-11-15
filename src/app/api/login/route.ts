@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { destinationOrDefault, safeDestination } from "@/auth/destination";
+import { passcodeDoorOpen } from "@/auth/gates";
 import { callerAddress, claimLoginTry, loginFailed, loginSucceeded } from "@/auth/login-guard";
 import { signInAs } from "@/auth/learners";
 import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, learnerToken, nameForPasscode, passcodeList } from "@/auth/passcode";
@@ -14,6 +15,8 @@ function backToLogin(request: Request, message: "wrong" | "locked", next: string
 }
 
 export async function POST(request: Request) {
+  // The passcode door is for the test bed and the test tools only: shut in production and on Vercel, as if not there.
+  if (!passcodeDoorOpen(process.env)) return new NextResponse("Not found", { status: 404, headers: { "content-type": "text/plain" } });
   const db = getDb();
   const ip = callerAddress(request);
   const form = await request.formData();

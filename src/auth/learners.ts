@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { learners } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { isDenied } from "./access";
+import { passcodeDoorOpen } from "./gates";
 import { type PasscodeList, signedLearnerId } from "./passcode";
 
 export type Learner = typeof learners.$inferSelect;
@@ -43,24 +43,35 @@ export async function startOver(db: Db, learnerId: number, now = new Date()): Pr
       .where(and(eq(learners.id, learnerId), isNull(learners.archivedAt)))
       .returning();
     if (!archived) return null;
-    // A Google-linked Learner's fresh copy keeps the link; the archived one keeps it too, but no longer counts.
-    const [fresh] = await tx.insert(learners).values({ name: archived.name, authUserId: archived.authUserId }).returning();
+    // An account's fresh Learner keeps the link (Clerk's, or Better Auth's until it goes); the archived one keeps it
+    // too, but no longer counts.
+    const [fresh] = await tx
+      .insert(learners)
+      .values({ name: archived.name, authUserId: archived.authUserId, clerkUserId: archived.clerkUserId })
+      .returning();
     return fresh;
   });
 }
 
 /**
- * The Learner a sign-in cookie opens, or null when the request counts as signed out: the cookie is
- * missing, old (no Learner) or wrongly signed, or its Learner is unknown, archived (Start over), under
- * a name no longer in the passcode list, or linked to an account the owner denied (ADR 0014: else a
- * passcode would get around a denial). The proxy and the session both call this, so they agree. A
- * Learner with no account reads no denial, so a passcode sign-in works before migration 0035 runs.
+ * The Learner a passcode cookie (`fa_access`) opens, or null when the request counts as signed out: the passcode door
+ * is shut (production or Vercel), or the cookie is missing, old (no Learner) or wrongly signed, or its Learner is
+ * unknown, archived (Start over), under a name no longer in the passcode list, or linked to an account (Clerk's, or
+ * Better Auth's until it goes): a passcode never opens a person's Learner, only their own sign-in does. The proxy and
+ * the session both call this, so they agree.
  */
-export async function learnerFromCookie(db: Db, cookie: string | undefined, secret: string, list: PasscodeList): Promise<Learner | null> {
+export async function learnerFromCookie(
+  db: Db,
+  cookie: string | undefined,
+  secret: string,
+  list: PasscodeList,
+  env: Record<string, string | undefined> = process.env,
+): Promise<Learner | null> {
+  if (!passcodeDoorOpen(env)) return null;
   const id = await signedLearnerId(cookie, secret);
   if (id === null) return null;
   const [learner] = await db.select().from(learners).where(eq(learners.id, id)).limit(1);
   if (!learner || learner.archivedAt !== null || !list.has(learner.name)) return null;
-  if (learner.authUserId !== null && (await isDenied(db, learner.authUserId))) return null;
+  if (learner.clerkUserId !== null || learner.authUserId !== null) return null;
   return learner;
 }

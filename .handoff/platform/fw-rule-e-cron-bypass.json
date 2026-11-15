@@ -1,0 +1,15 @@
+{
+  "name": "Bypass Vercel Cron",
+  "description": "Vercel Cron (UA vercel-cron/, x-vercel-cron-schedule) to /api/cron/; route also checks CRON_SECRET",
+  "active": true,
+  "conditionGroup": [
+    {
+      "conditions": [
+        { "type": "path", "op": "pre", "value": "/api/cron/" },
+        { "type": "user_agent", "op": "pre", "value": "vercel-cron/" },
+        { "type": "header", "op": "ex", "key": "x-vercel-cron-schedule" }
+      ]
+    }
+  ],
+  "action": { "mitigate": { "action": "bypass" } }
+}
