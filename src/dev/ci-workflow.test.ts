@@ -31,9 +31,9 @@ describe("the required checks check, build and ui", () => {
   });
 
   it("together stand for every other job, so no job can fail without turning a required check red", () => {
-    const covered = new Set(Object.values(REQUIRED).flat());
+    const covered = new Set<string>(Object.values(REQUIRED).flat());
     const others = Object.keys(ci.jobs).filter((id) => !(id in REQUIRED) && id !== "changes");
-    expect(others.filter((id) => !covered.has(id as never))).toEqual([]);
+    expect(others.filter((id) => !covered.has(id))).toEqual([]);
   });
 
   it("are not also job names in another workflow, where a same-named check could stand in for them", () => {
