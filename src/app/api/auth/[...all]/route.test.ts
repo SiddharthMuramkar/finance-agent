@@ -28,7 +28,18 @@ describe("/api/auth/*", () => {
     expect(as.calls).toBe(0);
   });
 
-  it("is Better Auth's handler once both secrets are set", async () => {
+  it("answers 404 while Google's client secret is missing, though the rest of Google is set", async () => {
+    vi.stubEnv("BETTER_AUTH_URL", "http://localhost:3000");
+    vi.stubEnv("BETTER_AUTH_SECRET", "a-test-secret-of-at-least-32-characters!");
+    vi.stubEnv("GOOGLE_CLIENT_ID", "test-client");
+    vi.stubEnv("GOOGLE_CLIENT_SECRET", "");
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("EMAIL_FROM", "");
+    expect((await route.GET(okRequest())).status).toBe(404);
+    expect(as.calls).toBe(0);
+  });
+
+  it("is Better Auth's handler once all four Google settings are set", async () => {
     as.db = await testDb();
     vi.stubEnv("BETTER_AUTH_URL", "http://localhost:3000");
     vi.stubEnv("BETTER_AUTH_SECRET", "a-test-secret-of-at-least-32-characters!");

@@ -171,6 +171,23 @@ describe("which ways in are on", () => {
     expect(authOptions(db, ENV).socialProviders.google).toBeDefined();
   });
 
+  it("Google needs all four settings: without the client secret or the site's address there is no button that fails on press", async () => {
+    const db = await testDb();
+    expect(googleSignInOn(ENV)).toBe(true);
+    for (const missing of ["BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const) {
+      for (const value of [undefined, "", "  "]) {
+        const env = { ...ENV, [missing]: value };
+        expect(googleSignInOn(env), `${missing}=${JSON.stringify(value)}`).toBe(false);
+        expect(betterAuthOn(env), `${missing}=${JSON.stringify(value)}`).toBe(false);
+        expect(authOptions(db, env).socialProviders.google, missing).toBeUndefined();
+      }
+    }
+    // Email links stay on beside a half-set Google: only the Google door closes.
+    const halfGoogle = { ...EMAIL, GOOGLE_CLIENT_ID: "test-client" };
+    expect(googleSignInOn(halfGoogle)).toBe(false);
+    expect(betterAuthOn(halfGoogle)).toBe(true);
+  });
+
   it("the magic-link plugin exists only with email links, and rate limits live in the database", async () => {
     const db = await testDb();
     const ids = (env: Record<string, string>) => authOptions(db, env).plugins.map((p) => p.id);

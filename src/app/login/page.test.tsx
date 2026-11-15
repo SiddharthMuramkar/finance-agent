@@ -85,10 +85,12 @@ describe("The passcode page", () => {
 });
 
 const SECRET = "a-test-secret-of-at-least-32-characters!";
-/** Google sign-in on (the secret and a client id), as on production. */
+/** Google sign-in on (the secret, the site's address, and Google's client id and secret), as on production. */
 const googleOn = () => {
   vi.stubEnv("BETTER_AUTH_SECRET", SECRET);
+  vi.stubEnv("BETTER_AUTH_URL", "https://www.value-it.xyz");
   vi.stubEnv("GOOGLE_CLIENT_ID", "test-client");
+  vi.stubEnv("GOOGLE_CLIENT_SECRET", "test-client-secret");
 };
 /** Email links on (the secret, the site's address, and Resend), as on production. */
 const emailOn = () => {
@@ -133,6 +135,16 @@ describe("The sign-in page with accounts on (ADR 0014)", () => {
     expect(text(html)).not.toMatch(/ or /);
     expect(buttons(html)["Email me a sign-in link"]).toMatch(/^btn btn-primary btn-lg\b/);
     expect(html).toMatch(/<a[^>]*href="\/login\?passcode=1"[^>]*>Use a passcode<\/a>/);
+  });
+
+  it("hides Google while its client secret is missing, rather than show a button that fails on press", async () => {
+    googleOn();
+    vi.stubEnv("GOOGLE_CLIENT_SECRET", "");
+    expect(await render({})).not.toContain("Continue with Google");
+    emailOn();
+    const html = await render({});
+    expect(html).not.toContain("Continue with Google");
+    expect(buttons(html)["Email me a sign-in link"]).toMatch(/^btn btn-primary btn-lg\b/);
   });
 
   it("shows Google alone when email links are off, and nothing but the passcode on a preview", async () => {

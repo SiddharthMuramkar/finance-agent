@@ -24,9 +24,14 @@ const SESSION_SECONDS = 60 * 60 * 24 * 90;
 /** Link requests one caller address may make in EMAIL_LINK_SECONDS, across every instance (the rest of the limits are in email-throttle.ts). */
 const EMAIL_LINK_REQUESTS = 10;
 
-/** True when Google sign-in is configured: both BETTER_AUTH_SECRET and GOOGLE_CLIENT_ID are set. Decides the Google provider and button. */
+/**
+ * True when Google sign-in is configured: BETTER_AUTH_SECRET, BETTER_AUTH_URL (the host of the redirect URI
+ * Google checks letter for letter), GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are all set. Decides the Google
+ * provider and button, so a half-set Google shows no button rather than one that fails when pressed (Better Auth
+ * refuses to start without the client secret).
+ */
 export function googleSignInOn(env: Env = process.env): boolean {
-  return Boolean(env.BETTER_AUTH_SECRET?.trim() && env.GOOGLE_CLIENT_ID?.trim());
+  return [env.BETTER_AUTH_SECRET, env.BETTER_AUTH_URL, env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET].every((v) => Boolean(v?.trim()));
 }
 
 /** True when Better Auth runs at all: Google sign-in or email links (email-link.ts), or both, are on. */
