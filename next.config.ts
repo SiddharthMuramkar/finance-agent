@@ -7,6 +7,9 @@ import type { NextConfig } from "next";
 // The aliases are global, and nothing else in src/ imports those packages.
 const STUBS = "./src/widgets/openui-stubs";
 
+/** The public site's addresses (src/app/(site)), each drawn per viewer: Home, How it works, Examples, a case page, About. */
+const PUBLIC_SITE_PAGES = ["/", "/how-it-works", "/examples", "/examples/:slug", "/about"];
+
 const nextConfig: NextConfig = {
   // The browser test bed (E2E=1, spec 2026-11-05 T-00) builds into its own folder, so it never shares a lock or a
   // cache with a normal `npm run dev`.
@@ -39,10 +42,9 @@ const nextConfig: NextConfig = {
   // and other sites see only our origin as the referrer. Only frame-ancestors is set: a full script CSP would need nonces.
   async headers() {
     return [
-      // Home and the About page are each one address for two pages, keyed only by the cookie (the About header knows who
-      // is signed in, spec 2026-11-12 G1): never cached by a CDN or the browser.
-      { source: "/", headers: [{ key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" }] },
-      { source: "/about", headers: [{ key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" }] },
+      // The public site's pages (decision #7) are each one address for two or three pages, keyed only by the cookie: the
+      // nav and the CTAs follow the viewer state (Signal spec 7.1). Never cached by a CDN or the browser.
+      ...PUBLIC_SITE_PAGES.map((source) => ({ source, headers: [{ key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" }] })),
       {
         source: "/:path*",
         headers: [

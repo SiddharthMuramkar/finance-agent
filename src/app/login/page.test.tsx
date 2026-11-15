@@ -98,8 +98,10 @@ const emailOn = () => {
   vi.stubEnv("EMAIL_FROM", "Value It <sign-in@value-it.xyz>");
 };
 
-/** The buttons on the page, by their words, with their classes. */
-const buttons = (html: string) => Object.fromEntries([...html.matchAll(/<button[^>]*class="([^"]*)"[^>]*>(?:<[^>]+>)*([^<]+)</g)].map((m) => [m[2], m[1]]));
+/** The page's own content, inside <main>: the site nav and footer around it have their own buttons. */
+const inMain = (html: string) => html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+/** The buttons in the page's content, by their words, with their classes. */
+const buttons = (html: string) => Object.fromEntries([...inMain(html).matchAll(/<button[^>]*class="([^"]*)"[^>]*>(?:<[^>]+>)*([^<]+)</g)].map((m) => [m[2], m[1]]));
 
 describe("The sign-in page with accounts on (ADR 0014)", () => {
   afterEach(() => {
@@ -119,7 +121,7 @@ describe("The sign-in page with accounts on (ADR 0014)", () => {
     const b = buttons(html);
     expect(b["Continue with Google"]).toMatch(/\bbtn-primary\b/);
     expect(b["Email me a sign-in link"]).toMatch(/^btn btn-secondary btn-lg\b/);
-    expect(html.match(/btn-primary/g)).toHaveLength(1);
+    expect(inMain(html).match(/(?<![\w-])btn-primary/g)).toHaveLength(1);
     expect(html).toMatch(/<input[^>]*type="email"[^>]*>/);
     expect(html).toMatch(/<input[^>]*autoComplete="email"[^>]*>/);
     expect(html).toMatch(/<a[^>]*href="\/login\?passcode=1&amp;next=%2Fcourse"[^>]*>Use a passcode<\/a>/);
