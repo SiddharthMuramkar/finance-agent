@@ -17,7 +17,7 @@ import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model"
 export type { Effort, Message } from "./model";
 /**
  * The stored settings and their defaults, written the first time. There is no model setting: every Session runs on
- * TUTOR_MODEL (ADR 0015), so a `model` or `widget_compose_model` row left from before the switch is never read. There
+ * TUTOR_MODEL (ADR 0007), so a `model` or `widget_compose_model` row left from before the switch is never read. There
  * is no widget engine setting either: every Session freezes the engine (#19), so a `widget_engine` row is never read.
  */
 export const DEFAULT_SETTINGS = {
@@ -205,7 +205,7 @@ export async function refreezeIfChanged(db: Db, session: Session): Promise<Sessi
 
 /**
  * Whether a Session was frozen for another model than TUTOR_MODEL. After each TUTOR_MODEL change, every Session frozen
- * before it is one (ADR 0015): a turn never runs in it, and nothing of it is sent to the new model.
+ * before it is one (ADR 0007): a turn never runs in it, and nothing of it is sent to the new model.
  */
 export function isOldModelSession(session: { model: string }): boolean {
   return session.model !== TUTOR_MODEL;
@@ -213,7 +213,7 @@ export function isOldModelSession(session: { model: string }): boolean {
 
 /**
  * Closes the Learner's live Sessions for a Topic that were frozen for an older model (null: the every-Topic-passed
- * Session), ADR 0015. It acts after every TUTOR_MODEL change, because a refreeze never changes a Session's model. Each
+ * Session), ADR 0007. It acts after every TUTOR_MODEL change, because a refreeze never changes a Session's model. Each
  * is marked older, so it stays readable under Older sessions, and the Topic's next turn makes a fresh Session at the
  * Learner's saved step (their progress, misconceptions and profile reach it through code's context). One that holds
  * no message yet is simply refrozen in place, so no empty Older Session appears. Runs under the Learner's row lock,

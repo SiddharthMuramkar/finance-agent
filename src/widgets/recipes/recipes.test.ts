@@ -129,7 +129,7 @@ describe("Widget recipes", () => {
     const text = recipeSignatures();
     for (const r of RECIPES) expect(text).toContain(`- ${r.id} (`);
     // What this guards is that the Tutor's instructions stay short: each recipe's signature is part of them. The Workbench
-    // recipes meet it because their figure inputs (topicInputs, ADR 0018) are collapsed in the Tutor's signature to one
+    // recipes meet it because their figure inputs (topicInputs, ADR 0010) are collapsed in the Tutor's signature to one
     // line that says to copy them from the Topic file, and recipeSignature then drops a named schema nothing points at:
     // multiple_decoder's traded multiple, with its Icon and short fact (T33, F6), is not in its signature at all.
     for (const r of RECIPES) expect(recipeSignature(r).length, r.id).toBeLessThan(2400);

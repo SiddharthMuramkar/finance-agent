@@ -1246,7 +1246,7 @@ async function* runLockedTurn(
 /**
  * The Session a Next turn pinned when its Complete this Topic passed that Topic (it is no longer the current
  * Topic's), or undefined. Read from the turn, so a Retry finds it too. A Session pinned before a TUTOR_MODEL change
- * (an older model's, ADR 0015) is closed, and the closing reply goes to a fresh Session of that Topic instead. A
+ * (an older model's, ADR 0007) is closed, and the closing reply goes to a fresh Session of that Topic instead. A
  * resumed turn of any kind left in an older model's Session of a Topic that is no longer current is pinned the same
  * way, so it is answered in that Topic and starts nothing in the next one.
  */

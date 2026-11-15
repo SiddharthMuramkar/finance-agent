@@ -52,7 +52,7 @@ async function sessionId(db: Db) {
   return (await listSessions(db, OWNER_LEARNER_ID))[0].id;
 }
 
-/** A turn whose reply shows the Widget `code`, stored after the reply as show_widget stores one (ADR 0005). */
+/** A turn whose reply shows the Widget `code`, stored after the reply as show_widget stores one (ADR 0009). */
 async function turnShowing(db: Db, input: TurnInput, reply: string, code: string, extra: Partial<TurnDeps> = {}, courseMap: CourseMap = map) {
   const done = await turn(db, input, [say(reply)], extra, courseMap);
   const title = code.match(/^root = Widget\("([^"]+)"/)![1];

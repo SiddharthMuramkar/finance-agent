@@ -375,7 +375,7 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
 export type { ToolDefinition } from "./model";
 
 /**
- * The widget engine (ADR 0005), the only Widget lane: the Tutor chooses a Widget recipe and its params with show_widget,
+ * The widget engine (ADR 0009), the only Widget lane: the Tutor chooses a Widget recipe and its params with show_widget,
  * and code draws it. Its instructions carry the recipe signatures instead of the full Widget library prompt, and its
  * tools add show_widget. Every Session freezes them (session-log.ts).
  */
@@ -462,5 +462,5 @@ const OPEN_WIDGET_ENGINE_TOOL: ToolDefinition = (() => {
   };
 })();
 
-/** The engine's tools (ADR 0007): open_widget with a preset, show_widget and update_widget. */
+/** The engine's tools (ADR 0009): open_widget with a preset, show_widget and update_widget. */
 export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [OPEN_WIDGET_ENGINE_TOOL, SHOW_WIDGET_TOOL, UPDATE_WIDGET_TOOL] : [t]));

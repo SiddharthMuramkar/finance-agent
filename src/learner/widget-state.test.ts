@@ -42,7 +42,7 @@ async function turn(db: Db, learnerId: number, message: string, reply: string) {
   for await (const e of runTutorTurn({ db, client: scriptedClient([say(reply)]).client, map, learnerId }, message)) events.push(e);
   expect(events.at(-1)).toMatchObject({ type: "done" });
   const [session] = await listSessions(db, learnerId);
-  // The reply's Widget, stored after it as show_widget stores one (ADR 0005).
+  // The reply's Widget, stored after it as show_widget stores one (ADR 0009).
   const data = { id: "toolu_rates", recipe: "", params: {}, title: "Rates", code: WIDGET, source: "recipe" };
   await saveItemAfterLatest(db, learnerId, session.id, { kind: WIDGET_SHOWN, data }, new Date(), "tutor");
   return session.id;

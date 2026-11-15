@@ -19,7 +19,7 @@ import { startTurn, updateTurn } from "./turn-status";
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
- * A model change (ADR 0015): a Session frozen for another model than TUTOR_MODEL is closed (Older, still readable) when
+ * A model change (ADR 0007): a Session frozen for another model than TUTOR_MODEL is closed (Older, still readable) when
  * the Learner's next turn or visit reaches it, and a fresh Session on TUTOR_MODEL takes over at the saved step. Nothing
  * of the old conversation is ever sent to the new model. The first change was the switch from Claude to OpenAI, so
  * most cases here use a Session frozen for a Claude model; the same code acts at every later TUTOR_MODEL change.

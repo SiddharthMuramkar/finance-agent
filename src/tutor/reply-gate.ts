@@ -22,7 +22,7 @@ export const RETRY_WITHIN_MS = 30_000;
 /** The writing indicator's label while code checks the reply, and while its retry runs. */
 export const CHECKING_LABEL = "Checking the reply…";
 
-/** The V4 reason for Widget code in a reply (ADR 0007): ready-made Widgets only. */
+/** The V4 reason for Widget code in a reply (ADR 0009): ready-made Widgets only. */
 export const FENCE_IN_ENGINE = "Write no Widget code; call open_widget or show_widget, or teach in words.";
 
 export { REPLY_CHECK_PREFIX };
@@ -120,7 +120,7 @@ export type Judged = {
 
 /**
  * Fixes the reply, then checks it with the turn's facts. Widgets the draft's tools stored pass V4 (code checked them
- * as it stored them). An openui-lang fence always fails V4: the Tutor writes no Widget code (ADR 0007).
+ * as it stored them). An openui-lang fence always fails V4: the Tutor writes no Widget code (ADR 0009).
  */
 export function judgeReply(
   text: string,

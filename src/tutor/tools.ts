@@ -353,7 +353,7 @@ export function toolCode(
     return { slots, keys };
   }
 
-  /** One Widget per reply (ADR 0007): the reply so far has drawn, opened or updated one, or code has shown one in it. */
+  /** One Widget per reply (ADR 0009): the reply so far has drawn, opened or updated one, or code has shown one in it. */
   async function widgetInReply(tx: Db, scope: ReplyScope): Promise<boolean> {
     return (await replyWidgets(tx, scope)).slots > 0;
   }
@@ -595,7 +595,7 @@ export function toolCode(
           if (topic && exploreHeldBack(topic, progress.topics[topic.id]) === widget.id) {
             return { ok: false, text: `Not opened: "${widget.title}" is this Topic's explore Widget, which code shows when the explore step begins. Do not open it or draw your own version before then; teach this in words.` };
           }
-          // One Widget a reply (ADR 0007).
+          // One Widget a reply (ADR 0009).
           if (scope && (await widgetInReply(tx, scope))) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not opened") };
           // A preset sets its sliders: each must be one of the Widget's, in range and on its step, and none may use an open quiz's numbers.
           const set = preset && Object.keys(preset).length ? normalizePreset(preset) : undefined;

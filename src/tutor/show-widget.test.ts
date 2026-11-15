@@ -13,7 +13,7 @@ import { withoutChoices } from "@/test/choices";
 // src/tutor/companion-turn.test.ts tests the companion.
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
-// Seam 1, the Tutor Turn (ADR 0005): the Tutor calls show_widget with a recipe and params; code compiles and checks the
+// Seam 1, the Tutor Turn (ADR 0009): the Tutor calls show_widget with a recipe and params; code compiles and checks the
 // Widget, stores it as a Session item and streams it.
 
 async function collect(events: AsyncIterable<TurnEvent>) {
