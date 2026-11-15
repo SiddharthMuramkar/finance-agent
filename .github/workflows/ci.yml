@@ -1,7 +1,17 @@
 name: CI
 
-# The three job names, "check", "build" and "ui", are the required status checks in the ruleset on main.
-# Renaming any of them blocks every merge until the ruleset is changed to match.
+# The required status checks in the ruleset on main are the jobs named "check", "build" and "ui", and the Vercel
+# Deployment Checks that gate the production alias wait for the same three names. Each is a small job at the end that
+# passes only when the real jobs it needs passed. Renaming any of the three blocks every merge until the ruleset (and
+# the Vercel checks) are changed to match. docs/ci.md explains the whole pipeline.
+#
+#   changes ─┬─ static ──────────┬─ check
+#            ├─ vitest 1..4/4 ───┘
+#            ├─ next-build ─────── build
+#            └─ ui shard 1..6/6 ── ui
+#
+# A PR that changes only docs (scripts/ci-changes.mjs decides) skips the real jobs, and the three checks pass. A push
+# to main always runs everything, so every merge gets its own full result.
 on:
   push:
     branches: [main]
@@ -18,66 +28,166 @@ permissions:
 
 # No secrets anywhere: tests use PGlite and a scripted model client, and the build reads no env.
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    # 25, not 15: on main the job takes 11.8 to 14.3 minutes depending on the runner, and PR #615 was cut off at 15
-    # twice with 382 of 396 test files passed and none failed. A passing run is no slower; a hung one is stopped 10 minutes later.
-    timeout-minutes: 25
+  # Code, or docs only? Every other job needs this answer (output `code`: "true" or "false").
+  changes:
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
         with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run check
+          # A PR is checked out as GitHub's merge commit, whose first parent is the base: HEAD^1..HEAD is all the PR changes.
+          fetch-depth: 2
+          persist-credentials: false
+      - id: classify
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "A push to main: every job runs." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # --no-renames lists a moved file twice, at its old path and its new one, so moving code into docs/ is code.
+          git diff --name-only --no-renames HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"
+          node scripts/ci-changes.mjs < "$RUNNER_TEMP/changed.txt" > "$RUNNER_TEMP/code.txt" 2> "$RUNNER_TEMP/why.txt"
+          cat "$RUNNER_TEMP/code.txt" >> "$GITHUB_OUTPUT"
+          tee -a "$GITHUB_STEP_SUMMARY" < "$RUNNER_TEMP/why.txt"
 
-  build:
+  # The quick checks from `npm run check`, one step each so a failure names itself. The tests in that script run in
+  # the vitest shards below; src/dev/ci-workflow.test.ts keeps the two lists in step.
+  static:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run build
-      # The browser test bed (PGlite, the scripted Tutor) must never reach a production build.
-      - run: node scripts/check-no-e2e-in-build.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run course:check
+      - run: node scripts/check-theme-contrast.mjs
 
-  # The browser test bed (spec 2026-11-05, T-00): the whole app in Chromium on an in-memory PGlite with a scripted
-  # Tutor. The shards report through the "ui" job below, which is a required check in the ruleset.
-  # One run took 10-12 min (#458), so it is split into 6 shards on 6 runners. Each shard starts its own test server
-  # and PGlite and still runs its tests one at a time (workers: 1). Playwright splits by test file per project, in
-  # config order, and balances by test count, not time. mbp14 comes first and skips almost nothing, so equal shards
-  # gave shard 1 about 6 min and the rest about 2.5 (PR #462's first run). PWTEST_SHARD_WEIGHTS (Playwright 1.64's
-  # shard weights, read from the env) gives the first shards fewer tests. Tuned on PR #462's second run, each shard
-  # holds 2.7 to 3.1 min of tests. Wrong weights only unbalance the shards; every test still runs in exactly one
-  # shard. The number of weights must equal the number of shards (Playwright fails loudly otherwise).
-  ui-shard:
-    name: ui shard ${{ matrix.shard }}/6
+  # The unit and integration tests (about 480 files on PGlite), in 4 shards. Vitest splits the files evenly by count;
+  # on CI each shard runs 3 workers (vitest.config.ts), which fits the runner's 4 CPUs.
+  vitest:
+    name: vitest ${{ matrix.shard }}/4
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
-    env:
-      PWTEST_SHARD_WEIGHTS: "2:3:5:5:5:5"
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test -- --shard=${{ matrix.shard }}/4
+
+  next-build:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Turbopack keeps its build cache in .next/cache, so a restored cache makes the build faster. A new lockfile or
+      # Node version starts cold; new sources start from the newest cache made with the same packages.
+      - uses: actions/cache@v6
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc') }}-${{ hashFiles('src/**', 'course/**', 'public/**', 'next.config.ts', 'tsconfig.json', 'postcss.config.mjs') }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc') }}-
+      - run: npm run build
+      # The browser test bed (PGlite, the scripted Tutor) must never reach a production build.
+      - run: node scripts/check-no-e2e-in-build.mjs
+
+  # The browser test bed (spec 2026-11-05, T-00): the whole app in Chromium on an in-memory PGlite with a scripted
+  # Tutor. All of it on one runner took 10-12 min, so it runs in 6 shards. Each shard starts its own test server and
+  # PGlite and runs its tests one at a time (workers: 1). On CI a failed test is retried once (playwright.config.ts):
+  # a test that passes on the retry is flaky, and the step after the tests turns it into a warning on the run.
+  #
+  # Playwright (1.64) splits the tests by count, not time, in config order (project, then file), and PWTEST_SHARD_WEIGHTS
+  # sets each shard's share of the tests. Test times differ a lot by project (mbp14's run long, most other widths skip
+  # at once), so equal shares give unequal shards. These weights come from the test times of 4 CI runs on 2026-11-15
+  # (`node scripts/ui-shard-weights.mjs <run-id> ...` prints the best weights for today's tests). They suit both
+  # today's projects (slowest shard ~8 min of tests, was ~9) and the list without the mbp14-dark project, which the
+  # Signal site work removes (~6 min, was ~7). Retune with that script when the slowest shard runs minutes longer than
+  # the fastest. Wrong weights only unbalance the shards; every test still runs in exactly one shard. The number of
+  # weights must equal the number of shards (Playwright fails loudly otherwise; src/dev/ci-workflow.test.ts too).
+  ui-shard:
+    name: ui shard ${{ matrix.shard }}/6
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    # About 9 minutes for the slowest shard, plus room for retries.
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    env:
+      PWTEST_SHARD_WEIGHTS: "6:7:15:23:30:19"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       # No browser cache: Playwright's own guidance is that restoring it takes about as long as downloading.
       # No --with-deps: the runner image already has every library Chromium needs, and the only packages it added were
-      # nine extra font packages (CJK, Thai, unifont) fetched from Ubuntu's apt mirror, which ran at 16-37 kB/s on
-      # PR #462 and held two shards for 10+ minutes. A missing library makes Chromium fail to start, loudly.
+      # nine extra font packages (CJK, Thai, unifont) fetched from Ubuntu's apt mirror, which once ran at 16-37 kB/s and
+      # held two shards for 10+ minutes. A missing library makes Chromium fail to start, loudly.
       - run: npx playwright install chromium
-      - run: npm run ui:test -- --shard=${{ matrix.shard }}/6
+      - name: Run the shard's tests
+        shell: bash
+        run: npm run ui:test -- --shard=${{ matrix.shard }}/6 2>&1 | tee "$RUNNER_TEMP/ui.log"
+      # The list reporter ends with "N flaky" and one line per flaky test. Each becomes a warning on the run and a line
+      # in the job summary, so a green shard still shows what passed only on its retry.
+      - name: Report flaky tests
+        if: ${{ !cancelled() }}
+        shell: bash
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          [ -f "$RUNNER_TEMP/ui.log" ] || exit 0
+          sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/ui.log" \
+            | awk '/^ +[0-9]+ flaky$/ { on = 1; next } /^ +[0-9]+ [a-z]/ { on = 0 } on && /›/ { sub(/^ +/, ""); sub(/ *(─)+$/, ""); print }' \
+            > "$RUNNER_TEMP/flaky.txt"
+          if [ -s "$RUNNER_TEMP/flaky.txt" ]; then
+            echo "### Flaky in ui shard $SHARD/6 (failed, then passed on the retry)" >> "$GITHUB_STEP_SUMMARY"
+            while IFS= read -r test; do
+              echo "::warning title=Flaky UI test (shard $SHARD/6)::$test"
+              echo "- \`$test\`" >> "$GITHUB_STEP_SUMMARY"
+            done < "$RUNNER_TEMP/flaky.txt"
+          fi
       - uses: actions/upload-artifact@v5
         if: ${{ !cancelled() }}
         with:
@@ -87,17 +197,54 @@ jobs:
             test-results/
           retention-days: 14
 
-  # The one check named "ui" (the orchestrator, the docs and the ruleset use this name). Green only when every
-  # shard passed; it runs even when a shard failed or was cancelled, so a red shard turns it red instead of skipping it.
-  ui:
-    needs: ui-shard
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
+  # The three required checks. Each runs even when a job it needs failed or was cancelled (if: always()), so a red job
+  # turns it red instead of leaving it skipped. It passes when every job it needs passed, or when they were skipped
+  # because the PR changes only docs; a job skipped for any other reason fails it. `build` and `ui` reuse check's
+  # script through the YAML anchor &gate.
+  check:
+    needs: [changes, static, vitest]
+    if: always()
+    runs-on: ubuntu-slim
     timeout-minutes: 5
     steps:
-      - name: Every shard passed
+      - name: static and every vitest shard passed, or were skipped on a docs-only PR
         env:
-          SHARDS: ${{ needs.ui-shard.result }}
-        run: |
-          echo "ui shards: $SHARDS"
-          test "$SHARDS" = success
+          CODE: ${{ needs.changes.outputs.code }}
+          RESULTS: changes=${{ needs.changes.result }} static=${{ needs.static.result }} vitest=${{ needs.vitest.result }}
+        run: &gate |
+          bad=0
+          for pair in $RESULTS; do
+            job=${pair%%=*} result=${pair#*=}
+            if [ "$result" = success ] || { [ "$result" = skipped ] && [ "$CODE" = false ]; }; then
+              echo "$job: $result"
+            else
+              echo "::error title=$job::$job ended \"$result\" (code changed: ${CODE:-unknown})"
+              bad=1
+            fi
+          done
+          if [ "$CODE" = false ]; then echo "Docs-only PR: the heavy jobs were skipped."; fi
+          exit "$bad"
+
+  build:
+    needs: [changes, next-build]
+    if: always()
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: next-build passed, or was skipped on a docs-only PR
+        env:
+          CODE: ${{ needs.changes.outputs.code }}
+          RESULTS: changes=${{ needs.changes.result }} next-build=${{ needs.next-build.result }}
+        run: *gate
+
+  ui:
+    needs: [changes, ui-shard]
+    if: always()
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: every ui shard passed, or they were skipped on a docs-only PR
+        env:
+          CODE: ${{ needs.changes.outputs.code }}
+          RESULTS: changes=${{ needs.changes.result }} ui-shard=${{ needs.ui-shard.result }}
+        run: *gate
