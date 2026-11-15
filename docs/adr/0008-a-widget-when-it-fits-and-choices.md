@@ -12,7 +12,7 @@ The owner wants a Tutor that leads, with interactive pictures beside the talk (5
 - A step-led reply shows the step's own Widget (the Concept card's preset, the step's scene, or the Topic's Workbench Widget). If the step has none, the Widget already showing stays.
 - An own-question reply (ADR 0006) changes the Widget only when the Tutor opens one.
 - A Lingo card for a Topic term is the only Companion Widget, because it answers "what does that word mean?" (`src/tutor/companion.ts`).
-- The panel lists at most six Widgets (`MAX_TABS` in `src/app/widget-tabs.ts`). The seventh replaces the oldest that is neither written ahead nor showing.
+- The panel holds a fixed number of Widgets. A Widget past the cap replaces the oldest that is neither written ahead nor showing. The cap itself (six today, `MAX_TABS` in `src/app/widget-tabs.ts`) is tuning, not part of this decision.
 - Every checked reply ends with two or three Choices: tap-to-answer buttons, words only, no icons or emoji. Code picks them from a fixed set for the Teaching Step (`choicesFor` in `src/tutor/choices.ts`). The Tutor may suggest one, which code checks and may drop. Typing stays open.
 
 ## Consequences
