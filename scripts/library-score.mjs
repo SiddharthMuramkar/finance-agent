@@ -4,10 +4,12 @@
 // passage from an expected document is in the top 5; it reports hits@5, hits@1 and mean reciprocal
 // rank. --voyage adds the query embedding (needs VOYAGE_API_KEY). The hindsight probes run with a
 // Case's as-of date and list any passage that mentions a later year or the Case's outcome, because
-// timeless reference text can still give an ending away.
+// timeless reference text can still give an ending away (judge: src/library/hindsight.ts). Probes
+// with a `case` carry each Signal Case's outcome words; the last line names any Case they caught.
 import { readFileSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
+import { hindsightFlag } from "../src/library/hindsight.ts";
 import { keywordRanking, searchPassages } from "../src/library/search.ts";
 import { voyageQueryEmbedder } from "../src/library/voyage.ts";
 
@@ -79,14 +81,20 @@ if (scopedQuestions.length) {
 }
 
 console.log("\nHindsight probes (as-of rule on):");
-for (const { q, asOf, outcome } of set.hindsight ?? []) {
+const probes = set.hindsight ?? [];
+let clean = 0;
+const told = new Set();
+for (const probe of probes) {
+  const { q, asOf } = probe;
   const results = await searchPassages(db, { query: q, asOf, ranking, embedding: embed ? await embed(q) : undefined, limit: 5 });
-  const year = Number(asOf.slice(0, 4));
   const flagged = results.flatMap((r) => {
-    const later = [...new Set(r.text.match(/\b20\d\d\b/g) ?? [])].filter((y) => Number(y) > year);
-    const told = outcome.filter((o) => r.text.toLowerCase().includes(o.toLowerCase()));
-    const dated = r.kind === "dated" && r.publishedOn > asOf;
-    return later.length || told.length || dated ? [`${doc(r.ref)} ${r.kind}${dated ? " DATED AFTER AS-OF" : ""}: later years ${later.join(",") || "none"}; outcome words ${told.join(",") || "none"}`] : [];
+    const f = hindsightFlag(r, probe);
+    if (f?.outcomeWords.length && probe.case) told.add(probe.case);
+    return f ? [`${r.sourceId}/${doc(r.ref)} ${r.kind}${f.datedAfterAsOf ? " DATED AFTER AS-OF" : ""}: later years ${f.laterYears.join(",") || "none"}; outcome words ${f.outcomeWords.join(",") || "none"}`] : [];
   });
-  console.log(`  "${q}" (as of ${asOf}): ${results.length} results; ${flagged.length ? `${flagged.length} mention later events:\n    ${flagged.join("\n    ")}` : "none mention later events"}`);
+  if (!flagged.length) clean++;
+  const label = probe.case ? `[${probe.case}] ` : "";
+  console.log(`  ${label}"${q}" (as of ${asOf}): ${results.length} results; ${flagged.length ? `${flagged.length} mention later events:\n    ${flagged.join("\n    ")}` : "none mention later events"}`);
 }
+const cases = [...new Set(probes.filter((p) => p.case).map((p) => p.case))];
+console.log(`  clean ${clean}/${probes.length}; Signal Cases whose outcome words a passage let through: ${[...told].join(", ") || "none"} (of ${cases.length}: ${cases.join(", ")})`);
