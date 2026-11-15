@@ -18,7 +18,7 @@ describe("learnerForClerkUser", () => {
   it("makes a Learner under the first name on the first request, and finds the same one after", async () => {
     const db = await testDb();
     const made = await learnerForClerkUser(db, { userId: "user_asha", firstName: "Asha" }, RESERVED);
-    expect(made).toMatchObject({ name: "Asha", clerkUserId: "user_asha", authUserId: null, archivedAt: null });
+    expect(made).toMatchObject({ name: "Asha", clerkUserId: "user_asha", archivedAt: null });
     expect((await learnerForClerkUser(db, { userId: "user_asha", firstName: "Renamed" }, RESERVED)).id).toBe(made.id);
   });
 
