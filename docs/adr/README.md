@@ -11,7 +11,7 @@ One line per decision, in number order. Each record says what was decided and wh
 - [0007](0007-one-model-behind-our-own-transcript.md): The Tutor runs on one OpenAI model behind the app's own transcript format
 - [0008](0008-a-widget-when-it-fits-and-choices.md): A reply changes the Widget only when a better one fits, and every reply ends with two or three Choices
 - [0009](0009-tutor-chooses-code-draws.md): The Tutor chooses a Widget recipe; tested code draws it, and every number has a known origin
-- [0010](0010-one-valuation-engine.md): Every valuation number comes from one tested valuation engine, including the Signal Levers widget
+- [0010](0010-one-valuation-engine.md): Every valuation number comes from one tested valuation engine, from inputs kept in git, including the Signal Levers widget and every Workbench Widget
 - [0011](0011-signal-widgets-are-fixed-components.md): Each Signal widget is one fixed React component with two doors
 - [0012](0012-only-the-call-starts-a-turn.md): Only the Learner's call in a widget starts a Tutor turn
 - [0013](0013-as-of-rule-hides-hindsight.md): Before the reveal, nothing after a Case's as-of date reaches the Learner
