@@ -1360,7 +1360,7 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Learner quotes | None | Real sentences from early members. Never invented. |
 | Amazon model | Done (decision #18): the widget runs the valuation engine on Damodaran's sourced inputs, $35.04 against his $35.08, and its source line says so | Nothing |
 | First market | Mixed rupee and dollar cases | Choose which currency and events lead |
-| Dark theme | Not designed | If wanted: re-step and re-validate every signal colour |
+| Theme | Done (decision #17): one Light theme for the whole app; no other theme is built | Nothing |
 | Table views | Jackpot and compounding only | Add for levers, rates and WeWork |
 | Hero demo | Recorded | Wire to the live Tutor or keep the label |
 | Named valuation author | "Not affiliated" line on About | Confirm the wording is enough for you |
