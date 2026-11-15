@@ -1,0 +1,58 @@
+# node scripts/library-score.mjs --voyage --rerank=rerank-3-lite --pool=30 (Neon branch rag-baseline-2026-11-14, 2026-11-15T05:28:08Z)
+Library search score (bm25 + Voyage vectors (combined; 1 Voyage call) + rerank rerank-3-lite (top 30 -> 5)), 90 questions
+  hits@5 80/90 (89%), hits@1 67/90, mean reciprocal rank 0.80
+  judged hits@5 (also counting other-source passages read and judged to answer, see alsoExpect) 82/90 (91%)
+  without the Signal Case questions (78): hits@5 71/78, hits@1 60/78, MRR 0.83
+  by source (Signal Case questions left out): openstax-principles-finance-2e 39/42, yale-econ-251 6/6, yale-econ-252 5/7, fed-explained 3/3, nyfed-explainers 5/5, damodaran-papers 7/8, damodaran-blog 2/3, sec-anthropic-s1 4/4
+  MISS Why is a dollar today worth more than a dollar next year?
+       expected m00047, m00009, m00048; got openstax-principles-finance-2e/m00046 (7 Time Value of Money I: Single Payment Value: Why) | yale-econ-251/lecture-7 (ECON 251 Financial Theory: Lecture 7 - Shakespeare) | yale-econ-251/lecture-9 (ECON 251 Financial Theory: Lecture 9 - Yield Curve) | yale-econ-251/lecture-14 (ECON 251 Financial Theory: Lecture 14 - Quantifyin) | yale-econ-251/lecture-6 (ECON 251 Financial Theory: Lecture 6 - Irving Fish)
+  MISS What are the weaknesses of a discounted cash flow valuation?
+       expected m00069; got damodaran-blog/post-2756264605421109763 (Myth 5.3: Growth is good, more growth is better!) | damodaran-blog/post-5862115618655069709 (Myth 4.1: If you don&#39;t like betas (or modern p) | damodaran-blog/post-264808621507707986 (Myth 5.5: The Terminal Value ate my DCF!) | damodaran-blog/post-7691285196993462759 (Myth 5.4: Negative Growth Rates forever? Impossibl) | damodaran-blog/post-7773219489465394208 (DCF Myth 2: A DCF is an exercise in modeling and n)
+  MISS How have stocks performed compared with bonds historically in the United States?
+       expected m00076, m00075, m00093; got yale-econ-252/lecture-4 (ECON 252 Financial Markets: ECON 252 (2011) - Lect) | damodaran-papers/paper-ERP2009 (Damodaran: Download paper as pdf file: page 83) | damodaran-papers/paper-ERP2012 (Damodaran: 2012 Edition,: page 99) | damodaran-papers/paper-ERP2011 (Damodaran: 2011 Edition: page 88) | damodaran-papers/paper-divtaxes (Damodaran: Dow: page 10)
+  MISS What do forward and futures contracts do for someone who wants to hedge?
+       expected yale-econ-252/lecture-15, openstax-principles-finance-2e/m00130; got damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 30) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 29) | damodaran-papers/paper-hedging (Damodaran: To hedge or not to hedge?: page 33) | openstax-principles-finance-2e/m00129 (20.3 Exchange Rates and Risk: Hedging: Forward Con) | openstax-principles-finance-2e/m00129 (20.3 Exchange Rates and Risk: Hedging: Forward Con)
+  MISS How should operating leases and R&D expenses be treated in valuation?
+       expected damodaran-papers/paper-newlease, damodaran-papers/paper-R&D; got damodaran-papers/paper-valcre (Damodaran: Download pdf file: page 33) | damodaran-blog/post-1807025299296313298 (Data Update 1 for 2026: The Push and Pull of Data!) | damodaran-papers/paper-octopus (Damodaran: Download paper as pdf file: page 30) | damodaran-papers/paper-valcre (Damodaran: Download pdf file: page 35) | damodaran-blog/post-3867320618728195454 (Are accountants learning?)
+  MISS Aswath Damodaran valuing Anthropic IPO
+       expected damodaran-blog/post-8277076762148404506; got damodaran-spreadsheets/post-8277076762148404506-anthropicipo (Spreadsheet AnthropicIPO.xlsx (from the post "The ) | damodaran-spreadsheets/post-8277076762148404506-anthropicipo (Spreadsheet AnthropicIPO.xlsx (from the post "The ) | damodaran-spreadsheets/post-8277076762148404506-anthropicipo (Spreadsheet AnthropicIPO.xlsx (from the post "The ) | damodaran-spreadsheets/post-8093827330425090003-anthropicipopostelection (Spreadsheet AnthropicIPOPostElection.xlsx (from th) | damodaran-spreadsheets/post-8277076762148404506-anthropicipo (Spreadsheet AnthropicIPO.xlsx (from the post "The )
+  MISS Robert Shiller on bubbles and irrational exuberance
+       expected yale-econ-252; got yale-econ-251/lecture-25 (ECON 251 Financial Theory: Lecture 25 - The Levera) | yale-econ-251/lecture-1 (ECON 251 Financial Theory: Lecture 1 - Why Finance) | damodaran-blog/post-7533151855704033150 (The Market is Huge! Revisiting the Big Market Delu) | damodaran-blog/post-7024085609936664412 (Bubble, Bubble, Toil and Trouble: The Costs and Be) | damodaran-blog/post-5054054542921228018 (A “Fairly Highly Valued” Market: A Fed Chair Opine)
+  MISS If interest rates go up, what happens to the value today of payments I get later?
+       expected m00047, m00048, m00053, m00062; got yale-econ-251/lecture-17 (ECON 251 Financial Theory: Lecture 17 - Callable B) | yale-econ-251/lecture-17 (ECON 251 Financial Theory: Lecture 17 - Callable B) | yale-econ-251/lecture-10 (ECON 251 Financial Theory: Lecture 10 - Dynamic Pr) | openstax-principles-finance-2e/m00130 (20.4 Interest Rate Risk: Summary) | openstax-principles-finance-2e/m00130 (20.4 Interest Rate Risk: Measuring Interest Rate R)
+  MISS How do I work out the average yearly growth rate of an index that went from 100 to 4,000 in 13 years?
+       expected m00050, m00078; got openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | openstax-principles-finance-2e/m00068 (11.2 Dividend Discount Models (DDMs): Advantages a) | damodaran-papers/paper-ERP2011 (Damodaran: 2011 Edition: page 62) | damodaran-spreadsheets/post-274934874430234089-sp500valnmar13 (Spreadsheet SP500valnMar13.xls (from the post "A S)
+  MISS Why is the average of yearly returns different from the compound growth rate?
+       expected m00078, damodaran-papers, yale-econ-252; got openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu) | damodaran-papers/paper-ERP2011 (Damodaran: 2011 Edition: page 23) | damodaran-papers/paper-unstableriskpremiums (Damodaran: A New Risky World Order: Unstable Risk ) | openstax-principles-finance-2e/m00093 (15.1 Risk and Return to an Individual Asset: Measu)
+  author-named questions (5): name left in the query 3/5; scoped by the source filter 5/5, MRR 0.90
+
+Signal Case questions (12):
+  no as-of limit: hits@5 9/12, hits@1 7/12, MRR 0.64
+  with the Case's as-of date: hits@5 9/12, hits@1 5/12, MRR 0.52
+  by Case, hits@5 no limit / as of: mega-millions-2018 2/3 / 2/3, amazon-2000 2/2 / 1/2, wework-2019 2/2 / 2/2, fed-1994 2/2 / 2/2, sensex-1992 1/3 / 2/3
+  AS-OF MISS If interest rates go up, what happens to the value today of payments I get later? (as of 2018-10-24); got yale-econ-251/lecture-17 | yale-econ-251/lecture-17 | yale-econ-251/lecture-10 | openstax-principles-finance-2e/m00130 | openstax-principles-finance-2e/m00130
+  AS-OF MISS How do you value a company like Amazon that loses money but grows very fast? (as of 2000-02-03); got openstax-principles-finance-2e/m00069 | openstax-principles-finance-2e/m00067 | openstax-principles-finance-2e/m00068 | openstax-principles-finance-2e/m00067 | openstax-principles-finance-2e/m00069
+  AS-OF MISS Why is the average of yearly returns different from the compound growth rate? (as of 1992-03-31); got openstax-principles-finance-2e/m00093 | openstax-principles-finance-2e/m00093 | yale-econ-251/lecture-9 | yale-econ-251/lecture-8 | yale-econ-251/lecture-8
+
+Hindsight probes (as-of rule on):
+  "Mega Millions jackpot winner cash option or annuity in 2018" (as of 2018-10-24): 5 results; none mention later events
+  "What happened to Treasury yields and interest rates after 2018?" (as of 2018-10-24): 5 results; none mention later events
+  "stock market crash pandemic" (as of 2018-10-24): 5 results; none mention later events
+  "inflation in 2021 and 2022" (as of 2018-10-24): 5 results; 1 mention later events:
+    post-4584335410966158672-countryinflationrates dated: later years 2019,2020,2021,2022; outcome words none
+  "Anthropic IPO prospectus valuation" (as of 2018-10-24): 5 results; none mention later events
+  "Uber valuation before its IPO" (as of 2014-06-10): 5 results; none mention later events
+  "the leverage cycle and the subprime mortgage crisis crash" (as of 2007-06-01): 5 results; none mention later events
+  "quantitative easing balance sheet expansion of the Federal Reserve" (as of 2008-06-01): 5 results; none mention later events
+  "the October 1987 stock market crash and portfolio insurance" (as of 1987-10-16): 5 results; none mention later events
+
+Time per search, 116 searches (laptop -> Neon and Voyage):
+  database search (top 30): p50 936 ms, p95 1048 ms, max 1173 ms
+  rerank call (116 calls, 0 retries after 429): p50 375 ms, p95 409 ms, max 622 ms
+  search + rerank: p50 1311 ms, p95 1494 ms, max 1725 ms
+  rerank tokens per search: mean 9933, p50 9801, p95 12208, max 16025; total 1152187
+
+SUMMARY {"mode":"bm25 + Voyage vectors (combined; 1 Voyage call) + rerank rerank-3-lite (top 30 -> 5)","original":{"n":78,"hits5":71,"hits1":60,"mrr":0.827},"signalOpen":{"n":12,"hits5":9,"hits1":7,"mrr":0.642},"signalAsOf":{"n":12,"hits5":9,"hits1":5,"mrr":0.519},"searchMs":{"p50":936,"p95":1048},"totalMs":{"p50":1311,"p95":1494},"candidates":{"mean":30,"min":30,"max":30},"rerankMs":{"p50":375,"p95":409},"tokensPerSearch":{"mean":9933,"max":16025},"retries":0}
+RANKS original 0,1,1,5,3,1,1,1,2,1,1,1,1,1,0,1,1,1,1,1,1,3,3,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,2,0,2,1,2,1,1,1,3,1,1,1,1,1,1,2,0,1,1,1,1,1,1,1,1,0,1,1,0,1
+RANKS signal-open 1,5,0,1,1,1,1,1,2,0,1,0
+RANKS signal-asof 1,5,0,0,1,1,3,5,1,2,1,0
