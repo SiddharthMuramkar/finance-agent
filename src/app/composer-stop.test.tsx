@@ -79,7 +79,7 @@ describe("Stop", () => {
     await pause();
     expect(calls).toHaveLength(2); // finished: nothing resumed
     expect(byId("stopped-note")?.textContent).toBe("Stopped");
-    // The reply in progress is dropped, words a streamed reply had shown included (ADR 0017 keeps ADR 0008's Stop), as a reload shows it.
+    // The reply in progress is dropped, words a streamed reply had shown included (ADR 0006), as a reload shows it.
     expect(host.textContent).not.toContain("A rupee today is worth more");
     expect(byId("stop-reply")).toBeNull();
     expect(host.textContent).toContain("Send");

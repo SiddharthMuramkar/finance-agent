@@ -27,7 +27,7 @@ import { loadStepUsages } from "./usage";
  * the API refused with an HTTP error ran no model and is billed nothing, so it stays as it was.
  */
 
-/** The Show me Choice: a step-led turn, whose reply is held until checked (ADR 0008). */
+/** The Show me Choice: a step-led turn, whose reply is held until checked (ADR 0006). */
 const STEP_LED = "Show me.";
 const never = new Promise<never>(() => {});
 const say = (text: string): ScriptedReply => ({ content: [{ type: "text", text }] });
@@ -132,7 +132,7 @@ describe("a request the API refused", () => {
   });
 });
 
-/** A Session frozen with compose_widget in its tools, as an older build froze it (new Sessions are not offered it, ADR 0007). */
+/** A Session frozen with compose_widget in its tools, as an older build froze it (new Sessions are not offered it, ADR 0009). */
 async function withCompose(db: Db) {
   await cap(db, "widget_engine", "on");
   const place = navigate(loadCourseMap(), await loadProgress(db, OWNER_LEARNER_ID));

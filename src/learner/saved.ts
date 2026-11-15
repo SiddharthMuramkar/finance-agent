@@ -86,7 +86,7 @@ async function sessionFacts(db: Db, sessionId: number, learnerId: number, lines:
   return { byTurn: itemsByTurn(items, rows, await loadReplyTurns(db, sessionId, replySeqs)), rows, items };
 }
 
-/** A reply's text with the Widgets code showed among `items` (WIDGET_SHOWN, ADR 0005) added after it as fences, numbered after the reply's own. */
+/** A reply's text with the Widgets code showed among `items` (WIDGET_SHOWN, ADR 0009) added after it as fences, numbered after the reply's own. */
 function withShown(text: string, items: readonly StoredItem[]): string {
   const fences = items.flatMap((i) => {
     const shown = i.kind === WIDGET_SHOWN ? shownWidgetOf(i.data) : null;

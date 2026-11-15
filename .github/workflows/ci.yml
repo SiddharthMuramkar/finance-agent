@@ -82,6 +82,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run course:check
+      - run: node scripts/check-adr-cites.mjs
       - run: node scripts/check-theme-contrast.mjs
 
   # The unit and integration tests (about 480 files on PGlite), in 4 shards. Vitest splits the files evenly by count;

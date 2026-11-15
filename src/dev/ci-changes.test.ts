@@ -5,18 +5,20 @@ import { describe, expect, it } from "vitest";
 import { isDocsOnly, isDocsPath } from "../../scripts/ci-changes.mjs";
 
 describe("isDocsOnly: may CI skip the heavy jobs for this PR?", () => {
-  it("is true when the PR changes only docs: ADRs, specs and top-level notes", () => {
-    expect(isDocsOnly(["docs/adr/0017-clerk-replaces-better-auth.md", "docs/specs/value-it-signal-spec.md", "GLOSSARY.md", "CLAUDE.md"])).toBe(true);
+  it("is true when the PR changes only docs: specs, guides and top-level notes", () => {
+    expect(isDocsOnly(["docs/agents/migrations.md", "docs/specs/value-it-signal-spec.md", "GLOSSARY.md", "CLAUDE.md"])).toBe(true);
   });
 
   it("is false as soon as one changed file is code", () => {
-    expect(isDocsOnly(["docs/adr/0017-clerk-replaces-better-auth.md", "src/proxy.ts"])).toBe(false);
+    expect(isDocsOnly(["docs/agents/migrations.md", "src/proxy.ts"])).toBe(false);
   });
 
-  it("is false for docs a check or a test reads: the Course Map doc and the critics' briefs and Spine log", () => {
+  it("is false for docs a check or a test reads: the Course Map doc, the critics' briefs and Spine log, and the ADRs", () => {
     expect(isDocsOnly(["docs/course-map.md"])).toBe(false);
     expect(isDocsOnly(["docs/critics/math-police.md"])).toBe(false);
     expect(isDocsOnly(["docs/critics/spine-log.yaml"])).toBe(false);
+    expect(isDocsOnly(["docs/adr/0017-clerk-replaces-better-auth.md"])).toBe(false);
+    expect(isDocsOnly(["docs/adr/README.md"])).toBe(false);
   });
 
   it("is true for Markdown and images under docs/, but false for any other file there", () => {
@@ -54,7 +56,7 @@ describe("node scripts/ci-changes.mjs: what CI's `changes` job writes to $GITHUB
   };
 
   it("prints code=false when the PR changes only docs", () => {
-    expect(classify("docs/adr/0017-clerk-replaces-better-auth.md\nGLOSSARY.md\n")).toBe("code=false\n");
+    expect(classify("docs/agents/migrations.md\nGLOSSARY.md\n")).toBe("code=false\n");
   });
 
   it("prints code=true when one changed file is code", () => {

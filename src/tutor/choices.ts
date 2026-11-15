@@ -3,9 +3,9 @@ import { GO_DEEPER, wordChoiceWords } from "./chips";
 import { firstTermIn } from "./term-spellings";
 
 /**
- * Choices (spec 2026-11-05, D3a; ADR 0010): the two or three tap-to-answer buttons code puts under every Tutor reply.
+ * Choices (spec 2026-11-05, D3a; ADR 0008): the two or three tap-to-answer buttons code puts under every Tutor reply.
  * Code picks them from the Teaching Step; the Tutor may suggest one (suggest_choice), which goes first when it is valid.
- * Pressing one posts its `says` as the Learner's message, a chip turn. A Choice is words only (ADR 0014). Pure, with no
+ * Pressing one posts its `says` as the Learner's message, a chip turn. A Choice is words only (ADR 0008). Pure, with no
  * server imports, so the browser can draw the same set when a reply has none stored (an older Session).
  */
 

@@ -6,7 +6,7 @@ import { AnnouncerProvider } from "./announcer";
 import { THEME_INIT_SCRIPT, parsePref } from "./theme";
 import { ThemeToggle } from "./theme-toggle";
 
-// The header's theme toggle (ADR 0013): one icon button, a moon in Light and a sun in Dark, named and titled for what a
+// The header's theme toggle: one icon button, a moon in Light and a sun in Dark, named and titled for what a
 // press does. A press switches at once and saves; the computer's setting is never read, even on a dark computer.
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

@@ -4,7 +4,7 @@ import { chromium, request, type FullConfig, type LaunchOptions } from "@playwri
 /**
  * Warms the test server, then signs the tools Learner in once through the real login route and saves the cookie every
  * test starts with. The dark projects' copy (`tools-dark.json`, beside it) adds the cookie `theme=dark`: the site opens in
- * Light for everyone and never reads the computer's setting (ADR 0013), so a dark project is a Learner who chose Dark.
+ * Light for everyone and never reads the computer's setting, so a dark project is a Learner who chose Dark.
  */
 export default async function globalSetup(config: FullConfig) {
   const { baseURL, storageState, launchOptions } = config.projects[0].use;

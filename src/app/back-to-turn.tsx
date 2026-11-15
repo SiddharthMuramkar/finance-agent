@@ -7,7 +7,7 @@ import { SecondaryButton } from "./ui";
 import type { ThreadLine } from "./thread";
 import { QUICK_TRY, QUICK_TRY_RESULT } from "@/tutor/session-item-kinds";
 
-// "Back to your turn" (spec 2026-11-12 G3, A5; ADR 0017): after a few own questions the open Quick try can sit far above
+// "Back to your turn" (spec 2026-11-12 G3, A5; ADR 0006): after a few own questions the open Quick try can sit far above
 // what the Learner is reading. While it is off screen, a button above the message box brings it back.
 
 const QUICK_TRY_CARD = '[data-testid="quick-try"]';

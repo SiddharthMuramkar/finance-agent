@@ -2,7 +2,7 @@ import { rawFormulaHits } from "../finance/raw-formula.ts";
 import type { Topic } from "./map.ts";
 
 // The course check for You'll learn (spec #119). Every written Topic gives two or three short
-// bullets in words: no digits, currency or percent signs, no typed formula (ADR 0002), and none that
+// bullets in words: no digits, currency or percent signs, no typed formula (ADR 0003), and none that
 // repeats the written Insight, since the bullets are shown before the Learner has found it.
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
@@ -38,7 +38,7 @@ export function youllLearnCheckErrors(topics: Pick<Topic, "id" | "youllLearn" | 
       const where = `You'll learn bullet ${i + 1}`;
       if (FIGURE.test(bullet)) errors.push(`Topic ${topic.id} has a figure in ${where}; write it in words: "${bullet}"`);
       const hits = rawFormulaHits(bullet);
-      if (hits.length) errors.push(`Topic ${topic.id} types a formula in ${where} (ADR 0002): ${hits.join("; ")}`);
+      if (hits.length) errors.push(`Topic ${topic.id} types a formula in ${where} (ADR 0003): ${hits.join("; ")}`);
       if (topic.insight && repeatsInsight(bullet, topic.insight.written)) {
         errors.push(`Topic ${topic.id}'s ${where} repeats its Insight: draft it from the concept and principle only`);
       }

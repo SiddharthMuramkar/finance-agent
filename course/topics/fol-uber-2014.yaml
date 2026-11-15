@@ -65,7 +65,7 @@ cases:
         value: 40000
         date: 2014-12-02
         note: "Not a market price: the post's 'value estimates of $40 billion and higher floating around'; the round was confirmed at $40bn on 4 Dec 2014 (Bloomberg)."
-        # Shown as "talk", never "price": on the Case's date nobody had paid it (spec B3, ADR 0018).
+        # Shown as "talk", never "price": on the Case's date nobody had paid it (spec B3, ADR 0010).
         label: talk
       published:
         valuePerShare: 17404.33

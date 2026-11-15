@@ -22,7 +22,7 @@ import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 
 /**
- * Seam 2, the Tutor Turn (spec 2026-11-05, E4a, ADR 0010; spec 2026-11-12, B6, ADR 0019): at most one Widget with a reply,
+ * Seam 2, the Tutor Turn (spec 2026-11-05, E4a; spec 2026-11-12, B6; ADR 0008): at most one Widget with a reply,
  * whatever kind of turn it is, and none when neither the step, the Tutor nor a word's meaning asked for brings one (the
  * Widget showing stays), with the real Companion picker and the widget engine on (no mock). Every tail that stores items of its own (a
  * Next's step Widget, a Quick-try follow-up's re-teach, a drill, start_again, a Topic complete card, the Tutor's own
@@ -117,7 +117,7 @@ async function atPrinciple(db: Db) {
 // ---------------------------------------------------------------------------------------------------------------------
 // Every turn kind, and where its one Widget comes from: the Tutor's, the step's (code stored it), or a Companion.
 
-/** "none": an own question's reply changes the Widget only when the Tutor opens one, so it brings none (B6, ADR 0019). */
+/** "none": an own question's reply changes the Widget only when the Tutor opens one, so it brings none (B6, ADR 0008). */
 type Want = "tutor" | "step" | "companion" | "none";
 type Case = { name: string; want: Want; run: (db: Db) => Promise<Ran>; check?: (ran: Ran, db: Db) => Promise<void> };
 

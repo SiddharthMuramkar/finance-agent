@@ -19,7 +19,7 @@ import { loadShowcases, type BuiltShowcase } from "./showcase-widgets";
 import { homeWidget, type HomeWidgetData } from "./home-widget-data";
 import { landingStats, type LandingStats } from "./stats";
 
-// The Home page keeps its own layout (the home-* classes in globals.css); its buttons are the app's flat buttons (ADR 0013),
+// The Home page keeps its own layout (the home-* classes in globals.css); its buttons are the app's flat buttons (ADR 0018),
 // in the big size. The header, footer and main button are chrome.tsx's, shared with the About page.
 //
 // E8, a fast first view: nothing here imports the general Widget renderer (LiveWidget, WidgetWithSave, OpenUI). The hero's

@@ -52,7 +52,7 @@ export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<
   if (deps.shown && !(await showsCurrentTopic(db, deps.map ?? loadCourseMap(), learnerId, deps.shown))) {
     // A resume may still carry on the tab's own unfinished turn, which may itself have moved the Learner to the next Topic.
     const latest = resuming ? await latestTurn(db, learnerId) : undefined;
-    // Or the tab still shows the Claude-era Session this turn's Session replaced (ADR 0015): it hears of the new one only on
+    // Or the tab still shows the Claude-era Session this turn's Session replaced (ADR 0007): it hears of the new one only on
     // "done", so a resume from it (a Widget Retry that let go of the stream) still draws that turn once it has finished.
     const replaced = latest !== undefined && "sessionId" in deps.shown && (await closedInFavourOf(db, learnerId, deps.shown.sessionId, latest.sessionId));
     const ownTurn =
@@ -105,7 +105,7 @@ export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<
   // A Quick-try follow-up reads the Quick try's result from the Topic's live Session, so it is worked out before a
   // Claude-era Session holding that result is closed below.
   const quickTryNote = typeof input === "object" && "quickTryFollowUp" in input ? await quickTryFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId) : undefined;
-  // A Claude-era Session of the current Topic is closed before anything is written to it (ADR 0015), and the Topic gets a
+  // A Claude-era Session of the current Topic is closed before anything is written to it (ADR 0007), and the Topic gets a
   // fresh Session at once, so a Next or a follow-up taken now stores its items there.
   const topicNow = await currentTopicId(db, deps.map ?? loadCourseMap(), learnerId);
   if (await retireLegacySessions(db, learnerId, topicNow)) await sessionForTurn(db, now(), learnerId, topicNow);

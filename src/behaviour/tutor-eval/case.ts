@@ -61,9 +61,9 @@ export type Condition =
   | { kind: "plainStyle" }
   /** No "$" in the text or in a Widget's labels. */
   | { kind: "noDollar" }
-  /** No question, instruction or ask in the reply asks for a sum (`sumAsk`, ADR 0009; the same reading as V8). */
+  /** No question, instruction or ask in the reply asks for a sum (`sumAsk`, ADR 0002; the same reading as V8). */
   | { kind: "noSum" }
-  /** The turn stored a reply_choices item with 2 or 3 Choices (D3a, ADR 0010). */
+  /** The turn stored a reply_choices item with 2 or 3 Choices (D3a, ADR 0008). */
   | { kind: "choicesStored" }
   /**
    * A normal reply (spec 2026-11-12, A3 and A4): some text, and none of the failure words a Learner may be shown

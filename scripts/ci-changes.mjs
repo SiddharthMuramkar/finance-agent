@@ -16,11 +16,13 @@ export const DOCS_READ_BY_CODE = [
   "docs/course-map.md",
   // The critics' briefs and the Spine log (src/dev/critics.test.ts, src/course/critics-log.ts).
   "docs/critics/",
+  // The ADRs and their index: every ADR cite must name a record that exists (scripts/check-adr-cites.mjs).
+  "docs/adr/",
 ];
 
 const DOCS = [
   /^[^/]+\.md$/, // top-level notes: README.md, CLAUDE.md, GLOSSARY.md, AGENTS.md
-  // ADRs, specs, guides and their pictures. Not any file under docs/: tsconfig includes **/*.ts wherever it is, so a
+  // Specs, guides and their pictures. Not any file under docs/: tsconfig includes **/*.ts wherever it is, so a
   // .ts there is type-checked and built.
   /^docs\/.+\.(md|png|jpe?g|gif|svg|webp)$/i,
   /^LICEN[CS]E(\.[a-z]+)?$/i,

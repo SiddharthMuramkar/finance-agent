@@ -11,7 +11,7 @@ import { markKeyFigures } from "./key-figure";
 // "@openuidev/react-ui": the "/genui-lib" entry bundles a private copy of the theme context.
 
 /**
- * Widgets' font: the body's Inter stack (ADR 0014). `.genui` inherits it; a `:root` token cannot name `--font-text`,
+ * Widgets' font: the body's Inter stack. `.genui` inherits it; a `:root` token cannot name `--font-text`,
  * because that variable is set on `<body>`, not on `<html>`.
  */
 export const FONT = 'var(--font-text, system-ui), -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -47,7 +47,7 @@ const COLOURS: Theme = {
   textNeutralLink: "var(--brand)",
   textBrand: "var(--brand)",
   textAccentPrimary: "var(--brand-ink)",
-  // Callout titles are ink. A family shows only as a thin edge, never as a fill or as coloured words (ADR 0014).
+  // Callout titles are ink. A family shows only as a thin edge, never as a fill or as coloured words (ADR 0015).
   textInfoPrimary: "var(--ink)",
   textInfoInverted: "var(--brand-ink)",
   textSuccessPrimary: "var(--ink)",
@@ -92,7 +92,7 @@ export function rootDeclarations(): Record<string, string> {
 /** A kit weight above 500 becomes 500. 400 stays 400. */
 const capWeight = (value: string) => value.replace(/^(?:560|600|700)(?=\s)/, "500");
 
-/** The kit's type styles at its own sizes, in Inter, with no weight above 500 (ADR 0014). Code keeps its monospace face. */
+/** The kit's type styles at its own sizes, in Inter, with no weight above 500. Code keeps its monospace face. */
 const FONTS = {
   ...Object.fromEntries(
     Object.entries(defaultLightTheme).flatMap(([key, value]) => {
@@ -114,7 +114,7 @@ const FONTS = {
  * Mint stays the Learner's own series and sunflower history, as everywhere else. A series' mark is needed to read the
  * chart (WCAG 2.2 SC 1.4.11; a legend does not exempt it), so each must reach 3:1 against the chart's surface. Light's
  * mint, sunflower and coral fills do not (1.5 to 2.6:1), so the series take their -ink tokens; in Dark each -ink is its
- * fill. The contrast script checks every [series, surface] pair at 3:1 in both themes (issue #457, ADR 0013).
+ * fill. The contrast script checks every [series, surface] pair at 3:1 in both themes until #32 lands (issue #457).
  */
 export const CHART_SERIES = ["ink-2", "mint-ink", "sun-ink", "violet", "coral-ink", "line-strong"] as const;
 /** The surfaces a kit chart sits on: the page, a wash band, a raised card, and the Widget frame. */

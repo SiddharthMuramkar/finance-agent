@@ -27,7 +27,7 @@ const MISALIGNMENT = "misalignment_policy_violation";
  * safety monitoring stopped is never retried as it was: the Learner is asked to put it another way. An error after the
  * response started streaming has an error code but no HTTP status, and is read by its code.
  * See https://developers.openai.com/api/docs/guides/error-codes.
- * No case echoes what the provider said (A3, ADR 0016): anything else reads "Something went wrong on our side", with
+ * No case echoes what the provider said (A3, ADR 0007): anything else reads "Something went wrong on our side", with
  * the failed turn's reference (`newFailureRef`), and the provider's words go to `providerDetails`, for the Owner.
  */
 export function describeFailure(error: unknown, ref: string = newFailureRef()): { kind: FailureKind; message: string } {

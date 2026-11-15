@@ -1,5 +1,5 @@
 // The Value It mark: four solid bars rising short to tall, in the accent fill (royal blue in Light), with 1px corners
-// (ADR 0013: flat and sharp, no gradient, no pill ends). Drawn with CSS (globals.css, "Rising bars"), so it needs no image
+// (flat and sharp, no gradient, no pill ends). Drawn with CSS (globals.css, "Rising bars"), so it needs no image
 // and follows the theme. Each bar grows from the bottom, one after another, when the page opens; BarsReplay plays the
 // rise again. Server-safe: no "use client".
 

@@ -4,7 +4,7 @@ import { loadCourseMap, parseCourseMap, readOutlineText, readTopicFiles, type Co
 import { courseOverview, defaultPath, finishStep, firstTopic, jumpTo, spineLive, navigate, recordCheckResult, reviewsDue, whatComesNext, type Progress, type TopicProgress } from "./navigator";
 import { parseOutline, spineTopics } from "./outline";
 
-// Spec 2026-11-12 C1, C7 and C8 (ADR 0020): the written Spine Topics, in Spine order, are the default path, then Follow,
+// Spec 2026-11-12 C1, C7 and C8 (ADR 0004): the written Spine Topics, in Spine order, are the default path, then Follow,
 // Judge and Analyse; an Elective is never next unless the Learner chose it; nothing a Learner has is lost.
 
 const caseOf = (id: string) => `    cases:\n      - { title: Case of ${id}, asOf: 2000-02-01, outcome: What happened., sources: ["https://example.org/${id}"], verified: true }\n`;
@@ -153,7 +153,7 @@ describe("a Learner with progress, before and after the Spine", () => {
     readTopicFiles().filter((f) => !f.name.startsWith("spine-")),
     parseOutline(stringify({ topics: raw.topics.filter((t) => t.stage !== "spine") })).outline,
   ).map!;
-  // The course as it is now: every Spine Topic is written, so the Spine is live (C8, ADR 0020).
+  // The course as it is now: every Spine Topic is written, so the Spine is live (C8, ADR 0004).
   const after = loadCourseMap();
   // The same course with Spine Topics 1 to 5 written, to see where this Learner goes once the Spine is live (C8), and
   // with Spine Topic 1 alone, which is not live yet. A Spine Topic file not written is stood in for by a minimal one.
@@ -178,7 +178,7 @@ describe("a Learner with progress, before and after the Spine", () => {
   const shown = (map: CourseMap) => courseOverview(map, learner).map((t) => [t.id, t.status, t.checks.filter((c) => c.passed).map((c) => c.id), t.current]);
   const offSpine = (map: CourseMap) => shown(map).filter(([id]) => map.topic(String(id))?.stage !== "spine");
 
-  it("has the Spine live on the real course, now that every Spine Topic is written (C8, ADR 0020)", () => {
+  it("has the Spine live on the real course, now that every Spine Topic is written (C8, ADR 0004)", () => {
     expect(spineLive(after)).toBe(true);
     expect(spineLive(spineOneOnly)).toBe(false);
   });

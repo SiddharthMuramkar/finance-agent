@@ -26,7 +26,7 @@ describe("the Settings page", () => {
     expect(inside).toMatch(/<\/section><\/div><section[^>]*$/); // the columns' next sibling, not a column cell
   });
 
-  // ADR 0013: hairlines, not boxes. Each section is a --line hairline; Start over is a danger rule with a danger heading.
+  // ADR 0018: hairlines, not boxes. Each section is a --line hairline; Start over is a danger rule with a danger heading.
   it("draws each section as a hairline rule with no box, and Start over as a danger rule, not a red box", () => {
     const html = view();
     const sections = [...html.matchAll(/<section class="([^"]*)" id="([^"]+)"/g)].map((m) => [m[2], m[1]] as const);
@@ -107,7 +107,7 @@ describe("the Settings page", () => {
     expect(text(emailCard)).not.toContain("Signed in with a passcode");
   });
 
-  it("has an Appearance section with two radios, Light and Dark (ADR 0013: no Match my Mac)", () => {
+  it("has an Appearance section with two radios, Light and Dark (no Match my Mac)", () => {
     const html = view();
     const t = text(html);
     expect(t).toContain("Appearance");

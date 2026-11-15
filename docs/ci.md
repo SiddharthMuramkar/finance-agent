@@ -16,7 +16,7 @@ changes ─┬─ static ──────────┬─ check
 | Job | What it does | Time (approx.) |
 |---|---|---|
 | `changes` | Decides: does the PR change code, or only docs? (`scripts/ci-changes.mjs`) | 10 s |
-| `static` | `tsc`, ESLint, `course:check`, the theme contrast check | 2 min |
+| `static` | `tsc`, ESLint, `course:check`, the ADR cite check, the theme contrast check | 2 min |
 | `vitest i/4` | The Vitest suite in 4 shards, 3 workers each | 4-5 min |
 | `next-build` | `next build`, then `check-no-e2e-in-build` (the test bed must not reach the build). `.next/cache` is cached. | 1.5 min |
 | `ui shard i/6` | The browser test bed (Playwright, Chromium, PGlite, scripted Tutor) in 6 shards | 5-9 min |
@@ -50,8 +50,8 @@ When a PR changes only docs, the heavy jobs are skipped and `check`, `build` and
 Docs-only means that every changed file is one of these:
 
 - a Markdown file at the top level (`README.md`, `CLAUDE.md`, `GLOSSARY.md`, ...)
-- a Markdown file or an image under `docs/`, **except** `docs/course-map.md` and `docs/critics/` (a check or a test
-  reads them). Any other file there (`.ts`, `.json`, `.yaml`, ...) is code: `tsconfig.json` includes `**/*.ts`.
+- a Markdown file or an image under `docs/`, **except** `docs/course-map.md`, `docs/critics/` and `docs/adr/` (a check
+  or a test reads them). Any other file there (`.ts`, `.json`, `.yaml`, ...) is code: `tsconfig.json` includes `**/*.ts`.
 - `LICENSE`, `.github/ISSUE_TEMPLATE/`, a PR template
 
 Everything else is code, for example: anything under `.github/workflows/`, `.github/dependabot.yml`, Markdown inside

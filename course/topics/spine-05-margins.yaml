@@ -1,6 +1,6 @@
 # Spine Topic 5 (spec 2026-11-12, C2, C4): what a company keeps of each sale, taught through Damodaran's do-it-yourself
 # valuation of Tesla, 6 February 2020. The Case's valuation block is the Follow Topic's (fol-tesla-2020), taken with
-# valuationFrom, so every figure a Widget or computed question shows comes from the one engine (B1, ADR 0018).
+# valuationFrom, so every figure a Widget or computed question shows comes from the one engine (B1, ADR 0010).
 # Case facts: docs/research/verify-tesla-2020.json (storyFacts, widgetFacts), each with its source below.
 # Stage, place and length live in course/outline.yaml.
 id: spine-05-margins

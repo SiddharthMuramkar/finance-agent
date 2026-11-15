@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { replyLanded, say, script, seed, type Script, type State } from "./support/app";
 
 /**
- * A Widget when it fits (spec 2026-11-12, B6, ADR 0019; replaces E4a's "Widget on 100 % of replies"): a step-led reply
+ * A Widget when it fits (spec 2026-11-12, B6, ADR 0008; replaces E4a's "Widget on 100 % of replies"): a step-led reply
  * shows the step's own Widget, a Lingo card answers "What does '…' mean?", and a reply with neither (a question about
  * valuation, say) leaves the Widget panel as it was. The panel never lists more than six. Beside an open quiz, no Widget
  * code adds shows the quiz's numbers. Measured at mbp14 (1512×982).
@@ -99,7 +99,7 @@ test("beside an open quiz, no Widget code adds shows the quiz's numbers", async 
  * Topic's opener, which the page starts on hydration) and the Topic complete step (seeded with the Reveal reply that
  * ended the Topic) each show a Widget, on arrival and when the Session is opened again from the database.
  */
-// The topic-complete case left this test with B6 (ADR 0019): its Reveal reply has no Widget of its own, and the Case card
+// The topic-complete case left this test with B6 (ADR 0008): its Reveal reply has no Widget of its own, and the Case card
 // that once filled the panel is no longer added, since no picture is better than an unrelated one.
 for (const state of ["story"] as const) {
   test(`#476: the ${state} step shows a Widget beside its reply, on arrival and after a reload`, async ({ page }) => {

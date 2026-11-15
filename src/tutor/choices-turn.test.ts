@@ -43,7 +43,7 @@ describe("Choices under every reply", () => {
     const choices = await storedChoices(db);
     expect(choices).toHaveLength(3);
     expect(choices[0]).toMatchObject({ label: "Who were the traders?", says: "Who were the traders?" });
-    // Words only (ADR 0014, A2): each stored Choice holds its id, its label and the words its press posts, and no emoji.
+    // Words only (ADR 0008, A2): each stored Choice holds its id, its label and the words its press posts, and no emoji.
     for (const c of choices) expect(Object.keys(c).sort(), c.label).toEqual(["id", "label", "says"]);
     // The browser gets the Choices with the reply.
     expect(events.some((e) => e.type === "item" && e.item.kind === REPLY_CHOICES)).toBe(true);

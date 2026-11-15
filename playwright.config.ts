@@ -12,7 +12,7 @@ const BASE = `http://localhost:${PORT}`;
 
 /**
  * The tools Learner's saved sign-in (global-setup.ts writes both). The dark projects start from the same sign-in plus the
- * cookie `theme=dark`: a dark project is a Learner who chose Dark (ADR 0013), since the site never reads the computer's
+ * cookie `theme=dark`: a dark project is a Learner who chose Dark, since the site never reads the computer's
  * setting. Their colorScheme stays dark, which proves that setting changes nothing.
  */
 const AUTH = "test-results/.auth/tools.json";

@@ -10,7 +10,7 @@ import { OFF_TOPIC, type OffTopicData, type SessionItem } from "./session-item-k
 /**
  * The Off-Topic answer block: a quiet display-only Session item stored after a Tutor answer that left the Topic, with
  * "Back to <Topic>" (src/app/session-item-view.tsx). It marks the answer; it never moves the Learner to another Topic
- * (one Session per Topic, ADR 0004), and the model never sees it.
+ * (one Session per Topic, ADR 0005), and the model never sees it.
  */
 
 /** The block for a Session's Topic, pointing back at the Learner's current step; null for a Session with no Topic on the Course Map. */

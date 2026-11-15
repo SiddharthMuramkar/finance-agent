@@ -298,7 +298,7 @@ export function useTurnStream({
               continue;
             }
             if (event.type === "stopped") {
-              // The Learner stopped the reply, and "done" follows. Never a resume. The held reply is dropped (ADR 0008): no text
+              // The Learner stopped the reply, and "done" follows. Never a resume. The held reply is dropped (ADR 0006): no text
               // was shown, so no empty reply bubble is left, only the Stopped note.
               finished = true;
               update(() => ({ waiting: null, progress: null }));
