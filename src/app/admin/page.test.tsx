@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Owner } from "@/auth/owner";
@@ -232,6 +232,9 @@ describe("/admin", () => {
 
   it("still draws the page before migration 0037, saying the speed numbers are not available yet", async () => {
     jar.db = await testDbThrough("0036_session_items_turn");
+    // Only 0037's speed numbers are missing here: migration 0038's Learner column (issue #33), which Drizzle names in
+    // every Learner it writes or reads back, is put in by hand.
+    await jar.db.execute(sql`alter table learners add column clerk_user_id text`);
     const learner = await seed(jar.db);
     jar.owner = { learner, user: OWNER };
     const html = await render();

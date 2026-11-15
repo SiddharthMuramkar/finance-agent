@@ -107,6 +107,11 @@ export const learners = pgTable(
     showDeveloperDetails: boolean("show_developer_details").notNull().default(false),
     /** The Google user (Better Auth `user.id`) this Learner belongs to; null for a passcode Learner. */
     authUserId: text("auth_user_id").references(() => user.id, { onDelete: "set null" }),
+    /**
+     * The Clerk user this Learner belongs to (issue #33, the expand step before Clerk replaces Better Auth); null until
+     * then, and for a passcode Learner. No foreign key: Clerk's users live in Clerk, not in this database.
+     */
+    clerkUserId: text("clerk_user_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -114,6 +119,9 @@ export const learners = pgTable(
     uniqueIndex("learners_one_active_per_auth_user")
       .on(t.authUserId)
       .where(sql`${t.archivedAt} is null and ${t.authUserId} is not null`),
+    uniqueIndex("learners_one_active_per_clerk_user")
+      .on(t.clerkUserId)
+      .where(sql`${t.archivedAt} is null and ${t.clerkUserId} is not null`),
   ],
 );
 
