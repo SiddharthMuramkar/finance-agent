@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// ADR 0013's type: Inter for text and Inter Tight for headings, loaded once in the root layout through next/font
+// The type (spec §3.2): Inter for text and Inter Tight for headings, loaded once in the root layout through next/font
 // (self-hosted, no call to Google), both put on <body> as CSS variables; Manrope is gone. <html> carries only its
 // language: one Light theme (decision #17) needs no theme attributes and no head script.
 

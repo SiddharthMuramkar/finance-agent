@@ -100,7 +100,7 @@ describe("the cron route's access", () => {
     expect(isCronRequest("Bearer s3", undefined)).toBe(false);
   });
 
-  it("is the only route the passcode gate skips beyond the login", () => {
+  it("skips the passcode gate at its exact path only (beside the login and the health check)", () => {
     const gate = new RegExp(`^${proxyConfig.matcher[0]}$`);
     expect(gate.test("/api/cron/library-refresh")).toBe(false);
     for (const path of ["/api/cron/library-refresh/x", "/api/cron/library-refresh2", "/api/cron/other", "/api/cron", "/api/turn", "/api/review", "/course", "/"]) {

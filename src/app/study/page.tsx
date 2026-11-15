@@ -53,13 +53,13 @@ export default async function WorkspacePage() {
   const learnerId = learner.id;
   // A new Learner (no Sessions, no Topic chosen yet) sees the Welcome before anything else.
   if (await showsWelcome(db, learnerId)) redirect("/welcome");
-  // The current Topic's Claude-era Session (ADR 0015) is closed on this visit, unless a turn is running in it: the page
+  // The current Topic's Claude-era Session (ADR 0007) is closed on this visit, unless a turn is running in it: the page
   // then shows the Topic with no Session and starts the opener, a fresh conversation at the Learner's saved step.
   if ((await latestTurn(db, learnerId))?.status !== "running") await retireLegacySessions(db, learnerId, await currentTopicId(db, map, learnerId));
   // A step that finishes from what the Learner did in a Widget (its `doneWhen`) is finished now, from the saved Widget
   // state; its divider and Widget chip are stored for the step that begins. Most renders have no such step and do nothing.
   await finishStepFromWidget(db, map, learnerId, new Date());
-  // The Learner's shown Session: the current Topic's own (ADR 0004), or the Topic alone before its first turn (the page
+  // The Learner's shown Session: the current Topic's own (ADR 0005), or the Topic alone before its first turn (the page
   // then starts the opener); a Topic passed in a turn stays shown until the Learner chooses. Rendering makes no Session.
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);

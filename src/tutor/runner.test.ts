@@ -152,3 +152,55 @@ describe("the Tool Runner", () => {
     expect(signal?.aborted).toBe(true);
   });
 });
+
+describe("the step limit", () => {
+  it("asks how many steps are left before each step, so a step a tool saved counts at once, and sends the last one with no tool choice", async () => {
+    const calls: string[] = [];
+    // The turn may take 3 steps; the tool saves one of its own (as compose_widget does), so the second step is the last.
+    let used = 0;
+    const saving = tool("compose", calls, () => {
+      used += 1;
+      return "composed";
+    });
+    const asked: number[] = [];
+    const stepsLeft = async () => {
+      asked.push(3 - used);
+      return 3 - used;
+    };
+    const { client, requests } = scriptedClient([{ content: [use("call_1", "compose")] }, { content: [text("Here it is.")] }], { reasoning: false });
+    const counting: ModelClient = { ...client, step: (request, options) => (used++, client.step(request, options)) };
+    const runner = runTools(counting, params([saving]), { stepsLeft });
+    const finals = await drain(runner);
+
+    expect(finals.map((f) => f.stopReason)).toEqual(["tool_use", "end_turn"]);
+    expect(asked).toEqual([3, 1]);
+    expect(requests[0].toolChoice).toBeUndefined();
+    expect(requests[1].toolChoice).toBe("none");
+    // The tools stay listed on the last step: only the choice changes.
+    expect(requests[1].tools.map((t) => t.name)).toEqual(["compose"]);
+    expect(runner.stepLimitReached).toBe(false);
+  });
+
+  it("sends nothing once no step is left, keeping the last tool results, and says the limit was reached", async () => {
+    const calls: string[] = [];
+    let left = 1;
+    const { client, requests } = scriptedClient([{ content: [use("call_1", "look")] }], { reasoning: false });
+    // A model that calls a tool on its last step anyway: the runner still sends no further request.
+    const runner = runTools(client, params([tool("look", calls)]), { stepsLeft: async () => left-- });
+    const finals = await drain(runner);
+
+    expect(finals.map((f) => f.stopReason)).toEqual(["tool_use"]);
+    expect(requests).toHaveLength(1);
+    expect(calls).toEqual(["look"]);
+    expect(runner.params.messages.at(-1)).toEqual({ role: "user", content: [{ type: "tool_result", tool_use_id: "call_1", content: "look done" }] });
+    expect(runner.stepLimitReached).toBe(true);
+  });
+
+  it("with no stepsLeft, never limits and never sets a tool choice", async () => {
+    const { client, requests } = scriptedClient([{ content: [use("call_1", "look")] }, { content: [text("Done.")] }], { reasoning: false });
+    const runner = runTools(client, params([tool("look", [])]));
+    await drain(runner);
+    expect(requests.map((r) => r.toolChoice)).toEqual([undefined, undefined]);
+    expect(runner.stepLimitReached).toBe(false);
+  });
+});

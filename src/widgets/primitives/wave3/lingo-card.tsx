@@ -13,7 +13,7 @@ import { motionFlag, Pic } from "./shared";
 // the raised surface: the front has a 2 px violet edge (violet is the colour of lingo) and the story side a 2 px sunflower
 // edge, each named by its Tag. At rest the card still has a picture (the example's Icon in a hairline box) and a voice
 // (the pro's line beside a speech Icon), so a still frame reads as a moment, not a page of text (tickets R-E2a, A9a). No
-// sticker, tilt, tint or peek (ADR 0014).
+// sticker, tilt, tint or peek (ADR 0018).
 
 export const lingoCardProps = z.object({
   term: z.string().describe('The word or phrase, e.g. "Yield"'),

@@ -15,7 +15,7 @@ import { exploreWorkbenchCall, opensExploreWorkbench } from "./explore-workbench
 import { runTutorTurn, type TurnEvent } from "./turn";
 
 /**
- * A Spine Topic's explore Workbench reaches the Widget panel through show_widget (spec 2026-11-12 B2, C2; ADR 0018). The
+ * A Spine Topic's explore Workbench reaches the Widget panel through show_widget (spec 2026-11-12 B2, C2; ADR 0010). The
  * Topic here is present value with its explore Widget swapped for the Value levers Workbench on Damodaran's Amazon Case
  * (val-dcf's amazon-dcf-2000), as a Spine Topic's file writes it.
  */

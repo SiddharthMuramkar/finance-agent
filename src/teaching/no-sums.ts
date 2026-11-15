@@ -1,5 +1,5 @@
 /**
- * The no-sum rule (ADR 0009): the Learner never types a number, and the Tutor never asks for a sum. Numbers may be
+ * The no-sum rule (ADR 0002): the Learner never types a number, and the Tutor never asks for a sum. Numbers may be
  * facts in a story or answer labels the Learner recognises; anything that needs working out is a sum.
  *
  * `sumAsk` is the one shared detector. Lint L10, reply check V8 and the story-recipe checks all call it. It is pure and

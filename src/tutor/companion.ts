@@ -10,7 +10,7 @@ import { termAt } from "./term-spellings";
 export { termAt };
 
 /**
- * The Companion Widget picker (spec 2026-11-12, B6, ADR 0019; amends E4a and ADR 0010). A reply changes the Widget only
+ * The Companion Widget picker (spec 2026-11-12, B6, ADR 0008; amends E4a). A reply changes the Widget only
  * when a better one fits: when the Tutor showed none and code opened none for a step-led reply, code may add one. Pure:
  * no database, no model. The first rule that gives a Widget wins:
  * 1. lingo: only when the Learner asked what a word means (the Choice "What does 'basis point' mean?", G6), a Lingo card

@@ -13,7 +13,7 @@ import type { BenchLever } from "../workbench/bench";
 import { defineRecipe, issuesText, lit, num, obj, program, str, WORKBENCH, type Recipe } from "./define";
 
 /**
- * The Workbench recipes (spec 2026-11-12, B2 to B4; ADR 0018): Widgets with several controls feeding one headline number,
+ * The Workbench recipes (spec 2026-11-12, B2 to B4; ADR 0010): Widgets with several controls feeding one headline number,
  * each a view over the one valuation engine, bound to a Case's valuation block by its Case id or given the Topic file's
  * sourced figures. Only a recipe can be a Workbench, so the Tutor opens one with show_widget and never draws one. Value
  * levers is the first (B3), with a mode for each Spine Topic that reuses it (Appendix D); Value bridge, Terminal seesaw,
@@ -27,7 +27,7 @@ import { defineRecipe, issuesText, lit, num, obj, program, str, WORKBENCH, type 
  * list grew past what a recipe's signature can carry once every published Case had a block (33 ids put Value levers'
  * signature over its 2,400 characters and the engine's instructions over the Widget library prompt's), so a wrong id is
  * refused with the ids there are instead. The figure inputs' shapes are left out of the signatures too (`topicInputs`,
- * ADR 0018), which gives the engine's instructions room for the example in all six recipes; before that, the Cost of
+ * ADR 0010), which gives the engine's instructions room for the example in all six recipes; before that, the Cost of
  * capital stack and Cash waterfall had to say only "by id".
  *
  * Where the Tutor finds the id: no recipe lists the Cases any more (before, Value levers listed them all, the only place
@@ -338,7 +338,7 @@ export const cashWaterfall = defineRecipe({
  * out where it is used, so the subject and the peers each carried a full copy of the name, the multiple, the source and now
  * the Icon and the fact. Named, it is written once under `$defs` and pointed at twice, which takes about 380 characters off
  * this signature (the engine's instructions must stay under the Widget library prompt's: show-widget.test.ts). In the
- * Tutor's signature the subject and peers are collapsed to "copy them from the Topic file" (`topicInputs`, ADR 0018), and
+ * Tutor's signature the subject and peers are collapsed to "copy them from the Topic file" (`topicInputs`, ADR 0010), and
  * recipeSignature then drops the unused definition too.
  */
 const traded = tradedMultipleSchema.meta({ id: "tradedMultiple" });
@@ -398,7 +398,7 @@ export const multipleDecoder = defineRecipe({
 export const SET_WORKBENCH: Recipe[] = [valueLevers, valueBridge, terminalSeesaw, waccStack, cashWaterfall, multipleDecoder];
 
 /**
- * The inputs of each Workbench recipe that carry a Case's figures rather than lever positions (ADR 0018: "its Case figures
+ * The inputs of each Workbench recipe that carry a Case's figures rather than lever positions (ADR 0010: "its Case figures
  * come from the Topic file, not from numbers the Tutor types"). A Valuation Case id is not one: its figures are the
  * Topic file's `valuation:` block already.
  */
@@ -414,7 +414,7 @@ function sorted(v: unknown): unknown {
 }
 
 /**
- * Whether a Workbench the Tutor opens with these inputs shows figures no Topic file gives (ADR 0018), so it must be marked
+ * Whether a Workbench the Tutor opens with these inputs shows figures no Topic file gives (ADR 0010), so it must be marked
  * an Illustration: some figure input is present and no Topic file's inputs for this recipe carry the same figures.
  * `topicInputs` are the inputs every Topic file gives this recipe. False for a recipe with no figure inputs.
  */

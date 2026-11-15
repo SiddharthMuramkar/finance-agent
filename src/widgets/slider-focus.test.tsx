@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { WidgetView } from "@/app/widget-view";
 
-// The Slider has no box to type a value in, at any width (ADR 0009). Its value is a reading, not a button that turns
+// The Slider has no box to type a value in, at any width (ADR 0002). Its value is a reading, not a button that turns
 // into a box, and the −/+ buttons keep focus while the Learner steps, so the arrow-key and tap paths reach every step.
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

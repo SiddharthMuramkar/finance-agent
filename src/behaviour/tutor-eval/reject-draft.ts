@@ -4,7 +4,7 @@
  * reply checks reject the draft (V1) and the real model writes the retry, as they do in the app when a draft runs long.
  *
  * The padded step is stored as code edited it: without its `replay` block, so it is sent back rebuilt from its readable
- * blocks (openai-items.ts), which the API always accepts (ADR 0015), and the model reads the long draft the correction
+ * blocks (openai-items.ts), which the API always accepts (ADR 0007), and the model reads the long draft the correction
  * is about. Keeping the replay under edited text would be the very bug A1 forbids. The retry's request then holds the
  * draft and code's correction, and every later turn is built after a rejected draft, which is the case A1 is about.
  */

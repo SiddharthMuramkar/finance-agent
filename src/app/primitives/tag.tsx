@@ -1,4 +1,4 @@
-// Static tags: flat, 6px radius, no shadow, no pointer, a dot (spec A3a; ADR 0013). Controls are 8px with an edge or a
+// Static tags: flat, 6px radius, no shadow, no pointer, a dot (spec A3a; ADR 0018). Controls are 8px with an edge or a
 // fill and a pointer, so a label never reads as a control.
 
 import type { ReactNode } from "react";

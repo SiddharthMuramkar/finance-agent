@@ -11,7 +11,7 @@ import { ResponseFailed } from "./openai-items";
 import { runTutorTurn, type TurnEvent } from "./turn";
 
 /**
- * A Learner never reads provider text (spec 2026-11-12, A3; ADR 0016). The spec's own test: no Learner-facing string
+ * A Learner never reads provider text (spec 2026-11-12, A3; ADR 0007). The spec's own test: no Learner-facing string
  * contains "400", "invalid_request_error" or "request_id", across SDK errors, the turn's stored error and a reload.
  */
 
@@ -23,7 +23,7 @@ const apiError = (status: number, type: string, message: string, code: string | 
   APIError.generate(status, { error: { message, type, param: null, code } }, message, new Headers({ "x-request-id": requestId }));
 
 /**
- * The OpenAI counterpart of the 11 November lock-out (ADR 0016): replayed reasoning the API will not take. The Learner
+ * The OpenAI counterpart of the 11 November lock-out (ADR 0007): replayed reasoning the API will not take. The Learner
  * once read the provider's words after "The turn failed: "; now they never do.
  */
 const LOCK_OUT = apiError(400, "invalid_request_error", "The encrypted content for item rs_68f1a2b3c4d5 could not be verified.", "invalid_encrypted_content");

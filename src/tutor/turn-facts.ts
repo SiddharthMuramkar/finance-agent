@@ -62,7 +62,7 @@ export interface TurnFacts {
   /** At a converted Your turn with no try open and nothing parked: code posts the next Quick try with this reply, which is its one ask. */
   tryPosted?: boolean;
   /**
-   * An own-question turn (A5, ADR 0017): the reply streams, its answer comes first in about 120 words or fewer with no
+   * An own-question turn (A5, ADR 0006): the reply streams, its answer comes first in about 120 words or fewer with no
    * ask needed, and its soft checks measure it against that (`ownQuestionFacts`).
    */
   ownQuestion?: true;

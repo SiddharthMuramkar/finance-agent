@@ -58,7 +58,7 @@ export default defineConfig({
   globalSetup: "./e2e/support/global-setup.ts",
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  retries: process.env.CI ? 1 : 0, // CI retries a failed test once and reports it as flaky; locally a failure stays a failure.
   forbidOnly: !!process.env.CI,
   reporter: [["list"], ["html", { open: "never" }]],
   snapshotPathTemplate: "{testDir}/__screenshots__/{projectName}/{testFilePath}/{arg}{ext}",

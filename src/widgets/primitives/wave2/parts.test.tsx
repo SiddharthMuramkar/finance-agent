@@ -283,7 +283,7 @@ describe("StepThrough", () => {
     expect([...page!.host.querySelectorAll("button")].some((b) => b.textContent === "Show the number")).toBe(false);
   });
 
-  it("will not show a formula typed in symbols (ADR 0002) and points to the Formula Card", () => {
+  it("will not show a formula typed in symbols (ADR 0003) and points to the Formula Card", () => {
     show(<StepThroughView steps={[{ title: "Discount", body: "PV = FV / (1 + r)^n" }]} />);
     expect(byId(page!, "step-body")).toBeNull();
     expect(byId(page!, "step-formula-blocked")!.textContent).toContain("Formula Card");

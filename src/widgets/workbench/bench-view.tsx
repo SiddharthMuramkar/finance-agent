@@ -142,7 +142,7 @@ export type BarTone = "neutral" | "gain" | "loss" | "history";
 
 /**
  * The family colours, here only, as the paint of a Workbench's one chart, each bar beside words that name it. They are SVG
- * fills (a chart series), never a box's background, as ADR 0014 asks of a Widget.
+ * fills (a chart series), never a box's background, as ADR 0015 asks of a Widget.
  */
 const TONE_FILL: Record<BarTone, string> = {
   neutral: "var(--ink-2)",

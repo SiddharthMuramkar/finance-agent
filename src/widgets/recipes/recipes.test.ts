@@ -87,7 +87,7 @@ describe("Widget recipes", () => {
     });
   }
 
-  it("has a Workbench archetype only a recipe can have: the Tutor's free-form kinds leave it out (B2, ADR 0018)", () => {
+  it("has a Workbench archetype only a recipe can have: the Tutor's free-form kinds leave it out (B2, ADR 0010)", () => {
     expect(recipeById("value_levers")?.archetype).toBe(WORKBENCH);
     expect(ARCHETYPES as readonly string[]).not.toContain(WORKBENCH);
   });
@@ -109,7 +109,7 @@ describe("Widget recipes", () => {
     expect(built.ok && built.refs).toEqual(["reference/gold-inr-10g"]);
   });
 
-  it("makes any Widget with facts an Illustration (ADR 0003)", () => {
+  it("makes any Widget with facts an Illustration (ADR 0009)", () => {
     const shown = defineRecipe({
       id: "test_fact",
       archetype: "Check",
@@ -130,7 +130,7 @@ describe("Widget recipes", () => {
     for (const r of RECIPES) expect(text).toContain(`- ${r.id} (`);
     // What this guards is that the engine's instructions stay under the Widget library prompt's, which show-widget.test.ts
     // asserts outright (ENGINE_INSTRUCTIONS shorter than TUTOR_INSTRUCTIONS). The Workbench recipes meet it because their
-    // figure inputs (topicInputs, ADR 0018) are collapsed in the Tutor's signature to one line that says to copy them from
+    // figure inputs (topicInputs, ADR 0010) are collapsed in the Tutor's signature to one line that says to copy them from
     // the Topic file, and recipeSignature then drops a named schema nothing points at: multiple_decoder's traded multiple,
     // with its Icon and short fact (T33, F6), is not in its signature at all.
     for (const r of RECIPES) expect(recipeSignature(r).length, r.id).toBeLessThan(2400);

@@ -35,7 +35,7 @@ test("login page: Google first, an email link second, passcode behind a link, er
   const google = page.getByRole("button", { name: "Continue with Google" });
   await expect(google).toBeVisible();
   await expect(google).toHaveAttribute("data-affordance", "button");
-  // ADR 0013: flat, so no lip or drop shadow; it is signified by a 1px edge or a fill instead.
+  // ADR 0018: flat, so no lip or drop shadow; it is signified by a 1px edge or a fill instead.
   const look = await google.evaluate((el) => {
     const s = getComputedStyle(el);
     return { shadow: s.boxShadow, edge: parseFloat(s.borderTopWidth), fill: s.backgroundColor, height: el.getBoundingClientRect().height };

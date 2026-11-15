@@ -1,4 +1,4 @@
-// The chip: a small, flat choice or filter inside content, 8px corners and a 1px edge (spec A3a; the look is ADR 0013's).
+// The chip: a small, flat choice or filter inside content, 8px corners and a 1px edge (spec A3a; the look is ADR 0018's).
 
 import type { ButtonHTMLAttributes } from "react";
 import { Spinner } from "./button";

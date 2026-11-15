@@ -10,7 +10,7 @@ import { landedValue, nextValue, settledValue, type SliderRange } from "./slider
 // Widget's levers share it: a blue track and thumb (F2), −/+ steppers that hold to repeat, the arrow keys, and chips for the
 // values a Guided Task names. A drag rests on a stop (a task's value, the opening value) when it comes within 12 pixels of
 // it, else moves in steps at least 2 pixels wide; the steppers and arrow keys move in the slider's finer step and pass
-// through each stop. Thumb, steppers and chips are at least 44 pixels each way. Nothing is typed (ADR 0009).
+// through each stop. Thumb, steppers and chips are at least 44 pixels each way. Nothing is typed (ADR 0002).
 
 /** The drawn Widget's sliders' stops and chips by `$variable` (sliderLandings of its code); none outside a drawn Widget. */
 export const SliderLandingContext = createContext<Landings>({});

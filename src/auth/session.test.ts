@@ -7,7 +7,7 @@ import { addInvite } from "./invites";
 import { learnerToken } from "./passcode";
 
 /**
- * `currentLearner` reads Better Auth first and the passcode cookie second (C1b, ADR 0011). Better Auth
+ * `currentLearner` reads Better Auth first and the passcode cookie second (C1b, ADR 0014). Better Auth
  * is mocked at its seam (`getAuth`/`api.getSession`, as other tests mock `@/auth/session`), the
  * database is PGlite, and Learner linking (`learnerForAuthUser`) is the real code.
  */

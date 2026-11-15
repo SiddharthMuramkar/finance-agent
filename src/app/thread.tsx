@@ -104,7 +104,7 @@ export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead:
       if (widget) out.push({ key: `${m.id}:0`, number: out.length + 1, code: widget.code, complete: true, writtenAhead: widget.id, ...(preset && { preset: { ...declaredSettings(widget.code), ...preset } }) });
       return;
     }
-    // A Widget code drew from a recipe (show_widget, ADR 0005): its code is in the item, and its Widget key is its title.
+    // A Widget code drew from a recipe (show_widget, ADR 0009): its code is in the item, and its Widget key is its title.
     if (m.role === "item" && m.kind === WIDGET_SHOWN) {
       const shown = shownWidgetOf(m.data);
       // Its chip reopens the recipe's own starting numbers.

@@ -45,7 +45,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
   const reduced = usePrefersReducedMotion();
   const [shown, setShown] = useState(false);
   const objects = (path.outcome ?? []).slice(0, 6);
-  // Each card is opaque (--raised) with a 2 px sunflower top edge and no tint (ADR 0014).
+  // Each card is opaque (--raised) with a 2 px sunflower top edge and no tint.
   return (
     <div
       data-testid="path"
