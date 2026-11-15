@@ -1537,9 +1537,9 @@ html[data-splitting] * {
   outline-offset: 2px;
 }
 
-/* Home (src/app/_landing/landing.tsx): the public sales page, in enjoy.dev's editorial rhythm (ADR 0018). A 12-column
+/* Home (src/app/_landing/landing.tsx): the public sales page, in enjoy.dev's editorial rhythm. A 12-column
    grid, Inter for text and Inter Tight (--font-display) at 600 for display type, 1px hairlines between sections instead
-   of boxed cards, a steady section rhythm and one royal-blue band. Built from the tokens above, so Light and Dark both
+   of boxed cards (ADR 0018), a steady section rhythm and one royal-blue band. Built from the tokens above, so Light and Dark both
    work; the band alone is always light, as Enjoy's closing band is. */
 .home {
   --home-section: 150px;

@@ -176,7 +176,7 @@ describe("Home [E1]", () => {
   });
 });
 
-// ADR 0018: Enjoy's editorial look. An eyebrow, not a pill; ghost header links; hairline rows; Inter Tight, not Manrope;
+// Enjoy's editorial look. An eyebrow, not a pill; ghost header links; hairline rows (ADR 0018); Inter Tight, not Manrope (spec §3.2);
 // and, until #32 lands, royal-blue Bands that are always light, with a white button and no pad.
 describe("Home's look", () => {
   const css = readFileSync(new URL("../globals.css", import.meta.url), "utf8");
