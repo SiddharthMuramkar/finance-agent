@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { replyLanded, say, seed, type Script } from "./support/app";
 
 /**
- * What was sent stays sent (spec 2026-11-12, A1 and A2; ADR 0016), in the browser test bed, whose scripted Tutor plays
+ * What was sent stays sent (spec 2026-11-12, A1 and A2; ADR 0007), in the browser test bed, whose scripted Tutor plays
  * OpenAI's replay check: a Choice press at Concept gets a first draft the 80-word cap rejects and a retry that passes;
  * the three turns after it each get a normal reply, and no failure words ever show.
  */

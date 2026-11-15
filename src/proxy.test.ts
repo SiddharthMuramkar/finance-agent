@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
@@ -71,17 +73,38 @@ describe("The signed-out gate", () => {
     }
   });
 
-  it("refuses a write to a public page and any Server Action call", async () => {
+  it("refuses a write to a public page and any Server Action call while Clerk is off", async () => {
     for (const path of ["/", "/about", "/join", "/sign-in", "/sign-up/x"]) {
       expect((await proxy(request(path, { method: "POST" }))).status, path).toBe(401);
-      expect((await proxy(request(path, { headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
+      expect((await proxy(request(path, { method: "POST", headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
     }
-    expect((await proxy(request("/course", { headers: { "Next-Action": "abc" } }))).status).toBe(401);
+    expect((await proxy(request("/course", { method: "POST", headers: { "Next-Action": "abc" } }))).status).toBe(401);
   });
 
   it("serves any .png or .webp file under /landing-assets/ signed out, the link-preview image among them", async () => {
     expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
-    expect(allowed(await proxy(request("/landing-assets/workspace-dark.webp")))).toBe(true);
+    expect(allowed(await proxy(request("/landing-assets/workspace.webp")))).toBe(true);
+  });
+
+  // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.
+  it("lets a signed-out visitor read How it works, Examples and each of the five case pages", async () => {
+    const paths = ["/how-it-works", "/examples", ...["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"].map((s) => `/examples/${s}`)];
+    for (const path of paths) {
+      expect(allowed(await proxy(request(path))), path).toBe(true);
+      expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
+    }
+  });
+
+  it("sends an unknown case slug to the sign-in, so the public list stays exact", async () => {
+    for (const path of ["/examples/nope", "/examples/amazon-2000/x", "/examples/", "/examplesx", "/how-it-works/x"]) {
+      expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+    }
+  });
+
+  it("refuses a write to a site page", async () => {
+    for (const path of ["/how-it-works", "/examples", "/examples/amazon-2000"]) {
+      expect((await proxy(request(path, { method: "POST" }))).status, path).toBe(401);
+    }
   });
 
   it("sends every other page to the sign-in", async () => {
@@ -242,6 +265,23 @@ describe("With Clerk on (issue #33)", () => {
     for (const path of ["/", "/about", "/join", "/sign-in", "/sign-up"]) expect(allowed(await proxy(request(path))), path).toBe(true);
   });
 
+  it("signed out, lets a Server Action call reach the sign-in and sign-up pages, where Clerk's setActive makes one", async () => {
+    // @clerk/nextjs's ClerkProvider calls its own Server Action (invalidateCacheAction) before clerk-js writes the new
+    // session cookie, so the call comes signed out; refused, setActive would wait for it forever (review of PR B).
+    const action = { method: "POST", headers: { "Next-Action": "abc" } };
+    for (const path of ["/sign-in", "/sign-in/factor-one", "/sign-in/verify", "/sign-in/sso-callback", "/sign-up", "/sign-up/verify-email-address"]) {
+      expect(allowed(await proxy(request(path, action))), path).toBe(true);
+    }
+    // Only a Server Action call, only by POST, and only there.
+    for (const path of ["/sign-in", "/sign-up/x"]) {
+      expect((await proxy(request(path, { method: "POST" }))).status, path).toBe(401);
+      expect((await proxy(request(path, { method: "PUT", headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
+    }
+    for (const path of ["/", "/about", "/join", "/sign-inx", "/sign-upx", "/course", "/api/turn", "/api/logout"]) {
+      expect((await proxy(request(path, action))).status, path).toBe(401);
+    }
+  });
+
   it("still lets the passcode door's cookie through on a developer's machine, and never on Vercel", async () => {
     const cookie = await ownersCookie();
     expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
@@ -279,11 +319,15 @@ describe("Clerk off: no keys (CI), or the browser test bed", () => {
 describe("The matcher", () => {
   const matcher = new RegExp(`^${config.matcher[0]}$`);
 
-  it("keeps only the passcode door's own route and the cron route out of the proxy; Better Auth's routes go through it now", () => {
+  it("keeps only the passcode door's own route and the two cron routes out of the proxy; Better Auth's routes go through it now", () => {
     expect(matcher.test("/api/login")).toBe(false);
     expect(matcher.test("/api/login/x")).toBe(false);
     expect(matcher.test("/api/login-anything")).toBe(true);
     expect(matcher.test("/api/cron/library-refresh")).toBe(false);
+    // The health cron (#36): Vercel's schedule has no sign-in; the route checks CRON_SECRET itself.
+    expect(matcher.test("/api/cron/health")).toBe(false);
+    expect(matcher.test("/api/cron/health/x")).toBe(true);
+    expect(matcher.test("/api/cron/other")).toBe(true);
     expect(matcher.test("/api/auth/sign-in/social")).toBe(true);
     expect(matcher.test("/api/auth")).toBe(true);
     expect(matcher.test("/api/turn")).toBe(true);
@@ -293,6 +337,40 @@ describe("The matcher", () => {
 
   it("keeps BotID's challenge paths out of the proxy, signed out (issue #33)", async () => {
     // The browser loads the challenge with no say over its cookies, so the proxy must never send it to the sign-in.
+    const rewrites = await nextConfig.rewrites!();
+    const sources = (Array.isArray(rewrites) ? rewrites : [...(rewrites.beforeFiles ?? []), ...(rewrites.afterFiles ?? [])])
+      .filter((r) => r.destination.startsWith("https://api.vercel.com/bot-protection/"))
+      .map((r) => r.source.replace("/:path*", "/a/b.js"));
+    expect(sources).toHaveLength(2);
+    for (const source of sources) expect(matcher.test(source), source).toBe(false);
+    expect(matcher.test("/149e9513-01fa-4fb0-aad4-566afd725d1bx")).toBe(true);
+  });
+});
+
+describe("Server Actions", () => {
+  /** Every .ts and .tsx file under src, tests left out. */
+  function* sources(dir: string): Generator<string> {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) yield* sources(path);
+      else if (/\.(ts|tsx)$/.test(name) && !/\.test\.(ts|tsx)$/.test(name)) yield path;
+    }
+  }
+  const USE_SERVER = /^\s*["']use server["'];?\s*$/m;
+
+  it("the app defines none of its own, so the signed-out call the gate lets through on /sign-in can only be Clerk's", () => {
+    // A Server Action of ours would be callable signed out from /sign-in (isClerkSignInAction): adding one means
+    // narrowing that rule first.
+    expect(USE_SERVER.test('"use server";\nexport async function act() {}')).toBe(true);
+    expect(USE_SERVER.test('async function act() {\n  "use server";\n}')).toBe(true);
+    const files = [...sources(join(import.meta.dirname))];
+    expect(files.length).toBeGreaterThan(100);
+    expect(files.filter((path) => USE_SERVER.test(readFileSync(path, "utf8")))).toEqual([]);
+  });
+
+  it("keeps BotID's challenge paths out of the proxy, signed out (matcher, issue #33)", async () => {
+    // The browser loads the challenge with no say over its cookies, so the proxy must never send it to the login.
+    const matcher = new RegExp(`^${config.matcher[0]}$`);
     const rewrites = await nextConfig.rewrites!();
     const sources = (Array.isArray(rewrites) ? rewrites : [...(rewrites.beforeFiles ?? []), ...(rewrites.afterFiles ?? [])])
       .filter((r) => r.destination.startsWith("https://api.vercel.com/bot-protection/"))

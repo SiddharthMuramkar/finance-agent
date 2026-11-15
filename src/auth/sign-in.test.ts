@@ -63,7 +63,7 @@ const startOverRoute = await import("@/app/api/start-over/route");
 const settingsRoute = await import("@/app/api/settings/route");
 const { default: SettingsPage } = await import("@/app/settings/page");
 const { default: CourseMapPage } = await import("@/app/course/page");
-const { loadHomeButton } = await import("@/app/_landing/landing");
+const { loadHomeButton } = await import("@/site/home-button");
 
 const OWNER_PASSCODE = "correct horse battery";
 const TEST_PASSCODE = "staple gun";
@@ -138,21 +138,17 @@ describe("Signing in with a passcode", () => {
     expect(log).toHaveBeenLastCalledWith(expect.stringMatching(new RegExp(`Learner ${OWNER_LEARNER_ID} \\(owner\\)`)));
   });
 
-  it("with no passcode list, the old single passcode signs in as the owner", async () => {
-    vi.stubEnv("PASSCODE", OWNER_PASSCODE);
-    vi.spyOn(console, "info").mockImplementation(() => {});
-    await signIn(OWNER_PASSCODE);
-    expect(await session.isSignedIn()).toBe(true);
-    expect(await session.currentLearnerId()).toBe(OWNER_LEARNER_ID);
-  });
-
-  it("once the list is set, the old single passcode no longer signs in", async () => {
+  it("the old single PASSCODE signs nobody in, with or without a list (issue #33: only PASSCODES opens the door)", async () => {
+    const tryOld = async () => {
+      const form = new FormData();
+      form.set("passcode", "the old one");
+      const response = await login(new Request("https://app.example/api/login", { method: "POST", body: form }));
+      return new URL(response.headers.get("location")!).search;
+    };
     vi.stubEnv("PASSCODE", "the old one");
+    expect(await tryOld()).toBe("?wrong=1");
     vi.stubEnv("PASSCODES", `owner:${OWNER_PASSCODE}`);
-    const form = new FormData();
-    form.set("passcode", "the old one");
-    const response = await login(new Request("https://app.example/api/login", { method: "POST", body: form }));
-    expect(new URL(response.headers.get("location")!).search).toBe("?wrong=1");
+    expect(await tryOld()).toBe("?wrong=1");
   });
 });
 

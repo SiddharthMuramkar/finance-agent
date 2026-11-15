@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { getDb } from "@/db/client";
 import { learnerForClerkUser } from "./clerk-learner";
 import { SIGN_IN_PATH } from "./destination";
@@ -25,15 +26,25 @@ export type SignIn =
  * Who signed in, the account first: its Learner is made or found on first use and always exists. Only with no account
  * does the passcode cookie decide, and only while the door is open, for an active Learner whose name is on `PASSCODES`
  * and who belongs to no account. The proxy has only let the request through; every page and route checks here before
- * reading any Learner data, so an archived Learner is signed out everywhere at once.
+ * reading any Learner data, so an archived Learner is signed out everywhere at once. Read once per server render
+ * (React `cache`): a page asks through both signedInLearner and its header's currentAccount, and that is one read.
+ * Outside a render (a route handler, a test) every call reads afresh.
  */
-export async function currentSignIn(): Promise<SignIn> {
+export const currentSignIn = cache(async function currentSignIn(): Promise<SignIn> {
   const identity = await currentIdentity();
   if (identity) return { kind: "learner", learner: await learnerForClerkUser(getDb(), identity), via: "account", identity };
   if (!passcodeDoorOpen(process.env)) return { kind: "signed-out" };
   const jar = await cookies();
   const learner = await learnerFromCookie(getDb(), jar.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "", passcodeList());
   return learner ? { kind: "learner", learner, via: "passcode" } : { kind: "signed-out" };
+});
+
+/**
+ * True when the sign-in is the admin's: an account whose token says admin (Clerk `publicMetadata.role = "admin"`, which
+ * only the owner sets). Never a passcode, which carries no identity.
+ */
+export function isAdminSignIn(signIn: SignIn): signIn is Extract<SignIn, { via: "account" }> {
+  return signIn.kind === "learner" && signIn.via === "account" && signIn.identity.admin;
 }
 
 /** The signed-in Learner of this request, or null when it is signed out. */
@@ -54,6 +65,16 @@ export async function isSignedIn() {
  */
 export async function currentLearnerId(): Promise<number> {
   return (await signedInLearner()).id;
+}
+
+/**
+ * Who takes a Tutor turn: the signed-in Learner's id, and whether it is the admin (isAdminSignIn), whose turns have no
+ * daily cap of their own (quota.ts). One sign-in read. A signed-out request is sent to the sign-in instead.
+ */
+export async function currentTurnTaker(): Promise<{ learnerId: number; admin: boolean }> {
+  const signIn = await currentSignIn();
+  if (signIn.kind !== "learner") redirect(SIGN_IN_PATH);
+  return { learnerId: signIn.learner.id, admin: isAdminSignIn(signIn) };
 }
 
 /** The signed-in Learner (with its Settings choices); a signed-out request is sent to the sign-in instead. */

@@ -10,7 +10,7 @@ export const settings = pgTable("settings", {
 /** The owner's Learner, made by the expand migration, which gave it every row from before Learners. */
 export const OWNER_LEARNER_ID = 1;
 
-// Better Auth's four core tables (Google sign-in, ADR 0011), as `auth generate` makes them for Drizzle
+// Better Auth's four core tables (Google sign-in, ADR 0014), as `auth generate` makes them for Drizzle
 // on Postgres: text ids, kept apart from `learners`. Better Auth reads and writes them; our code only
 // reads `user` through `learners.auth_user_id`.
 
@@ -94,7 +94,12 @@ export const verification = pgTable(
  * One Learner: a person with their own Learner Profile, progress, Notes, Sessions and Widget state.
  * A name (from the passcode list) signs in as its one active Learner; Start over archives that
  * Learner and makes a fresh one under the same name, so at most one per name is not archived.
- * A Learner made through Google sign-in carries its Google user in `auth_user_id`.
+ * A Learner made through a Clerk sign-in carries its Clerk user in `clerk_user_id`.
+ *
+ * The database still has `auth_user_id` (the pre-Clerk Google user, with its foreign key to `user` and its unique
+ * index), but this schema no longer names it (issue #33, PR B): Drizzle names every column it knows in each select and
+ * `returning()`, so code that knew it would fail the moment PR C's migration drops it. All of them are null in
+ * production. Until PR C, `drizzle-kit generate` would write that drop: do not commit it outside PR C.
  */
 export const learners = pgTable(
   "learners",
@@ -105,20 +110,15 @@ export const learners = pgTable(
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     /** Settings > Show developer details: "Under the hood" under each reply. Off by default. */
     showDeveloperDetails: boolean("show_developer_details").notNull().default(false),
-    /** The Google user (Better Auth `user.id`) this Learner belongs to; null for a passcode Learner. */
-    authUserId: text("auth_user_id").references(() => user.id, { onDelete: "set null" }),
     /**
-     * The Clerk user this Learner belongs to (issue #33, the expand step before Clerk replaces Better Auth); null until
-     * then, and for a passcode Learner. No foreign key: Clerk's users live in Clerk, not in this database.
+     * The Clerk user this Learner belongs to (issue #33); null for a passcode Learner and for one from before Clerk. No
+     * foreign key: Clerk's users live in Clerk, not in this database.
      */
     clerkUserId: text("clerk_user_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("learners_one_active_per_name").on(t.name).where(sql`${t.archivedAt} is null`),
-    uniqueIndex("learners_one_active_per_auth_user")
-      .on(t.authUserId)
-      .where(sql`${t.archivedAt} is null and ${t.authUserId} is not null`),
     uniqueIndex("learners_one_active_per_clerk_user")
       .on(t.clerkUserId)
       .where(sql`${t.archivedAt} is null and ${t.clerkUserId} is not null`),
@@ -126,7 +126,7 @@ export const learners = pgTable(
 );
 
 /**
- * The invite list (ADR 0011): the emails that may become a Learner through Google while the Sign-up
+ * The invite list (ADR 0014): the emails that may become a Learner through Google while the Sign-up
  * switch (`signup_open`) is off. `email` is stored lowercase and trimmed. `learner_name` links an
  * existing Learner by name (the owner's email names `owner`), because ids differ per database.
  */
@@ -140,7 +140,7 @@ export const invites = pgTable("invites", {
 
 /**
  * The people the owner denied on /admin (ADR 0014), one row per Better Auth `user`. Checked first on
- * every request (src/auth/access.ts), so one row locks someone out even with an invite, the open
+ * every request (by src/auth/access.ts, deleted with Better Auth in issue #33; PR C drops this table), so one row locks someone out even with an invite, the open
  * Sign-up switch or a linked Learner. Keyed on the user, not the email, so Google and the email link
  * (one `user` per address) are both covered. Approving deletes the row; the Learner was never touched,
  * so their progress comes back. A deleted `user` takes its row with it and comes back as Waiting.
@@ -165,7 +165,7 @@ export const rateLimit = pgTable("rate_limit", {
 });
 
 /**
- * One sign-in email asked for (src/auth/email-throttle.ts): an HMAC of the address under
+ * One sign-in email asked for (by src/auth/email-throttle.ts, deleted with Better Auth in issue #33; PR C drops this table): an HMAC of the address under
  * BETTER_AUTH_SECRET, never the address, and when. Counted per address per hour and across all
  * addresses per day; rows older than a day are deleted.
  */
@@ -192,7 +192,7 @@ const learnerId = () =>
  * One Session: the instructions, tool definitions, model and effort frozen at
  * Session start. Every request in the Session replays these exact values.
  *
- * A Topic Session (ADR 0004) has its Topic and is live (`older` false): at most one live Session
+ * A Topic Session (ADR 0005) has its Topic and is live (`older` false): at most one live Session
  * per Learner and Topic. Every Session from before one Session per Topic is Older: read-only, and
  * possibly holding several Topics. `older` defaults to true so a Session made by code that doesn't
  * know about Topics is Older too; code that makes a Topic Session sets it to false.
@@ -212,7 +212,7 @@ export const sessions = pgTable(
     older: boolean("older").notNull().default(true),
     /** The seq of the first message after the instructions were last refrozen on a deploy; null if never. */
     refrozenAtSeq: integer("refrozen_at_seq"),
-    /** Set when the Learner started this Topic over: the Session is then an Earlier attempt, read-only (ADR 0004). */
+    /** Set when the Learner started this Topic over: the Session is then an Earlier attempt, read-only (ADR 0005). */
     restartedAt: timestamp("restarted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -403,7 +403,7 @@ export const usageRows = pgTable(
     tools: jsonb("tools").notNull().$type<string[]>(),
     stopReason: text("stop_reason"),
     durationMs: integer("duration_ms").notNull(),
-    /** US dollars; null when the model has no row in the price table. */
+    /** US dollars; null when the model has no row in the price table, or the step was cut short with no usage report. */
     costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -502,6 +502,11 @@ export const turns = pgTable(
      * can send it again if it was never stored. A code-written note's fixed prefix records the turn's kind (`turnKind`).
      */
     input: text("input"),
+    /**
+     * How many runs the turn has had: 1, and one more for each resume (after a cut-off, or a Retry after a failure). The
+     * resume limit reads it (decision #13). 1 on a turn from before migration 0038.
+     */
+    runs: integer("runs").notNull().default(1),
     /** When the current run of the turn started; a resume starts a new run. */
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
@@ -569,7 +574,7 @@ export const reviewCards = pgTable(
   (t) => [primaryKey({ columns: [t.learnerId, t.questionId] })],
 );
 
-/** Every rating given to a question. `source` "review" rows are the ones the daily cap counts (the last 24 hours, ADR 0004). */
+/** Every rating given to a question. `source` "review" rows are the ones the daily cap counts (the last 24 hours, ADR 0005). */
 export const reviewLog = pgTable("review_log", {
   id: serial("id").primaryKey(),
   learnerId: learnerId(),
@@ -977,7 +982,7 @@ export const practiceAnswers = pgTable(
 );
 
 /**
- * Reply checks (spec #229, ticket #239, ADR 0008): one row per Tutor turn whose reply code held back and changed
+ * Reply checks (spec #229, ticket #239, ADR 0006): one row per Tutor turn whose reply code held back and changed
  * before the Learner saw it. It keeps the draft's problems and the retry's (with their reasons), the correction code
  * sent, whether the turn retried, fell back or was stopped, the seqs of the rows the Learner never saw (left out of
  * every later request), and the text the Learner saw. The rejected seqs are saved as each rejection happens, and the
@@ -1012,7 +1017,7 @@ export const replyChecks = pgTable(
      */
     replyKind: text("reply_kind"),
     /**
-     * Where the turn's one Widget came from (spec 2026-11-05, E4a, ADR 0010): tutor (show_widget, compose_widget or
+     * Where the turn's one Widget came from (spec 2026-11-05, E4a, ADR 0008): tutor (show_widget, compose_widget or
      * open_widget), step (code opened a card preset, the reveal or the explore Widget), a Companion Widget's rule
      * (scene, lingo, running_example, case), or none. Null on rows from before its migration and in engine-off Sessions.
      */

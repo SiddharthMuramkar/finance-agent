@@ -1,5 +1,5 @@
 {
-  "about": "Library search test questions (#20, extended in #21). Each question is in a Learner's own words. A question scores when a passage that answers it is in the top 5. Original OpenStax questions list `expect` as bare OpenStax module IDs; the questions added for the other sources list `expect` as `<source id>/<document ref>` and/or `sources` plus `expectText` (a passage from one of those sources that contains one of the phrases, for sources cut as a single long document such as the S-1). `hindsight` probes run with a Case's as-of date and report any passage that mentions a later year or the Case's outcome. `alsoExpect` lists passages from other sources that were read and judged to answer the question too (a note on what the strict `expect` misses when richer sources compete); the score prints both the strict and the judged count. Author-named questions (#21 follow-up) are asked as a Learner words them, with the writer's name in the query; `scoped` gives the query the Tutor should send instead (no name) and the `source` filter to pair with it. The score prints both: the name left in the query, and the scoped search.",
+  "about": "Library search test questions (#20, extended in #21). Each question is in a Learner's own words. A question scores when a passage that answers it is in the top 5. Original OpenStax questions list `expect` as bare OpenStax module IDs; the questions added for the other sources list `expect` as `<source id>/<document ref>` and/or `sources` plus `expectText` (a passage from one of those sources that contains one of the phrases, for sources cut as a single long document such as the S-1). `hindsight` probes run with a Case's as-of date and report any passage that mentions a later year or the Case's outcome (`outcome` words, matched as whole words, ignoring case; the judge is src/library/hindsight.ts). Probes with a `case` guard one Signal Case's ending (#25): every Signal Case with an as-of date has one, and src/library/hindsight.test.ts checks the as-of rule against the same words; rates-up-1 and compounding-1000 are worked examples with no as-of date and nothing to withhold. `alsoExpect` lists passages from other sources that were read and judged to answer the question too (a note on what the strict `expect` misses when richer sources compete); the score prints both the strict and the judged count. Author-named questions (#21 follow-up) are asked as a Learner words them, with the writer's name in the query; `scoped` gives the query the Tutor should send instead (no name) and the `source` filter to pair with it. The score prints both: the name left in the query, and the scoped search.",
   "source": "openstax-principles-finance-2e",
   "questions": [
     {
@@ -678,6 +678,42 @@
         "October 19",
         "22.6"
       ]
+    },
+    {
+      "case": "mega-millions-2018",
+      "q": "Mega Millions jackpot: did the winner take the cash or the 30 payments?",
+      "asOf": "2018-10-24",
+      "outcome": ["877,784,124", "took the cash", "chose the cash", "claimed the prize", "claimed the jackpot", "winner claimed"]
+    },
+    {
+      "case": "mega-millions-2018",
+      "q": "lottery jackpot annuity or lump sum cash option present value",
+      "asOf": "2018-10-24",
+      "outcome": ["877,784,124", "took the cash", "chose the cash", "claimed the prize", "claimed the jackpot", "winner claimed"]
+    },
+    {
+      "case": "amazon-2000",
+      "q": "Amazon share price and valuation in February 2000",
+      "asOf": "2000-02-01",
+      "outcome": ["14.88", "dot-com crash", "dot-com bust", "dotcom crash", "dotcom bust", "dot-com collapse", "bubble burst", "burst of the dot-com bubble", "Amazon Web Services", "AWS", "Kindle"]
+    },
+    {
+      "case": "amazon-2000",
+      "q": "internet stocks bubble Nasdaq crash",
+      "asOf": "2000-02-01",
+      "outcome": ["14.88", "dot-com crash", "dot-com bust", "dotcom crash", "dotcom bust", "dot-com collapse", "bubble burst", "burst of the dot-com bubble", "Amazon Web Services", "AWS", "Kindle"]
+    },
+    {
+      "case": "wework-2019",
+      "q": "WeWork IPO filing run rate revenue and valuation",
+      "asOf": "2019-08-14",
+      "outcome": ["withdrew its IPO", "withdrew its share sale", "withdrew its offering", "pulled its IPO", "IPO was pulled", "IPO was withdrawn", "failed IPO", "WeWork's collapse", "collapse of WeWork", "filed for bankruptcy", "Neumann stepped down", "Neumann was ousted", "SoftBank rescue", "SoftBank bailout"]
+    },
+    {
+      "case": "wework-2019",
+      "q": "what happened to WeWork after its IPO filing",
+      "asOf": "2019-08-14",
+      "outcome": ["withdrew its IPO", "withdrew its share sale", "withdrew its offering", "pulled its IPO", "IPO was pulled", "IPO was withdrawn", "failed IPO", "WeWork's collapse", "collapse of WeWork", "filed for bankruptcy", "Neumann stepped down", "Neumann was ousted", "SoftBank rescue", "SoftBank bailout"]
     }
   ]
 }

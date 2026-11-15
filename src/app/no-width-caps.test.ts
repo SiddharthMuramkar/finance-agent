@@ -2,10 +2,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// S7 (spec 2026-11-05, A1): the app's pages fill the window. Single-task forms (Welcome, Login, the 404) and the
-// marketing Home page keep their own narrow boxes on purpose.
+// S7 (spec 2026-11-05, A1): the app's pages fill the window. Single-task forms (Welcome, the sign-in pages, the 404) and the
+// public site (the (site) route group: Home, How it works, Examples, the case pages, About) keep their own boxes on purpose.
 const ROOT = join(__dirname);
-const SKIP_DIRS = new Set(["_landing", "welcome", "login"]);
+const SKIP_DIRS = new Set(["(site)", "welcome", "sign-in", "sign-up", "join"]);
 const SKIP_FILES = new Set(["not-found.tsx"]);
 
 function sources(dir: string): string[] {
@@ -23,7 +23,7 @@ describe("no page-level width cap in the app", () => {
   });
 });
 
-// ADR 0013 (superseding A2's 15/24): the chat is 16/26, set once as --text-chat and --lh-chat. The chat files take their size
+// The flat restyle (superseding A2's 15/24): the chat is 16/26, set once as --text-chat and --lh-chat. The chat files take their size
 // from those tokens, never a fixed size of their own, so the two lines in globals.css are the one place to change it.
 describe("the chat type comes from its tokens", () => {
   it("thread.tsx and message-box.tsx size chat text with --text-chat, and name no fixed chat size", () => {

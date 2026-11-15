@@ -36,7 +36,7 @@ const chipNames = async (page: Page) => page.getByTestId("widget-chip").evaluate
  */
 async function lateOpener(page: Page, guard: (page: Page) => Promise<void>) {
   await seed(page, "quiz-open");
-  // The script CI's opener played there (the previous test's), with the Lingo card it brought. Since B6 (ADR 0019) code
+  // The script CI's opener played there (the previous test's), with the Lingo card it brought. Since B6 (ADR 0008) code
   // adds no Companion to an opener, so the opener shows its Lingo card itself.
   await script(page, "reveal-reply-widget" as Script);
   await page.addInitScript(() => {

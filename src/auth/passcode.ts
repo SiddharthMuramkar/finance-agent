@@ -12,9 +12,6 @@ export const ACCESS_COOKIE_OPTIONS = {
 /** How long a sign-in lasts in the browser: 90 days, from sign-in or Start over. */
 export const ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24 * 90;
 
-/** The name the owner's Learner has; while only the old single passcode is set, it signs in as this name. */
-export const OWNER_NAME = "owner";
-
 /**
  * The name the test tools sign in under (the simulated learner, the browser check, and the comparison and
  * behaviour runs), so they never touch the owner's Learner or the owner's test Learner.
@@ -41,16 +38,13 @@ export type PasscodeList = ReadonlyMap<string, string>;
 
 /**
  * The passcode list from the environment. PASSCODES holds "name:passcode" pairs separated by commas
- * or new lines (a name has no colon; a passcode has no comma). While PASSCODES is unset or empty,
- * the old single PASSCODE signs in as the owner.
+ * or new lines (a name has no colon; a passcode has no comma). The old single PASSCODE opens nothing
+ * (issue #33: the passcode door is the test bed's and the test tools' only, and the admin is a Clerk role).
  */
 export function passcodeList(env: Record<string, string | undefined> = process.env): PasscodeList {
   const list = new Map<string, string>();
   const pairs = (env.PASSCODES ?? "").trim();
-  if (!pairs) {
-    if (env.PASSCODE) list.set(OWNER_NAME, env.PASSCODE);
-    return list;
-  }
+  if (!pairs) return list;
   for (const pair of pairs.split(/[,\n]/)) {
     const colon = pair.indexOf(":");
     if (colon < 0) continue;

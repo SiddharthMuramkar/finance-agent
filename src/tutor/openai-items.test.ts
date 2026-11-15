@@ -57,6 +57,13 @@ describe("a step's request", () => {
     expect(toResponseCreateParams(request([], { effort: "high" })).reasoning).toEqual({ effort: "high", context: "current_turn" });
   });
 
+  it("sends a turn's last allowed step with tool choice none, its tools still listed (the step limit)", () => {
+    const last = toResponseCreateParams(request([{ role: "user", content: "Why discount?" }], { toolChoice: "none" }));
+    expect(last.tool_choice).toBe("none");
+    expect(last.tools).toHaveLength(1);
+    expect(toResponseCreateParams(request([{ role: "user", content: "Why discount?" }]))).not.toHaveProperty("tool_choice");
+  });
+
   it("sends code's context rows as developer messages, where they stand", () => {
     expect(
       toInputItems([

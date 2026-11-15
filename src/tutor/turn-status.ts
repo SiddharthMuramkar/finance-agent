@@ -144,23 +144,31 @@ export async function startTurn(db: Db, now: Date, input: string, learnerId: num
   return row;
 }
 
-export type ResumeClaim = { turn: Turn; alreadyFinished: boolean } | { turn: undefined };
+/** `overLimit`: the turn has had its `maxResumes` resumes, so it was not resumed; nothing changed. */
+export type ResumeClaim = { turn: Turn; alreadyFinished: boolean } | { turn: undefined; overLimit?: true };
 
 /**
- * Takes the Learner's lock to resume their latest turn after a cut-off or a failure. A turn that has
- * already finished (for example, it kept running after the browser lost the stream) is
- * returned as finished, without taking the lock.
+ * Takes the Learner's lock to resume their latest turn after a cut-off or a failure: a new run of it. A turn that has
+ * already finished (for example, it kept running after the browser lost the stream) is returned as finished, without
+ * taking the lock. A turn that has had `maxResumes` resumes already (the resume limit, decision #13) is not resumed.
  */
-export async function resumeTurn(db: Db, now: Date, learnerId: number): Promise<ResumeClaim> {
+export async function resumeTurn(db: Db, now: Date, learnerId: number, maxResumes = Infinity): Promise<ResumeClaim> {
   await expireStaleRuns(db, now, learnerId);
   const latest = await latestTurn(db, learnerId);
   if (!latest || latest.status === "running") return { turn: undefined };
   if (latest.status === "finished") return { turn: latest, alreadyFinished: true };
+  if (latest.runs - 1 >= maxResumes) return { turn: undefined, overLimit: true };
   try {
     const [row] = await db
       .update(turns)
       // A Stop that reached a turn at its deadline stays: the resumed turn sees it at its first look and ends there, not runs on.
-      .set({ status: "running", startedAt: now, error: null, ...(latest.status === "cut_off" && latest.stopReason === STOP_REQUESTED ? {} : { stopReason: null }) })
+      .set({
+        status: "running",
+        startedAt: now,
+        error: null,
+        runs: latest.runs + 1,
+        ...(latest.status === "cut_off" && latest.stopReason === STOP_REQUESTED ? {} : { stopReason: null }),
+      })
       .where(and(eq(turns.id, latest.id), eq(turns.status, latest.status)))
       .returning();
     return row ? { turn: row, alreadyFinished: false } : { turn: undefined };

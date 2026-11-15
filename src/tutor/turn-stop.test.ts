@@ -15,7 +15,7 @@ import type { ProgressEvent } from "./tools";
 
 const FENCE = "`".repeat(3);
 /**
- * The Show me Choice: a step-led turn, whose reply is held until checked (ADR 0008). A typed message streams instead
+ * The Show me Choice: a step-led turn, whose reply is held until checked (ADR 0006). A typed message streams instead
  * (A5); own-question-stream.test.ts covers Stop and progress for a streamed reply.
  */
 const STEP_LED = "Show me.";
@@ -47,7 +47,7 @@ describe("Stop", () => {
     const rest = await turn;
     expect(performance.now() - at).toBeLessThan(STOP_POLL_MS * 3);
 
-    // "stopped", then the normal "done": the browser never resumes the turn. The held reply is dropped (ADR 0008).
+    // "stopped", then the normal "done": the browser never resumes the turn. The held reply is dropped (ADR 0006).
     expect(rest.map((e) => e.type)).toEqual(["stopped", "done"]);
     expect(rest.at(-1)).toMatchObject({ type: "done", stopReason: "stopped" });
     const [row] = await db.select().from(turns).where(eq(turns.learnerId, OWNER_LEARNER_ID));

@@ -4,7 +4,7 @@ import { sumAsk } from "@/teaching/no-sums";
 import { defineRecipe, lit, num, program, str, type Built, type Recipe } from "./define";
 
 /**
- * Story recipes (spec 2026-11-05, ticket E3, ADR 0005/0007/0010): the nine wave-3 story parts, opened by the Tutor
+ * Story recipes (spec 2026-11-05, ticket E3, ADR 0009, 0008): the nine wave-3 story parts, opened by the Tutor
  * with show_widget or written ahead in a Topic file as scenes (src/course/scenes.ts). Text goes in `inputs`; the
  * parts draw no Case Data and no typed figure, so `refs` and `facts` stay empty. Every recipe runs `storyChecks`
  * in its inputs' superRefine; code that knows the Topic (show_widget, the scene check) runs them again with a

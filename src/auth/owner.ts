@@ -1,6 +1,6 @@
 import type { Identity } from "./identity";
 import type { Learner } from "./learners";
-import { currentSignIn } from "./session";
+import { currentSignIn, isAdminSignIn } from "./session";
 
 // Who the admin is (issue #33): whoever's Clerk session carries `publicMetadata.role = "admin"`, which only the owner
 // sets, in Clerk. No environment variable, no Learner name, no role column.
@@ -15,6 +15,6 @@ export type Admin = { learner: Learner; identity: Identity };
  */
 export async function signedInAdmin(): Promise<Admin | null> {
   const signIn = await currentSignIn();
-  if (signIn.kind !== "learner" || signIn.via !== "account" || !signIn.identity.admin) return null;
+  if (!isAdminSignIn(signIn)) return null;
   return { learner: signIn.learner, identity: signIn.identity };
 }

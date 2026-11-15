@@ -140,14 +140,17 @@ export async function searchPassages(db: Executor, q: PassageQuery): Promise<Lib
   );
 }
 
-/** One stored passage by its ID, with whether the as-of rule lets it be shown now; undefined when there is none. */
-export async function passageById(db: Executor, id: number, asOf: string | null): Promise<(LibraryHit & { allowed: boolean }) | undefined> {
-  const [row] = await rowsOf<LibraryHit & { allowed: boolean }>(
+/**
+ * One stored passage by its ID, with whether the as-of rule lets it be shown now; undefined when there
+ * is none. `licenceUrl` is the source's licence link, or null for a passage under a licence of its own.
+ */
+export async function passageById(db: Executor, id: number, asOf: string | null): Promise<(LibraryHit & { licenceUrl: string | null; allowed: boolean }) | undefined> {
+  const [row] = await rowsOf<LibraryHit & { licenceUrl: string | null; allowed: boolean }>(
     db,
     sql`
       select p.id, p.source_id as "sourceId", s.title as "sourceTitle", s.kind, p.ref, p.heading, p.url,
         to_char(p.published_on, 'YYYY-MM-DD') as "publishedOn", p.text, p.licence, p.credit, s.quote_words as "quoteWords",
-        coalesce(${allowed(asOf)}, false) as allowed
+        case when p.licence = s.licence then s.licence_url end as "licenceUrl", coalesce(${allowed(asOf)}, false) as allowed
       from library_passages p
       join library_sources s on s.id = p.source_id
       where p.id = ${id}`,

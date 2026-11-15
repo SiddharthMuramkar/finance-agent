@@ -5,8 +5,8 @@ import type { Db } from "./types";
 import { migrateToLatest, testDb, testDbThrough } from "@/test/pglite";
 
 /**
- * The Clerk expand step (issue #33): `learners.clerk_user_id`, with at most one active Learner per Clerk user. Clerk
- * replaces Better Auth later; until then the column is only added, and every Better Auth table and `auth_user_id` stay.
+ * The Clerk expand step (issue #33): `learners.clerk_user_id`, with at most one active Learner per Clerk user. The
+ * column is only added: every Better Auth table and `auth_user_id` stay in the database until PR C drops them.
  */
 
 /** The unique-violation Postgres raises, wherever the driver wraps it (Drizzle puts it under `cause`). */
@@ -49,13 +49,16 @@ describe("database: learners.clerk_user_id (issue #33)", () => {
   });
 
   it("is an expand step: every Learner from before is kept, with no Clerk user", async () => {
-    const db = await testDbThrough("0037_valuation_first");
+    const db = await testDbThrough("0038_turn_runs");
     await db.execute(sql`insert into learners (name) values ('before-clerk')`);
     const before = (await db.execute(sql`select id, name, auth_user_id from learners order by id`)) as unknown as { rows: { id: number; name: string; auth_user_id: string | null }[] };
     await migrateToLatest(db);
-    const after = await db.select({ id: learners.id, name: learners.name, authUserId: learners.authUserId, clerkUserId: learners.clerkUserId }).from(learners).orderBy(learners.id);
-    expect(after.map(({ id, name, authUserId }) => ({ id, name, auth_user_id: authUserId }))).toEqual(before.rows);
-    expect(after.map((r) => r.name)).toContain("before-clerk");
-    expect(after.every((r) => r.clerkUserId === null)).toBe(true);
+    // Raw SQL: the schema no longer names auth_user_id (PR B), but the column stays in the database until PR C.
+    const after = (await db.execute(sql`select id, name, auth_user_id, clerk_user_id from learners order by id`)) as unknown as {
+      rows: { id: number; name: string; auth_user_id: string | null; clerk_user_id: string | null }[];
+    };
+    expect(after.rows.map(({ id, name, auth_user_id }) => ({ id, name, auth_user_id }))).toEqual(before.rows);
+    expect(after.rows.map((r) => r.name)).toContain("before-clerk");
+    expect(after.rows.every((r) => r.clerk_user_id === null)).toBe(true);
   });
 });

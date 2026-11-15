@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import nextConfig from "../next.config";
 
-describe("Home and the About page are never cached as pages", () => {
-  // Each is one address for two pages keyed by the cookie: the About page's header knows who is signed in (spec 2026-11-12 G1).
-  for (const source of ["/", "/about"]) {
-    it(`${source} is private and no-store, so one address can serve two pages keyed by the cookie`, async () => {
+// Decision #7: every public site page's nav and CTAs follow the viewer state (Signal spec 7.1), so one address serves
+// several pages keyed by the cookie.
+const SITE = ["/", "/how-it-works", "/examples", "/examples/:slug", "/about"];
+
+describe("The public site's pages are never cached as pages", () => {
+  for (const source of SITE) {
+    it(`${source} is private and no-store, so one address can serve several pages keyed by the cookie`, async () => {
       const rules = await nextConfig.headers!();
       const value = rules
         .filter((r) => r.source === source)
@@ -19,7 +22,7 @@ describe("Home and the About page are never cached as pages", () => {
   it("they are the only private, no-store addresses", async () => {
     const rules = await nextConfig.headers!();
     const noStore = rules.filter((r) => r.headers.some((h) => h.key === "Cache-Control" && /no-store/.test(h.value)));
-    expect(noStore.map((r) => r.source)).toEqual(["/", "/about"]);
+    expect(noStore.map((r) => r.source)).toEqual(SITE);
   });
 });
 
@@ -68,5 +71,13 @@ describe("Security headers", () => {
     const all = rules.find((r) => r.source === "/:path*");
     const policy = all?.headers.find((h) => h.key === "Permissions-Policy")?.value ?? "";
     expect(policy.split(", ").sort()).toEqual(["browsing-topics=()", "camera=()", "geolocation=()", "interest-cohort=()", "microphone=()", "payment=()", "usb=()"]);
+  });
+});
+
+describe("The old sign-in address (issue #33)", () => {
+  it("/login answers 308 to /sign-in, so old links and bookmarks still reach the sign-in (Next.js keeps the query)", async () => {
+    const rules = await nextConfig.redirects!();
+    const login = rules.filter((r) => r.source.startsWith("/login"));
+    expect(login).toEqual([{ source: "/login", destination: "/sign-in", permanent: true }]);
   });
 });

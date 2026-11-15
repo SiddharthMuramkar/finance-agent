@@ -1,6 +1,6 @@
-// Shared look pieces of the design system (ADR 0013, issue #43). Colours come only from the tokens in
-// globals.css, so Light and Dark need no per-piece variants. Server-safe: no "use client" here; the only
-// client pieces rendered are ThemeToggle, AccountMenu, NavLink and SignOutForm.
+// Shared look pieces of the design system (ADR 0015 for colour, ADR 0018 for the rest; issue #43). Colours come only from the tokens in
+// globals.css (one Light theme, decision #17). Server-safe: no "use client" here; the only client pieces rendered
+// are AccountMenu, NavLink and SignOutForm.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -9,13 +9,11 @@ import { SignOutForm } from "./sign-out";
 import { NavLink } from "./nav-link";
 import { Button, Tag } from "./primitives";
 import { RisingBars } from "./rising-bars";
-import type { ThemePref } from "./theme";
-import { ThemeToggle } from "./theme-toggle";
 
 
 /**
  * Small uppercase label above a block (spec §2), e.g. "SPACED REVIEW", in the key-number blue: the eyebrow is one of the
- * blue marks in a reading area (spec 2026-11-12 F2, ADR 0022). It is never pressable. className adds spacing.
+ * blue marks in a reading area (spec 2026-11-12 F2). It is never pressable. className adds spacing.
  */
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <p className={`type-eyebrow text-key-number ${className}`}>{children}</p>;
@@ -51,7 +49,7 @@ export type { ButtonProps, ChipState } from "./primitives";
 export { NavLink };
 
 /**
- * A section of a reading page (ADR 0013: hairlines, not boxes). "box" is a page's one framed panel: a hairline edge, 12px
+ * A section of a reading page (ADR 0018: hairlines, not boxes). "box" is a page's one framed panel: a hairline edge, 12px
  * corners, the raised surface and 20px padding. "rule" is a 1px --line hairline above, no box (it was an ink rule). className adds layout.
  */
 export function Card({ variant = "box", children, className = "", ...props }: { variant?: "box" | "rule"; children: ReactNode; className?: string } & React.HTMLAttributes<HTMLElement>) {
@@ -78,10 +76,6 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
 
 export type HeaderPage = "workspace" | "course" | "notebook" | "settings";
 
-/**
- * Who the header's account menu names: the signed-in Learner, with the email of their Google or email-link account when
- * linked, and, for the owner only, `admin`: how many people wait on /admin (see accountFor).
- */
 /** Who the header names (src/app/account.ts): the email an account's session carries, `passcode` for the test door, `admin` for the Admin row. */
 export type HeaderAccount = { name: string; email?: string; passcode?: true; admin?: true };
 
@@ -127,14 +121,14 @@ function GearMark() {
 }
 
 /**
- * App header (ADR 0013, ticket A5): 56px, on the paper, over a 1px --rule hairline. At the left the h1 wordmark (the still
+ * App header (ADR 0018, ticket A5): 56px, on the paper, over a 1px --rule hairline. At the left the h1 wordmark (the still
  * bars and "Value It", no pill) linking to Home, then three ghost page links (Study, Course Map, Notebook; each with a dot
- * while its page loads). Pushed right, three 32px ghost icons with tooltips: the theme toggle, a gear to Settings and the
- * account menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
- * accent bar on the hairline under it. current = the page showing; theme from readTheme(); account names the signed-in
+ * while its page loads). Pushed right, two 32px ghost icons with tooltips: a gear to Settings and the account
+ * menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
+ * accent bar on the hairline under it. current = the page showing; account names the signed-in
  * Learner (left out only by the loading skeleton and the signed-out 404). One line from 768px.
  */
-export function AppHeader({ current, theme, account, className = "" }: { current?: HeaderPage; theme: ThemePref; account?: HeaderAccount; className?: string }) {
+export function AppHeader({ current, account, className = "" }: { current?: HeaderPage; account?: HeaderAccount; className?: string }) {
   return (
     // Above what follows it (relative z-30): the account menu drops over the Study Workspace's Topic bar, a positioned Band.
     <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-3 border-b border-[var(--rule)] bg-[var(--paper)] lg:gap-6 ${className}`}>
@@ -157,7 +151,6 @@ export function AppHeader({ current, theme, account, className = "" }: { current
         </ul>
       </nav>
       <div className="ml-auto flex items-center gap-1 self-stretch">
-        <ThemeToggle initial={theme} />
         <span data-current={current === "settings" ? "true" : undefined} className={`${TAB} self-stretch after:inset-x-1.5`}>
           {/* On Settings the gear is ink with the bar, like a current page link, not the tinted face of a pressed icon. */}
           <Link
@@ -182,11 +175,11 @@ export function AppHeader({ current, theme, account, className = "" }: { current
  * content share the workspace's one box (the page's gutters, up to --page-max), so the title and nav stay put between
  * pages and the content uses the whole window. Running paragraphs inside cards cap themselves with `measure`.
  */
-export function ReadingPage({ current, theme, account, children }: { current?: HeaderPage; theme: ThemePref; account?: HeaderAccount; children: ReactNode }) {
+export function ReadingPage({ current, account, children }: { current?: HeaderPage; account?: HeaderAccount; children: ReactNode }) {
   return (
     <main className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-16">
-      <AppHeader current={current} theme={theme} account={account} />
-      {/* ADR 0013: the header sits flush at the top; the content starts 32px under its hairline, the page ends on 64px of air. */}
+      <AppHeader current={current} account={account} />
+      {/* The header sits flush at the top; the content starts 32px under its hairline, the page ends on 64px of air. */}
       <div data-testid="reading-column" className="w-full pt-8">
         {children}
       </div>

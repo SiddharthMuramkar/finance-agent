@@ -3,10 +3,12 @@ import { learners } from "../db/schema.ts";
 import type { Db } from "../db/types.ts";
 import type { Identity } from "./identity.ts";
 import type { Learner } from "./learners.ts";
-import { OWNER_NAME, TOOLS_NAME, passcodeList } from "./passcode.ts";
+import { TOOLS_NAME, passcodeList } from "./passcode.ts";
 
-// The Learner a signed-in account enters as (issue #33). Imports are relative with extensions, as in google-learner.ts,
-// which still loads this file under Node's type stripping (scripts/invites.mjs).
+// The Learner a signed-in account enters as (issue #33).
+
+/** The name of Learner 1, the migrations' owner Learner that the tests seed: never an account's. */
+const SEED_OWNER_NAME = "owner";
 
 /** The most " (n)" suffixes tried before giving up on a display name (a clash this deep means something is wrong). */
 const MAX_SUFFIX = 50;
@@ -17,7 +19,7 @@ const MAX_SUFFIX = 50;
  * Learner, nor an account a passcode person's.
  */
 export function reservedNames(env: Record<string, string | undefined> = process.env): Set<string> {
-  return new Set([OWNER_NAME, TOOLS_NAME, ...passcodeList(env).keys()].map((n) => n.toLowerCase()));
+  return new Set([SEED_OWNER_NAME, TOOLS_NAME, ...passcodeList(env).keys()].map((n) => n.toLowerCase()));
 }
 
 /** A display name made safe to store: spaces collapsed, at most 60 characters, never empty. */
@@ -25,8 +27,18 @@ export function cleanName(name: string | null | undefined): string {
   return (name ?? "").replace(/\s+/g, " ").trim().slice(0, 60).trim() || "Learner";
 }
 
-/** The column that links a Learner to its account: Better Auth's user until the cutover, Clerk's from then on. */
-export type AccountLink = { authUserId: string } | { clerkUserId: string };
+/**
+ * A display name from an email address's own part, without a `+tag`: "asha.kumar+x@icloud.com" is "Asha Kumar" (the
+ * rule the email link used before Clerk). Null when nothing is left.
+ */
+export function nameFromEmail(email: string | null | undefined): string | null {
+  const local = (email ?? "").split("@")[0]?.split("+")[0] ?? "";
+  const words = local.split(/[._-]+/).filter(Boolean);
+  return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ") || null;
+}
+
+/** The column that links a Learner to its account: its Clerk user. */
+export type AccountLink = { clerkUserId: string };
 
 const randomHex = () => Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) => b.toString(16).padStart(2, "0")).join("");
 
@@ -59,20 +71,26 @@ async function linkedLearner(db: Db, clerkUserId: string): Promise<Learner | nul
   return found ?? null;
 }
 
+/** Who a Learner is made for: the Clerk user, and the names their session token carries (either may be missing). */
+export type ClerkPerson = Pick<Identity, "userId" | "firstName"> & { email?: Identity["email"] };
+
 /**
  * The Learner a Clerk user enters as, made on their first request: the active Learner already linked to them, else a
- * new one under their first name (makeLearner's rules), else "Learner <hex>". Never null, so a signed-in person always
+ * new one under their first name, else under a name from their email address (production's email-link sign-up asks
+ * for no name), each by makeLearner's rules, else "Learner <hex>". Never null, so a signed-in person always
  * has a Learner and /sign-in and /study can never send them back and forth. Who may sign in at all is Clerk's call
  * (Waitlist mode); this only links. Idempotent: two first requests at once make one Learner, since the partial unique
  * index `learners_one_active_per_clerk_user` refuses the second and it reads the winner. Start over keeps the link.
  */
-export async function learnerForClerkUser(db: Db, person: Pick<Identity, "userId" | "firstName">, reserved: Set<string> = reservedNames()): Promise<Learner> {
+export async function learnerForClerkUser(db: Db, person: ClerkPerson, reserved: Set<string> = reservedNames()): Promise<Learner> {
   const found = await linkedLearner(db, person.userId);
   if (found) return found;
   const link = { clerkUserId: person.userId };
   const linked = () => linkedLearner(db, person.userId);
-  const named = person.firstName ? await makeLearner(db, person.firstName, link, linked, reserved) : null;
-  if (named) return named;
+  for (const name of [person.firstName, nameFromEmail(person.email)]) {
+    const named = name ? await makeLearner(db, name, link, linked, reserved) : null;
+    if (named) return named;
+  }
   // 32 random bits, and makeLearner's suffixes behind them: only a broken database gets past this.
   const made = await makeLearner(db, `Learner ${randomHex()}`, link, linked, reserved);
   if (made) return made;

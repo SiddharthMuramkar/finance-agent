@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isIconName } from "@/icons/names";
 
-// The figures a Workbench Widget takes from the Topic file beside its Valuation Case (spec 2026-11-12, B4; ADR 0018), each
+// The figures a Workbench Widget takes from the Topic file beside its Valuation Case (spec 2026-11-12, B4; ADR 0010), each
 // with its source: the Widget part, the recipe and the Widget check parse them with these same schemas, so a figure that
 // passes one passes all three. Lever settings are not here: they are Widget state.
 

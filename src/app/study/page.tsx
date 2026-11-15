@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { SIGN_IN_PATH } from "@/auth/destination";
 import { currentLearner } from "@/auth/session";
 import { loadCourseMap } from "@/course/map";
 import { exploreAsSeen, exploreWidgetFor } from "@/course/explore-widget";
@@ -25,7 +26,6 @@ import { latestTurn } from "@/tutor/turn-status";
 import { failedTurnView } from "@/tutor/failures";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readSplit } from "../split-cookie";
-import { readTheme } from "../theme-cookie";
 import { currentAccount } from "../account";
 import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
 
@@ -33,12 +33,12 @@ import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
 export const dynamic = "force-dynamic";
 
 // The Study Workspace's frame, box and header, around its two columns.
-async function WorkspaceShell({ account, children }: { account: HeaderAccount; children: ReactNode }) {
+async function WorkspaceShell({ account, children }: { account?: HeaderAccount; children: ReactNode }) {
   return (
     <SignedInFrame>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3">
-        <AppHeader current="workspace" theme={await readTheme()} account={account} />
+        <AppHeader current="workspace" account={account} />
         {children}
       </main>
     </SignedInFrame>
@@ -46,21 +46,21 @@ async function WorkspaceShell({ account, children }: { account: HeaderAccount; c
 }
 
 export default async function WorkspacePage() {
-  // The proxy already sends a signed-out visitor to the login; this check also comes before any Learner data is read.
+  // The proxy already sends a signed-out visitor to the sign-in; this check also comes before any Learner data is read.
   const learner = await currentLearner();
-  if (!learner) redirect("/login");
+  if (!learner) redirect(SIGN_IN_PATH);
   const map = loadCourseMap();
   const db = getDb();
   const learnerId = learner.id;
   // A new Learner (no Sessions, no Topic chosen yet) sees the Welcome before anything else.
   if (await showsWelcome(db, learnerId)) redirect("/welcome");
-  // The current Topic's Claude-era Session (ADR 0015) is closed on this visit, unless a turn is running in it: the page
+  // The current Topic's Claude-era Session (ADR 0007) is closed on this visit, unless a turn is running in it: the page
   // then shows the Topic with no Session and starts the opener, a fresh conversation at the Learner's saved step.
   if ((await latestTurn(db, learnerId))?.status !== "running") await retireLegacySessions(db, learnerId, await currentTopicId(db, map, learnerId));
   // A step that finishes from what the Learner did in a Widget (its `doneWhen`) is finished now, from the saved Widget
   // state; its divider and Widget chip are stored for the step that begins. Most renders have no such step and do nothing.
   await finishStepFromWidget(db, map, learnerId, new Date());
-  // The Learner's shown Session: the current Topic's own (ADR 0004), or the Topic alone before its first turn (the page
+  // The Learner's shown Session: the current Topic's own (ADR 0005), or the Topic alone before its first turn (the page
   // then starts the opener); a Topic passed in a turn stays shown until the Learner chooses. Rendering makes no Session.
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);

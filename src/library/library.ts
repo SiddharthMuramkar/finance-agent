@@ -3,6 +3,7 @@ import { navigate, type Progress } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import type { SearchResultBlock } from "@/tutor/model";
+import { passageNotices } from "./credits";
 import { isMachineRead, MACHINE_READ_NOTE } from "./pictures";
 import { firstWords, passagePath, passageSentences } from "./passage";
 import { allSources, creditsOf, hiddenAmong, passageById, searchPassages, sourcesMatching, type LibraryHit } from "./search";
@@ -165,6 +166,10 @@ export type PassageView =
       sourceTitle: string;
       credit: string;
       licence: string;
+      /** The licence's own page (CC licences ask for a link to them), or null when the passage has a licence of its own. */
+      licenceUrl: string | null;
+      /** Notices the source's owner asks for beside the credit, such as the NY Fed's reference-rate notice. */
+      notices: string[];
       url: string;
       publishedOn: string | null;
       /** The source's quote limit in words, or null for none. */
@@ -199,6 +204,7 @@ export async function loadPassageView(deps: LibraryDeps, id: number, blocks?: { 
     shortened = cut.cut || chosen.length < sentences.length;
     sentences = [{ text: cut.text, cited: chosen.some((s) => s.cited) }];
   }
-  const { heading, sourceTitle, credit, licence, url, publishedOn, quoteWords } = passage;
-  return { status: "shown", heading, sourceTitle, credit, licence, url, publishedOn, quoteWords, shortened, machineRead: isMachineRead(passage.text), sentences };
+  const { heading, sourceTitle, credit, licence, licenceUrl, url, publishedOn, quoteWords } = passage;
+  const notices = passageNotices(passage);
+  return { status: "shown", heading, sourceTitle, credit, licence, licenceUrl, notices, url, publishedOn, quoteWords, shortened, machineRead: isMachineRead(passage.text), sentences };
 }

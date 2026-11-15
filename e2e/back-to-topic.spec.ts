@@ -5,12 +5,12 @@ import { seed } from "./support/app";
 
 /**
  * Spec 2026-11-11 A10a (R8): the Off-Topic answer's way back reads "Back to <Topic>" after a lucide CornerUpLeft Icon,
- * not the ↩ emoji. With SHOTS=A10a, the 1512 x 982 projects save it in Light and Dark.
+ * not the ↩ emoji. With SHOTS=A10a, the 1512 x 982 project saves it.
  */
 const SHOTS = join("docs", "specs", "img", "2026-11-11");
 
 test("[A10a] the Off-Topic answer's way back is an arrow Icon and words, with no emoji", async ({ page }, info) => {
-  test.skip(!["mbp14", "mbp14-dark"].includes(info.project.name), "1512, Light and Dark");
+  test.skip(!["mbp14"].includes(info.project.name), "1512");
   await seed(page, "off-topic");
   await page.goto("/study");
   const back = page.getByTestId("off-topic-back");
@@ -26,6 +26,6 @@ test("[A10a] the Off-Topic answer's way back is an arrow Icon and words, with no
   if (process.env.SHOTS === "A10a") {
     mkdirSync(SHOTS, { recursive: true });
     await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" }); // the dev server's issue badge
-    await page.screenshot({ path: join(SHOTS, `A10a-back-to-topic-${info.project.name.endsWith("-dark") ? "dark" : "light"}.png`) });
+    await page.screenshot({ path: join(SHOTS, `A10a-back-to-topic-light.png`) });
   }
 });

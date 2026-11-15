@@ -128,7 +128,7 @@ export function QuickCheckView({
       {locked && (
         <div className="mt-2 flex flex-wrap items-baseline gap-x-3 text-sm" role="status" data-testid="quick-check-feedback">
           <span>
-            <span data-key-figure="" className={correct ? "text-[var(--success)]" : poll ? "" : "text-[var(--danger)]"}>{poll ? "Noted." : correct ? "Right." : "Not quite."}</span>{" "}
+            <span data-key-figure="">{poll ? "Noted." : correct ? "Right." : "Not quite."}</span>{" "}
             <span className="text-[var(--ink)]">{why}</span>
           </span>
           <Button variant="secondary" size="xs" onClick={() => {

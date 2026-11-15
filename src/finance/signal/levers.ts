@@ -1,32 +1,34 @@
-import { FORECAST_YEARS, valueStory } from "../dcf-engine.ts";
+import { applyLevers, type Levers as EngineLevers, type ValuationBlock } from "../valuation-case.ts";
+import { valuationCase } from "../valuation-cases.ts";
 
-// The four levers model (Signal spec §6.2.1): Amazon in February 2000, simplified and calibrated to Damodaran's $35.08.
-// Four numbers (how big it gets, what it keeps, what growth costs, how risky) give a value a share. The year-by-year
-// arithmetic is the valuation engine's (dcf-engine.ts); this module only turns the four levers into an engine story.
-// Money is in $bn, shares in bn, so a value a share is in dollars. The levers are in the units the sliders show:
-// revenue in $bn, margin and cost of capital in percent.
+// The four levers widget's model (Signal spec §6.2.1; decision #18, option C): Amazon in February 2000, valued by the one
+// valuation engine on Case amazon-dcf-2000, Damodaran's sourced inputs. Four numbers (how big it gets, what it keeps, what
+// growth costs, how risky) move the Case's story, `applyLevers` values it, and this module reads the result in dollars a
+// share. The engine reproduces Damodaran's published $35.08 within 2% ($35.04: the paper prints its costs of capital to two
+// decimals), so the Signal widget, the Topic Workbench and the Tutor show the same numbers.
+//
+// The levers are in the units the sliders show: revenue in year 10 in $bn, margin and cost of capital in percent. Money in
+// the result is in the Case's unit ($ millions); values a share are in dollars.
 //
 // Pure functions: no React, no database. Imports only relative modules, so plain Node can run it too.
 
-/** Revenue, $bn, 12 months to September 1999. */
-export const R0 = 1.117;
-/** The operating margin today: an operating loss of $410m on $1,117m of sales. */
-export const M0 = -410 / 1117;
-export const TAX = 0.35;
-/** Shares, bn. */
-export const SH = 0.3408;
-/** $bn owed to others before shareholders. */
-export const CLAIMS = 3.15;
-/** How growth fades over years 1 to 10: year t grows at k × SHAPE[t − 1]. */
-export const SHAPE = [1, 0.85, 0.72, 0.6, 0.5, 0.41, 0.33, 0.26, 0.2, 0.15] as const;
-/** The cost of capital from year 10. */
-export const STABLE_COST_OF_CAPITAL = 0.0961;
-/** Growth after year 10, for ever. */
-export const STABLE_GROWTH = 0.06;
-/** The return new capital earns after year 10; it sets reinvestment then. */
-export const STABLE_RETURN_ON_CAPITAL = 0.2;
-/** The share price on 3 February 2000, in dollars. */
-export const PRICE = 84;
+/** The Case the widget values: Damodaran's Amazon, February 2000, as the val-dcf Topic holds it. */
+export const CASE_ID = "amazon-dcf-2000";
+
+function caseBlock(): ValuationBlock {
+  const block = valuationCase(CASE_ID);
+  if (!block) throw new Error(`The valuation Case ${CASE_ID} is missing or does not parse.`);
+  return block;
+}
+
+/** The Case's valuation block, parsed once. */
+export const AMAZON: ValuationBlock = caseBlock();
+
+/** The share price on 3 February 2000, in dollars: the Case's price. */
+export const PRICE = AMAZON.price.value;
+
+/** The Case's money is in $ millions; the revenue lever is in $bn. */
+const MILLIONS_PER_BN = 1000;
 
 export type LeverKey = "rev" | "margin" | "s2c" | "wacc";
 /** The four levers in slider units: revenue in year 10 ($bn), mature margin (%), sales per $1 invested, cost of capital (%). */
@@ -34,7 +36,7 @@ export type Levers = Record<LeverKey, number>;
 
 export type Lever = { key: LeverKey; name: string; label: string; min: number; max: number; step: number };
 
-/** The four levers in display order, with their slider ranges. */
+/** The four levers in display order, with their slider ranges (spec §6.2.1). */
 export const LEVERS: readonly Lever[] = [
   { key: "rev", name: "How big it gets", label: "Revenue in year 10", min: 5, max: 80, step: 1 },
   { key: "margin", name: "What it keeps", label: "Operating margin once mature", min: 0, max: 20, step: 0.5 },
@@ -44,27 +46,45 @@ export const LEVERS: readonly Lever[] = [
 
 export type PresetKey = "damodaran" | "grocer" | "price";
 
+/**
+ * The preset chips. His story is the Case. "One story worth $84" is $59bn of revenue, a 12% margin and an 11.84% cost of
+ * capital: $83.69, which shows as $84 ($60bn gives $85 on the engine).
+ */
 export const PRESETS: Record<PresetKey, { label: string; levers: Levers }> = {
   damodaran: { label: "His story", levers: { rev: 39, margin: 10, s2c: 3, wacc: 12.84 } },
   grocer: { label: "A grocer’s margins", levers: { rev: 39, margin: 5, s2c: 3, wacc: 12.84 } },
-  price: { label: "One story worth $84", levers: { rev: 60, margin: 12, s2c: 3, wacc: 11.84 } },
+  price: { label: "One story worth $84", levers: { rev: 59, margin: 12, s2c: 3, wacc: 11.84 } },
 };
 
 /** The reference story, "his story": every effect is measured against it. */
 export const REFERENCE: Levers = PRESETS.damodaran.levers;
 
+/** A lever within a millionth of its reference value counts as at it (slider values are snapped to 2 decimals). */
+const atReference = (key: LeverKey, value: number) => Math.abs(value - REFERENCE[key]) < 1e-6;
+
+/**
+ * The engine's levers for a story. A lever at its reference value leaves the Case's own figure alone (the rule of the
+ * Workbench's `leversFor`), so his story is exactly the Case: $35.04, not the $35.03 a flat $39bn of revenue would give.
+ */
+export function engineLevers(levers: Levers): EngineLevers {
+  return {
+    ...(!atReference("rev", levers.rev) && { revenueYear10: levers.rev * MILLIONS_PER_BN }),
+    ...(!atReference("margin", levers.margin) && { marginTarget: levers.margin }),
+    ...(!atReference("s2c", levers.s2c) && { salesToCapital: levers.s2c }),
+    ...(!atReference("wacc", levers.wacc) && { costOfCapitalGrowing: levers.wacc }),
+  };
+}
+
 export type LeversResult = {
-  /** The growth scale k that takes revenue from R0 to the lever's revenue in year 10. */
-  k: number;
-  /** Each year's free cash flow in today's money, $bn, years 1 to 10. */
+  /** Each year's free cash flow in today's money, $ millions, years 1 to 10. */
   flows: number[];
-  /** Years 1 to 10 in today's money, $bn. */
+  /** Years 1 to 10 in today's money, $ millions. */
   pv: number;
-  /** Everything after year 10, valued at the end of year 10, $bn. */
+  /** Everything after year 10, valued at the end of year 10, $ millions. */
   tv: number;
-  /** The terminal value in today's money, $bn. */
+  /** The terminal value in today's money, $ millions. */
   pvtv: number;
-  /** The business: pv + pvtv, $bn. */
+  /** The business: pv + pvtv, $ millions. */
   firm: number;
   /** The true value a share, negative when the business is worth less than it owes. */
   perShare: number;
@@ -76,57 +96,18 @@ export type LeversResult = {
   yrs: number;
   /** Everything after year 10, dollars a share. */
   after: number;
-  /** What is owed to others, dollars a share (a positive number, taken away). */
+  /** What is owed to others (debt and options, less cash), dollars a share: a positive number, taken away. */
   owes: number;
 };
 
-/** Revenue in year 10 for growth scale k. */
-function revenueAfterTen(k: number): number {
-  return SHAPE.reduce((revenue, shape) => revenue * (1 + k * shape), R0);
-}
-
-/** Solves R0 × Π (1 + k × SHAPE[t − 1]) = rev for k by bisection: 70 steps between −0.5 and 20. */
-export function growthScale(rev: number): number {
-  let lo = -0.5;
-  let hi = 20;
-  for (let step = 0; step < 70; step++) {
-    const mid = (lo + hi) / 2;
-    if (revenueAfterTen(mid) < rev) lo = mid;
-    else hi = mid;
-  }
-  return (lo + hi) / 2;
-}
-
-/** Values a story told in the four levers, by the algorithm of spec §6.2.1. */
+/** Values a story told in the four levers with the valuation engine on the Case. */
 export function leversModel(levers: Levers): LeversResult {
-  const k = growthScale(levers.rev);
-  const margin = levers.margin / 100;
-  const wacc = levers.wacc / 100;
-  const years = Array.from({ length: FORECAST_YEARS }, (_, i) => i + 1);
-  const valued = valueStory({
-    baseRevenue: R0,
-    growth: SHAPE.map((shape) => k * shape),
-    // The margin moves from today's toward the mature margin, most of the way in the first years.
-    margin: years.map((t) => M0 + (margin - M0) * (1 - (1 - t / 10) ** 6)),
-    marginAfter: margin,
-    taxRate: TAX,
-    lossesCarried: 0,
-    salesToCapital: levers.s2c,
-    // The lever's cost of capital for five years, then a straight fade to the stable cost of capital in year 10.
-    costOfCapital: years.map((t) => (t <= 5 ? wacc : wacc + ((STABLE_COST_OF_CAPITAL - wacc) * (t - 5)) / 5)),
-    growthAfter: STABLE_GROWTH,
-    returnOnCapitalAfter: STABLE_RETURN_ON_CAPITAL,
-    cash: 0,
-    debt: CLAIMS,
-    options: 0,
-    shares: SH,
-  });
+  const valued = applyLevers(AMAZON, engineLevers(levers));
   if (!valued.ok) throw new Error(valued.error);
-
+  const { shares } = AMAZON;
   const flows = valued.years.map((y) => y.pv);
   const firm = valued.goingConcern;
   return {
-    k,
     flows,
     pv: valued.sumPv,
     tv: valued.terminalValue,
@@ -134,12 +115,15 @@ export function leversModel(levers: Levers): LeversResult {
     firm,
     perShare: valued.valuePerShare,
     tvShare: firm > 0 ? valued.pvTerminal / firm : null,
-    flowsPerShare: flows.map((f) => f / SH),
-    yrs: valued.sumPv / SH,
-    after: valued.pvTerminal / SH,
-    owes: CLAIMS / SH,
+    flowsPerShare: flows.map((f) => f / shares),
+    yrs: valued.sumPv / shares,
+    after: valued.pvTerminal / shares,
+    owes: (AMAZON.debt + AMAZON.options - AMAZON.cash) / shares,
   };
 }
+
+/** His story's value a share: the reference notch on the ruler and the "This is his story" line (spec §6.2.2, §6.2.3). */
+export const REFERENCE_VALUE = leversModel(REFERENCE).perShare;
 
 const FACTORIAL = [1, 1, 2, 6, 24];
 
@@ -174,14 +158,24 @@ export type LeverBand = {
   reach: number | null;
 };
 
+/** Every setting a lever's slider can take, snapped to 2 decimals as the slider snaps it. */
+export function leverSettings(lever: Lever): number[] {
+  const steps = Math.round((lever.max - lever.min) / lever.step);
+  return Array.from({ length: steps + 1 }, (_, i) => Math.round((lever.min + i * lever.step) * 100) / 100);
+}
+
 /** What one lever can do on its own, the other three at their reference values. */
 export function leverBand(key: LeverKey, reference: Levers = REFERENCE): LeverBand {
   const lever = LEVERS.find((l) => l.key === key)!;
   const valueAt = (setting: number) => leversModel({ ...reference, [key]: setting }).perShare;
   const atMin = valueAt(lever.min);
   const atMax = valueAt(lever.max);
-  // Every setting the slider can take, snapped to 2 decimals as the slider snaps it.
-  const steps = Math.round((lever.max - lever.min) / lever.step);
-  const settings = Array.from({ length: steps + 1 }, (_, i) => Math.round((lever.min + i * lever.step) * 100) / 100);
-  return { atMin, atMax, lo: Math.min(atMin, atMax), hi: Math.max(atMin, atMax), reach: settings.find((s) => valueAt(s) >= PRICE) ?? null };
+  return { atMin, atMax, lo: Math.min(atMin, atMax), hi: Math.max(atMin, atMax), reach: leverSettings(lever).find((s) => valueAt(s) >= PRICE) ?? null };
+}
+
+/** A slider value snapped to its lever's grid and range, at 2 decimals (spec §6.2.2, "Pointer to value"). */
+export function snapLever(key: LeverKey, raw: number): number {
+  const lever = LEVERS.find((l) => l.key === key)!;
+  const clamped = Math.min(lever.max, Math.max(lever.min, Number.isFinite(raw) ? raw : REFERENCE[key]));
+  return Math.round((Math.round((clamped - lever.min) / lever.step) * lever.step + lever.min) * 100) / 100;
 }

@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,7 +17,7 @@
     "layout:check": "node scripts/layout-check.mjs",
     "course:check": "node scripts/check-course.mjs",
     "course:doc": "node scripts/check-course.mjs --write",
-    "check": "npm run typecheck && npm run lint && npm run course:check && npm run test && node scripts/check-theme-contrast.mjs",
+    "check": "npm run typecheck && npm run lint && npm run course:check && node scripts/check-adr-cites.mjs && npm run test && node scripts/check-theme-contrast.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate",
     "case-data:import": "node --env-file=.env scripts/import-case-data.mjs",
@@ -24,7 +27,6 @@
     "widgets:live": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.genui.config.ts",
     "bank:import": "node --env-file=.env scripts/bank-import.mjs",
     "bank:verify": "node --env-file=.env scripts/bank-verify.mjs",
-    "invites": "node --env-file=.env scripts/invites.mjs",
     "course:refs": "node --env-file=.env scripts/check-references.mjs",
     "library:load": "node --env-file=.env scripts/library-load.mjs",
     "library:blog": "node --env-file=.env scripts/library-blog.mjs",
@@ -46,7 +48,6 @@
   "dependencies": {
     "@assistant-ui/react": "0.15.32",
     "@assistant-ui/react-markdown": "0.14.24",
-    "@better-auth/drizzle-adapter": "1.7.17",
     "@clerk/nextjs": "7.10.0",
     "@formulajs/formulajs": "4.6.1",
     "@neondatabase/serverless": "1.2.0",
@@ -55,7 +56,6 @@
     "@openuidev/react-lang": "1.0.2",
     "@openuidev/react-ui": "0.18.1",
     "@vercel/analytics": "^2.0.1",
-    "better-auth": "1.7.17",
     "botid": "1.5.13",
     "drizzle-orm": "0.45.4",
     "htmlparser2": "12.0.0",

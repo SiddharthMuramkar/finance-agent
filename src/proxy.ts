@@ -6,12 +6,17 @@ import { learnerFromCookie } from "@/auth/learners";
 import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 import { e2eEnabled } from "@/dev/e2e-mode";
+import { EXAMPLE_SLUGS, examplePath } from "@/site/examples";
 
 /** The only files a signed-out visitor may fetch besides the public pages: the link-preview image (site-metadata.ts). */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
-/** The pages a signed-out visitor may read, matched exactly: Home, the About page and the Waitlist (/join). */
-const PUBLIC_PAGES = new Set(["/", "/about", "/join"]);
+/**
+ * The pages a signed-out visitor may read, matched exactly (decision #7): the Signal site's Home, How it works,
+ * Examples, About and the five case pages, and the Waitlist (/join, issue #33). The case pages come from the same list
+ * as the pages' generateStaticParams, so the gate and the pages always agree; an unknown slug still goes to /sign-in.
+ */
+const PUBLIC_PAGES = new Set(["/", "/how-it-works", "/examples", "/about", "/join", ...EXAMPLE_SLUGS.map(examplePath)]);
 
 /** The sign-in and sign-up pages, with every step under them (Clerk's catch-all routes, such as /sign-in/sso-callback). */
 const AUTH_ROOTS = [SIGN_IN_PATH, "/sign-up"];
@@ -23,7 +28,18 @@ const DEV_PAGE = /^\/dev(?:\/|$)/;
 const SIGN_OUT = "/api/logout";
 
 const under = (path: string, root: string) => path === root || path.startsWith(`${root}/`);
-const isPublicPage = (path: string) => PUBLIC_PAGES.has(path) || AUTH_ROOTS.some((root) => under(path, root));
+const isAuthPage = (path: string) => AUTH_ROOTS.some((root) => under(path, root));
+const isPublicPage = (path: string) => PUBLIC_PAGES.has(path) || isAuthPage(path);
+
+/**
+ * A signed-out Server Action call that must get through: a POST to the sign-in or sign-up pages while Clerk runs.
+ * @clerk/nextjs's ClerkProvider calls its own Server Action (`invalidateCacheAction`, which only expires a throwaway
+ * cookie) inside clerk-js `setActive`, before the new session's cookie is written; refused, `setActive` would wait for
+ * it forever and a sign-in would never finish. The app defines no Server Actions of its own (proxy.test.ts checks), so
+ * only Clerk's can run here.
+ */
+const isClerkSignInAction = (request: NextRequest) =>
+  request.method === "POST" && request.headers.has("next-action") && isAuthPage(request.nextUrl.pathname) && clerkOn(process.env);
 
 /** Next.js's own query parameters (such as `_rsc`), never part of a page the Learner meant to open. */
 const isInternalParam = (key: string) => key === "_rsc" || key.startsWith("__next");
@@ -54,12 +70,14 @@ async function testBedPersonAtGate(request: NextRequest): Promise<boolean> {
 
 /**
  * Every page and API route needs a sign-in: a verified Clerk session (`account`, checked by clerkMiddleware before this
- * runs), or a verified passcode cookie while the door is open. Signed out, only a GET or HEAD of a public page (Home,
- * /about and /join, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, and a
- * POST to the sign-out route, get through; a write to a public page or any Server Action call answers 401; an API
- * route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`. Signed in, a GET or
- * HEAD of exactly /sign-in skips the form and goes to the safe `next` or /study: every sign-in here is fully verified
- * and every account has a Learner (learnerForClerkUser), so /sign-in and /study can never send anyone back and forth.
+ * runs), or a verified passcode cookie while the door is open. Signed out, only a GET or HEAD of a public page
+ * (PUBLIC_PAGES, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, a
+ * POST to the sign-out route, and while Clerk runs a Server Action call on /sign-in and /sign-up (Clerk's own, which
+ * finishes a sign-in: isClerkSignInAction), get through; any other write to a public page or Server Action call
+ * answers 401; an API route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`.
+ * Signed in, a GET or HEAD of exactly /sign-in skips the form and goes to the safe `next` or /study: every sign-in here
+ * is fully verified and every account has a Learner (learnerForClerkUser), so /sign-in and /study can never send anyone
+ * back and forth.
  */
 async function gate(request: NextRequest, account: boolean): Promise<Response> {
   const { pathname } = request.nextUrl;
@@ -74,7 +92,8 @@ async function gate(request: NextRequest, account: boolean): Promise<Response> {
     return NextResponse.next();
   }
 
-  // A Server Action call or any write to a public page would run server code: refuse it outright.
+  if (isClerkSignInAction(request)) return NextResponse.next();
+  // Any other Server Action call, or any write to a public page, would run server code: refuse it outright.
   if (request.headers.has("next-action") || (isPublicPage(pathname) && !read)) {
     return NextResponse.json({ error: "Sign-in required" }, { status: 401 });
   }
@@ -109,9 +128,10 @@ export const config = {
   // `api/login` (the passcode door's own route, which must work signed out and checks the door itself) skips the proxy
   // only as a whole path segment, so "/api/login-anything" is still checked. The sign-in page itself goes through the
   // proxy, so a signed-in visit can skip the form.
-  // `api/cron/library-refresh` (exactly) skips it too: Vercel Cron has no sign-in, and the route checks CRON_SECRET itself.
+  // `api/cron/library-refresh` and `api/cron/health` (#36) (exactly) skip it too: Vercel Cron and Schedules have no
+  // sign-in, and each route checks CRON_SECRET itself.
   // BotID's challenge segment (withBotId's rewrites in next.config.ts) skips it as a whole segment: the visitor may be signed out.
   matcher: [
-    "/((?!api/login(?:/|$)|api/cron/library-refresh$|149e9513-01fa-4fb0-aad4-566afd725d1b/|_next/static|_next/image|favicon.ico|icon.svg).*)",
+    "/((?!api/login(?:/|$)|api/cron/library-refresh$|api/cron/health$|149e9513-01fa-4fb0-aad4-566afd725d1b/|_next/static|_next/image|favicon.ico|icon.svg).*)",
   ],
 };

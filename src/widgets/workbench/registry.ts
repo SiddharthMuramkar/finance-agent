@@ -10,7 +10,7 @@ import { leverSpecs, MARKET_VARIABLE, marketFrom, settingsFrom as leverSettingsF
 import { waccStackLevers, waccStackModel, waccStackReading, waccStackShape, waccStackTasks, type WaccStackData } from "./wacc-stack-model";
 
 // Every Workbench part, by name, and what the Widget check and the Tutor's reading need of it (spec 2026-11-12, B2 to B4;
-// ADR 0018): its data from the part's literal props (a Valuation Case, and the Topic file's figures), its levers and the
+// ADR 0010): its data from the part's literal props (a Valuation Case, and the Topic file's figures), its levers and the
 // $variable props they are bound to, its size at rest for the Workbench budget, its Things to try, and what the Tutor is told.
 // Pure: check.ts and widget-reading.ts read it, on the server and in the browser alike.
 

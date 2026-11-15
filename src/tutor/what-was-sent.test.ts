@@ -14,7 +14,7 @@ import { withoutRejected } from "./session-log";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 
 /**
- * What was sent stays sent, and a Session heals itself (spec 2026-11-12, A1 and A2; ADR 0016), on OpenAI (ADR 0015).
+ * What was sent stays sent, and a Session heals itself (spec 2026-11-12, A1 and A2), on OpenAI (ADR 0007).
  * Every scripted step returns a reasoning item in its raw output (`replay`), and the double plays the API's replay
  * check: a reasoning item from an edited step, or one in the current turn whose turn no longer reads as it did, is
  * refused with the API's 400, so a code change that edits history without dropping raw output fails here, in CI.

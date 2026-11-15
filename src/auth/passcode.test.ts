@@ -19,9 +19,9 @@ describe("The passcode list", () => {
     ]);
   });
 
-  it("while only the old single passcode is set, lists it as the owner's", () => {
-    expect([...passcodeList({ PASSCODE: "old one" })]).toEqual([["owner", "old one"]]);
-    expect([...passcodeList({ PASSCODES: "  ", PASSCODE: "old one" })]).toEqual([["owner", "old one"]]);
+  it("reads only PASSCODES: the old single PASSCODE lists nobody (issue #33)", () => {
+    expect([...passcodeList({ PASSCODE: "old one" })]).toEqual([]);
+    expect([...passcodeList({ PASSCODES: "  ", PASSCODE: "old one" })]).toEqual([]);
     expect([...passcodeList({})]).toEqual([]);
   });
 

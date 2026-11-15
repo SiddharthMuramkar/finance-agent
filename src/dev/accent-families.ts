@@ -1,19 +1,19 @@
 /**
- * F1's accent count (spec 2026-11-05 §3 row 7: "≥ 3 distinct accent colours visible on /study with a Widget").
- * Pure, no browser: e2e/support/measure.ts (`accentFamilies`) gathers what the page paints, and this module decides
- * which accent FAMILIES it shows. A family is one of mint, coral, sun, violet with every variant globals.css defines
- * for it in the current theme (--mint, --mint-ink, --mint-tint, --mint-tag, --coral-fill, ...). Light gives each
- * variant its own hex and Dark makes -ink the base and -tint an 8 % alpha, so matching only the base token measures
- * how a theme spells its variants, not which accents are on screen. Here a translucent colour is composited over what
- * it sits on, and so is each variant, and a family counts when any visible paint lands on any of its variants.
- * Tested in src/dev/accent-families.test.ts with the real Light and Dark token tables.
+ * Which signal colours a page paints (spec §2.1, §2.2; decision #17). Pure, no browser: e2e/support/measure.ts
+ * (`accentFamilies`) gathers what the page paints, and this module decides which signal FAMILIES it shows. A family is
+ * one of the spec's signal colours, gain (green), loss (red) and wait (orange, "careful"), with every step globals.css
+ * defines for it (--gain, --gain-deep, --gain-ink, --gain-tint, --gain-line, ...). Blue is the interface and the
+ * Learner's own hand, and ink is the record, so neither is a signal family. Older names that point at a family (--mint
+ * is gain, --coral is loss) paint the same colours, so they count as that family. A translucent colour is composited
+ * over what it sits on, and so is each step, and a family counts when any visible paint lands on any of its steps.
+ * Tested in src/dev/accent-families.test.ts with the real token table.
  */
 
-export const ACCENT_FAMILIES = ["mint", "coral", "sun", "violet"] as const;
+export const ACCENT_FAMILIES = ["gain", "loss", "wait"] as const;
 export type AccentFamily = (typeof ACCENT_FAMILIES)[number];
 /** Red, green, blue 0-255 and alpha 0-1. */
 export type Rgba = [number, number, number, number];
-/** Accent token name to its colour in the current theme, e.g. { "--mint": "#12b886", "--mint-tint": "rgba(...)" }. */
+/** Family token name to its colour, e.g. { "--gain": "#0faa7b", "--gain-tint": "rgb(231, 247, 240)" }. */
 export type AccentTokens = Record<string, string>;
 export type PaintKind = "background" | "gradient" | "border" | "fill" | "stroke" | "text";
 /** One colour a visible element paints, and the opaque colour under it. */
@@ -24,7 +24,7 @@ export type Paint = { color: string; backdrop: Rgba; kind: PaintKind };
  * own background: borders, SVG fill and stroke, the colour of its own text.
  */
 export type PaintedNode = { parent: number; visible: boolean; background: string; gradients: string[]; on: { color: string; kind: PaintKind }[] };
-/** The families seen, in ACCENT_FAMILIES order, and for each the first variant that matched ("--sun-tag as background"). */
+/** The families seen, in ACCENT_FAMILIES order, and for each the first variant that matched ("--loss-tint as background"). */
 export type AccentCount = { families: AccentFamily[]; via: Partial<Record<AccentFamily, string>> };
 
 /** A rectangle in viewport coordinates (CSS px), as getBoundingClientRect reports it. */
@@ -103,9 +103,9 @@ export function parseColors(css: string): Rgba[] {
   return out;
 }
 
-/** The accent family a token name belongs to: --mint and --mint-ink are mint; --mintx and --you are none. */
+/** The signal family a token name belongs to: --gain and --gain-deep are gain; --gainx, --blue and --mint are none. */
 export function familyOf(token: string): AccentFamily | null {
-  const m = /^--(mint|coral|sun|violet)(-[a-z0-9-]+)?$/.exec(token);
+  const m = /^--(gain|loss|wait)(-[a-z0-9-]+)?$/.exec(token);
   return m ? (m[1] as AccentFamily) : null;
 }
 
@@ -167,7 +167,7 @@ export function accentFamiliesPainted(tokens: AccentTokens, paints: Paint[]): Ac
 export type MisuseNode = PaintedNode & { rect: Box; label: string };
 
 /**
- * Family colour used as a fill or as text, which ADR 0014 does not allow. A fill is a background or a gradient on a box
+ * Signal colour used as a fill or as text, which spec §2.2 does not allow outside a pill (rules 5, 6, 8). A fill is a background or a gradient on a box
  * bigger than a dot (shorter side over 4 px and longer side over 16 px): a 2 px rule, an 8 px dot and a 14 px marker
  * pass. Text is the element's own text colour, including an SVG `<text>` fill. Borders, strokes and other SVG fills
  * (a chart series) never count.

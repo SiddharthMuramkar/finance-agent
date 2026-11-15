@@ -43,12 +43,8 @@ export async function startOver(db: Db, learnerId: number, now = new Date()): Pr
       .where(and(eq(learners.id, learnerId), isNull(learners.archivedAt)))
       .returning();
     if (!archived) return null;
-    // An account's fresh Learner keeps the link (Clerk's, or Better Auth's until it goes); the archived one keeps it
-    // too, but no longer counts.
-    const [fresh] = await tx
-      .insert(learners)
-      .values({ name: archived.name, authUserId: archived.authUserId, clerkUserId: archived.clerkUserId })
-      .returning();
+    // An account's fresh Learner keeps the Clerk link; the archived one keeps it too, but no longer counts.
+    const [fresh] = await tx.insert(learners).values({ name: archived.name, clerkUserId: archived.clerkUserId }).returning();
     return fresh;
   });
 }
@@ -56,9 +52,8 @@ export async function startOver(db: Db, learnerId: number, now = new Date()): Pr
 /**
  * The Learner a passcode cookie (`fa_access`) opens, or null when the request counts as signed out: the passcode door
  * is shut (production or Vercel), or the cookie is missing, old (no Learner) or wrongly signed, or its Learner is
- * unknown, archived (Start over), under a name no longer in the passcode list, or linked to an account (Clerk's, or
- * Better Auth's until it goes): a passcode never opens a person's Learner, only their own sign-in does. The proxy and
- * the session both call this, so they agree.
+ * unknown, archived (Start over), under a name no longer in the passcode list, or linked to a Clerk account: a passcode
+ * never opens a person's Learner, only their own sign-in does. The proxy and the session both call this, so they agree.
  */
 export async function learnerFromCookie(
   db: Db,
@@ -72,6 +67,6 @@ export async function learnerFromCookie(
   if (id === null) return null;
   const [learner] = await db.select().from(learners).where(eq(learners.id, id)).limit(1);
   if (!learner || learner.archivedAt !== null || !list.has(learner.name)) return null;
-  if (learner.clerkUserId !== null || learner.authUserId !== null) return null;
+  if (learner.clerkUserId !== null) return null;
   return learner;
 }

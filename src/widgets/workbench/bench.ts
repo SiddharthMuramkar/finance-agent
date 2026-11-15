@@ -1,4 +1,4 @@
-// What every Workbench Widget's view-model shares (spec 2026-11-12, B2 and B4; ADR 0018): a lever's shape, the size at rest
+// What every Workbench Widget's view-model shares (spec 2026-11-12, B2 and B4; ADR 0010): a lever's shape, the size at rest
 // the Workbench budget counts, the headline in three parts with its one key number, and the rounding the ranges are built
 // with. Pure; the views (bench-view.tsx) draw only what a model returns, and the Widget check and what the Tutor is told
 // read the same models, so the screen, the check and the Tutor agree.

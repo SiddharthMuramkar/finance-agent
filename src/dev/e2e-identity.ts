@@ -17,8 +17,17 @@ export const E2E_PEOPLE = {
 
 export type E2ePerson = keyof typeof E2E_PEOPLE;
 
+declare global {
+  /** The test people, set when this file loads, so scripts/check-no-e2e-in-build.mjs can tell if it reached a build. */
+  var __faE2ePeople: typeof E2E_PEOPLE | undefined;
+}
+globalThis.__faE2ePeople = E2E_PEOPLE;
+
 /** The cookie that says which test-bed person this browser is. */
 export const E2E_PERSON_COOKIE = "fa_e2e_person";
+
+/** How the test bed sets and ends that cookie: the test server is plain http on localhost, so it is never Secure. */
+export const E2E_PERSON_COOKIE_OPTIONS = { httpOnly: true, sameSite: "lax", secure: false, path: "/" } as const;
 
 export const isE2ePerson = (value: unknown): value is E2ePerson => typeof value === "string" && Object.hasOwn(E2E_PEOPLE, value);
 

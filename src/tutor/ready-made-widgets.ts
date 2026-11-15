@@ -6,7 +6,7 @@ import { sliderStep } from "@/widgets/slider-steps";
 import type { ReplyWidget } from "./reply-checks";
 
 /**
- * Ready-made Widgets only (spec #229, ticket #242, ADR 0007): what the Tutor may open or show. A Widget is either one
+ * Ready-made Widgets only (spec #229, ticket #242, ADR 0009): what the Tutor may open or show. A Widget is either one
  * written ahead in the Topic's file (opened by id, already set through a preset) or one drawn by code from a recipe
  * (its numbers given as inputs). The Tutor writes no Widget code and composes none. This file holds the rules every
  * such Widget answers to: the Tutor's catalogue, a preset's checks, and the facts a recipe may not be given.

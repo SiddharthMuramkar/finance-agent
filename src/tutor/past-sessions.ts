@@ -8,7 +8,7 @@ import { summariseRows } from "./session-summary";
 
 /**
  * What the Notebook lists (spec #119, then 2026-11-05 B2a), worked out by code. No model call.
- * - A Topic Session (ADR 0004) is one row, titled by its Topic, ordered by the Learner's last activity in it.
+ * - A Topic Session (ADR 0005) is one row, titled by its Topic, ordered by the Learner's last activity in it.
  *   The every-Topic-passed Session (no Topic) is a row of its own, titled FREE_QUESTIONS.
  * - A Session the Learner restarted is an Earlier attempt of its Topic (B3b), not an Older session.
  * - Every Session from before one Session per Topic is Older: its own group, by the date it began, with the

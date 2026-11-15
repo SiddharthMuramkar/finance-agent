@@ -4,7 +4,7 @@ import { IconButton, MenuItem, MenuLink, useMenu } from "./primitives";
 import { SignOutForm } from "./sign-out";
 
 /**
- * The header's account menu (A5, ADR 0013): a 32px ghost icon button holding the Learner's initial in a 28px avatar circle
+ * The header's account menu (A5): a 32px ghost icon button holding the Learner's initial in a 28px avatar circle
  * (a --wash face, a 1px --line edge, the initial in --ink-2), its face washed while the menu is open. The menu is a
  * .popover (12px corners, the pop shadow) with the Learner's name, their email when there is one, a hairline, then flat
  * rows: Settings and Sign out (the same SignOutForm as SignOutButton, drawn as a menu row so the arrows reach it). The
