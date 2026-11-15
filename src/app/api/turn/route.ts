@@ -1,3 +1,4 @@
+import { checkBotId } from "botid/server";
 import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { voyageQueryEmbedder } from "@/library/voyage";
@@ -34,6 +35,7 @@ function shownOf(value: unknown): Shown | undefined {
  * whose Topic is no longer the Learner's current one (`stale`). A turn past a Spend cap (quota.ts) gets a 429 with the
  * "limit reached" words. A Stop is answered at once, never with a 409:
  * `{ stopping: true }` when the Learner's running turn was asked to stop, `{ stopping: false }` when none was running.
+ * A turn BotID calls a bot gets a 403 `{ error: "bot" }` and never starts.
  */
 export async function POST(request: Request) {
   // One kind of turn per request (turn-body.ts): a body naming none, or two, is refused.
@@ -46,6 +48,10 @@ export async function POST(request: Request) {
   if (paste && wordCount(paste) > MAX_PASTE_WORDS) return Response.json({ error: `A paste can hold at most ${MAX_PASTE_WORDS} words; paste the part being studied.` }, { status: 400 });
   const input = turnInputOf(body);
   if (!input) return Response.json({ error: "Empty message" }, { status: 400 });
+  // BotID Basic (issue #33, src/auth/bot-protection.ts): every turn costs a model call, so a bot starts none. A Stop
+  // (above) is never checked. Outside production BotID calls everyone human (`bypass` says so without a warning); on
+  // Vercel it needs OIDC Federation on, and a check that throws answers 500, so it fails closed.
+  if ((await checkBotId({ developmentOptions: { bypass: "HUMAN" } })).isBot) return Response.json({ error: "bot" }, { status: 403 });
 
   const started = Date.now();
   // TURN_TIME_BUDGET_MS shortens the budget for a local cut-off check; unset, the default leaves room inside 300 s.
