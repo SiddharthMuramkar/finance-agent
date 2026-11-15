@@ -19,7 +19,7 @@ const items = () => [...host.querySelectorAll<HTMLElement>("[role=menuitem]")];
 const press = (el: Element, key: string) => act(async () => void el.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })));
 const click = (el: HTMLElement) => act(async () => el.click());
 
-async function mount(props: { name: string; email?: string; admin?: { waiting: number } }) {
+async function mount(props: { name: string; email?: string; admin?: boolean }) {
   await act(async () => {
     root.render(<AccountMenu {...props} />);
   });
@@ -124,25 +124,13 @@ describe("account menu", () => {
     expect(menu()).toBeNull();
   });
 
-  // ADR 0014: the owner's menu has an Admin row above Settings, with the number of people waiting as a warning Tag and,
-  // for a screen reader, in words. The row shows even when nobody waits. Everyone else's menu has no Admin row.
-  it("the owner's menu has Admin above Settings, with the waiting count as a Tag and in words", async () => {
-    await mount({ name: "owner", email: "owner@example.com", admin: { waiting: 2 } });
-    await click(button());
-    expect(items().map((i) => i.textContent)).toEqual(["Admin2, 2 waiting", "Settings", "Sign out"]);
-    const admin = items()[0];
-    expect(admin.getAttribute("href")).toBe("/admin");
-    const tag = admin.querySelector<HTMLElement>('[data-affordance="tag"]')!;
-    expect(tag.getAttribute("data-tone")).toBe("warning");
-    expect(tag.textContent).toBe("2");
-    expect(tag.closest('[aria-hidden="true"]')).not.toBeNull();
-    expect(admin.querySelector(".sr-only")?.textContent).toBe(", 2 waiting");
-  });
-
-  it("with nobody waiting the Admin row is still there, with no count", async () => {
-    await mount({ name: "owner", admin: { waiting: 0 } });
+  // ADR 0014, issue #33: the admin's menu has an Admin row above Settings. Who waits is Clerk's Waitlist now, so the row
+  // carries no count. Everyone else's menu has no Admin row.
+  it("the admin's menu has Admin above Settings, with no waiting count", async () => {
+    await mount({ name: "owner", email: "owner@example.com", admin: true });
     await click(button());
     expect(items().map((i) => i.textContent)).toEqual(["Admin", "Settings", "Sign out"]);
+    expect(items()[0].getAttribute("href")).toBe("/admin");
     expect(items()[0].querySelector('[data-affordance="tag"]')).toBeNull();
   });
 

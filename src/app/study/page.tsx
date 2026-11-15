@@ -33,7 +33,7 @@ import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
 export const dynamic = "force-dynamic";
 
 // The Study Workspace's frame, box and header, around its two columns.
-async function WorkspaceShell({ account, children }: { account: HeaderAccount; children: ReactNode }) {
+async function WorkspaceShell({ account, children }: { account?: HeaderAccount; children: ReactNode }) {
   return (
     <SignedInFrame>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
