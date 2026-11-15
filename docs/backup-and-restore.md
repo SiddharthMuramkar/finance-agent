@@ -12,7 +12,7 @@ Each layer protects against a different failure.
 |---|---|---|---|---|
 | 1. Point-in-time restore (PITR) | Neon moves a branch back to any second in its history window. | A bad migration or a bad delete that you find quickly. | 7 days (Launch plan) | Inside the Neon project |
 | 2. Daily snapshots | A saved copy of `main`, taken each day at 22:00 UTC and kept 14 days. Named manual snapshots stay until you delete them. | A mistake that you find late (after the PITR window). | 14 days; manual ones: until deleted | Inside the Neon project |
-| 3. Off-Neon Library dump | A `pg_dump` of the 5 `library_*` tables, in a file outside Neon. | A lost Neon project or account. | The last dump | `/root/backups/` on the VPS, a second copy in `/root/backups/copy2/`, and the owner's laptop |
+| 3. Off-Neon Library dump | A `pg_dump` of the 5 `library_*` tables, in a file outside Neon. | A lost Neon project or account. | The last dump | `/root/backups/` on the VPS and a second copy in `/root/backups/copy2/` (the same disk). The owner's laptop: **not yet**, see Rules |
 
 Also: `main` is **protected**. Nobody can delete or reset `main`, and nobody can delete the project while
 it has a protected branch.
@@ -27,20 +27,28 @@ the dump because a rebuild from its sources gives new passage ids, and Learner m
 
 ## Rules
 
-- **Before you merge a PR that adds a file in `drizzle/`**, take a manual snapshot. `scripts/migrate-on-build.mjs`
-  applies the migration to production on the next `main` deploy and does not take a snapshot first.
-  ```bash
-  neon snapshots create --project-id "$NEON_PROJECT_ID" --branch main --name before-<pr>-<yyyy-mm-dd>
-  ```
-  (or `scripts/backup-drill.sh --only 4 --snapshot-name before-<pr>-<yyyy-mm-dd> --yes`). This rule stays
-  until option C, where `migrate-on-build` takes its own snapshot.
+- **Before you merge a PR that adds a file in `drizzle/`**, make sure a snapshot comes first.
+  `scripts/migrate-on-build.mjs` applies the migration to production on the next `main` deploy.
+  - When `scripts/migrate-on-build.mjs` on `main` has `snapshotBeforeMigrating` (PR #36) and `NEON_API_KEY`
+    and `NEON_PROJECT_ID` are set in Vercel Production (both set on 2026-11-15), the deploy takes a
+    `pre-migrate-<sha>-<time>` snapshot itself (kept 30 days), and fails if it cannot. Nothing to do by hand.
+  - Before that, or if `NEON_API_KEY` is removed (then it migrates with no snapshot), take a manual snapshot:
+    ```bash
+    neon snapshots create --project-id "$NEON_PROJECT_ID" --branch main --name before-<pr>-<yyyy-mm-dd>
+    ```
+    (or `scripts/backup-drill.sh --only 4 --snapshot-name before-<pr>-<yyyy-mm-dd> --yes`).
 - **Re-dump the Library** (`--redump`, below):
   - after each `npm run library:load` (new or changed sources, for example #38),
   - once a month, because the weekly refresh adds Damodaran posts,
-  - before any change that deletes Library data (for example #19).
+  - before any change that deletes Library data (for example #19),
+  - after a migration that changes a `library_*` table, because the restore makes the tables as they were
+    at the dump. If the migration adds a Library table or a `library_passages` column, first add it to
+    `fingerprint()`, `LIBRARY_TABLES` or `PASSAGE_COLUMNS` in the script: until then
+    `src/dev/backup-drill.test.ts` fails, and stage 6 stops.
 - **Never put a dump in git.** The Damodaran blog text is stored for private search only. The script
   refuses a dump folder inside a git repository.
-- **Keep a copy off the VPS.** One machine is one point of failure. Copy `copy2` to the laptop and check it:
+- **Keep a copy off the VPS.** One machine is one point of failure. Not done yet (2026-11-15): until the owner
+  has a checked copy on the laptop, both copies are on one VPS disk. Copy `copy2` to the laptop and check it:
   ```bash
   scp -r vps:/root/backups/copy2 ./value-it-backups
   cd value-it-backups && shasum -a 256 -c library-<stamp>.dump.sha256     # Linux: sha256sum -c
@@ -75,13 +83,13 @@ scripts/backup-drill.sh --help                    # every option
 | 3 protect | Sets `main` as protected. Skips when already protected. `--no-protect` skips the stage. | Yes |
 | 4 snapshot | A manual snapshot, only with `--snapshot-name`. | Yes |
 | 5 connect | Read only: Postgres version, and that the database holds Library passages. | No |
-| 6 dump | Measures `main` (row count + hash per table), dumps, checks the file, measures again. | No |
+| 6 dump | Checks that the script knows every `library_passages` column, measures `main` (row count + hash per table), dumps, checks the file, measures again. | No |
 | 7 copy | Copies the dump to `--copy-dir` (default `<dump dir>/copy2`) and checks its checksum. | No |
-| 8 drill-branch | A throwaway branch `drill-restore-<time>`: schema only, deletes itself after 1 day. If Neon refuses schema only, a normal branch with the same expiry. | Yes (throwaway) |
+| 8 drill-branch | A throwaway branch `drill-restore-<time>`: schema only, deletes itself after 1 day. If Neon refuses schema only, it stops. Only with `--allow-full-copy` does it make a full copy instead (every Learner row in it, same expiry). | Yes (throwaway) |
 | 9 drill-db | An empty database `library_drill` on that branch, with `vector` and `lakebase_text`. | Throwaway only |
 | 10 restore | `pg_restore` of the dump into `library_drill`, all or nothing. | Throwaway only |
 | 11 compare | Measures `library_drill` and compares it with the measurement from stage 6. | No |
-| 12 clean-up | Deletes the throwaway branch (`--keep-branch` keeps it) and prints a line for the ticket. | Yes (throwaway) |
+| 12 clean-up | Deletes the throwaway branch (`--keep-branch` keeps it). Prints a line for the ticket only when stage 11 compared the current dump on the current drill branch. | Yes (throwaway) |
 
 How it behaves:
 
@@ -97,7 +105,7 @@ How it behaves:
   `library-<stamp>.dump` (the dump), `.dump.sha256` (checksum), `.main.txt` (counts and hashes of `main`),
   `.toc.txt` (contents list), `.dump.log`, and after a drill `.restore.log`, `.drill.txt` and
   `.result.md` (the compare table).
-- **Resume.** After a stop, the message gives the command: `--from <stage>`.
+- **Resume.** After a stop, the message gives the command to run next: the same flags, with `--from <stage>`.
 - If `main` changes during the dump (the weekly refresh), stage 6 stops. Run it again later.
 
 ## Restore
@@ -124,7 +132,11 @@ The backup branch is protected too, and the Launch plan allows 2 protected branc
 it, remove its protection (Console: Branches, the branch, Remove protection), then delete it. Delete the
 `check-` branch too.
 
-### B. A mistake found later: restore a snapshot
+### B. A bad migration, or a mistake found later: restore a snapshot
+
+After a bad migration, the snapshot to restore is the one taken just before it: `pre-migrate-<sha>-<time>`
+(taken by the deploy once PR #36 is live, kept 30 days) or your manual `before-<pr>-<date>`. For a mistake
+found later, pick the last daily snapshot from before the mistake.
 
 ```bash
 neon snapshots list --project-id "$NEON_PROJECT_ID"
@@ -195,6 +207,12 @@ How to read it: each hash is an md5 over the rows in primary-key order, so a mat
 the same contents. Only counts and hashes leave the database. `library_passages.search` is a generated column,
 so its match also shows that the restore rebuilt it the same way. For a sequence, the number is its
 `last_value`, so new rows get new ids after the old ones.
+
+After this drill, the PR review changed the script: stage 8 no longer falls back to a full copy without
+`--allow-full-copy`, stage 12 prints a ticket line only for a compare of the current dump, stage 6 first
+checks the `library_passages` columns, and the resume hints keep the flags. The dump, restore and compare
+commands did not change. `src/dev/backup-drill.test.ts` runs the script against fakes of `neon` and the
+Postgres tools; the next real drill runs the new script against Neon.
 
 Add a new section here after each drill (the script prints the table in stage 11 and saves it as
 `library-<stamp>.result.md`).
