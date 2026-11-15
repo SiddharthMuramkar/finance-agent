@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
-import { applyTheme, isTheme } from "../../theme";
 import { WidgetView } from "../../widget-view";
 import { Eyebrow } from "../../ui";
 
@@ -36,13 +35,11 @@ function Piece({ piece, testId, recipe, step, mounted }: { piece: ScenePiece; te
  */
 export function SceneList({
   topicTitle,
-  theme,
   scenes,
   terms,
   running,
 }: {
   topicTitle: string;
-  theme: "light" | "dark";
   scenes: (ScenePiece & { step: string; recipe: string })[];
   terms: ScenePiece[];
   running: ScenePiece | null;
@@ -54,16 +51,9 @@ export function SceneList({
     () => true,
     () => false,
   );
-  useEffect(() => {
-    const before = document.documentElement.dataset.theme;
-    applyTheme(theme);
-    return () => {
-      applyTheme(isTheme(before) ? before : "light");
-    };
-  }, [theme]);
 
   return (
-    <main className="min-h-screen bg-[var(--paper)] p-4 text-[var(--ink)]" data-testid="dev-scenes" data-theme={theme}>
+    <main className="min-h-screen bg-[var(--paper)] p-4 text-[var(--ink)]" data-testid="dev-scenes">
       <div className="mx-auto flex w-full max-w-[860px] flex-col gap-4">
         <h1 className="type-h1">{topicTitle}</h1>
         {scenes.length === 0 && !running && terms.length === 0 ? (

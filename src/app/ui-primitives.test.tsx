@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const link = vi.hoisted(() => ({ pending: false }));
 vi.mock("next/link", async (importOriginal) => ({ ...(await importOriginal<typeof import("next/link")>()), useLinkStatus: () => ({ pending: link.pending }) }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/course" }));
-vi.mock("./theme-cookie", () => ({ readTheme: async () => "light" }));
 vi.mock("./split-cookie", () => ({ readSplit: async () => 45 }));
 
 import Loading from "./course/loading";
