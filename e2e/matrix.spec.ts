@@ -81,9 +81,9 @@ function saved(project: string, outputDir: string): Result[] {
   return data.cells;
 }
 
-/** The accessible names the Done-when keyboard pass needs: the header's three icons, and Google on the sign-in page. */
+/** The accessible names the Done-when keyboard pass needs: the header's three icons, and the sign-in form's Enter (issue #33: Clerk is off in the test bed). */
 const headerControls = (theme: ThemeId) => [TOGGLE_LABEL[theme], "Settings", "Account menu"];
-const LOGIN_CONTROLS = ["Continue with Google"];
+const SIGN_IN_CONTROLS = ["Enter"];
 
 /**
  * Walks Tab through the whole page (until focus leaves it or comes back round, at most 80 stops). Before the first Tab
@@ -260,8 +260,8 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
     const id = r.cell.split("/")[1];
     const l = r.layout, a = r.affordances;
     if (!l || !a) { failing.push(`${r.cell}: not measured (${r.error ?? "no data"})`); continue; }
-    const login = id.startsWith("login");
-    if (!login) {
+    const signIn = id.startsWith("sign-in");
+    if (!signIn) {
       if (l.gutterLeft !== null && l.gutterLeft > gutterMax) failing.push(`${r.cell}: left gutter ${l.gutterLeft} > ${gutterMax}`);
       if (l.gutterRight !== null && l.gutterRight > gutterMax) failing.push(`${r.cell}: right gutter ${l.gutterRight} > ${gutterMax}`);
       if (l.headerHeight !== null && l.headerHeight > headerMax) failing.push(`${r.cell}: header ${l.headerHeight} > ${headerMax}`);
@@ -278,8 +278,8 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
     if (!f || f.stops === 0) failing.push(`${r.cell}: Tab reached nothing`);
     else {
       if (f.withoutRing.length) failing.push(`${r.cell}: no focus ring on Tab at ${JSON.stringify(f.withoutRing.slice(0, 5))}${f.withoutRing.length > 5 ? ` (+${f.withoutRing.length - 5})` : ""}`);
-      // Home and the About page are public pages (Home's header, not the app's); only the plain login cell must reach Google, the expired-link login is not held to it.
-      const needed = id === "login" ? LOGIN_CONTROLS : login || id === "home" || id === "about" ? [] : headerControls(cell.theme);
+      // Home and the About page are public pages (Home's header, not the app's); only the plain sign-in cell must reach Enter, the error one is not held to it.
+      const needed = id === "sign-in" ? SIGN_IN_CONTROLS : signIn || id === "home" || id === "about" ? [] : headerControls(cell.theme);
       const missed = needed.filter((n) => !f.reached.includes(n));
       if (missed.length) failing.push(`${r.cell}: Tab never reaches ${JSON.stringify(missed)}`);
     }

@@ -30,7 +30,7 @@ test.describe("signed out", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test("[G1] Home, About and the sign-in page have the public header, once, and never the app's", async ({ page }) => {
-    for (const path of ["/", "/about", "/login"]) {
+    for (const path of ["/", "/about", "/sign-in"]) {
       expect(await headers(page, path)).toEqual({ path, public: 1, app: 0, all: 1 });
       const header = page.locator(PUBLIC);
       await expect(header.getByRole("link", { name: "Sign in", exact: true }), path).toBeVisible();
@@ -72,6 +72,6 @@ test.describe("signed in", () => {
     await expect(header.getByRole("button", { name: "Sign out", exact: true })).toHaveCount(0);
     // Signed out for real, not only on this page: the Study Workspace now sends the visitor to sign in.
     await page.goto("/study");
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL((url) => url.pathname === "/sign-in");
   });
 });

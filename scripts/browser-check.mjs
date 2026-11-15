@@ -427,7 +427,7 @@ async function firstVisitWalk(browser) {
   try {
     let topicId;
     await step("walk: sign-in opens the Welcome", async () => {
-      await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE}/sign-in?passcode=1`, { waitUntil: "networkidle" });
       await page.getByLabel("Passcode", { exact: true }).fill(PASSCODE);
       await page.getByRole("button", { name: "Enter", exact: true }).click();
       await page.waitForURL(/\/welcome/, { timeout: 30_000 });

@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { LOGIN_LINK_EXPIRED, MATRIX_PAGES, type MatrixPage } from "../src/dev/preview-matrix";
+import { MATRIX_PAGES, SIGN_IN_WRONG, type MatrixPage } from "../src/dev/preview-matrix";
 import { hydrated, quietDevtools, replyLanded, seed, settled, type State } from "./support/app";
 import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 
@@ -42,7 +42,7 @@ async function visit(page: Page, state: State, path: string) {
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
-    for (const path of ["/", "/login", "/about"]) {
+    for (const path of ["/", "/sign-in", "/about"]) {
       test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path}`, async ({ page, baseURL }, info) => {
         // Signed out keeps the Learner's theme: the dark project is a Learner who chose Dark (ADR 0013).
         if (info.project.name.endsWith("-dark")) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL! }]);
@@ -141,7 +141,7 @@ const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
 
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {
-  for (const cell of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED, HOME_SIGNED_OUT]) {
+  for (const cell of [...MATRIX_PAGES, SIGN_IN_WRONG, HOME_SIGNED_OUT]) {
     test(`[F4] ${cell.id} (${cell.path})`, async ({ page }) => {
       if (cell.signedOut) await page.context().clearCookies({ name: /^(?!theme$)/ });
       else await seed(page, cell.seed!);

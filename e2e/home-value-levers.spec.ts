@@ -87,7 +87,7 @@ test("[E4, E8, E10] signed out, section 2 reaches the $84 price with no request 
   const tasks = widget.locator('[data-testid="guided-tasks"] li');
   await expect(headline).toHaveText("Your story is worth $35 a share");
   await expect(stories).toHaveText(["Damodaran's story", "A grocer's margins"]);
-  await expect(section.getByRole("link", { name: "Sign in to see what happened next →" })).toHaveAttribute("href", "/login");
+  await expect(section.getByRole("link", { name: "Sign in to see what happened next →" })).toHaveAttribute("href", "/sign-in");
 
   // The visitor scrolls until the first lever shows at the foot of the screen. Section 4 is still more than a screen below,
   // so nothing of the renderer is due (E8's NEAR_MARGIN), and none has arrived.

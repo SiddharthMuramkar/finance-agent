@@ -83,7 +83,7 @@ export default defineConfig({
   projects,
   webServer: {
     command: `npm run dev -- --port ${PORT}`,
-    url: `${BASE}/login`,
+    url: `${BASE}/sign-in`,
     timeout: 180_000,
     reuseExistingServer: false,
     gracefulShutdown: { signal: "SIGTERM", timeout: 2000 },
@@ -95,11 +95,9 @@ export default defineConfig({
       E2E_TUTOR: "scripted",
       PASSCODES: "tools:e2e-passcode",
       SESSION_SECRET: "e2e-secret-e2e-secret-e2e-secret!!",
-      // Google sign-in shows in the test bed, but Google is never called (C1b): fake client, fixed secret.
-      GOOGLE_CLIENT_ID: "e2e-not-real",
-      GOOGLE_CLIENT_SECRET: "e2e-not-real",
-      BETTER_AUTH_SECRET: "e2e-better-auth-secret-012345678",
-      BETTER_AUTH_URL: BASE,
+      // Clerk is off in the test bed (clerkOn is false whenever E2E=1), so it needs no keys and no network; this also
+      // stops @clerk/nextjs from making a keyless development app should anything load it (issue #33).
+      NEXT_PUBLIC_CLERK_KEYLESS_DISABLED: "1",
     },
   },
 });

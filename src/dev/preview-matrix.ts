@@ -1,6 +1,6 @@
 /**
  * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 2 themes x 13 pages, plus one
- * `/login?error=INVALID_TOKEN` (expired sign-in link) shot per project; and (spec 2026-11-12 G9, F6) a phone, 390 px wide,
+ * `/sign-in?wrong=1` (the sign-in page with its error) shot per project; and (spec 2026-11-12 G9, F6) a phone, 390 px wide,
  * in both themes for the public pages only (Home, About and sign-in): the Study Workspace shows only its phone note there.
  * Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs both read it, and src/dev/preview-matrix.test.ts
  * checks its shape.
@@ -20,7 +20,7 @@ export const MATRIX_VIEWPORTS: readonly MatrixViewport[] = [
 export const MATRIX_THEMES = ["light", "dark"] as const;
 
 export type MatrixSeed = "story" | "story-scene" | "lingo" | "concept-widget" | "quiz-open" | "mix-up" | "topic-complete" | "many-topics";
-export type MatrixKind = "study" | "reading" | "login";
+export type MatrixKind = "study" | "reading" | "sign-in";
 
 /**
  * Running prose on a reading page (§2: "panels and Widgets span the width, running prose caps at 70ch"): `required`
@@ -37,7 +37,7 @@ export type MatrixPage = {
   cardsAsColumns?: true;
 };
 
-/** The thirteen pages and states of the spec, in the order they are shot. Login pages run last (they sign the Learner out). */
+/** The thirteen pages and states of the spec, in the order they are shot. Sign-in pages run last (they sign the Learner out). */
 export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "home", path: "/", seed: "story", kind: "reading", signedOut: false, public: true },
   // The About page (spec 2026-11-11, D1): public and static, Home's layout, so it has no reading column to measure.
@@ -56,10 +56,12 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
   // Settings (A5) is all cards in a card-grid of 2+ columns at every matrix viewport; A1: "Running paragraphs inside
   // cards use `measure`", so card text is running prose, measured per card (each card is its own column).
   { id: "settings", path: "/settings", seed: "story", kind: "reading", signedOut: false, prose: "required", cardsAsColumns: true },
-  { id: "login", path: "/login", seed: null, kind: "login", signedOut: true, public: true },
+  // The sign-in page as the test bed draws it: Clerk is off there (issue #33), so it is the passcode door's form.
+  { id: "sign-in", path: "/sign-in", seed: null, kind: "sign-in", signedOut: true, public: true },
 ];
 
-export const LOGIN_LINK_EXPIRED: MatrixPage = { id: "login-link-expired", path: "/login?error=INVALID_TOKEN", seed: null, kind: "login", signedOut: true, public: true };
+/** The sign-in page with its error line (a wrong passcode), shot once per project beside the plain one. */
+export const SIGN_IN_WRONG: MatrixPage = { id: "sign-in-wrong", path: "/sign-in?wrong=1", seed: null, kind: "sign-in", signedOut: true, public: true };
 
 export type MatrixCell = {
   /** Playwright project name: "mbp14", "mbp14-dark", ... */
@@ -76,15 +78,15 @@ export const MATRIX_DIR = "evidence/preview-matrix";
 export const projectName = (viewportId: string, theme: string) => (theme === "dark" ? `${viewportId}-dark` : viewportId);
 
 /**
- * Every cell: 4 viewports x 2 themes x (13 pages + the expired-link login) = 112, plus the phone's 2 themes x (3 public
- * pages + the expired-link login) = 8: 120.
+ * Every cell: 4 viewports x 2 themes x (13 pages + the sign-in error) = 112, plus the phone's 2 themes x (3 public
+ * pages + the sign-in error) = 8: 120.
  */
 export function matrixCells(): MatrixCell[] {
   const cells: MatrixCell[] = [];
   for (const viewport of MATRIX_VIEWPORTS) {
     for (const theme of MATRIX_THEMES) {
       const project = projectName(viewport.id, theme);
-      for (const page of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED].filter((p) => !viewport.publicOnly || p.public)) {
+      for (const page of [...MATRIX_PAGES, SIGN_IN_WRONG].filter((p) => !viewport.publicOnly || p.public)) {
         cells.push({ project, viewport, theme, page, file: `${MATRIX_DIR}/${project}/${page.id}.png` });
       }
     }

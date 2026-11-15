@@ -339,9 +339,10 @@ test("[E10] one test visit sends each of Home's six events once, in order", asyn
   await section3.getByRole("tab", { name: /Try it/ }).click();
   await expect(section3.getByTestId("home-step-try")).toBeVisible();
 
-  // 6. Join, in the hero.
+  // 6. Join, in the hero: it opens /join (Clerk's Waitlist), which sends the visitor on to /sign-in while Clerk is off,
+  // as it is in the test bed (issue #33).
   await page.locator('[data-home-section="hero"] a[data-join]').click();
-  await page.waitForURL((url) => url.pathname === "/login");
+  await page.waitForURL((url) => url.pathname === "/sign-in");
   expected.push({ name: "home_join_pressed", data: { section: "hero" } });
 
   // Each once, in order; section 2's and 3's events carry nothing the test fixes beyond their names. Only Home's own
