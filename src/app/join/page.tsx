@@ -13,7 +13,7 @@ import { AuthPage, authNote } from "../sign-in/auth-page";
 export default async function JoinPage() {
   if (!clerkOn(process.env)) redirect(SIGN_IN_PATH);
   return (
-    <AuthPage title="Join early access" current="join">
+    <AuthPage title="Join early access">
       <p className={authNote}>Leave your email and we&apos;ll write when your place is ready.</p>
       <Waitlist />
     </AuthPage>

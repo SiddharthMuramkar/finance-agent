@@ -3,7 +3,6 @@ import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadNotebook } from "@/learner/notebook";
 import { currentAccount } from "../account";
-import { readTheme } from "../theme-cookie";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { NotebookView } from "./notebook-view";
 
@@ -15,10 +14,9 @@ export default async function NotebookPage({ searchParams }: { searchParams: Pro
   const all = (await searchParams).all === "1";
   const learner = await signedInLearner();
   const notebook = await loadNotebook(getDb(), loadCourseMap(), learner.id, { all });
-  const theme = await readTheme();
   return (
     <SignedInFrame>
-      <ReadingPage current="notebook" theme={theme} account={await currentAccount()}>
+      <ReadingPage current="notebook" account={await currentAccount()}>
         <NotebookView notebook={notebook} showAll={all} />
       </ReadingPage>
     </SignedInFrame>

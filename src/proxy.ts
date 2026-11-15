@@ -6,12 +6,17 @@ import { learnerFromCookie } from "@/auth/learners";
 import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 import { e2eEnabled } from "@/dev/e2e-mode";
+import { EXAMPLE_SLUGS, examplePath } from "@/site/examples";
 
 /** The only files a signed-out visitor may fetch besides the public pages: the link-preview image (site-metadata.ts). */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
-/** The pages a signed-out visitor may read, matched exactly: Home, the About page and the Waitlist (/join). */
-const PUBLIC_PAGES = new Set(["/", "/about", "/join"]);
+/**
+ * The pages a signed-out visitor may read, matched exactly (decision #7): the Signal site's Home, How it works,
+ * Examples, About and the five case pages, and the Waitlist (/join, issue #33). The case pages come from the same list
+ * as the pages' generateStaticParams, so the gate and the pages always agree; an unknown slug still goes to /sign-in.
+ */
+const PUBLIC_PAGES = new Set(["/", "/how-it-works", "/examples", "/about", "/join", ...EXAMPLE_SLUGS.map(examplePath)]);
 
 /** The sign-in and sign-up pages, with every step under them (Clerk's catch-all routes, such as /sign-in/sso-callback). */
 const AUTH_ROOTS = [SIGN_IN_PATH, "/sign-up"];
@@ -65,8 +70,8 @@ async function testBedPersonAtGate(request: NextRequest): Promise<boolean> {
 
 /**
  * Every page and API route needs a sign-in: a verified Clerk session (`account`, checked by clerkMiddleware before this
- * runs), or a verified passcode cookie while the door is open. Signed out, only a GET or HEAD of a public page (Home,
- * /about and /join, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, a
+ * runs), or a verified passcode cookie while the door is open. Signed out, only a GET or HEAD of a public page
+ * (PUBLIC_PAGES, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, a
  * POST to the sign-out route, and while Clerk runs a Server Action call on /sign-in and /sign-up (Clerk's own, which
  * finishes a sign-in: isClerkSignInAction), get through; any other write to a public page or Server Action call
  * answers 401; an API route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`.

@@ -10,7 +10,7 @@ const redirect = vi.hoisted(() =>
     throw new Error(`redirect ${to}`);
   }),
 );
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, usePathname: () => "/join" }));
 
 const { default: JoinPage } = await import("./page");
 const render = async () => renderToStaticMarkup(await JoinPage());
@@ -34,7 +34,7 @@ describe("/join", () => {
     expect(text(html)).toContain("Leave your email and we'll write when your place is ready.");
     expect(text(html)).not.toMatch(/google/i);
     const header = html.match(/<header[\s\S]*?<\/header>/)![0];
-    expect(header).toMatch(/<a href="\/sign-in"[^>]*>Sign in<\/a>/);
+    expect(header).toMatch(/<a [^>]*href="\/sign-in"[^>]*>Sign in<\/a>/);
     expect(header).not.toContain("Join early access");
     expect(html).toMatch(/<a[^>]*href="\/"[^>]*>← Back to home<\/a>/);
   });

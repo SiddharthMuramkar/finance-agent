@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { send } from "../profile/profile-form";
-import { THEMES, THEME_LABEL, THEME_SWATCH, type ThemeId } from "../theme";
-import { setTheme, useTheme } from "../theme-store";
 import { Button, SecondaryButton } from "../ui";
 
 /** The Show developer details switch: saved at once, for this Learner on every device. */
@@ -76,58 +74,5 @@ export function StartOverButton({ confirmValue }: { confirmValue: string }) {
         <SecondaryButton onClick={() => setAsking(false)}>Cancel</SecondaryButton>
       </form>
     </div>
-  );
-}
-
-/**
- * One option of a radio group: a real, visible radio button inside a 44px row that shows its state (an accent border,
- * an inner accent line and an accent tint when checked). The row is a label, so it may show a pointer.
- */
-function Choice({ name, label, checked, onPick, children }: { name: string; label: string; checked: boolean; onPick: () => void; children?: React.ReactNode }) {
-  return (
-    <label data-allow-pointer className="cursor-pointer">
-      <span className="flex min-h-11 items-center gap-3 rounded-lg border border-[var(--line)] px-3 py-2 text-sm font-medium leading-5 text-[var(--ink)] transition-[background-color,border-color,box-shadow] duration-[var(--dur-ui)] ease-[var(--ease-out)] [&:not(:has(:checked)):hover]:bg-[var(--wash)] has-[:checked]:border-[var(--accent)] has-[:checked]:bg-[var(--accent-tint)] has-[:checked]:shadow-[inset_0_0_0_1px_var(--accent)]">
-        <input type="radio" name={name} checked={checked} onChange={onPick} className="shrink-0" />
-        {children}
-        {label}
-      </span>
-    </label>
-  );
-}
-
-/** A theme's preview tile: its paper, two lines of its ink and a bar of its accent, drawn from the swatch map. */
-function Tile({ theme }: { theme: ThemeId }) {
-  const { paper, ink, accent } = THEME_SWATCH[theme];
-  return (
-    <span
-      aria-hidden="true"
-      data-testid={`tile-${theme}`}
-      className="flex h-8 w-12 shrink-0 flex-col justify-center gap-1 rounded-md border border-[var(--line)] px-1.5"
-      style={{ backgroundColor: paper }}
-    >
-      <span className="h-0.5 w-7" style={{ backgroundColor: ink }} />
-      <span className="h-0.5 w-5" style={{ backgroundColor: ink }} />
-      <span className="h-1.5 w-4 rounded-xs" style={{ backgroundColor: accent }} />
-    </span>
-  );
-}
-
-/**
- * The Appearance section: two radios, Light and Dark. It reads and writes the same store as the header's theme toggle,
- * so a pick in either shows in the other at once. Saved per browser, in the cookie.
- */
-export function AppearanceSettings({ initial }: { initial: ThemeId }) {
-  const theme = useTheme(initial);
-  return (
-    <fieldset className="text-sm">
-      <legend className="mb-2 font-medium">Theme</legend>
-      <div className="grid grid-cols-2 gap-2">
-        {THEMES.map((t) => (
-          <Choice key={t} name="theme" label={THEME_LABEL[t]} checked={theme === t} onPick={() => setTheme(t)}>
-            <Tile theme={t} />
-          </Choice>
-        ))}
-      </div>
-    </fieldset>
   );
 }

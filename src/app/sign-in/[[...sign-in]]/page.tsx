@@ -27,7 +27,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
 
   if (clerkOn(process.env) && !(door && passcode === "1")) {
     return (
-      <AuthPage title="Sign in" current="sign-in">
+      <AuthPage title="Sign in">
         {/* Clerk's catch-all components read the address, which Next.js knows only at request time. */}
         <Suspense>
           <SignIn forceRedirectUrl={destinationOrDefault(requested)} />
@@ -43,14 +43,14 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
 
   if (!door) {
     return (
-      <AuthPage title="Sign-in is off here" current="sign-in">
+      <AuthPage title="Sign-in is off here">
         <p className={authNote}>This copy of Value It has no way to sign in.</p>
       </AuthPage>
     );
   }
 
   return (
-    <AuthPage title="Enter your passcode" current="sign-in">
+    <AuthPage title="Enter your passcode">
       <form action="/api/login" method="post" className="flex flex-col gap-3">
         {next && <input type="hidden" name="next" value={next} />}
         <label htmlFor="passcode" className="text-sm text-[var(--muted)]">

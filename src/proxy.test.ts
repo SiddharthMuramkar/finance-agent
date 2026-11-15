@@ -83,7 +83,28 @@ describe("The signed-out gate", () => {
 
   it("serves any .png or .webp file under /landing-assets/ signed out, the link-preview image among them", async () => {
     expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
-    expect(allowed(await proxy(request("/landing-assets/workspace-dark.webp")))).toBe(true);
+    expect(allowed(await proxy(request("/landing-assets/workspace.webp")))).toBe(true);
+  });
+
+  // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.
+  it("lets a signed-out visitor read How it works, Examples and each of the five case pages", async () => {
+    const paths = ["/how-it-works", "/examples", ...["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"].map((s) => `/examples/${s}`)];
+    for (const path of paths) {
+      expect(allowed(await proxy(request(path))), path).toBe(true);
+      expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
+    }
+  });
+
+  it("sends an unknown case slug to the sign-in, so the public list stays exact", async () => {
+    for (const path of ["/examples/nope", "/examples/amazon-2000/x", "/examples/", "/examplesx", "/how-it-works/x"]) {
+      expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+    }
+  });
+
+  it("refuses a write to a site page", async () => {
+    for (const path of ["/how-it-works", "/examples", "/examples/amazon-2000"]) {
+      expect((await proxy(request(path, { method: "POST" }))).status, path).toBe(401);
+    }
   });
 
   it("sends every other page to the sign-in", async () => {

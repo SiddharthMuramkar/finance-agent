@@ -127,7 +127,7 @@ export function writtenAheadCheck(topicId: string, widget: Topic["widgets"][numb
   return codeProblems(`${where} with its reveal task added`, withRevealTask(widget.code, task, { before: first.min, after: first.max }));
 }
 
-/** The written-ahead Widget whose annuity Home draws (src/app/_landing/home-widget-spec.ts). */
+/** The written-ahead Widget whose annuity Home draws (src/site/home-widget-spec.ts). */
 export type HomeWidgetRef = { topic: string; widget: string };
 
 /** Problems reading the annuity Home's Explorable draws from its written-ahead Widget (src/course/home-annuity.ts). */

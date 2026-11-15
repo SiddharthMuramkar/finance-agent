@@ -511,22 +511,20 @@ All five widgets share the five beats in principle 3 and section 5.6. Shared rul
 
 **Lesson.** A value is a story told in four numbers. Each lever adds to or takes from the value. A price is what buyers paid. Neither proves the other wrong.
 
-#### 6.2.1 Model (prototype maths, simplified and calibrated to Damodaran's $35.08)
+#### 6.2.1 Model (the valuation engine on Damodaran's sourced inputs)
 
-Constants:
+The widget has no maths of its own (decision #18, option C). It runs the course's tested valuation engine (`src/finance/dcf-engine.ts`) through `applyLevers` (`src/finance/valuation-case.ts`) on Case `amazon-dcf-2000`: Damodaran's own inputs for Amazon in February 2000, each with a source, as the val-dcf Topic holds them (revenue $1,117M, an operating loss of $410M, $500M of losses carried, $3 of sales for each $1 invested, costs of capital from 12.84% down to 9.61%, debt $349M, options $2,892M, cash $26M, 340.79M shares, price $84 on 3 Feb 2000). The engine gives **$35.04** a share against his published $35.08: the paper prints its costs of capital to two decimals. The Signal widget, the Topic Workbench and the Tutor all show the same numbers. The module is `src/finance/signal/levers.ts`.
 
-| Name | Value | Meaning |
-|---|---|---|
-| `R0` | 1.117 | Revenue, $bn, 12 months to Sep 1999 |
-| `m0` | −410 / 1117 = −0.3671 | Operating margin today |
-| `tax` | 0.35 | Tax rate |
-| `SH` | 0.3408 | Shares, bn |
-| `CLAIMS` | 3.15 | $bn owed to others before shareholders |
-| `SHAPE` | [1, 0.85, 0.72, 0.6, 0.5, 0.41, 0.33, 0.26, 0.2, 0.15] | How growth fades over years 1 to 10 |
-| Stable cost of capital | 0.0961 | From year 10 |
-| Stable growth | 0.06 | After year 10 |
-| Stable return on capital | 0.20 | Sets reinvestment after year 10 |
-| `price` | 84 | Share price, 3 Feb 2000 |
+How the four levers move the Case's story (Appendix B.2 of the valuation spec):
+
+| Lever | What `applyLevers` does |
+|---|---|
+| `rev` | Scales every year's growth rate by one factor so revenue in year 10 is the lever's figure, keeping the Case's shape |
+| `margin` | Becomes the target of the margin path (closing half the gap each year from −36.71%) and the margin after year 10 |
+| `s2c` | Replaces the Case's sales to capital |
+| `wacc` | Moves year 1's cost of capital to the lever and scales the years between, keeping year 10 (9.61%) |
+
+A lever at its reference value leaves the Case's own figure alone, so his story is exactly the Case ($35.04; a flat $39bn on the revenue lever would give $35.03).
 
 Inputs (the four levers):
 
@@ -537,40 +535,17 @@ Inputs (the four levers):
 | `s2c` | What growth costs | Sales for each $1 invested | 1 | 6 | 0.25 | `$3.00` |
 | `wacc` | How risky | Cost of capital while it grows | 8.04 | 17.84 | 0.2 | `12.84%` |
 
-Algorithm:
-
-```text
-k  = solve by bisection (70 steps, lo = −0.5, hi = 20):
-       R0 × Π_{t=1..10} (1 + k × SHAPE[t−1]) = rev
-R = R0; df = 1; pv = 0; nol = 0
-for t = 1..10:
-    Rprev = R
-    R     = R × (1 + k × SHAPE[t−1])
-    m_t   = m0 + (margin/100 − m0) × (1 − (1 − t/10)^6)
-    ebit  = R × m_t
-    if ebit < 0:  nol += −ebit; taxes = 0
-    else:         use = min(nol, ebit); nol −= use; taxes = (ebit − use) × tax
-    f     = ebit − taxes − (R − Rprev) / s2c
-    r_t   = wacc/100                              for t ≤ 5
-          = wacc/100 + (0.0961 − wacc/100) × (t − 5)/5   for t > 5
-    df    = df / (1 + r_t)
-    pv   += f × df ;  flows[t] = f × df
-tv    = R × 1.06 × (margin/100) × (1 − tax) × (1 − 0.06/0.20) / (0.0961 − 0.06)
-pvtv  = tv × df
-firm  = pv + pvtv
-perShare = (firm − CLAIMS) / SH
-tvShare  = pvtv / firm            (null when firm ≤ 0)
-```
-
-Read-outs per share: `flows[t] / SH`, `yrs = pv / SH`, `after = pvtv / SH`, `owes = CLAIMS / SH = 9.24`.
+Read-outs from the engine's result, with `SH` = 340.79M shares: `flows[t] = pv of year t`, `flows[t] / SH`, `yrs = sumPv / SH`, `after = pvTerminal / SH`, `firm = sumPv + pvTerminal`, `perShare = valuePerShare`, `tvShare = pvTerminal / firm` (null when firm ≤ 0), `owes = (debt + options − cash) / SH = 9.43`. The bridge adds up: `yrs + after − owes = perShare`.
 
 Presets:
 
 | Key | Chip label | rev | margin | s2c | wacc | Value |
 |---|---|---|---|---|---|---|
-| `damodaran` (the reference, "his story") | His story | 39 | 10 | 3 | 12.84 | 35.09 → `$35` |
-| `grocer` | A grocer’s margins | 39 | 5 | 3 | 12.84 | 2.92 → `$3` |
-| `price` | One story worth $84 | 60 | 12 | 3 | 11.84 | 83.89 → `$84` |
+| `damodaran` (the reference, "his story") | His story | 39 | 10 | 3 | 12.84 | 35.04 → `$35` |
+| `grocer` | A grocer’s margins | 39 | 5 | 3 | 12.84 | 1.30 → `$1` |
+| `price` | One story worth $84 | 59 | 12 | 3 | 11.84 | 83.69 → `$84` |
+
+The "$84 story" uses $59bn of revenue: on the engine $60bn gives 85.24 → `$85`.
 
 **Effects.** What each lever adds to or takes from the reference story, in dollars a share. Computed as a Shapley value so the four parts always add up to the whole difference, whatever order the levers were moved in:
 
@@ -587,10 +562,10 @@ Sixteen model runs per update. No throttling is needed.
 
 | Lever | Value at min | Value at max | Reaches $84 alone |
 |---|---|---|---|
-| How big it gets | −3.1 | 80.8 | No |
-| What it keeps | −30.0 | 99.3 | Yes, at 18% |
-| What growth costs | −0.7 | 44.0 | No |
-| How risky | 52.3 (safest) | 22.5 (riskiest) | No |
+| How big it gets | −3.19 | 81.09 | No |
+| What it keeps | −34.02 | 102.30 | Yes, at 17.5% |
+| What growth costs | −4.55 | 44.94 | No |
+| How risky | 53.37 (safest) | 21.71 (riskiest) | No |
 
 #### 6.2.2 Lever lab (the shared stage)
 
@@ -610,7 +585,7 @@ Used by the levers widget and by the home scroll story.
 |---|---|
 | Track | 10px high, radius 5px, `--wash-2` |
 | Price pin | 2px ink line at 50%, extending 6px above and below the track. Label above: "$84" (display 600 17px) over "Price paid, 3 Feb 2000" (12px muted). |
-| Reference notch | 2px ink-2 line at 55% opacity at `pos(35.09)`. Label below: "His story $35". |
+| Reference notch | 2px ink-2 line at 55% opacity at `pos(35.04)`. Label below: "His story $35". |
 | Your dot | 20px blue circle with a 3px white border and shadow at `pos(v)`. When `v > 168` it pins to the right end and shows a "›". |
 | Net segment (free mode) | From the notch to the dot. Green when `v ≥ reference`, red when below. |
 | Band (band mode) | Soft red (`--loss-line`) from `pos(lo)` to the notch and soft green (`--gain-line`) from the notch to `pos(hi)` for one lever. |
@@ -656,7 +631,7 @@ Reading line:
 
 | Condition | Text |
 |---|---|
-| `|v − 35.09| < 0.5` | This is his story: **$35** a share, against a price of **$84**. Drag any lever to write your own. |
+| `|v − 35.04| < 0.5` | This is his story: **$35** a share, against a price of **$84**. Drag any lever to write your own. |
 | `round(v) ≥ 84` | [pill blue ✓ You reached the price] Your story needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000? |
 | otherwise | Your story is worth **$N more / less** than his. The pills under each lever show where that came from. |
 
@@ -685,20 +660,24 @@ Scale: `lo = min(0, total, every segment low)`, `hi = max(84 × 1.1, total, ever
 | `0 < tvShare ≤ 1` | **N%** of this business’s value arrives after year 10. |
 | `tvShare` null | (nothing) |
 
-Foot key: blue knob "You: drag these", green "Adds value to his story", red "Takes value away", notch "His story", pin "Price paid". Source: "Prototype model, simplified and calibrated to Damodaran’s $35.08. Production uses the Topic’s tested widget."
+Foot key: blue knob "You: drag these", green "Adds value to his story", red "Takes value away", notch "His story", pin "Price paid". Source: "Damodaran’s valuation of Amazon, Feb 2000, on the course’s tested valuation engine. It reproduces his $35.08 within 2%."
 
 #### 6.2.4 Acceptance values
 
 | Story | Value | Years 1–10 | After year 10 | Owes | After-year-10 share | Effects (big / keeps / costs / risky) |
 |---|---|---|---|---|---|---|
-| His story | 35.09 | −5.49 | +49.82 | −9.24 | 112.4% | 0 / 0 / 0 / 0 |
-| Grocer | 2.92 | −12.75 | +24.91 | −9.24 | 204.8% | 0 / −32.17 / 0 / 0 |
-| One story worth $84 | 83.89 | −4.78 | +97.91 | −9.24 | 105.1% | +27.68 / +16.68 / 0 / +4.44 |
-| That story with risk at 17.44% | 55.54 | −4.65 | +69.43 | −9.24 | 107.2% | +23.21 / +14.09 / 0 / −16.84 |
-| All four at maximum value | 310.16 | +42.23 | +277.17 | −9.24 | 86.8% | +98.92 / +114.59 / +15.35 / +46.21 |
-| All four at minimum value | −16.11 → `$0` | −6.87 | 0.00 | −9.24 | — | +3.68 / −33.92 / −18.64 / −2.32 |
+Every value is the engine's output on Case `amazon-dcf-2000` (decision #18). The tests in `src/finance/signal/levers.test.ts` pin each row to the cent and check that the effects add up to the whole change.
 
-His story, cash by year in dollars a share: −1.67, −1.42, −1.05, −1.02, −0.91, −0.66, −0.33, +0.08, +0.53, +0.96.
+| Story | Value | Years 1–10 | After year 10 | Owes | After-year-10 share | Effects (big / keeps / costs / risky) |
+|---|---|---|---|---|---|---|
+| His story | 35.04 | −5.19 | +49.66 | −9.43 | 111.7% | 0 / 0 / 0 / 0 |
+| Grocer | 1.30 | −14.10 | +24.83 | −9.43 | 231.4% | 0 / −33.75 / 0 / 0 |
+| One story worth $84 (59 / 12 / 3 / 11.84) | 83.69 | −2.93 | +96.06 | −9.43 | 103.2% | +26.69 / +17.30 / 0 / +4.66 |
+| That story with risk at 17.44% | 54.30 | −3.98 | +67.71 | −9.43 | 106.2% | +22.21 / +14.63 / 0 / −17.57 |
+| All four at maximum value | 322.34 | +54.12 | +277.65 | −9.43 | 83.7% | +101.99 / +119.96 / +16.69 / +48.66 |
+| All four at minimum value | −17.37 → `$0` | −7.93 | 0.00 | −9.43 | — | +7.04 / −36.06 / −20.82 / −2.57 |
+
+His story, cash by year in dollars a share: −2.42, −2.36, −2.02, −1.37, −0.65, −0.23, +0.23, +0.72, +1.23, +1.70.
 
 ---
 
@@ -968,6 +947,8 @@ Viewer state, kept in `localStorage["vi-proto-state"]` inside try/catch:
 
 `#pending` redirects to `#welcome` for members and `#join` for visitors.
 
+**Production (#33).** Two of the three states: `visitor` (signed out) and `member` (signed in). Someone who joins waits on Clerk's Waitlist, which gives them no session until the owner lets them in, so they see the visitor state; there is no applicant state, status pill or pending page. Sign in is `/sign-in`, Join is `/join` (Clerk's Waitlist), and an invitation lands on `/sign-up`; the old `/login` answers 308 to `/sign-in`.
+
 CTA by state:
 
 | State | Primary CTA | Note under it |
@@ -1065,9 +1046,9 @@ Power sentences are generated from the model, never hard-coded:
 
 | Case | Template | Current output |
 |---|---|---|
-| Value rises with the lever, cannot reach $84 | On its own it can move his value anywhere from **{lo}** to **{hi}** a share. It cannot reach the $84 price by itself. | "…from **$0** to **$81**…" (How big), "…from **$0** to **$44**…" (What growth costs) |
-| Value rises with the lever, reaches $84 | …from **{lo}** to **{hi}** a share. It is the only lever that reaches the $84 price by itself, at {setting}. ("It reaches…" if more than one lever does.) | "…from **$0** to **$99**… at 18%." (What it keeps) |
-| Value falls as the lever rises | This lever runs backwards. More risk means less value: from **{atMin}** at the safest setting down to **{atMax}** at the riskiest. | "…from **$52**… down to **$22**…" (How risky) |
+| Value rises with the lever, cannot reach $84 | On its own it can move his value anywhere from **{lo}** to **{hi}** a share. It cannot reach the $84 price by itself. | "…from **$0** to **$81**…" (How big), "…from **$0** to **$45**…" (What growth costs) |
+| Value rises with the lever, reaches $84 | …from **{lo}** to **{hi}** a share. It is the only lever that reaches the $84 price by itself, at {setting}. ("It reaches…" if more than one lever does.) | "…from **$0** to **$102**… at 17.5%." (What it keeps) |
+| Value falls as the lever rises | This lever runs backwards. More risk means less value: from **{atMin}** at the safest setting down to **{atMax}** at the riskiest. | "…from **$53**… down to **$22**…" (How risky) |
 
 Step rules:
 
@@ -1139,6 +1120,8 @@ Visitors get an inline form: an email input (`autocomplete="email"`, placeholder
 | Valid email | State becomes `applicant`, the email is kept in memory, route to `#pending` |
 
 Applicants and members see the CTA and note for their state instead of the form.
+
+**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join early access", the CTA note and the three steps. The CTA, like every visitor Join, opens `/join` (Clerk's Waitlist page). The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
 
 ### 7.3 How it works
 
@@ -1344,12 +1327,12 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | 3 | During that run | "Break-even found" must not appear |
 | 4 | Set the rate to 3.40% by hand | $874.8M, "Same" on both rows, "Break-even found" |
 | 5 | Tap "Amazon at $84" | Typing, Tutor bubble, skeleton, then the levers widget at $35 |
-| 6 | Tap "One story worth $84" | Value $84, "100% of the $84 price." replaced by "Worth the $84 price, on this story.", pills +$28, +$17, none, +$4, "You reached the price" |
-| 7 | Tap "A grocer’s margins" | Value $3, one red pill −$32 under "What it keeps" |
+| 6 | Tap "One story worth $84" | Value $84 (83.69), "100% of the $84 price." replaced by "Worth the $84 price, on this story.", pills +$27, +$17, none, +$5, "You reached the price" |
+| 7 | Tap "A grocer’s margins" | Value $1, one red pill −$34 under "What it keeps" |
 | 8 | Drag "How risky" to the top | The band above the notch is red, the pill is red and negative, the value falls |
 | 9 | Drag "How risky" below the notch | A pale green band between knob and notch, a green pill |
-| 10 | Scroll the levers story to lever 2 | Stage shows his story, a red and green band from $0 to $99, only "What it keeps" has a knob, text says it reaches $84 at 18% |
-| 11 | Drag that lever to 18% | Value $86 (86.47), the first setting at or above $84 (17.5% gives $83). The dot sits just right of the price pin and the sub-line reads "Worth the $84 price, on this story." |
+| 10 | Scroll the levers story to lever 2 | Stage shows his story, a red and green band from $0 to $102, only "What it keeps" has a knob, text says it reaches $84 at 17.5% |
+| 11 | Drag that lever to 17.5% | Value $86 (85.50), the first setting at or above $84 (17% gives $82). The dot sits just right of the price pin and the sub-line reads "Worth the $84 price, on this story." |
 | 12 | Scroll back from "Your turn" after changing levers, then return | Steps 1 to 4 show his story, step 5 restores the learner's story |
 | 13 | Compounding: tap "No, more each year" | Years run to 30, ₹17,449, growth ₹16,449, year 30 added ₹1,586 |
 | 14 | Tap "Split the growth" | Bars and segmented bar show ₹3,000 and ₹13,449, the key has three entries |
@@ -1360,8 +1343,8 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | 19 | Open `#case-amazon-2000` | Tutor's answer locked, ending locked, progress at step 2 |
 | 20 | Move a lever on that page | Tutor's answer appears, ending becomes "Ready", progress at step 3, Go deeper open with the bridge |
 | 21 | Tap "Reveal what really happened" | Reveal text with $35.08, $91.50 and $14.88, progress all done |
-| 22 | Submit "abc" in the closing form | Error "Enter an email address like name@example.com." |
-| 23 | Submit a valid email | `#pending`, "You’re on the list.", nav shows "Request in review" |
+| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join early access" links to `/join`, with the early-access note and the three steps under it (7.2.8) |
+| 23 | Press "Join early access" in the closing block | It opens `/join`: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
 | 24 | Every route at 1440 × 900 and 390 × 844 | No console errors, no horizontal scroll |
 | 25 | Reduced motion on | No animated runs. Values jump. The demo answers at once. |
 | 26 | Keyboard only | Every chip, slider, lever, preset, toggle and reveal reachable and operable |
@@ -1377,9 +1360,9 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Price | "No price has been decided yet" | The shape of the offer, even before the number |
 | Wait time | No promise made | A number of days, or keep the promise out |
 | Learner quotes | None | Real sentences from early members. Never invented. |
-| Amazon model | Prototype, calibrated to $35.08 | The production widget should reproduce the published valuation and say so |
+| Amazon model | Done (decision #18): the widget runs the valuation engine on Damodaran's sourced inputs, $35.04 against his $35.08, and its source line says so | Nothing |
 | First market | Mixed rupee and dollar cases | Choose which currency and events lead |
-| Dark theme | Not designed | If wanted: re-step and re-validate every signal colour |
+| Theme | Done (decision #17): one Light theme for the whole app; no other theme is built | Nothing |
 | Table views | Jackpot and compounding only | Add for levers, rates and WeWork |
 | Hero demo | Recorded | Wire to the live Tutor or keep the label |
 | Named valuation author | "Not affiliated" line on About | Confirm the wording is enough for you |
@@ -1423,7 +1406,7 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Follow-up | That is your story now. Green adds value to his $35. Red takes it away. Can you find a story worth $84? |
 | Ending label | What really happened |
 | Ending | Damodaran’s story came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong. |
-| Sources | Damodaran’s published valuation of Amazon, 2000. The widget here is a simplified prototype model calibrated to his $35.08. |
+| Sources | Damodaran’s published valuation of Amazon, 2000. The widget runs the course’s valuation engine on his inputs and reproduces his $35.08 within 2%. |
 
 ### A.3 WeWork, August 2019
 

@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@clerk/nextjs", () => ({
   SignIn: (props: object) => <div data-clerk="sign-in" data-props={JSON.stringify(props)} />,
 }));
+// The site nav reads the address to mark the page showing.
+vi.mock("next/navigation", () => ({ usePathname: () => "/sign-in" }));
 
 const { default: SignInPage } = await import("./[[...sign-in]]/page");
 const { passcodeEye } = await import("./passcode-field");
@@ -84,9 +86,9 @@ describe("/sign-in with the passcode door open (a developer's machine, the test 
     expect(paused).not.toContain("didn&#x27;t work");
   });
 
-  it("marks Sign in as the page showing in the public header, with no Join early access beside it", async () => {
+  it("marks Sign in as the page showing in the site nav, with no Join early access beside it", async () => {
     const header = (await render()).match(/<header[\s\S]*?<\/header>/)![0];
-    expect(header).toMatch(/<a href="\/sign-in"[^>]*aria-current="page"[^>]*>Sign in<\/a>/);
+    expect(header).toMatch(/<a (?=[^>]*href="\/sign-in")(?=[^>]*aria-current="page")[^>]*>Sign in<\/a>/);
     expect(header).not.toContain("Join early access");
   });
 });

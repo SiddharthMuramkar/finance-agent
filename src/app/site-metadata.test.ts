@@ -3,8 +3,10 @@ import { siteMetadata } from "./site-metadata";
 
 describe("Site metadata", () => {
   it("describes the site publicly, not as private", () => {
-    // Spec 2026-11-12 E2: the description is Home's lede, which says valuation.
-    expect(String(siteMetadata.description)).toMatch(/teaches you to value a jackpot, a bond or a company/i);
+    // Signal spec 7.2.1: the description is Home's lede.
+    expect(String(siteMetadata.description)).toBe(
+      "Ask a money question. The Tutor answers with a live widget built from a real event, and you move the numbers until it makes sense.",
+    );
     expect(String(siteMetadata.description)).not.toMatch(/private/i);
   });
 

@@ -26,7 +26,6 @@ import { latestTurn } from "@/tutor/turn-status";
 import { failedTurnView } from "@/tutor/failures";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readSplit } from "../split-cookie";
-import { readTheme } from "../theme-cookie";
 import { currentAccount } from "../account";
 import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
 
@@ -39,7 +38,7 @@ async function WorkspaceShell({ account, children }: { account?: HeaderAccount; 
     <SignedInFrame>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3">
-        <AppHeader current="workspace" theme={await readTheme()} account={account} />
+        <AppHeader current="workspace" account={account} />
         {children}
       </main>
     </SignedInFrame>

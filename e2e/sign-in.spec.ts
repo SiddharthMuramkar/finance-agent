@@ -11,19 +11,22 @@ import { PEOPLE, becomePerson, test } from "./support/people";
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
-// A dark project is a Learner who chose Dark, signed out too: the theme cookie stays when the sign-in goes.
 /** Spec 2026-11-12 G9: on the phone project every signed-in page shows only the phone note, so cases that go on there skip. */
 const onPhone = (name: string) => name.startsWith("p390");
 const PHONE_SKIP = "a signed-in page shows only the phone note below 768 px (e2e/phone-note.spec.ts)";
 
-test.beforeEach(async ({ page, baseURL }, info) => {
+test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
-  if (info.project.name.endsWith("-dark")) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL! }]);
 });
 
-test("the sign-in page opens in the saved theme, and Light with none", async ({ page }, info) => {
+// Decision #17: one Light theme, whatever the computer's setting; <html> carries no theme attribute or class.
+test("the sign-in page opens in Light, with no theme attribute", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/sign-in");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", info.project.name.endsWith("-dark") ? "dark" : "light");
+  const html = page.locator("html");
+  await expect(html).not.toHaveAttribute("data-theme", /.*/);
+  await expect(html).not.toHaveClass(/\bdark\b/);
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
 });
 
 test("the old /login sends the visitor on to /sign-in, keeping where they were going", async ({ page }) => {
@@ -44,11 +47,11 @@ test("while Clerk is off, the sign-in page is the passcode door, with wrong pass
   // ADR 0018: flat, so no lip or drop shadow; the page's one primary, at the large size, filled with --fill.
   const look = await enter.evaluate((el) => {
     const s = getComputedStyle(el);
-    return { shadow: s.boxShadow, fill: s.backgroundColor, height: el.getBoundingClientRect().height, dark: document.documentElement.classList.contains("dark") };
+    return { shadow: s.boxShadow, fill: s.backgroundColor, height: el.getBoundingClientRect().height };
   });
   expect(look.shadow).toBe("none");
   expect(look.height).toBeGreaterThanOrEqual(44);
-  expect(look.fill).toBe(look.dark ? "rgb(245, 245, 247)" : "rgb(31, 63, 174)");
+  expect(look.fill).toBe("rgb(31, 63, 174)");
   // No Clerk card while Clerk is off: nothing loads or calls it.
   await expect(page.locator(".cl-rootBox")).toHaveCount(0);
 
@@ -59,16 +62,19 @@ test("while Clerk is off, the sign-in page is the passcode door, with wrong pass
   await expect(page.locator("form").getByRole("alert")).toContainText("Too many wrong passcodes");
 });
 
-// Spec 2026-11-12 G1 and F1: the sign-in page has the public header (Sign in marked as the page showing, no second
-// primary) and a Band across the top that holds its heading.
-test("[G1, F1] the sign-in page has the public header and its heading on a Band", async ({ page }) => {
+// Spec 2026-11-12 G1 and F1, Signal spec 4.1 to 4.3: the sign-in page stands in the site chrome (its nav and footer, as on
+// every public page) with Sign in marked as the page showing and no second primary (5: the page's own button is its one
+// primary, and a nav Join would only lead away from it), and a Band across the top holds its heading.
+test("[G1, F1] the sign-in page has the site nav, Sign in as the page showing, and its heading on a Band", async ({ page }) => {
   await page.goto("/sign-in");
-  const header = page.locator("header.home-header");
-  await expect(header.getByRole("link", { name: "Sign in", exact: true })).toHaveAttribute("aria-current", "page");
-  // Below 760 px the header's page links hide (G9's phone); About is in the footer there.
-  const about = page.viewportSize()!.width < 760 ? page.locator("footer") : header;
+  const nav = page.locator("header.v-nav");
+  await expect(nav).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Sign in", exact: true, includeHidden: true })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByText("Join early access")).toHaveCount(0);
+  await expect(page.locator("[data-join]")).toHaveCount(0);
+  // At 860 px and below the nav's page links fold into its Menu (4.2); the footer carries About there.
+  const about = page.viewportSize()!.width <= 860 ? page.locator("footer.v-footer") : nav;
   await expect(about.getByRole("link", { name: "About", exact: true })).toBeVisible();
-  await expect(header.getByText("Join early access")).toHaveCount(0);
   const strip = page.locator('[data-band="sign-in-strip"]');
   await expect(strip.getByRole("heading", { level: 1 })).toBeVisible();
   const look = await strip.evaluate((band) => ({ face: getComputedStyle(band).backgroundColor, ink: getComputedStyle(band.querySelector("h1")!).color }));
@@ -128,7 +134,8 @@ test("an account's Learner shows their email, and signs out with one click", asy
   await expect(menu.getByRole("menuitem", { name: /^Admin/ })).toHaveCount(0);
   await menu.getByRole("menuitem", { name: "Sign out" }).click();
   await page.waitForURL((url) => url.pathname === "/");
-  await expect(page.locator('a[href="/sign-in"]').first()).toBeVisible();
+  // Signed out: Home offers Sign in (in the nav, or in the footer once the nav folds into Menu at 860 px and below).
+  await expect(page.locator('a[href="/sign-in"]:visible').first()).toBeVisible();
   expect((await context.cookies()).find((c) => c.name === "fa_e2e_person")?.value ?? "").toBe("");
 
   // Signed out at once: a signed-in page sends her to the sign-in, remembering where she was going.

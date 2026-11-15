@@ -10,7 +10,7 @@ const redirect = vi.hoisted(() =>
     throw new Error(`redirect ${to}`);
   }),
 );
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, usePathname: () => "/sign-up" }));
 
 const { default: SignUpPage } = await import("./[[...sign-up]]/page");
 const render = async () => renderToStaticMarkup(await SignUpPage());
@@ -34,7 +34,7 @@ describe("/sign-up", () => {
     expect(html.replace(/<[^>]+>/g, " ")).not.toMatch(/google/i);
     // The joining flow: the header offers Sign in, never another Join early access.
     const header = html.match(/<header[\s\S]*?<\/header>/)![0];
-    expect(header).toMatch(/<a href="\/sign-in"[^>]*>Sign in<\/a>/);
+    expect(header).toMatch(/<a [^>]*href="\/sign-in"[^>]*>Sign in<\/a>/);
     expect(header).not.toContain("Join early access");
   });
 

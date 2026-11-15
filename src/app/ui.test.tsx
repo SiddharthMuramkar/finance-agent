@@ -2,16 +2,13 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { RisingBars } from "./rising-bars";
-import type { ThemePref } from "./theme";
 import { AppHeader, Card, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
-
-const LIGHT: ThemePref = "light";
 
 describe("ReadingPage", () => {
   it("reading pages use the full box: one wide main for header and content, no narrow column", () => {
     const pages = (["course", "notebook", "settings", undefined] as const).map((current) =>
       renderToStaticMarkup(
-        <ReadingPage current={current} theme={LIGHT}>
+        <ReadingPage current={current}>
           <p>content</p>
         </ReadingPage>,
       ),
@@ -29,12 +26,12 @@ describe("ReadingPage", () => {
 
 describe("AppHeader density (A2)", () => {
   it("header is h-[var(--header-h)] on the paper over a --rule hairline, and has no bottom margin", () => {
-    const header = renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />).match(/<header[^>]*>/)![0];
+    const header = renderToStaticMarkup(<AppHeader current="course" />).match(/<header[^>]*>/)![0];
     expect(header).toContain("h-[var(--header-h)]");
     expect(header).toMatch(/\bborder-b border-\[var\(--rule\)\] bg-\[var\(--paper\)\]/);
     expect(header).not.toMatch(/\bmb-\d/);
     const page = renderToStaticMarkup(
-      <ReadingPage current="course" theme={LIGHT}>
+      <ReadingPage current="course">
         <p>content</p>
       </ReadingPage>,
     );
@@ -52,7 +49,7 @@ describe("AppHeader density (A2)", () => {
 describe("AppHeader", () => {
   const account = { name: "Asha" };
   const header = (current?: "workspace" | "course" | "notebook" | "settings") =>
-    renderToStaticMarkup(<AppHeader current={current} theme={LIGHT} account={account} />);
+    renderToStaticMarkup(<AppHeader current={current} account={account} />);
   const navPages = [
     ["workspace", "/study", "Study"],
     ["course", "/course", "Course Map"],
@@ -84,14 +81,13 @@ describe("AppHeader", () => {
     expect(html.match(/class="bar"/g)).toHaveLength(4);
   });
 
-  it("orders the header: brand, the three pages, theme, Settings gear, account", () => {
+  it("orders the header: brand, the three pages, Settings gear, account", () => {
     const html = header("course");
     const at = (pattern: RegExp) => html.search(pattern);
     const order = [
       at(/href="\/study"[^>]*><span[^>]*>Study</),
       at(/href="\/course"[^>]*><span[^>]*>Course Map</),
       at(/href="\/notebook"[^>]*><span[^>]*>Notebook</),
-      at(/aria-label="Switch to dark theme"/),
       at(/aria-label="Settings"/),
       at(/aria-label="Account menu"/),
     ];
@@ -146,31 +142,25 @@ describe("AppHeader", () => {
     expect(html).not.toContain("underline");
   });
 
-  it("draws the three right-hand controls as 32px ghost icon buttons with tooltips", () => {
+  it("draws the two right-hand controls as 32px ghost icon buttons with tooltips", () => {
     const html = header("course");
     const icons = [...html.matchAll(/<(?:a|button)[^>]*data-affordance="icon"[^>]*>/g)].map((m) => m[0]);
-    expect(icons).toHaveLength(3);
+    expect(icons).toHaveLength(2);
     for (const tag of icons) {
       expect(tag).toMatch(/class="btn btn-icon\b/);
       expect(tag).toMatch(/\btitle="[^"]+"/);
     }
   });
 
-  it("makes the theme control one icon button named for what a press does: a moon in Light, a sun in Dark, no menu", () => {
-    const light = renderToStaticMarkup(<AppHeader current="workspace" theme="light" account={account} />);
-    const dark = renderToStaticMarkup(<AppHeader current="workspace" theme="dark" account={account} />);
-    const toggle = (html: string) => html.match(/<button[^>]*data-testid="theme-toggle"[^>]*>[\s\S]*?<\/button>/)![0];
-    expect(toggle(light)).toMatch(/aria-label="Switch to dark theme"/);
-    expect(toggle(dark)).toMatch(/aria-label="Switch to light theme"/);
-    for (const html of [toggle(light), toggle(dark)]) {
-      expect(html).not.toMatch(/aria-(haspopup|expanded|pressed)/);
-      expect(html).toMatch(/<svg[^>]*data-testid="theme-icon-moon"[^>]*class="dark:hidden"/);
-      expect(html).toMatch(/<svg[^>]*data-testid="theme-icon-sun"[^>]*class="hidden dark:block"/);
-    }
+  // Decision #17: one Light theme, so there is no theme control at all.
+  it("has no theme toggle", () => {
+    const html = renderToStaticMarkup(<AppHeader current="workspace" account={account} />);
+    expect(html).not.toContain('data-testid="theme-toggle"');
+    expect(html).not.toMatch(/Switch to (?:dark|light) theme|dark:/);
   });
 
   it("draws no account menu when no Learner is named (the loading skeleton and the 404 page)", () => {
-    expect(renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />)).not.toContain('aria-label="Account menu"');
+    expect(renderToStaticMarkup(<AppHeader current="course" />)).not.toContain('aria-label="Account menu"');
   });
 });
 
@@ -178,6 +168,9 @@ describe("Tag", () => {
   it("reads YOUR ASSUMPTION and SOURCED", () => {
     expect(renderToStaticMarkup(<Tag kind="you" />).toUpperCase()).toContain("YOUR ASSUMPTION");
     expect(renderToStaticMarkup(<Tag kind="src" />).toUpperCase()).toContain("SOURCED");
+    // Decision #17: the provenance dots follow the Signal colours, you in blue and sourced in ink (the record).
+    expect(renderToStaticMarkup(<Tag kind="you" />)).toContain('data-tone="you"');
+    expect(renderToStaticMarkup(<Tag kind="src" />)).toContain('data-tone="src"');
   });
 });
 

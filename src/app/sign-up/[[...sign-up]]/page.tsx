@@ -14,7 +14,7 @@ import { AuthPage } from "../../sign-in/auth-page";
 export default async function SignUpPage() {
   if (!clerkOn(process.env)) redirect(SIGN_IN_PATH);
   return (
-    <AuthPage title="Create your account" current="join">
+    <AuthPage title="Create your account">
       {/* Clerk's catch-all components read the address, which Next.js knows only at request time. */}
       <Suspense>
         <SignUp forceRedirectUrl={DEFAULT_DESTINATION} />

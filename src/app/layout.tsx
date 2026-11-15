@@ -10,7 +10,6 @@ import { RouteBar } from "./route-bar";
 import { ClerkOn } from "./sign-out";
 import { SiteAnalytics } from "./site-analytics";
 import { siteMetadata } from "./site-metadata";
-import { THEME_INIT_SCRIPT } from "./theme";
 
 // Public metadata for search results and shared links; signed-in pages sit behind the login gate.
 export const metadata: Metadata = siteMetadata;
@@ -42,13 +41,9 @@ function WithClerk({ children }: { children: ReactNode }) {
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  // The head script alone puts the theme on <html>, before first paint. <html> takes no theme props from here: when
-  // router.refresh() redraws this layout, React then has nothing to change, so it never strips what the script set.
+  // One Light theme (decision #17): globals.css sets it on :root, so <html> needs no theme attributes or head script.
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-      </head>
+    <html lang="en">
       <body className={`min-h-screen antialiased ${text.variable} ${display.variable}`}>
         <WithClerk>
           <RouteBar />

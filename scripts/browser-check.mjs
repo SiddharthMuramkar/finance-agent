@@ -4,7 +4,7 @@
 // It signs in to a LOCAL server that runs against a Neon TEST BRANCH, always as the tools Learner (never the owner or
 // the owner's test Learner), and starts that Learner over before each part: the old tools Learner is archived, never
 // deleted, and the part begins from an empty one. It then covers what only a real browser shows:
-//   1. Screenshots at a laptop and an upright iPad size, in light and dark, of the explore Widget, Guided Tasks
+//   1. Screenshots at a laptop and an upright iPad size (one Light theme, decision #17) of the explore Widget, Guided Tasks
 //      ticking, the live Formula Card, folded sources, Notes and Settings (seeded rows, no model call).
 //   2. A reload, a switch of the panel's tabs and a second browser tab keep slider values and ticked Guided Tasks
 //      (seeded rows, no model call).
@@ -54,7 +54,6 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_CORE ? resolve(process.env.PLAYWRIGHT_CORE) : "playwright-core");
 
 const SIZES = { laptop: { width: 1440, height: 900 }, ipad: { width: 820, height: 1180 } };
-const THEMES = ["light", "dark"];
 
 // ---------- the tools Learner and its seeded rows ----------
 
@@ -167,12 +166,11 @@ async function setSlider(page, scope, value) {
   }, value);
 }
 
-/** A browser context signed in as the given tools Learner (its cookie), with the theme set. */
-async function openContext(browser, learner, size = "laptop", theme = "light") {
+/** A browser context signed in as the given tools Learner (its cookie). */
+async function openContext(browser, learner, size = "laptop") {
   const context = await browser.newContext({ viewport: SIZES[size], deviceScaleFactor: 1 });
   const { hostname } = new URL(BASE);
   await context.addCookies([
-    { name: "theme", value: theme, domain: hostname, path: "/" },
     { name: "fa_access", value: learner.cookie, domain: hostname, path: "/", httpOnly: true },
   ]);
   const page = await context.newPage();
@@ -184,9 +182,9 @@ async function shot(page, name) {
   await page.screenshot({ path: join(out, `${name}.png`), fullPage: false });
 }
 
-async function studyShots(browser, learner, size, theme) {
-  const tag = `${size}-${theme}`;
-  const { context, page } = await openContext(browser, learner, size, theme);
+async function studyShots(browser, learner, size) {
+  const tag = size;
+  const { context, page } = await openContext(browser, learner, size);
   try {
     await page.goto(`${BASE}/study`, { waitUntil: "networkidle" });
     const explore = size === "laptop" ? '[data-testid="widget-card"]' : '[data-testid="explore-card"]';
@@ -355,9 +353,9 @@ async function quizLayout(browser, learner) {
   }
 }
 
-async function noteShots(browser, learner, size, theme) {
-  const tag = `${size}-${theme}`;
-  const { context, page } = await openContext(browser, learner, size, theme);
+async function noteShots(browser, learner, size) {
+  const tag = size;
+  const { context, page } = await openContext(browser, learner, size);
   try {
     await step(`${tag}: Notes`, async () => {
       await page.goto(`${BASE}/notes`, { waitUntil: "networkidle" });
@@ -477,12 +475,12 @@ async function firstVisitWalk(browser) {
 
 const browser = await chromium.launch();
 try {
-  // Widget state is saved per Session, so each size and theme gets its own fresh Learner and starts from the defaults.
-  for (const size of Object.keys(SIZES)) for (const theme of THEMES) await studyShots(browser, await seeded("explore"), size, theme);
+  // Widget state is saved per Session, so each size gets its own fresh Learner and starts from the defaults.
+  for (const size of Object.keys(SIZES)) await studyShots(browser, await seeded("explore"), size);
   await keptAfterReloadAndTabSwitch(browser, await seeded("explore"));
   await quizLayout(browser, await seeded("quiz"));
   const passed = await seeded("passed");
-  for (const size of Object.keys(SIZES)) for (const theme of THEMES) await noteShots(browser, passed, size, theme);
+  for (const size of Object.keys(SIZES)) await noteShots(browser, passed, size);
   if (skipWalk) console.log("skip  the first-visit walk (--skip-walk)");
   else await firstVisitWalk(browser);
 } finally {

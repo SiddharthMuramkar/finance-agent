@@ -94,13 +94,12 @@ describe("the Widget harness page", () => {
   });
 
   it("draws a fixture in a frame with the Study aside's and card's test ids, at the asked width", async () => {
-    const { host, done } = await draw({ fixture: "08-inflation-vada-pav.openui", width: "360", theme: "dark" });
+    const { host, done } = await draw({ fixture: "08-inflation-vada-pav.openui", width: "360" });
     const pane = host.querySelector<HTMLElement>('aside[data-testid="widget-pane"]')!;
     expect(pane.style.width).toBe("360px");
     expect(pane.querySelector('section[data-testid="widget-card"]')).not.toBeNull();
     expect(pane.textContent).not.toContain("could not be drawn");
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
-    await done();
     expect(document.documentElement.classList.contains("dark")).toBe(false);
+    await done();
   });
 });

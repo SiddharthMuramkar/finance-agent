@@ -2,7 +2,7 @@
 // F1's preview matrix (spec 2026-11-05, ticket F1). Runs e2e/matrix.spec.ts in the browser test bed (UI_MATRIX=1) and
 // prints one line per cell plus every failing number. Screenshots land in evidence/preview-matrix/<project>/<page>.png
 // and the numbers in evidence/preview-matrix/<project>/cells.json (both git-ignored).
-//   node scripts/preview-matrix.mjs [--project mbp14[,mbp14-dark,...]] [--port 3100]
+//   node scripts/preview-matrix.mjs [--project mbp14[,w1280,...]] [--port 3100]
 // Default: all 10 projects (the 8 desktop ones and, spec 2026-11-12 G9, the phone's two, which shoot the public pages only). Never point it at production: it starts its own dev server on an in-memory PGlite.
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -10,7 +10,7 @@ import { join } from "node:path";
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : fallback; };
-const projects = (flag("project", "mbp14,mbp14-dark,w1280,w1280-dark,w1920,w1920-dark,w1024,w1024-dark,p390,p390-dark")).split(",");
+const projects = (flag("project", "mbp14,w1280,w1920,w1024,p390")).split(",");
 const port = flag("port", process.env.E2E_PORT ?? "3100");
 const root = process.cwd();
 

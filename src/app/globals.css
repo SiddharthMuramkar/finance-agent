@@ -36,100 +36,136 @@
 @import "@openuidev/react-ui/layered/styles/textContentWrapper.css";
 @import "@openuidev/react-ui/layered/styles/tooltipWrapper.css";
 
-/* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
-@custom-variant dark (&:where(.dark, .dark *));
+/* One Light theme for the whole app (decision #17; spec §3.1, "single light theme by design"). There is no Dark theme:
+   no dark class, no dark variant, and the computer's setting is never read. */
 
-/* Design tokens: semantic tokens, one literal colour per theme until #32 lands (ADR 0015 then points each at its Signal meaning); old names declared once in Light as
-   var(--new), never in Dark; Widget accent families unchanged. Components use them as `bg-[var(--wash)]`; Dark is these
-   values switching under `.dark`, so components need no dark: colour variants (a dark: display swap, such as the theme
-   toggle's sun and moon, is fine). */
-/* Light (default). Screen and print. White paper, an ink ramp and one royal blue for what can be pressed, is selected
-   or is current. Status colours always come with an icon or a word. The Widget accent families below are only for
-   Widgets: a FILL (--mint, --coral, --sun, --violet) never carries text; text uses the -ink variants. */
+/* Design tokens: the Signal colour language (spec §2.1, §3.1). Blue is you, green is gain, red is loss, orange is
+   careful, black is the record, and hatch is not real yet. There is no sixth colour.
+   Each colour is a literal ONCE, in the spec block at the top of :root. Every other colour name points at a spec token
+   with var(), so a meaning changes in one place and every screen follows (token-first). Components use the names
+   (`bg-[var(--wash)]`, `text-ink`), never a raw colour. scripts/check-theme-contrast.mjs freezes the spec values, checks
+   where each other name points, and measures the spec's §2.4 contrast pairs. */
 :root {
   color-scheme: light;
   /* Page frame (A1): the gutter beside the page, the gap between columns, and the widest the page grows. */
   --gutter: clamp(12px, 1.6vw, 32px);
   --gap: clamp(16px, 1.6vw, 28px);
   --page-max: 2200px;
-  /* Surfaces: the page, a wash band, a raised card or field, a Widget frame */
+  /* Spec §3.3 shadows and §3.2 body type, shared by the site and the Signal widgets wherever they mount. A shadow is not a
+     colour token: its tint is the ink and the blue at low alpha, as the spec writes it. */
+  --lift: 0 8px 24px rgba(11, 13, 18, 0.07);
+  --lift-w: 0 1px 2px rgba(11, 13, 18, 0.05), 0 18px 44px -18px rgba(31, 63, 174, 0.28);
+  --font-body: var(--font-text, "Inter"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* ---- Spec §3.1: the only literal colours ---- */
+  /* canvas and ink: neutrals lean slightly toward the brand blue */
   --paper: #ffffff;
-  --wash: #f6f7f9;
-  --raised: #ffffff;
-  --frame: #ffffff;
-  /* Text: ink, a second ink, muted (secondary text), faint (placeholders, disabled) */
+  --wash: #f5f7fb;
+  --wash-2: #e9edf5;
+  --grid: #e9edf4;
   --ink: #0b0d12;
   --ink-2: #30353f;
   --muted: #5f6571;
   --faint: #8b919b;
-  /* Lines: a hairline rule, a decorative line, a strong line for control edges (3:1 or better) */
   --rule: #e2e5ea;
   --line: #c6cad2;
+  /* royal blue: you */
+  --blue: #1f3fae;
+  --blue-hover: #1a3596;
+  --blue-pressed: #152b7a;
+  --on-blue: #ffffff;
+  --blue-tint: #eef2fc;
+  --blue-tint-2: #e3e9fa;
+  --blue-line: #a9b8ec;
+  /* green: gain (gain-deep only in the compounding widget: growth on growth) */
+  --gain: #0faa7b;
+  --gain-deep: #087f5b;
+  --gain-ink: #0b7a5a;
+  --gain-tint: #e7f7f0;
+  --gain-line: #9ee0c6;
+  /* red: loss */
+  --loss: #be1e3a;
+  --loss-ink: #a3152e;
+  --loss-tint: #fcebee;
+  --loss-line: #f0a9b5;
+  /* orange: careful */
+  --wait: #f97316;
+  --wait-ink: #a84b00;
+  --wait-tint: #fff1e3;
+  --wait-line: #fbc592;
+  --overlay: rgba(255, 255, 255, 0.9);
+
+  /* ---- App chrome the spec does not list (literal, contrast-checked) ---- */
+  /* A strong line for control edges: 3:1 or better on every surface a control sits on */
   --line-strong: #868c97;
-  /* The one accent: royal blue for links, the selected and the current, and the focus ring */
-  --accent: #1f3fae;
-  --accent-fill: #1f3fae;
-  --ring: #1f3fae;
-  --accent-hover: #1a3596;
-  --accent-pressed: #152b7a;
-  --accent-deep: #152b7a;   /* darker than the fill: frozen, no longer drawn, since controls have no lip (ADR 0018) */
-  --on-accent: #ffffff;
-  --accent-tint: #eef2fc;
-  --accent-tint-2: #e3e9fa;
-  --accent-line: #a9b8ec;
-  /* The primary button's fill (royal blue in Light, near-white in Dark) and the disabled fill */
-  --fill: #1f3fae;
-  --on-fill: #ffffff;
-  --fill-hover: #1a3596;
-  --fill-active: #152b7a;
-  --dim: #e2e5ea;
-  --on-dim: #8b919b;
-  /* Status, always with an icon or a word */
-  --success: #18794e;
-  --success-tint: #edf7f1;
-  --warning: #a15c07;
-  --warning-tint: #fdf5e6;
-  --danger: #b42318;
-  --danger-tint: #fdf1ef;
-  --danger-hover: #9a1d14;
-  --on-danger: #ffffff;
-  --data: #c6cad2;          /* neutral chart data */
-  /* Widget accent families. fill / ink (text) / tint (card) / tag */
-  --mint: #12b886;          /* 'you' and gains */
-  --mint-ink: #0b7a5a;
-  --mint-tint: #ddf7ec;
-  --mint-tag: #d2f4e6;
-  --coral: #ff6b57;         /* losses and warnings */
-  --coral-ink: #bd2f1e;
-  --coral-tint: #ffe6e1;
-  --coral-tag: #ffddd6;
-  --coral-fill: #bd2f1e;    /* danger button fill under white text (5.9:1) */
-  --coral-deep: #8f2012;    /* danger button lip */
-  --sun: #ffc233;           /* history and stories */
-  --sun-ink: #8a5a00;
-  --sun-tint: #fff1c9;
-  --sun-tag: #ffe49a;
-  --violet: #8b5cf6;        /* lingo */
-  --violet-ink: #6d3ad9;
-  --violet-tint: #ebe2ff;
-  --violet-tag: #e4d9ff;
-  /* Widget names: 'you' is mint, 'src' (sourced history) is sunflower */
-  --you: #0b7a5a;
-  --you-line: #12b886;
-  --you-tint: #ddf7ec;
-  --you-tag: #d2f4e6;
-  --you-tag-ink: #0b7a5a;
-  --src: #8a5a00;
-  --src-line: #ffc233;
-  --src-tint: #fff1c9;
-  --src-tag: #ffe49a;
-  --src-tag-ink: #8a5a00;
+
+  /* ---- App names: each points at a spec token ---- */
+  /* Surfaces: a raised card or field, a Widget frame */
+  --raised: var(--paper);
+  --frame: var(--paper);
+  /* The one accent is the spec's blue: links, the selected and the current, the focus ring and the primary button */
+  --accent: var(--blue);
+  --accent-fill: var(--blue);
+  --ring: var(--blue);
+  --accent-hover: var(--blue-hover);
+  --accent-pressed: var(--blue-pressed);
+  --accent-deep: var(--blue-pressed); /* darker than the fill: frozen, no longer drawn, since controls have no lip (ADR 0018) */
+  --on-accent: var(--on-blue);
+  --accent-tint: var(--blue-tint);
+  --accent-tint-2: var(--blue-tint-2);
+  --accent-line: var(--blue-line);
+  --fill: var(--blue);
+  --on-fill: var(--on-blue);
+  --fill-hover: var(--blue-hover);
+  --fill-active: var(--blue-pressed);
+  --dim: var(--rule);
+  --on-dim: var(--faint);
+  /* Status, always with an icon or a word: success is gain, warning is careful, danger is loss (decision #17) */
+  --success: var(--gain-ink);
+  --success-tint: var(--gain-tint);
+  --warning: var(--wait-ink);
+  --warning-tint: var(--wait-tint);
+  --danger: var(--loss);
+  --danger-tint: var(--loss-tint);
+  --danger-hover: var(--loss-ink);
+  --on-danger: var(--on-blue); /* white on a red fill (6.11:1, spec §2.4) */
+  --data: var(--line); /* neutral chart data */
+  /* The Widget families, by their old names, re-pointed at their meanings. A FILL never carries text; text uses -ink. */
+  --mint: var(--gain);
+  --mint-ink: var(--gain-ink);
+  --mint-tint: var(--gain-tint);
+  --mint-tag: var(--gain-tint);
+  --coral: var(--loss);
+  --coral-ink: var(--loss-ink);
+  --coral-tint: var(--loss-tint);
+  --coral-tag: var(--loss-tint);
+  --coral-fill: var(--loss); /* danger button fill under white text (6.11:1) */
+  --coral-deep: var(--loss-ink); /* danger button lip */
+  /* Sunflower (history) is the record now, black; violet (lingo) is neutral. No sixth colour (spec §2.1). */
+  --sun: var(--ink);
+  --sun-ink: var(--ink);
+  --sun-tint: var(--wash);
+  --sun-tag: var(--wash-2);
+  --violet: var(--muted);
+  --violet-ink: var(--ink-2);
+  --violet-tint: var(--wash);
+  --violet-tag: var(--wash-2);
+  /* Widget names: 'you' is blue, 'src' (sourced history, the record) is ink */
+  --you: var(--blue);
+  --you-line: var(--blue);
+  --you-tint: var(--blue-tint);
+  --you-tag: var(--blue-tint-2);
+  --you-tag-ink: var(--blue);
+  --src: var(--ink);
+  --src-line: var(--ink);
+  --src-tint: var(--wash);
+  --src-tag: var(--wash-2);
+  --src-tag-ink: var(--ink);
   /* Not colour-checked: Widgets' soft drop shadow, and the shadows of floating layers */
   --shadow: rgb(11 13 18 / 0.22);
   --shadow-pop: 0 0 0 1px var(--rule), 0 8px 24px -12px rgb(11 13 18 / 0.2);
   --shadow-modal: 0 0 0 1px var(--rule), 0 24px 64px -24px rgb(11 13 18 / 0.32);
-  /* Old names, declared ONCE here and never in Dark: each follows its new name, which switches under .dark. They
-     resolve on <html>, where .dark also applies, so Widgets and code still on the old names follow both themes. */
+  /* Older names still in code: each follows its newer name. */
   --bg: var(--paper);
   --field: var(--raised);
   --bubble: var(--wash);
@@ -145,20 +181,21 @@
   --brand-tint: var(--accent-tint);
   --brand-soft: var(--accent-tint);
   --brand-line: var(--accent-line);
-  /* Theme-independent: royal blue, the Band's colour (white text on it in both themes) */
-  --royal: #1f3fae;
-  /* A Band (spec F1, F5): a full-width royal-blue brand surface, the same in both themes, so these are declared once here
-     and never in Dark. On it: white text (8.8:1), secondary text in white at 72% (5.4:1), decorative rules in white at 18%,
-     and a white button with an ink label (19.4:1). Paint a Band with the .band class rather than these one by one. */
+  /* Royal blue, the Band's colour: the spec's blue */
+  --royal: var(--blue);
+  /* A Band (spec F1, F5): a full-width royal-blue brand surface. On it: white text (8.8:1), secondary text in white at
+     72% (5.4:1), decorative rules in white at 18%, and a white button with an ink label (19.4:1). What sits on a Band is
+     fixed chrome, written out (the contrast script holds each value). Paint a Band with the .band class rather than these
+     one by one. */
   --band: var(--royal);
   --on-band: #ffffff;
   --on-band-2: rgb(255 255 255 / 0.72);
   --band-rule: rgb(255 255 255 / 0.18);
   --on-band-button-ink: #0b0d12;
-  /* A card on a Band: white here, the Theme's --frame in Dark (declared again there) */
-  --band-card: #ffffff;
-  /* The key-number colour (spec F2, F5): eyebrows, step numbers and a Widget's one key number. It is the Theme's accent,
-     declared once here, so it is #1f3fae in Light and #6aa1ff in Dark; never on something that can be pressed (F4). */
+  /* A card on a Band: white */
+  --band-card: var(--paper);
+  /* The key-number colour (spec F2, F5): eyebrows, step numbers and a Widget's one key number. It is the accent, blue;
+     never on something that can be pressed (F4). */
   --key-number: var(--accent);
   /* Computed: hover and press washes, and the 20% accent halo around a focused field */
   --hover: color-mix(in srgb, var(--ink) 5%, transparent);
@@ -185,8 +222,8 @@
   --lh-small: 18px;
 }
 
-/* The same tokens as Tailwind colours (bg-brand, text-muted, border-border, bg-bubble, text-ink ...). "inline" keeps the
-   var() reference, so the .dark values still switch; the older bg-[var(--brand)] spelling keeps working beside them. */
+/* The same tokens as Tailwind colours (bg-blue, text-gain-ink, bg-brand, text-muted, border-border ...). "inline" keeps
+   the var() reference, so a utility follows its token; the older bg-[var(--brand)] spelling keeps working beside them. */
 @theme inline {
   --color-bg: var(--bg);
   --color-ink: var(--ink);
@@ -257,13 +294,36 @@
   --color-band-rule: var(--band-rule);
   --color-band-card: var(--band-card);
   --color-key-number: var(--key-number);
+  /* Spec §3.1 */
+  --color-wash-2: var(--wash-2);
+  --color-grid: var(--grid);
+  --color-blue: var(--blue);
+  --color-blue-hover: var(--blue-hover);
+  --color-blue-pressed: var(--blue-pressed);
+  --color-on-blue: var(--on-blue);
+  --color-blue-tint: var(--blue-tint);
+  --color-blue-tint-2: var(--blue-tint-2);
+  --color-blue-line: var(--blue-line);
+  --color-gain: var(--gain);
+  --color-gain-deep: var(--gain-deep);
+  --color-gain-ink: var(--gain-ink);
+  --color-gain-tint: var(--gain-tint);
+  --color-gain-line: var(--gain-line);
+  --color-loss: var(--loss);
+  --color-loss-ink: var(--loss-ink);
+  --color-loss-tint: var(--loss-tint);
+  --color-loss-line: var(--loss-line);
+  --color-wait: var(--wait);
+  --color-wait-ink: var(--wait-ink);
+  --color-wait-tint: var(--wait-tint);
+  --color-wait-line: var(--wait-line);
+  --color-overlay: var(--overlay);
 }
 
 /* OpenUI's kit colours, mapped to the tokens above at :root. Unlayered, so this beats the kit's own defaults (which follow
-   the system's light or dark setting, not ours) and also reaches popovers the kit opens outside a widget. The tokens
-   switch under .dark, so one block serves both modes. genui-theme.tsx holds the same mapping; a test keeps them equal. */
-:root,
-:root.dark {
+   the system's light or dark setting, not ours) and also reaches popovers the kit opens outside a widget.
+   genui-theme.tsx holds the same mapping; a test keeps them equal. */
+:root {
   --openui-background: var(--bg);
   --openui-foreground: var(--field);
   --openui-popover-background: var(--field);
@@ -297,8 +357,8 @@
   --openui-text-alert-primary: var(--ink);
   --openui-text-alert-inverted: var(--brand-ink);
   --openui-text-danger-primary: var(--ink);
-  --openui-text-danger-secondary: var(--coral-ink);
-  --openui-text-danger-tertiary: var(--coral-ink);
+  --openui-text-danger-secondary: var(--loss-ink);
+  --openui-text-danger-tertiary: var(--loss-ink);
   --openui-interactive-accent-default: var(--brand-main);
   --openui-interactive-accent-hover: var(--brand-hover);
   --openui-interactive-accent-pressed: var(--brand-pressed);
@@ -314,89 +374,12 @@
   --openui-border-accent-emphasis: var(--brand-main);
   --openui-border-info: var(--line);
   --openui-border-info-emphasis: var(--line-strong);
-  --openui-border-success: var(--mint);
-  --openui-border-success-emphasis: var(--mint-ink);
-  --openui-border-alert: var(--sun);
-  --openui-border-alert-emphasis: var(--sun-ink);
-  --openui-border-danger: var(--coral);
-  --openui-border-danger-emphasis: var(--coral-ink);
-}
-/* Dark. Screen only: print falls back to Light. Near-black paper and neutral greys (enjoy.dev), no navy; the primary
-   button inverts to a near-white fill with a near-black label; the accent is a lighter blue that reads on near-black.
-   Only the new names are declared here: an old name (--bg, --brand ...) follows its new name from Light. The Widget
-   families keep their values; their tints are 8% alpha, so they sit on whatever surface is under them. */
-@media screen {
-  :root.dark {
-    color-scheme: dark;
-    --paper: #0b0b0b;
-    --wash: #161616;
-    --raised: #1d1d1d;
-    --frame: #0f0f0f;
-    --band-card: var(--frame); /* a card on a Band is the Theme's frame colour (spec F1) */
-    --ink: #f5f5f7;           /* 18:1 on --paper */
-    --ink-2: #d1d1d6;
-    --muted: #98989d;
-    --faint: #6e6e73;
-    --rule: #1f1f1f;
-    --line: #2a2a2a;
-    --line-strong: #6e6e73;
-    --accent: #6aa1ff;
-    --accent-fill: #6aa1ff;
-    --ring: #6aa1ff;
-    --accent-hover: #93bbff;
-    --accent-pressed: #93bbff;
-    --accent-deep: #2a4f99;   /* darker than the fill: frozen, no longer drawn, since controls have no lip (ADR 0018) */
-    --on-accent: #0b0d12;
-    --accent-tint: #101a2e;
-    --accent-tint-2: #14223d;
-    --accent-line: #2a3f66;
-    --fill: #f5f5f7;          /* the inverting primary: near-white fill, near-black label */
-    --on-fill: #0b0b0b;
-    --fill-hover: #e5e5ea;
-    --fill-active: #d1d1d6;
-    --dim: #2a2a2a;
-    --on-dim: #6e6e73;
-    --success: #5bc68e;
-    --success-tint: #0f2118;
-    --warning: #e9b04f;
-    --warning-tint: #251c0b;
-    --danger: #ff7a6e;
-    --danger-tint: #2a1311;
-    --danger-hover: #ff9a90;
-    --on-danger: #0b0d12;
-    --data: #3a3a3c;
-    --mint: #66cdaa;
-    --mint-ink: #66cdaa;
-    --mint-tint: #66cdaa14;
-    --mint-tag: #1e3b3a;
-    --coral: #f28b7d;
-    --coral-ink: #f28b7d;
-    --coral-tint: #f28b7d14;
-    --coral-tag: #43262f;
-    --coral-fill: #c04332;    /* danger button fill under white text (5.1:1) */
-    --coral-deep: #7e2a20;
-    --sun: #e8be5c;
-    --sun-ink: #e8be5c;
-    --sun-tint: #e8be5c14;
-    --sun-tag: #3f3727;
-    --violet: #b09af2;
-    --violet-ink: #b09af2;
-    --violet-tint: #b09af214;
-    --violet-tag: #33294f;
-    --you: #66cdaa;
-    --you-line: #66cdaa;
-    --you-tint: #66cdaa14;
-    --you-tag: #1e3b3a;
-    --you-tag-ink: #66cdaa;
-    --src: #e8be5c;
-    --src-line: #e8be5c;
-    --src-tint: #e8be5c14;
-    --src-tag: #3f3727;
-    --src-tag-ink: #e8be5c;
-    --shadow: rgb(0 0 0 / 0.5);
-    --shadow-pop: 0 0 0 1px var(--line), 0 12px 32px -12px rgb(0 0 0 / 0.7);
-    --shadow-modal: 0 0 0 1px var(--line), 0 24px 64px -16px rgb(0 0 0 / 0.8);
-  }
+  --openui-border-success: var(--gain);
+  --openui-border-success-emphasis: var(--gain-ink);
+  --openui-border-alert: var(--wait);
+  --openui-border-alert-emphasis: var(--wait-ink);
+  --openui-border-danger: var(--loss);
+  --openui-border-danger-emphasis: var(--loss-ink);
 }
 
 /* Base rules: pointer cursor on whatever presses, no grey tap flash, no double-tap zoom delay. */
@@ -637,10 +620,10 @@ html[data-splitting] * {
 }
 
 /* Rising bars: the Value It mark (src/app/rising-bars.tsx). Four solid bars, short to tall, in the accent fill (royal
-   blue in Light, the Dark accent in Dark), with 1px corners: flat and sharp, no gradient, no pill ends. Each
+   blue), with 1px corners: flat and sharp, no gradient, no pill ends. Each
    grows from the bottom after the one before (the delays are inline). Full height is the resting state, so with reduced
    motion (which turns animation off below) the mark simply shows. .bars-on-brand sits on a filled surface and takes its
-   text colour: white on the royal-blue band, the label colour on a filled button (white in Light, near-black in Dark). */
+   text colour: white on the royal-blue band, the label colour on a filled button (white). */
 .bars {
   display: inline-flex;
   align-items: flex-end;
@@ -958,11 +941,10 @@ html[data-splitting] * {
   }
 }
 
-/* Printing (the Notebook page): always the light look on white paper, whatever the Learner's mode,
-   with the page margins left to the printer. Controls carry `print:hidden` in their markup. */
+/* Printing (the Notebook page): white paper and darker ink, with the page margins left to the printer. Controls
+   carry `print:hidden` in their markup. */
 @media print {
-  :root,
-  :root.dark {
+  :root {
     color-scheme: light !important;
     --paper: #ffffff;
     --wash: #ffffff;
@@ -1265,15 +1247,12 @@ html[data-splitting] * {
     border-color: var(--accent);
     background: radial-gradient(circle, var(--accent) 0 38%, var(--paper) 42%);
   }
-  /* The tick is --on-fill on --fill: white on royal blue in Light, near-black on near-white in Dark. */
+  /* The tick is --on-fill on --fill: white on royal blue. */
   input[type="checkbox"]:checked {
     border-color: var(--fill);
     background: var(--fill)
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E")
       center / 12px no-repeat;
-  }
-  :root.dark input[type="checkbox"]:checked {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%230B0B0B' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
   }
   input[type="radio"]:focus-visible,
   input[type="checkbox"]:focus-visible,
@@ -1445,7 +1424,10 @@ html[data-splitting] * {
     border-radius: 50%;
     background: var(--tag-dot);
   }
-  /* A family Tag is a neutral tag with a coloured dot. The face and the words stay the neutral tag's (ADR 0015). */
+  /* A family Tag is a neutral tag with a coloured dot. The face and the words stay the neutral tag's (ADR 0015). The
+     provenance dots: you is blue, src (sourced) is ink, the record (spec §2.1). */
+  .tag[data-tone="you"] { --tag-dot: var(--you); }
+  .tag[data-tone="src"] { --tag-dot: var(--src); }
   .tag[data-tone="mint"] { --tag-dot: var(--mint); }
   .tag[data-tone="coral"] { --tag-dot: var(--coral); }
   .tag[data-tone="sun"] { --tag-dot: var(--sun); }
@@ -1539,8 +1521,7 @@ html[data-splitting] * {
 
 /* Home (src/app/_landing/landing.tsx): the public sales page, in enjoy.dev's editorial rhythm. A 12-column
    grid, Inter for text and Inter Tight (--font-display) at 600 for display type, 1px hairlines between sections instead
-   of boxed cards (ADR 0018), a steady section rhythm and one royal-blue band. Built from the tokens above, so Light and Dark both
-   work; the band alone is always light, as Enjoy's closing band is. */
+   of boxed cards (ADR 0018), a steady section rhythm and one royal-blue band. Built from the tokens above. */
 .home {
   --home-section: 150px;
   --home-gutter: 20px;
@@ -1696,13 +1677,11 @@ html[data-splitting] * {
   .home-arrive { animation: none; }
 }
 
-/* A Band (spec F1): a full-width royal-blue brand surface, the same in both themes and always light (Enjoy's closing
+/* A Band (spec F1): a full-width royal-blue brand surface, always light (Enjoy's closing
    band). Put .band on a block that spans the page; the Band tokens are in :root. On it, text is white (8.8:1) and
    .band-faint is white at 72% (5.4:1); a link is white and underlined; a .btn is white with an ink label, so no pad is
-   needed; a rule is white at 18%; the focus ring is white. A .band-card inside is white in Light and the Theme's frame in
-   Dark, and reads like the page: none of the Band's rules reach into it. Home's closing band is .home-band, the same
-   rules under its first name (its faint line is .home-faint). The button's hover and press faces are Light's accent
-   tints, written out because the Band does not follow the Theme. */
+   needed; a rule is white at 18%; the focus ring is white. A .band-card inside is white and reads like the page: none of the Band's rules reach into it. Home's closing band is .home-band, the same
+   rules under its first name (its faint line is .home-faint). The button's hover and press faces are the blue tints. */
 .band,
 .home-band { background: var(--band); color: var(--on-band); color-scheme: light; }
 .band .band-faint,
@@ -1727,12 +1706,15 @@ html[data-splitting] * {
 .home-band .btn .bar { background: var(--band); }
 @media (hover: hover) {
   .band .btn:not(.band-card *):hover,
-  .home-band .btn:hover { background-color: #eef2fc; border-color: #eef2fc; }
+  .home-band .btn:hover { background-color: var(--blue-tint); border-color: var(--blue-tint); }
 }
 .band .btn:not(.band-card *):active,
-.home-band .btn:active { background-color: #e3e9fa; border-color: #e3e9fa; }
+.home-band .btn:active { background-color: var(--blue-tint-2); border-color: var(--blue-tint-2); }
 .band :focus-visible:not(.band-card *),
 .home-band :focus-visible { outline-color: var(--on-band); }
+/* A heading on a Band is the Band's white, even where a page's own defaults colour headings (the site chrome's ink headings
+   around the sign-in strip). */
+.band :is(h1, h2, h3):not(.band-card *) { color: inherit; }
 .band-card { background: var(--band-card); color: var(--ink); }
 /* A floating layer that is a card on a Band (the Topic bar's menus and All steps list) keeps the popover's raised face. */
 .band-card.popover { background-color: var(--raised); }
@@ -1741,7 +1723,3 @@ html[data-splitting] * {
 .band .home-body:not(.band-card *),
 .band .home-eyebrow:not(.band-card *),
 .home-band .home-eyebrow { color: var(--on-band-2); }
-@media screen {
-  :root.dark .band-card { color-scheme: dark; }
-}
-
