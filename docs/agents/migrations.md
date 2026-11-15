@@ -19,6 +19,12 @@ Precedent: `0026_learners_expand.sql` → `0027_learners_keys.sql` → `0028_lea
 - `drizzle-kit push`: it changes the database with no migration file. Make files with `npm run db:generate`.
 - Run `npm run vercel-build`, `node scripts/migrate-on-build.mjs` or `npm run db:migrate` against production by hand. Production migrates only through a merge to `main`. `.claude/settings.json` denies these commands.
 
+## The snapshot gate
+
+A production build with a pending migration needs `NEON_API_KEY` and `NEON_PROJECT_ID` in the Vercel Production environment. Without either, the build fails before it migrates. Any Neon API error, or a call that takes more than 30 s, fails it too.
+
+To migrate with no snapshot (for example while Neon's API is down), set `NEON_SNAPSHOT=off`. The build log then shows a `WARNING`. Remove the variable after that deploy.
+
 ## Undo a bad migration
 
 Restore the `pre-migrate-<sha>-<time>` snapshot in the Neon console (kept 30 days), then roll back the deployment in Vercel.

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { DeniedPerson, PendingInvite, PersonWithAccess, SignInMethod, WaitingRequest } from "@/auth/access";
-import { CAP_FIELDS, type CapKey } from "@/tutor/quota";
+import { CAP_FIELDS, UNPRICED_STEP_USD, type CapKey } from "@/tutor/quota";
 import type { SpendReport } from "@/tutor/spend";
 import { overBudget, seconds, SPEED_BUDGETS, WIDGET_SAVE_BUDGET, SPEED_WINDOW_DAYS, type SpeedReport, type Spread } from "@/tutor/speed";
 import { shortDate } from "../past-sessions";
@@ -360,7 +360,8 @@ export function AdminView({ waiting, people, invited, denied, signupOpen, spend,
             </p>
             {spend.total.unpricedSteps > 0 && (
               <p className="measure mb-3 text-xs leading-4 text-[var(--warning)]">
-                {steps(spend.total.unpricedSteps)} used a model with no price in the table, so they are missing from these figures.
+                Unpriced: {steps(spend.total.unpricedSteps)}, missing from these figures. A step has no price when it was cut short before OpenAI reported its usage
+                (Stop, a cut-off, a failure), or when its model has no price in the table. The daily caps count each one at {usd(UNPRICED_STEP_USD)}.
               </p>
             )}
             <div className="overflow-x-auto">

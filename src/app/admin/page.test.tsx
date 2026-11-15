@@ -153,7 +153,11 @@ describe("/admin", () => {
       expect(t).toContain("Tutor model calls only");
       expect(t).toContain("India time");
       expect(t).toMatch(/\$1\.24 this month \$8\.74 all time 1 turn /);
-      expect(t).toContain("1 step used a model with no price in the table");
+      // A step has no price when it was cut short before OpenAI reported its usage, or its model has no price.
+      expect(t).toContain("Unpriced: 1 step, missing from these figures.");
+      expect(t).toContain("cut short before OpenAI reported its usage");
+      expect(t).toContain("its model has no price in the table");
+      expect(t).toContain("The daily caps count each one at $0.66.");
       // Asha spent more this month than the owner, so she comes first.
       expect(t.indexOf("asha@gmail.com")).toBeLessThan(t.indexOf("owner@x.com"));
       expect(t).toMatch(/asha@gmail\.com Asha Last active 10 Nov 2026 1 \$1\.23 \$1\.23/);
