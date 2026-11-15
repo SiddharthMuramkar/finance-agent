@@ -42,7 +42,7 @@ export type Refusal = Extract<TurnEvent, { type: "stale" | "not_allowed" | "over
  */
 export type Admission = { refusal: Refusal } | { turn: Turn; alreadyFinished: boolean; items: TurnEvent[]; stepLimit: number };
 
-export type AdmissionDeps = Pick<TurnDeps, "db" | "learnerId" | "map" | "now" | "shown" | "widgets" | "noLimits">;
+export type AdmissionDeps = Pick<TurnDeps, "db" | "learnerId" | "admin" | "map" | "now" | "shown" | "widgets" | "noLimits">;
 
 /** Decides whether the turn runs, and claims the Learner's lock for it when it does. */
 export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<Admission> {
@@ -94,7 +94,7 @@ export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<
   } else if (!resuming) started = learnerTextOf(input);
   const caps = deps.noLimits ? undefined : (await readSettings(db)).caps;
   // The daily Spend caps, for a new turn only: a resume carries on a turn that already got in. A refused turn writes no row.
-  const capHit = caps && !resuming ? await checkQuota(db, learnerId, now(), caps) : null;
+  const capHit = caps && !resuming ? await checkQuota(db, learnerId, now(), { admin: deps.admin, caps }) : null;
   if (capHit) return { refusal: { type: "over_limit", message: CAP_MESSAGES[capHit] } };
   // A resume past the resume limit is refused while it would take the lock; another turn running is still "busy".
   const claim = resuming ? await resumeTurn(db, now(), learnerId, caps?.resumesPerTurn) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };

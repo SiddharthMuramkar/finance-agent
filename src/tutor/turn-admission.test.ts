@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { learners, OWNER_LEARNER_ID, settings, turns, user } from "@/db/schema";
+import { OWNER_LEARNER_ID, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { NO_MISSED_QUIZ } from "./check-results";
@@ -19,7 +19,7 @@ import { BUSY_MESSAGE } from "./turn-status";
  * A reason to refuse, or a state a rule reads: `cut_off` is a turn to resume with both its resumes left, `resumed_twice`
  * one that has had them (3 runs), `no_limits` the evals' turn.
  */
-type Condition = "stale" | "learner_cap" | "global_cap" | "busy" | "owner" | "cut_off" | "resumed_twice" | "no_limits";
+type Condition = "stale" | "learner_cap" | "global_cap" | "busy" | "admin" | "cut_off" | "resumed_twice" | "no_limits";
 
 const ADMITTED = "admitted" as const;
 
@@ -34,8 +34,8 @@ const rows: { name: string; input: TurnInput; when: Condition[]; answer: Refusal
   { name: "a resume past the resume limit is refused, whatever the daily caps", input: { resume: true }, when: ["resumed_twice", "learner_cap"], answer: { type: "over_limit", message: RESUME_LIMIT_MESSAGE } },
   { name: "the evals' turn has no limits: no daily cap, no resume limit, no step limit", input: { resume: true }, when: ["resumed_twice", "global_cap", "no_limits"], answer: ADMITTED, stepLimit: Infinity },
   { name: "the evals' new turn passes the daily caps too", input: "Hello", when: ["learner_cap", "global_cap", "no_limits"], answer: ADMITTED, stepLimit: Infinity },
-  { name: "the owner has no cap of their own", input: "Hello", when: ["owner", "learner_cap"], answer: ADMITTED },
-  { name: "but the global ceiling stops the owner too", input: "Hello", when: ["owner", "global_cap"], answer: { type: "over_limit", message: CAP_MESSAGES.global_usd } },
+  { name: "the admin (identity.admin) has no cap of their own", input: "Hello", when: ["admin", "learner_cap"], answer: ADMITTED },
+  { name: "but the global ceiling stops the admin too", input: "Hello", when: ["admin", "global_cap"], answer: { type: "over_limit", message: CAP_MESSAGES.global_usd } },
 ];
 
 async function cap(db: Db, key: string, value: string) {
@@ -49,10 +49,6 @@ async function arrange(db: Db, when: Condition[], now: Date) {
   if (when.includes("busy")) await db.insert(turns).values({ learnerId: OWNER_LEARNER_ID, status: "running", startedAt: now, input: "Earlier" });
   if (when.includes("cut_off")) await db.insert(turns).values({ learnerId: OWNER_LEARNER_ID, status: "cut_off", startedAt: now, input: "Earlier" });
   if (when.includes("resumed_twice")) await db.insert(turns).values({ learnerId: OWNER_LEARNER_ID, status: "cut_off", startedAt: now, input: "Earlier", runs: 3 });
-  if (when.includes("owner")) {
-    await db.insert(user).values({ id: "u-owner", email: "owner@x.com", name: "Siddharth", emailVerified: true });
-    await db.update(learners).set({ authUserId: "u-owner" }).where(eq(learners.id, OWNER_LEARNER_ID));
-  }
 }
 
 describe("turn admission", () => {
@@ -61,7 +57,7 @@ describe("turn admission", () => {
     const now = new Date();
     await arrange(db, when, now);
     const before = await db.select().from(turns);
-    const deps = { db, learnerId: OWNER_LEARNER_ID, now: () => now, noLimits: when.includes("no_limits"), ...(when.includes("stale") && { shown: { topicId: "not-a-topic" } }) };
+    const deps = { db, learnerId: OWNER_LEARNER_ID, admin: when.includes("admin"), now: () => now, noLimits: when.includes("no_limits"), ...(when.includes("stale") && { shown: { topicId: "not-a-topic" } }) };
     const admission = await admitTurn(deps, input);
     if (answer === ADMITTED) {
       // A resume is one more run of the same turn.

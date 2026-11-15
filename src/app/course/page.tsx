@@ -5,7 +5,7 @@ import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { parkedSkills } from "@/learner/skill-state";
 import { topicSessions } from "@/tutor/session-log";
-import { accountFor } from "../account";
+import { currentAccount } from "../account";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { CourseMapView } from "./course-map-view";
 
@@ -24,7 +24,7 @@ export default async function CourseMapPage() {
   const next = whatComesNext(map, progress);
   return (
     <SignedInFrame>
-      <ReadingPage current="course" account={await accountFor(db, learner)}>
+      <ReadingPage current="course" account={await currentAccount()}>
         <CourseMapView
           topics={courseOverview(map, progress, parked)}
           coming={map.coming}

@@ -1,18 +1,19 @@
 "use client";
 
-import { IconButton, MenuItem, MenuLink, Tag, useMenu } from "./primitives";
+import { IconButton, MenuItem, MenuLink, useMenu } from "./primitives";
+import { SignOutForm } from "./sign-out";
 
 /**
  * The header's account menu (A5): a 32px ghost icon button holding the Learner's initial in a 28px avatar circle
  * (a --wash face, a 1px --line edge, the initial in --ink-2), its face washed while the menu is open. The menu is a
  * .popover (12px corners, the pop shadow) with the Learner's name, their email when there is one, a hairline, then flat
- * rows: Settings and Sign out (the same plain form post to /api/logout as SignOutButton, drawn as a menu row so the arrows
- * reach it). The email is that of the Google or email-link account (accountFor); a passcode Learner has none. The owner
- * (and only the owner: `admin` comes from accountFor) also gets an Admin row first, with the number of people waiting as
- * a warning Tag, read out as "Admin, 2 waiting"; it shows even when nobody waits (ADR 0014). The keyboard works through
+ * rows: Settings and Sign out (the same SignOutForm as SignOutButton, drawn as a menu row so the arrows reach it). The
+ * email is the one the account's Clerk session carries (accountFor); a passcode Learner has none. The admin (and only an
+ * account whose session says admin: `admin` comes from accountFor) also gets an Admin row first (issue #33: who waits
+ * is Clerk's Waitlist now, so the row carries no count). The keyboard works through
  * useMenu in primitives, like the Topic options menu.
  */
-export function AccountMenu({ name, email, admin }: { name: string; email?: string; admin?: { waiting: number } }) {
+export function AccountMenu({ name, email, admin }: { name: string; email?: string; admin?: boolean }) {
   const { open, setOpen, toggleRef, rootRef, menuRef, menuId, onMenuKeyDown, onToggleKeyDown } = useMenu();
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
   return (
@@ -58,20 +59,12 @@ export function AccountMenu({ name, email, admin }: { name: string; email?: stri
           {admin && (
             <MenuLink href="/admin" data-testid="account-admin">
               Admin
-              {admin.waiting > 0 && (
-                <>
-                  <span aria-hidden="true" className="ml-auto flex">
-                    <Tag tone="warning">{admin.waiting}</Tag>
-                  </span>
-                  <span className="sr-only">, {admin.waiting} waiting</span>
-                </>
-              )}
             </MenuLink>
           )}
           <MenuLink href="/settings">Settings</MenuLink>
-          <form action="/api/logout" method="post" className="contents">
+          <SignOutForm>
             <MenuItem type="submit">Sign out</MenuItem>
-          </form>
+          </SignOutForm>
         </div>
       )}
     </div>

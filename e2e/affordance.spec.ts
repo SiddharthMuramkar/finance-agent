@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { LOGIN_LINK_EXPIRED, MATRIX_PAGES, type MatrixPage } from "../src/dev/preview-matrix";
+import { MATRIX_PAGES, SIGN_IN_WRONG, type MatrixPage } from "../src/dev/preview-matrix";
 import { hydrated, quietDevtools, replyLanded, seed, settled, type State } from "./support/app";
 import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 
@@ -58,10 +58,10 @@ const SIGNAL_SPEC_LOOKS = ["#main .v-tlink", "#main .v-qrow", "#main .v-faq summ
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
-    test("[A3b] /login", async ({ page }) => {
-      await page.goto("/login");
+    test("[A3b] /sign-in", async ({ page }) => {
+      await page.goto("/sign-in");
       await hydrated(page);
-      await clean(page, "/login");
+      await clean(page, "/sign-in");
     });
 
     for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000"]) {
@@ -151,7 +151,7 @@ const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
 
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {
-  for (const cell of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED, HOME_SIGNED_OUT]) {
+  for (const cell of [...MATRIX_PAGES, SIGN_IN_WRONG, HOME_SIGNED_OUT]) {
     test(`[F4] ${cell.id} (${cell.path})`, async ({ page }) => {
       if (cell.signedOut) await page.context().clearCookies();
       else await seed(page, cell.seed!);

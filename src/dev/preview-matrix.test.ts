@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { LOGIN_LINK_EXPIRED, MATRIX_PAGES, MATRIX_VIEWPORTS, matrixCells, matrixThresholds } from "./preview-matrix";
+import { SIGN_IN_WRONG, MATRIX_PAGES, MATRIX_VIEWPORTS, matrixCells, matrixThresholds } from "./preview-matrix";
 
 describe("preview matrix [S3]", () => {
   it("the matrix lists every cell", () => {
     const cells = matrixCells();
     const desktop = cells.filter((c) => c.viewport.id !== "p390");
-    const main = desktop.filter((c) => c.page.id !== LOGIN_LINK_EXPIRED.id);
+    const main = desktop.filter((c) => c.page.id !== SIGN_IN_WRONG.id);
     expect(MATRIX_PAGES).toHaveLength(16);
     expect(main).toHaveLength(4 * 16); // 64
-    expect(desktop.filter((c) => c.page.id === LOGIN_LINK_EXPIRED.id)).toHaveLength(4); // one per desktop project
+    expect(desktop.filter((c) => c.page.id === SIGN_IN_WRONG.id)).toHaveLength(4); // one per desktop project
     expect(desktop).toHaveLength(68);
     expect(cells).toHaveLength(75); // and the phone's 7 (G9)
     expect(MATRIX_PAGES.find((p) => p.id === "about")).toMatchObject({ path: "/about" });
@@ -25,7 +25,7 @@ describe("preview matrix [S3]", () => {
     const phone = matrixCells().filter((c) => c.viewport.id === "p390");
     expect(MATRIX_VIEWPORTS.find((v) => v.id === "p390")).toMatchObject({ width: 390, height: 844 });
     expect([...new Set(phone.map((c) => c.project))]).toEqual(["p390"]);
-    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/login", "/login?error=INVALID_TOKEN"]);
+    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/sign-in", "/sign-in?wrong=1"]);
   });
 
   // Spec §8.3 (colour-liveliness) "Inputs: screenshots of 6 states (reply with Story scene, Lingo card, Choices, Course
@@ -73,9 +73,9 @@ describe("preview matrix [S3]", () => {
       home: null, about: null, "study-story": null, "study-story-scene": null, "study-lingo": null, "study-concept-widget": null, "study-quiz-open": null,
       "study-mixup-fix": null, "study-topic-complete": null,
       "course-map": "if-any", notebook: "required", settings: "required",
-      "how-it-works": null, examples: null, "case-amazon": null, login: null,
+      "how-it-works": null, examples: null, "case-amazon": null, "sign-in": null,
     });
-    expect(LOGIN_LINK_EXPIRED.prose ?? null).toBeNull();
+    expect(SIGN_IN_WRONG.prose ?? null).toBeNull();
     // Settings (A5) is a card-grid at every matrix viewport and A1 says "Running paragraphs inside cards use `measure`":
     // each card is its own column, so its paragraphs are measured inside it. Only Settings reads its cards that way.
     expect(MATRIX_PAGES.filter((p) => p.cardsAsColumns).map((p) => p.id)).toEqual(["settings"]);

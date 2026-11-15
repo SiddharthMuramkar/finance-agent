@@ -1,26 +1,20 @@
-import { isOwnerLearner } from "./access";
-import type { AuthUser } from "./google-learner";
+import type { Identity } from "./identity";
 import type { Learner } from "./learners";
-import { currentSignIn } from "./session";
+import { currentSignIn, isAdminSignIn } from "./session";
 
-// Who the owner is (ADR 0014): no environment variable, no role column. The owner is whoever holds the
-// `owner` Learner through a Google or email-link account, linked once with
-// `invites add <email> --learner owner`. Only that session opens /admin.
+// Who the admin is (issue #33): whoever's Clerk session carries `publicMetadata.role = "admin"`, which only the owner
+// sets, in Clerk. No environment variable, no Learner name, no role column.
 
-export { isOwnerLearner };
-
-/** The signed-in owner: their Learner and the account it is linked to. */
-export type Owner = { learner: Learner; user: AuthUser };
+/** The signed-in admin: their Learner and the identity their session carries. */
+export type Admin = { learner: Learner; identity: Identity };
 
 /**
- * The owner, when this request is theirs; otherwise null. Requires a Better Auth session (never the
- * passcode, a shared secret that never changes and is guarded only by a per-address lockout) that is
- * let in as the owner Learner, linked to that very account. Built on `currentSignIn`, so a denial,
- * an archived Learner and sign-in being off all count exactly as they do everywhere else.
+ * The admin, when this request is theirs; otherwise null. Requires an account sign-in whose token says admin: never the
+ * passcode (a shared secret, and a closed door in production). Built on `currentSignIn`, so an archived Learner and
+ * Clerk being off count exactly as they do everywhere else.
  */
-export async function signedInOwner(): Promise<Owner | null> {
+export async function signedInAdmin(): Promise<Admin | null> {
   const signIn = await currentSignIn();
-  if (signIn.kind !== "learner" || signIn.via !== "account") return null;
-  if (!isOwnerLearner(signIn.learner) || signIn.learner.authUserId !== signIn.user.id) return null;
-  return { learner: signIn.learner, user: signIn.user };
+  if (!isAdminSignIn(signIn)) return null;
+  return { learner: signIn.learner, identity: signIn.identity };
 }

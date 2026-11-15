@@ -1,6 +1,6 @@
 /**
  * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 16 pages in the one Light theme
- * (decision #17), plus one `/login?error=INVALID_TOKEN` (expired sign-in link) shot per project; and (spec 2026-11-12 G9,
+ * (decision #17), plus one `/sign-in?wrong=1` (the sign-in page with its error) shot per project; and (spec 2026-11-12 G9,
  * F6) a phone, 390 px wide, for the public pages only (the Signal site's Home, How it works, Examples, a case page, About,
  * and sign-in): the Study Workspace shows only its phone note there.
  * Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs both read it, and src/dev/preview-matrix.test.ts
@@ -21,7 +21,7 @@ export const MATRIX_VIEWPORTS: readonly MatrixViewport[] = [
 export const MATRIX_THEMES = ["light"] as const;
 
 export type MatrixSeed = "story" | "story-scene" | "lingo" | "concept-widget" | "quiz-open" | "mix-up" | "topic-complete" | "many-topics";
-export type MatrixKind = "study" | "reading" | "login";
+export type MatrixKind = "study" | "reading" | "sign-in";
 
 /**
  * Running prose on a reading page (§2: "panels and Widgets span the width, running prose caps at 70ch"): `required`
@@ -61,10 +61,12 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "how-it-works", path: "/how-it-works", seed: null, kind: "reading", signedOut: true, public: true },
   { id: "examples", path: "/examples", seed: null, kind: "reading", signedOut: true, public: true },
   { id: "case-amazon", path: "/examples/amazon-2000", seed: null, kind: "reading", signedOut: true, public: true },
-  { id: "login", path: "/login", seed: null, kind: "login", signedOut: true, public: true },
+  // The sign-in page as the test bed draws it: Clerk is off there (issue #33), so it is the passcode door's form.
+  { id: "sign-in", path: "/sign-in", seed: null, kind: "sign-in", signedOut: true, public: true },
 ];
 
-export const LOGIN_LINK_EXPIRED: MatrixPage = { id: "login-link-expired", path: "/login?error=INVALID_TOKEN", seed: null, kind: "login", signedOut: true, public: true };
+/** The sign-in page with its error line (a wrong passcode), shot once per project beside the plain one. */
+export const SIGN_IN_WRONG: MatrixPage = { id: "sign-in-wrong", path: "/sign-in?wrong=1", seed: null, kind: "sign-in", signedOut: true, public: true };
 
 export type MatrixCell = {
   /** Playwright project name: "mbp14", "w1280", ... */
@@ -80,13 +82,13 @@ export const MATRIX_DIR = "evidence/preview-matrix";
 
 export const projectName = (viewportId: string) => viewportId;
 
-/** Every cell: 4 viewports x (16 pages + the expired-link login) = 68, plus the phone's 6 public pages + the expired-link login = 7: 75. */
+/** Every cell: 4 viewports x (16 pages + the sign-in error) = 68, plus the phone's 6 public pages + the sign-in error = 7: 75. */
 export function matrixCells(): MatrixCell[] {
   const cells: MatrixCell[] = [];
   for (const viewport of MATRIX_VIEWPORTS) {
     for (const theme of MATRIX_THEMES) {
       const project = projectName(viewport.id);
-      for (const page of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED].filter((p) => !viewport.publicOnly || p.public)) {
+      for (const page of [...MATRIX_PAGES, SIGN_IN_WRONG].filter((p) => !viewport.publicOnly || p.public)) {
         cells.push({ project, viewport, theme, page, file: `${MATRIX_DIR}/${project}/${page.id}.png` });
       }
     }

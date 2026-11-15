@@ -75,7 +75,7 @@ test("[7.6] About says the valuations are Damodaran's published work and that Va
   await expect(page.getByText("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.")).toBeVisible();
 });
 
-test("[4.2] signed out, About offers Sign in and Join early access, which opens the sign-in page, and no Sign out", async ({ page }) => {
+test("[4.2] signed out, About offers Sign in and Join early access, which opens /join, and no Sign out", async ({ page }) => {
   await page.goto("/about");
   const nav = page.locator(NAV);
   const narrow = narrowAt(page.viewportSize()!.width);
@@ -83,7 +83,7 @@ test("[4.2] signed out, About offers Sign in and Join early access, which opens 
   await expect((narrow ? page.locator("footer.v-footer") : nav).getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
   const join = nav.getByRole("link", { name: "Join early access", exact: true });
   await expect(join).toBeVisible();
-  // /login until the Clerk cutover adds /join and switches the CTA to it (#33).
-  await expect(join).toHaveAttribute("href", "/login");
+  // Clerk's Waitlist (#33).
+  await expect(join).toHaveAttribute("href", "/join");
   await expect(page.getByRole("button", { name: "Sign out" })).toHaveCount(0);
 });

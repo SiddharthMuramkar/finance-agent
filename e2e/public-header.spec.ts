@@ -11,7 +11,7 @@ import { hydrated, quietDevtools, seed } from "./support/app";
 const ONE = "w1280";
 const PUBLIC = "header.v-nav";
 const APP = 'header:has(nav[aria-label="Pages"])';
-const SITE_PAGES = ["/", "/how-it-works", "/examples", "/examples/amazon-2000", "/about", "/login"];
+const SITE_PAGES = ["/", "/how-it-works", "/examples", "/examples/amazon-2000", "/about", "/sign-in"];
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(info.project.name !== ONE, "one width is enough: which header a page has does not depend on it");
@@ -38,7 +38,7 @@ test.describe("signed out", () => {
       const header = page.locator(PUBLIC);
       const signIn = header.getByRole("link", { name: "Sign in", exact: true });
       await expect(signIn, path).toBeVisible();
-      if (path === "/login") {
+      if (path === "/sign-in") {
         await expect(signIn, path).toHaveAttribute("aria-current", "page");
         await expect(header.getByText("Join early access"), path).toHaveCount(0);
       } else {
@@ -98,6 +98,6 @@ test.describe("signed in", () => {
     await expect(header.getByRole("button", { name: /^Continue/ })).toHaveCount(0);
     // Signed out for real, not only on this page: the Study Workspace now sends the visitor to sign in.
     await page.goto("/study");
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL((url) => url.pathname === "/sign-in");
   });
 });

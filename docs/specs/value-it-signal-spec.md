@@ -947,6 +947,8 @@ Viewer state, kept in `localStorage["vi-proto-state"]` inside try/catch:
 
 `#pending` redirects to `#welcome` for members and `#join` for visitors.
 
+**Production (#33).** Two of the three states: `visitor` (signed out) and `member` (signed in). Someone who joins waits on Clerk's Waitlist, which gives them no session until the owner lets them in, so they see the visitor state; there is no applicant state, status pill or pending page. Sign in is `/sign-in`, Join is `/join` (Clerk's Waitlist), and an invitation lands on `/sign-up`; the old `/login` answers 308 to `/sign-in`.
+
 CTA by state:
 
 | State | Primary CTA | Note under it |
@@ -1119,7 +1121,7 @@ Visitors get an inline form: an email input (`autocomplete="email"`, placeholder
 
 Applicants and members see the CTA and note for their state instead of the form.
 
-**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join early access", the CTA note and the three steps. The CTA opens `/login` (the sign-in page, today's way in) until the Clerk cutover adds `/join` (Clerk's Waitlist page) and switches every visitor Join to it in the same change. The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
+**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join early access", the CTA note and the three steps. The CTA, like every visitor Join, opens `/join` (Clerk's Waitlist page). The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
 
 ### 7.3 How it works
 
@@ -1341,8 +1343,8 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | 19 | Open `#case-amazon-2000` | Tutor's answer locked, ending locked, progress at step 2 |
 | 20 | Move a lever on that page | Tutor's answer appears, ending becomes "Ready", progress at step 3, Go deeper open with the bridge |
 | 21 | Tap "Reveal what really happened" | Reveal text with $35.08, $91.50 and $14.88, progress all done |
-| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join early access" links to `/login` (`/join` once the Clerk cutover adds it), with the early-access note and the three steps under it (7.2.8) |
-| 23 | Press "Join early access" in the closing block | It opens the sign-in page. With the Clerk cutover it opens `/join`, the sign-up page: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
+| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join early access" links to `/join`, with the early-access note and the three steps under it (7.2.8) |
+| 23 | Press "Join early access" in the closing block | It opens `/join`: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
 | 24 | Every route at 1440 × 900 and 390 × 844 | No console errors, no horizontal scroll |
 | 25 | Reduced motion on | No animated runs. Values jump. The demo answers at once. |
 | 26 | Keyboard only | Every chip, slider, lever, preset, toggle and reveal reachable and operable |
@@ -1475,7 +1477,7 @@ FAQ, in order:
 | 3 | Where do the facts come from? | From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage. |
 | 4 | Does the AI make up the charts? | No. The Tutor chooses which widget to open and at which numbers; tested code draws it. Made-up numbers are labelled Illustration. |
 | 5 | What does it cost? | Nothing during early access. No price has been decided yet. |
-| 6 | How do I get in? | Join early access with Google or an email link. We let people in by hand while the course grows, and email you when you’re in. |
+| 6 | How do I get in? | Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in. |
 | 7 | Can I start again? | Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted. |
 | 8 | Do you track me? | There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. |
 
@@ -1492,7 +1494,7 @@ About, sourcing flow: **Real event** (A past moment whose outcome is known, like
 
 Non-affiliation line: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
 
-Early access: **Join** (Sign up with Google or an email link. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
+Early access: **Join** (Sign up with an email link. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
 
 ---
 

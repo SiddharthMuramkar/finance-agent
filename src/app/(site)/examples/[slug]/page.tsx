@@ -38,19 +38,12 @@ function topicWritten(example: Example): boolean {
   }
 }
 
-/** The foot's CTA by viewer state (7.5): Join, check the request, or open this Topic. */
+/** The foot's CTA by viewer state (7.5): Join, or open this Topic. */
 function FootCta({ viewer, example }: { viewer: Viewer; example: Example }) {
   if (viewer.state === "visitor") {
     return (
       <Link href={cta.visitor.href} className="v-btn v-btn-primary" data-affordance="button" data-join="">
         {casePage.footCta.visitor}
-      </Link>
-    );
-  }
-  if (viewer.state === "applicant") {
-    return (
-      <Link href="/login" className="v-btn v-btn-secondary" data-affordance="button">
-        {casePage.footCta.applicant}
       </Link>
     );
   }

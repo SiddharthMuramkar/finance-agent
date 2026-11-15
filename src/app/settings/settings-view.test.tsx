@@ -94,17 +94,23 @@ describe("the Settings page", () => {
     expect(html.indexOf('id="your-topics"')).toBeLessThan(html.indexOf('id="developer-details"'));
   });
 
-  it("Account names the Learner, says Signed in with a passcode until an email exists, and signs out by form post", () => {
-    const html = view();
+  it("Account names the Learner, says Signed in with a passcode for the passcode door, and signs out by form post", () => {
+    const accountCard = (html: string) => text(html.slice(html.indexOf('id="account"'), html.indexOf('id="about-you"')));
+    const html = view({ account: { name: "Asha", passcode: true } });
     const card = html.slice(html.indexOf('id="account"'), html.indexOf('id="about-you"'));
     expect(text(card)).toContain("Asha");
     expect(text(card)).toContain("Signed in with a passcode");
     expect(card).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
 
-    const withEmail = view({ account: { name: "Asha", email: "asha@example.com" } });
-    const emailCard = withEmail.slice(withEmail.indexOf('id="account"'), withEmail.indexOf('id="about-you"'));
-    expect(text(emailCard)).toContain("asha@example.com");
-    expect(text(emailCard)).not.toContain("Signed in with a passcode");
+    // An account (issue #33) shows the email its Clerk session carries, and never the passcode line.
+    const emailCard = accountCard(view({ account: { name: "Asha", email: "asha@example.com" } }));
+    expect(emailCard).toContain("asha@example.com");
+    expect(emailCard).not.toContain("Signed in with a passcode");
+    // An account whose session carries no email shows its name alone: it did not sign in with a passcode.
+    const bare = accountCard(view({ account: { name: "Asha" } }));
+    expect(bare).toContain("Asha");
+    expect(bare).not.toContain("Signed in with a passcode");
+    expect(bare).not.toContain("@");
   });
 
   // Decision #17: one Light theme, so Settings has no Appearance section and no theme radios.

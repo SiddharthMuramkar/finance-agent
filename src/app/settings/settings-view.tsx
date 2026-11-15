@@ -12,8 +12,8 @@ const heading = "mb-3 [font-family:var(--font-display)] text-[18px] font-semibol
  * The Settings page's body (A5): five sections, each under Enjoy's ink rule with no box (ADR 0018), the first four in masonry columns (#529) — Account (who is signed in, and Sign out),
  * About you (the Learner Profile form),
  * Your Topics (B3b: start one Topic over; its Card fills A5's `id="your-topics"` slot between About you and Developer details),
- * Developer details, and Start over (the danger zone, full width, last). A Learner linked to a Google or email-link account
- * shows that account's email (from accountFor); a passcode Learner has none, so Account says "Signed in with a passcode". No model call.
+ * Developer details, and Start over (the danger zone, full width, last). An account shows the email its Clerk session
+ * carries (from accountFor); a passcode Learner has none, so Account says "Signed in with a passcode". No model call.
  */
 export function SettingsView({
   profile,
@@ -23,7 +23,7 @@ export function SettingsView({
 }: {
   profile: ProfileValues;
   developerDetails: boolean;
-  account: { name: string; email?: string };
+  account: { name: string; email?: string; passcode?: true };
   /** The Topics with progress, in course order (loadYourTopics), for Your Topics. */
   topics?: readonly YourTopic[];
 }) {
@@ -42,7 +42,7 @@ export function SettingsView({
           {account.email ? (
             <p className="text-sm leading-5 text-[var(--muted)]">{account.email}</p>
           ) : (
-            <p className="text-sm leading-5 text-[var(--muted)]">Signed in with a passcode</p>
+            account.passcode && <p className="text-sm leading-5 text-[var(--muted)]">Signed in with a passcode</p>
           )}
           <SignOutButton className="mt-3" />
         </Card>
