@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { costUsd } from "./pricing";
+import { costUsd, PRICES } from "./pricing";
 import { replyCheckSummaries, type ReplyCheckSummary } from "./reply-records";
 
 /**
@@ -81,6 +81,20 @@ export function stepUsage(model: string, step: number, reported: ApiUsage | unde
 export function cutShortStepUsage(model: string, step: number, reported: ApiUsage | undefined, tools: string[], durationMs: number, stopReason: string): StepUsage {
   const usage = stepUsage(model, step, reported, tools, durationMs, stopReason);
   return reported ? usage : { ...usage, costUsd: null };
+}
+
+/** The stop reasons a step cut short is saved with: Stop, the stream guard, a cut-off, a failure, compose_widget's time limit. */
+const CUT_SHORT_REASONS: ReadonlySet<string> = new Set(["stopped", "guard", "cut_off", "failed", "timeout"]);
+
+/**
+ * Why a turn's cost is unknown, in words, or null when it is known. A step has no cost when it was cut short before
+ * OpenAI reported its usage (cutShortStepUsage), or when its model has no price in the table.
+ */
+export function unknownCostReason(usage: TurnUsage): string | null {
+  if (usage.costUsd !== null) return null;
+  const cutShort = usage.steps.some((s) => s.costUsd === null && s.stopReason !== null && CUT_SHORT_REASONS.has(s.stopReason));
+  const why = [cutShort && "a step was cut short before OpenAI reported its usage", !(usage.model in PRICES) && `no price for ${usage.model}`];
+  return why.filter(Boolean).join(", and ") || "a step has no price";
 }
 
 /** Adds the steps up into the turn's totals. Cost is null if any step could not be priced. */

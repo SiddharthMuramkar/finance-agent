@@ -10,6 +10,7 @@ import { loadCourseMap, type CourseMap } from "@/course/map";
 import type { Db } from "@/db/types";
 import { checkReply } from "@/tutor/reply-checks";
 import { runTutorTurn, type TutorClient } from "@/tutor/turn";
+import { unknownCostReason } from "@/tutor/usage";
 import type { Budget } from "./budget";
 import type { AggregateCase, DialogueCase, EvalCase, LintCase, LiveCase } from "./case";
 import { buildGraderPrompt, codedFailures, GRADER_SYSTEM, judgeRun, parseGrade, RUBRIC, type SeenReply } from "./grading";
@@ -76,7 +77,8 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
       if (e.type === "replay") text = e.text;
       if (e.type === "done") {
         done = e.ref;
-        if (e.usage.costUsd === null) troubles.push(`The Tutor Turn's cost is unknown (no price for ${deps.settings.model}), so the run is not passed.`);
+        const unknown = unknownCostReason(e.usage);
+        if (unknown) troubles.push(`The Tutor Turn's cost is unknown (${unknown}), so the run is not passed.`);
         cost += e.usage.costUsd ?? 0;
         note = `Turn: ${((performance.now() - started) / 1000).toFixed(1)} s, ${e.usage.steps.length} loop step(s), tools ${e.usage.tools.join(", ") || "none"}, stop ${e.stopReason ?? "?"}, $${(e.usage.costUsd ?? 0).toFixed(4)}.`;
       }
@@ -141,7 +143,8 @@ async function runDialogue(c: DialogueCase, run: number, deps: SuiteDeps, map: C
           if (e.type === "done") {
             done = e.ref;
             spent = e.usage.costUsd ?? 0;
-            if (e.usage.costUsd === null) reasons.push(`Turn ${i + 1}: the Tutor Turn's cost is unknown (no price for ${deps.settings.model}).`);
+            const unknown = unknownCostReason(e.usage);
+            if (unknown) reasons.push(`Turn ${i + 1}: the Tutor Turn's cost is unknown (${unknown}).`);
           }
           // The same troubles as a live run: a cut-off or cut-short reply is a failure, not a clean reply that stopped early (round 10, F1).
           if (TURN_TROUBLES.has(e.type)) reasons.push(`Turn ${i + 1} ("${message}"): the Tutor Turn sent "${e.type}"${"message" in e ? `: ${e.message}` : ""}.`);
