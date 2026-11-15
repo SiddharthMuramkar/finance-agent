@@ -23,6 +23,29 @@ describe("Home and the About page are never cached as pages", () => {
   });
 });
 
+describe("BotID (issue #33)", () => {
+  it("withBotId routes the browser's challenge to Vercel's BotID service", async () => {
+    const rewrites = await nextConfig.rewrites!();
+    const list = Array.isArray(rewrites) ? rewrites : [...(rewrites.beforeFiles ?? []), ...(rewrites.afterFiles ?? [])];
+    const botid = list.filter((r) => r.destination.startsWith("https://api.vercel.com/bot-protection/"));
+    expect(botid.map((r) => r.destination)).toEqual([
+      "https://api.vercel.com/bot-protection/v1/challenge",
+      "https://api.vercel.com/bot-protection/v1/proxy/:path*",
+    ]);
+  });
+
+  it("loosens framing only on BotID's own paths, after the site-wide rule", async () => {
+    const rules = await nextConfig.headers!();
+    const framed = rules.filter((r) => r.headers.some((h) => h.key === "X-Frame-Options"));
+    expect(framed.map((r) => r.headers.find((h) => h.key === "X-Frame-Options")?.value)).toEqual(["DENY", "SAMEORIGIN"]);
+    expect(framed.map((r) => r.headers.find((h) => h.key === "Content-Security-Policy")?.value)).toEqual([
+      "frame-ancestors 'none'",
+      "frame-ancestors 'self'",
+    ]);
+    expect(framed[1].source).toMatch(/^\/149e9513-01fa-4fb0-aad4-566afd725d1b\//);
+  });
+});
+
 describe("Security headers", () => {
   it("sends anti-framing, nosniff and referrer headers on every route", async () => {
     const rules = await nextConfig.headers!();
@@ -32,5 +55,18 @@ describe("Security headers", () => {
     expect(headers["X-Frame-Options"]).toBe("DENY");
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
+  });
+
+  it("keeps browsers on HTTPS for two years, subdomains included (issue #33)", async () => {
+    const rules = await nextConfig.headers!();
+    const all = rules.find((r) => r.source === "/:path*");
+    expect(all?.headers.find((h) => h.key === "Strict-Transport-Security")?.value).toBe("max-age=63072000; includeSubDomains");
+  });
+
+  it("turns off camera, microphone, location, payment, USB and interest tracking on every route (issue #33)", async () => {
+    const rules = await nextConfig.headers!();
+    const all = rules.find((r) => r.source === "/:path*");
+    const policy = all?.headers.find((h) => h.key === "Permissions-Policy")?.value ?? "";
+    expect(policy.split(", ").sort()).toEqual(["browsing-topics=()", "camera=()", "geolocation=()", "interest-cohort=()", "microphone=()", "payment=()", "usb=()"]);
   });
 });
