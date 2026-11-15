@@ -17,11 +17,15 @@ Written 2026-11-15, when map #2 closed. Tick a box when a step is done.
 | 7 | [Email to Damodaran](#7-email-to-damodaran) | Now |
 | 8 | [Lawyer check on CC BY](#8-lawyer-check-on-cc-by) | Before any paid launch |
 | 9 | [OpenAI hard spend limit, old key revoked](#9-openai-hard-spend-limit-old-key-revoked) | Now |
-| 10 | [2nd copy of the backups on your laptop](#10-2nd-copy-of-the-backups-on-your-laptop) | After each backup run |
+| 10 | [2nd copy of the backups on your laptop](#10-2nd-copy-of-the-backups-on-your-laptop) | Now, then after each backup run |
 | 11 | [Decide on the 2 unused `ANTHROPIC_API_KEY` copies](#11-decide-on-the-2-unused-anthropic_api_key-copies) | Any time |
 | 12 | [Tune the spend caps](#12-tune-the-spend-caps) | After the first real turns |
 | 13 | [Write the owner content](#13-write-the-owner-content) | Before the first invite |
 | 14 | [Run the Waitlist](#14-run-the-waitlist) | Before the beta starts, then on a fixed rhythm |
+| 15 | [Decide the licence label on 16 citations](#15-decide-the-licence-label-on-16-citations) | Before any paid launch |
+| 16 | [Revoke the eval Voyage key, delete the eval env file](#16-revoke-the-eval-voyage-key-delete-the-eval-env-file) | After the Library evals |
+
+Also: [Commands the agent was not allowed to run](#commands-the-agent-was-not-allowed-to-run) and [Notes (no action)](#notes-no-action).
 
 ## 1. Enforce the firewall
 
@@ -120,11 +124,13 @@ Sign-up is a Waitlist. In Waitlist mode, `/sign-in` works only for a user who al
 
 **How.**
 
-1. The agent gives you the **Authorized redirect URI** from Clerk (from `clerk deploy` or the Clerk dashboard).
+1. The values below come from `clerk deploy` on the production instance (2026-11-15):
+   - Authorized redirect URI: `https://clerk.value-it.xyz/v1/oauth_callback`
+   - Authorized JavaScript origins: `https://value-it.xyz` and `https://www.value-it.xyz`
 2. Google Cloud Console → APIs & Services → Credentials → Create credentials → OAuth client ID → Web application.
-3. Authorized JavaScript origins: `https://value-it.xyz` and `https://www.value-it.xyz`. Authorized redirect URIs: paste the URI from step 1. Create.
+3. Authorized JavaScript origins: add the 2 origins from step 1. Authorized redirect URIs: add the URI from step 1. Create.
 4. Google Auth Platform → Audience: user type **External**, publishing status **In production**. ("Testing" allows only 100 test users.) Google can ask to verify the app name and logo.
-5. Paste the Client ID and the Client Secret only into the Clerk prompt or the Clerk dashboard (SSO connections → Google → custom credentials).
+5. Enable Google on the Clerk **production** instance. Today Google is off there. Clerk dashboard → SSO connections → Google: turn it on, choose custom credentials. Paste the Client ID and the Client Secret only there (or into the Clerk prompt). Or tell the agent, and it turns Google on; you still paste the 2 values yourself.
 6. Do step 4 again with a Google account.
 
 ## 6. OpenStax reuse request
@@ -164,11 +170,12 @@ Sign-up is a Waitlist. In Waitlist mode, `/sign-in` works only for a user who al
 
 Each branch becomes a tag with the same name, so the links keep working.
 
-Ask 3 questions:
+Ask 4 questions:
 
 1. Can a paid tutor store, embed, show and quote the CC BY 4.0 1st edition of OpenStax?
 2. Does the AI clause on the openstax.org book page bind a copy taken from GitHub under CC BY?
 3. Are the credit lines that Value It shows enough?
+4. Is the licence label on the 16 citations correct (step 15)?
 
 ## 9. OpenAI hard spend limit, old key revoked
 
@@ -190,7 +197,7 @@ Ask 3 questions:
 
 **Why.** Decision #8, option B. The Library dump must be in 2 places. The VPS is one place. If the VPS is lost, the laptop copy stays. Never put a dump in git: the Damodaran blog text is stored for private search only.
 
-**When.** After each backup run: after each Library load, and once a month.
+**When.** Now: `copy2` holds 2 dumps from 2026-11-15. Then after each backup run: after each Library load, and once a month.
 
 **How.** On the VPS, the dumps are in `/root/backups/`. The subfolder `/root/backups/copy2/` holds every dump again, each with its checksum file (`.dump.sha256`). Copy only `copy2`. On the laptop (`vps` is your SSH name for the VPS):
 
@@ -278,15 +285,62 @@ See item 8 in `docs/roadmap.md`.
 3. On each of those days, open the Clerk dashboard, Waitlist. Approve the people you want. Clerk sends each one the "you're in" email. Or give the agent the emails to approve.
 4. Decide what a person who waits hears. This ties to the wait-time promise (step 13).
 
+## 15. Decide the licence label on 16 citations
+
+- [ ] Done
+
+**Why.** Sources review, finding 2 (PR #43). 16 Library citations say "Principles of Finance (CC BY 4.0)". They link to openstax.org 1st edition pages. Those pages now show CC BY-NC-SA. 7 other citations to the same pages already say CC BY-NC-SA. Only you can decide which licence claim Value It makes.
+
+**When.** Before any paid launch. The lawyer checks your choice (step 8, question 4).
+
+**Options.**
+
+- **A. Relabel the 16 as CC BY-NC-SA.** This matches the 7 others and the 2nd edition labels. NC means non-commercial, so a paid launch needs permission (step 6).
+- **B. Keep CC BY 4.0, and link the 16 to the CC BY GitHub commit `3b7fc65c52`.** The claim is then true. But a Learner who clicks the link gets a GitHub XML page, not a book page.
+
+Tell the agent A or B. The agent makes the change.
+
+## 16. Revoke the eval Voyage key, delete the eval env file
+
+- [ ] Done
+
+**Why.** The Library evals used a Voyage key that you made for them, named "vps-eval". It is in a file on the VPS. A key that nobody uses can still leak.
+
+**When.** After the Library evals. The agent tells you when they end.
+
+**How.**
+
+1. In the Voyage AI dashboard, API keys: revoke the key named **vps-eval**. Revoke only that key.
+2. On the VPS, delete the eval env file:
+
+   ```sh
+   rm -rf /root/projects/.evalenv
+   ```
+
+3. Tell the agent. A later eval (for example, the reranker re-test in [Notes](#notes-no-action)) needs a new key.
+
 ## Commands the agent was not allowed to run
 
-The agent stopped before these commands. Run them yourself, or say yes and the agent runs them. The orchestrator adds the rest of the list.
+The agent stopped before these commands. Its safety check blocked them. Run them yourself in Claude Code as `! <command>`, or in a terminal on the VPS. The orchestrator adds the rest of the list.
 
-None so far.
+- **Delete 4 stale Neon branches.** Nothing uses them. Previews are off (#11). Your yes of 2026-11-15 covers them, but the safety check stopped the agent. Each line deletes one branch (its name is in the comment):
 
-Not on this list: the stale Neon branches (`rag-baseline-2026-11-14`, `preview/docs/architecture`, `preview/feat/21-signal-models` and `preview/chore/tracker-setup`) and their 6 Preview `DATABASE_URL*` env vars. Your yes of 2026-11-15 covers them. The agent deletes them in the final clean-up, after this PR merges. You do not need to do anything.
+  ```sh
+  neon branches delete br-winter-boat-b39iqmcn --project-id cool-queen-75259301    # rag-baseline-2026-11-14
+  neon branches delete br-morning-brook-b3zs4na0 --project-id cool-queen-75259301  # preview/docs/architecture
+  neon branches delete br-twilight-snow-b3bfl3gk --project-id cool-queen-75259301  # preview/feat/21-signal-models
+  neon branches delete br-green-paper-b3i7otr2 --project-id cool-queen-75259301    # preview/chore/tracker-setup
+  ```
+
+- More commands come here if the safety check stops the agent again.
+
+Not on this list: the 6 Preview `DATABASE_URL*` env vars of these 4 branches. The agent removes them in the final clean-up. If the safety check stops it, their commands come to this list.
 
 <!-- Orchestrator: add one bullet per command below, with why and the exact command. -->
+
+## Notes (no action)
+
+- **Reranker (#37) is parked.** The eval of 2026-11-15 showed a gain too small to keep. There is nothing to do now. The agent tests it again after the Library grows (after #38 merges). The eval numbers go into PR #42.
 
 ## Appendix A. OpenStax reuse request (points)
 
