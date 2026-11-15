@@ -150,6 +150,8 @@ export const SIGNAL_CSS = `
 .sig-w .sig-ruler-net{position:absolute;top:0;bottom:0;border-radius:5px;transition:left .42s var(--ease,ease),width .42s var(--ease,ease)}
 .sig-w .sig-ruler-net.is-gain{background:var(--gain)}
 .sig-w .sig-ruler-net.is-loss{background:var(--loss)}
+.sig-w .sig-ruler-net.is-band-gain{background:var(--gain-line)}
+.sig-w .sig-ruler-net.is-band-loss{background:var(--loss-line)}
 .sig-w .sig-ruler-dot{position:absolute;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:var(--blue);border:3px solid var(--paper);box-shadow:var(--lift,none);transition:left .42s var(--ease,ease);display:grid;place-items:center;color:var(--paper);font-size:12px;line-height:1}
 .sig-w .sig-ruler-end{position:absolute;top:16px;font-size:12px;color:var(--faint)}
 .sig-w.dragging .sig-ruler-net,.sig-w.dragging .sig-ruler-dot,.sig-w.dragging .sig-lever-fill{transition:none}
