@@ -7,6 +7,9 @@ import type { NextConfig } from "next";
 // The aliases are global, and nothing else in src/ imports those packages.
 const STUBS = "./src/widgets/openui-stubs";
 
+/** Browser features no page uses, turned off for every page and anything it embeds (issue #33). */
+const PERMISSIONS_POLICY = ["camera", "microphone", "geolocation", "payment", "usb", "interest-cohort", "browsing-topics"].map((f) => `${f}=()`).join(", ");
+
 const nextConfig: NextConfig = {
   // The browser test bed (E2E=1, spec 2026-11-05 T-00) builds into its own folder, so it never shares a lock or a
   // cache with a normal `npm run dev`.
@@ -37,6 +40,8 @@ const nextConfig: NextConfig = {
   },
   // "/" (Home) is public, so no other site may frame any page (clickjacking), browsers must not guess content types,
   // and other sites see only our origin as the referrer. Only frame-ancestors is set: a full script CSP would need nonces.
+  // HSTS keeps browsers on HTTPS for two years, subdomains included (no `preload`: that list is hard to leave), and
+  // Permissions-Policy turns off device and tracking features the app never uses (issue #33).
   async headers() {
     return [
       // Home and the About page are each one address for two pages, keyed only by the cookie (the About header knows who
@@ -50,6 +55,8 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+          { key: "Permissions-Policy", value: PERMISSIONS_POLICY },
         ],
       },
     ];

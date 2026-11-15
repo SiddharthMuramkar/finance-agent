@@ -33,4 +33,17 @@ describe("Security headers", () => {
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
   });
+
+  it("keeps browsers on HTTPS for two years, subdomains included (issue #33)", async () => {
+    const rules = await nextConfig.headers!();
+    const all = rules.find((r) => r.source === "/:path*");
+    expect(all?.headers.find((h) => h.key === "Strict-Transport-Security")?.value).toBe("max-age=63072000; includeSubDomains");
+  });
+
+  it("turns off camera, microphone, location, payment, USB and interest tracking on every route (issue #33)", async () => {
+    const rules = await nextConfig.headers!();
+    const all = rules.find((r) => r.source === "/:path*");
+    const policy = all?.headers.find((h) => h.key === "Permissions-Policy")?.value ?? "";
+    expect(policy.split(", ").sort()).toEqual(["browsing-topics=()", "camera=()", "geolocation=()", "interest-cohort=()", "microphone=()", "payment=()", "usb=()"]);
+  });
 });
