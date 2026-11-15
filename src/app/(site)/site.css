@@ -36,13 +36,15 @@
 .v-sec-head { display: grid; gap: 12px; margin-bottom: clamp(28px, 4vw, 48px); max-width: 44em; }
 .v-measure { max-width: 38em; }
 .v-stack { display: grid; gap: 20px; }
+.v-section-link { margin-top: 28px; }
 .v-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .v-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Type (3.2) */
 .v-display { font-size: clamp(44px, 5.4vw, 68px); line-height: 1.02; letter-spacing: -0.035em; }
 .v-display span { display: block; }
-.page-h1 { font-size: clamp(38px, 4.4vw, 56px); line-height: 1.05; letter-spacing: -0.03em; outline: none; }
+.page-h1 { outline: none; }
+.v-page-title { font-size: clamp(38px, 4.4vw, 56px); line-height: 1.05; letter-spacing: -0.03em; }
 .v-h2 { font-size: clamp(30px, 3.4vw, 40px); line-height: 1.1; letter-spacing: -0.02em; }
 .v-h3 { font-size: clamp(20px, 1.8vw, 22px); line-height: 1.25; letter-spacing: -0.02em; }
 .v-lede { font-size: 20px; line-height: 1.6; max-width: 34em; color: var(--ink-2); }
@@ -248,6 +250,26 @@
 .v-tile { width: 44px; height: 44px; border-radius: 10px; background: var(--wash); display: inline-flex; align-items: center; justify-content: center; }
 .v-colours .name { font-weight: 600; color: var(--ink); }
 .v-colours .means { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.v-t-knob { width: 18px; height: 18px; border-radius: 50%; background: var(--paper); box-shadow: inset 0 0 0 3px var(--blue); }
+.v-t-gain { width: 12px; height: 26px; background: var(--gain); border-radius: 3px 3px 0 0; }
+.v-t-loss { width: 12px; height: 22px; background: var(--loss); border-radius: 0 0 3px 3px; border-top: 2px solid var(--ink); }
+.v-t-wait, .v-t-hatch { width: 12px; height: 26px; border-radius: 3px 3px 0 0; }
+.v-t-pin { width: 2px; height: 26px; background: var(--ink); }
+.v-svg-gain { fill: var(--gain); }
+.v-svg-loss { fill: var(--loss); }
+.v-svg-ink { fill: var(--ink); }
+.v-svg-blue { fill: var(--blue); }
+.v-svg-blueline { fill: var(--blue-line); }
+.v-svg-wait { fill: var(--wait); }
+.v-svg-wait-tint { fill: var(--wait-tint); }
+.v-svg-line { fill: var(--line); }
+.v-svg-line-fill { fill: var(--line); }
+.v-svg-neutral { fill: var(--wash-2); }
+.v-svg-paper { fill: var(--paper); }
+.v-svg-stroke-ink { stroke: var(--ink); fill: var(--paper); }
+.v-svg-stroke-wait { stroke: var(--wait); }
+.v-svg-stroke-blue { stroke: var(--blue); fill: none; }
+.v-svg-stroke-loss { stroke: var(--loss); fill: none; }
 .v-swatch-hatch { background: repeating-linear-gradient(135deg, var(--line) 0 1.5px, transparent 1.5px 4.5px); box-shadow: inset 0 0 0 1px var(--line); }
 .v-swatch-claim { background: repeating-linear-gradient(135deg, var(--wait) 0 1.5px, var(--wait-tint) 1.5px 4.5px); box-shadow: inset 0 0 0 1.5px var(--wait); }
 
@@ -259,7 +281,8 @@
 .v-qrow:hover { background: var(--wash); }
 .v-qrow .meta { display: grid; gap: 6px; justify-items: start; }
 .v-qrow .q { font-family: var(--font-display); font-weight: 600; font-size: clamp(19px, 2vw, 24px); line-height: 1.25; color: var(--ink); letter-spacing: -0.01em; }
-.v-qrow .hook { font-size: 15px; color: var(--muted); margin-top: 4px; }
+.v-qrow .q { display: block; }
+.v-qrow .hook { display: block; font-size: 15px; color: var(--muted); margin-top: 4px; }
 .v-qrow .play { display: inline-flex; align-items: center; gap: 6px; color: var(--blue); font-weight: 600; white-space: nowrap; }
 .v-qrow .play .v-icon { transition: transform 0.15s; }
 .v-qrow:hover .play .v-icon { transform: translateX(3px); }
