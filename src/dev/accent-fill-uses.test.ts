@@ -24,6 +24,16 @@ const INVENTORY: Record<string, Use> = {
     why: "Name mappings: the older names pointed at the signal tokens (--mint, --coral, --danger ... at --gain and --loss), Tailwind's --color-* and OpenUI's --openui-border-*, which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent since ADR 0013, no mint)",
   },
   "src/app/widget-panel.tsx": { uses: 1, verdict: "mark", why: "A 2 px sunflower edge down the sourced strip, which starts with the Sourced Tag" },
+  "src/app/(site)/site.css": {
+    uses: 12,
+    verdict: "mark",
+    why: "The Signal site's marks (spec 2.2, 5.4, 7.2.4): a right or wrong chip's 1 px edge beside its verdict pill, the wait dot of the Request in review status, and the colour-language section's swatches and mini pictures, each named in words beside it (Gain, Loss, Careful, Claim)",
+  },
+  "src/components/signal/styles.ts": {
+    uses: 26,
+    verdict: "mark",
+    why: "The Signal widgets (spec 5, 6): a chip's 1 px verdict edge beside its Right, Not quite or Careful pill, chart bars and segments whose key and table view name each colour, the meter fill under its labelled row, the ruler's net segment and each lever's delta band beside a signed +$N or -$N pill, and the hatched claim, named Claim in the key",
+  },
   "src/widgets/case-data-view.tsx": { uses: 3, verdict: "mark", why: "2 px sourced and assumption edges, each block led by the Sourced or Your assumption Tag" },
   "src/widgets/formula-card-view.tsx": {
     uses: 2,
@@ -157,7 +167,10 @@ describe("accent fills and the 3:1 rule", () => {
   // Spec 2026-11-11 A10a test 6 (ADR 0014): a family in a Widget is a thin mark beside words. Every Widget file's row is a
   // "mark"; the kit's theme is the one "colour-only" row (its chart series), and globals.css holds only the mappings.
   it("has every Widget row as a mark, the kit's theme as the one colour-only row, and globals.css as the mappings", () => {
-    const widget = (file: string) => file.startsWith("src/widgets/") || /^src\/app\/widget-[^/]+\.tsx$/.test(file);
+    // The Signal widgets (src/components/signal) and the site's chips, status dot and colour-language pictures (site.css)
+    // are held to the same rule.
+    const widget = (file: string) =>
+      file.startsWith("src/widgets/") || file.startsWith("src/components/signal/") || file === "src/app/(site)/site.css" || /^src\/app\/widget-[^/]+\.tsx$/.test(file);
     const verdicts = Object.fromEntries(Object.entries(INVENTORY).map(([file, use]) => [file, use.verdict]));
     const expected = Object.fromEntries(
       Object.keys(INVENTORY).map((file) => [file, file === "src/app/globals.css" ? "mapping" : file === "src/widgets/genui-theme.tsx" ? "colour-only" : "mark"]),
