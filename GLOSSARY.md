@@ -47,7 +47,7 @@ The whole conversation between one Learner and the Tutor about one Topic.
 Where a signed-in Learner studies: the conversation beside the Widget panel.
 
 **Reply kind**:
-What a Tutor reply is for: feedback, rule, worked example, Quick try, re-teach, hint, an answer to the Learner's own question, or an offer to park a Skill.
+What a Tutor reply is for: feedback, rule, worked example, Quick try, re-teach, drill, hint, an answer to the Learner's own question, an offer to park a Skill, Go deeper (the Learner asked for more), or simpler (the Learner asked for it plainer).
 
 **Step-led reply**:
 A reply that moves the teaching on at the current Teaching Step.
