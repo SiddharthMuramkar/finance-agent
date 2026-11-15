@@ -39,7 +39,7 @@ describe("the line under the Learner's own rule", () => {
     expect(html).not.toContain("Save to Notebook");
   });
 
-  it("is quiet (ADR 0013): the words in the success colour, Undo and Open Notebook as underlined links, no button chrome", () => {
+  it("is quiet (ADR 0015): the words in the success colour, Undo and Open Notebook as underlined links, no button chrome", () => {
     const html = renderToStaticMarkup(<SessionItemView item={item} />);
     expect(html).toMatch(/<span[^>]*class="[^"]*text-\[var\(--success\)\][^"]*"[^>]*>Saved to your Notebook<\/span>/);
     expect(html).toMatch(/<button(?=[^>]*data-affordance="link")(?=[^>]*class="[^"]*\blink\b)[^>]*data-undo-save[^>]*>Undo<\/button>/);

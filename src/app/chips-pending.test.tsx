@@ -85,7 +85,7 @@ describe("the Next chip and the Choices", () => {
     expect(host.querySelector<HTMLButtonElement>('[data-testid="next-chip"]')!.disabled).toBe(true);
   });
 
-  it("draws two or three outline Choice buttons, words only (ADR 0014), and no Show me in a widget", () => {
+  it("draws two or three outline Choice buttons, words only (ADR 0008), and no Show me in a widget", () => {
     // A stored item from an older Session still carries an emoji name; it draws its words only all the same.
     const older = [
       { label: "What happened next?", says: "What happened next?", emoji: "scroll" },

@@ -53,7 +53,7 @@ cases:
     # Damodaran valuation. Valued whole (per: company, one share): Uber was private and the sheet takes cash and debt as nil,
     # so the value is the company's, in $ millions, against the $40bn talk of 2 Dec 2014. The block, with its tax path, is
     # written once in fol-uber-2014.yaml; its price.label "talk" makes the Workbench and the computed questions say "the
-    # $40bn talk", never "the $40bn price" (ADR 0018).
+    # $40bn talk", never "the $40bn price" (ADR 0010).
     valuationFrom: fol-uber-2014-crowd
 
   - id: s11-uber-s1-2019

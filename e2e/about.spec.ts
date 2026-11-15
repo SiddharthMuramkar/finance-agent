@@ -15,7 +15,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 const SHOTS = join("docs", "specs", "img", "2026-11-11");
 
-// A dark project is a visitor who chose Dark (ADR 0013): the theme cookie works signed out, and on a static page too.
+// A dark project is a visitor who chose Dark: the theme cookie works signed out, and on a static page too.
 test.beforeEach(async ({ page, baseURL }, info) => {
   await quietDevtools(page);
   if (info.project.name.endsWith("-dark")) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL! }]);
@@ -66,7 +66,7 @@ test("[D4] the About page reads at the right measure, and its Widgets play with 
     await page.screenshot({ path: join(SHOTS, `D4-about-${dark ? "dark" : "light"}.png`), fullPage: true });
   }
 
-  // The running prose keeps ADR 0013's measure: 60 to 75 characters a line at 1512.
+  // The running prose keeps ADR 0015's measure: 60 to 75 characters a line at 1512.
   const { lineMin, lineMax } = matrixThresholds(info.project.name);
   const layout = await measureLayout(page, { prose: "[data-about-prose] p" });
   expect(layout.proseMeasured, "prose paragraphs measured").toBeGreaterThan(5);

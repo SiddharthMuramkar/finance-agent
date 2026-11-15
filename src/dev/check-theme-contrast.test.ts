@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// The contrast guard guards (spec 2026-11-05 ticket A4, test 3, seam S7; rules per ADR 0013): the real stylesheet
+// The contrast guard guards (spec 2026-11-05 ticket A4, test 3, seam S7; rules per ADR 0015): the real stylesheet
 // passes, and deliberate breakages each fail on the rule that should catch them.
 
 const REAL = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
@@ -63,7 +63,7 @@ describe("the contrast guard", () => {
     expect(edge.output).toContain("--line-strong on --paper");
   });
 
-  // ADR 0013: an old name (--bg, --brand ...) is declared once, in Light, as var(--new), so it follows its new name in
+  // ADR 0015: an old name (--bg, --brand ...) is declared once, in Light, as var(--new), so it follows its new name in
   // both themes; one declared again in Dark would split the two names, so it fails by name.
   it("old names follow their new names from Light, and Dark may not declare them", () => {
     const real = run(REAL);
@@ -168,7 +168,7 @@ describe("the contrast guard", () => {
     expect(navy.output).toMatch(/FAIL dark: --paper chroma 0\.049 \(max 0\.010, neutral greys, no navy\)/);
   });
 
-  // --brand-deep (= --accent-deep) is frozen and no longer drawn as a lip (ADR 0014); it must still stay darker than its face.
+  // --brand-deep (= --accent-deep) is frozen and no longer drawn as a lip (ADR 0015); it must still stay darker than its face.
   it("keeps --accent-deep darker than --accent-fill in both themes", () => {
     const real = run(REAL);
     for (const theme of ["light", "dark"]) expect(real.output).toContain(`ok   ${theme}: --accent-deep is darker than --accent-fill`);

@@ -4,7 +4,7 @@ import { hydrated, seed, settled } from "./support/app";
 /**
  * #317: the message row (Attach a passage, the message box, Send) stays on one line at narrow widths. At 768×1024 the
  * old row squeezed the message box until its "Ask the Tutor" placeholder wrapped, and the box and Send grew taller.
- * Since ADR 0013 the row is one field (.field-shell) with Attach as an icon button on the left and Send on the right,
+ * Since ADR 0015 the row is one field (.field-shell) with Attach as an icon button on the left and Send on the right,
  * 44px tall: 1px edge, 5px inset, 32px controls. This measures the real row in the browser: each control renders one line
  * high, the field stays 44px and is no taller than at 1512×982, and nothing in the row spills out of it. Runs once, in
  * the mbp14 project, and resizes the window itself.

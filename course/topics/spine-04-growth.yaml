@@ -10,7 +10,7 @@
 # market about three times that). His 10% share of the first opens lever 1, which gives his $3,582m of year-10 revenue.
 # Facts: docs/research/verify-uber-2014.json (storyFacts, widgetFacts) and the outline's sources. Case ids are
 # unique across files, so the Case here is "spine-04-uber-2014". Every figure a computed question shows is the
-# engine's (ADR 0021); no sum is asked (ADR 0009).
+# engine's, and no sum is asked (ADR 0002).
 id: spine-04-growth
 title: "Growth: how big can it get?"
 goal: Turn a story about the market a young company can win into its future revenue, and weigh its effect on value.

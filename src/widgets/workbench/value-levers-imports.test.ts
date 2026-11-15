@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// Shared contract (ADR 0018): Home reuses ValueLeversView, so it renders without the OpenUI renderer. This walks the
+// Shared contract (ADR 0010): Home reuses ValueLeversView, so it renders without the OpenUI renderer. This walks the
 // view's runtime imports inside src/ (type-only imports are erased) and fails on any @openuidev package or on the files
 // that bring the renderer in.
 

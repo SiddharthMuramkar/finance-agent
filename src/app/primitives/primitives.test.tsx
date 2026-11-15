@@ -32,7 +32,7 @@ describe("primitives", () => {
     expect(linkButton).toContain('type="button"');
   });
 
-  // ADR 0013: four tiers and four sizes. md adds no size class, so every class string the app had before is unchanged.
+  // ADR 0015: four tiers and four sizes. md adds no size class, so every class string the app had before is unchanged.
   it("pick a tier and a size class, md adding none", () => {
     expect(buttonClass()).toBe("btn btn-primary");
     expect(buttonClass("secondary", "sm")).toBe("btn btn-secondary btn-sm");
@@ -43,7 +43,7 @@ describe("primitives", () => {
     expect(renderToStaticMarkup(<ButtonLink href="/study" size="lg">Start</ButtonLink>)).toContain('class="btn btn-primary btn-lg"');
   });
 
-  // Menu rows are flat .menu-item rows: no hand-drawn border, lip or shadow (ADR 0013); the menu is a .popover.
+  // Menu rows are flat .menu-item rows: no hand-drawn border, lip or shadow (ADR 0015); the menu is a .popover.
   it("draw menu rows as flat .menu-item rows with the menuitem role", () => {
     const item = renderToStaticMarkup(<MenuItem>Sign out</MenuItem>);
     expect(item).toMatch(/^<button type="button" role="menuitem" data-affordance="button" class="menu-item">Sign out<\/button>$/);
@@ -53,7 +53,7 @@ describe("primitives", () => {
     for (const html of [item, link]) expect(html).not.toMatch(/shadow|border|rounded/);
   });
 
-  // The app's chrome uses status tones (always with words), never a Widget accent family (ADR 0013).
+  // The app's chrome uses status tones (always with words), never a Widget accent family (ADR 0015).
   it("offer success, warning and danger tones", () => {
     const tones: TagTone[] = ["success", "warning", "danger"];
     for (const tone of tones) {

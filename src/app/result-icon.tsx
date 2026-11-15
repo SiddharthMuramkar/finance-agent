@@ -3,7 +3,7 @@
 // Server-safe: no "use client".
 
 /**
- * Right or wrong as an icon beside the words that say it (ADR 0013: status is never colour alone): a tick in --success,
+ * Right or wrong as an icon beside the words that say it (ADR 0015: status is never colour alone): a tick in --success,
  * a cross in --danger. Decorative: the words carry the meaning. `className` sizes it (16px unless given).
  */
 export function ResultIcon({ ok, className = "size-4" }: { ok: boolean; className?: string }) {

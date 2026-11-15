@@ -8,7 +8,7 @@ import { TOPIC_START_ANCHOR } from "./topic-start-card";
 import { Button, Chevron } from "./ui";
 
 // Small presentational pieces of the workspace's columns (issue #44): the Topic bar and its step bar, the Chips under a
-// reply, the folded row, and the right panel's option rows and result icon (ADR 0013: flat, hairlines, one accent).
+// reply, the folded row, and the right panel's option rows and result icon (ADR 0015: flat, hairlines, one accent).
 
 /** Where the Learner is on the Course Map: their current Topic and its Stage. Null before any Topic. */
 export type Place = { stage: Topic["stage"]; title: string; /** The Topic's id: the ⋯ menu's Start this Topic over posts it. */ topicId?: string; /** The Topic's one-line goal, if it has one. */ goal?: string } | null;
@@ -31,7 +31,7 @@ function targetOf(step: StepPosition, marked: ReadonlySet<number>): string | nul
 /** Scrolls the chat to a step's divider (or the Topic Start card). */
 const scrollTo = (target: string) => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-/** The 2px ring at a 2px offset (ADR 0013), for a control that draws its own look. */
+/** The 2px ring at a 2px offset (ADR 0015), for a control that draws its own look. */
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] forced-colors:focus-visible:outline-[Highlight]";
 
 // One segment of the step bar: a 24px tall box with a bar across its middle, painted as a background image so the box
@@ -87,7 +87,7 @@ export function OptionRow({ name, checked, onChange, children }: { name: string;
 }
 
 /**
- * The Topic bar (spec 2026-11-12 F3, ADR 0022): a Band across the whole Study Workspace, under the header and above both
+ * The Topic bar (spec 2026-11-12 F3, ADR 0015): a Band across the whole Study Workspace, under the header and above both
  * the conversation and the Widget panel, for the whole Topic. On the left its title and its goal, which wraps (two lines
  * at the widths the Study Workspace runs at) and is never cut short (G2); on the right the step bar from the Course
  * Navigator's step sequence (StepStrip) with All steps, then Topic options. Where the bar is narrower than 44rem (a container
@@ -137,7 +137,7 @@ function scrollableAncestor(el: HTMLElement, deltaY: number): Element | null {
 }
 
 /**
- * The Topic bar's step bar (ADR 0013): one line that says where the Learner is ("Your turn — Step 7 of 15") with an
+ * The Topic bar's step bar (ADR 0015): one line that says where the Learner is ("Your turn — Step 7 of 15") with an
  * All steps button, then a segmented bar, one segment per step, grouped by Check; a finished step's segment
  * scrolls the chat back to it. Step names are in the line, the segments' tooltips and names, and the All steps list,
  * which lists every step by number and name and reaches every step the bar does. The bar never numbers or names a
@@ -432,7 +432,7 @@ export type ChoiceButton = { label: string; says: string };
  * while a Check is open): "Next: <step> →", "Complete this Topic →", or "Just tell me →" at an unsettled
  * Explore (which posts "Just tell me." as the Learner's message). Next and Complete send no Learner message:
  * code writes the turn's note. Then the reply's two or three Choices (D3a), which stay during a Check: outline
- * buttons with words only (ADR 0014); a press sends the Choice's index and the server posts its words.
+ * buttons with words only (ADR 0008); a press sends the Choice's index and the server posts its words.
  */
 export function Chips({
   offer,

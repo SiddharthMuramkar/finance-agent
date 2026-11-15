@@ -3,7 +3,7 @@ import { NavLink } from "../../nav-link";
 import { Button, Chip, IconButton, MenuItem, Tag, TextLink } from "../../primitives";
 
 // The button sheet (developer tool, /dev/widgets#buttons): every kind of control in the app at rest, hover, pressed,
-// focus and disabled (ADR 0013: flat, so pressed is a deeper colour step, never a move). The three middle states are
+// focus and disabled (ADR 0015: flat, so pressed is a deeper colour step, never a move). The three middle states are
 // pinned with data-force (globals.css), so the sheet needs no mouse. A radio's "pressed" cell shows it checked.
 
 const STATES = ["rest", "hover", "pressed", "focus", "disabled"] as const;

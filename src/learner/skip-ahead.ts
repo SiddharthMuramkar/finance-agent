@@ -12,7 +12,7 @@ import { loadProgress, saveSkipAheadPass } from "./memory";
 import { enrollAnswered } from "./review";
 
 /**
- * Skip ahead in Learner Memory (spec 2026-11-12 A8, ADR 0020): the Topic Start card's "I know this: quiz me". Code picks
+ * Skip ahead in Learner Memory (spec 2026-11-12 A8, ADR 0004): the Topic Start card's "I know this: quiz me". Code picks
  * one question for each Skill of the Topic (src/course/skip-ahead.ts), shows them without their key, marks the answers and,
  * when no more than one is missed, passes the whole Topic: every Check gets a pass, the Topic is passed on the Course Map,
  * and the questions are scheduled as Reviews. A miss changes nothing: the Topic goes on from its story. One attempt per

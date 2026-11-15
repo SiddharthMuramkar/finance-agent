@@ -1,7 +1,7 @@
 import { WHY_MAX_WORDS, WORKBENCH_RECIPES, type Topic } from "./map.ts";
 import { SPINE_MAX_MINUTES } from "./outline.ts";
 
-// The course check for the shape of a Spine Topic (spec 2026-11-12, C2; ADR 0020). A Spine Topic is a Converted Topic that
+// The course check for the shape of a Spine Topic (spec 2026-11-12, C2; ADR 0004). A Spine Topic is a Converted Topic that
 // runs the seven Teaching Steps once, so its file must hold: a Case with an as-of date, a reveal and a valuation block
 // (its own or through valuationFrom); one Workbench Widget at explore, with one Insight found by play; exactly one Concept
 // card; three to five Lingo terms; six to eight Quick tries; one quiz Check of judgement questions, four drawn per attempt

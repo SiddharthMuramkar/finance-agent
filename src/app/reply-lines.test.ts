@@ -100,7 +100,7 @@ describe("replayReply", () => {
 });
 
 describe("stopReply", () => {
-  it("drops the reply in progress, words a streamed reply showed included (ADR 0017 keeps ADR 0008's Stop), and leaves the Stopped note", () => {
+  it("drops the reply in progress, words a streamed reply showed included (ADR 0006), and leaves the Stopped note", () => {
     const streamed = run(startReply(asked, "a-1", {}), replyCursor("a-1"), (c) => addText(c, "A basis point is small. "), (c) => stopReply(c));
     expect(tags(streamed.lines)).toEqual(["u:Why discount?", `[${STOPPED}]`]);
     const empty = run(startReply(asked, "a-1", {}), replyCursor("a-1"), (c) => stopReply(c));

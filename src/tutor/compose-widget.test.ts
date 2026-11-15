@@ -26,7 +26,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   return out;
 }
 
-/** The Session as an older build froze it, with compose_widget in its tools (new Sessions are not offered it, ADR 0007). */
+/** The Session as an older build froze it, with compose_widget in its tools (new Sessions are not offered it, ADR 0009). */
 async function engineOn(db: Db) {
   await readSettings(db);
   await db.update(settings).set({ value: "on" }).where(eq(settings.key, "widget_engine"));

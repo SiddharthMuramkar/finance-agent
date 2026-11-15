@@ -112,7 +112,7 @@ describe("a written-ahead Widget opened by the Tutor", () => {
   });
 
   it("draws the written-ahead Widget the Tutor opened during a turn, from the item the stream carries", async () => {
-    // Since ADR 0008 code checks a reply before it shows, so a Widget the written-ahead one replaces never reaches the
+    // Since ADR 0006 code checks a reply before it shows, so a Widget the written-ahead one replaces never reaches the
     // browser: the checked reply comes with the open_widget call's item.
     const events = [
       { type: "text", text: "Here is a box." },

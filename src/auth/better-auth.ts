@@ -9,7 +9,7 @@ import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { EMAIL_LINK_SECONDS, emailLinkOn, nameFromEmail, sendSignInLink } from "./email-link";
 
-// Sign-in through Better Auth: Google (ADR 0011) and email links (ADR 0014). Off unless Google or email
+// Sign-in through Better Auth: Google and email links (ADR 0014). Off unless Google or email
 // links are configured (betterAuthOn): then nothing is built, /api/auth/* answers 404, and every page
 // works on the passcode path, so a deploy without the secrets behaves exactly as before.
 

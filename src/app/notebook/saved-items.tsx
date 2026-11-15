@@ -31,7 +31,7 @@ async function saveAgain(item: SavedItem): Promise<number | null> {
  * What the Learner saved while studying a Topic, on one Topic Note: a reply drawn like an old Session (sources
  * folded, the as-of rule already applied by the server) or a Widget that reopens with its saved settings.
  * "Remove from notes" shows an Undo toast, which saves the item again in its old place. Neither prints. The items are a
- * hairline list (ADR 0013); a saved Widget sits on the wash a Widget frame uses, marked as Widget content.
+ * hairline list (ADR 0015); a saved Widget sits on the wash a Widget frame uses, marked as Widget content.
  */
 export function SavedItems({ items }: { items: SavedItem[] }) {
   const [shown, setShown] = useState(items);

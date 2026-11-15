@@ -1,5 +1,5 @@
 /**
- * A Widget the Tutor asked for with show_widget (code drew it from a Widget recipe, ADR 0005) or compose_widget (the
+ * A Widget the Tutor asked for with show_widget (code drew it from a Widget recipe, ADR 0009) or compose_widget (the
  * compose model wrote it, or code fell back to a recipe). It is stored as a
  * Session item, not written into the reply, so it carries its own identity: the tool call's id, the recipe and the
  * params the Tutor chose, and the OpenUI Lang program code compiled from them. No server imports: the browser

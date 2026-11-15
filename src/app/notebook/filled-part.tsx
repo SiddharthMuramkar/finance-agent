@@ -3,7 +3,7 @@ import { formulaById } from "@/finance/formulas";
 import { FormulaFigure, type CardValue } from "@/widgets/formula-card-view";
 import { MarkedText } from "@/widgets/marked-text";
 
-/** A sub-part's label: small capitals in muted (ADR 0013). */
+/** A sub-part's label: small capitals in muted (ADR 0015). */
 function Heading({ children }: { children: React.ReactNode }) {
   return <h3 className="type-eyebrow text-[var(--muted)]">{children}</h3>;
 }

@@ -52,7 +52,7 @@ youllLearn:
   - "Follow a profit around all three statements."
   - "Spot a profit that never turns into collected cash."
 
-# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0002).
 exampleCurrency: INR
 runningExample:
   text: "A tailor sells ₹8,000 of suits on credit this month."

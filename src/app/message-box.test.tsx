@@ -158,7 +158,7 @@ describe("Attach a passage", () => {
   });
 });
 
-describe("the composer: one field with Attach and Send inside (ADR 0013)", () => {
+describe("the composer: one field with Attach and Send inside (ADR 0015)", () => {
   const tag = (html: string, re: RegExp) => html.match(re)?.[0] ?? "";
   const form = (html: string) => tag(html, /<form[^>]*>/);
 

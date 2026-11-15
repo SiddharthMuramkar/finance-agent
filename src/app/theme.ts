@@ -1,4 +1,4 @@
-// The two themes, Light and Dark, and how a saved choice turns into one of them (ADR 0013; spec 2026-11-05 ticket A4).
+// The two themes, Light and Dark, and how a saved choice turns into one of them (spec 2026-11-05 ticket A4).
 // Everyone starts in Light; the computer's setting is never read. Used on the server and in the browser, so nothing here
 // touches the document until a function is called.
 

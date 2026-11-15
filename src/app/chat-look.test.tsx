@@ -10,7 +10,7 @@ import type { Line } from "./thread";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
-// The chat column's look (ADR 0013): open 16/26 reading text, a quiet Save to Notebook that never leaves the page, a soft
+// The chat column's look (ADR 0015): open 16/26 reading text, a quiet Save to Notebook that never leaves the page, a soft
 // Learner bubble, one composer field, and status in the success colour with an icon. Behaviour is pinned elsewhere.
 
 const css = readFileSync(join(__dirname, "globals.css"), "utf8");

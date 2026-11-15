@@ -84,7 +84,7 @@ export const RULES: Rule[] = [
     id: "typed_formula",
     title: "No typed formulas",
     rubric:
-      "Graded by code alone (the shared raw-formula detector, ADR 0002). PASS if no reply writes a formula or sum out as symbols or arithmetic (an equals sign, a power, '(1 + r)', spaced division or multiplication); a Formula Card widget, words and a result in plain sentences are fine. FAIL if any reply does.",
+      "Graded by code alone (the shared raw-formula detector, ADR 0003). PASS if no reply writes a formula or sum out as symbols or arithmetic (an equals sign, a power, '(1 + r)', spaced division or multiplication); a Formula Card widget, words and a result in plain sentences are fine. FAIL if any reply does.",
     byCode: (replies) => {
       const hits = replies.flatMap((r, i) => rawFormulaHits(r).map((h) => `reply ${i + 1} has ${h}`));
       return hits.length ? { verdict: "fail", reasons: hits.slice(0, 3).join("; ") } : { verdict: "pass", reasons: "No typed formula in any reply." };

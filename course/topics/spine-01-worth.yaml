@@ -1,4 +1,4 @@
-# Spine Topic 1 (spec 2026-11-12 C4, C5; ADR 0020): what is a business worth? Price against value, and the four levers,
+# Spine Topic 1 (spec 2026-11-12 C4, C5; ADR 0004): what is a business worth? Price against value, and the four levers,
 # taught through Aswath Damodaran's valuation of Amazon.com in February 2000. Every number comes from the Case's valuation
 # block (Case amazon-dcf-2000 in val-dcf, borrowed with valuationFrom) or from the valuation engine; computed questions
 # hold no figures, code works them out (D2). No Primer: C3 gives Topic 1 none.

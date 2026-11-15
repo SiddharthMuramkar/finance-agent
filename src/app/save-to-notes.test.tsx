@@ -58,7 +58,7 @@ describe("after Save to Notebook", () => {
     expect(idle).toMatch(/<button[^>]*aria-label="Save this Widget to Notebook"[^>]*>(<svg.*<\/svg>)?Save to Notebook<\/button>/);
     expect(idle).not.toContain("Undo");
     expect(idle).toMatch(/<button[^>]*data-affordance="button"[^>]*aria-label="Save this Widget to Notebook"/);
-    // ADR 0013: a text button (no face, no edge, muted label), 28px, not an outlined secondary.
+    // ADR 0015: a text button (no face, no edge, muted label), 28px, not an outlined secondary.
     expect(idle).toMatch(/class="[^"]*\bbtn\b[^"]*\bbtn-tertiary\b[^"]*\bbtn-xs\b/);
     expect(idle).not.toContain("btn-secondary");
     expect(idle).toMatch(/<svg[^>]*viewBox="0 0 24 24"[^>]*fill="none"/);
