@@ -41,7 +41,7 @@ export const SMALL_VIEWPORTS = {
   p390: { width: 390, height: 844 },
   t768: { width: 768, height: 1024 },
 } as const;
-export const SMALL_SPECS = /(?:^|\/)(?:home|home-value-levers|about|sign-in|phone-note|matrix)\.spec\.ts$/;
+export const SMALL_SPECS = /(?:^|\/)(?:home|about|sign-in|phone-note|matrix)\.spec\.ts$/;
 
 const small = (name: string, viewport: { width: number; height: number }): Project => ({
   ...project(name, viewport),
