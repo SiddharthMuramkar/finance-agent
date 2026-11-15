@@ -33,6 +33,9 @@
 #   --snapshot-name NAME   SNAPSHOT_NAME     take a manual snapshot with this name in stage 4
 #   --no-protect                             skip stage 3
 #   --keep-branch                            stage 12 keeps the throwaway branch (it still expires)
+#   --allow-full-copy                        stage 8: if Neon refuses a schema-only branch, make a full copy
+#                                            of the branch instead. A full copy holds every Learner row, so
+#                                            --yes alone never allows it.
 #   --from N / --to N / --only N,N / --redump
 #   --yes                                    say yes to every change (needed when not on a terminal)
 #
@@ -66,7 +69,7 @@ stage() { printf '\n%s[stage %s of %s] %s%s\n' "$B" "$CURRENT_STAGE" "$TOTAL_STA
 usage() { sed -n '2,/^set -Eeuo/p' "$0" | sed -e '$d' -e 's/^# \{0,1\}//'; }
 
 on_error() {
-  printf '\n%sStopped at stage %s.%s Resume with: %s --from %s\n' "$R" "$CURRENT_STAGE" "$N" "$0" "$CURRENT_STAGE" >&2
+  printf '\n%sStopped at stage %s.%s Resume with: %s --from %s\n' "$R" "$CURRENT_STAGE" "$N" "$CMD" "$CURRENT_STAGE" >&2
 }
 trap '[[ $BASH_SUBSHELL == 0 ]] && on_error' ERR
 trap 'printf "\n"; exit 130' INT
@@ -83,30 +86,35 @@ SECOND_DIR=${SECOND_DIR:-}
 SNAPSHOT_NAME=${SNAPSHOT_NAME:-}
 PROTECT=1
 KEEP_BRANCH=0
+ALLOW_FULL_COPY=0
 ASSUME_YES=0
 FROM_STAGE=1
 TO_STAGE=$TOTAL_STAGES
 ONLY=""
 
+# CMD: this script with the flags this run was given, minus the stage choice, for the "Resume: ..." hints.
+CMD=$(printf '%q' "$0")
+keep() { local a; for a in "$@"; do CMD+=" $(printf '%q' "$a")"; done; }
 need_arg() { [[ $# -ge 2 && -n $2 ]] || { echo "$1 needs a value (try --help)" >&2; exit 2; }; }
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --project-id) need_arg "$@"; PROJECT_ID=$2; shift 2 ;;
-    --branch) need_arg "$@"; BRANCH=$2; shift 2 ;;
-    --database) need_arg "$@"; DATABASE=$2; shift 2 ;;
-    --role) need_arg "$@"; ROLE=$2; shift 2 ;;
-    --hour) need_arg "$@"; SCHEDULE_HOUR_UTC=$2; shift 2 ;;
-    --retention-days) need_arg "$@"; RETENTION_DAYS=$2; shift 2 ;;
-    --dump-dir) need_arg "$@"; BACKUP_DIR=$2; shift 2 ;;
-    --copy-dir) need_arg "$@"; SECOND_DIR=$2; shift 2 ;;
-    --snapshot-name) need_arg "$@"; SNAPSHOT_NAME=$2; shift 2 ;;
-    --no-protect) PROTECT=0; shift ;;
-    --keep-branch) KEEP_BRANCH=1; shift ;;
+    --project-id) need_arg "$@"; PROJECT_ID=$2; keep "$1" "$2"; shift 2 ;;
+    --branch) need_arg "$@"; BRANCH=$2; keep "$1" "$2"; shift 2 ;;
+    --database) need_arg "$@"; DATABASE=$2; keep "$1" "$2"; shift 2 ;;
+    --role) need_arg "$@"; ROLE=$2; keep "$1" "$2"; shift 2 ;;
+    --hour) need_arg "$@"; SCHEDULE_HOUR_UTC=$2; keep "$1" "$2"; shift 2 ;;
+    --retention-days) need_arg "$@"; RETENTION_DAYS=$2; keep "$1" "$2"; shift 2 ;;
+    --dump-dir) need_arg "$@"; BACKUP_DIR=$2; keep "$1" "$2"; shift 2 ;;
+    --copy-dir) need_arg "$@"; SECOND_DIR=$2; keep "$1" "$2"; shift 2 ;;
+    --snapshot-name) need_arg "$@"; SNAPSHOT_NAME=$2; keep "$1" "$2"; shift 2 ;;
+    --no-protect) PROTECT=0; keep "$1"; shift ;;
+    --keep-branch) KEEP_BRANCH=1; keep "$1"; shift ;;
+    --allow-full-copy) ALLOW_FULL_COPY=1; keep "$1"; shift ;;
     --from) need_arg "$@"; FROM_STAGE=$2; shift 2 ;;
     --to) need_arg "$@"; TO_STAGE=$2; shift 2 ;;
     --only) need_arg "$@"; ONLY=$2; shift 2 ;;
     --redump) FROM_STAGE=5; TO_STAGE=7; shift ;;
-    -y|--yes) ASSUME_YES=1; shift ;;
+    -y|--yes) ASSUME_YES=1; keep "$1"; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1 (try --help)" >&2; exit 2 ;;
   esac
@@ -126,6 +134,9 @@ STATE="$BACKUP_DIR/.drill-state"   # non-secret values only: stamp, branch names
 DRILL_DB=library_drill
 LIBRARY_TABLES="library_sources library_passages library_documents library_pictures library_refresh_runs"
 LIBRARY_SEQUENCES="library_passages_id_seq library_refresh_runs_id_seq"
+# The columns fingerprint() hashes for library_passages, by name (the other tables are hashed whole, t::text).
+# Stage 6 stops when the table has other columns, so a new column cannot slip past the drill unchecked.
+PASSAGE_COLUMNS="credit,embedded_with,embedding,heading,id,latest_year,licence,published_on,ref,search,source_id,text,url"
 MAIN_URL=""; DRILL_URL=""; DUMP=""; STAMP=""
 
 umask 077   # every file this script writes is readable by its owner only
@@ -164,6 +175,11 @@ state_set() {
   mv "$STATE.tmp" "$STATE"
   chmod 600 "$STATE"
 }
+
+# RESULT is the outcome of stage 11 for the current dump on the current drill branch. A new dump (stage 6),
+# a new drill branch (stage 8), or a new drill database or restore (stages 9, 10) makes it stale, so each
+# of them clears it first: stage 12 must never print an old PASS next to a dump that was not compared.
+forget_result() { [[ -z $(state_get RESULT) ]] || state_set RESULT ""; }
 
 utc_in_one_day() { date -u -d '+1 day' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v+1d +%Y-%m-%dT%H:%M:%SZ; }
 
@@ -235,14 +251,14 @@ need_main_url() {
 assert_not_main() { # assert_not_main URL: the URL must not point at the backed-up branch
   local main_host
   main_host=$(state_get MAIN_HOST)
-  [[ -n $main_host ]] || die "The backed-up branch's host is not known yet. Run stage 5 first: $0 --from 5"
+  [[ -n $main_host ]] || die "The backed-up branch's host is not known yet. Run stage 5 first: $CMD --from 5"
   [[ $(url_host "$1") != "$main_host" ]] || die "This connection points at $BRANCH's host, not the drill branch."
 }
 need_drill_url() {
   [[ -n $DRILL_URL ]] && return 0
   local id
   id=$(state_get DRILL_BRANCH_ID)
-  [[ -n $id ]] || die "There is no drill branch yet. Run stage 8: $0 --from 8"
+  [[ -n $id ]] || die "There is no drill branch yet. Run stage 8: $CMD --from 8"
   [[ $id != "$(state_get MAIN_BRANCH_ID)" ]] || die "The drill branch id is $BRANCH's id. Stopped."
   DRILL_URL=$(conn_string "$id") || die "neon connection-string failed for the drill branch."
   check_url DRILL_URL
@@ -259,7 +275,7 @@ wait_for() { # wait_for URL DB: a new branch's compute can take a moment to star
 use_dump() {
   if [[ -z $DUMP ]]; then
     STAMP=$(state_get STAMP)
-    [[ -n $STAMP ]] || die "There is no dump yet. Run stage 6: $0 --from 6"
+    [[ -n $STAMP ]] || die "There is no dump yet. Run stage 6: $CMD --from 6"
     DUMP="$BACKUP_DIR/library-$STAMP.dump"
   fi
   [[ -f $DUMP ]] || die "Missing $DUMP. Run stage 6 again."
@@ -288,7 +304,7 @@ add_pg_to_path() { # pg_dump refuses a server newer than itself; the server is 1
   done
   return 1
 }
-require_tools() { add_pg_to_path || die "pg_dump, pg_restore and psql 18+ are missing. Run stage 1: $0 --only 1"; }
+require_tools() { add_pg_to_path || die "pg_dump, pg_restore and psql 18+ are missing. Run stage 1: $CMD --only 1"; }
 
 # Row count + md5 per Library table, ordered by primary key with the C collation (so the database's
 # own collation cannot change the order). Fixed output settings, so both sides print the same text.
@@ -336,6 +352,16 @@ SELECT name, n, hash FROM (
 SQL
 }
 
+passage_columns_ok() { # passage_columns_ok URL DB: library_passages has exactly the columns fingerprint() reads
+  local now c extra="" missing=""
+  now=$(q "$1" "$2" "select string_agg(column_name, ',' order by column_name collate \"C\") from information_schema.columns where table_schema = 'public' and table_name = 'library_passages'")
+  [[ $now == "$PASSAGE_COLUMNS" ]] && return 0
+  for c in ${now//,/ }; do [[ ",$PASSAGE_COLUMNS," == *",$c,"* ]] || extra+=" $c"; done
+  for c in ${PASSAGE_COLUMNS//,/ }; do [[ ",$now," == *",$c,"* ]] || missing+=" $c"; done
+  die "library_passages has changed (new:${extra:- none}; gone:${missing:- none}). Add the change to fingerprint()" \
+      "and PASSAGE_COLUMNS in this script, so the drill checks every column, then run stage 6 again."
+}
+
 # compare_table YARDSTICK DRILL: a Markdown table: name, rows on the branch, rows restored, hash match.
 # For a sequence the "rows" are its last_value and there is no hash.
 compare_table() {
@@ -378,7 +404,7 @@ stage_2() {
   else
     say "Now: $(jq -c . <<< "$current")"
     say "Want: daily at ${SCHEDULE_HOUR_UTC}:00 UTC, kept ${RETENTION_DAYS} days (this replaces the schedule above)."
-    confirm "Set the snapshot schedule on $BRANCH?" || die "Not changed. Resume: $0 --from 2"
+    confirm "Set the snapshot schedule on $BRANCH?" || die "Not changed. Resume: $CMD --from 2"
     neon_ snapshots schedule set --branch "$BRANCH" --frequency daily --hour "$SCHEDULE_HOUR_UTC" \
       --retention "$retention" -o json >/dev/null \
       || die "Neon refused. Console: project > Backup & restore > Edit schedule > Daily ${SCHEDULE_HOUR_UTC}:00 UTC, ${RETENTION_DAYS} days."
@@ -400,7 +426,7 @@ stage_3() {
     say "Protected: nobody can delete or reset $BRANCH, and nobody can delete the project while it has" \
         "a protected branch. The Launch plan allows 2 protected branches; each point-in-time restore of" \
         "$BRANCH adds a protected backup branch. Branches made from $BRANCH get new role passwords."
-    confirm "Set $BRANCH ($id) as protected?" || die "Not changed. Resume: $0 --from 3"
+    confirm "Set $BRANCH ($id) as protected?" || die "Not changed. Resume: $CMD --from 3"
     neon_ api "/projects/$PROJECT_ID/branches/$id" -X PATCH -F branch.protected=true -o json >/dev/null \
       || die "Neon refused. Console: Branches > $BRANCH > ... > Set as protected."
     [[ $(neon_ branches get "$id" -o json | jq -r '.protected') == true ]] || die "Neon does not report $BRANCH as protected."
@@ -418,7 +444,7 @@ stage_4() {
     ok "A snapshot named $SNAPSHOT_NAME already exists."
   else
     confirm "Take a manual snapshot of $BRANCH named $SNAPSHOT_NAME (kept until you delete it)?" \
-      || die "Not taken. Resume: $0 --from 4"
+      || die "Not taken. Resume: $CMD --from 4"
     neon_ snapshots create --branch "$BRANCH" --name "$SNAPSHOT_NAME" -o json >/dev/null \
       || die "Neon refused. Console: Backup & restore > Create snapshot > name $SNAPSHOT_NAME."
     ok "Snapshot $SNAPSHOT_NAME taken."
@@ -454,6 +480,7 @@ stage_6() {
   local toc="$BACKUP_DIR/$base.toc.txt" log="$BACKUP_DIR/$base.dump.log" t
 
   say "1. Measure $BRANCH: a row count and a hash per library_* table (the yardstick for the drill)."
+  passage_columns_ok "$MAIN_URL" ""
   fingerprint "$MAIN_URL" "" "$yardstick"
   sed 's/^/       /' "$yardstick"
 
@@ -480,6 +507,7 @@ stage_6() {
   rm -f "$again"
   chmod 600 "$BACKUP_DIR/$base".*
   state_set STAMP "$STAMP"
+  forget_result
   ok "$BRANCH did not change. Yardstick: $yardstick"
   note "Dump: $DUMP ($(du -h "$DUMP" | cut -f1), sha256 $(cut -c1-12 "$DUMP.sha256")...)"
 }
@@ -508,15 +536,22 @@ stage_8() {
     ok "Reusing drill branch $name ($id)."
     return
   fi
-  [[ -n $(state_get MAIN_HOST) && -n $(state_get MAIN_BRANCH_ID) ]] || die "Run stage 5 first, so the drill can tell $BRANCH apart: $0 --from 5"
+  [[ -n $(state_get MAIN_HOST) && -n $(state_get MAIN_BRANCH_ID) ]] || die "Run stage 5 first, so the drill can tell $BRANCH apart: $CMD --from 5"
   name="drill-restore-$(date -u +%Y%m%d-%H%M)"
   exp=$(utc_in_one_day)
-  say "Schema only copies the table shapes and no rows, so no Learner data goes into it." \
-      "If Neon refuses schema only, a normal branch (a full copy, inside Neon) is the fallback."
-  confirm "Create branch $name from $BRANCH (schema only, deletes itself at $exp)?" || die "Not created. Resume: $0 --from 8"
+  say "Schema only copies the table shapes and no rows, so no Learner data goes into it."
+  confirm "Create branch $name from $BRANCH (schema only, deletes itself at $exp)?" || die "Not created. Resume: $CMD --from 8"
+  forget_result
   kind="schema only"
   if ! out=$(neon_ branches create --name "$name" --parent "$BRANCH" --schema-only --expires-at "$exp" --no-secrets -o json); then
-    warn "Neon refused a schema-only branch. Trying a normal branch with the same 1-day expiry."
+    if (( ! ALLOW_FULL_COPY )); then
+      die "Neon refused a schema-only branch. It may be busy (try again in a minute: $CMD --from 8), or the" \
+          "project has no root branch left (schema-only branches count as root branches). A full copy of $BRANCH" \
+          "holds every Learner row, so the script makes one only with --allow-full-copy."
+    fi
+    warn "Neon refused a schema-only branch. --allow-full-copy: making a full copy of $BRANCH (Learner rows" \
+         "included), with the same 1-day expiry."
+    confirm "Create branch $name as a FULL copy of $BRANCH, with every Learner row?" || die "Not created. Resume: $CMD --from 8"
     kind="full copy"
     out=$(neon_ branches create --name "$name" --parent "$BRANCH" --expires-at "$exp" --no-secrets -o json) \
       || die "Neon refused the branch. Console: Branches > New branch > parent $BRANCH, name $name, schema only, auto-delete 1 day."
@@ -539,10 +574,11 @@ stage_9() {
   require_tools
   need_drill_url
   say "The restore goes into a NEW, empty database ($DRILL_DB), as after a lost project: no tables exist."
+  forget_result
   local exists
   exists=$(q "$DRILL_URL" "" "select count(*) from pg_database where datname = '$DRILL_DB'")
   if (( exists > 0 )); then
-    confirm "$DRILL_DB already exists on the drill branch. Drop it there and start clean?" || die "Stopped. Resume: $0 --from 9"
+    confirm "$DRILL_DB already exists on the drill branch. Drop it there and start clean?" || die "Stopped. Resume: $CMD --from 9"
     q "$DRILL_URL" "" "drop database $DRILL_DB" >/dev/null
   fi
   q "$DRILL_URL" "" "create database $DRILL_DB" >/dev/null
@@ -565,6 +601,7 @@ stage_10() {
   local list="$BACKUP_DIR/library-$STAMP.restore-list.txt" log="$BACKUP_DIR/library-$STAMP.restore.log" t0
   [[ $(q "$DRILL_URL" "$DRILL_DB" "select count(*) from pg_tables where schemaname = 'public' and tablename like 'library%'") == 0 ]] \
     || die "$DRILL_DB already has library tables. Run stage 9 again to start clean."
+  forget_result
   pg_restore --list "$DUMP" > "$list"
   if [[ $(q "$DRILL_URL" "$DRILL_DB" "select count(*) from pg_extension where extname = 'lakebase_text'") == 0 ]]; then
     grep -v 'library_passages_bm25' "$list" > "$list.tmp"
@@ -633,8 +670,12 @@ stage_12() {
     note "Drill branch: deleted"
   fi
   MAIN_URL=""; DRILL_URL=""
+  if [[ -z $result ]]; then
+    warn "No drill result for this dump yet, so there is no line for the ticket. Run the drill: $CMD --from 8"
+    return
+  fi
   say "" "${B}Line for the ticket:${N}" \
-      "Drill $(date -u +%Y-%m-%d): dumped the 5 library_* tables from Neon $BRANCH ($size, sha256 $sha...), restored them into a new database on a throwaway ${kind:-} branch: ${result:-not run} on counts and hashes (9 checks)."
+      "Drill $(date -u +%Y-%m-%d): dumped the 5 library_* tables from Neon $BRANCH ($size, sha256 $sha...), restored them into a new database on a throwaway ${kind:-} branch: $result on counts and hashes (9 checks)."
 }
 
 # ============================================================================ run
@@ -661,4 +702,4 @@ done
 printf '\n%s== Summary ==%s\n' "$B" "$N"
 for line in ${SUMMARY[@]+"${SUMMARY[@]}"}; do say "- $line"; done
 say "Files: $BACKUP_DIR"
-say "Re-dump after each 'npm run library:load' and once a month: $0 --project-id <id> --redump"
+say "Re-dump after each 'npm run library:load' and once a month: $CMD --redump"
