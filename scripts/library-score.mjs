@@ -3,8 +3,9 @@
 // For each question it runs the app's own search (src/library/search.ts) and scores a hit when a
 // passage from an expected document is in the top 5; it reports hits@5, hits@1 and mean reciprocal
 // rank. --voyage adds the query embedding (needs VOYAGE_API_KEY). The hindsight probes run with a
-// Case's as-of date and list any passage that mentions a later year or the Case's outcome, because
-// timeless reference text can still give an ending away (judge: src/library/hindsight.ts). Probes
+// Case's as-of date and list any passage that mentions the Case's outcome, or a later year in timeless
+// text, because timeless reference text can still give an ending away; a later year in a filing of that
+// date is a plan, not hindsight (judge: src/library/hindsight.ts). Probes
 // with a `case` carry each Signal Case's outcome words; the last line names any Case they caught.
 import { readFileSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";

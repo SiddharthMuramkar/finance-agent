@@ -52,7 +52,15 @@ const DOCUMENTS: Record<string, SourceDocument[]> = {
       "https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt",
       "1999-11-05",
       "USE OF PROCEEDS",
-      "Webvan will use the proceeds of this offering to build distribution centres and warehouses, and expects its cash to fund the build-out.",
+      // A filing's plans name later years; that is not hindsight (src/library/hindsight.ts).
+      "Webvan will use the proceeds of this offering to build distribution centres and warehouses in 26 markets by 2001, and expects its cash to fund the build-out.",
+    ),
+    doc(
+      "10-k405-0000891618-00-001877",
+      "https://www.sec.gov/Archives/edgar/data/1092657/0000891618-00-001877.txt",
+      "2000-03-30",
+      "ITEM 7. LIQUIDITY AND CAPITAL RESOURCES",
+      "Webvan plans to open distribution centers in 26 more markets by 2002, with capital spending of $300 million to $350 million in 2000 for its centers and delivery fleet.",
     ),
     doc(
       "10-k-0001012870-01-001485",
@@ -122,7 +130,8 @@ describe("the sources added in #38", () => {
   it("every Case probe that touches them, run at its Case's date, gets results and none with a later date, a later year or an outcome word", async () => {
     const db = await libraryDb();
     const touched = probes.filter((p) => p.case === "amazon-2000" || p.case === "wework-2019" || /webvan/i.test(p.q));
-    expect(touched.filter((p) => /webvan/i.test(p.q)).map((p) => p.asOf)).toEqual(["1999-11-05", "2001-04-02"]);
+    // One probe per Webvan Case date in course/outline.yaml.
+    expect(touched.filter((p) => /webvan/i.test(p.q)).map((p) => p.asOf)).toEqual(["1999-11-05", "2000-03-30", "2001-04-02"]);
 
     for (const probe of touched) {
       const shown = await search(db, probe.q, probe.asOf);
@@ -137,6 +146,8 @@ describe("the sources added in #38", () => {
 
     expect(await refs("Amazon share price and valuation in February 2000", "2000-02-01")).toEqual(["10-q-0000891020-99-001938"]);
     expect(await refs("Amazon share price and valuation", "2000-03-29")).toContain("10-k-0000891020-00-000622");
+    expect(await refs("Webvan distribution centers capital spending", "2000-03-29")).not.toContain("10-k405-0000891618-00-001877");
+    expect(await refs("Webvan distribution centers capital spending", "2000-03-30")).toContain("10-k405-0000891618-00-001877");
     expect(await refs("Webvan cash burn and funding", "2001-04-01")).not.toContain("10-k-0001012870-01-001485");
     expect(await refs("WeWork IPO filing run rate revenue and valuation", "2019-08-13")).not.toContain("s-1-0001193125-19-220499");
     expect(await refs("WeWork IPO filing run rate revenue and valuation", "2019-08-14")).toContain("s-1-0001193125-19-220499");
