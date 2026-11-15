@@ -148,7 +148,7 @@ describe("the read-only layout", () => {
     expect(html).toContain('aria-label="Widget panel"');
     expect(html).toMatch(/<a[^>]*href="\/study"[^>]*>Back to the workspace<\/a>/);
     // A button the affordance audit can judge (it read as a bare link on an Earlier attempt's page, B3b): the outline
-    // secondary, since the page's one primary is Resume this Topic (ADR 0015).
+    // secondary, since the page's one primary is Resume this Topic (ADR 0018).
     expect(html).toMatch(/<a[^>]*data-affordance="button"[^>]*>Back to the workspace<\/a>/);
     expect(html).toMatch(/<a[^>]*class="btn btn-secondary[^"]*"[^>]*>Back to the workspace<\/a>/);
   });

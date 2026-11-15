@@ -122,7 +122,7 @@ describe("a finished step on the Topic bar", () => {
     // The current step (Your turn, step 3) is highlighted, not a button.
     expect(bar.querySelector('button[data-step-number="3"]')).toBeNull();
     expect(bar.querySelector('[aria-current="step"]')?.textContent).toBe("Your turn");
-    // A finished step is a segment of the step bar the audit judges as a step (ADR 0015), named for where it goes.
+    // A finished step is a segment of the step bar the audit judges as a step, named for where it goes.
     const first = bar.querySelector('button[data-step-number="1"]')!;
     expect(first.getAttribute("data-affordance")).toBe("step");
     expect(first.getAttribute("aria-label")).toBe("Back to Step 1 of 10 · Story");

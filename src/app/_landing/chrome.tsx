@@ -67,7 +67,7 @@ export function HomeHeader({ signIn, current }: { signIn?: PublicSignIn; current
         <div className="home-header-row">
           <Lockup size={22} />
           <div className="flex items-center gap-2">
-            {/* Ghost header links, as the app header's (ADR 0015): no underline and no surface at rest, a wash on hover. */}
+            {/* Ghost header links, as the app header's (ADR 0018): no underline and no surface at rest, a wash on hover. */}
             <Link href="/#how-it-works" data-affordance="nav" className="home-nav home-nav-page">
               {copy.nav.howItWorks}
             </Link>

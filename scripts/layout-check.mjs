@@ -118,7 +118,7 @@ function rupees(text) {
   return n * ({ crore: 1e7, cr: 1e7, lakh: 1e5, lac: 1e5, l: 1e5, k: 1e3, m: 1e6 }[unit] ?? 1);
 }
 
-/** A known app button: the first enabled .btn in main (ADR 0015: flat, so a press changes its colour, never its place). */
+/** A known app button: the first enabled .btn in main (ADR 0018: flat, so a press changes its colour, never its place). */
 function pressableButton(page) {
   return page.locator("main button.btn:not(:disabled)").filter({ visible: true }).first();
 }

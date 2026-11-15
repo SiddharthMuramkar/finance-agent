@@ -1,4 +1,4 @@
-// The inline link: the accent, underlined, so it never reads as plain words (spec A3a; the look is ADR 0015's).
+// The inline link: the accent, underlined, so it never reads as plain words (spec A3a; the look is ADR 0018's).
 
 import Link from "next/link";
 import type { ComponentProps } from "react";

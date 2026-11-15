@@ -7,7 +7,7 @@ import type { ComponentProps } from "react";
 // Lives apart from ui.tsx (which stays server-safe) because useLinkStatus is a hook. ui.tsx re-exports it.
 
 /**
- * A ghost page link (ADR 0015): 32px tall, 8px corners, 14/20 at weight 500 in --ink-2, a --wash face on hover. The page
+ * A ghost page link (ADR 0018): 32px tall, 8px corners, 14/20 at weight 500 in --ink-2, a --wash face on hover. The page
  * showing is ink at weight 600 (the header adds the 2px accent bar under it). Focus is the app's one 2px ring
  * (globals.css). data-force pins hover, press and focus for the button sheet at /dev/widgets#buttons.
  */

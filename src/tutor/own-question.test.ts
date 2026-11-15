@@ -13,7 +13,7 @@ import { loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 
 /**
- * The fallback tells the truth (spec 2026-11-12, A4; ADR 0007). When a reply fails its checks and its retry fails too,
+ * The fallback tells the truth (spec 2026-11-12, A4; ADR 0006). When a reply fails its checks and its retry fails too,
  * an own-question turn (A5) gets one fixed line and the open step item again; a step-led turn keeps the card's
  * write-down line. The Topic is the converted lesson fixture, whose Concept card's write-down line is below.
  */

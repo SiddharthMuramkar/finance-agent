@@ -21,12 +21,12 @@ export async function send(method: "POST" | "PATCH" | "DELETE", body: object): P
   return { ok: true, line: data?.id !== undefined && data.text !== undefined ? { id: data.id, text: data.text, ...(data.ownRule && { ownRule: true }) } : undefined };
 }
 
-/** A text field (ADR 0015's .field: a strong edge, the accent edge and halo on focus), full width. */
+/** A text field (.field: a strong edge, the accent edge and halo on focus), full width. */
 const field = "field w-full";
 
 /**
  * The Learner's own lines on one Topic Note: add, edit and delete. Delete shows an Undo toast, which adds the line
- * back in its old place. The controls do not print; the lines do. A part of the row under a hairline (ADR 0015).
+ * back in its old place. The controls do not print; the lines do. A part of the row under a hairline (ADR 0018).
  */
 export function OwnLines({ topicId, initial }: { topicId: string; initial: OwnLine[] }) {
   const [lines, setLines] = useState(initial);
@@ -100,7 +100,7 @@ export function OwnLines({ topicId, initial }: { topicId: string; initial: OwnLi
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="whitespace-pre-wrap">
                       {line.ownRule && (
-                        // A static tag (6px corners, ADR 0015), not a pill.
+                        // A static tag (6px corners), not a pill.
                         <span data-own-rule-label data-affordance="tag" className="tag mr-2">
                           Your rule
                         </span>

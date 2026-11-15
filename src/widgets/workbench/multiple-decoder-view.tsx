@@ -10,7 +10,7 @@ import { DECODER_CAPTION, multipleDecoderLevers, multipleDecoderModel, multipleD
 // scale beside it what the company and its peers trade at. The scale is by tens (1×, 10×, 100×), so 1.4× and 26× both show.
 // Each company's row may carry the Topic file's Icon and its one short sourced fact ("604,000 desks"), so WeWork and IWG read
 // as two near-equal desk piles priced far apart rather than two dots (T33, F6). The Icon is a line drawing in the row's own
-// muted text colour, never a tinted box, and it adds no accent of its own (ADR 0015).
+// muted text colour, never a tinted box, and it adds no accent of its own (ADR 0018).
 
 export function MultipleDecoderView({ data, levers: given, onLeversChange, ticked = [], onTicked, onFirstLeverMove }: { data: MultipleDecoderData } & BenchViewProps<DecoderLeverId>) {
   const levers = useMemo(() => multipleDecoderLevers(data), [data]);

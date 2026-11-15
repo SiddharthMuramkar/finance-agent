@@ -15,7 +15,7 @@ const STAGE: Record<TopicOverview["stage"], string> = { spine: "Spine", foundati
 const LATER_STAGES = ["follow", "judge", "analyse"] as const;
 
 /**
- * The marker beside a Topic (Terrastack's numbered steps, ADR 0015): its two-digit place in its group, in the accent on the
+ * The marker beside a Topic (Terrastack's numbered steps): its two-digit place in its group, in the accent on the
  * Learner's current Topic and muted otherwise; a passed Topic shows a check in --success instead. Decorative: the Tag says the status.
  */
 function Marker({ topic, place }: { topic: TopicOverview; place: number }) {
@@ -209,7 +209,7 @@ export function CourseMapView({
       <div className="mt-8 grid items-start gap-[var(--gap)] empty:hidden md:grid-cols-2">
       {recommended && (
         <div data-recommended-next>
-          {/* The page's one box (ADR 0015): a hairline edge and a muted eyebrow. */}
+          {/* The page's one box (ADR 0018): a hairline edge and a muted eyebrow. */}
           <Card className="!border-[var(--line)]">
             <Eyebrow className="mb-1">Recommended next</Eyebrow>
             {recommendedTopic && (

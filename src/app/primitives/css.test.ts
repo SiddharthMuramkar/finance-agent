@@ -3,14 +3,14 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// ADR 0015: one flat set of control rules for the app and for Widgets. Block 2 is gone.
+// ADR 0018: one flat set of control rules for the app and for Widgets. Block 2 is gone.
 // No file in src/app or src/widgets draws the old raised look by hand, except the KNOWN list, which may only shrink.
 
 const css = readFileSync("src/app/globals.css", "utf8");
 const LAYER_AT = css.indexOf("@layer components {");
 const LAYER_END = css.indexOf("\n}\n", LAYER_AT);
 const layer = css.slice(LAYER_AT, LAYER_END);
-const BLOCK1_AT = css.indexOf("/* ---- Block 1: app controls (ADR 0015)");
+const BLOCK1_AT = css.indexOf("/* ---- Block 1: app controls (ADR 0018)");
 const block1 = css.slice(BLOCK1_AT, LAYER_END);
 
 /** The body of the first rule at or after `from` (in `text`) whose selector contains `selector`, found by brace matching. */
@@ -26,7 +26,7 @@ function rule(selector: string, text = css, from = 0): string {
   throw new Error("unbalanced braces");
 }
 
-describe("Block 2 is gone, and the one control set is flat (ADR 0015)", () => {
+describe("Block 2 is gone, and the one control set is flat (ADR 0018)", () => {
   it("has no Block 2, and the components layer holds no Widget fence or raised look", () => {
     expect(css).not.toContain("/* ---- Block 2");
     expect(BLOCK1_AT).toBeGreaterThan(LAYER_AT);
@@ -198,7 +198,7 @@ function sources(dir: string): string[] {
   });
 }
 
-describe("no app or Widget file draws the old raised look by hand (ADR 0015)", () => {
+describe("no app or Widget file draws the old raised look by hand (ADR 0018)", () => {
   it("each rule catches what it names, and nothing near it", () => {
     expect(RULES.lip.test('className="shadow-[0_2px_0_var(--edge)]"')).toBe(true);
     expect(RULES.lip.test('className="[--lip-colour:var(--brand-deep)]"')).toBe(true);
@@ -227,7 +227,7 @@ describe("no app or Widget file draws the old raised look by hand (ADR 0015)", (
     const explain = Object.entries(found)
       .filter(([file]) => !(file in KNOWN))
       .map(([file, broken]) => `${file}: ${broken.map((b) => WHY[b]).join("; ")}`);
-    expect(explain, "new raised-look code: use the primitives and tokens instead (ADR 0015)").toEqual([]);
+    expect(explain, "new raised-look code: use the primitives and tokens instead (ADR 0018)").toEqual([]);
     expect(found, "KNOWN may only shrink: delete an entry (or a rule) once its file is restyled").toEqual(KNOWN);
   });
 });

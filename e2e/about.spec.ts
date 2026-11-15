@@ -66,7 +66,7 @@ test("[D4] the About page reads at the right measure, and its Widgets play with 
     await page.screenshot({ path: join(SHOTS, `D4-about-${dark ? "dark" : "light"}.png`), fullPage: true });
   }
 
-  // The running prose keeps ADR 0015's measure: 60 to 75 characters a line at 1512.
+  // The running prose keeps its measure: 60 to 75 characters a line at 1512.
   const { lineMin, lineMax } = matrixThresholds(info.project.name);
   const layout = await measureLayout(page, { prose: "[data-about-prose] p" });
   expect(layout.proseMeasured, "prose paragraphs measured").toBeGreaterThan(5);

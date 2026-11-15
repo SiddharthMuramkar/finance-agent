@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AccountMenu } from "./account-menu";
 
-// The header's account menu (A5, ADR 0015): the Learner's initial in a 28px avatar circle on a 32px ghost icon button;
+// The header's account menu (A5): the Learner's initial in a 28px avatar circle on a 32px ghost icon button;
 // the menu is a popover that names the Learner, links to Settings and signs out through the same form post as everywhere
 // else. Keyboard through useMenu, like the Topic options menu.
 

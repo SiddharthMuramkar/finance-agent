@@ -68,7 +68,7 @@ describe("QuizPanel template questions", () => {
     expect(html).toContain("60 bp");
     expect(html).toContain("0.6 bp");
     expect(html).toContain('type="radio"');
-    // Each choice is a 44px option row with its radio on the left (ADR 0015), numbered by question.
+    // Each choice is a 44px option row with its radio on the left, numbered by question.
     expect(html).toMatch(/<label[^>]*data-affordance="option"[^>]*class="[^"]*\bmin-h-11\b/);
     expect(html).toMatch(/<label[^>]*data-affordance="option"[^>]*><input type="radio"/);
     expect(html).not.toMatch(/\bchip\b|\bpressable\b|rounded-2xl/);

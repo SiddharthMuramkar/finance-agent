@@ -7,8 +7,8 @@ import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 
 /**
  * A3b: every button looks like a button, every link like a link, every tag like a tag (spec 2026-11-05, ticket A3b,
- * Appendix C.3, as ADR 0015 amends it: flat controls, signified by a face, an edge or a strong ghost label; nothing in the
- * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0015). Measured at 1512×982, in Light and in Dark.
+ * Appendix C.3, as ADR 0018 amends it: flat controls, signified by a face, an edge or a strong ghost label; nothing in the
+ * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982, in Light and in Dark (Dark until #17 lands).
  */
 
 const PROJECTS = ["mbp14", "mbp14-dark"];
@@ -122,7 +122,7 @@ test.describe("affordance audit is clean", () => {
 });
 
 /**
- * Spec 2026-11-12 F4 (ADR 0015): what can be pressed stays obvious, over every page of the preview matrix. In a reading
+ * Spec 2026-11-12 F4 (ADR 0018): what can be pressed stays obvious, over every page of the preview matrix. In a reading
  * area a link is the accent and underlined, and blue words that can be pressed are underlined or sit on a face; on a Band
  * a button is white with an ink label and a link is white and underlined; nothing that can be pressed is drawn like a key
  * number (the accent at 20px or more, 600 or heavier, never underlined). F1 rides along: no two Bands touch. Each page
@@ -178,7 +178,7 @@ const FILL = {
 } as const;
 const INK_2 = { light: "rgb(48, 53, 63)", dark: "rgb(209, 209, 214)" } as const;
 
-test("[ADR 0015] pressing is flat: a press changes colour, never position", async ({ page }) => {
+test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seed(page, "many-topics");
   await page.goto("/settings");
@@ -224,7 +224,7 @@ for (const [state, selector] of [
   ["story", '[data-testid="choice"]'],
   ["quiz-open", 'label:has(input[type="radio"])'],
 ] as const) {
-  test(`[ADR 0015] a press on /study (${state}) changes colour, never position`, async ({ page }) => {
+  test(`[ADR 0018] a press on /study (${state}) changes colour, never position`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await seed(page, state);
     await page.goto("/study");
@@ -280,7 +280,7 @@ for (const state of ["concept-widget", "quiz-open"] as const) {
       if (stop.style !== "solid" || stop.width !== "2px" || stop.offset !== "2px") wrong.push(`${stop.kind} "${stop.name}": ${stop.style} ${stop.width} offset ${stop.offset}`);
     }
     expect(wrong).toEqual([]);
-    // The Topic bar's finished steps are step segments (ADR 0015), no longer chips; the chat's Widget chip is a chip.
+    // The Topic bar's finished steps are step segments, no longer chips; the chat's Widget chip is a chip.
     for (const kind of ["nav", "icon", "button", "step"]) expect([...reached], `Tab reaches a ${kind}`).toContain(kind);
     if (state === "concept-widget") {
       expect([...reached], "Tab reaches a chip").toContain("chip");

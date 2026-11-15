@@ -11,7 +11,7 @@ async function study(page: Page) {
   await expect(page.getByTestId("assistant-message").first()).toBeVisible();
 }
 
-// ADR 0015 moves A2's 15/24 to 16/26 (--text-chat, --lh-chat), with the reply capped at about 68 characters of Inter.
+// The flat restyle moved A2's 15/24 to 16/26 (--text-chat, --lh-chat), with the reply capped at about 68 characters of Inter.
 test("[A2] chat type is 16/26", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "measured at 1512×982");
   await study(page);

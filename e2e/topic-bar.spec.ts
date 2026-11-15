@@ -14,7 +14,7 @@ async function stripReady(strip: Locator) {
 }
 
 /**
- * #313 as ADR 0015 amends it, and spec 2026-11-12 F3 (ADR 0015): the compact Topic bar, now a Band across the Study
+ * #313, and spec 2026-11-12 F3 (a royal Band until #17 lands, when ADR 0015 replaces it): the compact Topic bar, now a Band across the Study
  * Workspace above both columns. On the Percent Topic (four Checks) the bar is one row from 44rem: the title over the goal
  * on the left, the current-step line ("Your turn — Step 3 of 15", with All steps) over the step bar on the right, then
  * Topic options. About 76 px tall at 1512, 1024 and 768 (measured: 76, 76, 76). The step
@@ -74,7 +74,7 @@ for (const viewport of [
 }
 
 /**
- * #313 review (T313-C1) as ADR 0015 amends it: the strip scrolls sideways, so it clips whatever sticks out of it. A
+ * #313 review (T313-C1): the strip scrolls sideways, so it clips whatever sticks out of it. A
  * scroll-back segment's focus ring (2 px outline at a 2 px offset, so 4 px all round) must fit inside the strip, on
  * every side, for the first and last steps too; and pressing a segment (flat: nothing moves) must not give the strip a
  * vertical scroll.
@@ -115,11 +115,11 @@ test("[#313] the strip keeps room for a segment's focus ring, and never scrolls 
 });
 
 /**
- * ADR 0015: the step names left the bar for its tooltips and its line, so All steps lists every step by number and
+ * The step names left the bar for its tooltips and its line, so All steps lists every step by number and
  * name, grouped as the bar groups them (Story, four Checks' groups, Reveal and Principle on Percent), and reaches every step
  * the bar does.
  */
-test("[ADR 0015] All steps lists every step of the bar, in its groups, and a finished one scrolls the chat back", async ({ page }, info) => {
+test("[#313] All steps lists every step of the bar, in its groups, and a finished one scrolls the chat back", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "one viewport is enough");
   await seed(page, "your-turn");
   await page.goto("/study");

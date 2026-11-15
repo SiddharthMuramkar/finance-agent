@@ -40,7 +40,7 @@ test("[A1] Widget panel width at 1512 is 52 % of the viewport or more", async ({
   expect((await measureLayout(page)).panelWidthPct).toBeGreaterThanOrEqual(52);
 });
 
-test("[A2] header height is 56 px or less and the chat body font is 16 px (ADR 0015)", async ({ page }) => {
+test("[A2] header height is 56 px or less and the chat body font is 16 px", async ({ page }) => {
   await study(page);
   const m = await measureLayout(page);
   expect(m.headerHeight).toBeLessThanOrEqual(56);
@@ -53,7 +53,7 @@ test("[A3b] interactive elements without a signifier, non-interactive elements w
   const audit = await auditAffordances(page);
   expect(audit.interactiveWithoutSignifier).toEqual([]);
   expect(audit.pointerOnStatic).toEqual([]);
-  // ADR 0015: anywhere, Widgets included, no control lifts on a shadow, moves or is rounder than 12px.
+  // ADR 0018: anywhere, Widgets included, no control lifts on a shadow, moves or is rounder than 12px.
   expect(audit.notFlat).toEqual([]);
 });
 

@@ -191,7 +191,7 @@ describe("TwoPaths reveal", () => {
 
 // CL-1 (R-E2a fix round 1): the at-rest frame of TwoPaths was two plain cards. At rest it must already read as a story:
 // both characters' Icons in hairline circles on cards with a 2 px sunflower top edge, each choice beside a thought-balloon
-// Icon, an "or" between the paths, and a closed "what happened" slot that waits for the Learner (A9b, ADR 0015).
+// Icon, an "or" between the paths, and a closed "what happened" slot that waits for the Learner (A9b).
 describe("TwoPaths at rest", () => {
   const paths = (
     <TwoPathsView

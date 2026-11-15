@@ -1,4 +1,4 @@
-// The one button (spec A3a; the look is ADR 0015's: flat, 8px corners, a 1px edge or a fill). The look is in globals.css
+// The one button (spec A3a; the look is ADR 0018's: flat, 8px corners, a 1px edge or a fill). The look is in globals.css
 // (.btn, .btn-primary ...); this file only picks classes and sets data-affordance="button" so the audit can see it.
 // Server-safe: no "use client".
 

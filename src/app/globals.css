@@ -39,7 +39,7 @@
 /* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens (ADR 0015): semantic tokens, one literal colour per theme; old names declared once in Light as
+/* Design tokens: semantic tokens, one literal colour per theme until #17 lands (ADR 0015 then points each at its Signal meaning); old names declared once in Light as
    var(--new), never in Dark; Widget accent families unchanged. Components use them as `bg-[var(--wash)]`; Dark is these
    values switching under `.dark`, so components need no dark: colour variants (a dark: display swap, such as the theme
    toggle's sun and moon, is fine). */
@@ -72,7 +72,7 @@
   --ring: #1f3fae;
   --accent-hover: #1a3596;
   --accent-pressed: #152b7a;
-  --accent-deep: #152b7a;   /* darker than the fill: frozen, no longer drawn (ADR 0015) */
+  --accent-deep: #152b7a;   /* darker than the fill: frozen, no longer drawn, since controls have no lip (ADR 0018) */
   --on-accent: #ffffff;
   --accent-tint: #eef2fc;
   --accent-tint-2: #e3e9fa;
@@ -345,7 +345,7 @@
     --ring: #6aa1ff;
     --accent-hover: #93bbff;
     --accent-pressed: #93bbff;
-    --accent-deep: #2a4f99;   /* darker than the fill: frozen, no longer drawn (ADR 0015) */
+    --accent-deep: #2a4f99;   /* darker than the fill: frozen, no longer drawn, since controls have no lip (ADR 0018) */
     --on-accent: #0b0d12;
     --accent-tint: #101a2e;
     --accent-tint-2: #14223d;
@@ -447,7 +447,7 @@ body {
 }
 
 /* Figures in generated widgets stay in tabular numbers like the rest of the app: the kit's `font` shorthand
-   resets them, so a table's column of numbers would not line up. Widgets inherit the body's Inter (ADR 0015). */
+   resets them, so a table's column of numbers would not line up. Widgets inherit the body's Inter. */
 .genui * {
   font-variant-numeric: tabular-nums;
 }
@@ -461,7 +461,7 @@ body {
 .genui [data-key-figure][data-key-figure-extra] {
   font-weight: 500;
 }
-/* A Widget's one key number (spec 2026-11-12, F2; ADR 0015): the accent, never underlined, and at least 20px. markKeyFigures
+/* A Widget's one key number (spec 2026-11-12, F2): the accent, never underlined, and at least 20px. markKeyFigures
    sets data-key-number on a lead key figure that holds a number, and data-key-number-small when it is drawn below 20px. */
 .genui [data-key-number] {
   color: var(--key-number);
@@ -494,7 +494,7 @@ body {
   margin-inline: auto;
 }
 
-/* The type scale (ADR 0015): Inter for text, Inter Tight for the three display sizes, weights 400/500/600 only. */
+/* The type scale: Inter for text, Inter Tight for the three display sizes (spec §3.2), weights 400/500/600 only. */
 @utility type-display {
   font-family: var(--font-display, system-ui), system-ui, sans-serif;
   font-size: 40px;
@@ -637,7 +637,7 @@ html[data-splitting] * {
 }
 
 /* Rising bars: the Value It mark (src/app/rising-bars.tsx). Four solid bars, short to tall, in the accent fill (royal
-   blue in Light, the Dark accent in Dark), with 1px corners: flat and sharp (ADR 0015), no gradient, no pill ends. Each
+   blue in Light, the Dark accent in Dark), with 1px corners: flat and sharp, no gradient, no pill ends. Each
    grows from the bottom after the one before (the delays are inline). Full height is the resting state, so with reduced
    motion (which turns animation off below) the mark simply shows. .bars-on-brand sits on a filled surface and takes its
    text colour: white on the royal-blue band, the label colour on a filled button (white in Light, near-black in Dark). */
@@ -815,7 +815,7 @@ html[data-splitting] * {
   }
 }
 
-/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx), 16/26 (ADR 0015). Calm and plain: spacing and weight
+/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx), 16/26. Calm and plain: spacing and weight
    carry the structure. Headings and bold stay ink; only links take the accent, underlined, so colour means "pressable".
    Tables, rules and code are hairlines on paper, never boxes in boxes. A Widget drawn inside a reply (a saved reply in the
    Notebook) keeps its own look: every rule below the first two stops at .genui. */
@@ -989,11 +989,11 @@ html[data-splitting] * {
   color: var(--ink);
 }
 
-/* Design primitives (ADR 0015). src/app/primitives/ picks these classes and sets
+/* Design primitives (ADR 0018). src/app/primitives/ picks these classes and sets
    data-affordance; the look lives here, from tokens only. One set of control rules for the app and for Widgets:
    a face, a 1px rim and a label, colour steps on hover and press, nothing moves. */
 @layer components {
-  /* ---- Block 1: app controls (ADR 0015). Flat: no lip, no pill, no lift, no drop shadow. ---- */
+  /* ---- Block 1: app controls (ADR 0018). Flat: no lip, no pill, no lift, no drop shadow. ---- */
   /* .btn (button or link-as-button), .chip and .btn-icon: a face, a 1px rim and a label, all set per tier below */
   .btn,
   .chip {
@@ -1525,7 +1525,7 @@ html[data-splitting] * {
 
 }
 
-/* A Widget's "More settings" accordion trigger is a button (the kit's): a flat edge, the same as every other control (ADR 0015). */
+/* A Widget's "More settings" accordion trigger is a button (the kit's): a flat edge, the same as every other control (ADR 0018). */
 .genui .openui-accordion-trigger {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1537,7 +1537,7 @@ html[data-splitting] * {
   outline-offset: 2px;
 }
 
-/* Home (src/app/_landing/landing.tsx): the public sales page, in enjoy.dev's editorial rhythm (ADR 0015). A 12-column
+/* Home (src/app/_landing/landing.tsx): the public sales page, in enjoy.dev's editorial rhythm (ADR 0018). A 12-column
    grid, Inter for text and Inter Tight (--font-display) at 600 for display type, 1px hairlines between sections instead
    of boxed cards, a steady section rhythm and one royal-blue band. Built from the tokens above, so Light and Dark both
    work; the band alone is always light, as Enjoy's closing band is. */
@@ -1572,7 +1572,7 @@ html[data-splitting] * {
 .home-section { padding-top: var(--home-section); }
 .home-rule { height: 1px; border: 0; margin: 0; background: var(--rule); }
 
-/* Type: Inter Tight at 600 for display, Inter for text; never heavier than 600 (ADR 0015). */
+/* Type: Inter Tight at 600 for display, Inter for text; never heavier than 600. */
 .home-display { font-family: var(--font-display, system-ui), system-ui, sans-serif; font-weight: 600; }
 .home-statement {
   font-family: var(--font-display, system-ui), system-ui, sans-serif;
@@ -1686,7 +1686,7 @@ html[data-splitting] * {
 /* The bars inside a main button take the button's label colour. */
 .home .btn .bar { background: currentColor; }
 
-/* Motion with meaning on Home (spec 2026-11-12 E9, as ADR 0015 allows): the Explorable's match line arrives with a short
+/* Motion with meaning on Home (spec 2026-11-12 E9, as ADR 0018 allows): the Explorable's match line arrives with a short
    fade and rise when the visitor finds the rate. Nothing moves for a visitor who asked for reduced motion. */
 @keyframes home-arrive {
   from { opacity: 0; transform: translateY(4px); }

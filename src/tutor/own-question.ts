@@ -1,5 +1,5 @@
 /**
- * Own-question turns (spec 2026-11-12, A5; ADRs 0007 and 0006). No imports, so any layer can ask.
+ * Own-question turns (spec 2026-11-12, A5; ADR 0006). No imports, so any layer can ask.
  */
 
 /**

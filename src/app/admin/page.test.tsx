@@ -80,7 +80,7 @@ describe("/admin", () => {
     expect(ids).toEqual(["waiting", "people", "spend", "speed", "denied", "invite", "sign-up"]);
     const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => text(m[1]).trim());
     expect(headings).toEqual(["Waiting 2", "People with access", "Spend", "Tutor speed", "Denied", "Invite an email", "Sign-up"]);
-    // ADR 0015: each section is a hairline rule with no box.
+    // ADR 0018: each section is a hairline rule with no box.
     for (const [, cls] of html.matchAll(/<section class="([^"]*)" id="/g)) expect(cls).toMatch(/^border-t border-\[var\(--line\)\]/);
     // The header's account menu is the owner's (accountFor), and no page link is marked current.
     expect(html).not.toContain('aria-current="page"');

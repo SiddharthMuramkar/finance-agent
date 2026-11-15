@@ -74,7 +74,7 @@ export function OldSession({
               </div>
             </DeveloperDetails>
           </div>
-          {/* Secondary: the page's one primary is the header's Resume this Topic (ADR 0015). */}
+          {/* Secondary: the page's one primary is the header's Resume this Topic (ADR 0018). */}
           <div data-testid="composer-block" className="reading-block">
             <Link href="/study" data-affordance="button" className={`${secondaryButtonClass} self-start`}>
               Back to the workspace

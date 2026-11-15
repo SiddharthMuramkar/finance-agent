@@ -38,7 +38,7 @@ describe("Button", () => {
     expect(html).toContain('type="button"');
   });
 
-  it("gives the primary variant the one filled face (ADR 0015: flat, no lip)", () => {
+  it("gives the primary variant the one filled face (ADR 0018: flat, no lip)", () => {
     expect(renderToStaticMarkup(<Button>Go</Button>)).toContain("btn btn-primary");
   });
 
@@ -157,7 +157,7 @@ describe("route skeletons", () => {
 });
 
 describe("Card and heading sizes (A2)", () => {
-  // ADR 0015's type scale: a page title is type-h1 (Inter Tight 28/34, 600), and a Card pads 20px.
+  // The type scale: a page title is type-h1 (Inter Tight 28/34, 600), and a Card pads 20px.
   it("Card pads with p-5 and the page h1 is type-h1", async () => {
     const { Card } = await import("./ui");
     expect(renderToStaticMarkup(<Card>x</Card>)).toMatch(/\bp-5\b/);

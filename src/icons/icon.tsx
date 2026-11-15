@@ -162,7 +162,7 @@ export const DRAWINGS = {
 const warned = new Set<string>();
 
 /**
- * One line Icon from the named set (spec 2026-11-11, ticket A1a, ADR 0015): Lucide's svg at stroke 1.75 in the text
+ * One line Icon from the named set (spec 2026-11-11, ticket A1a, ADR 0018): Lucide's svg at stroke 1.75 in the text
  * colour (`stroke="currentColor"`), the header's own geometry. From 32 px up the stroke does not scale, so a Story cast
  * drawn at 112 px keeps a 1.75 px line. Decorative by default (`aria-hidden`, `focusable="false"`); give `label` text, or
  * `label` true for the set's own alt, when the picture carries meaning: then it is `role="img"` with that `aria-label`.

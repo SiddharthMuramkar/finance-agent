@@ -41,7 +41,7 @@ describe("AppHeader density (A2)", () => {
     expect(page.match(/<header[^>]*>/)![0]).not.toMatch(/\bmb-\d/);
   });
 
-  // ADR 0015: hairlines, not boxes. A box is a page's one framed panel; a rule is Enjoy's ink line above, no box.
+  // ADR 0018: hairlines, not boxes. A box is a page's one framed panel; a rule is Enjoy's ink line above, no box.
   it("Card is a box (hairline edge, 12px corners, raised, p-5) or a rule (a 1px line above)", () => {
     expect(renderToStaticMarkup(<Card>x</Card>)).toBe('<section class="rounded-xl border border-[var(--rule)] bg-[var(--raised)] p-5">x</section>');
     expect(renderToStaticMarkup(<Card variant="rule">x</Card>)).toBe('<section class="border-t border-[var(--line)] pt-5">x</section>');
@@ -189,7 +189,7 @@ describe("SignedInFrame", () => {
   });
 });
 
-// Owner decision 5 (ADR 0015): the mark is four solid accent bars with 1-2px corners; no mint, no gradient, no pill ends.
+// Owner decision 5: the mark is four solid accent bars with 1-2px corners; no mint, no gradient, no pill ends.
 describe("RisingBars", () => {
   const css = readFileSync("src/app/globals.css", "utf8");
   const rule = (selector: string) => css.match(new RegExp(`\\n${selector.replace(/[.*]/g, "\\$&")} \\{([^}]*)\\}`))![1];

@@ -98,7 +98,7 @@ export function LeftColumn({
     <ThreadPrimitive.Root id="conversation-column" data-testid="chat-column" className="@container/chat flex h-full min-h-0 min-w-0 flex-col">
       <ThreadPrimitive.Viewport data-testid="thread-viewport" className="quiet-scroll relative min-h-0 flex-1 overflow-y-auto overscroll-contain pb-6 [scrollbar-gutter:stable_both-edges]">
         <div ref={threadBlock} data-testid="reading-block" className="reading-block">
-        {/* 24px between messages (ADR 0015): air instead of boxes. */}
+        {/* 24px between messages (ADR 0018): air instead of boxes. */}
         <div className="flex flex-col gap-6">
           <ThreadMessages lines={messages} slot={slot} />
         </div>

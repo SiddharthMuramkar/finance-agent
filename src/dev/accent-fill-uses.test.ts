@@ -19,7 +19,7 @@ const INVENTORY: Record<string, Use> = {
   "src/app/globals.css": {
     uses: 13,
     verdict: "mapping",
-    why: "Name mappings for Tailwind (--color-*) and OpenUI (--openui-border-*), which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent since ADR 0015, no mint)",
+    why: "Name mappings for Tailwind (--color-*) and OpenUI (--openui-border-*), which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent, no mint)",
   },
   "src/app/_landing/home-explorable.tsx": {
     uses: 3,
@@ -75,7 +75,7 @@ const INVENTORY: Record<string, Use> = {
   },
 };
 
-// Spec 2026-11-12 F1 and F5 (ADR 0015): "the test that lists where an accent fill may appear gains the Bands". A Band is a
+// Spec 2026-11-12 F1 and F5, until #17 lands (ADR 0015 replaces the royal Band): "the test that lists where an accent fill may appear gains the Bands". A Band is a
 // full-width royal surface (--band, which is --royal, the same in both themes) with white text on it, and F1 names the only
 // places one may stand. This inventory holds every place src/ paints one: "band" (a Band surface, with the F1 place it is),
 // or "mapping" (globals.css: the Band tokens, their Tailwind names and the .band and .home-band rules that paint a Band

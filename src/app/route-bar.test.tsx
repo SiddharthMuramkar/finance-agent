@@ -65,7 +65,7 @@ describe("the route bar", () => {
     expect(phase()).toBe("idle");
   });
 
-  it("is a 2px accent line (ADR 0015: the one accent, no old --brand name)", async () => {
+  it("is a 2px accent line (no old --brand name)", async () => {
     await draw();
     const bar = host.querySelector<HTMLElement>('[data-testid="route-bar"]')!;
     expect(bar.className).toContain("h-0.5");

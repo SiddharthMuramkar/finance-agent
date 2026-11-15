@@ -17,7 +17,7 @@ describe("the Welcome", () => {
     const html = render("how-a-topic-works");
     const strip = html.match(/<ol[^>]*data-step-strip[^>]*>([\s\S]*?)<\/ol>/)![1];
     expect(text(strip).trim()).toBe("Story Concept Explore Your turn Check Reveal Principle");
-    // ADR 0015: plain words between two hairlines, each after an accent number (a CSS counter), not a row of tags.
+    // ADR 0018: plain words between two hairlines, each after an accent number (a CSS counter), not a row of tags.
     expect(strip).not.toContain('data-affordance="tag"');
     expect(html).toMatch(/<ol data-step-strip="true"[^>]*class="[^"]*border-y border-\[var\(--rule\)\][^"]*\[counter-reset:step\]/);
     expect(strip).toMatch(/<li class="[^"]*before:content-\[counter\(step,decimal-leading-zero\)_\/_(?:''|&#x27;&#x27;)\]/);
