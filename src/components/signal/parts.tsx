@@ -160,8 +160,7 @@ export function CallFieldset({
   return (
     <fieldset className="sig-call">
       <legend>
-        <span className="sig-tag">Your call</span>
-        {question}
+        <span className="sig-tag">Your call</span> {question}
       </legend>
       <div className="sig-chips">
         {options.map((o) => {
@@ -258,8 +257,7 @@ export function GoDeeper({ open, title, lockedText = "Opens after your call.", c
     return (
       <div className="sig-l2" data-open="false">
         <p className="sig-l2-locked">
-          <span className="sig-tag">Go deeper</span>
-          <Icon name="lock" />
+          <span className="sig-tag">Go deeper</span> <Icon name="lock" />
           {lockedText}
         </p>
       </div>
@@ -268,8 +266,7 @@ export function GoDeeper({ open, title, lockedText = "Opens after your call.", c
   return (
     <div className="sig-l2 is-open" data-open="true">
       <p>
-        <span className="sig-tag">Go deeper</span>
-        <b>{title}</b>
+        <span className="sig-tag">Go deeper</span> <b>{title}</b>
       </p>
       {children}
     </div>
