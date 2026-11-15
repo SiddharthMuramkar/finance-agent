@@ -123,9 +123,10 @@ export const config = {
   // `api/login` (the passcode door's own route, which must work signed out and checks the door itself) skips the proxy
   // only as a whole path segment, so "/api/login-anything" is still checked. The sign-in page itself goes through the
   // proxy, so a signed-in visit can skip the form.
-  // `api/cron/library-refresh` (exactly) skips it too: Vercel Cron has no sign-in, and the route checks CRON_SECRET itself.
+  // `api/cron/library-refresh` and `api/cron/health` (#36) (exactly) skip it too: Vercel Cron and Schedules have no
+  // sign-in, and each route checks CRON_SECRET itself.
   // BotID's challenge segment (withBotId's rewrites in next.config.ts) skips it as a whole segment: the visitor may be signed out.
   matcher: [
-    "/((?!api/login(?:/|$)|api/cron/library-refresh$|149e9513-01fa-4fb0-aad4-566afd725d1b/|_next/static|_next/image|favicon.ico|icon.svg).*)",
+    "/((?!api/login(?:/|$)|api/cron/library-refresh$|api/cron/health$|149e9513-01fa-4fb0-aad4-566afd725d1b/|_next/static|_next/image|favicon.ico|icon.svg).*)",
   ],
 };

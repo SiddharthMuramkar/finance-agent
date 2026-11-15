@@ -298,11 +298,15 @@ describe("Clerk off: no keys (CI), or the browser test bed", () => {
 describe("The matcher", () => {
   const matcher = new RegExp(`^${config.matcher[0]}$`);
 
-  it("keeps only the passcode door's own route and the cron route out of the proxy; Better Auth's routes go through it now", () => {
+  it("keeps only the passcode door's own route and the two cron routes out of the proxy; Better Auth's routes go through it now", () => {
     expect(matcher.test("/api/login")).toBe(false);
     expect(matcher.test("/api/login/x")).toBe(false);
     expect(matcher.test("/api/login-anything")).toBe(true);
     expect(matcher.test("/api/cron/library-refresh")).toBe(false);
+    // The health cron (#36): Vercel's schedule has no sign-in; the route checks CRON_SECRET itself.
+    expect(matcher.test("/api/cron/health")).toBe(false);
+    expect(matcher.test("/api/cron/health/x")).toBe(true);
+    expect(matcher.test("/api/cron/other")).toBe(true);
     expect(matcher.test("/api/auth/sign-in/social")).toBe(true);
     expect(matcher.test("/api/auth")).toBe(true);
     expect(matcher.test("/api/turn")).toBe(true);
