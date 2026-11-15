@@ -38,8 +38,8 @@ test("the owner reaches Admin from the account menu: Spend, Tutor speed and Who 
   await expect(people.getByRole("heading", { name: "Who may come in", level: 2 })).toBeVisible();
   await expect(people.getByRole("link", { name: "Waitlist in Clerk" })).toHaveAttribute("href", /^https:\/\/dashboard\.clerk\.com\//);
   await expect(people.getByRole("link", { name: "Users in Clerk" })).toHaveAttribute("href", /^https:\/\/dashboard\.clerk\.com\//);
-  // Read only: approving, denying and inviting are Clerk's now.
-  await expect(owner.page.getByTestId("reading-column").getByRole("button")).toHaveCount(0);
+  // Nothing to press here: approving, denying and inviting are Clerk's now.
+  await expect(people.getByRole("button")).toHaveCount(0);
 });
 
 test("an account that is not the admin sees no Admin row, and /admin is not found; nor is it for the passcode", async ({ person, page }) => {

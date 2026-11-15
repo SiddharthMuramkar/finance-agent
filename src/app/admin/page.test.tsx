@@ -91,8 +91,8 @@ describe("/admin", () => {
     for (const [, cls] of html.matchAll(/<section class="([^"]*)" id="/g)) expect(cls).toMatch(/^border-t border-\[var\(--line\)\]/);
     // The header's account menu is the admin's (accountFor), and no page link is marked current.
     expect(html).not.toContain('aria-current="page"');
-    // Nothing on the page changes anything: who may come in is changed in Clerk.
-    for (const id of ids) expect(section(html, id)).not.toMatch(/<form|<button|btn-primary/);
+    // Who may come in has nothing to press: it is changed in Clerk. (Spend may hold its own forms, such as #36's caps.)
+    expect(section(html, "people")).not.toMatch(/<form|<button|btn-primary/);
   });
 
   it("sends the admin to Clerk for who may come in: the Waitlist to let people in, Users to take access away", async () => {
