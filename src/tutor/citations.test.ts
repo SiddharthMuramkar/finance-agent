@@ -4,7 +4,7 @@ import { scriptedClient } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { importCaseData } from "@/case-data/import";
-import { foldText, HIDDEN_SOURCE_TITLE } from "./citations";
+import { displayText, foldText, HIDDEN_SOURCE_TITLE } from "./citations";
 import { loadCurrentSession } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
@@ -181,5 +181,24 @@ describe("Tutor replies cite Library passages", () => {
     const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     expect(streamed(events)).toBe("Plain");
+  });
+});
+
+// An old reply can hold a Widget fence (a stored reply from before #19 deleted that lane), and any reply can hold a fenced
+// block. A marker link inside one would break its code, so code shows none in a block that is in or touches a fence.
+describe("citation markers next to a fenced block", () => {
+  const passage = cite("/passages/2", "PV", 1, 2, "x");
+  const marker = "[1](/passages/2?blocks=1-2)";
+  const widget = '```openui-lang\nroot = Widget("PV", [])\n```';
+
+  it("never puts a marker in a block that is in or touches a fence, and marks the prose on each side of it", () => {
+    const content = [
+      { type: "text", text: "Prose", citations: [passage] },
+      { type: "text", text: `\n\n${widget.slice(0, 20)}` },
+      { type: "text", text: widget.slice(20, -4), citations: [passage] },
+      { type: "text", text: widget.slice(-4), citations: [passage] },
+      { type: "text", text: "\n\nAfter.", citations: [passage] },
+    ];
+    expect(displayText(content)).toBe(`Prose${marker}\n\n${widget}\n\nAfter.${marker}`);
   });
 });
