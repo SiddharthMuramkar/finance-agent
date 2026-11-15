@@ -103,5 +103,16 @@
     "fetchedOn": "2026-11-02",
     "publishedOn": "2026-10-26",
     "fetch": "python3 -I scripts/library/sources.py sec-anthropic-s1 <scratch> <scratch>/sec-anthropic-s1.documents.json (EDGAR submissions API confirms the accession and filing date; User-Agent declared)"
+  },
+  {
+    "id": "fomc-historical",
+    "title": "FOMC statements, minutes and Records of Policy Actions, 1979-2001 (Federal Reserve Board)",
+    "kind": "dated",
+    "licence": "US federal publication, public domain unless marked",
+    "licenceUrl": "https://www.federalreserve.gov/disclaimer.htm",
+    "credit": "Board of Governors of the Federal Reserve System, FOMC historical materials (federalreserve.gov): statements, minutes and Records of Policy Actions, each dated by its release",
+    "url": "https://www.federalreserve.gov/monetarypolicy/fomc_historical.htm",
+    "fetchedOn": "2026-11-15",
+    "fetch": "python3 -I scripts/library/sources.py fomc-historical <scratch> <scratch>/fomc-historical.documents.json (crawls the year pages fomchistorical1979.htm to fomchistorical2001.htm: statements from February 1994, dated by the meeting or their Release Date line; minutes from February 1993, dated by the \"Released\" date on the year page; Records of Policy Actions to 1992 from PDF, dated by their press-release cover or a week after the next meeting; a PDF goes in only when its text layer passes scripts/library/text-layer.mjs (needs Node 22.18+ for type stripping); scans and every other skip are listed with the reason in <scratch>/fomc-historical.dropped.json; transcripts, Greenbooks, Bluebooks and Beige Books are left out)"
   }
 ]

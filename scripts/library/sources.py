@@ -3,7 +3,7 @@
 Run from the laptop, with a scratch folder OUTSIDE this repo (downloads are cached there):
   python3 -I scripts/library/sources.py <source> <scratch dir> <documents.json>
 where <source> is one of: damodaran-papers, yale-econ-251, yale-econ-252, fed-explained,
-nyfed, sec-anthropic-s1. Each writes a JSON list of documents ({ref, title, url, publishedOn, sections})
+nyfed, fomc-historical, sec-anthropic-s1. Each writes a JSON list of documents ({ref, title, url, publishedOn, sections})
 for `npm run library:load`, which cleans, cuts, repairs and checks the text. Nothing extracted is
 written into the repo: the source text lives only in the private database.
 
@@ -22,6 +22,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from datetime import date, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -354,7 +355,8 @@ def meeting_end(label, year):
 
 
 def days_after(day, n):
-    return time.strftime("%Y-%m-%d", time.gmtime(time.mktime(time.strptime(day, "%Y-%m-%d")) + n * 86400 + 43200))
+    """The ISO day n days after an ISO day (calendar arithmetic, the same in every time zone)."""
+    return (date.fromisoformat(day) + timedelta(days=n)).isoformat()
 
 
 def fomc_year_page(markup, year):
@@ -390,7 +392,9 @@ def fomc_year_page(markup, year):
 def fomc_html_sections(markup, kind):
     """The words of an FOMC statement or minutes page as sections: without the press-release header, the
     list of those present, the signature, the footnotes and the site footer. Layout tables are read as
-    plain text, so a page set inside one table cell keeps its paragraphs."""
+    plain text, so a page set inside one table cell keeps its paragraphs. The page's <head> (its <title>,
+    "FRB: Press Release -- FOMC statement -- ...") is left out too."""
+    markup = re.sub(r"<head\b.*?</head>|<title\b.*?</title>", "", markup, flags=re.I | re.S)
     markup = re.sub(r"</?(table|tbody|thead|center)\b[^>]*>", "<div>", markup, flags=re.I)
     markup = re.sub(r"</?tr\b[^>]*>", "<br>", markup, flags=re.I)
     markup = re.sub(r"</?t[dh]\b[^>]*>", " ", markup, flags=re.I)
@@ -402,9 +406,10 @@ def fomc_html_sections(markup, kind):
             blocks.append((kind_, text))
     starts = [i for i, (_, t) in enumerate(blocks) if t.startswith("For immediate release") or t.startswith("A meeting of the Federal Open Market Committee")]
     if kind == "minutes" and starts:
-        # The attendance list: names, one a line, until the first sentence that is not about a person.
+        # The attendance list: names, one a line, and its numbered footnotes ("3. Attended portion of meeting
+        # relating to ..."), until the first sentence that is not about a person.
         opening, rest = blocks[starts[0]], blocks[starts[0] + 1 :]
-        title = r"(Mr|Ms|Mrs|Miss|Messrs|Mmes|Dr)\.?\s"
+        title = r"(Mr|Ms|Mrs|Miss|Messrs|Mmes|Dr)\.?\s|\d{1,2}\.\s"
         first = next((i for i, (_, t) in enumerate(rest) if len(t.split()) >= 12 and t.rstrip().endswith(".") and not re.match(title, t)), 0)
         blocks = [opening] + rest[first:]
         end = next((i for i, (_, t) in enumerate(blocks) if t.startswith("The meeting adjourned")), None)
@@ -434,18 +439,38 @@ def layout_paragraphs(page):
     return paras, not (len(lines[0]) - len(lines[0].lstrip()) - base >= 3)
 
 
+LAYOUT_HEADING = re.compile(r"\d{1,2}\.\s+[A-Z][^.,;]{2,80}")
+
+
+def _is_layout_heading(paragraph):
+    return LAYOUT_HEADING.fullmatch(" ".join(paragraph.split())) is not None
+
+
+def _goes_on(previous, paragraph):
+    """Whether a paragraph is the rest of the one before it: that one stopped mid-sentence (no closing mark,
+    not a heading) and this one starts in lower case or with a number that is not a heading's ("December" /
+    "20. In foreign exchange markets, ..."). Every line of an indented quotation looks like a new paragraph."""
+    if re.search(r"[.:;?!\"”)]$", previous) or _is_layout_heading(previous):
+        return False
+    return re.match(r"[a-z]", paragraph) is not None or (re.match(r"\d", paragraph) is not None and not _is_layout_heading(paragraph))
+
+
 def layout_document(pages, ref, title, url, published_on):
     """A typewritten PDF (pages of `pdftotext -layout` text) as a document: paragraphs rebuilt from the layout,
     joined across page breaks, and numbered headings ("2. Authorization for domestic open market operations")
-    starting sections."""
+    starting sections. A paragraph that goes on from the one before it (_goes_on) is joined back to it."""
     stripped = strip_running_lines([{"text": p} for p in pages])
     paras = []
     for page in stripped:
         found, goes_on = layout_paragraphs(page["text"])
         if found and goes_on and paras and not re.search(r"[.:;?!\"”)]$", paras[-1]):
             paras[-1] += "\n" + found.pop(0)
-        paras += found
-    blocks = [("h", " ".join(p.split())) if re.fullmatch(r"\d{1,2}\.\s+[A-Z][^.]{2,80}", " ".join(p.split())) else ("p", p) for p in paras]
+        for p in found:
+            if paras and _goes_on(paras[-1], p):
+                paras[-1] += "\n" + p
+            else:
+                paras.append(p)
+    blocks = [("h", " ".join(p.split())) if _is_layout_heading(p) else ("p", p) for p in paras]
     return {"ref": ref, "title": title, "url": url, "publishedOn": published_on, "sections": sections_from_blocks(blocks)}
 
 
@@ -492,7 +517,8 @@ def fomc_historical(scratch, out, first=1979, last=2001, beige_books=False):
                 markup = fetch(item["url"], cache / (name if name.endswith("htm") else name + ".htm"))
                 sections = fomc_html_sections(markup, item["kind"])
                 if item["kind"] == "statement":
-                    released = max(item["releasedOn"], iso_date(re.search(r"Release Date:.*", markup).group(0)) if "Release Date:" in markup else item["releasedOn"])
+                    stamped = re.search(r"Release Date:\s*" + DATE, markup)
+                    released = max(item["releasedOn"], iso_date(stamped.group(0))) if stamped else item["releasedOn"]
                     title = f"FOMC statement, {iso_label(released)}" + (" (after a conference call)" if meeting["call"] else "")
                     doc = {"ref": f"statement-{day}", "title": title, "url": item["url"], "publishedOn": released, "sections": sections}
                 else:
@@ -648,6 +674,8 @@ def main():
         fed_explained(scratch, out)
     elif source == "nyfed":
         nyfed(scratch, out)
+    elif source == "fomc-historical":
+        fomc_historical(scratch, out)
     elif source == "sec-anthropic-s1":
         sec_filing("0002130357", "0001628280-26-067168", "anthropicpbc-sx1.htm", "Form S-1 registration statement", scratch, out)
     else:
