@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { getDb } from "@/db/client";
 import { learnerForClerkUser } from "./clerk-learner";
 import { SIGN_IN_PATH } from "./destination";
@@ -25,16 +26,18 @@ export type SignIn =
  * Who signed in, the account first: its Learner is made or found on first use and always exists. Only with no account
  * does the passcode cookie decide, and only while the door is open, for an active Learner whose name is on `PASSCODES`
  * and who belongs to no account. The proxy has only let the request through; every page and route checks here before
- * reading any Learner data, so an archived Learner is signed out everywhere at once.
+ * reading any Learner data, so an archived Learner is signed out everywhere at once. Read once per server render
+ * (React `cache`): a page asks through both signedInLearner and its header's currentAccount, and that is one read.
+ * Outside a render (a route handler, a test) every call reads afresh.
  */
-export async function currentSignIn(): Promise<SignIn> {
+export const currentSignIn = cache(async function currentSignIn(): Promise<SignIn> {
   const identity = await currentIdentity();
   if (identity) return { kind: "learner", learner: await learnerForClerkUser(getDb(), identity), via: "account", identity };
   if (!passcodeDoorOpen(process.env)) return { kind: "signed-out" };
   const jar = await cookies();
   const learner = await learnerFromCookie(getDb(), jar.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "", passcodeList());
   return learner ? { kind: "learner", learner, via: "passcode" } : { kind: "signed-out" };
-}
+});
 
 /** The signed-in Learner of this request, or null when it is signed out. */
 export async function currentLearner(): Promise<Learner | null> {

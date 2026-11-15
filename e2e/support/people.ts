@@ -46,14 +46,7 @@ export async function becomePerson(page: Page, data: PersonFixture): Promise<Per
 
 // Each fixture hands its value to the test through its second argument, named `provide` here: called `use`, the React
 // hooks lint takes it for a hook.
-export const test = base.extend<{ tools: APIRequestContext; person: (data: PersonFixture) => Promise<Person> }>({
-  /** A request context signed in as the tools Learner, for fixtures that sign nobody in. It shares no cookie with any page. */
-  tools: async ({ playwright }, provide) => {
-    const tools = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
-    await signInTools(tools);
-    await provide(tools);
-    await tools.dispose();
-  },
+export const test = base.extend<{ person: (data: PersonFixture) => Promise<Person> }>({
   /** Opens a browser of the person's own (beside the test's `page`), signed in as them; closed when the test ends. */
   person: async ({ browser }, provide) => {
     const opened: BrowserContext[] = [];
