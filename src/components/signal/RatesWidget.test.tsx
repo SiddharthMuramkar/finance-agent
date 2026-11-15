@@ -35,6 +35,16 @@ describe("the rates widget renders", () => {
     expect(w.dataset.compact).toBe("true");
   });
 
+  // #26 asks for the New York Fed's reference-rate notice wherever SOFR or EFFR data is shown or explained. This widget is
+  // a worked example from the Topic with no outside figures (§6.5.2), so its foot says that and carries no NY Fed notice;
+  // a widget that one day draws SOFR or EFFR must add NYFED_REFERENCE_RATE_NOTICE (src/library/credits.ts).
+  it("cites no outside figures, so it carries no New York Fed reference-rate notice", () => {
+    const { container } = render(<RatesWidget />);
+    const foot = textOf(widget(container).querySelector(".sig-src"));
+    expect(foot).toBe("Worked example from the Topic. No outside figures.");
+    expect(textOf(widget(container))).not.toMatch(/SOFR|EFFR|New York Fed|newyorkfed/);
+  });
+
   it("renders nothing for a Case it does not know", () => {
     const { container } = render(<RatesWidget caseSlug="amazon-2000" />);
     expect(container.innerHTML).toBe("");

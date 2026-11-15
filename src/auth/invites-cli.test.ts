@@ -121,7 +121,7 @@ describe("npm run invites", () => {
     expect(out.lines).toEqual(["Nobody is waiting."]);
   });
 
-  // ADR 0014 replaces ADR 0011's lock-out order (remove the invite, close sign-up, archive): one denial on /admin does it.
+  // ADR 0014 drops the old lock-out order (remove the invite, close sign-up, archive): one denial on /admin does it.
   it("remove says the invite alone takes no access away, and points to Remove access on /admin", async () => {
     const db = await testDb();
     await runInvites(db, ["add", "a@x.com"], capture().log);

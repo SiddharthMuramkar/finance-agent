@@ -56,7 +56,7 @@ youllLearn:
   - "Judge whether a company is moving toward profit as it grows."
   - "Keep run rates and adjusted figures apart from audited profit."
 
-# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0002).
 exampleCurrency: INR
 runningExample:
   text: "A chai stall takes in ₹30,000 in a month and spends ₹35,000."

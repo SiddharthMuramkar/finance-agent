@@ -14,6 +14,7 @@ import {
   GoDeeper,
   isOwnCase,
   LockNote,
+  px,
   RangeControl,
   TableView,
   topRoundedBar,
@@ -84,20 +85,20 @@ function Chart({ years, split, compact }: { years: number; split: boolean; compa
             const shapes = parts.map((part, i) => {
               const ph = Math.max(0, h(part.value) - (i > 0 ? 1 : 0));
               y -= ph;
-              const d = part.top ? topRoundedBar(x, y, bw, ph) : `M${x},${y}h${bw}v${ph}h${-bw}Z`;
+              const d = part.top ? topRoundedBar(x, y, bw, ph) : `M${px(x)},${px(y)}h${px(bw)}v${px(ph)}h${px(-bw)}Z`;
               const shape = d ? <path key={part.cls + i} d={d} className={part.cls} /> : null;
               y -= 1;
               return shape;
             });
             return (
               <g key={c.year} className={c.year > years ? "sig-dim" : undefined} data-year={c.year}>
-                <rect x={x} y={bottom - baseH} width={bw} height={baseH} className="sig-f-ink" />
+                <rect x={px(x)} y={px(bottom - baseH)} width={px(bw)} height={px(baseH)} className="sig-f-ink" />
                 {shapes}
               </g>
             );
           })}
           {doublings.map((mark) => (
-            <text key={mark.label} x={(mark.year - 0.5) * slot} y={bottom - h(compoundYear(mark.year).balance) - 6} textAnchor="middle" className="sig-t-mark">
+            <text key={mark.label} x={px((mark.year - 0.5) * slot)} y={px(bottom - h(compoundYear(mark.year).balance) - 6)} textAnchor="middle" className="sig-t-mark">
               {mark.label}
             </text>
           ))}
@@ -113,9 +114,9 @@ function Chart({ years, split, compact }: { years: number; split: boolean; compa
           {columns.map((c) => (
             <rect
               key={`hit-${c.year}`}
-              x={(c.year - 1) * slot}
+              x={px((c.year - 1) * slot)}
               y={TOP}
-              width={slot}
+              width={px(slot)}
               height={PH}
               className="sig-hit"
               data-tip={`Year ${c.year}\nBalance: ${inr(c.balance)}\nAdded this year: ${inr(c.added)}`}

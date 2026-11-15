@@ -51,8 +51,8 @@ describe("preview matrix [S3]", () => {
 
   // Spec §6.2: side gutter <= 32 px at 1280, 1512 and 1920, and no gutter row at 1024, so F1's "the same except where
   // §6 names a looser bound" keeps 32 there (A1's 17 px is its own /study test, not a §6 threshold). Prose line length
-  // 45-80, 60-75 from 1440 up and 50-75 at 1280 (ADR 0013's 16 px chat in the conversation column); header <= 56; Widget panel >= 52 % (spec 2026-11-11, C2a: the 45 / 55 default split, R21).
-  it("the thresholds are §6.2's at every viewport, with ADR 0013's 1280 band", () => {
+  // 45-80, 60-75 from 1440 up and 50-75 at 1280 (the 16 px chat in the conversation column); header <= 56; Widget panel >= 52 % (spec 2026-11-11, C2a: the 45 / 55 default split, R21).
+  it("the thresholds are §6.2's at every viewport, with the 1280 band", () => {
     expect(() => matrixThresholds("mbp14-dark")).toThrow(/unknown matrix project/);
     for (const project of ["mbp14", "w1920"]) {
       expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 60, lineMax: 75 });
@@ -72,7 +72,8 @@ describe("preview matrix [S3]", () => {
     expect(prose).toEqual({
       home: null, about: null, "study-story": null, "study-story-scene": null, "study-lingo": null, "study-concept-widget": null, "study-quiz-open": null,
       "study-mixup-fix": null, "study-topic-complete": null,
-      "course-map": "if-any", notebook: "required", settings: "required", login: null,
+      "course-map": "if-any", notebook: "required", settings: "required",
+      "how-it-works": null, examples: null, "case-amazon": null, login: null,
     });
     expect(LOGIN_LINK_EXPIRED.prose ?? null).toBeNull();
     // Settings (A5) is a card-grid at every matrix viewport and A1 says "Running paragraphs inside cards use `measure`":

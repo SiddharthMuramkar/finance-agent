@@ -152,7 +152,7 @@ describe("recipe set B", () => {
   describe("formula", () => {
     const raw = (inputs: object, sourced = {}) => ({ title: "Own the formula", inputs, refs: { sourced }, facts: {} });
     const slider = { symbol: "ratePercent", label: "Yearly discount rate", min: 0, max: 15, step: 0.5, start: 5 };
-    it("is a Formula Card, never a formula typed out (ADR 0002)", () => {
+    it("is a Formula Card, never a formula typed out (ADR 0003)", () => {
       const built = build("formula", recipeById("formula")!.examples[0]);
       expect(built.code).toContain("FormulaCard(");
       expect(built.code).not.toMatch(/\^|\(1 \+/);

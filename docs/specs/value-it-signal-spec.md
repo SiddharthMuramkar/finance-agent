@@ -1119,6 +1119,8 @@ Visitors get an inline form: an email input (`autocomplete="email"`, placeholder
 
 Applicants and members see the CTA and note for their state instead of the form.
 
+**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join early access", the CTA note and the three steps. The CTA opens `/login` (the sign-in page, today's way in) until the Clerk cutover adds `/join` (Clerk's Waitlist page) and switches every visitor Join to it in the same change. The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
+
 ### 7.3 How it works
 
 1. Header: eyebrow "How it works", H1 "How a Topic works", lede "Every Topic is **one real event, taught in four moves**, in 10–15 minutes. You never type a number: you tap, drag and explain in your own words."
@@ -1339,8 +1341,8 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | 19 | Open `#case-amazon-2000` | Tutor's answer locked, ending locked, progress at step 2 |
 | 20 | Move a lever on that page | Tutor's answer appears, ending becomes "Ready", progress at step 3, Go deeper open with the bridge |
 | 21 | Tap "Reveal what really happened" | Reveal text with $35.08, $91.50 and $14.88, progress all done |
-| 22 | Submit "abc" in the closing form | Error "Enter an email address like name@example.com." |
-| 23 | Submit a valid email | `#pending`, "You’re on the list.", nav shows "Request in review" |
+| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join early access" links to `/login` (`/join` once the Clerk cutover adds it), with the early-access note and the three steps under it (7.2.8) |
+| 23 | Press "Join early access" in the closing block | It opens the sign-in page. With the Clerk cutover it opens `/join`, the sign-up page: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
 | 24 | Every route at 1440 × 900 and 390 × 844 | No console errors, no horizontal scroll |
 | 25 | Reduced motion on | No animated runs. Values jump. The demo answers at once. |
 | 26 | Keyboard only | Every chip, slider, lever, preset, toggle and reveal reachable and operable |
@@ -1358,7 +1360,7 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Learner quotes | None | Real sentences from early members. Never invented. |
 | Amazon model | Done (decision #18): the widget runs the valuation engine on Damodaran's sourced inputs, $35.04 against his $35.08, and its source line says so | Nothing |
 | First market | Mixed rupee and dollar cases | Choose which currency and events lead |
-| Dark theme | Not designed | If wanted: re-step and re-validate every signal colour |
+| Theme | Done (decision #17): one Light theme for the whole app; no other theme is built | Nothing |
 | Table views | Jackpot and compounding only | Add for levers, rates and WeWork |
 | Hero demo | Recorded | Wire to the live Tutor or keep the label |
 | Named valuation author | "Not affiliated" line on About | Confirm the wording is enough for you |

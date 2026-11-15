@@ -4,7 +4,7 @@ import { costUsd } from "./pricing";
 const none = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 };
 
 describe("price table", () => {
-  it("prices gpt-6.1-sol at $2 per million input and $10 per million output (ADR 0015)", () => {
+  it("prices gpt-6.1-sol at $2 per million input and $10 per million output (ADR 0007)", () => {
     // 100K tokens each way, well under the long-prompt line: 0.2 + 1.0.
     expect(costUsd("gpt-6.1-sol", { ...none, inputTokens: 100_000, outputTokens: 100_000 })).toBeCloseTo(1.2, 6);
   });

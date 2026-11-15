@@ -8,7 +8,7 @@ import { measureLayout } from "./support/measure";
 // this Session's Widgets in a row of text tabs. Checked at 1512×982 (mbp14) and 1280×800 (w1280). Four scripted
 // replies give four Widgets: the seed's Concept reply carries the card preset code opens at that step
 // ("One move, two ways", course/topics/num-percent-bps.yaml), then one stage script per reply. Each stage script opens a
-// different recipe (B6, ADR 0019: the same slider recipe at new numbers would take its tab in place), so four tabs.
+// different recipe (B6, ADR 0008: the same slider recipe at new numbers would take its tab in place), so four tabs.
 
 const STAGE_PROJECTS = ["mbp14", "w1280"];
 const TITLES = ["One move, two ways", "A deposit rate from 6% to 6.5%", "A loan rate from 9% to 8.75%", "A bond yield from 7% to 7.1%"];

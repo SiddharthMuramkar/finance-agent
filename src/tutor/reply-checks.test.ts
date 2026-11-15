@@ -483,7 +483,7 @@ describe("V8: no sum asked of the Learner", () => {
     expect(v8s("1 point times 100 is 100 bp.")).toEqual([]);
   });
 
-  // The ask sentence is read with the reply's numbers as context (ADR 0009): the numbers to work the figure out from
+  // The ask sentence is read with the reply's numbers as context (ADR 0002): the numbers to work the figure out from
   // may sit in a statement before the question, on its line or the line above.
   it.each([
     ["on the ask's line", "Infosys earned ₹30 profit on ₹100 of sales. What is its margin?"],

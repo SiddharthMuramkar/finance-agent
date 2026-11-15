@@ -3,7 +3,7 @@ import { loadCourseMap } from "@/course/map";
 import { choicesFor, wordChoiceTerm, type ChoiceStep } from "./choices";
 import { isChipMessage } from "./chips";
 
-/** Seam 3: the Choices picker (spec 2026-11-05, D3a). Labels and says are the spec's code set; a Choice is words only (ADR 0014, A2). */
+/** Seam 3: the Choices picker (spec 2026-11-05, D3a). Labels and says are the spec's code set; a Choice is words only (ADR 0008, A2). */
 
 const ids = (step: ChoiceStep, suggestion: string | null = null, last: string | null = null) => choicesFor(step, suggestion, last).map((c) => c.id);
 

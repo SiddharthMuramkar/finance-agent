@@ -1,7 +1,7 @@
 import type { RecipeArchetype } from "@/widgets/recipes/define";
 import type { IconName } from "./names";
 
-// Which Icon names a Widget's kind on the Widget panel's tabs (spec 2026-11-11, ticket A1b, ADR 0014): one per
+// Which Icon names a Widget's kind on the Widget panel's tabs (spec 2026-11-11, ticket A1b, ADR 0018): one per
 // archetype, `widget` for a Widget with no archetype, and the check mark for the open quiz's Check tab.
 
 /** Each archetype's Icon, in `ARCHETYPES` order. */

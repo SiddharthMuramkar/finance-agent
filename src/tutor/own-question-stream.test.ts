@@ -17,7 +17,7 @@ import { requestStop } from "./turn-status";
 import type { ProgressEvent } from "./tools";
 
 /**
- * Own-question replies stream behind the stream guard (spec 2026-11-12, A5 and A7; ADR 0017). A message the Learner
+ * Own-question replies stream behind the stream guard (spec 2026-11-12, A5 and A7; ADR 0006). A message the Learner
  * types, with no quiz Check open and no conversation Check waiting, shows sentence by sentence as the model writes it;
  * a sentence telling the Learner to buy, sell or hold something, or holding an internal word, never shows; word count,
  * a second question and the currency are measured afterwards and never cost a retry; under the reply code shows the open
@@ -180,7 +180,7 @@ describe("a streamed reply cut off and resumed", () => {
 });
 
 describe("Stop during a streamed reply", () => {
-  it("keeps ADR 0008's rule: the reply in progress is dropped, the Learner's message stays, marked Stopped", async () => {
+  it("keeps ADR 0006's rule: the reply in progress is dropped, the Learner's message stays, marked Stopped", async () => {
     const db = await testDb();
     const sessionId = await atYourTurn(db);
     const never = new Promise<never>(() => {});

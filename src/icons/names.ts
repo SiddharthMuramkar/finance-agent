@@ -1,4 +1,4 @@
-// The Icon set (spec 2026-11-11, ticket A1a, ADR 0014): every picture name a Topic file or the Tutor may use, and the
+// The Icon set (spec 2026-11-11, ticket A1a, ADR 0018): every picture name a Topic file or the Tutor may use, and the
 // lucide-react 1.71.0 drawing that shows it. The 161 old emoji names keep their alt and keywords from the emoji
 // registry, in its order; exchange, ranking, formula, story, lingo and widget name the Widget kinds.
 // Pure and self-contained (no module dependencies at all), so `scripts/check-course.mjs` runs it under plain Node.

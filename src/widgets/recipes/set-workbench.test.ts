@@ -6,7 +6,7 @@ import { WORKBENCH } from "./define";
 import { figuresFromTutor, recipeInputsIn, WORKBENCH_FIGURE_INPUTS } from "./set-workbench";
 import { RECIPES, recipeById } from "./index";
 
-// Workbench Widgets (spec 2026-11-12, B2; ADR 0018): only a recipe can be one, and value_levers is the first (B3).
+// Workbench Widgets (spec 2026-11-12, B2; ADR 0010): only a recipe can be one, and value_levers is the first (B3).
 
 const recipe = recipeById("value_levers")!;
 const built = recipe.build({ title: "What is Amazon worth a share?", inputs: { case: "amazon-dcf-2000" }, refs: {}, facts: {} });
@@ -174,7 +174,7 @@ describe("the B4 Workbench recipes", () => {
   });
 });
 
-describe("Case figures come from a Topic file, or the Workbench is an Illustration (ADR 0018)", () => {
+describe("Case figures come from a Topic file, or the Workbench is an Illustration (ADR 0010)", () => {
   const topics = [{ id: "t", explore: { workbench: { recipe: "cash_waterfall", inputs: { company: { name: "Webvan", revenue: 13.305, opening: { growth: 1, margin: 2 } } } } } }];
   it("finds every inputs a Topic file gives a recipe", () => {
     expect(recipeInputsIn(topics, "cash_waterfall")).toEqual([topics[0].explore.workbench.inputs]);

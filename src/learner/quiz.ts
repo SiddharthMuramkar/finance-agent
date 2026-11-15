@@ -178,7 +178,7 @@ export async function pendingQuizNote(
   learnerId: number,
   /**
    * The Topic of the Session the note goes to: only results of that Topic's Checks reach it (one
-   * Session per Topic, ADR 0004); the others wait for their own Topic's Session. Null (the
+   * Session per Topic, ADR 0005); the others wait for their own Topic's Session. Null (the
    * every-Topic-passed Session) takes none.
    */
   topicId: string | null,

@@ -1,5 +1,5 @@
 // The invite list, the Sign-up switch and the people waiting, for sign-in with Google or an email link
-// (ADR 0011, ADR 0014: an invite skips the wait; Approve, Deny and Remove access live on /admin). Run:
+// (ADR 0014: an invite skips the wait; Approve, Deny and Remove access live on /admin). Run:
 //   INVITES_DB_OK=<database host> npm run invites -- add <email> [--learner owner] [--note "..."]
 //   INVITES_DB_OK=<database host> npm run invites -- remove <email> | list | waiting | open | close
 // Meant for production too, so it asks the owner to name the database: INVITES_DB_OK must equal the host

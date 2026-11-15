@@ -21,12 +21,14 @@ const WARM_MS = 120_000;
 
 /**
  * `next dev` compiles each route the first time it is asked for, and the test server always starts cold. The first test
- * a shard runs used to pay for that inside its own 30 s: on main 742881b (#317) the seed route took 3.9 s, `/study`
+ * a shard runs used to pay for that inside its own 30 s: on one CI run the seed route took 3.9 s, `/study`
  * 15.2 s and the opener's `/api/turn` 6.1 s, so `e2e/message-row.spec.ts`, first in shard 2, timed out with no bug in
  * the app. Here, before any test, the routes nearly every test opens are visited once in a real browser: the story seed,
  * `/study` until its opener has finished, and `/course`; and `/notebook`, whose cold compile alone took 24.8 s inside
- * `e2e/header.spec.ts`'s 30 s on a slow runner (PR #615, shard 5). Then the tools Learner is started over to a fresh
- * one, so the first test finds the same state it would have found without the warm-up.
+ * `e2e/header.spec.ts`'s 30 s on a slow CI runner. Then the tools Learner is started over to a fresh
+ * one, so the first test finds the same state it would have found without the warm-up. Last, signed out, the public site's
+ * pages and the sign-in page (PUBLIC_PAGES): `e2e/about.spec.ts`'s D1, first in shard 1, opened `/` cold (21.8 s) and
+ * then `/about` cold inside its 30 s and timed out on one CI run.
  *
  * Best effort: a step that fails only logs a warning. The tests themselves then fail on whatever is broken, each with
  * its own message, instead of the whole run stopping here.
@@ -62,7 +64,22 @@ async function warmUp(baseURL: string, launchOptions: LaunchOptions | undefined)
       // Start the tools Learner over, so no test sees the warm-up's Session.
       await page.request.post("/api/dev-e2e", { data: { reset: true }, timeout: WARM_MS }).catch(() => {});
     }
+    // Signed out (a context of its own, with no cookie), as a visitor first opens them: each page until it is quiet, so
+    // its browser code is compiled too.
+    const visitor = await browser.newPage({ baseURL });
+    try {
+      for (const path of PUBLIC_PAGES) {
+        await visitor.goto(path, { timeout: WARM_MS });
+        await visitor.waitForLoadState("networkidle", { timeout: WARM_MS });
+      }
+      console.log(`Public pages warmed (${PUBLIC_PAGES.join(", ")}); warm-up took ${((Date.now() - started) / 1000).toFixed(1)} s in all.`);
+    } catch (error) {
+      console.warn(`Public page warm-up did not finish, so a public page may compile cold: ${(error as Error).message}`);
+    }
   } finally {
     await browser.close();
   }
 }
+
+/** The public site's pages (one case page compiles the route for all five) and the sign-in page. */
+const PUBLIC_PAGES = ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/login"];

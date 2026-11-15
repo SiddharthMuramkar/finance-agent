@@ -26,5 +26,5 @@ How the wayfinder skill's map, tickets, blocking and frontier live on GitHub. Re
   ```
 
 - **Resolve**: post the answer as a comment (`gh issue comment <n> --body "..."`), close the ticket (`gh issue close <n>`), then add one line to the map's "Decisions so far": `- [<ticket title>](<url>): <one-line gist>`.
-- **Research findings**: commit them on a throwaway branch named `research-<slug>`, push it, never open a PR, and link the branch from the ticket. The name has no `/` on purpose: in `vercel.json` the pattern `"*": false` does not match `/`, so a branch name with `/` gets a Vercel preview deploy.
+- **Research findings**: commit them on a throwaway branch named `research-<slug>`, push it, never open a PR, and link the branch from the ticket. No branch but `main` gets a Vercel deploy: `vercel.json` has `"main": true, "**": false`, and `**` (unlike `*`) also matches names with `/`.
 - **Labels**: map and tickets carry only `wayfinder:*` labels. Build issues made after the map is clear carry `ready-for-agent` or `ready-for-human`.

@@ -85,7 +85,7 @@ async function linkNamed(db: Db, user: AuthUser, learnerName: string): Promise<L
 }
 
 /**
- * The Learner a signed-in user (Google or an email link) enters as (ADR 0011), made or linked on first
+ * The Learner a signed-in user (Google or an email link) enters as (ADR 0014), made or linked on first
  * use, in this order:
  * 1. the active Learner already linked to the user;
  * 2. an invite naming a Learner: that active Learner, linked if nobody holds it (else null); made under that name if none exists;

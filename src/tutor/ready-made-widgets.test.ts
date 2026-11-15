@@ -6,7 +6,7 @@ import { fallbackCandidates } from "./compose";
 import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
 import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, TUTOR_RECIPE_IDS, tutorRecipeSignatures, widgetValidator } from "./ready-made-widgets";
 
-// Ready-made Widgets only (spec #229, ticket #242, ADR 0007): the Tutor's catalogue, a preset's checks, the facts a recipe
+// Ready-made Widgets only (spec #229, ticket #242, ADR 0009): the Tutor's catalogue, a preset's checks, the facts a recipe
 // may not be given, and the reply check's Widget validator.
 
 const WIDGET = [

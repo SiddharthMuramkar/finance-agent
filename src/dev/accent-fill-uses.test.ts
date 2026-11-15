@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CHART_SERIES, CHART_SURFACES } from "@/widgets/genui-theme";
 
-// Issue #457, spec §2.2 rules 1 and 6, spec 2026-11-11 A10a (ADR 0014), seam S7. The signal colours (--gain, --gain-deep,
+// Issue #457, spec §2.2 rules 1 and 6, spec 2026-11-11 A10a (ADR 0015), seam S7. The signal colours (--gain, --gain-deep,
 // --loss and --wait; decision #17) and the older family names (--mint is gain, --coral is loss; --sun, --violet, --you-line
 // and --src-line now point at ink, muted and blue, and stay listed until their files move to the spec names) appear in a
 // Widget only as small marks: a 1-2 px edge or rule, a dot, a bar or an Icon stroke beside words that already say what it
@@ -21,7 +21,7 @@ const INVENTORY: Record<string, Use> = {
   "src/app/globals.css": {
     uses: 21,
     verdict: "mapping",
-    why: "Name mappings: the older names pointed at the signal tokens (--mint, --coral, --danger ... at --gain and --loss), Tailwind's --color-* and OpenUI's --openui-border-*, which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent since ADR 0013, no mint)",
+    why: "Name mappings: the older names pointed at the signal tokens (--mint, --coral, --danger ... at --gain and --loss), Tailwind's --color-* and OpenUI's --openui-border-*, which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent, no mint)",
   },
   "src/app/widget-panel.tsx": { uses: 1, verdict: "mark", why: "A 2 px sunflower edge down the sourced strip, which starts with the Sourced Tag" },
   "src/app/(site)/site.css": {
@@ -77,7 +77,7 @@ const INVENTORY: Record<string, Use> = {
   },
 };
 
-// Spec 2026-11-12 F1 and F5 (ADR 0022): "the test that lists where an accent fill may appear gains the Bands". A Band is a
+// Spec 2026-11-12 F1 and F5 (ADR 0015 replaces the royal Band): "the test that lists where an accent fill may appear gains the Bands". A Band is a
 // full-width royal surface (--band, which is --royal) with white text on it, and F1 names the only
 // places one may stand. This inventory holds every place src/ paints one: "band" (a Band surface, with the F1 place it is),
 // or "mapping" (globals.css: the Band tokens, their Tailwind names and the .band and .home-band rules that paint a Band
@@ -97,9 +97,9 @@ const F1_PLACES: readonly BandPlace[] = ["Home's hero", "Home's How every Topic 
 
 const BAND_INVENTORY: Record<string, BandUse> = {
   "src/app/globals.css": {
-    uses: 32,
+    uses: 33,
     verdict: "mapping",
-    why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band and .home-band rules: the surface, its white and 72% text, its 18% rules, its white buttons (whose bars take the Band's blue), its white focus ring and Home's type on it",
+    why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band and .home-band rules: the surface, its white and 72% text, its white headings, its 18% rules, its white buttons (whose bars take the Band's blue), its white focus ring and Home's type on it",
   },
   "src/app/login/page.tsx": { uses: 1, verdict: "band", place: "the sign-in and Waiting pages' top strip", why: "The strip under the public header that holds the sign-in page's heading, the Waiting and Access not approved screens' included" },
   "src/app/workspace-parts.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar across the Study Workspace (F3): title, goal, step bar, All steps and Topic options, above both columns" },
@@ -164,7 +164,7 @@ describe("accent fills and the 3:1 rule", () => {
     for (const [file, use] of Object.entries(INVENTORY)) expect(use.why.length, file).toBeGreaterThan(20);
   });
 
-  // Spec 2026-11-11 A10a test 6 (ADR 0014): a family in a Widget is a thin mark beside words. Every Widget file's row is a
+  // Spec 2026-11-11 A10a test 6 (ADR 0015): a family in a Widget is a thin mark beside words. Every Widget file's row is a
   // "mark"; the kit's theme is the one "colour-only" row (its chart series), and globals.css holds only the mappings.
   it("has every Widget row as a mark, the kit's theme as the one colour-only row, and globals.css as the mappings", () => {
     // The Signal widgets (src/components/signal) and the site's chips, status dot and colour-language pictures (site.css)

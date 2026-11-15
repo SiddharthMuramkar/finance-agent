@@ -27,7 +27,7 @@ const MISALIGNMENT = "misalignment_policy_violation";
  * safety monitoring stopped is never retried as it was: the Learner is asked to put it another way. An error after the
  * response started streaming has an error code but no HTTP status, and is read by its code.
  * See https://developers.openai.com/api/docs/guides/error-codes.
- * No case echoes what the provider said (A3, ADR 0016): anything else reads "Something went wrong on our side", with
+ * No case echoes what the provider said (A3, ADR 0007): anything else reads "Something went wrong on our side", with
  * the failed turn's reference (`newFailureRef`), and the provider's words go to `providerDetails`, for the Owner.
  */
 export function describeFailure(error: unknown, ref: string = newFailureRef()): { kind: FailureKind; message: string } {
@@ -66,6 +66,15 @@ const REF_CHARACTERS = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 /** A failed turn's short reference (A3), such as "T7K2Q9": stored as `turns.failure_ref` and shown to the Learner. */
 export function newFailureRef(): string {
   return Array.from({ length: 6 }, () => REF_CHARACTERS[randomInt(REF_CHARACTERS.length)]).join("");
+}
+
+/**
+ * Whether the API refused the request with an HTTP error (a bad request, a rate limit, a server error) before any model
+ * ran: OpenAI bills nothing for it. An error after the response started streaming has no HTTP status, and neither has a
+ * dropped connection, so either may have been billed.
+ */
+export function refusedBeforeRunning(error: unknown): boolean {
+  return error instanceof APIError && typeof error.status === "number";
 }
 
 /**

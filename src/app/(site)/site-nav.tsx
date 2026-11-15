@@ -79,6 +79,9 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
   // No router (a static render in a test) reads as no page showing.
   const pathname = usePathname() ?? "";
   const current = currentLink(pathname);
+  // On the sign-in page Sign in is the page showing, and the page's own button is its one primary (5), so a visitor's nav
+  // there has no Join early access: it would be a second primary that only leads back to this page.
+  const onSignIn = pathname === "/login";
   const scrolled = useScrolled();
   const grow = useFirstVisit();
   // The sheet is open for the page it was opened on, so a route change closes it.
@@ -88,13 +91,13 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
   return (
     <header className={`v-nav${scrolled ? " scrolled" : ""}`} data-site-section="nav">
       <div className="v-wrap v-nav-row">
-        <Link href="/" className="v-brand">
+        <Link href="/" className="v-brand" data-affordance="nav">
           <Glyph size={22} grow={grow} />
           {BRAND}
         </Link>
         <nav aria-label="Main" className="v-navlinks">
           {NAV.map((link) => (
-            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined}>
+            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined} data-affordance="nav">
               {link.label}
             </Link>
           ))}
@@ -102,14 +105,14 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
         <div className="v-nav-right">
           {viewer.state === "visitor" && (
             <>
-              <Link href="/login" className="v-tlink ink v-signin">
+              <Link href="/login" className="v-tlink ink v-signin" aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
                 {chrome.signIn}
               </Link>
-              <PrimaryCta viewer={viewer} size="md" />
+              {!onSignIn && <PrimaryCta viewer={viewer} size="md" />}
             </>
           )}
           {viewer.state === "applicant" && (
-            <Link href="/login" className="v-status-link">
+            <Link href="/login" className="v-status-link" data-affordance="nav">
               <Pill tone="wait">
                 <span className="v-dot" aria-hidden="true" />
                 {chrome.inReview}
@@ -129,13 +132,19 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
       </div>
       {open && (
         <nav id="site-menu" aria-label="Menu" className="v-sheet">
-          <Link href="/">{chrome.home}</Link>
+          <Link href="/" data-affordance="nav">
+            {chrome.home}
+          </Link>
           {NAV.map((link) => (
-            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined}>
+            <Link key={link.href} href={link.href} aria-current={current === link.href ? "page" : undefined} data-affordance="nav">
               {link.label}
             </Link>
           ))}
-          {viewer.state === "visitor" && <Link href="/login">{chrome.signIn}</Link>}
+          {viewer.state === "visitor" && (
+            <Link href="/login" aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
+              {chrome.signIn}
+            </Link>
+          )}
         </nav>
       )}
     </header>

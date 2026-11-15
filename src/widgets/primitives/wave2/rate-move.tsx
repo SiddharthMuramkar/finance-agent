@@ -15,7 +15,7 @@ import { markReading, moveReadings, RATE_MOVE_LABELS, RATE_MOVE_MAX, RATE_MOVE_S
 // in points, in basis points and next to the old rate, as a reporter, a trader and a headline would (#530: quotes,
 // never a worked sum), all written by the tested rateMoveLines. In practice
 // mode the lines stay hidden until the Learner taps the right reading of the move (the right one, the x10 slip and
-// the percent mix-up, ADR 0009) and code marks the tap; only then do the lines show, with sliders for play that move
+// the percent mix-up, ADR 0002) and code marks the tap; only then do the lines show, with sliders for play that move
 // the lines, never the marked question. Nothing is typed. Rates only: no currency. Each line has a speaker (a reporter,
 // a trader, a headline) and a chart Icon sits by the arrow (#480), so the Widget is never chart-only.
 

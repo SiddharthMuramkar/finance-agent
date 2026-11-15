@@ -19,7 +19,7 @@ import { startTurn, updateTurn } from "./turn-status";
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
- * The switch to OpenAI (ADR 0015): a Session frozen for a Claude model is closed (Older, still readable) when the
+ * The switch to OpenAI (ADR 0007): a Session frozen for a Claude model is closed (Older, still readable) when the
  * Learner's next turn or visit reaches it, and a fresh gpt-6.1-sol Session takes over at the saved step. Nothing of a
  * Claude-era conversation is ever sent to OpenAI.
  */
