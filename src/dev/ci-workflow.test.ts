@@ -1,6 +1,7 @@
-import { spawnSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { execFileSync, spawnSync } from "node:child_process";
+import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
@@ -8,7 +9,7 @@ import { parse } from "yaml";
  * The CI workflow's contract (docs/ci.md): the ruleset on main and Vercel's Deployment Checks wait for checks named
  * exactly `check`, `build` and `ui`, and each must stand for every real job before it.
  */
-type Step = { run?: string; uses?: string; with?: Record<string, unknown>; env?: Record<string, string> };
+type Step = { id?: string; run?: string; uses?: string; with?: Record<string, unknown>; env?: Record<string, string> };
 type Job = { name?: string; needs?: string | string[]; if?: string; strategy?: { matrix?: { shard?: number[] } }; env?: Record<string, string>; steps?: Step[] };
 type Workflow = { jobs: Record<string, Job> };
 
@@ -49,6 +50,64 @@ describe("the required checks check, build and ui", () => {
       expect(needs(ci.jobs[id]), id).toContain("changes");
       expect(ci.jobs[id].if, id).toBe("needs.changes.outputs.code == 'true'");
     }
+  });
+});
+
+describe("the `changes` job's classify step", () => {
+  const classify = ci.jobs.changes.steps?.find((step) => step.id === "classify")?.run ?? "";
+
+  /**
+   * Runs the step as GitHub does (`shell: bash`) in a scratch repo of two commits: the base, which holds this branch's
+   * scripts/ci-changes.mjs, and the PR, which writes `changed`. Returns what the step wrote to $GITHUB_OUTPUT.
+   */
+  const runStep = (changed: Record<string, string>, event = "pull_request") => {
+    const repo = mkdtempSync(join(tmpdir(), "ci-classify-repo-"));
+    const runner = mkdtempSync(join(tmpdir(), "ci-classify-runner-"));
+    try {
+      const git = (...args: string[]) =>
+        execFileSync("git", ["-c", "user.name=ci", "-c", "user.email=ci@example.invalid", "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", ...args], { cwd: repo });
+      const write = (path: string, text: string) => {
+        mkdirSync(dirname(join(repo, path)), { recursive: true });
+        writeFileSync(join(repo, path), text);
+      };
+      git("init", "-q");
+      write("README.md", "base\n");
+      mkdirSync(join(repo, "scripts"));
+      copyFileSync(join(process.cwd(), "scripts", "ci-changes.mjs"), join(repo, "scripts", "ci-changes.mjs"));
+      git("add", "-A");
+      git("commit", "-qm", "base");
+      for (const [path, text] of Object.entries(changed)) write(path, text);
+      git("add", "-A");
+      git("commit", "-qm", "pr");
+      const output = join(runner, "output");
+      const step = spawnSync("bash", ["--noprofile", "--norc", "-eo", "pipefail", "-c", classify], {
+        cwd: repo,
+        encoding: "utf8",
+        env: { ...process.env, EVENT: event, RUNNER_TEMP: runner, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: join(runner, "summary") },
+      });
+      expect(step.status, step.stderr).toBe(0);
+      return readFileSync(output, "utf8");
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+      rmSync(runner, { recursive: true, force: true });
+    }
+  };
+
+  it("says code=false for a PR that changes only docs", () => {
+    expect(runStep({ "docs/guide.md": "new\n" })).toBe("code=false\n");
+  });
+
+  it("says code=true for a PR that changes code", () => {
+    expect(runStep({ "docs/guide.md": "new\n", "src/a.ts": "export {};\n" })).toBe("code=true\n");
+  });
+
+  it("says code=true for a push, without asking the classifier", () => {
+    expect(runStep({ "docs/guide.md": "new\n" }, "push")).toBe("code=true\n");
+  });
+
+  it("says code=true for a PR that changes the classifier, even when the PR's copy of it says docs-only", () => {
+    // The PR's own copy decides, so a broken copy must not skip the tests that would catch it.
+    expect(runStep({ "scripts/ci-changes.mjs": 'console.log("code=false");\n', "docs/guide.md": "new\n" })).toBe("code=true\n");
   });
 });
 

@@ -57,6 +57,8 @@ Everything else is code, for example: anything under `.github/workflows/`, `.git
 `src/` or `course/`. A moved file counts at its old path and at its new path.
 
 - A push to `main` always runs every job.
+- A PR that changes `scripts/ci-changes.mjs` always runs every job. The PR's own copy of the script decides, so a
+  broken copy must not skip the tests that would catch it. `src/dev/ci-workflow.test.ts` runs the real step.
 - When code starts to read a file under `docs/`, add that path to `DOCS_READ_BY_CODE` in `scripts/ci-changes.mjs`.
   `src/dev/ci-changes.test.ts` finds `docs/` paths in the code and fails until you do.
 

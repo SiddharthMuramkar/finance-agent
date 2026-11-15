@@ -52,6 +52,13 @@ jobs:
           fi
           # --no-renames lists a moved file twice, at its old path and its new one, so moving code into docs/ is code.
           git diff --name-only --no-renames HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"
+          # The PR's own copy of the classifier runs below. A PR that changes it runs every job, so a broken copy that
+          # says "docs-only" cannot skip the tests that would catch it (src/dev/ci-changes.test.ts runs the script).
+          if grep -q '^scripts/ci-changes\.' "$RUNNER_TEMP/changed.txt"; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "This PR changes scripts/ci-changes.mjs: every job runs." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           node scripts/ci-changes.mjs < "$RUNNER_TEMP/changed.txt" > "$RUNNER_TEMP/code.txt" 2> "$RUNNER_TEMP/why.txt"
           cat "$RUNNER_TEMP/code.txt" >> "$GITHUB_OUTPUT"
           tee -a "$GITHUB_STEP_SUMMARY" < "$RUNNER_TEMP/why.txt"

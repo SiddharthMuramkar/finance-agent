@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -36,6 +37,27 @@ describe("isDocsOnly: may CI skip the heavy jobs for this PR?", () => {
   });
 });
 
+describe("node scripts/ci-changes.mjs: what CI's `changes` job writes to $GITHUB_OUTPUT", () => {
+  // The workflow runs the script exactly like this: the changed paths on stdin, one per line.
+  const classify = (changed: string) => {
+    const run = spawnSync(process.execPath, ["scripts/ci-changes.mjs"], { input: changed, encoding: "utf8" });
+    expect(run.status, run.stderr).toBe(0);
+    return run.stdout;
+  };
+
+  it("prints code=false when the PR changes only docs", () => {
+    expect(classify("docs/adr/0017-clerk-replaces-better-auth.md\nGLOSSARY.md\n")).toBe("code=false\n");
+  });
+
+  it("prints code=true when one changed file is code", () => {
+    expect(classify("docs/ci.md\nsrc/proxy.ts\n")).toBe("code=true\n");
+  });
+
+  it("prints code=true when no changed files are listed", () => {
+    expect(classify("")).toBe("code=true\n");
+  });
+});
+
 /**
  * Paths under docs/ that code names but CI never reads, so a docs-only PR may change them. Each needs a reason.
  */
@@ -47,7 +69,8 @@ const NAMED_BUT_NOT_READ_IN_CI: Record<string, string> = {
 /** Every docs/ path named in a string in src/, scripts/ or e2e/: "docs/a/b" or join(..., "docs", "a", "b"). */
 function docsPathsNamedInCode(): { file: string; path: string }[] {
   const found: { file: string; path: string }[] = [];
-  const skip = new Set(["src/dev/ci-changes.test.ts", "scripts/ci-changes.mjs"]);
+  // These name made-up docs paths as test data: the classifier itself, its tests, and the classify step's scratch repo.
+  const skip = new Set(["src/dev/ci-changes.test.ts", "scripts/ci-changes.mjs", "src/dev/ci-workflow.test.ts"]);
   const walk = (dir: string): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       const path = join(dir, entry.name);
