@@ -24,7 +24,8 @@ const as = vi.hoisted(() => ({ db: undefined as unknown as Db, map: undefined as
 vi.mock("@/db/client", () => ({ getDb: () => as.db }));
 vi.mock("@/auth/session", () => {
   const learner = async () => ({ id: as.learnerId, name: `learner-${as.learnerId}`, archivedAt: null, showDeveloperDetails: false, createdAt: new Date() });
-  return { currentLearnerId: async () => as.learnerId, isSignedIn: async () => true, currentLearner: learner, signedInLearner: learner };
+  const currentSignIn = async () => ({ kind: "learner", learner: await learner(), via: "passcode" });
+  return { currentLearnerId: async () => as.learnerId, isSignedIn: async () => true, currentLearner: learner, signedInLearner: learner, currentSignIn };
 });
 vi.mock("@/course/map", async (original) => {
   const real = await original<typeof import("@/course/map")>();

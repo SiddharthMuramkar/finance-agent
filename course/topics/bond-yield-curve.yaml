@@ -64,7 +64,7 @@ questions:
     explanation: >
       A curve that slopes downward, with long-term rates lower than short-term rates, is called inverted. It is considered unusual.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
 
   - id: yc-q-spread
     prompt: >
@@ -91,7 +91,7 @@ questions:
     explanation: >
       The short end moves with the policy rate. The long yield, which averages expected future short rates with other factors, rises by less, so the gap shrinks.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
 
   - id: yc-q-inversion
     prompt: >
@@ -105,7 +105,7 @@ questions:
     explanation: >
       Central banks often lower rates to stimulate a stagnant economy. If investors expect that, long yields, which average expected future short rates, fall below today's short rates. It is a signal, not a cause.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
 
   - id: yc-q-short-end
     prompt: >
@@ -119,7 +119,7 @@ questions:
     explanation: >
       Short-term yields are set largely by what the central bank is doing and is expected to do in the next few years. Long yields depend on expectations over many years.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
 
 checks:
   - id: yc-quiz-curve-shapes

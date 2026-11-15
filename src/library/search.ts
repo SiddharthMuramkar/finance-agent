@@ -49,6 +49,20 @@ export const POOL = 30;
 /** Reciprocal rank fusion constant: a passage scores 1/(K + rank) in each ranking it appears in. */
 const RRF_K = 60;
 export const BM25_INDEX = "library_passages_bm25";
+/**
+ * Source diversity (#38): in a search not scoped to a source, the results lead with the best passage
+ * of each document, from each source's best PER_SOURCE documents (ARCHIVAL_PER_SOURCE for an archival
+ * source), in fused order, and only then any further passages. A document is a passage ref's part
+ * before `#`: one chapter module, lecture, paper, post or filing. One large source, such as the
+ * thousands of FOMC records, then cannot fill the top 5 with near-repeats and push out the passage that
+ * explains, and neither can a second passage of one document: it points the Tutor to the same place,
+ * which it can read more of by scoping a search to the source.
+ */
+export const PER_SOURCE = 2;
+/** Archival sources are primary records (FOMC records, SEC filings): meeting after meeting and filing after filing repeat the same wording, so one passage points the Tutor to the record. */
+export const ARCHIVAL_PER_SOURCE = 1;
+/** Ids of archival sources start with one of these. */
+const ARCHIVAL_PREFIXES = ["fomc-", "sec-"];
 
 /** BM25 when the database has the lakebase_bm25 index (the migration creates it where lakebase_text exists). */
 export async function keywordRanking(db: Executor): Promise<KeywordRanking> {
@@ -118,7 +132,10 @@ function vectorRanks(q: PassageQuery & { embedding: number[] }): SQL {
 
 /**
  * Combined search in SQL: keyword ranks and, given an embedding, vector ranks, fused by reciprocal
- * rank fusion, with the as-of rule applied inside both rankings.
+ * rank fusion, with the as-of rule applied inside both rankings. Unscoped, the fused order then puts
+ * first each document's best passage from each source's best PER_SOURCE (archival: ARCHIVAL_PER_SOURCE)
+ * documents; a search scoped to a source keeps the fused order. Only passages the as-of rule let
+ * through are reordered.
  */
 export async function searchPassages(db: Executor, q: PassageQuery): Promise<LibraryHit[]> {
   const ranking = q.ranking ?? (await keywordRanking(db));
@@ -127,15 +144,28 @@ export async function searchPassages(db: Executor, q: PassageQuery): Promise<Lib
     ? sql`select coalesce(kw.id, vec.id) as id, coalesce(1.0 / (${RRF_K} + kw.r), 0) + coalesce(1.0 / (${RRF_K} + vec.r), 0) as score
           from (${keywordRanks(q, ranking)}) kw full outer join (${vectorRanks({ ...q, embedding: q.embedding })}) vec on kw.id = vec.id`
     : sql`select kw.id, 1.0 / (${RRF_K} + kw.r) as score from (${keywordRanks(q, ranking)}) kw`;
+  // doc: the passage's place among its own document's candidates; nth: among the passages that lead
+  // their document, its place within its source, so a source's cap counts documents. Best first.
+  const ranked = sql`
+    select d.id, d.score, d.doc, row_number() over (partition by d.source_id, d.doc = 1 order by d.score desc, d.id) as nth
+    from (
+      select f.id, f.score, p.source_id,
+        row_number() over (partition by p.source_id, split_part(p.ref, '#', 1) order by f.score desc, p.id) as doc
+      from (${fused}) f join library_passages p on p.id = f.id
+    ) d`;
+  const archival = sql.join(ARCHIVAL_PREFIXES.map((prefix) => sql`p.source_id like ${`${prefix}%`}`), sql` or `);
+  const diverse = q.source
+    ? sql``
+    : sql`(f.doc = 1 and f.nth <= case when ${archival} then ${ARCHIVAL_PER_SOURCE}::int else ${PER_SOURCE}::int end) desc,`;
   return rowsOf<LibraryHit>(
     db,
     sql`
       select p.id, p.source_id as "sourceId", s.title as "sourceTitle", s.kind, p.ref, p.heading, p.url,
         to_char(p.published_on, 'YYYY-MM-DD') as "publishedOn", p.text, p.licence, p.credit, s.quote_words as "quoteWords"
-      from (${fused}) f
+      from (${ranked}) f
       join library_passages p on p.id = f.id
       join library_sources s on s.id = p.source_id
-      order by f.score desc, p.id
+      order by ${diverse} f.score desc, p.id
       limit ${limit}`,
   );
 }

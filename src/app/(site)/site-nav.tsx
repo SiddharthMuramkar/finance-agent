@@ -3,19 +3,23 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { JOIN_PATH, SIGN_IN_PATH, SIGN_UP_PATH } from "@/auth/destination";
 import { BRAND, chrome, NAV } from "@/site/copy";
 import type { Viewer } from "@/site/viewer";
 import { Button } from "../primitives";
+import { SignOutForm } from "../sign-out";
 import { ContinueButton, PrimaryCta } from "./cta";
-import { Glyph, Pill } from "./parts";
+import { Glyph } from "./parts";
 
 // The sticky nav (spec 4.2): brand, page links, and the right side by viewer state. At 860 px and below the links give way
 // to a Menu button and its sheet. The hairline under it shows once the page has scrolled 4 px. On a session's first load
 // the brand glyph grows in (4.4), remembered in sessionStorage["vi-grown"].
 
+const under = (pathname: string, root: string) => pathname === root || pathname.startsWith(`${root}/`);
+
 /** The page link that is showing: a case page counts as Examples. */
 export function currentLink(pathname: string): string | undefined {
-  return NAV.find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`))?.href;
+  return NAV.find((link) => under(pathname, link.href))?.href;
 }
 
 const onScroll = (notify: () => void) => {
@@ -48,7 +52,7 @@ function useFirstVisit() {
   return grow;
 }
 
-/** The member's avatar and its menu: Course map, Notebook, Account settings, Sign out (a plain form post). */
+/** The member's avatar and its menu: Course map, Notebook, Account settings, Sign out (a form post, and Clerk's sign-out while Clerk runs). */
 function AccountMenu({ name }: { name: string }) {
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
   return (
@@ -65,11 +69,11 @@ function AccountMenu({ name }: { name: string }) {
             {link.label}
           </a>
         ))}
-        <form action="/api/logout" method="post">
+        <SignOutForm>
           <Button type="submit" unstyled>
             {chrome.signOut}
           </Button>
-        </form>
+        </SignOutForm>
       </div>
     </details>
   );
@@ -79,9 +83,11 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
   // No router (a static render in a test) reads as no page showing.
   const pathname = usePathname() ?? "";
   const current = currentLink(pathname);
-  // On the sign-in page Sign in is the page showing, and the page's own button is its one primary (5), so a visitor's nav
-  // there has no Join early access: it would be a second primary that only leads back to this page.
-  const onSignIn = pathname === "/login";
+  // On the sign-in pages (issue #33) the page's own form is its one primary (5), so a visitor's nav there has no Join
+  // early access: on /sign-in (and Clerk's steps under it) Sign in is the page showing, and on the joining flow (/join,
+  // Clerk's Waitlist, and /sign-up, where its invitation lands) a Join would only lead back to the same task.
+  const onSignIn = under(pathname, SIGN_IN_PATH);
+  const onJoin = under(pathname, JOIN_PATH) || under(pathname, SIGN_UP_PATH);
   const scrolled = useScrolled();
   const grow = useFirstVisit();
   // The sheet is open for the page it was opened on, so a route change closes it.
@@ -105,19 +111,11 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
         <div className="v-nav-right">
           {viewer.state === "visitor" && (
             <>
-              <Link href="/login" className="v-tlink ink v-signin" aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
+              <Link href={SIGN_IN_PATH} className="v-tlink ink v-signin" aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
                 {chrome.signIn}
               </Link>
-              {!onSignIn && <PrimaryCta viewer={viewer} size="md" />}
+              {!onSignIn && !onJoin && <PrimaryCta viewer={viewer} size="md" />}
             </>
-          )}
-          {viewer.state === "applicant" && (
-            <Link href="/login" className="v-status-link" data-affordance="nav">
-              <Pill tone="wait">
-                <span className="v-dot" aria-hidden="true" />
-                {chrome.inReview}
-              </Pill>
-            </Link>
           )}
           {viewer.state === "member" && (
             <>
@@ -141,7 +139,7 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
             </Link>
           ))}
           {viewer.state === "visitor" && (
-            <Link href="/login" aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
+            <Link href={SIGN_IN_PATH} aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
               {chrome.signIn}
             </Link>
           )}

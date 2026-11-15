@@ -6,7 +6,7 @@ import { getDb } from "@/db/client";
 import { PASSAGE_CHANGED_NOTE } from "@/library/credits";
 import { loadPassageView } from "@/library/library";
 import { MACHINE_READ_NOTE } from "@/library/pictures";
-import { accountFor } from "../../account";
+import { currentAccount } from "../../account";
 import { Eyebrow, ReadingPage, SignedInFrame } from "../../ui";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +62,7 @@ export default async function PassagePage({
   if (view.status === "missing") notFound();
   return (
     <SignedInFrame>
-      <ReadingPage account={await accountFor(getDb(), learner)}>
+      <ReadingPage account={await currentAccount()}>
         <Eyebrow className="mb-1">Library passage</Eyebrow>
         {view.status === "hidden" ? (
           <p data-testid="passage-hidden">

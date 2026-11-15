@@ -1,5 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+/** What reading the sign-in does: no account by default, or Clerk's error when the proxy never ran (issue #33). */
+let account: () => Promise<{ name: string } | undefined> = async () => undefined;
+vi.mock("./account", () => ({ currentAccount: () => account() }));
 
 const { default: NotFound } = await import("./not-found");
 
@@ -26,6 +30,18 @@ describe("Branded not-found page", () => {
     const html = await render();
     expect(html).not.toMatch(/lesson/i);
     expect(html).not.toMatch(/Continue/);
+  });
+
+  it("still draws, with no account menu, when reading the sign-in throws (a 404 the proxy's matcher skipped, issue #33)", async () => {
+    account = async () => {
+      throw new Error("auth() was called but Clerk can't detect usage of clerkMiddleware()");
+    };
+    const html = await render();
+    expect(html).toMatch(/<h2[^>]*>This page isn&#x27;t here<\/h2>/);
+    expect(html).not.toContain('data-testid="account-menu-button"');
+    account = async () => ({ name: "Asha" });
+    expect(await render()).toContain('data-testid="account-menu-button"');
+    account = async () => undefined;
   });
 
   it("uses only the design tokens for colour", async () => {

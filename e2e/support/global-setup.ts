@@ -82,4 +82,4 @@ async function warmUp(baseURL: string, launchOptions: LaunchOptions | undefined)
 }
 
 /** The public site's pages (one case page compiles the route for all five) and the sign-in page. */
-const PUBLIC_PAGES = ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/login"];
+const PUBLIC_PAGES = ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/sign-in"];

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "@/auth/better-auth";
 import { ACCESS_COOKIE, ACCESS_COOKIE_OPTIONS } from "@/auth/passcode";
 import { sameOrigin } from "@/auth/same-origin";
+import { e2eEnabled } from "@/dev/e2e-mode";
 
 /**
- * Sign out: ends the Better Auth session too when Google sign-in is on, expires this browser's
- * passcode cookie, and sends the Learner to Home with a 303. Both cookies end on one click (C1b).
- * Changes no Learner data; other devices keep their own sessions. While Google sign-in is off there
- * is no instance and Better Auth is skipped, exactly as before.
+ * Sign out of the passcode door (issue #33): expires this browser's `fa_access` cookie and sends the Learner to Home
+ * with a 303. A Clerk session lives in Clerk's own cookies, which Clerk's browser SDK ends (src/app/sign-out.tsx posts
+ * here first, then asks Clerk). In the browser test bed it also ends the test's stand-in for a Clerk session, the
+ * `fa_e2e_person` cookie (src/dev/e2e-identity.ts, loaded only outside production builds). Changes no Learner data.
  */
 export async function POST(request: Request) {
   if (!sameOrigin(request)) {
@@ -15,11 +15,9 @@ export async function POST(request: Request) {
   }
   const response = NextResponse.redirect(new URL("/", request.url), 303);
   response.cookies.set(ACCESS_COOKIE, "", { ...ACCESS_COOKIE_OPTIONS, expires: new Date(0) });
-  const auth = getAuth();
-  if (auth) {
-    const out = await auth.api.signOut({ headers: request.headers, asResponse: true });
-    // Appended after cookies.set: NextResponse rewrites the header when its cookie jar changes.
-    for (const cookie of out.headers.getSetCookie()) response.headers.append("set-cookie", cookie);
+  if (process.env.NODE_ENV !== "production" && e2eEnabled(process.env)) {
+    const { E2E_PERSON_COOKIE, E2E_PERSON_COOKIE_OPTIONS } = await import("@/dev/e2e-identity");
+    response.cookies.set(E2E_PERSON_COOKIE, "", { ...E2E_PERSON_COOKIE_OPTIONS, expires: new Date(0) });
   }
   return response;
 }

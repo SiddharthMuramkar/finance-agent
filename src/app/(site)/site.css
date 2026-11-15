@@ -121,7 +121,6 @@
 .v-pill-wait { background: var(--wait-tint); color: var(--wait-ink); box-shadow: inset 0 0 0 1px var(--wait-line); }
 .v-pill-blue { background: var(--blue-tint); color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue-line); }
 .v-pill-plain { background: var(--wash); color: var(--muted); box-shadow: inset 0 0 0 1px var(--rule); }
-.v-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--wait); }
 
 /* Stamp, facts, locked box, cards (5.17, 4.5) */
 .v-stamp { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: var(--wash); box-shadow: inset 0 0 0 1px var(--rule); color: var(--ink); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
@@ -206,7 +205,6 @@
 .v-account-menu a, .v-account-menu button { display: block; width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; font: inherit; font-size: 15px; color: var(--ink); background: none; border: 0; cursor: pointer; }
 .v-account-menu a:hover, .v-account-menu button:hover { background: var(--wash); }
 .v-account-menu .name { padding: 6px 12px 8px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--rule); margin-bottom: 4px; }
-.v-status-link { display: inline-flex; }
 
 /* Footer (4.3) */
 .v-footer { border-top: 1px solid var(--rule); padding: 32px 0 72px; }

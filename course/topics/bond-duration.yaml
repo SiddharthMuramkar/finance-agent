@@ -73,7 +73,7 @@ questions:
     explanation: >
       Duration is a measure of interest rate risk. It combines maturity, coupon rate and the level of yields. Credit risk is a separate matter.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
 
   - id: bd-q-rule
     prompt: >
@@ -87,7 +87,7 @@ questions:
     explanation: >
       Modified duration is the rule of thumb for the percentage a price changes for each one-point move in yield, in the opposite direction. So a one-point rise cuts this bond's price by several percent, about 7.4%. A 10-year 6% bond at a 6% yield with half-yearly coupons has a modified duration of 7.44 (its Macaulay duration, the weighted-average wait for its payments, is about 7.66 years); when its yield rises one point the price actually falls 7.1%, because of convexity.
     source: >
-      Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      Calculated with the bond price formula of OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: bd-q-svb
     prompt: >
@@ -115,7 +115,7 @@ questions:
     explanation: >
       Price is a curved function of yield. For a 10-year 6% bond priced at a 6% yield, a one-point fall lifts the price about 7.8%, while a one-point rise cuts it about 7.1%. The modified duration's straight line (7.4%) sits between the two. This curvature is convexity, and it works in the holder's favour.
     source: >
-      Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      Calculated with the bond price formula of OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: bd-q-coupon
     prompt: >
@@ -129,7 +129,7 @@ questions:
     explanation: >
       The lower the coupon, the later the average payment arrives and the higher the duration. A zero-coupon bond pays everything at maturity, so its duration equals its maturity, the longest possible for ten years.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.1 Characteristics of Bonds ("The smaller the coupon rate, the greater the change in price when interest rates move"): https://openstax.org/books/principles-finance-2e/pages/10-1-characteristics-of-bonds
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.1 Characteristics of Bonds ("The smaller the coupon rate, the greater the change in price when interest rates move"): https://openstax.org/books/principles-finance-2e/pages/10-1-characteristics-of-bonds
 
 checks:
   - id: bd-quiz-duration

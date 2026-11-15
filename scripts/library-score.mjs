@@ -3,8 +3,9 @@
 // For each question it runs the app's own search (src/library/search.ts) and scores a hit when a
 // passage from an expected document is in the top 5; it reports hits@5, hits@1 and mean reciprocal
 // rank. --voyage adds the query embedding (needs VOYAGE_API_KEY). The hindsight probes run with a
-// Case's as-of date and list any passage that mentions a later year or the Case's outcome, because
-// timeless reference text can still give an ending away (judge: src/library/hindsight.ts). Probes
+// Case's as-of date and list any passage that mentions the Case's outcome, or a later year in timeless
+// text, because timeless reference text can still give an ending away; a later year in a filing of that
+// date is a plan, not hindsight (judge: src/library/hindsight.ts). Probes
 // with a `case` carry each Signal Case's outcome words; the last line names any Case they caught.
 // Signal Case questions (those with `signal`, #24) are scored apart: once with no as-of limit, once
 // with their Case's as-of date, as the Tutor searches during a Case.
@@ -55,7 +56,7 @@ let judgedHits5 = 0;
 let hits1 = 0;
 let rr = 0;
 const misses = [];
-const groupOf = (qu) => qu.sources?.[0] ?? (qu.expect?.[0]?.includes("/") ? qu.expect[0].split("/")[0] : "openstax-principles-finance-2e");
+const groupOf = (qu) => qu.sources?.[0] ?? (qu.expect?.[0]?.includes("/") ? qu.expect[0].split("/")[0] : set.source);
 const byGroup = {};
 const baseRanks = [];
 const openRanks = new Map();

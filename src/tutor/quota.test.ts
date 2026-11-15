@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { learners, OWNER_LEARNER_ID, sessions, settings, turns, usageRows, user } from "@/db/schema";
+import { learners, OWNER_LEARNER_ID, sessions, settings, turns, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { checkQuota, dailyUse, UNPRICED_STEP_USD } from "./quota";
@@ -109,16 +109,17 @@ describe("checkQuota", () => {
     expect(await checkQuota(db, OWNER_LEARNER_ID, new Date("2026-11-12T18:31:00Z"))).toBeNull();
   });
 
-  it("gives the owner no cap of their own, but the global ceiling stops them too", async () => {
+  it("gives the admin (identity.admin) no cap of their own, but the global ceiling stops them too", async () => {
     const db = await testDb();
-    await db.insert(user).values({ id: "u-owner", email: "owner@x.com", name: "Siddharth", emailVerified: true });
-    await db.update(learners).set({ authUserId: "u-owner" }).where(eq(learners.id, OWNER_LEARNER_ID));
     await turn(db, OWNER_LEARNER_ID, TODAY);
     await spent(db, await sessionFor(db, OWNER_LEARNER_ID), 3, TODAY);
     await cap(db, "turns_per_learner_day", "1");
     await cap(db, "usd_per_learner_day", "1");
-    expect(await checkQuota(db, OWNER_LEARNER_ID, NOW)).toBeNull();
+    // The same Learner, not the admin's turn: the per-Learner caps apply.
+    expect(await checkQuota(db, OWNER_LEARNER_ID, NOW)).toBe("learner_turns");
+    expect(await checkQuota(db, OWNER_LEARNER_ID, NOW, { admin: false })).toBe("learner_turns");
+    expect(await checkQuota(db, OWNER_LEARNER_ID, NOW, { admin: true })).toBeNull();
     await cap(db, "usd_global_day", "3");
-    expect(await checkQuota(db, OWNER_LEARNER_ID, NOW)).toBe("global_usd");
+    expect(await checkQuota(db, OWNER_LEARNER_ID, NOW, { admin: true })).toBe("global_usd");
   });
 });

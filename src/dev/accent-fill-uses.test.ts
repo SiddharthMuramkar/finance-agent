@@ -25,9 +25,9 @@ const INVENTORY: Record<string, Use> = {
   },
   "src/app/widget-panel.tsx": { uses: 1, verdict: "mark", why: "A 2 px sunflower edge down the sourced strip, which starts with the Sourced Tag" },
   "src/app/(site)/site.css": {
-    uses: 12,
+    uses: 11,
     verdict: "mark",
-    why: "The Signal site's marks (spec 2.2, 5.4, 7.2.4): a right or wrong chip's 1 px edge beside its verdict pill, the wait dot of the Request in review status, and the colour-language section's swatches and mini pictures, each named in words beside it (Gain, Loss, Careful, Claim)",
+    why: "The Signal site's marks (spec 2.2, 5.4, 7.2.4): a right or wrong chip's 1 px edge beside its verdict pill, and the colour-language section's swatches and mini pictures, each named in words beside it (Gain, Loss, Careful, Claim)",
   },
   "src/components/signal/styles.ts": {
     uses: 26,
@@ -88,12 +88,12 @@ type BandPlace =
   | "Home's How every Topic works"
   | "Home's closing"
   | "About's opening"
-  | "the sign-in and Waiting pages' top strip"
+  | "the sign-in pages' top strip"
   | "the Topic bar";
 type BandUse = { uses: number; verdict: "band" | "mapping"; place?: BandPlace; why: string };
 
 /** F1's list of the places a Band is used, word for word from the spec, so a row cannot name a place of its own. */
-const F1_PLACES: readonly BandPlace[] = ["Home's hero", "Home's How every Topic works", "Home's closing", "About's opening", "the sign-in and Waiting pages' top strip", "the Topic bar"];
+const F1_PLACES: readonly BandPlace[] = ["Home's hero", "Home's How every Topic works", "Home's closing", "About's opening", "the sign-in pages' top strip", "the Topic bar"];
 
 const BAND_INVENTORY: Record<string, BandUse> = {
   "src/app/globals.css": {
@@ -101,7 +101,7 @@ const BAND_INVENTORY: Record<string, BandUse> = {
     verdict: "mapping",
     why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band and .home-band rules: the surface, its white and 72% text, its white headings, its 18% rules, its white buttons (whose bars take the Band's blue), its white focus ring and Home's type on it",
   },
-  "src/app/login/page.tsx": { uses: 1, verdict: "band", place: "the sign-in and Waiting pages' top strip", why: "The strip under the public header that holds the sign-in page's heading, the Waiting and Access not approved screens' included" },
+  "src/app/sign-in/auth-page.tsx": { uses: 1, verdict: "band", place: "the sign-in pages' top strip", why: "The strip under the public header that holds the heading of /sign-in, /sign-up and /join (issue #33)" },
   "src/app/workspace-parts.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar across the Study Workspace (F3): title, goal, step bar, All steps and Topic options, above both columns" },
   "src/app/route-skeleton.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar's empty Band while /study loads, so the skeleton and the page draw the same rows" },
 };

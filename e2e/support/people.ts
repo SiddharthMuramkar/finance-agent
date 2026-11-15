@@ -2,19 +2,19 @@ import { test as base, expect, type APIRequestContext, type BrowserContext, type
 import { quietDevtools } from "./app";
 
 /**
- * The test bed's sign-in people (ADR 0014), each built by POST /api/dev-e2e and signed in through a real Better Auth
- * session; Google and real mail are never used. That route serves only the tools Learner, so whoever calls it signs in
- * with the tools passcode first.
+ * The test bed's sign-in people (issue #33), each signed in by POST /api/dev-e2e `{person}`: Clerk is off in the test
+ * bed, so a signed `fa_e2e_person` cookie stands in for a Clerk session (src/dev/e2e-identity.ts). Clerk itself is never
+ * called. That route serves only the tools Learner, so whoever calls it signs in with the tools passcode first.
  */
 
-/** Noor, the `waitingUser` fixture: signed in with nobody's invite, so she waits for the owner. Each call puts her back in Waiting. */
-export const NOOR = "noor@e2e.example";
+/** The test bed's people: the owner (the admin, as in Clerk) and Asha (a Learner, not the admin). */
+export const PEOPLE = { owner: "owner@e2e.example", asha: "asha@e2e.example" } as const;
 
-/** The fixtures that sign a browser in as a person: the owner, Noor (waiting), or Asha (an invited Google Learner). */
-export type PersonFixture = { googleOwner: true } | { waitingUser: true } | { googleLearner: true };
+/** The fixture that signs a browser in as a person. */
+export type PersonFixture = { person: keyof typeof PEOPLE };
 
-/** What a person fixture answers: their email, their Learner when they have one, and how many people wait. */
-export type PersonBody = { email: string; learnerId?: number; waiting?: number };
+/** What a person fixture answers: who, their email and their Learner. */
+export type PersonBody = { person: keyof typeof PEOPLE; email: string; learnerId: number };
 
 /** A person's own browser, signed in as them alone, and what the fixture answered. */
 export type Person = { page: Page; context: BrowserContext; body: PersonBody };
@@ -34,8 +34,8 @@ export async function fixture<T = Record<string, unknown>>(request: APIRequestCo
 
 /**
  * Signs this page's browser in as the fixture's person, and only them: as tools first (the route's guard), then the
- * fixture, then the tools cookie goes. Left beside the person's session it would quietly sign the browser in as tools
- * once that session ends, as Remove access ends it.
+ * fixture, then the tools cookie goes. Left beside the person's cookie it would quietly sign the browser in as tools
+ * once that cookie ends, as signing out ends it.
  */
 export async function becomePerson(page: Page, data: PersonFixture): Promise<PersonBody> {
   await signInTools(page.request);
@@ -46,14 +46,7 @@ export async function becomePerson(page: Page, data: PersonFixture): Promise<Per
 
 // Each fixture hands its value to the test through its second argument, named `provide` here: called `use`, the React
 // hooks lint takes it for a hook.
-export const test = base.extend<{ tools: APIRequestContext; person: (data: PersonFixture) => Promise<Person> }>({
-  /** A request context signed in as the tools Learner, for the fixtures that sign nobody in ({invite}, {emailLinkFor}). It shares no cookie with any page. */
-  tools: async ({ playwright }, provide) => {
-    const tools = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
-    await signInTools(tools);
-    await provide(tools);
-    await tools.dispose();
-  },
+export const test = base.extend<{ person: (data: PersonFixture) => Promise<Person> }>({
   /** Opens a browser of the person's own (beside the test's `page`), signed in as them; closed when the test ends. */
   person: async ({ browser }, provide) => {
     const opened: BrowserContext[] = [];

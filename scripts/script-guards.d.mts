@@ -5,4 +5,3 @@ export function assertToolsLearner(
   learnerId: number,
 ): Promise<void>;
 export function textOf(m: { content?: unknown }): string;
-export function assertNamedDatabase(url: string, env?: Record<string, string | undefined>, log?: (line: string) => void): void;

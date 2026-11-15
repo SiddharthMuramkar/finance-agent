@@ -11,12 +11,21 @@ const source = (id: string) => {
 
 // The forms each owner asks for (#26; research/library-licences.md on branch research-library-licences).
 describe("credit lines in the form each source's owner asks for", () => {
-  it("OpenStax: the line its book page asks for on every digital page view, with authors, publisher and licence", () => {
-    const { credit, licence, licenceUrl } = source("openstax-principles-finance-2e");
-    expect(credit).toContain("Access for free at https://openstax.org/books/principles-finance-2e/pages/1-why-it-matters");
+  it("OpenStax 1e: CC BY 4.0 §3(a) credit (authors, licence and its link, the source at its commit, the change made), pointing at GitHub, not openstax.org (#27, #38)", () => {
+    const { credit, licence, licenceUrl, url } = source("openstax-principles-finance-1e");
+    expect(credit).toBe(
+      "Julie Dahlquist and Rainford Knight, Principles of Finance (OpenStax, 2022), CC BY 4.0; text from the OpenStax GitHub repository at commit 3b7fc65c52, cut into passages",
+    );
+    expect([licence, licenceUrl]).toEqual(["CC BY 4.0", "https://creativecommons.org/licenses/by/4.0/"]);
+    // The snapshot is the last commit before OpenStax's licence change; its web pages now say CC BY-NC-SA.
+    expect(url).toBe("https://github.com/openstax/osbooks-principles-finance/tree/3b7fc65c527ef51dbee24689691f19947fb72fb2");
+    expect(`${credit} ${url}`).not.toContain("openstax.org");
+  });
+
+  it("OpenStax 2e stays listed, with its own CC BY-NC-SA credit, so its stored passages stay explained until it is dropped", () => {
+    const { credit, licence } = source("openstax-principles-finance-2e");
     expect(credit).toMatch(/^Julie Dahlquist and Rainford Knight, Principles of Finance 2e \(OpenStax/);
-    expect(credit).toContain("CC BY-NC-SA 4.0");
-    expect([licence, licenceUrl]).toEqual(["CC BY-NC-SA 4.0", "https://creativecommons.org/licenses/by-nc-sa/4.0/"]);
+    expect(licence).toBe("CC BY-NC-SA 4.0");
   });
 
   it("Open Yale Courses: [Name], [Course Title] (Yale University: Open Yale Courses), http://oyc.yale.edu (Accessed Date). License: Creative Commons BY-NC-SA", () => {
@@ -63,6 +72,6 @@ describe("the New York Fed reference-rate notice", () => {
     expect(passageNotices({ sourceId: "nyfed-explainers", ref: "markets-reference-rates-sofr#3" })).toEqual([SOFR_NOTICE]);
     expect(passageNotices({ sourceId: "nyfed-explainers", ref: "markets-reference-rates-effr#1" })).toEqual([EFFR_NOTICE]);
     expect(passageNotices({ sourceId: "nyfed-explainers", ref: "markets-primarydealers#1" })).toEqual([]);
-    expect(passageNotices({ sourceId: "openstax-principles-finance-2e", ref: "markets-reference-rates-sofr#1" })).toEqual([]);
+    expect(passageNotices({ sourceId: "openstax-principles-finance-1e", ref: "markets-reference-rates-sofr#1" })).toEqual([]);
   });
 });

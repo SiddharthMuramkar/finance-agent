@@ -2,7 +2,7 @@ import { signedInLearner } from "@/auth/session";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadNotebook } from "@/learner/notebook";
-import { accountFor } from "../account";
+import { currentAccount } from "../account";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { NotebookView } from "./notebook-view";
 
@@ -16,7 +16,7 @@ export default async function NotebookPage({ searchParams }: { searchParams: Pro
   const notebook = await loadNotebook(getDb(), loadCourseMap(), learner.id, { all });
   return (
     <SignedInFrame>
-      <ReadingPage current="notebook" account={await accountFor(getDb(), learner)}>
+      <ReadingPage current="notebook" account={await currentAccount()}>
         <NotebookView notebook={notebook} showAll={all} />
       </ReadingPage>
     </SignedInFrame>

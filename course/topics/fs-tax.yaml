@@ -64,7 +64,7 @@ questions:
       Profit before tax less the tax charge is profit after tax, also called net profit. It is the part of
       the year's profit that belongs to shareholders, to keep in the business or pay out as dividends.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement (taxes and net income): https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement (taxes and net income): https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
   - id: tx-q-saving
     prompt: >
       A headline reads: 'Tax cut lifts profits.' A shareholder wonders why. The effective tax rate falls from 40% to 30% while a company's profit before tax stays at Rs 1,000 crore. Which statement gets it right?
@@ -104,7 +104,7 @@ questions:
     explanation: >
       Depreciation is deducted before tax, so it lowers taxable profit and the tax bill. At a 25% rate, Rs 40 crore of depreciation saves Rs 10 crore of tax. Depreciation itself is not cash, but the tax it saves is.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: tx-q-ocf
     prompt: >
@@ -118,7 +118,7 @@ questions:
     explanation: >
       Depreciation spreads the cost of Meera's machines over the years. It reduces her profit before tax, so it cuts her tax bill, but no cash leaves her account for it. That is why analysts add depreciation back when they turn after-tax profit into operating cash flow.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement ; worked from the formula in the Topic.
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement ; worked from the formula in the Topic.
   - id: tx-q-deferred
     prompt: >
       September 2019. Kavya, an analyst, is studying a factory owner. In its published accounts it spreads

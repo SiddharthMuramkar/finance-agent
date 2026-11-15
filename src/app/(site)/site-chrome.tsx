@@ -1,6 +1,7 @@
 import "./site.css";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { SIGN_IN_PATH } from "@/auth/destination";
 import { BRAND, chrome, NAV } from "@/site/copy";
 import { SiteJoinEvents } from "@/site/join-events";
 import type { Viewer } from "@/site/viewer";
@@ -9,8 +10,9 @@ import { RouteFocus } from "./route-focus";
 import { SiteNav } from "./site-nav";
 
 // The public chrome (spec 4.1 to 4.3): skip link, sticky nav, main and footer, shared by the (site) layout and the
-// sign-in page. Each caller reads the viewer and passes it in, so the nav always knows who is there. Each control says
-// what kind it is (`data-affordance`, as the app's primitives do), so the browser audits can judge it (ADR 0018).
+// sign-in pages (/sign-in, /sign-up and /join). Each caller reads the viewer and passes it in, so the nav always knows
+// who is there. Each control says what kind it is (`data-affordance`, as the app's primitives do), so the browser audits
+// can judge it (ADR 0018).
 
 /** The footer (4.3): brand, links (Sign in for visitors) and the line. */
 export function SiteFooter({ viewer }: { viewer: Viewer }) {
@@ -28,7 +30,7 @@ export function SiteFooter({ viewer }: { viewer: Viewer }) {
             </Link>
           ))}
           {viewer.state === "visitor" && (
-            <Link href="/login" data-affordance="nav">
+            <Link href={SIGN_IN_PATH} data-affordance="nav">
               {chrome.signIn}
             </Link>
           )}

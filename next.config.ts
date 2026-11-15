@@ -40,6 +40,8 @@ const nextConfig: NextConfig = {
       { source: "/notes", has: [{ type: "query", key: "all", value: "1" }], destination: "/notebook?all=1", permanent: true },
       { source: "/notes", destination: "/notebook", permanent: true },
       { source: "/sessions", destination: "/notebook", permanent: true },
+      // Sign-in moved to /sign-in with Clerk (issue #33): old links and bookmarks still get there, their query kept.
+      { source: "/login", destination: "/sign-in", permanent: true },
     ];
   },
   // "/" (Home) is public, so no other site may frame any page (clickjacking), browsers must not guess content types,
