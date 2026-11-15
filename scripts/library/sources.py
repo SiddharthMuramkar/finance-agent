@@ -23,6 +23,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from collections import Counter
 from datetime import date, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
@@ -893,26 +894,74 @@ def _table_row(line):
     return " | ".join(c for c in cells if c and not RULE_LINE.fullmatch(c))
 
 
+def _is_caps(line):
+    """A line in capitals only, not SGML markup: a title, a caption or a running head."""
+    s = line.strip()
+    return re.search(r"[A-Z]{2}", s) is not None and re.search(r"[a-z]", s) is None and not s.startswith("<")
+
+
 def _is_caps_heading(lines):
-    """A short all-capitals block such as GENERAL or RISK FACTORS: a sub-heading."""
+    """An all-capitals block such as GENERAL or RISK FACTORS: a sub-heading. A short one (two lines, 12 words) always is; a longer
+    one up to four lines and 40 words, such as a risk factor's caption, is when it is one sentence (a legend of two is text)."""
     text = " ".join(l.strip() for l in lines)
+    words = len(text.split())
+    short = len(lines) <= 2 and words <= 12
+    caption = len(lines) <= 4 and words <= 40 and re.search(r"[.!?]\s+\S", text) is None
     return (
-        len(lines) <= 2 and len(text.split()) <= 12 and re.search(r"[A-Z]{2}", text) is not None and re.search(r"[a-z]", text) is None
+        (short or caption) and re.search(r"[A-Z]{2}", text) is not None and re.search(r"[a-z]", text) is None
         and not re.match(r"[(\[$\d]", text) and not text.endswith((",", ";", ":"))
     )
+
+
+def _running_head_lines(lines, pages):
+    """The lines of each page's running head: at the top of a page (after its <PAGE> line), the capitals lines that open three or
+    more pages (WEBVAN GROUP, INC. AND SUBSIDIARY), and any capitals block with "(CONTINUED)" in it, with the blank lines among them.
+    The scan stops at the page's first other line, so a title that opens one page only (NOTES TO ... STATEMENTS) is kept."""
+    def top(p):  # the capitals lines that open the page, up to its first other line
+        out, j = [], p + 1
+        while j < len(lines) and not lines[j].strip().upper().startswith("<PAGE>") and (not lines[j].strip() or _is_caps(lines[j])):
+            if lines[j].strip():
+                out.append(" ".join(lines[j].split()))
+            j += 1
+        return out
+
+    opens = Counter(line for p in pages for line in set(top(p)))
+    heads = set()
+    for p in pages:
+        j = p + 1
+        while j < len(lines) and not lines[j].strip().upper().startswith("<PAGE>"):
+            if not lines[j].strip():
+                heads.add(j)
+                j += 1
+                continue
+            end = j
+            while end < len(lines) and lines[end].strip():
+                end += 1
+            block = range(j, end)
+            if all(_is_caps(lines[k]) for k in block) and any("(CONTINUED)" in lines[k] for k in block):
+                heads.update(block)
+                j = end
+            elif _is_caps(lines[j]) and opens[" ".join(lines[j].split())] >= 3:
+                heads.add(j)
+                j += 1
+            else:
+                break
+    return heads
 
 
 def plain_text_document(submission, ref, title, url, filed):
     """An EDGAR plain-text filing (the 1990s, before HTML) as a document. Only the first <DOCUMENT> is read. Paragraphs are blocks of
     lines between blank lines; a paragraph cut by a page break (<PAGE> and the page number above it) is joined back unless the page ended
-    on a full stop. "ITEM n." lines are the section headings, and a short all-capitals line under one (GENERAL, COMPETITION) is added to it
+    on a full stop. "ITEM n." lines are the section headings, and an all-capitals caption under one (GENERAL, COMPETITION) is added to it
     as a sub-heading; a prospectus, which has no ITEMs, is headed by its centred all-capitals titles instead. Fixed-width <TABLE> rows
-    become "a | b | c" paragraphs; contents lists, PART lines, running heads and rules are left out."""
+    become "a | b | c" paragraphs; contents lists, PART lines, running heads and rules are left out. A running head at the top of a page
+    is part of the page break, so a paragraph cut by the break is joined across it."""
     text, _ = first_sgml_document(submission)
     lines = text.replace("\r\n", "\n").split("\n")
-    # A page break: each <PAGE> marker (and the end), with the page number and blank lines just above it.
-    breaks = set()
-    for i in [i for i, l in enumerate(lines) if l.strip().upper().startswith("<PAGE>")] + [len(lines)]:
+    pages = [i for i, l in enumerate(lines) if l.strip().upper().startswith("<PAGE>")]
+    # A page break: each <PAGE> marker (and the end), with the page number and blank lines just above it and the running head below it.
+    breaks = _running_head_lines(lines, pages)
+    for i in pages + [len(lines)]:
         breaks.add(i)
         j = i - 1
         while j >= 0 and not lines[j].strip():

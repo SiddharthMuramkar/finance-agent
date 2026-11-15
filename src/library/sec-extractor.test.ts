@@ -208,6 +208,121 @@ describe("EDGAR plain-text filings (the 1990s)", () => {
     ]);
   });
 
+  // The notes of the Webvan 424B1 as EDGAR has them: every page opens with a two-line running head and, after the first
+  // notes page, a three-line "(CONTINUED)" title; a note's sentence can run on across the page break.
+  const notesPage = (n: number, title: string[], body: string[]) => [
+    `<PAGE>   ${n}`,
+    "                       WEBVAN GROUP, INC. AND SUBSIDIARY",
+    "                         (A DEVELOPMENT STAGE COMPANY)",
+    "",
+    ...title,
+    "",
+    ...body,
+    "",
+    `                                       F-${n - 67}`,
+  ];
+  const unaudited = ["  (INFORMATION AS OF JUNE 30, 1999 AND FOR THE SIX MONTHS ENDED JUNE 30, 1998", "                        AND JUNE 30, 1999 IS UNAUDITED)"];
+  const continued = ["             NOTES TO CONSOLIDATED FINANCIAL STATEMENTS (CONTINUED)", ...unaudited];
+
+  it("drops the running head and the (CONTINUED) title at the top of each page, and joins a sentence the page break cut", () => {
+    const filing = [
+      "<DOCUMENT>",
+      "<TYPE>424B1",
+      "<TEXT>",
+      ...notesPage(75, ["                   NOTES TO CONSOLIDATED FINANCIAL STATEMENTS", ...unaudited], [
+        "     UNAUDITED INTERIM FINANCIAL INFORMATION -- The interim financial",
+        "information is unaudited for the cumulative period from",
+      ]),
+      ...notesPage(76, continued, [
+        "December 17, 1996 (date of inception) through June 30, 1999.",
+        "",
+        "     PRO FORMA NET LOSS PER COMMON SHARE -- Pro forma net loss per share is",
+      ]),
+      ...notesPage(77, continued, ["computed by dividing net loss by the weighted average number of shares."]),
+      "</TEXT>",
+      "</DOCUMENT>",
+    ].join("\n");
+
+    const doc = python<Doc>(`print(json.dumps(m.plain_text_document(${JSON.stringify(filing)}, "424b1-x", "Webvan", "https://example.org/w.txt", "1999-11-05")))`);
+
+    expect(doc.sections).toEqual([
+      {
+        heading: "NOTES TO CONSOLIDATED FINANCIAL STATEMENTS (INFORMATION AS OF JUNE 30, 1999 AND FOR THE SIX MONTHS ENDED JUNE 30, 1998 AND JUNE 30, 1999 IS UNAUDITED)",
+        paragraphs: [
+          "UNAUDITED INTERIM FINANCIAL INFORMATION -- The interim financial information is unaudited for the cumulative period from December 17, 1996 (date of inception) through June 30, 1999.",
+          "PRO FORMA NET LOSS PER COMMON SHARE -- Pro forma net loss per share is computed by dividing net loss by the weighted average number of shares.",
+        ],
+      },
+    ]);
+  });
+
+  it("drops a one-line running head that a page break put inside a sentence (the Amazon 10-K notes)", () => {
+    const page = (n: number, body: string[]) => [`<PAGE>   ${n}`, "                                AMAZON.COM, INC.", " ", "             NOTES TO CONSOLIDATED FINANCIAL STATEMENTS (CONTINUED)", " ", ...body, `                                       ${n}`];
+    const filing = [
+      "<DOCUMENT>",
+      "<TYPE>10-K",
+      "<TEXT>",
+      "ITEM 8.  FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "",
+      ...page(36, ["     The pro forma net loss includes amortization of goodwill for the years ended December 31,"]),
+      ...page(37, ["1998 and 1997.", " ", "     In August 1998, the Company acquired PlanetAll."]),
+      ...page(38, ["     Net loss per share is computed on the weighted average number of shares."]),
+      "</TEXT>",
+      "</DOCUMENT>",
+    ].join("\n");
+
+    const doc = python<Doc>(`print(json.dumps(m.plain_text_document(${JSON.stringify(filing)}, "10-k-x", "Amazon", "https://example.org/a.txt", "1999-03-05")))`);
+
+    expect(doc.sections).toEqual([
+      {
+        heading: "ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+        paragraphs: [
+          "The pro forma net loss includes amortization of goodwill for the years ended December 31, 1998 and 1997.",
+          "In August 1998, the Company acquired PlanetAll.",
+          "Net loss per share is computed on the weighted average number of shares.",
+        ],
+      },
+    ]);
+  });
+
+  it("heads a risk factor with its whole all-capitals caption, however long, but keeps an all-capitals legend of two sentences as text", () => {
+    const filing = [
+      "<DOCUMENT>",
+      "<TYPE>424B1",
+      "<TEXT>",
+      "NEITHER THE SECURITIES AND EXCHANGE COMMISSION NOR ANY STATE SECURITIES",
+      "COMMISSION HAS APPROVED OF THESE SECURITIES. ANY REPRESENTATION TO THE CONTRARY",
+      "IS A CRIMINAL OFFENSE.",
+      "",
+      "                                     RISK FACTORS",
+      "",
+      "WE HAVE A LIMITED OPERATING HISTORY",
+      "",
+      "     We began delivering orders in June 1999.",
+      "",
+      "THE SIGNIFICANT CAPITAL INVESTMENT REQUIRED BY OUR BUSINESS DESIGN MAY PREVENT",
+      "US FROM ACHIEVING PROFITABILITY",
+      "",
+      "     Each distribution center costs about $35 million to build.",
+      "</TEXT>",
+      "</DOCUMENT>",
+    ].join("\n");
+
+    const doc = python<Doc>(`print(json.dumps(m.plain_text_document(${JSON.stringify(filing)}, "424b1-x", "Webvan", "https://example.org/w.txt", "1999-11-05")))`);
+
+    expect(doc.sections).toEqual([
+      {
+        heading: "",
+        paragraphs: ["NEITHER THE SECURITIES AND EXCHANGE COMMISSION NOR ANY STATE SECURITIES COMMISSION HAS APPROVED OF THESE SECURITIES. ANY REPRESENTATION TO THE CONTRARY IS A CRIMINAL OFFENSE."],
+      },
+      { heading: "RISK FACTORS — WE HAVE A LIMITED OPERATING HISTORY", paragraphs: ["We began delivering orders in June 1999."] },
+      {
+        heading: "RISK FACTORS — THE SIGNIFICANT CAPITAL INVESTMENT REQUIRED BY OUR BUSINESS DESIGN MAY PREVENT US FROM ACHIEVING PROFITABILITY",
+        paragraphs: ["Each distribution center costs about $35 million to build."],
+      },
+    ]);
+  });
+
   it("makes one document per filing from the cached downloads, dated by the filing date, after checking the form the submissions API lists", () => {
     const dir = scratchWith({
       "submissions-0001018724.json": JSON.stringify({ name: "AMAZON COM INC", filings: { recent: table([]), files: [{ name: "CIK0001018724-submissions-001.json" }] } }),
