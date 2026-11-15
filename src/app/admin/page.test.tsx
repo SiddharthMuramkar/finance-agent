@@ -1,20 +1,34 @@
 import { eq, sql } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Admin as Owner } from "@/auth/owner";
-import { accessDenials, account, invites, learners, replyChecks, sessions, turns, tutorIncidents, usageRows, user } from "@/db/schema";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ClerkDirectory } from "@/auth/clerk-directory";
+import type { Admin } from "@/auth/owner";
+import { learners, replyChecks, sessions, turns, tutorIncidents, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb, testDbThrough } from "@/test/pglite";
 
 /**
- * /admin (ADR 0014): the owner's page for who may come in. Anyone else gets the not-found page, decided by
- * signedInOwner (tested in src/auth/owner.test.ts, mocked here). The lists are read from a real database.
+ * /admin (issue #33): the admin's page for what the Tutor costs and how fast it answers; who may come in is Clerk's,
+ * so the page links there. Anyone else gets the not-found page, decided by signedInAdmin (tested in
+ * src/auth/owner.test.ts, mocked here). The figures are read from a real database; each person's email from Clerk
+ * (src/auth/clerk-directory.ts, mocked here).
  */
-const jar = vi.hoisted(() => ({ db: undefined as unknown as Db, owner: null as null | Owner }));
+const jar = vi.hoisted(() => ({
+  db: undefined as unknown as Db,
+  admin: null as null | Admin,
+  directory: { people: new Map(), answered: true } as ClerkDirectory,
+  asked: [] as string[][],
+}));
 
 vi.mock("@/db/client", () => ({ getDb: () => jar.db }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }), headers: async () => new Headers() }));
-vi.mock("@/auth/owner", () => ({ signedInAdmin: async () => jar.owner }));
+vi.mock("@/auth/owner", () => ({ signedInAdmin: async () => jar.admin }));
+vi.mock("@/auth/clerk-directory", () => ({
+  clerkDirectory: async (ids: readonly string[]) => {
+    jar.asked.push([...ids]);
+    return jar.directory;
+  },
+}));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: () => {}, push: () => {} }),
   usePathname: () => "/admin",
@@ -26,8 +40,8 @@ vi.mock("next/navigation", () => ({
 
 const { default: AdminPage, dynamic } = await import("./page");
 
-const open = (query: Record<string, string> = {}) => AdminPage({ searchParams: Promise.resolve(query) });
-const render = async (query: Record<string, string> = {}) => renderToStaticMarkup(await open(query));
+const open = () => AdminPage();
+const render = async () => renderToStaticMarkup(await open());
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
 /** The HTML of one section, by its id. */
 const section = (html: string, id: string) => {
@@ -36,85 +50,66 @@ const section = (html: string, id: string) => {
   return html.slice(start, html.indexOf("</section>", start));
 };
 
-const OWNER = { id: "u-owner", email: "owner@x.com", name: "Siddharth" };
+/** The admin, as their Clerk session says. */
+const OWNER = { userId: "user_owner", email: "owner@x.com", firstName: "Siddharth", admin: true };
 
-/** The owner linked to Learner 1; Noor (email link) and Ravi (Google) wait; Asha has access; Spam is denied; Mia is invited. */
+/** The owner's Clerk user is linked to Learner 1 ("owner"); Asha has a Learner of her own. */
 async function seed(db: Db) {
-  await db.insert(user).values([
-    { ...OWNER, emailVerified: true, createdAt: new Date("2026-11-01T06:00:00Z") },
-    { id: "u-noor", email: "noor@icloud.com", name: "Noor", emailVerified: true, createdAt: new Date("2026-11-03T06:00:00Z") },
-    { id: "u-ravi", email: "ravi@gmail.com", name: "Ravi K", emailVerified: true, createdAt: new Date("2026-11-04T06:00:00Z") },
-    { id: "u-asha", email: "asha@gmail.com", name: "Asha", emailVerified: true, createdAt: new Date("2026-11-02T06:00:00Z") },
-    { id: "u-spam", email: "spam@x.com", name: "Spam", emailVerified: true, createdAt: new Date("2026-11-05T06:00:00Z") },
-  ]);
-  const now = new Date();
-  await db.insert(account).values({ id: "a-ravi", accountId: "g-ravi", providerId: "google", userId: "u-ravi", createdAt: now, updatedAt: now });
-  const [owner] = await db.update(learners).set({ authUserId: OWNER.id }).where(eq(learners.name, "owner")).returning();
-  await db.insert(learners).values({ name: "Asha", authUserId: "u-asha" });
-  await db.insert(accessDenials).values({ userId: "u-spam" });
-  await db.insert(invites).values([
-    { email: OWNER.email, learnerName: "owner" },
-    { email: "mia@example.com", note: "from the meetup" },
-  ]);
+  const [owner] = await db.update(learners).set({ clerkUserId: OWNER.userId }).where(eq(learners.name, "owner")).returning();
+  await db.insert(learners).values({ name: "Asha", clerkUserId: "user_asha" });
   return owner;
 }
+
+const answered = (people: Record<string, { email: string | null; banned?: boolean }>): ClerkDirectory => ({
+  people: new Map(Object.entries(people).map(([id, p]) => [id, { email: p.email, banned: p.banned ?? false }])),
+  answered: true,
+});
 
 describe("/admin", () => {
   beforeEach(async () => {
     jar.db = await testDb();
-    const learner = await seed(jar.db);
-    jar.owner = { learner, identity: { userId: OWNER.id, email: OWNER.email, firstName: OWNER.name, admin: true } };
+    jar.admin = { learner: await seed(jar.db), identity: OWNER };
+    jar.directory = answered({ user_owner: { email: OWNER.email }, user_asha: { email: "asha@gmail.com" } });
+    jar.asked = [];
   });
-  afterEach(() => vi.unstubAllEnvs());
 
-  it("is drawn on every request and is not found for anyone but the owner", async () => {
+  it("is drawn on every request and is not found for anyone but the admin, before Clerk is asked about anyone", async () => {
     expect(dynamic).toBe("force-dynamic");
-    jar.owner = null;
+    jar.admin = null;
     await expect(open()).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(jar.asked).toEqual([]);
   });
 
-  it("has the sections in order: Waiting, People with access, Spend, Tutor speed, Denied, Invite an email, Sign-up", async () => {
+  it("has the sections in order: Spend, Tutor speed, Who may come in", async () => {
     const html = await render();
     expect(html).toMatch(/<h1 class="type-h1">Admin<\/h1>/);
     const ids = [...html.matchAll(/<section[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
-    expect(ids).toEqual(["waiting", "people", "spend", "speed", "denied", "invite", "sign-up"]);
+    expect(ids).toEqual(["spend", "speed", "people"]);
     const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => text(m[1]).trim());
-    expect(headings).toEqual(["Waiting 2", "People with access", "Spend", "Tutor speed", "Denied", "Invite an email", "Sign-up"]);
+    expect(headings).toEqual(["Spend", "Tutor speed", "Who may come in"]);
     // ADR 0013: each section is a hairline rule with no box.
     for (const [, cls] of html.matchAll(/<section class="([^"]*)" id="/g)) expect(cls).toMatch(/^border-t border-\[var\(--line\)\]/);
-    // The header's account menu is the owner's (accountFor), and no page link is marked current.
+    // The header's account menu is the admin's (accountFor), and no page link is marked current.
     expect(html).not.toContain('aria-current="page"');
+    // Nothing on the page changes anything: who may come in is changed in Clerk.
+    for (const id of ids) expect(section(html, id)).not.toMatch(/<form|<button|btn-primary/);
   });
 
-  it("lists who waits, oldest first, by email, with how they signed in and when", async () => {
-    const waiting = section(await render(), "waiting");
-    const t = text(waiting);
-    expect(t.indexOf("noor@icloud.com")).toBeLessThan(t.indexOf("ravi@gmail.com"));
-    expect(t).toMatch(/noor@icloud\.com Noor Email link Asked 3 Nov 2026/);
-    expect(t).toMatch(/ravi@gmail\.com Ravi K Google Asked 4 Nov 2026/);
-    // The count beside the heading is a warning Tag.
-    expect(waiting).toMatch(/<span data-affordance="tag" data-tone="warning" class="tag">2<\/span>/);
-    // Approve is a plain form post; Deny opens a confirm first, so no deny is posted from the row itself.
-    expect(waiting.match(/<form[^>]* action="\/api\/admin\/access" method="post"/g)).toHaveLength(2);
-    expect(waiting).toContain('<input type="hidden" name="action" value="approve"/>');
-    expect(waiting).not.toContain('name="confirm"');
-    expect(waiting.match(/>Deny<\/button>/g)).toHaveLength(2);
-    expect(t).not.toContain("spam@x.com");
-  });
-
-  it("lists the people with access, the owner first as You with no button, and the invites nobody has used", async () => {
+  it("sends the admin to Clerk for who may come in: the Waitlist to let people in, Users to take access away", async () => {
     const people = section(await render(), "people");
     const t = text(people);
-    expect(t.indexOf("owner@x.com")).toBeLessThan(t.indexOf("asha@gmail.com"));
-    expect(people).toMatch(/<span data-affordance="tag" data-tone="brand" class="tag">You<\/span>/);
-    expect(people.match(/>Remove access<\/button>/g)).toHaveLength(1);
-    expect(t).toContain("Invited, not signed in yet");
-    expect(t).toMatch(/mia@example\.com from the meetup Invited/);
-    // The owner's own invite is used, so it is not listed as waiting to be used.
-    expect(t.match(/owner@x\.com/g)).toHaveLength(1);
+    expect(t).toContain("Clerk");
+    expect(t).toContain("/join");
+    expect(t).toMatch(/ban/i);
+    const links = [...people.matchAll(/<a [^>]*href="([^"]+)"[^>]*>/g)];
+    expect(links.map((m) => m[1])).toEqual(["https://dashboard.clerk.com/~/users/waitlist", "https://dashboard.clerk.com/~/users"]);
+    for (const [a] of links) {
+      expect(a).toContain('target="_blank"');
+      expect(a).toContain('rel="noreferrer"');
+    }
   });
 
-  it("shows each person's estimated spend, most this month first, with the total and what is left out", async () => {
+  it("shows each person's estimated spend by their email in Clerk, most this month first, with the total and what is left out", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-11-12T06:00:00Z"));
     try {
@@ -156,24 +151,41 @@ describe("/admin", () => {
       // Asha spent more this month than the owner, so she comes first.
       expect(t.indexOf("asha@gmail.com")).toBeLessThan(t.indexOf("owner@x.com"));
       expect(t).toMatch(/asha@gmail\.com Asha Last active 10 Nov 2026 1 \$1\.23 \$1\.23/);
-      // A part of a cent shows as under a cent, never $0.00.
+      // The admin is You, by their Clerk user id. A part of a cent shows as under a cent, never $0.00.
       expect(t).toMatch(/owner@x\.com owner You No turns yet 0 &lt;\$0\.01 \$7\.50/);
-      expect(t).toMatch(/Not linked to a sign-in The test tools and passcodes 1 step unpriced 0 \$0\.00 \$0\.00/);
+      expect(spend.match(/data-tone="brand"[^>]*>You</g)).toHaveLength(1);
+      expect(t).toMatch(/Not linked to a Clerk account From before Clerk, the test tools and passcodes 1 step unpriced 0 \$0\.00 \$0\.00/);
       expect(spend).toMatch(/<th scope="col"[^>]*>This month<\/th>/);
-      // View only: nothing to press.
-      expect(spend).not.toMatch(/<form|<button/);
+      // Clerk is asked once, for the people on the page, in the page's order.
+      expect(jar.asked).toEqual([["user_asha", "user_owner"]]);
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it("lists a removed person's past spend, marked", async () => {
-    const [spam] = await jar.db.insert(learners).values({ name: "Spam", authUserId: "u-spam" }).returning();
-    const [s] = await jar.db.insert(sessions).values({ learnerId: spam.id, instructions: "i", tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "f" }).returning();
-    await jar.db.insert(usageRows).values({ sessionId: s.id, turnSeq: 1, kind: "step", step: 1, model: "claude-opus-5-5", inputTokens: 1, outputTokens: 1, cacheReadTokens: 0, cacheWriteTokens: 0, tools: [], durationMs: 1, costUsd: 0.4 });
+  it("marks a person Clerk has banned or no longer has as Access removed, keeping their past spend", async () => {
+    await jar.db.insert(learners).values([
+      { name: "Spam", clerkUserId: "user_spam" },
+      { name: "Gone", clerkUserId: "user_gone" },
+    ]);
+    jar.directory = answered({ user_owner: { email: OWNER.email }, user_asha: { email: "asha@gmail.com" }, user_spam: { email: "spam@x.com", banned: true } });
     const spend = section(await render(), "spend");
-    expect(text(spend)).toMatch(/spam@x\.com Spam Access removed/);
-    expect(spend).toMatch(/<span data-affordance="tag" data-tone="danger" class="tag">Access removed<\/span>/);
+    const t = text(spend);
+    expect(t).toMatch(/spam@x\.com Spam Access removed/);
+    // With no email to show, the row names the Clerk user id.
+    expect(t).toMatch(/user_gone Gone Access removed/);
+    expect(t).not.toMatch(/asha@gmail\.com Asha Access removed/);
+    expect(spend.match(/<span data-affordance="tag" data-tone="danger" class="tag">Access removed<\/span>/g)).toHaveLength(2);
+  });
+
+  it("names people by their Clerk user id, and says why, when Clerk did not answer; nobody is marked removed", async () => {
+    jar.directory = { people: new Map(), answered: false };
+    const spend = section(await render(), "spend");
+    const t = text(spend);
+    expect(t).toMatch(/user_owner owner You/);
+    expect(t).toMatch(/user_asha Asha/);
+    expect(spend).toMatch(/<p role="status"[^>]*>[^<]*Clerk did not answer/);
+    expect(t).not.toContain("Access removed");
   });
 
   it("shows Tutor speed by Reply kind over the last 30 days, in seconds with one decimal, with the budgets and what went wrong", async () => {
@@ -235,58 +247,12 @@ describe("/admin", () => {
     // Only 0037's speed numbers are missing here: migration 0038's Learner column (issue #33), which Drizzle names in
     // every Learner it writes or reads back, is put in by hand.
     await jar.db.execute(sql`alter table learners add column clerk_user_id text`);
-    const learner = await seed(jar.db);
-    jar.owner = { learner, identity: { userId: OWNER.id, email: OWNER.email, firstName: OWNER.name, admin: true } };
+    jar.admin = { learner: await seed(jar.db), identity: OWNER };
     const html = await render();
     const speed = section(html, "speed");
     expect(text(speed)).toContain("Not available yet");
     expect(speed).not.toContain("<table");
     // The rest of the page is there as usual.
     expect(text(section(html, "spend"))).toContain("this month");
-  });
-
-  it("lists the denied, who can be approved again", async () => {
-    const denied = section(await render(), "denied");
-    expect(text(denied)).toContain("spam@x.com");
-    expect(denied).toContain('<input type="hidden" name="userId" value="u-spam"/>');
-    expect(denied).toMatch(/>Approve<\/button>/);
-  });
-
-  it("has one primary button, Invite, on a form that takes an email and a note", async () => {
-    const html = await render();
-    expect(html.match(/class="btn btn-primary[^"]*"/g)).toHaveLength(1);
-    const invite = section(html, "invite");
-    expect(invite).toMatch(/<form[^>]* action="\/api\/admin\/invites" method="post"/);
-    const email = invite.match(/<input[^>]*name="email"[^>]*>/)?.[0];
-    expect(email).toContain('type="email"');
-    expect(email).toContain("required");
-    expect(invite).toMatch(/<input[^>]*name="note"/);
-    expect(invite).not.toMatch(/name="learner/);
-    expect(invite).toMatch(/<button type="submit"[^>]*class="btn btn-primary[^"]*"[^>]*>Invite<\/button>/);
-  });
-
-  it("shows the Sign-up switch read-only, with the command that turns it", async () => {
-    const closed = text(section(await render(), "sign-up"));
-    expect(closed).toContain("Closed");
-    expect(closed).toContain("npm run invites -- open");
-    expect(section(await render(), "sign-up")).not.toMatch(/<form|<button/);
-  });
-
-  it("shows a change's result in the section it belongs to, and ignores an unknown code", async () => {
-    const approved = await render({ done: "approved" });
-    expect(section(approved, "people")).toMatch(/<p role="status"[^>]*>Approved\. They can come in now\.<\/p>/);
-    expect(section(approved, "waiting")).not.toContain('role="status"');
-    const bad = await render({ done: "bad_email" });
-    expect(section(bad, "invite")).toMatch(/<p role="alert"[^>]*>That isn&#x27;t an email address/);
-    const unknown = await render({ done: "<script>" });
-    expect(unknown).not.toMatch(/role="(status|alert)"/);
-  });
-
-  it("says when nobody waits, and has no Denied section when nobody is denied", async () => {
-    for (const id of ["u-spam", "u-noor", "u-ravi"]) await jar.db.delete(user).where(eq(user.id, id));
-    const html = await render();
-    expect(text(section(html, "waiting"))).toContain("Nobody is waiting.");
-    expect(section(html, "waiting")).not.toContain('data-tone="warning"');
-    expect(html).not.toContain('id="denied"');
   });
 });
