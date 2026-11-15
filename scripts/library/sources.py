@@ -3,7 +3,7 @@
 Run from the laptop, with a scratch folder OUTSIDE this repo (downloads are cached there):
   python3 -I scripts/library/sources.py <source> <scratch dir> <documents.json>
 where <source> is one of: damodaran-papers, yale-econ-251, yale-econ-252, fed-explained,
-nyfed, sec-anthropic-s1. Each writes a JSON list of documents ({ref, title, url, publishedOn, sections})
+nyfed, fomc-historical, sec-anthropic-s1. Each writes a JSON list of documents ({ref, title, url, publishedOn, sections})
 for `npm run library:load`, which cleans, cuts, repairs and checks the text. Nothing extracted is
 written into the repo: the source text lives only in the private database.
 
@@ -22,6 +22,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from datetime import date, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -331,6 +332,251 @@ def nyfed(scratch, out):
     print(f"{len(docs)} pages, {sum(len(p.split()) for d in docs for s in d['sections'] for p in s['paragraphs'])} words")
 
 
+# ---------------------------------------------------------------- FOMC historical records (#38)
+
+FED = "https://www.federalreserve.gov"
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+DATE = r"(" + "|".join(MONTHS) + r")\s+(\d{1,2}),\s+(\d{4})"
+
+
+def iso_date(text):
+    """The first "March 25, 1994" in some text as "1994-03-25", or None."""
+    m = re.search(DATE, text)
+    return f"{m.group(3)}-{MONTHS.index(m.group(1)) + 1:02d}-{int(m.group(2)):02d}" if m else None
+
+
+def meeting_end(label, year):
+    """The last day of a meeting from its year-page label: "February 3-4" -> 1994-02-04, "January 31-February 1" -> 1995-02-01."""
+    last = label.split("-")[-1].strip()
+    month = re.match(r"[A-Za-z]+", label).group(0)
+    if re.match(r"[A-Za-z]", last):
+        month, last = last.split()[0], last.split()[1]
+    return f"{year}-{MONTHS.index(month) + 1:02d}-{int(re.match(r'\d+', last).group(0)):02d}"
+
+
+def days_after(day, n):
+    """The ISO day n days after an ISO day (calendar arithmetic, the same in every time zone)."""
+    return (date.fromisoformat(day) + timedelta(days=n)).isoformat()
+
+
+def fomc_year_page(markup, year):
+    """What one year page of the Board's FOMC historical materials lists, in meeting order:
+    [{label, call, date, items: [{kind, url, releasedOn}]}]. Kinds: statement, minutes (not the links
+    into another meeting's minutes), policy-record (Record of Policy Actions) and beige-book (dated by its
+    file name). Transcripts, Greenbooks, Bluebooks, agendas and Minutes of Actions are left out."""
+    meetings = []
+    for panel in re.split(r'<div class="panel-heading">', markup)[1:]:
+        header = re.search(r"<h5>(.*?)</h5>", panel, re.S)
+        label = " ".join(html.unescape(re.sub(r"<[^>]+>", "", header.group(1) if header else "")).split())
+        m = re.fullmatch(r"(.+?) (Meeting|Conference Call) - (\d{4})", label)
+        if not m:
+            continue
+        meeting = {"label": f"{m.group(1)}, {m.group(3)}", "call": m.group(2) == "Conference Call", "date": meeting_end(m.group(1), m.group(3)), "items": []}
+        for href, text, after in re.findall(r'<a href="([^"]*)"[^>]*>(.*?)</a>([^<]*)', panel, re.S):
+            text = " ".join(html.unescape(re.sub(r"<[^>]+>", "", text)).split())
+            url = FED + href if href.startswith("/") else href
+            if not href or "#" in href:
+                continue
+            if text == "Statement":
+                meeting["items"].append({"kind": "statement", "url": url, "releasedOn": meeting["date"]})
+            elif text == "Minutes":
+                meeting["items"].append({"kind": "minutes", "url": url, "releasedOn": iso_date(after)})
+            elif text.startswith("Record of Policy Actions") and href.endswith(".pdf"):
+                meeting["items"].append({"kind": "policy-record", "url": url, "releasedOn": None})
+            elif (b := re.search(r"beige(\d{4})(\d{2})(\d{2})\.pdf$", href)):
+                meeting["items"].append({"kind": "beige-book", "url": url, "releasedOn": f"{b.group(1)}-{b.group(2)}-{b.group(3)}"})
+        meetings.append(meeting)
+    return meetings
+
+
+def fomc_html_sections(markup, kind):
+    """The words of an FOMC statement or minutes page as sections: without the press-release header, the
+    list of those present, the signature, the footnotes and the site footer. Layout tables are read as
+    plain text, so a page set inside one table cell keeps its paragraphs. The page's <head> (its <title>,
+    "FRB: Press Release -- FOMC statement -- ...") is left out too."""
+    markup = re.sub(r"<head\b.*?</head>|<title\b.*?</title>", "", markup, flags=re.I | re.S)
+    markup = re.sub(r"</?(table|tbody|thead|center)\b[^>]*>", "<div>", markup, flags=re.I)
+    markup = re.sub(r"</?tr\b[^>]*>", "<br>", markup, flags=re.I)
+    markup = re.sub(r"</?t[dh]\b[^>]*>", " ", markup, flags=re.I)
+    blocks = []
+    for kind_, text in html_blocks(markup):
+        if re.match(r"(Home \||Footnotes$|Last update)", text, re.I):
+            break
+        if not re.fullmatch(r"(Release Date: .*|For immediate release|Return to top|\d{4} Monetary policy|Present:?)", text, re.I):
+            blocks.append((kind_, text))
+    starts = [i for i, (_, t) in enumerate(blocks) if t.startswith("For immediate release") or t.startswith("A meeting of the Federal Open Market Committee")]
+    if kind == "minutes" and starts:
+        # The attendance list: names, one a line, and its numbered footnotes ("3. Attended portion of meeting
+        # relating to ..."), until the first sentence that is not about a person.
+        opening, rest = blocks[starts[0]], blocks[starts[0] + 1 :]
+        title = r"(Mr|Ms|Mrs|Miss|Messrs|Mmes|Dr)\.?\s|\d{1,2}\.\s"
+        first = next((i for i, (_, t) in enumerate(rest) if len(t.split()) >= 12 and t.rstrip().endswith(".") and not re.match(title, t)), 0)
+        blocks = [opening] + rest[first:]
+        end = next((i for i, (_, t) in enumerate(blocks) if t.startswith("The meeting adjourned")), None)
+        blocks = blocks[: end + 1] if end is not None else blocks
+    return sections_from_blocks(blocks)
+
+
+def layout_paragraphs(page):
+    """Paragraphs from one page of `pdftotext -layout` text, as a typewritten record sets them: a new paragraph
+    starts on an indented line or after a short line (the last line of a paragraph, or a heading). Returns
+    (paragraphs, whether the first line goes on from the previous page)."""
+    lines = [l.rstrip() for l in page.splitlines() if l.strip()]
+    lines = [l for l in lines if not re.fullmatch(r"\s*(-\s*\d{1,3}\s*-|\d{1,2}/\d{1,2}/\d{2}(\s+-\s*\d{1,3}\s*-)?|(page\s*)?\d{1,3})\s*", l, re.I)]
+    if not lines:
+        return [], False
+    base = min(len(l) - len(l.lstrip()) for l in lines)
+    full = sorted(len(l.strip()) for l in lines)[int(len(lines) * 0.8)]
+    paras, current, short = [], [], False
+    for l in lines:
+        indented = len(l) - len(l.lstrip()) - base >= 3
+        if current and (indented or short):
+            paras.append("\n".join(current))
+            current = []
+        current.append(" ".join(l.split()))
+        short = len(l.strip()) < 0.7 * full
+    paras.append("\n".join(current))
+    return paras, not (len(lines[0]) - len(lines[0].lstrip()) - base >= 3)
+
+
+LAYOUT_HEADING = re.compile(r"\d{1,2}\.\s+[A-Z][^.,;]{2,80}")
+
+
+def _is_layout_heading(paragraph):
+    return LAYOUT_HEADING.fullmatch(" ".join(paragraph.split())) is not None
+
+
+def _goes_on(previous, paragraph):
+    """Whether a paragraph is the rest of the one before it: that one stopped mid-sentence (no closing mark,
+    not a heading) and this one starts in lower case or with a number that is not a heading's ("December" /
+    "20. In foreign exchange markets, ..."). Every line of an indented quotation looks like a new paragraph."""
+    if re.search(r"[.:;?!\"”)]$", previous) or _is_layout_heading(previous):
+        return False
+    return re.match(r"[a-z]", paragraph) is not None or (re.match(r"\d", paragraph) is not None and not _is_layout_heading(paragraph))
+
+
+def layout_document(pages, ref, title, url, published_on):
+    """A typewritten PDF (pages of `pdftotext -layout` text) as a document: paragraphs rebuilt from the layout,
+    joined across page breaks, and numbered headings ("2. Authorization for domestic open market operations")
+    starting sections. A paragraph that goes on from the one before it (_goes_on) is joined back to it."""
+    stripped = strip_running_lines([{"text": p} for p in pages])
+    paras = []
+    for page in stripped:
+        found, goes_on = layout_paragraphs(page["text"])
+        if found and goes_on and paras and not re.search(r"[.:;?!\"”)]$", paras[-1]):
+            paras[-1] += "\n" + found.pop(0)
+        for p in found:
+            if paras and _goes_on(paras[-1], p):
+                paras[-1] += "\n" + p
+            else:
+                paras.append(p)
+    blocks = [("h", " ".join(p.split())) if _is_layout_heading(p) else ("p", p) for p in paras]
+    return {"ref": ref, "title": title, "url": url, "publishedOn": published_on, "sections": sections_from_blocks(blocks)}
+
+
+def release_cover(page):
+    """The release date on a Record of Policy Actions' press-release cover ("March 23, 1979 ... today released
+    the attached record of policy actions"), or None when the first page is not such a cover."""
+    if not re.search(r"today\s+released|released\s+the\s+attached", page, re.I):
+        return None
+    return iso_date(page)
+
+
+def text_layer_reasons(reference, docs):
+    """{ref: reasons} for PDF documents, from scripts/library/text-layer.mjs (corruptionReasons and the joined-word check of src/library/prepare.ts)."""
+    if not docs:
+        return {}
+    script = Path(__file__).resolve().with_name("text-layer.mjs")
+    result = subprocess.run(["node", str(script)], input=json.dumps({"reference": reference, "docs": docs}), capture_output=True, text=True, check=True)
+    return json.loads(result.stdout)
+
+
+def fomc_historical(scratch, out, first=1979, last=2001, beige_books=False):
+    """FOMC records the Board published at the time, 1979-2001, each dated by its own release: statements
+    (from February 1994, dated by the meeting), minutes (from February 1993, dated by the "Released" date on the
+    year page), Records of Policy Actions (to 1992, PDF, dated by their press-release cover, or a week after the
+    next meeting where the cover is missing) and, with beige_books, Beige Books (PDF, dated by file name).
+    A PDF goes in only when its text layer passes text-layer.mjs; the rest are listed in
+    <scratch>/fomc-historical.dropped.json with the reason."""
+    scratch = Path(scratch)
+    cache = scratch / "fomc"
+    fetch(f"{FED}/monetarypolicy/fomc_historical.htm", cache / "fomc_historical.htm")
+    meetings = []
+    for year in range(first, last + 1):
+        meetings += fomc_year_page(fetch(f"{FED}/monetarypolicy/fomchistorical{year}.htm", cache / f"fomchistorical{year}.htm"), year)
+    scheduled = sorted(m["date"] for m in meetings if not m["call"])
+    html_docs, pdf_docs, dropped, fallback = [], [], [], []
+    for meeting in meetings:
+        for item in meeting["items"]:
+            name = item["url"].removeprefix(FED + "/").strip("/").replace("/", "_")
+            day = meeting["date"].replace("-", "")
+            if item["kind"] in ("statement", "minutes"):
+                if not item["releasedOn"]:
+                    dropped.append({"url": item["url"], "year": meeting["date"][:4], "reason": "no release date on the year page"})
+                    continue
+                markup = fetch(item["url"], cache / (name if name.endswith("htm") else name + ".htm"))
+                sections = fomc_html_sections(markup, item["kind"])
+                if item["kind"] == "statement":
+                    stamped = re.search(r"Release Date:\s*" + DATE, markup)
+                    released = max(item["releasedOn"], iso_date(stamped.group(0))) if stamped else item["releasedOn"]
+                    title = f"FOMC statement, {iso_label(released)}" + (" (after a conference call)" if meeting["call"] else "")
+                    doc = {"ref": f"statement-{day}", "title": title, "url": item["url"], "publishedOn": released, "sections": sections}
+                else:
+                    doc = {"ref": f"minutes-{day}", "title": f"FOMC minutes, meeting of {meeting['label']}", "url": item["url"], "publishedOn": item["releasedOn"], "sections": sections}
+                if sections:
+                    html_docs.append(doc)
+                else:
+                    dropped.append({"url": item["url"], "year": meeting["date"][:4], "reason": "no text found on the page"})
+            elif item["kind"] == "policy-record" or (item["kind"] == "beige-book" and beige_books):
+                path = cache / name
+                try:
+                    fetch(item["url"], path, binary=True)
+                except Exception as e:
+                    dropped.append({"url": item["url"], "year": meeting["date"][:4], "reason": f"download failed: {e}"})
+                    continue
+                pages = run("pdftotext", "-layout", str(path), "-").split("\f")
+                if sum(len(p.split()) for p in pages) < 50 * max(1, len([p for p in pages if p.strip()]) // 4):
+                    dropped.append({"url": item["url"], "year": meeting["date"][:4], "reason": "no text layer (a scan)"})
+                    continue
+                if item["kind"] == "policy-record":
+                    released = release_cover(pages[0])
+                    if released and meeting["date"] < released <= days_after(meeting["date"], 120):
+                        pages = pages[1:]
+                    else:
+                        later = [d for d in scheduled if d > meeting["date"]]
+                        released = days_after(later[0], 7) if later else days_after(meeting["date"], 60)
+                        fallback.append(item["url"])
+                    doc = layout_document(pages, f"policy-record-{day}", f"FOMC Record of Policy Actions, meeting of {meeting['label']}", item["url"], released)
+                else:
+                    doc = layout_document(pages, f"beige-book-{item['releasedOn'].replace('-', '')}", f"Beige Book, {iso_label(item['releasedOn'])}", item["url"], item["releasedOn"])
+                pdf_docs.append(doc)
+    reasons = text_layer_reasons(html_docs, pdf_docs)
+    docs = html_docs[:]
+    for doc in pdf_docs:
+        if reasons.get(doc["ref"]):
+            dropped.append({"url": doc["url"], "year": doc["ref"].rsplit("-", 1)[1][:4], "reason": "; ".join(reasons[doc["ref"]])})
+        else:
+            docs.append(doc)
+    docs.sort(key=lambda d: (d["publishedOn"], d["ref"]))
+    Path(out).write_text(json.dumps(docs))
+    (scratch / "fomc-historical.dropped.json").write_text(json.dumps(dropped, indent=1))
+    count = {}
+    for d in docs:
+        kind = d["ref"].rsplit("-", 1)[0]
+        count[kind] = count.get(kind, 0) + 1
+    print(f"FOMC {first}-{last}: {len(docs)} documents {count}, {sum(len(p.split()) for d in docs for s in d['sections'] for p in s['paragraphs'])} words")
+    if fallback:
+        print(f"{len(fallback)} Records of Policy Actions had no release cover; dated a week after the next meeting")
+    for d in dropped:
+        print(f"dropped {d['year']} {d['url']}: {d['reason']}")
+
+
+def iso_label(day):
+    """1994-02-04 -> "February 4, 1994"."""
+    y, m, d = day.split("-")
+    return f"{MONTHS[int(m) - 1]} {int(d)}, {y}"
+
+
 def sec_filing(cik, accession, document, title, scratch, out, published_on=None):
     """One SEC filing's main document. The submissions API confirms the accession and filing date first."""
     scratch = Path(scratch)
@@ -428,6 +674,8 @@ def main():
         fed_explained(scratch, out)
     elif source == "nyfed":
         nyfed(scratch, out)
+    elif source == "fomc-historical":
+        fomc_historical(scratch, out)
     elif source == "sec-anthropic-s1":
         sec_filing("0002130357", "0001628280-26-067168", "anthropicpbc-sx1.htm", "Form S-1 registration statement", scratch, out)
     else:
