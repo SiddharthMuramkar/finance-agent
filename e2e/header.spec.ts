@@ -129,7 +129,7 @@ test("[ADR 0013] the header is flat: a 56px row over a 1px hairline, 32px ghost 
   }
 
   // The last icon's tooltip is the browser's own (title), so focusing and pointing at it never widens the page.
-  for (let i = 0; i < 7; i++) await page.keyboard.press("Tab");
+  for (let i = 0; i < 6; i++) await page.keyboard.press("Tab");
   await expect(page.getByTestId("account-menu-button")).toBeFocused();
   await page.getByTestId("account-menu-button").hover();
   const scroll = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
