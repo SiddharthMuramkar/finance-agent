@@ -172,7 +172,7 @@ async function withCashOption(page: Page) {
  * 3.5%, and the axis labels do not change during the drag." The mouse drags the rate from 0% in small moves; at each stop
  * the test reads the rate, the match line and the axis label.
  */
-test("[E3] dragging the rate up from 0%, You found it appears between 3.3% and 3.5%, and the axis never changes", async ({ page, baseURL }, info) => {
+test("[E3] dragging the rate up from 0%, You found it appears between 3.3% and 3.5%, and the axis never changes", async ({ page }, info) => {
   test.skip(!["mbp14", "w1280", "p390"].includes(info.project.name), "1512, 1280 and a phone");
   await withCashOption(page);
   await openHome(page);
@@ -286,7 +286,7 @@ async function recordEvents(page: Page): Promise<Sent[]> {
  * moved off and back to the price; two of section 3's steps opened (only the first is sent, with its step); then Join in
  * the hero (with its section).
  */
-test("[E10] one test visit sends each of Home's six events once, in order", async ({ page, baseURL }, info) => {
+test("[E10] one test visit sends each of Home's six events once, in order", async ({ page }, info) => {
   test.skip(!["mbp14", "w1280"].includes(info.project.name), "1512 and 1280");
   const sent = await recordEvents(page);
   await withCashOption(page);
@@ -394,7 +394,7 @@ test("[E5] section 3's Quick try marks a wrong tap and shows its fix, with no re
  * it: with the hero's cash option, seeded here so the height never depends on an earlier test (without it the hero is
  * about 250 px shorter, enough to hide section 2 falling back to one column).
  */
-test("[E1] Home is at least a quarter shorter than the audited 5,736 px", async ({ page, baseURL }, info) => {
+test("[E1] Home is at least a quarter shorter than the audited 5,736 px", async ({ page }, info) => {
   test.skip(info.project.name !== "w1024", "1024, the audited width");
   await withCashOption(page);
   await openHome(page);

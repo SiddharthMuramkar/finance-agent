@@ -30,7 +30,7 @@ function near(actual: number | null | undefined, expected: number, what: string)
 const widths = (page: Page, ids: string[]) =>
   page.evaluate((ids) => ids.map((id) => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().width ?? null), ids);
 
-test("[C2a] split default: 45 / 55 at 1024, 1280, 1512 and 1920", async ({ page }, info) => {
+test("[C2a] split default: 45 / 55 at 1024, 1280, 1512 and 1920", async ({ page }) => {
   const width = page.viewportSize()!.width;
   const want = DEFAULT[width];
   test.skip(!want, "measured at the spec's four widths");

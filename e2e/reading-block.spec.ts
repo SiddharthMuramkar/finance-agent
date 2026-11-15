@@ -49,7 +49,7 @@ async function open(page: Page) {
   await expect(page.getByTestId("choice").first()).toBeVisible();
 }
 
-test("[C1] reading block centred at 1024, 1280, 1512 and 1920", async ({ page }, info) => {
+test("[C1] reading block centred at 1024, 1280, 1512 and 1920", async ({ page }) => {
   const width = page.viewportSize()!.width;
   const want = WIDTH[width];
   test.skip(!want, "measured at the spec's four widths");

@@ -28,7 +28,7 @@ async function expectChoices(page: Page) {
   return choices;
 }
 
-test("after each of 5 scripted replies 2–3 Choices show, and a tapped Choice posts its words", async ({ page }, info) => {
+test("after each of 5 scripted replies 2–3 Choices show, and a tapped Choice posts its words", async ({ page }) => {
   test.setTimeout(180_000);
   await seed(page, "concept-widget");
   await page.goto("/study");
