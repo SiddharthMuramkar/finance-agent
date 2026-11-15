@@ -33,6 +33,16 @@ describe("the compounding widget renders", () => {
     expect(textOf(w)).toContain("Worked example from the Topic. No outside figures.");
   });
 
+  // The chart's height scale comes from 1000 × 1.1^30 (Math.pow), whose last digit may differ between the server's V8 and
+  // the browser's, so every coordinate is written at 2 decimals (px) and hydration sees the same attribute on both.
+  it("writes every chart coordinate at 2 decimals or fewer", () => {
+    const svg = widget(render(<CompoundWidget />).container).querySelector("svg[role=img]")!;
+    const long = [...svg.querySelectorAll("*")].flatMap((el) =>
+      ["x", "y", "width", "height", "x1", "x2", "y1", "y2", "d"].flatMap((name) => ((el.getAttribute(name) ?? "").match(/\d+\.\d{3,}/g) ?? []).map((n) => `${el.tagName} ${name}=${n}`)),
+    );
+    expect(long).toEqual([]);
+  });
+
   it("drops the head in compact mode and renders nothing for another Case", () => {
     expect(widget(render(<CompoundWidget compact />).container).querySelector("h3")).toBeNull();
     expect(render(<CompoundWidget caseSlug="wework-2019" />).container.innerHTML).toBe("");

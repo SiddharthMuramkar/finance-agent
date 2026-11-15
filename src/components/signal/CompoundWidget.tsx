@@ -92,7 +92,7 @@ function Chart({ years, split, compact }: { years: number; split: boolean; compa
             });
             return (
               <g key={c.year} className={c.year > years ? "sig-dim" : undefined} data-year={c.year}>
-                <rect x={x} y={bottom - baseH} width={bw} height={baseH} className="sig-f-ink" />
+                <rect x={px(x)} y={px(bottom - baseH)} width={px(bw)} height={px(baseH)} className="sig-f-ink" />
                 {shapes}
               </g>
             );
@@ -114,9 +114,9 @@ function Chart({ years, split, compact }: { years: number; split: boolean; compa
           {columns.map((c) => (
             <rect
               key={`hit-${c.year}`}
-              x={(c.year - 1) * slot}
+              x={px((c.year - 1) * slot)}
               y={TOP}
-              width={slot}
+              width={px(slot)}
               height={PH}
               className="sig-hit"
               data-tip={`Year ${c.year}\nBalance: ${inr(c.balance)}\nAdded this year: ${inr(c.added)}`}
