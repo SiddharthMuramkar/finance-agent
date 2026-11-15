@@ -160,6 +160,7 @@ export const SIGNAL_CSS = `
 .sig-w .sig-lever-value{font-family:var(--font-display,inherit);font-size:19px;line-height:1.2;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 .sig-w .sig-lever-unit{font-size:12px;color:var(--muted);line-height:1.3;min-height:2.6em}
 .sig-w .sig-lever-track{position:relative;width:44px;height:var(--lv-h,200px);border-radius:8px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--rule);touch-action:pan-y;cursor:pointer}
+.sig-w .sig-lever[data-enabled="false"] .sig-lever-track{cursor:default}
 .sig-w .sig-lever:focus-within .sig-lever-track{outline:2px solid var(--blue);outline-offset:2px}
 .sig-w .sig-lever-fill{position:absolute;left:6px;right:6px;border-radius:4px;transition:bottom .42s var(--ease,ease),height .42s var(--ease,ease)}
 .sig-w .sig-lever-base{background:var(--wash-2)}

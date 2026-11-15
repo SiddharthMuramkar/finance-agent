@@ -31,8 +31,16 @@ export type Affordances = {
   tooSmall: string[];
   /** ADR 0013 and ADR 0014: a control, in the app or in a Widget, with a drop or lip shadow, a transform, or corners over 12px. */
   notFlat: string[];
-  counts: { interactive?: number; tags?: number };
+  /** `letOff`: how many controls sat inside the `letOff` selector, so were not judged for their signifier or flatness. */
+  counts: { interactive?: number; tags?: number; letOff?: number };
 };
+
+/**
+ * Controls the look rules let off: a CSS selector, and a control inside an element it matches is not judged for its
+ * signifier or flatness (auditAffordances) or for F4's link and blue-word rules (pressLook). Every other rule still judges
+ * it. For a page drawn to another spec's components while the owner decides which rule wins (affordance.spec.ts).
+ */
+export type LetOff = { letOff?: string };
 
 /**
  * Appendix C.2: gutters, column shares, header height, chat font and line length of the page as it is now.
@@ -138,13 +146,13 @@ export function measureLayout(page: Page, opts: { prose?: string; cardsAsColumns
  * rounder than 12px. A range input, anywhere, is signified by a name and a pointer; every
  * other input keeps the 3:1 edge rule.
  */
-export function auditAffordances(page: Page): Promise<Affordances> {
-  return page.evaluate(() => {
+export function auditAffordances(page: Page, opts: LetOff = {}): Promise<Affordances> {
+  return page.evaluate((letOffSelector) => {
     const root = document;
     const INTERACTIVE = 'a[href], button, [role="button"], [role="menuitem"], [role="menuitemradio"], summary, input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])';
     const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none"; };
     const name = (el: Element) => `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""} "${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}"`;
-    const out = { interactiveWithoutSignifier: [] as string[], pointerOnStatic: [] as string[], staticLooksPressable: [] as string[], tooSmall: [] as string[], notFlat: [] as string[], counts: {} as { interactive?: number; tags?: number } };
+    const out = { interactiveWithoutSignifier: [] as string[], pointerOnStatic: [] as string[], staticLooksPressable: [] as string[], tooSmall: [] as string[], notFlat: [] as string[], counts: {} as { interactive?: number; tags?: number; letOff?: number } };
     const kindOf = (el: Element) => (el.closest("[data-affordance]") || el).getAttribute("data-affordance");
     const minSize: Record<string, number> = { button: 32, icon: 32, chip: 28, nav: 28, option: 44, step: 24, menuitem: 28, split: 16 };
 
@@ -178,11 +186,24 @@ export function auditAffordances(page: Page): Promise<Affordances> {
       for (const layer of layers.reverse()) under = over(layer, under);
       return under;
     };
-    /** An edge: the first side with a visible border, as its colour over the backdrop. */
+    const COLOUR = /(rgba?|oklch|oklab|color|hsla?)\([^)]*\)/g;
+    /**
+     * An edge: the first side with a visible border, as its colour over the backdrop; or, with no border, an inset ring
+     * (`inset 0 0 0 Npx colour`: no offset, no blur), which is drawn exactly like a border.
+     */
     const edgeOf = (s: CSSStyleDeclaration, backdrop: Rgba): Rgba | null => {
       for (const side of ["Top", "Right", "Bottom", "Left"] as const) {
         if (parseFloat(s[`border${side}Width`]) > 0 && !["none", "hidden"].includes(s[`border${side}Style`])) {
           const c = rgba(s[`border${side}Color`]);
+          if (c[3] > 0) return over(c, backdrop);
+        }
+      }
+      for (const layer of s.boxShadow === "none" ? [] : s.boxShadow.split(/,(?![^(]*\))/)) {
+        const colour = layer.match(COLOUR)?.[0];
+        if (!colour || !/\binset\b/.test(layer)) continue;
+        const [x, y, blur, spread] = layer.replace(COLOUR, "").replace("inset", "").trim().split(/\s+/).map(parseFloat);
+        if (x === 0 && y === 0 && !blur && spread > 0) {
+          const c = rgba(colour);
           if (c[3] > 0) return over(c, backdrop);
         }
       }
@@ -196,13 +217,15 @@ export function auditAffordances(page: Page): Promise<Affordances> {
         .split(",")
         .some((layer) => !/inset/.test(layer) && layer.trim().split(/\s+/).map(parseFloat).filter((n) => !Number.isNaN(n)).slice(0, 3).some((n) => n !== 0));
 
-    let interactive = 0, tags = 0;
+    let interactive = 0, tags = 0, letOff = 0;
     for (const el of root.querySelectorAll(INTERACTIVE)) {
       if (!visible(el)) continue;
       // A disabled control cannot be pressed, so it is not judged as one: it is see-through on purpose ("off").
       if (el.matches(':disabled, [aria-disabled="true"]')) continue;
       if (el.closest("svg") && !el.matches("a[href]")) continue;   // a chart mark that takes focus so arrow keys can read it is not a control
       interactive++;
+      const lookLetOff = !!letOffSelector && !!el.closest(letOffSelector);
+      if (lookLetOff) letOff++;
       const isChoiceInput = el.matches('input[type="radio"], input[type="checkbox"]');
       // A radio or checkbox is judged by its own edge and sized by its label (the row a Learner presses).
       const host = isChoiceInput ? el.closest("label") || el : el;
@@ -239,12 +262,12 @@ export function auditAffordances(page: Page): Promise<Affordances> {
         if (kind === "option") ok = ok && edgeOf(hs, backdropOf(host)) !== null;
       } else if (kind === "link") ok = s.textDecorationLine.includes("underline");
       else if (el.matches("summary")) ok = !!el.querySelector("svg");
-      if (!ok) out.interactiveWithoutSignifier.push(name(el));
+      if (!ok && !lookLetOff) out.interactiveWithoutSignifier.push(name(el));
       const floor = el.matches(".btn-xs") ? 28 : kind ? minSize[kind] : undefined;
       if (floor && (r.height < floor || r.width < floor)) out.tooSmall.push(`${name(host)} ${Math.round(r.width)}x${Math.round(r.height)}`);
       if (kind && kind in minSize) {
         const why = [lifted(hs.boxShadow) && "shadow", hs.transform !== "none" && "transform", kind !== "icon" && parseFloat(hs.borderTopLeftRadius) > 12 && "radius"].filter(Boolean);
-        if (why.length) out.notFlat.push(`${name(host)} ${why.join("+")}`);
+        if (why.length && !lookLetOff) out.notFlat.push(`${name(host)} ${why.join("+")}`);
       }
     }
     for (const el of root.querySelectorAll("*")) {       // nothing that cannot be pressed shows a pointer
@@ -257,9 +280,9 @@ export function auditAffordances(page: Page): Promise<Affordances> {
       const s = getComputedStyle(el);
       if (s.boxShadow !== "none" || s.cursor === "pointer" || parseFloat(s.borderTopLeftRadius) > 8) out.staticLooksPressable.push(name(el));
     }
-    out.counts = { interactive, tags };
+    out.counts = { interactive, tags, ...(letOffSelector ? { letOff } : {}) };
     return out;                                           // a clean page returns five empty lists
-  });
+  }, opts.letOff ?? null);
 }
 
 /** What `pressLook` finds: each list names the elements that break one rule of spec 2026-11-12 F4, empty when clean. */
@@ -276,8 +299,9 @@ export type PressLook = {
   bareBlueWords: string[];
   /** Two Bands whose boxes touch or overlap (F1: two Bands never touch). */
   bandsTouching: string[];
-  /** How many pressable elements, links and Bands were judged, so a page that judged nothing is caught. */
-  counts: { pressable: number; links: number; bands: number };
+  /** How many pressable elements, links and Bands were judged, so a page that judged nothing is caught; `letOff`, how many
+   * pressable elements sat inside the `letOff` selector (not judged for readingLinks, bandLinks or bareBlueWords). */
+  counts: { pressable: number; links: number; bands: number; letOff: number };
 };
 
 /**
@@ -287,11 +311,11 @@ export type PressLook = {
  * `.band` or `.home-band`; a `.band-card` inside one is a reading area again. Colours are compared as the browser
  * computes them, the accent read from the token. Pressable means the affordance audit's controls, visible and enabled.
  */
-export function pressLook(page: Page): Promise<PressLook> {
-  return page.evaluate(() => {
+export function pressLook(page: Page, opts: LetOff = {}): Promise<PressLook> {
+  return page.evaluate((letOffSelector) => {
     const INTERACTIVE = 'a[href], button, [role="button"], [role="menuitem"], [role="menuitemradio"], summary, [tabindex]:not([tabindex="-1"])';
     const BANDS = ".band, .home-band";
-    const out: PressLook = { readingLinks: [], bandLinks: [], bandButtons: [], keyNumberLook: [], bareBlueWords: [], bandsTouching: [], counts: { pressable: 0, links: 0, bands: 0 } };
+    const out: PressLook = { readingLinks: [], bandLinks: [], bandButtons: [], keyNumberLook: [], bareBlueWords: [], bandsTouching: [], counts: { pressable: 0, links: 0, bands: 0, letOff: 0 } };
     const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && s.display !== "none"; };
     const name = (el: Element) => `${el.tagName.toLowerCase()} "${(el.getAttribute("aria-label") || el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40)}"`;
     const colourOf = (css: string) => { const probe = document.createElement("span"); probe.style.color = css; document.body.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c; };
@@ -320,7 +344,9 @@ export function pressLook(page: Page): Promise<PressLook> {
       out.counts.pressable++;
       const band = onBand(el);
       const s = getComputedStyle(el);
-      if (el.matches('[data-affordance="link"]')) {
+      const lookLetOff = !!letOffSelector && !!el.closest(letOffSelector);
+      if (lookLetOff) out.counts.letOff++;
+      if (el.matches('[data-affordance="link"]') && !lookLetOff) {
         out.counts.links++;
         const line = underlined(el, el);
         if (band && !(s.color === WHITE && line)) out.bandLinks.push(`${name(el)} ${s.color}${line ? "" : " not underlined"}`);
@@ -331,7 +357,7 @@ export function pressLook(page: Page): Promise<PressLook> {
         const w = getComputedStyle(words);
         if (w.color !== ACCENT || underlined(words, el)) continue;
         if (parseFloat(w.fontSize) >= 20 && parseInt(w.fontWeight, 10) >= 600) out.keyNumberLook.push(`${name(el)}: ${name(words)} ${w.fontSize} ${w.fontWeight}`);
-        else if (!band && !faced(words, el)) out.bareBlueWords.push(`${name(el)}: ${name(words)}`);
+        else if (!band && !faced(words, el) && !lookLetOff) out.bareBlueWords.push(`${name(el)}: ${name(words)}`);
       }
     }
 
@@ -344,7 +370,7 @@ export function pressLook(page: Page): Promise<PressLook> {
       if (across && b.r.top - a.r.bottom < 1) out.bandsTouching.push(`${name(a.el)} and ${name(b.el)}: gap ${Math.round(b.r.top - a.r.bottom)}px`);
     }
     return out;
-  });
+  }, opts.letOff ?? null);
 }
 
 /**

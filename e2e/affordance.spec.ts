@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { LOGIN_LINK_EXPIRED, MATRIX_PAGES } from "../src/dev/preview-matrix";
+import { LOGIN_LINK_EXPIRED, MATRIX_PAGES, type MatrixPage } from "../src/dev/preview-matrix";
 import { hydrated, quietDevtools, replyLanded, seed, settled, type State } from "./support/app";
 import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
 
@@ -18,8 +18,8 @@ test.beforeEach(async ({ page }, info) => {
   await quietDevtools(page);
 });
 
-async function clean(page: Page, where: string) {
-  const audit = await auditAffordances(page);
+async function clean(page: Page, where: string, opts: { letOff?: string } = {}) {
+  const audit = await auditAffordances(page, opts);
   expect(
     {
       interactiveWithoutSignifier: audit.interactiveWithoutSignifier,
@@ -40,13 +40,20 @@ async function visit(page: Page, state: State, path: string) {
 }
 
 /**
- * The Signal site's pages (decision #7: Home, How it works, Examples, the case pages and About) are drawn to the Signal
- * spec's own components (its §5: text links with no underline until hover, whole-row question links, its chips and
- * pills), not to the app's, so these audits judge the app's pages and the sign-in page only. The site chrome around the
- * sign-in page is judged here too: its controls carry `data-affordance` like the app's. Whether the site's links should be
- * underlined at rest as ADR 0018 asks of the app is the owner's open question (#32).
+ * The Signal site's pages (decision #7: Home, How it works, Examples, the case pages and About) are judged like every other
+ * page, but for the few Signal spec §5 components whose look the spec draws against the app's rules, while the owner
+ * decides which rule wins (#32):
+ * - text links (`.v-tlink`) and whole-row question links (`.v-qrow`, "Play →") have no underline until hover (§5.2),
+ *   where ADR 0018 underlines a link in a reading area at rest;
+ * - an FAQ row (`.v-faq summary`, §5.17) shows a "+" drawn in CSS, not a chevron icon;
+ * - the Tutor demo's question chips (`.v-qchip`) are pills, and a case page's Previous and Next cards (`.v-linkcard`, a
+ *   whole card that is a link) keep a card's 14 px corners, where ADR 0013 caps a control's corners at 12 px.
+ * Only these, only inside `#main`, are let off, and only the look rules (signifier, flatness, F4's link and blue-word
+ * rules). Everything else on those pages, the site chrome included, is judged. When the owner decides, either the site
+ * follows ADR 0018 and 0013 and its selector leaves this list, or the ADRs make room for the Signal spec here.
  */
-const SIGNAL_SITE = new Set(["home", "about", "how-it-works", "examples", "case-amazon"]);
+const SIGNAL_SITE = new Set(["home", "home-signed-out", "about", "how-it-works", "examples", "case-amazon"]);
+const SIGNAL_SPEC_LOOKS = ["#main .v-tlink", "#main .v-qrow", "#main .v-faq summary", "#main .v-qchip", "#main .v-linkcard"].join(", ");
 
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {
@@ -56,6 +63,14 @@ test.describe("affordance audit is clean", () => {
       await hydrated(page);
       await clean(page, "/login");
     });
+
+    for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000"]) {
+      test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path} (the Signal site)`, async ({ page }) => {
+        await page.goto(path);
+        await hydrated(page);
+        await clean(page, path, { letOff: SIGNAL_SPEC_LOOKS });
+      });
+    }
   });
 
   test("[A3b] /welcome", async ({ page }) => {
@@ -132,8 +147,11 @@ const F4_RULES: readonly F4Rule[] = ["readingLinks", "bandLinks", "bandButtons",
  */
 const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 
+/** Home signed out: the matrix shoots Home signed in, so the visitor's Home (its Join early access) is judged here. */
+const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
+
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {
-  for (const cell of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED].filter((c) => !SIGNAL_SITE.has(c.id))) {
+  for (const cell of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED, HOME_SIGNED_OUT]) {
     test(`[F4] ${cell.id} (${cell.path})`, async ({ page }) => {
       if (cell.signedOut) await page.context().clearCookies();
       else await seed(page, cell.seed!);
@@ -143,15 +161,16 @@ test.describe("[F4] what can be pressed stays obvious on every page of the previ
         await expect(page.getByTestId("workspace-frame")).toBeVisible();
         await settled(page);
       }
-      const look = await pressLook(page);
+      const look = await pressLook(page, SIGNAL_SITE.has(cell.id) ? { letOff: SIGNAL_SPEC_LOOKS } : {});
       const known = F4_KNOWN[cell.id];
       const found = Object.fromEntries(F4_RULES.filter((rule) => rule !== known?.rule).map((rule) => [rule, look[rule]]));
       expect(found, `${cell.path}: ${JSON.stringify(look)}`).toEqual(Object.fromEntries(Object.keys(found).map((rule) => [rule, []])));
       if (known) expect(look[known.rule].length, `${cell.id}: ${known.rule} is clean now, so remove its F4_KNOWN row (${known.why})`).toBeGreaterThan(0);
       expect(look.counts.pressable, `${cell.path} has controls to judge`).toBeGreaterThan(0);
-      // Every page judged here but the Course Map, the Notebook and Settings stands on at least one Band (F1): the sign-in
-      // strip, and the Topic bar on every /study cell.
-      if (!["course-map", "notebook", "settings"].includes(cell.id)) expect(look.counts.bands, `${cell.path} has a Band`).toBeGreaterThan(0);
+      // Every page judged here but the Course Map, the Notebook, Settings and the Signal site's pages (whose sections are the
+      // Signal spec's, with no royal-blue Band) stands on at least one Band (F1): the sign-in strip, and the Topic bar on
+      // every /study cell. On the Signal pages a Band would still be judged by every Band rule above.
+      if (!["course-map", "notebook", "settings"].includes(cell.id) && !SIGNAL_SITE.has(cell.id)) expect(look.counts.bands, `${cell.path} has a Band`).toBeGreaterThan(0);
     });
   }
 });

@@ -42,21 +42,21 @@ function topicWritten(example: Example): boolean {
 function FootCta({ viewer, example }: { viewer: Viewer; example: Example }) {
   if (viewer.state === "visitor") {
     return (
-      <Link href={cta.visitor.href} className="v-btn v-btn-primary" data-join="">
+      <Link href={cta.visitor.href} className="v-btn v-btn-primary" data-affordance="button" data-join="">
         {casePage.footCta.visitor}
       </Link>
     );
   }
   if (viewer.state === "applicant") {
     return (
-      <Link href="/login" className="v-btn v-btn-secondary">
+      <Link href="/login" className="v-btn v-btn-secondary" data-affordance="button">
         {casePage.footCta.applicant}
       </Link>
     );
   }
   if (!topicWritten(example)) {
     return (
-      <Link href="/course" className="v-btn v-btn-primary">
+      <Link href="/course" className="v-btn v-btn-primary" data-affordance="button">
         {casePage.footCta.member}
       </Link>
     );
@@ -106,11 +106,11 @@ export default async function CasePage({ params }: Props) {
             <FootCta viewer={viewer} example={example} />
           </div>
           <nav className="v-pager" aria-label="More cases">
-            <Link href={examplePath(previous.slug)} className="v-card v-linkcard">
+            <Link href={examplePath(previous.slug)} className="v-card v-linkcard" data-affordance="nav">
               <span className="v-fine">{casePage.previous}</span>
               <span>{previous.question}</span>
             </Link>
-            <Link href={examplePath(next.slug)} className="v-card v-linkcard next">
+            <Link href={examplePath(next.slug)} className="v-card v-linkcard next" data-affordance="nav">
               <span className="v-fine">{casePage.next}</span>
               <span>{next.question}</span>
             </Link>
