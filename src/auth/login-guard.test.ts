@@ -140,4 +140,11 @@ describe("Where the passcode lands", () => {
     for (let i = 0; i < 3; i++) await login(`guess ${i}`);
     expect(where(await login(PASSCODE, undefined, "/course"))).toBe("?locked=1&next=%2Fcourse");
   });
+
+  it("sends a wrong passcode and a pause back to the sign-in page, /sign-in (issue #33), never the old /login", async () => {
+    const page = (response: Response) => new URL(response.headers.get("location")!).pathname;
+    expect(page(await login("guess"))).toBe("/sign-in");
+    for (let i = 0; i < 5; i++) await login(`guess ${i}`);
+    expect(page(await login(PASSCODE))).toBe("/sign-in");
+  });
 });

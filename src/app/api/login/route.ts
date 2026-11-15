@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { destinationOrDefault, safeDestination } from "@/auth/destination";
+import { SIGN_IN_PATH, destinationOrDefault, safeDestination } from "@/auth/destination";
 import { passcodeDoorOpen } from "@/auth/gates";
 import { callerAddress, claimLoginTry, loginFailed, loginSucceeded } from "@/auth/login-guard";
 import { signInAs } from "@/auth/learners";
 import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, learnerToken, nameForPasscode, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 
-/** Back to the login page with its message; a safe `next` is carried on, and with none the query stays exactly `?wrong=1` or `?locked=1`. */
-function backToLogin(request: Request, message: "wrong" | "locked", next: string | null) {
-  const url = new URL("/login", request.url);
+/** Back to the sign-in page with its message; a safe `next` is carried on, and with none the query stays exactly `?wrong=1` or `?locked=1`. */
+function backToSignIn(request: Request, message: "wrong" | "locked", next: string | null) {
+  const url = new URL(SIGN_IN_PATH, request.url);
   url.searchParams.set(message, "1");
   if (next) url.searchParams.set("next", next);
   return NextResponse.redirect(url, 303);
@@ -24,12 +24,12 @@ export async function POST(request: Request) {
   // The try is claimed before the comparison, so tries sent all at once can't all slip under the limit.
   // Too many wrong guesses lately: refused without even comparing, so a lucky guess can't get through.
   const tryId = await claimLoginTry(db, ip);
-  if (tryId === null) return backToLogin(request, "locked", next);
+  if (tryId === null) return backToSignIn(request, "locked", next);
   const passcode = String(form.get("passcode") ?? "");
   const name = nameForPasscode(passcode, passcodeList());
   if (name === null) {
     await loginFailed(db);
-    return backToLogin(request, "wrong", next);
+    return backToSignIn(request, "wrong", next);
   }
   await loginSucceeded(db, tryId);
   // The name's active Learner, made on its first sign-in.
