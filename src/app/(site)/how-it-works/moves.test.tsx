@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { readFileSync } from "node:fs";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -38,6 +39,27 @@ describe("How it works' moves", () => {
     expect(host.querySelector("#move-1 .v-facts")?.textContent).toContain("$1,117M");
   });
 
+  // Signal spec 7.3: the rail marks the move in view. The mark sits on the move's list item (a Button may not carry
+  // aria-current: the raised-look gate, css.test.ts), and site.css draws the current look from that same attribute.
+  it("mark on the rail the move in view, one at a time, as the page scrolls", async () => {
+    const tops = [0, 2000, 3000, 4000];
+    host.querySelectorAll<HTMLElement>("article.v-move").forEach((article, i) => {
+      article.getBoundingClientRect = () => ({ top: tops[i] }) as DOMRect;
+    });
+    const current = async () => {
+      await act(async () => {
+        window.dispatchEvent(new Event("scroll"));
+        await new Promise((done) => setTimeout(done, 50));
+      });
+      return [...host.querySelectorAll('.v-rail li[aria-current="step"]')].map((li) => li.textContent);
+    };
+    expect(await current()).toEqual(["Hear the story"]);
+    tops[1] = 100;
+    expect(await current()).toEqual(["Learn the lingo"]);
+    expect(host.querySelector(".v-rail button[aria-current]")).toBeNull();
+    expect(readFileSync("src/app/(site)/site.css", "utf8")).toMatch(/\.v-rail li\[aria-current="step"\] button \{[^}]*font-weight: 600/);
+  });
+
   it("turn the lingo card from price to value", async () => {
     expect(host.querySelector(".v-lingo-term")?.textContent).toBe("price");
     await click(button("value"));
@@ -55,6 +77,14 @@ describe("How it works' moves", () => {
     expect(feedback.textContent).toContain("Right");
     expect(button("A price").className).not.toContain("is-wrong");
     expect(button("A value").className).toContain("is-right");
+  });
+
+  // Its label also holds the <output> showing the value, and an <output> is labelable too: a label with no `for` names its
+  // first labelable element, so the slider is named by `for` and its id (9: every control has a name).
+  it("name the value slider by its label", () => {
+    const slider = host.querySelector<HTMLInputElement>('input[type="range"]')!;
+    expect(slider.id).not.toBe("");
+    expect(host.querySelector(`label[for="${slider.id}"]`)?.textContent).toContain("Your value for one share");
   });
 
   it("reveal what really happened beside the learner's own value", async () => {

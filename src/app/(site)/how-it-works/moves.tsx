@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { howItWorks, LINGO } from "@/site/copy";
 import { exampleBySlug } from "@/site/examples";
 import { Rich } from "@/site/rich";
@@ -103,15 +103,17 @@ function ValueIt() {
   const { slider, min, max, start, reveal, facts, figures, key } = howItWorks.valueIt;
   const [value, setValue] = useState<number>(start);
   const [shown, setShown] = useState(false);
+  // `for` names the slider: with none, the label would name its first labelable element, the <output> beside the words.
+  const sliderId = useId();
   const fill = { "--range-fill": `${((value - min) / (max - min)) * 100}%` } as CSSProperties;
   return (
     <div className="v-stack">
-      <label className="v-stack" style={{ gap: 4 }}>
+      <label htmlFor={sliderId} className="v-stack" style={{ gap: 4 }}>
         <span className="v-range-row">
           <span>{slider}</span>
           <output aria-live="polite">{money(value)}</output>
         </span>
-        <input type="range" className="range-you v-range" min={min} max={max} step={1} value={value} onChange={(e) => setValue(Number(e.target.value))} style={fill} />
+        <input id={sliderId} type="range" className="range-you v-range" min={min} max={max} step={1} value={value} onChange={(e) => setValue(Number(e.target.value))} style={fill} />
       </label>
       <div>
         <Button unstyled className="v-btn v-btn-secondary" onClick={() => setShown(true)} disabled={shown}>
@@ -195,7 +197,7 @@ export function HowMoves() {
         <ol>
           {MOVE_NAMES.map((name, i) => (
             <li key={name} aria-current={i === active ? "step" : undefined}>
-              <Button unstyled onClick={() => go(i)}>
+              <Button unstyled data-affordance="nav" onClick={() => go(i)}>
                 {name}
               </Button>
             </li>
