@@ -97,7 +97,7 @@ Section 6 explains each step.
 
 ### 5.1 Public site (Signal)
 
-A signed-out visitor can read these pages: Home (`/`), How it works (`/how-it-works`), Examples (`/examples`), the five Example pages (`/examples/<slug>`) and About (`/about`). The files are in `src/app/(site)/`. One data file, `src/site/examples.ts`, lists the five Examples. The proxy, the pages and Home all read it, so they always agree.
+A signed-out visitor can read these pages: Home (`/`), How it works (`/how-it-works`), Examples (`/examples`), the five Example pages (`/examples/<slug>`) and About (`/about`). The files are in `src/app/(site)/`. One data file, `src/site/examples.ts`, lists the five Examples. The proxy, the pages and Home all read it, so they always agree. The Clerk proxy keeps this list and adds `/join` (landing in this batch).
 
 Each Example shows one Signal widget: Jackpot, Four levers, Compounding, Rates or WeWork.
 
@@ -107,7 +107,7 @@ Each Example shows one Signal widget: Jackpot, Four levers, Compounding, Rates o
 
 The whole app has one Light theme, in the Signal colour language: five colours and one pattern, and each has one meaning ([ADR 0015](adr/0015-one-light-theme-colour-language.md)). The tokens are in `src/app/globals.css`. Controls are flat, sections use hairlines, and pictures are line icons ([ADR 0018](adr/0018-flat-controls-hairlines-line-icons.md)). The spec is [`docs/specs/value-it-signal-spec.md`](specs/value-it-signal-spec.md).
 
-The site's join button opens `/join`, which is Clerk's Waitlist (section 5.4).
+The site's join button opens `/join`, which is Clerk's Waitlist (section 5.4) (landing in this batch). Today it opens `/login`.
 
 ### 5.2 Study Workspace (browser)
 
@@ -139,7 +139,7 @@ Each request passes three layers before app code runs.
 
 Clerk hosts the sign-in, the sign-up, the Waitlist and the emails ([ADR 0017](adr/0017-clerk-replaces-better-auth.md)). Better Auth and its Google and email-link code are deleted (landing in this batch).
 
-**Join and approval**
+**Join and approval** (the pages `/join` and `/sign-up`: landing in this batch)
 
 1. A visitor opens `/join` and leaves an email on Clerk's Waitlist.
 2. The owner approves the person in the Clerk dashboard. Clerk sends the "You're in" email.
@@ -154,7 +154,7 @@ Clerk hosts the sign-in, the sign-up, the Waitlist and the emails ([ADR 0017](ad
 2. A signed-out visitor gets only the public pages, `/sign-in`, `/sign-up` and `/join`. Other pages send the visitor to `/sign-in`. An API call gets 401.
 3. Before a page or route reads data, it reads the person again on the server (`src/auth/session.ts`). The identity comes from the session token alone, with no call to Clerk: user id, email, first name, and whether the person is the owner (`src/auth/identity.ts`).
 
-**The owner.** The owner is the person whose Clerk `publicMetadata.role` is `"admin"`. Only the owner sets it, in Clerk. `src/auth/owner.ts` reads that claim from the session token. `/admin` shows Spend, Tutor speed and the Spend caps, with links to Clerk's Waitlist and Users. Everyone else gets 404.
+**The owner.** The owner is the person whose Clerk `publicMetadata.role` is `"admin"`. Only the owner sets it, in Clerk. `src/auth/owner.ts` reads that claim from the session token. `/admin` shows Spend, Tutor speed and the Spend caps, with links to Clerk's Waitlist and Users (landing in this batch). Everyone else gets 404.
 
 **Passcode door: local and test only.** `src/auth/gates.ts` holds two switches:
 
@@ -239,6 +239,7 @@ Each layer of a turn has a limit, so each layer has a known worst case (decision
 | Model steps per turn, all runs together | 10 | Step ledger, before each step |
 | Resumes per turn | 2 | Turn admission, on resume |
 
+- The owner has no per-Learner cap. The owner's spend still counts toward the cap for everyone. Under Clerk, this check finds the owner by the Clerk role (landing in this batch).
 - A day starts at midnight, India time.
 - The dollars are estimates from the `usage` rows of each step. A step with no price counts as $0.66, the worst case. So a model change cannot hide spend.
 - The evals, the Library refresh and Voyage are not counted. Only the OpenAI project's hard spend limit catches those.
@@ -315,7 +316,7 @@ Only `main` deploys to production ([ADR 0016](adr/0016-only-main-deploys.md)).
    - `ui`: the Playwright browser tests, in 6 shards.
 3. Each pull request gets one adversarial review comment. Then it merges by squash, on green checks.
 4. A merge to `main` starts a Vercel production build. `npm run vercel-build` runs `scripts/migrate-on-build.mjs`, then `next build`.
-5. **Snapshot gate.** If migrations are pending, the build first takes a Neon snapshot of the branch (kept 30 days). No snapshot means no migration and a failed build. `NEON_SNAPSHOT=off` is the only way past it, and the build log then shows a warning.
+5. **Snapshot gate.** If migrations are pending, the build first takes a Neon snapshot of the branch (kept 30 days). No snapshot means no migration and a failed build. `NEON_SNAPSHOT=off` is the only way past it, and the build log then shows a warning (landing in this batch). Today a build with no `NEON_API_KEY` migrates with no snapshot.
 6. Vercel deploys the functions to region `sin1` (`vercel.json`).
 7. **Deployment Checks.** Vercel holds the production address on the old deploy until `check`, `build` and `ui` pass on the new commit. A red `ui` on `main` holds every production deploy.
 
@@ -348,7 +349,7 @@ Recovery has layers. #8 chose option B.
 | An off-Neon dump of the `library_*` tables, with a restore drill | A lost Neon project | (landing in this batch) |
 
 - `scripts/backup-drill.sh` dumps the Library tables to the VPS. It then restores them into a throwaway Neon branch and compares counts and hashes (landing in this batch).
-- The owner keeps a second copy on their laptop.
+- The owner copies the dump to their laptop. This is not done yet (see `docs/owner-actions.md`).
 - `docs/backup-and-restore.md` records the schedule, where the dumps are, and the last drill (landing in this batch).
 - Re-dump after each Library load. Never put a dump in git: some source text is for private search only.
 - Learner data stays in Neon only. A full off-Neon dump of Learner data was too much for about 20 beta Learners.
@@ -380,7 +381,7 @@ Settings live in three places:
 | `DATABASE_URL` | Pooled database connection for the app |
 | `DATABASE_URL_UNPOOLED` | Direct connection for migrations |
 | `NEON_API_KEY`, `NEON_PROJECT_ID` | The snapshot before migrations. Production only |
-| `NEON_SNAPSHOT` | Set to `off` only to migrate with no snapshot. Remove it after that deploy |
+| `NEON_SNAPSHOT` | Set to `off` only to migrate with no snapshot. Remove it after that deploy (landing in this batch) |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | Clerk. The publishable key is public by design. The secret key is a secret. Live keys go to Production only, test keys to Development |
 | `CRON_SECRET` | Lets only Vercel call the cron routes |
 | `BETTERSTACK_HEARTBEAT_URL` | Where the health check reports. Optional |
@@ -391,7 +392,7 @@ Settings live in three places:
 
 Gone after this batch: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM` and `PASSCODE`.
 
-The `settings` table holds `effort` (default `medium`), `widget_engine`, `session_idle_hours`, `compact_at_tokens`, `review_cap` and the five Spend caps (section 7). The defaults are in `src/tutor/session-log.ts`. A Session keeps its `effort` from when it starts, so an `effort` edit reaches only new Sessions. The other rows take effect on the next turn or request. The old `signup_open` row goes with the wipe in PR C (landing in this batch).
+The `settings` table holds `effort` (default `medium`), `session_idle_hours`, `compact_at_tokens`, `review_cap` and the five Spend caps (section 7). #19 removes the `widget_engine` row: every Session uses the widget engine, so nothing reads that row (landing in this batch). The defaults are in `src/tutor/session-log.ts`. A Session keeps its `effort` from when it starts, so an `effort` edit reaches only new Sessions. The other rows take effect on the next turn or request. The old `signup_open` row goes with the wipe in PR C (landing in this batch).
 
 Constants: `TUTOR_MODEL` and `DEFAULT_EFFORT` (`src/tutor/model.ts`), `TIME_BUDGET_MS` (`src/tutor/turn.ts`), `maxDuration` (`src/app/api/turn/route.ts`), `POOL` and `RRF_K` (`src/library/search.ts`), the 300-word cut (`src/library/prepare.ts`), region, crons and Schedules (`vercel.json`). A change to `TUTOR_MODEL` closes each Learner's live Session on their next turn.
 
