@@ -37,14 +37,38 @@ describe("the scorer's flags", () => {
     expect(parseScoreArgs(["my-questions.json", "--ranking", "full-text"])).toMatchObject({ file: "my-questions.json", ranking: "full-text" });
   });
 
+  it("takes each value as --name=value or as --name value", () => {
+    expect(parseScoreArgs(["--ranking=full-text"])).toMatchObject({ ranking: "full-text" });
+    expect(parseScoreArgs(["--rerank", "rerank-3", "--pool", "20", "--ranking=bm25"])).toMatchObject({ ranking: "bm25", rerank: "rerank-3", pool: 20 });
+  });
+
   it("refuses a flag it cannot use, so a typo never runs as a plain baseline", () => {
     expect(() => parseScoreArgs(["--rerank"])).toThrow("--rerank needs a model");
     expect(() => parseScoreArgs(["--rerank="])).toThrow("--rerank needs a model");
+    expect(() => parseScoreArgs(["--rerank", "--pool=20"])).toThrow("--rerank needs a model");
     expect(() => parseScoreArgs(["--pool=20"])).toThrow("add --rerank=<model>");
     expect(() => parseScoreArgs(["--rerank=rerank-3", "--pool=4"])).toThrow(`at least ${KEEP}`);
     expect(() => parseScoreArgs(["--rerank=rerank-3", "--pool=twenty"])).toThrow("whole number");
     expect(() => parseScoreArgs(["--rerank=rerank-3", "--pool=20.5"])).toThrow("whole number");
     expect(() => parseScoreArgs(["--ranking", "bm2"])).toThrow("--ranking must be bm25 or full-text");
+    expect(() => parseScoreArgs(["--ranking"])).toThrow("--ranking must be bm25 or full-text");
+  });
+
+  it("refuses a flag or argument it does not know, and a flag given twice", () => {
+    expect(() => parseScoreArgs(["--voyag"])).toThrow('unknown flag "--voyag"');
+    expect(() => parseScoreArgs(["--Voyage"])).toThrow('unknown flag "--Voyage"');
+    expect(() => parseScoreArgs(["--reranker=rerank-3"])).toThrow('unknown flag "--reranker=rerank-3"');
+    expect(() => parseScoreArgs(["--voyage=yes"])).toThrow("--voyage takes no value");
+    expect(() => parseScoreArgs(["full-text"])).toThrow('unknown argument "full-text"');
+    expect(() => parseScoreArgs(["a.json", "b.json"])).toThrow('a second question file "b.json"');
+    expect(() => parseScoreArgs(["--rerank=rerank-3", "--rerank=rerank-3-lite"])).toThrow("--rerank given twice");
+  });
+
+  it("refuses a pool larger than the search can give: 30 per ranking, so 30 keyword only and 60 with --voyage", () => {
+    expect(parseScoreArgs(["--rerank=rerank-3", "--pool=30"]).pool).toBe(30);
+    expect(() => parseScoreArgs(["--rerank=rerank-3", "--pool=31"])).toThrow("at most 30");
+    expect(parseScoreArgs(["--voyage", "--rerank=rerank-3", "--pool=60"]).pool).toBe(60);
+    expect(() => parseScoreArgs(["--voyage", "--rerank=rerank-3", "--pool=61"])).toThrow("at most 60");
   });
 });
 
@@ -141,12 +165,12 @@ const ticking = () => {
   let t = 0;
   return () => (t += 10);
 };
-/** A reranker that puts the candidates in reverse order and bills one token per document. */
+/** A reranker that puts the candidates in reverse order, bills one token per document and says its call took 7 ms. */
 const reversing = () => {
   const calls: { query: string; documents: string[]; topK: number }[] = [];
   const rerank: Reranker = async (query, documents, topK) => {
     calls.push({ query, documents, topK });
-    return { order: documents.map((_, i) => documents.length - 1 - i).slice(0, topK), tokens: documents.length, retries: 0 };
+    return { order: documents.map((_, i) => documents.length - 1 - i).slice(0, topK), tokens: documents.length, retries: 0, ms: 7 };
   };
   return { rerank, calls };
 };
@@ -182,7 +206,7 @@ describe("the scorer's search", () => {
     expect(timings).toEqual({ searchMs: [10], rerankMs: [], totalMs: [20], tokens: [], pool: [5], retries: 0 });
   });
 
-  it("with --rerank and --pool: the top `pool` go to the reranker as heading + text, its top 5 are kept", async () => {
+  it("with --rerank and --pool: the top `pool` go to the reranker as heading + text, its top 5 are kept; rerankMs is the time the reranker gives", async () => {
     const asked: PassageQuery[] = [];
     const { rerank, calls } = reversing();
     const { search, timings } = scorerSearch(
@@ -198,7 +222,7 @@ describe("the scorer's search", () => {
     expect(asked[0].limit).toBe(20);
     expect(calls).toEqual([{ query: "a question", documents: candidates(20).map((c) => `${c.heading}\n\n${c.text}`), topK: 5 }]);
     expect(kept.map((p) => p.id)).toEqual(["p19", "p18", "p17", "p16", "p15"]);
-    expect(timings).toEqual({ searchMs: [10], rerankMs: [10], totalMs: [40], tokens: [20], pool: [20], retries: 0 });
+    expect(timings).toEqual({ searchMs: [10], rerankMs: [7], totalMs: [20], tokens: [20], pool: [20], retries: 0 });
   });
 
   it("defaults the pool to 30, and does not call the reranker for one candidate or none", async () => {
@@ -239,7 +263,7 @@ describe("the scorer's search", () => {
     const rerank: Reranker = async (_query, documents, topK) => {
       documentsSeen.push(documents);
       const order = documents.map((d, i) => ({ i, tells: /withdrew|bankruptcy/.test(d) })).sort((a, b) => Number(b.tells) - Number(a.tells));
-      return { order: order.map((o) => o.i).slice(0, topK), tokens: 0, retries: 0 };
+      return { order: order.map((o) => o.i).slice(0, topK), tokens: 0, retries: 0, ms: 0 };
     };
     const { search } = scorerSearch(find, { rerank, pool: 20 });
 
@@ -268,9 +292,9 @@ describe("the Voyage reranker", () => {
   it("asks /v1/rerank for the top k with truncation on, and returns the indexes most relevant first", async () => {
     const { fetch, calls } = fakeFetch(ok);
 
-    const out = await voyageReranker({ apiKey: "k", model: "rerank-3-lite", fetch })("a question", ["d0", "d1", "d2"], 5);
+    const out = await voyageReranker({ apiKey: "k", model: "rerank-3-lite", fetch, now: ticking() })("a question", ["d0", "d1", "d2"], 5);
 
-    expect(out).toEqual({ order: [0, 2], tokens: 321, retries: 0 });
+    expect(out).toEqual({ order: [0, 2], tokens: 321, retries: 0, ms: 10 });
     expect(calls[0].url).toBe("https://api.voyageai.com/v1/rerank");
     expect(JSON.parse(String(calls[0].init.body))).toEqual({ query: "a question", documents: ["d0", "d1", "d2"], model: "rerank-3-lite", top_k: 5, truncation: true });
     expect(new Headers(calls[0].init.headers).get("authorization")).toBe("Bearer k");
@@ -288,10 +312,46 @@ describe("the Voyage reranker", () => {
     expect(out.retries).toBe(2);
   });
 
+  it("times only the call that answered, as #28 did: not the waits or the tries before it", async () => {
+    // A clock that the fake fetch moves 5 ms per call and the fake sleep moves by the whole wait.
+    let t = 0;
+    const limited = () => new Response("rate limited", { status: 429 });
+    const { fetch } = fakeFetch(limited, ok);
+    const slowFetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      t += 5;
+      return fetch(url, init);
+    }) as typeof globalThis.fetch;
+
+    const out = await voyageReranker({ apiKey: "k", model: "rerank-3", fetch: slowFetch, now: () => t, sleep: async (ms) => void (t += ms) })("q", ["d0", "d1", "d2"], 5);
+
+    expect(t).toBe(1010);
+    expect(out).toMatchObject({ retries: 1, ms: 5 });
+  });
+
+  it("also retries a 5xx, a timeout or a dropped connection, so one bad call does not stop a paid run", async () => {
+    const sleep = async () => {};
+    const unavailable = () => new Response("try later", { status: 503 });
+    const { fetch, calls } = fakeFetch(unavailable, ok);
+    expect(await voyageReranker({ apiKey: "k", model: "rerank-3", fetch, sleep })("q", ["d0", "d1", "d2"], 5)).toMatchObject({ order: [0, 2], retries: 1 });
+    expect(calls).toHaveLength(2);
+
+    let tries = 0;
+    const timingOut = (async () => {
+      if (++tries === 1) throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+      return ok();
+    }) as typeof globalThis.fetch;
+    expect(await voyageReranker({ apiKey: "k", model: "rerank-3", fetch: timingOut, sleep })("q", ["d0", "d1", "d2"], 5)).toMatchObject({ order: [0, 2], retries: 1 });
+  });
+
   it("throws after its last retry, and at once on any other error", async () => {
     const limited = () => new Response("rate limited", { status: 429 });
     const sleep = async () => {};
     await expect(voyageReranker({ apiKey: "k", model: "rerank-3", fetch: fakeFetch(limited).fetch, sleep, retries: 2 })("q", ["d"], 5)).rejects.toThrow("Voyage rerank 429: rate limited");
+    await expect(voyageReranker({ apiKey: "k", model: "rerank-3", fetch: fakeFetch(() => new Response("down", { status: 503 })).fetch, sleep, retries: 2 })("q", ["d"], 5)).rejects.toThrow("Voyage rerank 503: down");
+    const dropped = (async () => {
+      throw new TypeError("fetch failed");
+    }) as typeof globalThis.fetch;
+    await expect(voyageReranker({ apiKey: "k", model: "rerank-3", fetch: dropped, sleep, retries: 2 })("q", ["d"], 5)).rejects.toThrow("fetch failed");
 
     const { fetch, calls } = fakeFetch(() => new Response("bad key", { status: 401 }));
     await expect(voyageReranker({ apiKey: "k", model: "rerank-3", fetch, sleep })("q", ["d"], 5)).rejects.toThrow("Voyage rerank 401: bad key");

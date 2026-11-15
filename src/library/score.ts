@@ -1,4 +1,4 @@
-import type { KeywordRanking, LibraryHit, PassageQuery } from "./search.ts";
+import { POOL as RANKING_POOL, type KeywordRanking, type LibraryHit, type PassageQuery } from "./search.ts";
 
 // The Library scorer's pure parts (scripts/library-score.mjs): its flags, what counts as an answer,
 // rank tallies, time percentiles, and one search with the optional Voyage reranker (#28, #37).
@@ -10,6 +10,9 @@ export const KEEP = 5;
 /** Merged candidates the reranker sees when --pool is not given (the #28 prototype's default). */
 export const DEFAULT_POOL = 30;
 const RANKINGS: readonly KeywordRanking[] = ["bm25", "full-text"];
+/** Flags that take a value, written --name=value or --name value. */
+const VALUE_FLAGS = ["--ranking", "--rerank", "--pool"];
+const USAGE = "The scorer takes: [questions.json] [--ranking bm25|full-text] [--voyage] [--rerank=<model> [--pool=<n>]]";
 
 /** One test question (scripts/library/eval/questions.json). */
 export type ScoreQuestion = {
@@ -48,32 +51,53 @@ export type ScoreOptions = {
   pool: number;
 };
 
-/** Reads the scorer's flags. Throws on a flag it cannot use, so a typo never runs as a plain baseline. */
+/**
+ * Reads the scorer's flags. Throws on a flag it does not know or cannot use, so a typo never runs as a
+ * plain baseline. The search takes at most 30 passages per ranking (search.ts POOL), so the reranker
+ * can see at most 30 keyword only and 60 with --voyage. A pool can still come back smaller when the
+ * keyword and vector rankings find the same passages; SUMMARY `candidates` shows the real size.
+ */
 export function parseScoreArgs(args: readonly string[]): ScoreOptions {
-  const after = (name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
-  const valueOf = (name: string) => {
-    const arg = args.find((a) => a === name || a.startsWith(`${name}=`));
-    return arg === undefined ? undefined : arg.slice(name.length + 1);
-  };
+  let file: string | undefined;
+  let voyage = false;
+  const values = new Map<string, string>();
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (!arg.startsWith("--")) {
+      if (!arg.endsWith(".json")) throw new Error(`unknown argument "${arg}". ${USAGE}`);
+      if (file !== undefined) throw new Error(`a second question file "${arg}" (the first is "${file}")`);
+      file = arg;
+      continue;
+    }
+    const equals = arg.indexOf("=");
+    const name = equals === -1 ? arg : arg.slice(0, equals);
+    if (name === "--voyage") {
+      if (equals !== -1) throw new Error("--voyage takes no value");
+      voyage = true;
+      continue;
+    }
+    if (!VALUE_FLAGS.includes(name)) throw new Error(`unknown flag "${arg}". ${USAGE}`);
+    if (values.has(name)) throw new Error(`${name} given twice`);
+    const next = args[i + 1];
+    if (equals !== -1) values.set(name, arg.slice(equals + 1));
+    else if (next !== undefined && !next.startsWith("--")) values.set(name, args[++i]);
+    else values.set(name, "");
+  }
 
-  const ranking = after("--ranking");
+  const ranking = values.get("--ranking");
   if (ranking !== undefined && !RANKINGS.includes(ranking as KeywordRanking)) throw new Error(`--ranking must be ${RANKINGS.join(" or ")}, not "${ranking}"`);
 
-  const rerank = valueOf("--rerank");
+  const rerank = values.get("--rerank");
   if (rerank === "") throw new Error("--rerank needs a model, for example --rerank=rerank-3-lite");
 
-  const poolText = valueOf("--pool");
+  const poolText = values.get("--pool");
   if (poolText !== undefined && rerank === undefined) throw new Error("--pool sets how many passages the reranker sees; add --rerank=<model>");
   const pool = poolText === undefined ? DEFAULT_POOL : Number(poolText);
   if (!Number.isInteger(pool) || pool < KEEP) throw new Error(`--pool must be a whole number of at least ${KEEP}, not "${poolText}"`);
+  const most = voyage ? 2 * RANKING_POOL : RANKING_POOL;
+  if (pool > most) throw new Error(`--pool=${pool} is more than the search can give: at most ${most} passages ${voyage ? "with --voyage" : "keyword only (add --voyage for up to " + 2 * RANKING_POOL + ")"}`);
 
-  return {
-    file: args.find((a) => a.endsWith(".json")),
-    ranking: ranking as KeywordRanking | undefined,
-    voyage: args.includes("--voyage"),
-    rerank,
-    pool,
-  };
+  return { file, ranking: ranking as KeywordRanking | undefined, voyage, rerank, pool };
 }
 
 /** A problem in the question set: duplicate questions, or a Signal question without a usable as-of date. */
@@ -151,8 +175,12 @@ export function queriesToEmbed(set: QuestionSet): string[] {
   return [...new Set(all.filter((q): q is string => Boolean(q)))];
 }
 
-/** The reranker's answer: candidate indexes, most relevant first, and the tokens it billed. */
-export type Reranked = { order: number[]; tokens: number; retries: number };
+/**
+ * The reranker's answer: candidate indexes, most relevant first, the tokens it billed, the retries it
+ * needed, and `ms`, the time of the call that answered. `ms` leaves out the waits and failed tries
+ * before it, as the #28 runs timed it, so rerank times stay comparable when a run hits retries.
+ */
+export type Reranked = { order: number[]; tokens: number; retries: number; ms: number };
 export type Reranker = (query: string, documents: string[], topK: number) => Promise<Reranked>;
 
 /** What the reranker reads of a passage: its heading and its text. */
@@ -169,7 +197,7 @@ export function inRerankOrder<T>(candidates: readonly T[], order: readonly numbe
   return order.slice(0, keep).map((i) => candidates[i]);
 }
 
-/** Times (ms), sizes and tokens of every search a run made. */
+/** Times (ms), sizes and tokens of every search a run made. totalMs is wall time, retry waits included (as in #28). */
 export type SearchTimings = { searchMs: number[]; rerankMs: number[]; totalMs: number[]; tokens: number[]; pool: number[]; retries: number };
 
 /** A search as the scorer asks it: the query, as-of date, embedding and source filter. The scorer sets ranking and limit. */
@@ -193,9 +221,8 @@ export function scorerSearch<T extends Pick<LibraryHit, "heading" | "text">>(
     timings.pool.push(candidates.length);
     let kept = candidates.slice(0, KEEP);
     if (rerank && candidates.length > 1) {
-      const asked = now();
-      const { order, tokens, retries } = await rerank(query.query, candidates.map(rerankDocument), KEEP);
-      timings.rerankMs.push(now() - asked);
+      const { order, tokens, retries, ms } = await rerank(query.query, candidates.map(rerankDocument), KEEP);
+      timings.rerankMs.push(ms);
       timings.tokens.push(tokens);
       timings.retries += retries;
       kept = inRerankOrder(candidates, order);
@@ -215,23 +242,46 @@ export type VoyageRerankOptions = {
   fetch?: typeof globalThis.fetch;
   /** Waits between retries; tests pass one that does not wait. */
   sleep?: (ms: number) => Promise<void>;
-  /** Retries after a 429, waiting 1, 2, 4 … seconds. */
+  /** The clock for `ms`; tests pass a fake one. */
+  now?: () => number;
+  /** Retries after a 429, a 5xx, a timeout or a dropped connection, waiting 1, 2, 4 … seconds. */
   retries?: number;
   timeoutMs?: number;
 };
 
-/** The Voyage reranker (/v1/rerank) for the scorer: retries a 429 with backoff, throws on any other failure. */
+/**
+ * The Voyage reranker (/v1/rerank) for the scorer. It retries a 429, a 5xx, a timeout or a dropped
+ * connection with backoff, so one bad call does not stop a paid run. It throws at once on any other
+ * error (a bad key or model), and after its last retry.
+ */
 export function voyageReranker(options: VoyageRerankOptions): Reranker {
-  const { apiKey, model, fetch = globalThis.fetch, sleep = (ms) => new Promise<void>((done) => setTimeout(done, ms)), retries = 6, timeoutMs = 30_000 } = options;
+  const {
+    apiKey,
+    model,
+    fetch = globalThis.fetch,
+    sleep = (ms) => new Promise<void>((done) => setTimeout(done, ms)),
+    now = () => performance.now(),
+    retries = 6,
+    timeoutMs = 30_000,
+  } = options;
   return async (query, documents, topK) => {
     for (let attempt = 0; ; attempt++) {
-      const response = await fetch(RERANK_ENDPOINT, {
-        method: "POST",
-        headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ query, documents, model, top_k: topK, truncation: true }),
-        signal: AbortSignal.timeout(timeoutMs),
-      });
-      if (response.status === 429 && attempt < retries) {
+      const started = now();
+      let response: Response;
+      try {
+        response = await fetch(RERANK_ENDPOINT, {
+          method: "POST",
+          headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
+          body: JSON.stringify({ query, documents, model, top_k: topK, truncation: true }),
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+      } catch (error) {
+        if (attempt >= retries) throw error;
+        await sleep(2 ** attempt * 1000);
+        continue;
+      }
+      if ((response.status === 429 || response.status >= 500) && attempt < retries) {
+        await response.body?.cancel();
         await sleep(2 ** attempt * 1000);
         continue;
       }
@@ -239,7 +289,7 @@ export function voyageReranker(options: VoyageRerankOptions): Reranker {
       const body = (await response.json()) as { data: { index: number; relevance_score?: number }[]; usage?: { total_tokens?: number } };
       // Voyage sorts by relevance already; sorting again (stable) keeps the order right if it ever does not.
       const order = [...body.data].sort((a, b) => (b.relevance_score ?? 0) - (a.relevance_score ?? 0)).map((d) => d.index);
-      return { order, tokens: body.usage?.total_tokens ?? 0, retries: attempt };
+      return { order, tokens: body.usage?.total_tokens ?? 0, retries: attempt, ms: now() - started };
     }
   };
 }

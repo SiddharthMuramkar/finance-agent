@@ -45,7 +45,7 @@ export type PassageQuery = {
 };
 
 /** How many candidates each ranking contributes before they are combined. */
-const POOL = 30;
+export const POOL = 30;
 /** Reciprocal rank fusion constant: a passage scores 1/(K + rank) in each ranking it appears in. */
 const RRF_K = 60;
 export const BM25_INDEX = "library_passages_bm25";

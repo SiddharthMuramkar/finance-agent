@@ -9,9 +9,11 @@
 // Signal Case questions (those with `signal`, #24) are scored apart: once with no as-of limit, once
 // with their Case's as-of date, as the Tutor searches during a Case.
 // --rerank=<model> (rerank-3-lite or rerank-3, needs VOYAGE_API_KEY; #28, #37) takes the merged top
-// --pool (default 30) instead of 5, has the Voyage reranker reorder them and keeps the top 5. Every
-// search goes through it, the scoped, as-of and hindsight runs too. The app's search does not rerank.
-// The end prints the time per search, a SUMMARY line and the RANKS, to compare runs.
+// --pool (default 30; at most 30 keyword only, 60 with --voyage) instead of 5, has the Voyage reranker
+// reorder them and keeps the top 5. Every search goes through it, the scoped, as-of and hindsight runs
+// too. The app's search does not rerank. A flag the scorer does not know stops the run before it starts.
+// The end prints the time per search, a SUMMARY line and the RANKS, to compare runs. The rerank time is
+// the call that answered; the search + rerank time also holds any retry waits (both as in #28).
 // Flags, answers, tallies and the reranked search: src/library/score.ts.
 import { readFileSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";
@@ -151,7 +153,7 @@ console.log(`\nTime per search, ${timings.searchMs.length} searches (this machin
 console.log(`  database search (top ${rerank ? options.pool : KEEP}): ${spread(timings.searchMs)}`);
 if (rerank) {
   const total = timings.tokens.reduce((s, t) => s + t, 0);
-  console.log(`  rerank call (${timings.rerankMs.length} calls, ${timings.retries} retries after 429): ${spread(timings.rerankMs)}`);
+  console.log(`  rerank call (${timings.rerankMs.length} calls, ${timings.retries} retries after a 429, 5xx or timeout): ${spread(timings.rerankMs)}`);
   console.log(`  search + rerank: ${spread(timings.totalMs)}`);
   console.log(`  rerank tokens per search: mean ${Math.round(mean(timings.tokens))}, p50 ${percentile(timings.tokens, 50)}, p95 ${percentile(timings.tokens, 95)}, max ${Math.max(0, ...timings.tokens)}; total ${total}`);
 }
