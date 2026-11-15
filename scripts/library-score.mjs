@@ -39,8 +39,10 @@ if (args.includes("--voyage")) {
 const rerankModel = args.find((a) => a.startsWith("--rerank="))?.slice("--rerank=".length);
 if (rerankModel && !process.env.VOYAGE_API_KEY) throw new Error("--rerank needs VOYAGE_API_KEY in .env");
 const KEEP = 5;
-const RERANK_POOL = 30;
-const timings = { searchMs: [], rerankMs: [], totalMs: [], tokens: [], retries: 0 };
+// --pool=<n> sets how many merged candidates the reranker sees (default 30). search.ts takes 30 per ranking, so the
+// merged list holds at most 60 (fewer when keyword and vector agree), and a pool of 50 can come back smaller.
+const RERANK_POOL = Number(args.find((a) => a.startsWith("--pool="))?.slice("--pool=".length) ?? 30);
+const timings = { searchMs: [], rerankMs: [], totalMs: [], tokens: [], pool: [], retries: 0 };
 async function voyageRerank(query, documents) {
   for (let attempt = 0; ; attempt++) {
     const started = performance.now();
@@ -67,6 +69,7 @@ async function search(query) {
   const started = performance.now();
   const hits = await searchPassages(db, { ...query, ranking, limit: rerankModel ? RERANK_POOL : KEEP });
   timings.searchMs.push(performance.now() - started);
+  timings.pool.push(hits.length);
   const kept = rerankModel && hits.length > 1 ? (await voyageRerank(query.query, hits.map((h) => `${h.heading}\n\n${h.text}`))).map((i) => hits[i]) : hits.slice(0, KEEP);
   timings.totalMs.push(performance.now() - started);
   return kept;
@@ -198,9 +201,10 @@ console.log(
     signalOpen: score(signalOpen),
     signalAsOf: score(signalAsOfRanks),
     searchMs: { p50: Math.round(pct(timings.searchMs, 50)), p95: Math.round(pct(timings.searchMs, 95)) },
+    totalMs: { p50: Math.round(pct(timings.totalMs, 50)), p95: Math.round(pct(timings.totalMs, 95)) },
+    candidates: { mean: Number((timings.pool.reduce((s, n) => s + n, 0) / (timings.pool.length || 1)).toFixed(1)), min: Math.min(...timings.pool), max: Math.max(...timings.pool) },
     ...(rerankModel && {
       rerankMs: { p50: Math.round(pct(timings.rerankMs, 50)), p95: Math.round(pct(timings.rerankMs, 95)) },
-      totalMs: { p50: Math.round(pct(timings.totalMs, 50)), p95: Math.round(pct(timings.totalMs, 95)) },
       tokensPerSearch: { mean: Math.round(timings.tokens.reduce((s, t) => s + t, 0) / (timings.tokens.length || 1)), max: Math.max(0, ...timings.tokens) },
       retries: timings.retries,
     }),
