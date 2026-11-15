@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadCourseMap } from "@/course/map";
-import { casePage } from "@/site/copy";
+import { casePage, cta } from "@/site/copy";
 import { EXAMPLE_SLUGS, exampleBySlug, examplePath, neighbours, type Example } from "@/site/examples";
 import { plain } from "@/site/rich";
 import { siteViewer, type Viewer } from "@/site/viewer";
@@ -42,7 +42,7 @@ function topicWritten(example: Example): boolean {
 function FootCta({ viewer, example }: { viewer: Viewer; example: Example }) {
   if (viewer.state === "visitor") {
     return (
-      <Link href="/login" className="v-btn v-btn-primary" data-join="">
+      <Link href={cta.visitor.href} className="v-btn v-btn-primary" data-join="">
         {casePage.footCta.visitor}
       </Link>
     );

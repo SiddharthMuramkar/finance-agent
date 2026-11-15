@@ -71,6 +71,20 @@ describe("Home", () => {
     expect(text).toContain("Free during early access. We let people in by hand and email you when you’re in.");
   });
 
+  // QA rows 22 and 23 as #33 has them: Clerk owns sign-up, so every Join opens /join (Clerk's Waitlist) and the closing
+  // block has no email form of its own.
+  it("sends a visitor's Join early access to /join, and the closing block has no email form", async () => {
+    const html = renderToStaticMarkup(await HomePage());
+    const joins = [...html.matchAll(/<a [^>]*data-join=""[^>]*>/g)].map((m) => /href="([^"]+)"/.exec(m[0])?.[1]);
+    expect(joins).toEqual(["/join", "/join"]); // the hero and the closing block
+    const closing = /data-site-section="closing"[\s\S]*$/.exec(html)![0];
+    expect(closing).not.toMatch(/<input|<form/);
+    expect(words(closing)).toContain("1 Request received 2 Reviewed by hand 3 Email: you’re in");
+    for (const page of [await AboutPage(), await casePage.default(params("wework-2019"))]) {
+      expect([...renderToStaticMarkup(page).matchAll(/<a [^>]*data-join=""[^>]*>/g)].map((m) => /href="([^"]+)"/.exec(m[0])?.[1])).toEqual(["/join"]);
+    }
+  });
+
   it("offers an applicant a real case while they wait", async () => {
     who.viewer = { state: "applicant" };
     const text = words(renderToStaticMarkup(await HomePage()));

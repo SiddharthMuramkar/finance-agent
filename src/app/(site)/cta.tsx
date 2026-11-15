@@ -6,8 +6,8 @@ import type { Viewer } from "@/site/viewer";
 import { Button } from "../primitives";
 import { Glyph } from "./parts";
 
-// The CTA by viewer state (spec 7.1): visitors Join early access, applicants play a case while they wait, members
-// Continue. Join opens /login, the join door today: the join flow (#14, Join and Pending pages) is the next PR.
+// The CTA by viewer state (spec 7.1): visitors Join early access (to /join, Clerk's Waitlist, #33), applicants play a case
+// while they wait, members Continue.
 
 type Size = "md" | "lg";
 const sized = (size: Size) => (size === "lg" ? " v-btn-lg" : "");
@@ -54,7 +54,7 @@ export function PrimaryCta({ viewer, size = "lg" }: { viewer: Viewer; size?: Siz
     );
   }
   return (
-    <Link href="/login" className={`v-btn v-btn-primary${sized(size)}`} data-join="">
+    <Link href={cta.visitor.href} className={`v-btn v-btn-primary${sized(size)}`} data-join="">
       {cta.visitor.label}
     </Link>
   );

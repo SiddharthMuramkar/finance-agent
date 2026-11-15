@@ -32,9 +32,13 @@ export const chrome = {
   studyWorkspace: "Study Workspace",
 } as const;
 
-/** The CTA and the note under it, by viewer state (§7.1). */
+/**
+ * The CTA and the note under it, by viewer state (§7.1). A visitor's Join opens /join, the sign-up page: Clerk's Waitlist
+ * owns it, with its email check and the "you're in" email (#33), and the Clerk cutover adds it. Until then the proxy sends
+ * a signed-out /join to the sign-in page, today's way in.
+ */
 export const cta = {
-  visitor: { label: "Join early access", note: "Free during early access. We let people in by hand and email you when you’re in." },
+  visitor: { label: "Join early access", href: "/join", note: "Free during early access. We let people in by hand and email you when you’re in." },
   applicant: { label: "Play a real case while you wait", note: "Your request is in. We’ll email you when you’re in." },
   member: { label: "Continue" },
 } as const;
