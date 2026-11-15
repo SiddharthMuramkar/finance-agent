@@ -31,3 +31,6 @@ test-results/
 
 # F1 preview matrix: screenshots and numbers (scripts/preview-matrix.mjs)
 evidence/preview-matrix/
+
+# Agent notes that `next dev` writes at the root; never committed
+/AGENTS.md
