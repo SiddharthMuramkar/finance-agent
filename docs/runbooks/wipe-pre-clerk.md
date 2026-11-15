@@ -58,7 +58,8 @@ Record the printed host and the table of counts. Check:
 ## 2. Rehearse on a Neon branch made from `main`
 
 ```bash
-neon branches create --project-id "$P" --name wipe-rehearsal --parent main --no-secrets
+EXP=$(date -u -d '+2 days' +%Y-%m-%dT%H:%M:%SZ)   # the branch deletes itself then
+neon branches create --project-id "$P" --name wipe-rehearsal --parent main --expires-at "$EXP" --no-secrets
 printf 'DATABASE_URL_UNPOOLED=%s\n' "$(neon connection-string wipe-rehearsal --project-id "$P")" > .env.wipe-rehearsal
 node --env-file=.env.wipe-rehearsal scripts/ops/wipe-pre-clerk-learners.mjs                  # counts before
 node --env-file=.env.wipe-rehearsal scripts/ops/wipe-pre-clerk-learners.mjs --execute \
@@ -76,7 +77,8 @@ Pass when:
 To rehearse before Clerk is live (no Clerk-linked Learner yet), add `--allow-empty`. Everything is deleted then, which
 proves only the order and the transaction, not what is kept.
 
-Delete the branch when done (owner "yes"): `neon branches delete wipe-rehearsal --project-id "$P"`.
+The branch expires by itself after two days, so there is nothing to delete. To rehearse PR C's migration too, use the
+order in "With PR C" below instead.
 
 ## 3. Snapshot `main`, right before the real run
 
@@ -148,8 +150,108 @@ To bring back one Learner without losing newer writes, restore into a new branch
 
 ## After the wipe
 
-- PR C (the contract migration) can merge. It drops `user`, `session`, `account`, `verification`, `rate_limit`,
-  `email_link_sends`, `invites`, `access_denials`, `learners.auth_user_id`, `model_comparison_runs` and
-  `model_comparison_answers`, and keeps `login_failures` (the test door).
+- PR C (the contract migration) can merge. See "With PR C" below for the whole order.
 - Neon preview branches made from `main` before the wipe still hold the old Learners. Delete them with the stale
   preview branches (Phase 5 clean-up; owner "yes").
+
+## With PR C (the contract migration)
+
+PR C adds migration `0040_clerk_contract`. It drops `user`, `session`, `account`, `verification`, `rate_limit`,
+`email_link_sends`, `invites`, `access_denials`, `model_comparison_runs`, `model_comparison_answers` and
+`learners.auth_user_id` (with its foreign key and index). It keeps `login_failures` (the test door).
+
+The wipe and the drop touch different tables. So the wipe's counts do not change when 0040 runs.
+
+Do the steps in this order. Each step needs the one before it.
+
+### C1. Snapshot `main`
+
+PR B and #44 are merged and live. Take a snapshot. It is the restore point for everything below.
+
+```bash
+neon snapshots create --project-id "$P" --branch main --name "pre-prc-$(date -u +%Y%m%dT%H%MZ)"
+```
+
+### C2. Rehearse on a branch that expires
+
+Make a branch of `main` that deletes itself in two days. Then nothing has to be deleted by hand.
+Run this from a clone of PR C's branch, so that `drizzle/` holds 0040.
+
+```bash
+EXP=$(date -u -d '+2 days' +%Y-%m-%dT%H:%M:%SZ)
+neon branches create --project-id "$P" --name prc-rehearsal --parent main --expires-at "$EXP" --no-secrets --output json
+printf 'DATABASE_URL_UNPOOLED=%s\n' "$(neon connection-string prc-rehearsal --project-id "$P")" > .env.prc-rehearsal
+```
+
+Note the new branch id (`br-…`). The counts below run through the Neon MCP `run_sql` on that branch:
+
+```sql
+-- Rows in every table. Counts only, never a row.
+select table_name,
+       (xpath('/row/n/text()', query_to_xml(format('select count(*) as n from %I', table_name), false, true, '')))[1]::text::int as n
+from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' order by 1;
+select count(*) as applied from drizzle.__drizzle_migrations;   -- 40 before 0040, 41 after
+```
+
+1. Counts before. Save them.
+2. The wipe: the step 2 commands, with `.env.prc-rehearsal` in place of `.env.wipe-rehearsal`. Add `--allow-empty`
+   only if the owner has not signed in through Clerk yet.
+3. Counts after the wipe. Save them.
+4. The 0040 migration, run the way the Vercel build runs it. The owner runs this line. The agent may not:
+   `.claude/settings.json` denies it.
+
+   ```bash
+   VERCEL_ENV=production NEON_SNAPSHOT=off node --env-file=.env.prc-rehearsal scripts/migrate-on-build.mjs
+   ```
+
+   It prints `41 migrations in the repo, 40 applied in the database, 1 pending`. Then it prints `now at 41 of 41`.
+5. Counts after 0040. Then run `neon branches schema-diff main prc-rehearsal --project-id "$P"`.
+
+Pass when:
+
+- `applied` goes from 40 to 41.
+- The ten tables are gone. `learners` has no `auth_user_id`.
+- Every other table has the same count after 0040 as after the wipe. `login_failures` keeps its rows.
+- The schema diff shows only those drops.
+
+Then delete the env file: `rm .env.prc-rehearsal`. The branch expires by itself.
+
+If 0040 fails, nothing changed: the migration runs in one transaction, and it has no `CASCADE`. Read the error and
+fix PR C before you go on.
+
+### C3. The owner signs in through Clerk
+
+The owner signs in at https://www.value-it.xyz/sign-in. The step 1 dry run on `main` then shows at least 1 Learner
+with a Clerk user.
+
+### C4. The owner decides on the data the drop loses
+
+`invites` has 1 row (an email). `model_comparison_runs` and `model_comparison_answers` have 4 runs and 116 answers.
+The owner exports them outside the repo, or accepts the loss. After the drop, only a snapshot (kept 30 days) has them.
+
+### C5. The wipe on `main`
+
+Do steps 1, 3, 4 and 5 above. Ask the owner for a "yes" first.
+
+### C6. Merge PR C
+
+Ask the owner for a "yes" first. The merge deploys `main`. The build takes a `pre-migrate-<sha>-<time>` snapshot and
+then applies 0040, before `next build`. Check the build log for `now at 41 of 41`. Then check the app as in step 5.
+
+If the build fails before it migrates, or 0040 itself fails, nothing changed. If `next build` fails after 0040, the
+live PR B code still works: it names none of the dropped tables or the column. Fix PR C and deploy again. Restore the
+`pre-migrate-…` snapshot only to get the dropped data back (see `docs/agents/migrations.md`).
+
+### C7. Remove the passcode variables from Vercel Production
+
+Only after PR C is live, and with the owner's "yes". The passcode door is shut on Vercel, so Production reads none of
+them. Run from a folder linked to the project, or add `$S` (see `docs/agents/platform.md`).
+
+```bash
+vercel env rm PASSCODE --environment production --confirm-name PASSCODE
+vercel env rm PASSCODES --environment production --confirm-name PASSCODES
+vercel env rm SESSION_SECRET --environment production --confirm-name SESSION_SECRET
+vercel env ls production   # the three names are gone
+```
+
+The live deployment keeps its old values until the next deploy. Nothing needs them, so no redeploy is needed.
