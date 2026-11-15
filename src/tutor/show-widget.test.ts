@@ -72,6 +72,24 @@ describe("show_widget and the widget engine", () => {
     expect(asked).toContain("25 years");
   });
 
+  it("tells the next turn's Tutor the open Widget's title and to move it with update_widget, never to write it again", async () => {
+    const db = await onPercentTopic(await testDb());
+    const first = scriptedClient([{ content: [show("grow_money", SIP)] }, { content: [text("Move the years and watch it grow.")] }]);
+    await collect(runTutorTurn({ db, client: first.client, learnerId: OWNER_LEARNER_ID }, "Show me a SIP"));
+    expect(JSON.stringify(first.requests[0].messages)).not.toContain("Open Widgets");
+
+    const next = scriptedClient([{ content: [text("Sure.")] }]);
+    await collect(runTutorTurn({ db, client: next.client, learnerId: OWNER_LEARNER_ID }, "And now?"));
+    const context = next.requests[0].messages
+      .filter((m) => m.role === "system")
+      .map((m) => String(m.content))
+      .join("\n");
+    expect(context).toContain('Open Widgets (tabs in the Widget panel): "₹1,000 a month in a SIP".');
+    expect(context).toContain("call update_widget with its title");
+    // The engine writes no Widget code (ENGINE_INSTRUCTIONS), so the line never asks for a Widget written out again.
+    expect(context).not.toMatch(/write it again|openui-lang/);
+  });
+
   it("marks a Workbench an Illustration when its Case figures are the Tutor's, not a Topic file's (ADR 0018)", async () => {
     // Webvan's year as course/topics/spine-03-cash.yaml gives it to the cash_waterfall Workbench.
     const webvan = {

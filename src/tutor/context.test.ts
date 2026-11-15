@@ -10,7 +10,7 @@ import { exploreWorkbenchParams } from "@/course/explore-widget";
 import { recipeById } from "@/widgets/recipes";
 import { figuresFromTutor, recipeInputsIn } from "@/widgets/recipes/set-workbench";
 import { readWidget } from "@/widgets/widget-reading";
-import { SKIP_AHEAD_LINES, stepContext, valuationIdLine } from "./context";
+import { openWidgetsNote, SKIP_AHEAD_LINES, stepContext, valuationIdLine } from "./context";
 import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { turnFacts, type TurnFacts } from "./turn-facts";
 
@@ -234,5 +234,20 @@ describe("what the Topic Start card offers, in each turn's context (A8)", () => 
   it("is what the instructions' skip rule waits for before naming the Choice", () => {
     expect(ENGINE_INSTRUCTIONS).toContain('"I know this: quiz me" on the Topic Start card, but only when the Course Navigator message says the card offers it');
     for (const line of Object.values(SKIP_AHEAD_LINES)) expect(line.startsWith("Topic Start card: ")).toBe(true);
+  });
+});
+
+// The widget engine is the only Widget lane (#19): the Tutor never writes Widget code, so the open Widgets line points to
+// update_widget, which takes an open Widget's title as its key.
+describe("the open Widgets line", () => {
+  it("names each open Widget by title and moves one with update_widget, never by writing it again", () => {
+    const note = openWidgetsNote(["Long-term interest rates", "PV"]);
+    expect(note).toContain('Open Widgets (tabs in the Widget panel): "Long-term interest rates", "PV".');
+    expect(note).toContain("call update_widget with its title");
+    expect(note).not.toMatch(/write it again|openui-lang/);
+  });
+
+  it("is left out when no Widget is open", () => {
+    expect(openWidgetsNote([])).toBeNull();
   });
 });
