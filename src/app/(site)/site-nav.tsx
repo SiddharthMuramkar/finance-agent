@@ -76,7 +76,8 @@ function AccountMenu({ name }: { name: string }) {
 }
 
 export function SiteNav({ viewer }: { viewer: Viewer }) {
-  const pathname = usePathname();
+  // No router (a static render in a test) reads as no page showing.
+  const pathname = usePathname() ?? "";
   const current = currentLink(pathname);
   const scrolled = useScrolled();
   const grow = useFirstVisit();

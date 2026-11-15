@@ -21,16 +21,6 @@ const INVENTORY: Record<string, Use> = {
     verdict: "mapping",
     why: "Name mappings for Tailwind (--color-*) and OpenUI (--openui-border-*), which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent since ADR 0013, no mint)",
   },
-  "src/app/_landing/home-explorable.tsx": {
-    uses: 3,
-    verdict: "mark",
-    why: "Home's Explorable: the mint or coral fill of its yearly bars and of the comparison's \"30 payments, in today's money\" bar (the third use softens the coral bar), always beside the signed gap in words (\"+$212.4M more than the cash option\") and the line that says which is worth more",
-  },
-  "src/app/_landing/how-topics-work.tsx": {
-    uses: 2,
-    verdict: "mark",
-    why: "Home's section 3 Lingo card (E5): a violet edge on the front and a sunflower edge on the story side, as the Workspace's LingoCard, each face led by the words that name it (Lingo, In the story)",
-  },
   "src/app/widget-panel.tsx": { uses: 1, verdict: "mark", why: "A 2 px sunflower edge down the sourced strip, which starts with the Sourced Tag" },
   "src/widgets/case-data-view.tsx": { uses: 3, verdict: "mark", why: "2 px sourced and assumption edges, each block led by the Sourced or Your assumption Tag" },
   "src/widgets/formula-card-view.tsx": {
@@ -99,10 +89,6 @@ const BAND_INVENTORY: Record<string, BandUse> = {
     verdict: "mapping",
     why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band and .home-band rules: the surface, its white and 72% text, its 18% rules, its white buttons (whose bars take the Band's blue), its white focus ring and Home's type on it",
   },
-  "src/app/_landing/chrome.tsx": { uses: 1, verdict: "band", place: "Home's closing", why: "JoinBand, the closing band of Home and of the About page, with the main button in white" },
-  "src/app/_landing/landing.tsx": { uses: 1, verdict: "band", place: "Home's hero", why: "Home's hero (E1): the promise and the main button in white, with the jackpot Explorable on a white band-card" },
-  "src/app/_landing/how-topics-work.tsx": { uses: 1, verdict: "band", place: "Home's How every Topic works", why: "Home's section 3 (E1, E5): the four moves of every Topic, kept apart from the hero by section 2 and from the closing by sections 4 and 5" },
-  "src/app/_landing/about.tsx": { uses: 1, verdict: "band", place: "About's opening", why: "The About page's title and lede (E11), kept apart from the closing band by the page's sections" },
   "src/app/login/page.tsx": { uses: 1, verdict: "band", place: "the sign-in and Waiting pages' top strip", why: "The strip under the public header that holds the sign-in page's heading, the Waiting and Access not approved screens' included" },
   "src/app/workspace-parts.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar across the Study Workspace (F3): title, goal, step bar, All steps and Topic options, above both columns" },
   "src/app/route-skeleton.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar's empty Band while /study loads, so the skeleton and the page draw the same rows" },
@@ -167,10 +153,7 @@ describe("accent fills and the 3:1 rule", () => {
   // Spec 2026-11-11 A10a test 6 (ADR 0014): a family in a Widget is a thin mark beside words. Every Widget file's row is a
   // "mark"; the kit's theme is the one "colour-only" row (its chart series), and globals.css holds only the mappings.
   it("has every Widget row as a mark, the kit's theme as the one colour-only row, and globals.css as the mappings", () => {
-    // Home's Explorable (the owner's design E, #609) and section 3's step cards (E5) are Home's Widgets drawn by code, so
-    // they are held to the Widget rule too.
-    const homeWidgets = ["src/app/_landing/home-explorable.tsx", "src/app/_landing/how-topics-work.tsx"];
-    const widget = (file: string) => file.startsWith("src/widgets/") || /^src\/app\/widget-[^/]+\.tsx$/.test(file) || homeWidgets.includes(file);
+    const widget = (file: string) => file.startsWith("src/widgets/") || /^src\/app\/widget-[^/]+\.tsx$/.test(file);
     const verdicts = Object.fromEntries(Object.entries(INVENTORY).map(([file, use]) => [file, use.verdict]));
     const expected = Object.fromEntries(
       Object.keys(INVENTORY).map((file) => [file, file === "src/app/globals.css" ? "mapping" : file === "src/widgets/genui-theme.tsx" ? "colour-only" : "mark"]),
