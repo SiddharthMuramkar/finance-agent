@@ -146,7 +146,7 @@ export const FAQ = [
   { q: "Where do the facts come from?", a: "From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage." },
   { q: "Does the AI make up the charts?", a: "No. The Tutor chooses which widget to open and at which numbers; tested code draws it. Made-up numbers are labelled Illustration." },
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
-  { q: "How do I get in?", a: "Join early access with Google or an email link. We let people in by hand while the course grows, and email you when you’re in." },
+  { q: "How do I get in?", a: "Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
   { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie." },
 ] as const;
@@ -341,7 +341,7 @@ export const about = {
   founder: "The founder’s note is coming soon.",
   earlyH2: "Early access",
   early: [
-    { heading: "Join", body: "Sign up with Google or an email link. **We let people in by hand**, a few at a time." },
+    { heading: "Join", body: "Sign up with an email link. **We let people in by hand**, a few at a time." },
     { heading: "Cost", body: "**Free during early access.** No price has been decided yet." },
     { heading: "What you need", body: "A laptop or tablet to study. These pages work on any phone." },
   ],
