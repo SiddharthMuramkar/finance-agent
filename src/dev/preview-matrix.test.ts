@@ -7,29 +7,30 @@ describe("preview matrix [S3]", () => {
     const desktop = cells.filter((c) => c.viewport.id !== "p390");
     const main = desktop.filter((c) => c.page.id !== LOGIN_LINK_EXPIRED.id);
     expect(MATRIX_PAGES).toHaveLength(13);
-    expect(main).toHaveLength(4 * 2 * 13); // 104
-    expect(desktop.filter((c) => c.page.id === LOGIN_LINK_EXPIRED.id)).toHaveLength(8); // one per desktop project
-    expect(desktop).toHaveLength(112);
-    expect(cells).toHaveLength(120); // and the phone's 8 (G9)
+    expect(main).toHaveLength(4 * 13); // 52
+    expect(desktop.filter((c) => c.page.id === LOGIN_LINK_EXPIRED.id)).toHaveLength(4); // one per desktop project
+    expect(desktop).toHaveLength(56);
+    expect(cells).toHaveLength(60); // and the phone's 4 (G9)
     expect(MATRIX_PAGES.find((p) => p.id === "about")).toMatchObject({ path: "/about" });
-    expect(new Set(cells.map((c) => c.project)).size).toBe(10);
+    expect(new Set(cells.map((c) => c.project)).size).toBe(5);
+    // Decision #17: one Light theme, so every cell is Light and no project is a dark twin.
+    expect(new Set(cells.map((c) => c.theme))).toEqual(new Set(["light"]));
+    for (const c of cells) expect(c.project, c.file).not.toMatch(/dark/);
     expect(new Set(cells.map((c) => c.file)).size).toBe(cells.length); // no duplicates
     for (const c of cells) expect(c.file, c.file).not.toMatch(/\s/);
   });
 
-  // Spec 2026-11-12 G9 and F6: the public pages at 390 px wide, in both Themes; nothing of the Study Workspace there.
-  it("shoots Home, About and sign-in at 390 px wide in Light and Dark, and no other page", () => {
+  // Spec 2026-11-12 G9 and F6: the public pages at 390 px wide; nothing of the Study Workspace there.
+  it("shoots Home, About and sign-in at 390 px wide, and no other page", () => {
     const phone = matrixCells().filter((c) => c.viewport.id === "p390");
     expect(MATRIX_VIEWPORTS.find((v) => v.id === "p390")).toMatchObject({ width: 390, height: 844 });
-    expect([...new Set(phone.map((c) => c.project))].sort()).toEqual(["p390", "p390-dark"]);
-    for (const theme of ["light", "dark"]) {
-      expect(phone.filter((c) => c.theme === theme).map((c) => c.page.path)).toEqual(["/", "/about", "/login", "/login?error=INVALID_TOKEN"]);
-    }
+    expect([...new Set(phone.map((c) => c.project))]).toEqual(["p390"]);
+    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/login", "/login?error=INVALID_TOKEN"]);
   });
 
   // Spec §8.3 (colour-liveliness) "Inputs: screenshots of 6 states (reply with Story scene, Lingo card, Choices, Course
-  // Map, Notebook, a wrong-choice mix-up fix), Light and Dark" (#481): each state is a cell, in both themes at every viewport.
-  it("shoots the 6 §8.3 states in Light and Dark", () => {
+  // Map, Notebook, a wrong-choice mix-up fix)" (#481): each state is a cell at every viewport, in the one Light theme.
+  it("shoots the 6 §8.3 states", () => {
     const states = {
       "reply with Story scene": { id: "study-story-scene", path: "/study", seed: "story-scene" },
       "Lingo card": { id: "study-lingo", path: "/study", seed: "lingo" },
@@ -43,7 +44,7 @@ describe("preview matrix [S3]", () => {
       expect(MATRIX_PAGES.find((p) => p.id === want.id), state).toMatchObject(want);
       for (const viewport of MATRIX_VIEWPORTS.filter((v) => !v.publicOnly)) {
         const themes = cells.filter((c) => c.viewport.id === viewport.id && c.page.id === want.id).map((c) => c.theme);
-        expect(themes.sort(), `${state} at ${viewport.id}`).toEqual(["dark", "light"]);
+        expect(themes, `${state} at ${viewport.id}`).toEqual(["light"]);
       }
     }
   });
@@ -52,13 +53,14 @@ describe("preview matrix [S3]", () => {
   // §6 names a looser bound" keeps 32 there (A1's 17 px is its own /study test, not a §6 threshold). Prose line length
   // 45-80, 60-75 from 1440 up and 50-75 at 1280 (ADR 0013's 16 px chat in the conversation column); header <= 56; Widget panel >= 52 % (spec 2026-11-11, C2a: the 45 / 55 default split, R21).
   it("the thresholds are §6.2's at every viewport, with ADR 0013's 1280 band", () => {
-    for (const project of ["mbp14", "mbp14-dark", "w1920", "w1920-dark"]) {
+    expect(() => matrixThresholds("mbp14-dark")).toThrow(/unknown matrix project/);
+    for (const project of ["mbp14", "w1920"]) {
       expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 60, lineMax: 75 });
     }
-    for (const project of ["w1280", "w1280-dark"]) {
+    for (const project of ["w1280"]) {
       expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 50, lineMax: 75 });
     }
-    for (const project of ["w1024", "w1024-dark", "p390", "p390-dark"]) {
+    for (const project of ["w1024", "p390"]) {
       expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 45, lineMax: 80 });
     }
   });

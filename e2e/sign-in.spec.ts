@@ -12,19 +12,22 @@ import { becomePerson, fixture, test } from "./support/people";
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
-// A dark project is a Learner who chose Dark (ADR 0013), signed out too: the theme cookie stays when the sign-in goes.
 /** Spec 2026-11-12 G9: on the phone project every signed-in page shows only the phone note, so cases that go on there skip. */
 const onPhone = (name: string) => name.startsWith("p390");
 const PHONE_SKIP = "a signed-in page shows only the phone note below 768 px (e2e/phone-note.spec.ts)";
 
-test.beforeEach(async ({ page, baseURL }, info) => {
+test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
-  if (info.project.name.endsWith("-dark")) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL! }]);
 });
 
-test("the login page opens in the saved theme, and Light with none", async ({ page }, info) => {
+// Decision #17: one Light theme, whatever the computer's setting; <html> carries no theme attribute or class.
+test("the login page opens in Light, with no theme attribute", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/login");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", info.project.name.endsWith("-dark") ? "dark" : "light");
+  const html = page.locator("html");
+  await expect(html).not.toHaveAttribute("data-theme", /.*/);
+  await expect(html).not.toHaveClass(/\bdark\b/);
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
 });
 
 test("login page: Google first, an email link second, passcode behind a link, errors in plain words", async ({ page }) => {
@@ -35,13 +38,13 @@ test("login page: Google first, an email link second, passcode behind a link, er
   // ADR 0013: flat, so no lip or drop shadow; it is signified by a 1px edge or a fill instead.
   const look = await google.evaluate((el) => {
     const s = getComputedStyle(el);
-    return { shadow: s.boxShadow, edge: parseFloat(s.borderTopWidth), fill: s.backgroundColor, height: el.getBoundingClientRect().height, dark: document.documentElement.classList.contains("dark") };
+    return { shadow: s.boxShadow, edge: parseFloat(s.borderTopWidth), fill: s.backgroundColor, height: el.getBoundingClientRect().height };
   });
   expect(look.shadow).toBe("none");
   expect(look.edge >= 1 || look.fill !== "rgba(0, 0, 0, 0)").toBe(true);
-  // The page's one primary, at the large size: 44px, filled with --fill (royal blue in Light, near-white in Dark).
+  // The page's one primary, at the large size: 44px, filled with --fill (royal blue).
   expect(look.height).toBeGreaterThanOrEqual(44);
-  expect(look.fill).toBe(look.dark ? "rgb(245, 245, 247)" : "rgb(31, 63, 174)");
+  expect(look.fill).toBe("rgb(31, 63, 174)");
   // The email link comes after Google, as a secondary: never the page's primary fill.
   const email = page.getByRole("button", { name: "Email me a sign-in link" });
   await expect(email).toBeVisible();

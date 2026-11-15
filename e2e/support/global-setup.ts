@@ -1,10 +1,8 @@
-import { writeFile } from "node:fs/promises";
 import { chromium, request, type FullConfig, type LaunchOptions } from "@playwright/test";
 
 /**
  * Warms the test server, then signs the tools Learner in once through the real login route and saves the cookie every
- * test starts with. The dark projects' copy (`tools-dark.json`, beside it) adds the cookie `theme=dark`: the site opens in
- * Light for everyone and never reads the computer's setting (ADR 0013), so a dark project is a Learner who chose Dark.
+ * test starts with.
  */
 export default async function globalSetup(config: FullConfig) {
   const { baseURL, storageState, launchOptions } = config.projects[0].use;
@@ -14,10 +12,8 @@ export default async function globalSetup(config: FullConfig) {
   if (response.status() !== 303 || !response.headers()["set-cookie"]?.includes("fa_access=")) {
     throw new Error(`The tools Learner could not sign in: POST /api/login answered ${response.status()}.`);
   }
-  const state = await context.storageState({ path: storageState as string });
+  await context.storageState({ path: storageState as string });
   await context.dispose();
-  const dark = { name: "theme", value: "dark", domain: new URL(baseURL as string).hostname, path: "/", expires: -1, httpOnly: false, secure: false, sameSite: "Lax" as const };
-  await writeFile((storageState as string).replace(/\.json$/, "-dark.json"), JSON.stringify({ ...state, cookies: [...state.cookies, dark] }, null, 2));
 }
 
 /** Room for one cold compile on a slow runner; a warm server answers each step in a second or two. */

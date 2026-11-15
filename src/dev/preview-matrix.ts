@@ -1,7 +1,8 @@
 /**
- * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 2 themes x 13 pages, plus one
- * `/login?error=INVALID_TOKEN` (expired sign-in link) shot per project; and (spec 2026-11-12 G9, F6) a phone, 390 px wide,
- * in both themes for the public pages only (Home, About and sign-in): the Study Workspace shows only its phone note there.
+ * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 13 pages in the one Light theme
+ * (decision #17), plus one `/login?error=INVALID_TOKEN` (expired sign-in link) shot per project; and (spec 2026-11-12 G9,
+ * F6) a phone, 390 px wide, for the public pages only (Home, About and sign-in): the Study Workspace shows only its phone
+ * note there.
  * Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs both read it, and src/dev/preview-matrix.test.ts
  * checks its shape.
  */
@@ -13,11 +14,11 @@ export const MATRIX_VIEWPORTS: readonly MatrixViewport[] = [
   { id: "w1280", width: 1280, height: 800 },
   { id: "w1920", width: 1920, height: 1080 },
   { id: "w1024", width: 1024, height: 768 },
-  // G9: a phone, for the public pages only (playwright.config.ts's p390 and, with UI_MATRIX=1, p390-dark).
+  // G9: a phone, for the public pages only (playwright.config.ts's p390).
   { id: "p390", width: 390, height: 844, publicOnly: true },
 ];
 
-export const MATRIX_THEMES = ["light", "dark"] as const;
+export const MATRIX_THEMES = ["light"] as const;
 
 export type MatrixSeed = "story" | "story-scene" | "lingo" | "concept-widget" | "quiz-open" | "mix-up" | "topic-complete" | "many-topics";
 export type MatrixKind = "study" | "reading" | "login";
@@ -62,7 +63,7 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
 export const LOGIN_LINK_EXPIRED: MatrixPage = { id: "login-link-expired", path: "/login?error=INVALID_TOKEN", seed: null, kind: "login", signedOut: true, public: true };
 
 export type MatrixCell = {
-  /** Playwright project name: "mbp14", "mbp14-dark", ... */
+  /** Playwright project name: "mbp14", "w1280", ... */
   project: string;
   viewport: MatrixViewport;
   theme: (typeof MATRIX_THEMES)[number];
@@ -73,17 +74,14 @@ export type MatrixCell = {
 
 export const MATRIX_DIR = "evidence/preview-matrix";
 
-export const projectName = (viewportId: string, theme: string) => (theme === "dark" ? `${viewportId}-dark` : viewportId);
+export const projectName = (viewportId: string) => viewportId;
 
-/**
- * Every cell: 4 viewports x 2 themes x (13 pages + the expired-link login) = 112, plus the phone's 2 themes x (3 public
- * pages + the expired-link login) = 8: 120.
- */
+/** Every cell: 4 viewports x (13 pages + the expired-link login) = 56, plus the phone's 3 public pages + the expired-link login = 4: 60. */
 export function matrixCells(): MatrixCell[] {
   const cells: MatrixCell[] = [];
   for (const viewport of MATRIX_VIEWPORTS) {
     for (const theme of MATRIX_THEMES) {
-      const project = projectName(viewport.id, theme);
+      const project = projectName(viewport.id);
       for (const page of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED].filter((p) => !viewport.publicOnly || p.public)) {
         cells.push({ project, viewport, theme, page, file: `${MATRIX_DIR}/${project}/${page.id}.png` });
       }
@@ -106,7 +104,7 @@ export type MatrixThresholds = { gutterMax: number; headerMax: number; panelMinP
  * panel >= 52 % of the viewport: the 45 / 55 default split gives it 52.4 % (spec 2026-11-11, C2a, R21).
  */
 export function matrixThresholds(project: string): MatrixThresholds {
-  const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id || project === `${v.id}-dark`);
+  const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id);
   if (!viewport) throw new Error(`unknown matrix project: ${project}`);
   const [lineMin, lineMax] = viewport.width >= 1440 ? [60, 75] : viewport.width >= 1280 ? [50, 75] : [45, 80];
   return { gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin, lineMax };

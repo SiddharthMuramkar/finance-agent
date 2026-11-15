@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { TOGGLE_LABEL, type ThemeId } from "../src/app/theme";
 import { cellsOfProject, MATRIX_DIR, matrixThresholds, type MatrixCell } from "../src/dev/preview-matrix";
 import { hydrated, quietDevtools, seed, settled } from "./support/app";
 import { WIDGET_CONTENT, accentFamilies, auditAffordances, measureLayout, widgetLook, type Affordances, type Layout, type WidgetLook } from "./support/measure";
@@ -23,7 +22,7 @@ type Result = {
   affordances: Affordances | null;
   focus: FocusWalk | null;
   /**
-   * Which accent families (mint, coral, sun, violet, each with every variant its theme defines) the whole /study page
+   * Which signal families (gain, loss, wait, each with every step globals.css defines) the whole /study page
    * paints outside Widget content: header, chat, Topic bar, panel frame. `accentVia` says, per family,
    * the first variant and paint that matched ("--sun-tag as background"). Measured on every /study cell (so the Story
    * scene, Lingo card and mix-up fix cells of #481 show their sunflower, violet and coral); the chrome-has-none test reads concept-widget.
@@ -82,7 +81,7 @@ function saved(project: string, outputDir: string): Result[] {
 }
 
 /** The accessible names the Done-when keyboard pass needs: the header's three icons, and Google on the sign-in page. */
-const headerControls = (theme: ThemeId) => [TOGGLE_LABEL[theme], "Settings", "Account menu"];
+const HEADER_CONTROLS = ["Settings", "Account menu"];
 const LOGIN_CONTROLS = ["Continue with Google"];
 
 /**
@@ -179,8 +178,7 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
   const { page: p } = cell;
   const out: Result = { cell: `${cell.project}/${p.id}`, file: cell.file, layout: null, affordances: null, focus: null, accents: null, look: null, scrollWidth: 0, innerWidth: 0 };
   try {
-    // Signed out keeps the theme cookie: a dark cell is a Learner who chose Dark (ADR 0013), not the computer's setting.
-    if (p.signedOut) await page.context().clearCookies({ name: /^(?!theme$)/ });
+    if (p.signedOut) await page.context().clearCookies();
     else await seed(page, p.seed!);
     let openers = 0;
     page.on("request", (r) => {
@@ -279,7 +277,7 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
     else {
       if (f.withoutRing.length) failing.push(`${r.cell}: no focus ring on Tab at ${JSON.stringify(f.withoutRing.slice(0, 5))}${f.withoutRing.length > 5 ? ` (+${f.withoutRing.length - 5})` : ""}`);
       // Home and the About page are public pages (Home's header, not the app's); only the plain login cell must reach Google, the expired-link login is not held to it.
-      const needed = id === "login" ? LOGIN_CONTROLS : login || id === "home" || id === "about" ? [] : headerControls(cell.theme);
+      const needed = id === "login" ? LOGIN_CONTROLS : login || id === "home" || id === "about" ? [] : HEADER_CONTROLS;
       const missed = needed.filter((n) => !f.reached.includes(n));
       if (missed.length) failing.push(`${r.cell}: Tab never reaches ${JSON.stringify(missed)}`);
     }

@@ -93,9 +93,3 @@ export async function hydrated(page: Page) {
   await page.waitForFunction(() => document.querySelector(".openui-accordion-trigger:not([data-affordance])") === null);
 }
 
-/** Puts the page in a theme through the app's own header toggle: presses it only when the page shows the other theme. */
-export async function theme(page: Page, want: "light" | "dark") {
-  const html = page.locator("html");
-  if ((await html.getAttribute("data-theme")) !== want) await page.getByTestId("theme-toggle").first().click();
-  await expect(html).toHaveAttribute("data-theme", want);
-}

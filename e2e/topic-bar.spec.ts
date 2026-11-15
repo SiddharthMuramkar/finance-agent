@@ -268,8 +268,7 @@ test("[#313] a wheel over the strip scrolls a box around it first, and the strip
  * 1,024 px wide: every word on screen inside the bar, on at most two lines, with no ellipsis, clamp or clipping.
  */
 test("[F3] the Topic bar is a Band above both columns and shows the whole goal at 1,024 px wide", async ({ page }, info) => {
-  // F3: "in both Themes", so Light and Dark.
-  test.skip(!["mbp14", "mbp14-dark"].includes(info.project.name), "sizes its own viewport; Light and Dark");
+  test.skip(!["mbp14"].includes(info.project.name), "sizes its own viewport");
   await page.setViewportSize({ width: 1024, height: 768 });
   await seed(page, "your-turn");
   await page.goto("/study");
@@ -314,7 +313,7 @@ test("[F3] the Topic bar is a Band above both columns and shows the whole goal a
   expect(m.whiteSpace).not.toBe("nowrap");
   expect(m.inside, "the goal sits inside the bar").toBe(true);
   expect(m.clipped, "nothing clips the goal").toEqual([]);
-  // A Band: the royal #1F3FAE in both Themes.
+  // A Band: the royal #1F3FAE.
   expect(m.background).toBe("rgb(31, 63, 174)");
   expect(m.left).toBeLessThanOrEqual(0.5);
   expect(m.right).toBeLessThanOrEqual(0.5);

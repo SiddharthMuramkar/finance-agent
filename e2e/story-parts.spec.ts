@@ -84,7 +84,7 @@ async function motionIn(page: Page, root: string): Promise<Motion[]> {
 async function openMoving(page: Page, fixture: string, project: string) {
   await page.addInitScript(recordAnimations);
   await page.setViewportSize({ width: 860, height: 900 });
-  await page.goto(`/dev/widgets?fixture=${fixture}${project.endsWith("-dark") ? "&theme=dark" : ""}`);
+  await page.goto(`/dev/widgets?fixture=${fixture}`);
   await expect(page.getByTestId("widget-card")).toBeVisible();
   await page.waitForTimeout(500); // every entrance is 300 ms or less
 }
