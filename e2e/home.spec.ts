@@ -6,14 +6,12 @@ import { frameLook } from "./support/measure";
 
 /**
  * Home, signed out (spec 2026-11-11, D2, B1, D3): Home is the page a stranger opens, so every case here runs with no
- * saved sign-in, as `e2e/affordance.spec.ts` does. A dark project is a visitor who chose Dark: the theme cookie works
- * signed out. With SHOTS=<ID>, the cases save that ticket's screenshots under docs/specs/img/2026-11-11/.
+ * saved sign-in, as `e2e/affordance.spec.ts` does. With SHOTS=<ID>, the cases save that ticket's screenshots under docs/specs/img/2026-11-11/.
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const SHOTS = join("docs", "specs", "img", "2026-11-11");
-const DESKTOP = ["mbp14", "mbp14-dark"];
-const themeOf = (name: string) => (name.endsWith("-dark") ? "dark" : "light");
+const DESKTOP = ["mbp14"];
 const shotsFor = (id: string, name: string) => process.env.SHOTS === id && DESKTOP.includes(name);
 
 /** Saves a screenshot without Next's dev overlay (`nextjs-portal`, not part of the app) and with no link under the pointer. */
@@ -24,9 +22,8 @@ async function shot(page: Page, file: string, fullPage = false) {
   await page.screenshot({ path: join(SHOTS, file), fullPage });
 }
 
-test.beforeEach(async ({ page, baseURL }, info) => {
+test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
-  if (info.project.name.endsWith("-dark")) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL! }]);
 });
 
 async function openHome(page: Page) {
@@ -57,9 +54,9 @@ async function jumpsTo(page: Page, link: string, id: string) {
 }
 
 test("[D2] How it works jumps below the sticky header", async ({ page }, info) => {
-  test.skip(!DESKTOP.includes(info.project.name), "1512, Light and Dark");
+  test.skip(!DESKTOP.includes(info.project.name), "1512");
   await openHome(page);
-  if (shotsFor("D2", info.project.name)) await shot(page, `D2-home-${themeOf(info.project.name)}.png`, true);
+  if (shotsFor("D2", info.project.name)) await shot(page, `D2-home-light.png`, true);
   // The section starts below the fold, so the press must scroll the page.
   const before = await page.locator("#how-it-works").evaluate((el) => el.getBoundingClientRect().top);
   expect(before).toBeGreaterThan(await page.evaluate(() => window.innerHeight));
@@ -88,22 +85,22 @@ function apiCalls(page: Page) {
 }
 
 /** B1's frame, from ADR 0013's token table: white (--frame), one 1 px --rule edge, no shadow, 12 px corners at most. */
-async function expectPlainFrame(page: Page, selector: string, dark: boolean) {
+async function expectPlainFrame(page: Page, selector: string) {
   const frame = await frameLook(page, selector);
-  expect(frame.backgroundColor, selector).toBe(dark ? "rgb(15, 15, 15)" : "rgb(255, 255, 255)");
+  expect(frame.backgroundColor, selector).toBe("rgb(255, 255, 255)");
   expect(frame.borderTopWidth, selector).toBe("1px");
-  expect(frame.borderTopColor, selector).toBe(dark ? "rgb(31, 31, 31)" : "rgb(226, 229, 234)");
+  expect(frame.borderTopColor, selector).toBe("rgb(226, 229, 234)");
   expect(frame.boxShadow, selector).toBe("none");
   expect(frame.radius, selector).toBeLessThanOrEqual(12);
   expect(frame.innerBorder, selector).toBe("0px");
 }
 
 test("[B1] the Home Widget's frame is plain and white, with one edge, one control and no request", async ({ page }, info) => {
-  test.skip(!DESKTOP.includes(info.project.name), "1512, Light and Dark");
+  test.skip(!DESKTOP.includes(info.project.name), "1512");
   const calls = apiCalls(page);
   await openHome(page);
-  if (shotsFor("B1", info.project.name)) await shot(page, `B1-home-widget-${themeOf(info.project.name)}.png`);
-  await expectPlainFrame(page, '[data-testid="home-widget"]', info.project.name.endsWith("-dark"));
+  if (shotsFor("B1", info.project.name)) await shot(page, `B1-home-widget-light.png`);
+  await expectPlainFrame(page, '[data-testid="home-widget"]');
 
   // Since #609 (the owner's design E) the hero is an Explorable with no Guided Task: its one slider is the rate (its chips
   // set it in one tap, E3), and moving it works a new worth today in the browser.
@@ -120,17 +117,17 @@ test("[B1] the Home Widget's frame is plain and white, with one edge, one contro
 });
 
 test("[D3, E6] Examples jumps to the Showcases, one on screen at a time, and each Widget plays in the browser with no request", async ({ page }, info) => {
-  test.skip(!DESKTOP.includes(info.project.name), "1512, Light and Dark");
+  test.skip(!DESKTOP.includes(info.project.name), "1512");
   const calls = apiCalls(page);
   await openHome(page);
   await jumpsTo(page, "Examples", "examples");
-  if (shotsFor("D3", info.project.name)) await shot(page, `D3-showcases-${themeOf(info.project.name)}.png`);
+  if (shotsFor("D3", info.project.name)) await shot(page, `D3-showcases-light.png`);
 
   const tabs = page.locator("#examples").getByRole("tab");
   await expect(tabs).toHaveText(["Everyday money", "The news", "A real company"]);
   const showcase = page.getByTestId("showcase-widget");
   await expect(showcase).toHaveCount(1);
-  await expectPlainFrame(page, '[data-testid="showcase-widget"]', info.project.name.endsWith("-dark"));
+  await expectPlainFrame(page, '[data-testid="showcase-widget"]');
 
   // Everyday money: a picture of growth (E6), not a Formula Card: ₹1,000 put in and ₹331 earned at 3 years; one key press
   // on the years slider grows it.
@@ -163,12 +160,11 @@ test("[D3, E6] Examples jumps to the Showcases, one on screen at a time, and eac
  * The test bed holds no Case Data (it lives only in the private database), so the Explorable has no cash option to compare
  * against. This seeds it through the test bed's own route, as the tools Learner, then signs the browser out again.
  */
-async function withCashOption(page: Page, baseURL: string, dark: boolean) {
+async function withCashOption(page: Page) {
   await signIn(page);
   const response = await page.request.post("/api/dev-e2e", { data: { caseData: "home-cash-option" } });
   expect(response.status(), await response.text()).toBe(200);
   await page.context().clearCookies();
-  if (dark) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL }]);
 }
 
 /**
@@ -176,9 +172,9 @@ async function withCashOption(page: Page, baseURL: string, dark: boolean) {
  * 3.5%, and the axis labels do not change during the drag." The mouse drags the rate from 0% in small moves; at each stop
  * the test reads the rate, the match line and the axis label.
  */
-test("[E3] dragging the rate up from 0%, You found it appears between 3.3% and 3.5%, and the axis never changes", async ({ page, baseURL }, info) => {
-  test.skip(!["mbp14", "mbp14-dark", "w1280", "w1280-dark", "p390", "p390-dark"].includes(info.project.name), "1512, 1280 and a phone, in Light and Dark (the dark twins run with UI_MATRIX=1)");
-  await withCashOption(page, baseURL!, info.project.name.endsWith("-dark"));
+test("[E3] dragging the rate up from 0%, You found it appears between 3.3% and 3.5%, and the axis never changes", async ({ page }, info) => {
+  test.skip(!["mbp14", "w1280", "p390"].includes(info.project.name), "1512, 1280 and a phone");
+  await withCashOption(page);
   await openHome(page);
   const widget = page.getByTestId("home-widget");
   await expect(widget.getByTestId("explorable-status")).toContainText("Raise the rate and watch the far-off payments shrink.");
@@ -224,7 +220,7 @@ test("[E8] the general Widget renderer is requested only when the Showcases near
   test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
   // Home as it is in production, with its cash option (the hero is taller with the guess and the comparison), whatever
   // ran before.
-  await withCashOption(page, baseURL!, false);
+  await withCashOption(page);
   const scripts: string[] = [];
   page.on("request", (request) => {
     if (request.resourceType() === "script") scripts.push(request.url());
@@ -290,10 +286,10 @@ async function recordEvents(page: Page): Promise<Sent[]> {
  * moved off and back to the price; two of section 3's steps opened (only the first is sent, with its step); then Join in
  * the hero (with its section).
  */
-test("[E10] one test visit sends each of Home's six events once, in order", async ({ page, baseURL }, info) => {
+test("[E10] one test visit sends each of Home's six events once, in order", async ({ page }, info) => {
   test.skip(!["mbp14", "w1280"].includes(info.project.name), "1512 and 1280");
   const sent = await recordEvents(page);
-  await withCashOption(page, baseURL!, false);
+  await withCashOption(page);
   await openHome(page);
   const expected: Sent[] = [];
 
@@ -361,7 +357,7 @@ test("[E10] one test visit sends each of Home's six events once, in order", asyn
  * page makes from the step's opening on is watched, and none is for data or a model: no /api/turn, no fetch, no POST.
  */
 test("[E5] section 3's Quick try marks a wrong tap and shows its fix, with no request", async ({ page }, info) => {
-  test.skip(!["mbp14", "mbp14-dark", "w1280", "p390"].includes(info.project.name), "1512 in Light and Dark, 1280 and a phone");
+  test.skip(!["mbp14", "w1280", "p390"].includes(info.project.name), "1512, 1280 and a phone");
   await openHome(page);
   const section3 = page.locator("#how-it-works");
   await section3.scrollIntoViewIfNeeded();
@@ -398,9 +394,9 @@ test("[E5] section 3's Quick try marks a wrong tap and shows its fix, with no re
  * it: with the hero's cash option, seeded here so the height never depends on an earlier test (without it the hero is
  * about 250 px shorter, enough to hide section 2 falling back to one column).
  */
-test("[E1] Home is at least a quarter shorter than the audited 5,736 px", async ({ page, baseURL }, info) => {
+test("[E1] Home is at least a quarter shorter than the audited 5,736 px", async ({ page }, info) => {
   test.skip(info.project.name !== "w1024", "1024, the audited width");
-  await withCashOption(page, baseURL!, false);
+  await withCashOption(page);
   await openHome(page);
   // The hero drew with its cash option (its guess chips ask only when there is a cash option to compare against).
   await expect(page.getByTestId("home-widget").getByRole("button", { name: "The cash" })).toBeVisible();
@@ -410,7 +406,7 @@ test("[E1] Home is at least a quarter shorter than the audited 5,736 px", async 
 
 /** Spec 2026-11-12 E1, Done when: every section of Home has a control to use or a picture; none is only paragraphs. */
 test("[E1] every section of Home has a control to use or a picture", async ({ page }, info) => {
-  test.skip(!["mbp14", "mbp14-dark", "w1280", "w1280-dark", "p390", "p390-dark"].includes(info.project.name), "1512, 1280 and a phone, in Light and Dark (the dark twins run with UI_MATRIX=1)");
+  test.skip(!["mbp14", "w1280", "p390"].includes(info.project.name), "1512, 1280 and a phone");
   await openHome(page);
   const sections = ['[data-band="home-hero"]', "#value-a-company", "#how-it-works", "#examples", "#what-you-get", '[data-home-section="closing"]'];
   for (const selector of sections) {

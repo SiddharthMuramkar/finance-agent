@@ -8,27 +8,24 @@ import { frameLook, measureLayout } from "./support/measure";
 /**
  * The About page (spec 2026-11-11, D1): a public, static page linked from Home's header and footer. Signed out (no
  * saved tools cookie), a visitor presses About on Home and reads the About page, which never scrolls sideways.
- * With SHOTS=D1, the 1512 x 982 projects save the About page and Home's header in Light and Dark; with SHOTS=D4, the
+ * With SHOTS=D1, the 1512 x 982 project saves the About page and Home's header; with SHOTS=D4, the
  * whole About page.
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const SHOTS = join("docs", "specs", "img", "2026-11-11");
 
-// A dark project is a visitor who chose Dark (ADR 0013): the theme cookie works signed out, and on a static page too.
-test.beforeEach(async ({ page, baseURL }, info) => {
+test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
-  if (info.project.name.endsWith("-dark")) await page.context().addCookies([{ name: "theme", value: "dark", url: baseURL! }]);
 });
 
 test("[D1] signed out, Home's About link opens the About page", async ({ page }, info) => {
   await page.goto("/");
   const header = page.locator("header.home-header");
-  const shots = process.env.SHOTS === "D1" && (info.project.name === "mbp14" || info.project.name === "mbp14-dark");
-  const theme = info.project.name.endsWith("-dark") ? "dark" : "light";
+  const shots = process.env.SHOTS === "D1" && info.project.name === "mbp14";
   if (shots) {
     mkdirSync(SHOTS, { recursive: true });
-    await header.screenshot({ path: join(SHOTS, `D1-home-header-${theme}.png`) });
+    await header.screenshot({ path: join(SHOTS, `D1-home-header-light.png`) });
   }
 
   // Below 760 px the header's page links hide (G9's phone): the footer carries About there.
@@ -41,11 +38,11 @@ test("[D1] signed out, Home's About link opens the About page", async ({ page },
   const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(sideways, "the About page scrolls sideways").toBeLessThanOrEqual(0);
 
-  if (shots) await page.screenshot({ path: join(SHOTS, `D1-about-${theme}.png`) });
+  if (shots) await page.screenshot({ path: join(SHOTS, `D1-about-light.png`) });
 });
 
 test("[D4] the About page reads at the right measure, and its Widgets play with no request", async ({ page }, info) => {
-  test.skip(!["mbp14", "mbp14-dark", "w1024"].includes(info.project.name), "1512 in Light and Dark, and 1024");
+  test.skip(!["mbp14", "w1024"].includes(info.project.name), "1512 and 1024");
   const calls: string[] = [];
   page.on("request", (request) => {
     if (new URL(request.url()).pathname.startsWith("/api/")) calls.push(`${request.method()} ${request.url()}`);
@@ -59,11 +56,10 @@ test("[D4] the About page reads at the right measure, and its Widgets play with 
     return;
   }
 
-  const dark = info.project.name.endsWith("-dark");
   if (process.env.SHOTS === "D4") {
     mkdirSync(SHOTS, { recursive: true });
     await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
-    await page.screenshot({ path: join(SHOTS, `D4-about-${dark ? "dark" : "light"}.png`), fullPage: true });
+    await page.screenshot({ path: join(SHOTS, `D4-about-light.png`), fullPage: true });
   }
 
   // The running prose keeps ADR 0013's measure: 60 to 75 characters a line at 1512.
@@ -78,9 +74,9 @@ test("[D4] the About page reads at the right measure, and its Widgets play with 
   await expect(widgets).toHaveCount(2);
   for (let i = 0; i < 2; i++) {
     const frame = await frameLook(page, `[data-testid="about-widget"] >> nth=${i}`);
-    expect(frame.backgroundColor).toBe(dark ? "rgb(15, 15, 15)" : "rgb(255, 255, 255)");
+    expect(frame.backgroundColor).toBe("rgb(255, 255, 255)");
     expect(frame.borderTopWidth).toBe("1px");
-    expect(frame.borderTopColor).toBe(dark ? "rgb(31, 31, 31)" : "rgb(226, 229, 234)");
+    expect(frame.borderTopColor).toBe("rgb(226, 229, 234)");
     expect(frame.boxShadow).toBe("none");
     expect(frame.radius).toBeLessThanOrEqual(12);
     expect(frame.innerBorder).toBe("0px");
@@ -110,7 +106,7 @@ test("[G1, E11] signed in, About's header offers the Study Workspace and Sign ou
   await expect(header.getByRole("button", { name: "Sign out", exact: true })).toBeVisible();
   await expect(header.getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
   await expect(header.getByText("Join early access")).toHaveCount(0);
-  // The opening Band: royal in both Themes, the h1 in white on it.
+  // The opening Band: royal, the h1 in white on it.
   const opening = page.locator('[data-band="about-opening"]');
   const look = await opening.evaluate((band) => ({ face: getComputedStyle(band).backgroundColor, ink: getComputedStyle(band.querySelector("h1")!).color, width: band.getBoundingClientRect().width, page: document.documentElement.clientWidth }));
   expect(look).toEqual({ face: "rgb(31, 63, 174)", ink: "rgb(255, 255, 255)", width: look.page, page: look.page });

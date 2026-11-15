@@ -6,7 +6,6 @@ import { getDb } from "@/db/client";
 import { tutorSpeed } from "@/tutor/speed";
 import { spendByPerson } from "@/tutor/spend";
 import { accountFor } from "../account";
-import { readTheme } from "../theme-cookie";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { AdminView } from "./admin-view";
 import { adminDone } from "./done";
@@ -25,7 +24,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   if (!owner) notFound();
   const db = getDb();
   const now = new Date();
-  const [waiting, people, invited, denied, open, spend, speed, theme, account, { done }] = await Promise.all([
+  const [waiting, people, invited, denied, open, spend, speed, account, { done }] = await Promise.all([
     waitingRequests(db),
     peopleWithAccess(db),
     pendingInvites(db),
@@ -33,13 +32,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     signupOpen(db),
     spendByPerson(db, now),
     tutorSpeed(db, now),
-    readTheme(),
     accountFor(db, owner.learner),
     searchParams,
   ]);
   return (
     <SignedInFrame>
-      <ReadingPage theme={theme} account={account}>
+      <ReadingPage account={account}>
         <AdminView waiting={waiting} people={people} invited={invited} denied={denied} signupOpen={open} spend={spend} speed={speed} done={adminDone(done)} />
       </ReadingPage>
     </SignedInFrame>

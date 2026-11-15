@@ -4,13 +4,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// The contrast guard guards (spec 2026-11-05 ticket A4, test 3, seam S7; rules per ADR 0013): the real stylesheet
-// passes, and deliberate breakages each fail on the rule that should catch them.
+// The contrast guard guards (decision #17; spec §2.4, §3.1): the real stylesheet passes, and deliberate breakages each
+// fail on the rule that should catch them.
 
 const REAL = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 const SCRIPT = join(process.cwd(), "scripts/check-theme-contrast.mjs");
 
-/** Runs the script on `css`; `colourOnly` replaces its list of accent fills that carry meaning by colour alone. */
+/** Runs the script on `css`; `colourOnly` replaces its list of fills that carry meaning by colour alone. */
 function run(css: string, colourOnly?: [string, string][]) {
   const dir = mkdtempSync(join(tmpdir(), "contrast-"));
   const file = join(dir, "globals.css");
@@ -25,203 +25,157 @@ function run(css: string, colourOnly?: [string, string][]) {
   return { status: done.status, output: `${done.stdout}${done.stderr}` };
 }
 
-const OPEN = { light: ":root {\n  color-scheme: light;", dark: ":root.dark {\n    color-scheme: dark;" } as const;
+const OPEN = ":root {\n  color-scheme: light;";
 
-/** Changes one token inside the Light block (`:root {` with its color-scheme line) or the Dark block (`:root.dark {`). */
-function change(css: string, theme: "light" | "dark", token: string, value: string) {
-  const start = css.indexOf(OPEN[theme]);
-  if (start < 0) throw new Error(`no ${theme} block`);
-  const end = css.indexOf("}", start);
-  const block = css.slice(start, end).replace(new RegExp(`(--${token}:\\s*)#[0-9a-f]+`, "i"), `$1${value}`);
+/** Replaces one token's whole value inside the :root block. */
+function change(css: string, token: string, value: string) {
+  const start = css.indexOf(OPEN);
+  if (start < 0) throw new Error("no :root block");
+  const end = css.indexOf("\n}", start);
+  const block = css.slice(start, end).replace(new RegExp(`(\\n  --${token}:\\s*)[^;]+;`), `$1${value};`);
   return css.slice(0, start) + block + css.slice(end);
 }
 
-/** Adds one declaration at the top of the Light or Dark block. */
-function add(css: string, theme: "light" | "dark", declaration: string) {
-  const at = css.indexOf(OPEN[theme]);
-  if (at < 0) throw new Error(`no ${theme} block`);
-  const after = at + OPEN[theme].length;
-  return `${css.slice(0, after)}\n${theme === "light" ? "  " : "    "}${declaration}${css.slice(after)}`;
-}
+/** Adds one declaration at the top of the :root block. */
+const add = (css: string, declaration: string) => css.replace(OPEN, `${OPEN}\n  ${declaration}`);
 
 describe("the contrast guard", () => {
-  it("the guard guards", () => {
-    const real = run(REAL);
-    expect(real.output).toContain("All themes pass.");
-    expect(real.status).toBe(0);
+  const real = run(REAL);
 
-    const ink = run(change(REAL, "light", "ink", "#333333"));
+  it("passes the real stylesheet", () => {
+    expect(real.output).toContain("All checks pass.");
+    expect(real.status).toBe(0);
+  });
+
+  // Decision #17: one Light theme. Any way back to a Dark theme fails by name.
+  it("fails any Dark theme: a .dark block, a dark variant, or the computer's dark setting", () => {
+    const block = run(`${REAL}\n:root.dark { --paper: #0b0b0b; }\n`);
+    expect(block.status).toBe(1);
+    expect(block.output).toContain("FAIL no .dark selector (there is no Dark theme)");
+
+    const variant = run(`@custom-variant dark (&:where(.dark, .dark *));\n${REAL}`);
+    expect(variant.status).toBe(1);
+    expect(variant.output).toContain("FAIL no dark variant");
+
+    const media = run(`${REAL}\n@media (prefers-color-scheme: dark) { body { background: black; } }\n`);
+    expect(media.status).toBe(1);
+    expect(media.output).toContain("FAIL no prefers-color-scheme: dark");
+
+    const scheme = run(REAL.replace(OPEN, ":root {\n  color-scheme: light dark;"));
+    expect(scheme.status).toBe(1);
+    expect(scheme.output).toContain("FAIL color-scheme is light");
+  });
+
+  it("freezes the spec §3.1 values", () => {
+    expect(real.output).toContain("ok   --blue is #1f3fae (spec §3.1)");
+    expect(real.output).toContain("ok   --gain-deep is #087f5b (spec §3.1)");
+    expect(real.output).toContain("ok   --wait is #f97316 (spec §3.1)");
+
+    const ink = run(change(REAL, "ink", "#333333"));
     expect(ink.status).toBe(1);
-    expect(ink.output).toContain("light: --ink is unchanged");
+    expect(ink.output).toContain("FAIL --ink is #0b0d12 (spec §3.1)");
+  });
 
-    const neon = run(change(REAL, "dark", "mint-ink", "#00e0a0"));
-    expect(neon.status).toBe(1);
-    expect(neon.output).toMatch(/dark: --mint-ink chroma/);
+  // Token-first: a colour is a literal once, in the spec block; every other name points at its meaning.
+  it("re-points the old names at their meanings and refuses any new literal colour", () => {
+    for (const line of [
+      "--you points at --blue",
+      "--src points at --ink",
+      "--mint points at --gain",
+      "--coral points at --loss",
+      "--success points at --gain-ink",
+      "--warning points at --wait-ink",
+      "--danger points at --loss",
+      "--sun points at --ink",
+      "--violet points at --muted",
+      "--bg points at --paper",
+      "--band points at --royal",
+      "--key-number points at --accent",
+    ])
+      expect(real.output).toContain(`ok   ${line}`);
 
-    const edge = run(change(REAL, "light", "line-strong", "#cccccc"));
+    const mint = run(change(REAL, "mint", "#12b886"));
+    expect(mint.status).toBe(1);
+    expect(mint.output).toContain("FAIL --mint points at --gain");
+    expect(mint.output).toContain("FAIL --mint is a literal colour (#12b886) outside the spec block: point it at a spec token");
+
+    const stray = run(add(REAL, "--teal: #00a0a0;"));
+    expect(stray.status).toBe(1);
+    expect(stray.output).toContain("FAIL --teal is a literal colour (#00a0a0) outside the spec block");
+  });
+
+  // Spec §2.4's contrast table, row by row, at the spec's ratio to two decimals.
+  it("holds every contrast pair of spec §2.4 at the spec's ratio", () => {
+    for (const [pair, rule] of [
+      ["--ink-2 on --paper 12.30:1", "min 7, spec 12.30"],
+      ["--ink on --paper 19.43:1", "min 7, spec 19.43"],
+      ["--muted on --wash 5.46:1", "min 4.5, spec 5.46"],
+      ["--faint on --paper 3.17:1", "min 3, spec 3.17"],
+      ["--blue on --blue-tint 7.87:1", "min 4.5, spec 7.87"],
+      ["--gain-ink on --gain-tint 4.81:1", "min 4.5, spec 4.81"],
+      ["--loss-ink on --loss-tint 6.75:1", "min 4.5, spec 6.75"],
+      ["--wait-ink on --wait-tint 5.16:1", "min 4.5, spec 5.16"],
+      ["--on-blue on --loss 6.11:1", "min 4.5, spec 6.11"],
+      ["--on-blue on --gain-deep 5.00:1", "min 4.5, spec 5.00"],
+      ["--ink on --gain 6.53:1", "min 4.5, spec 6.53"],
+      ["--gain on --wash 2.77:1", "below 3:1 by design, spec 2.77"],
+      ["--wait on --wash 2.61:1", "below 3:1 by design, spec 2.61"],
+      ["--loss on --wash 5.70:1", "min 3, spec 5.70"],
+    ])
+      expect(real.output).toContain(`ok   ${pair} (${rule})`);
+
+    // A lighter wash moves the spec's ratios: the table fails until the spec changes with it.
+    const wash = run(change(REAL, "wash", "#ffffff"));
+    expect(wash.status).toBe(1);
+    expect(wash.output).toMatch(/FAIL --muted on --wash 5\.86:1 \(min 4\.5, spec 5\.46\)/);
+  });
+
+  // Spec §2.4's separation table: OKLab x 100, under normal vision and Machado 2009 colour blindness at full severity.
+  it("holds every colour-separation figure of spec §2.4, and allows a pair below target only with the spec's reason", () => {
+    for (const line of [
+      "--gain and --loss 34.1 under normal (target 15, spec 34.1)",
+      "--gain and --loss 13.0 under deuteranopia (target 8, spec 13.0)",
+      "--gain and --wait 10.6 under protanopia (target 8, spec 10.6)",
+      "--loss and --wait 14.0 under tritanopia (target 8, spec 14.0)",
+      "--blue and --wait 44.8 under normal (target 15, spec 44.8)",
+    ])
+      expect(real.output).toContain(`ok   ${line}`);
+    expect(real.output).toContain("ok   --loss and --gain-deep 5.7 under deuteranopia (target 8, spec 5.7): below target, never adjacent data marks");
+
+    // An orange that drifts toward the green fails the table.
+    const orange = run(change(REAL, "wait", "#c9a227"));
+    expect(orange.status).toBe(1);
+    expect(orange.output).toMatch(/FAIL --gain and --wait \d+\.\d under normal \(target 15, spec 28\.1\)/);
+  });
+
+  it("measures the app's pairs: text minimums, control edges and the Band", () => {
+    for (const pair of ["--ink on --paper", "--muted on --raised", "--accent on --accent-tint", "--on-accent on --accent-fill", "--on-fill on --fill", "--on-danger on --danger", "--violet-ink on --violet-tint", "--line-strong on --raised", "--ring on --paper", "--accent-fill on --paper"])
+      expect(real.output, pair).toContain(`ok   ${pair} `);
+    expect(real.output).toContain("ok   --on-band on --band 8.82:1 (min 4.5, spec 8.82)");
+    expect(real.output).toContain("ok   --key-number on --wash 8.23:1 (min 4.5, spec 8.23)");
+    expect(real.output).toContain("ok   --accent-deep is darker than --accent-fill");
+
+    const edge = run(change(REAL, "line-strong", "#cccccc"));
     expect(edge.status).toBe(1);
-    expect(edge.output).toContain("--line-strong on --paper");
+    expect(edge.output).toContain("FAIL --line-strong on --paper");
+
+    // White at 72% is laid over the Band before it is measured: read as solid white it would pass at 8.82:1.
+    const half = run(change(REAL, "on-band-2", "rgb(255 255 255 / 0.5)"));
+    expect(half.status).toBe(1);
+    expect(half.output).toContain("FAIL --on-band-2 on --band 3.41:1 (min 4.5, spec 5.36)");
   });
 
-  // ADR 0013: an old name (--bg, --brand ...) is declared once, in Light, as var(--new), so it follows its new name in
-  // both themes; one declared again in Dark would split the two names, so it fails by name.
-  it("old names follow their new names from Light, and Dark may not declare them", () => {
-    const real = run(REAL);
-    expect(real.output).toContain("ok   light: --bg follows --paper");
-    expect(real.output).toContain("ok   light: --brand-deep follows --accent-deep");
-    expect(real.output).toContain("ok   light: --royal is unchanged (#1f3fae)");
-
-    const navy = run(add(REAL, "dark", "--bg: #141a33;"));
-    expect(navy.status).toBe(1);
-    expect(navy.output).toContain("dark: --bg is an old or theme-independent name: declare it once in Light");
-
-    const pinned = run(change(REAL, "light", "royal", "#2f5bea"));
-    expect(pinned.status).toBe(1);
-    expect(pinned.output).toContain("FAIL light: --royal is unchanged (#1f3fae)");
-  });
-
-  // Spec F1, F5 and Appendix C: a Band is the same royal blue in both themes, with white on it. Every pair is measured in
-  // both themes and, where Appendix C gives a figure, held to it; the expected figures below are copied from Appendix C.
-  describe("Bands and the key-number colour (Appendix C)", () => {
-    const real = run(REAL);
-
-    it("passes every Appendix C pair, in both themes, at Appendix C's ratio", () => {
-      expect(real.status).toBe(0);
-      const both: [string, string, string][] = [
-        ["--on-band on --band", "8.82", "min 4.5, Appendix C 8.82"],
-        ["--on-band-2 on --band", "5.36", "min 4.5, Appendix C 5.36"],
-        ["--on-band-button-ink on --on-band", "19.43", "min 4.5, Appendix C 19.43"],
-        ["--band-rule on --band", "1.58", "decorative, no minimum, Appendix C 1.58"],
-      ];
-      for (const theme of ["light", "dark"]) for (const [pair, ratio, rule] of both) expect(real.output).toContain(`ok   ${theme}: ${pair} ${ratio}:1 (${rule})`);
-      for (const [pair, ratio, rule] of [
-        ["--key-number on --paper", "8.82", "min 4.5, Appendix C 8.82"],
-        ["--key-number on --wash", "8.23", "min 4.5, Appendix C 8.23"],
-        ["--key-number on --accent-tint", "7.87", "min 4.5, Appendix C 7.87"],
-        ["--sun on --band", "5.47", "min 4.5, Appendix C 5.47"],
-        ["--mint on --band", "3.46", "min 3, Appendix C 3.46"],
-      ]) expect(real.output).toContain(`ok   light: ${pair} ${ratio}:1 (${rule})`);
-      for (const [pair, ratio] of [
-        ["--key-number on --paper", "7.64"],
-        ["--key-number on --frame", "7.44"],
-        ["--key-number on --raised", "6.55"],
-        ["--key-number on --accent-tint", "6.74"],
-      ]) expect(real.output).toContain(`ok   dark: ${pair} ${ratio}:1 (min 4.5, Appendix C ${ratio})`);
-    });
-
-    // White at 72% is laid over the Band before it is measured: read as solid white it would pass at 8.82:1 whatever its alpha.
-    it("lays a translucent colour over the Band before measuring it", () => {
-      const half = run(REAL.replace("--on-band-2: rgb(255 255 255 / 0.72);", "--on-band-2: rgb(255 255 255 / 0.5);"));
-      expect(half.status).toBe(1);
-      expect(half.output).toContain("FAIL light: --on-band-2 on --band 3.41:1 (min 4.5, Appendix C 5.36)");
-      expect(half.output).toContain("FAIL light: --on-band-2 is unchanged (rgb(255 255 255 / 0.72))");
-    });
-
-    it("keeps the Band out of Dark: it is declared once in Light, and --band follows --royal", () => {
-      expect(real.output).toContain("ok   light: --band follows --royal");
-      expect(real.output).toContain("ok   light: --on-band is unchanged (#ffffff)");
-
-      const split = run(add(REAL, "dark", "--on-band: #f5f5f7;"));
-      expect(split.status).toBe(1);
-      expect(split.output).toContain("dark: --on-band is an old or theme-independent name: declare it once in Light");
-
-      const own = run(REAL.replace("--band: var(--royal);", "--band: #2f5bea;"));
-      expect(own.status).toBe(1);
-      expect(own.output).toContain("FAIL light: --band follows --royal");
-      expect(own.output).toMatch(/FAIL light: --on-band on --band \d+\.\d\d:1 \(min 4\.5, Appendix C 8\.82\)/);
-    });
-
-    // F5: #1F3FAE and #6AA1FF do not change, and the key-number colour is the Theme's accent in both themes.
-    it("makes --key-number the Theme's accent and freezes the Dark accent", () => {
-      expect(real.output).toContain("ok   light: --key-number follows --accent");
-      expect(real.output).toContain("ok   dark: --accent is unchanged (#6aa1ff)");
-
-      const pinned = run(add(REAL, "dark", "--key-number: #6aa1ff;"));
-      expect(pinned.status).toBe(1);
-      expect(pinned.output).toContain("FAIL dark: --key-number follows --accent from Light: declare it there only");
-
-      const lighter = run(change(REAL, "dark", "accent", "#8ab5ff"));
-      expect(lighter.status).toBe(1);
-      expect(lighter.output).toContain("FAIL dark: --accent is unchanged (#6aa1ff)");
-      expect(lighter.output).toMatch(/FAIL dark: --key-number on --paper \d+\.\d\d:1 \(min 4\.5, Appendix C 7\.64\)/);
-    });
-
-    it("makes a card on a Band white in Light and the Theme's frame in Dark", () => {
-      expect(real.output).toContain("ok   light: --band-card is #ffffff (a card on a Band)");
-      expect(real.output).toContain("ok   dark: --band-card is var(--frame) (a card on a Band)");
-      expect(real.output).toContain("ok   dark: --key-number on --band-card 7.44:1 (min 4.5, Appendix C 7.44)");
-
-      const white = run(REAL.replace("--band-card: var(--frame);", "--band-card: #ffffff;"));
-      expect(white.status).toBe(1);
-      expect(white.output).toContain("FAIL dark: --band-card is var(--frame) (a card on a Band)");
-    });
-  });
-
-  // Enjoy's Dark: near-black, never pure black, and neutral greys with no navy cast.
-  it("Dark paper is near-black and neutral", () => {
-    const black = run(change(REAL, "dark", "paper", "#000000"));
-    expect(black.status).toBe(1);
-    expect(black.output).toMatch(/FAIL dark: --paper OKLCH lightness 0\.000 is within 0\.12–0\.20/);
-
-    const navy = run(change(REAL, "dark", "paper", "#141a33"));
-    expect(navy.status).toBe(1);
-    expect(navy.output).toMatch(/FAIL dark: --paper chroma 0\.049 \(max 0\.010, neutral greys, no navy\)/);
-  });
-
-  // --brand-deep (= --accent-deep) is frozen and no longer drawn as a lip (ADR 0014); it must still stay darker than its face.
-  it("keeps --accent-deep darker than --accent-fill in both themes", () => {
-    const real = run(REAL);
-    for (const theme of ["light", "dark"]) expect(real.output).toContain(`ok   ${theme}: --accent-deep is darker than --accent-fill`);
-    const inverted = run(change(REAL, "dark", "accent-deep", "#93bbff"));
-    expect(inverted.status).toBe(1);
-    expect(inverted.output).toContain("FAIL dark: --accent-deep is darker than --accent-fill");
-  });
-
-  it("checks every pair of the spec's table in both themes", () => {
-    const { output } = run(REAL);
-    for (const theme of ["light", "dark"]) {
-      for (const pair of [
-        "--ink on --paper",
-        "--muted on --raised",
-        "--accent on --accent-tint",
-        "--on-accent on --accent-fill",
-        "--on-fill on --fill",
-        "--on-danger on --danger",
-        "--violet-ink on --violet-tint",
-        "--line-strong on --raised",
-        "--ring on --paper",
-        "--accent-fill on --paper",
-      ]) {
-        expect(output, `${theme}: ${pair}`).toContain(`${theme}: ${pair} `);
-      }
-    }
-  });
-
-  // Issue #457, WCAG 2.2 SC 1.4.11: a fill needs 3:1 against its surface only when colour alone carries its meaning. The
-  // Widget accent fills are all paired with a text label or an icon, so none is listed; Light sunflower on the page is
-  // 1.6:1 and Dark sunflower equals Dark --sun-ink, 11:1 on the near-black page. The kit's chart series are colour-only
-  // (review C1), so each series token is listed on each chart surface.
+  // WCAG 2.2 SC 1.4.11: a fill needs 3:1 against its surface only when colour alone carries its meaning. The kit's
+  // chart series are colour-only, so each series token is listed on each chart surface.
   it("checks a fill at 3:1 only when it is listed as carrying meaning by colour alone: today the chart series", () => {
-    const real = run(REAL);
-    expect(real.status).toBe(0);
-    expect(real.output).toContain(
-      "Fills that carry meaning by colour alone: --ink-2 on --paper, --ink-2 on --raised, --ink-2 on --wash, --ink-2 on --frame, --mint-ink on --paper",
-    );
-    for (const theme of ["light", "dark"]) {
-      for (const series of ["ink-2", "mint-ink", "sun-ink", "violet", "coral-ink", "line-strong"]) {
-        for (const surface of ["paper", "raised", "wash", "frame"]) expect(real.output).toMatch(new RegExp(`ok +${theme}: --${series} on --${surface} \\d+\\.\\d\\d:1 \\(min 3, colour alone carries the meaning\\)`));
-      }
+    expect(real.output).toContain("Fills that carry meaning by colour alone: --line-strong on --paper, --line-strong on --raised");
+    for (const series of ["line-strong", "ink", "blue", "muted"]) {
+      for (const surface of ["paper", "raised", "wash", "frame"]) expect(real.output).toMatch(new RegExp(`ok +--${series} on --${surface} \\d+\\.\\d\\d:1 \\(min 3, colour alone carries the meaning\\)`));
     }
-    expect(real.output).not.toContain("--sun on --paper");
+    expect(real.output).not.toContain("--gain on --paper");
 
-    const listed = run(REAL, [["sun", "paper"]]);
+    const listed = run(REAL, [["gain", "wash"]]);
     expect(listed.status).toBe(1);
-    expect(listed.output).toMatch(/FAIL light: --sun on --paper 1\.6\d:1 \(min 3, colour alone carries the meaning\)/);
-    expect(listed.output).toMatch(/ok +dark: --sun on --paper 11\.\d\d:1 \(min 3, colour alone carries the meaning\)/);
-
-    // A chart series too faint for its card fails: Dark violet dimmed on --raised.
-    const faint = run(change(REAL, "dark", "violet", "#5a4f8a"));
-    expect(faint.status).toBe(1);
-    expect(faint.output).toMatch(/FAIL dark: --violet on --raised \d\.\d\d:1 \(min 3, colour alone carries the meaning\)/);
+    expect(listed.output).toContain("FAIL --gain on --wash 2.77:1 (min 3, colour alone carries the meaning)");
   });
 });

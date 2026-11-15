@@ -348,12 +348,12 @@ export function pressLook(page: Page): Promise<PressLook> {
 }
 
 /**
- * Which Widget accent FAMILIES (mint, coral, sun, violet) the visible elements of the page paint; `within` counts only
- * inside a selector (Widgets: WIDGET_CONTENT) and `outside` only outside one (the chrome, which ADR 0013 keeps free of them). The page gives the raw material: every
- * variant of each family that its stylesheets declare (--mint, --mint-ink, --mint-tint, --mint-tag, --coral-fill, ...),
- * resolved in the current theme from getComputedStyle(document.documentElement), and each element's background,
+ * Which signal FAMILIES (gain, loss, wait: spec §2.1) the visible elements of the page paint; `within` counts only
+ * inside a selector (Widgets: WIDGET_CONTENT) and `outside` only outside one (the chrome, which keeps free of them). The page gives the raw material: every
+ * step of each family that its stylesheets declare (--gain, --gain-deep, --gain-ink, --gain-tint, --loss, ...),
+ * resolved from getComputedStyle(document.documentElement), and each element's background,
  * gradients, borders, SVG fill and stroke, and the colour of its own text. src/dev/accent-families.ts composites each
- * translucent paint and variant over its backdrop and decides (tested there with the Light and Dark token tables).
+ * translucent paint and step over its backdrop and decides (tested there with the real token table).
  * Visible means on the screenshot: a box that checkVisibility() passes with opacity and visibility and that keeps some
  * size after its overflow-clipping ancestors and the page (the viewport, for a fixed box) cut it (`visibleBoxes`), so a
  * hidden, see-through or 0x0 accent, one scrolled out of a scroller, inside a collapsed overflow-hidden box, below
@@ -361,7 +361,7 @@ export function pressLook(page: Page): Promise<PressLook> {
  */
 export async function accentFamilies(page: Page, opts: { within?: string; outside?: string } = {}): Promise<AccentCount & { tokens: AccentTokens }> {
   const { tokens, nodes, area } = await page.evaluate(([within, outside]) => {
-    const FAMILY = /^--(mint|coral|sun|violet)(-[a-z0-9-]+)?$/;
+    const FAMILY = /^--(gain|loss|wait)(-[a-z0-9-]+)?$/;
     const names = new Set<string>();
     const scan = (rules: CSSRuleList) => {
       for (const r of Array.from(rules)) {
@@ -372,7 +372,7 @@ export async function accentFamilies(page: Page, opts: { within?: string; outsid
     for (const sheet of Array.from(document.styleSheets)) {
       try { scan(sheet.cssRules); } catch { /* a cross-origin sheet cannot be read */ }
     }
-    if (!names.size) for (const f of ["mint", "coral", "sun", "violet"]) for (const v of ["", "-ink", "-tint", "-tag"]) names.add(`--${f}${v}`);
+    if (!names.size) for (const f of ["gain", "loss", "wait"]) for (const v of ["", "-ink", "-tint", "-line"]) names.add(`--${f}${v}`);
     const root = getComputedStyle(document.documentElement);
     const probe = document.createElement("span");
     document.body.appendChild(probe);
@@ -487,7 +487,7 @@ export function isTilted(rotate: string, transform: string): boolean {
 export async function widgetLook(page: Page, opts: { within?: string } = {}): Promise<WidgetLook> {
   const within = opts.within ?? WIDGET_CONTENT;
   const raw = await page.evaluate((scope) => {
-    const FAMILY = /^--(mint|coral|sun|violet)(-[a-z0-9-]+)?$/;
+    const FAMILY = /^--(gain|loss|wait)(-[a-z0-9-]+)?$/;
     const names = new Set<string>();
     const scan = (rules: CSSRuleList) => {
       for (const r of Array.from(rules)) {
@@ -498,7 +498,7 @@ export async function widgetLook(page: Page, opts: { within?: string } = {}): Pr
     for (const sheet of Array.from(document.styleSheets)) {
       try { scan(sheet.cssRules); } catch { /* cross-origin */ }
     }
-    if (!names.size) for (const f of ["mint", "coral", "sun", "violet"]) for (const v of ["", "-ink", "-tint", "-tag"]) names.add(`--${f}${v}`);
+    if (!names.size) for (const f of ["gain", "loss", "wait"]) for (const v of ["", "-ink", "-tint", "-line"]) names.add(`--${f}${v}`);
     const rootStyle = getComputedStyle(document.documentElement);
     const probe = document.createElement("span");
     document.body.appendChild(probe);

@@ -5,7 +5,6 @@ import { firstTopic } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { showsWelcome } from "@/learner/welcome";
 import { accountFor } from "../account";
-import { readTheme } from "../theme-cookie";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { WelcomeView, welcomePanel } from "./welcome-view";
 
@@ -24,7 +23,7 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   const first = firstTopic(map) ?? map.topics[0];
   return (
     <SignedInFrame>
-      <ReadingPage theme={await readTheme()} account={await accountFor(getDb(), learner)}>
+      <ReadingPage account={await accountFor(getDb(), learner)}>
         <WelcomeView panel={welcomePanel((await searchParams).panel)} firstTopic={first} />
       </ReadingPage>
     </SignedInFrame>

@@ -21,7 +21,7 @@ async function study(page: Page, state: State) {
 }
 
 test.beforeEach(async ({}, info) => {
-  test.skip(info.project.name !== "mbp14" && info.project.name !== "mbp14-dark", "one viewport per theme is enough here");
+  test.skip(info.project.name !== "mbp14", "one viewport is enough here");
 });
 
 test("the Learner at Percent's Your turn taps a wrong choice and sees its fix", async ({ page }) => {

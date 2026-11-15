@@ -87,12 +87,9 @@ test("Widget panel width, tabs and reduced motion: the stage fills the panel and
 });
 
 // A6: the Widget card and the Check card are white frames, and a switch plays no pulse and no rise, even when the
-// Learner's computer allows motion. 1512×982, Light and Dark.
-const FRAME_PROJECTS = ["mbp14", "mbp14-dark"];
-const FRAME = {
-  light: { bg: "rgb(255, 255, 255)", rule: "rgb(226, 229, 234)" },
-  dark: { bg: "rgb(15, 15, 15)", rule: "rgb(31, 31, 31)" },
-} as const;
+// Learner's computer allows motion. 1512×982.
+const FRAME_PROJECTS = ["mbp14"];
+const FRAME = { bg: "rgb(255, 255, 255)", rule: "rgb(226, 229, 234)" } as const;
 
 /** A card's face, edge, corner and shadow. */
 const frameOf = (page: Page, id: string) =>
@@ -105,19 +102,18 @@ async function shot(page: Page, info: TestInfo, name: string) {
   if (process.env.SHOTS !== "A6") return;
   const dir = join("docs", "specs", "img", "2026-11-11");
   mkdirSync(dir, { recursive: true });
-  await page.screenshot({ path: join(dir, `A6-${name}-${info.project.name.endsWith("-dark") ? "dark" : "light"}.png`) });
+  await page.screenshot({ path: join(dir, `A6-${name}-light.png`) });
 }
 
 test.describe("[A6] the Widget card is a white frame and a switch does not animate", () => {
   test.use({ reducedMotion: "no-preference" });
 
   test("four Widgets: the card is white, and pressing tab 1 runs no animation", async ({ page }, info) => {
-    test.skip(!FRAME_PROJECTS.includes(info.project.name), "1512×982, Light and Dark");
-    const theme = info.project.name.endsWith("-dark") ? "dark" : "light";
+    test.skip(!FRAME_PROJECTS.includes(info.project.name), "1512×982");
     await fourWidgets(page);
     const frame = await frameOf(page, "widget-card");
-    expect(frame.bg, "the card's face is --frame").toBe(FRAME[theme].bg);
-    expect(frame.rule, "the card's edge is --rule").toBe(FRAME[theme].rule);
+    expect(frame.bg, "the card's face is --frame").toBe(FRAME.bg);
+    expect(frame.rule, "the card's edge is --rule").toBe(FRAME.rule);
     expect(frame.radius, "corners of 12 px at most").toBeLessThanOrEqual(12);
     expect(frame.shadow, "no shadow").toBe("none");
     await shot(page, info, "panel");
@@ -131,22 +127,21 @@ test.describe("[A6] the Widget card is a white frame and a switch does not anima
   });
 
   test("an open quiz: the Check card is the same white frame", async ({ page }, info) => {
-    test.skip(!FRAME_PROJECTS.includes(info.project.name), "1512×982, Light and Dark");
-    const theme = info.project.name.endsWith("-dark") ? "dark" : "light";
+    test.skip(!FRAME_PROJECTS.includes(info.project.name), "1512×982");
     await seed(page, "quiz-open");
     await page.goto("/study");
     await expect(page.getByTestId("check-card")).toBeVisible();
     await settled(page);
     const frame = await frameOf(page, "check-card");
-    expect(frame).toEqual({ bg: FRAME[theme].bg, rule: FRAME[theme].rule, radius: frame.radius, shadow: "none" });
+    expect(frame).toEqual({ bg: FRAME.bg, rule: FRAME.rule, radius: frame.radius, shadow: "none" });
     expect(frame.radius).toBeLessThanOrEqual(12);
     await shot(page, info, "check");
   });
 });
 
 // #528: the stage fills the panel's height too. A Story reply's scene card reaches the panel's bottom, and its cast
-// grows past the 80 px floor, at 1512×982 (mbp14) and 1920×1080 (w1920), in Light and Dark.
-const TALL_PROJECTS = ["mbp14", "mbp14-dark", "w1920", "w1920-dark"];
+// grows past the 80 px floor, at 1512×982 (mbp14) and 1920×1080 (w1920).
+const TALL_PROJECTS = ["mbp14", "w1920"];
 
 test("Widget panel height: a Story scene's card reaches the panel bottom and its cast grows", async ({ page }, testInfo) => {
   test.skip(!TALL_PROJECTS.includes(testInfo.project.name), "the stage height is measured at 1512×982 and 1920×1080");
@@ -167,9 +162,9 @@ test("Widget panel height: a Story scene's card reaches the panel bottom and its
   expect(got.reach, "Widget card bottom ≥ 0.9 × the panel's inner height").toBeGreaterThanOrEqual(0.9);
   expect(got.cast, "the cast Icon grows to 48 px in a panel 640 px tall").toBe(48);
 
-  if (process.env.SHOTS === "A1b" && ["mbp14", "mbp14-dark"].includes(testInfo.project.name)) {
+  if (process.env.SHOTS === "A1b" && ["mbp14"].includes(testInfo.project.name)) {
     const dir = join("docs", "specs", "img", "2026-11-11");
     mkdirSync(dir, { recursive: true });
-    await page.screenshot({ path: join(dir, `A1b-story-scene-${testInfo.project.name.endsWith("-dark") ? "dark" : "light"}.png`) });
+    await page.screenshot({ path: join(dir, `A1b-story-scene-light.png`) });
   }
 });

@@ -1,5 +1,5 @@
 // The Study Workspace's split (spec 2026-11-11, C2a): how much of the two columns' width the conversation takes, and
-// how a saved share turns into a number. Pure, like theme.ts: used on the server (the first HTML) and in the browser
+// how a saved share turns into a number. Pure: used on the server (the first HTML) and in the browser
 // (the Split handle, C2b), so nothing here touches the document.
 
 import type { CSSProperties } from "react";

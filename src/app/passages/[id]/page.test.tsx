@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
 vi.mock("@/course/map", () => ({ loadCourseMap: () => ({}) }));
-vi.mock("../../theme-cookie", () => ({ readTheme: async () => "light" }));
 // The owner is signed in (signing in itself is tested in src/auth/sign-in.test.ts). The page reads the whole
 // Learner since A5: the header's account menu names them.
 vi.mock("@/auth/session", () => ({
