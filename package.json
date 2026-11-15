@@ -20,7 +20,6 @@
     "widgets:freeze": "FREEZE=1 vitest run src/widgets/widgets.test.ts",
     "widgets:eval": "node --env-file=.env scripts/widget-eval.mjs",
     "delight:eval": "node --env-file=.env scripts/widget-eval.mjs --set delight",
-    "widgets:live": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.genui.config.ts",
     "bank:import": "node --env-file=.env scripts/bank-import.mjs",
     "bank:verify": "node --env-file=.env scripts/bank-verify.mjs",
     "invites": "node --env-file=.env scripts/invites.mjs",
