@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { home } from "@/site/copy";
 import { DEMO_ORDER, exampleBySlug, type Example } from "@/site/examples";
 import { Rich } from "@/site/rich";
 import { Button } from "../../primitives";
 import { Glyph } from "../parts";
 import { SignalWidget } from "../signal-widget";
-import { useWidgetCall, type CallVerdict } from "../use-widget-call";
 
 // The hero's Tutor demo (spec 7.2.1): a recorded conversation from the course whose widget is live. Five question chips;
 // tapping a new one replays the script (learner's bubble, typing, the Tutor's lead and a skeleton, then the caption and
@@ -35,7 +34,6 @@ export function TutorDemo() {
   const [still, setStill] = useState(true);
   const [follow, setFollow] = useState<string | null>(null);
   const timers = useRef<number[]>([]);
-  const widgetHost = useRef<HTMLDivElement>(null);
   const example = exampleBySlug(slug)!;
 
   const clear = () => {
@@ -57,9 +55,6 @@ export function TutorDemo() {
     setPhase("asked");
     for (const [to, at] of DEMO_TIMES) timers.current.push(window.setTimeout(() => setPhase(to), at));
   };
-
-  const onCall = useCallback((verdict: CallVerdict) => setFollow(verdict === "right" ? example.follow.right : example.follow.other), [example]);
-  useWidgetCall(widgetHost, onCall, phase === "widget" ? slug : null);
 
   return (
     <div className="v-demo">
@@ -105,8 +100,13 @@ export function TutorDemo() {
               <Glyph size={14} />
               {home.demo.caption}
             </p>
-            <div ref={widgetHost} key={slug} data-testid="demo-widget">
-              <SignalWidget kind={example.widget} slug={example.slug} />
+            <div key={slug} data-testid="demo-widget">
+              <SignalWidget
+                kind={example.widget}
+                slug={example.slug}
+                compact
+                onCall={(call) => setFollow(call.verdict === "right" ? example.follow.right : example.follow.other)}
+              />
             </div>
           </>
         )}

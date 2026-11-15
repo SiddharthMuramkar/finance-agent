@@ -5,8 +5,9 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { exampleBySlug } from "@/site/examples";
 import { CaseFlow, progressStates } from "./case-flow";
 
-// The case page's flow (Signal spec 7.5, QA rows 19 to 21) on the Amazon example. The widget is the slice's stub, so the
-// learner's call is the `signal:call` event a widget sends, or a tap on a chip in its "Your call" fieldset.
+// The case page's flow (Signal spec 7.5, QA rows 19 to 21) on the Amazon example, with the real Signal widget mounted. The
+// learner's call is the widget's onCall (spec 5.6): the first preset or lever move in the levers widget, or the first chip
+// tap in a widget with a "Your call".
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -14,11 +15,15 @@ const amazon = exampleBySlug("amazon-2000")!;
 let root: Root;
 let host: HTMLElement;
 
+async function mount(example = amazon) {
+  await act(async () => root.render(<CaseFlow example={example} />));
+}
+
 beforeEach(async () => {
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
-  await act(async () => root.render(<CaseFlow example={amazon} />));
+  await mount();
 });
 
 afterEach(() => {
@@ -28,7 +33,7 @@ afterEach(() => {
 
 const steps = () => [...host.querySelectorAll(".v-prog li")].map((li) => li.className || "upcoming");
 const button = (name: string) => [...host.querySelectorAll("button")].find((b) => b.textContent?.trim() === name);
-const widget = () => host.querySelector<HTMLElement>('[data-testid="case-widget"] [data-testid="signal-widget"]')!;
+const widget = () => host.querySelector<HTMLElement>('[data-testid="case-widget"] [data-widget]')!;
 
 describe("the case page's flow", () => {
   it("opens with the answer and the ending locked, at step 2", () => {
@@ -39,7 +44,7 @@ describe("the case page's flow", () => {
   });
 
   it("shows the answer and a ready ending after the call, at step 3, then reveals what happened", async () => {
-    await act(async () => widget().dispatchEvent(new CustomEvent("signal:call", { bubbles: true, detail: { verdict: null } })));
+    await act(async () => widget().querySelector<HTMLButtonElement>(".sig-presets button")!.click());
     expect(steps()).toEqual(["done", "done", "now", "upcoming"]);
     expect(host.querySelector(".answer")?.textContent).toContain("Because value comes from the cash it makes later");
     expect(host.querySelector(".ending")?.textContent).toContain("Your call is in. Ready for what happened next?");
@@ -50,15 +55,11 @@ describe("the case page's flow", () => {
     expect(reveal).toContain("Sources: Damodaran’s published valuation of Amazon, 2000.");
   });
 
-  it("counts a chip tap in the widget's Your call as the call", async () => {
-    const fieldset = document.createElement("fieldset");
-    const chip = document.createElement("button");
-    fieldset.append(chip);
-    widget().append(fieldset);
-    await act(async () => {
-      chip.click();
-      await new Promise((resolve) => requestAnimationFrame(resolve));
-    });
+  it("counts the first chip tap in a widget's Your call as the call", async () => {
+    await mount(exampleBySlug("mega-millions-2018")!);
+    expect(widget().getAttribute("data-case")).toBe("mega-millions-2018");
+    expect(steps()).toEqual(["done", "now", "upcoming", "upcoming"]);
+    await act(async () => widget().querySelector<HTMLButtonElement>("fieldset button")!.click());
     expect(steps()).toEqual(["done", "done", "now", "upcoming"]);
   });
 

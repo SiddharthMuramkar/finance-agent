@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { casePage } from "@/site/copy";
 import type { Example } from "@/site/examples";
 import { Rich } from "@/site/rich";
 import { Button } from "../../../primitives";
 import { Facts, Icon, StoryText } from "../../parts";
 import { SignalWidget } from "../../signal-widget";
-import { useWidgetCall } from "../../use-widget-call";
 
 // The case page's flow (spec 7.5): the progress row, the left column (story, question, the Tutor's answer, the ending)
 // and the full widget on the right. Load: answer waiting, ending locked (with "Skip to the ending"). The learner's call
@@ -51,9 +50,6 @@ export function CaseFlow({ example }: { example: Example }) {
   const reveal = useRef<HTMLDivElement>(null);
   const fits = useFits(widget);
 
-  const onCall = useCallback(() => setAnswered(true), []);
-  useWidgetCall(widget, onCall, example.slug);
-
   const open = () => {
     setRevealed(true);
     requestAnimationFrame(() => reveal.current?.focus());
@@ -96,7 +92,7 @@ export function CaseFlow({ example }: { example: Example }) {
         </section>
 
         <div ref={widget} className={`widget${fits ? " sticky" : ""}`} data-testid="case-widget">
-          <SignalWidget kind={example.widget} slug={example.slug} />
+          <SignalWidget kind={example.widget} slug={example.slug} onCall={() => setAnswered(true)} />
         </div>
 
         <section className="answer" aria-labelledby="case-answer">
