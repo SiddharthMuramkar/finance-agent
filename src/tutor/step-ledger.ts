@@ -3,11 +3,10 @@ import { lastStepNumber, saveStepUsage, type StepUsage } from "./usage";
 
 /**
  * The Step ledger (decision #30): one turn's model steps, counted once across all its runs, and how many it has left
- * under the step limit (decision #13). Every saved step counts: the Tutor's loop steps, the reply retry's, the ones a
- * tool saves (compose_widget, tools.ts) and a fold or compaction, and a step cut short (Stop, the stream guard, a
- * cut-off, a failure), which is saved unpriced unless its usage came in. The Tool Runner asks `left` before each step,
- * so a step a tool saved in the middle of a run counts at once. Two adapters: the limited one for a Learner's turn, and
- * one with no limit for the evals.
+ * under the step limit (decision #13). Every saved step counts: the Tutor's loop steps, the reply retry's, a fold or
+ * compaction, and a step cut short (Stop, the stream guard, a cut-off, a failure), which is saved unpriced unless its
+ * usage came in. The Tool Runner asks `left` before each step, so a step saved in the middle of a run counts at once.
+ * Two adapters: the limited one for a Learner's turn, and one with no limit for the evals.
  */
 export type StepLedger = {
   /** Saves one step's usage under the turn's next step number. */

@@ -1,18 +1,17 @@
 /**
- * A Widget the Tutor asked for with show_widget (code drew it from a Widget recipe, ADR 0009) or compose_widget (the
- * compose model wrote it, or code fell back to a recipe). It is stored as a
- * Session item, not written into the reply, so it carries its own identity: the tool call's id, the recipe and the
- * params the Tutor chose, and the OpenUI Lang program code compiled from them. No server imports: the browser
- * matches on the kind (thread.tsx) and draws `code` like any other Widget.
+ * A Widget the Tutor asked for with show_widget (code drew it from a Widget recipe, ADR 0009), or a Companion Widget
+ * code added. It is stored as a Session item, not written into the reply, so it carries its own identity: the tool
+ * call's id, the recipe and the params the Tutor chose, and the OpenUI Lang program code compiled from them. No server
+ * imports: the browser matches on the kind (thread.tsx) and draws `code` like any other Widget.
  */
 
 /** The Session item kind of a Widget code drew from a recipe. */
 export const WIDGET_SHOWN = "widget_shown";
 
 /**
- * Where a shown Widget's code came from: a recipe (show_widget), a free-form program the compose model wrote
- * (compose_widget), a recipe code showed because the free-form one timed out or failed (compose_widget's fallback),
- * or a Companion Widget code added to a reply that had none (E4a, src/tutor/companion.ts).
+ * Where a shown Widget's code came from: a recipe (show_widget), or a Companion Widget code added to a reply that had
+ * none (E4a, src/tutor/companion.ts). "compose" and "fallback" came from the compose_widget lane, deleted in #19: no
+ * new Widget gets them, but a stored Widget may carry them, so they are still read.
  */
 export type ShownWidgetSource = "recipe" | "compose" | "fallback" | "companion";
 
@@ -23,7 +22,7 @@ export type CompanionRule = "scene" | "lingo" | "running_example" | "case";
 
 const COMPANION_RULES: readonly CompanionRule[] = ["scene", "lingo", "running_example", "case"];
 
-/** compose_widget's server timings, kept with the Widget so the eval and the panel can read them. */
+/** The deleted compose_widget lane's server timings, still read from a stored Widget that carries them. */
 export type ComposeTimings = {
   /** How long the compose model ran, in ms (0 when it was not asked). */
   composeMs: number;
@@ -35,7 +34,7 @@ export type ComposeTimings = {
 export type ShownWidget = {
   /** The show_widget tool call's id: the Widget's own id, unique in the Session. */
   id: string;
-  /** The recipe code drew it from; "" for a free-form Widget (source "compose"). */
+  /** The recipe code drew it from; "" for a free-form Widget (source "compose", stored by the deleted lane). */
   recipe: string;
   /** The params as the recipe parsed them (defaults filled in). */
   params: Record<string, unknown>;
@@ -44,7 +43,7 @@ export type ShownWidget = {
   /** The compiled OpenUI Lang program. */
   code: string;
   source: ShownWidgetSource;
-  /** compose_widget only: its timings and whether it fell back. */
+  /** A Widget the deleted compose_widget lane stored: its timings and whether it fell back. */
   timings?: ComposeTimings;
   /** A Companion Widget only (source "companion"): the rule that picked it. */
   companion?: CompanionRule;

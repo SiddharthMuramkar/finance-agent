@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { COMPOSE_LIMIT_MS } from "@/tutor/compose";
 import { FIRST_PROMPT_TURNS_USD, runUnderCap, SETTLE_POLL_MS, SETTLE_TIMEOUT_MS, Spend, TUTOR_MAX_OUTPUT_TOKENS, type TurnStep } from "./judges";
 
 /**
@@ -128,8 +127,8 @@ describe("[S3] a try whose turns cannot be charged keeps its result and stops th
 
 /**
  * E4b-C2: a try that ends with its turn still running (the 180 s timeout, or a throw mid-turn) is not charged from a
- * partial read. /api/turn keeps running after the browser closes, and a compose_widget call in flight when a turn was
- * cut off saves its step after the turn row has ended, so the runner waits for the Learner's usage to settle first.
+ * partial read. /api/turn keeps running after the browser closes, and a step can be saved after the turn row has
+ * ended, so the runner waits for the Learner's usage to settle first.
  */
 function clock() {
   let t = 0;
@@ -150,16 +149,15 @@ describe("[S3] an unfinished try is charged once its usage settles (E4b-C2)", ()
     expect(s.reserve.usd).toBe(0);
   });
 
-  it("waits after a thrown try, so a compose step saved after the turn row ended is still counted", async () => {
+  it("waits after a thrown try, so a step saved after the turn row ended is still counted", async () => {
     const s = new Spend(13);
     const c = clock();
-    // No turn is open, but compose's step lands 10 s after the try ends (its call is capped at 12 s).
+    // No turn is open, but a step lands 10 s after the try ends.
     const usageOf = async () => (c.now() < 10_000 ? [step] : [step, step]);
     const r = await runUnderCap({ spend: s, attempt: async (seen) => { if (c.now() === 0) return tryOf(7, new Error("page crashed"))(seen); return tryOf(8, "row")(seen); }, usageOf, openTurns: async () => 0, settle: c });
     expect(r).toEqual({ row: "row" });
     // Try 1 settles at [step, step] ($0.12); try 2, a finished row, is charged straight away ([step, step], $0.12).
     expect(s.spent).toBeCloseTo(0.24, 6);
-    expect(SETTLE_POLL_MS).toBeGreaterThan(COMPOSE_LIMIT_MS);
   });
 
   it("charges a finished try at once, without waiting", async () => {

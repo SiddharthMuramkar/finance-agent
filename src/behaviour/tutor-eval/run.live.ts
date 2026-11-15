@@ -8,7 +8,7 @@
  *
  * Options (environment):
  * - TUTOR_EVAL_BUDGET_USD: the spend cap, default 5. Tutor and grader spend both count.
- * - TUTOR_EVAL_MODEL, TUTOR_EVAL_EFFORT, TUTOR_EVAL_WIDGET_ENGINE (on or off): what the Tutor runs on. Default:
+ * - TUTOR_EVAL_MODEL, TUTOR_EVAL_EFFORT: what the Tutor runs on. Default:
  *   the production defaults (TUTOR_MODEL, DEFAULT_SETTINGS), so the suite tests what new Sessions get.
  * - TUTOR_EVAL_ONLY=T1,T11: run some cases (aggregates then cover only those).
  * - TUTOR_EVAL_OUT: the report folder, default evidence/tutor-eval.
@@ -24,7 +24,7 @@ import { testDb } from "@/test/pglite";
 import { askModel } from "../ask-model";
 import { TUTOR_MODEL } from "@/tutor/model";
 import { tutorClient } from "@/tutor/tutor-client";
-import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "@/tutor/instructions";
 import { DEFAULT_SETTINGS, fingerprint } from "@/tutor/session-log";
 import { Budget, budgetCap, requirePrice } from "./budget";
 import { CASES_DIR, loadCases } from "./case";
@@ -39,7 +39,6 @@ it("live Tutor tests T1 to T20", { timeout: 3_600_000 }, async () => {
   const settings = {
     model: env.TUTOR_EVAL_MODEL || TUTOR_MODEL,
     effort: env.TUTOR_EVAL_EFFORT || DEFAULT_SETTINGS.effort,
-    widgetEngine: (env.TUTOR_EVAL_WIDGET_ENGINE || DEFAULT_SETTINGS.widget_engine) === "on" ? ("on" as const) : ("off" as const),
   };
   requirePrice(settings.model);
   requirePrice(GRADER_MODEL);
@@ -53,12 +52,11 @@ it("live Tutor tests T1 to T20", { timeout: 3_600_000 }, async () => {
 
   const openai = new OpenAI();
   const modelClient = tutorClient();
-  const engine = settings.widgetEngine === "on";
   const report = await runSuite(cases, {
     map: loadCourseMap(),
     settings,
     graderModel: GRADER_MODEL,
-    fingerprint: engine ? fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS) : fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS),
+    fingerprint: fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS),
     budget,
     newDb: testDb,
     tutorClient: () => modelClient,

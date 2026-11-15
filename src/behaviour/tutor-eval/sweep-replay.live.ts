@@ -8,7 +8,7 @@
  *
  * Options (environment, set by the script's flags):
  * - TUTOR_REPLAY_CASES: the JSON file of cases (required).
- * - TUTOR_REPLAY_MODEL, TUTOR_REPLAY_EFFORT, TUTOR_REPLAY_WIDGET_ENGINE (on or off): default the production defaults.
+ * - TUTOR_REPLAY_MODEL, TUTOR_REPLAY_EFFORT: default the production defaults.
  * - TUTOR_REPLAY_BUDGET_USD: the spend cap, default 10. TUTOR_EVAL_OUT, TUTOR_EVAL_CONCURRENCY as for tutor:eval.
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -37,7 +37,6 @@ it("replay of the last Learner turns", { timeout: 4 * 3_600_000 }, async () => {
   const settings = {
     model: env.TUTOR_REPLAY_MODEL || TUTOR_MODEL,
     effort: env.TUTOR_REPLAY_EFFORT || DEFAULT_SETTINGS.effort,
-    widgetEngine: (env.TUTOR_REPLAY_WIDGET_ENGINE || DEFAULT_SETTINGS.widget_engine) === "on" ? ("on" as const) : ("off" as const),
   };
   requirePrice(settings.model);
   const cap = Number(env.TUTOR_REPLAY_BUDGET_USD || "10");

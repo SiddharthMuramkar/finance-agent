@@ -15,7 +15,7 @@ import { runTutorTurn } from "@/tutor/turn";
 import { freshToolsLearner } from "./tools-learner";
 
 /**
- * The comparison and behaviour runs (spec #119, "Owner tooling › Test tools") play their Learner as the tools
+ * The behaviour and Tutor eval runs (spec #119, "Owner tooling › Test tools") play their Learner as the tools
  * Learner, started over before each run, through the real Tutor Turn (here with the scripted client).
  */
 

@@ -9,7 +9,7 @@ import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
-import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "./instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "./instructions";
 import { stepContext } from "./context";
 import { navigate } from "@/course/navigator";
 import { loadProgress, ensureTopicStarted, saveFinishedStep } from "@/learner/memory";
@@ -113,8 +113,8 @@ describe("Finish this reply", () => {
 
 describe("what the Tutor is told", () => {
   it("never mentions Continue: instructions, tool descriptions and the Course Navigator context", async () => {
-    expect(TUTOR_INSTRUCTIONS).not.toMatch(/Continue/);
-    expect(JSON.stringify(TUTOR_TOOLS)).not.toMatch(/Continue/);
+    expect(ENGINE_INSTRUCTIONS).not.toMatch(/Continue/);
+    expect(JSON.stringify(ENGINE_TOOLS)).not.toMatch(/Continue/);
     const db = await testDb();
     await ensureTopicStarted(db, withInsight, new Date(), OWNER_LEARNER_ID);
     for (const step of ["story", "concept"] as const) await saveFinishedStep(db, withInsight, step, new Date(), OWNER_LEARNER_ID);

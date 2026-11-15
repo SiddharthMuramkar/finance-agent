@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CaseDataset } from "@/case-data/case-data";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { quotedDatasets } from "./sources";
 
 const yields: CaseDataset = {
@@ -36,8 +36,8 @@ describe("which Case Data figures a reply quotes", () => {
 
 describe("the Tutor's instructions on naming sources", () => {
   it("say not to name sources in sentences, but to name the writer when the writer is the subject and to answer a direct question", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("do not name sources in your sentences");
-    expect(TUTOR_INSTRUCTIONS).toContain("when the writer is the subject");
-    expect(TUTOR_INSTRUCTIONS).toContain("when the Learner asks where a figure or idea comes from");
+    expect(ENGINE_INSTRUCTIONS).toContain("do not name sources in your sentences");
+    expect(ENGINE_INSTRUCTIONS).toContain("when the writer is the subject");
+    expect(ENGINE_INSTRUCTIONS).toContain("when the Learner asks where a figure or idea comes from");
   });
 });

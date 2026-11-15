@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_EXAMPLES, TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "./instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_EXAMPLES } from "./instructions";
 
 /**
  * The rules tuned against the live Tutor tests (ticket #248, lane R11). The suite grades the model's first draft, so
@@ -8,10 +8,7 @@ import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_EXAMPLES, TUTOR_INSTRUCTIONS, 
  */
 
 describe("the rules tuned against the live tests", () => {
-  for (const [name, text] of [
-    ["widget engine off", TUTOR_INSTRUCTIONS],
-    ["widget engine on", ENGINE_INSTRUCTIONS],
-  ] as const) {
+  for (const [name, text] of [["widget engine", ENGINE_INSTRUCTIONS]] as const) {
     describe(name, () => {
       it("an ask is about the words, the people in the story and the right choice, never a number to work out (D3b)", () => {
         expect(text).toContain("Ask what the words mean, what people in the story did or would do, and which choice is right; never ask the Learner to work out a number.");
@@ -76,15 +73,12 @@ describe("the rules tuned against the live tests", () => {
     // Runs 8 and the D3b finish runs: T5 asked "Which reading gives that move?" with no readings in the reply, and the grader said a beginner could not follow it.
     expect(ENGINE_INSTRUCTIONS).toContain('never write "which reading": the readings are on the card, so ask how a trader would say the move');
     expect(ENGINE_INSTRUCTIONS).not.toContain("own answer box");
-    expect(TUTOR_INSTRUCTIONS).not.toContain("show rate_move in practice mode");
   });
 
   it("start_again is for seeing the lesson again: asked to explain from the beginning, the Tutor teaches in words", () => {
-    for (const tools of [TUTOR_TOOLS, ENGINE_TOOLS]) {
-      const tool = tools.find((t) => t.name === "start_again") as { description: string };
-      expect(tool.description).toContain("when the Learner asks to see the lesson or the cards again");
-      expect(tool.description).toContain("When the Learner asks you to explain from the beginning, or says they are lost, do not call it: teach the first idea yourself");
-    }
+    const tool = ENGINE_TOOLS.find((t) => t.name === "start_again") as { description: string };
+    expect(tool.description).toContain("when the Learner asks to see the lesson or the cards again");
+    expect(tool.description).toContain("When the Learner asks you to explain from the beginning, or says they are lost, do not call it: teach the first idea yourself");
   });
 
   it("save_learner_rule says when to call it, and leaves its conditions to code", () => {

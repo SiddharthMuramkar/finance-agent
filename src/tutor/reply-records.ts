@@ -56,8 +56,8 @@ export type ReplyCheckRecord = {
   /** The Reply kind code chose for the turn, or null. Saved only once migration 0031 adds its column. */
   replyKind?: string | null;
   /**
-   * Where the turn's Widget came from (E4a): tutor | step | scene | lingo | running_example | case | none; null in an
-   * engine-off Session. Saved only once migration 0034 adds its column.
+   * Where the turn's Widget came from (E4a): tutor | step | scene | lingo | running_example | case | none; null on a row
+   * from the deleted engine-off lane. Saved only once migration 0034 adds its column.
    */
   widgetSource?: string | null;
 };

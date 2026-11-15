@@ -1,5 +1,4 @@
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
-import type { ComposeClient } from "@/tutor/compose";
 import type { ReplyDraft, ReplyWidget, StepKind } from "@/tutor/reply-checks";
 import type { ModelClient } from "@/tutor/model";
 
@@ -687,9 +686,4 @@ export function e2eTutorClient(): ModelClient {
     step: (request, options) => (current ??= fresh()).step(request, options),
     compact: (request, options) => (current ??= fresh()).compact(request, options),
   };
-}
-
-/** The compose client of the test bed: it always refuses, so no free-form Widget is ever composed. */
-export function e2eComposeClient(): ComposeClient {
-  return { create: async () => ({ content: [], stop_reason: "refusal" }) };
 }

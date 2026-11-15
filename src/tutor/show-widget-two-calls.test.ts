@@ -1,11 +1,9 @@
 import { onPercentTopic } from "@/test/percent-topic";
-import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { OWNER_LEARNER_ID, settings } from "@/db/schema";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { readSettings } from "./session-log";
 import { runTutorTurn, type TurnEvent } from "./turn";
 
 // One Widget a reply: two show_widget calls in the same assistant message draw one Widget, not two.
@@ -24,8 +22,6 @@ const toolResults = (request: Request) =>
 describe("one Widget a reply", () => {
   it("draws the first of two show_widget calls in one message and refuses the second", async () => {
     const db = await onPercentTopic(await testDb());
-    await readSettings(db);
-    await db.update(settings).set({ value: "on" }).where(eq(settings.key, "widget_engine"));
     const { client, requests } = scriptedClient([{ content: [show("toolu_a"), show("toolu_b")] }, { content: [{ type: "text", text: "One is enough." }] }]);
     const events: TurnEvent[] = [];
     for await (const e of runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me a SIP")) events.push(e);
