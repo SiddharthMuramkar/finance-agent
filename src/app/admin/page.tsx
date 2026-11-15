@@ -34,7 +34,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     spendByPerson(db, now),
     tutorSpeed(db, now),
     readTheme(),
-    accountFor(db, owner.learner),
+    accountFor({ kind: "learner", via: "account", ...owner }),
     searchParams,
   ]);
   return (

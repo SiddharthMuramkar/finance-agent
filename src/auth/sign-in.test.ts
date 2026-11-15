@@ -28,9 +28,12 @@ const as = vi.hoisted(() => ({
   map: undefined as CourseMap | undefined,
   cookie: undefined as string | undefined,
   client: undefined as TutorClient | undefined,
+  /** The Clerk account signed in (issue #33), or null: most tests here sign in with a passcode. */
+  identity: null as null | { userId: string; email: string | null; firstName: string | null; admin: boolean },
 }));
 
 vi.mock("@/db/client", () => ({ getDb: () => as.db }));
+vi.mock("@/auth/identity", async (original) => ({ ...(await original<typeof import("@/auth/identity")>()), currentIdentity: async () => as.identity }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: (name: string) => (name === "fa_access" && as.cookie !== undefined ? { name, value: as.cookie } : undefined) }),
 }));
@@ -108,6 +111,7 @@ beforeEach(async () => {
   as.db = await testDb();
   as.map = presentValueOnly();
   as.cookie = undefined;
+  as.identity = null;
   vi.stubEnv("SESSION_SECRET", "test-secret");
 });
 afterEach(() => {
@@ -337,6 +341,18 @@ describe("Start over", () => {
   beforeEach(() => {
     vi.stubEnv("PASSCODES", `owner:${OWNER_PASSCODE}, test:${TEST_PASSCODE}`);
     vi.spyOn(console, "info").mockImplementation(() => {});
+  });
+
+  it("for an account, sets no passcode cookie: the fresh Learner is the account's through its Clerk link", async () => {
+    as.identity = { userId: "user_asha", email: "asha@example.com", firstName: "Asha", admin: false };
+    const old = await session.currentLearnerId();
+    const response = await startOver();
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("https://app.example/welcome");
+    expect(response.headers.get("set-cookie")).toBeNull();
+    const fresh = await session.currentLearner();
+    expect(fresh?.id).not.toBe(old);
+    expect(fresh).toMatchObject({ name: "Asha", clerkUserId: "user_asha", archivedAt: null });
   });
 
   it("archives the Learner, starts a fresh empty one under the same name in this browser, and opens the Welcome; nothing old changes and the old cookie is refused", async () => {

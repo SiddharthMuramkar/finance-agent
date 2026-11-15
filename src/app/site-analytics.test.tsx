@@ -21,6 +21,13 @@ describe("site analytics", () => {
     expect(JSON.stringify(event)).not.toContain("AbCdEf123");
   });
 
+  it("drops Clerk's one-time parameters (an invitation ticket, a handshake), every __clerk_ one, and keeps the rest (issue #33)", () => {
+    const url = "https://www.value-it.xyz/sign-up?__clerk_ticket=tkt_secret&__clerk_status=sign_up&next=%2Fstudy&__clerk_handshake=hs_secret";
+    const event = withoutSignInLink({ type: "pageview", url });
+    expect(event).toEqual({ type: "pageview", url: "https://www.value-it.xyz/sign-up?next=%2Fstudy" });
+    expect(JSON.stringify(event)).not.toMatch(/tkt_secret|hs_secret|__clerk/);
+  });
+
   it("leaves any other address as it is", () => {
     const view = { type: "pageview", url: "https://www.value-it.xyz/course?topic=percent" } as const;
     expect(withoutSignInLink(view)).toBe(view);

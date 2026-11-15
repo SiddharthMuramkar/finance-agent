@@ -1,10 +1,11 @@
 // Shared look pieces of the design system (ADR 0013, issue #43). Colours come only from the tokens in
 // globals.css, so Light and Dark need no per-piece variants. Server-safe: no "use client" here; the only
-// client pieces rendered are ThemeToggle, AccountMenu and NavLink.
+// client pieces rendered are ThemeToggle, AccountMenu, NavLink and SignOutForm.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AccountMenu } from "./account-menu";
+import { SignOutForm } from "./sign-out";
 import { NavLink } from "./nav-link";
 import { Button, Tag } from "./primitives";
 import { RisingBars } from "./rising-bars";
@@ -81,7 +82,8 @@ export type HeaderPage = "workspace" | "course" | "notebook" | "settings";
  * Who the header's account menu names: the signed-in Learner, with the email of their Google or email-link account when
  * linked, and, for the owner only, `admin`: how many people wait on /admin (see accountFor).
  */
-export type HeaderAccount = { name: string; email?: string; admin?: { waiting: number } };
+/** Who the header names (src/app/account.ts): the email an account's session carries, `passcode` for the test door, `admin` for the Admin row. */
+export type HeaderAccount = { name: string; email?: string; passcode?: true; admin?: true };
 
 const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "workspace", href: "/study", label: "Study" },
@@ -106,11 +108,11 @@ const BRAND_LINK =
  */
 export function SignOutButton({ className = "", children = "Sign out", unstyled }: { className?: string; children?: ReactNode; unstyled?: boolean }) {
   return (
-    <form action="/api/logout" method="post" className="contents">
+    <SignOutForm>
       <Button type="submit" variant="secondary" size="sm" unstyled={unstyled} className={className}>
         {children}
       </Button>
-    </form>
+    </SignOutForm>
   );
 }
 

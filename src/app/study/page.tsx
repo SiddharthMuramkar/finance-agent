@@ -26,7 +26,7 @@ import { failedTurnView } from "@/tutor/failures";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readSplit } from "../split-cookie";
 import { readTheme } from "../theme-cookie";
-import { accountFor } from "../account";
+import { currentAccount } from "../account";
 import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
 
 // The Study Workspace, at /study. Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
@@ -115,7 +115,7 @@ export default async function WorkspacePage() {
   // A failure reads in the Learner's words; what the provider said shows only with Show developer details on (A3).
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, ...failedTurnView(turn, learner.showDeveloperDetails) } : null;
   return (
-    <WorkspaceShell account={await accountFor(db, learner)}>
+    <WorkspaceShell account={await currentAccount()}>
       <Conversation
         initial={initial}
         // The Topic bar's strip: the shown Topic's steps, grouped by Check, with the Learner's place.

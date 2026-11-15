@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { START_OVER_CONFIRM, startOver } from "@/auth/learners";
 import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, learnerToken } from "@/auth/passcode";
 import { sameOrigin } from "@/auth/same-origin";
-import { currentLearner } from "@/auth/session";
+import { currentSignIn } from "@/auth/session";
 import { getDb } from "@/db/client";
 
 export const runtime = "nodejs";
@@ -12,9 +12,9 @@ const WELCOME_PATH = "/welcome";
 
 /**
  * Settings > Start over, after its confirmation: archives the signed-in Learner, makes a fresh empty
- * Learner under the same name, signs this browser in as it in the same response, and opens the
- * Welcome. Nothing is deleted; other devices holding the old cookie are signed out, because an
- * archived Learner no longer signs in. A plain form post (303), never a GET, and only from this site.
+ * Learner under the same name, and opens the Welcome. An account keeps its Clerk link on the fresh
+ * Learner; a passcode sign-in gets a cookie for it in the same response. Nothing is deleted; other
+ * devices holding the old passcode cookie are signed out, because an archived Learner no longer signs in. A plain form post (303), never a GET, and only from this site.
  */
 export async function POST(request: Request) {
   if (!sameOrigin(request)) {
@@ -24,16 +24,20 @@ export async function POST(request: Request) {
   if (form?.get("confirm") !== START_OVER_CONFIRM) {
     return NextResponse.json({ error: "Confirm Start over first." }, { status: 400 });
   }
-  const learner = await currentLearner();
-  if (!learner) return NextResponse.json({ error: "Passcode required" }, { status: 401 });
+  const signIn = await currentSignIn();
+  if (signIn.kind !== "learner") return NextResponse.json({ error: "Sign-in required" }, { status: 401 });
+  const { learner } = signIn;
   const fresh = await startOver(getDb(), learner.id);
   if (!fresh) return NextResponse.json({ error: "This Learner has already started over." }, { status: 409 });
   console.info(`Start over: archived Learner ${learner.id}, opened Learner ${fresh.id} (${fresh.name})`);
   const response = NextResponse.redirect(new URL(WELCOME_PATH, request.url), 303);
-  response.cookies.set(ACCESS_COOKIE, await learnerToken(fresh.id, process.env.SESSION_SECRET ?? ""), {
-    ...ACCESS_COOKIE_OPTIONS,
-    maxAge: ACCESS_COOKIE_MAX_AGE,
-  });
+  // An account finds its fresh Learner through the Clerk link Start over copies; only the passcode door needs a cookie.
+  if (signIn.via === "passcode") {
+    response.cookies.set(ACCESS_COOKIE, await learnerToken(fresh.id, process.env.SESSION_SECRET ?? ""), {
+      ...ACCESS_COOKIE_OPTIONS,
+      maxAge: ACCESS_COOKIE_MAX_AGE,
+    });
+  }
   return response;
 }
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { currentLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
-import { accountFor } from "./account";
+import { currentAccount } from "./account";
 import { readTheme } from "./theme-cookie";
 import { ReadingPage, primaryButtonClass, secondaryButtonClass } from "./ui";
 
@@ -11,7 +11,7 @@ import { ReadingPage, primaryButtonClass, secondaryButtonClass } from "./ui";
 export default async function NotFound() {
   const learner = await currentLearner().catch(() => null);
   return (
-    <ReadingPage theme={await readTheme()} account={learner ? await accountFor(getDb(), learner) : undefined}>
+    <ReadingPage theme={await readTheme()} account={await currentAccount()}>
       <h2 className="type-h1">This page isn&apos;t here</h2>
       <p className="mt-2 text-sm leading-5 text-[var(--muted)]">
         The address may be mistyped, or what it pointed to no longer exists. Pick up where you were.

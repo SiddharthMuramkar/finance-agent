@@ -3,7 +3,7 @@ import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadProfile } from "@/learner/profile";
 import { loadYourTopics } from "@/learner/your-topics";
-import { accountFor } from "../account";
+import { currentAccount } from "../account";
 import { readTheme } from "../theme-cookie";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { SettingsView } from "./settings-view";
@@ -16,7 +16,7 @@ export default async function SettingsPage() {
   const [p, theme, account, topics] = await Promise.all([
     loadProfile(getDb(), learner.id),
     readTheme(),
-    accountFor(getDb(), learner),
+    currentAccount(),
     loadYourTopics(getDb(), loadCourseMap(), learner.id),
   ]);
   return (
@@ -26,7 +26,7 @@ export default async function SettingsPage() {
           profile={{ work: p.work ?? "", location: p.location ?? "", loan: p.loan ?? "", savingFor: p.savingFor ?? "" }}
           developerDetails={learner.showDeveloperDetails}
           theme={theme}
-          account={account}
+          account={account ?? { name: learner.name }}
           topics={topics}
         />
       </ReadingPage>

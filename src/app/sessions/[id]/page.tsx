@@ -13,7 +13,7 @@ import { loadThread } from "@/tutor/transcript";
 import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { OldSession } from "../../old-session";
 import { PastSessionHeaderView } from "../../past-sessions";
-import { accountFor } from "../../account";
+import { currentAccount } from "../../account";
 import { readSplit } from "../../split-cookie";
 import { readTheme } from "../../theme-cookie";
 import { AppHeader, SignedInFrame } from "../../ui";
@@ -49,7 +49,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   return (
     <SignedInFrame>
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col gap-3 pb-4">
-        <AppHeader current="notebook" theme={theme} account={await accountFor(db, learner)} />
+        <AppHeader current="notebook" theme={theme} account={await currentAccount()} />
         <PastSessionHeaderView header={header} />
         <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind !== "older"} revealed={revealedCases(map, progress)} referenceClip={referenceClip(map, progress)} developerDetails={learner.showDeveloperDetails} split={split} />
       </main>
