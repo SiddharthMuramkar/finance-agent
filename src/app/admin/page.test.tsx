@@ -2,9 +2,10 @@ import { eq } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Owner } from "@/auth/owner";
-import { accessDenials, account, invites, learners, replyChecks, sessions, turns, tutorIncidents, usageRows, user } from "@/db/schema";
+import { accessDenials, account, invites, learners, replyChecks, sessions, settings, turns, tutorIncidents, usageRows, user } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb, testDbThrough } from "@/test/pglite";
+import { readSettings } from "@/tutor/session-log";
 
 /**
  * /admin (ADR 0014): the owner's page for who may come in. Anyone else gets the not-found page, decided by
@@ -73,13 +74,13 @@ describe("/admin", () => {
     await expect(open()).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("has the sections in order: Waiting, People with access, Spend, Tutor speed, Denied, Invite an email, Sign-up", async () => {
+  it("has the sections in order: Waiting, People with access, Spend, Tutor speed, Denied, Invite an email, Spend caps, Sign-up", async () => {
     const html = await render();
     expect(html).toMatch(/<h1 class="type-h1">Admin<\/h1>/);
     const ids = [...html.matchAll(/<section[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
-    expect(ids).toEqual(["waiting", "people", "spend", "speed", "denied", "invite", "sign-up"]);
+    expect(ids).toEqual(["waiting", "people", "spend", "speed", "denied", "invite", "caps", "sign-up"]);
     const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => text(m[1]).trim());
-    expect(headings).toEqual(["Waiting 2", "People with access", "Spend", "Tutor speed", "Denied", "Invite an email", "Sign-up"]);
+    expect(headings).toEqual(["Waiting 2", "People with access", "Spend", "Tutor speed", "Denied", "Invite an email", "Spend caps", "Sign-up"]);
     // ADR 0013: each section is a hairline rule with no box.
     for (const [, cls] of html.matchAll(/<section class="([^"]*)" id="/g)) expect(cls).toMatch(/^border-t border-\[var\(--line\)\]/);
     // The header's account menu is the owner's (accountFor), and no page link is marked current.
@@ -260,6 +261,21 @@ describe("/admin", () => {
     expect(invite).toMatch(/<input[^>]*name="note"/);
     expect(invite).not.toMatch(/name="learner/);
     expect(invite).toMatch(/<button type="submit"[^>]*class="btn btn-primary[^"]*"[^>]*>Invite<\/button>/);
+  });
+
+  it("shows the Spend caps as stored, on one form, with a secondary Save button and the result of a save", async () => {
+    await readSettings(jar.db);
+    await jar.db.update(settings).set({ value: "2.5" }).where(eq(settings.key, "usd_per_learner_day"));
+    const caps = section(await render({ done: "caps_saved" }), "caps");
+    expect(caps).toMatch(/<form[^>]* action="\/api\/admin\/caps" method="post"/);
+    const input = (name: string) => caps.match(new RegExp(`<input[^>]*name="${name}"[^>]*>`))?.[0] ?? "";
+    const value = (name: string) => input(name).match(/value="([^"]*)"/)?.[1];
+    expect([value("turns_per_learner_day"), value("usd_per_learner_day"), value("usd_global_day")]).toEqual(["120", "2.5", "30"]);
+    expect(input("turns_per_learner_day")).toContain('step="1"');
+    expect(input("usd_global_day")).toContain('step="0.01"');
+    expect(caps).toMatch(/<button type="submit"[^>]*class="btn btn-secondary[^"]*"[^>]*>Save caps<\/button>/);
+    expect(caps).toMatch(/<p role="status"[^>]*>Saved\. The next turn uses the new caps\.<\/p>/);
+    expect(section(await render({ done: "bad_caps" }), "caps")).toMatch(/<p role="alert"[^>]*>Each cap must be a number/);
   });
 
   it("shows the Sign-up switch read-only, with the command that turns it", async () => {

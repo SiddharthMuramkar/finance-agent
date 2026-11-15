@@ -32,6 +32,8 @@ let calls: Call[];
 let refusals: object[];
 /** Statuses the next /api/turn requests answer with instead of a stream, each with the server's own error words. */
 let failures: number[];
+/** Answers the next /api/turn requests give instead of a stream: a Spend cap's 429, with these limit words each. */
+let limited: string[];
 /** The most /api/turn streams open at once. */
 let mostOpen: number;
 /** Lets a Quick try's answer (/api/quick-try) come back when the test says. */
@@ -41,6 +43,7 @@ beforeEach(() => {
   calls = [];
   refusals = [];
   failures = [];
+  limited = [];
   mostOpen = 0;
   vi.stubGlobal(
     "fetch",
@@ -53,6 +56,8 @@ beforeEach(() => {
       calls.push(call);
       const refusal = refusals.shift();
       if (refusal) return { ok: false, status: 409, json: async () => refusal };
+      const limit = limited.shift();
+      if (limit) return { ok: false, status: 429, json: async () => ({ error: limit, limit: true }) };
       const failure = failures.shift();
       if (failure) return { ok: false, status: failure, json: async () => ({ error: "Send one kind of turn: request_id invalid_request_error" }) };
       call.open = true;
@@ -342,6 +347,22 @@ describe("what the left column shows after a turn", () => {
     expect(host.textContent).toContain("A rupee today is worth more.");
     expect(host.textContent).not.toContain("A rupee tod ");
     expect(byId("stop-reply")).toBeNull();
+  });
+});
+
+describe("a Spend cap", () => {
+  const LIMIT = "You have reached today's limit for the Tutor. It comes back at midnight, India time. Your Widgets still work.";
+
+  it("shows the limit words from a 429, takes the message back, sends it once and offers no Retry", async () => {
+    await open({ pending: null, initial: [{ role: "user", text: "Rates?" }, { role: "assistant", text: "Here is the idea." }] });
+    limited.push(LIMIT);
+    await act(async () => button("Show me")!.click());
+    await settle(50);
+    expect(kinds()).toEqual(["message"]);
+    expect(calls[0].body).toMatchObject({ message: "Show me." });
+    expect(byId("turn-error")?.textContent).toBe(LIMIT);
+    expect(button("Retry")).toBeNull();
+    expect(host.textContent).not.toContain("Show me.");
   });
 });
 

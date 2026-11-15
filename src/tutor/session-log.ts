@@ -19,7 +19,17 @@ export type { Effort, Message } from "./model";
  * The stored settings and their defaults, written the first time. There is no model setting: every Session runs on
  * TUTOR_MODEL (ADR 0015), so a `model` or `widget_compose_model` row left from before the switch is never read.
  */
-export const DEFAULT_SETTINGS = { effort: DEFAULT_EFFORT, session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10", widget_engine: "on" };
+export const DEFAULT_SETTINGS = {
+  effort: DEFAULT_EFFORT,
+  session_idle_hours: "6",
+  compact_at_tokens: "200000",
+  review_cap: "10",
+  widget_engine: "on",
+  // The Spend caps (decision #13, quota.ts), editable on /admin: a Learner's turns and dollars a day, and everyone's dollars a day.
+  turns_per_learner_day: "120",
+  usd_per_learner_day: "5",
+  usd_global_day: "30",
+};
 
 export type Session = typeof sessions.$inferSelect;
 
@@ -42,6 +52,12 @@ export async function readSettings(db: Db) {
     reviewCap: Number(get("review_cap")),
     /** The widget engine (ADR 0005): "on" freezes new and refrozen Sessions with show_widget. Read only by frozenNow. */
     widgetEngine: get("widget_engine") === "on" ? ("on" as const) : ("off" as const),
+    /** The Spend caps (quota.ts): checked before a new turn takes the Learner's lock. */
+    caps: {
+      learnerTurnsPerDay: Number(get("turns_per_learner_day")),
+      learnerUsdPerDay: Number(get("usd_per_learner_day")),
+      globalUsdPerDay: Number(get("usd_global_day")),
+    },
   };
 }
 

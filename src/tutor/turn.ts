@@ -119,6 +119,8 @@ export type TurnEvent =
   | { type: "stale"; message: string }
   /** The Learner's Next is not allowed now (a Check is open, after a miss, an unsettled Explore); nothing was saved or sent. */
   | { type: "not_allowed"; message: string }
+  /** A Spend cap stopped the turn before it ran (quota.ts): the "limit reached" words; nothing was saved or sent. */
+  | { type: "over_limit"; message: string }
   /** A resumed turn: the reply text saved so far, which replaces what the browser showed. */
   | { type: "replay"; text: string }
   /** The turn reached its time limit; saved loop steps are kept and the browser should resume. */
