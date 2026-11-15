@@ -209,6 +209,11 @@ export type TurnDeps = {
   client: TutorClient;
   /** The Learner taking the turn (the current Learner of the request). */
   learnerId: number;
+  /**
+   * True when the turn is the admin's own (their Clerk token says admin, `identity.admin`; never a passcode): no daily
+   * cap of their own, though their spend still counts toward the global ceiling (quota.ts). Left out, every cap applies.
+   */
+  admin?: boolean;
   map?: CourseMap;
   now?: () => Date;
   /** How long this run may take before it cuts itself off; defaults to TIME_BUDGET_MS. */

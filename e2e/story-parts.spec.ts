@@ -81,10 +81,10 @@ async function motionIn(page: Page, root: string): Promise<Motion[]> {
   }, root);
 }
 
-async function openMoving(page: Page, fixture: string, project: string) {
+async function openMoving(page: Page, fixture: string) {
   await page.addInitScript(recordAnimations);
   await page.setViewportSize({ width: 860, height: 900 });
-  await page.goto(`/dev/widgets?fixture=${fixture}${project.endsWith("-dark") ? "&theme=dark" : ""}`);
+  await page.goto(`/dev/widgets?fixture=${fixture}`);
   await expect(page.getByTestId("widget-card")).toBeVisible();
   await page.waitForTimeout(500); // every entrance is 300 ms or less
 }
@@ -97,8 +97,8 @@ async function pressAndWait(page: Page, selector: string) {
 test.describe("motion allowed", () => {
   test.use({ reducedMotion: "no-preference" });
 
-  test("StoryScene only fades: every animation, at mount and after Next beat, touches opacity alone (A9a)", async ({ page }, info) => {
-    await openMoving(page, "story-scene", info.project.name);
+  test("StoryScene only fades: every animation, at mount and after Next beat, touches opacity alone (A9a)", async ({ page }) => {
+    await openMoving(page, "story-scene");
     const mount = await motionIn(page, "story-scene");
     expect(mount.length, "StoryScene plays at least one animation on mount").toBeGreaterThanOrEqual(1);
     expect(mount.filter((m) => m.props !== "opacity"), "animations at mount that move more than opacity").toEqual([]);
@@ -108,8 +108,8 @@ test.describe("motion allowed", () => {
     expect(next.filter((m) => m.props !== "opacity"), "animations after Next beat that move more than opacity").toEqual([]);
   });
 
-  test("the Lingo card only turns: after In the story, its one animation is a transform transition on .lingo-inner (A9a)", async ({ page }, info) => {
-    await openMoving(page, "lingo-card", info.project.name);
+  test("the Lingo card only turns: after In the story, its one animation is a transform transition on .lingo-inner (A9a)", async ({ page }) => {
+    await openMoving(page, "lingo-card");
     await motionIn(page, "lingo-card");
     await pressAndWait(page, '[data-testid="lingo-flip"]');
     const turning = await motionIn(page, "lingo-card");
@@ -127,8 +127,8 @@ test.describe("motion allowed", () => {
     ["money-jar", '[data-testid="jar-again"]'],
   ];
   for (const [fixture, press] of OPACITY_ONLY) {
-    test(`${fixture} only fades: every animation, at mount and after the first press, touches opacity alone (A9b)`, async ({ page }, info) => {
-      await openMoving(page, fixture, info.project.name);
+    test(`${fixture} only fades: every animation, at mount and after the first press, touches opacity alone (A9b)`, async ({ page }) => {
+      await openMoving(page, fixture);
       const mount = await motionIn(page, fixture);
       expect(mount.filter((m) => m.props !== "opacity"), "animations at mount that move more than opacity").toEqual([]);
       await pressAndWait(page, press);
@@ -138,8 +138,8 @@ test.describe("motion allowed", () => {
     });
   }
 
-  test("WhoPaysWhom's arrow draws and its Icon rides along it: stroke-dashoffset and transform only (A9c)", async ({ page }, info) => {
-    await openMoving(page, "who-pays-whom", info.project.name);
+  test("WhoPaysWhom's arrow draws and its Icon rides along it: stroke-dashoffset and transform only (A9c)", async ({ page }) => {
+    await openMoving(page, "who-pays-whom");
     const mount = await motionIn(page, "who-pays-whom");
     await pressAndWait(page, '[data-testid="flow"]');
     const replay = await motionIn(page, "who-pays-whom");
@@ -155,8 +155,8 @@ test.describe("motion allowed", () => {
     ["choice-cards", '[data-testid="choice"]'],
   ];
   for (const [fixture, press] of AFTER_A_PRESS) {
-    test(`${fixture}: after a press every animation touches opacity alone (A9c)`, async ({ page }, info) => {
-      await openMoving(page, fixture, info.project.name);
+    test(`${fixture}: after a press every animation touches opacity alone (A9c)`, async ({ page }) => {
+      await openMoving(page, fixture);
       await motionIn(page, fixture);
       await pressAndWait(page, press);
       const pressed = await motionIn(page, fixture);

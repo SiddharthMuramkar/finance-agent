@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { cleanText, corruptionReasons, cutPassages, isFrontMatter, pagesNeedingVision, prepareDocuments, repairBrokenLigatures, type SourceDocument } from "./prepare";
+import {
+  cleanText,
+  corruptionReasons,
+  cutPassages,
+  isFrontMatter,
+  joinedWords,
+  pagesNeedingVision,
+  prepareDocuments,
+  repairBrokenLigatures,
+  textLayerReasons,
+  wordsOf,
+  type SourceDocument,
+} from "./prepare";
 
 const words = (n: number, word = "rate") => Array.from({ length: n }, () => word).join(" ") + ".";
 
@@ -191,5 +203,27 @@ describe("front matter", () => {
     };
 
     expect(prepareDocuments([doc]).passages).toHaveLength(2);
+  });
+});
+
+describe("PDF text layers (the FOMC records' gate, #38)", () => {
+  const vocabulary = wordsOf("the writer has had access to the committee minutes and the federal funds rate was raised by the board in march");
+  const pdf = (paragraphs: string[]): SourceDocument => ({ ref: "r", title: "Record", url: "https://example.org/r.pdf", publishedOn: "1979-03-23", sections: [{ heading: "", paragraphs }] });
+
+  it("finds lowercase runs of two or three known words with the spaces lost, and leaves known and unknown words alone", () => {
+    expect(joinedWords("thewriter hashadaccess to the minutes; the committee met; zyxwvut and repurchase stayed", vocabulary)).toEqual(["thewriter", "hashadaccess"]);
+  });
+
+  it("passes a clean text layer and gives the reasons for one with lost spaces, corrupted passages or no text at all", () => {
+    const clean = "The committee minutes show the federal funds rate was raised by the board in March, and the writer had access to them.";
+    expect(textLayerReasons(pdf([clean]), vocabulary)).toEqual([]);
+
+    const joined = "Thewriter hashadaccess tothe committeeminutes and the federal funds rate was raised by the board in March.";
+    expect(textLayerReasons(pdf([joined]), vocabulary)).toEqual(["joined words: 3 of 14 (hashadaccess, tothe, committeeminutes)"]);
+
+    const spaced = "T h e  c o m m i t t e e  r a i s e d  t h e  r a t e";
+    expect(textLayerReasons(pdf([spaced]), vocabulary)[0]).toMatch(/^1 of 1 passages corrupted \(letters spaced apart\)$/);
+
+    expect(textLayerReasons(pdf([]), vocabulary)).toEqual(["no text layer"]);
   });
 });

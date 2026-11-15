@@ -13,9 +13,8 @@ import { loadThread } from "@/tutor/transcript";
 import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { OldSession } from "../../old-session";
 import { PastSessionHeaderView } from "../../past-sessions";
-import { accountFor } from "../../account";
+import { currentAccount } from "../../account";
 import { readSplit } from "../../split-cookie";
-import { readTheme } from "../../theme-cookie";
 import { AppHeader, SignedInFrame } from "../../ui";
 
 export const dynamic = "force-dynamic";
@@ -31,10 +30,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const learner = await signedInLearner();
   const learnerId = learner.id;
   const map = loadCourseMap();
-  const [header, lines, theme, explore, progress, split] = await Promise.all([
+  const [header, lines, explore, progress, split] = await Promise.all([
     loadPastSession(db, map, id, learnerId),
     loadThread(db, id, map, learnerId),
-    readTheme(),
     loadSessionExplore(db, id, map),
     loadProgress(db, learnerId),
     readSplit(),
@@ -49,7 +47,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   return (
     <SignedInFrame>
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col gap-3 pb-4">
-        <AppHeader current="notebook" theme={theme} account={await accountFor(db, learner)} />
+        <AppHeader current="notebook" account={await currentAccount()} />
         <PastSessionHeaderView header={header} />
         <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind !== "older"} revealed={revealedCases(map, progress)} referenceClip={referenceClip(map, progress)} developerDetails={learner.showDeveloperDetails} split={split} />
       </main>

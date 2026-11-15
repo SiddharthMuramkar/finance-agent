@@ -94,7 +94,12 @@ export const verification = pgTable(
  * One Learner: a person with their own Learner Profile, progress, Notes, Sessions and Widget state.
  * A name (from the passcode list) signs in as its one active Learner; Start over archives that
  * Learner and makes a fresh one under the same name, so at most one per name is not archived.
- * A Learner made through Google sign-in carries its Google user in `auth_user_id`.
+ * A Learner made through a Clerk sign-in carries its Clerk user in `clerk_user_id`.
+ *
+ * The database still has `auth_user_id` (the pre-Clerk Google user, with its foreign key to `user` and its unique
+ * index), but this schema no longer names it (issue #33, PR B): Drizzle names every column it knows in each select and
+ * `returning()`, so code that knew it would fail the moment PR C's migration drops it. All of them are null in
+ * production. Until PR C, `drizzle-kit generate` would write that drop: do not commit it outside PR C.
  */
 export const learners = pgTable(
   "learners",
@@ -105,20 +110,15 @@ export const learners = pgTable(
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     /** Settings > Show developer details: "Under the hood" under each reply. Off by default. */
     showDeveloperDetails: boolean("show_developer_details").notNull().default(false),
-    /** The Google user (Better Auth `user.id`) this Learner belongs to; null for a passcode Learner. */
-    authUserId: text("auth_user_id").references(() => user.id, { onDelete: "set null" }),
     /**
-     * The Clerk user this Learner belongs to (issue #33, the expand step before Clerk replaces Better Auth); null until
-     * then, and for a passcode Learner. No foreign key: Clerk's users live in Clerk, not in this database.
+     * The Clerk user this Learner belongs to (issue #33); null for a passcode Learner and for one from before Clerk. No
+     * foreign key: Clerk's users live in Clerk, not in this database.
      */
     clerkUserId: text("clerk_user_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("learners_one_active_per_name").on(t.name).where(sql`${t.archivedAt} is null`),
-    uniqueIndex("learners_one_active_per_auth_user")
-      .on(t.authUserId)
-      .where(sql`${t.archivedAt} is null and ${t.authUserId} is not null`),
     uniqueIndex("learners_one_active_per_clerk_user")
       .on(t.clerkUserId)
       .where(sql`${t.archivedAt} is null and ${t.clerkUserId} is not null`),
@@ -140,7 +140,7 @@ export const invites = pgTable("invites", {
 
 /**
  * The people the owner denied on /admin (ADR 0014), one row per Better Auth `user`. Checked first on
- * every request (src/auth/access.ts), so one row locks someone out even with an invite, the open
+ * every request (by src/auth/access.ts, deleted with Better Auth in issue #33; PR C drops this table), so one row locks someone out even with an invite, the open
  * Sign-up switch or a linked Learner. Keyed on the user, not the email, so Google and the email link
  * (one `user` per address) are both covered. Approving deletes the row; the Learner was never touched,
  * so their progress comes back. A deleted `user` takes its row with it and comes back as Waiting.
@@ -165,7 +165,7 @@ export const rateLimit = pgTable("rate_limit", {
 });
 
 /**
- * One sign-in email asked for (src/auth/email-throttle.ts): an HMAC of the address under
+ * One sign-in email asked for (by src/auth/email-throttle.ts, deleted with Better Auth in issue #33; PR C drops this table): an HMAC of the address under
  * BETTER_AUTH_SECRET, never the address, and when. Counted per address per hour and across all
  * addresses per day; rows older than a day are deleted.
  */

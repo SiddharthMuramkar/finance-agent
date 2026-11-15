@@ -30,7 +30,7 @@ function near(actual: number | null | undefined, expected: number, what: string)
 const widths = (page: Page, ids: string[]) =>
   page.evaluate((ids) => ids.map((id) => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().width ?? null), ids);
 
-test("[C2a] split default: 45 / 55 at 1024, 1280, 1512 and 1920", async ({ page }, info) => {
+test("[C2a] split default: 45 / 55 at 1024, 1280, 1512 and 1920", async ({ page }) => {
   const width = page.viewportSize()!.width;
   const want = DEFAULT[width];
   test.skip(!want, "measured at the spec's four widths");
@@ -45,7 +45,7 @@ test("[C2a] split default: 45 / 55 at 1024, 1280, 1512 and 1920", async ({ page 
 
   if (process.env.SHOTS === "C2a" && width === 1512) {
     mkdirSync(SHOTS, { recursive: true });
-    await page.screenshot({ path: join(SHOTS, `C2a-study-default-${info.project.name.endsWith("-dark") ? "dark" : "light"}.png`) });
+    await page.screenshot({ path: join(SHOTS, `C2a-study-default-light.png`) });
   }
 });
 
@@ -126,7 +126,7 @@ test("[C2a] an old Session uses the same split", async ({ page, baseURL }, info)
 });
 
 test("[C2b] the Learner drags the Split handle", async ({ page, baseURL }, info) => {
-  test.skip(!["mbp14", "mbp14-dark"].includes(info.project.name), "measured at 1512×982, Light and Dark");
+  test.skip(!["mbp14"].includes(info.project.name), "measured at 1512×982");
   await seed(page, "concept-widget");
   await page.goto("/study");
   const handle = page.getByRole("separator", { name: "Resize the conversation and the Widget panel" });
@@ -162,7 +162,7 @@ test("[C2b] the Learner drags the Split handle", async ({ page, baseURL }, info)
     await hydrated(page);
     await expect(page.getByTestId("panel-column")).not.toContainText("Working out");
     await handle.focus();
-    await page.screenshot({ path: join(SHOTS, `C2b-split-67-${info.project.name.endsWith("-dark") ? "dark" : "light"}.png`) });
+    await page.screenshot({ path: join(SHOTS, `C2b-split-67-light.png`) });
   }
 });
 

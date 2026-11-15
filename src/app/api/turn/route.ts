@@ -1,5 +1,5 @@
 import { checkBotId } from "botid/server";
-import { currentLearnerId } from "@/auth/session";
+import { currentLearnerId, currentTurnTaker } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { voyageQueryEmbedder } from "@/library/voyage";
 import { somethingWentWrong } from "@/tutor/failure-words";
@@ -58,7 +58,8 @@ export async function POST(request: Request) {
   const timeBudgetMs = Number(process.env.TURN_TIME_BUDGET_MS) || undefined;
   // Without a Voyage key, Library search uses keyword results only and tells the Tutor so.
   const embedQuery = process.env.VOYAGE_API_KEY ? voyageQueryEmbedder({ apiKey: process.env.VOYAGE_API_KEY }) : undefined;
-  const learnerId = await currentLearnerId();
+  // The admin's own turns have no daily cap of their own (quota.ts); the global ceiling still applies.
+  const { learnerId, admin } = await currentTurnTaker();
   // The Study Workspace always says what it shows; the test tools' requests may not, and are not checked.
   const shown = shownOf(body.shown);
   // What the page's open Widgets show now (slider values and ticks by Widget key), cleaned: the Tutor is told of them.
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     progressed();
   };
   const turn = runTutorTurn(
-    { db: getDb(), client: tutorClient(), learnerId, timeBudgetMs, embedQuery, shown, widgets, notify: (event) => notify(event), onTurn: (turnId) => notify({ type: "turn_started", turnId }) },
+    { db: getDb(), client: tutorClient(), learnerId, admin, timeBudgetMs, embedQuery, shown, widgets, notify: (event) => notify(event), onTurn: (turnId) => notify({ type: "turn_started", turnId }) },
     input,
   );
   const firstEvent = turn.next();

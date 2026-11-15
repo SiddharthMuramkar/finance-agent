@@ -63,9 +63,19 @@ async function rowsOf<T>(db: Executor, query: SQL): Promise<T[]> {
   return Array.isArray(result) ? result : (result.rows ?? []);
 }
 
-/** The latest year from 1900 to 2099 that a text mentions, or null. */
+/** Every year from 1900 to 2099 that a text mentions, in order. */
+export function yearsIn(text: string): number[] {
+  return (text.match(/\b(19|20)\d\d\b/g) ?? []).map(Number);
+}
+
+/**
+ * The latest year from 1900 to 2099 that a passage's text mentions, or null. The as-of rule dates a
+ * timeless passage by it. Only the text counts, never the heading: a heading can carry the date of
+ * the course or edition (every Yale ECON 252 lecture heading says "(2011)"), which says nothing about
+ * the events the passage tells.
+ */
 export function latestYear(text: string): number | null {
-  const years = (text.match(/\b(19|20)\d\d\b/g) ?? []).map(Number);
+  const years = yearsIn(text);
   return years.length ? Math.max(...years) : null;
 }
 
@@ -135,7 +145,7 @@ async function writePassages(db: Executor, s: SourceInput, passages: PassageInpu
   for (let i = 0; i < passages.length; i += BATCH) {
     const rows = passages
       .slice(i, i + BATCH)
-      .map((p) => sql`(${s.id}, ${p.ref}, ${p.heading}, ${p.url}, ${p.publishedOn ?? null}::date, ${p.text}, ${latestYear(`${p.heading} ${p.text}`)}::integer, ${p.licence ?? s.licence}, ${p.credit ?? s.credit})`);
+      .map((p) => sql`(${s.id}, ${p.ref}, ${p.heading}, ${p.url}, ${p.publishedOn ?? null}::date, ${p.text}, ${latestYear(p.text)}::integer, ${p.licence ?? s.licence}, ${p.credit ?? s.credit})`);
     await db.execute(sql`
       insert into library_passages (source_id, ref, heading, url, published_on, text, latest_year, licence, credit)
       values ${sql.join(rows, sql`, `)}

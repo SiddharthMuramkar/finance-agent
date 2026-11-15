@@ -6,6 +6,9 @@
 //   - any server file builds the test database: assigns globalThis.__faE2eDb. Only src/dev/e2e-db.ts does that, and
 //     src/instrumentation.ts loads it behind a NODE_ENV test the build removes. getDb() (src/db/client.ts) only reads
 //     the name, so a read is allowed.
+//   - any server file carries the test bed's sign-in people (issue #33): assigns globalThis.__faE2ePeople, which
+//     src/dev/e2e-identity.ts does when it loads. Every file that loads it does so behind a NODE_ENV test
+//     (src/auth/no-test-identity.test.ts); were one to reach a build, a forged test cookie could sign in as the admin.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
@@ -23,6 +26,7 @@ function* files(dir) {
 }
 
 const SETS_TEST_DB = /__faE2eDb\s*=(?!=)/;
+const SETS_TEST_PEOPLE = /__faE2ePeople\s*=(?!=)/;
 const leaks = [];
 let seen = 0;
 for (const path of files(server)) {
@@ -31,7 +35,9 @@ for (const path of files(server)) {
   if (path.endsWith('.nft.json')) {
     if (readFileSync(path, 'utf8').includes('@electric-sql')) leaks.push(`${rel}: traces @electric-sql (PGlite) into the build`);
   } else if (/\.(c|m)?js$/.test(path)) {
-    if (SETS_TEST_DB.test(readFileSync(path, 'utf8'))) leaks.push(`${rel}: builds the test database (assigns __faE2eDb)`);
+    const text = readFileSync(path, 'utf8');
+    if (SETS_TEST_DB.test(text)) leaks.push(`${rel}: builds the test database (assigns __faE2eDb)`);
+    if (SETS_TEST_PEOPLE.test(text)) leaks.push(`${rel}: carries the test bed's sign-in people (assigns __faE2ePeople)`);
   }
 }
 

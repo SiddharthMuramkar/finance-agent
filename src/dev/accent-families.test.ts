@@ -4,41 +4,44 @@ import { describe, expect, it } from "vitest";
 import { ACCENT_FAMILIES, accentFamiliesPainted, familyMisuses, familyOf, over, paintsOf, parseColors, visibleBoxes, type AccentTokens, type Box, type LaidOutNode, type MisuseNode, type Paint, type PaintKind } from "./accent-families";
 
 /**
- * The Widget accent families, until #32 lands (ADR 0015 maps them to the Signal colours): they belong to Widgets; the app's chrome paints none of them. The token tables
- * are read from src/app/globals.css, Light (`:root`) and Dark (`:root.dark`), the way the page resolves them at runtime:
- * every --mint*, --coral*, --sun*, --violet* variant, and every other hex token (the chrome's surfaces, text, lines,
- * accent, status and ring colours) as a neutral that must never count as a Widget accent.
+ * The signal families (spec §2.1; decision #17): gain, loss and wait. The token table is read from src/app/globals.css's
+ * one :root block, with every var(--other) followed to its literal, the way the page resolves it at runtime: every
+ * --gain*, --loss*, --wait* step, and every other colour token (the surfaces, text, lines, blue, and the older names) as
+ * a neutral, or as the family it points at.
  */
-const CSS = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
-const DARK_AT = CSS.indexOf(":root.dark {\n    color-scheme: dark;");
-function table(text: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const m of text.matchAll(/^\s*(--[a-z0-9-]+):\s*(#[0-9a-f]{3,8})\s*;/gim)) out[m[1]] ??= m[2];
-  return out;
-}
-const THEMES = {
-  light: table(CSS.slice(CSS.indexOf(":root {"), DARK_AT)),
-  dark: table(CSS.slice(DARK_AT, CSS.indexOf("\n  }\n", DARK_AT))),
-} as const;
-const accentsOf = (t: Record<string, string>): AccentTokens => Object.fromEntries(Object.entries(t).filter(([k]) => familyOf(k)));
-// --you* and --src* are Widget names whose values ARE accent variants; painting them paints the accent. --danger is
-// a status colour of its own, so it is a neutral: no chrome token may count as a Widget accent.
-const ALIASES = /^--(you|src)\b/;
-const neutralsOf = (t: Record<string, string>) => Object.entries(t).filter(([k]) => !familyOf(k) && !ALIASES.test(k));
+const CSS = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const BLOCK = CSS.split(":root {").slice(1).map((rest) => rest.slice(0, rest.indexOf("}"))).find((b) => b.includes("--paper:")) ?? "";
+const RAW = Object.fromEntries([...BLOCK.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/gi)].map((m) => [m[1], m[2].trim().toLowerCase()]));
+/** A name and every name it points at, in order: --mint, --gain. */
+const chain = (name: string, depth = 0): string[] => {
+  const next = RAW[name]?.match(/^var\((--[\w-]+)\)$/)?.[1];
+  return next && depth < 8 ? [name, ...chain(next, depth + 1)] : [name];
+};
+const resolve = (name: string) => RAW[chain(name).at(-1)!];
+/** The family a name paints: its own, or the one it points at (--mint is gain); null for a neutral. */
+const familyBehind = (name: string) => chain(name).map(familyOf).find(Boolean) ?? null;
+/** Every colour token, resolved to its literal hex. */
+const T: Record<string, string> = Object.fromEntries(
+  Object.keys(RAW)
+    .map((k) => [k, resolve(k)] as const)
+    .filter((e): e is readonly [string, string] => !!e[1] && /^#[0-9a-f]{3,8}$/.test(e[1])),
+);
+const tokens: AccentTokens = Object.fromEntries(Object.entries(T).filter(([k]) => familyOf(k)));
+/** The older names that point at a family paint that family (decision #17). */
+const ALIASES: Record<string, string> = { "--mint": "gain", "--mint-ink": "gain", "--coral": "loss", "--coral-ink": "loss", "--success": "gain", "--warning": "wait", "--danger": "loss" };
+const neutrals = Object.entries(T).filter(([k]) => !familyBehind(k));
 const rgb = (hex: string) => parseColors(hex)[0];
 const paint = (color: string, backdrop: string, kind: PaintKind = "background"): Paint => ({ color, backdrop: rgb(backdrop), kind });
-const count = (tokens: AccentTokens, paints: Paint[]) => accentFamiliesPainted(tokens, paints).families;
+const count = (paints: Paint[]) => accentFamiliesPainted(tokens, paints).families;
 
-describe("accent families [S1]", () => {
-  it("reads both themes' token tables from globals.css", () => {
-    for (const [name, t] of Object.entries(THEMES)) {
-      for (const f of ACCENT_FAMILIES) {
-        for (const v of ["", "-ink", "-tint", "-tag"]) expect(t[`--${f}${v}`], `${name} --${f}${v}`).toMatch(/^#/);
-      }
-      expect(t["--paper"], name).toMatch(/^#/);
-      expect(t["--raised"], name).toMatch(/^#/);
-    }
-    expect(THEMES.dark["--mint-tint"]).toHaveLength(9); // #rrggbbaa: an 8 % tint
+describe("signal families [S1]", () => {
+  it("reads the one token table from globals.css: every family's steps, and the surfaces", () => {
+    expect(ACCENT_FAMILIES).toEqual(["gain", "loss", "wait"]);
+    for (const f of ACCENT_FAMILIES) for (const v of ["", "-ink", "-tint", "-line"]) expect(T[`--${f}${v}`], `--${f}${v}`).toMatch(/^#/);
+    expect(T["--gain-deep"]).toBe("#087f5b");
+    expect(T["--paper"]).toBe("#ffffff");
+    expect(T["--raised"]).toBe("#ffffff");
+    expect(CSS).not.toMatch(/\.dark\b/);
   });
 
   it("parses the colour forms getComputedStyle and the tokens use", () => {
@@ -60,92 +63,76 @@ describe("accent families [S1]", () => {
     expect(over([10, 20, 30, 0], [7, 8, 9, 1])).toEqual([7, 8, 9, 1]);
   });
 
-  for (const theme of ["light", "dark"] as const) {
-    const t = THEMES[theme], tokens = accentsOf(t);
-
-    it(`${theme}: every variant of a family counts as that family, on --paper and on --raised`, () => {
-      for (const [name, value] of Object.entries(tokens)) {
-        const f = familyOf(name);
-        for (const surface of ["--paper", "--raised"]) {
-          for (const kind of ["background", "text", "border"] as const) {
-            expect(count(tokens, [paint(value, t[surface], kind)]), `${theme} ${name} as ${kind} on ${surface}`).toEqual([f]);
-          }
+  it("every step of a family counts as that family, on --paper and on --raised", () => {
+    for (const [name, value] of Object.entries(tokens)) {
+      const f = familyOf(name);
+      for (const surface of ["--paper", "--raised"]) {
+        for (const kind of ["background", "text", "border"] as const) {
+          expect(count([paint(value, T[surface], kind)]), `${name} as ${kind} on ${surface}`).toEqual([f]);
         }
       }
-    });
+    }
+  });
 
-    it(`${theme}: Chrome's serialised tint (alpha rounded) still matches its token`, () => {
-      for (const f of ACCENT_FAMILIES) {
-        const [r, g, b, a] = rgb(t[`--${f}-tint`]);
-        const served = `rgba(${r}, ${g}, ${b}, ${Math.round(a * 100) / 100})`;
-        expect(count(tokens, [paint(served, t["--paper"])]), `${theme} --${f}-tint as ${served}`).toEqual([f]);
-      }
-    });
+  it("the older names count as the family they point at (--mint is gain, --coral is loss, --danger is loss), blue and ink as none", () => {
+    const families = (k: string) => count([paint(T[k], T["--raised"], "text")]);
+    for (const [name, family] of Object.entries(ALIASES)) {
+      expect(familyBehind(name), name).toBe(family);
+      expect(families(name), name).toEqual([family]);
+    }
+    expect(families("--you")).toEqual([]);
+    expect(families("--src")).toEqual([]);
+    expect(families("--sun")).toEqual([]);
+    expect(families("--violet")).toEqual([]);
+    expect(families("--accent")).toEqual([]);
+  });
 
-    it(`${theme}: the Widget names (--you*, --src*) count as the accent they are, and the status --danger counts as none`, () => {
-      const families = (k: string) => count(tokens, [paint(t[k], t["--raised"], "text")]);
-      expect(families("--you")).toEqual(["mint"]);
-      expect(families("--src-tint")).toEqual(["sun"]);
-      expect(families("--danger")).toEqual([]);
-    });
+  it("no neutral token counts as a family, painted any way on any surface", () => {
+    expect(neutrals.length).toBeGreaterThan(15);
+    const paints = neutrals.flatMap(([, v]) => ["--paper", "--raised", "--wash"].flatMap((s) => (["background", "text", "border"] as const).map((k) => paint(v, T[s], k))));
+    expect(count(paints)).toEqual([]);
+  });
 
-    it(`${theme}: no neutral token counts as an accent, painted any way on any surface`, () => {
-      const neutrals = neutralsOf(t);
-      expect(neutrals.length).toBeGreaterThan(15);
-      const paints = neutrals.flatMap(([, v]) => ["--paper", "--raised", "--wash"].flatMap((s) => (["background", "text", "border"] as const).map((k) => paint(v, t[s], k))));
-      expect(count(tokens, paints)).toEqual([]);
-    });
+  it("a fully transparent or invisible-on-its-backdrop step does not count", () => {
+    const [r, g, b] = rgb(T["--gain"]);
+    expect(count([paint(`rgba(${r}, ${g}, ${b}, 0)`, T["--paper"])])).toEqual([]);
+    expect(count([paint("transparent", T["--paper"])])).toEqual([]);
+    // The tint painted on itself: what is painted equals what was there, so nothing is seen.
+    expect(count([paint(T["--gain-tint"], T["--gain-tint"])])).toEqual([]);
+    expect(count([{ color: `rgba(${r}, ${g}, ${b}, 0.004)`, backdrop: rgb(T["--paper"]), kind: "background" }])).toEqual([]);
+  });
 
-    it(`${theme}: a fully transparent or invisible-on-its-backdrop accent does not count`, () => {
-      const [r, g, b] = rgb(t["--mint"]);
-      expect(count(tokens, [paint(`rgba(${r}, ${g}, ${b}, 0)`, t["--paper"])])).toEqual([]);
-      expect(count(tokens, [paint("transparent", t["--paper"])])).toEqual([]);
-      // The tint painted on itself: what is painted equals what was there, so nothing is seen.
-      const tintOnBg = over(rgb(t["--mint-tint"]), rgb(t["--paper"]));
-      expect(count(tokens, [{ color: t["--mint-tint"], backdrop: tintOnBg, kind: "background" }])).toEqual(theme === "dark" ? ["mint"] : []);
-      expect(count(tokens, [{ color: `rgba(${r}, ${g}, ${b}, 0.004)`, backdrop: rgb(t["--paper"]), kind: "background" }])).toEqual([]);
-    });
-  }
-
-  // The finding "Light 0, Dark 1": the same panel (ink text, a tint card, a tag pill, an ink label) must score the same
-  // in both themes, because it paints the same four families.
-  it("one panel scores the same in Light and Dark", () => {
-    const panel = (theme: "light" | "dark") => {
-      const t = THEMES[theme];
-      return accentFamiliesPainted(accentsOf(t), [
-        paint(t["--mint-ink"], t["--raised"], "text"),
-        paint(t["--coral-tint"], t["--raised"]),
-        paint(t["--sun-tag"], t["--raised"]),
-        paint(t["--violet-ink"], t["--sun-tag"], "text"),
-      ]);
-    };
-    expect(panel("light").families).toEqual(["mint", "coral", "sun", "violet"]);
-    expect(panel("dark").families).toEqual(["mint", "coral", "sun", "violet"]);
-    expect(panel("light").via.coral).toBe("--coral-tint as background");
+  it("one panel: ink text, a loss pill, a careful chip and a gain mark score all three families", () => {
+    const panel = accentFamiliesPainted(tokens, [
+      paint(T["--ink"], T["--raised"], "text"),
+      paint(T["--loss-tint"], T["--raised"]),
+      paint(T["--wait-ink"], T["--wait-tint"], "text"),
+      paint(T["--gain"], T["--raised"], "border"),
+    ]);
+    expect(panel.families).toEqual(["gain", "loss", "wait"]);
+    expect(panel.via.loss).toBe("--loss-tint as background");
   });
 
   it("paintsOf: backdrops are the composited backgrounds of the ancestors, and hidden nodes paint nothing", () => {
-    const t = THEMES.dark;
     const nodes = [
-      { parent: -1, visible: true, background: t["--paper"], gradients: [], on: [] },
-      { parent: 0, visible: true, background: t["--coral-tint"], gradients: [], on: [{ color: t["--ink"], kind: "text" as const }] },
-      { parent: 1, visible: true, background: "rgba(0, 0, 0, 0)", gradients: [], on: [{ color: t["--violet"], kind: "border" as const }] },
-      { parent: 0, visible: false, background: t["--sun-tag"], gradients: [], on: [{ color: t["--mint"], kind: "text" as const }] },
-      { parent: 0, visible: true, background: "rgba(0, 0, 0, 0)", gradients: [`linear-gradient(${t["--raised"]}, ${t["--raised"]})`], on: [] },
+      { parent: -1, visible: true, background: T["--paper"], gradients: [], on: [] },
+      { parent: 0, visible: true, background: T["--loss-tint"], gradients: [], on: [{ color: T["--ink"], kind: "text" as const }] },
+      { parent: 1, visible: true, background: "rgba(0, 0, 0, 0)", gradients: [], on: [{ color: T["--wait"], kind: "border" as const }] },
+      { parent: 0, visible: false, background: T["--gain-tint"], gradients: [], on: [{ color: T["--gain"], kind: "text" as const }] },
+      { parent: 0, visible: true, background: "rgba(0, 0, 0, 0)", gradients: [`linear-gradient(${T["--raised"]}, ${T["--raised"]})`], on: [] },
     ];
     const paints = paintsOf(nodes);
-    const tinted = over(rgb(t["--coral-tint"]), rgb(t["--paper"]));
-    expect(paints).toContainEqual({ color: t["--coral-tint"], backdrop: rgb(t["--paper"]), kind: "background" });
-    expect(paints).toContainEqual({ color: t["--ink"], backdrop: tinted, kind: "text" });
-    expect(paints).toContainEqual({ color: t["--violet"], backdrop: tinted, kind: "border" });
-    expect(paints).toContainEqual({ color: `linear-gradient(${t["--raised"]}, ${t["--raised"]})`, backdrop: rgb(t["--paper"]), kind: "gradient" });
-    expect(paints.some((p) => p.color === t["--sun-tag"] || p.color === t["--mint"])).toBe(false);
-    expect(accentFamiliesPainted(accentsOf(t), paints).families).toEqual(["coral", "violet"]);
+    expect(paints).toContainEqual({ color: T["--loss-tint"], backdrop: rgb(T["--paper"]), kind: "background" });
+    expect(paints).toContainEqual({ color: T["--ink"], backdrop: rgb(T["--loss-tint"]), kind: "text" });
+    expect(paints).toContainEqual({ color: T["--wait"], backdrop: rgb(T["--loss-tint"]), kind: "border" });
+    expect(paints).toContainEqual({ color: `linear-gradient(${T["--raised"]}, ${T["--raised"]})`, backdrop: rgb(T["--paper"]), kind: "gradient" });
+    expect(paints.some((p) => p.color === T["--gain-tint"] || p.color === T["--gain"])).toBe(false);
+    expect(accentFamiliesPainted(tokens, paints).families).toEqual(["loss", "wait"]);
   });
 
   it("an empty page counts nothing", () => {
-    expect(accentFamiliesPainted(accentsOf(THEMES.light), []).families).toEqual([]);
-    expect(accentFamiliesPainted({}, [paint(THEMES.light["--mint"], THEMES.light["--paper"])]).families).toEqual([]);
+    expect(accentFamiliesPainted(tokens, []).families).toEqual([]);
+    expect(accentFamiliesPainted({}, [paint(T["--gain"], T["--paper"])]).families).toEqual([]);
   });
 });
 
@@ -222,19 +209,17 @@ describe("accent families: only what the screenshot shows counts [S1]", () => {
     expect(seen([node(-1, PAGE), node(0, box(0, 0, 100, 100), { shown: false }), node(0, box(10, 10, 10, 10))])).toEqual([true, false, false]);
   });
 
-  it("an accent clipped away does not count: Light and Dark, the matcher sees only the seen nodes", () => {
-    for (const t of [THEMES.light, THEMES.dark]) {
-      const chat = box(16, 60, 700, 900);
-      const laid = [node(-1, PAGE), node(0, chat, clips(chat)), node(1, box(16, 1200, 700, 1300)), node(1, box(16, 100, 700, 140))];
-      const visible = seen(laid);
-      const painted = [
-        { parent: -1, visible: visible[0], background: t["--paper"], gradients: [], on: [] },
-        { parent: 0, visible: visible[1], background: t["--raised"], gradients: [], on: [] },
-        { parent: 1, visible: visible[2], background: t["--coral-tint"], gradients: [], on: [{ color: t["--violet-ink"] ?? t["--violet"], kind: "text" as const }] },
-        { parent: 1, visible: visible[3], background: t["--sun-tag"], gradients: [], on: [] },
-      ];
-      expect(accentFamiliesPainted(accentsOf(t), paintsOf(painted)).families).toEqual(["sun"]);
-    }
+  it("a family clipped away does not count: the matcher sees only the seen nodes", () => {
+    const chat = box(16, 60, 700, 900);
+    const laid = [node(-1, PAGE), node(0, chat, clips(chat)), node(1, box(16, 1200, 700, 1300)), node(1, box(16, 100, 700, 140))];
+    const visible = seen(laid);
+    const painted = [
+      { parent: -1, visible: visible[0], background: T["--paper"], gradients: [], on: [] },
+      { parent: 0, visible: visible[1], background: T["--raised"], gradients: [], on: [] },
+      { parent: 1, visible: visible[2], background: T["--loss-tint"], gradients: [], on: [{ color: T["--gain-ink"], kind: "text" as const }] },
+      { parent: 1, visible: visible[3], background: T["--wait-tint"], gradients: [], on: [] },
+    ];
+    expect(accentFamiliesPainted(tokens, paintsOf(painted)).families).toEqual(["wait"]);
   });
 });
 
@@ -250,40 +235,35 @@ const misuse = (over: Partial<MisuseNode> & Pick<MisuseNode, "rect">): MisuseNod
 const rect = (w: number, h: number): Box => ({ left: 0, top: 0, right: w, bottom: h });
 
 describe("familyMisuses tells a fill from a mark (A7a)", () => {
-  for (const theme of ["light", "dark"] as const) {
-    const t = THEMES[theme];
-    const tokens = accentsOf(t);
+  it("a wide tinted card is a fill; a rule, a dot and a marker are not", () => {
+    const wide = familyMisuses(tokens, [
+      misuse({ rect: rect(400, 200), background: T["--raised"], label: "surface" }),
+      misuse({ parent: 0, rect: rect(300, 80), background: T["--wait-tint"], label: "card" }),
+    ]);
+    expect(wide.fills).toHaveLength(1);
+    expect(wide.fills[0]).toContain("--wait-tint");
+    expect(wide.text).toEqual([]);
+    const marks = familyMisuses(tokens, [
+      misuse({ rect: rect(300, 2), background: T["--loss"], label: "rule" }),
+      misuse({ rect: rect(8, 8), background: T["--gain"], label: "dot" }),
+      misuse({ rect: rect(14, 14), background: T["--gain-deep"], label: "marker" }),
+    ]);
+    expect(marks.fills).toEqual([]);
+  });
 
-    it(`${theme}: a wide tinted card is a fill; a rule, a dot and a marker are not`, () => {
-      const wide = familyMisuses(tokens, [
-        misuse({ rect: rect(400, 200), background: t["--raised"], label: "surface" }),
-        misuse({ parent: 0, rect: rect(300, 80), background: t["--violet-tint"], label: "card" }),
-      ]);
-      expect(wide.fills).toHaveLength(1);
-      expect(wide.fills[0]).toContain("--violet-tint");
-      expect(wide.text).toEqual([]);
-      const marks = familyMisuses(tokens, [
-        misuse({ rect: rect(300, 2), background: t["--sun"], label: "rule" }),
-        misuse({ rect: rect(8, 8), background: t["--mint"], label: "dot" }),
-        misuse({ rect: rect(14, 14), background: t["--you"] ?? t["--mint"], label: "marker" }),
-      ]);
-      expect(marks.fills).toEqual([]);
-    });
-
-    it(`${theme}: family text counts, and a border, a stroke, a chart fill and a hidden node do not`, () => {
-      const text = familyMisuses(tokens, [
-        misuse({ rect: rect(200, 40), label: "words", on: [{ color: t["--sun-ink"], kind: "text" }] }),
-        misuse({ rect: rect(80, 20), label: "svg", on: [{ color: t["--violet-ink"], kind: "text" }] }),
-        misuse({ rect: rect(200, 40), label: "ok", on: [{ color: t["--success"] ?? t["--ink"], kind: "text" }, { color: t["--ink"], kind: "text" }] }),
-      ]);
-      expect(text.text).toHaveLength(2);
-      const ignored = familyMisuses(tokens, [
-        misuse({ rect: rect(200, 40), label: "edge", on: [{ color: t["--coral"], kind: "border" }] }),
-        misuse({ rect: rect(80, 40), label: "stroke", on: [{ color: t["--mint-ink"], kind: "stroke" }] }),
-        misuse({ rect: rect(80, 40), label: "series", on: [{ color: t["--violet"], kind: "fill" }] }),
-        misuse({ rect: rect(300, 80), visible: false, background: t["--coral"], label: "hidden" }),
-      ]);
-      expect(ignored).toEqual({ fills: [], text: [] });
-    });
-  }
+  it("family text counts, ink and blue text do not, and a border, a stroke, a chart fill and a hidden node do not", () => {
+    const text = familyMisuses(tokens, [
+      misuse({ rect: rect(200, 40), label: "words", on: [{ color: T["--loss-ink"], kind: "text" }] }),
+      misuse({ rect: rect(80, 20), label: "svg", on: [{ color: T["--wait-ink"], kind: "text" }] }),
+      misuse({ rect: rect(200, 40), label: "ok", on: [{ color: T["--blue"], kind: "text" }, { color: T["--ink"], kind: "text" }] }),
+    ]);
+    expect(text.text).toHaveLength(2);
+    const ignored = familyMisuses(tokens, [
+      misuse({ rect: rect(200, 40), label: "edge", on: [{ color: T["--loss"], kind: "border" }] }),
+      misuse({ rect: rect(80, 40), label: "stroke", on: [{ color: T["--gain-ink"], kind: "stroke" }] }),
+      misuse({ rect: rect(80, 40), label: "series", on: [{ color: T["--wait"], kind: "fill" }] }),
+      misuse({ rect: rect(300, 80), visible: false, background: T["--loss"], label: "hidden" }),
+    ]);
+    expect(ignored).toEqual({ fills: [], text: [] });
+  });
 });

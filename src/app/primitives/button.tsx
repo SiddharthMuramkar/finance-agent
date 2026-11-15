@@ -39,7 +39,7 @@ export type ButtonProps = ComponentProps<"button"> & {
 };
 
 /**
- * Primary (the one fill per pane: royal blue in Light, near-white in Dark), secondary (an outline), tertiary (text only, a
+ * Primary (the one fill per pane: royal blue), secondary (an outline), tertiary (text only, a
  * muted label) or danger (red, destructive confirms only); xs, sm, md or lg; with a loading state. type defaults to "button".
  */
 export function Button({ variant = "primary", size = "md", loading, pressed, unstyled, className = "", type = "button", disabled, children, ...props }: ButtonProps) {

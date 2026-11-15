@@ -1,6 +1,5 @@
 import { eq, max, sql } from "drizzle-orm";
-import { isOwnerLearner } from "@/auth/access";
-import { accessDenials, learners, sessions, turns, usageRows, user } from "@/db/schema";
+import { learners, sessions, turns, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 // Spend (GLOSSARY): the owner's estimated cost of the Tutor's model calls, per person, for the Spend
@@ -8,7 +7,8 @@ import type { Db } from "@/db/types";
 // cost worked out from the price table when it was written (pricing.ts), so old rows keep their
 // price. Only step rows are summed: the turn row repeats its steps' total, and a cut-off or failed
 // turn has no turn row at all. Voyage embeddings, the weekly library refresh and the
-// evals' own judge calls are not in `usage`, so they are not here either.
+// evals' own judge calls are not in `usage`, so they are not here either. A person is a Clerk user (issue #33); who
+// they are (their email) is Clerk's to say, so /admin asks Clerk for that (src/auth/clerk-directory.ts), not this file.
 
 /** India is UTC+05:30 all year (no daylight saving), the zone the app's dates use (past-sessions.tsx). */
 const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
@@ -41,21 +41,21 @@ export type SpendFigures = {
   lastActiveAt: Date | null;
 };
 
-/** A person: one Better Auth user, with every Learner they have had (Start over archives one and makes another). */
+/** A person: one Clerk user, with every Learner they have had (Start over archives one and makes another). */
 export type PersonSpend = SpendFigures & {
+  /** Their Clerk user id (`learners.clerk_user_id`). */
   userId: string;
-  email: string;
-  /** Their active Learner's name, or the name on their sign-in when they have none active. */
+  /** Their active Learner's name, or their newest Learner's when none is active. */
   name: string;
-  isOwner: boolean;
-  /** Denied or had access removed; their past spend still counts. */
-  accessRemoved: boolean;
 };
 
 export type SpendReport = {
-  /** Everyone with a Learner, most spent this month first. */
+  /** Every Clerk user with a Learner, most spent this month first. */
   people: PersonSpend[];
-  /** Learners with no sign-in (the test tools, passcodes); null when none of them has a turn or a step. */
+  /**
+   * Learners with no Clerk user (from before Clerk, the test tools, passcodes); null when none of them has a turn or a
+   * step.
+   */
   unlinked: SpendFigures | null;
   /** Everyone together, the unlinked Learners included. */
   total: SpendFigures;
@@ -74,17 +74,14 @@ function add(into: SpendFigures, from: Partial<SpendFigures>): void {
 
 /**
  * Spend per person, as of `now` (passed in so the month boundary can be tested). Three grouped reads, by
- * Learner: who each Learner belongs to, what their steps cost, and their turns. They are folded into one
- * row per user here, since a user can hold several Learners.
+ * Learner: whose each Learner is, what their steps cost, and their turns. They are folded into one row
+ * per Clerk user here, since a user can hold several Learners. Ties fall back to the Clerk user id, so
+ * the order is the same on every load.
  */
 export async function spendByPerson(db: Db, now: Date): Promise<SpendReport> {
   const monthStart = monthStartIst(now).toISOString();
   const [whose, costs, turnCounts] = await Promise.all([
-    db
-      .select({ learner: learners, email: user.email, userName: user.name, denied: sql<boolean>`${accessDenials.userId} is not null` })
-      .from(learners)
-      .leftJoin(user, eq(learners.authUserId, user.id))
-      .leftJoin(accessDenials, eq(accessDenials.userId, user.id)),
+    db.select({ id: learners.id, name: learners.name, clerkUserId: learners.clerkUserId, archivedAt: learners.archivedAt }).from(learners).orderBy(learners.id),
     db
       .select({
         learnerId: sessions.learnerId,
@@ -107,26 +104,28 @@ export async function spendByPerson(db: Db, now: Date): Promise<SpendReport> {
   for (const t of turnCounts) byLearner.set(t.learnerId, { ...byLearner.get(t.learnerId), turns: t.turns, lastActiveAt: t.lastActiveAt });
 
   const people = new Map<string, PersonSpend>();
+  const hasActive = new Set<string>();
   const unlinked = zero();
   let unlinkedSeen = false;
-  for (const { learner, email, userName, denied } of whose) {
+  // Oldest Learner first: the active Learner names the person, or else the newest one does.
+  for (const learner of whose) {
     const figures = byLearner.get(learner.id) ?? {};
-    if (learner.authUserId === null || email === null) {
+    if (learner.clerkUserId === null) {
       add(unlinked, figures);
       unlinkedSeen ||= byLearner.has(learner.id);
       continue;
     }
-    let person = people.get(learner.authUserId);
+    let person = people.get(learner.clerkUserId);
     if (!person) {
-      person = { ...zero(), userId: learner.authUserId, email, name: userName ?? email, isOwner: false, accessRemoved: denied };
-      people.set(learner.authUserId, person);
+      person = { ...zero(), userId: learner.clerkUserId, name: learner.name };
+      people.set(learner.clerkUserId, person);
     }
-    if (learner.archivedAt === null) person.name = learner.name;
-    person.isOwner ||= isOwnerLearner(learner);
+    if (learner.archivedAt === null) hasActive.add(learner.clerkUserId);
+    if (learner.archivedAt === null || !hasActive.has(learner.clerkUserId)) person.name = learner.name;
     add(person, figures);
   }
 
-  const list = [...people.values()].sort((a, b) => b.monthUsd - a.monthUsd || b.allTimeUsd - a.allTimeUsd || a.email.localeCompare(b.email));
+  const list = [...people.values()].sort((a, b) => b.monthUsd - a.monthUsd || b.allTimeUsd - a.allTimeUsd || a.userId.localeCompare(b.userId));
   const total = zero();
   for (const p of list) add(total, p);
   add(total, unlinked);
