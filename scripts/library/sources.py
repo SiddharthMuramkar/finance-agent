@@ -3,12 +3,13 @@
 Run from the laptop, with a scratch folder OUTSIDE this repo (downloads are cached there):
   python3 -I scripts/library/sources.py <source> <scratch dir> <documents.json>
 where <source> is one of: damodaran-papers, yale-econ-251, yale-econ-252, fed-explained,
-nyfed, fomc-historical, sec-anthropic-s1. Each writes a JSON list of documents ({ref, title, url, publishedOn, sections})
-for `npm run library:load`, which cleans, cuts, repairs and checks the text. Nothing extracted is
-written into the repo: the source text lives only in the private database.
+nyfed, fomc-historical, sec-anthropic-s1, sec-amazon-1997-2000, sec-webvan-1999-2001, sec-wework-s1-2019. Each writes a JSON
+list of documents ({ref, title, url, publishedOn, sections}) for `npm run library:load`, which cleans, cuts, repairs and checks
+the text. Nothing extracted is written into the repo: the source text lives only in the private database.
 
 Every request sends a descriptive User-Agent and waits between requests. SEC EDGAR's fair-access rule
-(at most 10 requests a second, a declared User-Agent) is far from reached: the S-1 is one document.
+(at most 10 requests a second, a declared User-Agent) is far from reached: a source is a few submissions pages and
+one file per filing, 0.6 s apart.
 
 PDF sources also write <scratch>/<source>.vision-candidates.json (pages with a picture and hardly any
 text, where a chart or scanned slide hides the content). `node scripts/library/vision.mjs` reads
@@ -577,19 +578,72 @@ def iso_label(day):
     return f"{MONTHS[int(m) - 1]} {int(d)}, {y}"
 
 
-def sec_filing(cik, accession, document, title, scratch, out, published_on=None):
-    """One SEC filing's main document. The submissions API confirms the accession and filing date first."""
+SUBMISSIONS = "https://data.sec.gov/submissions/"
+
+
+def filing_row(submissions, accession, load_page):
+    """One filing's row ({accessionNumber, filingDate, form, primaryDocument, ...}) from a submissions record. filings.recent holds only
+    the latest filings; older ones are in the pages that filings.files names, which load_page(name) reads (only as far as needed)."""
+    tables = [submissions["filings"]["recent"]]
+    pages = [f["name"] for f in submissions["filings"].get("files", [])]
+    while tables:
+        table = tables.pop(0)
+        if accession in table["accessionNumber"]:
+            i = table["accessionNumber"].index(accession)
+            return {key: column[i] for key, column in table.items() if isinstance(column, list) and len(column) > i}
+        if pages:
+            tables.append(load_page(pages.pop(0)))
+    raise KeyError(f"accession {accession} is not in the submissions record of {submissions.get('name')}")
+
+
+def sec_filing_row(cik, accession, scratch):
+    """The company's EDGAR name and one filing's row: the submissions API confirms the accession and gives the filing date."""
     scratch = Path(scratch)
-    sub = json.loads(fetch(f"https://data.sec.gov/submissions/CIK{cik}.json", scratch / f"submissions-{cik}.json", ua=SEC_UA))
-    recent = sub["filings"]["recent"]
-    idx = recent["accessionNumber"].index(accession)
-    filed = recent["filingDate"][idx]
-    assert recent["primaryDocument"][idx] == document, (recent["primaryDocument"][idx], document)
+    sub = json.loads(fetch(f"{SUBMISSIONS}CIK{cik}.json", scratch / f"submissions-{cik}.json", ua=SEC_UA))
+    return sub["name"], filing_row(sub, accession, lambda name: json.loads(fetch(SUBMISSIONS + name, scratch / name, ua=SEC_UA)))
+
+
+def sec_filing(cik, accession, document, title, scratch, out, published_on=None, reader="layout", company=None):
+    """One SEC filing's main document. The submissions API confirms the accession and filing date first.
+    reader "layout": EDGAR's page-box rendering (layout_pages_to_document); "flowing": one long HTML document (flowing_html_sections)."""
+    scratch = Path(scratch)
+    name, row = sec_filing_row(cik, accession, scratch)
+    filed = row["filingDate"]
+    assert row["primaryDocument"] == document, (row["primaryDocument"], document)
     url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession.replace('-', '')}/{document}"
     markup = fetch(url, scratch / f"{accession}-{document}", ua=SEC_UA)
-    doc = layout_pages_to_document(markup, f"{recent['form'][idx].lower()}-{accession}", f"{sub['name']}: {title}", url, filed)
+    ref, full_title = f"{row['form'].lower()}-{accession}", f"{company or name}: {title}"
+    if reader == "flowing":
+        doc = {"ref": ref, "title": full_title, "url": url, "publishedOn": filed, "sections": flowing_html_sections(markup)}
+    else:
+        doc = layout_pages_to_document(markup, ref, full_title, url, filed)
     Path(out).write_text(json.dumps([doc]))
-    print(f"{sub['name']} {recent['form'][idx]} filed {filed} ({accession}): {len(doc['sections'])} sections, {sum(len(p.split()) for s in doc['sections'] for p in s['paragraphs'])} words")
+    print(f"{company or name} {row['form']} filed {filed} ({accession}): {len(doc['sections'])} sections, {sum(len(p.split()) for s in doc['sections'] for p in s['paragraphs'])} words")
+
+
+PAGE_NUMBER = re.compile(r"\s*(page\s*)?((F|II|A)-)?(\d{1,3}|[ivxlc]{1,6})\s*", re.I)
+
+
+def flowing_html_sections(markup):
+    """A filing typeset as one flowing HTML document (no page boxes), read with html_blocks + sections_from_blocks. Its section titles are
+    the paragraphs that hold a table-of-contents target (<A NAME="toc...">), so those become headings; the "Table of Contents" back-link
+    at the top of every page, the contents table itself and bare page numbers are left out."""
+    body = re.sub(r'<h5[^>]*>\s*<a href="[^"]*#toc">\s*Table of Contents\s*</a>\s*</h5>', "", markup, flags=re.I)
+    pieces, at, low = [], 0, body.lower()
+    for anchor in re.finditer(r'<a name="toc[^"]*">', body, re.I):
+        start = low.rfind("<p", 0, anchor.start())
+        end = low.find("</p>", anchor.end())
+        if start < at or end < 0:
+            continue  # a second anchor in a heading already rewritten
+        pieces += [body[at:start], "<h2>", body[body.find(">", start) + 1 : end], "</h2>"]
+        at = end + len("</p>")
+    body = "".join(pieces) + body[at:]
+    sections = []
+    for s in sections_from_blocks(html_blocks(body)):
+        paras = [p for p in s["paragraphs"] if not PAGE_NUMBER.fullmatch(p)]
+        if paras and s["heading"].lower() != "table of contents":
+            sections.append({"heading": s["heading"], "paragraphs": paras})
+    return sections
 
 
 def layout_pages_to_document(markup, ref, title, url, filed):
@@ -660,6 +714,184 @@ def layout_pages_to_document(markup, ref, title, url, filed):
     return {"ref": ref, "title": title, "url": url, "publishedOn": filed, "sections": sections}
 
 
+# ---------------------------------------------------------------- EDGAR plain text (1990s filings)
+
+def first_sgml_document(submission):
+    """The main form of an EDGAR full-submission .txt: the <TEXT> of its FIRST <DOCUMENT> only (the exhibits after it can be
+    uuencoded binaries), with that document's <TYPE>. Text without <DOCUMENT> tags is returned whole, type None."""
+    start = submission.find("<DOCUMENT>")
+    if start < 0:
+        return submission, None
+    end = submission.find("</DOCUMENT>", start)
+    doc = submission[start : end if end > 0 else len(submission)]
+    kind = re.search(r"<TYPE>([^\n<]+)", doc)
+    text = re.search(r"<TEXT>(.*?)(?:</TEXT>|$)", doc, re.S)
+    return (text.group(1) if text else doc), (kind.group(1).strip() if kind else None)
+
+
+ITEM_LINE = re.compile(r"\s*ITEM\s+\d+[A-Z]?(\.|\s{2,}|\s+[A-Z]{2})", re.I)
+PART_LINE = re.compile(r"\s*PART\s+[IV]+\b", re.I)
+TOC_LINE = re.compile(r".*\.{4,}\s*((F|II|A)-)?(\d{1,3}|[ivx]+)\s*", re.I)
+RULE_LINE = re.compile(r"\s*([-=_*]\s*){3,}")
+TABLE_MARKUP = re.compile(r"\s*</?(TABLE|CAPTION|S|C|FN|F\d*)>", re.I)
+
+
+def _is_toc(lines):
+    """A contents list: most of its lines end in a dot leader and a page number."""
+    return sum(1 for l in lines if TOC_LINE.fullmatch(l)) * 2 >= len(lines)
+
+
+def _table_row(line):
+    """A fixed-width table row as cells: runs of two or more spaces split columns; dot leaders and rules go."""
+    cells = [re.sub(r"\s*\.{2,}\s*$", "", c).strip() for c in re.split(r"\s{2,}", line.strip())]
+    return " | ".join(c for c in cells if c and not RULE_LINE.fullmatch(c))
+
+
+def _is_caps_heading(lines):
+    """A short all-capitals block such as GENERAL or RISK FACTORS: a sub-heading."""
+    text = " ".join(l.strip() for l in lines)
+    return (
+        len(lines) <= 2 and len(text.split()) <= 12 and re.search(r"[A-Z]{2}", text) is not None and re.search(r"[a-z]", text) is None
+        and not re.match(r"[(\[$\d]", text) and not text.endswith((",", ";", ":"))
+    )
+
+
+def plain_text_document(submission, ref, title, url, filed):
+    """An EDGAR plain-text filing (the 1990s, before HTML) as a document. Only the first <DOCUMENT> is read. Paragraphs are blocks of
+    lines between blank lines; a paragraph cut by a page break (<PAGE> and the page number above it) is joined back unless the page ended
+    on a full stop. "ITEM n." lines are the section headings, and a short all-capitals line under one (GENERAL, COMPETITION) is added to it
+    as a sub-heading; a prospectus, which has no ITEMs, is headed by its centred all-capitals titles instead. Fixed-width <TABLE> rows
+    become "a | b | c" paragraphs; contents lists, PART lines, running heads and rules are left out."""
+    text, _ = first_sgml_document(submission)
+    lines = text.replace("\r\n", "\n").split("\n")
+    # A page break: each <PAGE> marker (and the end), with the page number and blank lines just above it.
+    breaks = set()
+    for i in [i for i, l in enumerate(lines) if l.strip().upper().startswith("<PAGE>")] + [len(lines)]:
+        breaks.add(i)
+        j = i - 1
+        while j >= 0 and not lines[j].strip():
+            breaks.add(j)
+            j -= 1
+        if j >= 0 and PAGE_NUMBER.fullmatch(lines[j]):
+            breaks.add(j)
+            j -= 1
+            while j >= 0 and not lines[j].strip():
+                breaks.add(j)
+                j -= 1
+    blocks, current, table, page_break = [], [], None, False
+
+    def close():
+        nonlocal current
+        if current:
+            blocks.append(("text", current))
+        current = []
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if table is not None:  # inside a <TABLE>: rows only
+            if re.match(r"</TABLE>", stripped, re.I):
+                if table:
+                    blocks.append(("table", table))
+                table = None
+            elif i not in breaks and stripped and not TABLE_MARKUP.match(stripped) and not RULE_LINE.fullmatch(stripped):
+                table.append(line)
+            continue
+        if i in breaks:
+            page_break = True
+            continue
+        if re.match(r"<TABLE>", stripped, re.I):
+            close()
+            table, page_break = [], False
+            continue
+        if not stripped or RULE_LINE.fullmatch(stripped) or TABLE_MARKUP.match(stripped):
+            if not page_break:
+                close()
+            continue
+        if page_break:  # the page ended mid-paragraph unless its last line closed a sentence or was a heading
+            page_break = False
+            if current and (re.search(r"[.!?:;\"”)]$", current[-1].strip()) or ITEM_LINE.match(current[0]) or _is_caps_heading(current)):
+                close()
+        current.append(line)
+    close()
+
+    caps = [" ".join(" ".join(b).split()) for k, b in blocks if k == "text" and _is_caps_heading(b) and not ITEM_LINE.match(b[0])]
+    running = {c for c in caps if caps.count(c) >= 3 or "(CONTINUED)" in c}  # running heads at the top of each page
+    out, top, in_items = [], "", False
+    for kind, block in blocks:
+        if _is_toc(block):
+            continue
+        if kind == "table":
+            out += [("p", row) for row in map(_table_row, block) if row]
+            continue
+        if ITEM_LINE.match(block[0]):
+            head = block if len(block) <= 3 and len(" ".join(block).split()) <= 30 else block[:1]
+            top, in_items = " ".join(" ".join(head).split()), True
+            out.append(("h", top))
+            rest = block[len(head) :]
+            if rest:
+                out.append(("p", " ".join(" ".join(rest).split())))
+            continue
+        if (PART_LINE.match(block[0]) and len(" ".join(block).split()) <= 10) or " ".join(" ".join(block).split()) in running:
+            continue
+        if _is_caps_heading(block):
+            text = " ".join(" ".join(block).split())
+            if text in ("TABLE OF CONTENTS", "INDEX"):  # its list is gone; what follows is untitled front text
+                out.append(("h", ""))
+                continue
+            # A prospectus has no ITEMs: its centred titles (RISK FACTORS, BUSINESS) lead, its flush-left ones are sub-headings.
+            if not in_items and len(block[0]) - len(block[0].lstrip()) >= 10:
+                top = text
+                out.append(("h", top))
+            else:
+                out.append(("h", f"{top} — {text}" if top else text))
+            continue
+        out.append(("p", " ".join(" ".join(block).split())))
+    return {"ref": ref, "title": title, "url": url, "publishedOn": filed, "sections": sections_from_blocks(out)}
+
+
+def sec_plain_filings(cik, company, accessions, scratch, out):
+    """Plain-text EDGAR filings of one company, one document each, dated by filing date: the full-submission .txt is read (old rows often
+    have no primaryDocument), and its first <DOCUMENT> must be the form the submissions API lists."""
+    scratch = Path(scratch)
+    docs = []
+    for accession in accessions:
+        _, row = sec_filing_row(cik, accession, scratch)
+        url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession.replace('-', '')}/{accession}.txt"
+        submission = fetch(url, scratch / f"{accession}.txt", ua=SEC_UA)
+        _, form = first_sgml_document(submission)
+        assert form == row["form"], (accession, form, row["form"])
+        period = re.search(r"CONFORMED PERIOD OF REPORT:\s*(\d{4})(\d{2})(\d{2})", submission)
+        when = f"period ended {period.group(1)}-{period.group(2)}-{period.group(3)}, " if period else ""
+        doc = plain_text_document(submission, f"{form.lower()}-{accession}", f"{company} Form {form} ({when}filed {row['filingDate']})", url, row["filingDate"])
+        words = sum(len(p.split()) for s in doc["sections"] for p in s["paragraphs"])
+        print(f"{company} {form} filed {row['filingDate']} ({accession}): {len(doc['sections'])} sections, {words} words")
+        docs.append(doc)
+    Path(out).write_text(json.dumps(docs))
+    print(f"{company}: {len(docs)} filings, {sum(len(p.split()) for d in docs for s in d['sections'] for p in s['paragraphs'])} words")
+
+
+# Accessions confirmed in the EDGAR submissions API (#27 research, #38). Amazon: every 10-K and 10-Q from the 10-K405 for 1997
+# (filed 1998-03-30) to the 10-K for 1999 (filed 2000-03-29); its 1990s rows sit in the filings.files pages. Webvan: the S-1, the
+# 424B1 prospectus of its IPO, and the 10-K405 and 10-K, whose filing dates are Webvan Case dates.
+AMAZON_FILINGS = [
+    "0000891020-98-000448",  # 10-K405, 1998-03-30
+    "0000891020-98-000846",  # 10-Q, 1998-05-15
+    "0000891020-98-001313",  # 10-Q, 1998-08-14
+    "0000891020-98-001632",  # 10-Q, 1998-11-13
+    "0000891020-99-000375",  # 10-K, 1999-03-05
+    "0000891020-99-000894",  # 10-Q, 1999-05-17
+    "0000891020-99-001426",  # 10-Q, 1999-08-16
+    "0000891020-99-001938",  # 10-Q, 1999-11-15
+    "0000891020-00-000622",  # 10-K, 2000-03-29
+]
+WEBVAN_FILINGS = [
+    "0000891618-99-003537",  # S-1, 1999-08-06
+    "0000891618-99-004914",  # 424B1, 1999-11-05
+    "0000891618-00-001877",  # 10-K405, 2000-03-30
+    "0001012870-01-001485",  # 10-K, 2001-04-02
+]
+
+
 
 def main():
     source, scratch, out = sys.argv[1:4]
@@ -678,6 +910,13 @@ def main():
         fomc_historical(scratch, out)
     elif source == "sec-anthropic-s1":
         sec_filing("0002130357", "0001628280-26-067168", "anthropicpbc-sx1.htm", "Form S-1 registration statement", scratch, out)
+    elif source == "sec-amazon-1997-2000":
+        sec_plain_filings("0001018724", "Amazon.com, Inc.", AMAZON_FILINGS, scratch, out)
+    elif source == "sec-webvan-1999-2001":
+        sec_plain_filings("0001092657", "Webvan Group, Inc.", WEBVAN_FILINGS, scratch, out)
+    elif source == "sec-wework-s1-2019":
+        # the S-1 as filed on 2019-08-14 only: the September amendments come after every WeWork Case date (reveal material)
+        sec_filing("0001533523", "0001193125-19-220499", "d781982ds1.htm", "Form S-1 registration statement", scratch, out, reader="flowing", company="The We Company")
     else:
         sys.exit(f"unknown source {source}")
 
