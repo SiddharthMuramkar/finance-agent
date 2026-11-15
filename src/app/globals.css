@@ -1712,6 +1712,9 @@ html[data-splitting] * {
 .home-band .btn:active { background-color: var(--blue-tint-2); border-color: var(--blue-tint-2); }
 .band :focus-visible:not(.band-card *),
 .home-band :focus-visible { outline-color: var(--on-band); }
+/* A heading on a Band is the Band's white, even where a page's own defaults colour headings (the site chrome's ink headings
+   around the sign-in strip). */
+.band :is(h1, h2, h3):not(.band-card *) { color: inherit; }
 .band-card { background: var(--band-card); color: var(--ink); }
 /* A floating layer that is a card on a Band (the Topic bar's menus and All steps list) keeps the popover's raised face. */
 .band-card.popover { background-color: var(--raised); }

@@ -97,9 +97,9 @@ const F1_PLACES: readonly BandPlace[] = ["Home's hero", "Home's How every Topic 
 
 const BAND_INVENTORY: Record<string, BandUse> = {
   "src/app/globals.css": {
-    uses: 32,
+    uses: 33,
     verdict: "mapping",
-    why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band and .home-band rules: the surface, its white and 72% text, its 18% rules, its white buttons (whose bars take the Band's blue), its white focus ring and Home's type on it",
+    why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band and .home-band rules: the surface, its white and 72% text, its white headings, its 18% rules, its white buttons (whose bars take the Band's blue), its white focus ring and Home's type on it",
   },
   "src/app/login/page.tsx": { uses: 1, verdict: "band", place: "the sign-in and Waiting pages' top strip", why: "The strip under the public header that holds the sign-in page's heading, the Waiting and Access not approved screens' included" },
   "src/app/workspace-parts.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar across the Study Workspace (F3): title, goal, step bar, All steps and Topic options, above both columns" },

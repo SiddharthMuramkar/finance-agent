@@ -25,8 +25,6 @@
    TextLink, which drew its links in ink with no underline. */
 @layer base {
   .site h1, .site h2, .site h3 { font-family: var(--font-display); color: var(--ink); font-weight: 600; text-wrap: balance; margin: 0; }
-  /* On a Band (the sign-in strip) a heading takes the Band's white, as all its text does (globals.css). */
-  .site .band :is(h1, h2, h3) { color: inherit; }
   .site p { margin: 0; }
   .site strong, .site b { font-weight: 600; color: var(--ink); }
   .site a { color: inherit; text-decoration: none; }
