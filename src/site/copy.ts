@@ -33,12 +33,12 @@ export const chrome = {
 } as const;
 
 /**
- * The CTA and the note under it, by viewer state (§7.1). A visitor's Join opens /join, the sign-up page: Clerk's Waitlist
- * owns it, with its email check and the "you're in" email (#33), and the Clerk cutover adds it. Until then the proxy sends
- * a signed-out /join to the sign-in page, today's way in.
+ * The CTA and the note under it, by viewer state (§7.1). A visitor's Join opens /login, the sign-in page, today's way in.
+ * The Clerk cutover (#33) adds /join, Clerk's Waitlist (its email check and the "you're in" email), and switches this
+ * href to it in the same change: a Join to /join before the page exists sends a person who signs in from it to the 404.
  */
 export const cta = {
-  visitor: { label: "Join early access", href: "/join", note: "Free during early access. We let people in by hand and email you when you’re in." },
+  visitor: { label: "Join early access", href: "/login", note: "Free during early access. We let people in by hand and email you when you’re in." },
   applicant: { label: "Play a real case while you wait", note: "Your request is in. We’ll email you when you’re in." },
   member: { label: "Continue" },
 } as const;

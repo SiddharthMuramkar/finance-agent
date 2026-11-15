@@ -6,8 +6,8 @@ import type { Viewer } from "@/site/viewer";
 import { Button } from "../primitives";
 import { Glyph } from "./parts";
 
-// The CTA by viewer state (spec 7.1): visitors Join early access (to /join, Clerk's Waitlist, #33), applicants play a case
-// while they wait, members Continue.
+// The CTA by viewer state (spec 7.1): visitors Join early access (cta.visitor.href: /login today, /join with the Clerk
+// cutover, #33), applicants play a case while they wait, members Continue.
 
 type Size = "md" | "lg";
 const sized = (size: Size) => (size === "lg" ? " v-btn-lg" : "");
