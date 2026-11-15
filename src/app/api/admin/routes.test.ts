@@ -6,6 +6,7 @@ import { learnerToken } from "@/auth/passcode";
 import { accessDenials, invites, learners, session, user } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
+import { readSettings } from "@/tutor/session-log";
 
 /**
  * The owner's changes on /admin (ADR 0014): two form-post routes behind one guard (owner-post.ts). Same site first
@@ -32,6 +33,7 @@ vi.mock("@/auth/better-auth", () => {
 
 const accessRoute = await import("./access/route");
 const invitesRoute = await import("./invites/route");
+const capsRoute = await import("./caps/route");
 
 const SITE = "https://www.value-it.xyz";
 const SECRET = "test-secret";
@@ -44,8 +46,8 @@ const request = (path: string, fields: Record<string, string>, headers: Record<s
   new Request(`${SITE}/api/admin/${path}`, { method: "POST", headers, body: new URLSearchParams(fields) });
 
 /** Posts as whoever `jar` says is signed in; a 303 must go to /admin with a code and a section, and nothing else. */
-async function send(path: "access" | "invites", fields: Record<string, string>, headers?: Record<string, string>) {
-  const route = path === "access" ? accessRoute : invitesRoute;
+async function send(path: "access" | "invites" | "caps", fields: Record<string, string>, headers?: Record<string, string>) {
+  const route = { access: accessRoute, invites: invitesRoute, caps: capsRoute }[path];
   const response = await route.POST(request(path, fields, headers));
   const location = response.headers.get("location");
   if (response.status === 303) {
@@ -93,11 +95,13 @@ describe("the /admin routes", () => {
     const approve = { userId: noor.id, action: "approve" };
     const deny = { userId: asha.id, action: "deny", confirm: "deny" };
     const invite = { email: "mia@x.com" };
+    const caps = { turns_per_learner_day: "1", usd_per_learner_day: "1", usd_global_day: "1" };
     const crossSite: Record<string, string>[] = [{ "sec-fetch-site": "cross-site", origin: "https://evil.example" }, { origin: "https://evil.example" }, {}];
     for (const headers of crossSite) {
       expect((await send("access", approve, headers)).status, JSON.stringify(headers)).toBe(403);
       expect((await send("access", deny, headers)).status, JSON.stringify(headers)).toBe(403);
       expect((await send("invites", invite, headers)).status, JSON.stringify(headers)).toBe(403);
+      expect((await send("caps", caps, headers)).status, JSON.stringify(headers)).toBe(403);
     }
 
     const notOwner: [string, () => Promise<void>][] = [
@@ -117,9 +121,10 @@ describe("the /admin routes", () => {
       expect((await send("access", approve)).status, who).toBe(404);
       expect((await send("access", deny)).status, who).toBe(404);
       expect((await send("invites", invite)).status, who).toBe(404);
+      expect((await send("caps", caps)).status, who).toBe(404);
     }
 
-    for (const route of [accessRoute, invitesRoute]) {
+    for (const route of [accessRoute, invitesRoute, capsRoute]) {
       const get = await route.GET();
       expect(get.status).toBe(405);
       expect(get.headers.get("allow")).toBe("POST");
@@ -129,6 +134,20 @@ describe("the /admin routes", () => {
     expect(await jar.db.select().from(accessDenials)).toEqual([]);
     expect(await inviteFor(jar.db, "mia@x.com")).toBeNull();
     expect(await sessionsOf(asha.id)).toBe(1);
+    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 120, learnerUsdPerDay: 5, globalUsdPerDay: 30 });
+  });
+
+  it("caps saves every Spend cap at once, and a missing or bad value saves none of them", async () => {
+    const fields = { turns_per_learner_day: " 90 ", usd_per_learner_day: "2.5", usd_global_day: "0" };
+    expect(await send("caps", fields)).toEqual({ status: 303, location: "/admin?done=caps_saved#caps" });
+    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 90, learnerUsdPerDay: 2.5, globalUsdPerDay: 0 });
+
+    const bad = [{ usd_global_day: "" }, { turns_per_learner_day: "1.5" }, { usd_per_learner_day: "-1" }, { usd_per_learner_day: "0.001" }, { usd_global_day: "1e3" }, { turns_per_learner_day: "10001" }];
+    for (const change of bad) {
+      expect(await send("caps", { ...fields, turns_per_learner_day: "7", ...change }), JSON.stringify(change)).toEqual({ status: 303, location: "/admin?done=bad_caps#caps" });
+    }
+    expect(await send("caps", { turns_per_learner_day: "7", usd_per_learner_day: "2.5" })).toEqual({ status: 303, location: "/admin?done=bad_caps#caps" });
+    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 90, learnerUsdPerDay: 2.5, globalUsdPerDay: 0 });
   });
 
   it("approve lets a waiting person in at once; approving again changes nothing", async () => {

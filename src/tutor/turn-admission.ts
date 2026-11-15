@@ -12,13 +12,15 @@ import { turnFacts } from "./turn-facts";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { widgetReportNote } from "./widget-context";
 import { pressedChoiceWords } from "./reply-choices";
+import { CAP_MESSAGES, checkQuota } from "./quota";
 import type { PastedInput, TurnDeps, TurnEvent, TurnInput } from "./turn";
 
 /**
  * Turn admission: every "may this turn run?" rule, before the Tutor Turn runs (turn.ts). It refuses a request from a tab
- * showing another Topic, works out the note code writes for the input's kind, takes the Learner's one-turn lock (a new
- * turn, or a resume of the last one), and refuses a Next or a follow-up with nothing to do, freeing the lock again. A
- * refusal saves and sends nothing. What it admits is the claimed turn, with the items to show before the reply.
+ * showing another Topic, works out the note code writes for the input's kind, refuses a new turn past a daily Spend cap
+ * (quota.ts), takes the Learner's one-turn lock (a new turn, or a resume of the last one), and refuses a Next or a
+ * follow-up with nothing to do, freeing the lock again. A refusal saves and sends nothing. What it admits is the claimed
+ * turn, with the items to show before the reply. The rules run in that order (turn-admission.test.ts).
  */
 
 /** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
@@ -29,7 +31,7 @@ export const NO_DRILL = "There is no drill due in this Topic.";
 export const NO_SUCH_CHOICE = "That choice is no longer on offer. Pick one under the latest reply, or type a message.";
 
 /** What the admission rules may answer instead of a turn: nothing was saved or sent. */
-export type Refusal = Extract<TurnEvent, { type: "stale" | "not_allowed" | "busy" }>;
+export type Refusal = Extract<TurnEvent, { type: "stale" | "not_allowed" | "over_limit" | "busy" }>;
 
 /**
  * The admission's answer: a refusal, or the claimed turn. `items` come before the reply (a Next's step dividers, the
@@ -88,6 +90,9 @@ export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<
     if (says === null) return { refusal: { type: "not_allowed", message: NO_SUCH_CHOICE } };
     started = says;
   } else if (!resuming) started = learnerTextOf(input);
+  // The daily Spend caps, for a new turn only: a resume carries on a turn that already got in. A refused turn writes no row.
+  const capHit = resuming ? null : await checkQuota(db, learnerId, now());
+  if (capHit) return { refusal: { type: "over_limit", message: CAP_MESSAGES[capHit] } };
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) return { refusal: { type: "busy", message: BUSY_MESSAGE } };
   let turn = claim.turn;

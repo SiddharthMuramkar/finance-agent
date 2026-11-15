@@ -7,10 +7,10 @@
 export const DENY_CONFIRM = "deny";
 
 /** The sections of /admin, by their element id. A change's message shows in the section the person ended up in. */
-export type AdminSection = "waiting" | "people" | "denied" | "invite";
+export type AdminSection = "waiting" | "people" | "denied" | "invite" | "caps";
 
 /** Every result an admin change can report. */
-export type AdminDone = "approved" | "approved_no_learner" | "denied" | "owner_stays" | "gone" | "invited" | "already" | "bad_email" | "invited_denied";
+export type AdminDone = "approved" | "approved_no_learner" | "denied" | "owner_stays" | "gone" | "invited" | "already" | "bad_email" | "invited_denied" | "caps_saved" | "bad_caps";
 
 /** Each result's section and words. `problem` results read as an alert (nothing, or not all, was done). */
 export const ADMIN_DONE: Record<AdminDone, { section: AdminSection; text: string; problem?: true }> = {
@@ -27,6 +27,8 @@ export const ADMIN_DONE: Record<AdminDone, { section: AdminSection; text: string
   already: { section: "invite", text: "That email is already invited. Nothing changed." },
   bad_email: { section: "invite", text: "That isn't an email address. Check it and try again.", problem: true },
   invited_denied: { section: "denied", text: "Invited, but you denied this person. Approve them here to let them in.", problem: true },
+  caps_saved: { section: "caps", text: "Saved. The next turn uses the new caps." },
+  bad_caps: { section: "caps", text: "Each cap must be a number from 0 up, dollars to the cent. Nothing changed.", problem: true },
 };
 
 /** The `done` query value as a known result, or null for anything else (an old or hand-typed address shows nothing). */
