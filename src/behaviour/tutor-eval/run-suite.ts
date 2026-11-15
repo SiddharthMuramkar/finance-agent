@@ -71,7 +71,7 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
     }
     const started = performance.now();
     const input = c.opener ? ({ opener: true } as const) : c.answer ? ({ quickTryFollowUp: true } as const) : c.message;
-    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false }, input)) {
+    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false, noLimits: true }, input)) {
       if (e.type === "text") text += e.text;
       if (e.type === "replay") text = e.text;
       if (e.type === "done") {
@@ -135,7 +135,7 @@ async function runDialogue(c: DialogueCase, run: number, deps: SuiteDeps, map: C
         let done: { sessionId: number; turnSeq: number } | null = null;
         const turnNo = i + 1;
         const client = turnNo === c.rejectDraft ? rejectingFirstDraft(deps.tutorClient(c, run)) : deps.tutorClient(c, run);
-        for await (const e of runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: c.checkReplies === true }, message)) {
+        for await (const e of runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: c.checkReplies === true, noLimits: true }, message)) {
           if (e.type === "text") text += e.text;
           if (e.type === "replay") text = e.text;
           if (e.type === "done") {
