@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 // ADR 0013's type: Inter for text and Inter Tight for headings, loaded once in the root layout through next/font
-// (self-hosted, no call to Google), both put on <body> as CSS variables; Manrope is gone. <html> stays untouched,
-// because the head script alone sets the theme on it.
+// (self-hosted, no call to Google), both put on <body> as CSS variables; Manrope is gone. <html> carries only its
+// language: one Light theme (decision #17) needs no theme attributes and no head script.
 
 const layout = readFileSync("src/app/layout.tsx", "utf8");
 
@@ -16,9 +16,10 @@ describe("fonts", () => {
     expect(layout).toMatch(/<body className=\{`[^`]*\$\{text\.variable\} \$\{display\.variable\}`\}>/);
   });
 
-  it("drops Manrope and leaves <html> as it was", () => {
+  it("drops Manrope, and <html> carries only its language: no theme script", () => {
     expect(layout).not.toContain("Manrope");
-    expect(layout).toContain("<html lang=\"en\" suppressHydrationWarning>");
+    expect(layout).toContain('<html lang="en">');
+    expect(layout).not.toMatch(/THEME_INIT_SCRIPT|dangerouslySetInnerHTML|suppressHydrationWarning/);
   });
 
   it("gives body the text font first, with the system stack behind it", () => {

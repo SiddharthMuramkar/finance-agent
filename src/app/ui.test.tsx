@@ -81,14 +81,13 @@ describe("AppHeader", () => {
     expect(html.match(/class="bar"/g)).toHaveLength(4);
   });
 
-  it("orders the header: brand, the three pages, theme, Settings gear, account", () => {
+  it("orders the header: brand, the three pages, Settings gear, account", () => {
     const html = header("course");
     const at = (pattern: RegExp) => html.search(pattern);
     const order = [
       at(/href="\/study"[^>]*><span[^>]*>Study</),
       at(/href="\/course"[^>]*><span[^>]*>Course Map</),
       at(/href="\/notebook"[^>]*><span[^>]*>Notebook</),
-      at(/aria-label="Switch to dark theme"/),
       at(/aria-label="Settings"/),
       at(/aria-label="Account menu"/),
     ];

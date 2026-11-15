@@ -4,12 +4,14 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CHART_SERIES, CHART_SURFACES } from "@/widgets/genui-theme";
 
-// Issue #457, spec 2026-11-05 §4 rule 4 and spec 2026-11-11 A10a (ADR 0014), seam S7. The family colours (--mint, --coral,
-// --sun and --violet, plus --you-line and --src-line, the mint and sunflower under their older names) appear in a Widget only
-// as thin marks: a 1-2 px edge or rule, a dot or an Icon stroke beside words that already say what it means. This inventory
+// Issue #457, spec §2.2 rules 1 and 6, spec 2026-11-11 A10a (ADR 0014), seam S7. The signal colours (--gain, --gain-deep,
+// --loss and --wait; decision #17) and the older family names (--mint is gain, --coral is loss; --sun, --violet, --you-line
+// and --src-line now point at ink, muted and blue, and stay listed until their files move to the spec names) appear in a
+// Widget only as small marks: a 1-2 px edge or rule, a dot, a bar or an Icon stroke beside words that already say what it
+// means. This inventory
 // holds every place src/ paints one, with its verdict: "mark" (a thin mark beside words), "mapping" (the token mappings in
 // globals.css, which paint nothing alone) or "colour-only" (the kit's chart series, which carry meaning by colour alone, so
-// their [fill, surface] pairs are in COLOUR_ONLY in scripts/check-theme-contrast.mjs and checked at 3:1 in both themes). A
+// their [fill, surface] pairs are in COLOUR_ONLY in scripts/check-theme-contrast.mjs and checked at 3:1). A
 // new use changes its file's count, so this test fails until someone decides which it is.
 
 type Verdict = "mark" | "mapping" | "colour-only";
@@ -17,9 +19,9 @@ type Use = { uses: number; verdict: Verdict; why: string; pairs?: [string, strin
 
 const INVENTORY: Record<string, Use> = {
   "src/app/globals.css": {
-    uses: 13,
+    uses: 21,
     verdict: "mapping",
-    why: "Name mappings for Tailwind (--color-*) and OpenUI (--openui-border-*), which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent since ADR 0013, no mint)",
+    why: "Name mappings: the older names pointed at the signal tokens (--mint, --coral, --danger ... at --gain and --loss), Tailwind's --color-* and OpenUI's --openui-border-*, which paint nothing by themselves, and the dot of each toned Tag, whose words always say the status (the Value It bars are solid accent since ADR 0013, no mint)",
   },
   "src/app/_landing/home-explorable.tsx": {
     uses: 3,
@@ -41,7 +43,7 @@ const INVENTORY: Record<string, Use> = {
   "src/widgets/genui-theme.tsx": {
     uses: 3,
     verdict: "colour-only",
-    why: "The three counted uses are OpenUI's success, alert and danger borders, which are paired: only danger paints, on labelled destructive buttons, an input error (whose own border is coral-ink, 5.5:1) and a tool error (icon and text). The kit's chart series are colour-only: a series mark is needed to read the chart and a legend does not exempt it, so every CHART_SERIES token is checked at 3:1 on each chart surface (review C1)",
+    why: "The three counted uses are OpenUI's success, alert and danger borders (gain, wait, loss), which are paired: only danger paints, on labelled destructive buttons, an input error (whose own border is loss-ink) and a tool error (icon and text). The kit's chart series are colour-only: a series mark is needed to read the chart and a legend does not exempt it, so every CHART_SERIES token is checked at 3:1 on each chart surface (review C1)",
     pairs: CHART_SERIES.flatMap((series) => CHART_SURFACES.map((surface): [string, string] => [series, surface])),
   },
   "src/widgets/primitives/wave1/breakeven.tsx": {
@@ -117,10 +119,10 @@ function bandUses(text: string): number {
   return text.match(BAND)?.length ?? 0;
 }
 
-// A fill is painted three ways: var(--mint) (also inside bg-[var(--mint)]); the bg-(--mint) shorthand; or a Tailwind 4
-// utility named after the --color-* mapping in globals.css (bg-mint, border-t-sun, hover:fill-coral/40, from-violet, …). A
-// name that runs on (mint-ink, sun-tag, coral-tint) is another token, not a fill.
-const NAMES = "(?:mint|coral|sun|violet|you-line|src-line)";
+// A fill is painted three ways: var(--gain) (also inside bg-[var(--gain)]); the bg-(--gain) shorthand; or a Tailwind 4
+// utility named after the --color-* mapping in globals.css (bg-gain, border-t-wait, hover:fill-loss/40, from-mint, …). A
+// name that runs on (gain-ink, wait-tint, loss-line, mint-ink) is another token, not a fill.
+const NAMES = "(?:gain|gain-deep|loss|wait|mint|coral|sun|violet|you-line|src-line)";
 const UTILITY = "(?:bg|text|fill|stroke|ring|ring-offset|inset-ring|outline|border(?:-[xytrblse])?|divide|from|via|to|decoration|shadow|inset-shadow|accent|caret|placeholder)";
 const FILL = new RegExp(`(?:var)?\\(--${NAMES}\\)|(?<![\\w-])${UTILITY}-${NAMES}(?![\\w-])`, "g");
 const SRC = join(process.cwd(), "src");
@@ -156,6 +158,8 @@ describe("accent fills and the 3:1 rule", () => {
     expect(fillUses('className="from-mint via-sun to-coral decoration-violet border-t-sun text-violet"')).toBe(6);
     expect(fillUses('className="bg-(--mint) bg-[var(--coral)]" style={{ color: "var(--sun)" }}')).toBe(3);
     expect(fillUses('className="bg-mint-tint text-coral-ink border-sun-tag bg-(--violet-ink) var(--mint-ink) bg-you"')).toBe(0);
+    expect(fillUses('className="bg-gain border-t-wait fill-loss" style={{ color: "var(--gain-deep)" }}')).toBe(4);
+    expect(fillUses('className="bg-gain-tint text-loss-ink border-wait-line bg-(--gain-ink)"')).toBe(0);
   });
 
   it("has a verdict for every accent fill in src", () => {
@@ -189,15 +193,14 @@ describe("accent fills and the 3:1 rule", () => {
     expect(done.status).toBe(0);
   });
 
-  // Spec F5: this list gains the Bands. Appendix C names the two family colours a Band may carry: sunflower, a history mark
-  // (4.5:1, so it may also be words), and mint, graphics only (3:1, never text). The contrast script checks both against
-  // --band in both themes, so a fill added on a Band later already has its pair; it still needs its row above.
-  it("has the contrast script check sunflower and mint against the Band in both themes", () => {
+  // Spec F5 named two family colours a Band could carry (sunflower and mint). Under the Signal colours (decision #17) neither
+  // reads on the royal Band (sunflower is ink now, and green on blue is 2.96:1), so no signal colour sits on a Band: the
+  // contrast script checks only white, white at 72%, the 18% rule and the white button's ink there.
+  it("has the contrast script check only white and ink against the Band", () => {
     const done = spawnSync(process.execPath, [join(process.cwd(), "scripts/check-theme-contrast.mjs")], { encoding: "utf8" });
-    for (const theme of ["light", "dark"]) {
-      expect(done.stdout).toMatch(new RegExp(`ok +${theme}: --sun on --band \\d+\\.\\d\\d:1 \\(min 4\\.5[,)]`));
-      expect(done.stdout).toMatch(new RegExp(`ok +${theme}: --mint on --band \\d+\\.\\d\\d:1 \\(min 3[,)]`));
-    }
+    expect(done.stdout).toMatch(/ok +--on-band on --band 8\.82:1/);
+    expect(done.stdout).toMatch(/ok +--on-band-2 on --band 5\.36:1/);
+    expect(done.stdout).not.toMatch(/--(?:sun|mint|gain|loss|wait) on --band/);
     expect(done.status).toBe(0);
   });
 });
