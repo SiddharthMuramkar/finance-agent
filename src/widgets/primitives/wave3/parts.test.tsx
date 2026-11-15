@@ -461,23 +461,26 @@ describe("no key figure: the answer is the picture or the story (A9b, guard)", (
 });
 
 describe("right and wrong are status, never a tinted card (A9c)", () => {
-  it("a wrong Myth turns its verdict line to the danger status, with an Icon, and no card is tinted", () => {
+  // Spec §2.2 rule 5 (decision #17): the verdict words are ink; the red cross beside them carries the colour.
+  it("a wrong Myth says so in ink words beside a danger Icon, and no card is tinted", () => {
     show(<MythOrFactTest picks={["myth", null]} />);
     const card = page!.host.querySelectorAll<HTMLElement>('[data-testid="myth-card"]')[0];
     expect(card.dataset.verdict).toBe("wrong");
     const verdict = card.querySelector<HTMLElement>('[role="status"] p')!;
-    expect(verdict.className).toContain("text-[var(--danger)]");
+    expect(verdict.className).toContain("text-[var(--ink)]");
     expect(verdict.querySelectorAll("svg")).toHaveLength(1);
+    expect(verdict.querySelector("svg")!.getAttribute("stroke")).toBe("var(--danger)");
     for (const c of page!.host.querySelectorAll('[data-testid="myth-card"]')) expect(c.getAttribute("class")).not.toContain("-tint");
     expect(page!.host.innerHTML).not.toMatch(/-tint\)/);
   });
 
-  it("a right ChoiceCards pick says so in the success status, with an Icon, on a pressed card with no face of its own", () => {
+  it("a right ChoiceCards pick says so in ink words beside a success Icon, on a pressed card with no face of its own", () => {
     show(choiceCards("a"));
     const status = byId(page!, "choice-status")!;
-    const line = status.querySelector<HTMLElement>('[class*="text-[var(--success)]"]');
-    expect(line, "the success status line").not.toBeNull();
+    const line = status.querySelector<HTMLElement>('[class*="text-[var(--ink)]"]');
+    expect(line, "the status line").not.toBeNull();
     expect(line!.querySelectorAll("svg")).toHaveLength(1);
+    expect(line!.querySelector("svg")!.getAttribute("stroke")).toBe("var(--success)");
     const picked = [...page!.host.querySelectorAll<HTMLElement>('[data-testid="choice"]')].find((c) => c.getAttribute("aria-pressed") === "true")!;
     expect(picked.textContent).toContain("Rates rose");
     expect(picked.style.getPropertyValue("--face")).toBe("");
