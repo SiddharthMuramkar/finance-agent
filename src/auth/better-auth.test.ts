@@ -176,7 +176,7 @@ describe("which ways in are on", () => {
     const ids = (env: Record<string, string>) => authOptions(db, env).plugins.map((p) => p.id);
     expect(ids(EMAIL)).toContain("magic-link");
     expect(ids(ENV)).not.toContain("magic-link");
-    expect(ids({ ...EMAIL, ...ENV })).toEqual(["magic-link", "next-cookies"]);
+    expect(ids({ ...EMAIL, ...ENV })).toEqual(["captcha", "magic-link", "next-cookies"]);
     expect(authOptions(db, EMAIL).rateLimit).toEqual({ storage: "database", customRules: { "/sign-in/magic-link": { window: 900, max: 10 } } });
   });
 });
