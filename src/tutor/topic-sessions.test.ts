@@ -371,7 +371,7 @@ describe("a Topic passed in a turn", () => {
     expect(await passedTopicShown(db, twoTopics, OWNER_LEARNER_ID, { topicId: "bonds" })).toBeNull();
   });
 
-  it("a Retry of a turn left unfinished in a Claude-era Session of a Topic since passed reruns in that Topic, and starts nothing", async () => {
+  it("a Retry of a turn left unfinished in an older model's Session of a Topic since passed reruns in that Topic, and starts nothing", async () => {
     const db = await testDb();
     await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Hi", [say("Hello.")]);

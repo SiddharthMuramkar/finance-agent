@@ -190,8 +190,8 @@ export async function sessionForTurn(db: Db, now: Date, learnerId: number, topic
  * "existing Sessions keep theirs"); a changed default reaches new Sessions only.
  */
 export async function refreezeIfChanged(db: Db, session: Session): Promise<Session> {
-  // A Claude-era Session is retired before any turn runs in it (retireLegacySessions), never refrozen.
-  if (isLegacySession(session)) throw new Error(`Session ${session.id} was frozen for ${session.model}, not ${TUTOR_MODEL}: it should have been retired.`);
+  // A Session frozen for an older model is retired before any turn runs in it (retireOldModelSessions), never refrozen.
+  if (isOldModelSession(session)) throw new Error(`Session ${session.id} was frozen for ${session.model}, not ${TUTOR_MODEL}: it should have been retired.`);
   const { instructions, tools, fingerprint } = await frozenNow(db);
   if (session.fingerprint === fingerprint) return session;
   const [{ last }] = await db.select({ last: max(messages.seq) }).from(messages).where(eq(messages.sessionId, session.id));
@@ -203,33 +203,37 @@ export async function refreezeIfChanged(db: Db, session: Session): Promise<Sessi
   return row;
 }
 
-/** Whether a Session was frozen for another model than TUTOR_MODEL: a Claude-era Session (ADR 0015), never sent to OpenAI. */
-export function isLegacySession(session: { model: string }): boolean {
+/**
+ * Whether a Session was frozen for another model than TUTOR_MODEL. After each TUTOR_MODEL change, every Session frozen
+ * before it is one (ADR 0015): a turn never runs in it, and nothing of it is sent to the new model.
+ */
+export function isOldModelSession(session: { model: string }): boolean {
   return session.model !== TUTOR_MODEL;
 }
 
 /**
- * Closes the Learner's live Claude-era Sessions for a Topic (null: the every-Topic-passed Session), ADR 0015. Each is
- * marked older, so it stays readable under Older sessions, and the Topic's next turn makes a fresh Session at the
+ * Closes the Learner's live Sessions for a Topic that were frozen for an older model (null: the every-Topic-passed
+ * Session), ADR 0015. It acts after every TUTOR_MODEL change, because a refreeze never changes a Session's model. Each
+ * is marked older, so it stays readable under Older sessions, and the Topic's next turn makes a fresh Session at the
  * Learner's saved step (their progress, misconceptions and profile reach it through code's context). One that holds
  * no message yet is simply refrozen in place, so no empty Older Session appears. Runs under the Learner's row lock,
  * which a Next and the study page's Widget step-finish also take, so none of them writes into a Session as it closes.
  * Never sets `restartedAt`: that marks a Learner's own Start a Topic over. Returns whether a Session was closed.
  */
-export async function retireLegacySessions(db: Db, learnerId: number, topicId: string | null): Promise<boolean> {
-  const liveLegacy = (q: Db) =>
+export async function retireOldModelSessions(db: Db, learnerId: number, topicId: string | null): Promise<boolean> {
+  const liveOld = (q: Db) =>
     q
       .select({ id: sessions.id })
       .from(sessions)
       .where(and(eq(sessions.learnerId, learnerId), eq(sessions.older, false), ne(sessions.model, TUTOR_MODEL), topicId === null ? isNull(sessions.topicId) : eq(sessions.topicId, topicId)));
   // Almost every turn finds none: no lock is taken then.
-  if (!(await liveLegacy(db)).length) return false;
+  if (!(await liveOld(db)).length) return false;
   return db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
     await tx.select({ id: learnerState.id }).from(learnerState).where(eq(learnerState.learnerId, learnerId)).for("update");
-    const legacy = await liveLegacy(tx);
+    const old = await liveOld(tx);
     const closed: number[] = [];
-    for (const { id } of legacy) {
+    for (const { id } of old) {
       const [used] = await tx.select({ seq: messages.seq }).from(messages).where(eq(messages.sessionId, id)).limit(1);
       if (used) {
         await tx.update(sessions).set({ older: true }).where(eq(sessions.id, id));
@@ -245,15 +249,16 @@ export async function retireLegacySessions(db: Db, learnerId: number, topicId: s
 }
 
 /**
- * Whether `shownId` is a Claude-era Session closed in favour of `liveId`: the same Learner and Topic. A tab still showing
- * the old Session may then resume the new Session's unfinished turn (its page learns of the new Session only on "done").
+ * Whether `shownId` is an older model's Session closed in favour of `liveId`: the same Learner and Topic. A tab still
+ * showing the old Session may then resume the new Session's unfinished turn (its page learns of the new Session only
+ * on "done").
  */
 export async function closedInFavourOf(db: Db, learnerId: number, shownId: number, liveId: number | null): Promise<boolean> {
   if (liveId === null || shownId === liveId) return false;
   const rows = await db.select().from(sessions).where(and(eq(sessions.learnerId, learnerId), inArray(sessions.id, [shownId, liveId])));
   const shown = rows.find((r) => r.id === shownId);
   const live = rows.find((r) => r.id === liveId);
-  return shown !== undefined && live !== undefined && shown.older && isLegacySession(shown) && !isLegacySession(live) && shown.topicId === live.topicId;
+  return shown !== undefined && live !== undefined && shown.older && isOldModelSession(shown) && !isOldModelSession(live) && shown.topicId === live.topicId;
 }
 
 /**
@@ -394,7 +399,7 @@ async function turnStarts(db: Db, sessionId: number): Promise<number[]> {
   return rows.map((r) => r.seq!);
 }
 
-/** Assistant content without its reasoning: the raw `replay` output (and a Claude-era row's thinking blocks); anything else unchanged. */
+/** Assistant content without its reasoning: the raw `replay` output (and an older Claude row's thinking blocks); anything else unchanged. */
 function withoutReasoning(content: unknown): unknown {
   return Array.isArray(content) ? content.filter((b) => b?.type !== "replay" && b?.type !== "thinking" && b?.type !== "redacted_thinking") : content;
 }

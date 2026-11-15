@@ -13,7 +13,7 @@ import { reviewState } from "@/learner/review";
 import { skipAheadState } from "@/learner/skip-ahead";
 import { showsWelcome } from "@/learner/welcome";
 import { loadWidgetStates } from "@/learner/widget-state";
-import { currentTopicId, passedTopicShown, retireLegacySessions, shownInWorkspace } from "@/tutor/session-log";
+import { currentTopicId, passedTopicShown, retireOldModelSessions, shownInWorkspace } from "@/tutor/session-log";
 import { comingBackItems } from "@/tutor/coming-back";
 import { cardFound } from "@/tutor/topic-complete";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
@@ -54,9 +54,9 @@ export default async function WorkspacePage() {
   const learnerId = learner.id;
   // A new Learner (no Sessions, no Topic chosen yet) sees the Welcome before anything else.
   if (await showsWelcome(db, learnerId)) redirect("/welcome");
-  // The current Topic's Claude-era Session (ADR 0015) is closed on this visit, unless a turn is running in it: the page
+  // The current Topic's Session of an older model (ADR 0015) is closed on this visit, unless a turn is running in it: the page
   // then shows the Topic with no Session and starts the opener, a fresh conversation at the Learner's saved step.
-  if ((await latestTurn(db, learnerId))?.status !== "running") await retireLegacySessions(db, learnerId, await currentTopicId(db, map, learnerId));
+  if ((await latestTurn(db, learnerId))?.status !== "running") await retireOldModelSessions(db, learnerId, await currentTopicId(db, map, learnerId));
   // A step that finishes from what the Learner did in a Widget (its `doneWhen`) is finished now, from the saved Widget
   // state; its divider and Widget chip are stored for the step that begins. Most renders have no such step and do nothing.
   await finishStepFromWidget(db, map, learnerId, new Date());

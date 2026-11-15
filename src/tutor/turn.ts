@@ -31,11 +31,11 @@ import { type ToolDefinition } from "./instructions";
 import {
   currentTopicId,
   isCompaction,
-  isLegacySession,
+  isOldModelSession,
   openLog,
   readSettings,
   refreezeIfChanged,
-  retireLegacySessions,
+  retireOldModelSessions,
   withoutRejected,
   saveShownSession,
   sessionForTurn,
@@ -474,9 +474,9 @@ async function* runLockedTurn(
   let resumed: { session: Session; log: Log; turnSeq: number } | undefined;
   if (typeof input === "object" && "resume" in input && turn.sessionId !== null && turn.turnSeq !== null) {
     const [saved] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
-    // A turn left unfinished in a Claude-era Session is run afresh, from its saved message, in the Topic's new Session.
+    // A turn left unfinished in an older model's Session is run afresh, from its saved message, in the Topic's new Session.
     const turnSeq = turn.turnSeq;
-    const savedLog = saved && !isLegacySession(saved) && (await openLog(db, saved.id, now, turnSeq));
+    const savedLog = saved && !isOldModelSession(saved) && (await openLog(db, saved.id, now, turnSeq));
     if (savedLog && savedLog.rows.some((r) => r.seq === turnSeq)) resumed = { session: saved, log: savedLog, turnSeq };
   }
   // Whether this is an own-question turn (A5): the Learner typed it, with no quiz Check open and no conversation Check
@@ -514,7 +514,7 @@ async function* runLockedTurn(
     const saved = turn.input === OLD_CONTINUE_TEXT ? null : turn.input;
     const learnerText = typeof input === "string" || "paste" in input ? learnerTextOf(input) : (saved ?? FINISH_NOTE);
     // Complete this Topic passed the Topic its Next pinned: the turn closes it in that Session, and starts nothing else.
-    // So does a Retry of a turn left unfinished in a Claude-era Session of a Topic since passed: it reruns in that
+    // So does a Retry of a turn left unfinished in an older model's Session of a Topic since passed: it reruns in that
     // Topic's new Session, never in the next Topic's.
     const completed = await completedSession(db, map, turn, now(), typeof input === "object" && "resume" in input);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
@@ -530,9 +530,9 @@ async function* runLockedTurn(
     const place = completed ? null : await ensureTopicStarted(db, map, now(), learnerId);
     // The live Session for the current Topic (made by its first turn), refrozen if a deploy changed the instructions.
     let target = completed ?? (await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));
-    // The turn moved to a Topic whose live Session is Claude-era (a Due Check reopening it): closed, and made afresh.
-    if (isLegacySession(target)) {
-      await retireLegacySessions(db, learnerId, target.topicId);
+    // The turn moved to a Topic whose live Session is an older model's (a Due Check reopening it): closed, and made afresh.
+    if (isOldModelSession(target)) {
+      await retireOldModelSessions(db, learnerId, target.topicId);
       target = await sessionForTurn(db, now(), learnerId, target.topicId);
     }
     session = await refreezeIfChanged(db, target);
@@ -1245,20 +1245,20 @@ async function* runLockedTurn(
 
 /**
  * The Session a Next turn pinned when its Complete this Topic passed that Topic (it is no longer the current
- * Topic's), or undefined. Read from the turn, so a Retry finds it too. A Claude-era Session pinned before the
- * switch (ADR 0015) is closed, and the closing reply goes to a fresh Session of that Topic instead. A resumed turn
- * of any kind left in a Claude-era Session of a Topic that is no longer current is pinned the same way, so it is
- * answered in that Topic and starts nothing in the next one.
+ * Topic's), or undefined. Read from the turn, so a Retry finds it too. A Session pinned before a TUTOR_MODEL change
+ * (an older model's, ADR 0015) is closed, and the closing reply goes to a fresh Session of that Topic instead. A
+ * resumed turn of any kind left in an older model's Session of a Topic that is no longer current is pinned the same
+ * way, so it is answered in that Topic and starts nothing in the next one.
  */
 async function completedSession(db: Db, map: CourseMap, turn: Turn, now: Date, resuming = false): Promise<Session | undefined> {
   const next = turnKind(turn) === "next";
   if ((!next && !resuming) || turn.sessionId === null) return undefined;
   const [pinned] = await db.select().from(sessions).where(and(eq(sessions.id, turn.sessionId), eq(sessions.learnerId, turn.learnerId)));
   if (!pinned || pinned.topicId === (await currentTopicId(db, map, turn.learnerId))) return undefined;
-  // Any other resumed turn is rerun from its message where the Learner is now; only a Claude-era one is pinned to its Topic.
-  if (!next && !isLegacySession(pinned)) return undefined;
-  if (!isLegacySession(pinned)) return pinned;
-  await retireLegacySessions(db, turn.learnerId, pinned.topicId);
+  // Any other resumed turn is rerun from its message where the Learner is now; only an older model's is pinned to its Topic.
+  if (!next && !isOldModelSession(pinned)) return undefined;
+  if (!isOldModelSession(pinned)) return pinned;
+  await retireOldModelSessions(db, turn.learnerId, pinned.topicId);
   return sessionForTurn(db, now, turn.learnerId, pinned.topicId);
 }
 
