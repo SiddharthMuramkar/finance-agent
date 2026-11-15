@@ -17,7 +17,7 @@ export function identityFromClaims(userId: string, claims: CustomJwtSessionClaim
   return {
     userId,
     email: text(claims?.email),
-    firstName: text(claims?.firstName),
+    firstName: text(claims?.first_name),
     admin: typeof metadata === "object" && metadata !== null && metadata.role === "admin",
   };
 }

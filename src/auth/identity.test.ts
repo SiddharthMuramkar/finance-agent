@@ -45,8 +45,10 @@ describe("clerkOn", () => {
 });
 
 describe("identityFromClaims", () => {
+  // The claim names are the ones the Clerk instance's session token carries (`clerk config patch`, issue #33):
+  // `first_name` in snake case, as Clerk names it, never `firstName`.
   it("reads email, first name and the admin role from the custom claims", () => {
-    expect(identityFromClaims("user_1", { email: "o@x.com", firstName: " Sid ", metadata: { role: "admin" } })).toEqual({
+    expect(identityFromClaims("user_1", { email: "o@x.com", first_name: " Sid ", metadata: { role: "admin" } })).toEqual({
       userId: "user_1",
       email: "o@x.com",
       firstName: "Sid",
@@ -56,9 +58,13 @@ describe("identityFromClaims", () => {
 
   it("reads a missing or malformed claim as null, and anything but role admin as not admin", () => {
     expect(identityFromClaims("user_2", null)).toEqual({ userId: "user_2", email: null, firstName: null, admin: false });
-    expect(identityFromClaims("user_2", { email: 3, firstName: "", metadata: "admin" } as never)).toEqual({ userId: "user_2", email: null, firstName: null, admin: false });
+    expect(identityFromClaims("user_2", { email: 3, first_name: "", metadata: "admin" } as never)).toEqual({ userId: "user_2", email: null, firstName: null, admin: false });
     expect(identityFromClaims("user_2", { metadata: { role: "Admin" } }).admin).toBe(false);
     expect(identityFromClaims("user_2", { metadata: {} }).admin).toBe(false);
+  });
+
+  it("does not read a camel-case firstName claim: the session token never carries one", () => {
+    expect(identityFromClaims("user_3", { firstName: "Sid" } as never).firstName).toBeNull();
   });
 });
 
@@ -80,7 +86,7 @@ describe("currentIdentity", () => {
   it("is the verified Clerk session while Clerk is on, and null when it is signed out", async () => {
     clerkKeys();
     expect(await currentIdentity()).toBeNull();
-    clerk.session = { userId: "user_1", sessionClaims: { email: "a@x.com", firstName: "Asha", metadata: {} } };
+    clerk.session = { userId: "user_1", sessionClaims: { email: "a@x.com", first_name: "Asha", metadata: {} } };
     expect(await currentIdentity()).toEqual({ userId: "user_1", email: "a@x.com", firstName: "Asha", admin: false });
     expect(clerk.calls).toBe(2);
   });
