@@ -1,6 +1,6 @@
 # One Light theme across the whole app, in the Signal colour language
 
-Status: accepted, 2026-11-14. Ticket: [#17](https://github.com/SiddharthMuramkar/finance-agent/issues/17) (Colour language and theme scope, option C: whole app, one Light theme). Supersedes the archived "two modes" ADR (old 0013, "Flat controls, one accent, two modes"), and with it old 0012 ("Two themes, Light and Dark"). Also replaces the accent families of old 0014 ("Flat, icon-only Widgets") and the royal-blue Band of old 0022. The archived ADRs are not in this repo.
+Status: accepted, 2026-11-14. Ticket: [#17](https://github.com/SiddharthMuramkar/finance-agent/issues/17) (Colour language and theme scope, option C: whole app, one Light theme). Supersedes the two modes, the one accent and the colours of the archived ADR old 0013 ("Flat controls, one accent, two modes"), and with it old 0012 ("Two themes, Light and Dark"). Also replaces the accent families of old 0014 ("Flat, icon-only Widgets") and the royal-blue Band of old 0022. The flat controls of old 0013 and old 0014 stay, in ADR 0018. The archived ADRs are not in this repo.
 
 ## Context
 
@@ -10,6 +10,7 @@ The old app had two Themes, Light and Dark, one royal-blue accent and four accen
 
 - The whole app uses the Signal colour language in one Light theme.
 - It is built token-first: each old token in `globals.css` points at its new meaning (for example `--you` → blue, `--mint` → gain, `--coral` → loss). Then the files that choose a colour by name, not by meaning, are fixed. No sixth colour: sunflower and violet become neutral or black.
+- The spec's colour rules (§1.1 rule 2, §2.2) hold everywhere: colour is never the only signal (an icon, a sign, a word or a pattern goes with it), saturated colour is for small marks, text stays in ink, and a status pill is the only place a signal colour sits behind text.
 - Dark mode, the theme toggle, `readTheme()` and the dark-only tests are deleted.
 - A Learner who chose Dark gets Light. The choice was only a cookie, so no data moves.
 - `CHART_SERIES` changes last, because the Signal widgets are fixed components (ADR 0011).
@@ -20,7 +21,7 @@ The old app had two Themes, Light and Dark, one royal-blue accent and four accen
 - The test suite gets smaller: the dark Playwright projects and specs go.
 - Learners lose the Dark choice.
 - Adding Dark later means designing a second set of every signal colour and checking each one again.
-- The critics' guide (`docs/critics/README.md`) must judge the look by this ADR, not old 0013.
+- The critics' guide (`docs/critics/README.md`) must judge colour by this ADR and the flat look by ADR 0018, not by old 0013.
 
 ## Alternatives considered
 

@@ -19,5 +19,6 @@ One line per decision, in number order. Each record says what was decided and wh
 - [0015](0015-one-light-theme-colour-language.md): One Light theme across the whole app, in the Signal colour language
 - [0016](0016-only-main-deploys.md): Only main deploys to production, behind checks, a snapshot and expand-then-contract migrations
 - [0017](0017-clerk-replaces-better-auth.md): Clerk replaces Better Auth: Waitlist sign-up, admin by Clerk role, passcodes only locally
+- [0018](0018-flat-controls-hairlines-line-icons.md): Controls are flat everywhere, sections are hairlines, and pictures are line Icons, never emoji
 
 A number marked "archived" or "old" inside a record means the earlier ADR set, which is not in this repo. That set had two files numbered 0014: "Anyone can ask, and the owner approves" and "Flat, icon-only Widgets". A record that cites old 0014 names which one.
