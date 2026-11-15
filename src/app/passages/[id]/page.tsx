@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { loadCourseMap } from "@/course/map";
 import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
+import { PASSAGE_CHANGED_NOTE } from "@/library/credits";
 import { loadPassageView } from "@/library/library";
 import { MACHINE_READ_NOTE } from "@/library/pictures";
 import { accountFor } from "../../account";
@@ -17,6 +18,26 @@ function blockRange(
 ): { from: number; to: number } | undefined {
   const m = typeof value === "string" ? /^(\d+)-(\d+)$/.exec(value) : null;
   return m ? { from: Number(m[1]), to: Number(m[2]) } : undefined;
+}
+
+/** A credit line with its web addresses as links (OpenStax asks for its "Access for free at" address on every page view). */
+function withLinks(text: string) {
+  return text.split(/(https?:\/\/[^\s)]+[^\s).,;])/).map((part, i) =>
+    i % 2 ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener"
+        data-affordance="link"
+        className="link"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
 }
 
 /**
@@ -83,10 +104,38 @@ export default async function PassagePage({
                 {view.quoteWords} words. Read the full text at the original.
               </p>
             )}
+            {/* The credit in its owner's form, the licence linked (CC licences ask for the link), any notice the owner asks for, and the cut is said (#26). */}
             <p data-testid="passage-credit" className="mt-6 text-sm">
-              {view.credit}
-              {view.publishedOn && `, published ${view.publishedOn}`}. Licence:{" "}
-              {view.licence}.
+              {withLinks(view.credit)}
+            </p>
+            <p data-testid="passage-licence" className="mt-1 text-sm">
+              {view.publishedOn && `Published ${view.publishedOn}. `}
+              Licence:{" "}
+              {view.licenceUrl ? (
+                <a
+                  href={view.licenceUrl}
+                  target="_blank"
+                  rel="noopener"
+                  data-affordance="link"
+                  className="link"
+                >
+                  {view.licence}
+                </a>
+              ) : (
+                view.licence
+              )}
+            </p>
+            {view.notices.map((notice) => (
+              <p
+                key={notice}
+                data-testid="passage-notice"
+                className="mt-1 text-sm text-[var(--muted)]"
+              >
+                {notice}
+              </p>
+            ))}
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {PASSAGE_CHANGED_NOTE}
             </p>
             <a
               href={view.url}
