@@ -72,6 +72,17 @@ export function stepUsage(model: string, step: number, reported: ApiUsage | unde
   };
 }
 
+/**
+ * A step cut short before its response finished: Stop, the stream guard, a cut-off, a failure, or compose_widget's time
+ * limit. The request was sent, so OpenAI bills its prompt and whatever it wrote, but it reports usage only on a finished
+ * response. With a report (the response finished after all) the step is priced from it. Without one its tokens are 0
+ * and its cost is null, which the daily caps count as the worst step (UNPRICED_STEP_USD, quota.ts).
+ */
+export function cutShortStepUsage(model: string, step: number, reported: ApiUsage | undefined, tools: string[], durationMs: number, stopReason: string): StepUsage {
+  const usage = stepUsage(model, step, reported, tools, durationMs, stopReason);
+  return reported ? usage : { ...usage, costUsd: null };
+}
+
 /** Adds the steps up into the turn's totals. Cost is null if any step could not be priced. */
 export function sumSteps(model: string, steps: StepUsage[], durationMs: number): TurnUsage {
   const sum = (f: (s: StepUsage) => number) => steps.reduce((n, s) => n + f(s), 0);

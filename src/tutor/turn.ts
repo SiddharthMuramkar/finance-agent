@@ -23,7 +23,7 @@ import { hasMarkers, markerProblems } from "@/finance/formula-markers";
 import { withoutOpenWidget } from "./open-widget";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { storeTopicComplete } from "./topic-complete";
-import { describeFailure, newFailureRef, providerDetails, type FailureKind, type ProviderDetails } from "./failures";
+import { describeFailure, newFailureRef, providerDetails, refusedBeforeRunning, type FailureKind, type ProviderDetails } from "./failures";
 import { isOwnQuestion, OWN_QUESTION_FALLBACK } from "./own-question";
 import { GUARD_RULE, StreamGuard, type GuardHit } from "./stream-guard";
 import { saveTurnTiming, TurnClock } from "./turn-timing";
@@ -64,9 +64,9 @@ import { pickCompanion } from "./companion";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { learnersOwnWords, storeReplyChoices } from "./reply-choices";
-import { loadTurnUsages, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
+import { cutShortStepUsage, loadTurnUsages, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 import { noLimitLedger, stepLedger, type StepLedger } from "./step-ledger";
-import type { ModelClient } from "./model";
+import type { ModelClient, StepStream } from "./model";
 import { runTools, type RunnerParams } from "./runner";
 import { healingClient, REPLAY_STRIPPED } from "./replay-heal";
 import { OWN_QUESTION_KIND } from "./turn-timing";
@@ -264,6 +264,15 @@ class GuardStopped extends Error {
   ) {
     super(`The stream guard stopped the reply: ${hit.detail}`);
   }
+}
+
+/**
+ * The usage of a step cut short, if its response had finished after all (or fails at once, its request aborted). Waits
+ * only for what is already queued, so a request that ignores its abort never holds the turn.
+ */
+async function settledUsage(stream: StepStream): Promise<ApiUsage | undefined> {
+  const queued = new Promise<undefined>((resolve) => setTimeout(resolve, 0));
+  return Promise.race([stream.final().then((final) => final.usage, () => undefined), queued]);
 }
 
 /** Resolves like the promise, or throws CutOff once the deadline (a performance.now() time) passes, or StopRequested once `stop` aborts. */
@@ -577,7 +586,7 @@ async function* runLockedTurn(
 
     turnSeq = log.nextSeq;
     stepsReady = true;
-    if (fold) await saveStep(session.model, (n) => stepUsage(session.model, n, fold.usage, ["compaction"], fold.ms, fold.stopReason));
+    if (fold) await saveStep(session.model, fold);
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
     const items = await loadSessionItems(db, session.id, learnerId);
     const drawn = drawnWidgets(replyTexts(log.rows), items, turnSeq);
@@ -689,24 +698,32 @@ async function* runLockedTurn(
   /**
    * Folds the history into one compaction window (the compaction request sends no instructions, see openai.ts), so
    * the reply's request carries the summary under the new instructions and no reply from before the change. No summary (or a failed call): the turn carries on uncompacted.
+   * Returns the call's step, saved once the turn has its turn seq: a call with no summary or a failed one is a step too
+   * (a failed one unpriced), but not one the API refused. A cut-off or a Stop here ends the turn before it has a turn
+   * seq, so that call goes unsaved.
    */
-  async function* foldHistory(): AsyncGenerator<TurnEvent, { usage?: ApiUsage; ms: number; stopReason: string | null } | undefined> {
+  async function* foldHistory(): AsyncGenerator<TurnEvent, ((n: number) => StepUsage) | undefined> {
     progress("Thinking…");
     const start = performance.now();
     // Aborted when the fold is given up (a cut-off, a failure), so its request does not run on in the background.
     const giveUp = new AbortController();
     try {
       const final = await beforeDeadline(client.compact({ model: session.model, messages: [...log.messages] }, { signal: AbortSignal.any([stop, giveUp.signal]) }), deadline, stop);
-      if (!isCompaction(final.content)) return undefined;
-      await log.append({ role: "assistant", content: final.content });
-      // The summary stands in for everything before it, from this turn's request on.
-      log.messages.splice(0, log.messages.length - 1);
-      return { usage: final.usage, ms: Math.round(performance.now() - start), stopReason: final.stopReason };
+      const ms = Math.round(performance.now() - start);
+      if (isCompaction(final.content)) {
+        await log.append({ role: "assistant", content: final.content });
+        // The summary stands in for everything before it, from this turn's request on.
+        log.messages.splice(0, log.messages.length - 1);
+      }
+      return (n) => stepUsage(session.model, n, final.usage, ["compaction"], ms, final.stopReason);
     } catch (error) {
       giveUp.abort();
       if (error instanceof CutOff || error instanceof StopRequested || stop.aborted) throw error;
       console.warn("The refreeze fold failed; the turn carries on uncompacted.", error);
-      return undefined;
+      // A request the API refused with an HTTP error ran no model and is not billed, so it is no step.
+      if (refusedBeforeRunning(error)) return undefined;
+      const ms = Math.round(performance.now() - start);
+      return (n) => cutShortStepUsage(session.model, n, undefined, ["compaction"], ms, "failed");
     }
   }
 
@@ -758,6 +775,23 @@ async function* runLockedTurn(
     const steps = runner[Symbol.asyncIterator]();
     // What the loop waits on now: on Stop, a tool inside it runs to its end before anything is saved.
     let pending: Promise<unknown> | undefined;
+    // The step being written: its model call has started and its usage is not saved yet.
+    let open: StepStream | undefined;
+    /**
+     * Saves the step being written when it ends early (Stop, the guard, a cut-off, a failure). OpenAI bills what it was
+     * sent and what it wrote, so the step uses up a step of the turn and counts in the daily caps: unpriced, unless its
+     * response had finished after all.
+     */
+    const saveCutShort = async (why: "stopped" | "guard" | "cut_off" | "failed") => {
+      const stream = open;
+      open = undefined;
+      if (!stream) return;
+      const usage = await settledUsage(stream);
+      const ms = Math.round(performance.now() - stepStart);
+      await saveStep(activeSession.model, (n) => cutShortStepUsage(activeSession.model, n, usage, [], ms, why)).catch((e: unknown) =>
+        console.error("A step cut short could not save its usage", e),
+      );
+    };
     try {
       for (;;) {
         const next = await beforeDeadline((pending = steps.next()), deadline, stop);
@@ -768,6 +802,7 @@ async function* runLockedTurn(
         yield* flush();
         progress("Thinking…");
         const events = stream[Symbol.asyncIterator]();
+        open = stream;
         let stepHasText = false;
         stepShown = "";
         // Citation markers follow each cited block.
@@ -809,6 +844,7 @@ async function* runLockedTurn(
         // A step that streamed no text (a tool call alone) is still the model's first event when it is the first step.
         clock.modelEvent();
         const tools = final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
+        open = undefined;
         await saveStep(activeSession.model, (n) => stepUsage(activeSession.model, n, final.usage, tools, Math.round(performance.now() - stepStart), final.stopReason));
         stepStart = performance.now();
         stopReason = final.stopReason;
@@ -825,6 +861,7 @@ async function* runLockedTurn(
       if (error instanceof GuardStopped) {
         // The guard stopped the stream (A5): the step being written is never stored, and no new API call starts. Every
         // stored tool call already has its result; any the runner holds that is not stored yet is stored now.
+        await saveCutShort("guard");
         await Promise.resolve(steps.return?.()).catch(() => {});
         const all = runner.params.messages;
         for (; saved < all.length; saved++) if (all[saved].role !== "assistant") await log.append(all[saved]);
@@ -837,11 +874,18 @@ async function* runLockedTurn(
       if (!(error instanceof StopRequested) && !stop.aborted) {
         // A cut-off or a failure: the open request is aborted, so closing the runner returns at once.
         cut.abort();
+        // A request the API refused with an HTTP error ran no model and is not billed, so it is no step.
+        if (refusedBeforeRunning(error)) open = undefined;
+        else await saveCutShort(error instanceof CutOff ? "cut_off" : "failed");
         await Promise.resolve(steps.return?.()).catch(() => {});
         throw error;
       }
       // Stop: a tool already running finishes its transaction, and no new API call starts (the signal is aborted).
-      await beforeDeadline(Promise.resolve(pending).catch(() => {}), deadline);
+      try {
+        await beforeDeadline(Promise.resolve(pending).catch(() => {}), deadline);
+      } finally {
+        await saveCutShort("stopped");
+      }
       await Promise.resolve(steps.return?.()).catch(() => {});
       // Every stored tool call gets its result; the reply being streamed was never stored, so it is not taken from the runner.
       // The held reply is dropped (ADR 0008): what the step had written is never stored or shown.
@@ -1059,15 +1103,25 @@ async function* runLockedTurn(
     const start = performance.now();
     const outOfTime = new AbortController();
     const timer = setTimeout(() => outOfTime.abort(), room);
+    // True while the compaction request is out: a call cut short is a step of the turn too, unpriced.
+    let open = false;
     try {
       const sent = (await openLog(db, session.id, now)).messages;
+      open = true;
       const summary = await client.compact({ model: session.model, messages: sent }, { signal: AbortSignal.any([stop, outOfTime.signal]) });
-      if (!isCompaction(summary.content)) return;
+      open = false;
       // The summary stands in for everything before it from the next request on.
-      await log.append({ role: "assistant", content: summary.content });
+      if (isCompaction(summary.content)) await log.append({ role: "assistant", content: summary.content });
       await saveStep(session.model, (n) => stepUsage(session.model, n, summary.usage, ["compaction"], Math.round(performance.now() - start), summary.stopReason));
     } catch (error) {
       console.warn("The compaction failed; the Session carries on uncompacted.", error);
+      if (open && !refusedBeforeRunning(error)) {
+        const why = stop.aborted ? "stopped" : outOfTime.signal.aborted ? "cut_off" : "failed";
+        const ms = Math.round(performance.now() - start);
+        await saveStep(session.model, (n) => cutShortStepUsage(session.model, n, undefined, ["compaction"], ms, why)).catch((e: unknown) =>
+          console.error("A compaction cut short could not save its usage", e),
+        );
+      }
     } finally {
       clearTimeout(timer);
     }

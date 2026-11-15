@@ -395,7 +395,7 @@ export const usageRows = pgTable(
     tools: jsonb("tools").notNull().$type<string[]>(),
     stopReason: text("stop_reason"),
     durationMs: integer("duration_ms").notNull(),
-    /** US dollars; null when the model has no row in the price table. */
+    /** US dollars; null when the model has no row in the price table, or the step was cut short with no usage report. */
     costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
