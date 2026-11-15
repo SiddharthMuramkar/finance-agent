@@ -51,6 +51,11 @@
   --gutter: clamp(12px, 1.6vw, 32px);
   --gap: clamp(16px, 1.6vw, 28px);
   --page-max: 2200px;
+  /* Spec §3.3 shadows and §3.2 body type, shared by the site and the Signal widgets wherever they mount. A shadow is not a
+     colour token: its tint is the ink and the blue at low alpha, as the spec writes it. */
+  --lift: 0 8px 24px rgba(11, 13, 18, 0.07);
+  --lift-w: 0 1px 2px rgba(11, 13, 18, 0.05), 0 18px 44px -18px rgba(31, 63, 174, 0.28);
+  --font-body: var(--font-text, "Inter"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* ---- Spec §3.1: the only literal colours ---- */
   /* canvas and ink: neutrals lean slightly toward the brand blue */
