@@ -1,6 +1,6 @@
 # Clerk replaces Better Auth: Waitlist sign-up, admin by Clerk role, passcodes only locally
 
-Status: accepted, 2026-11-15. Ticket: [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) (Clerk replaces Better Auth + platform security). Supersedes ADR 0014, which came from [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15): Better Auth sign-in, approval on `/admin`, the access states worked out in the app, the "What brings you here?" reasons table, the Resend emails, and the `/pending` and `/login` pages. Two of its rules stay (see Consequences). Confirms and extends #15: passcodes are the local and test door only.
+Status: accepted, 2026-11-15. Ticket: [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) (Clerk replaces Better Auth + platform security). Supersedes ADR 0014, which came from [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6), [#14](https://github.com/SiddharthMuramkar/finance-agent/issues/14) and [#15](https://github.com/SiddharthMuramkar/finance-agent/issues/15): Better Auth sign-in, approval on `/admin`, the access states worked out in the app, the "What brings you here?" reasons table, the Resend emails, and the `/pending` and `/login` pages. Two of its rules stay (see Consequences). Confirms and extends #15: passcodes are the local and test door only. Built on `main` by PR #35: `learners.clerk_user_id` (the expand step) and BotID on `POST /api/turn`. The switch to Clerk itself is not built yet, so Better Auth still runs sign-in.
 
 ## Context
 
@@ -22,7 +22,7 @@ ADR 0014 built sign-in in the app with Better Auth: a Google OAuth client, email
 ## Consequences
 
 - Less sign-in code to own and guard: Clerk hosts the sign-in, the emails and the waiting list.
-- Approval moves from `/admin` to the Clerk dashboard. `/admin` stays for the owner, with Spend and Tutor speed.
+- Approval moves from `/admin` to the Clerk dashboard. `/admin` stays for the owner, with Spend, Tutor speed and the Spend caps.
 - Everyone who signed in before the cut-over starts again from nothing, and their old history is gone. The snapshot is the only way back.
 - Production needs Clerk DNS records on the domain and Clerk keys in Vercel. Google sign-in there also needs its own Google OAuth client for Clerk, so it comes after go-live. Until then, everyone signs in with an email link.
 - Sign-in depends on Clerk's service and its Free plan limits. Moving away later means a user migration.

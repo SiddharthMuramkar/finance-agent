@@ -62,7 +62,7 @@ A tap-to-answer button under a reply. Pressing it sends its words as the Learner
 A number that would give away an open question's answer, so nothing on screen may show it.
 
 **Daily cap**:
-The most Tutor Turns and Spend one Learner may use in a day.
+The most Tutor Turns and Spend one Learner may use in a day, and the most Spend all Learners together may use. The Owner sets them on `/admin`.
 
 **Spend**:
 The Owner's estimate of what one person's Tutor costs.

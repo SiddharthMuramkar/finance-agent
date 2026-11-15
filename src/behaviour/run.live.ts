@@ -80,7 +80,7 @@ async function ask(
   let cost = 0;
   for (const turn of q.turns) {
     let text = "";
-    for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId }, turn)) {
+    for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId, noLimits: true }, turn)) {
       if (e.type === "text") text += e.text;
       if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
       if (e.type === "refusal") text += `\n[REFUSAL: ${e.message}]`;
@@ -176,7 +176,7 @@ it(
     await saveJump(db, map, QUESTIONS_TOPIC, new Date(), learnerId);
     const run = async (message: string) => {
       let text = "";
-      for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId }, message)) {
+      for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId, noLimits: true }, message)) {
         if (e.type === "text") text += e.text;
         if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
         if (e.type === "done") spent += e.usage.costUsd ?? 0;

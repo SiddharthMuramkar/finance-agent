@@ -11,30 +11,28 @@ import type { QueryEmbedder } from "@/library/library";
 import { newReplyWidgetProblems } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
-import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
+import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { drawnWidgets, loadSessionItems, saveItemAfterLatest, type SessionItem, type StoredItem } from "./session-items";
 import { replyItems } from "./reply-items";
 import { QUICK_TRY, STEP_DIVIDER, STOPPED, type QuickTryData } from "./session-item-kinds";
-import { afterReteachItems, drillIsDue, enterStepItems, openTryItem, pendingQuickTryNote, practiceFallback, quickTryFollowUpNote, quizLadderNote, storeStepDivider } from "./practice";
+import { afterReteachItems, enterStepItems, openTryItem, pendingQuickTryNote, practiceFallback, storeStepDivider } from "./practice";
 import { methodInNote } from "./ladder-moves";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
 import { withoutOpenWidget } from "./open-widget";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { storeTopicComplete } from "./topic-complete";
-import { describeFailure, newFailureRef, providerDetails, type FailureKind, type ProviderDetails } from "./failures";
+import { describeFailure, newFailureRef, providerDetails, refusedBeforeRunning, type FailureKind, type ProviderDetails } from "./failures";
 import { isOwnQuestion, OWN_QUESTION_FALLBACK } from "./own-question";
 import { GUARD_RULE, StreamGuard, type GuardHit } from "./stream-guard";
 import { saveTurnTiming, TurnClock } from "./turn-timing";
-import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
+import { pasteBlock, pasteForTurn, pasteSummary } from "./pasted";
 import { type ToolDefinition } from "./instructions";
 import {
-  closedInFavourOf,
   currentTopicId,
   isCompaction,
   isLegacySession,
-  liveSession,
   openLog,
   readSettings,
   refreezeIfChanged,
@@ -42,9 +40,7 @@ import {
   withoutRejected,
   saveShownSession,
   sessionForTurn,
-  showsCurrentTopic,
   shownInWorkspace,
-  STALE_TAB_MESSAGE,
   type Effort,
   type Log,
   type Message,
@@ -54,27 +50,28 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, DRILL_NOTE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
-import { takeLearnersNext, type NextName } from "./next";
+import { FINISH_NOTE, OLD_CONTINUE_TEXT, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
+import type { NextName } from "./next";
 import { ownQuestionFacts, turnFacts, type TurnFacts } from "./turn-facts";
 import { CHECKING_LABEL, joinedEvents, judgeReply, rejectedRows, replyTextAfter, replyWords, RETRY_WITHIN_MS, retryMessage, toolWidgets, trimmedFallback, widgetsOnScreen, type Judged } from "./reply-gate";
 import { saveRejectedSeqs, saveReplyCheck, summaryOf, turnRejectedSeqs } from "./reply-records";
 import { checkReply, fixReplyBlocks } from "./reply-checks";
 import { savedRuleOf } from "./own-rule-item";
-import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
-import { exploreSettings, openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
+import { exploreSettings, openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes } from "./widget-context";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { recipeById } from "@/widgets/recipes";
 import { pickCompanion } from "./companion";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
-import { learnersOwnWords, pressedChoiceWords, storeReplyChoices } from "./reply-choices";
-import { lastStepNumber, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
-import type { ModelClient } from "./model";
+import { learnersOwnWords, storeReplyChoices } from "./reply-choices";
+import { cutShortStepUsage, loadTurnUsages, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
+import { noLimitLedger, stepLedger, type StepLedger } from "./step-ledger";
+import type { ModelClient, StepStream } from "./model";
 import { runTools, type RunnerParams } from "./runner";
 import { healingClient, REPLAY_STRIPPED } from "./replay-heal";
 import { OWN_QUESTION_KIND } from "./turn-timing";
 import { recordIncident } from "./incidents";
+import { admitTurn, learnerTextOf } from "./turn-admission";
 
 /**
  * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
@@ -92,6 +89,8 @@ export const TIME_BUDGET_MS = 270_000;
 const COMPACT_MARGIN_MS = 10_000;
 /** How often a running turn reads its own row for the Learner's Stop (another function instance may have written it). */
 export const STOP_POLL_MS = 500;
+/** The stop reason of a turn that had no step left for its reply (the step limit, step-ledger.ts). */
+export const STEP_LIMIT = "step_limit";
 
 
 /** The request the Tutor Turn builds for the Tool Runner: the Session's frozen instructions, tools, model and effort. */
@@ -123,6 +122,8 @@ export type TurnEvent =
   | { type: "stale"; message: string }
   /** The Learner's Next is not allowed now (a Check is open, after a miss, an unsettled Explore); nothing was saved or sent. */
   | { type: "not_allowed"; message: string }
+  /** A Spend cap stopped the turn before it ran (quota.ts): the "limit reached" words; nothing was saved or sent. */
+  | { type: "over_limit"; message: string }
   /** A resumed turn: the reply text saved so far, which replaces what the browser showed. */
   | { type: "replay"; text: string }
   /** The turn reached its time limit; saved loop steps are kept and the browser should resume. */
@@ -156,12 +157,7 @@ export type TurnEvent =
 /** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
 export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | { type: "turn_started"; turnId: number } | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
 
-/** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
-export const NO_QUICK_TRY_FOLLOW_UP = "There is no Quick try answer to go over.";
-/** A drill turn when no parked Skill of the current Topic is due. */
-export const NO_DRILL = "There is no drill due in this Topic.";
-/** Said when a Choice pressed is no longer under the latest reply (another tab moved on). */
-export const NO_SUCH_CHOICE = "That choice is no longer on offer. Pick one under the latest reply, or type a message.";
+export { NO_DRILL, NO_QUICK_TRY_FOLLOW_UP, NO_SUCH_CHOICE } from "./turn-admission";
 
 export const CUT_SHORT_MESSAGE ="The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
@@ -247,6 +243,11 @@ export type TurnDeps = {
   onTurn?: (turnId: number) => void;
   /** compose_widget's model client (and a test's shorter limit); left out, the real OpenAI client, made on first use. */
   composer?: Composer;
+  /**
+   * True for the evals: no Spend cap applies (decision #13). No daily cap or resume limit in turn admission, and the turn
+   * keeps its steps in the no-limit Step ledger. Left out, every cap applies.
+   */
+  noLimits?: boolean;
 };
 
 /** Thrown when a run reaches its time budget. */
@@ -263,6 +264,15 @@ class GuardStopped extends Error {
   ) {
     super(`The stream guard stopped the reply: ${hit.detail}`);
   }
+}
+
+/**
+ * The usage of a step cut short, if its response had finished after all (or fails at once, its request aborted). Waits
+ * only for what is already queued, so a request that ignores its abort never holds the turn.
+ */
+async function settledUsage(stream: StepStream): Promise<ApiUsage | undefined> {
+  const queued = new Promise<undefined>((resolve) => setTimeout(resolve, 0));
+  return Promise.race([stream.final().then((final) => final.usage, () => undefined), queued]);
 }
 
 /** Resolves like the promise, or throws CutOff once the deadline (a performance.now() time) passes, or StopRequested once `stop` aborts. */
@@ -315,8 +325,8 @@ const WIDGET_OPEN = "```openui-lang\n";
 export { withoutOpenWidget };
 
 /**
- * Runs one Tutor turn for one Learner: refuses a request from a tab showing another Topic, takes
- * their one-turn lock, saves their message in the live Session of their current Topic, streams the
+ * Runs one Tutor turn for one Learner: turn admission (turn-admission.ts) refuses a request from a tab showing
+ * another Topic and takes their one-turn lock; the turn then saves their message in the live Session of their current Topic, streams the
  * reply through Tool Runner and saves each loop step's messages unchanged as they finish. After the
  * message, code appends the Course Navigator's context (and the Where the Learner stands block)
  * whenever it changed; a Topic's first turn makes its Session, which opens with both. A turn is
@@ -329,120 +339,15 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   // The run's times (A9) count from here: the time to the model's first event, to the first word shown, and in all.
   const clock = new TurnClock();
   const deadline = performance.now() + (deps.timeBudgetMs ?? TIME_BUDGET_MS);
-  const resuming = typeof input === "object" && "resume" in input;
   const { learnerId } = deps;
-  if (deps.shown && !(await showsCurrentTopic(db, deps.map ?? loadCourseMap(), learnerId, deps.shown))) {
-    // A resume may still carry on the tab's own unfinished turn, which may itself have moved the Learner to the next Topic.
-    const latest = resuming ? await latestTurn(db, learnerId) : undefined;
-    // Or the tab still shows the Claude-era Session this turn's Session replaced (ADR 0007): it hears of the new one only on
-    // "done", so a resume from it (a Widget Retry that let go of the stream) still draws that turn once it has finished.
-    const replaced = latest !== undefined && "sessionId" in deps.shown && (await closedInFavourOf(db, learnerId, deps.shown.sessionId, latest.sessionId));
-    const ownTurn =
-      latest !== undefined && "sessionId" in deps.shown && (replaced || (latest.status !== "finished" && latest.sessionId === deps.shown.sessionId));
-    if (!ownTurn) {
-      yield { type: "stale", message: STALE_TAB_MESSAGE };
-      return;
-    }
-  }
-  let started = "";
-  if (typeof input === "object" && "opener" in input) {
-    const note = await openerFor(db, deps.map ?? loadCourseMap(), learnerId);
-    // Another tab already opened this Topic: a reload shows its Session.
-    if (note === null) {
-      yield { type: "stale", message: STALE_TAB_MESSAGE };
-      return;
-    }
-    started = note;
-  } else if (typeof input === "object" && "widgetReport" in input) {
-    const report = await widgetReportNote(db, deps.map ?? loadCourseMap(), learnerId, input.widgetReport, deps.widgets);
-    // The Widget is not open, or a Guided Task under it is not ticked yet: nothing is saved or sent.
-    if (!report.ok) {
-      yield { type: "not_allowed", message: report.reason };
-      return;
-    }
-    started = report.note;
-  } else if (typeof input === "object" && "next" in input) {
-    // Code writes the Next's note once it has taken the move, inside the lock.
-    started = NEXT_PREFIX;
-  } else if (typeof input === "object" && "finish" in input) {
-    // Finish this reply stores no Learner message: code writes the note that asks the Tutor to finish.
-    started = FINISH_NOTE;
-  } else if (typeof input === "object" && "quizFollowUp" in input) {
-    // Code writes the follow-up's note inside the lock, once it has found the missed quiz to go over.
-    started = QUIZ_FOLLOW_UP_PREFIX;
-  } else if (typeof input === "object" && "quickTryFollowUp" in input) {
-    // Code writes the follow-up's note inside the lock, from the latest Quick-try result.
-    started = QUICK_TRY_FOLLOW_UP_PREFIX;
-  } else if (typeof input === "object" && "drill" in input) {
-    // A parked Skill's drill: code shows the tries when the turn starts (enterStepItems); the Tutor adds one sentence.
-    if (!(await drillIsDue(db, deps.map ?? loadCourseMap(), learnerId, now()))) {
-      yield { type: "not_allowed", message: NO_DRILL };
-      return;
-    }
-    started = DRILL_NOTE;
-  } else if (typeof input === "object" && "choice" in input) {
-    // A Choice press posts the words stored with the latest reply's Choices as the Learner's message: a chip turn.
-    const says = await pressedChoiceWords(db, deps.map ?? loadCourseMap(), learnerId, input.choice);
-    if (says === null) {
-      yield { type: "not_allowed", message: NO_SUCH_CHOICE };
-      return;
-    }
-    started = says;
-  } else if (!resuming) started = learnerTextOf(input);
-  const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
-  if (!claim.turn) {
-    yield { type: "busy", message: BUSY_MESSAGE };
+  const admission = await admitTurn(deps, input);
+  if ("refusal" in admission) {
+    yield admission.refusal;
     return;
   }
-  let turn = claim.turn;
-  // A Quick-try follow-up reads the Quick try's result from the Topic's live Session, so it is worked out before a
-  // Claude-era Session holding that result is closed below.
-  const quickTryNote = typeof input === "object" && "quickTryFollowUp" in input ? await quickTryFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId) : undefined;
-  // A Claude-era Session of the current Topic is closed before anything is written to it (ADR 0007), and the Topic gets a
-  // fresh Session at once, so a Next or a follow-up taken now stores its items there.
-  const topicNow = await currentTopicId(db, deps.map ?? loadCourseMap(), learnerId);
-  if (await retireLegacySessions(db, learnerId, topicNow)) await sessionForTurn(db, now(), learnerId, topicNow);
-  if (typeof input === "object" && "next" in input) {
-    const taken = await takeLearnersNext(db, deps.map ?? loadCourseMap(), learnerId, turn.id, input.next, now());
-    if (!taken.ok) {
-      // Nothing moved and nothing was stored: the turn goes, so the Learner's lock is free again.
-      await dropTurn(db, turn.id);
-      yield { type: "not_allowed", message: taken.reason };
-      return;
-    }
-    turn = { ...turn, input: taken.note, sessionId: taken.sessionId, freshStep: true };
-    // The dividers come before the reply that teaches the step.
-    for (const item of taken.items) yield { type: "item", item };
-  }
-  if (typeof input === "object" && "quizFollowUp" in input) {
-    const note = await quizFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId);
-    if (note === null) {
-      // Already gone over (another tab), or nothing was missed: nothing ran, and the lock is free again.
-      await dropTurn(db, turn.id);
-      yield { type: "not_allowed", message: NO_MISSED_QUIZ };
-      return;
-    }
-    // The repair ladder covers quiz questions too: a second miss in a row on the first missed question's idea
-    // re-teaches it, and a third shows the park offer instead (ticket #245).
-    const climbed = await quizLadderNote(db, deps.map ?? loadCourseMap(), learnerId, note, now());
-    for (const item of climbed.items) yield { type: "item", item };
-    await updateTurn(db, turn.id, { input: climbed.note });
-    turn = { ...turn, input: climbed.note };
-  }
-  if (typeof input === "object" && "quickTryFollowUp" in input) {
-    const note = quickTryNote ?? null;
-    if (note === null) {
-      // Already followed up (another tab), or the latest Quick try needs none: nothing ran, and the lock is free again.
-      await dropTurn(db, turn.id);
-      yield { type: "not_allowed", message: NO_QUICK_TRY_FOLLOW_UP };
-      return;
-    }
-    await updateTurn(db, turn.id, { input: note });
-    turn = { ...turn, input: note };
-  }
-  // Saved with the turn before anything else, so a retry still has it.
-  if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now(), learnerId);
-  if (claim.alreadyFinished) {
+  const { turn } = admission;
+  yield* admission.items;
+  if (admission.alreadyFinished) {
     // It finished after the browser lost the stream: show the saved reply.
     yield* finishedTurnReplay(db, deps.map ?? loadCourseMap(), turn);
     return;
@@ -451,7 +356,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   deps.onTurn?.(turn.id);
   const stop = watchForStop(db, turn.id);
   try {
-    const done = yield* timed(runLockedTurn(deps, input, turn, deadline, stop.signal, clock), clock);
+    const done = yield* timed(runLockedTurn(deps, input, turn, deadline, stop.signal, clock, admission.stepLimit), clock);
     // Finished before the browser hears "done", so its next send finds the lock free.
     await updateTurn(db, turn.id, { status: "finished", stopReason: done.stopReason, finishedAt: now() });
     ended = true;
@@ -522,19 +427,6 @@ async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGen
   };
 }
 
-/**
- * The opener's note for the Learner's current Topic, written by code from their saved step, or null when
- * that Topic's Session already has messages (another tab opened it first).
- */
-async function openerFor(db: Db, map: CourseMap, learnerId: number): Promise<string | null> {
-  const live = await liveSession(db, learnerId, await currentTopicId(db, map, learnerId));
-  if (live && (await openLog(db, live.id, () => new Date())).rows.length) return null;
-  const place = navigate(map, await loadProgress(db, learnerId));
-  // The opener's own facts: this runs before the turn is claimed, at the place the page opened.
-  const facts = await turnFacts(db, map, learnerId, place);
-  return openerNote(place, { quizOpen: facts.quizOpen }, facts);
-}
-
 async function* runLockedTurn(
   deps: TurnDeps,
   input: TurnInput,
@@ -542,6 +434,8 @@ async function* runLockedTurn(
   deadline: number,
   stop: AbortSignal,
   clock: TurnClock,
+  /** The most model steps the turn may take, all its runs together (turn admission's step limit). */
+  stepLimit: number,
 ): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
   const { db } = deps;
   const { learnerId } = turn;
@@ -577,13 +471,15 @@ async function* runLockedTurn(
   let log: Log;
   let turnSeq: number;
   let code: Record<string, ToolCode>;
-  // The turn's loop steps are numbered once across the Tutor's steps and the extra ones tools save (compose_widget's).
-  let stepNo: number | undefined;
+  // The turn's Step ledger (step-ledger.ts): its loop steps, numbered once across the Tutor's steps and the extra ones
+  // tools save (compose_widget's), and how many are left under the step limit. Made once the turn has its turn seq.
+  let ledger: StepLedger | undefined;
   let stepsReady = false;
-  const saveStep = async (model: string, make: (n: number) => StepUsage) => {
-    stepNo ??= await lastStepNumber(db, session.id, turnSeq);
-    await saveStepUsage(db, session.id, turnSeq, model, make(++stepNo), now());
+  const ledgerNow = (): StepLedger => {
+    const at = { db, sessionId: session.id, turnSeq, now };
+    return (ledger ??= deps.noLimits ? noLimitLedger(at) : stepLedger(at, stepLimit));
   };
+  const saveStep = (model: string, make: (n: number) => StepUsage) => ledgerNow().save(model, make);
   // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
   effects.saveStep = (model, make) => (stepsReady ? saveStep(model, make) : Promise.resolve());
   // This turn's facts (turn-facts.ts), the place they were worked out for, and whether the turn closes a passed Topic.
@@ -690,7 +586,7 @@ async function* runLockedTurn(
 
     turnSeq = log.nextSeq;
     stepsReady = true;
-    if (fold) await saveStep(session.model, (n) => stepUsage(session.model, n, fold.usage, ["compaction"], fold.ms, fold.stopReason));
+    if (fold) await saveStep(session.model, fold);
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
     const items = await loadSessionItems(db, session.id, learnerId);
     const drawn = drawnWidgets(replyTexts(log.rows), items, turnSeq);
@@ -802,24 +698,45 @@ async function* runLockedTurn(
   /**
    * Folds the history into one compaction window (the compaction request sends no instructions, see openai.ts), so
    * the reply's request carries the summary under the new instructions and no reply from before the change. No summary (or a failed call): the turn carries on uncompacted.
+   * Returns the call's step, saved once the turn has its turn seq: a call with no summary or a failed one is a step too
+   * (a failed one unpriced), but not one the API refused. A cut-off or a Stop here ends the turn before it has a turn
+   * seq: that call is saved at once, unpriced, under the seq the turn's message takes.
    */
-  async function* foldHistory(): AsyncGenerator<TurnEvent, { usage?: ApiUsage; ms: number; stopReason: string | null } | undefined> {
+  async function* foldHistory(): AsyncGenerator<TurnEvent, ((n: number) => StepUsage) | undefined> {
     progress("Thinking…");
     const start = performance.now();
     // Aborted when the fold is given up (a cut-off, a failure), so its request does not run on in the background.
     const giveUp = new AbortController();
+    // A Stop that came before the call: the client checks its signal first, so nothing is sent.
+    const sent = !stop.aborted;
     try {
       const final = await beforeDeadline(client.compact({ model: session.model, messages: [...log.messages] }, { signal: AbortSignal.any([stop, giveUp.signal]) }), deadline, stop);
-      if (!isCompaction(final.content)) return undefined;
-      await log.append({ role: "assistant", content: final.content });
-      // The summary stands in for everything before it, from this turn's request on.
-      log.messages.splice(0, log.messages.length - 1);
-      return { usage: final.usage, ms: Math.round(performance.now() - start), stopReason: final.stopReason };
+      const ms = Math.round(performance.now() - start);
+      if (isCompaction(final.content)) {
+        await log.append({ role: "assistant", content: final.content });
+        // The summary stands in for everything before it, from this turn's request on.
+        log.messages.splice(0, log.messages.length - 1);
+      }
+      return (n) => stepUsage(session.model, n, final.usage, ["compaction"], ms, final.stopReason);
     } catch (error) {
       giveUp.abort();
-      if (error instanceof CutOff || error instanceof StopRequested || stop.aborted) throw error;
+      const ms = Math.round(performance.now() - start);
+      if (error instanceof CutOff || error instanceof StopRequested || stop.aborted) {
+        // The turn ends here, before it has a turn seq, but OpenAI bills the request. It is saved under the seq the turn's
+        // message takes (its resume's or Retry's, or the Learner's next message's, when no summary comes in first), so it
+        // counts in the daily caps, and in that turn's steps.
+        if (sent) {
+          const why = error instanceof CutOff ? "cut_off" : "stopped";
+          await stepLedger({ db, sessionId: session.id, turnSeq: log.nextSeq, now }, Infinity)
+            .save(session.model, (n) => cutShortStepUsage(session.model, n, undefined, ["compaction"], ms, why))
+            .catch((e: unknown) => console.error("A fold cut short could not save its usage", e));
+        }
+        throw error;
+      }
       console.warn("The refreeze fold failed; the turn carries on uncompacted.", error);
-      return undefined;
+      // A request the API refused with an HTTP error ran no model and is not billed, so it is no step.
+      if (refusedBeforeRunning(error)) return undefined;
+      return (n) => cutShortStepUsage(session.model, n, undefined, ["compaction"], ms, "failed");
     }
   }
 
@@ -842,7 +759,8 @@ async function* runLockedTurn(
     // Aborted on a cut-off too, so closing the runner never waits on a request still open: the turn must save and answer
     // in time. A streamed reply's runner is aborted the same way when the guard stops it.
     const cut = new AbortController();
-    const runner = runTools(client, requestFor(activeSession, [...log.messages], code), { signal: AbortSignal.any([stop, cut.signal]) });
+    // The runner asks the Step ledger before each step: a tool may have saved a step of its own since the last one.
+    const runner = runTools(client, requestFor(activeSession, [...log.messages], code), { signal: AbortSignal.any([stop, cut.signal]), stepsLeft: () => ledgerNow().left() });
     // The runner's history, up to here, is stored.
     let saved = log.messages.length;
     // Saves anything the runner added to history that isn't stored yet (tool results).
@@ -870,6 +788,23 @@ async function* runLockedTurn(
     const steps = runner[Symbol.asyncIterator]();
     // What the loop waits on now: on Stop, a tool inside it runs to its end before anything is saved.
     let pending: Promise<unknown> | undefined;
+    // The step being written: its model call has started and its usage is not saved yet.
+    let open: StepStream | undefined;
+    /**
+     * Saves the step being written when it ends early (Stop, the guard, a cut-off, a failure). OpenAI bills what it was
+     * sent and what it wrote, so the step uses up a step of the turn and counts in the daily caps: unpriced, unless its
+     * response had finished after all.
+     */
+    const saveCutShort = async (why: "stopped" | "guard" | "cut_off" | "failed") => {
+      const stream = open;
+      open = undefined;
+      if (!stream) return;
+      const usage = await settledUsage(stream);
+      const ms = Math.round(performance.now() - stepStart);
+      await saveStep(activeSession.model, (n) => cutShortStepUsage(activeSession.model, n, usage, [], ms, why)).catch((e: unknown) =>
+        console.error("A step cut short could not save its usage", e),
+      );
+    };
     try {
       for (;;) {
         const next = await beforeDeadline((pending = steps.next()), deadline, stop);
@@ -880,6 +815,9 @@ async function* runLockedTurn(
         yield* flush();
         progress("Thinking…");
         const events = stream[Symbol.asyncIterator]();
+        // The request starts on the first read, below. A Stop (or a cut) that came first, while the history was being
+        // saved, means the client sends nothing (it checks its signal before the request), so there is no step to save.
+        open = stop.aborted || cut.signal.aborted ? undefined : stream;
         let stepHasText = false;
         stepShown = "";
         // Citation markers follow each cited block.
@@ -921,6 +859,7 @@ async function* runLockedTurn(
         // A step that streamed no text (a tool call alone) is still the model's first event when it is the first step.
         clock.modelEvent();
         const tools = final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
+        open = undefined;
         await saveStep(activeSession.model, (n) => stepUsage(activeSession.model, n, final.usage, tools, Math.round(performance.now() - stepStart), final.stopReason));
         stepStart = performance.now();
         stopReason = final.stopReason;
@@ -937,6 +876,7 @@ async function* runLockedTurn(
       if (error instanceof GuardStopped) {
         // The guard stopped the stream (A5): the step being written is never stored, and no new API call starts. Every
         // stored tool call already has its result; any the runner holds that is not stored yet is stored now.
+        await saveCutShort("guard");
         await Promise.resolve(steps.return?.()).catch(() => {});
         const all = runner.params.messages;
         for (; saved < all.length; saved++) if (all[saved].role !== "assistant") await log.append(all[saved]);
@@ -949,11 +889,18 @@ async function* runLockedTurn(
       if (!(error instanceof StopRequested) && !stop.aborted) {
         // A cut-off or a failure: the open request is aborted, so closing the runner returns at once.
         cut.abort();
+        // A request the API refused with an HTTP error ran no model and is not billed, so it is no step.
+        if (refusedBeforeRunning(error)) open = undefined;
+        else await saveCutShort(error instanceof CutOff ? "cut_off" : "failed");
         await Promise.resolve(steps.return?.()).catch(() => {});
         throw error;
       }
       // Stop: a tool already running finishes its transaction, and no new API call starts (the signal is aborted).
-      await beforeDeadline(Promise.resolve(pending).catch(() => {}), deadline);
+      try {
+        await beforeDeadline(Promise.resolve(pending).catch(() => {}), deadline);
+      } finally {
+        await saveCutShort("stopped");
+      }
       await Promise.resolve(steps.return?.()).catch(() => {});
       // Every stored tool call gets its result; the reply being streamed was never stored, so it is not taken from the runner.
       // The held reply is dropped (ADR 0006): what the step had written is never stored or shown.
@@ -962,6 +909,8 @@ async function* runLockedTurn(
       stopReason = "stopped";
       stopped = true;
     }
+    // No step was left for the reply (a tool's own steps used the last ones): the turn records why it ended there.
+    if (!stopped && runner.stepLimitReached) stopReason = STEP_LIMIT;
     if (!stopped) await syncRunnerHistory();
     yield* reportSaveFailure(held);
     // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
@@ -1169,15 +1118,26 @@ async function* runLockedTurn(
     const start = performance.now();
     const outOfTime = new AbortController();
     const timer = setTimeout(() => outOfTime.abort(), room);
+    // True while the compaction request is out: a call cut short is a step of the turn too, unpriced.
+    let open = false;
     try {
       const sent = (await openLog(db, session.id, now)).messages;
+      open = true;
       const summary = await client.compact({ model: session.model, messages: sent }, { signal: AbortSignal.any([stop, outOfTime.signal]) });
-      if (!isCompaction(summary.content)) return;
-      // The summary stands in for everything before it from the next request on.
-      await log.append({ role: "assistant", content: summary.content });
+      open = false;
+      // Saved before the summary is stored, as the loop saves a step before its message: a failed store keeps its cost.
       await saveStep(session.model, (n) => stepUsage(session.model, n, summary.usage, ["compaction"], Math.round(performance.now() - start), summary.stopReason));
+      // The summary stands in for everything before it from the next request on.
+      if (isCompaction(summary.content)) await log.append({ role: "assistant", content: summary.content });
     } catch (error) {
       console.warn("The compaction failed; the Session carries on uncompacted.", error);
+      if (open && !refusedBeforeRunning(error)) {
+        const why = stop.aborted ? "stopped" : outOfTime.signal.aborted ? "cut_off" : "failed";
+        const ms = Math.round(performance.now() - start);
+        await saveStep(session.model, (n) => cutShortStepUsage(session.model, n, undefined, ["compaction"], ms, why)).catch((e: unknown) =>
+          console.error("A compaction cut short could not save its usage", e),
+        );
+      }
     } finally {
       clearTimeout(timer);
     }
@@ -1233,7 +1193,7 @@ async function* runLockedTurn(
         await storeFixed();
         toSend = [...nonText(draftHeld), ...(await replyEvent())];
       } else toSend = storedBefore || resumedCorrection ? [...nonText(draftHeld), ...(await replyEvent())] : joinedEvents(draftHeld);
-    } else if (!retried && performance.now() - runStart < (deps.retryWithinMs ?? RETRY_WITHIN_MS)) {
+    } else if (!retried && performance.now() - runStart < (deps.retryWithinMs ?? RETRY_WITHIN_MS) && (await ledgerNow().left()) > 0) {
       // One retry: the correction carries every failed check's reason, the Widget correction's included.
       correction = retryMessage(judged, widgetsOnScreen(log.rows, replyFrom, await loadSessionItems(db, session.id, learnerId)));
       await log.append({ role: "user", content: correction });
@@ -1264,7 +1224,7 @@ async function* runLockedTurn(
         }
       }
     } else {
-      // Over the time limit (or the retry already ran): straight to the fallback.
+      // Over the time limit, out of steps, or the retry already ran: straight to the fallback.
       const items = await fallBack(judged.draft.text, judged.problems);
       toSend = [...nonText(draftHeld), ...items, ...(await replyEvent())];
     }
@@ -1366,8 +1326,10 @@ async function* runLockedTurn(
   // A streamed own-question reply is timed against its own budget (first word), so its times are saved under its own kind.
   clock.replyKind = live ? OWN_QUESTION_KIND : record.replyKind;
   // On-demand compaction, once the reply is settled (never before the checks, which may still reject, fix or retry it):
-  // a Session whose last request was past the setting folds into one summary, which the next turn starts from.
-  if (!stoppedNow() && stopReason === "end_turn" && compactAtTokens > 0 && contextTokens(lastUsage) >= compactAtTokens) await compactSession();
+  // a Session whose last request was past the setting folds into one summary, which the next turn starts from. It is a
+  // step too, so a turn with no step left skips it (the step limit stays a hard bound) and a later turn compacts.
+  const compactDue = !stoppedNow() && stopReason === "end_turn" && compactAtTokens > 0 && contextTokens(lastUsage) >= compactAtTokens;
+  if (compactDue && (await ledgerNow().left()) > 0) await compactSession();
   const total = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now(), summaryOf(record));
   // A suggest_choice label code dropped (too long, an emoji, a sum, a copy of a set label) is recorded with the turn.
   const usage = droppedChoice === null ? total : { ...total, droppedChoice };
@@ -1391,11 +1353,6 @@ async function completedSession(db: Db, map: CourseMap, turn: Turn, now: Date, r
   if (!isLegacySession(pinned)) return pinned;
   await retireLegacySessions(db, turn.learnerId, pinned.topicId);
   return sessionForTurn(db, now, turn.learnerId, pinned.topicId);
-}
-
-/** What the Learner wrote, as saved on the turn. */
-function learnerTextOf(input: string | PastedInput): string {
-  return typeof input === "string" ? input : input.message;
 }
 
 /** How big the conversation was on the last request, which the next request repeats and adds to (OpenAI's input count includes cached tokens). */

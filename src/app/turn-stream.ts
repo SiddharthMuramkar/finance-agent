@@ -221,6 +221,13 @@ export function useTurnStream({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...request, ...(shownRef.current && { shown: shownRef.current }), ...(widgets && { widgets: widgets.all() }) }),
         });
+        if (res.status === 429) {
+          // A Spend cap (limit reached): nothing ran or was saved, and waiting would not help, so the Learner reads why.
+          const { error: limit } = (await res.json()) as { error: string };
+          if (!("resume" in request)) setMessages(takeBack(reply, userId));
+          fail(limit);
+          return;
+        }
         if (res.status === 409) {
           const { error: busy, stale } = (await res.json()) as { error: string; stale?: boolean };
           if (stale && "resume" in request) {

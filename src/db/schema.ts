@@ -107,6 +107,11 @@ export const learners = pgTable(
     showDeveloperDetails: boolean("show_developer_details").notNull().default(false),
     /** The Google user (Better Auth `user.id`) this Learner belongs to; null for a passcode Learner. */
     authUserId: text("auth_user_id").references(() => user.id, { onDelete: "set null" }),
+    /**
+     * The Clerk user this Learner belongs to (issue #33, the expand step before Clerk replaces Better Auth); null until
+     * then, and for a passcode Learner. No foreign key: Clerk's users live in Clerk, not in this database.
+     */
+    clerkUserId: text("clerk_user_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -114,6 +119,9 @@ export const learners = pgTable(
     uniqueIndex("learners_one_active_per_auth_user")
       .on(t.authUserId)
       .where(sql`${t.archivedAt} is null and ${t.authUserId} is not null`),
+    uniqueIndex("learners_one_active_per_clerk_user")
+      .on(t.clerkUserId)
+      .where(sql`${t.archivedAt} is null and ${t.clerkUserId} is not null`),
   ],
 );
 
@@ -395,7 +403,7 @@ export const usageRows = pgTable(
     tools: jsonb("tools").notNull().$type<string[]>(),
     stopReason: text("stop_reason"),
     durationMs: integer("duration_ms").notNull(),
-    /** US dollars; null when the model has no row in the price table. */
+    /** US dollars; null when the model has no row in the price table, or the step was cut short with no usage report. */
     costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -494,6 +502,11 @@ export const turns = pgTable(
      * can send it again if it was never stored. A code-written note's fixed prefix records the turn's kind (`turnKind`).
      */
     input: text("input"),
+    /**
+     * How many runs the turn has had: 1, and one more for each resume (after a cut-off, or a Retry after a failure). The
+     * resume limit reads it (decision #13). 1 on a turn from before migration 0038.
+     */
+    runs: integer("runs").notNull().default(1),
     /** When the current run of the turn started; a resume starts a new run. */
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),

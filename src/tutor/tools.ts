@@ -23,7 +23,7 @@ import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
 import { openaiComposeClient, COMPOSE_LABEL, composeLimitMs, composeProgram, fallbackCandidates, type ComposeClient, type Composed } from "./compose";
 import { usesWidgetEngine, withoutRejected } from "./session-log";
 import { rejectedRows } from "./reply-gate";
-import { stepUsage, type StepUsage } from "./usage";
+import { cutShortStepUsage, stepUsage, type StepUsage } from "./usage";
 import { loadWrittenAhead, openedItem, saveOpenedState } from "./written-ahead";
 import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, sliderSpecs, TUTOR_RECIPE_IDS } from "./ready-made-widgets";
 import { checkReply, type ReplyWidget } from "./reply-checks";
@@ -819,13 +819,16 @@ export function toolCode(
             limitMs: composeLimitMs(effects.deadline, performance.now(), composer.limitMs),
             stop: effects.stop,
           });
-          // The compose model's call is an extra step of the turn: its tokens and cost count in the turn's usage.
+          // The compose model's call is an extra step of the turn: its tokens and cost count in the turn's usage. A call cut
+          // short (its time limit, Stop, a failure) reports no usage: it is saved unpriced, which the daily caps count. One
+          // the API refused with an HTTP error ran no model: it is priced at nothing.
           const spent = composed;
           if (spent.ms > 0 || spent.usage) {
-            const stopReason = spent.ok ? spent.stopReason : (spent.stopReason ?? spent.reason);
-            await effects
-              .saveStep?.(TUTOR_MODEL, (n) => stepUsage(TUTOR_MODEL, n, spent.usage, ["compose_widget"], spent.ms, stopReason))
-              .catch((e) => console.error("compose_widget could not save its usage", e));
+            const step =
+              spent.ok || spent.refused
+                ? (n: number) => stepUsage(TUTOR_MODEL, n, spent.usage, ["compose_widget"], spent.ms, spent.ok ? spent.stopReason : (spent.stopReason ?? spent.reason))
+                : (n: number) => cutShortStepUsage(TUTOR_MODEL, n, spent.usage, ["compose_widget"], spent.ms, spent.stopReason ?? spent.reason);
+            await effects.saveStep?.(TUTOR_MODEL, step).catch((e) => console.error("compose_widget could not save its usage", e));
           }
         }
         return once(toolCallId, "compose_widget", (tx) => showComposed(tx, toolCallId, input, composed));
