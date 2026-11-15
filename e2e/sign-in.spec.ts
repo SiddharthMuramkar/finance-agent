@@ -69,12 +69,16 @@ test("login page: Google first, an email link second, passcode behind a link, er
   await expect(page.locator('input[name="passcode"]')).toBeVisible();
 });
 
-// Spec 2026-11-12 F1 and Signal spec 4.1 to 4.3: the sign-in page stands in the site chrome (its nav and footer, as on every
-// public page) and a Band across the top holds its heading.
-test("[G1, F1] the login page has the site nav and its heading on a Band", async ({ page }) => {
+// Spec 2026-11-12 G1 and F1, Signal spec 4.1 to 4.3: the sign-in page stands in the site chrome (its nav and footer, as on
+// every public page) with Sign in marked as the page showing and no second primary (5: the page's own button is its one
+// primary, and a nav Join would only lead back here), and a Band across the top holds its heading.
+test("[G1, F1] the login page has the site nav, Sign in as the page showing, and its heading on a Band", async ({ page }) => {
   await page.goto("/login");
   const nav = page.locator("header.v-nav");
   await expect(nav).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Sign in", exact: true, includeHidden: true })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByText("Join early access")).toHaveCount(0);
+  await expect(page.locator("[data-join]")).toHaveCount(0);
   // At 860 px and below the nav's page links fold into its Menu (4.2); the footer carries About there.
   const about = page.viewportSize()!.width <= 860 ? page.locator("footer.v-footer") : nav;
   await expect(about.getByRole("link", { name: "About", exact: true })).toBeVisible();

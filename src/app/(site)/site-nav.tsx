@@ -79,6 +79,9 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
   // No router (a static render in a test) reads as no page showing.
   const pathname = usePathname() ?? "";
   const current = currentLink(pathname);
+  // On the sign-in page Sign in is the page showing, and the page's own button is its one primary (5), so a visitor's nav
+  // there has no Join early access: it would be a second primary that only leads back to this page.
+  const onSignIn = pathname === "/login";
   const scrolled = useScrolled();
   const grow = useFirstVisit();
   // The sheet is open for the page it was opened on, so a route change closes it.
@@ -102,10 +105,10 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
         <div className="v-nav-right">
           {viewer.state === "visitor" && (
             <>
-              <Link href="/login" className="v-tlink ink v-signin" data-affordance="nav">
+              <Link href="/login" className="v-tlink ink v-signin" aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
                 {chrome.signIn}
               </Link>
-              <PrimaryCta viewer={viewer} size="md" />
+              {!onSignIn && <PrimaryCta viewer={viewer} size="md" />}
             </>
           )}
           {viewer.state === "applicant" && (
@@ -138,7 +141,7 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
             </Link>
           ))}
           {viewer.state === "visitor" && (
-            <Link href="/login" data-affordance="nav">
+            <Link href="/login" aria-current={onSignIn ? "page" : undefined} data-affordance="nav">
               {chrome.signIn}
             </Link>
           )}

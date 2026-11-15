@@ -193,6 +193,7 @@
 .v-navlinks a[aria-current="page"] { font-weight: 600; color: var(--ink); }
 .v-navlinks a[aria-current="page"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -12px; height: 2px; background: var(--blue); }
 .v-nav-right { display: flex; align-items: center; gap: 16px; }
+.v-nav-right .v-signin[aria-current="page"] { font-weight: 600; }
 .v-menu-btn { display: none; }
 .v-sheet { position: absolute; left: 0; right: 0; top: 100%; background: var(--paper); border-bottom: 1px solid var(--rule); box-shadow: var(--lift); padding: 8px var(--gutter-x) 16px; display: grid; }
 .v-sheet a { padding: 12px 0; font-weight: 600; color: var(--ink); border-bottom: 1px solid var(--rule); }

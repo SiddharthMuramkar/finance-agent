@@ -29,13 +29,22 @@ async function headers(page: Page, path: string) {
 test.describe("signed out", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
+  // On the sign-in page itself Sign in is the page showing and the page's own button its one primary (Signal spec 5), so
+  // the nav has no Join early access there (G1).
   test("[G1, 4.2] every site page and the sign-in page have the site nav, once, and never the app's", async ({ page }) => {
     for (const path of SITE_PAGES) {
       const found = await headers(page, path);
       expect({ public: found.public, app: found.app }, path).toEqual({ public: 1, app: 0 });
       const header = page.locator(PUBLIC);
-      await expect(header.getByRole("link", { name: "Sign in", exact: true }), path).toBeVisible();
-      await expect(header.getByRole("link", { name: "Join early access", exact: true }), path).toBeVisible();
+      const signIn = header.getByRole("link", { name: "Sign in", exact: true });
+      await expect(signIn, path).toBeVisible();
+      if (path === "/login") {
+        await expect(signIn, path).toHaveAttribute("aria-current", "page");
+        await expect(header.getByText("Join early access"), path).toHaveCount(0);
+      } else {
+        await expect(signIn, path).not.toHaveAttribute("aria-current", /.*/);
+        await expect(header.getByRole("link", { name: "Join early access", exact: true }), path).toBeVisible();
+      }
       await expect(header.getByRole("button", { name: "Continue" }), path).toHaveCount(0);
     }
   });
