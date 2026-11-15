@@ -364,6 +364,18 @@ describe("a Spend cap", () => {
     expect(button("Retry")).toBeNull();
     expect(host.textContent).not.toContain("Show me.");
   });
+
+  it("a resume past the resume limit shows the limit words once, keeps the conversation and offers no Retry", async () => {
+    const TRIES = "This reply has used all its tries, so the Tutor stops it here. Send a new message to carry on.";
+    limited.push(TRIES);
+    // The page opens on a cut-off turn, so it resumes it at once.
+    await open();
+    await settle(50);
+    expect(kinds()).toEqual(["resume"]);
+    expect(byId("turn-error")?.textContent).toBe(TRIES);
+    expect(button("Retry")).toBeNull();
+    expect(host.textContent).toContain("Why discount?");
+  });
 });
 
 describe("a failure in plain words (A3)", () => {

@@ -64,7 +64,8 @@ import { pickCompanion } from "./companion";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { learnersOwnWords, storeReplyChoices } from "./reply-choices";
-import { lastStepNumber, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
+import { loadTurnUsages, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
+import { noLimitLedger, stepLedger, type StepLedger } from "./step-ledger";
 import type { ModelClient } from "./model";
 import { runTools, type RunnerParams } from "./runner";
 import { healingClient, REPLAY_STRIPPED } from "./replay-heal";
@@ -88,6 +89,8 @@ export const TIME_BUDGET_MS = 270_000;
 const COMPACT_MARGIN_MS = 10_000;
 /** How often a running turn reads its own row for the Learner's Stop (another function instance may have written it). */
 export const STOP_POLL_MS = 500;
+/** The stop reason of a turn that had no step left for its reply (the step limit, step-ledger.ts). */
+export const STEP_LIMIT = "step_limit";
 
 
 /** The request the Tutor Turn builds for the Tool Runner: the Session's frozen instructions, tools, model and effort. */
@@ -240,6 +243,11 @@ export type TurnDeps = {
   onTurn?: (turnId: number) => void;
   /** compose_widget's model client (and a test's shorter limit); left out, the real OpenAI client, made on first use. */
   composer?: Composer;
+  /**
+   * True for the evals: no Spend cap applies (decision #13). No daily cap or resume limit in turn admission, and the turn
+   * keeps its steps in the no-limit Step ledger. Left out, every cap applies.
+   */
+  noLimits?: boolean;
 };
 
 /** Thrown when a run reaches its time budget. */
@@ -339,7 +347,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   deps.onTurn?.(turn.id);
   const stop = watchForStop(db, turn.id);
   try {
-    const done = yield* timed(runLockedTurn(deps, input, turn, deadline, stop.signal, clock), clock);
+    const done = yield* timed(runLockedTurn(deps, input, turn, deadline, stop.signal, clock, admission.stepLimit), clock);
     // Finished before the browser hears "done", so its next send finds the lock free.
     await updateTurn(db, turn.id, { status: "finished", stopReason: done.stopReason, finishedAt: now() });
     ended = true;
@@ -417,6 +425,8 @@ async function* runLockedTurn(
   deadline: number,
   stop: AbortSignal,
   clock: TurnClock,
+  /** The most model steps the turn may take, all its runs together (turn admission's step limit). */
+  stepLimit: number,
 ): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
   const { db } = deps;
   const { learnerId } = turn;
@@ -452,13 +462,15 @@ async function* runLockedTurn(
   let log: Log;
   let turnSeq: number;
   let code: Record<string, ToolCode>;
-  // The turn's loop steps are numbered once across the Tutor's steps and the extra ones tools save (compose_widget's).
-  let stepNo: number | undefined;
+  // The turn's Step ledger (step-ledger.ts): its loop steps, numbered once across the Tutor's steps and the extra ones
+  // tools save (compose_widget's), and how many are left under the step limit. Made once the turn has its turn seq.
+  let ledger: StepLedger | undefined;
   let stepsReady = false;
-  const saveStep = async (model: string, make: (n: number) => StepUsage) => {
-    stepNo ??= await lastStepNumber(db, session.id, turnSeq);
-    await saveStepUsage(db, session.id, turnSeq, model, make(++stepNo), now());
+  const ledgerNow = (): StepLedger => {
+    const at = { db, sessionId: session.id, turnSeq, now };
+    return (ledger ??= deps.noLimits ? noLimitLedger(at) : stepLedger(at, stepLimit));
   };
+  const saveStep = (model: string, make: (n: number) => StepUsage) => ledgerNow().save(model, make);
   // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
   effects.saveStep = (model, make) => (stepsReady ? saveStep(model, make) : Promise.resolve());
   // This turn's facts (turn-facts.ts), the place they were worked out for, and whether the turn closes a passed Topic.
@@ -717,7 +729,8 @@ async function* runLockedTurn(
     // Aborted on a cut-off too, so closing the runner never waits on a request still open: the turn must save and answer
     // in time. A streamed reply's runner is aborted the same way when the guard stops it.
     const cut = new AbortController();
-    const runner = runTools(client, requestFor(activeSession, [...log.messages], code), { signal: AbortSignal.any([stop, cut.signal]) });
+    // The runner asks the Step ledger before each step: a tool may have saved a step of its own since the last one.
+    const runner = runTools(client, requestFor(activeSession, [...log.messages], code), { signal: AbortSignal.any([stop, cut.signal]), stepsLeft: () => ledgerNow().left() });
     // The runner's history, up to here, is stored.
     let saved = log.messages.length;
     // Saves anything the runner added to history that isn't stored yet (tool results).
@@ -837,6 +850,8 @@ async function* runLockedTurn(
       stopReason = "stopped";
       stopped = true;
     }
+    // No step was left for the reply (a tool's own steps used the last ones): the turn records why it ended there.
+    if (!stopped && runner.stepLimitReached) stopReason = STEP_LIMIT;
     if (!stopped) await syncRunnerHistory();
     yield* reportSaveFailure(held);
     // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
@@ -1108,7 +1123,7 @@ async function* runLockedTurn(
         await storeFixed();
         toSend = [...nonText(draftHeld), ...(await replyEvent())];
       } else toSend = storedBefore || resumedCorrection ? [...nonText(draftHeld), ...(await replyEvent())] : joinedEvents(draftHeld);
-    } else if (!retried && performance.now() - runStart < (deps.retryWithinMs ?? RETRY_WITHIN_MS)) {
+    } else if (!retried && performance.now() - runStart < (deps.retryWithinMs ?? RETRY_WITHIN_MS) && (await ledgerNow().left()) > 0) {
       // One retry: the correction carries every failed check's reason, the Widget correction's included.
       correction = retryMessage(judged, widgetsOnScreen(log.rows, replyFrom, await loadSessionItems(db, session.id, learnerId)));
       await log.append({ role: "user", content: correction });
@@ -1139,7 +1154,7 @@ async function* runLockedTurn(
         }
       }
     } else {
-      // Over the time limit (or the retry already ran): straight to the fallback.
+      // Over the time limit, out of steps, or the retry already ran: straight to the fallback.
       const items = await fallBack(judged.draft.text, judged.problems);
       toSend = [...nonText(draftHeld), ...items, ...(await replyEvent())];
     }
@@ -1241,8 +1256,10 @@ async function* runLockedTurn(
   // A streamed own-question reply is timed against its own budget (first word), so its times are saved under its own kind.
   clock.replyKind = live ? OWN_QUESTION_KIND : record.replyKind;
   // On-demand compaction, once the reply is settled (never before the checks, which may still reject, fix or retry it):
-  // a Session whose last request was past the setting folds into one summary, which the next turn starts from.
-  if (!stoppedNow() && stopReason === "end_turn" && compactAtTokens > 0 && contextTokens(lastUsage) >= compactAtTokens) await compactSession();
+  // a Session whose last request was past the setting folds into one summary, which the next turn starts from. It is a
+  // step too, so a turn with no step left skips it (the step limit stays a hard bound) and a later turn compacts.
+  const compactDue = !stoppedNow() && stopReason === "end_turn" && compactAtTokens > 0 && contextTokens(lastUsage) >= compactAtTokens;
+  if (compactDue && (await ledgerNow().left()) > 0) await compactSession();
   const total = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now(), summaryOf(record));
   // A suggest_choice label code dropped (too long, an emoji, a sum, a copy of a set label) is recorded with the turn.
   const usage = droppedChoice === null ? total : { ...total, droppedChoice };

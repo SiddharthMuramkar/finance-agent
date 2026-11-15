@@ -134,20 +134,20 @@ describe("the /admin routes", () => {
     expect(await jar.db.select().from(accessDenials)).toEqual([]);
     expect(await inviteFor(jar.db, "mia@x.com")).toBeNull();
     expect(await sessionsOf(asha.id)).toBe(1);
-    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 120, learnerUsdPerDay: 5, globalUsdPerDay: 30 });
+    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 120, learnerUsdPerDay: 5, globalUsdPerDay: 30, stepsPerTurn: 10, resumesPerTurn: 2 });
   });
 
   it("caps saves every Spend cap at once, and a missing or bad value saves none of them", async () => {
-    const fields = { turns_per_learner_day: " 90 ", usd_per_learner_day: "2.5", usd_global_day: "0" };
+    const fields = { turns_per_learner_day: " 90 ", usd_per_learner_day: "2.5", usd_global_day: "0", steps_per_turn: "12", resumes_per_turn: "0" };
     expect(await send("caps", fields)).toEqual({ status: 303, location: "/admin?done=caps_saved#caps" });
-    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 90, learnerUsdPerDay: 2.5, globalUsdPerDay: 0 });
+    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 90, learnerUsdPerDay: 2.5, globalUsdPerDay: 0, stepsPerTurn: 12, resumesPerTurn: 0 });
 
-    const bad = [{ usd_global_day: "" }, { turns_per_learner_day: "1.5" }, { usd_per_learner_day: "-1" }, { usd_per_learner_day: "0.001" }, { usd_global_day: "1e3" }, { turns_per_learner_day: "10001" }];
+    const bad = [{ usd_global_day: "" }, { turns_per_learner_day: "1.5" }, { usd_per_learner_day: "-1" }, { usd_per_learner_day: "0.001" }, { usd_global_day: "1e3" }, { turns_per_learner_day: "10001" }, { steps_per_turn: "0" }, { resumes_per_turn: "21" }];
     for (const change of bad) {
       expect(await send("caps", { ...fields, turns_per_learner_day: "7", ...change }), JSON.stringify(change)).toEqual({ status: 303, location: "/admin?done=bad_caps#caps" });
     }
-    expect(await send("caps", { turns_per_learner_day: "7", usd_per_learner_day: "2.5" })).toEqual({ status: 303, location: "/admin?done=bad_caps#caps" });
-    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 90, learnerUsdPerDay: 2.5, globalUsdPerDay: 0 });
+    expect(await send("caps", { turns_per_learner_day: "7", usd_per_learner_day: "2.5", usd_global_day: "1", steps_per_turn: "10" })).toEqual({ status: 303, location: "/admin?done=bad_caps#caps" });
+    expect((await readSettings(jar.db)).caps).toEqual({ learnerTurnsPerDay: 90, learnerUsdPerDay: 2.5, globalUsdPerDay: 0, stepsPerTurn: 12, resumesPerTurn: 0 });
   });
 
   it("approve lets a waiting person in at once; approving again changes nothing", async () => {

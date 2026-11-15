@@ -5,22 +5,23 @@ import { loadProgress } from "@/learner/memory";
 import { openerNote } from "./context";
 import { drillIsDue, quickTryFollowUpNote, quizLadderNote } from "./practice";
 import { savePaste } from "./pasted";
-import { closedInFavourOf, currentTopicId, liveSession, openLog, retireLegacySessions, sessionForTurn, showsCurrentTopic, STALE_TAB_MESSAGE } from "./session-log";
+import { closedInFavourOf, currentTopicId, liveSession, openLog, readSettings, retireLegacySessions, sessionForTurn, showsCurrentTopic, STALE_TAB_MESSAGE } from "./session-log";
 import { BUSY_MESSAGE, DRILL_NOTE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext } from "./next";
 import { turnFacts } from "./turn-facts";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { widgetReportNote } from "./widget-context";
 import { pressedChoiceWords } from "./reply-choices";
-import { CAP_MESSAGES, checkQuota } from "./quota";
+import { CAP_MESSAGES, checkQuota, RESUME_LIMIT_MESSAGE } from "./quota";
 import type { PastedInput, TurnDeps, TurnEvent, TurnInput } from "./turn";
 
 /**
  * Turn admission: every "may this turn run?" rule, before the Tutor Turn runs (turn.ts). It refuses a request from a tab
  * showing another Topic, works out the note code writes for the input's kind, refuses a new turn past a daily Spend cap
- * (quota.ts), takes the Learner's one-turn lock (a new turn, or a resume of the last one), and refuses a Next or a
- * follow-up with nothing to do, freeing the lock again. A refusal saves and sends nothing. What it admits is the claimed
- * turn, with the items to show before the reply. The rules run in that order (turn-admission.test.ts).
+ * (quota.ts), takes the Learner's one-turn lock (a new turn, or a resume of the last one unless it has had all its
+ * resumes), and refuses a Next or a follow-up with nothing to do, freeing the lock again. A refusal saves and sends
+ * nothing. What it admits is the claimed turn, with the items to show before the reply and its step limit. The rules
+ * run in that order (turn-admission.test.ts). With `noLimits` (the evals) no Spend cap applies.
  */
 
 /** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
@@ -36,11 +37,12 @@ export type Refusal = Extract<TurnEvent, { type: "stale" | "not_allowed" | "over
 /**
  * The admission's answer: a refusal, or the claimed turn. `items` come before the reply (a Next's step dividers, the
  * quiz ladder's items). `alreadyFinished`: a resume found the turn finished after the browser lost the stream, so it
- * holds no lock and only its saved reply is shown.
+ * holds no lock and only its saved reply is shown. `stepLimit`: the most model steps the turn may take, all its runs
+ * together (its Step ledger's limit).
  */
-export type Admission = { refusal: Refusal } | { turn: Turn; alreadyFinished: boolean; items: TurnEvent[] };
+export type Admission = { refusal: Refusal } | { turn: Turn; alreadyFinished: boolean; items: TurnEvent[]; stepLimit: number };
 
-export type AdmissionDeps = Pick<TurnDeps, "db" | "learnerId" | "map" | "now" | "shown" | "widgets">;
+export type AdmissionDeps = Pick<TurnDeps, "db" | "learnerId" | "map" | "now" | "shown" | "widgets" | "noLimits">;
 
 /** Decides whether the turn runs, and claims the Learner's lock for it when it does. */
 export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<Admission> {
@@ -90,10 +92,13 @@ export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<
     if (says === null) return { refusal: { type: "not_allowed", message: NO_SUCH_CHOICE } };
     started = says;
   } else if (!resuming) started = learnerTextOf(input);
+  const caps = deps.noLimits ? undefined : (await readSettings(db)).caps;
   // The daily Spend caps, for a new turn only: a resume carries on a turn that already got in. A refused turn writes no row.
-  const capHit = resuming ? null : await checkQuota(db, learnerId, now());
+  const capHit = caps && !resuming ? await checkQuota(db, learnerId, now(), caps) : null;
   if (capHit) return { refusal: { type: "over_limit", message: CAP_MESSAGES[capHit] } };
-  const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
+  // A resume past the resume limit is refused while it would take the lock; another turn running is still "busy".
+  const claim = resuming ? await resumeTurn(db, now(), learnerId, caps?.resumesPerTurn) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
+  if ("overLimit" in claim && claim.overLimit) return { refusal: { type: "over_limit", message: RESUME_LIMIT_MESSAGE } };
   if (!claim.turn) return { refusal: { type: "busy", message: BUSY_MESSAGE } };
   let turn = claim.turn;
   const items: TurnEvent[] = [];
@@ -141,7 +146,7 @@ export async function admitTurn(deps: AdmissionDeps, input: TurnInput): Promise<
   }
   // Saved with the turn before anything else, so a retry still has it.
   if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now(), learnerId);
-  return { turn, alreadyFinished: claim.alreadyFinished, items };
+  return { turn, alreadyFinished: claim.alreadyFinished, items, stepLimit: caps?.stepsPerTurn ?? Infinity };
 }
 
 /**
