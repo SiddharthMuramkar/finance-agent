@@ -50,7 +50,8 @@ When a PR changes only docs, the heavy jobs are skipped and `check`, `build` and
 Docs-only means that every changed file is one of these:
 
 - a Markdown file at the top level (`README.md`, `CLAUDE.md`, `GLOSSARY.md`, ...)
-- a file under `docs/`, **except** `docs/course-map.md` and `docs/critics/` (a check or a test reads them)
+- a Markdown file or an image under `docs/`, **except** `docs/course-map.md` and `docs/critics/` (a check or a test
+  reads them). Any other file there (`.ts`, `.json`, `.yaml`, ...) is code: `tsconfig.json` includes `**/*.ts`.
 - `LICENSE`, `.github/ISSUE_TEMPLATE/`, a PR template
 
 Everything else is code, for example: anything under `.github/workflows/`, `.github/dependabot.yml`, Markdown inside

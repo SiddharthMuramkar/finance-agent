@@ -19,6 +19,14 @@ describe("isDocsOnly: may CI skip the heavy jobs for this PR?", () => {
     expect(isDocsOnly(["docs/critics/spine-log.yaml"])).toBe(false);
   });
 
+  it("is true for Markdown and images under docs/, but false for any other file there", () => {
+    expect(isDocsOnly(["docs/specs/value-it-signal-spec.md", "docs/specs/img/signal.png", "docs/diagram.svg"])).toBe(true);
+    // tsconfig includes **/*.ts and `next build` type-checks it, wherever it is.
+    expect(isDocsOnly(["docs/x.ts"])).toBe(false);
+    expect(isDocsOnly(["docs/archive/old.tsx"])).toBe(false);
+    expect(isDocsOnly(["docs/data.json"])).toBe(false);
+  });
+
   it("is false for Markdown inside code folders, such as a test fixture or a Topic", () => {
     expect(isDocsOnly(["src/behaviour/tutor-eval/fixtures/untaught-skill/docs/skill.md"])).toBe(false);
     expect(isDocsOnly(["course/topics/notes.md"])).toBe(false);
@@ -64,9 +72,13 @@ describe("node scripts/ci-changes.mjs: what CI's `changes` job writes to $GITHUB
 const NAMED_BUT_NOT_READ_IN_CI: Record<string, string> = {
   "docs/specs/img/": "e2e specs write evidence screenshots there; nothing compares them",
   "docs/research": "only scripts/dev-verify-to-blocks.mjs reads it, a dev tool CI never runs",
+  "docs/archive/": "eslint.config.mjs only ignores it; a code file there (.ts, .tsx) is not docs-only anyway",
 };
 
-/** Every docs/ path named in a string in src/, scripts/ or e2e/: "docs/a/b" or join(..., "docs", "a", "b"). */
+/**
+ * Every docs/ path named in a string in src/, scripts/, e2e/ or a top-level config (eslint, next, playwright, vitest):
+ * "docs/a/b" or join(..., "docs", "a", "b").
+ */
 function docsPathsNamedInCode(): { file: string; path: string }[] {
   const found: { file: string; path: string }[] = [];
   // These name made-up docs paths as test data: the classifier itself, its tests, and the classify step's scratch repo.
@@ -76,7 +88,8 @@ function docsPathsNamedInCode(): { file: string; path: string }[] {
       const path = join(dir, entry.name);
       return entry.isDirectory() ? walk(path) : /\.(ts|tsx|mjs|cjs|js)$/.test(entry.name) ? [path] : [];
     });
-  for (const file of ["src", "scripts", "e2e"].flatMap(walk)) {
+  const configs = readdirSync(".", { withFileTypes: true }).filter((entry) => entry.isFile() && /\.(ts|mjs|cjs|js)$/.test(entry.name));
+  for (const file of [...configs.map((entry) => entry.name), ...["src", "scripts", "e2e"].flatMap(walk)]) {
     if (skip.has(file)) continue;
     const text = readFileSync(file, "utf8");
     for (const m of text.matchAll(/["'`](docs\/[^"'`\s$]*)/g)) found.push({ file, path: m[1] });
@@ -93,6 +106,7 @@ describe("the docs-only list keeps up with the code", () => {
     const paths = docsPathsNamedInCode().map((ref) => ref.path);
     expect(paths).toContain("docs/course-map.md");
     expect(paths).toContain("docs/critics");
+    expect(paths).toContain("docs/archive/**"); // eslint.config.mjs, a top-level config
   });
 
   it("counts every docs file or folder that code reads as code, unless it is listed as not read in CI", () => {

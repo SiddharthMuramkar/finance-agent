@@ -20,7 +20,9 @@ export const DOCS_READ_BY_CODE = [
 
 const DOCS = [
   /^[^/]+\.md$/, // top-level notes: README.md, CLAUDE.md, GLOSSARY.md, AGENTS.md
-  /^docs\//, // ADRs, specs, guides
+  // ADRs, specs, guides and their pictures. Not any file under docs/: tsconfig includes **/*.ts wherever it is, so a
+  // .ts there is type-checked and built.
+  /^docs\/.+\.(md|png|jpe?g|gif|svg|webp)$/i,
   /^LICEN[CS]E(\.[a-z]+)?$/i,
   /^\.github\/(ISSUE_TEMPLATE\/|PULL_REQUEST_TEMPLATE\/|pull_request_template\.md$)/i,
 ];
