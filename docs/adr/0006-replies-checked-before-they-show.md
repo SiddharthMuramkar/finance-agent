@@ -1,6 +1,6 @@
 # Step-led replies are checked before they show; own-question replies stream behind a stream guard
 
-Status: accepted, 2026-11-15. Ticket: [#4 Restore design docs from the archive?](https://github.com/SiddharthMuramkar/finance-agent/issues/4). Rewritten from archived ADRs 0008 and 0017.
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADRs 0008 and 0017, and the fallback rule of archived ADR 0016.
 
 ## Context
 
@@ -14,6 +14,8 @@ In the Percent Session of 4 November 2026 replies broke rules the instructions a
   - Any other break costs one retry, told exactly what failed, and only if the turn has used under 30 seconds (`RETRY_WITHIN_MS`). If that fails too, code shows a fallback.
 - **Own-question turns** (the Learner typed, and no Check is waiting for an answer) stream at once, one sentence at a time, behind a stream guard (`src/tutor/stream-guard.ts`). Before each sentence shows, the guard blocks three things: a Blocked number, a line that tells the Learner to buy, sell or hold, and an internal word or id. On a hit the stream stops and one fixed line shows.
 - In own-question turns, word count, a second question and the currency are soft checks: measured and recorded after the reply, never a retry.
+- **The fallback tells the truth.** A step-led turn's fallback is the step's own words: at a Concept card, the card's write-down line and the next Quick try. An own-question turn that cannot get a checked answer shows one fixed line that says so, then the open step item. A write-down line is never offered as the answer to a question.
+- **The open item is shown, not described.** Under an own-question reply, code shows the open item again: the Quick try card or the Next button. At Your turn the open Quick try is the ask, so V2 asks for no other there.
 
 ## Consequences
 
@@ -22,6 +24,7 @@ In the Percent Session of 4 November 2026 replies broke rules the instructions a
 - A draft is stored with its check result, so a reload shows only a reply that passed, or the fallback.
 - Length and style slips in own-question replies can reach Learners; the soft checks count them per Reply kind.
 - Stop drops the reply in progress, and the Learner's message stays, marked Stopped.
+- After a few own questions the open Quick try can be far up the page, so a "Back to your turn" button brings it back.
 
 ## Alternatives considered
 
