@@ -15,7 +15,6 @@ export const chrome = {
   skip: "Skip to content",
   signIn: "Sign in",
   join: "Join early access",
-  inReview: "Request in review",
   continue: "Continue",
   menu: "Menu",
   close: "Close",
@@ -33,13 +32,11 @@ export const chrome = {
 } as const;
 
 /**
- * The CTA and the note under it, by viewer state (§7.1). A visitor's Join opens /login, the sign-in page, today's way in.
- * The Clerk cutover (#33) adds /join, Clerk's Waitlist (its email check and the "you're in" email), and switches this
- * href to it in the same change: a Join to /join before the page exists sends a person who signs in from it to the 404.
+ * The CTA and the note under it, by viewer state (§7.1). A visitor's Join opens /join, Clerk's Waitlist (#33), which
+ * owns the email check and the "you're in" email.
  */
 export const cta = {
-  visitor: { label: "Join early access", href: "/login", note: "Free during early access. We let people in by hand and email you when you’re in." },
-  applicant: { label: "Play a real case while you wait", note: "Your request is in. We’ll email you when you’re in." },
+  visitor: { label: "Join early access", href: "/join", note: "Free during early access. We let people in by hand and email you when you’re in." },
   member: { label: "Continue" },
 } as const;
 
@@ -300,7 +297,7 @@ export const casePage = {
   reveal: (label: string) => `Reveal ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
   sources: "Sources:",
   fromTopic: "From the Topic",
-  footCta: { visitor: "Join to take the full Topic", applicant: "Check your request", member: "Open this Topic" },
+  footCta: { visitor: "Join to take the full Topic", member: "Open this Topic" },
   previous: "Previous case",
   next: "Next case",
 } as const;

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { SIGN_IN_PATH } from "@/auth/destination";
 import { currentLearner } from "@/auth/session";
 import { loadCourseMap } from "@/course/map";
 import { exploreAsSeen, exploreWidgetFor } from "@/course/explore-widget";
@@ -25,14 +26,14 @@ import { latestTurn } from "@/tutor/turn-status";
 import { failedTurnView } from "@/tutor/failures";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readSplit } from "../split-cookie";
-import { accountFor } from "../account";
+import { currentAccount } from "../account";
 import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
 
 // The Study Workspace, at /study. Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
 export const dynamic = "force-dynamic";
 
 // The Study Workspace's frame, box and header, around its two columns.
-async function WorkspaceShell({ account, children }: { account: HeaderAccount; children: ReactNode }) {
+async function WorkspaceShell({ account, children }: { account?: HeaderAccount; children: ReactNode }) {
   return (
     <SignedInFrame>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
@@ -45,9 +46,9 @@ async function WorkspaceShell({ account, children }: { account: HeaderAccount; c
 }
 
 export default async function WorkspacePage() {
-  // The proxy already sends a signed-out visitor to the login; this check also comes before any Learner data is read.
+  // The proxy already sends a signed-out visitor to the sign-in; this check also comes before any Learner data is read.
   const learner = await currentLearner();
-  if (!learner) redirect("/login");
+  if (!learner) redirect(SIGN_IN_PATH);
   const map = loadCourseMap();
   const db = getDb();
   const learnerId = learner.id;
@@ -114,7 +115,7 @@ export default async function WorkspacePage() {
   // A failure reads in the Learner's words; what the provider said shows only with Show developer details on (A3).
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, ...failedTurnView(turn, learner.showDeveloperDetails) } : null;
   return (
-    <WorkspaceShell account={await accountFor(db, learner)}>
+    <WorkspaceShell account={await currentAccount()}>
       <Conversation
         initial={initial}
         // The Topic bar's strip: the shown Topic's steps, grouped by Check, with the Learner's place.

@@ -1,20 +1,15 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import type { TestHelpers } from "better-auth/plugins";
-import { accessFor, isOwnerLearner, waitingCount } from "@/auth/access";
-import { getAuth } from "@/auth/better-auth";
-import { takeOutboxLink } from "@/auth/email-link";
-import type { AuthUser } from "@/auth/google-learner";
-import { addInvite, inviteEmail, removeInvite, signupOpen } from "@/auth/invites";
+import { learnerForClerkUser } from "@/auth/clerk-learner";
 import { startOver } from "@/auth/learners";
-import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, OWNER_NAME, TOOLS_NAME, learnerToken } from "@/auth/passcode";
+import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, TOOLS_NAME, learnerToken } from "@/auth/passcode";
 import { currentLearner } from "@/auth/session";
 import { type CourseMap, loadCourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
 import { finishForPlacement } from "@/behaviour/place";
 import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { getDb } from "@/db/client";
-import { accessDenials, account, insightAttempts, learners, messages, reviewCards, sessions, user } from "@/db/schema";
+import { insightAttempts, messages, reviewCards, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
@@ -39,11 +34,10 @@ export const runtime = "nodejs";
  * a named state on the fresh Learner (signing this browser in as it); `POST {script}` picks the scripted Tutor's next
  * reply; `POST {reset: true}` is `{state: "fresh"}`; `GET` says which database is open.
  *
- * The sign-in fixtures (C1b, ADR 0014) sign this browser in as a Better Auth person, through a real session from Better
- * Auth's test helpers: `{googleLearner: true}` (Asha, invited, with her Learner), `{googleOwner: true}` (the owner) and
- * `{waitingUser: true}` (Noor, nobody's invite). `{invite: email}` puts an email on the invite list, and
- * `{emailLinkFor: email}` hands out the sign-in link the test bed kept for that address instead of mailing it.
- * Each is idempotent: the same person, in the same state, comes back.
+ * `POST {person: "owner" | "asha"}` (issue #33) signs this browser in as one of the test bed's people
+ * (src/dev/e2e-identity.ts): Clerk is off in the test bed, so a signed `fa_e2e_person` cookie stands in for a Clerk
+ * session, and the person's Learner is found or made as a first Clerk sign-in makes it. The owner is the admin.
+ * Idempotent: the same person and Learner come back.
  *
  * Closed (404) unless the test bed is on (`E2E=1`, never in production or on Vercel) AND the database is the in-memory
  * PGlite, so it can never write to Neon even if a flag leaks; 403 for any Learner but the tools Learner.
@@ -306,105 +300,20 @@ export async function GET() {
   return NextResponse.json({ db: "pglite" });
 }
 
-/** The test bed's Google-linked Learner (C1b): invited, so she gets in. */
-const ASHA: AuthUser = { id: "e2e-google-asha", email: "asha@e2e.example", name: "Asha E2E" };
-
-/** The test bed's owner (ADR 0014): a Google account linked to the owner Learner, as `invites add <email> --learner owner` links it. */
-const OWNER: AuthUser = { id: "e2e-google-owner", email: "owner@e2e.example", name: "Owner E2E" };
-
-/** Someone who signed in with nobody's invite, so they wait for the owner. No Google account: she came by email link. */
-const NOOR: AuthUser = { id: "e2e-waiting-noor", email: "noor@e2e.example", name: "Noor E2E" };
-
-/** Better Auth's test helpers (mounted only in the test bed), or the response that says what is missing. */
-async function testHelpers(): Promise<{ test: TestHelpers } | { refused: NextResponse }> {
-  const auth = getAuth();
-  if (!auth) return { refused: NextResponse.json({ error: "Sign-in is off in this test bed (set its fake secrets)." }, { status: 500 }) };
-  const test = ((await auth.$context) as unknown as { test?: TestHelpers }).test;
-  if (!test) return { refused: NextResponse.json({ error: "Better Auth test helpers are not mounted (the test bed mounts them)." }, { status: 500 }) };
-  return { test };
-}
-
-/** Writes this person's verified Better Auth `user`, once; a second call finds it by email and changes nothing. */
-async function savePerson(db: Db, test: TestHelpers, person: AuthUser) {
-  const [existing] = await db.select({ id: user.id }).from(user).where(eq(user.email, person.email)).limit(1);
-  if (!existing) await test.saveUser(test.createUser({ ...person, emailVerified: true }));
-}
-
-/** `body` as JSON, with a real Better Auth session cookie for this user, so the browser that asked is signed in as them. */
-async function signedInAs(test: TestHelpers, userId: string, body: Record<string, unknown>) {
-  const { cookies } = await test.login({ userId });
-  const response = NextResponse.json(body);
-  for (const cookie of cookies) {
-    response.cookies.set(cookie.name, cookie.value, {
-      path: cookie.path || "/",
-      httpOnly: cookie.httpOnly ?? true,
-      sameSite: "lax",
-      secure: cookie.secure ?? false,
-      expires: cookie.expires ? new Date(cookie.expires * 1000) : undefined,
-    });
-  }
+/**
+ * Signs this browser in as a test-bed person (issue #33): their Learner, found or made by the same `learnerForClerkUser`
+ * a real Clerk sign-in goes through, and the signed `fa_e2e_person` cookie. e2e-identity.ts is loaded here, behind the
+ * NODE_ENV test the build removes, so a production build never carries the test people.
+ */
+async function signInPerson(person: unknown): Promise<NextResponse> {
+  if (process.env.NODE_ENV === "production") return notFound();
+  const { E2E_PEOPLE, E2E_PERSON_COOKIE, E2E_PERSON_COOKIE_OPTIONS, e2ePersonToken, isE2ePerson } = await import("@/dev/e2e-identity");
+  if (!isE2ePerson(person)) return NextResponse.json({ error: `No person "${String(person)}".`, people: Object.keys(E2E_PEOPLE) }, { status: 400 });
+  const identity = E2E_PEOPLE[person];
+  const learner = await learnerForClerkUser(getDb(), identity);
+  const response = NextResponse.json({ person, email: identity.email, learnerId: learner.id });
+  response.cookies.set(E2E_PERSON_COOKIE, await e2ePersonToken(person, process.env.SESSION_SECRET ?? ""), E2E_PERSON_COOKIE_OPTIONS);
   return response;
-}
-
-/**
- * The Google-linked fixture (C1b): one invited Better Auth `user`, its Learner (made through `accessFor`, as every
- * request makes it) opened on Percent's Story step, and a real session cookie from Better Auth's test helpers
- * (mounted only in the test bed). Idempotent: the same user and Learner come back.
- */
-async function googleLearner() {
-  const helpers = await testHelpers();
-  if ("refused" in helpers) return helpers.refused;
-  const db = getDb();
-  await addInvite(db, ASHA.email);
-  await savePerson(db, helpers.test, ASHA);
-  const access = await accessFor(db, ASHA);
-  if (access.state !== "approved") return NextResponse.json({ error: `The Google fixture user got no Learner (${access.state}).` }, { status: 500 });
-  await story(db, loadCourseMap(), access.learner.id, new Date());
-  return signedInAs(helpers.test, ASHA.id, { googleLearner: true, learnerId: access.learner.id, email: ASHA.email });
-}
-
-/**
- * The owner (ADR 0014): a Better Auth user with a Google account, invited with `--learner owner` so it holds the owner
- * Learner (the migrations' Learner 1, progress and all), signed in. Only this session opens /admin. Answers with how many
- * people wait, the number beside Admin in the owner's account menu. Idempotent: the same user, account and Learner.
- */
-async function googleOwner() {
-  const helpers = await testHelpers();
-  if ("refused" in helpers) return helpers.refused;
-  const db = getDb();
-  await addInvite(db, OWNER.email, { learnerName: OWNER_NAME });
-  await savePerson(db, helpers.test, OWNER);
-  await db
-    .insert(account)
-    .values({ id: `${OWNER.id}-google`, accountId: `${OWNER.id}-sub`, providerId: "google", userId: OWNER.id, updatedAt: new Date() })
-    .onConflictDoNothing();
-  const access = await accessFor(db, OWNER);
-  if (access.state !== "approved" || !isOwnerLearner(access.learner)) {
-    return NextResponse.json({ error: `The owner fixture holds no owner Learner (${access.state}).` }, { status: 500 });
-  }
-  return signedInAs(helpers.test, OWNER.id, { googleOwner: true, learnerId: access.learner.id, email: OWNER.email, waiting: await waitingCount(db) });
-}
-
-/**
- * Noor, a verified Better Auth user nobody invited, signed in: she waits for the owner (ADR 0014). Whatever an earlier
- * test did to her, she waits again: her invite (an approval writes one) and any denial go, and her Learner is archived,
- * so approving her makes a fresh one. Answers with how many people wait. Refused while sign-up is open, when nobody waits.
- */
-async function waitingUser() {
-  const helpers = await testHelpers();
-  if ("refused" in helpers) return helpers.refused;
-  const db = getDb();
-  if (await signupOpen(db)) return NextResponse.json({ error: "Sign-up is open in this test bed, so nobody waits." }, { status: 409 });
-  await removeInvite(db, NOOR.email);
-  await db.delete(accessDenials).where(eq(accessDenials.userId, NOOR.id));
-  await db
-    .update(learners)
-    .set({ archivedAt: new Date() })
-    .where(and(eq(learners.authUserId, NOOR.id), isNull(learners.archivedAt)));
-  await savePerson(db, helpers.test, NOOR);
-  const access = await accessFor(db, NOOR);
-  if (access.state !== "waiting") return NextResponse.json({ error: `The waiting fixture user is ${access.state}, not waiting.` }, { status: 500 });
-  return signedInAs(helpers.test, NOOR.id, { waitingUser: true, email: NOOR.email, waiting: await waitingCount(db) });
 }
 
 /** The test bed's copy of the Mega Millions 2018 cash option ($877,784,124, before tax, as the Topic file states it). */
@@ -428,30 +337,11 @@ export async function POST(request: Request) {
     state?: unknown;
     script?: unknown;
     reset?: unknown;
-    googleLearner?: unknown;
-    googleOwner?: unknown;
-    waitingUser?: unknown;
-    invite?: unknown;
-    emailLinkFor?: unknown;
+    person?: unknown;
     caseData?: unknown;
   };
 
-  if (body.googleLearner === true) return googleLearner();
-  if (body.googleOwner === true) return googleOwner();
-  if (body.waitingUser === true) return waitingUser();
-
-  if (body.invite !== undefined) {
-    if (typeof body.invite !== "string" || !inviteEmail(body.invite).includes("@")) return NextResponse.json({ error: "invite needs an email." }, { status: 400 });
-    await addInvite(getDb(), body.invite);
-    return NextResponse.json({ invite: inviteEmail(body.invite) });
-  }
-
-  if (body.emailLinkFor !== undefined) {
-    if (typeof body.emailLinkFor !== "string") return NextResponse.json({ error: "emailLinkFor needs an email." }, { status: 400 });
-    const link = takeOutboxLink(body.emailLinkFor);
-    if (!link) return NextResponse.json({ error: `No sign-in link is waiting for ${inviteEmail(body.emailLinkFor)}: ask for one on /login first.` }, { status: 404 });
-    return NextResponse.json({ link });
-  }
+  if (body.person !== undefined) return signInPerson(body.person);
 
   // Spec 2026-11-12 E3: Case Data lives only in the private database, so the test bed seeds the one figure Home's
   // Explorable sets the jackpot against: the cash option, at the figure Present value's Topic file states.

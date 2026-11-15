@@ -11,6 +11,7 @@ vi.mock("@/auth/session", () => ({
   currentLearnerId: async () => 1,
   signedInLearner: async () => ({ id: 1, name: "owner" }),
   isSignedIn: async () => true,
+  currentSignIn: async () => ({ kind: "learner", learner: { id: 1, name: "owner" }, via: "passcode" }),
 }));
 const view = vi.hoisted(() => ({ current: undefined as unknown }));
 vi.mock("@/library/library", () => ({ loadPassageView: async () => view.current }));

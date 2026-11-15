@@ -350,6 +350,21 @@ describe("what the left column shows after a turn", () => {
   });
 });
 
+describe("a tab left idle while Clerk runs (issue #33)", () => {
+  it("a turn refused 401 for an expired session token is sent once more after Clerk renews it, and streams", async () => {
+    const getToken = vi.fn(async () => "fresh");
+    vi.stubGlobal("Clerk", { session: { getToken } });
+    failures = [401];
+    await open();
+    expect(getToken).toHaveBeenCalledWith({ skipCache: true });
+    expect(kinds()).toEqual(["resume", "resume"]);
+    await push(calls[1], { type: "replay", text: "A rupee today is worth more." }, { type: "done", elapsedMs: 1 });
+    await end(calls[1]);
+    expect(host.textContent).toContain("A rupee today is worth more.");
+    expect(byId("turn-error")).toBeNull();
+  });
+});
+
 describe("a Spend cap", () => {
   const LIMIT = "You have reached today's limit for the Tutor. It comes back at midnight, India time. Your Widgets still work.";
 

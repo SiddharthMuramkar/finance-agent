@@ -2,10 +2,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// S7 (spec 2026-11-05, A1): the app's pages fill the window. Single-task forms (Welcome, Login, the 404) and the
+// S7 (spec 2026-11-05, A1): the app's pages fill the window. Single-task forms (Welcome, the sign-in pages, the 404) and the
 // public site (the (site) route group: Home, How it works, Examples, the case pages, About) keep their own boxes on purpose.
 const ROOT = join(__dirname);
-const SKIP_DIRS = new Set(["(site)", "welcome", "login"]);
+const SKIP_DIRS = new Set(["(site)", "welcome", "sign-in", "sign-up", "join"]);
 const SKIP_FILES = new Set(["not-found.tsx"]);
 
 function sources(dir: string): string[] {

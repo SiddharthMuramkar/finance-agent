@@ -6,8 +6,8 @@ import type { Viewer } from "@/site/viewer";
 import { Button } from "../primitives";
 import { Glyph } from "./parts";
 
-// The CTA by viewer state (spec 7.1): visitors Join early access (cta.visitor.href: /login today, /join with the Clerk
-// cutover, #33), applicants play a case while they wait, members Continue.
+// The CTA by viewer state (spec 7.1): visitors Join early access (cta.visitor.href: /join, Clerk's Waitlist, #33),
+// members Continue.
 
 type Size = "md" | "lg";
 const sized = (size: Size) => (size === "lg" ? " v-btn-lg" : "");
@@ -46,13 +46,6 @@ export function ContinueButton({ button, size = "md" }: { button: HomeButton; si
 /** The primary CTA for this viewer. A visitor's is marked `data-join`, so SiteJoinEvents counts it by place. */
 export function PrimaryCta({ viewer, size = "lg" }: { viewer: Viewer; size?: Size }) {
   if (viewer.state === "member") return <ContinueButton button={viewer.button} size={size} />;
-  if (viewer.state === "applicant") {
-    return (
-      <Link href="/examples" className={`v-btn v-btn-primary${sized(size)}`} data-affordance="button">
-        {cta.applicant.label}
-      </Link>
-    );
-  }
   return (
     <Link href={cta.visitor.href} className={`v-btn v-btn-primary${sized(size)}`} data-affordance="button" data-join="">
       {cta.visitor.label}
@@ -60,7 +53,7 @@ export function PrimaryCta({ viewer, size = "lg" }: { viewer: Viewer; size?: Siz
   );
 }
 
-/** The note under the CTA (7.1): visitors and applicants only. */
+/** The note under the CTA (7.1): visitors only. */
 export function CtaNote({ viewer, className = "v-fine" }: { viewer: Viewer; className?: string }) {
   if (viewer.state === "member") return null;
   return <p className={className}>{cta[viewer.state].note}</p>;

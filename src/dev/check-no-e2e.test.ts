@@ -42,6 +42,16 @@ describe("scripts/check-no-e2e-in-build.mjs", () => {
     expect(run(clean).status).toBe(0);
   });
 
+  it("catches the test bed's people being built into a server file (issue #33), but not a mention of the name", () => {
+    const leak = build({ "app/api/turn/route.js": "globalThis.__faE2ePeople = {owner:{admin:!0}};" });
+    const bad = run(leak);
+    expect(bad.status).toBe(1);
+    expect(bad.stderr).toContain("app/api/turn/route.js");
+    expect(bad.stderr).toContain("__faE2ePeople");
+
+    expect(run(build({ "app/api/turn/route.js": "if (globalThis.__faE2ePeople === undefined) {}" })).status).toBe(0);
+  });
+
   it("catches the test database being built into a server file", () => {
     const leak = build({ "chunks/abc.js": "globalThis.__faE2eDb = db;" });
     const bad = run(leak);
