@@ -10,7 +10,7 @@ How the agent runs the platform for Value It (issue #33). The agent uses the CLI
 | Vercel project | `finance-agent`, `prj_GhCV5t8pT2vuRQQo0hlnImPWLlAx` |
 | Clerk app | `app_3M88tftDykg1fsszyw09LAaHwPD` |
 | Clerk dev instance | `ins_3M88tm4LhTKkJ8vuoawBD6mCQEx` |
-| Clerk prod instance | not made yet (`clerk deploy`, owner's yes) |
+| Clerk prod instance | `ins_3M8hIbKUzewrzjDR04aMaWrTL82` (`clerk deploy`, 2026-11-15) |
 | Neon project / main branch | `cool-queen-75259301` / `br-shy-river-b3czlpmv` |
 | Production domain | `value-it.xyz` (DNS on Vercel nameservers) |
 
@@ -20,7 +20,7 @@ Vercel commands below take `--scope acme-ef4b --project prj_GhCV5t8pT2vuRQQo0hln
 
 ### Config
 
-The instance config the app expects (applied to dev on 2026-11-15; apply the same to prod at go-live):
+The production config the app expects (applied to prod on 2026-11-15). Email link only, Google off (owner, 2026-11-15):
 
 ```json
 {
@@ -35,7 +35,8 @@ The instance config the app expects (applied to dev on 2026-11-15; apply the sam
     "verification_strategies": ["email_link"]
   },
   "auth_password": { "enabled": false, "required": false },
-  "connection_oauth_google": { "enabled": true, "authenticatable": true },
+  "connection_oauth_google": { "enabled": false },
+  "paths": { "sign_in": "/sign-in", "sign_up": "/sign-up", "waitlist": "/join" },
   "session": {
     "claims": {
       "metadata": "{{user.public_metadata}}",
@@ -46,14 +47,17 @@ The instance config the app expects (applied to dev on 2026-11-15; apply the sam
 }
 ```
 
-- **Production goes live with the email link only** (owner, 2026-11-15). For prod, set `"connection_oauth_google": { "enabled": false }` until the owner's Google OAuth client exists; then turn it on.
+- **Dev differs in one key:** it keeps Google on (`"connection_oauth_google": { "enabled": true, "authenticatable": true }`, Clerk's shared test client). Never copy dev's Google setting to prod.
+- **Google in prod, later:** only after the owner's Google OAuth client exists (redirect URI from `clerk deploy`) and its id and secret are in Clerk. Then patch `{"connection_oauth_google": {"enabled": true, "authenticatable": true}}` to prod (owner's yes). `/sign-in` needs no change: Clerk's card offers whatever the instance has on.
+- **Paths** are per instance (`clerk deploy` does not clone them). Without them, the links in Clerk's own emails (Waitlist invitations) open the Account Portal on `accounts.value-it.xyz`, not `/sign-up`.
+- **Names:** the email-link sign-up asks for no name, so `first_name` is usually empty; the app then names the Learner from the email address (`nameFromEmail` in `src/auth/clerk-learner.ts`). Turning on Clerk's first-name field at sign-up (owner's call) would give the first name instead.
 - The session claims are what `src/auth/identity.ts` reads: `metadata.role` (admin), `email`, `first_name` (snake case). Change them only together with that file and `types/clerk.d.ts`.
 - `captcha_enabled` read `false` after `clerk security fix` on dev. Check it with `clerk config pull`.
 
 Commands (save the body above to a file outside the repo, e.g. `/tmp/clerk-patch.json`):
 
 ```sh
-clerk config pull --instance dev                      # read; compare with the body above
+clerk config pull --instance prod                     # read; compare with the body above
 clerk config patch --instance prod --file /tmp/clerk-patch.json --dry-run
 clerk config patch --instance prod --file /tmp/clerk-patch.json   # owner's yes first
 clerk doctor                                          # integration health
@@ -71,7 +75,7 @@ clerk deploy status --wait                            # prod DNS, SSL, email DNS
   clerk api /waitlist_entries --instance prod                     # find the entry id (status pending)
   clerk api /waitlist_entries/<entry_id>/invite -X POST --instance prod --yes
   ```
-  Clerk emails the invitation; it lands on `/sign-up`. `/waitlist_entries/<entry_id>/reject` refuses one. The owner can do the same in the Dashboard (Users → Waitlist); `/admin` links there.
+  Clerk emails the invitation; it lands on `/sign-up` (the `paths` above). `/waitlist_entries/<entry_id>/reject` refuses one. The owner can do the same in the Dashboard (Users → Waitlist); `/admin` links there.
 - **Take access away**: ban the user. `clerk api /users/<user_id>/ban -X POST --instance prod --yes` (`/unban` undoes it). `/admin` marks a banned person "Access removed"; their past spend stays.
 - **Make the owner admin** (once, after their first sign-in):
   ```sh
@@ -234,9 +238,10 @@ Set a secret by piping it from one CLI into the other, never through the screen,
 
 ## Go-live order (Phase 4 of issue #33)
 
-1. `clerk deploy --domain value-it.xyz` (owner's yes) → add the 5 CNAMEs → `clerk deploy status --wait` → apply the config above to prod (Google off).
-2. Live keys into Vercel Production; test keys into Development.
-3. Merge PR B (owner's yes) → Git deploy of `main`.
-4. Owner signs in at `/sign-in` → set `role: "admin"` (above).
-5. Smoke: a second email joins on `/join` → invite it → the link lands on `/sign-up` → email-link sign-in → one Tutor turn → `/admin` is 404 for them and 200 for the owner.
-6. Remove `PASSCODE`, `PASSCODES`, `SESSION_SECRET` from Production and Preview (owner's yes).
+1. `clerk deploy --domain value-it.xyz` (owner's yes) → add the 5 CNAMEs → `clerk deploy status --wait` → apply the config above to prod (Google off, paths). Done 2026-11-15.
+2. Before the merge, on a developer's machine with dev keys (`clerk env pull --file .env.local`, `npm run dev`): one email-link sign-in finishes on `/study` with no reload (the proxy lets Clerk's sign-in Server Action through: `isClerkSignInAction` in `src/proxy.ts`), and the Clerk card looks right.
+3. Live keys into Vercel Production; test keys into Development.
+4. Merge PR B (owner's yes) → Git deploy of `main`.
+5. Waitlist mode blocks everyone's own sign-up, the owner's too: pre-create the owner's user in Clerk (or invite their Waitlist entry). Owner signs in at `/sign-in` → set `role: "admin"` (above).
+6. Smoke: a second email joins on `/join` → invite it → the link lands on `/sign-up` → email-link sign-up finishes on `/study` with no reload → one Tutor turn → `/admin` is 404 for them and 200 for the owner.
+7. Remove `PASSCODE`, `PASSCODES`, `SESSION_SECRET` from Production and Preview (owner's yes).
