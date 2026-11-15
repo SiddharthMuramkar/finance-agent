@@ -31,7 +31,7 @@ describe("every range slider is the accent blue (F2)", () => {
 
   it("finds the product's sliders", () => {
     expect(sliders.map((s) => s.file)).toEqual(
-      expect.arrayContaining(["src/widgets/slider-control.tsx", "src/widgets/primitives/wave1/predict.tsx", "src/widgets/primitives/wave2/time-travel.tsx", "src/widgets/primitives/wave2/rate-move.tsx"]),
+      expect.arrayContaining(["src/widgets/slider-control.tsx", "src/widgets/primitives/wave1/predict.tsx", "src/widgets/primitives/wave2/time-travel.tsx", "src/widgets/primitives/wave2/rate-move.tsx", "src/app/(site)/how-it-works/moves.tsx"]),
     );
   });
 

@@ -70,6 +70,18 @@ export function Facts({ facts, label }: { facts: readonly { label: string; value
   );
 }
 
+/** A story paragraph (5.17): its opening bold run, such as "**October 2018.**", is drawn as the blue dateline. */
+export function StoryText({ story, className = "v-story" }: { story: string; className?: string }) {
+  const lead = /^\*\*([^*]+)\*\*\s*/.exec(story);
+  return (
+    <p className={className}>
+      {lead && <span className="v-dateline">{lead[1]}</span>}
+      {lead && " "}
+      <Rich>{lead ? story.slice(lead[0].length) : story}</Rich>
+    </p>
+  );
+}
+
 /** A section head (3.3): eyebrow, H2 and an optional body, at most 44em wide. */
 export function SectionHead({ eyebrow, title, body, id }: { eyebrow?: string; title: string; body?: string; id?: string }) {
   return (
