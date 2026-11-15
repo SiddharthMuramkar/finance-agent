@@ -110,7 +110,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file evidence/tutor-eval/summary.md
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: tutor-eval
