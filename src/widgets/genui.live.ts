@@ -173,7 +173,7 @@ async function takeTurn(db: Db, client: TutorClient, input: GenuiAsk["turns"][nu
   let status: TurnRecord["status"] = "finished";
   let note = "";
   let usage: TurnUsage | null = null;
-  for await (const e of runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, input)) {
+  for await (const e of runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID, noLimits: true }, input)) {
     if (e.type === "text") {
       if (correction === null) draft += e.text;
       else correction += e.text;

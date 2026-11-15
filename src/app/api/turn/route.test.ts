@@ -1,8 +1,11 @@
+import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { OWNER_LEARNER_ID } from "@/db/schema";
+import { OWNER_LEARNER_ID, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
+import { CAP_MESSAGES } from "@/tutor/quota";
+import { readSettings } from "@/tutor/session-log";
 import type { StreamEvent, TurnDeps, TurnEvent, TurnInput, TutorClient } from "@/tutor/turn";
 
 /** The /api/turn route: Stop answered at once, pings while a turn runs, progress in the stream. */
@@ -52,6 +55,18 @@ describe("POST /api/turn", () => {
     const response = await post({ stop: true });
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ stopping: false });
+  });
+
+  it("answers a turn past a Spend cap with a 429 and the limit words, never a 409 a resume would wait out", async () => {
+    as.db = await testDb();
+    await readSettings(as.db);
+    await as.db.update(settings).set({ value: "0" }).where(eq(settings.key, "usd_global_day"));
+    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Never sent." }] }]);
+    as.client = client;
+    const response = await post({ message: "Hello" });
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: CAP_MESSAGES.global_usd, limit: true });
+    expect(requests).toHaveLength(0);
   });
 
   it("opens the stream on the first progress, pings while the model is silent, and a Stop ends the turn", async () => {
