@@ -137,9 +137,9 @@ function ValueIt() {
   );
 }
 
-function Move({ index, setRef, children }: { index: number; setRef: (el: HTMLElement | null) => void; children: ReactNode }) {
+function Move({ index, children }: { index: number; children: ReactNode }) {
   return (
-    <article id={`move-${index + 1}`} ref={setRef} className="v-move" aria-labelledby={`move-${index + 1}-h`}>
+    <article id={`move-${index + 1}`} className="v-move" aria-labelledby={`move-${index + 1}-h`}>
       <p className="v-move-n">{String(index + 1).padStart(2, "0")}</p>
       <h2 className="v-h2" id={`move-${index + 1}-h`}>
         {MOVE_NAMES[index]}
@@ -151,7 +151,7 @@ function Move({ index, setRef, children }: { index: number; setRef: (el: HTMLEle
 }
 
 export function HowMoves() {
-  const refs = useRef<(HTMLElement | null)[]>([]);
+  const movesBox = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -160,8 +160,8 @@ export function HowMoves() {
       frame = 0;
       const line = window.innerHeight * (window.innerWidth < 900 ? 0.6 : 0.5);
       let now = 0;
-      refs.current.forEach((el, i) => {
-        if (el && el.getBoundingClientRect().top <= line) now = i;
+      movesBox.current?.querySelectorAll(":scope > .v-move").forEach((el, i) => {
+        if (el.getBoundingClientRect().top <= line) now = i;
       });
       setActive(now);
     };
@@ -180,9 +180,8 @@ export function HowMoves() {
 
   const go = (i: number) => {
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    refs.current[i]?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    document.getElementById(`move-${i + 1}`)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   };
-  const setRef = (i: number) => (el: HTMLElement | null) => void (refs.current[i] = el);
 
   return (
     <div className="v-hiw">
@@ -206,18 +205,18 @@ export function HowMoves() {
           {active === 3 ? <Rich>{howItWorks.rail.done}</Rich> : howItWorks.rail.moveOf(active + 1)}
         </p>
       </aside>
-      <div>
-        <Move index={0} setRef={setRef(0)}>
+      <div ref={movesBox}>
+        <Move index={0}>
           <StoryText story={AMAZON.story} />
           <Facts facts={AMAZON.facts} />
         </Move>
-        <Move index={1} setRef={setRef(1)}>
+        <Move index={1}>
           <Lingo />
         </Move>
-        <Move index={2} setRef={setRef(2)}>
+        <Move index={2}>
           <TryIt />
         </Move>
-        <Move index={3} setRef={setRef(3)}>
+        <Move index={3}>
           <ValueIt />
         </Move>
         <p className="v-small">

@@ -29,7 +29,7 @@ export function activeStep(tops: readonly number[], line: number): number {
 }
 
 export function LeversStory({ steps }: { steps: LeverStep[] }) {
-  const refs = useRef<(HTMLElement | null)[]>([]);
+  const stepsBox = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export function LeversStory({ steps }: { steps: LeverStep[] }) {
       frame = 0;
       const narrow = window.innerWidth < 900;
       const line = window.innerHeight * (narrow ? 0.78 : 0.55);
-      const tops = refs.current.map((el) => el?.getBoundingClientRect().top ?? Infinity);
+      const tops = [...(stepsBox.current?.querySelectorAll(":scope > .v-step") ?? [])].map((el) => el.getBoundingClientRect().top);
       setActive(activeStep(tops, line));
     };
     const schedule = () => {
@@ -55,12 +55,12 @@ export function LeversStory({ steps }: { steps: LeverStep[] }) {
   }, []);
 
   const hint = active === 0 ? home.levers.hints.intro : active <= 4 ? home.levers.hints.lever(active) : home.levers.hints.yourTurn;
-  const step = (i: number) => ({ ref: (el: HTMLElement | null) => void (refs.current[i] = el), className: `v-step${active === i ? " active" : ""}` });
+  const step = (i: number) => ({ className: `v-step${active === i ? " active" : ""}` });
 
   return (
     <section className="v-section" aria-labelledby="levers-h" data-site-section="levers">
       <div className="v-wrap v-story-grid">
-        <div className="v-steps">
+        <div className="v-steps" ref={stepsBox}>
           <article {...step(0)}>
             <p className="v-eyebrow">{home.levers.eyebrow}</p>
             <h2 className="v-h2" id="levers-h">
