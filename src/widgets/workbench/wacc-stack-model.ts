@@ -217,6 +217,8 @@ function taskConditions(
 export const STACK_CAPTION = "The rate, built up in layers";
 export const EQUITY_LABEL = "Cost of equity";
 export const AT_THIS_RATE_LABEL = "Value a share at this rate";
+/** The risk Topic's name for the whole rate (Spine critics round 2 on #91): "cost of capital" is the next Topic's term. */
+export const WHOLE_RATE_LABEL = "Whole rate, with debt";
 
 /** Who puts in the money (Spine critics on #91): shareholders and lenders as characters, each with its Icon and share. */
 export type StackFunder = {
@@ -288,17 +290,17 @@ export function waccStackModel(
       text: `${layer.value < 0 ? "−" : "+"}${percentText(Math.abs(layer.value))}`,
     };
   });
+  const equityLed = data.story?.lead === "equity";
   layers.push({
     id: "total",
-    label: "Cost of capital",
+    label: equityLed ? "Whole rate" : "Cost of capital",
     from: 0,
     to: stack.total,
     text: percentText(stack.total),
   });
-  const equityLed = data.story?.lead === "equity";
   const numbers: BenchNumber[] = [
     equityLed
-      ? { label: "Cost of capital", text: percentText(stack.total) }
+      ? { label: WHOLE_RATE_LABEL, text: percentText(stack.total) }
       : { label: EQUITY_LABEL, text: percentText(stack.costOfEquity) },
   ];
   if (data.block) {

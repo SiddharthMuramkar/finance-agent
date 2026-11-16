@@ -223,6 +223,9 @@ for (const play of PLAYS) {
       expect(turns[2].widget).toContain("2.29, his measure");
       expect(turns[2].widget).toContain("1.00, a retailer");
       expect(turns[2].widget).toContain("Price on 3 Feb 2000");
+      // Round 2 on #91: the next Topic's term stays out of the risk stack; the whole rate is named plainly.
+      expect(turns[2].widget).toContain("Whole rate, with debt");
+      expect(turns[2].widget).not.toMatch(/cost of capital \d/i);
       expect(turns[2].choices.length).toBeGreaterThan(0);
       expect(turns[1].tutor).toContain("he trusts the steadier average of internet retailers");
       expect(turns.map((t) => t.tutor).join(" ")).not.toMatch(/\bWACC\b/);

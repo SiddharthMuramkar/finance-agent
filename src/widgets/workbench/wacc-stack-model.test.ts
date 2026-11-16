@@ -3,6 +3,7 @@ import { valuationCase } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { waccStackData } from "./registry";
 import {
+  WHOLE_RATE_LABEL,
   waccStackLevers,
   waccStackModel,
   waccStackReading,
@@ -173,15 +174,24 @@ describe("Cost of capital stack, led by the Topic's story (#91)", () => {
     debtShare: 15,
   };
 
-  it("leads the risk Topic's headline with the cost of equity, the cost of capital beside it", () => {
+  it("leads the risk Topic's headline with the cost of equity, the whole rate beside it in plain words", () => {
     const model = waccStackModel(equity, atCase);
     expect(`${model.headline.before}${model.headline.key}`).toBe(
       "The cost of equity is 12.9%",
     );
+    // Spine critics round 2 on #91: "cost of capital" is the next Topic's term, so the risk Topic names the whole rate plainly.
     expect(model.numbers[0]).toEqual({
-      label: "Cost of capital",
+      label: WHOLE_RATE_LABEL,
       text: "12.84%",
     });
+    expect(WHOLE_RATE_LABEL).toBe("Whole rate, with debt");
+    expect(model.layers.at(-1)?.label).toBe("Whole rate");
+    expect(JSON.stringify(waccStackReading(equity, atCase))).not.toMatch(
+      /cost of capital/i,
+    );
+    expect(waccStackModel(data, atCase).layers.at(-1)?.label).toBe(
+      "Cost of capital",
+    );
     expect(waccStackReading(equity, atCase).readouts[0]).toBe(
       "Cost of equity: 12.9%",
     );
