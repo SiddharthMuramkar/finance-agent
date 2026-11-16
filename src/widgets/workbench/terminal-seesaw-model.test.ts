@@ -17,7 +17,7 @@ describe("Terminal seesaw on Amazon (B4, Appendix B.1)", () => {
   it("opens in money, not a share above 100%: after year 10 is worth more than the whole value, because years 1 to 10 lose", () => {
     const model = terminalSeesawModel(data, atCase);
     expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe(
-      "After year 10 is worth $16.9bn today, more than the whole value, because years 1 to 10 lose $1.8bn",
+      "After year 10: $16.9bn, more than all; years 1 to 10 lose $1.8bn",
     );
     expect(model.headline.key).toBe("$16.9bn");
     expect(model.share).toBeCloseTo(1.12, 2);

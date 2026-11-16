@@ -113,7 +113,7 @@ export function terminalSeesawModel(data: TerminalSeesawData, settings: SeesawSe
     // 10 lose value the headline says it in money and words; the share stays in what the Tutor reads.
     headline:
       result.sumPv < 0
-        ? { before: "After year 10 is worth ", key: money(result.pvTerminal), after: ` today, more than the whole value, because years 1 to 10 lose ${money(-result.sumPv)}` }
+        ? { before: "After year 10: ", key: money(result.pvTerminal), after: `, more than all; years 1 to 10 lose ${money(-result.sumPv)}` }
         : { before: "After year 10 holds ", key: percentText(share * 100, 0), after: " of the value" },
     numbers: [
       { label: TERMINAL_LABEL, text: money(result.terminalValue) },
