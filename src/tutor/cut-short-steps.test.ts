@@ -3,19 +3,15 @@ import { asc, eq, sql } from "drizzle-orm";
 import { APIError } from "openai";
 import { describe, expect, it } from "vitest";
 import { CONVERTED_TOPIC_DATA, topicFileOf } from "@/course/lesson-fixture";
-import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
-import { navigate } from "@/course/navigator";
+import { parseCourseMap, type CourseMap } from "@/course/map";
 import { OWNER_LEARNER_ID, sessions, settings, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { loadProgress, saveFinishedStep } from "@/learner/memory";
-import { engineOff } from "@/test/engine-off";
+import { saveFinishedStep } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedOptions, type ScriptedReply } from "@/test/scripted-client";
-import type { ComposeClient } from "./compose";
-import { ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
 import type { ModelClient } from "./model";
 import { CAP_MESSAGES, dailyUse, UNPRICED_STEP_USD } from "./quota";
-import { frozenNow, readSettings } from "./session-log";
+import { readSettings } from "./session-log";
 import { runTutorTurn, type TurnDeps, type TurnEvent, type TurnInput } from "./turn";
 import { requestStop } from "./turn-status";
 import { loadStepUsages } from "./usage";
@@ -132,51 +128,9 @@ describe("a request the API refused", () => {
   });
 });
 
-/** A Session frozen with compose_widget in its tools, as an older build froze it (new Sessions are not offered it, ADR 0009). */
-async function withCompose(db: Db) {
-  await cap(db, "widget_engine", "on");
-  const place = navigate(loadCourseMap(), await loadProgress(db, OWNER_LEARNER_ID));
-  const frozen = await frozenNow(db, { tools: ENGINE_TOOLS_WITH_COMPOSE });
-  await db.insert(sessions).values({ ...frozen, learnerId: OWNER_LEARNER_ID, topicId: place?.topic.id ?? null, older: false, createdAt: new Date() });
-}
-
-describe("compose_widget's call cut short", () => {
-  it("by its time limit is saved unpriced, as a step of the turn", async () => {
-    const db = await onPercentTopic(await testDb());
-    await withCompose(db);
-    // A compose model that never answers until its call is aborted.
-    const hangs: ComposeClient = { create: (_, options) => new Promise((_, reject) => options?.signal?.addEventListener("abort", () => reject(new Error("aborted")), { once: true })) };
-    const compose = { type: "tool_use", id: "toolu_cut_compose", name: "compose_widget", input: { brief: "Something unusual about growth", archetype: "Grow" } };
-    const { events } = await turn(db, "Draw it", [{ content: [compose] }, say("I used a ready-made Widget.")], { deps: { composer: { client: hangs, limitMs: 50 } } });
-
-    const done = doneOf(events);
-    expect((await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq)).map((s) => [s.step, s.tools, s.stopReason, s.costUsd])).toEqual([
-      [1, ["compose_widget"], "tool_use", 0],
-      [2, ["compose_widget"], "timeout", null],
-      [3, [], "end_turn", 0],
-    ]);
-  });
-
-  it("refused by the API is priced at nothing: no model ran", async () => {
-    const db = await onPercentTopic(await testDb());
-    await withCompose(db);
-    const refuses: ComposeClient = { create: () => Promise.reject(refused(500, "The server had an error.")) };
-    const compose = { type: "tool_use", id: "toolu_refused_compose", name: "compose_widget", input: { brief: "Something unusual about growth", archetype: "Grow" } };
-    const { events } = await turn(db, "Draw it", [{ content: [compose] }, say("I used a ready-made Widget.")], { deps: { composer: { client: refuses } } });
-
-    const done = doneOf(events);
-    expect((await loadStepUsages(db, done.ref.sessionId, done.ref.turnSeq)).map((s) => [s.step, s.tools, s.stopReason, s.costUsd])).toEqual([
-      [1, ["compose_widget"], "tool_use", 0],
-      [2, ["compose_widget"], "failed", 0],
-      [3, [], "end_turn", 0],
-    ]);
-  });
-});
-
 describe("a compaction cut short", () => {
   it("the fold after a refreeze, when it fails, is saved unpriced as a step of the turn", async () => {
     const db = await testDb();
-    await engineOff(db);
     await turn(db, "Hello", [say("One.")]);
     // As if the Session was frozen by an earlier build: the next turn folds its history first.
     await db.update(sessions).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
@@ -192,7 +146,6 @@ describe("a compaction cut short", () => {
 
   it("the fold after a refreeze, when the Learner presses Stop, is saved unpriced and counts in the daily caps", async () => {
     const db = await testDb();
-    await engineOff(db);
     await turn(db, "Hello", [say("One.")]);
     await db.update(sessions).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
     // Stop while the fold's request is out: the turn ends before it has a turn seq.
@@ -209,7 +162,6 @@ describe("a compaction cut short", () => {
 
   it("the fold after a refreeze, when the turn's time runs out, is saved unpriced: its resume's steps come after it", async () => {
     const db = await testDb();
-    await engineOff(db);
     await cap(db, "steps_per_turn", "3");
     await turn(db, "Hello", [say("One.")]);
     await db.update(sessions).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });

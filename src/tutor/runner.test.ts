@@ -156,7 +156,7 @@ describe("the Tool Runner", () => {
 describe("the step limit", () => {
   it("asks how many steps are left before each step, so a step a tool saved counts at once, and sends the last one with no tool choice", async () => {
     const calls: string[] = [];
-    // The turn may take 3 steps; the tool saves one of its own (as compose_widget does), so the second step is the last.
+    // The turn may take 3 steps; the tool saves one of its own, so the second step is the last.
     let used = 0;
     const saving = tool("compose", calls, () => {
       used += 1;

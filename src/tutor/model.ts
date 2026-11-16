@@ -10,7 +10,7 @@ import type { ApiUsage } from "./usage";
  * the switch, so every older conversation still reads back the same way.
  */
 
-/** The only model: the Tutor, compose_widget, the picture reader, judges and graders all use it. */
+/** The only model: the Tutor, the picture reader, judges and graders all use it. */
 export const TUTOR_MODEL = "gpt-6.1-sol";
 
 /** gpt-6.1-sol's reasoning efforts; `medium` is the API's default and the app's. */

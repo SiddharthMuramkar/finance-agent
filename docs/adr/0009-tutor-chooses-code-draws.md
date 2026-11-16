@@ -8,10 +8,7 @@ A Widget that the model writes as code arrives last (after its prose and hundred
 
 ## Decision
 
-- The Tutor never writes Widget code and never draws a Widget of its own. Two older lanes still let it:
-  - `compose_widget`. A new Session's tools do not list it. Only a Session frozen with it keeps it.
-  - The engine-off lane, where the Tutor writes the Widget into its reply. A Session frozen without the widget engine keeps it. A new Session gets it too when the stored `widget_engine` setting is "off". The default is "on"; tests and the Tutor eval can set "off".
-  - Whether to delete these lanes is still open on [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19).
+- The Tutor never writes Widget code and never draws a Widget of its own. The two older lanes that let it, `compose_widget` and the engine-off lane (the Tutor wrote the Widget into its reply), were deleted in [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19). Every Session freezes the widget engine.
 - The Tutor names a Widget recipe and its params with `show_widget`, or opens a written-ahead Widget with `open_widget`, at a preset.
 - Code parses the params against the recipe's schema, compiles the Widget, runs the Widget checks and stores it. A reply carries at most one Widget. A problem goes back to the Tutor as a tool error, so it can retry in the same turn.
 - Every number on a Widget has a known origin, in one of three kinds of param:
@@ -24,7 +21,7 @@ A Widget that the model writes as code arrives last (after its prose and hundred
 
 - Widgets look the same each time, use the right currency and arrive fast, because code draws them.
 - The Tutor can only show what a recipe or a Topic file covers. Topics without recipes teach in words until someone writes the recipes and presets.
-- While the old lanes stay, a Session frozen with `compose_widget` or without the widget engine keeps that lane's code, so a saved call still resumes.
+- A Session frozen with an old lane could not resume a saved call. #19 deleted the lanes only after the #33 data wipe left no such Session.
 - Each new recipe is code work: a schema, its checks, its tests and a line in the Tutor's instructions.
 
 ## Alternatives considered

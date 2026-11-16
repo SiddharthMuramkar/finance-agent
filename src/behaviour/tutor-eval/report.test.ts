@@ -8,7 +8,7 @@ const long = "word ".repeat(150).trim();
 const report: EvalReport = {
   startedAt: "2026-11-04T10:00:00.000Z",
   finishedAt: "2026-11-04T10:20:00.000Z",
-  tutor: { model: "gpt-6.1-sol", effort: "medium", widgetEngine: "off" },
+  tutor: { model: "gpt-6.1-sol", effort: "medium" },
   graderModel: "gpt-6.1-sol",
   fingerprint: "abc123",
   capUsd: 5,
@@ -40,7 +40,7 @@ const report: EvalReport = {
 describe("the report", () => {
   it("says what ran, on which model and effort, what it cost and that the cap stopped it", () => {
     const md = renderReport(report);
-    expect(md).toMatch(/gpt-6.1-sol, effort medium, widget engine off/);
+    expect(md).toMatch(/gpt-6.1-sol, effort medium\. Grader/);
     expect(md).toContain("$4.62 of the $5.00 cap");
     expect(md).toContain("Stopped: spent $4.62");
     expect(md).toMatch(/\| T1 \| Check open: a Widget \| pass \| 3 of 3 \|/);

@@ -14,7 +14,6 @@ import {
   withoutContradictions,
 } from "./library";
 import { WIDGET_TOOL_NAMES, WIDGET_TOOL_SPECS } from "./tool-specs";
-import { TUTOR_INSTRUCTIONS } from "@/tutor/instructions";
 
 const FROZEN_PATH = new URL("./frozen.generated.json", import.meta.url);
 /** The schema alone, for the widget check: the browser runs it too, and needs none of the instructions' text. */
@@ -118,23 +117,6 @@ describe("widget instructions", () => {
       expect(frozen.instructions).toContain(rule);
     }
     for (const old of ["make it rich", "A number the Learner changes is always a Slider"]) expect(frozen.instructions).not.toContain(old);
-  });
-
-  it("with the widget engine off, grow the Tutor's instructions by at most 10% for the v2 language (44,836 characters before), plus the RateMove part", () => {
-    // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
-    // Spec #229 (ticket #238) grew the teaching rules before the Widget text on purpose. This bound is about the Widget
-    // language, so it counts the rules at the 11,194 characters they had when it was set.
-    // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
-    expect(TUTOR_INSTRUCTIONS.endsWith(frozen.instructions)).toBe(true);
-    // The five story parts (spec 2026-11-05, ticket E2a) add their signatures, descriptions and a "Story" group: about
-    // 1,650 characters, allowed on purpose (the Widget text still stays far under the 12k-token plan above).
-    // The four more story parts (ticket E2b) add about 900 characters of signatures and descriptions.
-    // The ValueLevers Workbench part (spec 2026-11-12, B3) adds its signature and a "Workbench" group: about 450 characters.
-    // The five Workbench parts of B4 (Value bridge, Terminal seesaw, Cost of capital stack, Cash waterfall, Multiple decoder),
-    // the Workbench group's note and Value levers' mode and market arguments add about 950 more.
-    // Review F4 bound the Workbench levers to their $variables (reactive() must wrap the schema last), so each lever prop's
-    // signature reads "$binding<number>": 25 props at 10 characters, exactly 250 more.
-    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700 + 1_000 + 450 + 950 + 250);
   });
 
   it("include all nine story parts (wave 3, tickets E2a and E2b), in a group of their own", () => {

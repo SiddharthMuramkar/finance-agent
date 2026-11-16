@@ -13,8 +13,8 @@ import { StepAborted, type ModelClient, type RunnableTool, type StepRequest, typ
  *   finishes, and its results are still appended before the loop throws.
  * - `return()` aborts the step still streaming, so nothing hangs on the request. A step the loop is still waiting on
  *   (a tool running) finishes first; the caller aborts the signal on a cut-off, so no request is left open.
- * - The step limit (decision #13): with `stepsLeft`, the runner asks the turn's Step ledger before each step, since a
- *   tool may save steps of its own (compose_widget). The last step left is sent with tool choice "none", so it writes
+ * - The step limit (decision #13): with `stepsLeft`, the runner asks the turn's Step ledger before each step, since
+ *   steps may be saved outside the loop (a fold, a tool). The last step left is sent with tool choice "none", so it writes
  *   the reply; with none left, no request is sent, the loop ends and `stepLimitReached` is true.
  * Compaction is not the runner's: the Tutor Turn folds the Session once its reply has passed the checks (turn.ts).
  */

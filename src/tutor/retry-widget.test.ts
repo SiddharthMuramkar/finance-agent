@@ -1,11 +1,9 @@
 import { onPercentTopic } from "@/test/percent-topic";
-import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { OWNER_LEARNER_ID, settings } from "@/db/schema";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { readSettings } from "./session-log";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { FENCE_IN_ENGINE } from "./reply-gate";
 
@@ -25,8 +23,6 @@ const toolResults = (request: Request) =>
 
 async function run(script: Parameters<typeof scriptedClient>[0], dropReplyChecks = false) {
   const db = await onPercentTopic(await testDb());
-  await readSettings(db);
-  await db.update(settings).set({ value: "on" }).where(eq(settings.key, "widget_engine"));
   if (dropReplyChecks) await db.execute("drop table reply_checks" as never);
   const { client, requests } = scriptedClient(script);
   const events: TurnEvent[] = [];
