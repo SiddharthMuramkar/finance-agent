@@ -98,6 +98,11 @@ test("[#84] Settings opens on a phone, from the account menu", async ({ page }) 
   await page.getByRole("button", { name: "Account menu" }).click();
   await page.getByRole("menuitem", { name: "Settings" }).click();
   await expect(page).toHaveURL(/\/settings$/);
+  // The row is a client-side navigation, so hydrated()'s network idle was already reached on /welcome, and the URL turns
+  // as /settings' loading skeleton draws (its own header, with no account menu; a cold compile holds it there). As
+  // density.spec.ts does, wait for the skeleton to go and the page's own heading before measuring.
+  await expect(page.getByTestId("route-skeleton")).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "Settings", exact: true })).toBeVisible();
   await hydrated(page);
   await fitsThePhone(page, "/settings");
 });

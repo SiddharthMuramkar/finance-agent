@@ -649,7 +649,9 @@ function CashFlowBars({ bars }: { bars: readonly CashFlowBar[] }) {
 /**
  * A mode's picture (Spine critics round 1 on #95, widget fit): the rivals as faces on a margin ladder with the company's own
  * face climbing it, or what new capital buys filling up with the sales each dollar brings and a face that frowns once new
- * capital earns less than it costs. A picture only, never a control: the levers stay four at rest and one more.
+ * capital earns less than it costs. A picture only, never a control: the levers stay four at rest and one more. The filling
+ * is a 2 px mint rule along the hairline rail, as the ladder's rail and the timeline's line up to its date are: a Widget at
+ * rest has no family fill (spec §2.2 rule 6, ADR 0015), and the caption beside it says the sales in words.
  */
 function PictureView({ picture }: { picture: ModePicture }) {
   if (picture.kind === "ladder") {
@@ -680,7 +682,7 @@ function PictureView({ picture }: { picture: ModePicture }) {
     <figure className="mt-3 flex items-center gap-3" data-testid="value-levers-centre" data-face={picture.face}>
       <Pic name={picture.emoji} size={32} />
       <div className="min-w-0 flex-1">
-        <div className="h-3 overflow-hidden rounded-sm bg-[var(--hairline)]" role="img" aria-label={`${picture.line}: ${Math.round(picture.fill * 100)}% full`}>
+        <div className="h-0.5 overflow-hidden rounded-sm bg-[var(--hairline)]" role="img" aria-label={`${picture.line}: ${Math.round(picture.fill * 100)}% full`}>
           <div className="h-full rounded-sm bg-[var(--mint)] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${picture.fill * 100}%` }} data-testid="value-levers-centre-fill" />
         </div>
         <figcaption className="mt-1 text-xs text-[var(--muted)]" aria-live="polite">

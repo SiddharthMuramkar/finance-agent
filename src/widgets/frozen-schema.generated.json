@@ -616,7 +616,7 @@
         "unit"
       ],
       "additionalProperties": false,
-      "description": "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call. In Slider(name, label, min, max, step, value, unit) the Learner can set any number from min to max, on steps of `step` counted from min; the starting value sits on a step. A percent slider always moves in 0.01 steps, whatever step is written, so write 0.01 as a rate's step."
+      "description": "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable. In Slider(name, label, min, max, step, value, unit) the Learner can set any number from min to max, on steps of `step` counted from min; the starting value sits on a step. A percent slider always moves in 0.01 steps, whatever step is written, so write 0.01 as a rate's step."
     },
     "AnnuityChart": {
       "type": "object",
@@ -697,7 +697,7 @@
         "inputs"
       ],
       "additionalProperties": false,
-      "description": "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run here."
+      "description": "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models), by the calculate tool's own code, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run here."
     },
     "FormulaCard": {
       "type": "object",
@@ -740,7 +740,7 @@
         "fixed"
       ],
       "additionalProperties": false,
-      "description": "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers)."
+      "description": "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider in the same widget), `sourced` (Case Data references) or `fixed` (fixed numbers)."
     },
     "GuidedTasks": {
       "type": "object",
