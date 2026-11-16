@@ -35,8 +35,11 @@ export default async function HomePage() {
 
   return (
     <div data-page="home">
+      {/* The demo sits between the h1 and the lede in the page's order, where a phone and a tablet show it (spec 7.2.1), so
+          the order a keyboard or screen reader meets things is the order they are seen (WCAG 2.4.3, F36/L08). A laptop's
+          grid draws it in the right column beside both. */}
       <section className="v-wrap v-hero" data-site-section="hero">
-        <div className="v-hero-copy">
+        <div className="v-hero-head">
           <p className="v-eyebrow">{home.hero.eyebrow}</p>
           <h1 className="page-h1 v-display" tabIndex={-1}>
             {home.hero.h1.map((line, i) => (
@@ -46,6 +49,9 @@ export default async function HomePage() {
               </Fragment>
             ))}
           </h1>
+        </div>
+        <TutorDemo />
+        <div className="v-hero-copy">
           <p className="v-lede">
             <Rich>{home.hero.lede}</Rich>
           </p>
@@ -71,7 +77,6 @@ export default async function HomePage() {
             <li>{home.hero.facts.topics(course)}</li>
           </ul>
         </div>
-        <TutorDemo />
       </section>
 
       <section className="v-section v-rule-top" aria-labelledby="moves-h" data-site-section="moves">

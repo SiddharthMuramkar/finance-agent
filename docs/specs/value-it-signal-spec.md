@@ -579,7 +579,7 @@ Inputs (the four levers):
 
 | Key | Name | Label | Min | Max | Step | Display |
 |---|---|---|---|---|---|---|
-| `rev` | How big it gets | Revenue in year 10 | 5 | 80 | 1 | `$39bn` |
+| `rev` | How big it gets | Revenue in year 10 | 5 | 80 | 1 | `$39 billion` |
 | `margin` | What it keeps | Operating margin once mature | 0 | 20 | 0.5 | `10%` or `12.5%` |
 | `s2c` | What growth costs | Sales for each $1 invested | 1 | 6 | 0.25 | `$3.00` |
 | `wacc` | How risky | Cost of capital while it grows | 8.04 | 17.84 | 0.2 | `12.84%` |
@@ -1051,7 +1051,7 @@ Left column, a grid with 20px gaps:
 | Fine print | The CTA note for the state |
 | Facts (blue dot bullet) | {Topics} Topics: the number of Topics written, from the course's own facts. No minutes until they are measured (#72, #75). |
 
-On a phone (640px and below) the Tutor demo sits right under the H1, before the lede: at 390px the H1, "for beginners" and the demo's question chips show without scrolling. Home still loads no OpenUI code.
+The page's order is the eyebrow and H1, then the Tutor demo, then the lede and the rest; on a laptop the grid draws the demo in the right column beside both. In one column (980px and below: a tablet or a phone) the demo sits right under the H1, before the lede, so the order a keyboard or a screen reader meets things is the order they are seen (WCAG 2.4.3). At 390px the H1, "for beginners" and the demo's question chips show without scrolling. Home still loads no OpenUI code.
 
 Right column, **the Tutor demo** (`.demo`): a wash panel, 1px rule border, radius 22px.
 
@@ -1069,7 +1069,7 @@ The five questions:
 | Amazon at $84 | How can a loss-making Amazon be worth $84 a share? | amazon-2000 |
 | The RBI’s June cut | The RBI cut from 6% to 5.5%. How big a cut is that? | rbi-repo-cut-2025 |
 | 10% a year | Does 10% a year grow by the same amount every year? | compounding-1000 |
-| WeWork’s $3bn | WeWork claimed a $3bn run rate. Did it earn that? | wework-2019 |
+| WeWork’s $3 billion | WeWork claimed a $3 billion run rate. Did it earn that? | wework-2019 |
 
 Script when a different chip is tapped (all delays are 0 with reduced motion):
 
@@ -1087,7 +1087,7 @@ The demo must always say it is recorded. In production, either wire it to the re
 
 #### 7.2.2 Four moves
 
-Eyebrow "How a Topic works". H2 "One real event. Four moves. Ten to fifteen minutes." Four columns separated by 1px rules (2 × 2 at 860px, one column at 520px). Each: the glyph with `n` bars lit (26px, blue), "MOVE n", the name (display 600 19px) and one line.
+Eyebrow "How a Topic works". H2 "One real event. Four moves." (no minutes until they are measured, #72, #75) Four columns separated by 1px rules (2 × 2 at 860px, one column at 520px). Each: the glyph with `n` bars lit (26px, blue), "MOVE n", the name (display 600 19px) and one line.
 
 | Move | Name | Line |
 |---|---|---|
@@ -1106,7 +1106,7 @@ Scroll spy: the active step is the last one whose top edge is above 55% of the v
 
 | Step | Left column | Stage |
 |---|---|---|
-| 0 | Eyebrow "A worked example". H2 "Every value comes down to four levers." "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. One published valuation tells a Story about its future, and that Story says **$35**." "Four numbers make the difference." Then the source line, the only place Home names Damodaran: "Source: [Aswath Damodaran, “Valuing Amazon.com”, February 2000](https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf)". | The published Story. All four levers shown, none draggable. Net segment hidden (value equals reference). Hint: "Scroll to meet the four levers." |
+| 0 | Eyebrow "A worked example". H2 "Every value comes down to four levers." "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. One published valuation tells a Story about its future, and that Story says **$35**." "Four numbers make the difference." Then the source line, the only place Home names Damodaran: "Source: [Aswath Damodaran, “Can Amazon.com be valued?”, March 2000](https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf)". | The published Story. All four levers shown, none draggable. Net segment hidden (value equals reference). Hint: "Scroll to meet the four levers." |
 | 1 to 4 | "LEVER n OF 4", the lever's name as H2, its story sentence, and its power sentence in a block with a 2px blue-line left border | Reset to the published Story. That lever's band on the ruler. Only that lever is enabled and undimmed. Dragging it moves the dot inside the band. Hint: "Lever n of 4. Drag it. The shaded band is as far as it can move the value on its own." |
 | 5 | "YOUR TURN: JUDGE IT". H2 "What did the $84 price need?" "**Drag any lever** until the value reaches $84. Green adds value to the published Story. Red takes value away. *Would you have believed it in 2000?*" Preset chips. Win line. Link "Open the full Example, with what happened next →". The step ends on judging the Price's Story, never on inventing one (#74). | All four levers live. Net segment shown. The learner's last story is restored. Hint: "Drag any lever. Arrow keys work too." |
 
@@ -1114,7 +1114,7 @@ Lever story sentences, in plain words and round numbers (#74):
 
 | Lever | Story sentence |
 |---|---|
-| How big it gets | Sales in year 10: **$39bn**, against $1.1bn today. |
+| How big it gets | Sales in year 10: **$39 billion**, against $1.1 billion today. |
 | What it keeps | Once grown, it **keeps 10¢ of each $1** of sales. Today it loses 37¢. |
 | What growth costs | Each **$1 it invests** to grow brings **$3** of new sales. |
 | How risky | While it grows, **investors want 13% a year** for the risk. |
@@ -1202,16 +1202,16 @@ Applicants and members see the CTA and note for their state instead of the form.
 
 #### 7.2.9 Where you end up (#75)
 
-Drawn between Questions (7.2.5) and Trust (7.2.6); numbered last so the older section numbers stay as cited. Two columns (`.v-split`). Left: eyebrow "Where you end up", H2 "By the end, you value a company yourself.", and the body "After the Topics that teach valuation in order, you pick a listed company and copy a few figures from its annual report. The site values it beside its price and keeps a one-page note. This is one." Right: a card holding a real one-page note, the note the Assignment saves to the Notebook once the Spine is passed: the company's name as its heading, then the note's lines. It is drawn by the same code the Assignment's save runs (`ownCaseNote`, through the tested valuation engine; `src/site/end-note.ts`), on Kikkoman's annual report for the year to 31 March 2026 and the starting numbers the site suggests. Caption: "Kikkoman’s annual report for the year to 31 March 2026, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine."
+Drawn between Questions (7.2.5) and Trust (7.2.6); numbered last so the older section numbers stay as cited. Two columns (`.v-split`). Left: eyebrow "Where you end up", H2 "By the end, you value a company yourself.", and the body "After the Topics that teach valuation in order, you pick a listed company and copy a few figures from its annual report. The site values it beside its price and keeps a one-page note. This is one." Right: a card holding a real one-page note, the note the Assignment saves to the Notebook once the Spine is passed: the company's name as its heading, then the note's lines. It is drawn by the same code the Assignment's save runs (`ownCaseNote`, through the tested valuation engine; `src/site/end-note.ts`), on Kikkoman's annual report for the year to 31 March 2026 and the starting numbers the site suggests. The note is dated 19 June 2026, the day the report was filed (EDINET S100YE5V), at that day's close of ¥1,540, never at the year end, when nobody knew the figures; its debt counts the lease liabilities. Caption: "Kikkoman’s annual report for the year to 31 March 2026, valued on 19 June 2026, the day the report came out, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine."
 
 ### 7.3 How it works
 
-1. Header: eyebrow "How it works", H1 "How a Topic works", lede "Every Topic is **one real event, taught in four moves**, in 10–15 minutes. You never type a number: you tap, drag and explain in your own words."
+1. Header: eyebrow "How it works", H1 "How a Topic works", lede "Every Topic is **one real event, taught in four moves**. You never type a number to answer: you tap, drag and explain in your own words."
 2. **Moves with a rail.** Left rail, sticky: "Running example: Amazon, Feb 2000", four bars that fill as moves are reached (bar `i` at `(i + 1) × 25%` height, solid blue when reached), a list of four buttons that scroll to each move, and a note "Move n of 4" (at move 4: "**That’s one Topic.** The four bars make the logo."). Right: four move articles (scroll spy at 50% / 60%).
 
 | Move | Interactive body |
 |---|---|
-| 01 Meet the moment | The Amazon moment's paragraph, its three facts and the source line "Source: Aswath Damodaran, “Valuing Amazon.com”, February 2000" (linked), the only place How it works names him |
+| 01 Meet the moment | The Amazon moment's paragraph, its three facts and the source line "Source: Aswath Damodaran, “Can Amazon.com be valued?”, March 2000" (linked), the only place How it works names him |
 | 02 Learn the lingo | Chips "price" and "value". Shows the term (display 600 30px), a bold definition and three rows: Say it like a pro, For example, In the story (Appendix D). |
 | 03 Try it | A call: "One published valuation says $35 a share. Is that a price or a value?" "A value" is right ("It is what one Story says a share is worth. The price is what buyers paid: $84."). "A price" is wrong ("A price is what buyers pay on the day. $35 is what one published valuation says a share is worth: a value."). |
 | 04 Value it | Slider "Your value for one share", 0 to 150, start 50. Button "Reveal what really happened" shows four facts: Your value (blue), Published value $35.08, Price, 3 Feb 2000 $84.00, Low, late 2000 $14.88, and the key line. |
@@ -1221,7 +1221,7 @@ Each move ends with "Inside this move:" and step chips (The moment / The idea / 
 3. **The workspace**: an annotated mock of the Study Workspace. Chat on the left (a Tutor bubble, a learner bubble, a fake input "Ask the Tutor anything"), a widget on the right (a rates mini picture with the RBI rates Example's move, "6% → 5.5%: **½ point · 50 bp · about 8%**", "Saved to your Notebook"), a 15-segment step bar and four numbered black callouts with this legend: Ask anything, any time. / The Tutor picks the widget; tested code draws it. / The step bar shows where you are in the Topic’s 15 short steps. / What you find lands in your Notebook.
 4. **Colour language** (7.2.4): eyebrow "Reading a widget", H2 "Every colour means one thing.", the How it works body. Home no longer draws it.
 5. **Reviews**: H2 "It brings back what you missed." with a labelled illustration: a green "Check passed" dot, three blue review rings spaced further and further apart, and a red dashed arc for "missed: back sooner". The drawing carries the word "Illustration".
-6. **The path**: 15 core Topics (numbered, with minutes), 9 subjects with counts, 3 stages with counts (Appendix C).
+6. **The path**: the core Topics (numbered, no minutes), the subjects with counts, the stages with counts, all read from the course (Appendix C).
 7. Closing CTA: "Start with Topic 1: What is a business worth?"
 
 ### 7.4 Examples
@@ -1266,7 +1266,7 @@ Header with an "At a glance" card: Topics {Topics}, Subjects {Subjects}, Stages 
 | Join | H1 "Join early access". Lede "Value It is free while the course grows. **We let people in by hand, a few at a time.**" Optional chips "What brings you here?" (Understanding money and the news / Investing my own money / Running or working at a company). "Continue with Google". Divider "or". Email field "Email me a link" + "Send me a sign-up link". Fine print. | Google → applicant → `#pending`. Email validates as in 7.2.8. |
 | Pending | H1 "You’re on the list." Lede "We review every request by hand. **We’ll email {address or "you"} when you’re in.**" Status list: Request received (done, today's date), Reviewed by hand (now, orange "In progress" pill), Email: you’re in (upcoming, "One button: Continue"). "Play a real case while you wait". | Prototype-only link "simulate your approval" → member → `#welcome`. No promise of a number of days until one is known. |
 | Sign in | H1 "Welcome back". Google button, email field, "Send me a sign-in link". | Applicants go to `#pending`. Otherwise → member → `#study`. |
-| Welcome | H1 "Welcome to Value It". Card: "Topic 1 · about 10 minutes", the Topic name, "Start Topic 1", "See the course map". | |
+| Welcome | Three panels, "Welcome · n of 3" (spec #119): How a Topic works, About you (optional), and Your first Topic: a card with the first Topic on the default path, its length for a Spine Topic ("About 10 minutes"), its You'll learn bullets and "Start this Topic". | Next and Skip are links; Skip goes to Your first Topic. |
 | Study | A stub: workspace header with the 15-step bar, a note, and the Tutor-offline error state: [pill orange ! Paused] "The Tutor is offline for a moment." "Your progress is saved. Try again in a few seconds." + "Retry" (toast: "Reconnected. Your place is saved."). | |
 
 **Production (#76).** `/join`, `/sign-in` and `/sign-up` draw Clerk's cards (Waitlist, SignIn, SignUp) under the page's own Band and its one h1; Clerk's own header is hidden. The cards take the site's tokens, font and flat controls from `src/auth/clerk-appearance.ts` (code, never the Clerk Dashboard), so Dark covers them too. One name for the list: "the waitlist". `/join`: H1 "Join the waitlist", lede "Leave your email below. What happens next:", then "It’s free." · "We review each request by hand." · "We email you when you’re in." · "You can study on a laptop or a phone." `/sign-up` with no invitation (no `__clerk_ticket`): H1 "Create your account", "You need an invitation to create an account. Join the waitlist and we’ll email you one when you’re in." and a "Join the waitlist" link to `/join`, with no card. On the test bed (Clerk off) a plain stand-in takes the card's place, so `e2e/sign-in.spec.ts` reads this copy; it never reaches a build. The table above is the prototype's behaviour.
@@ -1505,12 +1505,12 @@ The copy lives in `src/site/examples.ts` (`kerala-bumper-2024`); it replaced Meg
 | Question | WeWork boasted of $3 billion of run-rate revenue. Is that what it earned? |
 | Hook | A share-sale filing, a dazzling pace, and the revenue actually recorded. |
 | Story | **14 August 2019.** WeWork, which rents desks to members, publishes its plan to sell shares to the public. In January 2019 private investors had valued it at **$47 billion**. The filing boasts of revenue racing ahead at a **$3 billion run rate**. |
-| Facts | Run rate claimed: $3bn a year · Revenue recorded, Jan–Jun 2019: $1.54bn · Net loss, Jan–Jun 2019: about $905M |
+| Facts | Run rate claimed: $3 billion a year · Revenue recorded, Jan–Jun 2019: $1.54 billion · Net loss, Jan–Jun 2019: about $905 million |
 | Learner asks | WeWork boasted of $3 billion of run-rate revenue. Is that what it earned? |
 | Tutor's lead | Good instinct to check. Step through what the filing said and what Asha found in it. Then make the call. |
 | Tutor's answer | **Not quite.** A run rate takes a recent period and scales it to a year: WeWork’s filing took the revenue of the last month and multiplied it by 12. That is a pace, not revenue already recorded, and it is only as good as the guess that the pace repeats. The revenue it recorded in the first six months of 2019 was $1.54 billion, with a net loss of about $905 million. |
 | Follow-up, right | Right. A run rate is a pace. Revenue is what was recorded. |
-| Follow-up, other | Look at the bars again. The $3bn is one month times 12. The $1.54bn is what was recorded. |
+| Follow-up, other | Look at the bars again. The $3 billion is one month times 12. The $1.54 billion is what was recorded. |
 | Ending label | What really happened |
 | Ending | Six weeks later, on **30 September 2019**, WeWork withdrew its share sale. In November 2023 it filed for bankruptcy. *A run rate is a pace. Revenue is what was recorded.* |
 | Sources | WeWork S-1, 14 Aug 2019; CNBC, 30 Sep 2019; Forbes, 7 Nov 2023. |
@@ -1591,25 +1591,28 @@ Early access: **Join** (Join the waitlist with your email. **We let people in by
 
 ## Appendix C. Course map shown on the site
 
-15 core Topics, with minutes:
+18 core Topics, read from `course/outline.yaml` through `courseStats` (`src/site/stats.ts`), so the list follows the course. No minutes until they are measured (#72, #75). Today:
 
-| # | Topic | Min |
-|---|---|---|
-| 01 | What is a business worth? Price against value, and the four levers | 10 |
-| 02 | Why is money later worth less? | 12 |
-| 03 | Where does the cash come from? | 12 |
-| 04 | Growth: how big can it get? | 12 |
-| 05 | Margins: what does it keep? | 12 |
-| 06 | What does growth cost? | 13 |
-| 07 | Risk: what rate do you discount at? | 13 |
-| 08 | What about the years you cannot forecast? | 12 |
-| 09 | How do you get from the business to one share? | 13 |
-| 10 | What if it does not survive? | 12 |
-| 11 | How does a story become numbers? | 14 |
-| 12 | Is a price a value? Multiples and comparables | 13 |
-| 13 | What does the price assume? | 13 |
-| 14 | How do you live with being wrong? | 14 |
-| 15 | Value one yourself, as of a past date | 15 |
+| # | Topic |
+|---|---|
+| 01 | What is a business worth? Price against value, and the four levers |
+| 02 | Why is money later worth less? |
+| 03 | Where does the cash come from? |
+| 04 | What do the three financial statements show? |
+| 05 | Growth: how big can it get? |
+| 06 | Margins: what does it keep? |
+| 07 | What does growth cost? |
+| 08 | Risk: what return should shareholders require? |
+| 09 | What does all of a company's money cost? |
+| 10 | What about the years you cannot forecast? |
+| 11 | How do you get from the business to one share? |
+| 12 | What if it does not survive? |
+| 13 | How does a story become numbers? |
+| 14 | Is a price a value? Multiples and comparables |
+| 15 | What does the price assume? |
+| 16 | How do you live with being wrong? |
+| 17 | Judge a published valuation, as of a past date |
+| 18 | Where are a valuation's numbers in an annual report? |
 
 Nine subjects (72 Topics): Numbers & time value 6 · Financial statements 11 · Economics & policy 11 · Bonds & credit 7 · Currencies & countries 4 · Markets & investing 9 · Valuation & corporate finance 12 · Derivatives 5 · Banks, crises & the system 7.
 
