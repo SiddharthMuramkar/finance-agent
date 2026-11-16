@@ -6,30 +6,16 @@ import { learnerFromCookie } from "@/auth/learners";
 import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 import { e2eEnabled } from "@/dev/e2e-mode";
-import { EXAMPLE_SLUGS, examplePath } from "@/site/examples";
+import { isAuthPage, isPublicFile, isPublicPage } from "@/site/routes";
 
-/** The only files a signed-out visitor may fetch besides the public pages: the link-preview image (site-metadata.ts). */
-const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
-
-/**
- * The pages a signed-out visitor may read, matched exactly (decision #7): the Signal site's Home, How it works,
- * Examples, About and the five case pages, and the Waitlist (/join, issue #33). The case pages come from the same list
- * as the pages' generateStaticParams, so the gate and the pages always agree; an unknown slug still goes to /sign-in.
- */
-const PUBLIC_PAGES = new Set(["/", "/how-it-works", "/examples", "/about", "/join", ...EXAMPLE_SLUGS.map(examplePath)]);
-
-/** The sign-in and sign-up pages, with every step under them (Clerk's catch-all routes, such as /sign-in/sso-callback). */
-const AUTH_ROOTS = [SIGN_IN_PATH, "/sign-up"];
+// What a signed-out visitor may open (the public pages, the auth pages and the public files) is one list,
+// src/site/routes.ts, which next.config.ts's no-store headers and the browser test bed read too (issue #69).
 
 /** Developer pages, open without a sign-in outside production only. In production the page itself also answers 404. */
 const DEV_PAGE = /^\/dev(?:\/|$)/;
 
 /** Signing out works signed in or out, so a Learner already signed out in another tab still lands on Home. */
 const SIGN_OUT = "/api/logout";
-
-const under = (path: string, root: string) => path === root || path.startsWith(`${root}/`);
-const isAuthPage = (path: string) => AUTH_ROOTS.some((root) => under(path, root));
-const isPublicPage = (path: string) => PUBLIC_PAGES.has(path) || isAuthPage(path);
 
 /**
  * A signed-out Server Action call that must get through: a POST to the sign-in or sign-up pages while Clerk runs.
@@ -71,7 +57,7 @@ async function testBedPersonAtGate(request: NextRequest): Promise<boolean> {
 /**
  * Every page and API route needs a sign-in: a verified Clerk session (`account`, checked by clerkMiddleware before this
  * runs), or a verified passcode cookie while the door is open. Signed out, only a GET or HEAD of a public page
- * (PUBLIC_PAGES, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, a
+ * (src/site/routes.ts: matched exactly; /sign-in and /sign-up with every step under them), a public file, a
  * POST to the sign-out route, and while Clerk runs a Server Action call on /sign-in and /sign-up (Clerk's own, which
  * finishes a sign-in: isClerkSignInAction), get through; any other write to a public page or Server Action call
  * answers 401; an API route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`.
@@ -97,7 +83,7 @@ async function gate(request: NextRequest, account: boolean): Promise<Response> {
   if (request.headers.has("next-action") || (isPublicPage(pathname) && !read)) {
     return NextResponse.json({ error: "Sign-in required" }, { status: 401 });
   }
-  if (read && (isPublicPage(pathname) || LANDING_ASSET.test(pathname))) return NextResponse.next();
+  if (read && (isPublicPage(pathname) || isPublicFile(pathname))) return NextResponse.next();
   if (request.method === "POST" && pathname === SIGN_OUT) return NextResponse.next();
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Sign-in required" }, { status: 401 });

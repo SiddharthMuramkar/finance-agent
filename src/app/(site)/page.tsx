@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Fragment } from "react";
+import { pageMetadata } from "@/app/site-metadata";
 import { home, MOVES } from "@/site/copy";
 import { EXAMPLES, examplePath } from "@/site/examples";
 import { leverSteps } from "@/site/levers-story";
@@ -20,6 +22,9 @@ import { QuestionList } from "./question-list";
 // sent no-store (next.config.ts). A visitor costs no Learner read, and the page makes no model call and no write.
 
 export const dynamic = "force-dynamic";
+
+/** The site's own title and description (the root's), with Home's canonical link (issue #69). */
+export const metadata: Metadata = pageMetadata({ path: "/" });
 
 export default async function HomePage() {
   const viewer = await siteViewer();

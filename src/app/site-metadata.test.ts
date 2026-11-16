@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { siteMetadata } from "./site-metadata";
+import { pageMetadata, siteMetadata } from "./site-metadata";
 
 describe("Site metadata", () => {
   it("describes the site publicly, not as private", () => {
@@ -16,5 +16,43 @@ describe("Site metadata", () => {
     expect(og.description).toBe(siteMetadata.description);
     const image = (Array.isArray(og.images) ? og.images[0] : og.images) as { url: string };
     expect(new URL(image.url, siteMetadata.metadataBase!).href).toBe("https://www.value-it.xyz/landing-assets/workspace-light.png");
+  });
+});
+
+// Issue #69: one helper gives each public page its title, description, canonical link and share image, so a shared
+// link names the page it came from.
+describe("Page metadata", () => {
+  const about = pageMetadata({ title: "About", description: "Who makes Value It.", path: "/about" });
+  const absolute = (url: string | URL) => new URL(url, siteMetadata.metadataBase!).href;
+
+  it("keeps the page's own title for the template %s · Value It, and its description", () => {
+    expect(about.title).toBe("About");
+    expect(about.description).toBe("Who makes Value It.");
+  });
+
+  it("links the canonical address on the public domain", () => {
+    expect(absolute(about.alternates!.canonical as string)).toBe("https://www.value-it.xyz/about");
+  });
+
+  it("gives shared links the page's own title and description with the workspace screenshot", () => {
+    const og = about.openGraph!;
+    expect(og.title).toBe("About · Value It");
+    expect(og.description).toBe("Who makes Value It.");
+    expect(absolute(og.url!)).toBe("https://www.value-it.xyz/about");
+    const image = (Array.isArray(og.images) ? og.images[0] : og.images) as { url: string; alt: string };
+    expect(absolute(image.url)).toBe("https://www.value-it.xyz/landing-assets/workspace-light.png");
+    expect(image.alt).toBe("The Study Workspace: a Tutor conversation on the left and a worked widget on the right.");
+    const twitter = about.twitter as { card: string; title: string; images: unknown[] };
+    expect(twitter).toMatchObject({ card: "summary_large_image", title: "About · Value It", description: "Who makes Value It." });
+    expect(twitter.images).toHaveLength(1);
+  });
+
+  it("without a title (Home), keeps the site's title, description and share title", () => {
+    const home = pageMetadata({ path: "/" });
+    expect(home.title).toBeUndefined();
+    expect("title" in home).toBe(false);
+    expect(home.description).toBe(siteMetadata.description);
+    expect(home.openGraph!.title).toBe("Value It: Learn what things are worth.");
+    expect(absolute(home.alternates!.canonical as string)).toBe("https://www.value-it.xyz/");
   });
 });
