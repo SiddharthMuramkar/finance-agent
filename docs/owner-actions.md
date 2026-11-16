@@ -25,10 +25,10 @@ Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 
 | 15 | [Decide the licence label on 16 citations](#15-decide-the-licence-label-on-16-citations) | Before any paid launch |
 | 16 | [The eval Voyage key and the 2 env files](#16-the-eval-voyage-key-and-the-2-env-files) | Env files deleted 2026-11-16; key kept (your choice) |
 | 17 | [Delete the export and the old snapshots of the old Learners](#17-delete-the-export-and-the-old-snapshots-of-the-old-learners) | About 2026-12-16 |
-| 18 | [Remove the passcode env vars from Production](#18-remove-the-passcode-env-vars-from-production) | Now: PR C is live (2026-11-16) |
+| 18 | [Remove the passcode env vars from Production](#18-remove-the-passcode-env-vars-from-production) | Done 2026-11-16 (owner batch 5) |
 | 19 | [Decide on link underlines and pill chips](#19-decide-on-link-underlines-and-pill-chips) | Any time |
 | 20 | [Decide the price of a step cut short](#20-decide-the-price-of-a-step-cut-short) | With step 12 |
-| 21 | [Turn on Clerk bot protection](#21-turn-on-clerk-bot-protection) | Now, before the first invite |
+| 21 | [Check the Clerk sign-up CAPTCHA](#21-check-the-clerk-sign-up-captcha) | Optional, any time |
 | 22 | [Decide on Clerk two-factor and email blocks](#22-decide-on-clerk-two-factor-and-email-blocks) | Before the first invite |
 
 Also: [Commands the agent was not allowed to run](#commands-the-agent-was-not-allowed-to-run) and [Notes (no action)](#notes-no-action).
@@ -354,23 +354,13 @@ The other snapshots from before the wipe expire by themselves by 2026-12-15 (the
 
 ## 18. Remove the passcode env vars from Production
 
-- [ ] Done
+- [x] Done 2026-11-16 (`owner-batch-5.sh`, part a)
 
-**Why.** Clerk replaced the passcode door (ADR 0017). The door is shut in production since PR #48. `PASSCODE`, `PASSCODES` and `SESSION_SECRET` in Vercel Production open nothing now. A secret that nobody uses can still leak.
+**Why.** Clerk replaced the passcode door (ADR 0017). The door is shut in production since PR #48. `PASSCODE`, `PASSCODES` and `SESSION_SECRET` in Vercel Production opened nothing. A secret that nobody uses can still leak.
 
-**When.** Now. PR C (#51) merged on 2026-11-16 at 02:19 UTC. PR C deleted the old Better Auth tables (migration 0040). Its production deploy is live: GitHub shows its Production deployment as "success" at 02:28 UTC, and `www.value-it.xyz` serves it.
+**What ran.** After PR C (#51) was live, `owner-batch-5.sh` part a removed the 3 vars from Production only, with `vercel env rm <NAME> --environment production --confirm-name <NAME>`. It then checked `vercel env ls --environment production` (names only): none of the 3 is left.
 
-**How.** In a terminal on the VPS, run `bash /root/projects/owner-batch-5.sh` again. Its part a runs only when PR C is merged and its Production deploy is live. It removes `PASSCODE`, `PASSCODES` and `SESSION_SECRET` from Production, and it skips a var that is already gone. If it says "Part a NOT run yet", tell the agent. When it is done, tell the agent "batch 5 done". It checks `vercel env ls` (names only).
-
-To type the commands yourself instead:
-
-```sh
-vercel env rm PASSCODE --environment production --confirm-name PASSCODE --scope acme-ef4b --project finance-agent
-vercel env rm PASSCODES --environment production --confirm-name PASSCODES --scope acme-ef4b --project finance-agent
-vercel env rm SESSION_SECRET --environment production --confirm-name SESSION_SECRET --scope acme-ef4b --project finance-agent
-```
-
-**Preview.** Preview also holds `PASSCODE` and `SESSION_SECRET`. They open nothing there either. `owner-batch-5.sh` does not remove them. They are in step 11.
+**Preview.** Preview still holds `PASSCODE` and `SESSION_SECRET`. They open nothing there either. They are in step 11.
 
 ## 19. Decide on link underlines and pill chips
 
@@ -410,20 +400,19 @@ Tell the agent A or B. The agent makes the change.
 
 Tell the agent A or B. The agent makes the change.
 
-## 21. Turn on Clerk bot protection
+## 21. Check the Clerk sign-up CAPTCHA
 
-- [ ] Done
+- [ ] Checked
 
-**Why.** ADR 0017: Clerk guards sign-up with its bot protection (a CAPTCHA) and lockout. On 2026-11-16 the production instance read `captcha_enabled: false`, and `clerk security audit --instance prod` calls this "critical". The development instance is off too. Lockout is on. `docs/agents/platform.md` (Clerk, Config) has the expected setting.
+**Why.** ADR 0017: Clerk guards sign-up with a CAPTCHA and the lockout. Value It is a new Clerk app (2026-11). Clerk's docs say a new app gets **Challenge suspicious sign-ups** from Clerk Protect, on by default. It replaces the old "bot sign-up protection". On such an app the old `captcha_enabled` flag reads `false`, and a patch to `true` does not change it. On 2026-11-16 a patch to `true` was accepted and the flag stayed `false`, as Clerk's schema says for a Protect app. So `clerk security audit --instance prod` reports `bot-protection` as unmet by mistake. Lockout is on (10 tries, 60 minutes).
 
-**When.** Now, before the first invite.
+**When.** Optional, any time. The agent cannot see Protect from the CLI.
 
-**How.** Say yes. A Clerk config change needs your yes. The agent then:
+**How.**
 
-1. Runs `clerk security fix bot-protection --app app_3M88tftDykg1fsszyw09LAaHwPD --instance prod --dry-run`. The patch must be `{"auth_attack_protection":{"bot_protection":{"captcha_enabled":true,"captcha_widget_type":"smart"}}}`.
-2. Runs the same command with `--yes` in place of `--dry-run`.
-3. Checks it: `clerk config pull --instance prod --keys auth_attack_protection` must show `captcha_enabled: true`.
-4. Joins once on `/join` in a private window. The site uses Clerk's own sign-in, sign-up and Waitlist cards, so the code needs no change.
+1. Clerk dashboard → **Protect** → **Protections**.
+2. Look for **Challenge suspicious sign-ups**. It should be on. Changing its setting needs Clerk's Business plan; the default ("Suspicious") is right for Value It.
+3. If you see a **Bot sign-up protection** row tagged **Legacy** instead, the app is on the old version. Then tell the agent: it turns on the old flag with `clerk config patch` and checks it.
 
 ## 22. Decide on Clerk two-factor and email blocks
 

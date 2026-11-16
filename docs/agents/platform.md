@@ -20,7 +20,7 @@ Vercel commands below take `--scope acme-ef4b --project prj_GhCV5t8pT2vuRQQo0hln
 
 ### Config
 
-The production config the app expects (applied to prod on 2026-11-15, except `captcha_enabled`: prod and dev read `false` on 2026-11-16; `docs/owner-actions.md` step 21). Email link only, Google off (owner, 2026-11-15):
+The production config the app expects (applied to prod on 2026-11-15; `captcha_enabled` reads `false`, see the CAPTCHA note below). Email link only, Google off (owner, 2026-11-15):
 
 ```json
 {
@@ -52,7 +52,7 @@ The production config the app expects (applied to prod on 2026-11-15, except `ca
 - **Paths** are per instance (`clerk deploy` does not clone them). Without them, the links in Clerk's own emails (Waitlist invitations) open the Account Portal on `accounts.value-it.xyz`, not `/sign-up`.
 - **Names:** the email-link sign-up asks for no name, so `first_name` is usually empty; the app then names the Learner from the email address (`nameFromEmail` in `src/auth/clerk-learner.ts`). Turning on Clerk's first-name field at sign-up (owner's call) would give the first name instead.
 - The session claims are what `src/auth/identity.ts` reads: `metadata.role` (admin), `email`, `first_name` (snake case). Change them only together with that file and `types/clerk.d.ts`.
-- **Prod read `captcha_enabled: false` on 2026-11-16** (dev too; `clerk security audit --instance prod`: `bot-protection` unmet, critical). Patch it to `true` with the owner's yes (`docs/owner-actions.md`, step 21): `clerk security fix bot-protection --instance prod --dry-run`, then `--yes`. Check it with `clerk config pull --instance prod --keys auth_attack_protection`. The same audit shows `mfa`, `passkeys`, `block-disposable-email` and `block-email-subaddresses` unmet: an owner decision (`docs/owner-actions.md`, step 22).
+- **CAPTCHA (Clerk Protect).** Value It is a new Clerk app, so its sign-up CAPTCHA is Clerk Protect's "Challenge suspicious sign-ups" (on by default; dashboard → Protect → Protections; settings need the Business plan). The legacy `captcha_enabled` flag reads `false` on such an app, and a patch to `true` is a no-op (seen on prod, 2026-11-16, as `clerk config schema` describes). So `clerk security audit` reports `bot-protection` unmet by mistake. Its other unmet items (`mfa`, `passkeys`, `block-disposable-email`, `block-email-subaddresses`) are an owner decision (`docs/owner-actions.md`, step 22).
 
 Commands (save the body above to a file outside the repo, e.g. `/tmp/clerk-patch.json`):
 
@@ -244,4 +244,4 @@ Set a secret by piping it from one CLI into the other, never through the screen,
 4. Merge PR B (owner's yes) → Git deploy of `main`. Done 2026-11-15 (PR #48).
 5. Waitlist mode blocks everyone's own sign-up, the owner's too: pre-create the owner's user in Clerk (or invite their Waitlist entry). Owner signs in at `/sign-in` → set `role: "admin"` (above). Done: the owner's user was made with the admin role in `owner-batch.sh` (2026-11-15), and the owner signed in on 2026-11-16.
 6. Smoke: a second email joins on `/join` → invite it → the link lands on `/sign-up` → email-link sign-up finishes on `/study` with no reload → one Tutor turn → `/admin` is 404 for them and 200 for the owner. Open: `docs/owner-actions.md` step 4.
-7. Remove `PASSCODE`, `PASSCODES` and `SESSION_SECRET` from Production (owner's yes), now that PR C (#51) is live (2026-11-16): `docs/runbooks/wipe-pre-clerk.md` step C7, run by `owner-batch-5.sh` part a (`docs/owner-actions.md` step 18). The Preview copies of `PASSCODE` and `SESSION_SECRET` open nothing (previews are off, and `passcodeDoorOpen` is false on Vercel). Removing them is the owner's call (`docs/owner-actions.md` step 11).
+7. Done 2026-11-16: `PASSCODE`, `PASSCODES` and `SESSION_SECRET` removed from Production after PR C (#51) went live: `docs/runbooks/wipe-pre-clerk.md` step C7, run by `owner-batch-5.sh` part a (`docs/owner-actions.md` step 18). The Preview copies of `PASSCODE` and `SESSION_SECRET` open nothing (previews are off, and `passcodeDoorOpen` is false on Vercel). Removing them is the owner's call (`docs/owner-actions.md` step 11).

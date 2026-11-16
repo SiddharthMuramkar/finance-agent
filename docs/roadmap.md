@@ -138,7 +138,7 @@ Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can bec
 
 None besides map #2, which closes with this PR. All build tickets of the map are closed. Every open item is fog (above) or an owner step (`docs/owner-actions.md`).
 
-Left from #33 for the owner: `docs/owner-actions.md` steps 1 (enforce the firewall), 3 (sign in as admin), 4 (Waitlist smoke test), 5 (Google), 18 (Production passcode vars), 21 (Clerk bot protection) and 22 (Clerk two-factor).
+Left from #33 for the owner: `docs/owner-actions.md` steps 1 (enforce the firewall), 3 (sign in as admin), 4 (Waitlist smoke test), 5 (Google), 21 (check the Clerk Protect sign-up CAPTCHA) and 22 (Clerk two-factor). Step 18 (Production passcode vars) is done (2026-11-16).
 
 Open PRs: #20 (architecture overview, the map's architecture explainer; it merges last) and #45 (Dependabot actions bump; this PR folds in the same bump, so #45 can close after it).
 
