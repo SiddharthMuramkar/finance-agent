@@ -1,6 +1,6 @@
 # Named formulas appear only as Formula Cards from a tested registry
 
-Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADR 0002.
+Status: accepted, 2026-11-14; amended 2026-11-16 by spec #68 (Go deeper may hold a typed formula; the not-yet-converted list is gone). Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADR 0002.
 
 ## Context
 
@@ -11,7 +11,8 @@ A typed formula such as "(1 + r)^n" scares a beginner, and when the model types 
 - Every named formula (present value, WACC, DuPont and the rest) shows as a Formula Card, in Tutor replies, quiz explanations and Topic Notes. It never shows as typed symbols.
 - Each card comes from a formula registry (`src/finance/formulas.ts`). Each entry names its symbols in plain words and points at a tested calculator, so every result comes from code.
 - A one-step sum is written as worded steps, not as a card.
-- A raw-formula detector (`src/finance/raw-formula.ts`) fails `npm run check` on any converted Topic that still types a formula, with a list of not-yet-converted Topics that can only shrink.
+- A typed formula may sit only in a Topic's Go deeper material, which the Learner sees only on pressing Go deeper and the Tutor is given to say when pressed (spec [#68](https://github.com/SiddharthMuramkar/finance-agent/issues/68)).
+- A raw-formula detector (`src/finance/raw-formula.ts`, run by `src/course/formula-check.ts`) fails `npm run check` on any Topic that types a formula anywhere but Go deeper. There is no list of Topics let off: every Topic was converted by spec #68 (ticket [#100](https://github.com/SiddharthMuramkar/finance-agent/issues/100) removed the last of the not-yet-converted list).
 
 ## Consequences
 

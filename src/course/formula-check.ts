@@ -1,64 +1,26 @@
 import { rawFormulaHits } from "../finance/raw-formula.ts";
 import type { Topic } from "./map.ts";
-import { textsIn, topicTexts, type TextGroup } from "./topic-texts.ts";
+import { topicTexts } from "./topic-texts.ts";
 
-// The course check for typed formulas (ADR 0003). A converted Topic must hold no typed formula in
-// any text a Learner or the Tutor reads: every text `topicTexts` gives, except Go deeper (spec #68). Topics not yet converted are on a list that can
-// only shrink: a Topic on it that is clean must come off, and a Topic off it that is dirty fails.
+// The course check for typed formulas (ADR 0003). No Topic may type a formula in any text a Learner or the Tutor reads:
+// every text `topicTexts` gives, except Go deeper (spec #68), the one place a typed formula may sit. Anywhere else a
+// formula is a Formula Card (a formula marker) or worded steps. There is no list of Topics let off.
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
-/** Topics that still type formulas. Remove an ID when its Topic is converted; never add one. */
-export const NOT_YET_CONVERTED: readonly string[] = [
-  "fs-balance",
-  "fs-ratios",
-  "fs-tax",
-  "cf-wacc",
-  "cf-capital-structure",
-  "val-dcf",
-  "val-multiples",
-  "val-young",
-  "val-implied-erp",
-  "val-india",
-  "cf-venture",
-];
-
-type Labelled = { where: string; text: string };
-
-/**
- * The groups of Topic text a typed sum fails in even for a Topic on the not-yet-converted list: the teaching (spec #229:
- * cards, Skills, Quick tries with their choices, templates, terms, mix-up fixes, the Running example) and the scenes (E3)
- * are new, so they were written in words from the start. The other groups (Cases, questions, concept, principle,
- * Insight, Connections, conversation Checks) are what the list lets a Topic still type.
- */
-const NEW_GROUPS: readonly TextGroup[] = ["teaching", "example", "scene"];
-
-/** The texts a typed sum fails in even for a Topic on the not-yet-converted list. */
-export function teachingTexts(topic: Topic): Labelled[] {
-  return textsIn(topic, NEW_GROUPS);
-}
-
-const hitsIn = (texts: Labelled[]) => texts.flatMap(({ where, text }) => rawFormulaHits(text).map((hit) => `${where}: ${hit}`));
+const hitsIn = (texts: { where: string; text: string }[]) => texts.flatMap(({ where, text }) => rawFormulaHits(text).map((hit) => `${where}: ${hit}`));
 
 /** Where a Topic types a formula, as "where: sign". Go deeper may hold one (spec #68: formulas only behind Go deeper or as Formula Cards). */
 export function typedFormulas(topic: Topic): string[] {
   return hitsIn(topicTexts(topic).filter((t) => t.group !== "deeper"));
 }
 
-export function formulaCheckErrors(topics: Topic[], notYet: readonly string[] = NOT_YET_CONVERTED): string[] {
+export function formulaCheckErrors(topics: Topic[]): string[] {
   const errors: string[] = [];
-  const ids = new Set(topics.map((t) => t.id));
-  for (const id of notYet) if (!ids.has(id)) errors.push(`"${id}" is on the not-yet-converted list but is not a Topic: remove it from src/course/formula-check.ts`);
   for (const topic of topics) {
     const hits = typedFormulas(topic);
-    const listed = notYet.includes(topic.id);
-    const teaching = hitsIn(teachingTexts(topic));
-    if (teaching.length && listed) {
-      errors.push(`Topic ${topic.id} types a formula in its teaching (cards, Skills, Quick tries, templates and scenes say sums in words; ADR 0003):`, ...teaching.map((h) => `    ${h}`));
+    if (hits.length) {
+      errors.push(`Topic ${topic.id} types a formula (move it into Go deeper, make it a Formula Card with a formula marker, or say it in worded steps; ADR 0003):`, ...hits.map((h) => `    ${h}`));
     }
-    if (hits.length && !listed) {
-      errors.push(`Topic ${topic.id} types a formula (use a formula marker or worded steps instead; ADR 0003):`, ...hits.map((h) => `    ${h}`));
-    }
-    if (!hits.length && listed) errors.push(`Topic ${topic.id} is converted: remove it from the not-yet-converted list in src/course/formula-check.ts`);
   }
   return errors;
 }

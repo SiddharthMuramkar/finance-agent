@@ -1,7 +1,7 @@
 import type { FixedQuickTry, Topic } from "./map.ts";
 
 // Every text in a Topic, each with where it is and the group it belongs to, for the course checks that read a Topic's
-// words: the typed-formula check (formula-check.ts, ADR 0003), lesson lint L5 (the currency rule), the formula-marker
+// words: the typed-formula check (formula-check.ts, ADR 0003: every group but `deeper`, for every Topic), lesson lint L5 (the currency rule), the formula-marker
 // check in the Topic schema (map.ts) and the Case as-of leak test (compounding-leak.test.ts). Each check takes the groups
 // it needs, so a text added here is read by every check that takes its group. A new text field in the Topic file
 // belongs here, in the group that says how it is checked, and in the fixture of topic-texts.test.ts.
