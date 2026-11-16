@@ -179,7 +179,9 @@ describe("a Spine Topic's explore Workbench (spec C2, B3)", () => {
   const spine = loadCourseMap().topics.filter((t) => t.spine !== undefined);
 
   it("covers every written Spine Topic", () => {
-    expect(spine.map((t) => t.spine).sort((a, b) => a! - b!)).toEqual(Array.from({ length: SPINE_LENGTH }, (_, i) => i + 1));
+    // Numbered 1 to n with none missing, n being however many Spine Topics the outline holds (spec #68 grows it to 18).
+    expect(spine.length).toBe(SPINE_LENGTH);
+    expect(spine.map((t) => t.spine).sort((a, b) => a! - b!)).toEqual(Array.from({ length: spine.length }, (_, i) => i + 1));
   });
 
   for (const t of spine) {

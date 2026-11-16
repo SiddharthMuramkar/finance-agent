@@ -19,7 +19,6 @@ export const NEW_WORDS_NOT_YET: readonly string[] = [
   "spine-04-growth",
   "spine-05-margins",
   "spine-06-growth-cost",
-  "spine-07-risk",
   "spine-09-to-one-share",
   "spine-10-survival",
   "spine-11-story-to-numbers",
@@ -30,7 +29,6 @@ export const NEW_WORDS_NOT_YET: readonly string[] = [
 export const OWN_STORY_NOT_YET: readonly string[] = [
   "spine-05-margins",
   "spine-06-growth-cost",
-  "spine-07-risk",
   "spine-10-survival",
   "spine-11-story-to-numbers",
   "spine-14-being-wrong",
@@ -50,7 +48,6 @@ export const DAILY_LIFE_NOT_YET: readonly string[] = [
   "spine-04-growth",
   "spine-05-margins",
   "spine-06-growth-cost",
-  "spine-07-risk",
   "spine-08-far-future",
   "spine-09-to-one-share",
   "spine-10-survival",

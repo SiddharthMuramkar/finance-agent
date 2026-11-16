@@ -131,15 +131,31 @@ topics:
           - https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt
         verified: true
   - id: spine-07-risk
-    title: "Risk: what rate do you discount at?"
+    title: "Risk: what return should shareholders require?"
     stage: spine
     spine: 8
     minutes: 13
-    drawsOn: [risk-capm, cf-wacc, risk-portfolio, bond-credit-spreads, num-percent-bps]
+    drawsOn: [risk-capm, risk-portfolio]
     cases:
       - title: "What return should Amazon's shareholders require? (February 2000)"
         asOf: 2000-02-01
-        outcome: "Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00); the regression beta of 2.29 would have implied 15.66%. His cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, against the $84 price. Amazon's 10-K shows 2000 quarterly highs and lows of $91.50 and $58.44, $68.63 and $32.47, $49.63 and $27.88, and $40.88 and $14.88: a high of $91.50 and a low of $14.88 for the year. The cost of equity says what return to demand, not what the price will do in the next year."
+        outcome: "Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00); the regression beta of 2.29 would have implied 15.66%. His cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, against the $84 price. Amazon's 10-K shows 2000 quarterly highs and lows of $91.50 and $58.44, $68.63 and $32.47, $49.63 and $27.88, and $40.88 and $14.88: a high of $91.50 and a low of $14.88 for the year. A year later, in January 2001, with the stock price at $14, Damodaran valued Amazon again at $20.83 a share, with a beta of 2.18 and a cost of equity of 13.81%. The cost of equity says what return to demand, not what the price will do in the next year."
+        sources:
+          - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/valquestions/RiskPrem.htm
+          - https://pages.stern.nyu.edu/~adamodar/pdfiles/dcfveg.pdf
+        verified: true
+  - id: spine-cost-of-capital
+    title: "What does all of a company's money cost?"
+    stage: spine
+    spine: 9
+    minutes: 12
+    drawsOn: [cf-wacc, bond-credit-spreads, num-percent-bps]
+    cases:
+      - title: "What does all of Amazon's money cost? (February 2000)"
+        asOf: 2000-02-01
+        outcome: "Damodaran's cost of capital was 12.84% in years one to three: a 12.90% cost of equity on 98.8% of Amazon's funding and an 8% cost of debt, with no tax saving while it made losses, on the other 1.2%. He assumed Amazon would move to the 15% of funding in debt of traditional retailers by year ten, at 7% before tax and 4.55% after the 35% tax rate, which with a 10.50% cost of equity gave 9.61% in the stable phase. His value was $35.08 a share against the $84 price; in his paper the inputs with the greatest impact on value were sustainable margins and revenue growth, not the rate. Amazon's 10-K shows the shares at a high of $91.50 and a low of $14.88 in 2000."
         sources:
           - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
           - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
@@ -147,7 +163,7 @@ topics:
   - id: spine-08-far-future
     title: "What about the years you cannot forecast?"
     stage: spine
-    spine: 9
+    spine: 10
     minutes: 12
     drawsOn: [val-dcf, ana-build-valuation]
     cases:
@@ -161,7 +177,7 @@ topics:
   - id: spine-09-to-one-share
     title: "How do you get from the business to one share?"
     stage: spine
-    spine: 10
+    spine: 11
     minutes: 13
     drawsOn: [val-dcf, fs-leases-debt, fs-balance, ana-commitments-debt]
     cases:
@@ -184,7 +200,7 @@ topics:
   - id: spine-10-survival
     title: "What if it does not survive?"
     stage: spine
-    spine: 11
+    spine: 12
     minutes: 12
     drawsOn: [val-distress, num-probability]
     cases:
@@ -201,7 +217,7 @@ topics:
   - id: spine-11-story-to-numbers
     title: "How does a story become numbers?"
     stage: spine
-    spine: 12
+    spine: 13
     minutes: 14
     drawsOn: [fol-uber-2014, jud-narrative-numbers, val-young]
     cases:
@@ -224,7 +240,7 @@ topics:
   - id: spine-12-price-or-value
     title: "Is a price a value? Multiples and comparables"
     stage: spine
-    spine: 13
+    spine: 14
     minutes: 13
     drawsOn: [val-multiples, fol-twitter-ipo, cf-venture, mkt-ipo-float]
     cases:
@@ -242,7 +258,7 @@ topics:
   - id: spine-13-price-assumes
     title: "What does the price assume?"
     stage: spine
-    spine: 14
+    spine: 15
     minutes: 13
     drawsOn: [val-implied-erp, fol-erp]
     cases:
@@ -263,7 +279,7 @@ topics:
   - id: spine-14-being-wrong
     title: "How do you live with being wrong?"
     stage: spine
-    spine: 15
+    spine: 16
     minutes: 14
     drawsOn: [fol-tesla-2020, jud-ipo-forecast, mkt-behavioural]
     cases:
@@ -280,7 +296,7 @@ topics:
   - id: spine-15-value-yourself
     title: "Value one yourself, as of a past date"
     stage: spine
-    spine: 16
+    spine: 17
     minutes: 15
     drawsOn: [ana-build-valuation, val-india]
     cases:
@@ -316,7 +332,7 @@ topics:
   - id: spine-annual-report
     title: "Where are a valuation's numbers in an annual report?"
     stage: spine
-    spine: 17
+    spine: 18
     minutes: 13
     drawsOn: [fs-filings, fs-income, fs-balance, ana-build-valuation]
     cases:

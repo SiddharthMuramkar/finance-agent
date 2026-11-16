@@ -1,0 +1,277 @@
+# Spine Topic (spec #68, #91): the cost of capital, split from the risk Topic (spine-07-risk), which teaches the cost of
+# equity. This Topic adds what lenders charge, the tax that interest saves, and the weights, and names the WACC once.
+# The Case is Damodaran's Amazon of February 2000; its valuation block is Amazon's in val-dcf, taken with valuationFrom.
+# The Cost of capital stack opens at Damodaran's own figures for the mature Amazon of year ten (beta 1.00, 15% debt,
+# 7% before tax, a 35% tax rate: 9.61%), from his table in HighGrow.pdf. The Primer "Basis points" is cut from the
+# Elective num-percent-bps (spec C3). Stage, place and length live in course/outline.yaml.
+id: spine-cost-of-capital
+title: "What does all of a company's money cost?"
+goal: Blend what shareholders and lenders each require into one rate, and judge how much the mix moves a value
+why: "A valuation discounts the cash of the whole company, so it needs the cost of all its money, shareholders' and lenders' together."
+minutes: 12
+exampleCurrency: USD
+
+cases:
+  - id: spine-coc-amazon-mix
+    title: What does all of Amazon's money cost? (February 2000)
+    asOf: 2000-02-03
+    valuationFrom: amazon-dcf-2000
+    story: >
+      3 February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor at New York University, has
+      worked out what its shareholders should require: 12.90% a year, its cost of equity. But not all of Amazon's money
+      comes from shareholders. Lenders put in the rest, and the interest they charge is its cost of debt. At market
+      prices Amazon's debt is only 1.2% of its funding, at 8% a year before tax. A company that makes a profit pays less
+      tax for each dollar of interest, because interest comes off its profit before tax; Amazon makes losses, so its
+      interest saves it no tax yet. Damodaran expects that to change. By year ten he has Amazon funded like a
+      traditional retailer, 15% by debt, at 7% before tax, and with a 35% tax rate that interest costs it 4.55% after
+      tax, while its shareholders then require 10.50%. What does all of Amazon's money cost, now and once it is mature,
+      and how much does the mix matter?
+    reveal: >
+      Damodaran's cost of capital was 12.84% in years one to three: with only 1.2% of debt, almost exactly the cost of
+      equity. By year ten, with 15% of debt at 4.55% after tax and shareholders requiring 10.50%, it was 9.61%. His value
+      was $35.08 a share against the $84 price, and in his paper he named the estimates of sustainable margins and
+      revenue growth, not the rate, as the inputs with the greatest impact on value. The shares traded as high as
+      $91.50 in the first quarter of 2000 and as low as $14.88 in the fourth.
+
+concept: >
+  Most companies are paid for by two kinds of investors. Shareholders want the cost of equity, the return built in
+  layers in the last Topic. Lenders want the cost of debt, the interest they charge, which is usually lower because
+  lenders are paid first. Interest comes off profit before tax, so a company that pays tax gets a tax saving on
+  interest, and its debt costs less after tax. Blend the two costs by how much of the company's money each puts in, and
+  you have the cost of capital, the rate for all of its money. Analysts call this the WACC, short for weighted average
+  cost of capital. The blend leans toward whoever puts in most: Amazon's lenders put in 1.2%, so its rate is almost its
+  cost of equity. Like the beta, the mix matters, but it moves a value less than growth and margins do.
+
+principle: >
+  Blend what shareholders and lenders each require by how much of the money each puts in, with debt counted after its
+  tax saving. Then put the mix in its place: it moves a value less than growth and margins.
+
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: >
+  A home bought with a mortgage and your own savings costs a blend of the loan's interest and what your savings could have earned.
+
+goDeeper: >
+  Damodaran weighted the two costs by what the market paid, not by the amounts in the accounts: at $84 a share,
+  Amazon's 340.79 million shares were worth $28,626 million, against debt of about 1.2% of the total. He also had its
+  lenders charging less as it matured, 8% before tax at first and 7% by year ten. A Learner who wants more can ask why
+  more debt also makes a company's shares riskier.
+
+youllLearn:
+  - "Blend the cost of equity and the after-tax cost of debt into a cost of capital."
+  - "See why interest that saves tax makes debt cheaper."
+  - "Weigh how much the mix of debt moves a value against growth and margins."
+
+terms:
+  - term: cost of debt
+    means: The interest lenders charge a company for its loans and bonds.
+    emoji: bank
+    pro: Its cost of debt is eight percent before tax.
+    example: "If a company borrows $100 and pays $8 of interest a year, its cost of debt is 8%."
+    inStory: Amazon's lenders charged 8% a year before tax.
+  - term: tax saving on interest
+    means: The tax a profitable company does not pay because its interest comes off its profit before tax.
+    emoji: receipt
+    pro: The tax saving on interest makes debt cheaper than it looks.
+    example: "At a 35% tax rate, $100 of interest cuts the tax bill by $35, so the loan really costs $65."
+    inStory: Amazon's losses meant its interest saved it no tax yet; by year ten it would.
+  - term: cost of capital
+    means: The rate for all of a company's money, blending what shareholders and lenders each require by how much each puts in.
+    emoji: balance-scale
+    pro: We discount the company's cash at its cost of capital.
+    example: "If shareholders put in most of the money, the cost of capital sits close to what they require."
+    inStory: Amazon's cost of capital was 12.84% at first and 9.61% once mature.
+  - term: basis point
+    means: One hundredth of a percentage point, so a hundred basis points make one point.
+    emoji: coin
+    pro: The Fed raised rates by twenty-five basis points.
+    example: "Like 100 cents in $1, 100 basis points make 1 percentage point."
+    inStory: Damodaran's rates, such as Amazon's 12.84%, move by points and basis points.
+
+skills:
+  - id: blend-build
+    rule: A cost of capital blends the cost of equity and the after-tax cost of debt, each by how much of the money it puts in.
+  - id: blend-matters-less
+    rule: The mix of debt moves a value less than growth and margins; a mix that only the price needs points to a disagreement about the story.
+
+primers:
+  - id: coc-primer-bps
+    title: Basis points
+    lines:
+      - A basis point is a hundredth of a percentage point, so a hundred basis points make one point.
+      - Rates move in points and basis points, never in percent of the rate itself.
+      - A central bank's quarter-point rise is a 25 basis point rise.
+    term: basis point
+    quickTry:
+      id: coc-primer-bps-try
+      skill: blend-build
+      ask: A cost of capital rises by 100 basis points. Which says the same move?
+      kind: choice
+      answer: point
+      choices:
+        - { id: point, text: "One percentage point" }
+        - { id: percent, text: "One percent of the rate", mistake: { tag: percent_of_rate, fix: "One percent of a 12% rate is far smaller; 100 basis points is one whole percentage point." } }
+    elective: num-percent-bps
+    at: concept
+
+insight:
+  question: Take Damodaran's mature Amazon and move its share of debt down to none, then back up to where he set it. Does the cost of capital move a lot or a little, and why does it stay so close to what shareholders require?
+  written: With no debt the cost of capital is the cost of equity, and at his share of debt it falls by less than a point; shareholders still put in most of the money, so the blend leans their way, and cheap debt after tax only pulls on its own share.
+  foundWhen: The Learner moves the share of debt between none and where he set it, sees the cost of capital move only a little, and says the blend stays near the cost of equity because shareholders put in most of the money.
+  hints:
+    - Watch the cost of capital while you move the share of debt down to none, then back to where it opened.
+    - Compare that move with the gap between the cost of equity and the debt's cost after tax.
+
+explore:
+  before: coc-check
+  workbench:
+    recipe: wacc_stack
+    title: What does mature Amazon's money cost?
+    inputs:
+      figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1, debtShare: 15, costOfDebt: 7, taxRate: 35 }
+      source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }
+      story: { lead: debt }
+
+connections:
+  - text: The weighted average cost of capital goes further into weighting each cost by market values.
+    topics: [cf-wacc]
+  - text: A lender's default spread is the premium for risk on the debt side of the rate.
+    topics: [bond-credit-spreads]
+
+questions:
+  - id: coc-q-lever
+    kind: which_lever
+    prompt: From Damodaran's story, which one change moves Amazon's value the most?
+    skill: blend-matters-less
+    explanation: What it keeps moves the value most here; even borrowing far more from year one moves it less.
+    computed:
+      case: spine-coc-amazon-mix
+      changes:
+        - { id: thinner, label: "Margin 10% to 8%", levers: { marginTarget: 8 } }
+        - { id: heavy-debt, label: "Rate while it grows 12.84% to 11.43%, borrowing 30% at 8% from year one", levers: { costOfCapitalGrowing: 11.43 } }
+        - { id: no-debt, label: "Rate while it grows 12.84% to 12.90%, borrowing nothing", levers: { costOfCapitalGrowing: 12.9 } }
+  - id: coc-q-price
+    kind: price_assumes
+    prompt: Amazon's shares cost $84. Which story gets near that price?
+    skill: blend-matters-less
+    explanation: The price needs a bigger and richer Amazon; no mix of debt gets there.
+    computed:
+      case: spine-coc-amazon-mix
+      changes:
+        - { id: bigger-richer, label: "$60bn of revenue in year 10, keeping 12.5%", levers: { revenueYear10: 60000, marginTarget: 12.5 } }
+        - { id: heavy-debt, label: "His story with 30% debt at 8% from year one, 11.43% while it grows", levers: { costOfCapitalGrowing: 11.43 } }
+        - { id: bigger, label: "$50bn of revenue in year 10, keeping 10%", levers: { revenueYear10: 50000 } }
+  - id: coc-q-predict
+    kind: predict
+    prompt: "If Amazon had borrowed {change} from year one, its value will move:"
+    skill: blend-matters-less
+    computed:
+      case: spine-coc-amazon-mix
+      changes:
+        - { id: thirty, label: "30% of its money at 8%, so 11.43% while it grows", levers: { costOfCapitalGrowing: 11.43 } }
+        - { id: none, label: "nothing at all, so 12.90% while it grows", levers: { costOfCapitalGrowing: 12.9 } }
+      bands:
+        - { id: up-big, label: "Up by half or more", min: 1.5 }
+        - { id: up-some, label: "Up, by less than half", min: 1, max: 1.5 }
+        - { id: down-some, label: "Down, by less than half", min: 0.5, max: 1 }
+        - { id: down-big, label: "Down by half or more", max: 0.5 }
+  - id: coc-q-direction
+    kind: direction
+    prompt: Once Amazon makes a profit, its interest starts to save it tax. Which way does that move its debt's cost after tax, and its cost of capital?
+    skill: blend-build
+    choices:
+      - { id: down-down, text: "Debt's cost after tax down, cost of capital down" }
+      - { id: up-up, text: "Debt's cost after tax up, cost of capital up", mistake: { tag: tax_backwards, fix: "Paying less tax for each dollar of interest makes the debt cheaper, not dearer." } }
+      - { id: down-up, text: "Debt's cost after tax down, cost of capital up", mistake: { tag: blend_backwards, fix: "A cheaper part of the blend pulls the whole blend down." } }
+    answer: down-down
+    explanation: The tax saving makes each dollar of interest cheaper, so the debt's share of the blend costs less and the whole rate falls.
+    source: "Damodaran, The Dark Side of Valuation (HighGrow.pdf, Feb 2000): Amazon's tax rate 0% in years one to three while it uses its losses, 35% by year ten, the cost of debt after tax falling from 8.00% to 4.55%. https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
+  - id: coc-q-hold
+    kind: cannot_hold
+    prompt: Which set of rates contradicts itself?
+    skill: blend-build
+    choices:
+      - { id: tiny-debt, text: "Debt is 1.2% of Amazon's money, and its cost of capital is three points below its cost of equity" }
+      - { id: mature, text: "Debt is 15% at 4.55% after tax, shares require 10.50%, and the cost of capital is 9.61%", mistake: { tag: mature_fine, fix: "Most of the money still wants 10.50%, so a blend a little under it holds together; it is his own table." } }
+      - { id: no-saving, text: "Amazon makes losses, so its 8% loan costs 8% after tax", mistake: { tag: no_saving_fine, fix: "With no tax to save, interest costs what the lender charges; that holds together." } }
+    answer: tiny-debt
+    explanation: A blend leans toward whoever puts in most, so with 1.2% of debt the cost of capital cannot sit far from the cost of equity.
+    source: "Damodaran, The Dark Side of Valuation (HighGrow.pdf, Feb 2000): debt ratio 1.20%, cost of equity 12.90%, cost of capital 12.84% in year one; 15%, 10.50% and 9.61% by year ten. https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
+  - id: coc-q-weights
+    kind: price_or_value
+    prompt: "Damodaran weighted Amazon's shareholders by what their shares were worth on the market: $28,626 million at $84 a share. Is that about a price or a value?"
+    skill: blend-build
+    choices:
+      - { id: price, text: "A price" }
+      - { id: value, text: "A value", mistake: { tag: price_for_value, fix: "It is the share price times the shares: what buyers paid, so a price." } }
+    answer: price
+    explanation: It is what buyers paid for each share times the shares, a price, even though he used it inside a valuation.
+    source: "Damodaran, Valuation seminar slides (techval.pdf, March 2000): market value of equity $84 x 340.79m shares = $28,626m. https://pages.stern.nyu.edu/~adamodar/pdfiles/Seminars/techval.pdf"
+
+checks:
+  - id: coc-check
+    kind: quiz
+    questions: [coc-q-lever, coc-q-price, coc-q-predict, coc-q-direction, coc-q-hold, coc-q-weights]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: One rate for all the money
+      lines:
+        - Shareholders want the cost of equity; lenders want the cost of debt.
+        - Interest saves tax for a company that pays tax, so debt costs less after tax.
+        - The cost of capital blends the two by how much of the money each puts in.
+        - "Amazon: 12.84% with almost no debt at first, 9.61% once mature with 15% of debt."
+      writeDown: One rate blends what shareholders and lenders require, and the mix moves a value less than growth and margins.
+      skills: [blend-build, blend-matters-less]
+    quickTries:
+      - id: coc-try-build-who
+        skill: blend-build
+        ask: Amazon's shareholders put in 98.8% of its money and its lenders 1.2%. Whose return does its cost of capital sit closest to?
+        kind: choice
+        answer: shareholders
+        choices:
+          - { id: shareholders, text: "The shareholders' 12.90%" }
+          - { id: lenders, text: "The lenders' 8%", mistake: { tag: blend_unweighted, fix: "The blend weighs each cost by how much of the money it puts in, and lenders put in very little." } }
+      - id: coc-try-build-tax
+        skill: blend-build
+        ask: Amazon pays 8% on a loan. When does that loan cost it less than 8%?
+        halfDone: "First step, done for you: interest comes off profit before tax, so it only saves tax once there is profit to tax."
+        kind: choice
+        answer: profit
+        choices:
+          - { id: profit, text: "Once Amazon makes a profit and pays tax" }
+          - { id: losses, text: "While Amazon makes losses", mistake: { tag: saving_without_tax, fix: "A company with losses pays no tax, so its interest has no tax to save." } }
+      - id: coc-try-build-cheaper
+        skill: blend-build
+        ask: Why do lenders usually charge less than shareholders require?
+        kind: choice
+        answer: first
+        choices:
+          - { id: first, text: "Lenders are paid first, before shareholders get anything" }
+          - { id: risk, text: "Lenders take more risk than shareholders", mistake: { tag: lender_risk, fix: "Lenders are paid before shareholders, so they carry less risk and ask for less." } }
+      - id: coc-try-less-half
+        skill: blend-matters-less
+        ask: Borrowing 30% of its money from year one would take Amazon's rate while it grows from 12.84% to 11.43%, and the price is more than twice his value. Can the mix of debt alone explain the price?
+        halfDone: "First step, done for you: that is under a point and a half on the rate, a modest change next to the gap to the price."
+        kind: choice
+        answer: no
+        choices:
+          - { id: no, text: "No: the gap is about growth and margins" }
+          - { id: yes, text: "Yes: enough debt gets there", mistake: { tag: mix_overweight, fix: "Even far more debt leaves the value far short; the gap is about growth and margins." } }
+      - id: coc-try-less-computed
+        skill: blend-matters-less
+        kind: which_lever
+        ask: From Damodaran's story, which change moves Amazon's value the most?
+        computed:
+          case: spine-coc-amazon-mix
+          changes:
+            - { id: more-debt, label: "Rate while it grows 12.84% to 12.17%, borrowing 15% at 8%", levers: { costOfCapitalGrowing: 12.17 } }
+            - { id: margin-nine, label: "Margin 10% to 9%", levers: { marginTarget: 9 } }
+            - { id: leaner, label: "Sales to capital 3 to 3.5", levers: { salesToCapital: 3.5 } }
+      - id: coc-try-less-first
+        skill: blend-matters-less
+        ask: A value is far below the price. Which question should come first?
+        kind: choice
+        answer: story
+        choices:
+          - { id: story, text: "What growth and margins does the price need?" }
+          - { id: mix, text: "How much debt would give the price?", mistake: { tag: bend_the_mix, fix: "Bending the mix to fit the price hides the real disagreement, which is usually about growth and margins." } }
