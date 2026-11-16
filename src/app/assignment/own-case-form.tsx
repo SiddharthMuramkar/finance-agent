@@ -2,29 +2,33 @@
 
 import { useState } from "react";
 import { OWN_CASE_MARKET, openingEstimate, ownCaseIndustries, ownCaseReadingIds, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
-import { reportGuide, type ReportGuideField } from "@/markets/report-guides";
+import { annualReportGuide, type GuideField } from "@/markets/guides";
 import { MarketReadingsView } from "@/widgets/market-readings-view";
+import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
 import { dateText, priceText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
 
-/** The markets a Learner picks from, by tap. */
+/** The markets a Learner picks from, by tap: India (#107), the US (#113). */
 const MARKETS: { id: OwnCaseMarket; label: string }[] = [
   { id: "IN", label: "India" },
   { id: "US", label: "United States" },
 ];
 
-/** How each market's report counts money, for the hints: ₹ crore in India, $ millions in a US 10-K. */
-const MONEY_WORDS = { IN: { money: "₹ crore", symbol: "₹", sales: "Revenue from operations", debt: "Borrowings, long and short" }, US: { money: "$ millions", symbol: "$", sales: "Total net sales or revenues", debt: "Commercial paper and term debt" } } as const;
+/** How each market's report names and counts the money: ₹ crore in an Indian annual report, $ millions in a US 10-K. */
+const WORDS = {
+  IN: { money: "₹ crore", symbol: "₹", sales: "Revenue from operations", debt: "Borrowings and lease liabilities", cash: "Cash and cash equivalents, with other bank balances" },
+  US: { money: "$ millions", symbol: "$", sales: "Total net sales or revenues", debt: "Commercial paper and term debt", cash: "Cash and cash equivalents" },
+} as const;
 
 /** The eight figures copied from the report (spec #68, user story 79), each with what it is and where the money is counted. */
 const fields = (market: OwnCaseMarket) => {
-  const w = MONEY_WORDS[market];
+  const w = WORDS[market];
   return [
     { key: "sales", label: "Sales", hint: `${w.sales} for the year, in ${w.money}.` },
     { key: "operatingProfit", label: "Operating profit", hint: `Profit before interest and tax (EBIT), in ${w.money}. Below zero for a loss.` },
     { key: "taxPercent", label: "Tax rate", hint: "The tax rate the company pays, in percent." },
-    { key: "debt", label: "Debt", hint: `${w.debt}, in ${w.money}.` },
-    { key: "cash", label: "Cash", hint: `Cash and cash equivalents, in ${w.money}.` },
+    { key: "debt", label: "Debt", hint: `${w.debt}, long and short, in ${w.money}.` },
+    { key: "cash", label: "Cash", hint: `${w.cash}, in ${w.money}.` },
     { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },
     { key: "price", label: "Share price on the report's date", hint: `In ${w.symbol}, the closing price on that day.` },
   ] as const;
@@ -34,17 +38,24 @@ type FieldKey = ReturnType<typeof fields>[number]["key"];
 /** A typed figure as a number: commas the report prints are fine; an empty box is no number. */
 const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹$]/g, "")));
 
-/** Where a figure sits in the market's annual report, with its source link (#108, #113); nothing for a market with no guide yet. */
-function GuideLine({ market, field }: { market: OwnCaseMarket; field: ReportGuideField }) {
-  const line = reportGuide(market)?.fields[field];
+/** The guide beside one field: where the number sits in the market's annual report (India #108, the US #113), the rule or record that says so, and its word as a Lingo card. */
+function FieldGuide({ market, field }: { market: OwnCaseMarket; field: GuideField }) {
+  const line = annualReportGuide(market)[field];
   if (!line) return null;
   return (
-    <p data-guide-line={field} className="text-xs leading-4">
-      {line.line}{" "}
-      <a href={line.sourceUrl} target="_blank" rel="noreferrer" className="underline">
-        {line.source}
-      </a>
-    </p>
+    <div data-own-case-guide={field} className="text-xs leading-4 text-[var(--muted)]">
+      <p data-guide-where>
+        <span className="font-medium">In the annual report: </span>
+        {line.where}{" "}
+        <a data-guide-source href={line.sourceUrl} target="_blank" rel="noreferrer" className="underline">
+          Source: {line.source}
+        </a>
+      </p>
+      <details data-guide-lingo className="mt-1">
+        <summary className="cursor-pointer">Lingo: {line.lingo.term}</summary>
+        <LingoCardView {...line.lingo} />
+      </details>
+    </div>
   );
 }
 
@@ -103,8 +114,7 @@ export function OwnCaseForm() {
   };
 
   const estimate = industry ? openingEstimate(industry, market) : null;
-  const guide = reportGuide(market);
-  const symbol = MONEY_WORDS[market].symbol;
+  const symbol = WORDS[market].symbol;
   return (
     <form
       data-own-case-form
@@ -136,19 +146,12 @@ export function OwnCaseForm() {
           ))}
         </div>
       </fieldset>
-      {guide && (
-        <p data-report-guide className="text-sm leading-5">
-          {guide.report.where}{" "}
-          <a href={guide.report.sourceUrl} target="_blank" rel="noreferrer" className="underline">
-            {guide.report.source}
-          </a>
-        </p>
-      )}
       <div className="flex flex-col gap-1">
         <label htmlFor="own-case-company" className="text-sm font-medium leading-5">
           Company
         </label>
         <input id="own-case-company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="field w-full" autoComplete="off" />
+        <FieldGuide market={market} field="company" />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="own-case-date" className="text-sm font-medium leading-5">
@@ -156,7 +159,7 @@ export function OwnCaseForm() {
         </label>
         <input id="own-case-date" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="field w-full" />
         <p className="text-xs leading-4 text-[var(--muted)]">The Own Case is dated here: the year end the report closes on.</p>
-        <GuideLine market={market} field="reportDate" />
+        <FieldGuide market={market} field="reportDate" />
       </div>
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium leading-5">Industry</legend>
@@ -187,7 +190,7 @@ export function OwnCaseForm() {
           <p id={`own-case-${f.key}-hint`} className="text-xs leading-4 text-[var(--muted)]">
             {f.hint}
           </p>
-          <GuideLine market={market} field={f.key} />
+          <FieldGuide market={market} field={f.key} />
         </div>
       ))}
       {estimate && (

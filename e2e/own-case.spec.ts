@@ -68,6 +68,27 @@ test("a Learner who has not passed the Spine finds the Assignment closed", async
   await expect(page.locator("[data-own-case-form]")).toHaveCount(0);
 });
 
+test("beside every field, the Own Case form shows where it sits in an Indian annual report, a source link and a Lingo card (#108)", async ({ person }) => {
+  test.setTimeout(120_000);
+  const { page } = await person({ person: "ravi" });
+  await page.goto("/assignment");
+  const form = page.locator("[data-own-case-form]");
+  const fields = ["company", "reportDate", "sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"];
+  await expect(form.locator("[data-own-case-guide]")).toHaveCount(fields.length);
+  for (const field of fields) {
+    const guide = form.locator(`[data-own-case-guide="${field}"]`);
+    await expect(guide.locator("[data-guide-where]")).toBeVisible();
+    await expect(guide.locator("a[data-guide-source]")).toHaveAttribute("href", /^https:\/\//);
+    const card = guide.locator('[data-testid="lingo-card"]');
+    await expect(card).toBeHidden();
+    await guide.locator("[data-guide-lingo] > summary").click();
+    await expect(card).toBeVisible();
+  }
+  await expect(form.locator('[data-own-case-guide="sales"] [data-guide-where]')).toContainText("Revenue from operations");
+  await expect(form.locator('[data-own-case-guide="sales"] [data-testid="lingo-card"]')).toContainText("Revenue from operations");
+  await expect(form.locator('[data-own-case-guide="debt"] a[data-guide-source]')).toContainText("Ind AS 116");
+});
+
 /** Apple's Form 10-K for the year to 27 Sep 2025, in $ millions, as a Learner copies it (#113). */
 const APPLE = {
   sales: "416,161",
@@ -86,12 +107,13 @@ test("[#113] a Spine-passed Learner values a US company from its 10-K, with the 
   const form = page.locator("[data-own-case-form]");
   await form.locator('[data-market="US"]').click();
 
-  // The guide: where the 10-K puts each figure, every line with a working source link.
-  await expect(form.locator("[data-report-guide]")).toContainText("Form 10-K");
-  const lines = form.locator("[data-guide-line]");
-  await expect(lines).toHaveCount(8);
-  for (const line of await lines.all()) await expect(line.locator("a")).toHaveAttribute("href", /^https:\/\/www\.(sec|investor|nasdaq)\.(gov|com)\//);
-  await expect(form.locator('[data-guide-line="sales"]')).toContainText("Item 8");
+  // The guide: where the 10-K puts each figure, every line with a working source link and a Lingo card (#108's markup).
+  const guides = form.locator("[data-own-case-guide]");
+  await expect(guides).toHaveCount(9);
+  for (const guide of await guides.all()) await expect(guide.locator("a[data-guide-source]")).toHaveAttribute("href", /^https:\/\/www\.(sec|investor|nasdaq)\.(gov|com)\//);
+  await expect(form.locator('[data-own-case-guide="company"] [data-guide-where]')).toContainText("EDGAR");
+  await expect(form.locator('[data-own-case-guide="sales"] [data-guide-where]')).toContainText("Item 8");
+  await expect(form.locator('[data-own-case-guide="sales"] [data-guide-lingo] > summary')).toHaveText("Lingo: Net sales");
 
   await form.getByLabel("Company").fill("Apple Inc.");
   await form.getByLabel("Date of the annual report").fill("2025-09-27");

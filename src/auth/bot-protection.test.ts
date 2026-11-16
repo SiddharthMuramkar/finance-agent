@@ -8,9 +8,12 @@ const initBotId = vi.hoisted(() => vi.fn());
 vi.mock("botid/client/core", () => ({ initBotId }));
 
 describe("the browser protects the request the server checks (issue #33)", () => {
-  it("protects only POST /api/turn, a route that exists", () => {
-    expect(BOT_PROTECTED).toEqual([{ path: "/api/turn", method: "POST" }]);
-    expect(existsSync("src/app/api/turn/route.ts")).toBe(true);
+  it("protects only the Tutor Turn routes, POST /api/turn and POST /api/assignment/turn, routes that exist", () => {
+    expect(BOT_PROTECTED).toEqual([
+      { path: "/api/turn", method: "POST" },
+      { path: "/api/assignment/turn", method: "POST" },
+    ]);
+    for (const { path } of BOT_PROTECTED) expect(existsSync(`src/app${path}/route.ts`)).toBe(true);
   });
 
   it("instrumentation-client starts BotID with BOT_PROTECTED before the app runs", async () => {
