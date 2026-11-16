@@ -12,7 +12,6 @@
   --gutter-x: max(clamp(16px, 4vw, 32px), env(safe-area-inset-left), env(safe-area-inset-right));
   background: var(--paper);
   color: var(--ink-2);
-  color-scheme: light;
   font-size: 17px;
   line-height: 1.65;
   min-height: 100vh;
@@ -197,6 +196,9 @@
 .v-sheet { position: absolute; left: 0; right: 0; top: 100%; background: var(--paper); border-bottom: 1px solid var(--rule); box-shadow: var(--lift); padding: 8px var(--gutter-x) 16px; display: grid; }
 .v-sheet a { padding: 12px 0; font-weight: 600; color: var(--ink); border-bottom: 1px solid var(--rule); }
 .v-sheet a:last-child { border-bottom: 0; }
+/* The theme switch (ADR 0019): an icon button beside Menu on a wide screen, a row with a word in the phone menu. */
+.v-theme-btn { width: 36px; padding: 0; justify-content: center; }
+.v-sheet-theme { display: flex; align-items: center; gap: 10px; padding: 12px 0; font: inherit; font-weight: 600; color: var(--ink); background: none; border: 0; border-top: 1px solid var(--rule); text-align: left; cursor: pointer; }
 .v-account { position: relative; }
 .v-account summary { list-style: none; cursor: pointer; }
 .v-account summary::-webkit-details-marker { display: none; }
@@ -426,7 +428,7 @@
 @media (max-width: 860px) {
   .v-navlinks { display: none; }
   .v-menu-btn { display: inline-flex; }
-  .v-nav-right .v-signin { display: none; }
+  .v-nav-right .v-signin, .v-nav-right .v-theme-btn { display: none; }
   .v-moves { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 24px; }
   .v-moves li:nth-child(3) { border-left: 0; padding-left: 0; }
   .v-colours { grid-template-columns: repeat(2, minmax(0, 1fr)); }

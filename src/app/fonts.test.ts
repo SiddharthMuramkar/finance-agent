@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 // The type (spec §3.2): Inter for text and Inter Tight for headings, loaded once in the root layout through next/font
 // (self-hosted, no call to Google), both put on <body> as CSS variables; Manrope is gone. <html> carries only its
-// language: one Light theme (decision #17) needs no theme attributes and no head script.
+// language and suppressHydrationWarning: the theme is set by the head script before the first paint (ADR 0019).
 
 const layout = readFileSync("src/app/layout.tsx", "utf8");
 
@@ -16,10 +16,10 @@ describe("fonts", () => {
     expect(layout).toMatch(/<body className=\{`[^`]*\$\{text\.variable\} \$\{display\.variable\}`\}>/);
   });
 
-  it("drops Manrope, and <html> carries only its language: no theme script", () => {
+  it("drops Manrope, and <html> carries only its language: the theme comes from the head script", () => {
     expect(layout).not.toContain("Manrope");
-    expect(layout).toContain('<html lang="en">');
-    expect(layout).not.toMatch(/THEME_INIT_SCRIPT|dangerouslySetInnerHTML|suppressHydrationWarning/);
+    expect(layout).toContain('<html lang="en" suppressHydrationWarning>');
+    expect(layout).not.toMatch(/<html[^>]*data-theme/);
   });
 
   it("gives body the text font first, with the system stack behind it", () => {

@@ -36,8 +36,9 @@
 @import "@openuidev/react-ui/layered/styles/textContentWrapper.css";
 @import "@openuidev/react-ui/layered/styles/tooltipWrapper.css";
 
-/* One Light theme for the whole app (decision #17; spec §3.1, "single light theme by design"). There is no Dark theme:
-   no dark class, no dark variant, and the computer's setting is never read. */
+/* Two themes, Light and Dark (ADR 0019; spec §3.1). Light is :root below; Dark is :root[data-theme="dark"] after it. The
+   head script in the root layout picks one before the first paint: the device's setting on a first visit, then the
+   switch's choice. No .dark class and no prefers-color-scheme rule: the script reads the device, so a chosen theme wins. */
 
 /* Design tokens: the Signal colour language (spec §2.1, §3.1). Blue is you, green is gain, red is loss, orange is
    careful, black is the record, and hatch is not real yet. There is no sixth colour.
@@ -230,11 +231,66 @@
   --lh-small: 18px;
 }
 
+/* Dark (ADR 0019): the same colour language, each colour re-stepped for a dark page and measured again, never inverted.
+   The theme script in the root layout sets data-theme on <html> before the first paint: the device's setting on a first
+   visit, then the switch's choice from the `theme` cookie. Only colours live here; every other name follows through
+   var(). On a dark page the fills are light, so the text on a fill (--on-blue, and on a Band --on-band) is dark. The
+   hatch is drawn in --line, so it takes --line's dark value. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0e1117;
+  --wash: #161a22;
+  --wash-2: #1f2430;
+  --grid: #1b2029;
+  --ink: #f2f4f8;
+  --ink-2: #d3d7df;
+  --muted: #9ba2ae;
+  --faint: #7a818d;
+  --rule: #272c37;
+  --line: #3a404d;
+  --blue: #8aa4ff;
+  --blue-hover: #9fb5ff;
+  --blue-pressed: #b3c4ff;
+  --on-blue: #0b0d12;
+  --blue-tint: #1a2240;
+  --blue-tint-2: #222b4e;
+  --blue-line: #3a4b8c;
+  --gain: #0f7a56;
+  --gain-deep: #4fd1a1;
+  --gain-ink: #4cc996;
+  --gain-tint: #10261e;
+  --gain-line: #1e5a44;
+  --loss: #ff7a8f;
+  --loss-ink: #ff9aa8;
+  --loss-tint: #2c1418;
+  --loss-line: #6e2a35;
+  --wait: #ffc247;
+  --wait-ink: #ffcc66;
+  --wait-tint: #2b1c0e;
+  --wait-line: #6b5221;
+  --overlay: rgba(14, 17, 23, 0.9);
+  --line-strong: #767e8b;
+  --shadow-ink: #000000;
+  --check-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%230b0d12' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
+  --on-band: #0b0d12;
+  --on-band-2: rgb(11 13 18 / 0.72);
+  --band-rule: rgb(11 13 18 / 0.18);
+  --on-band-button-ink: #f2f4f8;
+  --band-todo: rgb(11 13 18 / 0.35);
+  --on-band-hover: rgb(11 13 18 / 0.15);
+}
+
 /* The one screen-size rule (src/app/screen.ts): a phone is below md (768 px), a tablet below lg (1024 px), a laptop from
    lg up. Tailwind's own values, written here so CSS and script read one rule; screen.test.ts keeps them equal. */
 @theme {
   --breakpoint-md: 48rem;
   --breakpoint-lg: 64rem;
+}
+
+/* The theme switch draws both its icons (and words); the theme on <html> shows one, correct from the first frame. */
+:root:not([data-theme="dark"]) .theme-show-dark,
+:root[data-theme="dark"] .theme-show-light {
+  display: none;
 }
 
 /* The same tokens as Tailwind colours (bg-blue, text-gain-ink, bg-brand, text-muted, border-border ...). "inline" keeps
