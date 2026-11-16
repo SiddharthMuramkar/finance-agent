@@ -14,6 +14,7 @@ import { connectionsCheckErrors } from "../src/course/connections-check.ts";
 import { youllLearnCheckErrors } from "../src/course/youll-learn-check.ts";
 import { homeAnnuityCheckErrors, writtenAheadCheckErrors, writtenAheadCheckWarnings } from "../src/course/written-ahead-check.ts";
 import { goalCheckErrors } from "../src/course/goal-check.ts";
+import { beginnerCheckErrors } from "../src/course/beginner-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
@@ -64,6 +65,11 @@ if (youllLearn.length) fail("You'll learn bullets that are missing or break the 
 
 const goals = goalCheckErrors(map.topics);
 if (goals.length) fail("Topic goals, why lines and found lines that break the rules", goals);
+
+// The beginner rules (spec #68): at most four new words, no own-story Check, no "your story" wording and a daily-life
+// line on every Spine Topic. Each rule's list of known failures (src/course/beginner-check.ts) can only shrink.
+const beginner = beginnerCheckErrors(map.topics);
+if (beginner.length) fail("Spine Topics that break the beginner rules (spec #68)", beginner);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 // The valuation Case registry (spec 2026-11-12 B1): what client and server code value a Case from, by its id.
