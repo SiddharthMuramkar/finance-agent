@@ -70,7 +70,7 @@ principle: >
   Profit is an opinion; cash is a fact. Follow revenue down to free cash flow, ask what growth costs
   and who is paying for it, and remember that fast growth is paid for before it pays.
 
-# The daily-life line (spec #68): one line from daily life that ends the Principle step (shown with #86's field).
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
 dailyLife: "Stock options at a startup: ask how many months its cash lasts."
 
 youllLearn:

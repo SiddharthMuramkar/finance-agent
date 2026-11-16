@@ -61,7 +61,7 @@ principle: >
   Bring every payment to the same date before you compare, and ask which rate makes two offers equal:
   that rate is the real question behind the choice.
 
-# The daily-life line (spec #68): one line from daily life that ends the Principle step (shown with #86's field).
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
 dailyLife: "A job offer paid over four years, an EMI: bring each payment to today before you compare it with cash now."
 
 youllLearn:
