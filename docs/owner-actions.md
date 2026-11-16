@@ -23,7 +23,7 @@ Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 
 | 13 | [Write the owner content](#13-write-the-owner-content) | Before the first invite |
 | 14 | [Run the Waitlist](#14-run-the-waitlist) | Before the beta starts, then on a fixed rhythm |
 | 15 | [Decide the licence label on 16 citations](#15-decide-the-licence-label-on-16-citations) | Before any paid launch |
-| 16 | [Revoke the eval Voyage key, delete the 2 env files](#16-revoke-the-eval-voyage-key-delete-the-2-env-files) | When the evals end (the Library load and the wipe ended on 2026-11-16) |
+| 16 | [The eval Voyage key and the 2 env files](#16-the-eval-voyage-key-and-the-2-env-files) | Env files deleted 2026-11-16; key kept (your choice) |
 | 17 | [Delete the export of the old Learners](#17-delete-the-export-of-the-old-learners) | About 2026-12-16 |
 | 18 | [Remove the passcode env vars from Production](#18-remove-the-passcode-env-vars-from-production) | After PR C is live |
 | 19 | [Decide on link underlines and pill chips](#19-decide-on-link-underlines-and-pill-chips) | Any time |
@@ -299,29 +299,18 @@ See item 8 in `docs/roadmap.md`.
 
 Tell the agent A or B. The agent makes the change.
 
-## 16. Revoke the eval Voyage key, delete the 2 env files
+## 16. The eval Voyage key and the 2 env files
 
-- [ ] Done
+- [x] Env files deleted (2026-11-16, owner batch 5)
+- [ ] The key: kept on purpose (owner decision, 2026-11-16)
 
-**Why.** The Library evals used a Voyage key that you made for them, named "vps-eval". 2 folders on the VPS hold secrets for the evals and the owner-run scripts:
+**Why.** The Library evals used a Voyage key that you made for them, named "vps-eval". 2 folders on the VPS held secrets for the evals and the owner-run scripts: `/root/projects/.evalenv` and `/root/projects/.prodenv`. Both are deleted.
 
-- `/root/projects/.evalenv`: the eval database addresses and the vps-eval key.
-- `/root/projects/.prodenv`: the production database addresses and a copy of the vps-eval key (`prod-load.sh` and `contract-run.sh` use it).
+You decided to keep the vps-eval key for now. A later eval (for example, the reranker re-test in `docs/roadmap.md`) can use it.
 
-A key or an address that nobody uses can still leak.
+**When.** No date. Revoke it if you stop the evals, or if it leaks.
 
-**When.** When the evals end. The production Library load and the wipe ended on 2026-11-16. The agent tells you when the evals end.
-
-**How.**
-
-1. In the Voyage AI dashboard, API keys: revoke the key named **vps-eval**. Revoke only that key.
-2. On the VPS, delete the 2 folders:
-
-   ```sh
-   rm -rf /root/projects/.evalenv /root/projects/.prodenv
-   ```
-
-3. Tell the agent. A later eval (for example, the reranker re-test in `docs/roadmap.md`) needs a new key.
+**How.** In the Voyage AI dashboard, API keys: revoke the key named **vps-eval**. Revoke only that key.
 
 ## 17. Delete the export of the old Learners
 
