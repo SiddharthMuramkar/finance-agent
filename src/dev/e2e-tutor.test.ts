@@ -41,6 +41,7 @@ const context = (name: E2eScriptName): ReplyCheckContext => {
 describe("the scripted Tutor", () => {
   it("every named script passes the reply checks", () => {
     expect(Object.keys(E2E_SCRIPTS).sort()).toEqual([
+      "assignment-flag",
       "concept-percent-change",
       "concept-reply-widget",
       "concept-two-ways",
