@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { INDIA_INDUSTRIES, openingEstimate, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs } from "@/finance/own-case";
+import { annualReportGuide, type GuideField } from "@/markets/guides";
+import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
 import { dateText, priceText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
 
@@ -10,8 +12,8 @@ const FIELDS = [
   { key: "sales", label: "Sales", hint: "Revenue from operations for the year, in ₹ crore." },
   { key: "operatingProfit", label: "Operating profit", hint: "Profit before interest and tax (EBIT), in ₹ crore. Below zero for a loss." },
   { key: "taxPercent", label: "Tax rate", hint: "The tax rate the company pays, in percent." },
-  { key: "debt", label: "Debt", hint: "Borrowings, long and short, in ₹ crore." },
-  { key: "cash", label: "Cash", hint: "Cash and cash equivalents, in ₹ crore." },
+  { key: "debt", label: "Debt", hint: "Borrowings and lease liabilities, long and short, in ₹ crore." },
+  { key: "cash", label: "Cash", hint: "Cash and cash equivalents, with other bank balances, in ₹ crore." },
   { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },
   { key: "price", label: "Share price on the report's date", hint: "In ₹, the closing price on that day." },
 ] as const;
@@ -20,6 +22,29 @@ type FieldKey = (typeof FIELDS)[number]["key"];
 const RUPEES = { currency: "INR", unit: "crores" } as const;
 /** A typed figure as a number: commas the report prints are fine; an empty box is no number. */
 const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹]/g, "")));
+
+/** Where each field sits in an Indian annual report (#108): the guide line, its source and a Lingo card. */
+const GUIDE = annualReportGuide("IN");
+
+/** The guide beside one field: where the number sits, the rule or record that says so, and its word as a Lingo card. */
+function FieldGuide({ field }: { field: GuideField }) {
+  const line = GUIDE[field];
+  return (
+    <div data-own-case-guide={field} className="text-xs leading-4 text-[var(--muted)]">
+      <p data-guide-where>
+        <span className="font-medium">In the annual report: </span>
+        {line.where}{" "}
+        <a data-guide-source href={line.sourceUrl} target="_blank" rel="noreferrer" className="underline">
+          Source: {line.source}
+        </a>
+      </p>
+      <details data-guide-lingo className="mt-1">
+        <summary className="cursor-pointer">Lingo: {line.lingo.term}</summary>
+        <LingoCardView {...line.lingo} />
+      </details>
+    </div>
+  );
+}
 
 type Shown = { kind: "value"; text: string } | { kind: "problem"; text: string } | null;
 
@@ -88,6 +113,7 @@ export function OwnCaseForm() {
           Company
         </label>
         <input id="own-case-company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="field w-full" autoComplete="off" />
+        <FieldGuide field="company" />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="own-case-date" className="text-sm font-medium leading-5">
@@ -95,6 +121,7 @@ export function OwnCaseForm() {
         </label>
         <input id="own-case-date" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="field w-full" />
         <p className="text-xs leading-4 text-[var(--muted)]">The Own Case is dated here: the year end the report closes on.</p>
+        <FieldGuide field="reportDate" />
       </div>
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium leading-5">Industry</legend>
@@ -124,6 +151,7 @@ export function OwnCaseForm() {
           <p id={`own-case-${f.key}-hint`} className="text-xs leading-4 text-[var(--muted)]">
             {f.hint}
           </p>
+          <FieldGuide field={f.key} />
         </div>
       ))}
       {estimate && (
