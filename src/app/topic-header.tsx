@@ -34,7 +34,8 @@ export function WorkspaceTopicBar({
  * What stands at the top of the Study Workspace's right column, above the Widget panel: the pinned explore Widget and the
  * folded review (the Topic bar moved above both columns, F3). It is capped at two fifths of the column and scrolls inside
  * itself, so nothing up here can squeeze the Widget panel, and it does not move while the Tutor streams in the chat
- * beside it. With nothing to show it takes no room (empty, so hidden).
+ * beside it. With nothing to show it takes no room: hidden while no row in it holds anything (G36: the rows' own wrappers
+ * are always there, and a laptop draws the explore Widget in the panel, so `:empty` alone never matched).
  */
 export function TopicHeader({ review, explore }: { review: ReviewState; explore: { code: string; id: string } | null }) {
   return (
@@ -43,7 +44,7 @@ export function TopicHeader({ review, explore }: { review: ReviewState; explore:
     // fills the sheet with that one; both stay mounted, so the sliders and a picked answer survive the sheet going away.
     <div
       data-testid="above-widgets"
-      className="relative flex max-h-[40%] shrink-0 flex-col overflow-y-auto p-1 empty:hidden max-md:hidden max-md:max-h-none max-md:min-h-0 max-md:flex-1 max-md:group-data-[view=explore]/sheet:flex max-md:group-data-[view=review]/sheet:flex"
+      className="relative flex max-h-[40%] shrink-0 flex-col overflow-y-auto p-1 [&:not(:has(>:not(:empty)))]:hidden max-md:hidden max-md:max-h-none max-md:min-h-0 max-md:flex-1 max-md:group-data-[view=explore]/sheet:flex max-md:group-data-[view=review]/sheet:flex"
     >
       {explore && (
         <div className="max-md:group-data-[view=review]/sheet:hidden">

@@ -378,6 +378,8 @@ describe("The Topic bar's step names", () => {
     expect(Object.keys(BAR_STEP_NAMES).sort()).toEqual(Object.keys(STEP_NAMES).sort());
     for (const name of Object.values(BAR_STEP_NAMES)) expect(name).not.toMatch(/\b(check|test|quiz|exam)\b/i);
     expect(BAR_STEP_NAMES.concept).toBe("The idea");
+    // The event step is "The moment" on screen, in the bar and the chat alike (spec #68; GLOSSARY: Moment, not story).
+    expect([STEP_NAMES.story, BAR_STEP_NAMES.story]).toEqual(["The moment", "The moment"]);
     expect(BAR_STEP_NAMES.check).toBe("Wrap up");
     expect(STEP_NAMES.check).toBe("Check");
   });
@@ -389,7 +391,7 @@ describe("Teaching Steps: the step sequence", () => {
   it("numbers Percent's fifteen steps, with Step 2 of 15 · Concept second", () => {
     const course = loadCourseMap();
     expect(labels(course, empty, "num-percent-bps")).toEqual([
-      "Step 1 of 15 · Story",
+      "Step 1 of 15 · The moment",
       "Step 2 of 15 · Concept",
       "Step 3 of 15 · Your turn",
       "Step 4 of 15 · Check",
@@ -414,7 +416,7 @@ describe("Teaching Steps: the step sequence", () => {
 
   it("puts Explore once, only in a Topic with an Insight, after the Concept of the Check that tests it", () => {
     expect(labels(insightMap, empty, "plain")).toEqual([
-      "Step 1 of 6 · Story",
+      "Step 1 of 6 · The moment",
       "Step 2 of 6 · Concept",
       "Step 3 of 6 · Your turn",
       "Step 4 of 6 · Check",
@@ -422,7 +424,7 @@ describe("Teaching Steps: the step sequence", () => {
       "Step 6 of 6 · Principle",
     ]);
     expect(labels(insightMap, empty, "annuity")).toEqual([
-      "Step 1 of 10 · Story",
+      "Step 1 of 10 · The moment",
       "Step 2 of 10 · Concept",
       "Step 3 of 10 · Your turn",
       "Step 4 of 10 · Check",

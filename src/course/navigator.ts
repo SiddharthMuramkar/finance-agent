@@ -357,7 +357,9 @@ export function returnToDefaultPath(progress: Progress): Progress {
 
 /** Each Teaching Step's name in plain words, as dividers, the strip and the Next chip show it. */
 export const STEP_NAMES: Record<TeachingStep, string> = {
-  story: "Story",
+  // The event the Topic opens on is "The moment" on screen (spec #68, Familiar first; GLOSSARY: a Story is a claim the
+  // Learner judges, a Moment the event itself). The id stays `story`.
+  story: "The moment",
   concept: "Concept",
   explore: "Explore",
   your_turn: "Your turn",
@@ -372,7 +374,7 @@ export const STEP_NAMES: Record<TeachingStep, string> = {
  * dividers, the Next chip and the Tutor's notes keep STEP_NAMES, and every id stays as it was.
  */
 export const BAR_STEP_NAMES: Record<TeachingStep, string> = {
-  story: "Story",
+  story: "The moment",
   concept: "The idea",
   explore: "Explore",
   your_turn: "Your turn",

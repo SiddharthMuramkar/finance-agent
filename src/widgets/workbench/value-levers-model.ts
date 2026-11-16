@@ -26,7 +26,7 @@ export type LeverSpec = {
   id: LeverId;
   /** The Lever's plain name: "How big it gets". */
   title: string;
-  /** What it sets: "Revenue in year 10". */
+  /** What it sets: "Sales in year 10". */
   label: string;
   min: number;
   max: number;
@@ -199,7 +199,8 @@ function baseSpecs(block: ValuationBlock): LeverSpec[] {
     lever({
       id: "revenue",
       title: "How big it gets",
-      label: "Revenue in year 10",
+      // "Sales", the plain word the Spine uses throughout; no Spine Topic cards "revenue" (F12, #87/#88).
+      label: "Sales in year 10",
       min: oneFigure(year10 / 4),
       max: oneFigure(year10 * 2.5),
       step: revenueStep,
@@ -513,7 +514,7 @@ function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], setting
       const chosen = mode.markets[Math.min(mode.markets.length - 1, Math.max(0, Math.round(market)))];
       const size = marketInYear10(chosen);
       const revenue = result.years[FORECAST_YEARS - 1].revenue;
-      return { label: "Revenue in year 10", text: chosen.pool ? `${moneyText(revenue, block)} of ${moneyText(size, block)} of ${chosen.pool}` : `${moneyText(revenue, block)} of a ${moneyText(size, block)} market` };
+      return { label: "Sales in year 10", text: chosen.pool ? `${moneyText(revenue, block)} of ${moneyText(size, block)} of ${chosen.pool}` : `${moneyText(revenue, block)} of a ${moneyText(size, block)} market` };
     }
     case "margin_marks":
       // The marks on lever 2 are ticks; this readout names them, so their words sit beside the Widget once (ADR 0015: colour is never the only signal).

@@ -138,3 +138,22 @@ test("[#82] the open sheet is a modal dialog: focus moves in, the conversation i
   await expect(page).toHaveURL(/\/study$/);
   expect(await page.evaluate(() => (history.state as { panelOpen?: boolean } | null)?.panelOpen ?? false), "no Back step left").toBe(false);
 });
+
+test("[#83] a passed Topic still on screen: its due spaced Review opens in the sheet from the conversation (G05)", async ({ page }) => {
+  test.setTimeout(120_000);
+  await seed(page, "topic-complete-review-due");
+  await page.goto("/study");
+  await expect(page.getByTestId("workspace-frame")).toBeVisible();
+  await expect(page.getByTestId("topic-passed")).toBeVisible();
+  await expect(sheet(page)).toBeHidden();
+  const entry = page.locator('[data-testid="sheet-entry"][data-view="review"]');
+  await expect(entry).toContainText(/Spaced review · \d+ due/);
+  // A tap before the page hydrates does nothing yet: tap again until the sheet is up.
+  await expect(async () => {
+    await entry.tap();
+    await expect(sheet(page)).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+  await expect(page.getByTestId("review")).toBeVisible();
+  await page.getByRole("button", { name: "Back to the conversation" }).tap();
+  await expect(sheet(page)).toBeHidden();
+});

@@ -44,7 +44,7 @@ describe("what the Tutor is told of Value levers", () => {
   it("at its opening: each lever, $35 a share, the price, 112% after year 10, and no lever moved yet", () => {
     const reading = readWidget(code, undefined, () => undefined)!;
     expect(reading.sliders.slice(0, 4)).toEqual([
-      { label: "Revenue in year 10 (how big it gets)", text: "$39bn" },
+      { label: "Sales in year 10 (how big it gets)", text: "$39bn" },
       { label: "Operating margin once mature (what it keeps)", text: "10%" },
       { label: "Sales for each dollar invested (what growth costs)", text: "$3.00" },
       { label: "Cost of capital while it grows (how risky)", text: "12.84%" },
@@ -62,6 +62,6 @@ describe("what the Tutor is told of Value levers", () => {
     expect(reading.readouts.at(-1)).toBe("Moved the value most so far: What it keeps (operating margin once mature), by $13.47");
     expect(reading.tasks.every((t) => t.ticked)).toBe(true);
     expect(allTasksTicked(code, tasks)).toBe(true);
-    expect(foundText(reading)).toMatch(/^I set the revenue in year 10 \(how big it gets\) to \$60bn and the operating margin once mature \(what it keeps\) to 12\.5% and /);
+    expect(foundText(reading)).toMatch(/^I set the sales in year 10 \(how big it gets\) to \$60bn and the operating margin once mature \(what it keeps\) to 12\.5% and /);
   });
 });

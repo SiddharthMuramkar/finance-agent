@@ -153,6 +153,9 @@ export function LeftColumn({
         </div>
       </ThreadPrimitive.Viewport>
       <div data-testid="composer-block" className="reading-block">
+      {/* The phone's ways into the sheet (#83), on a passed Topic's page too: a Review that falls due while it is shown is
+          reached from here, as the right column that holds it is a sheet on a phone (G05). */}
+      {entries}
       {passed ? (
         <section aria-label="Topic passed" data-testid="topic-passed" className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] p-3">
           {/* Read-only: a passed Topic shows Passed ✓, never Resume. */}
@@ -172,7 +175,6 @@ export function LeftColumn({
         </section>
       ) : (
         <>
-          {entries}
           {quizOpen && (
             // The box stays usable, and the Tutor helps now: it teaches with other numbers and keeps back only the open answers.
             // Above the message box's fade band (relative z-[1]), so the note reads at full strength.

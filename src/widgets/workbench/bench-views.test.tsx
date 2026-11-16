@@ -196,7 +196,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
   it("failure: the chance it fails is a main lever, and the readout says what it is worth if it survives", async () => {
     await draw("value-levers-failure");
     const atRest = [...host.querySelectorAll('[data-testid="value-levers-controls"] input[type="range"]')].map((el) => el.getAttribute("aria-label"));
-    expect(atRest).toEqual(["Revenue in year 10", "Operating margin once mature", "Cost of capital while it grows", "Chance it fails"]);
+    expect(atRest).toEqual(["Sales in year 10", "Operating margin once mature", "Cost of capital while it grows", "Chance it fails"]);
     setRange(lever("Chance it fails"), 30);
     await settle();
     expect(text("value-levers-headline")).toBe("This story is worth $22 a share");
@@ -289,7 +289,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
   it("all_open: a story worth the price found on one Case does not tick the price task of the Case the chip switches to", async () => {
     const onTicked = vi.fn();
     await draw("value-levers-all-open", { onTicked });
-    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Sales in year 10"), 60);
     await settle();
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
@@ -319,7 +319,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     });
     await settle();
     const save = () => host.querySelector<HTMLButtonElement>('[data-testid="value-levers-save"]')!;
-    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Sales in year 10"), 60);
     await settle();
     await act(async () => save().dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await settle();
@@ -330,7 +330,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     expect(save().disabled).toBe(false);
     expect(host.textContent).not.toContain("Saved to your Notebook");
     // The same lever moved on Zomato is a new move, from Zomato's own value, not from Amazon's $35 before the switch.
-    setRange(lever("Revenue in year 10"), 20_000);
+    setRange(lever("Sales in year 10"), 20_000);
     await settle();
     const zomato = valuationCase("zomato-ipo-2021")!;
     const mode = { kind: "all_open" } as const;
@@ -357,7 +357,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     // Zomato's own story, in crore, and the chip on Zomato: the page saves and sends these settings.
     const zomato = settings.at(-1)!;
     expect(zomato).toMatchObject({ $case: 2, $moved: 0 });
-    expect(lever("Revenue in year 10").value).toBe(String(zomato.$revenue));
+    expect(lever("Sales in year 10").value).toBe(String(zomato.$revenue));
     setRange(lever("Operating margin once mature"), 40);
     await settle();
     expect(settings.at(-1)).toMatchObject({ $case: 2, $margin: 40, $moved: 2 });

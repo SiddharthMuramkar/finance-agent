@@ -48,7 +48,7 @@ describe("the levers (B3)", () => {
   const byId = Object.fromEntries(specs.map((s) => [s.id, s]));
 
   it("How big it gets: revenue in year 10, $10bn to $100bn in steps of $1bn, opening at $39bn, with today's revenue", () => {
-    expect(byId.revenue).toMatchObject({ title: "How big it gets", label: "Revenue in year 10", min: 10, max: 100, step: 1, opening: 39, more: false });
+    expect(byId.revenue).toMatchObject({ title: "How big it gets", label: "Sales in year 10", min: 10, max: 100, step: 1, opening: 39, more: false });
     expect(byId.revenue.reading(39)).toBe("$39bn");
     expect(byId.revenue.spoken(39)).toBe("39 billion dollars");
     expect(byId.revenue.caption).toBe("Today: $1.1bn");

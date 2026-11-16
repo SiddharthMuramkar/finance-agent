@@ -33,6 +33,7 @@ export function WorkspaceFrame({
   open = false,
   view,
   onClose,
+  testId = "workspace-frame",
 }: {
   left: ReactNode;
   bar?: ReactNode;
@@ -48,6 +49,8 @@ export function WorkspaceFrame({
   view?: string;
   /** The sheet's Back button (on a phone, through the Back history: useWidgetHost's `close`). */
   onClose?: () => void;
+  /** The frame's test id: an old Session's page (old-session.tsx) uses the same frame under its own name. */
+  testId?: string;
 }) {
   const sheet = open
     ? "max-md:visible max-md:translate-y-0"
@@ -59,7 +62,7 @@ export function WorkspaceFrame({
   return (
     <>
       {bar}
-      <div data-testid="workspace-frame" data-split-frame className="workspace-split min-h-0 flex-1 overflow-hidden pt-3" style={splitStyle(split)}>
+      <div data-testid={testId} data-split-frame className="workspace-split min-h-0 flex-1 overflow-hidden pt-3" style={splitStyle(split)}>
         {left}
         <SplitHandle initial={split} />
         <div

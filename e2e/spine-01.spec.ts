@@ -253,7 +253,7 @@ async function playTopicOne(page: Page) {
   await page.goto("/study");
   await replyLanded(page);
   await expect(page.getByTestId("topic-bar")).toContainText("What is a business worth?");
-  await expect(currentStep(page)).toHaveText(/^Story — Step 1 of \d+$/);
+  await expect(currentStep(page)).toHaveText(/^The moment — Step 1 of \d+$/);
   await landedAsWritten(page, "spine1-story");
   await record(page, "[opened the Topic]", "spine1-story");
   await shoot(page, "story");
@@ -278,7 +278,7 @@ async function playTopicOne(page: Page) {
   // Read once the Workbench is on screen: on a phone that is after its entry slides the sheet up (#83).
   await expect(page.getByRole("slider", { name: "Sales for each dollar invested" })).toBeVisible();
   await expect(page.getByText("Cash it makes each year, then after year 10")).toBeVisible();
-  await page.getByRole("slider", { name: "Revenue in year 10" }).fill("60");
+  await page.getByRole("slider", { name: "Sales in year 10" }).fill("60");
   await page.getByRole("slider", { name: "Operating margin once mature" }).fill("12.5");
   await expect(headline).toHaveText("This story is worth $84 a share");
   const tasks = page.locator('[data-testid="guided-tasks"] li');

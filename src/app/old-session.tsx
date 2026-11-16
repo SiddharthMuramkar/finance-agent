@@ -6,17 +6,20 @@ import type { WidgetSlot } from "./reply-markdown";
 import { DeveloperDetails, readOnlyLines, ReadOnlyThread, widgetsIn, withNextStepDividers, type Line } from "./thread";
 import type { WrittenAhead } from "@/course/written-ahead";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
-import { SPLIT_DEFAULT, splitStyle } from "./split";
-import { SplitHandle } from "./split-handle";
+import { useBackCloses } from "./back-closes";
+import { SPLIT_DEFAULT } from "./split";
 import { secondaryButtonClass } from "./ui";
-import { exploreItem, holdsKey, PinnedExplore, updatedInPlace, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
+import { exploreItem, holdsKey, PinnedExplore, updatedInPlace, useScreen, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
+import { WorkspaceFrame } from "./workspace-frame";
 
 export type OldLine = Line;
 
 /**
  * An old Session, read-only, in the workspace's two columns (at the same split as the workspace): the conversation with "Open: <title> →" chips on the left,
  * the Widget panel on the right (controls at their starting values). A Session that reached the explore step shows the Topic's Explore Widget too. Where the composer would be there is a link
- * back to the workspace. No composer and no model call.
+ * back to the workspace. No composer and no model call. It is drawn in the Study Workspace's own frame (WorkspaceFrame), so
+ * on a phone the conversation fills the screen and a chip slides the Widget up in the same full-screen sheet, which Back
+ * or its Back button closes (spec #68, #84).
  */
 const NO_WRITTEN_AHEAD: readonly WrittenAhead[] = [];
 
@@ -57,36 +60,44 @@ export function OldSession({
   const widgets = useMemo(() => (inPlace ? updatedInPlace(drawn) : drawn), [drawn, inPlace]);
   // The newest drawing shows, as in the Study Workspace, even when it updated an earlier tab in place.
   const picker = useWidgetPicker(widgets, { newest: drawn.at(-1)?.key });
+  // On a phone, Back closes the sheet, as in the Study Workspace (widget-host.tsx).
+  const phone = useScreen() === "phone";
+  const close = useBackCloses(picker.open, picker.close, phone);
   const slot: WidgetSlot = ({ messageId, index }) => {
     const item = widgets.find((w) => holdsKey(w, `${messageId}:${index}`));
-    return item ? <WidgetChip item={item} active={item.key === picker.view} onPick={picker.pick} /> : null;
+    // On a phone a Widget shows only while its sheet is up, so a chip says Showing only then.
+    return item ? <WidgetChip item={item} active={item.key === picker.view && (!phone || picker.open)} onPick={picker.pick} /> : null;
   };
   return (
     <CaseDataProvider revealed={revealed} referenceClip={referenceClip}>
       {/* The workspace's split (spec 2026-11-11, C2a): the conversation, the Split handle's place, the Widget panel. */}
-      <div className="workspace-split min-h-0 flex-1 items-start" data-testid="old-session" data-split-frame style={splitStyle(split)}>
-        <div id="conversation-column" className="@container/chat flex min-h-0 min-w-0 flex-col gap-4">
-          {explore && <PinnedExplore item={exploreItem(explore.code, sessionId, explore.id)} />}
-          <div className="relative min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
-            <DeveloperDetails on={developerDetails}>
-              <div data-testid="reading-block" className="reading-block">
-                <ReadOnlyThread lines={lines} slot={slot} />
-              </div>
-            </DeveloperDetails>
+      <WorkspaceFrame
+        testId="old-session"
+        split={split}
+        open={picker.open}
+        view={picker.view}
+        onClose={close}
+        left={
+          <div id="conversation-column" className="@container/chat flex h-full min-h-0 min-w-0 flex-col gap-4">
+            {explore && <PinnedExplore item={exploreItem(explore.code, sessionId, explore.id)} />}
+            <div className="relative min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
+              <DeveloperDetails on={developerDetails}>
+                <div data-testid="reading-block" className="reading-block">
+                  <ReadOnlyThread lines={lines} slot={slot} />
+                </div>
+              </DeveloperDetails>
+            </div>
+            {/* Secondary: the page's one primary is the header's Resume this Topic (ADR 0018). */}
+            <div data-testid="composer-block" className="reading-block">
+              <Link href="/study" data-affordance="button" className={`${secondaryButtonClass} self-start`}>
+                Back to the workspace
+              </Link>
+            </div>
           </div>
-          {/* Secondary: the page's one primary is the header's Resume this Topic (ADR 0018). */}
-          <div data-testid="composer-block" className="reading-block">
-            <Link href="/study" data-affordance="button" className={`${secondaryButtonClass} self-start`}>
-              Back to the workspace
-            </Link>
-          </div>
-        </div>
-        <SplitHandle initial={split ?? SPLIT_DEFAULT} />
-        {/* px-1 pt-1: room for a control's 2px focus ring inside the scroller (WP6's workspace aside does the same). */}
-        <aside id="widget-column" aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll sticky top-6 max-h-[min(100%,calc(100dvh-48px))] min-w-0 overflow-y-auto overflow-x-clip overscroll-contain px-1 pt-1 [scrollbar-gutter:stable]">
-          <WidgetPanel widgets={widgets} view={picker.view} newestKey={picker.newestKey} picks={picker.picks} onPick={picker.pick} topicTitle={topicTitle} />
-        </aside>
-      </div>
+        }
+        top={null}
+        right={<WidgetPanel widgets={widgets} view={picker.view} newestKey={picker.newestKey} picks={picker.picks} onPick={picker.pick} topicTitle={topicTitle} />}
+      />
     </CaseDataProvider>
   );
 }
