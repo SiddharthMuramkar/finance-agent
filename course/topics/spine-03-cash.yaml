@@ -45,21 +45,24 @@ cases:
       investors in 1999. Once that money was spent, the business still used more cash than its sales brought in, so nothing was left to replace it. (A
       TIME report put the cash burn at $480 million; that is a press estimate, not a filing figure.)
 
+# Spine critics round 1 (#89): one new word in the concept, free cash flow, named in one plain sentence; operating income,
+# tax and reinvestment are in Go deeper (and on the Lingo cards), and the explore bench's profit is said to be a what-if.
 concept: >
   A business is worth the cash it can hand back to its owners, and that is not the same as the
-  profit it reports. Free cash flow starts from operating income, what sales bring in after the
-  running costs, takes off tax, and then takes off reinvestment: what growth costs in warehouses,
-  equipment, systems and goods on the shelves. The faster sales grow, and the fewer sales each
-  dollar invested brings in, the more growth costs. So a company that grows fast must spend before
-  the extra sales arrive, and it can use cash even when each sale makes a profit. How long the money
-  lasts is the cash on hand against the cash used each month. The explore waterfall takes Webvan's
-  1999 sales into 2000 at its real growth, but with a small profit on each sale, the margin a
-  well-run grocer might keep. Webvan's own costs ran far above its sales. Webvan had lost so much
-  already that its past losses cover any profit, so the tax step stays at zero.
+  profit it reports. Free cash flow is the cash left after paying for growth. Growth is paid for
+  first: the warehouses, vans and groceries on the shelves that more sales need are bought before
+  those sales arrive. So a company that grows fast can run short of cash even when each sale makes
+  a profit. How long the money lasts is the cash on hand against the cash used each month. The
+  explore waterfall takes Webvan's 1999 sales into 2000 at its real growth, and asks a what-if:
+  suppose Webvan made a small profit on each sale (it really lost money on most).
 
 # Go deeper (spec #68): the accounting behind the waterfall, for a Learner who asks for it; the three statements get
 # their own Spine Topic (#90).
 goDeeper: >
+  The waterfall's steps: free cash flow starts from operating income, what sales bring in after the
+  running costs, takes off tax, and then takes off reinvestment, what growth costs. The faster sales
+  grow, and the fewer sales each dollar invested brings in, the more growth costs. Webvan had lost
+  so much already that its past losses cover any profit, so the tax step stays at zero.
   A company's report shows the same story on its cash flow statement: cash used in operations, cash
   spent on things that last (investing), and the cash raised from shareholders and lenders that pays
   for both (financing). Webvan's 2000 loss on that report, $453 million, includes costs that used no
@@ -141,8 +144,8 @@ skills:
 # The Insight (ADR 0001), found at explore with the Cash waterfall. Words only.
 insight:
   question: >
-    The waterfall gives Webvan a small profit on each sale. Move growth up and down. What happens to
-    free cash flow, and why?
+    Suppose Webvan made a small profit on each sale (it really lost money on most). Move growth up and
+    down. What happens to free cash flow, and why?
   written: >
     Growth is paid for before it pays. The warehouses, equipment and groceries on the shelves that more sales need are bought
     first, so a business that grows fast uses cash even when every sale makes a profit. Free cash flow
@@ -157,15 +160,15 @@ insight:
       The waterfall starts from the year before and shows the next one. Set growth to zero and look at
       the step for what growth costs; then raise growth again and watch that step.
     - >
-      With a profit on each sale, which step is pulling free cash flow down? Try slower growth together
-      with more sales for each dollar invested.
+      With a profit on each sale, which step is pulling free cash flow down? Try slower growth, and
+      under More settings, more sales for each dollar invested.
 
 explore:
   before: wc-check
   requiredWhenPassed: false
   workbench:
     recipe: cash_waterfall
-    title: Webvan's 2000 growth, with a profit on each sale
+    title: What if Webvan had made a profit on each sale?
     # Webvan's year 2000 from its 1999 revenue (10-K 2000): growth 1,241.3% ($13.305m to $178.456m); sales to capital 0.70
     # (revenue added over net capital spending plus working capital). Its own operating margin before goodwill
     # amortisation, deferred compensation and restructuring was -179.2%, a figure no beginner believes (#89), so the bench
@@ -182,6 +185,12 @@ explore:
         taxPercent: 35
         lossesCarried: 470
         opening: { growth: 1241.3, margin: 4, salesToCapital: 0.7 }
+        # Spine critics round 1 (#89): the bench names the Story's years (1999 sales into 2000, not "this year" and "next
+        # year"), says on screen that its profit is a what-if and why its free cash flow is not the Story's cash out, and
+        # shows Webvan's van in a scene that reacts as growth moves.
+        years: { from: "1999", to: "2000" }
+        whatIf: "A what-if: Webvan really lost money on most sales, so the cash it really used, in the Story, was far more."
+        icon: delivery-truck
         source:
           title: "Webvan Group, Form 10-K for 2000 (SEC EDGAR)"
           url: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
@@ -364,12 +373,11 @@ checks:
       title: "From revenue to free cash flow"
       lines:
         - "Free cash flow is the cash a business makes after paying for its growth."
-        - "Start from operating income, take off tax, then take off what growth costs."
-        - "What growth costs is the rise in sales divided by the sales each dollar invested brings."
-        - "Sales rise $60, and each $1 invested brings $3 of sales: growth costs $20."
+        - "Start from what sales bring in after the running costs, take off tax, then take off what growth costs."
+        - "A shop keeps $50, pays $10 of tax and spends $60 on a new shop: free cash flow is -$20."
       writeDown: "Profit is not cash: growth is paid for before it pays."
       skills: [free-cash-flow, growth-uses-cash]
-      example: [60, 3, 20]
+      example: [50, 10, 60, -20]
     quickTries:
       - id: wc-try-fcf-half
         skill: free-cash-flow

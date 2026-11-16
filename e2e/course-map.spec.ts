@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { readOutlineText } from "../src/course/map";
-import { parseOutline, spineTopics } from "../src/course/outline";
+import { parseOutline, SPINE_LENGTH, spineTopics } from "../src/course/outline";
 import { hydrated, seed } from "./support/app";
 
-/** How many Topics the Spine has, from the outline (spec #68 grows it to 18, one split at a time). */
+/** How many Topics the Spine has, from the outline; the course check holds it to SPINE_LENGTH (ADR 0020, #93). */
 const SPINE_COUNT = spineTopics(parseOutline(readOutlineText()).outline!).length;
 
 /**
@@ -74,7 +74,7 @@ test("Spine first, and every Topic still listed", async ({ page }) => {
   const spine = page.locator('section[data-stage="spine"]');
   await expect(spine.getByRole("heading", { level: 2, name: "Spine" })).toBeVisible();
   // One row per Spine Topic, numbered from 01 in Spine order; until a Spine Topic file is written its row is Coming.
-  expect(SPINE_COUNT).toBeGreaterThanOrEqual(16);
+  expect(SPINE_COUNT).toBe(SPINE_LENGTH);
   await expect(spine.locator("[data-spine-number]")).toHaveCount(SPINE_COUNT);
   expect(await spine.locator("[data-spine-number]").allInnerTexts()).toEqual(Array.from({ length: SPINE_COUNT }, (_, i) => String(i + 1).padStart(2, "0")));
   await expect(spine.locator("[data-spine-progress]")).toContainText(`of ${SPINE_COUNT} passed`);

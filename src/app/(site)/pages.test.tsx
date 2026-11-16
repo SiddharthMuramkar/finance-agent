@@ -1,5 +1,9 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { parse, stringify } from "yaml";
+import { parseOutline, type Outline } from "@/course/outline";
 import type { Viewer } from "@/site/viewer";
 
 // Every page of the public site (decision #7, Signal spec 7.2 to 7.6), drawn on the server for each viewer state. The
@@ -7,6 +11,12 @@ import type { Viewer } from "@/site/viewer";
 
 const who = vi.hoisted(() => ({ viewer: { state: "visitor" } as Viewer }));
 vi.mock("@/site/viewer", () => ({ siteViewer: async () => who.viewer }));
+// The course the pages read: the real one, or a changed outline (the counts test below swaps it in).
+const course = vi.hoisted(() => ({ outline: undefined as Outline | undefined }));
+vi.mock("@/site/stats", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/site/stats")>();
+  return { ...real, courseStats: () => (course.outline ? real.courseFacts(course.outline, real.writtenTopicIds()) : real.courseStats()) };
+});
 vi.mock("@/db/client", () => ({
   getDb: () => {
     throw new Error("a public page read the database");
@@ -32,6 +42,7 @@ const member: Viewer = { state: "member", button: { kind: "resume", topic: "Why 
 
 beforeEach(() => {
   who.viewer = { state: "visitor" };
+  course.outline = undefined;
 });
 
 describe("the public pages", () => {
@@ -60,7 +71,7 @@ describe("Home", () => {
     expect(html).toMatch(/data-widget="jackpot" data-case="mega-millions-2018"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
-    expect(text).toContain("111 Topics wait inside.");
+    expect(text).toContain("112 Topics wait inside.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
@@ -123,24 +134,75 @@ describe("About", () => {
   it("says the valuations are Damodaran's published work and that Value It is not affiliated", async () => {
     const text = words(renderToStaticMarkup(await AboutPage()));
     expect(text).toContain("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.");
-    expect(text).toContain("Topics 111");
+    expect(text).toContain("Topics 112");
     expect(text).toContain("Do you track me?");
   });
 });
 
-// #90 (spec #68): the three financial statements became a Spine Topic of their own, so the site shows the Spine's
-// length as the outline holds it (16 after #90): Home's course count, About's line and How it works' path.
-describe("the Spine's length on the site", () => {
-  it("is the outline's: Home, About and How it works each show 16 Spine Topics, the statements Topic fourth", async () => {
-    const { readOutlineText } = await import("@/course/map");
-    const { parseOutline, spineTopics } = await import("@/course/outline");
-    const spine = spineTopics(parseOutline(readOutlineText()).outline!);
-    expect(spine).toHaveLength(16);
-    expect(words(renderToStaticMarkup(await HomePage()))).toContain(`${spine.length} teach valuation in order`);
-    expect(words(renderToStaticMarkup(await AboutPage()))).toContain("Sixteen core Topics teach valuation in order.");
+// #72: every count and Spine title on Home, About, How it works and Examples comes from the course outline.
+describe("the course counts", () => {
+  it("read the Spine's length from the outline: 17 Topics with #93's annual report Topic last and #90's statements Topic fourth", async () => {
+    const home = words(renderToStaticMarkup(await HomePage()));
+    expect(home).toContain("112 Topics wait inside. 17 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
+    expect(home).toContain("112 Topics 10 to 15 minutes each No sums to type");
+    expect(home).toContain("One real event. Four moves. Ten to fifteen minutes.");
+    expect(home).toContain("Five cases, open now");
+
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
-    expect(how).toContain(`${spine.length} core Topics`);
-    for (const t of spine) expect(how, t.title).toContain(t.title);
-    expect(how).toContain("What do the three financial statements show?");
+    expect(how).toContain("taught in four moves , in 10–15 minutes.");
+    expect(how).toContain("17 core Topics 01 What is a business worth? Price against value, and the four levers 10 min 02 Why is money later worth less? 12 min");
+    expect(how).toContain("04 What do the three financial statements show? 12 min");
+    expect(how).toContain("16 Value one yourself, as of a past date 15 min");
+    expect(how).toContain("17 Where are a valuation's numbers in an annual report? 13 min");
+    expect(how).toContain("9 subjects Numbers & time value 6 Financial statements 11 Economics & policy 11 Bonds & credit 7 Currencies & countries 4 Markets & investing 9 Valuation & corporate finance 12 Derivatives 5 Banks, crises & the system 7");
+    expect(how).toContain("3 stages that read real arguments Follow , understand what a writer argues 9 Judge , spot where an argument is weak 8 Analyse , reach your own view from the numbers 6");
+    expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves, in 10 to 15 minutes.");
+
+    const about = words(renderToStaticMarkup(await AboutPage()));
+    expect(about).toContain("Topics 112 Subjects 9 Stages that read real arguments 3 Each Topic 10–15 min");
+    expect(about).toContain("Seventeen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.");
+    expect(about).toContain("Derivatives · 5");
+    expect(about).toContain("Judge · 8");
+
+    const examples = words(renderToStaticMarkup(await ExamplesPage()));
+    expect(examples).toContain("Five cases from the course, playable here.");
+    expect(examples).toContain("112 Topics wait inside. 17 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
+    expect(examplesMeta.description).toBe("Five cases from the course, playable here.");
+  });
+
+  it("change on every page when the Spine changes in the course", async () => {
+    // The outline with its last three Spine Topics (15, 16 and #93's annual report Topic) dropped, Spine Topic 3 retitled, and one
+    // Derivatives Elective moved to Judge.
+    const raw = parse(readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8")) as { topics: Record<string, unknown>[] };
+    const topics = raw.topics.filter((t) => !(typeof t.spine === "number" && t.spine >= 15));
+    topics.find((t) => t.spine === 3)!.title = "Cash, the first statement";
+    const moved = topics.find((t) => t.subject === "Derivatives")!;
+    moved.stage = "judge";
+    delete moved.subject;
+    const { outline, errors } = parseOutline(stringify({ topics }));
+    expect(errors).toEqual([]);
+    course.outline = outline;
+
+    const home = words(renderToStaticMarkup(await HomePage()));
+    expect(home).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
+    expect(home).toContain("10 to 14 minutes each");
+    expect(home).toContain("Ten to fourteen minutes.");
+
+    const how = words(renderToStaticMarkup(await HowItWorksPage()));
+    expect(how).toContain("14 core Topics 01 What is a business worth?");
+    expect(how).toContain("03 Cash, the first statement 12 min");
+    expect(how).not.toContain("Value one yourself");
+    expect(how).toContain("Derivatives 4");
+    expect(how).toContain("Judge , spot where an argument is weak 9");
+    expect(how).toContain("in 10–14 minutes.");
+
+    const about = words(renderToStaticMarkup(await AboutPage()));
+    expect(about).toContain("Each Topic 10–14 min");
+    expect(about).toContain("Fourteen core Topics teach valuation in order.");
+    expect(about).toContain("Derivatives · 4");
+    expect(about).toContain("Judge · 9");
+
+    const examples = words(renderToStaticMarkup(await ExamplesPage()));
+    expect(examples).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
   });
 });

@@ -24,6 +24,20 @@ const SPINE_ONE_LEVERS = {
   facts: {},
 };
 
+/** The report's page beside the annual report Topic's Value bridge, copied from its Topic file as the Tutor copies it (ADR 0010). */
+const AR_REPORT = {
+  title: "Amazon's 10-K for 2000",
+  lines: [
+    { line: "Long-term debt", amount: 2127, lever: "debt" },
+    { line: "Cash and marketable securities", amount: 1101, lever: "cash" },
+    { line: "Loss from operations", amount: 864 },
+  ],
+  source: {
+    title: "Amazon.com Form 10-K405 for 2000, Consolidated Balance Sheets and Statements of Operations",
+    url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt",
+  },
+};
+
 export const E2E_SCRIPTS = {
   /** About 90 words of story at the Story step, one ask on the last line, no Widget. */
   "story-reply": {
@@ -642,8 +656,8 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Operating income is what sales bring in after the running costs. " +
-              "Free cash flow takes off tax, then what growth costs: the warehouses, vans and groceries that more sales need, bought before those sales arrive. " +
+            "Free cash flow is the cash left after paying for growth. " +
+              "Growth is paid for first: the warehouses, vans and groceries that more sales need are bought before those sales arrive. " +
               "So a business can make a profit on each sale and still run short of cash.\n\n" +
               "Which grocer would you expect to use more cash: one growing fast, or one standing still?",
           ),
@@ -657,8 +671,8 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here is Webvan's year as a waterfall, from sales down to free cash flow. " +
-              "It gives Webvan a small profit on each sale, and still free cash flow is far below zero.\n\n" +
+            "Here is Webvan's 2000 as a waterfall, from sales down to free cash flow. " +
+              "Suppose Webvan made a small profit on each sale (it really lost money on most): free cash flow is still far below zero.\n\n" +
               "What happens to free cash flow when you move growth down?",
           ),
         ],
@@ -711,6 +725,56 @@ export const E2E_SCRIPTS = {
               "Free cash flow, the cash left after paying to grow, is far below it. " +
               "Reinvestment is that paying to grow: warehouses, vans and groceries bought before the new sales arrive.\n\n" +
               "Why do the two point opposite ways, and where did the cash go?",
+          ),
+        ],
+      },
+    ],
+  },
+  // ——— The annual report Topic (#93, e2e/spine-annual-report.spec.ts): its first three turns, for the critics' round. Every
+  // figure is its Topic file's Amazon Case (Amazon's 10-K for 2000 next to Damodaran's story of February 2000).
+  /** The opener at Story: Amazon's 10-K is out, and six numbers matter. */
+  "ar-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "March 2001. Amazon files its annual report for 2000. A year earlier Aswath Damodaran, a valuation professor in New York, said a share was worth $35.08 while it sold for $84. " +
+              "Now the report is out. Was he right?\n\n" +
+              "What would you look for first in it?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Concept: two pages hold the six numbers, and names change from report to report. Code shows the Concept card. */
+  "ar-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Two pages hold a valuation's numbers. The income statement runs from sales down to operating profit, what the business makes before interest and tax, then tax. " +
+              "The balance sheet shows debt and cash on one day; its note on share capital counts the shares. " +
+              "Names change: Zomato calls sales revenue from operations. " +
+              "Japan, Korea and Europe keep the same two pages, in Nintendo's yearly results, Samsung's business report and LVMH's annual report.\n\n" +
+              "Where would you look for Amazon's debt?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Explore: the Value bridge on the Topic's Amazon Case, and the Insight question. */
+  "ar-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_ar_bridge", name: "show_widget", input: { recipe: "value_bridge", params: { title: "Put Amazon's 2000 report into the bridge", inputs: { case: "spine-ar-amazon-2000", report: AR_REPORT }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Here is his bridge from Amazon's business to one share, with the report's page beside it. " +
+              "The 2000 report shows about $2.1 billion of debt and $1.1 billion of cash. Tap each on the page, or slide debt to $2.1bn and cash to $1.1bn, and watch one share.\n\n" +
+              "Does a share move a lot or a little, and is that what his value rested on?",
           ),
         ],
       },

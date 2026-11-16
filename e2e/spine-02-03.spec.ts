@@ -122,4 +122,12 @@ test("[#89] Spine Topics 2 and 3 open for a beginner: the jackpot only, and the 
   const bench = transcript.find((t) => t.topic === "spine-03-cash" && t.step === "explore")!;
   expect(bench.widget).not.toMatch(/-179|−179/);
   expect(bench.widget).toMatch(/Operating margin/);
+  // Spine critics round 1: the bench says its profit is a what-if, names the Story's years, and has Webvan in a scene;
+  // the lottery's Widget has the winner beside the chart.
+  expect(bench.widget).toMatch(/really lost money on most/);
+  expect(bench.widget).toMatch(/1999 sales: \$13\.3m/);
+  expect(bench.widget).not.toMatch(/next year|this year/i);
+  await expect(page.getByTestId("cash-waterfall-scene").first()).toBeVisible();
+  const annuity = transcript.find((t) => t.topic === "spine-02-money-later" && t.step === "explore")!;
+  expect(annuity.widget).toMatch(/The winner/);
 });

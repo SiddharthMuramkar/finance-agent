@@ -1,49 +1,51 @@
 "use client";
 
 import { useMemo } from "react";
+import { Chevron } from "@/app/ui";
 import { Icon } from "@/icons/icon";
+import { isIconName } from "@/icons/names";
 import { BarRows, BenchFigure, BenchHeadline, BenchLeverControl, BenchNumbers, BenchTasks, useBenchSettings, useBenchTasks, type BarTone, type BenchViewProps } from "./bench-view";
-import { cashWaterfallLevers, cashWaterfallModel, cashWaterfallScene, cashWaterfallTasks, SCENE_MAX_BUILT, WATERFALL_CAPTION, type CashWaterfallData, type WaterfallLeverId, type WaterfallStep } from "./cash-waterfall-model";
+import {
+  cashWaterfallCaption,
+  cashWaterfallLevers,
+  cashWaterfallModel,
+  cashWaterfallScene,
+  cashWaterfallTasks,
+  type CashWaterfallData,
+  type WaterfallLeverId,
+  type WaterfallScene,
+  type WaterfallStep,
+} from "./cash-waterfall-model";
 
 // Cash waterfall, drawn (spec 2026-11-12, B4; Spine Topic 3): next year's revenue stepping down through running costs, tax and
 // what growth costs to free cash flow.
+
+/**
+ * The bench's small scene (Spine critics round 1 on #89: a bench of only a stat, sliders and bars is chart-only): the
+ * company's Icon, one building for each fifth of the growth range it is building for, and a line that reacts to the levers.
+ */
+function WaterfallSceneView({ scene }: { scene: WaterfallScene }) {
+  const icon = isIconName(scene.icon) ? scene.icon : null;
+  return (
+    <div data-testid="cash-waterfall-scene" data-mood={scene.mood} className="mt-2 flex items-center gap-3 rounded-xl border border-[var(--rule)] border-l-2 border-l-[var(--sun)] bg-[var(--raised)] p-2">
+      <span aria-hidden="true" className="flex shrink-0 items-center gap-1">
+        {icon && <Icon name={icon} size={32} />}
+        {Array.from({ length: scene.buildings }, (_, i) => (
+          <Icon key={i} name="building-construction" size={16} />
+        ))}
+      </span>
+      <p className="text-sm leading-5" aria-live="polite">
+        {scene.line}
+      </p>
+    </div>
+  );
+}
 
 /** Revenue and operating income stand in ink; what is taken off is a loss; free cash flow is a gain or a loss by its sign. */
 function tone(step: WaterfallStep): BarTone {
   if (step.id === "fcf") return step.to >= 0 ? "gain" : "loss";
   if (step.total) return "neutral";
   return step.to <= step.from ? "loss" : "gain";
-}
-
-/**
- * Where the cash went (Spine critics round 2, #90): the cash flying out or kept, and a row of buildings that rises and falls
- * with what growth costs, so the Learner sees the cash become things the business owns.
- */
-function CashScene({ data, settings }: { data: CashWaterfallData; settings: Parameters<typeof cashWaterfallScene>[1] }) {
-  const scene = cashWaterfallScene(data, settings);
-  if (!scene.line) return null;
-  return (
-    <figure data-testid="cash-waterfall-scene" className="mt-3 rounded-lg border border-[var(--hairline)] p-2">
-      <div className="flex items-center gap-2" aria-hidden="true">
-        <span data-cash={scene.cash} className={`transition-transform duration-300 motion-reduce:transition-none ${scene.cash === "out" ? "-translate-y-1" : ""}`}>
-          <Icon name={scene.cash === "out" ? "money-with-wings" : "money-bag"} size={24} />
-        </span>
-        <span className="text-[var(--muted)]">→</span>
-        <span className="flex min-h-6 flex-wrap items-end gap-1">
-          {Array.from({ length: SCENE_MAX_BUILT }, (_, i) => (
-            <span
-              key={i}
-              {...(i < scene.built ? { "data-built": "" } : {})}
-              className={`transition-all duration-300 motion-reduce:transition-none ${i < scene.built ? "scale-100 opacity-100" : "scale-50 opacity-0"}`}
-            >
-              <Icon name="building-construction" size={20} />
-            </span>
-          ))}
-        </span>
-      </div>
-      <figcaption className="mt-1 text-sm">{scene.line}</figcaption>
-    </figure>
-  );
 }
 
 export function CashWaterfallView({ data, levers: given, onLeversChange, ticked = [], onTicked, onFirstLeverMove }: { data: CashWaterfallData } & BenchViewProps<WaterfallLeverId>) {
@@ -53,17 +55,32 @@ export function CashWaterfallView({ data, levers: given, onLeversChange, ticked 
   const model = cashWaterfallModel(data, settings);
   const reached = useBenchTasks(tasks, model.conditions, ticked, onTicked);
   const rows = model.steps.map((s) => ({ id: s.id, label: s.label, from: s.from, to: s.to, text: s.text, tone: tone(s) }));
+  const scene = cashWaterfallScene(data, settings);
+  const control = (lever: (typeof levers)[number]) => <BenchLeverControl key={lever.id} lever={lever} value={settings[lever.id]} onChange={(v) => move(lever.id, v)} />;
+  const more = levers.filter((l) => l.more);
   return (
     <div data-testid="cash-waterfall" className="min-w-0">
       <BenchHeadline headline={model.headline} warn={model.fcf === null} testId="cash-waterfall-headline" />
+      {data.whatIf && (
+        <p data-testid="cash-waterfall-what-if" className="text-sm text-[var(--ink-2)]">
+          {data.whatIf}
+        </p>
+      )}
       <BenchNumbers numbers={model.numbers} testId="cash-waterfall-numbers" />
+      {scene && <WaterfallSceneView scene={scene} />}
       <div className="mt-2" data-testid="cash-waterfall-controls">
-        {levers.map((lever) => (
-          <BenchLeverControl key={lever.id} lever={lever} value={settings[lever.id]} onChange={(v) => move(lever.id, v)} />
-        ))}
+        {levers.filter((l) => !l.more).map(control)}
       </div>
-      <CashScene data={data} settings={settings} />
-      <BenchFigure caption={WATERFALL_CAPTION} testId="cash-waterfall-steps">
+      {more.length > 0 && (
+        <details className="group mt-1 border-t border-[var(--hairline)] pt-1" data-testid="cash-waterfall-more">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-[var(--ink-2)] [&::-webkit-details-marker]:hidden">
+            <Chevron />
+            More settings
+          </summary>
+          {more.map(control)}
+        </details>
+      )}
+      <BenchFigure caption={cashWaterfallCaption(data)} testId="cash-waterfall-steps">
         <BarRows rows={rows} testId="cash-waterfall-bars" />
       </BenchFigure>
       <BenchTasks tasks={tasks} reached={reached} />

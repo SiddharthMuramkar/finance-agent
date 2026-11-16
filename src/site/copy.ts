@@ -2,7 +2,17 @@
 // The examples' own copy is in examples.ts. `**bold**` and `*italic*` are read by rich.tsx. Voice rules (§12): short
 // sentences, no advice words, product nouns capitalised, recorded things labelled as recorded.
 
+import type { CourseFacts, ReadingStage } from "./stats";
+
 export const BRAND = "Value It";
+
+// Counts and the Spine list are never written here: the pages pass in the course's own facts (src/site/stats.ts, #72).
+const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+/** A count in words up to twenty ("fifteen"), in digits above. */
+export const say = (n: number) => WORDS[n] ?? String(n);
+/** The same, capitalised to open a sentence ("Fifteen"). */
+export const Say = (n: number) => say(n).charAt(0).toUpperCase() + say(n).slice(1);
+const readings = (c: CourseFacts) => c.byStage.reduce((n, s) => n + s.count, 0);
 
 /** The nav and footer links (§4.2, §4.3). */
 export const NAV = [
@@ -46,7 +56,11 @@ export const home = {
     h1: ["Learn what", "things are", "worth."],
     lede: "Ask a money question. The Tutor answers with a live widget built from a real event, and **you move the numbers until it makes sense**.",
     secondary: { visitor: "Play a real case", member: "Course map" },
-    facts: ["Topics", "10 to 15 minutes each", "No sums to type"],
+    facts: {
+      topics: (c: CourseFacts) => `${c.topics} Topics`,
+      minutes: (c: CourseFacts) => `${c.minutes.low} to ${c.minutes.high} minutes each`,
+      sums: "No sums to type",
+    },
   },
   demo: {
     title: "The Tutor",
@@ -60,7 +74,7 @@ export const home = {
   },
   moves: {
     eyebrow: "How a Topic works",
-    h2: "One real event. Four moves. Ten to fifteen minutes.",
+    h2: (c: CourseFacts) => `One real event. Four moves. ${Say(c.minutes.low)} to ${say(c.minutes.high)} minutes.`,
     link: "See a Topic step by step",
   },
   levers: {
@@ -92,11 +106,12 @@ export const home = {
     body: "Learn five colours and one pattern once and you can read any widget in the course at a glance. Each colour also carries a sign or a word, so it reads the same if you can’t tell red from green.",
   },
   questions: {
-    eyebrow: "Five cases, open now",
+    eyebrow: (cases: number) => `${Say(cases)} cases, open now`,
     h2: "Start with a question you already have.",
     body: "No finance background needed. **If you can read a headline, you can start.**",
     play: "Play",
-    more: (topics: number) => `**${topics} Topics wait inside.** 16 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.`,
+    more: (c: CourseFacts) =>
+      `**${c.topics} Topics wait inside.** ${c.spine.length} teach valuation in order, ${c.electives} go wider across ${c.bySubject.length} subjects, and ${readings(c)} read real arguments.`,
     path: "See the whole path",
   },
   trust: {
@@ -151,7 +166,9 @@ export const FAQ = [
 export const howItWorks = {
   eyebrow: "How it works",
   h1: "How a Topic works",
-  lede: "Every Topic is **one real event, taught in four moves**, in 10–15 minutes. You never type a number: you tap, drag and explain in your own words.",
+  lede: (c: CourseFacts) =>
+    `Every Topic is **one real event, taught in four moves**, in ${c.minutes.low}–${c.minutes.high} minutes. You never type a number: you tap, drag and explain in your own words.`,
+  description: (c: CourseFacts) => `Every Topic is one real event, taught in four moves, in ${c.minutes.low} to ${c.minutes.high} minutes.`,
   rail: {
     title: "Running example: Amazon, Feb 2000",
     moveOf: (n: number) => `Move ${n} of 4`,
@@ -200,50 +217,22 @@ export const howItWorks = {
   path: {
     eyebrow: "The path",
     h2: "The whole path",
-    core: "16 core Topics",
-    subjects: "9 subjects",
-    stages: "3 stages that read real arguments",
+    core: (c: CourseFacts) => `${c.spine.length} core Topics`,
+    subjects: (c: CourseFacts) => `${c.bySubject.length} subjects`,
+    stages: (c: CourseFacts) => `${c.byStage.length} stages that read real arguments`,
+    number: (n: number) => String(n).padStart(2, "0"),
     minutes: (n: number) => `${n} min`,
   },
   closing: "Start with Topic 1: What is a business worth?",
 } as const;
 
-/** Appendix C: the course map the site shows. */
+/** Appendix C: the course map the site shows. The Spine, the Subjects and the counts come from the course (#72). */
 export const COURSE = {
-  core: [
-    { n: "01", title: "What is a business worth? Price against value, and the four levers", min: 10 },
-    { n: "02", title: "Why is money later worth less?", min: 12 },
-    { n: "03", title: "Where does the cash come from?", min: 12 },
-    { n: "04", title: "What do the three financial statements show?", min: 12 },
-    { n: "05", title: "Growth: how big can it get?", min: 12 },
-    { n: "06", title: "Margins: what does it keep?", min: 12 },
-    { n: "07", title: "What does growth cost?", min: 13 },
-    { n: "08", title: "Risk: what rate do you discount at?", min: 13 },
-    { n: "09", title: "What about the years you cannot forecast?", min: 12 },
-    { n: "10", title: "How do you get from the business to one share?", min: 13 },
-    { n: "11", title: "What if it does not survive?", min: 12 },
-    { n: "12", title: "How does a story become numbers?", min: 14 },
-    { n: "13", title: "Is a price a value? Multiples and comparables", min: 13 },
-    { n: "14", title: "What does the price assume?", min: 13 },
-    { n: "15", title: "How do you live with being wrong?", min: 14 },
-    { n: "16", title: "Value one yourself, as of a past date", min: 15 },
-  ],
-  subjects: [
-    { name: "Numbers & time value", count: 6 },
-    { name: "Financial statements", count: 11 },
-    { name: "Economics & policy", count: 11 },
-    { name: "Bonds & credit", count: 7 },
-    { name: "Currencies & countries", count: 4 },
-    { name: "Markets & investing", count: 9 },
-    { name: "Valuation & corporate finance", count: 12 },
-    { name: "Derivatives", count: 5 },
-    { name: "Banks, crises & the system", count: 7 },
-  ],
-  stages: [
-    { name: "Follow", line: "understand what a writer argues", count: 9 },
-    { name: "Judge", line: "spot where an argument is weak", count: 8 },
-    { name: "Analyse", line: "reach your own view from the numbers", count: 6 },
-  ],
+  stages: {
+    follow: { name: "Follow", line: "understand what a writer argues" },
+    judge: { name: "Judge", line: "spot where an argument is weak" },
+    analyse: { name: "Analyse", line: "reach your own view from the numbers" },
+  } satisfies Record<ReadingStage, { name: string; line: string }>,
   locked: [
     { category: "Follow", title: "Damodaran, Tesla valuation (Feb 2020)" },
     { category: "Judge", title: "Twitter's 2013 IPO valuation versus what happened" },
@@ -277,7 +266,8 @@ export const LINGO = [
 
 export const examplesPage = {
   h1: "Real events. Move the numbers.",
-  lede: "Five cases from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last.",
+  lede: (cases: number) => `${Say(cases)} cases from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last.`,
+  description: (cases: number) => `${Say(cases)} cases from the course, playable here.`,
   filter: "Filter the cases",
   members: "Members",
 } as const;
@@ -309,11 +299,11 @@ export const about = {
   lede: "Value It teaches money, markets and valuation through real past events. You ask, the Tutor answers with a live widget, and you move the numbers until the idea makes sense.",
   glance: {
     title: "At a glance",
-    rows: (topics: number) => [
-      { label: "Topics", value: String(topics) },
-      { label: "Subjects", value: "9" },
-      { label: "Stages that read real arguments", value: "3" },
-      { label: "Each Topic", value: "10–15 min" },
+    rows: (c: CourseFacts) => [
+      { label: "Topics", value: String(c.topics) },
+      { label: "Subjects", value: String(c.bySubject.length) },
+      { label: "Stages that read real arguments", value: String(c.byStage.length) },
+      { label: "Each Topic", value: `${c.minutes.low}–${c.minutes.high} min` },
       { label: "Price", value: "Free in early access" },
     ],
   },
@@ -333,7 +323,8 @@ export const about = {
   ],
   notAffiliated: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.",
   learnH2: "What you can learn",
-  learnBody: "Sixteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.",
+  learnBody: (c: CourseFacts) =>
+    `${Say(c.spine.length)} core Topics teach valuation in order. ${Say(c.bySubject.length)} subjects go wider, and ${say(c.byStage.length)} stages read real arguments.`,
   founderH2: "A note from the founder",
   // §14: a placeholder until the founder writes two or three sentences of their own.
   founder: "The founder’s note is coming soon.",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { valuationCase } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
-import { cashWaterfallFromCase, cashWaterfallLevers, cashWaterfallModel, cashWaterfallReading, cashWaterfallScene, cashWaterfallShape, cashWaterfallTasks } from "./cash-waterfall-model";
+import { cashWaterfallCaption, cashWaterfallFromCase, cashWaterfallLevers, cashWaterfallModel, cashWaterfallReading, cashWaterfallScene, cashWaterfallShape, cashWaterfallTasks } from "./cash-waterfall-model";
 import { cashWaterfallData } from "./registry";
 
 // Cash waterfall (spec 2026-11-12, B4; Spine Topic 3: "Growth uses cash before it shows as profit"). Amazon's year 1 is
@@ -99,25 +99,74 @@ describe("Cash waterfall on a company's year from the Topic file: Webvan's 2000 
   });
 });
 
-// Spine critics round 2 (#90, widget fit): the Workbench was only sliders, stats and bars (chart_only). Its scene draws
-// where the cash went: one building for each quarter of this year's revenue spent on what growth costs (at most 8), and
-// the cash flying out or kept, so the Learner watches the buildings rise and fall as growth moves.
-describe("Cash waterfall's scene: where the cash went", () => {
-  it("draws Amazon's $558.5m of reinvestment as 2 buildings, its cash going out", () => {
-    const scene = cashWaterfallScene(amazon, amazon.opening);
-    expect(scene.built).toBe(2);
-    expect(scene.cash).toBe("out");
-    expect(scene.line).toBe("$558.5m of what growth costs became buildings and stock it owns, on the balance sheet.");
+// Spine critics round 1 on #89: a beginner reads the bench as Webvan's real year. Named years ("1999 sales" into 2000, not
+// "this year" and "next year"), growth said as a multiple ("13.4 times"), sales for each dollar invested under More
+// settings, a what-if line that says the margin is made up, and a scene with Webvan's Icon that reacts to the levers.
+describe("Cash waterfall for a beginner: Webvan's 2000 as a what-if", () => {
+  const webvan = {
+    name: "Webvan",
+    currency: "USD",
+    unit: "millions",
+    revenue: 13.305,
+    taxPercent: 35,
+    lossesCarried: 470,
+    opening: { growth: 1241.3, margin: 4, salesToCapital: 0.7 },
+    years: { from: "1999", to: "2000" },
+    whatIf: "A what-if: Webvan really lost money on most sales, so the cash it used in the Story was far more.",
+    icon: "delivery-truck",
+    source: { title: "Webvan Group, Form 10-K for 2000", url: "https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt" },
+  };
+  const data = () => {
+    const found = cashWaterfallData({ company: webvan });
+    if (!("data" in found)) throw new Error(found.problem);
+    return found.data;
+  };
+
+  it("names the years: 1999 sales under growth, free cash flow in 2000, never this year or next year", () => {
+    const levers = cashWaterfallLevers(data());
+    expect(levers[0].label).toBe("Sales growth, 1999 to 2000");
+    expect(levers[0].caption).toBe("1999 sales: $13.3m");
+    const model = cashWaterfallModel(data(), data().opening);
+    expect(model.headline.before).toBe("Free cash flow in 2000: ");
+    expect(cashWaterfallCaption(data())).toBe("Webvan 2000, from sales to free cash flow");
+    const prose = JSON.stringify([levers.map((l) => [l.label, l.caption]), model.headline, cashWaterfallCaption(data())]);
+    expect(prose).not.toMatch(/this year|next year/i);
   });
 
-  it("builds nothing at 0% growth, and keeps the cash once free cash flow is above zero", () => {
-    const still = cashWaterfallScene(amazon, { ...amazon.opening, growth: 0, margin: 10 });
-    expect(still.built).toBe(0);
-    expect(still.cash).toBe("in");
-    expect(still.line).toBe("Nothing spent on growth: no new buildings, and the cash stays.");
+  it("says growth as a multiple of the year before: 1241.3% reads 13.4 times", () => {
+    const growth = cashWaterfallLevers(data())[0];
+    expect(growth.reading(1241.3)).toBe("13.4 times");
+    expect(growth.reading(50)).toBe("1.5 times");
+    expect(growth.reading(0)).toBe("No growth");
   });
 
-  it("stops at 8 buildings, however fast growth runs", () => {
-    expect(cashWaterfallScene(amazon, { ...amazon.opening, growth: 1000, salesToCapital: 0.25 }).built).toBe(8);
+  it("keeps sales for each dollar invested under More settings, so two levers stand at rest", () => {
+    const levers = cashWaterfallLevers(data());
+    expect(levers.filter((l) => l.more).map((l) => l.id)).toEqual(["salesToCapital"]);
+    const shape = cashWaterfallShape(data());
+    expect(shape.controls).toBe(2);
+    expect(shape.more).toBe(1);
+    expect(shape.words).toBeLessThanOrEqual(WORKBENCH_BUDGET.words);
+  });
+
+  it("carries the what-if line and the Icon, and refuses digits in the line (the bench's figures are the engine's)", () => {
+    expect(data().whatIf).toBe(webvan.whatIf);
+    expect(data().icon).toBe("delivery-truck");
+    expect(cashWaterfallData({ company: { ...webvan, whatIf: "Webvan really lost 179% on each sale." } })).toMatchObject({ problem: expect.stringMatching(/whatIf/) });
+  });
+
+  it("gives the scene a line that reacts: building ahead while it grows, nothing to build at 0%, cash back once above zero", () => {
+    const d = data();
+    expect(cashWaterfallScene(d, d.opening)).toMatchObject({ icon: "delivery-truck", mood: "building" });
+    expect(cashWaterfallScene(d, { ...d.opening, growth: 0 })).toMatchObject({ mood: "still" });
+    expect(cashWaterfallScene(d, { ...d.opening, growth: 10, margin: 20, salesToCapital: 5 })).toMatchObject({ mood: "cash" });
+    expect(cashWaterfallScene(d, d.opening)!.buildings).toBeGreaterThan(cashWaterfallScene(d, { ...d.opening, growth: 100 })!.buildings);
+    for (const s of [d.opening, { ...d.opening, growth: 0 }]) expect(cashWaterfallScene(d, s)!.line).not.toMatch(/\d/);
+  });
+
+  it("draws no scene and keeps its old words for a Valuation Case (Amazon)", () => {
+    expect(cashWaterfallScene(amazon, amazon.opening)).toBeNull();
+    expect(cashWaterfallCaption(amazon)).toBe("Next year, from revenue to free cash flow");
+    expect(cashWaterfallLevers(amazon).some((l) => l.more)).toBe(false);
   });
 });
