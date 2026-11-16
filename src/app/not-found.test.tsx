@@ -64,12 +64,12 @@ describe("The Member's not-found page", () => {
     expect(html).not.toMatch(/<header[^>]*class="[^"]*v-nav/);
   });
 
-  // Decision #17: one Light theme, so the header has no theme toggle.
-  it("has no theme toggle", async () => {
+  // ADR 0019 (Light and Dark, issue #80): the app bar carries the one sun/moon switch, on this page like every other.
+  it("has the app bar's theme switch, once", async () => {
     asMember();
     const html = await render();
-    expect(html).not.toContain('data-testid="theme-toggle"');
-    expect(html).not.toMatch(/Switch to (?:dark|light) theme/);
+    expect(html.match(/data-testid="theme-switch"/g)).toHaveLength(1);
+    expect(html).toMatch(/aria-label="Switch to (?:dark|light) theme"/);
   });
 
   it("says Topic, never lesson or Continue", async () => {
