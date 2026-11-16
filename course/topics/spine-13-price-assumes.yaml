@@ -111,6 +111,8 @@ explore:
       caseStory: "Damodaran's story"
       priceStory: { revenue: 60, margin: 12.5 }
       mode: { kind: match_price }
+      # Industry yardsticks beside the margin and sales-to-capital levers (ticket #105), each with its month, credit and link.
+      readings: [in-auto-margin, in-food-margin, in-software-margin, in-market-margin, in-auto-sales-to-capital, in-food-sales-to-capital, in-software-sales-to-capital, in-market-sales-to-capital]
 
 connections:
   - text: "Spine Topic one sets a story forwards into a value; this Topic runs the same levers backwards from the price."

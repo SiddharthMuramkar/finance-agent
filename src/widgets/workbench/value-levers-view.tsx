@@ -6,6 +6,7 @@ import { Chevron, SecondaryButton } from "@/app/ui";
 import type { ValuationBlock } from "@/finance/valuation-case";
 import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
+import { MarketReadingsView } from "../market-readings-view";
 import { SliderControl } from "../slider-control";
 import {
   AFTER_YEAR_10_LABEL,
@@ -71,6 +72,8 @@ export type ValueLeversViewProps = {
   caseChoice?: number;
   /** Switch the Case: the caller changes the block and resets the levers. */
   onChooseCase?: (index: number) => void;
+  /** Market readings shown beside the levers, by id (ticket #105), each with its month, credit and link. */
+  readings?: readonly string[];
 };
 
 export function ValueLeversView({
@@ -94,6 +97,7 @@ export function ValueLeversView({
   cases = [],
   caseChoice = 0,
   onChooseCase,
+  readings = [],
 }: ValueLeversViewProps) {
   const specs = useMemo(() => leverSpecs(block, mode), [block, mode]);
   const [ownLevers, setOwnLevers] = useState<LeverSettings>(() => levers ?? openingSettings(specs));
@@ -299,6 +303,7 @@ export function ValueLeversView({
           )}
         </div>
       )}
+      <MarketReadingsView ids={readings} />
       {tasks.length > 0 && <GuidedTasksFigure tasks={[...tasks]} reached={now} />}
     </div>
   );
