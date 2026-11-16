@@ -24,10 +24,13 @@ const spineItems: OpenItem[] = [
     c.quickTries.flatMap((q) => ("choices" in q && Array.isArray(q.choices) ? [{ prompt: String(q.ask), choices: q.choices.map((x) => x.text), answer: q.choices.find((x) => x.id === q.answer)?.text }] : [])),
   ),
 ];
-const isSpine = (name: E2eScriptName) => name.startsWith("spine1-");
+const isSpine = (name: E2eScriptName) => /^spine[123]-/.test(name);
+/** Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts) are checked against their own Topics. */
+const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")! } as const;
+const topicOf = (name: E2eScriptName) => Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic);
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
-  const t = isSpine(name) ? spine : topic;
+  const t = topicOf(name);
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
@@ -67,6 +70,12 @@ describe("the scripted Tutor", () => {
       "spine1-talk-prompt",
       "spine1-talk-your-turn",
       "spine1-your-turn",
+      "spine2-concept",
+      "spine2-explore",
+      "spine2-story",
+      "spine3-concept",
+      "spine3-explore",
+      "spine3-story",
       "stage-reply-2",
       "stage-reply-3",
       "stage-reply-4",
