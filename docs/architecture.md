@@ -24,19 +24,17 @@ The Tutor is an OpenAI model, gpt-6.1-sol, on the Responses API. The server runs
 | Site | #47 | The public Signal site, the five Signal widgets, one Light theme |
 | Clerk sign-in | #48 | Clerk replaces Better Auth: Waitlist, email link only, the owner found by Clerk role. Live in production |
 | Library sources | #43 | New public sources, and a ranking rule that keeps one big source from filling the results |
-| Reranker test | #42 | Reranker flags in the Library scorer. The reranker itself is parked: the app's search does not use it |
 
-**2026-11-16.** Two runs by hand changed production:
+**2026-11-16.** Two runs by hand changed production, and four pull requests merged, in this order:
 
+- **#42.** Reranker flags in the Library scorer. The reranker itself is parked: the app's search does not use it.
 - **The production Library load.** After a Neon snapshot, it loaded the new sources, dropped the 2nd edition of Principles of Finance and stored the embeddings. The scores passed (section 9).
 - **The wipe.** After a dump, a Neon snapshot and a rehearsal on a Neon branch copy, it deleted the 2 pre-Clerk Learners and their history. One Learner is left: the owner's Clerk account (section 5.4).
-
-Then two pull requests merged, in this order:
-
+- **#50.** Dependency updates. It closed the 6 open Dependabot security alerts (0 open after it) and took Dependabot's npm minor and patch group (it replaced #49).
 - **#44.** It deleted the dead lanes: the `compose_widget` tool, the engine-off lane and the old model comparison code (section 8).
-- **PR C.** Its migration 0040 dropped the Better Auth tables, the other old sign-in tables, the model comparison tables and `learners.auth_user_id` (section 5.4).
+- **PR C (#51).** Its migration 0040 dropped the Better Auth tables, the other old sign-in tables, the model comparison tables and `learners.auth_user_id` (section 5.4). The migration ran on production at 02:20 UTC, after the build's Neon snapshot.
 
-Some tasks only the owner can do, for example: switch the firewall to enforce, make the Better Stack account, add the Google client for Clerk. The owner actions list (#41) holds them.
+Some tasks only the owner can do, for example: switch the firewall to enforce, make the Better Stack account, add the Google client for Clerk. [`docs/owner-actions.md`](owner-actions.md) (#41) lists them.
 
 ## 3. The map
 
@@ -180,7 +178,7 @@ Waitlist mode also stops the owner's own sign-up. So the owner's Clerk user was 
 
 The browser tests and the simulated Learner sign in with a passcode or a test-bed cookie, on a local server. So CI needs no Clerk keys and no network.
 
-**Bot checks.** Clerk guards the sign-up with its own bot protection and lockout. BotID guards the start of each Tutor turn, because each turn costs a model call. `src/instrumentation-client.ts` adds the challenge in the browser, and `POST /api/turn` checks it. A bot gets 403. The list of protected requests is in `src/auth/bot-protection.ts`.
+**Bot checks.** Clerk locks an account for 60 minutes after 10 failed sign-in tries. Clerk's CAPTCHA on sign-up is off in production (2026-11-16) until the owner turns it on (owner actions, #41). BotID guards the start of each Tutor turn, because each turn costs a model call. `src/instrumentation-client.ts` adds the challenge in the browser, and `POST /api/turn` checks it. A bot gets 403. The list of protected requests is in `src/auth/bot-protection.ts`.
 
 **Fresh start.** Two steps finished the move to Clerk:
 
@@ -389,7 +387,7 @@ Guards:
 
 **CI** (#39). The details are in [`docs/ci.md`](ci.md).
 
-- Node 24 everywhere, pinned in `.nvmrc` and `engines`, so CI and Vercel agree.
+- Node 24 in CI and in Vercel builds, pinned in `.nvmrc` and `engines` (`engines` overrides the Vercel project setting, which still says 26.x). The VPS runs Node 22.
 - The jobs run in parallel. `static` runs types, lint, the course check, the ADR cite check and the theme contrast check. The unit tests run in 4 shards. `next-build` builds with no secrets, then checks that no test code is in the build. The Playwright browser tests run in 6 shards.
 - The required checks sum up those jobs: `check` (static and unit tests), `build` and `ui`. Do not rename them: the ruleset and the Deployment Checks use these names.
 - A docs-only pull request skips the heavy jobs. `check`, `build` and `ui` still pass in seconds, so its merge never waits. A push to `main` always runs every job.
@@ -418,7 +416,7 @@ Recovery has layers. #8 chose option B (#40). The details and the restore steps 
 
 - `scripts/backup-drill.sh` dumps the Library tables to the VPS. It then restores them into a throwaway Neon branch and compares counts and hashes. The first drill passed on 2026-11-15.
 - The dump and its second copy are on the same VPS disk. The owner must still copy the dump to their laptop.
-- Re-dump after each Library load. The last dump is from 2026-11-15, before the production load on 2026-11-16. Never put a dump in git: some source text is for private search only.
+- Re-dump after each Library load. The last dump, `library-20261116-020254.dump` (152 MB), was made on 2026-11-16 after the production load. It is in `/root/backups/` and `/root/backups/copy2/`. Never put a dump in git: some source text is for private search only.
 - Learner data stays in Neon only. A full off-Neon dump of Learner data was too much for about 20 beta Learners.
 
 ## 12. Monitoring
