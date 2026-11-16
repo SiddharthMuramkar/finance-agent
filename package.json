@@ -42,21 +42,21 @@
     "ui:update": "playwright test --update-snapshots"
   },
   "dependencies": {
-    "@assistant-ui/react": "0.15.32",
-    "@assistant-ui/react-markdown": "0.14.24",
+    "@assistant-ui/react": "0.15.33",
+    "@assistant-ui/react-markdown": "0.14.25",
     "@clerk/nextjs": "7.10.0",
     "@formulajs/formulajs": "4.6.1",
     "@neondatabase/serverless": "1.2.0",
-    "@openuidev/lang-core": "1.0.2",
-    "@openuidev/react-headless": "0.18.1",
-    "@openuidev/react-lang": "1.0.2",
-    "@openuidev/react-ui": "0.18.1",
+    "@openuidev/lang-core": "1.1.0",
+    "@openuidev/react-headless": "0.18.5",
+    "@openuidev/react-lang": "1.1.0",
+    "@openuidev/react-ui": "0.18.5",
     "@vercel/analytics": "^2.0.1",
     "botid": "1.5.13",
     "drizzle-orm": "0.45.4",
     "htmlparser2": "12.0.0",
     "lucide-react": "1.71.0",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "openai": "7.53.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -68,19 +68,31 @@
     "zustand": "4.5.7"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.14",
-    "@electric-sql/pglite-pgvector": "0.0.15",
-    "@playwright/test": "1.64.1",
-    "@tailwindcss/postcss": "4.3.3",
+    "@electric-sql/pglite": "0.5.15",
+    "@electric-sql/pglite-pgvector": "0.0.16",
+    "@playwright/test": "1.65.0",
+    "@tailwindcss/postcss": "4.3.5",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "drizzle-kit": "0.31.11",
     "eslint": "9.39.5",
-    "eslint-config-next": "16.4.3",
-    "happy-dom": "20.14.6",
-    "tailwindcss": "4.3.3",
+    "eslint-config-next": "16.4.5",
+    "happy-dom": "21.0.4",
+    "tailwindcss": "4.3.5",
     "typescript": "5.9.3",
-    "vitest": "5.0.5"
+    "vitest": "5.1.0"
+  },
+  "overrides": {
+    "@ag-ui/core": {
+      "zod": "$zod"
+    },
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.12"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.8"
+    },
+    "katex": "0.18.10"
   }
 }
