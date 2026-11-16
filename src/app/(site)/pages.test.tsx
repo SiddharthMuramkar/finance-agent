@@ -390,9 +390,35 @@ describe("the plain words", () => {
     for (const page of [await HomePage(), await HowItWorksPage()]) {
       const html = renderToStaticMarkup(page);
       expect(words(html.replace(SOURCE_LINE, " "))).not.toContain("Damodaran");
-      const lines = html.match(SOURCE_LINE) ?? [];
-      expect(lines.some((line) => line.includes("Damodaran") && /<a [^>]*href="https:\/\//.test(line))).toBe(true);
+      const lines = (html.match(SOURCE_LINE) ?? []).filter((line) => line.includes("Damodaran"));
+      expect(lines.length).toBeGreaterThan(0);
+      // F30: every line that names him links his work, the widgets' own source lines included.
+      for (const line of lines) expect(line).toMatch(/<a [^>]*href="https:\/\/[^"]*"[^>]*>[^<]*Damodaran/);
     }
+  });
+
+  // F30: Home's trust column quotes a source line a live widget really shows (the Mega Millions one went with its Example).
+  it("Home's trust column quotes the jackpot widget's own source line", async () => {
+    const home = words(renderToStaticMarkup(await HomePage()));
+    const quoted = /The jackpot’s says “([^”]+)”/.exec(home)?.[1];
+    expect(quoted).toBe("Source: The Hindu, 9 Oct 2024.");
+    const jackpot = EXAMPLES.find((e) => e.widget === "jackpot")!;
+    const lines = renderToStaticMarkup(await casePage.default(params(jackpot.slug))).match(SOURCE_LINE) ?? [];
+    expect(lines.some((line) => words(line).replace(/\s+([.,])/g, "$1").includes(quoted!))).toBe(true);
+  });
+
+  // #75 (F30): every named Source is a link. A widget's source line that names a Source links it; only a line that names
+  // none ("No outside figures") is plain text.
+  it("every source line on a public page links the Source it names", async () => {
+    let seen = 0;
+    for (const [name, page] of await publicPages()) {
+      for (const line of renderToStaticMarkup(page).match(SOURCE_LINE) ?? []) {
+        seen++;
+        if (/No outside figures/.test(line)) continue;
+        expect(line, name).toMatch(/<a [^>]*href="https:\/\//);
+      }
+    }
+    expect(seen).toBeGreaterThan(3);
   });
 
   it("ends the levers story on judging the $84 price, not on a story of your own", async () => {

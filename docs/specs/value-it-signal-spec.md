@@ -1157,7 +1157,7 @@ Left: eyebrow "Why you can trust it", H2 "Real events. Checked numbers. No tips.
 | Heading | Body |
 |---|---|
 | Past events only. | Every Topic is a real event with a known outcome. **You see only what people knew that day**, until the reveal. |
-| Every figure has a source. | Each number in a widget is stored with its public source and **the date it was checked**. Source chip: "CNBC, 24 Oct 2018". |
+| Every figure has a source. | Each number in a widget is stored with its public source and **the date it was checked**. The jackpot's says "Source: The Hindu, 9 Oct 2024." |
 | Code draws the charts. | The Tutor picks the widget; tested code draws it. **The AI never invents a chart.** |
 
 #### 7.2.7 FAQ

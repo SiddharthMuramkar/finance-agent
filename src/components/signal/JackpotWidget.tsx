@@ -271,6 +271,7 @@ export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: Si
           { swatch: "wait", label: "About the same" },
         ]}
         source="Source: The Hindu, 9 Oct 2024. The 30 payments are a what-if: they rise 5% a year and the first is paid at once."
+        link={{ name: "The Hindu, 9 Oct 2024", href: "https://www.thehindu.com/news/national/kerala/keralas-25-crore-thiruvonam-bumper-lottery-announced-jackpot-goes-to-ticket-sold-in-wayanad/article68735952.ece" }}
         table={
           !compact && called ? (
             <TableView

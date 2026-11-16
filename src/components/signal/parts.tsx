@@ -306,8 +306,26 @@ export function TableView({ head, rows, label }: { head: readonly string[]; rows
   );
 }
 
-/** The foot (§5.6 part 8): the colour key, the source line and, in full mode, the table view. */
-export function WidgetFoot({ keys, source, table }: { keys: readonly { swatch: Swatch; label: string }[]; source: string; table?: ReactNode }) {
+/** A Source the source line names, and where it links (#75: every named Source is a link). */
+export type SourceLink = { name: string; href: string };
+
+/** The source line's text, with the Source it names drawn as a link to it (the name must appear in the text). */
+function SourceText({ text, link }: { text: string; link?: SourceLink }) {
+  const at = link ? text.indexOf(link.name) : -1;
+  if (!link || at < 0) return text;
+  return (
+    <>
+      {text.slice(0, at)}
+      <a href={link.href} className="link" target="_blank" rel="noopener noreferrer">
+        {link.name}
+      </a>
+      {text.slice(at + link.name.length)}
+    </>
+  );
+}
+
+/** The foot (§5.6 part 8): the colour key, the source line (its named Source linked) and, in full mode, the table view. */
+export function WidgetFoot({ keys, source, link, table }: { keys: readonly { swatch: Swatch; label: string }[]; source: string; link?: SourceLink; table?: ReactNode }) {
   return (
     <footer className="sig-foot">
       <ul className="sig-key" aria-label="How to read the colours">
@@ -319,7 +337,7 @@ export function WidgetFoot({ keys, source, table }: { keys: readonly { swatch: S
         ))}
       </ul>
       <p className="sig-src" data-source-line="">
-        {source}
+        <SourceText text={source} link={link} />
       </p>
       {table}
     </footer>

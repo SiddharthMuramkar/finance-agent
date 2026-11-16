@@ -230,7 +230,7 @@ export const home = {
     link: "How we source our facts",
     columns: [
       { heading: "Past events only.", body: "Every Topic is a real event with a known outcome. **You see only what people knew that day**, until the reveal." },
-      { heading: "Every figure has a source.", body: "Each number in a widget is stored with its public source and **the date it was checked**. Source chip: “CNBC, 24 Oct 2018”." },
+      { heading: "Every figure has a source.", body: "Each number in a widget is stored with its public source and **the date it was checked**. The jackpot’s says “Source: The Hindu, 9 Oct 2024.”" },
       { heading: "Code draws the charts.", body: "The Tutor picks the widget; tested code draws it. **The AI never invents a chart.**" },
     ],
   },

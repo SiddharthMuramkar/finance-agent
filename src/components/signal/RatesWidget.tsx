@@ -252,6 +252,7 @@ export function RatesWidget({ caseSlug, compact = false, onCall, onEvent }: Sign
           { swatch: "wait", label: `“${headline({ ...caseMove, o: CASE.old, n: CASE.new })}”, read literally` },
         ]}
         source="Source: Reserve Bank of India, Monetary Policy Statement, 6 June 2025."
+        link={{ name: "Reserve Bank of India, Monetary Policy Statement, 6 June 2025", href: "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=60604" }}
         table={
           !compact && called ? (
             <TableView
