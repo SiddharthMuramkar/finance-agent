@@ -60,7 +60,7 @@ describe("Home", () => {
     expect(html).toMatch(/data-widget="jackpot" data-case="mega-millions-2018"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
-    expect(text).toContain("110 Topics wait inside.");
+    expect(text).toContain("111 Topics wait inside.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
@@ -123,7 +123,24 @@ describe("About", () => {
   it("says the valuations are Damodaran's published work and that Value It is not affiliated", async () => {
     const text = words(renderToStaticMarkup(await AboutPage()));
     expect(text).toContain("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.");
-    expect(text).toContain("Topics 110");
+    expect(text).toContain("Topics 111");
     expect(text).toContain("Do you track me?");
+  });
+});
+
+// #90 (spec #68): the three financial statements became a Spine Topic of their own, so the site shows the Spine's
+// length as the outline holds it (16 after #90): Home's course count, About's line and How it works' path.
+describe("the Spine's length on the site", () => {
+  it("is the outline's: Home, About and How it works each show 16 Spine Topics, the statements Topic fourth", async () => {
+    const { readOutlineText } = await import("@/course/map");
+    const { parseOutline, spineTopics } = await import("@/course/outline");
+    const spine = spineTopics(parseOutline(readOutlineText()).outline!);
+    expect(spine).toHaveLength(16);
+    expect(words(renderToStaticMarkup(await HomePage()))).toContain(`${spine.length} teach valuation in order`);
+    expect(words(renderToStaticMarkup(await AboutPage()))).toContain("Sixteen core Topics teach valuation in order.");
+    const how = words(renderToStaticMarkup(await HowItWorksPage()));
+    expect(how).toContain(`${spine.length} core Topics`);
+    for (const t of spine) expect(how, t.title).toContain(t.title);
+    expect(how).toContain("What do the three financial statements show?");
   });
 });
