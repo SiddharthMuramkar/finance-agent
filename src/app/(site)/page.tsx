@@ -18,7 +18,7 @@ import { ArrowLink, Glyph, SectionHead } from "./parts";
 import { QuestionList } from "./question-list";
 
 // Home, at "/" (spec 7.2): hero for beginners with the Tutor demo (on a phone, right under the h1), four moves, the
-// levers story, the colour language, the questions, where you end up (#75: a real saved Notebook note), trust, FAQ and
+// levers story, the colour language, the questions, where you end up (#75: a real Notebook note, the Assignment's), trust, FAQ and
 // early access. Open to everyone; the CTAs follow the viewer state, so the page is drawn per request and sent no-store
 // (next.config.ts). A visitor costs no Learner read, and the page makes no model call and no write.
 
@@ -69,7 +69,6 @@ export default async function HomePage() {
           <CtaNote viewer={viewer} />
           <ul className="v-hero-facts">
             <li>{home.hero.facts.topics(course)}</li>
-            <li>{home.hero.facts.minutes(course)}</li>
           </ul>
         </div>
         <TutorDemo />
@@ -77,7 +76,7 @@ export default async function HomePage() {
 
       <section className="v-section v-rule-top" aria-labelledby="moves-h" data-site-section="moves">
         <div className="v-wrap">
-          <SectionHead eyebrow={home.moves.eyebrow} title={home.moves.h2(course)} id="moves-h" />
+          <SectionHead eyebrow={home.moves.eyebrow} title={home.moves.h2} id="moves-h" />
           <ol className="v-moves">
             {MOVES.map((move, i) => (
               <li key={move.name}>
@@ -161,7 +160,7 @@ export default async function HomePage() {
             </h2>
             <ArrowLink href="/about#faq">{home.faq.link}</ArrowLink>
           </div>
-          <FaqList numbers={home.faq.pick} />
+          <FaqList numbers={home.faq.pick} home />
         </div>
       </section>
 

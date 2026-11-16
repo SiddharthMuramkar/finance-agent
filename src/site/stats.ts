@@ -13,10 +13,8 @@ export type CourseFacts = {
   topics: number;
   subjects: number;
   cases: number;
-  /** The Spine in order: number, title and the minutes its Topic file says it takes. */
-  spine: { n: number; title: string; minutes?: number }[];
-  /** The shortest and longest Spine Topic, in minutes (0 and 0 while the Spine is empty). */
-  minutes: { low: number; high: number };
+  /** The Spine in order: number and title. No minutes: the site shows none until they are measured (#72, #75). */
+  spine: { n: number; title: string }[];
   electives: number;
   /** The Electives per Subject, in the order the outline first names each Subject. */
   bySubject: { name: Subject; count: number }[];
@@ -26,8 +24,7 @@ export type CourseFacts = {
 
 /** The facts of one outline, given the ids of the Topics written so far. Pure: no files, no database. */
 export function courseFacts(outline: Outline, written: ReadonlySet<string>): CourseFacts {
-  const spine = spineTopics(outline).map((t) => ({ n: t.spine as number, title: t.title, minutes: t.minutes }));
-  const mins = spine.map((t) => t.minutes).filter((m): m is number => m !== undefined);
+  const spine = spineTopics(outline).map((t) => ({ n: t.spine as number, title: t.title }));
   const bySubject = new Map<Subject, number>();
   for (const t of outline.topics) if (t.stage === "foundation" && t.subject) bySubject.set(t.subject, (bySubject.get(t.subject) ?? 0) + 1);
   const writtenTopics = outline.topics.filter((t) => written.has(t.id));
@@ -36,7 +33,6 @@ export function courseFacts(outline: Outline, written: ReadonlySet<string>): Cou
     subjects: new Set(writtenTopics.map((t) => t.subject).filter(Boolean)).size,
     cases: outline.topics.reduce((n, t) => n + t.cases.length, 0),
     spine,
-    minutes: mins.length ? { low: Math.min(...mins), high: Math.max(...mins) } : { low: 0, high: 0 },
     electives: outline.topics.filter((t) => t.stage === "foundation").length,
     bySubject: [...bySubject].map(([name, count]) => ({ name, count })),
     byStage: READING_STAGES.map((stage) => ({ stage, count: outline.topics.filter((t) => t.stage === stage).length })),

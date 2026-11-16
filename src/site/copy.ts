@@ -52,7 +52,8 @@ export const CONTACT_EMAIL = "hello@value-it.xyz";
 
 /**
  * Privacy and Terms (issue #77), linked from the footer and /join. Plainly true for what the app keeps and sets: Clerk
- * runs sign-in and the waitlist, the Learner record is in Neon, the Tutor's model is OpenAI's, Vercel hosts the site and
+ * runs sign-in and the waitlist, the Learner record is in Neon, the Tutor's model is OpenAI's, Voyage AI embeds the
+ * Tutor's Library searches (written from the Learner's messages; src/app/api/turn/route.ts), Vercel hosts the site and
  * counts page views with no cookie. Change a cookie or a service and change these words (and the FAQ's) with it.
  */
 export const legal = {
@@ -77,6 +78,7 @@ export const legal = {
         body: [
           "Clerk keeps your email and your sign-in details. We keep your Learner record in our database, hosted by Neon: your conversations with the Tutor, your answers to quizzes and practice, your progress through the Topics, your Notebook notes and your settings.",
           "To write the Tutor’s replies, we send your messages and the Topic you’re on to OpenAI, whose AI model writes them.",
+          "When the Tutor looks something up in its Library, it writes a search from what you asked. We send that search to Voyage AI, which turns it into numbers our Library search can match.",
         ],
       },
       {
@@ -88,13 +90,13 @@ export const legal = {
       {
         heading: "Cookies",
         body: [
-          "There are no ad or tracking cookies. Clerk sets __session and __client_uat on this site, and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark. A private copy that signs in with a passcode instead of Clerk uses fa_access for that.",
+          "There are no ad or tracking cookies. Clerk sets __session and __client_uat on this site (and copies of them whose names end in a short code, such as __session_Ab12), and __client on clerk.value-it.xyz, to know whether you’re signed in. A private copy that signs in with a passcode instead of Clerk uses fa_access for that. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark.",
         ],
       },
       {
         heading: "Who sees it",
         body: [
-          "The Owner, who runs Value It, can read Learner records, to let people in and to improve the course. Clerk, Neon, Vercel and OpenAI handle it for us as described above. Nobody else, and we never sell it.",
+          "The Owner, who runs Value It, can read Learner records, to let people in and to improve the course. Clerk, Neon, Vercel, OpenAI and Voyage AI handle it for us as described above. Nobody else, and we never sell it.",
         ],
       },
       {
@@ -116,7 +118,7 @@ export const legal = {
       {
         heading: "Not advice",
         body: [
-          "Nothing here is investment, financial, tax or legal advice. The cases are past events and the numbers are there to learn from. Make your own decisions, and ask a licensed adviser about your own money.",
+          "Nothing here is investment, financial, tax or legal advice. The Topics and Examples are past events and the numbers are there to learn from. Make your own decisions, and ask a licensed adviser about your own money.",
         ],
       },
       {
@@ -166,13 +168,13 @@ export const home = {
     // Display lines; the page puts a space between them, so a screen reader reads one sentence.
     h1: ["What is it", "really worth?"],
     // Three headline numbers a beginner has seen. The jackpot's is the jackpot Example's chip (pages.test.tsx keeps them equal).
-    lede: "A **₹25 crore jackpot**. A **$3bn “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums.",
+    lede: "A **₹25 crore jackpot**. A **$3 billion “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums.",
     // A visitor's first action opens the jackpot Example (the page finds it by its widget); Join the waitlist comes second.
     tryIt: "Try the jackpot",
     secondary: { member: "Course map" },
+    // #72/#75: no minutes until they are measured.
     facts: {
       topics: (c: CourseFacts) => `${c.topics} Topics`,
-      minutes: (c: CourseFacts) => `${c.minutes.low} to ${c.minutes.high} minutes each`,
     },
   },
   demo: {
@@ -187,7 +189,7 @@ export const home = {
   },
   moves: {
     eyebrow: "How a Topic works",
-    h2: (c: CourseFacts) => `One real event. Four moves. ${Say(c.minutes.low)} to ${say(c.minutes.high)} minutes.`,
+    h2: "One real event. Four moves.",
     link: "See a Topic step by step",
   },
   levers: {
@@ -228,16 +230,16 @@ export const home = {
     link: "How we source our facts",
     columns: [
       { heading: "Past events only.", body: "Every Topic is a real event with a known outcome. **You see only what people knew that day**, until the reveal." },
-      { heading: "Every figure has a source.", body: "Each number in a widget is stored with its public source and **the date it was checked**. Source chip: “CNBC, 24 Oct 2018”." },
+      { heading: "Every figure has a source.", body: "Each number in a widget is stored with its public source and **the date it was checked**. The jackpot’s says “Source: The Hindu, 9 Oct 2024.”" },
       { heading: "Code draws the charts.", body: "The Tutor picks the widget; tested code draws it. **The AI never invents a chart.**" },
     ],
   },
-  /** #75: the one-page note a Learner saves to the Notebook at the end of the Spine (src/site/end-note.ts). */
+  /** #75: the one-page note the Assignment saves to the Notebook once the Spine is passed (src/site/end-note.ts). */
   end: {
     eyebrow: "Where you end up",
     h2: "By the end, you value a company yourself.",
-    body: "Near the end of the core Topics you value a real company as of a past date, lever by lever, and save the Story you told. This is the note it leaves in your Notebook.",
-    caption: "From the Notebook. Every figure worked out by the course’s tested valuation engine.",
+    body: "After the Topics that teach valuation in order, you pick a listed company and copy a few figures from its annual report. The site values it beside its price and keeps a one-page note. This is one.",
+    caption: "Kikkoman’s annual report for the year to 31 March 2026, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine.",
   },
   faq: { eyebrow: "Questions", h2: "Before you ask.", link: "More questions", pick: [1, 2, 4, 5] },
   closing: {
@@ -252,7 +254,7 @@ export const home = {
  */
 export const AMAZON_SOURCE = {
   lead: "Source:",
-  label: "Aswath Damodaran, “Valuing Amazon.com”, February 2000",
+  label: "Aswath Damodaran, “Can Amazon.com be valued?”, March 2000",
   href: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
 } as const;
 
@@ -279,21 +281,25 @@ export type ColourTile = (typeof COLOURS)[number]["tile"];
 /** Appendix B: the FAQ, in order (numbered from 1). */
 export const FAQ = [
   { q: "Is Value It investment advice?", a: "No. It teaches how finance works through past events. It never tells you what to buy or sell, and gives no tips." },
-  { q: "Do I need to be good at maths?", a: "No. You never type a number to answer a question: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. The one place you type numbers is the Assignment after the Spine, where you copy figures from a company's annual report." },
+  {
+    q: "Do I need to be good at maths?",
+    a: "No. You never type a number to answer a question: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. The one place you type numbers is the Assignment after the Spine, where you copy figures from a company's annual report.",
+    // Home asks a Visitor to learn only four product words (#74), so Home says the same thing without "Assignment" and "Spine".
+    home: "No. You never type a number to answer a question: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. The one place you type numbers is near the end, where you copy a few figures from a company's annual report.",
+  },
   { q: "Where do the facts come from?", a: "From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage." },
   { q: "Does the AI make up the charts?", a: "No. The AI Tutor chooses which chart to open and at which numbers; the chart is drawn from checked figures. Made-up numbers are labelled Illustration." },
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
   { q: "How do I get in?", a: "Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
-  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. The site’s own cookies: Clerk, which runs sign-in, sets __session and __client_uat here and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark. A private copy that signs in with a passcode instead of Clerk uses fa_access. The Privacy page has the rest." },
+  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. The site’s own cookies: Clerk, which runs sign-in, sets __session and __client_uat here (and copies whose names end in a short code) and __client on clerk.value-it.xyz, to know whether you’re signed in; a private copy that signs in with a passcode instead of Clerk uses fa_access. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark. The Privacy page has the rest." },
 ] as const;
 
 export const howItWorks = {
   eyebrow: "How it works",
   h1: "How a Topic works",
-  lede: (c: CourseFacts) =>
-    `Every Topic is **one real event, taught in four moves**, in ${c.minutes.low}–${c.minutes.high} minutes. You never type a number to answer: you tap, drag and explain in your own words.`,
-  description: (c: CourseFacts) => `Every Topic is one real event, taught in four moves, in ${c.minutes.low} to ${c.minutes.high} minutes.`,
+  lede: "Every Topic is **one real event, taught in four moves**. You never type a number to answer: you tap, drag and explain in your own words.",
+  description: "Every Topic is one real event, taught in four moves.",
   rail: {
     title: "Running example: Amazon, Feb 2000",
     moveOf: (n: number) => `Move ${n} of 4`,
@@ -327,7 +333,8 @@ export const howItWorks = {
     // The mock's two bubbles are the rates example's (examples.ts): the learner's question and the Tutor's lead.
     h2: "The Study Workspace",
     input: "Ask the Tutor anything",
-    readout: "4% → 5%: **1 point · 100 bp · 25%**",
+    // The same move as the bubbles (src/site/how-it-works.test.ts checks it against rateChange).
+    readout: "6% → 5.5%: **½ point · 50 bp · about 8%**",
     saved: "Saved to your Notebook",
     legend: ["Ask anything, any time.", "The Tutor picks the widget; tested code draws it.", "The step bar shows where you are in the Topic’s 15 short steps.", "What you find lands in your Notebook."],
   },
@@ -349,9 +356,9 @@ export const howItWorks = {
     subjects: (c: CourseFacts) => `${c.bySubject.length} subjects`,
     stages: (c: CourseFacts) => `${c.byStage.length} stages that read real arguments`,
     number: (n: number) => String(n).padStart(2, "0"),
-    minutes: (n: number) => `${n} min`,
   },
-  closing: "Start with Topic 1: What is a business worth?",
+  /** The first Spine Topic's question, from the course (#72: no Spine title typed here). */
+  closing: (c: CourseFacts) => (c.spine[0] ? `Start with Topic ${c.spine[0].n}: ${c.spine[0].title.replace(/\?.*$/, "?")}` : "Start with Topic 1"),
 } as const;
 
 /** Appendix C: the course map the site shows. The Spine, the Subjects and the counts come from the course (#72). */
@@ -369,7 +376,7 @@ export const COURSE = {
     { category: "Economics & policy", title: "India's economy and the 1991 reforms" },
     { category: "Judge", title: "Junk or BB+?" },
     { category: "Banks, crises & the system", title: "Securitisation, MBS and CDOs" },
-    { category: "Follow", title: "OpenAI’s cheap AI prices (Sep 2024)" },
+    { category: "Follow", title: "OpenAI’s low AI prices (Sep 2024)" },
     { category: "Analyse", title: "Transfer to India (G-sec, bank, rupee)" },
   ],
 } as const;

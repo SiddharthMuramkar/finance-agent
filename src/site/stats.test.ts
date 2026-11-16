@@ -26,8 +26,8 @@ describe("Landing stats", () => {
 describe("courseFacts", () => {
   it("reads the Spine, the Electives per Subject and the reading Stages from the outline it is given", () => {
     const facts = courseFacts(spineOutline(), new Set(["spine-01-worth"]));
-    expect(facts.spine).toEqual([{ n: 1, title: "What is a business worth?", minutes: 10 }]);
-    expect(facts.minutes).toEqual({ low: 10, high: 10 });
+    // No minutes: the outline's are guesses, and the site shows none until they are measured (#72, #75).
+    expect(facts.spine).toEqual([{ n: 1, title: "What is a business worth?" }]);
     expect(facts.electives).toBe(2);
     expect(facts.bySubject).toEqual([
       { name: "Financial statements", count: 1 },

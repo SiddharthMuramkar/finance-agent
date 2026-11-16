@@ -108,3 +108,15 @@ describe("the Indian Moments (#116)", () => {
     expect(rates.facts.map((f) => f.value)).toEqual(["6%", "5.5%", "6 Jun 2025"]);
   });
 });
+
+// #74 (F31): one money style, and no label that repeats itself ("Everyday · Everyday money").
+describe("the examples' words", () => {
+  it("write dollars in one style: '$3 billion', '$905 million', never '$3bn' or '$905M'", () => {
+    const text = JSON.stringify(EXAMPLES, (key, value) => (key === "sources" ? undefined : value));
+    expect(text).not.toMatch(/\$[\d.,]+\s?(bn|B|M|m)\b/);
+  });
+
+  it("give each a stamp that does not repeat its category", () => {
+    for (const example of EXAMPLES) expect(example.category.toLowerCase().startsWith(example.stamp.toLowerCase()), example.slug).toBe(false);
+  });
+});

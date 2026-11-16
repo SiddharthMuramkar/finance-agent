@@ -1157,7 +1157,7 @@ Left: eyebrow "Why you can trust it", H2 "Real events. Checked numbers. No tips.
 | Heading | Body |
 |---|---|
 | Past events only. | Every Topic is a real event with a known outcome. **You see only what people knew that day**, until the reveal. |
-| Every figure has a source. | Each number in a widget is stored with its public source and **the date it was checked**. Source chip: "CNBC, 24 Oct 2018". |
+| Every figure has a source. | Each number in a widget is stored with its public source and **the date it was checked**. The jackpot's says "Source: The Hindu, 9 Oct 2024." |
 | Code draws the charts. | The Tutor picks the widget; tested code draws it. **The AI never invents a chart.** |
 
 #### 7.2.7 FAQ
@@ -1193,7 +1193,7 @@ Applicants and members see the CTA and note for their state instead of the form.
 
 Each move ends with "Inside this move:" and step chips (The moment / The idea / Your turn, Wrap up and its Check / Reveal, Principle). Closing line: "*15 short steps in all. Your place is saved after each one.* Moves 2 and 3 repeat for each idea in a Topic, usually four."
 
-3. **The workspace**: an annotated mock of the Study Workspace. Chat on the left (a Tutor bubble, a learner bubble, a fake input "Ask the Tutor anything"), a widget on the right (a rates mini picture, "4% → 5%: **1 point · 100 bp · 25%**", "Saved to your Notebook"), a 15-segment step bar and four numbered black callouts with this legend: Ask anything, any time. / The Tutor picks the widget; tested code draws it. / The step bar shows where you are in the Topic’s 15 short steps. / What you find lands in your Notebook.
+3. **The workspace**: an annotated mock of the Study Workspace. Chat on the left (a Tutor bubble, a learner bubble, a fake input "Ask the Tutor anything"), a widget on the right (a rates mini picture with the RBI rates Example's move, "6% → 5.5%: **½ point · 50 bp · about 8%**", "Saved to your Notebook"), a 15-segment step bar and four numbered black callouts with this legend: Ask anything, any time. / The Tutor picks the widget; tested code draws it. / The step bar shows where you are in the Topic’s 15 short steps. / What you find lands in your Notebook.
 4. **Colour language** (7.2.4): eyebrow "Reading a widget", H2 "Every colour means one thing.", the How it works body. Home no longer draws it.
 5. **Reviews**: H2 "It brings back what you missed." with a labelled illustration: a green "Check passed" dot, three blue review rings spaced further and further apart, and a red dashed arc for "missed: back sooner". The drawing carries the word "Illustration".
 6. **The path**: 15 core Topics (numbered, with minutes), 9 subjects with counts, 3 stages with counts (Appendix C).
