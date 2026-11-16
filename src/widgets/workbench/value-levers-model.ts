@@ -409,7 +409,7 @@ function modePicture(block: ValuationBlock, specs: readonly LeverSpec[], setting
       : !below.length
         ? `${keeps}: less than every mark`
         : `${keeps}: more than ${below.at(-1)!.label}, less than ${above[0].label}`;
-    return { kind: "ladder", rungs, you: { label: "Your story", percent: margin, emoji: mode.emoji ?? LADDER_YOU, at: at(margin) }, line };
+    return { kind: "ladder", rungs, you: { label: "This story", percent: margin, emoji: mode.emoji ?? LADDER_YOU, at: at(margin) }, line };
   }
   if (mode?.kind === "roic") {
     const spec = specs.find((s) => s.id === "salesToCapital")!;

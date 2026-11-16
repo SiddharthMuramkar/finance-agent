@@ -220,7 +220,7 @@ questions:
       - id: margin-up
         text: "What it keeps, up"
       - id: none
-        text: "None: stick with your first number"
+        text: "None: he should stick with his first number"
         mistake: { tag: anchoring, fix: "That is anchoring. News about the top lever is exactly what should move his value." }
       - id: risk-up
         text: "How risky it is, up"
