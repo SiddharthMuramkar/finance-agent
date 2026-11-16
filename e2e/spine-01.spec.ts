@@ -75,6 +75,13 @@ const DAILY_LIFE = "A headline says a firm is worth $50bn. A price someone paid,
 
 /** The quiz Check's right choice for each of its six questions, found by the question's words (predict: the band it lands in). */
 function quizPick(prompt: string): string | null {
+  // The judging Check (worth-talk): other people's stories, judged by tap. First: its founder story also "contradicts itself".
+  if (/Which story must the fan believe/i.test(prompt)) return "$70bn of sales and an 11% margin";
+  if (/A headline says/i.test(prompt)) return "A price someone paid";
+  if (/An analyst writes/i.test(prompt)) return "A value someone argued";
+  if (/founder pitches/i.test(prompt)) return "Sales grow ten times over and it builds no new warehouses";
+  if (/never cut their prices/i.test(prompt)) return "What it keeps, down";
+  if (/safer bet/i.test(prompt)) return "How risky it is, down";
   if (/which change lifts the value most/i.test(prompt)) return "Margin 10% to 12%";
   if (/Which story gets there/i.test(prompt)) return "$65bn of sales and a 12% margin";
   if (/margin ends at 4%/i.test(prompt)) return "Nothing left for shareholders";
@@ -83,13 +90,6 @@ function quizPick(prompt: string): string | null {
   if (/toys? and electronics/i.test(prompt)) return "How big it gets, up";
   if (/contradicts itself/i.test(prompt)) return "Sales grow 35 times in ten years and it invests almost nothing";
   if (/price or a value/i.test(prompt)) return "A price";
-  // The judging Check (worth-talk): other people's stories, judged by tap.
-  if (/Which story must the fan believe/i.test(prompt)) return "$70bn of sales and an 11% margin";
-  if (/A headline says/i.test(prompt)) return "A price someone paid";
-  if (/An analyst writes/i.test(prompt)) return "A value someone argued";
-  if (/founder pitches/i.test(prompt)) return "Sales grow ten times over and it builds no new warehouses";
-  if (/never cut their prices/i.test(prompt)) return "What it keeps, down";
-  if (/safer bet/i.test(prompt)) return "How risky it is, down";
   throw new Error(`No answer written for the quiz question "${prompt}".`);
 }
 
