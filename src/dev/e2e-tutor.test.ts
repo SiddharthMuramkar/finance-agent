@@ -24,9 +24,19 @@ const spineItems: OpenItem[] = [
     c.quickTries.flatMap((q) => ("choices" in q && Array.isArray(q.choices) ? [{ prompt: String(q.ask), choices: q.choices.map((x) => x.text), answer: q.choices.find((x) => x.id === q.answer)?.text }] : [])),
   ),
 ];
-const isSpine = (name: E2eScriptName) => /^(spine[123]|statements)-/.test(name);
-/** Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts) are checked against their own Topics. */
-const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")!, "statements-": map.topic("spine-statements")! } as const;
+const isSpine = (name: E2eScriptName) => /^(?:spine(?:[123]|15)|statements)-/.test(name);
+/** The ready-Case valuation Topic, whose scripts e2e/spine-15-judge.spec.ts plays. */
+const judge = map.topic("spine-15-value-yourself")!;
+/**
+ * Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts), the statements Topic's (#90, e2e/spine-statements.spec.ts)
+ * and the ready-Case valuation Topic's are checked against their own Topics.
+ */
+const SPINE_OF = {
+  "spine2-": map.topic("spine-02-money-later")!,
+  "spine3-": map.topic("spine-03-cash")!,
+  "statements-": map.topic("spine-statements")!,
+  "spine15-": judge,
+} as const;
 /** #93's three-turn play of the annual report Topic (e2e/spine-annual-report.spec.ts). */
 const annualReport = map.topic("spine-annual-report")!;
 const isReport = (name: E2eScriptName) => name.startsWith("ar-");
@@ -75,6 +85,7 @@ describe("the scripted Tutor", () => {
       "ar-concept",
       "ar-explore",
       "ar-story",
+      "assignment-flag",
       "assumes-concept",
       "assumes-explore",
       "assumes-story",
@@ -130,6 +141,9 @@ describe("the scripted Tutor", () => {
       "spine1-talk-prompt",
       "spine1-talk-your-turn",
       "spine1-your-turn",
+      "spine15-concept",
+      "spine15-explore",
+      "spine15-story",
       "spine2-concept",
       "spine2-explore",
       "spine2-story",
@@ -183,6 +197,17 @@ describe("the scripted Tutor", () => {
     expect(second).toHaveLength(1);
     expect(second[0]).not.toBe(first[0]);
     expect(draftOf("plain-reply").widgets).toHaveLength(0);
+  });
+});
+
+describe("the ready-Case valuation Topic's scripted Tutor", () => {
+  it("shows the Topic's explore Workbench as written: match_price with a chip for each Case, no Save my story", () => {
+    const bench = judge.explore!.workbench!;
+    const [widget] = draftOf("spine15-explore").widgets;
+    const params = widget.params as { title: string; inputs: Record<string, unknown> };
+    expect(params.title).toBe(bench.title);
+    expect(params.inputs).toEqual({ case: bench.case, ...bench.inputs });
+    expect(params.inputs.mode).toMatchObject({ kind: "match_price" });
   });
 });
 

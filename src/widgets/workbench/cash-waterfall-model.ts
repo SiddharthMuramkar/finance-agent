@@ -1,4 +1,5 @@
 import { cashYear } from "@/finance/cash-year";
+import { CURRENCY_STYLE } from "@/finance/money";
 import { toEngineInputs, type ValuationBlock } from "@/finance/valuation-case";
 import {
   benchShape,
@@ -65,7 +66,7 @@ export function cashWaterfallFromCase(block: ValuationBlock): CashWaterfallData 
 export function cashWaterfallLevers(data: CashWaterfallData): BenchLever<WaterfallLeverId>[] {
   const { growth, margin, salesToCapital } = data.opening;
   const growthMax = niceUp(Math.max(growth * 2, 50));
-  const [symbol, one, many] = data.money.currency === "INR" ? ["₹", "rupee", "rupees"] : ["$", "dollar", "dollars"];
+  const { symbol, word: [one, many] } = CURRENCY_STYLE[data.money.currency];
   const years = data.years;
   const growthLever = percentLever({
     id: "growth",
@@ -119,6 +120,14 @@ export function cashWaterfallScene(data: CashWaterfallData, settings: WaterfallS
   const buildings = settings.growth <= 0 ? 0 : Math.max(1, Math.min(5, Math.ceil((settings.growth / growthMax) * 5)));
   if (Math.abs(settings.growth) < 1e-9) return { icon: data.icon, name, mood: "still", buildings, line: `No growth, so ${name} has nothing new to build or stock.` };
   if (model.fcf !== null && model.fcf > 0) return { icon: data.icon, name, mood: "cash", buildings, line: `Cash comes back: ${name} makes more than its growth costs.` };
+  // Free cash flow at or below zero: say what takes the cash out. A loss on each sale is named, and when it is bigger than
+  // what growth costs it is named as the reason, so a negative margin is never blamed on growth (review 2, G18).
+  const step = (id: WaterfallStep["id"]) => model.steps.find((s) => s.id === id);
+  const operating = step("operating")?.to ?? 0;
+  const reinvestment = step("reinvestment");
+  const growthCost = reinvestment ? reinvestment.from - reinvestment.to : 0;
+  if (operating < 0 && -operating >= growthCost) return { icon: data.icon, name, mood: "building", buildings, line: `${name} spends more running the business than its sales bring in: that loss, more than growth, takes the cash out.` };
+  if (operating < 0) return { icon: data.icon, name, mood: "building", buildings, line: `${name} loses money on its sales, and more sales need warehouses, vans and stock first, so the cash goes out.` };
   return { icon: data.icon, name, mood: "building", buildings, line: `More sales need warehouses, vans and stock first, so the cash goes out.` };
 }
 export const OPERATING_LABEL = "Operating income";

@@ -1,0 +1,6 @@
+root = Widget("What return should Amazon's shareholders require?", [stack])
+$riskFree = 6.5
+$premium = 4
+$relativeRisk = 1.6
+$debtShare = 1.2
+stack = WaccStack({riskFree: 6.5, equityPremium: 4, relativeRisk: 1.6, debtShare: 1.2, costOfDebt: 8, taxRate: 0}, {title: "Damodaran, Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"}, $riskFree, $premium, $relativeRisk, $debtShare, "amazon-dcf-2000", ["us-risk-free-10y-1999"])

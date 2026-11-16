@@ -46,6 +46,11 @@ const INVENTORY: Record<string, Use> = {
     why: "The three counted uses are OpenUI's success, alert and danger borders (gain, wait, loss), which are paired: only danger paints, on labelled destructive buttons, an input error (whose own border is loss-ink) and a tool error (icon and text). The kit's chart series are colour-only: a series mark is needed to read the chart and a legend does not exempt it, so every CHART_SERIES token is checked at 3:1 on each chart surface (review C1)",
     pairs: CHART_SERIES.flatMap((series) => CHART_SURFACES.map((surface): [string, string] => [series, surface])),
   },
+  "src/widgets/market-readings-view.tsx": {
+    uses: 1,
+    verdict: "mark",
+    why: "A 2 px sourced edge (--src-line, which is ink, so far above 3:1 on the panel) down the Market readings block (#105), whose heading and each reading's month, credit and link already say it is sourced, as Case Data's edge does",
+  },
   "src/widgets/primitives/wave1/breakeven.tsx": {
     uses: 1,
     verdict: "mark",
@@ -60,20 +65,30 @@ const INVENTORY: Record<string, Use> = {
   "src/widgets/primitives/wave2/rate-move.tsx": { uses: 1, verdict: "mark", why: "A 2px violet rule beside the three ways to say the move; each line is labelled" },
   "src/widgets/primitives/wave2/step-through.tsx": { uses: 2, verdict: "mark", why: "A 2px underline in the tone's base colour under a number the step's words already name" },
   "src/widgets/primitives/wave3/headline.tsx": { uses: 1, verdict: "mark", why: "A sunflower top edge on the front page" },
-  "src/widgets/primitives/wave3/lingo-card.tsx": { uses: 2, verdict: "mark", why: "A violet edge on the front and a sunflower edge on the story side; the Lingo and In the story Tags name them" },
+  "src/widgets/primitives/wave3/lingo-card-view.tsx": { uses: 2, verdict: "mark", why: "A violet edge on the front and a sunflower edge on the story side; the Lingo and In the story Tags name them (the card's view, moved out of lingo-card.tsx by #103 so the Full sheet can show it)" },
   "src/widgets/primitives/wave3/money-jar.tsx": { uses: 5, verdict: "mark", why: "A mint or coral base edge, a thin mint edge on a new object and a dashed coral outline where one left; the words line says the size" },
   "src/widgets/primitives/wave3/story-scene.tsx": { uses: 2, verdict: "mark", why: "A sunflower edge on the stage and a sunflower ring on the character who is speaking" },
   "src/widgets/primitives/wave3/timeline-strip.tsx": { uses: 2, verdict: "mark", why: "A 2px sunflower line up to the story's date and a sunflower edge on the open moment's card" },
   "src/widgets/primitives/wave3/two-paths.tsx": { uses: 1, verdict: "mark", why: "A sunflower top edge on each path; the names, choices and outcome lines are text" },
+  "src/widgets/range-check-view.tsx": {
+    uses: 1,
+    verdict: "mark",
+    why: "The same 2 px sourced edge (--src-line, which is ink, so far above 3:1) down the range check (#109), whose heading and each flag's sentence, yardstick, month and source link already say what it is",
+  },
   "src/widgets/workbench/bench-view.tsx": {
     uses: 3,
     verdict: "mark",
     why: "The five B4 Workbenches' one chart (BarRows, spec 2026-11-12 B4): SVG bars, a gain in mint, a loss in coral and a market or history figure in sunflower, each row led by its label in words, its figure in the bar's title, and every label and figure in the chart's accessible name",
   },
-  "src/widgets/workbench/value-levers-view.tsx": {
-    uses: 3,
+  "src/widgets/workbench/cash-waterfall-view.tsx": {
+    uses: 1,
     verdict: "mark",
-    why: "Value levers (spec 2026-11-12, B3): the cash-flow bars' coral losses and mint gains, as the spec asks, each bar titled with its year and figure and the whole read aloud, like Home's Explorable bars; and the 2 px sunflower tick of the price on the value bar, beside the price readout that names it",
+    why: "A 2 px sunflower edge (--sun, which is ink now) down the cash waterfall's small scene (#89 critics round), whose line beside it says in words what the levers did",
+  },
+  "src/widgets/workbench/value-levers-view.tsx": {
+    uses: 7,
+    verdict: "mark",
+    why: "Value levers (spec 2026-11-12, B3): the cash-flow bars' coral losses and mint gains, as the spec asks, each bar titled with its year and figure and the whole read aloud, like Home's Explorable bars; the 2 px sunflower tick of the price on the value bar, beside the price readout that names it; and the roic picture's thin mint fill (#95 critics round), whose caption beside it says in words the sales each dollar invested brings, and whose accessible name says how full it is; the Spine scene's 2 px sunflower edge beside the cast's spoken line, and the survive-or-fail fork's small mint and coral dots (#96 critics round), each road headed in words with its chance in 100 and the value down it",
   },
 };
 

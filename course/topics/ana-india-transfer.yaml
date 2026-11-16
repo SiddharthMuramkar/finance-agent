@@ -63,11 +63,14 @@ cases:
       valuable than it is, and does the 17% fall already seen tell her what the rupee will do
       next?
     reveal: >
-      The two values agree at about Rs 1,181 crore: the rupee discount rate is
-      1.10 x 1.08 / 1.02 - 1, about 16.5%, so the value is 100 / (16.47% - 8%); in dollars the
-      cash flow grows at 1.08 / 1.0588 - 1 = 2% and is discounted at 10%, and converting back
-      at Rs 65 gives the same answer. Discounting rupee flows at the dollar rate gives
-      100 / (10% - 8%) = Rs 5,000 crore, more than four times too much, because it mixes currencies.
+      The two values agree at about Rs 1,181 crore. In rupees, lift the 10% dollar rate by the
+      inflation gap (grow it by the 8% rupee inflation, then shrink it by the 2% dollar inflation)
+      and the rupee discount rate comes out at about 16.5%; dividing the Rs 100 crore by the gap
+      between 16.47% and the 8% growth gives the value. In dollars, a dollar is expected to buy about
+      5.9% more rupees each year, the inflation gap, so the cash flow grows at only about 2% and is
+      discounted at 10%, and converting back at Rs 65 gives the same answer. Discounting rupee
+      flows at the dollar rate divides the Rs 100 crore by a gap of only 2 points (10% less 8%)
+      and gives Rs 5,000 crore, more than four times too much, because it mixes currencies.
       Looking back, the RBI's January 2014 review counted a fall of nearly $17 billion in its
       reserves and net foreign portfolio outflows of over $13.4 billion ($10.5 billion from debt,
       $2.8 billion from shares) over that stretch of 2013. The historical record then showed why guessing the currency path is not part of the method.
@@ -82,17 +85,17 @@ concept: >
   Valuation skills transfer to India if each input is Indian and every part is in the same
   currency. Currency consistency: estimate cash flows and the discount rate in the same
   currency, nominal with nominal. To move a cost of equity from dollars to rupees, use the
-  inflation differential: (1 + rupee rate) = (1 + dollar rate) x (1 + rupee inflation) /
-  (1 + dollar inflation). Done consistently, the answer is the same in either currency; if it is
+  inflation differential, in steps: grow the dollar rate by rupee inflation, then shrink it by
+  dollar inflation (Go deeper shows the formula). Done consistently, the answer is the same in either currency; if it is
   not, the inflation assumptions are inconsistent. Country risk: an Indian company's cost of
   equity adds a country risk premium to the mature-market premium. One way to estimate it is the
   default spread on the country's dollar bonds times the ratio of the equity market's
-  volatility to the bond's volatility; cost of equity = risk-free rate + beta x (mature premium +
-  country risk premium). A rupee government-bond yield contains inflation and some default
+  volatility to the bond's volatility. The cost of equity is then the risk-free rate plus beta
+  times the sum of the mature premium and the country risk premium. A rupee government-bond yield contains inflation and some default
   spread, so check what it holds before treating it as risk-free. Banks: a bank's raw material
   is money, so value its equity (dividends or excess capital, price to book against return
   on equity) rather than free cash flow to the firm, and read asset quality and capital first.
-  Gross NPA ratio = gross non-performing assets / gross advances; net NPA ratio uses advances
+  The gross NPA ratio is gross non-performing assets divided by gross advances; the net NPA ratio uses advances
   and NPAs after provisions. Reported ratios are dated, so ask what has happened since the date.
 
 principle: >
@@ -100,6 +103,12 @@ principle: >
   country risk explicitly, value a bank from its capital and loan quality, and treat a
   published ratio or a past currency move as a dated fact that does not by itself say what
   comes next.
+
+goDeeper: >
+  The steps written as formulas, for a Learner who wants them. Moving a rate between currencies:
+  (1 + rupee rate) = (1 + dollar rate) x (1 + rupee inflation) / (1 + dollar inflation). Cost of
+  equity with country risk = risk-free rate + beta x (mature premium + country risk premium).
+  Gross NPA ratio = gross non-performing assets / gross advances.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
@@ -132,7 +141,7 @@ questions:
       - { id: d, text: "10% plus all of the 8% rupee inflation", mistake: { tag: adds-full-inflation, fix: "Dollar inflation is already in the 10%; only the gap between them is added." } }
     answer: a
     explanation: >
-      The rupee rate is the dollar rate lifted by the inflation gap between the two currencies: (1 + 0.10) x (1.08 / 1.02) - 1, about 16.5%. Adding all 8% of rupee inflation double counts the inflation already in the dollar rate.
+      The rupee rate is the dollar rate lifted by the inflation gap between the two currencies: take 1.10, multiply it by 1.08, divide by 1.02 and take away 1, which gives about 16.5%. Adding all 8% of rupee inflation double counts the inflation already in the dollar rate.
     source: >
       Damodaran, Cost of Capital lecture slides (NYU Stern, 2024), cost of equity conversion with the inflation differential: https://pages.stern.nyu.edu/~adamodar/podcasts/cfspr24/session10slides.pdf
 
@@ -187,7 +196,7 @@ questions:
       - { id: d, text: "The return on equity", mistake: { tag: wrong-ratio, fix: "Return on equity is profit per unit of owners' money, not bad loans." } }
     answer: a
     explanation: >
-      Gross NPA ratio = gross non-performing assets / gross advances, before provisions. Indian banks report it as a percentage of gross advances; here it is 5,000 / 80,000 = 6.25%. The net NPA ratio uses advances and NPAs after provisions.
+      The gross NPA ratio is gross non-performing assets divided by gross advances, before provisions. Indian banks report it as a percentage of gross advances; here Rs 5,000 crore divided by Rs 80,000 crore gives 6.25%. The net NPA ratio uses advances and NPAs after provisions.
     source: >
       Business Standard / PTI, 1 Nov 2019, an Indian bank's results stating gross bad loans as a percentage of gross advances: https://www.business-standard.com/amp/article/pti-stories/yes-bank-posts-net-loss-of-rs-629-cr-in-sept-quarter-as-bad-loans-spike-119110101058_1.html
 

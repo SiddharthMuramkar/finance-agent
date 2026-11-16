@@ -9,6 +9,8 @@ import type { Db } from "@/db/types";
 import { E2E_PERSON_COOKIE, e2ePersonToken } from "@/dev/e2e-identity";
 import { testDb } from "@/test/pglite";
 import nextConfig from "../next.config";
+import { MATRIX_PAGES } from "@/dev/preview-matrix";
+import { AUTH_ROOTS, NO_STORE_SOURCES, PUBLIC_FILES, PUBLIC_PAGES, SIGNED_IN_ROOTS, SITE_PAGES, SITE_PAGES_ONE_CASE } from "@/site/routes";
 
 let db: Db;
 vi.mock("@/db/client", () => ({ getDb: () => db }));
@@ -34,6 +36,8 @@ function request(path: string, init: { method?: string; headers?: Record<string,
 }
 
 const allowed = (r: Response) => r.headers.get("x-middleware-next") === "1";
+/** An unknown address, let through so Next.js answers it with the not-found page and a 404 (issue #70). */
+const reachesNotFound = allowed;
 const redirectedToSignIn = (r: Response) =>
   r.status >= 300 && r.status < 400 && new URL(r.headers.get("location")!).pathname === "/sign-in";
 /** Where a signed-in visit to /sign-in is sent instead (a temporary redirect). */
@@ -68,8 +72,9 @@ describe("The signed-out gate", () => {
     for (const path of ["/sign-in", "/sign-in?next=%2Fcourse", "/sign-in/factor-one", "/sign-in/sso-callback", "/sign-up", "/sign-up/verify-email-address"]) {
       expect(allowed(await proxy(request(path))), path).toBe(true);
     }
-    for (const path of ["/sign-inx", "/sign-upx", "/joinx", "/join/x", "/login"]) {
-      expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+    // Issue #70: an address that is no page reaches the not-found page, never the sign-in.
+    for (const path of ["/sign-inx", "/sign-upx", "/joinx", "/join/x"]) {
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
     }
   });
 
@@ -81,23 +86,38 @@ describe("The signed-out gate", () => {
     expect((await proxy(request("/course", { method: "POST", headers: { "Next-Action": "abc" } }))).status).toBe(401);
   });
 
-  it("serves any .png or .webp file under /landing-assets/ signed out, the link-preview image among them", async () => {
-    expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
-    expect(allowed(await proxy(request("/landing-assets/workspace.webp")))).toBe(true);
+  // Issue #71: the share images (Home's and one per Example) are public; the old screenshot is gone, so it and any other
+  // name reach the not-found page (issue #70) rather than a file.
+  it("serves the share images signed out, and sends the old screenshot or an unknown card to the not-found page", async () => {
+    for (const path of ["/share-image/home.png", "/share-image/amazon-2000.png", "/share-image/kerala-bumper-2024.png"]) {
+      expect(allowed(await proxy(request(path))), path).toBe(true);
+    }
+    for (const path of ["/landing-assets/workspace-light.png", "/share-image/nope.png", "/share-image/home.webp", "/share-image/a/b.png"]) {
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
+    }
   });
 
   // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.
   it("lets a signed-out visitor read How it works, Examples and each of the five case pages", async () => {
-    const paths = ["/how-it-works", "/examples", ...["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"].map((s) => `/examples/${s}`)];
+    const paths = ["/how-it-works", "/examples", ...["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"].map((s) => `/examples/${s}`)];
     for (const path of paths) {
       expect(allowed(await proxy(request(path))), path).toBe(true);
       expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
     }
   });
 
-  it("sends an unknown case slug to the sign-in, so the public list stays exact", async () => {
+  // Issue #70: an unknown case slug or site address is a 404 for a Visitor, not the sign-in card.
+  it("lets an unknown case slug or site address reach the not-found page", async () => {
     for (const path of ["/examples/nope", "/examples/amazon-2000/x", "/examples/", "/examplesx", "/how-it-works/x"]) {
-      expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
+      expect(reachesNotFound(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
+    }
+  });
+
+  it("still refuses a write or a Server Action call to an unknown address", async () => {
+    for (const path of ["/examples/nope", "/nope"]) {
+      expect(reachesNotFound(await proxy(request(path, { method: "POST" }))), path).toBe(false);
+      expect((await proxy(request(path, { method: "POST", headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
     }
   });
 
@@ -107,9 +127,12 @@ describe("The signed-out gate", () => {
     }
   });
 
-  it("sends every other page to the sign-in", async () => {
-    for (const path of ["/course", "/sessions/1", "/landing-assets/x.txt", "/landing-assets/a/b.png", "/about/x", "/aboutx", "/admin"]) {
+  it("sends every signed-in page to the sign-in, and lets any other address reach the not-found page (issue #70)", async () => {
+    for (const path of ["/course", "/sessions/1", "/admin", "/settings/x", "/welcome"]) {
       expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+    }
+    for (const path of ["/landing-assets/x.txt", "/landing-assets/a/b.png", "/about/x", "/aboutx", "/nope", "/coursex", "/Study"]) {
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
     }
   });
 
@@ -233,9 +256,10 @@ describe("Developer pages (/dev)", () => {
     expect(redirectedToSignIn(await proxy(request("/dev/widgets")))).toBe(true);
   });
 
-  it("do not open for a path that only starts with the same letters", async () => {
-    vi.stubEnv("NODE_ENV", "development");
-    expect(redirectedToSignIn(await proxy(request("/devices")))).toBe(true);
+  it("do not open for a path that only starts with the same letters: it is a 404 (issue #70)", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(reachesNotFound(await proxy(request("/devices")))).toBe(true);
+    expect(redirectedToSignIn(await proxy(request("/dev")))).toBe(true);
   });
 });
 
@@ -378,5 +402,78 @@ describe("Server Actions", () => {
     expect(sources).toHaveLength(2);
     for (const source of sources) expect(matcher.test(source), source).toBe(false);
     expect(matcher.test("/149e9513-01fa-4fb0-aad4-566afd725d1bx")).toBe(true);
+  });
+});
+
+// Issue #69: the gate, the no-store headers and the test matrix read one list (src/site/routes.ts); these fail if they
+// disagree.
+describe("One public-route list", () => {
+  const matcher = new RegExp(`^${config.matcher[0]}$`);
+  /** A next.config header source (`/examples/:slug`) as a pattern for exact paths. */
+  const sourcePattern = (source: string) => new RegExp(`^${source.replace(/:\w+/g, "[^/]+")}$`);
+  const noStore = async () => {
+    const rules = await nextConfig.headers!();
+    return rules.filter((r) => r.headers.some((h) => h.key === "Cache-Control" && /no-store/.test(h.value))).map((r) => r.source);
+  };
+
+  it("the gate lets a signed-out visitor read every public page; one segment further is the not-found page", async () => {
+    for (const { path } of PUBLIC_PAGES) {
+      expect(allowed(await proxy(request(path))), path).toBe(true);
+      expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
+      expect(reachesNotFound(await proxy(request(`${path === "/" ? "" : path}/x-not-a-page`))), `${path}/x`).toBe(true);
+      expect(reachesNotFound(await proxy(request(`${path === "/" ? "" : path}/x-not-a-page`, { method: "POST" }))), `POST ${path}/x`).toBe(false);
+    }
+  });
+
+  it("every public file is served signed out: the matcher skips it or the gate lets it through", async () => {
+    for (const file of PUBLIC_FILES) {
+      for (const path of file.samples) {
+        expect(file.pattern.test(path), path).toBe(true);
+        if (!matcher.test(path)) continue;
+        expect(allowed(await proxy(request(path))), path).toBe(true);
+      }
+    }
+  });
+
+  it("every signed-in root sends a signed-out visitor to the sign-in, or answers 401 for the API", async () => {
+    vi.stubEnv("NODE_ENV", "production"); // /dev is open outside production only
+    for (const root of SIGNED_IN_ROOTS) {
+      for (const path of [root, `${root}/x`]) {
+        const response = await proxy(request(path));
+        if (path.startsWith("/api/")) expect(response.status, path).toBe(401);
+        else expect(redirectedToSignIn(response), path).toBe(true);
+      }
+    }
+  });
+
+  it("every page folder of the app is a public page, a public file's folder, an auth root or a signed-in root", () => {
+    // A public file's folder: the share cards' route (/share-image, issue #71).
+    const fileRoots = PUBLIC_FILES.flatMap((f) => f.samples.map((path) => `/${path.split("/")[1]}`));
+    const listed = new Set([...PUBLIC_PAGES.map((p) => p.path), ...fileRoots, ...AUTH_ROOTS, ...SIGNED_IN_ROOTS]);
+    const app = join(process.cwd(), "src/app");
+    const isDir = (path: string) => statSync(path).isDirectory();
+    /** A folder Next.js answers for: a page or a route handler somewhere under it. */
+    const routed = (dir: string): boolean =>
+      readdirSync(dir).some((name) => /^(page|route)\.tsx?$/.test(name) || (isDir(join(dir, name)) && routed(join(dir, name))));
+    const roots = (dir: string): string[] =>
+      readdirSync(dir)
+        .filter((name) => isDir(join(dir, name)) && !name.startsWith("_") && routed(join(dir, name)))
+        .flatMap((name) => (/^\(.+\)$/.test(name) ? roots(join(dir, name)) : [`/${name}`]));
+    for (const root of roots(app)) expect(listed.has(root), root).toBe(true);
+  });
+
+  it("the headers send exactly the site pages no-store, and no other public page", async () => {
+    const sources = await noStore();
+    expect(sources).toEqual([...NO_STORE_SOURCES]);
+    for (const path of SITE_PAGES) expect(sources.some((s) => sourcePattern(s).test(path)), path).toBe(true);
+    for (const { path } of PUBLIC_PAGES.filter((p) => !SITE_PAGES.includes(p.path))) {
+      expect(sources.some((s) => sourcePattern(s).test(path)), path).toBe(false);
+    }
+    for (const source of sources) expect(SITE_PAGES.some((path) => sourcePattern(source).test(path)), source).toBe(true);
+  });
+
+  it("the test matrix's public pages are the site pages (one case page for the five) and the sign-in page", () => {
+    const shot = MATRIX_PAGES.filter((p) => p.public).map((p) => p.path);
+    expect(new Set(shot)).toEqual(new Set([...SITE_PAGES_ONE_CASE, AUTH_ROOTS[0]]));
   });
 });

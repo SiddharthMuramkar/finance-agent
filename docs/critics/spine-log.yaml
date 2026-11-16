@@ -34,22 +34,22 @@ topics:
     note: Round 3 (critics round 2 after the merge) 1 confirmed, not a Topic fix. The phone-width finding (no Study Workspace under 390px, every turn) is app-wide, out of #90's scope, and needs a triage issue. Round 2 had fixed 3 in c3f9529 (round figures in turn 1, free cash flow leads explore, the three pages as tiles).
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 4
-    lastRound: "dac6b7f"
+    rounds: 5
+    lastRound: "6fc201d"
     open: 0
-    note: Round 4 (#95 critics round) 3 confirmed, fixed in dac6b7f (a Quick try that made the Learner pick 20% of $1bn now has no figures, the check card says the slice taken not kept, the June 2014 round led by Fidelity rather than venture capital investors); widget fit clean.
+    note: Round 5 (#95 Spine critics round 1) 2 confirmed, fixed in 6fc201d (the explore line says 10% of $100bn keeping a fifth and the market readout names "fees on all fares"; the story scene keeps only meaningful Icons).
   spine-05-margins:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 5
-    lastRound: "335e8d1"
+    rounds: 6
+    lastRound: "6fc201d"
     open: 0
-    note: Round 5 (#95 critics round) 2 confirmed, fixed in 335e8d1 (margins-talk asks one judging question with the price optional, "the sums under the margin" in Go deeper said plainly); math police and historian clean, the explore reply now names the tech giants mark.
+    note: Round 6 (#95 Spine critics round 1) 3 confirmed, fixed in 6fc201d (a story scene with the rivals' margins so the story turn keeps three numbers, a two-makers Concept scene, the explore bench draws rivals as faces on a margin ladder with Tesla climbing it).
   spine-06-growth-cost:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 5
-    lastRound: "4b0c752"
+    rounds: 6
+    lastRound: "6fc201d"
     open: 0
-    note: Round 5 (#95 critics round) 6 confirmed, fixed in 4b0c752 (the $1.0bn no longer read as the builder Bechtel price, no product formula in the Concept, EBITDA said without depreciation, plain profit in a Quick try, an unsourced grocer figure replaced by the lever words, cheaper money falls well short).
+    note: Round 6 (#95 Spine critics round 1) 5 confirmed, fixed in 6fc201d ($4.2m named as prospectus sales Jun to Sep 1999, $15 the offer price, the return noted as Webvan's own claim, story and Concept scenes, a centre that fills up on the bench).
   spine-07-risk:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 5
@@ -64,10 +64,10 @@ topics:
     note: Round 3 on the new Topic (#91 critics round 2), no findings; its stack keeps "Cost of capital" as the headline's name.
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 4
-    lastRound: "9dfc570"
+    rounds: 5
+    lastRound: "6fc201d"
     open: 0
-    note: Round 4 (#95 critics round) 3 confirmed, fixed in 9dfc570 (how-much questions reworded to where, the formula in words and the share oddity moved to Go deeper, the header numbers it Spine Topic 9); historian and widget fit clean.
+    note: Round 5 (#95 Spine critics round 1) 5 confirmed, fixed in 6fc201d (the seesaw says in money that after year 10 is worth more than the whole value, the lever questions set one far-future setting against the growth-years rate, story and Lingo scenes).
   spine-09-to-one-share:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 4
@@ -106,10 +106,10 @@ topics:
     note: Round 3 (#96 critics round 1) - the bench was chart-only; fixed with a cast that reacts as the story moves against the price.
   spine-15-value-yourself:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
+    rounds: 4
     lastRound: "b397a74"
     open: 0
-    note: Round 3 (#96 critics round 1) - the Amazon reveal now uses the reported $864 million operating loss on $2,762 million of sales (31 cents a dollar), the Zomato facts were re-checked at source, and the bench has a reacting cast; all fixed.
+    note: Round 4 (#96 critics round 1) - the Amazon reveal gives the reported $864 million operating loss on $2,762 million of sales (31 cents a dollar), Zomato's facts were re-checked at source and its ten-year figures named as his spreadsheet's, and the bench has a reacting cast; all fixed.
   spine-annual-report:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 3

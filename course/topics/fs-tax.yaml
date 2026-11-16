@@ -28,15 +28,23 @@ cases:
       points, or 5.32%, in one day, its biggest single-day gain in over a decade.
 
 concept: >
-  A company pays tax on profit, not on revenue or cash. Tax = profit before tax x tax rate. Interest
-  is deducted before tax, so debt carries a tax shield; depreciation is deducted too, so it reduces
-  tax even though it is not a cash cost. A project's after-tax operating cash flow is therefore
+  A company pays tax on profit, not on revenue or cash: the tax bill is profit before tax
+  multiplied by the tax rate. Interest is deducted before tax, so debt carries a tax shield;
+  depreciation is deducted too, so it reduces tax even though it is not a cash cost. A project's
+  after-tax operating cash flow is therefore the profit after tax plus the depreciation added
+  back, because depreciation lowered the tax but no cash left the business. A lower tax rate
+  raises profit after tax and the cash left for investors, and it also shrinks the value of
+  depreciation and interest shields. In India the effective rate adds surcharge and cess on top
+  of the base rate, which turns a 30% base rate into about 34.94%. Accounting profit and taxable
+  profit can differ by timing, which creates deferred tax.
+
+goDeeper: >
+  In symbols, tax = profit before tax x tax rate. After-tax operating cash flow is
   (revenue - cash costs - depreciation) x (1 - tax rate) + depreciation, equivalently
-  (revenue - cash costs) x (1 - tax rate) + depreciation x tax rate. A lower tax rate raises
-  profit after tax and the cash left for investors, and it also shrinks the value of depreciation
-  and interest shields. In India the effective rate adds surcharge and cess on top of the base rate:
-  30% x 1.12 x 1.04 = 34.94%. Accounting profit and taxable profit can differ by timing, which
-  creates deferred tax.
+  (revenue - cash costs) x (1 - tax rate) + depreciation x tax rate; the last term is the
+  depreciation tax shield. For larger companies in 2019, India's effective rate was
+  30% x 1.12 x 1.04 = 34.94%: the 12% surcharge is charged on the tax, and the 4% cess on tax
+  plus surcharge.
 
 principle: >
   Always use after-tax cash flows, and know which tax rate applies. A change in the rate moves
@@ -157,8 +165,8 @@ checks:
       the project's after-tax cash flows and what a cut of five percentage points in the effective
       rate (say from 35% to 30%) would do to them.
     passCriteria: >
-      The Learner explains that tax is charged on profit, so after-tax cash flow is profit x (1 - tax
-      rate) plus any depreciation add-back. They say in their own words that a cut in the rate
+      The Learner explains that tax is charged on profit, so after-tax cash flow is the profit left once the tax rate's share
+      of it is taken off, plus any depreciation add-back. They say in their own words that a cut in the rate
       leaves more of the profit with the company, which lifts the project's value; and note that depreciation and
       interest shields are worth somewhat less at a lower rate. Mentioning that weak demand, not tax,
       may still limit investment is a plus.

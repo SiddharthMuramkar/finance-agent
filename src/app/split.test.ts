@@ -20,7 +20,7 @@ describe("the split share", () => {
     const rule = css.match(/\.workspace-split \{[^}]*\}/)?.[0] ?? "";
     expect(rule).toContain("--chat-share: 45;");
     expect(rule).toContain("grid-template-columns: minmax(360px, calc((100% - var(--gap)) * var(--chat-share) / 100)) var(--gap) minmax(360px, 1fr);");
-    expect(css).toMatch(/@media \(width >= 1024px\) \{\s*\.workspace-split \{ --chat-share: var\(--split-saved, 45\); \}/);
+    expect(css).toMatch(/\.workspace-split \{\s*@variant lg \{ --chat-share: var\(--split-saved, 45\); \}/);
   });
 
   it("the limits, the keys and the pointer", () => {

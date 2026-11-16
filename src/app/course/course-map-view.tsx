@@ -1,6 +1,8 @@
 import type { TopicOverview } from "@/course/navigator";
 import { backAt } from "@/tutor/park-items";
 import { progressSummary } from "@/course/progress-summary";
+import { ButtonLink } from "../primitives";
+import { TAUGHT_LIVE } from "@/site/copy";
 import { Card, Chevron, Eyebrow, Tag } from "../ui";
 import { BackToPathButton, DoFirstLink, TopicRow, WhatComesNextButton } from "./jump-button";
 
@@ -55,7 +57,7 @@ const passedCount = (group: TopicOverview[]) => `${group.filter((t) => t.status 
  * One Topic row: a whole-row link under a hairline, with its numbered marker. A passed row opens the Topic's Session
  * read-only (the Notebook when it has none); the current row opens the current Topic; any other row chooses it. It
  * shows the status as a static Tag and the Checks passed as "n of m" with a segmented bar; unpassed prerequisites are
- * "Do first" links.
+ * "Do first" links. A Topic not written ahead says it is taught live by the AI Tutor; it opens like any other.
  */
 function Row({ t, place, sessionId, title }: { t: TopicOverview; place: number; sessionId: number | undefined; title: (id: string) => string }) {
   const mode = t.status === "passed" ? "passed" : t.current ? "current" : "choose";
@@ -76,6 +78,7 @@ function Row({ t, place, sessionId, title }: { t: TopicOverview; place: number; 
         {t.current && <span className="font-semibold text-[var(--accent)]">You are here</span>}
         {t.parkedUntil && <span data-parked={t.id}>Parked · back {backAt(t.parkedUntil)}</span>}
         {!!t.usedInSpine?.length && <span data-used-in-spine={t.usedInSpine.join(" ")}>{usedInWords(t.usedInSpine)}</span>}
+        {t.taughtLive && <span data-taught-live>{TAUGHT_LIVE}</span>}
       </p>
       <div className="mt-3 flex items-center gap-2">
         <ul aria-label={`Checks in ${t.title}`} className="flex flex-1 gap-1">
@@ -175,8 +178,11 @@ export function CourseMapView({
   coming = [],
   recommended,
   sessions = {},
+  assignmentOpen = false,
 }: {
   topics: TopicOverview[];
+  /** Whether the Learner has passed the Spine, which opens the Assignment (spec #68). */
+  assignmentOpen?: boolean;
   coming?: ComingTopic[];
   /** What comes next; null once every Topic is passed. */
   recommended: RecommendedNext | null;
@@ -252,6 +258,23 @@ export function CourseMapView({
               ),
             )}
           </ol>
+        </section>
+      )}
+      {spineRows.length > 0 && (
+        <section data-stage="assignment" aria-labelledby="stage-assignment" className="mt-12">
+          <h2 id="stage-assignment" className="type-h2">
+            Assignment
+          </h2>
+          {assignmentOpen ? (
+            <div className="mt-2 flex flex-col items-start gap-3">
+              <p className="text-sm leading-5 text-[var(--muted)]">Value a listed company you pick in India, the US, Japan, Korea or Europe, from its annual report: your Own Case.</p>
+              <ButtonLink href="/assignment" variant="secondary" size="sm" data-assignment-link>
+                Value a company you pick
+              </ButtonLink>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm leading-5 text-[var(--muted)]">Opens once you pass every Spine Topic: then you value a company you pick.</p>
+          )}
         </section>
       )}
       {foundation.length > 0 && (

@@ -51,7 +51,7 @@ export type PresetKey = "damodaran" | "grocer" | "price";
  * capital: $83.69, which shows as $84 ($60bn gives $85 on the engine).
  */
 export const PRESETS: Record<PresetKey, { label: string; levers: Levers }> = {
-  damodaran: { label: "His story", levers: { rev: 39, margin: 10, s2c: 3, wacc: 12.84 } },
+  damodaran: { label: "The published Story", levers: { rev: 39, margin: 10, s2c: 3, wacc: 12.84 } },
   grocer: { label: "A grocer’s margins", levers: { rev: 39, margin: 5, s2c: 3, wacc: 12.84 } },
   price: { label: "One story worth $84", levers: { rev: 59, margin: 12, s2c: 3, wacc: 11.84 } },
 };

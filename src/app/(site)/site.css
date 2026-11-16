@@ -12,7 +12,6 @@
   --gutter-x: max(clamp(16px, 4vw, 32px), env(safe-area-inset-left), env(safe-area-inset-right));
   background: var(--paper);
   color: var(--ink-2);
-  color-scheme: light;
   font-size: 17px;
   line-height: 1.65;
   min-height: 100vh;
@@ -57,7 +56,7 @@
 .v-small { font-size: 14px; line-height: 1.5; color: var(--muted); }
 .v-fine { font-size: 13px; line-height: 1.5; color: var(--muted); }
 .v-eyebrow { font-size: 13px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; color: var(--blue); }
-.v-label { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.v-label { font-family: var(--font-body); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .v-dateline { color: var(--blue); font-weight: 700; text-transform: uppercase; font-size: 0.82em; letter-spacing: 0.04em; }
 .v-dateline + * { margin-left: 0.3em; }
 .site mark.key { background: linear-gradient(transparent 58%, var(--blue-tint-2) 58%); color: var(--ink); font-weight: 600; }
@@ -137,7 +136,7 @@
 
 /* Progress steps (5.17) */
 .v-prog { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.v-prog li { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 12px 4px 6px; border-radius: 999px; background: var(--wash); color: var(--faint); font-size: 13.5px; font-weight: 600; }
+.v-prog li { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 12px 4px 6px; border-radius: 999px; background: var(--wash); color: var(--muted); font-size: 13.5px; font-weight: 600; }
 .v-prog .n { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; background: var(--paper); box-shadow: inset 0 0 0 1px currentColor; }
 .v-prog li.now { background: var(--blue-tint); color: var(--blue); }
 .v-prog li.done { background: var(--gain-tint); color: var(--gain-ink); }
@@ -197,6 +196,9 @@
 .v-sheet { position: absolute; left: 0; right: 0; top: 100%; background: var(--paper); border-bottom: 1px solid var(--rule); box-shadow: var(--lift); padding: 8px var(--gutter-x) 16px; display: grid; }
 .v-sheet a { padding: 12px 0; font-weight: 600; color: var(--ink); border-bottom: 1px solid var(--rule); }
 .v-sheet a:last-child { border-bottom: 0; }
+/* The theme switch (ADR 0019): an icon button beside Menu on a wide screen, a row with a word in the phone menu. */
+.v-theme-btn { width: 36px; padding: 0; justify-content: center; }
+.v-sheet-theme { display: flex; align-items: center; gap: 10px; padding: 12px 0; font: inherit; font-weight: 600; color: var(--ink); background: none; border: 0; border-top: 1px solid var(--rule); text-align: left; cursor: pointer; }
 .v-account { position: relative; }
 .v-account summary { list-style: none; cursor: pointer; }
 .v-account summary::-webkit-details-marker { display: none; }
@@ -212,6 +214,10 @@
 .v-footer nav { display: flex; flex-wrap: wrap; gap: 0 24px; font-size: 15px; font-weight: 500; }
 /* 4 px above and below make each link a 33 px target (the audits' 28 px floor for a nav link); the row gap shrinks to match. */
 .v-footer nav a { padding: 4px 0; }
+.v-footer-row + .v-footer-row { margin-top: 16px; }
+.v-legal-links { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 24px; }
+.v-contact { user-select: all; color: var(--ink-2); }
+.v-legal { padding-bottom: clamp(64px, 8vw, 112px); gap: 40px; }
 .v-footer nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Home hero (7.2.1) */
@@ -302,6 +308,9 @@
 .v-split-head { display: grid; gap: 14px; align-content: start; }
 .v-trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; list-style: none; margin: 0; padding: 0; }
 .v-trust li { border-top: 2px solid var(--ink); padding-top: 16px; display: grid; gap: 8px; align-content: start; }
+.v-end-note { margin: 0; display: grid; gap: 12px; }
+.v-end-note ul { list-style: none; margin: 0; padding: 0; }
+.v-end-note li { border-top: 1px solid var(--rule); padding: 8px 0; font-variant-numeric: tabular-nums; }
 
 /* Closing (7.2.8) */
 .v-closing { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(32px, 5vw, 72px); align-items: end; }
@@ -340,7 +349,7 @@
 .v-lingo dd { margin: 0; }
 .v-mock { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; padding: 16px; position: relative; }
 .v-mock-chat { display: grid; gap: 10px; align-content: start; }
-.v-mock-input { border: 1px solid var(--line); border-radius: var(--r-btn); padding: 10px 14px; color: var(--faint); font-size: 15px; background: var(--paper); }
+.v-mock-input { border: 1px solid var(--line); border-radius: var(--r-btn); padding: 10px 14px; color: var(--muted); font-size: 15px; background: var(--paper); }
 .v-mock-widget { display: grid; gap: 12px; align-content: start; }
 .v-stepbar { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 3px; grid-column: 1 / -1; }
 .v-stepbar span { height: 6px; border-radius: 3px; background: var(--wash-2); }
@@ -351,9 +360,8 @@
 .v-legend .v-callout { position: static; flex: none; }
 .v-path { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 64px); }
 .v-core { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
-.v-core li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 15.5px; }
+.v-core li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 15.5px; }
 .v-core .n { color: var(--muted); font-variant-numeric: tabular-nums; }
-.v-core .min { color: var(--muted); font-size: 14px; white-space: nowrap; }
 .v-counts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .v-counts li { display: flex; justify-content: space-between; gap: 12px; font-size: 15.5px; border-bottom: 1px solid var(--rule); padding: 8px 0; }
 
@@ -426,7 +434,7 @@
 @media (max-width: 860px) {
   .v-navlinks { display: none; }
   .v-menu-btn { display: inline-flex; }
-  .v-nav-right .v-signin { display: none; }
+  .v-nav-right .v-signin, .v-nav-right .v-theme-btn { display: none; }
   .v-moves { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 24px; }
   .v-moves li:nth-child(3) { border-left: 0; padding-left: 0; }
   .v-colours { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -438,13 +446,23 @@
   .v-qrow .meta { grid-column: 1 / -1; grid-auto-flow: column; justify-content: start; align-items: center; }
   .v-qrow .v-mini { display: none; }
   .v-trust, .v-closing { grid-template-columns: minmax(0, 1fr); }
-  .v-bars { justify-content: flex-start; height: 140px; }
+  /* #74: on a phone the bars sat under the CTA like an empty chart. */
+  .v-bars { display: none; }
 }
 @media (max-width: 640px) {
+  /* A phone puts the Tutor demo right under the h1 (spec 7.2.1, #73): something to play without scrolling. */
+  .v-hero { gap: 20px; }
+  .v-hero-copy { display: contents; }
+  .v-hero > .v-demo { order: 1; }
+  .v-hero-copy > :not(.v-eyebrow):not(h1) { order: 2; }
   .v-pager { grid-template-columns: minmax(0, 1fr); }
   .v-pager a.next { text-align: left; }
 }
 @media (max-width: 560px) {
+  /* #74: one fact a row, so three facts never leave an empty cell; the join steps stack, with no rule left dangling. */
+  .v-facts { grid-template-columns: minmax(0, 1fr); }
+  .v-join-steps { flex-direction: column; align-items: flex-start; }
+  .v-join-steps li + li::before { display: none; }
   .v-nav .v-continue { min-height: 40px; }
   .v-nav .v-continue .sub { display: none; }
   .v-colours { grid-template-columns: minmax(0, 1fr); }

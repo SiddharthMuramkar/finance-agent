@@ -58,8 +58,12 @@ const PARTS: Part[] = [
   })),
   ...["value-bridge", "terminal-seesaw", "wacc-stack", "cash-waterfall", "multiple-decoder"].map((root) => ({ ticket: "B4", fixture: root, root })),
   { ticket: "B4", fixture: "cash-waterfall-company", root: "cash-waterfall" },
+  // Market readings beside the Levers (#105): words and a 2 px sourced edge, never a fill.
+  { ticket: "#105", fixture: "value-levers-readings", root: "value-levers", press: '[data-story="case"]' },
+  { ticket: "#105", fixture: "wacc-stack-readings", root: "wacc-stack" },
 ];
-const PROJECTS = ["mbp14"];
+// And mbp14-dark: the same audits in Dark (ADR 0019, #80), on a device set to dark.
+const PROJECTS = ["mbp14", "mbp14-dark"];
 const NONE = { fills: [], text: [], shadows: [], tilted: [], heavy: [], semibold: [] };
 const SHOTS = join("docs", "specs", "img", "2026-11-11");
 

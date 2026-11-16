@@ -798,11 +798,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
@@ -989,11 +991,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
@@ -1515,11 +1519,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
@@ -1706,11 +1712,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
@@ -1775,11 +1783,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",

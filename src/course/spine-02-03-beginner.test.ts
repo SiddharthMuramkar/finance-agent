@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { annuityBreakEven } from "@/finance/present-value";
 import { loadCourseMap } from "./map";
 import { courseOverview, navigate, type Progress } from "./navigator";
 import { topicTexts } from "./topic-texts";
@@ -92,7 +93,22 @@ describe("Spine Topic 2 after the critics' round 1", () => {
     expect(code).toMatch(/root = Widget\([^\n]*\bscene\b/);
     // It reacts only where a task already ticks, so it never gives away which side wins before the Insight is settled.
     expect(code).toMatch(/\$rate == 0 \?/);
-    expect(code).toMatch(/\$rate >= 3\.33 && \$rate <= 3\.43 \?/);
+    expect(code).toMatch(/\$rate >= 3\.36 && \$rate <= 3\.39 \?/);
+  });
+
+  it("calls the payments and the cash about the same only within 0.02 points of the break-even code works out (G12)", () => {
+    // At the 30-year Treasury rate (3.33%) the payments are still worth $6.3M more than the cash, so the scene's
+    // "about the same", its balance face and the "even" task all use the band the Present value Elective uses.
+    const code = lottery.widgets.find((w) => w.id === "ml-annuity")!.code;
+    const bands = [...code.matchAll(/\$rate >= ([\d.]+) && \$rate <= ([\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+    expect(bands).toHaveLength(3);
+    const rates = Array.from({ length: 1001 }, (_, i) => Number((i * 0.01).toFixed(2)));
+    for (const cashOption of [877_800_000, 877_784_124]) {
+      const breakEven = annuityBreakEven({ total: 1_537_000_000, payments: 30, growthPercent: 5 }, cashOption)!;
+      const near = rates.filter((rate) => Math.abs(rate - breakEven) <= 0.02);
+      for (const [low, high] of bands) expect(rates.filter((rate) => rate >= low && rate <= high)).toEqual(near);
+    }
+    expect(code).toMatch(/worth about the same/);
   });
 });
 

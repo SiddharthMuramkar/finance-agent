@@ -188,6 +188,7 @@ export const waccStackProps = z.object({
     .string()
     .nullish()
     .describe("The Valuation Case whose value a share the rate sets, if any"),
+  readings: z.array(z.string()).nullish().describe("Market readings shown beside the levers, by id"),
 });
 
 function WaccStackPart({
@@ -218,6 +219,7 @@ function WaccStackPart({
       onLeversChange={set}
       ticked={saved?.ticked}
       onTicked={saved?.onTicked}
+      readings={props.readings ?? []}
     />
   );
 }

@@ -1,6 +1,6 @@
 import type { Check, CourseMap, StepSetting, Topic } from "./map";
 import type { Subject } from "./outline";
-import { testedSkills } from "./tested-skills";
+import { isConverted, testedSkills } from "./tested-skills";
 import type { QuestionLookup } from "./quiz";
 import { conditionValue, type SavedWork } from "./written-ahead";
 
@@ -128,6 +128,15 @@ export function defaultPath(map: CourseMap): Topic[] {
   if (!spineLive(map) && offSpine.length) return offSpine;
   const spine = map.topics.filter((t) => t.stage === "spine").sort((a, b) => (a.spine ?? 0) - (b.spine ?? 0));
   return [...spine, ...AFTER_SPINE.flatMap((stage) => map.topics.filter((t) => t.stage === stage))];
+}
+
+/**
+ * Whether the Learner has passed the Spine (spec #68): every written Spine Topic passed. The Assignment after it opens
+ * only then (ADR 0020). A course with no Spine Topic written has no Spine to pass.
+ */
+export function spinePassed(map: CourseMap, progress: Progress): boolean {
+  const spine = map.topics.filter((t) => t.stage === "spine");
+  return spine.length > 0 && spine.every((t) => isPassed(progress, t.id));
 }
 
 /** The Welcome's first Topic (spec C6): the first on the default path, which is Spine Topic 1 once the Spine is live. */
@@ -567,6 +576,8 @@ export type TopicOverview = {
   minutes?: number;
   /** The Spine Topics that use this Topic's idea, by number, lowest first (their `drawsOn`, spec C6); absent when none does. */
   usedInSpine?: number[];
+  /** True when the Topic is not written ahead (not a Converted Topic), so the Tutor teaches it live in each Turn; absent otherwise. */
+  taughtLive?: boolean;
 };
 
 /**
@@ -615,6 +626,7 @@ export function courseOverview(map: CourseMap, progress: Progress, parked?: Park
       ...(topic.spine !== undefined ? { spine: topic.spine } : {}),
       ...(topic.minutes !== undefined ? { minutes: topic.minutes } : {}),
       ...(used ? { usedInSpine: used } : {}),
+      ...(isConverted(topic) ? {} : { taughtLive: true }),
     };
   });
 }

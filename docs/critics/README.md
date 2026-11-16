@@ -1,6 +1,6 @@
 # Critics
 
-One prompt file per critic, written once, so the same critic judges the same way on every ticket. They are S6 agents: they judge what tests cannot. They never edit anything. The look they judge: colour by ADR 0015 (one Light theme in the Signal colour language, saturated colour only in small marks) and the rest by ADR 0018 (flat controls, hairlines, line Icons).
+One prompt file per critic, written once, so the same critic judges the same way on every ticket. They are S6 agents: they judge what tests cannot. They never edit anything. The look they judge: colour by ADR 0015 (the Signal colour language, saturated colour only in small marks) in both themes of ADR 0019 (Light and Dark, each re-stepped, never inverted) and the rest by ADR 0018 (flat controls, hairlines, line Icons).
 
 | File | Spec | Tier |
 |---|---|---|

@@ -15,6 +15,22 @@ describe("raw-formula detector", () => {
     "WACC = (E/V) x Re + (D/V) x Rd x (1 - T)",
     "The value is amount / (rate - growth).",
     "The sum is Σ of each payment.",
+    // Formulas built from words or letters (review F10): every one of these was on a Topic's main path.
+    "The cost of equity is then riskfree rate + beta x (mature market premium + CRP).",
+    "GDP by spending is C + I + G + (X - M).",
+    "The price per share is pre-money valuation / shares outstanding before the round.",
+    "Their share is multiplied by (1 - new investors' share).",
+    "The share can only go up to S x u or down to S x d.",
+    "An asset with duration D loses about D x the change in yield.",
+    "A cost of equity of 12.90% (6.5% + 1.60 x 4%).",
+    "After-tax cash flow is profit × (1 - tax rate).",
+    "Enterprise value divides (market value of equity + debt - cash) by a measure of the business.",
+    "Probability of survival x going concern value + probability of distress x distress sale value.",
+    "At expiry a call is worth max(S - K, 0).",
+    // A payoff typed as a function, even with no letters between capitals (review 2, G30).
+    "A put pays max(strike - price, 0) at expiry.",
+    "The floor is min(loss, cap).",
+    "The weights are E / V and D / V.",
   ])("flags the typed formula %j", (text) => {
     expect(hasRawFormula(text)).toBe(true);
   });
@@ -30,6 +46,12 @@ describe("raw-formula detector", () => {
     "Waiting one year at 10% means dividing by 1.10 once.",
     "Read it at https://example.com/page?year=2018&rate=5 for the details.",
     "Revenue was at least 5 and at most 10, i.e. a >= 5 test in prose is not a formula.",
+    "The draw - a lottery - paid out in 2019, and Topic 2 - the annuity - explains why.",
+    "A 5x return and a 2x2 grid; 18+ readers only; buy and/or sell.",
+    "Multiply 1.60 by the 4% premium and add the 6.5% riskfree rate.",
+    "Plan A - the cheap one - won, and Plan B - the dear one - lost.",
+    "* A Markdown bullet\n* another bullet\nand a line after it.",
+    "The max (most) a buyer can lose is the premium; at a minimum (min) it is zero.",
   ])("leaves %j alone", (text) => {
     expect(rawFormulaHits(text)).toEqual([]);
   });

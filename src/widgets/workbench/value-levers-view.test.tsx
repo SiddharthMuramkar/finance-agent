@@ -171,3 +171,65 @@ describe("a Case whose figure is not a price (price.label): the bar's accessible
     expect(bar()).toMatch(/, with the price of \$84 (inside the range|above it|below it)$/);
   });
 });
+
+// Spine critics round 1 (Spine Topic 15, widget-fit): each lever carries a line Icon for its idea, the value bar and the
+// story's mark glide when a lever moves (not under reduced motion), and the price mark marks the moment a story reaches it.
+describe("Value levers' liveliness", () => {
+  const specs = leverSpecs(amazon);
+  const stories = valueLeversStories(amazon, specs, { caseStory: "Damodaran's story", priceStory: { revenue: 60, margin: 12.5 } });
+
+  it("draws a meaningful Icon on every lever, glides the bar, and marks the price when a story reaches it", async () => {
+    await act(async () => {
+      root.render(<ValueLeversView block={amazon} stories={stories} tasks={valueLeversTasks(amazon)} />);
+    });
+    const icons = [...host.querySelectorAll('[data-testid="slider"] [data-icon]')].map((i) => i.getAttribute("data-icon"));
+    expect(icons).toEqual(expect.arrayContaining(["chart-increasing", "money-bag", "factory", "guard"]));
+    const fill = host.querySelector('[data-testid="value-levers-fill"]')!;
+    expect(fill.className).toMatch(/transition-\[width\]/);
+    expect(fill.className).toMatch(/motion-reduce:transition-none/);
+    const price = () => host.querySelector('[data-testid="value-levers-price-marker"]')!;
+    expect(price().hasAttribute("data-reached")).toBe(false);
+    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Operating margin once mature"), 12.5);
+    await settle();
+    expect(price().hasAttribute("data-reached")).toBe(true);
+  });
+});
+
+// Spine critics round 1 on #95 (widget fit): Topic 5's and Topic 6's benches were only sliders and a stat (chart only), so
+// margin marks draw rivals as faces on a ladder with Tesla's face climbing it, and roic draws Webvan's centre filling up.
+describe("a mode's picture in the Spine Topics' explore Workbenches", () => {
+  const draw = async (topic: string) => {
+    const widget = exploreWidgetOf(loadCourseMap().topic(topic)!);
+    expect(widget).not.toBeNull();
+    await act(async () => {
+      root.render(<WidgetView code={widget!.code} complete />);
+    });
+    await settle();
+  };
+
+  it("Topic 5: a ladder of rivals' faces, and a line naming whom Tesla's margin passes as it moves", async () => {
+    await draw("spine-05-margins");
+    const ladder = host.querySelector('[data-testid="value-levers-ladder"]');
+    expect(ladder).not.toBeNull();
+    expect(ladder!.querySelectorAll('[data-face="rival"]')).toHaveLength(3);
+    expect(ladder!.querySelectorAll('[data-face="you"]')).toHaveLength(1);
+    expect(host.querySelector('[data-testid="value-levers-ladder-line"]')?.textContent).toBe("Keeps 12%: more than Toyota, the best large carmaker, less than Tech giants together");
+    setRange(lever("Operating margin once mature"), 20);
+    await settle();
+    expect(host.querySelector('[data-testid="value-levers-ladder-line"]')?.textContent).toBe("Keeps 20%: more than every mark");
+  });
+
+  it("Topic 6: Webvan's centre fills with sales for each dollar, the face frowning once new capital earns less than it costs, and the note says whose claim it is", async () => {
+    await draw("spine-06-growth-cost");
+    const centre = () => host.querySelector('[data-testid="value-levers-centre"]');
+    expect(centre()?.getAttribute("data-face")).toBe("slightly-smiling-face");
+    expect(host.querySelector('[data-testid="value-levers-readout-note"]')?.textContent).toMatch(/own claims/);
+    expect(host.textContent).toContain("Sales, Jun to Sep 1999: $4.2m");
+    expect(host.textContent).toContain("Offer price on 4 Nov 1999");
+    setRange(lever("Operating margin once mature"), 4);
+    setRange(lever("Sales for each dollar invested"), 1);
+    await settle();
+    expect(centre()?.getAttribute("data-face")).toBe("worried-face");
+  });
+});

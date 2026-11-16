@@ -91,8 +91,9 @@ Give 2 to 4 recent CI run ids (the number in the run's URL). The script reads ea
 lists the current tests, and prints the best weights and the time each shard will take. Put the weights in `ci.yml`.
 Wrong weights only make the shards unequal. Every test still runs in exactly one shard.
 
-The weights of 2026-11-15 suit the projects of that day and also the list without the `mbp14-dark` project (the Signal
-site work removes it). Tune them again after that change lands.
+The weights of 2026-11-16 were tuned for the `mbp14-dark` project coming back (#80, ADR 0019). It runs only the specs in
+`DARK_SPECS` (`playwright.config.ts`). Many of its tests had no CI time yet and were guessed at their project's average,
+so tune them again from the first CI runs that include it.
 
 ## Node version
 

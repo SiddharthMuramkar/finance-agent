@@ -667,7 +667,8 @@ const topicSchema = z.object({
   concept: z.string().min(1),
   /**
    * Go deeper material (spec 2026-11-12 H1): an idea beyond the Topic's Checks that the Tutor may use when the Learner
-   * presses Go deeper or asks about it. No Check, Skill or Lingo term tests it, so the Tutor never quizzes it. Words only.
+   * presses Go deeper or asks about it. No Check, Skill or Lingo term tests it, so the Tutor never quizzes it. The one
+   * text that may hold a typed formula or a Formula Card marker (spec #68, ADR 0003; the course check skips it).
    */
   goDeeper: z.string().trim().min(1).optional(),
   /** The named formulas this Topic teaches, each shown only as a Formula Card (IDs from the formula registry). */

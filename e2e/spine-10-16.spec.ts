@@ -6,8 +6,8 @@ import { quietDevtools, replyLanded, script, settled, signIn, type Script } from
 
 /**
  * Spine Topics 10 to 16 for beginners (#96, spec #68): the first three Tutor Turns, Story, Concept and Explore, of each
- * Topic #96 changed (one share, survival, story to numbers, price or value, what the price assumes, being wrong, value
- * one yourself), played on the Test bed with the scripted Tutor (src/dev/e2e-tutor.ts, the `oneshare-*`, `survive-*`,
+ * Topic #96 changed (one share, survival, story to numbers, price or value, what the price assumes, being wrong, judge
+ * a published valuation), played on the Test bed with the scripted Tutor (src/dev/e2e-tutor.ts, the `oneshare-*`, `survive-*`,
  * `numbers-*`, `multiple-*`, `assumes-*`, `wrong-*` and `yourself-*` scripts). It checks that each Topic plays
  * its three turns with its explore Workbench on the stage at explore, and writes what the Spine
  * critics read (docs/critics): the transcript of Learner, Tutor, Widget and Choices (in the test's output folder, or
@@ -26,7 +26,7 @@ const TOPICS = [
   { id: "spine-12-price-or-value", seed: "spine-12-start", title: "Is a price a value?", scripts: ["multiple-story", "multiple-concept", "multiple-explore"], bench: "multiple-decoder" },
   { id: "spine-13-price-assumes", seed: "spine-13-start", title: "What does the price assume?", scripts: ["assumes-story", "assumes-concept", "assumes-explore"], bench: "value-levers" },
   { id: "spine-14-being-wrong", seed: "spine-14-start", title: "How do you live with being wrong?", scripts: ["wrong-story", "wrong-concept", "wrong-explore"], bench: "value-levers" },
-  { id: "spine-15-value-yourself", seed: "spine-15-start", title: "Value one yourself, as of a past date", scripts: ["yourself-story", "yourself-concept", "yourself-explore"], bench: "value-levers" },
+  { id: "spine-15-value-yourself", seed: "spine-15-start", title: "Judge a published valuation, as of a past date", scripts: ["yourself-story", "yourself-concept", "yourself-explore"], bench: "value-levers" },
 ] as const;
 
 /** The script's reply landed as written: a Tutor reply on the page holds its first sentence. */

@@ -8,7 +8,7 @@ export const authNote = "text-sm leading-5 text-[var(--muted)]";
 /**
  * The frame of the sign-in pages (/sign-in, /sign-up and /join; issue #33): the site chrome (Signal spec 4.1 to 4.3: its
  * nav and footer, as on every public page) drawn for a visitor, because the proxy sends a signed-in visit to /sign-in on
- * before this page draws; the nav reads the address, so it marks Sign in on /sign-in and drops Join early access on all
+ * before this page draws; the nav reads the address, so it marks Sign in on /sign-in and drops Join the waitlist on all
  * three. Then a Band across the top holding the page's one heading (F1), the narrow single-task column and the way back
  * Home.
  */

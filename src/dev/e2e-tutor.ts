@@ -24,6 +24,34 @@ const SPINE_ONE_LEVERS = {
   facts: {},
 };
 
+/** The ready-Case valuation Topic's explore Workbench (its Topic file's explore.workbench), as the Tutor shows it with show_widget. */
+const SPINE_FIFTEEN_LEVERS = {
+  title: "Judge a published story",
+  inputs: {
+    case: "amazon-yourself-2000",
+    caseStory: "The story it opens on",
+    mode: {
+      kind: "match_price",
+      scene: {
+        cast: [
+          { icon: "person", name: "You" },
+          { icon: "chart-increasing", name: "The market" },
+        ],
+        below: "The market: buyers paid more than this story is worth. Which lever do they see higher?",
+        near: "You: this story lands near the price. Which lever would I still doubt?",
+        above: "The market: this story is worth more than buyers paid. Which lever do they doubt?",
+      },
+      cases: [
+        { id: "amazon-yourself-2000", label: "Amazon, Feb 2000" },
+        { id: "coffee-day-yourself-2015", label: "Coffee Day, Oct 2015" },
+        { id: "zomato-yourself-2021", label: "Zomato, Jul 2021" },
+      ],
+    },
+  },
+  refs: {},
+  facts: {},
+};
+
 /** The report's page beside the annual report Topic's Value bridge, copied from its Topic file as the Tutor copies it (ADR 0010). */
 const AR_REPORT = {
   title: "Amazon's 10-K for 2000",
@@ -778,6 +806,74 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /**
+   * The ready-Case valuation Topic (spine-15-value-yourself, e2e/spine-15-judge.spec.ts): the Learner judges a published
+   * Story. Its figures are the Topic file's (Amazon's $84 price, $1,117 million of sales and a $410 million loss).
+   */
+  "spine15-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon sells books and music online, and its shares cost $84. " +
+              "In the twelve months to September 1999 it sold $1,117 million and lost $410 million on its operations. " +
+              "A professor, Aswath Damodaran, has published what he thinks its future looks like, and what that makes a share worth. " +
+              "This Topic is about judging a story like his.\n\n" +
+              "Which part of a story like his would you want to check first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** Concept: a published valuation is a story set as four levers; judging it means finding the lever it rests on. */
+  "spine15-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A published valuation is someone's story, set as four levers: how big it gets, what it keeps, what growth costs and how risky it is. " +
+              "Judging it means finding the lever its value rests on most, then asking what the price assumes instead.\n\n" +
+              "Which of the four levers would you check first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** Explore: the Tutor opens the Topic's Value levers Workbench, a chip for each company, and asks the Insight question. */
+  "spine15-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_spine15_levers", name: "show_widget", input: { recipe: "value_levers", params: SPINE_FIFTEEN_LEVERS } }] },
+      {
+        content: [
+          text(
+            "Here is his Amazon story as four levers, with a chip for each company. " +
+              "Move one lever at a time and watch which one moves the value most; the readout names any lever that reaches the price alone.\n\n" +
+              "Which lever does his story rest on most?",
+          ),
+        ],
+      },
+    ],
+  },
+  /**
+   * The Tutor in the Assignment (spec #68, ticket #110; e2e/assignment-tutor.spec.ts): the Own Case's operating margin is
+   * flagged, so the reply names it and asks what story it assumes, with no verdict or advice word (V9, V10).
+   */
+  "assignment-flag": {
+    step: "none",
+    replies: [
+      {
+        content: [
+          text(
+            "Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it.\n\n" +
+              "What story about the company does a 45% operating margin assume?",
+          ),
+        ],
+      },
+    ],
+  },
   // ——— The split of Topic 7 (#91, e2e/spine-rate-split.spec.ts): the first three turns of the risk Topic (the cost of
   // equity) and of the cost-of-capital Topic, for the critics' round. Every figure is its Topic file's Case.
   /** The risk Topic's opener at Story: what Amazon's shareholders should require. */
@@ -994,7 +1090,7 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here are Damodaran's levers for Uber, starting from his story: a fifth of $100 billion of fares, growing 6% a year. " +
+            "Here are Damodaran's levers for Uber, starting from his story: 10% of $100 billion of fares, keeping a fifth of each, growing 6% a year. " +
               "Keep everything else where he set it and switch to the market three times bigger, then watch the value against the venture price.\n\n" +
               "What are the professor and the investors really disagreeing about?",
           ),
@@ -1009,10 +1105,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "February 2020. Tesla sold $24.6 billion of cars and more in 2019, and kept almost none of it as operating profit. " +
+            "February 2020. Tesla kept almost none of its 2019 sales as operating profit. " +
               "Its shares closed at $748.96, while Damodaran had valued it at about $427 a share. " +
-              "In 2019 the median global carmaker kept 3.01% of its sales, and Toyota, the best of the large ones, kept 8.46%. " +
-              "The median technology company kept 10.25%.\n\n" +
+              "Most carmakers keep a few cents of each dollar they sell; the big tech companies keep far more.\n\n" +
               "Is Tesla a carmaker or a technology company, do you think?",
           ),
         ],
@@ -1057,10 +1152,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "March 2000. Webvan, an online grocer, delivers from one centre in Oakland built for the volume of about 18 supermarkets, and it runs at under 25% of that. " +
-              "In 1999 it sold $13.3 million and lost $144.6 million. " +
-              "Its plan is up to 26 more centres over three years, at $30 million to $35 million each. " +
-              "Webvan says a full centre would keep 12% of its sales as operating profit, where a supermarket keeps about 4%.\n\n" +
+            "March 2000. Webvan, an online grocer, sold $13 million of groceries in 1999 and lost $145 million. " +
+              "Its one centre, in Oakland, runs far below what it was built for, yet it plans 26 more at about $30 million each. " +
+              "Webvan says a full centre would keep far more of each sale than a supermarket does.\n\n" +
               "Would you lend Webvan the money for the next centre?",
           ),
         ],
@@ -1106,8 +1200,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "February 2000. Amazon's shares cost $84, and Damodaran forecasts its cash for ten years. " +
-              "In his story Amazon spends heavily to grow, loses cash in each of the first six years, and only turns cash-positive in year 7. " +
-              "Nobody can forecast year 11, year 30 or year 60 one by one, so for everything after year 10 he sets a few things once: Amazon grows 6% a year for ever, and investors want 9.61% a year.\n\n" +
+              "In his story Amazon loses cash for years while it grows, and only later turns it round. " +
+              "Nobody can forecast every year after that one by one, so for all of them he sets a few things once, above all how fast Amazon grows for ever and what investors want.\n\n" +
               "Where do you think most of his value comes from: the ten years he forecasts, or the years after?",
           ),
         ],
@@ -1146,9 +1240,9 @@ export const E2E_SCRIPTS = {
     ],
   },
   // ——— Spine Topics 10 to 16 for beginners (#96, e2e/spine-10-16.spec.ts): the first three turns of the one-share,
-  // survival, story-to-numbers, price-or-value, price-assumes, being-wrong and value-yourself Topics, for the critics'
-  // round. Every figure is its Topic file's Case. Code opens each Topic's explore Workbench, so the explore replies only
-  // point at it.
+  // survival, story-to-numbers, price-or-value, price-assumes, being-wrong and ready-Case valuation (spine-15-value-yourself:
+  // judge a published valuation, #92) Topics, for the critics' round. Every figure is its Topic file's Case. Code opens
+  // each Topic's explore Workbench, so the explore replies only point at it.
   /** The one-share Topic's opener at Story: from Amazon's business to one share. */
   "oneshare-story": {
     step: "story",
@@ -1427,7 +1521,7 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
-  /** The value-yourself Topic's opener at Story: Amazon in February 2000, with every lever open. */
+  /** The ready-Case valuation Topic's opener at Story: Amazon in February 2000, and one professor's published story to judge. */
   "yourself-story": {
     step: "story",
     replies: [
@@ -1435,38 +1529,39 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "February 2000. Amazon sells books, music and more online, and its shares cost $84. In the twelve months to September 1999 it sold $1,117 million " +
-              "and lost $410 million on its operations. Specialty retailers keep about 10% of each sale.\n\n" +
-              "What about Amazon's future would you most want to think through first?",
+              "and lost $410 million on its operations. Specialty retailers keep about 10% of each sale. One professor has published his story of Amazon's future, " +
+              "for you to judge lever by lever.\n\n" +
+              "Which part of his story would you want to check first?",
           ),
         ],
       },
     ],
   },
-  /** The value-yourself Topic's Concept: fix a date, set four levers with reasons. Code shows the Concept card. */
+  /** The ready-Case valuation Topic's Concept: fix the date, read the story as four levers, find the one it rests on. Code shows the Concept card. */
   "yourself-concept": {
     step: "concept",
     replies: [
       {
         content: [
           text(
-            "To value a company yourself, fix a date and use only what was known on it. Set each of the four levers with a reason: how big it gets, what it keeps, " +
-              "what growth costs and how risky it is. Check the levers hold together, read the value against the price of the day, and write the valuation down to judge later.\n\n" +
-              "Which lever would you set first for Amazon?",
+            "To judge a published valuation, fix its date and use only what was known on it. Read the story as four levers: how big it gets, what it keeps, " +
+              "what growth costs and how risky it is. Find the lever its value rests on most, check the story holds together, and ask what the price of the day assumes instead.\n\n" +
+              "Which lever would you check first in the professor's Amazon story?",
           ),
         ],
       },
     ],
   },
-  /** The value-yourself Topic's Explore: Value levers with every lever open, opened by code. */
+  /** The ready-Case valuation Topic's Explore: Value levers on the published story, a chip for each company, opened by code. */
   "yourself-explore": {
     step: "explore",
     replies: [
       {
         content: [
           text(
-            "Here are the levers, opening on one professor's story for Amazon, with Coffee Day and Zomato to pick from too. " +
-              "Pick a company and set every lever to what you believe.\n\n" +
-              "Which lever does your value rest on most?",
+            "Here are the levers, opening on one professor's published story for Amazon, with Coffee Day and Zomato to pick from too. " +
+              "Move one lever at a time and watch which one moves the value most; the readout names any lever that reaches the price alone.\n\n" +
+              "Which lever does his story rest on most?",
           ),
         ],
       },

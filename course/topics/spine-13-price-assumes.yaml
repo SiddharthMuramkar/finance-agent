@@ -123,6 +123,9 @@ explore:
           below: "The market: $84 asks for more than these settings. Which lever must move, and how far?"
           near: "Damodaran: this is a story worth $84. Is it one you would believe?"
           above: "The market: these settings are worth more than $84. What would make them come true?"
+      # Market readings beside the levers (ticket #105): before the Reveal, only what was known on the Case's As-of date in
+      # its own market (Owner decision, 2026-11-16): the US Treasury bond rate at the end of 1999 (src/markets/readings.ts).
+      readings: [us-risk-free-10y-1999]
 
 connections:
   - text: "Spine Topic one sets a story forwards into a value; this Topic runs the same levers backwards from the price."

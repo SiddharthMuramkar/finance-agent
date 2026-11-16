@@ -9,7 +9,7 @@ import { navigate } from "@/course/navigator";
 import { finishForPlacement } from "@/behaviour/place";
 import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { getDb } from "@/db/client";
-import { insightAttempts, messages, reviewCards, sessions } from "@/db/schema";
+import { insightAttempts, libraryPassages, librarySources, messages, reviewCards, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
@@ -34,10 +34,10 @@ export const runtime = "nodejs";
  * a named state on the fresh Learner (signing this browser in as it); `POST {script}` picks the scripted Tutor's next
  * reply; `POST {reset: true}` is `{state: "fresh"}`; `GET` says which database is open.
  *
- * `POST {person: "owner" | "asha"}` (issue #33) signs this browser in as one of the test bed's people
+ * `POST {person: "owner" | "asha" | "ravi"}` (issue #33) signs this browser in as one of the test bed's people
  * (src/dev/e2e-identity.ts): Clerk is off in the test bed, so a signed `fa_e2e_person` cookie stands in for a Clerk
  * session, and the person's Learner is found or made as a first Clerk sign-in makes it. The owner is the admin.
- * Idempotent: the same person and Learner come back.
+ * Idempotent: the same person and Learner come back. `ravi` (spec #68) comes back with every Spine Topic passed.
  *
  * Closed (404) unless the test bed is on (`E2E=1`, never in production or on Vercel) AND the database is the in-memory
  * PGlite, so it can never write to Neon even if a flag leaks; 403 for any Learner but the tools Learner.
@@ -326,6 +326,14 @@ async function passTopic(db: Db, map: CourseMap, learnerId: number, now: Date, t
   await walk(db, map, learnerId, now, topicId, () => false);
 }
 
+/** Passes every Spine Topic not passed yet, walked as a Learner would (spec #68: the test bed's "Spine passed" person). */
+async function passSpine(db: Db, map: CourseMap, learnerId: number, now: Date) {
+  const progress = await loadProgress(db, learnerId);
+  for (const t of map.topics.filter((t) => t.stage === "spine").sort((a, b) => (a.spine ?? 0) - (b.spine ?? 0))) {
+    if (progress.topics[t.id]?.status !== "passed") await passTopic(db, map, learnerId, now, t.id);
+  }
+}
+
 function open(): boolean {
   return e2eEnabled(process.env) && globalThis.__faE2eIsPglite === true;
 }
@@ -348,6 +356,7 @@ async function signInPerson(person: unknown): Promise<NextResponse> {
   if (!isE2ePerson(person)) return NextResponse.json({ error: `No person "${String(person)}".`, people: Object.keys(E2E_PEOPLE) }, { status: 400 });
   const identity = E2E_PEOPLE[person];
   const learner = await learnerForClerkUser(getDb(), identity);
+  if (person === "ravi") await passSpine(getDb(), loadCourseMap(), learner.id, new Date());
   const response = NextResponse.json({ person, email: identity.email, learnerId: learner.id });
   response.cookies.set(E2E_PERSON_COOKIE, await e2ePersonToken(person, process.env.SESSION_SECRET ?? ""), E2E_PERSON_COOKIE_OPTIONS);
   return response;
@@ -366,6 +375,35 @@ const HOME_CASH_OPTION: CaseDatasetInput = {
   points: [{ date: "2018-10-23", value: 877_784_124 }],
 };
 
+/**
+ * A Library passage for the test bed (spec #68, #84: the passage page on a phone), with the long, unbroken web address in
+ * its credit line that OpenStax asks for, the hardest thing on that page to fit at 360 px. Upserted, so a second call
+ * answers the same passage.
+ */
+async function longCreditPassage(db: Db) {
+  const credit =
+    "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax, Houston, Texas, 2026), CC BY-NC-SA 4.0. Access for free at https://openstax.org/books/principles-finance-2e/pages/1-why-it-matters";
+  const url = "https://openstax.org/books/principles-finance-2e/pages/1-1-what-is-finance";
+  await db
+    .insert(librarySources)
+    .values({ id: "e2e-openstax", title: "Principles of Finance 2e (test bed)", kind: "timeless", licence: "CC BY-NC-SA 4.0", licenceUrl: "https://creativecommons.org/licenses/by-nc-sa/4.0/", credit, url, fetchedOn: "2026-11-01" })
+    .onConflictDoNothing();
+  const [row] = await db
+    .insert(libraryPassages)
+    .values({
+      sourceId: "e2e-openstax",
+      ref: "1-1",
+      heading: "What Is Finance?",
+      url,
+      text: "Finance is the study of money. It asks how people and businesses raise, spend and save it over time. A business is worth the cash it will make, discounted back to today.",
+      licence: "CC BY-NC-SA 4.0",
+      credit,
+    })
+    .onConflictDoUpdate({ target: [libraryPassages.sourceId, libraryPassages.ref], set: { heading: "What Is Finance?" } })
+    .returning({ id: libraryPassages.id });
+  return { passageId: row.id };
+}
+
 export async function POST(request: Request) {
   if (!open()) return notFound();
   const learner = await currentLearner();
@@ -376,6 +414,7 @@ export async function POST(request: Request) {
     reset?: unknown;
     person?: unknown;
     caseData?: unknown;
+    passage?: unknown;
   };
 
   if (body.person !== undefined) return signInPerson(body.person);
@@ -383,6 +422,7 @@ export async function POST(request: Request) {
   // Spec 2026-11-12 E3: Case Data lives only in the private database, so the test bed seeds the one figure Home's
   // Explorable sets the jackpot against: the cash option, at the figure Present value's Topic file states.
   if (body.caseData === "home-cash-option") return NextResponse.json(await importCaseData(getDb(), [HOME_CASH_OPTION]));
+  if (body.passage === "long-credit") return NextResponse.json(await longCreditPassage(getDb()));
 
   if (body.script !== undefined) {
     if (!isE2eScript(body.script)) return NextResponse.json({ error: `No script "${String(body.script)}".`, scripts: Object.keys(E2E_SCRIPTS) }, { status: 400 });

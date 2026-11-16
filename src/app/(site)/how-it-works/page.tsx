@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { COURSE, home, howItWorks } from "@/site/copy";
+import { pageMetadata } from "@/app/site-metadata";
+import { COURSE, howItWorks } from "@/site/copy";
 import { exampleBySlug } from "@/site/examples";
 import { Rich } from "@/site/rich";
 import { courseStats } from "@/site/stats";
@@ -16,9 +17,9 @@ import { HowMoves } from "./moves";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "How it works", description: howItWorks.description(courseStats()) };
+export const metadata: Metadata = pageMetadata({ title: "How it works", description: howItWorks.description, path: "/how-it-works" });
 
-const RATES = exampleBySlug("rates-up-1")!;
+const RATES = exampleBySlug("rbi-repo-cut-2025")!;
 
 /** The annotated Study Workspace mock (7.3 item 3): chat left, a widget right, the 15-step bar and four callouts. */
 function WorkspaceMock() {
@@ -117,7 +118,7 @@ export default async function HowItWorksPage() {
           {howItWorks.h1}
         </h1>
         <p className="v-lede">
-          <Rich>{howItWorks.lede(course)}</Rich>
+          <Rich>{howItWorks.lede}</Rich>
         </p>
       </header>
 
@@ -132,7 +133,7 @@ export default async function HowItWorksPage() {
         </div>
       </section>
 
-      <ColourLanguage eyebrow={home.colours.eyebrow} title={home.colours.h2} body={howItWorks.colourBody} headingId="colours-h" />
+      <ColourLanguage eyebrow={howItWorks.colours.eyebrow} title={howItWorks.colours.h2} body={howItWorks.colourBody} headingId="colours-h" />
 
       <section className="v-section" aria-labelledby="reviews-h" data-site-section="reviews">
         <div className="v-wrap">
@@ -143,7 +144,7 @@ export default async function HowItWorksPage() {
 
       <section className="v-section v-rule-top" aria-labelledby="path-h" id="path" data-site-section="path">
         <div className="v-wrap">
-          <SectionHead eyebrow={howItWorks.path.eyebrow} title={howItWorks.path.h2} id="path-h" />
+          <SectionHead eyebrow={howItWorks.path.eyebrow} title={howItWorks.path.h2} body={howItWorks.path.body} id="path-h" />
           <div className="v-path">
             <div className="v-stack">
               <h3 className="v-h3">{howItWorks.path.core(course)}</h3>
@@ -152,7 +153,6 @@ export default async function HowItWorksPage() {
                   <li key={topic.n}>
                     <span className="n">{howItWorks.path.number(topic.n)}</span>
                     <span>{topic.title}</span>
-                    {topic.minutes !== undefined && <span className="min">{howItWorks.path.minutes(topic.minutes)}</span>}
                   </li>
                 ))}
               </ol>
@@ -186,7 +186,7 @@ export default async function HowItWorksPage() {
       <section className="v-section v-wash" aria-labelledby="start-h" data-site-section="closing">
         <div className="v-wrap v-stack">
           <h2 className="v-h2" id="start-h">
-            {howItWorks.closing}
+            {howItWorks.closing(course)}
           </h2>
           <div className="v-row">
             <PrimaryCta viewer={viewer} />

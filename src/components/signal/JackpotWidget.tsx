@@ -1,13 +1,14 @@
 "use client";
 
-// The Signal jackpot widget (spec §6.3): the 2018 Mega Millions prize, 30 payments against the cash. The numbers come from
-// the merged model (src/finance/signal/jackpot.ts). Call first: the rate slider, its presets, the pills and Go deeper open
-// with the first chip; every tap runs the rate to 5% over 900 ms. "Break-even found" turns on only for a rate the learner
-// sets by hand (a scripted run through 3.4% does not count) and stays for the session.
+// The Signal jackpot widget (spec §6.3): Kerala's 2024 Thiruvonam Bumper prize, ₹25 crore paid at once, against the same
+// ₹25 crore paid as 30 yearly payments. The numbers come from the merged model (src/finance/signal/jackpot.ts). Call
+// first: the rate slider, its presets, the pills and Go deeper open with the first chip; every tap runs the rate to 5%
+// over 900 ms. "Break-even found" turns on only for a rate the learner sets by hand (the scripted run starts at the
+// same-valued 0%, which does not count) and stays for the session.
 
 import { useId, useMemo, useState } from "react";
 import { Button } from "@/app/primitives";
-import { usdM } from "@/finance/signal/formatters";
+import { inrCr } from "@/finance/signal/formatters";
 import { breakEvenFound, JACKPOT, jackpotAt, type JackpotAtRate, type RateSource } from "@/finance/signal/jackpot";
 import {
   barWidth,
@@ -32,29 +33,30 @@ import {
   type SignalWidgetProps,
 } from "./parts";
 
-/** The jackpot widget's Case (spec A.1). */
-export const JACKPOT_CASE = "mega-millions-2018";
+/** The jackpot widget's Example (spec A.1). */
+export const JACKPOT_CASE = "kerala-bumper-2024";
 
+const TITLE = "Is ₹25 crore over 30 years worth ₹25 crore?";
 const RATE = { min: 0, max: 10, step: 0.05 } as const;
 const PRESETS = [0, 5, 10] as const;
 /** The ordinary rate the call runs to, and how long the run takes (§3.4). */
 const TEACHING_RATE = 5;
 const RUN_MS = 900;
-/** $100M a year is the full plot height. */
-const SCALE_TOP = 100;
+/** ₹2 crore a year is the full plot height. */
+const SCALE_TOP = 2;
 
 const OPTIONS: SignalOption[] = [
   {
     id: "payments",
     label: "The 30 payments",
     verdict: "wrong",
-    feedback: "Only at very low rates. At an ordinary 5% a year the payments are worth about $694M today, less than the $877.8M in cash.",
+    feedback: "Only if money earned nothing. At an ordinary 5% a year the 30 payments are worth about ₹11.29 crore today, less than half the ₹25 crore paid at once.",
   },
-  { id: "cash", label: "The cash", verdict: "right", feedback: "At an ordinary 5% a year the 30 payments are worth about $694M today. That is $184M less than the cash." },
-  { id: "same", label: "About the same", verdict: "careful", pill: "Close", feedback: "They match only at about 3.4% a year. At an ordinary 5%, the cash is worth more." },
+  { id: "cash", label: "The cash", verdict: "right", feedback: "At an ordinary 5% a year the 30 payments are worth about ₹11.29 crore today. That is ₹13.71 crore less than the cash." },
+  { id: "same", label: "About the same", verdict: "careful", pill: "Close", feedback: "They match only at 0%, when money earns nothing. At an ordinary 5%, the cash is worth more." },
 ];
 
-/** §6.3.2 chart: each payment as paid (hatched) and its worth today (green), on a $100M scale. */
+/** §6.3.2 chart: each payment as paid (hatched) and its worth today (green), on a ₹2 crore scale. */
 function Chart({ at, compact }: { at: JackpotAtRate; compact: boolean }) {
   const { ref, width: W } = useChartWidth(560);
   const tooltip = useTooltip();
@@ -66,6 +68,8 @@ function Chart({ at, compact }: { at: JackpotAtRate; compact: boolean }) {
   const slot = W / at.columns.length;
   const bw = barWidth(slot);
   const h = (v: number) => (v / SCALE_TOP) * PH;
+  const first = at.columns[0];
+  const final = at.columns[at.columns.length - 1];
 
   return (
     <div className="sig-stage" {...tooltip.handlers}>
@@ -75,7 +79,7 @@ function Chart({ at, compact }: { at: JackpotAtRate; compact: boolean }) {
           width={W}
           height={H}
           role="img"
-          aria-label={`30 yearly payments from 2018 to 2047, rising from $23.1M to $95.2M as paid. At ${percent(at.ratePercent)} they are worth ${usdM(at.sum)} today.`}
+          aria-label={`30 yearly payments from ${first.year} to ${final.year}, rising from ${inrCr(first.paid)} to ${inrCr(final.paid)} as paid. At ${percent(at.ratePercent)} they are worth ${inrCr(at.sum)} today.`}
         >
           <defs>
             <pattern id={pattern} width={5} height={5} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -85,7 +89,7 @@ function Chart({ at, compact }: { at: JackpotAtRate; compact: boolean }) {
           </defs>
           <line x1={0} x2={W} y1={TOP} y2={TOP} className="sig-axis" />
           <text x={0} y={TOP - 6} className="sig-t-axis">
-            $100M a year
+            ₹2 crore a year
           </text>
           {at.columns.map((c, i) => {
             const x = (i + 0.5) * slot - bw / 2;
@@ -98,16 +102,16 @@ function Chart({ at, compact }: { at: JackpotAtRate; compact: boolean }) {
           })}
           <line x1={0} x2={W} y1={bottom} y2={bottom} className="sig-axis" />
           <text x={0} y={H - 4} className="sig-t-axis">
-            2018
+            {first.year}
           </text>
           <text x={W / 2} y={H - 4} textAnchor="middle" className="sig-t-axis">
-            2032
+            {at.columns[14].year}
           </text>
           <text x={W} y={H - 4} textAnchor="end" className="sig-t-axis">
-            2047
+            {final.year}
           </text>
           {at.columns.map((c, i) => (
-            <rect key={`hit-${c.year}`} x={i * slot} y={TOP} width={slot} height={PH} className="sig-hit" data-tip={`${c.year}\nPaid: ${usdM(c.paid)}\nWorth today: ${usdM(c.worthToday)}`} />
+            <rect key={`hit-${c.year}`} x={i * slot} y={TOP} width={slot} height={PH} className="sig-hit" data-tip={`${c.year}\nPaid: ${inrCr(c.paid)}\nWorth today: ${inrCr(c.worthToday)}`} />
           ))}
         </svg>
       </div>
@@ -132,7 +136,7 @@ function RowPill({ at, row }: { at: JackpotAtRate; row: "payments" | "cash" }) {
   );
 }
 
-/** The jackpot widget: is a $1.537B jackpot paid over 30 years worth $1.537B today? */
+/** The jackpot widget: is ₹25 crore paid over 30 years worth the ₹25 crore Kerala paid at once? */
 export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: SignalWidgetProps) {
   const [last, setLast] = useState<SignalOption | null>(null);
   const [rate, setRate] = useState<number>(RATE.min);
@@ -169,17 +173,18 @@ export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: Si
     moveRate(value, "hand");
   };
 
-  const away = usdM(Math.abs(at.d));
+  const away = inrCr(Math.abs(at.d));
 
   return (
-    <WidgetShell kind="jackpot" caseSlug={JACKPOT_CASE} compact={compact} label="Is a $1.537B jackpot really worth $1.537B?">
+    <WidgetShell kind="jackpot" caseSlug={JACKPOT_CASE} compact={compact} label={TITLE}>
       {!compact && (
         <WidgetHead
-          right="Oct 2018"
-          title="Is a $1.537B jackpot really worth $1.537B?"
+          right="Oct 2024"
+          title={TITLE}
           sub={
             <>
-              The 2018 Mega Millions winner could take 30 yearly payments that add up to <b>$1.537B</b>, or <b>$877.8M</b> in cash that day.
+              Kerala paid its 2024 Thiruvonam Bumper prize of <b>₹25 crore</b> at once. Paid the American way, the same <b>₹25 crore</b> would come as 30
+              yearly payments.
             </>
           }
         />
@@ -208,7 +213,7 @@ export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: Si
               <span>
                 30 payments, worth today {called && <RowPill at={at} row="payments" />}
               </span>
-              <output>{usdM(at.sum)}</output>
+              <output>{inrCr(at.sum)}</output>
             </div>
             <div className="sig-track" aria-hidden="true">
               <span className="sig-fill" style={{ width: `${(at.sum / JACKPOT.advertisedTotal) * 100}%` }} />
@@ -218,7 +223,7 @@ export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: Si
           <div data-row="cash">
             <div className="sig-meter-top">
               <span>Cash today {called && <RowPill at={at} row="cash" />}</span>
-              <output>{usdM(JACKPOT.cash)}</output>
+              <output>{inrCr(JACKPOT.cash)}</output>
             </div>
             <div className="sig-track" aria-hidden="true">
               <span className="sig-fill" style={{ width: `${(JACKPOT.cash / JACKPOT.advertisedTotal) * 100}%` }} />
@@ -228,7 +233,7 @@ export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: Si
         <p className="sig-verdict" aria-live="polite">
           {!called ? (
             <>
-              Added up as advertised, the 30 payments come to <b>{usdM(JACKPOT.advertisedTotal)}</b>. That is the number on the billboard.
+              Added up as paid, the 30 payments come to <b>{inrCr(JACKPOT.advertisedTotal)}</b>, the same as the prize paid at once.
             </>
           ) : at.same ? (
             <>At {rateText}%, the payments and the cash are worth about the same today.</>
@@ -250,7 +255,7 @@ export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: Si
             <Pill tone="wait" icon="approx">
               Break-even found
             </Pill>{" "}
-            At about <b>3.4%</b> a year the two are worth the same. Above that rate the cash is worth more. Below it, the payments are.
+            At <b>0%</b> a year the two are worth the same. At any rate above it, the cash is worth more.
           </p>
         ) : (
           <p>
@@ -265,13 +270,14 @@ export function JackpotWidget({ caseSlug, compact = false, onCall, onEvent }: Si
           { swatch: "hatch", label: "Lost by waiting" },
           { swatch: "wait", label: "About the same" },
         ]}
-        source="Source: CNBC, 24 Oct 2018. Payments rise 5% a year; the first is paid at once."
+        source="Source: The Hindu, 9 Oct 2024. The 30 payments are a what-if: they rise 5% a year and the first is paid at once."
+        link={{ name: "The Hindu, 9 Oct 2024", href: "https://www.thehindu.com/news/national/kerala/keralas-25-crore-thiruvonam-bumper-lottery-announced-jackpot-goes-to-ticket-sold-in-wayanad/article68735952.ece" }}
         table={
           !compact && called ? (
             <TableView
               label="The 30 payments"
               head={["Year", "Paid", "Worth today at 5%"]}
-              rows={fivePercent.columns.map((c) => [String(c.year), usdM(c.paid), usdM(c.worthToday)])}
+              rows={fivePercent.columns.map((c) => [String(c.year), inrCr(c.paid), inrCr(c.worthToday)])}
             />
           ) : undefined
         }

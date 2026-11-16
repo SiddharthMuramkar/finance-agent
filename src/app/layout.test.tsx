@@ -19,6 +19,8 @@ vi.mock("./route-bar", () => ({ RouteBar: () => null }));
 vi.mock("./site-analytics", () => ({ SiteAnalytics: () => null }));
 
 const { default: RootLayout } = await import("./layout");
+const { clerkAppearance } = await import("@/auth/clerk-appearance");
+const { THEME_INIT_SCRIPT } = await import("./theme");
 const render = () => renderToStaticMarkup(<RootLayout>{<p id="page">The page</p>}</RootLayout>);
 
 beforeEach(() => {
@@ -36,6 +38,23 @@ describe("the root layout", () => {
     expect(html.indexOf("<body")).toBeLessThan(html.indexOf('data-clerk="provider"'));
     const props = JSON.parse(provider![1].replaceAll("&quot;", '"')) as Record<string, unknown>;
     expect(props).toMatchObject({ signInUrl: "/sign-in", signUpUrl: "/sign-up", waitlistUrl: "/join" });
+    // Its cards wear the site's look (issue #76; src/auth/clerk-appearance.test.ts pins it).
+    expect(props.appearance).toEqual(JSON.parse(JSON.stringify(clerkAppearance)));
+  });
+
+  // ADR 0019: the theme is set before the first paint by a script at the top of <head>, before <body> draws anything.
+  it("runs the theme script in <head>, and gives Clerk's card the page's colour tokens", () => {
+    const html = render();
+    const head = html.slice(html.indexOf("<head>"), html.indexOf("</head>"));
+    expect(head).toContain(`<script>${THEME_INIT_SCRIPT}</script>`);
+    expect(html.indexOf("</head>")).toBeLessThan(html.indexOf("<body"));
+    const props = JSON.parse(html.match(/data-props="([^"]*)"/)![1].replaceAll("&quot;", '"')) as { appearance: { variables: Record<string, string> } };
+    // Every colour is a token (clerkAppearance, #76): the radius is a length, and the shadow is none (ADR 0018).
+    const colours = Object.entries(props.appearance.variables).filter(([name]) => name !== "borderRadius" && name !== "colorShadow");
+    expect(props.appearance.variables.colorShadow).toBe("transparent");
+    expect(colours.every(([, v]) => /^var\(--[\w-]+\)$/.test(v))).toBe(true);
+    // --accent and --raised point at --blue and --paper (globals.css).
+    expect(props.appearance.variables).toMatchObject({ colorPrimary: "var(--accent)", colorBackground: "var(--raised)", colorForeground: "var(--ink)" });
   });
 
   it("with Clerk off (the test bed, or a key missing), draws the page with no Clerk at all", () => {

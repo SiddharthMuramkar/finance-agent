@@ -1,6 +1,6 @@
 // Shared look pieces of the design system (ADR 0015 for colour, ADR 0018 for the rest; issue #43). Colours come only from the tokens in
-// globals.css (one Light theme, decision #17). Server-safe: no "use client" here; the only client pieces rendered
-// are AccountMenu, NavLink and SignOutForm.
+// globals.css (Light and Dark, ADR 0019). Server-safe: no "use client" here; the only client pieces rendered
+// are AccountMenu, NavLink, SignOutForm and ThemeSwitch.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -9,6 +9,7 @@ import { SignOutForm } from "./sign-out";
 import { NavLink } from "./nav-link";
 import { Button, Tag } from "./primitives";
 import { RisingBars } from "./rising-bars";
+import { ThemeSwitch } from "./theme-switch";
 
 
 /**
@@ -123,27 +124,29 @@ function GearMark() {
 /**
  * App header (ADR 0018, ticket A5): 56px, on the paper, over a 1px --rule hairline. At the left the h1 wordmark (the still
  * bars and "Value It", no pill) linking to Home, then three ghost page links (Study, Course Map, Notebook; each with a dot
- * while its page loads). Pushed right, two 32px ghost icons with tooltips: a gear to Settings and the account
- * menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
+ * while its page loads). Pushed right, three 32px ghost icons with tooltips: the sun/moon theme switch (ADR 0019, the
+ * same one as the site nav), a gear to Settings and the account menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
  * accent bar on the hairline under it. current = the page showing; account names the signed-in
- * Learner (left out only by the loading skeleton and the signed-out 404). One line from 768px.
+ * Learner (left out only by the loading skeleton and the signed-out 404). One line at every width down to a 360px phone
+ * (spec #68, #84): below 768px the wordmark shows only its bars and the page links tighten.
  */
 export function AppHeader({ current, account, className = "" }: { current?: HeaderPage; account?: HeaderAccount; className?: string }) {
   return (
     // Above what follows it (relative z-30): the account menu drops over the Study Workspace's Topic bar, a positioned Band.
-    <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-3 border-b border-[var(--rule)] bg-[var(--paper)] lg:gap-6 ${className}`}>
+    <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-2 border-b border-[var(--rule)] bg-[var(--paper)] md:gap-3 lg:gap-6 ${className}`}>
       <h1 className="flex shrink-0 items-center">
         <Link href="/" title="Home" data-affordance="nav" className={BRAND_LINK}>
           <RisingBars size={16} className="bars-still" />
-          Value It
+          {/* Below 768px only the bars show, so the row fits a 360px phone; the link keeps its name. */}
+          <span className="max-md:sr-only">Value It</span>
         </Link>
       </h1>
       <nav aria-label="Pages" className="flex self-stretch">
-        <ul className="flex items-stretch gap-1">
+        <ul className="flex items-stretch gap-0 md:gap-1">
           {HEADER_LINKS.map(({ page, href, label }) => (
-            <li key={href} data-current={page === current ? "true" : undefined} className={`${TAB} after:inset-x-3`}>
-              {/* The two pages a Learner returns to most are fetched ahead, so they open at once. */}
-              <NavLink href={href} current={page === current} prefetch={page === "workspace" || page === "course" ? true : undefined}>
+            <li key={href} data-current={page === current ? "true" : undefined} className={`${TAB} after:inset-x-1.5 md:after:inset-x-3`}>
+              {/* The two pages a Learner returns to most are fetched ahead, so they open at once. Tighter below 768px. */}
+              <NavLink href={href} current={page === current} prefetch={page === "workspace" || page === "course" ? true : undefined} className="max-md:px-1.5">
                 {label}
               </NavLink>
             </li>
@@ -151,6 +154,7 @@ export function AppHeader({ current, account, className = "" }: { current?: Head
         </ul>
       </nav>
       <div className="ml-auto flex items-center gap-1 self-stretch">
+        <ThemeSwitch className="btn btn-icon" />
         <span data-current={current === "settings" ? "true" : undefined} className={`${TAB} self-stretch after:inset-x-1.5`}>
           {/* On Settings the gear is ink with the bar, like a current page link, not the tinted face of a pressed icon. */}
           <Link
@@ -184,20 +188,5 @@ export function ReadingPage({ current, account, children }: { current?: HeaderPa
         {children}
       </div>
     </main>
-  );
-}
-
-export const PHONE_NOTE = "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad.";
-
-/**
- * Wraps a signed-in page: below 768px only the phone note shows; from 768px the children render as if
- * the wrapper were not there (display: contents), so full-height and window-scrolling pages both work.
- */
-export function SignedInFrame({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <p className="p-6 text-sm leading-5 text-[var(--muted)] md:hidden">{PHONE_NOTE}</p>
-      <div className="hidden md:contents">{children}</div>
-    </>
   );
 }

@@ -7,7 +7,7 @@ import { PASSAGE_CHANGED_NOTE } from "@/library/credits";
 import { loadPassageView } from "@/library/library";
 import { MACHINE_READ_NOTE } from "@/library/pictures";
 import { currentAccount } from "../../account";
-import { Eyebrow, ReadingPage, SignedInFrame } from "../../ui";
+import { Eyebrow, ReadingPage } from "../../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -61,99 +61,97 @@ export default async function PassagePage({
   );
   if (view.status === "missing") notFound();
   return (
-    <SignedInFrame>
-      <ReadingPage account={await currentAccount()}>
-        <Eyebrow className="mb-1">Library passage</Eyebrow>
-        {view.status === "hidden" ? (
-          <p data-testid="passage-hidden">
-            This passage is hidden until the reveal: the Case you are studying
-            is set on {view.asOf}, and this passage could tell how it turned
-            out.
-          </p>
-        ) : (
-          <article>
-            <h1 className="type-h1 mb-6">{view.heading}</h1>
-            {/* Reading type (16/26) at a readable measure, behind a hairline rule. */}
-            <blockquote
-              data-testid="passage-text"
-              className="max-w-[68ch] border-l-2 border-[var(--rule)] pl-5 text-[16px] leading-[26px]"
-            >
-              {view.sentences.map((s, i) =>
-                s.cited ? (
-                  <mark
-                    key={i}
-                    className="rounded border-b-2 border-[var(--src)] bg-[var(--src-tag)] text-[var(--ink)]"
-                  >
-                    {s.text}
-                  </mark>
-                ) : (
-                  <span key={i}>{s.text}</span>
-                ),
-              )}
-            </blockquote>
-            {view.machineRead && (
-              <p data-testid="passage-machine-read" className="mt-3 text-sm text-[var(--muted)]">
-                {MACHINE_READ_NOTE}
-              </p>
-            )}
-            {view.shortened && (
-              <p className="mt-3 text-sm text-[var(--muted)]">
-                Shortened: this source allows quotes of at most{" "}
-                {view.quoteWords} words. Read the full text at the original.
-              </p>
-            )}
-            {/* The credit in its owner's form, the licence linked (CC licences ask for the link), any notice the owner asks for, and the cut is said (#26). */}
-            <p data-testid="passage-credit" className="mt-6 text-sm">
-              {withLinks(view.credit)}
-            </p>
-            <p data-testid="passage-licence" className="mt-1 text-sm">
-              {view.publishedOn && `Published ${view.publishedOn}. `}
-              Licence:{" "}
-              {view.licenceUrl ? (
-                <a
-                  href={view.licenceUrl}
-                  target="_blank"
-                  rel="noopener"
-                  data-affordance="link"
-                  className="link"
+    <ReadingPage account={await currentAccount()}>
+      <Eyebrow className="mb-1">Library passage</Eyebrow>
+      {view.status === "hidden" ? (
+        <p data-testid="passage-hidden">
+          This passage is hidden until the reveal: the Case you are studying
+          is set on {view.asOf}, and this passage could tell how it turned
+          out.
+        </p>
+      ) : (
+        <article>
+          <h1 className="type-h1 mb-6">{view.heading}</h1>
+          {/* Reading type (16/26) at a readable measure, behind a hairline rule. */}
+          <blockquote
+            data-testid="passage-text"
+            className="max-w-[68ch] border-l-2 border-[var(--rule)] pl-5 text-[16px] leading-[26px]"
+          >
+            {view.sentences.map((s, i) =>
+              s.cited ? (
+                <mark
+                  key={i}
+                  className="rounded border-b-2 border-[var(--src)] bg-[var(--src-tag)] text-[var(--ink)]"
                 >
-                  {view.licence}
-                </a>
+                  {s.text}
+                </mark>
               ) : (
-                view.licence
-              )}
+                <span key={i}>{s.text}</span>
+              ),
+            )}
+          </blockquote>
+          {view.machineRead && (
+            <p data-testid="passage-machine-read" className="mt-3 text-sm text-[var(--muted)]">
+              {MACHINE_READ_NOTE}
             </p>
-            {view.notices.map((notice) => (
-              <p
-                key={notice}
-                data-testid="passage-notice"
-                className="mt-1 text-sm text-[var(--muted)]"
+          )}
+          {view.shortened && (
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              Shortened: this source allows quotes of at most{" "}
+              {view.quoteWords} words. Read the full text at the original.
+            </p>
+          )}
+          {/* The credit in its owner's form, the licence linked (CC licences ask for the link), any notice the owner asks for, and the cut is said (#26). */}
+          <p data-testid="passage-credit" className="mt-6 text-sm">
+            {withLinks(view.credit)}
+          </p>
+          <p data-testid="passage-licence" className="mt-1 text-sm">
+            {view.publishedOn && `Published ${view.publishedOn}. `}
+            Licence:{" "}
+            {view.licenceUrl ? (
+              <a
+                href={view.licenceUrl}
+                target="_blank"
+                rel="noopener"
+                data-affordance="link"
+                className="link"
               >
-                {notice}
-              </p>
-            ))}
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              {PASSAGE_CHANGED_NOTE}
-            </p>
-            <a
-              href={view.url}
-              target="_blank"
-              rel="noopener"
-              data-affordance="link"
-              className="link mt-1 inline-block text-sm"
+                {view.licence}
+              </a>
+            ) : (
+              view.licence
+            )}
+          </p>
+          {view.notices.map((notice) => (
+            <p
+              key={notice}
+              data-testid="passage-notice"
+              className="mt-1 text-sm text-[var(--muted)]"
             >
-              Read it at the original
-            </a>
-          </article>
-        )}
-        <Link
-          href="/study"
-          data-affordance="link"
-          className="link mt-10 inline-block text-sm"
-        >
-          Back to the Study Workspace
-        </Link>
-      </ReadingPage>
-    </SignedInFrame>
+              {notice}
+            </p>
+          ))}
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            {PASSAGE_CHANGED_NOTE}
+          </p>
+          <a
+            href={view.url}
+            target="_blank"
+            rel="noopener"
+            data-affordance="link"
+            className="link mt-1 inline-block text-sm"
+          >
+            Read it at the original
+          </a>
+        </article>
+      )}
+      <Link
+        href="/study"
+        data-affordance="link"
+        className="link mt-10 inline-block text-sm"
+      >
+        Back to the Study Workspace
+      </Link>
+    </ReadingPage>
   );
 }

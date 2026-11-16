@@ -5,7 +5,7 @@ import { firstTopic } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { showsWelcome } from "@/learner/welcome";
 import { currentAccount } from "../account";
-import { ReadingPage, SignedInFrame } from "../ui";
+import { ReadingPage } from "../ui";
 import { WelcomeView, welcomePanel } from "./welcome-view";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +22,8 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   const map = loadCourseMap();
   const first = firstTopic(map) ?? map.topics[0];
   return (
-    <SignedInFrame>
-      <ReadingPage account={await currentAccount()}>
-        <WelcomeView panel={welcomePanel((await searchParams).panel)} firstTopic={first} />
-      </ReadingPage>
-    </SignedInFrame>
+    <ReadingPage account={await currentAccount()}>
+      <WelcomeView panel={welcomePanel((await searchParams).panel)} firstTopic={first} />
+    </ReadingPage>
   );
 }

@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { CURRENCIES } from "@/finance/money";
 import { isIconName } from "@/icons/names";
+import { marketReading, marketReadingIds } from "@/markets/readings";
 
 // The figures a Workbench Widget takes from the Topic file beside its Valuation Case (spec 2026-11-12, B4; ADR 0010), each
 // with its source: the Widget part, the recipe and the Widget check parse them with these same schemas, so a figure that
@@ -52,6 +54,15 @@ export const costOfCapitalFiguresSchema = z
   .strict();
 
 /**
+ * Market readings shown beside a Workbench's Levers (ticket #105), by id (src/markets/readings.ts): each with its month,
+ * credit and link. An id the readings lack fails, so the course check's Workbench build catches it.
+ */
+export const marketReadingIdsSchema = z
+  .array(z.string().refine((id) => marketReading(id) !== undefined, { message: `is not a Market reading; one of: ${marketReadingIds().join(", ")}` }))
+  .min(1)
+  .max(8);
+
+/**
  * How the Topic's story leads the Cost of capital stack (Spine critics on #91): `equity` heads it with the cost of equity
  * and puts the story's betas on relative risk as labelled chips; `debt` puts the share of debt first, with a No debt chip.
  */
@@ -73,7 +84,7 @@ export const stackStorySchema = z
   .strict();
 export type StackStory = z.infer<typeof stackStorySchema>;
 
-const currencySchema = z.enum(["USD", "INR"]);
+const currencySchema = z.enum(CURRENCIES);
 const unitSchema = z.enum(["millions", "crores", "billions"]);
 
 /** A company's year for the Cash waterfall when it has no Valuation Case: this year's revenue, its tax, and where the levers open. */
@@ -191,15 +202,22 @@ export const marketSchema = z
     label: z.string().trim().min(3).max(40),
     size: z.number().positive(),
     growthPercent: z.number().min(-20).max(50).optional(),
+    /** What the market's size counts, said after it in the readout ("$3.6bn of $35.8bn of fees on all fares"); "market" when left out. */
+    pool: z.string().trim().min(3).max(40).optional(),
     source: sourceSchema,
   })
   .strict();
+
+/** An Icon name (src/icons/names.ts) for a face or object a mode draws. */
+const iconName = z.string().refine(isIconName, "not an Icon name (src/icons/names.ts)");
 
 /** A rival's or an industry's operating margin, marked on lever 2 (Spine Topic 5). */
 export const marginMarkSchema = z
   .object({
     label: z.string().trim().min(3).max(40),
     percent: z.number().min(-50).max(90),
+    /** The rival's face on the margin ladder, an Icon name; a building when left out. */
+    emoji: iconName.optional(),
     source: sourceSchema,
   })
   .strict();
@@ -270,6 +288,9 @@ export type BenchScene = z.infer<typeof benchSceneSchema>;
  * What Value levers adds for a Spine Topic (Appendix D): each mode swaps one readout (or, for failure, which lever is under
  * More settings, and for all open, opens it), never adding controls beyond four at rest and one more.
  */
+/** Cases the Learner can switch between with a chip: each its Case id and the company's name for the chip (and a saved note's title). */
+const caseChipsSchema = z.array(z.object({ id: z.string().min(1), label: z.string().trim().min(1).max(40) }).strict()).min(2).max(3);
+
 export const valueLeversModeSchema = z.discriminatedUnion("kind", [
   z
     .object({
@@ -282,10 +303,21 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
     .object({
       kind: z.literal("margin_marks"),
       marks: z.array(marginMarkSchema).min(1).max(3),
+      /** The company's own face, which climbs the ladder as its margin moves; a rocket when left out. */
+      emoji: iconName.optional(),
       scene: benchSceneSchema.optional(),
     })
     .strict(),
-  z.object({ kind: z.literal("roic"), scene: benchSceneSchema.optional() }).strict(),
+  z
+    .object({
+      kind: z.literal("roic"),
+      /** A line under the return, such as whose claim the opening settings are. */
+      note: z.string().trim().min(3).max(120).optional(),
+      /** What the new capital buys, drawn filling up with the sales each dollar brings; a factory when left out. */
+      emoji: iconName.optional(),
+      scene: benchSceneSchema.optional(),
+    })
+    .strict(),
   z.object({ kind: z.literal("failure"), scene: benchSceneSchema.optional() }).strict(),
   z
     .object({
@@ -294,7 +326,8 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
       scene: benchSceneSchema.optional(),
     })
     .strict(),
-  z.object({ kind: z.literal("match_price"), scene: benchSceneSchema.optional() }).strict(),
+  // match_price may carry Case chips: the ready-Case valuation Topic judges a published Story on one of three Cases.
+  z.object({ kind: z.literal("match_price"), cases: caseChipsSchema.optional(), scene: benchSceneSchema.optional() }).strict(),
   z
     .object({
       kind: z.literal("range"),
@@ -311,29 +344,17 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
       scene: benchSceneSchema.optional(),
     })
     .strict(),
-  // all_open (Spine Topic 15): every lever open, "Save my story", and optionally a short list of Cases the Learner can switch
-  // between with a chip, each its Case id and the company's name for the chip and the saved note's title.
-  z
-    .object({
-      kind: z.literal("all_open"),
-      cases: z
-        .array(
-          z
-            .object({
-              id: z.string().min(1),
-              label: z.string().trim().min(1).max(40),
-            })
-            .strict(),
-        )
-        .min(2)
-        .max(3)
-        .optional(),
-      scene: benchSceneSchema.optional(),
-    })
-    .strict(),
+  // all_open: every lever open, "Save my story", and optionally Case chips. No Spine Topic uses it (spine-check.ts: on the
+  // Spine the Learner judges a published Story); it is kept for an Own Case's Estimate, saved as a one-page note.
+  z.object({ kind: z.literal("all_open"), cases: caseChipsSchema.optional(), scene: benchSceneSchema.optional() }).strict(),
 ]);
 
 export type ValueLeversMode = z.infer<typeof valueLeversModeSchema>;
+
+/** The Case chips a mode carries (all_open or match_price), or undefined when it has none. */
+export function modeCases(mode: ValueLeversMode | undefined): { id: string; label: string }[] | undefined {
+  return mode?.kind === "all_open" || mode?.kind === "match_price" ? mode.cases : undefined;
+}
 export type ValueLeversModeKind = ValueLeversMode["kind"];
 export const VALUE_LEVERS_MODE_KINDS = valueLeversModeSchema.options.map(
   (o) => o.shape.kind.value,

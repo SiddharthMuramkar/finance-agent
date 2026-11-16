@@ -55,7 +55,7 @@ const SPOKEN: Record<LeverKey, (v: number) => string> = {
 /** What a screen reader hears for a lever (§6.2.2): "Operating margin once mature 12 percent, adds 17 dollars a share". */
 export function leverSpoken(lever: Lever, value: number, effect: number): string {
   const whole = Math.round(Math.abs(effect));
-  const change = Math.abs(effect) < SMALL ? "no change from his story" : `${effect > 0 ? "adds" : "takes away"} ${whole} ${whole === 1 ? "dollar" : "dollars"} a share`;
+  const change = Math.abs(effect) < SMALL ? "no change from the published Story" : `${effect > 0 ? "adds" : "takes away"} ${whole} ${whole === 1 ? "dollar" : "dollars"} a share`;
   return `${lever.label} ${SPOKEN[lever.key](value)}, ${change}`;
 }
 
@@ -218,7 +218,7 @@ function ValueRuler({ value, band }: { value: number; band: { lo: number; hi: nu
       </span>
       <span className="sig-ruler-notch" style={{ left: `${ref}%` }} />
       <span className="sig-ruler-notch-label" style={{ left: `${ref}%` }}>
-        His story {share(REFERENCE_VALUE)}
+        Published {share(REFERENCE_VALUE)}
       </span>
       <span className="sig-ruler-dot" style={{ left: `${at}%` }} data-value-dot>
         {value > RULER_MAX ? "›" : ""}
@@ -263,7 +263,7 @@ export function LeverLab({
     <div className={`sig-lab${dragging ? " dragging" : ""}`} data-dragging={dragging ? "true" : undefined}>
       <div className="sig-lab-top">
         <div>
-          <div className="sig-lab-label">Your story is worth</div>
+          <div className="sig-lab-label">This Story is worth</div>
           <div className="sig-lab-value" data-value>
             {share(v)}
           </div>
@@ -281,7 +281,7 @@ export function LeverLab({
             enabled={live && (focus === null || focus === lever.key)}
             compact={compact}
             onChange={(next) => onChange?.(lever.key, next)}
-            onCommit={(landed) => setAnnounce(`Your story is worth ${share(leversModel({ ...values, [lever.key]: landed }).perShare)} a share.`)}
+            onCommit={(landed) => setAnnounce(`This Story is worth ${share(leversModel({ ...values, [lever.key]: landed }).perShare)} a share.`)}
             onDragging={setDragging}
           />
         ))}
@@ -352,7 +352,7 @@ export function bridgeRows(m: LeversResult): BridgeRow[] {
     { label: "Cash from years 1 to 10", from: 0, to: m.yrs, tone: m.yrs >= 0 ? "is-gain" : "is-loss", text: d$(m.yrs) },
     { label: "Everything after year 10", from: m.yrs, to: afterTen, tone: "is-gain", text: d$(m.after) },
     { label: "What it owes others", from: afterTen, to: afterTen - m.owes, tone: "is-loss", text: d$(-m.owes) },
-    { label: "Your story, a share", from: 0, to: m.perShare, tone: "is-blue", text: share(m.perShare), total: true },
+    { label: "This Story, a share", from: 0, to: m.perShare, tone: "is-blue", text: share(m.perShare), total: true },
   ];
 }
 
@@ -442,22 +442,22 @@ export function LeversWidget({ caseSlug, compact = false, onCall, onEvent }: Sig
       <p className="sig-verdict" aria-live="polite">
         {atReference ? (
           <>
-            This is his story: <b>{share(REFERENCE_VALUE)}</b> a share, against a price of <b>${PRICE}</b>. Drag any lever to write your own.
+            This is one published valuation: <b>{share(REFERENCE_VALUE)}</b> a share, against a price of <b>${PRICE}</b>. Drag any lever to test it.
           </>
         ) : reachedNow ? (
           <>
             <Pill tone="blue" icon="check">
               You reached the price
             </Pill>{" "}
-            Your story needs {leverText("rev", values.rev)} of sales in year 10 and a margin of {leverText("margin", values.margin)}. Would you have believed that in 2000?
+            To reach the ${PRICE} price, Amazon needs {leverText("rev", values.rev)} of sales in year 10 and a margin of {leverText("margin", values.margin)}. Would you have believed that in 2000?
           </>
         ) : (
           <>
-            Your story is worth{" "}
+            This Story is worth{" "}
             <b>
               ${Math.abs(difference)} {difference > 0 ? "more" : "less"}
             </b>{" "}
-            than his. The pills under each lever show where that came from.
+            than the published one. The pills under each lever show where that came from.
           </>
         )}
       </p>
@@ -473,12 +473,13 @@ export function LeversWidget({ caseSlug, compact = false, onCall, onEvent }: Sig
       <WidgetFoot
         keys={[
           { swatch: "blue", label: "You: drag these" },
-          { swatch: "gain", label: "Adds value to his story" },
+          { swatch: "gain", label: "Adds value to the published Story" },
           { swatch: "loss", label: "Takes value away" },
-          { swatch: "ref", label: "His story" },
+          { swatch: "ref", label: "The published Story" },
           { swatch: "pin", label: "Price paid" },
         ]}
         source="Damodaran’s valuation of Amazon, Feb 2000, on the course’s tested valuation engine. It reproduces his $35.08 within 2%."
+        link={{ name: "Damodaran’s valuation of Amazon, Feb 2000", href: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }}
         table={
           !compact && called ? (
             <TableView

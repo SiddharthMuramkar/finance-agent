@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap } from "./map";
-import { isElective, parseOutline, renderCourseMapDoc, SPINE_LENGTH, spineCountProblems, spineTopics, SUBJECTS, usedInSpine } from "./outline";
+import { isElective, parseOutline, renderCourseMapDoc, SPINE_LENGTH, SPINE_MAX, spineCountProblems, spineTopics, SUBJECTS, usedInSpine } from "./outline";
 
 function entry(id: string, extra = "", cases = defaultCase(id)) {
   return `  - id: ${id}
@@ -204,10 +204,11 @@ describe("the Spine on the outline", () => {
     expect(problems(spineEntry("s1", 1, "    minutes: 20\n"))).toEqual(['Spine Topic "s1" takes 20 minutes; a Spine Topic takes 15 or fewer']);
   });
 
-  it("holds SPINE_LENGTH Spine Topics (18 once the splits land) and rejects a Spine number past it (ADR 0020)", () => {
-    const full = Array.from({ length: SPINE_LENGTH }, (_, i) => spineEntry(`s${i + 1}`, i + 1));
+  it("may hold up to SPINE_MAX (18) Spine Topics and rejects a Spine number past it (ADR 0020)", () => {
+    expect(SPINE_MAX).toBe(18);
+    const full = Array.from({ length: SPINE_MAX }, (_, i) => spineEntry(`s${i + 1}`, i + 1));
     expect(problems(...full)).toEqual([]);
-    expect(problems(...full, spineEntry(`s${SPINE_LENGTH + 1}`, SPINE_LENGTH + 1)).join()).toContain("spine");
+    expect(problems(...full, spineEntry(`s${SPINE_MAX + 1}`, SPINE_MAX + 1)).join()).toContain("spine");
   });
 
   it("the course check requires exactly SPINE_LENGTH Spine Topics, no fewer (#93, ADR 0020)", () => {
@@ -353,7 +354,7 @@ describe("the real outline", () => {
       expect(byNumber(8).title).toBe("Risk: what return should shareholders require?");
       expect(byNumber(9).title).toBe("What does all of a company's money cost?");
       expect(byNumber(15).title).toBe("What does the price assume?");
-      expect(byNumber(17).title).toBe("Value one yourself, as of a past date");
+      expect(byNumber(17).title).toBe("Judge a published valuation, as of a past date");
       expect(byNumber(18).title).toBe("Where are a valuation's numbers in an annual report?");
     });
 
@@ -408,7 +409,7 @@ describe("the real outline", () => {
 
     it("offers Zomato's IPO in Topic 17, verified from its research, beside Coffee Day in rupees", () => {
       const cases = byNumber(17).cases;
-      expect(cases.map((c) => c.title)).toEqual(["Build your own value for Amazon.com", "Coffee Day's IPO, in rupees and in dollars", "Zomato's IPO, valued in rupees"]);
+      expect(cases.map((c) => c.title)).toEqual(["Judge a published value for Amazon.com", "Coffee Day's IPO, in rupees and in dollars", "Zomato's IPO, valued in rupees"]);
       // Damodaran's Rs 40.79 against the Rs 76 offer: docs/research/verify-zomato-2021.json reproduces it from sources, so it is verified.
       expect(cases[2]).toMatchObject({ asOf: "2021-07-21", verified: true });
       expect(cases[2].sources).toContain("https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html");

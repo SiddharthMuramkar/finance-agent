@@ -1,79 +1,23 @@
 import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import type { ValuationBlock } from "@/finance/valuation-case";
-import {
-  benchSettings,
-  type BenchLever,
-  type BenchReading,
-  type BenchShape,
-} from "./bench";
-import {
-  cashWaterfallFromCase,
-  cashWaterfallLevers,
-  cashWaterfallModel,
-  cashWaterfallReading,
-  cashWaterfallShape,
-  cashWaterfallTasks,
-  type CashWaterfallData,
-} from "./cash-waterfall-model";
-import {
-  bridgeReportSchema,
-  companyYearSchema,
-  costOfCapitalFiguresSchema,
-  decoderFiguresSchema,
-  leasesSchema,
-  sourceSchema,
-  stackStorySchema,
-} from "./data-schemas";
-import {
-  multipleDecoderLevers,
-  multipleDecoderModel,
-  multipleDecoderReading,
-  multipleDecoderShape,
-  multipleDecoderTasks,
-  type MultipleDecoderData,
-} from "./multiple-decoder-model";
-import {
-  terminalSeesawLevers,
-  terminalSeesawModel,
-  terminalSeesawReading,
-  terminalSeesawShape,
-  terminalSeesawTasks,
-  type TerminalSeesawData,
-} from "./terminal-seesaw-model";
-import {
-  valueBridgeLevers,
-  valueBridgeModel,
-  valueBridgeReading,
-  valueBridgeShape,
-  valueBridgeTasks,
-  type ValueBridgeData,
-} from "./value-bridge-model";
-import {
-  leverSpecs,
-  MARKET_VARIABLE,
-  marketFrom,
-  settingsFrom as leverSettingsFrom,
-  valueLeversData,
-  valueLeversLevers,
-  valueLeversModel,
-  valueLeversReading,
-  valueLeversShape,
-  valueLeversTasks,
-  type ValueLeversData,
-} from "./value-levers-model";
-import {
-  waccStackLevers,
-  waccStackModel,
-  waccStackReading,
-  waccStackShape,
-  waccStackTasks,
-  type WaccStackData,
-} from "./wacc-stack-model";
+import type { OwnCases } from "@/finance/valuation-lookup";
+import { benchSettings, type BenchLever, type BenchReading, type BenchShape } from "./bench";
+import { cashWaterfallFromCase, cashWaterfallLevers, cashWaterfallModel, cashWaterfallReading, cashWaterfallShape, cashWaterfallTasks, type CashWaterfallData } from "./cash-waterfall-model";
+import { bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, decoderFiguresSchema, leasesSchema, sourceSchema, stackStorySchema } from "./data-schemas";
+import { multipleDecoderLevers, multipleDecoderModel, multipleDecoderReading, multipleDecoderShape, multipleDecoderTasks, type MultipleDecoderData } from "./multiple-decoder-model";
+import { terminalSeesawLevers, terminalSeesawModel, terminalSeesawReading, terminalSeesawShape, terminalSeesawTasks, type TerminalSeesawData } from "./terminal-seesaw-model";
+import { valueBridgeLevers, valueBridgeModel, valueBridgeReading, valueBridgeShape, valueBridgeTasks, type ValueBridgeData } from "./value-bridge-model";
+import { changedRowReadouts, rowsFrom, withRows } from "./full-sheet";
+import { leverSpecs, MARKET_VARIABLE, marketFrom, settingsFrom as leverSettingsFrom, valueLeversData, valueLeversLevers, valueLeversModel, valueLeversReading, valueLeversShape, valueLeversTasks, type ValueLeversData } from "./value-levers-model";
+import { waccStackLevers, waccStackModel, waccStackReading, waccStackShape, waccStackTasks, type WaccStackData } from "./wacc-stack-model";
 
 // Every Workbench part, by name, and what the Widget check and the Tutor's reading need of it (spec 2026-11-12, B2 to B4;
 // ADR 0010): its data from the part's literal props (a Valuation Case, and the Topic file's figures), its levers and the
 // $variable props they are bound to, its size at rest for the Workbench budget, its Things to try, and what the Tutor is told.
 // Pure: check.ts and widget-reading.ts read it, on the server and in the browser alike.
+
+// Every method takes the Learner's Own Cases as an optional last argument: Value levers finds its Case among the course
+// Cases first, then there (spec #68), so the Tutor reads a Widget on an Own Case as the page draws it.
 
 /** A Workbench lever as the check lists it for the Tutor: the prop holding its $variable, its name and its range. */
 export type WorkbenchLeverInfo = {
@@ -88,24 +32,24 @@ export type WorkbenchEntry = {
   part: string;
   recipe: string;
   /** Why the part's literal props cannot be drawn, in words, or null when they can. */
-  problem(props: Record<string, unknown>): string | null;
-  shape(props: Record<string, unknown>): BenchShape | null;
+  problem(props: Record<string, unknown>, ownCases?: OwnCases | null): string | null;
+  shape(props: Record<string, unknown>, ownCases?: OwnCases | null): BenchShape | null;
   /** Its Things to try, from the props resolved at the Widget's state: Value levers names the price of the Case chosen. */
-  tasks(props: Record<string, unknown>): string[];
-  levers(props: Record<string, unknown>): WorkbenchLeverInfo[];
+  tasks(props: Record<string, unknown>, ownCases?: OwnCases | null): string[];
+  levers(props: Record<string, unknown>, ownCases?: OwnCases | null): WorkbenchLeverInfo[];
   /** What the Tutor is told, from the props resolved at the Widget's state. */
-  reading(props: Record<string, unknown>): BenchReading | null;
+  reading(props: Record<string, unknown>, ownCases?: OwnCases | null): BenchReading | null;
   /**
    * Whether each Thing to try holds with the levers at these settings (props resolved at the Widget's state), in task
    * order; null for a task that depends on how the Learner moved rather than where the levers are ("one lever at a time").
    */
-  conditions(props: Record<string, unknown>): (boolean | null)[];
+  conditions(props: Record<string, unknown>, ownCases?: OwnCases | null): (boolean | null)[];
 };
 
 type Typed<D, Id extends string> = {
   part: string;
   recipe: string;
-  data(props: Record<string, unknown>): { data: D } | { problem: string };
+  data(props: Record<string, unknown>, ownCases?: OwnCases | null): { data: D } | { problem: string };
   levers(data: D): BenchLever<Id>[];
   shape(data: D): BenchShape;
   tasks(data: D): string[];
@@ -123,27 +67,27 @@ type Typed<D, Id extends string> = {
 
 /** A typed entry with its data parsed once per call, erased to what the check needs. */
 function entry<D, Id extends string>(spec: Typed<D, Id>): WorkbenchEntry {
-  const data = (props: Record<string, unknown>) => {
-    const parsed = spec.data(props);
+  const data = (props: Record<string, unknown>, ownCases?: OwnCases | null) => {
+    const parsed = spec.data(props, ownCases);
     return "data" in parsed ? parsed.data : null;
   };
   return {
     part: spec.part,
     recipe: spec.recipe,
-    problem: (props) => {
-      const parsed = spec.data(props);
+    problem: (props, ownCases) => {
+      const parsed = spec.data(props, ownCases);
       return "problem" in parsed ? parsed.problem : null;
     },
-    shape: (props) => {
-      const d = data(props);
+    shape: (props, ownCases) => {
+      const d = data(props, ownCases);
       return d === null ? null : spec.shape(d);
     },
-    tasks: (props) => {
-      const d = data(props);
+    tasks: (props, ownCases) => {
+      const d = data(props, ownCases);
       return d === null ? [] : spec.tasks(d);
     },
-    levers: (props) => {
-      const d = data(props);
+    levers: (props, ownCases) => {
+      const d = data(props, ownCases);
       if (d === null) return [];
       return spec
         .levers(d)
@@ -158,31 +102,13 @@ function entry<D, Id extends string>(spec: Typed<D, Id>): WorkbenchEntry {
           step: l.step,
         }));
     },
-    reading: (props) => {
-      const d = data(props);
-      return d === null
-        ? null
-        : spec.reading(
-            d,
-            benchSettings(
-              props as Partial<Record<Id, unknown>>,
-              spec.levers(d),
-            ),
-            props,
-          );
+    reading: (props, ownCases) => {
+      const d = data(props, ownCases);
+      return d === null ? null : spec.reading(d, benchSettings(props as Partial<Record<Id, unknown>>, spec.levers(d)), props);
     },
-    conditions: (props) => {
-      const d = data(props);
-      return d === null
-        ? []
-        : spec.conditions(
-            d,
-            benchSettings(
-              props as Partial<Record<Id, unknown>>,
-              spec.levers(d),
-            ),
-            props,
-          );
+    conditions: (props, ownCases) => {
+      const d = data(props, ownCases);
+      return d === null ? [] : spec.conditions(d, benchSettings(props as Partial<Record<Id, unknown>>, spec.levers(d)), props);
     },
   };
 }
@@ -207,20 +133,19 @@ const issues = (error: {
 const valueLevers = entry<ValueLeversData, string>({
   part: "ValueLevers",
   recipe: "value_levers",
-  data: (props) => valueLeversData(props),
+  data: (props, ownCases) => valueLeversData(props, ownCases),
   levers: (data) => valueLeversLevers(data),
   shape: (data) => valueLeversShape(data.block, data.mode),
   tasks: (data) => valueLeversTasks(data.block),
-  reading: (data, _settings, props) => valueLeversReading(data, props),
+  // The Full sheet's changed rows (#104) are valued with the Levers, and the Tutor is told each one, so it and the screen agree.
+  reading: (data, _settings, props) => {
+    const rows = rowsFrom(props, data.block);
+    const reading = valueLeversReading({ ...data, block: withRows(data.block, rows) }, props);
+    return { ...reading, readouts: [...reading.readouts, ...changedRowReadouts(data.block, rows)] };
+  },
   conditions: (data, _settings, props) => {
     const specs = leverSpecs(data.block, data.mode);
-    const model = valueLeversModel(
-      data.block,
-      specs,
-      leverSettingsFrom(props, specs),
-      data.mode,
-      marketFrom(props[MARKET_VARIABLE], data.mode),
-    );
+    const model = valueLeversModel(withRows(data.block, rowsFrom(props, data.block)), specs, leverSettingsFrom(props, specs), data.mode, marketFrom(props[MARKET_VARIABLE], data.mode));
     return [null, model.nearPrice];
   },
 });

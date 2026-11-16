@@ -1,12 +1,12 @@
 import { isConverted, loadCourseMap } from "@/course/map";
-import { courseOverview, whatComesNext } from "@/course/navigator";
+import { courseOverview, spinePassed, whatComesNext } from "@/course/navigator";
 import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { parkedSkills } from "@/learner/skill-state";
 import { topicSessions } from "@/tutor/session-log";
 import { currentAccount } from "../account";
-import { ReadingPage, SignedInFrame } from "../ui";
+import { ReadingPage } from "../ui";
 import { CourseMapView } from "./course-map-view";
 
 // Reads saved progress on every visit. No model call.
@@ -23,15 +23,14 @@ export default async function CourseMapPage() {
   const parked = await parkedSkills(db, learnerId, map.topics.filter(isConverted).map((t) => t.id));
   const next = whatComesNext(map, progress);
   return (
-    <SignedInFrame>
-      <ReadingPage current="course" account={await currentAccount()}>
-        <CourseMapView
-          topics={courseOverview(map, progress, parked)}
-          coming={map.coming}
-          recommended={next ? { topicId: next.topic.id, label: next.label } : null}
-          sessions={sessions}
-        />
-      </ReadingPage>
-    </SignedInFrame>
+    <ReadingPage current="course" account={await currentAccount()}>
+      <CourseMapView
+        topics={courseOverview(map, progress, parked)}
+        coming={map.coming}
+        recommended={next ? { topicId: next.topic.id, label: next.label } : null}
+        sessions={sessions}
+        assignmentOpen={spinePassed(map, progress)}
+      />
+    </ReadingPage>
   );
 }

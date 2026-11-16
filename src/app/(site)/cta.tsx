@@ -6,7 +6,7 @@ import type { Viewer } from "@/site/viewer";
 import { Button } from "../primitives";
 import { Glyph } from "./parts";
 
-// The CTA by viewer state (spec 7.1): visitors Join early access (cta.visitor.href: /join, Clerk's Waitlist, #33),
+// The CTA by viewer state (spec 7.1): visitors Join the waitlist (cta.visitor.href: /join, Clerk's Waitlist, #33),
 // members Continue.
 
 type Size = "md" | "lg";
@@ -43,11 +43,14 @@ export function ContinueButton({ button, size = "md" }: { button: HomeButton; si
   );
 }
 
-/** The primary CTA for this viewer. A visitor's is marked `data-join`, so SiteJoinEvents counts it by place. */
-export function PrimaryCta({ viewer, size = "lg" }: { viewer: Viewer; size?: Size }) {
+/**
+ * The primary CTA for this viewer. A visitor's is marked `data-join`, so SiteJoinEvents counts it by place. The Home hero
+ * draws a visitor's Join as its second button (`tone="secondary"`), after Try the jackpot.
+ */
+export function PrimaryCta({ viewer, size = "lg", tone = "primary" }: { viewer: Viewer; size?: Size; tone?: "primary" | "secondary" }) {
   if (viewer.state === "member") return <ContinueButton button={viewer.button} size={size} />;
   return (
-    <Link href={cta.visitor.href} className={`v-btn v-btn-primary${sized(size)}`} data-affordance="button" data-join="">
+    <Link href={cta.visitor.href} className={`v-btn v-btn-${tone}${sized(size)}`} data-affordance="button" data-join="">
       {cta.visitor.label}
     </Link>
   );

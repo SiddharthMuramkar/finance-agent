@@ -11,9 +11,9 @@ export type { SignalCall, SignalEvent, SignalWidgetProps, Verdict } from "./part
 
 /** Each widget's own Case slug (spec §7.1), for a page that maps `/examples/[slug]` to its widget. */
 export const SIGNAL_WIDGET_CASES = {
-  JackpotWidget: "mega-millions-2018",
+  JackpotWidget: "kerala-bumper-2024",
   LeversWidget: "amazon-2000",
   WeWorkWidget: "wework-2019",
-  RatesWidget: "rates-up-1",
+  RatesWidget: "rbi-repo-cut-2025",
   CompoundWidget: "compounding-1000",
 } as const;

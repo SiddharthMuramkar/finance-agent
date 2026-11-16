@@ -18,29 +18,42 @@ const visitorNav = (path: string) => {
 const signIn = (html: string) => /<a [^>]*href="\/sign-in"[^>]*>Sign in<\/a>/.exec(html)?.[0];
 
 describe("the site nav, for a visitor", () => {
-  it("offers Sign in and Join early access, to /join, on a public page", () => {
+  it("offers Sign in and Join the waitlist, to /join, on a public page", () => {
     const html = visitorNav("/about");
     expect(signIn(html)).not.toMatch(/aria-current/);
     expect(html.match(/data-join=""/g)).toHaveLength(1);
-    expect(html).toMatch(/<a (?=[^>]*href="\/join")(?=[^>]*data-join="")[^>]*>Join early access<\/a>/);
-    expect(html).toContain("Join early access");
+    expect(html).toMatch(/<a (?=[^>]*href="\/join")(?=[^>]*data-join="")[^>]*>Join the waitlist<\/a>/);
+    expect(html).toContain("Join the waitlist");
   });
 
-  it("marks Sign in as the page showing on /sign-in and Clerk's steps under it, with no Join early access", () => {
+  it("marks Sign in as the page showing on /sign-in and Clerk's steps under it, with no Join the waitlist", () => {
     for (const path of ["/sign-in", "/sign-in/factor-one"]) {
       const html = visitorNav(path);
       expect(signIn(html), path).toMatch(/aria-current="page"/);
       expect(html, path).not.toContain("data-join");
-      expect(html, path).not.toContain("Join early access");
+      expect(html, path).not.toContain("Join the waitlist");
     }
   });
 
-  it("offers Sign in but no Join early access on the joining flow, /join and /sign-up", () => {
+  it("offers Sign in but no Join the waitlist on the joining flow, /join and /sign-up", () => {
     for (const path of ["/join", "/sign-up", "/sign-up/verify-email-address"]) {
       const html = visitorNav(path);
       expect(signIn(html), path).not.toMatch(/aria-current/);
       expect(html, path).not.toContain("data-join");
-      expect(html, path).not.toContain("Join early access");
+      expect(html, path).not.toContain("Join the waitlist");
+    }
+  });
+});
+
+// ADR 0019: a sun/moon switch in the nav flips the theme. Both icons are drawn so CSS shows the right one before
+// hydration; the server names it for Light (the page's default before the head script runs).
+describe("the theme switch", () => {
+  it("sits in the nav for a visitor and a member", () => {
+    at.path = "/";
+    for (const html of [visitorNav("/"), renderToStaticMarkup(<SiteNav viewer={{ state: "member", name: "Asha", button: { label: "Continue", href: "/study" } } as never} />)]) {
+      expect(html).toMatch(/<button (?=[^>]*data-testid="theme-switch")(?=[^>]*aria-label="Switch to dark theme")[^>]*>/);
+      expect(html).toContain('data-testid="theme-icon-moon"');
+      expect(html).toContain('data-testid="theme-icon-sun"');
     }
   });
 });

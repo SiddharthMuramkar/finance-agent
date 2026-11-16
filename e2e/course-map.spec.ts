@@ -1,4 +1,6 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
+import { parse } from "yaml";
 import { readOutlineText } from "../src/course/map";
 import { parseOutline, SPINE_LENGTH, spineTopics } from "../src/course/outline";
 import { hydrated, seed } from "./support/app";
@@ -69,6 +71,41 @@ test("rows still open Topics", async ({ page }) => {
   await expect(page).toHaveURL(/\/sessions\/\d+$/, { timeout: 60_000 });
 });
 
+/** Each written Topic's id and whether it is written ahead (a Converted Topic: its file lists Skills), read from the course files. */
+const writtenAhead = new Map(
+  readdirSync("course/topics")
+    .filter((f) => f.endsWith(".yaml"))
+    .map((f) => parse(readFileSync(`course/topics/${f}`, "utf8")) as { id: string; skills?: unknown[] })
+    .map((t) => [t.id, (t.skills?.length ?? 0) > 0] as const),
+);
+
+/** Spec #68 (ticket #97): every Topic not written ahead is labelled "Taught live by the AI Tutor", and still opens. */
+test("Topics not written ahead are labelled taught live, and still open", async ({ page }, info) => {
+  test.skip(info.project.name !== "w1280", "one width is enough");
+  test.setTimeout(120_000); // the dev server compiles /study on first visit
+  await page.goto("/course");
+  await hydrated(page);
+  await page.locator("details:not([open]) > summary").evaluateAll((els) => els.forEach((el) => (el.parentElement as HTMLDetailsElement).setAttribute("open", "")));
+
+  const rows = await page.locator("li[data-topic]").evaluateAll((els) =>
+    els.map((el) => ({ id: el.getAttribute("data-topic")!, label: el.querySelector("[data-taught-live]")?.textContent ?? null })),
+  );
+  expect(rows.length).toBe(writtenAhead.size);
+  expect([...writtenAhead.values()].filter((w) => !w).length).toBeGreaterThan(80);
+  expect(writtenAhead.get("spine-01-worth")).toBe(true);
+  expect(writtenAhead.get("num-compounding")).toBe(true);
+  const wrong = rows.filter((r) => (writtenAhead.get(r.id) ? r.label !== null : r.label !== "Taught live by the AI Tutor"));
+  expect(wrong, "rows whose label does not match the course files").toEqual([]);
+
+  // A labelled, not-started Topic with nothing to do first opens the Study Workspace on it.
+  const card = page.locator('li[data-topic][data-status="not_started"]:has([data-taught-live]):not(:has([data-jump]))').first();
+  await card.scrollIntoViewIfNeeded();
+  const title = (await card.locator("[data-row-link]").innerText()).trim();
+  await card.locator("[data-row-link]").click();
+  await expect(page).toHaveURL(/\/study$/, { timeout: 60_000 });
+  await expect(page.getByTestId("topic-bar")).toContainText(title);
+});
+
 test("Spine first, and every Topic still listed", async ({ page }) => {
   await page.goto("/course");
   const spine = page.locator('section[data-stage="spine"]');
@@ -81,7 +118,7 @@ test("Spine first, and every Topic still listed", async ({ page }) => {
   // #90: the three financial statements are a written Spine Topic, right after the cash Topic, never a Coming row.
   await expect(spine.locator('li[data-topic="spine-statements"]')).toContainText("What do the three financial statements show?");
   const stages = await page.locator("section[data-stage]").evaluateAll((els) => els.map((el) => el.getAttribute("data-stage")));
-  expect(stages).toEqual(["spine", "foundation", "follow", "judge", "analyse"]);
+  expect(stages).toEqual(["spine", "assignment", "foundation", "follow", "judge", "analyse"]);
   await expect(page.getByRole("heading", { level: 2, name: "Electives" })).toBeVisible();
   // The 95 Topics written before the Spine are all rows that open, folded groups included.
   expect(await page.locator("li[data-topic] [data-row-link]").count()).toBeGreaterThanOrEqual(95);

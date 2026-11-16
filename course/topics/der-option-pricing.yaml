@@ -41,11 +41,13 @@ cases:
 
 concept: >
   An option's price is the cost of building its payoff from the share and borrowing. In a
-  one-period binomial model the share can only go up to S x u or down to S x d. With a risk-free
-  rate r per period, the risk-neutral probability of an up move is p = ((1 + r) - d) / (u - d), and
-  the option is worth its expected payoff under p, discounted at 1 + r. Equivalently, hold delta =
-  (payoff up - payoff down) / (S x u - S x d) shares and borrow the balance, and you copy the option
-  exactly. Black and Scholes take the same idea to its limit, with trading at every instant: the
+  one-period binomial model the share can only go up to today's price times an up factor u, or down to today's price times a down factor d. With a risk-free
+  rate r per period, find the risk-neutral probability of an up move in two steps: take what one unit
+  grows to in a period at the risk-free rate and subtract the down factor d, then divide by the gap
+  between the up factor u and the down factor d. The option is worth its expected payoff under that
+  probability, discounted by one period at the risk-free rate. Equivalently, hold delta shares, found
+  by dividing the gap between the payoff up and the payoff down by the gap between the share price up
+  and the share price down, and borrow the balance, and you copy the option exactly. Black and Scholes take the same idea to its limit, with trading at every instant: the
   option is worth more when the share price, the volatility, the interest rate and the time to
   expiry are higher, and when the strike is lower (for a call). No forecast of the share's return is
   needed. The cost is a set of assumptions: constant volatility, continuous trading, no trading
@@ -62,6 +64,12 @@ youllLearn:
   - "Price an option as the cost of building its payoff from shares and borrowing."
   - "See which inputs raise an option's value, and why no forecast of the share's return is needed."
   - "Know which assumption a pricing model depends on and what happens to a hedge when it fails."
+
+goDeeper: >
+  The typed formulas are p = ((1 + r) - d) / (u - d) and delta = (payoff up - payoff down) / (S x u - S x d).
+  p is the risk-neutral probability of an up move, r is the risk-free rate per period, u and d are the
+  factors the share price is multiplied by in an up or a down move, S is today's share price, and delta
+  is the number of shares to hold.
 
 questions:
   - id: ox-q-binomial-value

@@ -1,4 +1,5 @@
 import type { Notebook, NotebookRow } from "@/learner/notebook";
+import type { OwnCaseNote } from "@/learner/own-cases";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { dayMonth, shortDate } from "../past-sessions";
 import { Button, ButtonLink, Card, Eyebrow, Tag, TextLink } from "../ui";
@@ -145,7 +146,32 @@ function Row({ row, place, next }: { row: NotebookRow; place: number; next: bool
  * every column of the page is used. Older sessions follow the rows. The page prints: controls are hidden, and a
  * Topic with nothing on it is left out of the paper copy.
  */
-export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAll: boolean }) {
+/** The Learner's saved Own Cases (spec #68, Assignments): one one-page note each, newest first. */
+function OwnCaseNotes({ notes }: { notes: readonly OwnCaseNote[] }) {
+  if (notes.length === 0) return null;
+  return (
+    <section id="own-cases" aria-labelledby="own-cases-heading" className="mb-12 flex scroll-mt-4 flex-col gap-4">
+      <h2 id="own-cases-heading" className="type-h2">
+        Own Cases
+      </h2>
+      <div className="card-grid gap-y-8 [grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr))]">
+        {notes.map((n) => (
+          <Card key={n.id} variant="rule" data-own-case-note={n.id} className="flex break-inside-avoid flex-col gap-2">
+            <Eyebrow>Assignment</Eyebrow>
+            <h3 className="[font-family:var(--font-display)] text-[18px] font-semibold leading-6 tracking-[-0.012em]">{n.company}</h3>
+            {n.note.split("\n").map((line) => (
+              <p key={line} className="text-sm leading-6">
+                {line}
+              </p>
+            ))}
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function NotebookView({ notebook, showAll, ownCases = [] }: { notebook: Notebook; showAll: boolean; ownCases?: readonly OwnCaseNote[] }) {
   const next = nextResume(notebook.rows);
   return (
     // One Case Data cache for the page, so saved Widgets drawing the same Case fetch it once.
@@ -161,7 +187,8 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
           <p className="measure mb-10 mt-2 text-sm leading-5 text-[var(--muted)] print:hidden">
             For each Topic: your Session, what you found and your Topic Note. Add lines of your own to any Topic. Print this page for a paper copy.
           </p>
-          {notebook.rows.length === 0 && (
+          <OwnCaseNotes notes={ownCases} />
+          {notebook.rows.length === 0 && ownCases.length === 0 && (
             <p data-notebook-empty className="text-sm leading-5">
               Nothing here yet. Study a Topic, or save a reply while you study, and it shows here. Show all Topics to add a line of your own.
             </p>

@@ -13,6 +13,7 @@ import {
   useBenchTasks,
   type BenchViewProps,
 } from "./bench-view";
+import { MarketReadingsView, caseKnownOn } from "../market-readings-view";
 import {
   STACK_CAPTION,
   waccStackLevers,
@@ -33,7 +34,8 @@ export function WaccStackView({
   ticked = [],
   onTicked,
   onFirstLeverMove,
-}: { data: WaccStackData } & BenchViewProps<StackLeverId>) {
+  readings = [],
+}: { data: WaccStackData; readings?: readonly string[] } & BenchViewProps<StackLeverId>) {
   const levers = useMemo(() => waccStackLevers(data), [data]);
   const tasks = useMemo(() => waccStackTasks(data), [data]);
   const { settings, move } = useBenchSettings(
@@ -88,6 +90,7 @@ export function WaccStackView({
         </ul>
         <BarRows rows={rows} testId="wacc-stack-bars" />
       </BenchFigure>
+      <MarketReadingsView ids={readings} known={caseKnownOn(data.block)} />
       <BenchTasks tasks={tasks} reached={reached} />
     </div>
   );

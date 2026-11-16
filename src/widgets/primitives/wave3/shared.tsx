@@ -2,6 +2,7 @@
 
 import { Icon, type IconSize } from "@/icons/icon";
 import { iconFor, isIconName, type IconName } from "@/icons/names";
+import { LONG_MONTHS, MONTHS } from "../../months";
 
 // Helpers the story parts (wave 3) share: pictures by name, dates written for people, and the motion flag.
 
@@ -24,7 +25,6 @@ export function Pic({ name, size, label }: { name: unknown; size: IconSize; labe
 /** The value of `data-motion`: "off" when the Learner asked for reduced motion, else "on". */
 export const motionFlag = (reduced: boolean) => (reduced ? "off" : "on");
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** "1994-02-03" as "3 Feb 1994" (read from the text, so the Learner's time zone never moves the day); a bare year or month stays as written; null if not a date. */
 export function dayLabel(iso: unknown): string | null {
@@ -45,7 +45,6 @@ export function isAfter(a: string, b: string): boolean {
   return pad(a) > pad(b);
 }
 
-const LONG_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 /** "1994-02-03" as "3 February 1994" (the front page's date line); a bare year or month stays as written; null if not a date. */
 export function longDayLabel(iso: unknown): string | null {

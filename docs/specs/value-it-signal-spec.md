@@ -15,7 +15,7 @@ How to read this document: sections 1 to 5 are the system (rules, tokens, compon
 
 ## 1. Product in one paragraph
 
-Value It teaches money, markets and valuation through real past events. A learner asks a question, the Tutor (a chatbot) answers and opens a live widget, and the learner moves the numbers until the idea makes sense. The Tutor chooses which widget to open and at which numbers. Tested code draws it. The site sells a waitlist ("early access"), is free during early access, and speaks to anyone curious about money rather than to one persona.
+Value It teaches money, markets and valuation through real past events. A learner asks a question, the Tutor (a chatbot) answers and opens a live widget, and the learner moves the numbers until the idea makes sense. The Tutor chooses which widget to open and at which numbers. Tested code draws it. The site sells a waitlist ("early access"), is free during early access, and speaks to one person: a beginner with no finance background (#68). Home asks a Visitor to learn only four product words: AI Tutor, Example, Topic, move the numbers. Published valuations are "one published valuation"; their authors are named only in source lines and the About credit.
 
 ### 1.1 Design principles (non-negotiable)
 
@@ -103,11 +103,42 @@ Contrast ratios (WCAG 2):
 | Orange mark on wash | claim bar | 2.61 (below 3:1: always hatched with a 1.5px orange outline and a label) |
 | Red mark on wash | bars | 5.70 |
 
+**Dark (ADR 0019).** The same pairs, measured on the Dark tokens of §3.1 by `scripts/check-theme-contrast.mjs`. In Dark the fills are light, so the text on a fill (`--on-blue`) is the dark `#0B0D12`; the table keeps the Light names.
+
+| Pair | Normal | Deuteranopia | Protanopia | Tritanopia |
+|---|---|---|---|---|
+| Green ↔ Red | 34.4 | 23.7 | 12.6 | 33.5 |
+| Green ↔ Orange | 37.6 | 36.9 | 29.1 | 36.0 |
+| Red ↔ Orange | 20.9 | 15.2 | 20.9 | 14.8 |
+| Blue ↔ Green | 29.6 | 26.5 | 26.7 | 21.2 |
+| Blue ↔ Red | 23.1 | 18.8 | 15.9 | 26.8 |
+| Blue ↔ Orange | 30.6 | 31.9 | 28.4 | 20.8 |
+| Green ↔ Deep green | 26.3 | 26.1 | 27.1 | 25.8 |
+| Red ↔ Deep green | 29.1 | **3.4** | 15.7 | 32.3 |
+
+Red and deep green stay below the floor for deuteranopia in Dark too, under the same rule: never adjacent data marks.
+
+| Use | Pair | Ratio |
+|---|---|---|
+| Body text | ink-2 `#D3D7DF` on paper `#0E1117` | 13.10 |
+| Headings | ink `#F2F4F8` on paper | 17.16 |
+| Muted text | muted `#9BA2AE` on paper / on wash | 7.35 / 6.78 |
+| Faint text (axis ends only) | faint `#7A818D` on paper | 4.82 |
+| Blue text | blue on paper / on blue-tint | 7.95 / 6.56 |
+| Pill text | gain-ink on gain-tint | 7.66 |
+| Pill text | loss-ink on loss-tint | 8.55 |
+| Pill text | wait-ink on wait-tint | 11.04 |
+| Dark text on fills | on blue / red / deep green / ink | 8.18 / 7.80 / 10.15 / 17.65 |
+| Ink on green fill | segmented-bar label | 4.84 |
+| Green mark on wash | bars | 3.27 (direct labels, tooltip and table view stay required) |
+| Orange mark on wash | claim bar | 10.84 (always hatched with an outline and a label, as in Light) |
+| Red mark on wash | bars | 7.00 |
+
 ---
 
 ## 3. Design tokens
 
-### 3.1 Colour tokens (single light theme by design)
+### 3.1 Colour tokens (Light and Dark; ADR 0019)
 
 ```css
 :root{
@@ -139,7 +170,24 @@ Each signal colour ships as a family of four or five steps with fixed jobs:
 | `-line` | Pill inner border, soft bands on the ruler |
 | `--gain-deep` | Second level of gain (compounding only) |
 
-The page commits to one light theme. `body` sets an explicit `background: var(--paper)` and `color-scheme: light` so it renders the same on a dark host. A dark theme is not specified. If one is added, every signal colour must be re-stepped and re-validated against the dark surface, never inverted.
+There are two themes, Light (above) and Dark (below), in one colour language (ADR 0019). A first visit follows the device's light or dark setting. A sun/moon switch in the site nav (and the Menu sheet on a phone) flips the theme and a `theme` cookie remembers the choice. A script at the top of `<head>` sets `data-theme` on `<html>` before the first paint, so a page never flashes the wrong theme. `body` sets an explicit `background: var(--paper)`, and each block sets its own `color-scheme`.
+
+Every signal colour and the hatch is re-stepped and re-validated against the dark surface, never inverted. The hatch is drawn in `--line`, so it takes `--line`'s dark value. On a dark page the fills are light, so the text on a fill, and on a Band, is dark. The §2.4 contrast and colour-blind checks pass in both themes (`scripts/check-theme-contrast.mjs` measures each block).
+
+```css
+:root[data-theme="dark"]{
+  --paper:#0E1117; --wash:#161A22; --wash-2:#1F2430; --grid:#1B2029;
+  --ink:#F2F4F8; --ink-2:#D3D7DF; --muted:#9BA2AE; --faint:#7A818D;
+  --rule:#272C37; --line:#3A404D;
+  --blue:#8AA4FF; --blue-hover:#9FB5FF; --blue-pressed:#B3C4FF; --on-blue:#0B0D12;
+  --blue-tint:#1A2240; --blue-tint-2:#222B4E; --blue-line:#3A4B8C;
+  --gain:#0F7A56; --gain-deep:#4FD1A1; --gain-ink:#4CC996; --gain-tint:#10261E; --gain-line:#1E5A44;
+  --loss:#FF7A8F; --loss-ink:#FF9AA8; --loss-tint:#2C1418; --loss-line:#6E2A35;
+  --wait:#FFC247; --wait-ink:#FFCC66; --wait-tint:#2B1C0E; --wait-line:#6B5221;
+  --overlay:rgba(14,17,23,.9);
+  color-scheme:dark;
+}
+```
 
 ### 3.2 Typography
 
@@ -251,7 +299,7 @@ Single page application with a hash router (section 7.1). `#app` is re-rendered 
 
 | State | Nav right side |
 |---|---|
-| Visitor | "Sign in" text link + primary button "Join early access" |
+| Visitor | "Sign in" text link + primary button "Join the waitlist" |
 | Applicant | Orange status pill "Request in review" (wait-tint background, wait dot) linking to `#pending` |
 | Member | Primary button "Continue" with a glyph showing moves done + avatar button opening a menu (Course map, Notebook, Account settings, Sign out) |
 
@@ -499,6 +547,7 @@ All five widgets share the five beats in principle 3 and section 5.6. Shared rul
 
 | Formatter | Rule | Examples |
 |---|---|---|
+| `inrCr(c)` | c in ₹ crore, in words with `en-IN` grouping; under 1 crore in lakh | `₹25 crore`, `₹11.29 crore`, `₹37.63 lakh` |
 | `usdM(m)` | m in $ millions. `m ≥ 999.95` → `$` + (m/1000) to 3 decimals + `B`. Else `$` + 1 decimal + `M`. | `$1.537B`, `$694.0M` |
 | `inr(x)` | `₹` + rounded, `en-IN` grouping | `₹17,449` |
 | `share(v)` | `v ≤ 0` → `$0`. Else `$` + rounded. | `$35` |
@@ -541,7 +590,7 @@ Presets:
 
 | Key | Chip label | rev | margin | s2c | wacc | Value |
 |---|---|---|---|---|---|---|
-| `damodaran` (the reference, "his story") | His story | 39 | 10 | 3 | 12.84 | 35.04 → `$35` |
+| `damodaran` (the reference, "his story") | The published Story | 39 | 10 | 3 | 12.84 | 35.04 → `$35` |
 | `grocer` | A grocer’s margins | 39 | 5 | 3 | 12.84 | 1.30 → `$1` |
 | `price` | One story worth $84 | 59 | 12 | 3 | 11.84 | 83.69 → `$84` |
 
@@ -571,7 +620,7 @@ Sixteen model runs per update. No throttling is needed.
 
 Used by the levers widget and by the home scroll story.
 
-**Top line.** Left: label "Your story is worth" over the value in blue (`share(v)`). Right: a sub-line.
+**Top line.** Left: label "This Story is worth" over the value in blue (`share(v)`). Right: a sub-line.
 
 | Condition | Sub-line |
 |---|---|
@@ -585,7 +634,7 @@ Used by the levers widget and by the home scroll story.
 |---|---|
 | Track | 10px high, radius 5px, `--wash-2` |
 | Price pin | 2px ink line at 50%, extending 6px above and below the track. Label above: "$84" (display 600 17px) over "Price paid, 3 Feb 2000" (12px muted). |
-| Reference notch | 2px ink-2 line at 55% opacity at `pos(35.04)`. Label below: "His story $35". |
+| Reference notch | 2px ink-2 line at 55% opacity at `pos(35.04)`. Label below: "Published $35". |
 | Your dot | 20px blue circle with a 3px white border and shadow at `pos(v)`. When `v > 168` it pins to the right end and shows a "›". |
 | Net segment (free mode) | From the notch to the dot. Green when `v ≥ reference`, red when below. |
 | Band (band mode) | Soft red (`--loss-line`) from `pos(lo)` to the notch and soft green (`--gain-line`) from the notch to `pos(hi)` for one lever. |
@@ -617,7 +666,7 @@ Interaction:
 | Mouse | Press anywhere on the track and drag. Pointer capture on the track. |
 | Touch | Drag only from the knob (`touch-action: none` on the knob, `pan-y` on the track, so the page still scrolls over a lever). A tap on the track (moved ≤ 8px) sets the value. |
 | Keyboard | A visually hidden native range input per lever. Arrow keys move one step. Focus draws a 2px blue outline around the track. |
-| Screen reader | `aria-valuetext`: e.g. "Operating margin 12 percent, adds 17 dollars a share". A polite live region announces "Your story is worth $84 a share." on commit (pointer up, tap, `change`). |
+| Screen reader | `aria-valuetext`: e.g. "Operating margin 12 percent, adds 17 dollars a share". A polite live region announces "This Story is worth $84 a share." on commit (pointer up, tap, `change`). |
 
 While dragging, the lab gets a `dragging` class that removes position transitions so marks track the pointer exactly.
 
@@ -631,9 +680,9 @@ Reading line:
 
 | Condition | Text |
 |---|---|
-| `|v − 35.04| < 0.5` | This is his story: **$35** a share, against a price of **$84**. Drag any lever to write your own. |
-| `round(v) ≥ 84` | [pill blue ✓ You reached the price] Your story needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000? |
-| otherwise | Your story is worth **$N more / less** than his. The pills under each lever show where that came from. |
+| `|v − 35.04| < 0.5` | This is one published valuation: **$35** a share, against a price of **$84**. Drag any lever to test it. |
+| `round(v) ≥ 84` | [pill blue ✓ You reached the price] To reach the $84 price, Amazon needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000? |
+| otherwise | This Story is worth **$N more / less** than the published one. The pills under each lever show where that came from. |
 
 The call: this widget has no right answer, so the call is the first lever change or preset tap. That opens Go deeper and fires `onCall`.
 
@@ -647,7 +696,7 @@ Go deeper, "Where the value comes from":
 | Cash from years 1 to 10 | 0 → yrs | Green if positive, red if negative | `d$(yrs)` |
 | Everything after year 10 | yrs → yrs + after | Green | `d$(after)` |
 | What it owes others | previous → previous − owes | Red | `d$(−owes)` |
-| Your story, a share (total, bold, ruled above) | 0 → total | Blue | `share(total)` |
+| This Story, a share (total, bold, ruled above) | 0 → total | Blue | `share(total)` |
 
 Scale: `lo = min(0, total, every segment low)`, `hi = max(84 × 1.1, total, every segment high)`, `X(v) = (v − lo) / (hi − lo) × 100%`. A 1px `--line` marks zero and a 2px ink line marks the $84 price through every row. Minimum bar width 0.6%. Row grid: label 11.5em, bar flexible, value 4.2em. At 560px and below the label and value sit above the bar.
 
@@ -660,7 +709,7 @@ Scale: `lo = min(0, total, every segment low)`, `hi = max(84 × 1.1, total, ever
 | `0 < tvShare ≤ 1` | **N%** of this business’s value arrives after year 10. |
 | `tvShare` null | (nothing) |
 
-Foot key: blue knob "You: drag these", green "Adds value to his story", red "Takes value away", notch "His story", pin "Price paid". Source: "Damodaran’s valuation of Amazon, Feb 2000, on the course’s tested valuation engine. It reproduces his $35.08 within 2%."
+Foot key: blue knob "You: drag these", green "Adds value to the published Story", red "Takes value away", notch "The published Story", pin "Price paid". Source: "Damodaran’s valuation of Amazon, Feb 2000, on the course’s tested valuation engine. It reproduces his $35.08 within 2%."
 
 #### 6.2.4 Acceptance values
 
@@ -683,75 +732,77 @@ His story, cash by year in dollars a share: −2.42, −2.36, −2.02, −1.37, 
 
 ### 6.3 Jackpot (money later is worth less)
 
-**Lesson.** A bigger total paid later can be worth less than a smaller sum today.
+**Lesson.** The same total paid later is worth less than that sum today.
+
+**The Moment (#116).** Kerala's Thiruvonam Bumper lottery, BR-99, drawn on 9 October 2024: a first prize of ₹25 crore on ticket TG 434222, sold in Wayanad for ₹500. Kerala pays a prize at once, into the winner's bank account, after the agent's 10% commission and tax (about ₹12.88 crore in hand). The 30 yearly payments are a what-if: the same ₹25 crore paid the way US lotteries pay their advertised jackpots. Case Data as of 9 Oct 2024; Sources: [The Hindu, 9 Oct 2024](https://www.thehindu.com/news/national/kerala/keralas-25-crore-thiruvonam-bumper-lottery-announced-jackpot-goes-to-ticket-sold-in-wayanad/article68735952.ece), [Mathrubhumi, 9 Oct 2024](https://english.mathrubhumi.com/news/kerala/kerala-thiruvonam-bumper-lottery-result-first-prize-winner-47fe5126), [The New Indian Express, 11 Oct 2024](https://www.newindianexpress.com/states/karnataka/2024/Oct/11/mandya-bike-mechanic-wins-rs-25-crore-thiruvonam-bumper-lottery); the American annuity (one payment now and 29 yearly, each 5% bigger): [Mega Millions](https://www.megamillions.com/difference-between-cash-value-and-annuity). It replaced the 2018 Mega Millions prize on the site; the course's own Case `mega-millions-2018` is unchanged.
 
 #### 6.3.1 Model
 
 | Name | Value |
 |---|---|
-| Advertised total | $1,537M over 30 yearly payments |
-| Cash option | $877.8M now |
-| Payment growth | 5% a year, first payment at once (t = 0) |
-| First payment `p0` | `1537 / Σ_{t=0..29} 1.05^t` = $23.134M |
-| Payment `t` | `p0 × 1.05^t` (last, t = 29: $95.223M) |
+| Prize, and the plain sum of the 30 payments | ₹25 crore |
+| Cash, paid at once | ₹25 crore |
+| Payment growth | 5% a year, first payment at once (t = 0), 2024 to 2053 |
+| First payment `p0` | `25 / Σ_{t=0..29} 1.05^t` = ₹0.3763 crore (₹37.63 lakh) |
+| Payment `t` | `p0 × 1.05^t` (last, t = 29: ₹1.5488 crore) |
 | Worth today at rate `r` | `pay_t / (1 + r)^t` |
+
+Money is in ₹ crore and shown with `inrCr` (§6.1).
 
 #### 6.3.2 Parts
 
-- Head: "Live widget", "Oct 2018". Title: "Is a $1.537B jackpot really worth $1.537B?" Sub: "The 2018 Mega Millions winner could take 30 yearly payments that add up to **$1.537B**, or **$877.8M** in cash that day."
+- Head: "Live widget", "Oct 2024". Title: "Is ₹25 crore over 30 years worth ₹25 crore?" Sub: "Kerala paid its 2024 Thiruvonam Bumper prize of **₹25 crore** at once. Paid the American way, the same **₹25 crore** would come as 30 yearly payments."
 - Your call: "At an ordinary interest rate, which is worth more?"
 
 | Option | Verdict | Pill | Feedback |
 |---|---|---|---|
-| The 30 payments | wrong | Not quite | Only at very low rates. At an ordinary 5% a year the payments are worth about $694M today, less than the $877.8M in cash. |
-| The cash | right | Right | At an ordinary 5% a year the 30 payments are worth about $694M today. That is $184M less than the cash. |
-| About the same | careful | Close | They match only at about 3.4% a year. At an ordinary 5%, the cash is worth more. |
+| The 30 payments | wrong | Not quite | Only if money earned nothing. At an ordinary 5% a year the 30 payments are worth about ₹11.29 crore today, less than half the ₹25 crore paid at once. |
+| The cash | right | Right | At an ordinary 5% a year the 30 payments are worth about ₹11.29 crore today. That is ₹13.71 crore less than the cash. |
+| About the same | careful | Close | They match only at 0%, when money earns nothing. At an ordinary 5%, the cash is worth more. |
 
-- Chart: 30 columns. Plot height 150px (116px compact), top margin 22px, 22px below for labels. Scale: $100M = full plot height. Per column: a hatched ghost bar at the payment as paid (pattern 5 × 5 rotated 45°, a 2px `--line` stripe on paper, 1px `--line` outline) and a solid green bar at its worth today. Top gridline labelled "$100M a year". X labels "2018" (left), "2032" (centre), "2047" (right). Tooltip per column: `{year}` / `Paid: $X` / `Worth today: $Y`.
+- Chart: 30 columns. Plot height 150px (116px compact), top margin 22px, 22px below for labels. Scale: ₹2 crore = full plot height. Per column: a hatched ghost bar at the payment as paid (pattern 5 × 5 rotated 45°, a 2px `--line` stripe on paper, 1px `--line` outline) and a solid green bar at its worth today. Top gridline labelled "₹2 crore a year". X labels "2024" (left), "2038" (centre), "2053" (right). Tooltip per column: `{year}` / `Paid: ₹X` / `Worth today: ₹Y`.
 - Controls (locked): "Interest rate" slider 0 to 10, step 0.05, start 0, output `0.00%`. Presets 0%, 5%, 10%. Lock note: "Make your call to unlock the rate."
-- Meter, scale 0 to $1,537M:
+- Meter, scale 0 to ₹25 crore:
 
 | Row | Fill | Ghost | Value |
 |---|---|---|---|
-| 30 payments, worth today | `sum / 1537` green | `(1537 − sum) / 1537` hatched | `usdM(sum)` |
-| Cash today | `877.8 / 1537` green | none | `$877.8M` |
+| 30 payments, worth today | `sum / 25` green | `(25 − sum) / 25` hatched | `inrCr(sum)` |
+| Cash today | `25 / 25` green | none | `₹25 crore` |
 
-- Verdict line, Go deeper, foot. Key: green "Worth in today’s money", hatch "Lost by waiting", orange "About the same". Source: "Source: CNBC, 24 Oct 2018. Payments rise 5% a year; the first is paid at once." Table (full mode): Year, Paid, Worth today at 5%.
+- Verdict line, Go deeper, foot. Key: green "Worth in today’s money", hatch "Lost by waiting", orange "About the same". Source: "Source: The Hindu, 9 Oct 2024. The 30 payments are a what-if: they rise 5% a year and the first is paid at once." Table (full mode): Year, Paid, Worth today at 5%.
 
 #### 6.3.3 States
 
 | State | Trigger | Screen |
 |---|---|---|
-| Idle | Load | Rate 0. All bars solid. Controls locked. No pills. Verdict: "Added up as advertised, the 30 payments come to **$1.537B**. That is the number on the billboard." Go deeper locked: "Opens after your call." |
+| Idle | Load | Rate 0. All bars solid. Controls locked. No pills. Verdict: "Added up as paid, the 30 payments come to **₹25 crore**, the same as the prize paid at once." Go deeper locked: "Opens after your call." |
 | Called | Any chip tapped | Chip takes its verdict and feedback. First time only: controls unlock, lock note removed, Go deeper opens titled "Find the rate where the two are worth the same.", `onCall(option)` fires. Every time: the rate runs to 5% over 900ms. |
-| Exploring | Slider or preset | With `d = sum − 877.8` and `same = |d| < 5`: pills and verdict from the table below. Go deeper: "You are **$X** away. Try a lower rate." (when `d < 0`) or "Try a higher rate." (when `d > 0`). |
-| Found | `same` while the learner is moving the slider by hand | Go deeper: [pill orange ≈ Break-even found] "At about **3.4%** a year the two are worth the same. Above that rate the cash is worth more. Below it, the payments are." Stays for the session. |
+| Exploring | Slider or preset | With `d = sum − 25` and `same = |d| < 0.1` (₹10 lakh): pills and verdict from the table below. Go deeper: "You are **₹X** away. Try a lower rate." (when `d < 0`) or "Try a higher rate." (when `d > 0`). |
+| Found | `same` while the learner is moving the slider or a preset by hand | Go deeper: [pill orange ≈ Break-even found] "At **0%** a year the two are worth the same. At any rate above it, the cash is worth more." Stays for the session. |
 
-A scripted run passing through 3.4% must not count as finding it. Only a hand-set rate does.
+The scripted run starts at the same-valued 0% and must not count as finding it. Only a hand-set rate does.
 
 | Condition | Payments row pill | Cash row pill | Verdict |
 |---|---|---|---|
 | `same` | ≈ Same (orange) | ≈ Same (orange) | At `{rate}`%, the payments and the cash are worth about the same today. |
-| `d > 0` | ✓ Worth more (green) | — | At `{rate}`%, the payments are worth **$X more** than the cash. |
-| `d < 0` | — | ✓ Worth more (green) | At `{rate}`%, the payments are worth **$X less** than the cash. |
+| `d > 0` | ✓ Worth more (green) | — | At `{rate}`%, the payments are worth **₹X more** than the cash. |
+| `d < 0` | — | ✓ Worth more (green) | At `{rate}`%, the payments are worth **₹X less** than the cash. |
 
 #### 6.3.4 Acceptance values
 
 | Rate | Payments worth today |
 |---|---|
-| 0% | $1,537.0M |
-| 1% | $1,288.9M |
-| 2% | $1,090.2M |
-| 3% | $930.0M |
-| 3.35% | $881.4M (same) |
-| 3.40% | $874.8M (same) |
-| 3.45% | $868.2M |
-| 4% | $800.1M |
-| 5% | $694.0M (every payment is worth $23.13M) |
-| 7.5% | $503.7M |
-| 10% | $382.9M (the 2047 payment is worth $6.00M) |
+| 0% | ₹25 crore (same) |
+| 0.05% | ₹24.78 crore |
+| 1% | ₹20.96 crore |
+| 2% | ₹17.73 crore |
+| 3% | ₹15.13 crore |
+| 4% | ₹13.01 crore |
+| 5% | ₹11.29 crore (every payment is worth ₹37.63 lakh) |
+| 7.5% | ₹8.19 crore |
+| 10% | ₹6.23 crore (the 2053 payment is worth ₹9.76 lakh) |
 
-True break-even: 3.377%. With a 0.05 step, "same" is reachable at 3.35% and 3.40% only.
+True break-even: 0%. With a 0.05 step, "same" is reachable at 0% only.
 
 ---
 
@@ -820,14 +871,15 @@ target  = o ± literal                the rate that literal reading would give
 
 #### 6.5.2 Parts
 
-- Head: "Live widget", "The news". Title: "One move, three sizes". Sub: "A rate goes from **4%** to **5%**."
+- The Moment (#116): on 6 June 2025 the RBI's Monetary Policy Committee cut the policy repo rate by 50 basis points, from 6.00% to 5.50%, with immediate effect. Case Data as of 6 Jun 2025; Source: [RBI, Monetary Policy Statement 2025-26, Resolution of the MPC, 6 Jun 2025](https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=60604). The widget opens on old 6, new 5.5.
+- Head: "Live widget", "Jun 2025". Title: "One move, three sizes". Sub: "On 6 June 2025 the RBI cut its repo rate from **6%** to **5.5%**."
 - Your call (multi-select): "Which of these describe the move correctly? Tap each one you believe."
 
 | Option | Verdict | Feedback |
 |---|---|---|
-| Up 1% | careful | 1% of 4% is only 0.04 points, which would make the new rate 4.04%. Writers often say “up 1%” when they mean 1 point. |
-| Up 1 percentage point | right | 5 minus 4 is 1 point. Traders call the same move 100 basis points. |
-| Up 25% | right | 1 point is a quarter of the old 4%, so the rate itself grew by 25%. |
+| Down 0.5% | careful | 0.5% of 6% is only 0.03 points, which would make the new rate 5.97%. Writers often say “down 0.5%” when they mean half a point. |
+| Down 0.5 percentage points | right | 6 minus 5.5 is half a point. The RBI called the same cut 50 basis points. |
+| Down about 8% | right | Half a point is a twelfth of the old 6%, so the rate itself fell by about 8.33%. |
 
 - Chart, 262px tall, width `W`. `X(v) = 14 + (v − 1) / 7 × (W − 28)`.
 
@@ -855,7 +907,7 @@ target  = o ± literal                the rate that literal reading would give
 
 - Trap sentence (hidden when there is no move): [pill orange ! Careful] Read literally, “up 1%” is 1% of the old 4%: a move of only **0.04 points**, to 4.04%.
 - Go deeper: title "Change where the rate starts." Body: "The same 1-point move is a bigger percent of a low rate and a smaller percent of a high one." plus the "Old rate" slider.
-- Foot key: blue knob "The move you set", black "The old rate", orange "“Up 1%”, read literally". Source: "Worked example from the Topic. No outside figures."
+- Foot key: blue knob "The move you set", black "The old rate", orange "“Down 0.5%”, read literally". Source: "Source: Reserve Bank of India, Monetary Policy Statement, 6 June 2025."
 
 The first chip tap unlocks the slider, opens Go deeper and fires `onCall`. Later taps only mark chips. Direction is never coloured.
 
@@ -863,6 +915,8 @@ The first chip tap unlocks the slider, opens Go deeper and fires `onCall`. Later
 
 | Old | New | Points | Basis points | Percent of old | Literal reading |
 |---|---|---|---|---|---|
+| 6 | 5.5 | −0.5 | −50 | 8.33% (down) | 0.03 pt, to 5.97% (the RBI's cut, the default) |
+| 6 | 4.5 | −1.5 | −150 | 25% (down) | 0.09 pt, to 5.91% |
 | 4 | 5 | 1 | +100 | 25% | 0.04 pt, to 4.04% |
 | 4 | 4.5 | 0.5 | +50 | 12.5% | 0.02 pt, to 4.02% |
 | 4 | 3.5 | −0.5 | −50 | 12.5% (down) | 0.02 pt, to 3.98% |
@@ -919,6 +973,8 @@ Foot key: hatched orange "Claimed, not yet earned", black "Recorded", red "Loss"
 
 ### 7.1 Routes and state
 
+The prototype's hash routes:
+
 | Hash | Page | Document title |
 |---|---|---|
 | `#home` (default, and any unknown hash) | Home | Value It |
@@ -926,14 +982,33 @@ Foot key: hatched orange "Claimed, not yet earned", black "Recorded", red "Loss"
 | `#examples` | Examples | Examples · Value It |
 | `#case-{slug}` | Case page | `{question}` · Value It |
 | `#about` | About | About · Value It |
-| `#join` | Join early access | Join early access · Value It |
+| `#join` | Join the waitlist | Join the waitlist · Value It |
 | `#pending` | Request received | Request received · Value It |
 | `#signin` | Sign in | Sign in · Value It |
 | `#welcome` | Welcome | Welcome · Value It |
 | `#study` | Study Workspace stub | Study Workspace · Value It |
 | `#review` | Review notes (prototype only) | Review notes · Value It |
 
-Case slugs: `mega-millions-2018`, `amazon-2000`, `wework-2019`, `rates-up-1`, `compounding-1000`.
+Case slugs: `kerala-bumper-2024`, `amazon-2000`, `wework-2019`, `rbi-repo-cut-2025`, `compounding-1000`.
+
+**Production titles (#71).** Every page has its own address. Titles follow "Page · Value It"; Home keeps the plain "Value It". Each public page also has a canonical link on `https://www.value-it.xyz`. The public pages come from one list (`PUBLIC_PAGES` in `src/site/routes.ts`), and `e2e/share-meta.spec.ts` checks the title of every page on it and of `/sign-in` and `/sign-up`.
+
+| Path | Page | Document title |
+|---|---|---|
+| `/` | Home | Value It |
+| `/how-it-works` | How it works | How it works · Value It |
+| `/examples` | Examples | Examples · Value It |
+| `/examples/{slug}` | Case page | `{question}` · Value It |
+| `/about` | About | About · Value It |
+| `/privacy` | Privacy (#77) | Privacy · Value It |
+| `/terms` | Terms (#77) | Terms · Value It |
+| `/join` | Join the waitlist (Clerk's Waitlist) | Join the waitlist · Value It |
+| `/sign-in` | Sign in | Sign in · Value It |
+| `/sign-up` | Create your account (where an invitation lands) | Create your account · Value It |
+| Any unknown address | Page not found (a 404, signed in or out; it has no canonical link) | Page not found · Value It |
+| The signed-in pages (`/welcome`, `/study`, `/course`, `/notebook`, `/assignment`, `/settings`, …) | Behind the sign-in | Value It |
+
+An unknown address never shows Home: it answers 404 with "Page not found" and a link back to Home.
 
 On every route change: run clean-ups (destroy widgets, remove listeners, disconnect observers), hide the tooltip, re-render, jump to the top without smooth scrolling, and focus the page's `h1` (`.page-h1`, `tabindex="-1"`).
 
@@ -953,34 +1028,36 @@ CTA by state:
 
 | State | Primary CTA | Note under it |
 |---|---|---|
-| Visitor | Join early access → `#join` | Free during early access. We let people in by hand and email you when you’re in. |
+| Visitor | Join the waitlist → `#join` | Free. We let people in by hand and email you when you’re in. |
 | Applicant | Play a real case while you wait → `#examples` | Your request is in. We’ll email you when you’re in. |
 | Member | Continue (sub-line: current Topic) → `#study` | Step 1 of 15 · Story |
 
 ### 7.2 Home
 
-Section order: hero, four moves, levers story, colour language, questions, trust, FAQ, early access.
+Section order: hero, four moves, levers story, questions, where you end up (7.2.9, #75), trust, FAQ, early access. The colour language is on How it works only (#74). "Tested code" appears once on Home, in Trust.
 
 #### 7.2.1 Hero
 
-Two columns (5fr / 6fr, gap clamp(32px, 5vw, 72px)), one column at 980px and below.
+Two columns (5fr / 6fr, gap clamp(32px, 5vw, 72px)), one column at 980px and below. It speaks to one person, a beginner with no finance background (spec #68).
 
 Left column, a grid with 20px gaps:
 
 | Element | Content |
 |---|---|
-| Eyebrow | Finance, taught through real events |
-| H1 (display, three fixed lines) | Learn what / things are / worth. |
-| Lede | Ask a money question. The Tutor answers with a live widget built from a real event, and **you move the numbers until it makes sense**. |
-| CTA row | Primary CTA by state + for visitors a secondary "Play a real case" → `#examples` (members: "Course map" → `#study`) |
+| Eyebrow | Finance for beginners |
+| H1 (display, two lines) | What is it / really worth? The lines are joined by a space, so a screen reader reads "What is it really worth?" |
+| Lede | Three headline numbers a beginner has seen, then the promise: A **₹25 crore jackpot**. A **$3 billion “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums. The jackpot's figure is the jackpot Example's chip. |
+| CTA row | Visitors: primary "Try the jackpot" → the jackpot Example (`/examples/kerala-bumper-2024`), then "Join the waitlist" → `/join` (the Waitlist) as the second button. Members: Continue, then "Course map" → `/course` |
 | Fine print | The CTA note for the state |
-| Facts (blue dot bullets) | 110 Topics · 10 to 15 minutes each · No sums to type |
+| Facts (blue dot bullet) | {Topics} Topics: the number of Topics written, from the course's own facts. No minutes until they are measured (#72, #75). |
+
+On a phone (640px and below) the Tutor demo sits right under the H1, before the lede: at 390px the H1, "for beginners" and the demo's question chips show without scrolling. Home still loads no OpenUI code.
 
 Right column, **the Tutor demo** (`.demo`): a wash panel, 1px rule border, radius 22px.
 
 | Part | Spec |
 |---|---|
-| Header | 34px blue avatar with the white glyph. "The Tutor" (display 600 15px). Sub-line: "A recorded conversation from the course. The widget is live." |
+| Header | 34px blue avatar with the white glyph. "The AI Tutor" (display 600 15px). Sub-line: "A recorded conversation from the course. The Example is live: move the numbers." |
 | Question row | Label "Pick a question" + five pill chips. The selected chip is solid blue with white text. |
 | Thread | Grid, 10px gaps, 16px padding, min-height 420px, `aria-live="polite"` |
 
@@ -988,9 +1065,9 @@ The five questions:
 
 | Chip label | The learner's bubble | Case |
 |---|---|---|
-| A $1.5B jackpot | Is a $1.537B jackpot really worth $1.537B? | mega-millions-2018 |
+| A ₹25 crore jackpot | Is ₹25 crore over 30 years worth ₹25 crore? | kerala-bumper-2024 |
 | Amazon at $84 | How can a loss-making Amazon be worth $84 a share? | amazon-2000 |
-| Rates up 1% | Rates are up 1%. How big a move is that? | rates-up-1 |
+| The RBI’s June cut | The RBI cut from 6% to 5.5%. How big a cut is that? | rbi-repo-cut-2025 |
 | 10% a year | Does 10% a year grow by the same amount every year? | compounding-1000 |
 | WeWork’s $3bn | WeWork claimed a $3bn run rate. Did it earn that? | wework-2019 |
 
@@ -1001,7 +1078,7 @@ Script when a different chip is tapped (all delays are 0 with reduced motion):
 | 0ms | Cancel pending timers. Destroy the current widget. Mark the chip. Clear the thread. Add the learner's bubble. |
 | 200ms | Add the typing indicator |
 | 950ms | Remove typing. Add the Tutor bubble with the case's `lead`. Add the skeleton "Opening a widget…". |
-| 1600ms | Remove the skeleton. Add the caption "The Tutor picked this widget. Tested code draws it." (with glyph). Mount the widget in compact mode with the staggered `build` animation. |
+| 1600ms | Remove the skeleton. Add the caption "The AI Tutor picked this Example. Checked numbers draw it." (with glyph). Mount the widget in compact mode with the staggered `build` animation. |
 | On the learner's call | Append a Tutor bubble: `follow.right` if the verdict was right, otherwise `follow.other` |
 
 On first load the jackpot conversation is already complete (learner's bubble, Tutor bubble, caption, widget) with no animation, so the first frame is the finished state.
@@ -1014,8 +1091,8 @@ Eyebrow "How a Topic works". H2 "One real event. Four moves. Ten to fifteen minu
 
 | Move | Name | Line |
 |---|---|---|
-| 1 | Hear the story | A true moment, and what people knew that day. |
-| 2 | Learn the lingo | Each money word in plain English, when the story needs it. |
+| 1 | Meet the moment | A true event, and what people knew that day. |
+| 2 | Learn the lingo | The AI Tutor explains each money word in plain English, when you need it. |
 | 3 | Try it | Tap an answer or move a lever. No sums. |
 | 4 | Value it | Put your own number on it, then see what really happened. |
 
@@ -1029,39 +1106,39 @@ Scroll spy: the active step is the last one whose top edge is above 55% of the v
 
 | Step | Left column | Stage |
 |---|---|---|
-| 0 | Eyebrow "A worked example". H2 "Every value comes down to four levers." "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. A professor in New York, Aswath Damodaran, writes down his story about its future, and his story says **$35**." "Four numbers make the difference." | His story. All four levers shown, none draggable. Net segment hidden (value equals reference). Hint: "Scroll to meet the four levers." |
-| 1 to 4 | "LEVER n OF 4", the lever's name as H2, its story sentence, and its power sentence in a block with a 2px blue-line left border | Reset to his story. That lever's band on the ruler. Only that lever is enabled and undimmed. Dragging it moves the dot inside the band. Hint: "Lever n of 4. Drag it. The shaded band is as far as it can move the value on its own." |
-| 5 | "YOUR TURN". H2 "Now it’s your story." "**Drag any lever.** Green means your change adds value to his story. Red means it takes value away. *Find a story worth the $84 price.*" Preset chips. Win line. Link "Open the full case, with what happened next →". | All four levers live. Net segment shown. The learner's last story is restored. Hint: "Drag any lever. Arrow keys work too." |
+| 0 | Eyebrow "A worked example". H2 "Every value comes down to four levers." "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. One published valuation tells a Story about its future, and that Story says **$35**." "Four numbers make the difference." Then the source line, the only place Home names Damodaran: "Source: [Aswath Damodaran, “Valuing Amazon.com”, February 2000](https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf)". | The published Story. All four levers shown, none draggable. Net segment hidden (value equals reference). Hint: "Scroll to meet the four levers." |
+| 1 to 4 | "LEVER n OF 4", the lever's name as H2, its story sentence, and its power sentence in a block with a 2px blue-line left border | Reset to the published Story. That lever's band on the ruler. Only that lever is enabled and undimmed. Dragging it moves the dot inside the band. Hint: "Lever n of 4. Drag it. The shaded band is as far as it can move the value on its own." |
+| 5 | "YOUR TURN: JUDGE IT". H2 "What did the $84 price need?" "**Drag any lever** until the value reaches $84. Green adds value to the published Story. Red takes value away. *Would you have believed it in 2000?*" Preset chips. Win line. Link "Open the full Example, with what happened next →". The step ends on judging the Price's Story, never on inventing one (#74). | All four levers live. Net segment shown. The learner's last story is restored. Hint: "Drag any lever. Arrow keys work too." |
 
-Lever story sentences:
+Lever story sentences, in plain words and round numbers (#74):
 
 | Lever | Story sentence |
 |---|---|
-| How big it gets | Revenue in year 10: **$39bn**, against $1.1bn today. |
-| What it keeps | Operating margin once mature: **10%**. Today it is −36.7%. |
-| What growth costs | **$3.00** of sales for each dollar it invests to grow. |
-| How risky | Cost of capital while it grows: **12.84%** a year. |
+| How big it gets | Sales in year 10: **$39bn**, against $1.1bn today. |
+| What it keeps | Once grown, it **keeps 10¢ of each $1** of sales. Today it loses 37¢. |
+| What growth costs | Each **$1 it invests** to grow brings **$3** of new sales. |
+| How risky | While it grows, **investors want 13% a year** for the risk. |
 
 Power sentences are generated from the model, never hard-coded:
 
 | Case | Template | Current output |
 |---|---|---|
-| Value rises with the lever, cannot reach $84 | On its own it can move his value anywhere from **{lo}** to **{hi}** a share. It cannot reach the $84 price by itself. | "…from **$0** to **$81**…" (How big), "…from **$0** to **$45**…" (What growth costs) |
+| Value rises with the lever, cannot reach $84 | On its own it can move the value anywhere from **{lo}** to **{hi}** a share. It cannot reach the $84 price by itself. | "…from **$0** to **$81**…" (How big), "…from **$0** to **$45**…" (What growth costs) |
 | Value rises with the lever, reaches $84 | …from **{lo}** to **{hi}** a share. It is the only lever that reaches the $84 price by itself, at {setting}. ("It reaches…" if more than one lever does.) | "…from **$0** to **$102**… at 17.5%." (What it keeps) |
 | Value falls as the lever rises | This lever runs backwards. More risk means less value: from **{atMin}** at the safest setting down to **{atMax}** at the riskiest. | "…from **$53**… down to **$22**…" (How risky) |
 
 Step rules:
 
-- Leaving step 5 saves the learner's four values. Entering any step below 5 resets the stage to his story. Returning to step 5 restores the saved values.
+- Leaving step 5 saves the learner's four values. Entering any step below 5 resets the stage to the published Story. Returning to step 5 restores the saved values.
 - Tapping a preset always switches the stage to step 5 first, whatever the scroll position, then applies the preset.
-- The win line appears only in step 5 when `round(value) ≥ 84`: [pill blue ✓ You reached the price] "Your story needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000?"
+- The win line appears only in step 5 when `round(value) ≥ 84`: [pill blue ✓ You reached the price] "To reach the $84 price, Amazon needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000?"
 - Step heights: 56vh, first step 48vh aligned to the top, last step 70vh. Content is vertically centred.
 
 At 900px and below the stage becomes a full-bleed sticky strip directly under the nav with no shadow or border: lever height 84px, value 30px, lever value 14px, unit labels hidden, hint hidden, step height 52vh.
 
-#### 7.2.4 Colour language
+#### 7.2.4 Colour language (How it works only)
 
-Wash band. Eyebrow "Reading a widget". H2 "Every colour means one thing." Body: "Learn five colours and one pattern once and you can read any widget in the course at a glance. Each colour also carries a sign or a word, so it reads the same if you can’t tell red from green."
+This block is drawn on How it works (7.3 item 4), not on Home (#74). Wash band. Eyebrow "Reading a widget". H2 "Every colour means one thing." Body: "Learn five colours and one pattern once and you can read any widget in the course at a glance. Each colour also carries a sign or a word, so it reads the same if you can’t tell red from green."
 
 A 3 × 2 grid of cells divided by hairlines (2 columns at 860px, 1 at 560px). Each cell: a 44px wash tile holding a small example, then the colour name with its meaning beside it in muted text, then one line.
 
@@ -1078,7 +1155,7 @@ The same block appears on How it works with the body: "The same five colours and
 
 #### 7.2.5 Questions
 
-Eyebrow "Five cases, open now". H2 "Start with a question you already have." Body: "No finance background needed. **If you can read a headline, you can start.**"
+Eyebrow "Five Examples, open now". H2 "Start with a question you already have." Body: "No finance background needed. **If you can read a headline, you can start.**"
 
 A ruled list (`.qlist`). Each row is one link with four columns: stamp and category (84px), the question (display 600 clamp(19px, 2vw, 24px)) with its hook beneath in 15px muted, a 132 × 36 mini picture of the widget in the colour language, and "Play →". Hover: wash background and the arrow moves 3px. At 760px and below the mini picture is hidden and the stamp row sits above the question.
 
@@ -1092,7 +1169,7 @@ Mini pictures (static SVG, 132 × 36):
 | Rates | A line, a black ring, a blue dot, a blue-line band between them, a tiny orange sliver |
 | Compounding | 15 bars with a thin black base and a growing green top |
 
-Below the list: "**110 Topics wait inside.** 15 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments." and "See the whole path →".
+Below the list: "**{Spine} Topics, in order, teach valuation.** {Electives} more go wider across {Subjects} subjects, and {Readings} read real arguments." then the taught-live line (#97) and "See the whole path →". Every number comes from the course (#72): {Spine} is the Spine's length, so the line reads "**18 Topics, in order, teach valuation.**" once the Spine has its 18 Topics (#93).
 
 #### 7.2.6 Trust
 
@@ -1101,7 +1178,7 @@ Left: eyebrow "Why you can trust it", H2 "Real events. Checked numbers. No tips.
 | Heading | Body |
 |---|---|
 | Past events only. | Every Topic is a real event with a known outcome. **You see only what people knew that day**, until the reveal. |
-| Every figure has a source. | Each number in a widget is stored with its public source and **the date it was checked**. Source chip: "CNBC, 24 Oct 2018". |
+| Every figure has a source. | Each number in a widget is stored with its public source and **the date it was checked**. The jackpot's says "Source: The Hindu, 9 Oct 2024." |
 | Code draws the charts. | The Tutor picks the widget; tested code draws it. **The AI never invents a chart.** |
 
 #### 7.2.7 FAQ
@@ -1121,7 +1198,11 @@ Visitors get an inline form: an email input (`autocomplete="email"`, placeholder
 
 Applicants and members see the CTA and note for their state instead of the form.
 
-**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join early access", the CTA note and the three steps. The CTA, like every visitor Join, opens `/join` (Clerk's Waitlist page). The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
+**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join the waitlist", the CTA note and the three steps. The CTA, like every visitor Join, opens `/join` (Clerk's Waitlist page). The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
+
+#### 7.2.9 Where you end up (#75)
+
+Drawn between Questions (7.2.5) and Trust (7.2.6); numbered last so the older section numbers stay as cited. Two columns (`.v-split`). Left: eyebrow "Where you end up", H2 "By the end, you value a company yourself.", and the body "After the Topics that teach valuation in order, you pick a listed company and copy a few figures from its annual report. The site values it beside its price and keeps a one-page note. This is one." Right: a card holding a real one-page note, the note the Assignment saves to the Notebook once the Spine is passed: the company's name as its heading, then the note's lines. It is drawn by the same code the Assignment's save runs (`ownCaseNote`, through the tested valuation engine; `src/site/end-note.ts`), on Kikkoman's annual report for the year to 31 March 2026 and the starting numbers the site suggests. Caption: "Kikkoman’s annual report for the year to 31 March 2026, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine."
 
 ### 7.3 How it works
 
@@ -1130,34 +1211,34 @@ Applicants and members see the CTA and note for their state instead of the form.
 
 | Move | Interactive body |
 |---|---|
-| 01 Hear the story | The Amazon story paragraph and its three facts |
+| 01 Meet the moment | The Amazon moment's paragraph, its three facts and the source line "Source: Aswath Damodaran, “Valuing Amazon.com”, February 2000" (linked), the only place How it works names him |
 | 02 Learn the lingo | Chips "price" and "value". Shows the term (display 600 30px), a bold definition and three rows: Say it like a pro, For example, In the story (Appendix D). |
-| 03 Try it | A call: "His story says $35 a share. Is that a price or a value?" "A value" is right ("It is what one story says a share is worth. The price is what buyers paid: $84."). "A price" is wrong ("A price is what buyers pay on the day. $35 is what his story says a share is worth: a value."). |
-| 04 Value it | Slider "Your value for one share", 0 to 150, start 50. Button "Reveal what really happened" shows four facts: Your value (blue), His value $35.08, Price, 3 Feb 2000 $84.00, Low, late 2000 $14.88, and the key line. |
+| 03 Try it | A call: "One published valuation says $35 a share. Is that a price or a value?" "A value" is right ("It is what one Story says a share is worth. The price is what buyers paid: $84."). "A price" is wrong ("A price is what buyers pay on the day. $35 is what one published valuation says a share is worth: a value."). |
+| 04 Value it | Slider "Your value for one share", 0 to 150, start 50. Button "Reveal what really happened" shows four facts: Your value (blue), Published value $35.08, Price, 3 Feb 2000 $84.00, Low, late 2000 $14.88, and the key line. |
 
-Each move ends with "Inside this move:" and step chips (Story / The idea / Your turn, Wrap up and its Check / Reveal, Principle). Closing line: "*15 short steps in all. Your place is saved after each one.* Moves 2 and 3 repeat for each idea in a Topic, usually four."
+Each move ends with "Inside this move:" and step chips (The moment / The idea / Your turn, Wrap up and its Check / Reveal, Principle). Closing line: "*15 short steps in all. Your place is saved after each one.* Moves 2 and 3 repeat for each idea in a Topic, usually four."
 
-3. **The workspace**: an annotated mock of the Study Workspace. Chat on the left (a Tutor bubble, a learner bubble, a fake input "Ask the Tutor anything"), a widget on the right (a rates mini picture, "4% → 5%: **1 point · 100 bp · 25%**", "Saved to your Notebook"), a 15-segment step bar and four numbered black callouts with this legend: Ask anything, any time. / The Tutor picks the widget; tested code draws it. / The step bar shows where you are in the Topic’s 15 short steps. / What you find lands in your Notebook.
-4. **Colour language** (7.2.4).
+3. **The workspace**: an annotated mock of the Study Workspace. Chat on the left (a Tutor bubble, a learner bubble, a fake input "Ask the Tutor anything"), a widget on the right (a rates mini picture with the RBI rates Example's move, "6% → 5.5%: **½ point · 50 bp · about 8%**", "Saved to your Notebook"), a 15-segment step bar and four numbered black callouts with this legend: Ask anything, any time. / The Tutor picks the widget; tested code draws it. / The step bar shows where you are in the Topic’s 15 short steps. / What you find lands in your Notebook.
+4. **Colour language** (7.2.4): eyebrow "Reading a widget", H2 "Every colour means one thing.", the How it works body. Home no longer draws it.
 5. **Reviews**: H2 "It brings back what you missed." with a labelled illustration: a green "Check passed" dot, three blue review rings spaced further and further apart, and a red dashed arc for "missed: back sooner". The drawing carries the word "Illustration".
 6. **The path**: 15 core Topics (numbered, with minutes), 9 subjects with counts, 3 stages with counts (Appendix C).
 7. Closing CTA: "Start with Topic 1: What is a business worth?"
 
 ### 7.4 Examples
 
-Header: H1 "Real events. Move the numbers." Lede: "Five cases from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last."
+Header: H1 "Real events. Move the numbers." Lede: "Five Examples from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last."
 
-Filter chips with counts: All 5, Everyday money 2, The news 1, Real companies 2. Filtering hides rows with the `hidden` attribute. Then the question list (7.2.5). Then "110 Topics wait inside." with nine locked Topics (category, title, a "Members" badge with a lock icon) and the CTA.
+Filter chips with counts: All 5, Everyday money 2, The news 1, Real companies 2. Filtering hides rows with the `hidden` attribute. Then the question list (7.2.5). Then the same "{Spine} Topics, in order, teach valuation." line as Home (7.2.5), with nine locked Topics (category, title, a "Members" badge with a lock icon) and the CTA.
 
 ### 7.5 Case page
 
-Top: "← All cases", stamp and category, the question as H1, and a four-step progress row.
+Top: "← All Examples", stamp and category, the question as H1, and a four-step progress row.
 
 Body: a two-column grid (5fr / 6fr), with rows `auto auto auto 1fr` so the left column stays compact beside a tall widget.
 
 | Left column, in order | Content |
 |---|---|
-| The story | Label, story paragraph with dateline, facts grid |
+| The moment | Label (an H2, so the widget's H3 title never skips a level), the moment's paragraph with dateline, facts grid |
 | Question | "You ask" + the learner's bubble (`ask`), then "Tutor" + the lead bubble (`lead`) |
 | The Tutor's answer | A waiting bubble: lock icon + "The Tutor explains after your call." Replaced by `answer` after the call. |
 | The ending | A locked box, then a ready box, then the reveal |
@@ -1176,7 +1257,7 @@ Foot: "From the Topic" + the Topic name + a CTA by state (visitor "Join to take 
 
 ### 7.6 About
 
-Header with an "At a glance" card (Topics 110, Subjects 9, Stages that read real arguments 3, Each Topic 10–15 min, Price Free in early access). Then: four promises, the sourcing flow (Real event → Checked dataset → Tested widget → The Tutor explains) with the non-affiliation line, what you can learn (subject and stage chips), the founder's note (placeholder, see 14), early access (Join / Cost / What you need), the full FAQ and the closing CTA. Copy is in Appendix B.
+Header with an "At a glance" card: Topics {Topics}, Subjects {Subjects}, Stages that read real arguments {Stages}, Price Free in early access. The counts come from the course (#72); there is no minutes row until minutes are measured (#75). Then: four promises, the sourcing flow (Real event → Checked dataset → Tested widget → The Tutor explains) with the non-affiliation line (its named Source is a link, #75), what you can learn (subject and stage chips), early access (Join / Cost / What you need), the full FAQ and the closing CTA. There is no founder section (#75). Copy is in Appendix B.
 
 ### 7.7 Join, pending, sign in, welcome, study
 
@@ -1187,6 +1268,8 @@ Header with an "At a glance" card (Topics 110, Subjects 9, Stages that read real
 | Sign in | H1 "Welcome back". Google button, email field, "Send me a sign-in link". | Applicants go to `#pending`. Otherwise → member → `#study`. |
 | Welcome | H1 "Welcome to Value It". Card: "Topic 1 · about 10 minutes", the Topic name, "Start Topic 1", "See the course map". | |
 | Study | A stub: workspace header with the 15-step bar, a note, and the Tutor-offline error state: [pill orange ! Paused] "The Tutor is offline for a moment." "Your progress is saved. Try again in a few seconds." + "Retry" (toast: "Reconnected. Your place is saved."). | |
+
+**Production (#76).** `/join`, `/sign-in` and `/sign-up` draw Clerk's cards (Waitlist, SignIn, SignUp) under the page's own Band and its one h1; Clerk's own header is hidden. The cards take the site's tokens, font and flat controls from `src/auth/clerk-appearance.ts` (code, never the Clerk Dashboard), so Dark covers them too. One name for the list: "the waitlist". `/join`: H1 "Join the waitlist", lede "Leave your email below. What happens next:", then "It’s free." · "We review each request by hand." · "We email you when you’re in." · "You can study on a laptop or a phone." `/sign-up` with no invitation (no `__clerk_ticket`): H1 "Create your account", "You need an invitation to create an account. Join the waitlist and we’ll email you one when you’re in." and a "Join the waitlist" link to `/join`, with no card. On the test bed (Clerk off) a plain stand-in takes the card's place, so `e2e/sign-in.spec.ts` reads this copy; it never reaches a build. The table above is the prototype's behaviour.
 
 ### 7.8 Review notes (prototype only)
 
@@ -1300,6 +1383,8 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 - The levers story keeps its stage visible as a compact sticky strip so each scroll step still changes something on screen.
 - Case pages put the widget between the Tutor's lead and the Tutor's answer.
 - The nav keeps the primary CTA at every width.
+- The Study Workspace opens at every width; nothing asks for a bigger screen. Below 768px the conversation fills the screen and a Widget's chip slides the Widget up full screen; Back (the browser's or the sheet's own) returns to the same place in the conversation.
+- The signed-in pages (Welcome, Course Map, Notebook, Settings, older Sessions, Library passages, Admin) open at 360px with no sideways scroll. Card grids drop to one column, and wide tables scroll inside their own box. The app header stays one line of 56px: below 768px the wordmark shows only its bars and the page links tighten.
 
 ---
 
@@ -1315,6 +1400,7 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 8. Product nouns are capitalised: Topic, Tutor, Check, Review, Notebook, Library, Study Workspace.
 9. Made-up numbers are labelled "Illustration". Recorded conversations are labelled as recorded.
 10. Sources are named with a date on every widget.
+11. **Familiar first.** Every page and Topic starts from something a beginner already knows. No name or word they must look up: a published author is named only in a linked source line (and the About credit), and their work is "one published valuation". On screen an Example is never a "case", a Story is someone's claim to judge (never "your story"), and the event is "The moment". Round numbers in plain words come first ("keeps 10¢ of each $1", "investors want 13% a year"); exact figures follow in the widget. One label never repeats beside itself (no "THE NEWS · The news").
 
 ---
 
@@ -1323,9 +1409,9 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | # | Test | Expected |
 |---|---|---|
 | 1 | Load `#home` as a visitor | Jackpot conversation complete, controls locked, verdict about the billboard number, no pills |
-| 2 | Tap "The cash" | Chip green with check, "Right" pill, rate runs to 5.00%, payments $694.0M, "Worth more" on Cash today, Go deeper: "You are **$183.8M** away. Try a lower rate." |
+| 2 | Tap "The cash" | Chip green with check, "Right" pill, rate runs to 5.00%, payments ₹11.29 crore, "Worth more" on Cash today, Go deeper: "You are **₹13.71 crore** away. Try a lower rate." |
 | 3 | During that run | "Break-even found" must not appear |
-| 4 | Set the rate to 3.40% by hand | $874.8M, "Same" on both rows, "Break-even found" |
+| 4 | Set the rate to 0% by hand | ₹25 crore, "Same" on both rows, "Break-even found" |
 | 5 | Tap "Amazon at $84" | Typing, Tutor bubble, skeleton, then the levers widget at $35 |
 | 6 | Tap "One story worth $84" | Value $84 (83.69), "100% of the $84 price." replaced by "Worth the $84 price, on this story.", pills +$27, +$17, none, +$5, "You reached the price" |
 | 7 | Tap "A grocer’s margins" | Value $1, one red pill −$34 under "What it keeps" |
@@ -1336,15 +1422,15 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | 12 | Scroll back from "Your turn" after changing levers, then return | Steps 1 to 4 show his story, step 5 restores the learner's story |
 | 13 | Compounding: tap "No, more each year" | Years run to 30, ₹17,449, growth ₹16,449, year 30 added ₹1,586 |
 | 14 | Tap "Split the growth" | Bars and segmented bar show ₹3,000 and ₹13,449, the key has three entries |
-| 15 | Rates: tap "Up 1%" | Chip orange with "!", pill "Careful", slider unlocked, Go deeper open |
-| 16 | Set the new rate to 4.50% | 0.5 points, +50 bp, up 12.5%, literal 0.02 points to 4.02% |
+| 15 | Rates: tap "Down 0.5%" | Chip orange with "!", pill "Careful", slider unlocked, Go deeper open |
+| 16 | Set the new rate to 4.50% | down 1.5 points, −150 bp, down 25%, literal 0.09 points to 5.91% |
 | 17 | Set the old rate to 2% and the new to 3% | up 1 point, +100 bp, up 50% |
 | 18 | WeWork: step to beat 5 and tap "No, it is a pace" | Three bars shown, chip green, Go deeper shows $1.00 and −$0.59 |
 | 19 | Open `#case-amazon-2000` | Tutor's answer locked, ending locked, progress at step 2 |
 | 20 | Move a lever on that page | Tutor's answer appears, ending becomes "Ready", progress at step 3, Go deeper open with the bridge |
 | 21 | Tap "Reveal what really happened" | Reveal text with $35.08, $91.50 and $14.88, progress all done |
-| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join early access" links to `/join`, with the early-access note and the three steps under it (7.2.8) |
-| 23 | Press "Join early access" in the closing block | It opens `/join`: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
+| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join the waitlist" links to `/join`, with the waitlist note and the three steps under it (7.2.8) |
+| 23 | Press "Join the waitlist" in the closing block | It opens `/join`: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
 | 24 | Every route at 1440 × 900 and 390 × 844 | No console errors, no horizontal scroll |
 | 25 | Reduced motion on | No animated runs. Values jump. The demo answers at once. |
 | 26 | Keyboard only | Every chip, slider, lever, preset, toggle and reveal reachable and operable |
@@ -1355,14 +1441,13 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 
 | Item | State | Needed |
 |---|---|---|
-| Founder's note | Placeholder | Two or three sentences in the founder's own words |
 | Contact email | Placeholder | A real address, shown as selectable text |
 | Price | "No price has been decided yet" | The shape of the offer, even before the number |
 | Wait time | No promise made | A number of days, or keep the promise out |
 | Learner quotes | None | Real sentences from early members. Never invented. |
 | Amazon model | Done (decision #18): the widget runs the valuation engine on Damodaran's sourced inputs, $35.04 against his $35.08, and its source line says so | Nothing |
 | First market | Mixed rupee and dollar cases | Choose which currency and events lead |
-| Theme | Done (decision #17): one Light theme for the whole app; no other theme is built | Nothing |
+| Theme | Done (ADR 0019): Light and Dark; the device chooses first, the sun/moon switch remembers the choice in the `theme` cookie; Dark values measured in §2.4 | Nothing |
 | Table views | Jackpot and compounding only | Add for levers, rates and WeWork |
 | Hero demo | Recorded | Wire to the live Tutor or keep the label |
 | Named valuation author | "Not affiliated" line on About | Confirm the wording is enough for you |
@@ -1371,24 +1456,27 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 
 ## Appendix A. Case copy deck
 
-### A.1 Mega Millions, October 2018
+### A.1 Kerala Thiruvonam Bumper, October 2024
+
+The copy lives in `src/site/examples.ts` (`kerala-bumper-2024`); it replaced Mega Millions 2018 on the site (#116).
 
 | Field | Text |
 |---|---|
-| Slug / stamp / category | `mega-millions-2018` / Oct 2018 / Everyday money |
+| Slug / stamp / category | `kerala-bumper-2024` / Oct 2024 / Everyday money |
 | Topic | Why is money later worth less? |
-| Question | Is a $1.537B jackpot really worth $1.537B? |
-| Hook | Thirty yearly payments, or $877.8M in cash today. Which is worth more? |
-| Story | **October 2018.** One ticket sold in South Carolina wins the Mega Millions jackpot, advertised at **$1.537 billion**. The winner can take it as 30 yearly payments that rise 5% a year, or take **$877.8 million** in cash now. |
-| Facts | Advertised jackpot, 30 payments: $1.537B · Cash option, paid now: $877.8M · Drawing: 23 Oct 2018 |
-| Learner asks | Thirty payments add up to $1.537 billion. Isn’t that obviously more than $877.8 million? |
-| Tutor's lead | The winner had two choices that day: 30 yearly payments that add up to **$1.537 billion**, or **$877.8 million** in cash at once. Make your call in the widget, then test it. |
-| Tutor's answer | **Only if a dollar later is worth as much as a dollar now. It isn’t.** A payment in 2047 can’t be spent or invested until 2047. Put the cash in a bond at 5% instead, and each far-off payment is worth much less today. Add the 30 payments up in today’s money, then compare. |
-| Follow-up, right | Right. Now drag the rate. Somewhere between 3% and 4% the two are worth the same. Find it. |
+| Question | Is ₹25 crore over 30 years worth ₹25 crore? |
+| Hook | Kerala paid its ₹25 crore jackpot at once. American lotteries pay theirs over 30 years. Is that the same prize? |
+| Story | **9 October 2024.** Kerala’s Thiruvonam Bumper lottery draws its first prize of **₹25 crore**, on ticket TG 434222, sold in Wayanad for ₹500. Kerala pays a prize at once. American lotteries advertise theirs as the sum of **30 yearly payments** that rise 5% a year. Paid that way, would the same ₹25 crore be worth as much? |
+| Facts | First prize, paid at once: ₹25 crore · Ticket price: ₹500 · Drawing: 9 Oct 2024 |
+| Learner asks | ₹25 crore is ₹25 crore. Why would it matter when it’s paid? |
+| Tutor's lead | Two ways to pay the same prize: **₹25 crore** at once, as Kerala does, or 30 yearly payments that add up to **₹25 crore**, the American way. Make your call in the widget, then test it. |
+| Tutor's answer | **Only if a rupee later is worth as much as a rupee now. It isn’t.** A payment in 2053 can’t be spent or invested until 2053. Put the cash in a deposit at 5% instead, and each far-off payment is worth much less today. Add the 30 payments up in today’s money, then compare. |
+| Follow-up, right | Right. Now drag the rate down. Only at 0%, when money earns nothing, are the two worth the same. |
 | Follow-up, other | Most people start there. Watch what a 5% rate does to the far-off payments, then look for the rate where the two match. |
-| Ending label | What the winner did |
-| Ending | The winner, who stayed anonymous, claimed the prize in 2019 and **took the cash: $877,784,124** before tax. At any rate above about 3.4% a year, the cash was worth more than the 30 payments. *A bigger total paid later can be worth less than a smaller sum today.* |
-| Sources | Mega Millions, 2019; CNBC, 24 Oct 2018. The 3.4% crossover is worked out from the payment schedule. |
+| Ending label | What the winner got |
+| Ending | Kerala’s Lotteries department pays the prize into the winner’s bank account in one go, after the agent’s 10% commission and tax: about **₹12.88 crore** of the ₹25 crore reached the winner. Paid over 30 years instead, the same ₹25 crore would be worth only about **₹11.29 crore** today at 5% a year, before any tax. *A rupee later is worth less than a rupee today.* |
+| As-of date | 9 Oct 2024 |
+| Sources | The Hindu, 9 Oct 2024; Mathrubhumi, 9 Oct 2024; The New Indian Express, 11 Oct 2024; Mega Millions, Difference Between Cash Value and Annuity (links in §6.3). The 30 payments are a what-if, worked out the American way. |
 
 ### A.2 Amazon, February 2000
 
@@ -1397,15 +1485,15 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Slug / stamp / category | `amazon-2000` / Feb 2000 / Real companies |
 | Topic | What is a business worth? Price against value, and the four levers |
 | Question | Is $84 a fair price for Amazon? |
-| Hook | Amazon sells books online, loses money, and its shares cost $84. Set four levers and see what one story is worth. |
-| Story | **February 2000.** Amazon sells books and music online. In the twelve months to September 1999 it sold **$1,117 million** and lost **$410 million** on its operations. Its shares cost $84. A professor in New York, Aswath Damodaran, writes down what he thinks its future looks like: how big it gets, what it keeps of each sale, what its growth costs and how risky it is. |
+| Hook | Amazon sells books online, loses money, and its shares cost $84. Set four levers and judge what the price needed. |
+| Story | **February 2000.** Amazon sells books and music online. In the twelve months to September 1999 it sold **$1,117 million** and lost **$410 million** on its operations. Its shares cost $84. One published valuation writes down a Story about its future: how big it gets, what it keeps of each sale, what its growth costs and how risky it is. |
 | Facts | Sales, 12 months to Sep 1999: $1,117M · Operating loss, same period: $410M · Share price, 3 Feb 2000: $84 |
 | Learner asks | If Amazon loses money, how can it be worth anything at all? |
-| Tutor's lead | Start with what people knew that day. Buyers paid **$84** a share. One professor’s story about Amazon’s future came to **$35**. Four levers explain the gap. Move one and watch. |
+| Tutor's lead | Start with what people knew that day. Buyers paid **$84** a share. One published valuation of Amazon’s future came to **$35**. Four levers explain the gap. Move one and watch. |
 | Tutor's answer | **Because value comes from the cash it makes later, not the loss it makes now.** A valuation is a story told in four numbers: how big the business gets, what it keeps of each sale, what that growth costs, and how risky the ride is. Set those four levers and the cash flows, and the value, follow. |
-| Follow-up | That is your story now. Green adds value to his $35. Red takes it away. Can you find a story worth $84? |
+| Follow-up | Green adds value to the published $35. Red takes it away. What did the $84 price need? Would you have believed it in 2000? |
 | Ending label | What really happened |
-| Ending | Damodaran’s story came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong. |
+| Ending | The published valuation came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong. |
 | Sources | Damodaran’s published valuation of Amazon, 2000. The widget runs the course’s valuation engine on his inputs and reproduces his $35.08 within 2%. |
 
 ### A.3 WeWork, August 2019
@@ -1427,23 +1515,26 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Ending | Six weeks later, on **30 September 2019**, WeWork withdrew its share sale. In November 2023 it filed for bankruptcy. *A run rate is a pace. Revenue is what was recorded.* |
 | Sources | WeWork S-1, 14 Aug 2019; CNBC, 30 Sep 2019; Forbes, 7 Nov 2023. |
 
-### A.4 Rates up 1%
+### A.4 The RBI's repo-rate cut, June 2025
+
+The copy lives in `src/site/examples.ts` (`rbi-repo-cut-2025`); it replaced the undated "Rates up 1%" (#116).
 
 | Field | Text |
 |---|---|
-| Slug / stamp / category | `rates-up-1` / The news / The news |
+| Slug / stamp / category | `rbi-repo-cut-2025` / Jun 2025 / The news |
 | Topic | Percent, percentage points and basis points |
-| Question | A headline says rates are up 1%. How big a move is that? |
-| Hook | Points, basis points and percent: three true answers of different sizes. |
-| Story | **Any morning.** A headline says rates are **up 1%**. Your loan, your deposit and the bond market all move on that number, but the headline doesn’t say which 1% it means. |
-| Facts | Old rate: 4% · New rate: 5% · What the headline says: up 1% |
-| Learner asks | A headline says rates are up 1%. How big a move is that? |
-| Tutor's lead | Take a rate that goes from **4% to 5%**. Three ways of describing that move are in the widget. Tap each one you think is correct. |
-| Tutor's answer | **It depends which size the writer means.** Take a rate going from 4% to 5%: that is 1 point, 100 basis points, and 25% of the old rate. All three are true, but they are different sizes. Up 1% could mean 1 point, or 1% of the old 4%, which is only 0.04 points. So say up 1 point, or up 100 bp. |
+| Question | The RBI cut its repo rate from 6% to 5.5%. How big a cut is that? |
+| Hook | Half a point, 50 basis points, or about 8%: three true answers of different sizes. |
+| Story | **6 June 2025.** The Reserve Bank of India cuts its repo rate, the rate at which it lends to banks, from **6%** to **5.5%**. Home loans, deposits and the bond market all move on that number. But “cut by 0.5%” could mean two very different sizes. |
+| Facts | Repo rate before: 6% · Repo rate after: 5.5% · Decided: 6 Jun 2025 |
+| Learner asks | The RBI cut its rate from 6% to 5.5%. Is that a 0.5% cut? |
+| Tutor's lead | On 6 June 2025 the repo rate went from **6% to 5.5%**. Three ways of describing that move are in the widget. Tap each one you think is correct. |
+| Tutor's answer | **It depends which size you mean.** From 6% to 5.5% is half a percentage point, 50 basis points, and about 8% of the old rate. All three are true, but they are different sizes. Down 0.5% could mean half a point, or 0.5% of the old 6%, which is only 0.03 points. So say down half a point, or down 50 bp. |
 | Follow-up | Tap the other two as well. Two are right, and one is the trap headlines fall into. |
 | Ending label | The rule to keep |
-| Ending | *Name the base of every change.* A move from 4% to 5% is up 1 percentage point, up 100 basis points, and up 25% on the old rate. Traders quote basis points so nobody has to ask which one you meant. |
-| Sources | Worked example from the Topic. No outside figures. |
+| Ending | *Name the base of every change.* A move from 6% to 5.5% is down 0.5 percentage points, down 50 basis points, and down about 8% on the old rate. The RBI announced it as **50 basis points**, so nobody had to ask which one it meant. |
+| As-of date | 6 Jun 2025 |
+| Sources | [RBI, Monetary Policy Statement 2025-26, Resolution of the MPC, 6 Jun 2025](https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=60604) |
 
 ### A.5 Compounding ₹1,000
 
@@ -1473,13 +1564,13 @@ FAQ, in order:
 | # | Question | Answer |
 |---|---|---|
 | 1 | Is Value It investment advice? | No. It teaches how finance works through past events. It never tells you what to buy or sell, and gives no tips. |
-| 2 | Do I need to be good at maths? | No. You never type a number: every question is a tap, or a sentence in your own words. Widgets work out the sums with tested code, and the Tutor explains them in words. |
+| 2 | Do I need to be good at maths? | No. You never type a number: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. |
 | 3 | Where do the facts come from? | From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage. |
-| 4 | Does the AI make up the charts? | No. The Tutor chooses which widget to open and at which numbers; tested code draws it. Made-up numbers are labelled Illustration. |
+| 4 | Does the AI make up the charts? | No. The AI Tutor chooses which chart to open and at which numbers; the chart is drawn from checked figures. Made-up numbers are labelled Illustration. |
 | 5 | What does it cost? | Nothing during early access. No price has been decided yet. |
-| 6 | How do I get in? | Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in. |
+| 6 | How do I get in? | Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in. |
 | 7 | Can I start again? | Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted. |
-| 8 | Do you track me? | There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. |
+| 8 | Do you track me? | There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. If you press the sun/moon switch, a cookie called theme remembers Light or Dark, and nothing else. |
 
 About, promises:
 
@@ -1492,9 +1583,9 @@ About, promises:
 
 About, sourcing flow: **Real event** (A past moment whose outcome is known, like Amazon in February 2000.) → **Checked dataset** (Each figure stored with its public source and the date it was checked.) → **Tested widget** (Code draws the chart from that data, from a tested design.) → **The Tutor explains** (Quotes from its Library carry a number that opens the passage.)
 
-Non-affiliation line: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
+Non-affiliation line: "The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
 
-Early access: **Join** (Sign up with an email link. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
+Early access: **Join** (Join the waitlist with your email. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A phone, a tablet or a laptop. Study works on all three.)
 
 ---
 
@@ -1528,14 +1619,14 @@ Locked Topics listed on Examples:
 
 | Category | Title |
 |---|---|
-| Follow | Damodaran, Tesla valuation (Feb 2020) |
+| Follow | Tesla, a valuation (Feb 2020) |
 | Judge | Twitter's 2013 IPO valuation versus what happened |
-| Follow | Damodaran, crowd valuation of Uber (Dec 2014) |
+| Follow | Uber, a crowd valuation (Dec 2014) |
 | Banks, crises & the system | Bank runs and interest-rate risk in banks |
 | Economics & policy | India's economy and the 1991 reforms |
 | Judge | Junk or BB+? |
 | Banks, crises & the system | Securitisation, MBS and CDOs |
-| Follow | Zitron, The Subprime AI Crisis (Sep 2024) |
+| Follow | OpenAI’s cheap AI prices (Sep 2024) |
 | Analyse | Transfer to India (G-sec, bank, rupee) |
 
 ---
@@ -1545,7 +1636,7 @@ Locked Topics listed on Examples:
 | Term | Definition | Say it like a pro | For example | In the story |
 |---|---|---|---|---|
 | price | What buyers pay for one share today. | The shares closed at $84. | A used bike sells for $200 on the day, whatever it is worth to you. | In the story, $84 is what buyers pay for an Amazon share. |
-| value | What one story about the business says a share is worth. | His story values the shares at $35. | You think the bike is worth $150 to you, whatever it sells for. | In the story, $35 is what Damodaran’s story says a share is worth. |
+| value | What one story about the business says a share is worth. | One published valuation puts the shares at $35. | You think the bike is worth $150 to you, whatever it sells for. | In the story, $35 is what one published valuation says a share is worth. |
 
 ---
 

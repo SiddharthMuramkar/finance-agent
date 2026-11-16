@@ -7,6 +7,7 @@ import { E2E_PEOPLE, E2E_PERSON_COOKIE, e2eIdentityFromCookie } from "@/dev/e2e-
 import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { loadCourseMap } from "@/course/map";
+import { spinePassed } from "@/course/navigator";
 import { OFF_TOPIC } from "@/tutor/session-item-kinds";
 import { liveSession, shownInWorkspace } from "@/tutor/session-log";
 import { STEP_DIVIDER } from "@/tutor/session-item-kinds";
@@ -252,6 +253,16 @@ describe("the fixture route", () => {
         expect(personCookie(refused)).toBeUndefined();
       }
       expect(await clerkLinked()).toHaveLength(1);
+    });
+
+    it("{person: ravi} is a Learner with every Spine Topic passed, so the Assignment is open (spec #68)", async () => {
+      openTestBed();
+      const ravi = await post({ person: "ravi" });
+      expect(ravi.status, await ravi.clone().text()).toBe(200);
+      const { learnerId } = (await ravi.json()) as { learnerId: number };
+      const map = loadCourseMap();
+      expect(spinePassed(map, await loadProgress(as.db, learnerId))).toBe(true);
+      expect((await post({ person: "ravi" })).status).toBe(200);
     });
   });
 });

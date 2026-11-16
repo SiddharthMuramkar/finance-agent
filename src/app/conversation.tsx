@@ -21,6 +21,7 @@ import { TopicHeader, WorkspaceTopicBar } from "./topic-header";
 import { ParkActionsContext, type ParkActions } from "./park-offer-view";
 import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
+import { SheetEntries, sheetEntries } from "./sheet-entries";
 import { useWidgetHost, WidgetHost } from "./widget-host";
 import { WidgetReportContext, type WidgetReport } from "./widget-panel";
 import { useWidgetStates, WidgetStatesProvider } from "./widget-states";
@@ -118,6 +119,7 @@ export function Conversation({
     quiz,
     missed,
     writtenAhead,
+    review: !!review.question,
     // Retry on a Widget that did not arrive: the turn stream resumes the turn (in place, while it still runs).
     onRetry: turn.retry,
     onQuizSubmitted: ({ passed, item, complete }) => {
@@ -208,7 +210,21 @@ export function Conversation({
               <PrimaryClaims>
               <WorkspaceFrame
                 split={split}
-                left={<LeftColumn turn={turn} slot={host.slot} quizOpen={!!quiz} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} insightPick={passed ? null : insightPick} />}
+                open={host.open}
+                view={host.picker.view}
+                onClose={host.close}
+                left={
+                  <LeftColumn
+                    turn={turn}
+                    slot={host.slot}
+                    quizOpen={!!quiz}
+                    passed={passed}
+                    next={next}
+                    openQuestion={insightSettled ? null : openQuestion}
+                    insightPick={passed ? null : insightPick}
+                    entries={<SheetEntries entries={sheetEntries({ check: host.check?.name, explore: !!explore, reviewDue: review.question ? review.dueCount : 0 })} onOpen={host.openView} />}
+                  />
+                }
                 bar={<WorkspaceTopicBar messages={turn.messages} strip={strip} place={place} />}
                 top={<TopicHeader review={review} explore={explore} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}

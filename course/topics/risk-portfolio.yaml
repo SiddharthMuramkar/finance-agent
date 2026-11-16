@@ -43,8 +43,9 @@ concept: >
   the typical distance from the average. A portfolio's expected return is the weighted average of its holdings'
   expected returns. Its risk is not the weighted average of the risks: it also depends on how the holdings
   move together, measured by the correlation coefficient, from +1 (perfectly together) to -1 (exactly opposite).
-  For two assets with weights w1 and w2, standard deviations s1 and s2 and correlation r, the variance is
-  w1^2 s1^2 + w2^2 s2^2 + 2 w1 w2 r s1 s2. Whenever r is below 1, the portfolio's standard deviation is below the
+  For two assets, the variance of the mix is built in three steps: square each asset's weight times its standard
+  deviation, add the two results, then add a cross term of twice both weights times both standard deviations times
+  the correlation. Whenever the correlation is below 1, the portfolio's standard deviation is below the
   weighted average of the two: this is diversification. Adding more assets removes firm-specific (unsystematic)
   risk, such as a lawsuit or a failed product, but not systematic (market) risk, which hits everything
   at once: interest rates, recessions, panics. Correlation is not fixed; in a crash, assets that normally move
@@ -52,6 +53,12 @@ concept: >
   time, because their trades move the market they depend on. This is the point of portfolio theory, begun by
   Harry Markowitz: choose combinations of assets that offer the best return for the risk, and understand which risks
   can be diversified away and which must be paid for or insured separately.
+
+goDeeper: >
+  Written as a formula, for two assets with weights w1 and w2, standard deviations s1 and s2 and correlation r,
+  the variance of the portfolio is w1^2 s1^2 + w2^2 s2^2 + 2 w1 w2 r s1 s2, and its standard deviation is the
+  square root of that. With more assets the same pattern repeats: one squared term for each holding and one cross
+  term for every pair, so in a large portfolio the pairs, not the single holdings, decide the risk.
 
 principle: >
   Diversify away the risks that are specific to a company, and plan for the risks that hit everything at once.

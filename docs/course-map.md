@@ -163,12 +163,12 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Tesla split its shares 5-for-1 (Aug 2020) and 3-for-1 (Aug 2022), so one February 2020 share became 15 and Damodaran's $427 is about $28.47 on today's basis. On 25 Oct 2021, after Hertz announced an order for 100,000 cars, Tesla closed at a record $1,024.86, a market value just over $1tn (about $341.62 on the basis after both splits). The stock then lost about 65% in 2022 and closed the year at $123.18 after losing more than $700bn of market value, still about four times his $427 on the same basis. The post's four stories ran from about $106 to $2,106 a share before the splits; a value follows from a story you can name, and a price can sit far from a value for years in either direction.
   - Sources: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html https://cnbc.com/2022/08/24/tesla-stock-set-for-3-for-1-split-after-market-close.html https://www.reuters.com/business/autos-transportation/tesla-shares-limelight-3-1-stock-split-kicks-2022-08-25/ https://www.nytimes.com/2021/10/25/business/hertz-tesla-electric-vehicles.html https://www.wsj.com/articles/tesla-stock-is-headed-for-its-biggest-ever-annual-decline-11672374248
 
-### 17. Value one yourself, as of a past date
+### 17. Judge a published valuation, as of a past date
 
 - ID: `spine-15-value-yourself` · Written · Spine 17 · 15 minutes
 - Needs first: nothing
 - Draws on: Analyse: build a valuation as of a past date, Valuing Indian companies, currency and country risk
-- Case: **Build your own value for Amazon.com** (as of 2000-02-01)
+- Case: **Judge a published value for Amazon.com** (as of 2000-02-01)
   - Outcome: Damodaran valued Amazon in Feb 2000, in a paper dated Mar 2000, at $35.08 a share against the $84 price, after subtracting $2,892m for options. He grew revenue 150%, 100%, 75%, 50% and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6%, to $39,006m in year 10, with operating margin rising from -13.35% in year 1 to 9.95% in year 10 and a cost of capital of 12.84% falling to 9.61%. In 2000 Amazon's net sales were $2,762m, close to his year-1 figure of about $2,793m, but its operating loss was $864m (about -31%), far below his -13.35%. The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and $14.88 in the fourth. His revenue path was one many could accept, but the whole value rested on the margin reaching about 10% and on the discount rate falling.
   - Sources: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
 - Case: **Coffee Day's IPO, in rupees and in dollars** (as of 2015-10-22)
@@ -987,7 +987,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 - ID: `ana-build-valuation` · Written
 - Needs first: Relative valuation and multiples, Valuing young, loss-making companies, Valuing distressed firms
-- Case: **Build your own value for Amazon.com** (as of 2000-02-01)
+- Case: **Judge a published value for Amazon.com** (as of 2000-02-01)
   - Outcome: Damodaran valued Amazon in Feb 2000, in a paper dated Mar 2000, at $35.08 a share against the $84 price, after subtracting $2,892m for options. He grew revenue 150%, 100%, 75%, 50% and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6%, to $39,006m in year 10, with operating margin rising from -13.35% in year 1 to 9.95% in year 10 and a cost of capital of 12.84% falling to 9.61%. In 2000 Amazon's net sales were $2,762m, close to his year-1 figure of about $2,793m, but its operating loss was $864m (about -31%), far below his -13.35%. The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and $14.88 in the fourth. His revenue path was one many could accept, but the whole value rested on the margin reaching about 10% and on the discount rate falling.
   - Sources: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
 

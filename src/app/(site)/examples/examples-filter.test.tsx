@@ -39,7 +39,7 @@ describe("the Examples filter", () => {
     expect(shown()).toEqual(["/examples/amazon-2000", "/examples/wework-2019"]);
     expect(host.querySelectorAll(".v-qlist li")).toHaveLength(5);
     await act(async () => chips[2].click());
-    expect(shown()).toEqual(["/examples/rates-up-1"]);
+    expect(shown()).toEqual(["/examples/rbi-repo-cut-2025"]);
     await act(async () => chips[0].click());
     expect(shown()).toHaveLength(5);
   });

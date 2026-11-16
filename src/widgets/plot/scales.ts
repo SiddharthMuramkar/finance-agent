@@ -1,3 +1,5 @@
+import { MONTHS } from "../months";
+
 // The small scales every plot shares: nice ticks, and linear, log, time and band mappings from data to drawing units.
 
 /** The steps a nice tick may take: 1, 2, 2.5 and 5 times a power of ten. */
@@ -92,7 +94,6 @@ export function timeScale(t0: number, t1: number, r0: number, r1: number): Scale
   return linearScale(t0, t1, r0, r1);
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const YEAR_MS = 365.25 * 86_400_000;
 
 /** A moment as "Apr 1979" (UTC). */

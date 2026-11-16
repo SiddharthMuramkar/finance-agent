@@ -64,7 +64,7 @@ test("[4.2, 7.1] signed in, About's nav offers Continue and the account menu, an
   await expect(nav.getByRole("button", { name: /^Continue/ })).toBeVisible();
   await expect(nav.locator("summary")).toBeVisible();
   await expect(page.getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Join early access" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Join the waitlist" })).toHaveCount(0);
   await expect(page.locator('[data-site-section="closing"]').getByRole("button", { name: /^Continue/ })).toBeVisible();
 });
 
@@ -72,16 +72,28 @@ test("[4.2, 7.1] signed in, About's nav offers Continue and the account menu, an
 test("[7.6] About says the valuations are Damodaran's published work and that Value It is not affiliated", async ({ page }, info) => {
   test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
   await page.goto("/about");
-  await expect(page.getByText("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.")).toBeVisible();
+  await expect(page.getByText("The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.")).toBeVisible();
 });
 
-test("[4.2] signed out, About offers Sign in and Join early access, which opens /join, and no Sign out", async ({ page }) => {
+// #75: About tells the truth: no founder placeholder, nothing "coming soon", no unmeasured minutes, and the Source it
+// names is a link.
+test("[#75] About has no founder section or 'coming soon', and links Damodaran", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  await page.goto("/about");
+  const main = page.locator("main");
+  await expect(main.getByRole("heading", { level: 1, name: "About Value It" })).toBeVisible();
+  await expect(main).not.toContainText(/founder|coming soon/i);
+  await expect(main).not.toContainText("Each Topic");
+  await expect(main.getByRole("link", { name: "Aswath Damodaran", exact: true })).toHaveAttribute("href", "https://pages.stern.nyu.edu/~adamodar/");
+});
+
+test("[4.2] signed out, About offers Sign in and Join the waitlist, which opens /join, and no Sign out", async ({ page }) => {
   await page.goto("/about");
   const nav = page.locator(NAV);
   const narrow = narrowAt(page.viewportSize()!.width);
   // Sign in sits in the nav, or in the footer once the nav folds into Menu.
   await expect((narrow ? page.locator("footer.v-footer") : nav).getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
-  const join = nav.getByRole("link", { name: "Join early access", exact: true });
+  const join = nav.getByRole("link", { name: "Join the waitlist", exact: true });
   await expect(join).toBeVisible();
   // Clerk's Waitlist (#33).
   await expect(join).toHaveAttribute("href", "/join");

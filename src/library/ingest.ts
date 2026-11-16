@@ -26,9 +26,11 @@ export const librarySourceInput = z.object({
  * Sources the spec keeps out of the Library, matched on a source's id, title and link: Buffett's
  * letters and essays, Zitron's articles, the CNBC Buffett Archive, Investopedia, YouTube
  * transcripts, and material from bodies that have not allowed storing (IMF, FRED, St. Louis Fed,
- * SEBI; the RBI, whose disclaimer prohibits caching, until it allows it).
+ * SEBI; the RBI, whose disclaimer prohibits caching, until it allows it), and the Open Yale Courses
+ * lectures, whose terms bar a tutor service that charges a fee, until written permission is on file (#118).
+ * Not a bare "yale": course sources cite the Yale Journal of Financial Crises, another owner.
  */
-const BLOCKED = /buffett|berkshire|zitron|wheresyoured|cnbc|investopedia|youtube|youtu\.be|\brbi\b|rbi\.org\.in|imf\.org|\bimf\b|fred\.stlouisfed|stlouisfed|\bfred\b|sebi/i;
+const BLOCKED = /buffett|berkshire|zitron|wheresyoured|cnbc|investopedia|youtube|youtu\.be|\brbi\b|rbi\.org\.in|imf\.org|\bimf\b|fred\.stlouisfed|stlouisfed|\bfred\b|sebi|oyc\.yale\.edu|open yale|yale-econ/i;
 
 export function isBlockedSource(source: { id: string; title: string; url: string }): boolean {
   return BLOCKED.test(`${source.id} ${source.title} ${source.url}`);

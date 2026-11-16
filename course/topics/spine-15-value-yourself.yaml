@@ -1,36 +1,38 @@
-# Spine Topic 15 (spec 2026-11-12, C4 row 15; Appendix D: ana-build-valuation, val-india). The Learner picks one of
-# three Cases and values it with Value levers, every lever open; "Save my story" puts their Valuation story in the
-# Notebook as a one-page note (src/widgets/workbench/story-to-notebook.ts). The Topic ends on a conversation Check about
-# the Learner's own valuation (ownWork), so it offers no skip ahead (A8).
+# The ready-Case valuation Topic (spec 2026-11-12, C4 row 15; Appendix D: ana-build-valuation, val-india; spec #68, #92).
+# The Learner picks one of three Cases and judges a published Valuation story on it with Value levers in match_price
+# mode: which lever carries it, what the price assumed, and which assumption is the one to watch (the reveal says which
+# failed). On the Spine the Learner judges other people's Stories, so the Topic has no Check about the Learner's own
+# story and no "Save my story"; it offers skip ahead like any other Spine Topic (A8; Owner, 2026-11-16). The id, Case ids,
+# question ids and the Skill id own-story stay as they were (ADR 0004: passes, Sessions, Notes and Reviews key on them).
 # Cases and their valuation blocks: Amazon (val-dcf's amazon-dcf-2000, Appendix B.1), Coffee Day's IPO in rupees (val-india's
 # coffee-day-rupee-valuation-2015, a course illustration: we found no published valuation of the IPO), and Zomato's IPO
 # (ana-build-valuation's zomato-ipo-2021, Damodaran's July 2021 sheet). Facts from those Topic files and from
 # docs/research/verify-coffee-day.json and verify-zomato-2021.json. Every figure on a computed question's choices is
 # worked out by code from the block (spec D2).
 id: spine-15-value-yourself
-title: "Value one yourself, as of a past date"
-goal: "Value a company yourself as of a past date, lever by lever, and save it to your Notebook"
-why: "This is the whole course in one go: a story of your own, set as four levers on a real company, read against the price of the day."
+title: "Judge a published valuation, as of a past date"
+goal: "Judge a published valuation as of a past date: the lever it rests on, and what the price assumed"
+why: "This is the whole course in one go: a real company's published story, read as four levers and judged against the price of the day."
 minutes: 15
 exampleCurrency: USD
 
 cases:
   - id: amazon-yourself-2000
-    title: "Value Amazon.com, February 2000"
+    title: "A published value of Amazon.com, February 2000"
     # 3 February 2000: about $84 was that day's close, after the fourth-quarter results (as Spine Topic 1).
     asOf: 2000-02-03
     valuationFrom: amazon-dcf-2000
     story: >
       It is February 2000. Amazon sells books, music and more online, and its shares cost $84. In the twelve months to
       September 1999 it sold $1,117 million and lost $410 million on its operations. Specialty retailers keep about 10%
-      of each sale. Value levers opens on one professor's story, and you set every lever to your own.
+      of each sale. Value levers opens on one professor's published story, for you to judge lever by lever.
     reveal: >
       Aswath Damodaran's story came to $35.08 a share against the $84 price. In 2000 Amazon's sales came in almost
       exactly where he guessed, $2,762 million, but it lost $864 million on its operations, about 31 cents of each dollar
       of sales, where his story had it losing about 13 cents in the first year. Size was the easy lever to guess; what it keeps was the
       hard one, and his whole value rested on it.
   - id: coffee-day-yourself-2015
-    title: "Value Coffee Day's IPO, in rupees, October 2015"
+    title: "The price of Coffee Day's IPO, in rupees, October 2015"
     asOf: 2015-10-22
     valuationFrom: coffee-day-rupee-valuation-2015
     story: >
@@ -38,22 +40,23 @@ cases:
       for its listing. In the year to March 2015 it sold about Rs 2,479 crore and kept about 4.4% of each sale as profit
       from its business. It earns in rupees, and lending to India's government for ten years pays 7.58% a
       year, so a café chain has to promise more than that. We found no published valuation of this listing, so Value
-      levers opens on a course story, not an expert's: it keeps 15% of each sale in ten years. You set every lever to
-      your own.
+      levers opens on a course story, not an expert's: it keeps 15% of each sale in ten years. The story to judge is the
+      one the Rs 328 price assumes.
     reveal: >
       The shares listed on 2 November 2015 below the Rs 328 issue price and closed the day at Rs 270.15 on the BSE, down
       17.6%. Buyers in the listing paid Rs 328; the market's first verdict was well under it, and the gap asks which
       lever the buyers on the first day set lower.
   - id: zomato-yourself-2021
-    title: "Value Zomato's IPO, July 2021"
+    title: "A published value of Zomato's IPO, July 2021"
     asOf: 2021-07-21
     valuationFrom: zomato-ipo-2021
     story: >
-      It is 21 July 2021. Zomato, an Indian food delivery app, is selling shares at Rs 76 in its listing. In the year to
-      March 2021 its revenue was Rs 1,994 crore, down from Rs 2,605 crore the year before, and it lost Rs 816 crore.
+      It is 21 July 2021. Zomato, an Indian food delivery app, is selling shares at Rs 76 in its listing: the offer
+      price, which buyers pay before the shares first trade. In the year to March 2021 its revenue was Rs 1,994 crore,
+      down from Rs 2,605 crore the year before, and it lost Rs 816 crore.
       The offer closed on 16 July with bids for many times the shares on offer. Today Aswath Damodaran values it (he
       publishes his story tomorrow), betting on a big market and a platform: his spreadsheet has about Rs 16,600 crore
-      of sales in ten years, keeping 35% of each sale. Value levers opens on his story, and you set every lever to your own.
+      of sales in ten years, keeping 35% of each sale. Value levers opens on his story, for you to judge lever by lever.
     reveal: >
       Damodaran's story came to Rs 40.79 a share, about Rs 41, against the Rs 76 offer price. Zomato listed on 23 July
       2021 at Rs 115 on the BSE and closed at Rs 125.85, up 65.6%. It reached Rs 169 in November 2021. In July 2022,
@@ -62,21 +65,22 @@ cases:
       it. A gap between price and value does not say who is right; it asks which lever the buyers set differently.
 
 concept: >
-  To value a company yourself, fix a date and use only what was known on it. Set each of the four levers to the story
-  you believe, with a reason: how big it gets, what it keeps, what growth costs, how risky it is. Check the story holds
-  together: growth needs capital, and margins are capped by what rivals allow. Read your value against the price of the
-  day, ask what the price assumes, and write your valuation down so you can judge it later.
+  To judge a published valuation, fix its date and use only what was known on it. Read the story as four levers: how
+  big it gets, what it keeps, what growth costs, how risky it is. Find the lever its value rests on most, and check the
+  story holds together: growth needs capital, and margins are capped by what rivals allow. Then ask what the price of
+  the day assumes instead. The lever the value rests on most is the assumption to watch. In Value levers, the bars
+  under the levers are the story's free cash flow: the cash left each year after tax and after paying for growth.
 
 principle: >
-  A valuation is a story, set lever by lever, as of one date. Write it down with your reasons, so that when the
-  price or the news moves you can see which lever you were wrong about.
+  A published valuation is someone's story, set lever by lever, as of one date. Judge it by the lever it rests on
+  most: when that assumption fails, the value goes with it, whatever the other levers say.
 
-dailyLife: "Before you buy a used bike, write down what you think it is worth and why, then read the seller's price against your note."
+dailyLife: "A seller says a used bike is worth her price because it is barely ridden: before you pay, check that one reason, since her whole figure rests on it."
 
 youllLearn:
-  - "Value a company yourself, using only what was known on one date."
-  - "Set each lever to a story you can give reasons for."
-  - "Write your valuation down and read it against the price."
+  - "Judge a published valuation, using only what was known on one date."
+  - "Find the lever a story's value rests on most."
+  - "Say what the price assumed, and which assumption to watch."
 
 terms:
   - term: as-of date
@@ -85,58 +89,61 @@ terms:
     example: "Valuing Amazon as of February 2000, you may not use its sales for 2000."
     inStory: "In the story, each company has its own date: February 2000, October 2015 or July 2021."
   - term: Valuation story
-    means: "Your account of a company's future, set as the four levers, that a value follows from."
-    pro: "My story: a big market, high margins, little capital needed, ordinary risk."
+    means: "A story about a company's future, set as four levers, that a value per share follows from: how big it gets (revenue in year 10), what it keeps (operating margin), what growth costs (sales for each dollar invested) and how risky it is (cost of capital)."
+    pro: "His story: a big market, high margins, little capital needed, ordinary risk."
     example: "A café owner's story: three more cafés in five years, each keeping a fifth of its sales."
-    inStory: "In the story, Value levers opens on someone else's story, and you set it to yours."
-  - term: offer price
-    means: "The price a company sells its new shares at when it first lists."
-    pro: "The shares were offered at the top of the price band."
-    example: "Buyers who bid in a listing pay the offer price, before the shares first trade."
-    inStory: "In the story, Coffee Day and Zomato each set an offer price for their listing."
-  - term: hindsight
-    means: "Knowing what happened after the date, which a valuation as of that date may not use."
-    pro: "That figure is hindsight; leave it for the reveal."
-    example: "Knowing who won a match before you bet on it."
-    inStory: "In the story, what each company's shares did after its date is hindsight."
+    inStory: "In the story, Value levers opens on a published or a course story, set as its four levers."
+  - term: operating margin
+    means: "What it keeps: the share of each sale a company keeps from its operations, before tax."
+    emoji: money-bag
+    pro: "His story has the operating margin rising to 10%."
+    example: "A shop that keeps 10 cents of every dollar it takes has a 10% operating margin."
+    inStory: "In the story, the lever for what it keeps is the operating margin once the company is grown up."
+  - term: cost of capital
+    means: "How risky: the return investors need each year, given the risk, used to turn future cash into today's."
+    emoji: guard
+    pro: "His cost of capital starts at 12.84% and falls as Amazon matures."
+    example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
+    inStory: "In the story, the lever for how risky it is is the cost of capital while it grows."
 
 skills:
   - id: as-of
     rule: "Use only what was known on the as-of date; what happened later is the reveal, not an input."
   - id: own-story
-    rule: "Set every lever to a story you can give a reason for, check it holds together, and read the gap to the price as a question."
+    rule: "Find the lever a published story rests on, check it holds together, and read the gap to the price as a question about levers."
 
 insight:
-  question: "Pick a company, set every lever to what you believe, and say which lever your value rests on most. Then save the valuation to your Notebook."
-  written: "A value of your own is a story you can name lever by lever; the price then either agrees with it or tells you which lever the buyers set differently."
-  foundWhen: "The Learner has set the levers to a story of their own for one of the three Cases, gives a reason for at least two levers, and names the lever their value rests on most."
+  question: "Pick a company and find the lever its published story rests on most. Then say what the price assumes instead."
+  written: "A published value rests on one lever more than the others; the price either agrees with the story or tells you which lever the buyers set differently."
+  foundWhen: "On one of the three Cases, the Learner names the lever the story's value rests on most, having moved the levers to see it, and says which lever the price needs set differently."
   hints:
-    - "Start from the story it opens on, and move only the levers you disagree with. Say why for each."
-    - "Which lever, if you are wrong about it, would change your value most? That is the one your value rests on."
+    - "Move one lever at a time from the story it opens on, and watch which one moves the value most."
+    - "Which lever would the price need set differently? The readout names the ones that reach the price alone."
 
 explore:
   before: yourself-check
   # Opens on Amazon; the Learner switches to Coffee Day or Zomato with a chip in the Widget (mode.cases), which values that
-  # Case and resets the levers to its own story. The chip's label names the company in the saved Notebook note.
+  # Case and resets the levers to its own story. match_price reads out which lever alone reaches the price (what the
+  # price assumed); there is no "Save my story".
   # Each is in the valuation registry under its own id here, and the Tutor's per-turn context names each Case's id on
   # its Case line (src/tutor/context.ts), so the Tutor can also open Value levers on one; the recipe's description gives
   # only one example id.
   workbench:
     recipe: value_levers
     case: amazon-yourself-2000
-    title: "Value one yourself"
+    title: "Judge a published story"
     inputs:
       caseStory: "The story it opens on"
       mode:
-        kind: all_open
-        # A cast that reacts as the Learner's own story moves against the price (Spine critics round 1 on #96).
+        kind: match_price
+        # A cast that reacts as the story being judged moves against the price (Spine critics round 1 on #96).
         scene:
           cast:
             - { icon: person, name: "You" }
             - { icon: chart-increasing, name: "The market" }
-          below: "You: my story is worth less than the price. Which lever did the buyers set higher?"
-          near: "You: my story lands near the price. Save it, and see later which lever I got wrong."
-          above: "You: my story is worth more than the price. Which lever did the buyers set lower?"
+          below: "The market: buyers paid more than this story is worth. Which lever do they see higher?"
+          near: "You: this story lands near the price. Which lever would I still doubt?"
+          above: "The market: this story is worth more than buyers paid. Which lever do they doubt?"
         cases:
           - { id: amazon-yourself-2000, label: "Amazon, Feb 2000" }
           - { id: coffee-day-yourself-2015, label: "Coffee Day, Oct 2015" }
@@ -151,16 +158,18 @@ connections:
 questions:
   - id: yourself-q-lever
     kind: which_lever
-    prompt: "From the course's Coffee Day story, which change moves the value most?"
+    # Each change makes one lever a fifth more hopeful (critics round 1, math-police), so the sizes are alike and the idea
+    # decides it: for a company that keeps little of each sale today, what it keeps is the lever the value rests on.
+    prompt: "From the course's Coffee Day story, each change makes one lever a fifth more hopeful. Which moves the value most?"
     skill: own-story
-    explanation: "For a company that keeps little of each sale today, what it comes to keep moves the value most."
+    explanation: "Every lever moves by the same fifth, so the step sizes do not decide it: for a company that keeps little of each sale today, what it comes to keep moves the value most."
     computed:
       case: coffee-day-yourself-2015
       changes:
-        - { id: margin, label: "What it keeps in ten years: 15% to 18%", levers: { marginTarget: 18 } }
-        - { id: reinvest, label: "What growth costs: Rs 1.50 of sales per rupee invested, not Rs 1.30", levers: { salesToCapital: 1.5 } }
-        - { id: risk, label: "How risky: cost of capital 11.8% to 11.3%", levers: { costOfCapitalGrowing: 11.3 } }
-        - { id: revenue, label: "How big it gets: sales in ten years Rs 7,660 crore to Rs 9,000 crore", levers: { revenueYear10: 9000 } }
+        - { id: margin, label: "What it keeps, a fifth more: 15% to 18% of each sale in ten years", levers: { marginTarget: 18 } }
+        - { id: reinvest, label: "What growth costs, a fifth more sales per rupee invested: Rs 1.56, not Rs 1.30", levers: { salesToCapital: 1.56 } }
+        - { id: risk, label: "How risky, a fifth less: cost of capital 11.8% to 9.44%", levers: { costOfCapitalGrowing: 9.44 } }
+        - { id: revenue, label: "How big it gets, a fifth more: sales in ten years Rs 7,660 crore to Rs 9,192 crore", levers: { revenueYear10: 9192 } }
   - id: yourself-q-price
     kind: price_assumes
     prompt: "Damodaran's Zomato story comes to about Rs 41, and the offer price is Rs 76. Which story gets there?"
@@ -187,14 +196,14 @@ questions:
         - { id: some, label: "Some of it is left", min: 0.15, max: 0.6 }
         - { id: none, label: "Little or nothing left", max: 0.15 }
   - id: yourself-q-asof
-    prompt: "You are valuing Zomato as of 21 July 2021. Which fact may your valuation use?"
+    prompt: "You are judging a Zomato valuation made on 21 July 2021. Which fact may it use?"
     skill: as-of
     choices:
       - id: revenue
         text: "Its revenue fell in the year to March 2021"
       - id: listing
         text: "Its shares closed up 65.6% on their first day"
-        mistake: { tag: hindsight, fix: "The first day's close came two days later. As of 21 July it is hindsight." }
+        mistake: { tag: hindsight, fix: "The first day's close came two days later. On 21 July nobody knew it yet." }
       - id: low
         text: "Its price hit a record low in July 2022"
         mistake: { tag: hindsight, fix: "That happened a year later; a valuation as of July 2021 cannot know it." }
@@ -232,37 +241,52 @@ questions:
     source: "Damodaran, The Zomato IPO: A Bet on Big Markets and Platforms!, 22 Jul 2021: https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html"
   - id: yourself-q-pv
     kind: price_or_value
-    prompt: "Your valuation of Zomato comes to well under the offer price. The Rs 76 at which its shares are sold is:"
+    prompt: "Damodaran's Zomato story comes to about Rs 41, well under the offer price. The Rs 76 at which its shares are sold is:"
     skill: own-story
     choices:
       - id: price
         text: "A price, which asks what story buyers are paying for"
       - id: value
-        text: "A value, so your valuation must be wrong"
-        mistake: { tag: price_for_value, fix: "Rs 76 is what buyers pay: a price. The gap is a question about levers, not a verdict on your valuation." }
+        text: "A value, so his story must be wrong"
+        mistake: { tag: price_for_value, fix: "Rs 76 is what buyers pay: a price. The gap is a question about levers, not a verdict on his story." }
     answer: price
-    explanation: "A price is paid; your value is argued. The gap asks which lever buyers set differently."
+    explanation: "A price is paid; a value is argued. The gap asks which lever buyers set differently."
     source: "Zomato Limited, Prospectus dated 19 July 2021: https://www.morganstanley.com/content/dam/msdotcom/en/indiaofferdocuments/pdfs/Zomato_Limited_Prospectus.pdf"
+  - id: yourself-q-rests
+    prompt: "Damodaran's Amazon story has it keeping 10% of each sale in ten years; today it loses about 37 cents of each dollar. Which assumption is his value most at risk on?"
+    skill: own-story
+    choices:
+      - id: margin
+        text: "What it keeps: losses turning into a 10% margin"
+      - id: size
+        text: "How big it gets: sales of $39bn in year 10"
+        mistake: { tag: lever_mixup, fix: "Fast sales growth is something Amazon already shows. Turning a deep loss into a retailer's margin is the leap the value rests on." }
+      - id: risk
+        text: "How risky: a 12.84% cost of capital"
+        mistake: { tag: lever_mixup, fix: "The cost of capital matters, but the story's big leap is from losing money to keeping 10% of each sale." }
+    answer: margin
+    explanation: "The story's value rests on the margin it reaches; that is the assumption to watch as the results come in."
+    source: "Damodaran, The Dark Side of Valuation: Valuing Young, Distressed and Complex Businesses (paper, March 2000): http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
 
 checks:
   - id: yourself-check
     kind: quiz
-    questions: [yourself-q-lever, yourself-q-price, yourself-q-predict, yourself-q-asof, yourself-q-direction, yourself-q-hold, yourself-q-pv]
+    questions: [yourself-q-lever, yourself-q-price, yourself-q-predict, yourself-q-asof, yourself-q-direction, yourself-q-hold, yourself-q-pv, yourself-q-rests]
     perAttempt: 4
     passRule: { correct: 3 }
     card:
-      title: "A valuation, as of one date"
+      title: "Judging a published story, as of one date"
       lines:
-        - "Fix a date, and use only what was known on it."
-        - "Set each lever to the story you believe, with a reason."
+        - "Fix the date, and use only what was known on it."
+        - "Find the lever the story's value rests on most."
         - "Check the story holds together: growth costs capital, and rivals cap margins."
-        - "Read your value against the price, and write your valuation down."
-      writeDown: "My value is my story, set lever by lever, as of one date."
+        - "Ask what the price assumes, and watch the lever the value rests on."
+      writeDown: "A published value is a story set lever by lever; I judge it by the lever it rests on."
       skills: [as-of, own-story]
     quickTries:
       - id: yourself-try-asof-half
         skill: as-of
-        ask: "You are valuing Amazon as of February 2000. Which figure may you use?"
+        ask: "You are judging a valuation of Amazon as of February 2000. Which figure may it use?"
         halfDone: "First step, done for you: the as-of date is early February 2000."
         kind: choice
         answer: known
@@ -271,10 +295,10 @@ checks:
             text: "Its sales in the twelve months to September 1999"
           - id: later
             text: "Its sales for the year 2000"
-            mistake: { tag: hindsight, fix: "Sales for 2000 were reported in 2001. As of February 2000 they are hindsight." }
+            mistake: { tag: hindsight, fix: "Sales for 2000 were reported in 2001. In February 2000 nobody knew them yet." }
       - id: yourself-try-asof-2
         skill: as-of
-        ask: "You are valuing Coffee Day on 22 October 2015. Which is hindsight?"
+        ask: "You are judging a valuation of Coffee Day made on 22 October 2015. Which fact came out only after that day?"
         kind: choice
         answer: close
         choices:
@@ -285,7 +309,7 @@ checks:
             mistake: { tag: not_hindsight, fix: "The bond yield was known on 22 October. The first day's close came later." }
       - id: yourself-try-asof-3
         skill: as-of
-        ask: "Your Zomato valuation is written on 21 July 2021. Which fact is hindsight for it?"
+        ask: "Damodaran's Zomato story is written on 21 July 2021. Which fact came out only after he wrote it?"
         kind: choice
         answer: peak
         choices:
@@ -296,7 +320,7 @@ checks:
             mistake: { tag: not_hindsight, fix: "The bids were counted before the as-of date. November 2021 came after it." }
       - id: yourself-try-reason-half
         skill: own-story
-        ask: "You set Zomato's margin far above his 35%. Which reason holds up?"
+        ask: "Damodaran's Zomato story keeps 35% of each sale. Which reason for a margin that high holds up?"
         halfDone: "First step, done for you: a high margin lasts only if rivals cannot take it away."
         kind: choice
         answer: moat
@@ -305,7 +329,7 @@ checks:
             text: "Two apps share the market, and new rivals struggle to get in"
           - id: hope
             text: "Apps always become very profitable in the end"
-            mistake: { tag: no_reason, fix: "That is a hope, not a reason. Say what keeps rivals from taking the margin." }
+            mistake: { tag: no_reason, fix: "That is a hope, not a reason. A margin lasts only where something keeps rivals from taking it." }
       - id: yourself-try-hold
         skill: own-story
         ask: "Which Coffee Day story holds together?"
@@ -319,15 +343,15 @@ checks:
             mistake: { tag: free_growth, fix: "New cafés cost money. Growth that costs nothing does not hold together." }
       - id: yourself-try-gap
         skill: own-story
-        ask: "Your Amazon valuation comes to well under half the $84 price. What do you ask first?"
+        ask: "Damodaran's Amazon story comes to well under half the $84 price. What do you ask first?"
         kind: choice
         answer: lever
         choices:
           - id: lever
-            text: "Which lever the price needs set higher than mine"
+            text: "Which lever the price needs set higher than his"
           - id: wrong
             text: "Why the buyers are fools"
-            mistake: { tag: price_as_wrong, fix: "Ask what the price assumes before calling it wrong; it may be a lever you set low." }
+            mistake: { tag: price_as_wrong, fix: "Ask what the price assumes before calling it wrong; it may be a lever the story set low." }
       - id: yourself-try-lever
         skill: own-story
         kind: price_assumes
@@ -338,9 +362,3 @@ checks:
             - { id: all-three, label: "Sales of Rs 10,358 crore in ten years, keeping 22%, with Rs 2 of sales per rupee invested", levers: { revenueYear10: 10358, marginTarget: 22, salesToCapital: 2 } }
             - { id: rich, label: "The course story, keeping 22% of each sale", levers: { marginTarget: 22 } }
             - { id: big, label: "The course story, with Rs 10,358 crore of sales in ten years", levers: { revenueYear10: 10358 } }
-  - id: yourself-talk
-    kind: conversation
-    ownWork: true
-    prompt: "Walk through the valuation you saved for the company you picked, as of its date: how each lever was set and why, what it comes to against the price, and which lever you are least sure of."
-    passCriteria: "Names the company and its as-of date and uses nothing known only after it; gives a setting and a reason for at least three of the four levers (how big it gets, what it keeps, what growth costs, how risky); says what the valuation is worth against the price of the day and treats the gap as a question about levers; names one lever as least sure, with a reason."
-    skills: [as-of, own-story]

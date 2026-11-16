@@ -4,6 +4,9 @@ import type { Topic } from "./map.ts";
 // words (its Lingo terms); no Spine Check asks for the Learner's own story (Spine Checks judge Stories); no "your story"
 // wording anywhere in a Spine Topic; and every Spine Topic has a daily-life line. Every Spine Topic follows every rule,
 // including Topics added later: there is no list of known failures.
+// The daily-life rule also runs on every converted Elective (a Topic with Skills, its teaching written ahead): spec story
+// 57 asks it of each Topic, and those Electives carry Principle steps written for beginners. Every converted Elective has
+// its line today. An Elective not yet converted is taught live and is left out (review 2, G32).
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
 /** The most new words (Lingo terms) a Spine Topic brings. */
@@ -51,7 +54,11 @@ function ruleProblems(t: Topic): string[] {
   return [...newWords, ...ownStory, ...yourStory, ...dailyLife];
 }
 
-/** Every problem the beginner rules find in these Topics' Spine Topics. */
+/** Every problem the beginner rules find in these Topics' Spine Topics and converted Electives. */
 export function beginnerCheckErrors(topics: readonly Topic[]): string[] {
-  return topics.filter((t) => t.stage === "spine").flatMap((t) => ruleProblems(t).map((p) => `Spine Topic "${t.id}" ${p} (spec #68)`));
+  const electives = topics
+    .filter((t) => t.stage !== "spine" && t.skills.length > 0 && !t.dailyLife)
+    .map((t) => `Elective "${t.id}" has Skills (a converted Topic) but no daily-life line; give it a dailyLife line from a beginner's day (spec #68 story 57)`);
+  const spine = topics.filter((t) => t.stage === "spine").flatMap((t) => ruleProblems(t).map((p) => `Spine Topic "${t.id}" ${p} (spec #68)`));
+  return [...electives, ...spine];
 }

@@ -52,8 +52,8 @@ test("[7.2.1, QA 1] Home opens on the finished jackpot conversation, its control
   const calls = apiCalls(page);
   await openHome(page);
   const thread = page.getByTestId("demo-thread");
-  await expect(thread).toContainText("Is a $1.537B jackpot really worth $1.537B?");
-  await expect(thread).toContainText("The Tutor picked this widget. Tested code draws it.");
+  await expect(thread).toContainText("Is ₹25 crore over 30 years worth ₹25 crore?");
+  await expect(thread).toContainText("The AI Tutor picked this Example. Checked numbers draw it.");
   const jackpot = thread.locator('[data-widget="jackpot"]');
   await expect(jackpot).toBeVisible();
   // Call first: the rate slider waits for the learner's call, and nothing is marked yet.
@@ -61,6 +61,38 @@ test("[7.2.1, QA 1] Home opens on the finished jackpot conversation, its control
   await expect(jackpot.locator(".sig-pill")).toHaveCount(0);
   await page.waitForLoadState("networkidle");
   expect(calls, "Home called the server").toEqual([]);
+});
+
+/**
+ * Spec #68, ticket #73: the first screen speaks to a beginner. On a 390 px phone the h1, "for beginners" and something to
+ * play (the demo's question chips, each of which plays a conversation) all show before any scroll, and the h1's accessible
+ * name is the sentence with its spaces.
+ */
+test("[7.2.1, #73] a phone shows the h1, for beginners and something to play without scrolling", async ({ page }, info) => {
+  test.skip(info.project.name !== "p390", "a 390 px phone");
+  await openHome(page);
+  const hero = page.locator('[data-site-section="hero"]');
+  const h1 = page.getByRole("heading", { level: 1 });
+  await expect(h1).toHaveAccessibleName("What is it really worth?");
+  await expect(h1).toBeInViewport({ ratio: 1 });
+  await expect(hero.getByText("Finance for beginners")).toBeInViewport({ ratio: 1 });
+  await expect(page.getByRole("group", { name: "Pick a question" })).toBeInViewport({ ratio: 1 });
+  expect(await page.evaluate(() => window.scrollY), "the page scrolled").toBe(0);
+});
+
+test("[7.2.1, #73] the hero's Try the jackpot opens the jackpot Example, and Join the waitlist opens the waitlist", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  await openHome(page);
+  const hero = page.locator('[data-site-section="hero"]');
+  await expect(hero.getByRole("link", { name: "Join the waitlist", exact: true })).toHaveAttribute("href", "/join");
+  await hero.getByRole("link", { name: "Try the jackpot", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/examples/kerala-bumper-2024");
+  await expect(page.locator('[data-widget="jackpot"]')).toBeVisible();
+  await openHome(page);
+  await page.locator('[data-site-section="hero"]').getByRole("link", { name: "Join the waitlist", exact: true }).click();
+  // Clerk is off in the test bed, so /join draws a stand-in for its Waitlist card (#76).
+  await page.waitForURL((url) => url.pathname === "/join");
+  await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { level: 1, name: "Join the waitlist" })).toBeVisible();
 });
 
 test("[7.2.1, QA 5] a picked question plays the script: typing, the Tutor's lead and a skeleton, then the levers widget at $35", async ({ page }, info) => {
@@ -84,7 +116,7 @@ test("[QA 25] with reduced motion the demo answers at once", async ({ page }, in
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openHome(page);
   const played = await recordDemo(page);
-  await page.getByRole("group", { name: "Pick a question" }).getByRole("button", { name: "Rates up 1%" }).click();
+  await page.getByRole("group", { name: "Pick a question" }).getByRole("button", { name: "The RBI’s June cut" }).click();
   await expect(page.getByTestId("demo-thread").locator('[data-widget="rates"]')).toBeVisible();
   // No typing dots and no skeleton: the widget is the first and only part to appear.
   expect(await played()).toEqual(["widget"]);
@@ -92,11 +124,11 @@ test("[QA 25] with reduced motion the demo answers at once", async ({ page }, in
 
 /**
  * Spec 7.2.8 and QA rows 22 and 23, as issue #33 has them: Clerk owns sign-up, so the closing block has no email form of
- * its own. A visitor's closing CTA is Join early access, to /join (Clerk's Waitlist), with the early-access note and the
+ * its own. A visitor's closing CTA is Join the waitlist, to /join (Clerk's Waitlist), with the waitlist note and the
  * three steps; the press is counted with its place (the join event, E10). It is followed to the page it lands on, so a Join
- * to a page that is not there fails here. Clerk is off in the test bed, so /join sends the visitor on to /sign-in.
+ * to a page that is not there fails here. Clerk is off in the test bed, so /join draws a stand-in for its card (#76).
  */
-test("[7.2.8, QA 22, 23] the closing block's Join early access opens /join, with no email form", async ({ page }, info) => {
+test("[7.2.8, QA 22, 23] the closing block's Join the waitlist opens /join, with no email form", async ({ page }, info) => {
   test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
   const sent: { name: string; data?: Record<string, unknown> }[] = [];
   await page.route(/va\.vercel-scripts\.com|\/_vercel\/insights\//, (route) => route.abort());
@@ -119,13 +151,13 @@ test("[7.2.8, QA 22, 23] the closing block's Join early access opens /join, with
   const closing = page.locator('[data-site-section="closing"]');
   await closing.scrollIntoViewIfNeeded();
   await expect(closing.locator("input, form")).toHaveCount(0);
-  await expect(closing.getByText("Free during early access. We let people in by hand and email you when you’re in.")).toBeVisible();
+  await expect(closing.getByText("Free. We let people in by hand and email you when you’re in.")).toBeVisible();
   await expect(closing.locator("ol li")).toHaveText([/Request received/, /Reviewed by hand/, /Email: you’re in/]);
-  const join = closing.getByRole("link", { name: "Join early access", exact: true });
+  const join = closing.getByRole("link", { name: "Join the waitlist", exact: true });
   await expect(join).toHaveAttribute("href", "/join");
   await join.click();
-  await page.waitForURL((url) => url.pathname === "/sign-in");
-  await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { level: 1, name: "Enter your passcode" })).toBeVisible();
+  await page.waitForURL((url) => url.pathname === "/join");
+  await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { level: 1, name: "Join the waitlist" })).toBeVisible();
   expect(sent.filter((e) => e.name === "home_join_pressed")).toEqual([{ name: "home_join_pressed", data: { section: "closing" } }]);
 });
 
@@ -166,6 +198,24 @@ test("[7.2.3, QA 10, 12] the levers story moves the stage with the scroll and ke
   await expect(value).toContainText("$35");
   await scrollTo(5);
   await expect(value).toHaveText(mine!);
+});
+
+/** #75: "Where you end up" shows the one-page note the Assignment saves to the Notebook, under the promise it keeps. */
+test("[#75] Where you end up shows a real one-page note from the Notebook", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  await page.goto("/");
+  const end = page.locator('[data-site-section="end"]');
+  await end.scrollIntoViewIfNeeded();
+  await expect(end.getByRole("heading", { level: 2, name: "By the end, you value a company yourself." })).toBeVisible();
+  const note = end.locator("[data-end-note]");
+  await expect(note).toContainText("Kikkoman");
+  await expect(note.locator("li")).toHaveText([
+    "Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.",
+    "From the report: sales ¥745.5bn, operating profit ¥75.9bn (a margin of 10.19%), tax rate 30.5%, debt ¥18.2bn, cash ¥111.8bn, 927,741,900 shares, price ¥1,435 on 31 Mar 2026.",
+    "My Estimate: growth 10% a year for five years, fading to 2.82%; the margin heading for 5.11%; ¥1.92 of sales for each ¥1 invested; cost of capital 3.84%.",
+    "Employee stock options are not entered: the engine counts none.",
+    "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026.",
+  ]);
 });
 
 test("[QA 24] Home never scrolls sideways", async ({ page }, info) => {

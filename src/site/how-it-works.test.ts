@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
+import { rateChange } from "@/finance/rate-change";
 import { howItWorks, LINGO } from "./copy";
 import { exampleBySlug } from "./examples";
 import { plain } from "./rich";
@@ -41,5 +42,20 @@ describe("How it works' moves", () => {
 
   it("run the slider from 0 to 150, starting at 50", () => {
     expect(howItWorks.valueIt).toMatchObject({ min: 0, max: 150, start: 50 });
+  });
+});
+
+// F19: the Study Workspace mock pairs the RBI rates Example's bubbles with a readout; both say the same move.
+describe("How it works' Study Workspace mock", () => {
+  it("reads out the RBI cut its bubbles ask about, sized as the engine sizes it", () => {
+    const rates = exampleBySlug("rbi-repo-cut-2025")!;
+    const readout = plain(howItWorks.workspace.readout);
+    expect(plain(rates.lead)).toContain("6% to 5.5%");
+    expect(readout.startsWith("6% → 5.5%:")).toBe(true);
+    const change = rateChange(6, 5.5);
+    expect(change.points).toBe(-0.5);
+    expect(readout).toContain("½ point");
+    expect(readout).toContain(`${Math.abs(change.basisPoints)} bp`);
+    expect(readout).toContain(`about ${Math.round(Math.abs(change.percentChange!))}%`);
   });
 });

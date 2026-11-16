@@ -58,6 +58,7 @@ export const WIPE_STEPS = [
   { table: "learner_profile", where: BY_LEARNER },
   { table: "skill_state", where: BY_LEARNER },
   { table: "skip_ahead_attempts", where: BY_LEARNER },
+  { table: "own_cases", where: BY_LEARNER },
   { table: "sessions", where: BY_LEARNER },
   { table: "learners", where: "clerk_user_id is null" },
   { table: "settings", where: "key = 'signup_open'", label: "settings (signup_open)" },

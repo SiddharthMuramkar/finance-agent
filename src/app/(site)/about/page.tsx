@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/site-metadata";
 import { about, COURSE } from "@/site/copy";
 import { Rich } from "@/site/rich";
 import { courseStats } from "@/site/stats";
@@ -8,13 +9,28 @@ import { FaqList } from "../faq";
 import { Icon, Pill, SectionHead } from "../parts";
 
 // About, at /about (spec 7.6, Appendix B): the header with "At a glance", four promises, the sourcing flow with the
-// non-affiliation line, what you can learn, the founder's note (a placeholder, spec 14), early access, the full FAQ and
-// the closing CTA. Public; drawn per request for the nav's viewer state. Reads the course files for the Topic count and
-// nothing private.
+// non-affiliation line (its named Source linked), what you can learn, early access, the full FAQ and the closing CTA. No
+// founder's note (#75: no placeholders). Public; drawn per request for the nav's viewer state. Reads the course files
+// for the Topic count and nothing private.
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: about.title, description: about.lede };
+export const metadata: Metadata = pageMetadata({ title: about.title, description: about.lede, path: "/about" });
+
+/** The line with the Source it names drawn as a link to that Source (#75). */
+function NamedSource({ text, source }: { text: string; source: { name: string; url: string } }) {
+  const at = text.indexOf(source.name);
+  if (at < 0) return text;
+  return (
+    <>
+      {text.slice(0, at)}
+      <a href={source.url} className="link" data-affordance="link" target="_blank" rel="noopener noreferrer">
+        {source.name}
+      </a>
+      {text.slice(at + source.name.length)}
+    </>
+  );
+}
 
 export default async function AboutPage() {
   const viewer = await siteViewer();
@@ -74,7 +90,7 @@ export default async function AboutPage() {
             ))}
           </ol>
           <p className="v-small v-measure" data-about-prose="">
-            {about.notAffiliated}
+            <NamedSource text={about.notAffiliated} source={about.notAffiliatedSource} />
           </p>
         </div>
       </section>
@@ -100,15 +116,6 @@ export default async function AboutPage() {
               </li>
             ))}
           </ul>
-        </div>
-      </section>
-
-      <section className="v-section tight v-rule-top" aria-labelledby="founder-h">
-        <div className="v-wrap v-stack">
-          <h2 className="v-h2" id="founder-h">
-            {about.founderH2}
-          </h2>
-          <p className="v-measure">{about.founder}</p>
         </div>
       </section>
 

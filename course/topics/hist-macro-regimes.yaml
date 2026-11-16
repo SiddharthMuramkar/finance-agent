@@ -45,7 +45,7 @@ concept: >
   everyone's plans (wages, loans, bond yields) adjust to it. Stagflation is inflation that comes
   together with weak growth and high unemployment, which is awkward because the usual remedy for one
   makes the other worse. Central banks judge their stance by the real interest rate, the nominal rate
-  less inflation (approximately, real rate = nominal rate - inflation). A nominal rate of 10 per cent
+  less inflation. A nominal rate of 10 per cent
   is easy money when inflation is 14 per cent and tight money when inflation is 3 per cent. Borrowers
   with fixed-rate loans gain when inflation runs above what was expected, and savers and lenders lose.
   A central bank can control a quantity (bank reserves) or a price (the short-term interest rate), but
@@ -54,6 +54,10 @@ concept: >
 principle: >
   Judge a monetary stance by the real rate, not the nominal one, and expect bringing inflation down to
   cost output and jobs for a while; the central bank's credibility is what makes the cost worth paying.
+
+goDeeper: >
+  Written as a sum, approximately: real rate = nominal rate - inflation. A nominal rate of 10 per cent
+  with inflation of 14 per cent gives 10 - 14 = -4 per cent.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:

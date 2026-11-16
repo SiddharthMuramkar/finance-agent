@@ -40,7 +40,9 @@ concept: >
   a perfect market, with no taxes, bankruptcy costs or information gaps, the value of a firm is set
   by its operating cash flows and risk, not by how they are split between lenders and shareholders.
   More debt makes equity riskier, so the cost of equity rises exactly enough to leave the weighted
-  average cost of capital unchanged: re = ru + (ru - rd) x D/E. In the real world interest is
+  average cost of capital unchanged: the shareholders' required return climbs above the return on
+  the business as a whole by the gap between that return and the cost of debt, scaled by how much
+  debt there is for each dollar of equity. In the real world interest is
   tax-deductible, which makes debt cheaper, but a heavy debt load raises the chance and cost of
   financial distress: lost customers and suppliers, forced asset sales, and conflicts between
   lenders and shareholders. The trade-off theory says a firm should borrow until the extra tax
@@ -48,6 +50,12 @@ concept: >
   risk: if the share price falls, lenders can ask for more security or sell the shares, and the
   borrower can lose control at the worst moment. Measures such as interest cover (EBIT divided by
   interest) and debt to EBITDA show how much room a firm has.
+
+goDeeper: >
+  Typed out, Modigliani and Miller's second proposition is re = ru + (ru - rd) x D/E, where re is the
+  cost of equity, ru the cost of capital of the business with no debt, rd the cost of debt and D/E
+  the debt-to-equity ratio. Equity's cost rises in a straight line with D/E, which is exactly what
+  keeps the weighted average flat when taxes are left out.
 
 principle: >
   Debt does not create value in itself. It shifts risk to shareholders and adds tax savings that

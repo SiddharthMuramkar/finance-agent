@@ -11,21 +11,20 @@ import { PEOPLE, becomePerson, test } from "./support/people";
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
-/** Spec 2026-11-12 G9: on the phone project every signed-in page shows only the phone note, so cases that go on there skip. */
-const onPhone = (name: string) => name.startsWith("p390");
-const PHONE_SKIP = "a signed-in page shows only the phone note below 768 px (e2e/phone-note.spec.ts)";
-
 test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
 });
 
-// Decision #17: one Light theme, whatever the computer's setting; <html> carries no theme attribute or class.
-test("the sign-in page opens in Light, with no theme attribute", async ({ page }) => {
+// ADR 0019: the device chooses first. With no saved choice the sign-in page follows the device's setting.
+test("the sign-in page follows the device: Dark on a dark device, Light on a light one", async ({ page }) => {
+  const html = page.locator("html");
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/sign-in");
-  const html = page.locator("html");
-  await expect(html).not.toHaveAttribute("data-theme", /.*/);
-  await expect(html).not.toHaveClass(/\bdark\b/);
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(14, 17, 23)");
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.reload();
+  await expect(html).toHaveAttribute("data-theme", "light");
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
 });
 
@@ -70,7 +69,7 @@ test("[G1, F1] the sign-in page has the site nav, Sign in as the page showing, a
   const nav = page.locator("header.v-nav");
   await expect(nav).toHaveCount(1);
   await expect(nav.getByRole("link", { name: "Sign in", exact: true, includeHidden: true })).toHaveAttribute("aria-current", "page");
-  await expect(nav.getByText("Join early access")).toHaveCount(0);
+  await expect(nav.getByText("Join the waitlist")).toHaveCount(0);
   await expect(page.locator("[data-join]")).toHaveCount(0);
   // At 860 px and below the nav's page links fold into its Menu (4.2); the footer carries About there.
   const about = page.viewportSize()!.width <= 860 ? page.locator("footer.v-footer") : nav;
@@ -83,8 +82,7 @@ test("[G1, F1] the sign-in page has the site nav, Sign in as the page showing, a
 
 // No wrong passcode is typed here: every project shares one server and one address, and five wrong ones pause the door
 // for everyone for 15 minutes (src/auth/login-guard.test.ts covers the wrong passcode and the pause).
-test("the passcode form signs the tools Learner in", async ({ page }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("the passcode form signs the tools Learner in", async ({ page }) => {
   await page.goto("/sign-in");
   await page.locator('input[name="passcode"]').fill("e2e-passcode");
   await page.getByRole("button", { name: "Enter" }).click();
@@ -96,23 +94,56 @@ test("the passcode form signs the tools Learner in", async ({ page }, info) => {
   }).toPass({ timeout: 30_000 });
 });
 
-test("while Clerk is off, /join and /sign-up send the visitor to /sign-in", async ({ page }) => {
-  for (const path of ["/join", "/sign-up"]) {
-    await page.goto(path);
-    await expect(page, path).toHaveURL((url) => url.pathname === "/sign-in");
+// Issue #76: Clerk is off on the test bed, so /join and /sign-up draw a plain stand-in where Clerk's card goes (never
+// in a build: scripts/check-no-e2e-in-build.mjs), and the words around it are tested here.
+test("/join names the waitlist once and says what happens next, around a stand-in for Clerk's card", async ({ page }) => {
+  await page.goto("/join");
+  await expect(page.getByRole("heading")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Join the waitlist");
+  const main = page.locator("main");
+  for (const line of [
+    "It’s free.",
+    "We review each request by hand.",
+    "We email you when you’re in.",
+    "You can study on a laptop or a phone.",
+  ]) {
+    await expect(main.getByText(line, { exact: true })).toBeVisible();
   }
+  await expect(page.locator("[data-clerk-stand-in=waitlist]")).toBeVisible();
+  await expect(main).not.toContainText(/early access/i);
 });
 
-test("a signed-in person skips the sign-in page and lands where they were going", async ({ page }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("/sign-up without an invitation explains itself and links to the waitlist", async ({ page }) => {
+  await page.goto("/sign-up");
+  await expect(page.getByRole("heading")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Create your account");
+  const main = page.locator("main");
+  await expect(main.getByText("You need an invitation to create an account. Join the waitlist and we’ll email you one when you’re in.")).toBeVisible();
+  await expect(page.locator("[data-clerk-stand-in]")).toHaveCount(0);
+  await main.getByRole("link", { name: "Join the waitlist", exact: true }).click();
+  await expect(page).toHaveURL((url) => url.pathname === "/join");
+});
+
+test("/sign-up with an invitation draws the stand-in for Clerk's sign-up card", async ({ page }) => {
+  await page.goto("/sign-up?__clerk_ticket=test-ticket");
+  await expect(page.getByRole("heading")).toHaveCount(1);
+  await expect(page.locator("[data-clerk-stand-in=sign-up]")).toBeVisible();
+  await expect(page.getByText("You need an invitation", { exact: false })).toHaveCount(0);
+});
+
+test("/sign-in has one heading", async ({ page }) => {
+  await page.goto("/sign-in");
+  await expect(page.getByRole("heading")).toHaveCount(1);
+});
+
+test("a signed-in person skips the sign-in page and lands where they were going", async ({ page }) => {
   await becomePerson(page, { person: "asha" });
   await page.goto("/sign-in?next=%2Fcourse");
   await expect(page).toHaveURL((url) => url.pathname === "/course");
   await expect(page.getByRole("heading", { name: "Course Map" })).toBeVisible();
 });
 
-test("an account's Learner shows their email, and signs out with one click", async ({ page, context }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("an account's Learner shows their email, and signs out with one click", async ({ page, context }) => {
   // Four pages, the first of them (Settings, Home after the sign-out) compiled cold by the dev server on a first run.
   test.slow();
   const asha = await becomePerson(page, { person: "asha" });
@@ -143,8 +174,7 @@ test("an account's Learner shows their email, and signs out with one click", asy
   await expect(page).toHaveURL((url) => url.pathname === "/sign-in" && url.searchParams.get("next") === "/settings");
 });
 
-test("the passcode Learner's Settings say so", async ({ page }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("the passcode Learner's Settings say so", async ({ page }) => {
   const login = await page.request.post("/api/login", { form: { passcode: "e2e-passcode" }, maxRedirects: 0 });
   expect(login.status()).toBe(303);
   await page.goto("/settings");

@@ -3587,6 +3587,40 @@
         },
         "caseChoice": {
           "type": "number"
+        },
+        "taxRow": {
+          "type": "number"
+        },
+        "lossesRow": {
+          "type": "number"
+        },
+        "growthAfterRow": {
+          "type": "number"
+        },
+        "returnAfterRow": {
+          "type": "number"
+        },
+        "cashRow": {
+          "type": "number"
+        },
+        "debtRow": {
+          "type": "number"
+        },
+        "optionsRow": {
+          "type": "number"
+        },
+        "readings": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -3673,6 +3707,19 @@
           "type": [
             "string",
             "null"
+          ]
+        },
+        "readings": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },

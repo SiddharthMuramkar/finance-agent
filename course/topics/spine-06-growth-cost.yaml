@@ -95,6 +95,43 @@ terms:
     example: "A taxi that makes $40,000 a year before paying for the car still needs a new car every few years."
     inStory: Webvan's payback claim for a centre was made in EBITDA.
 
+# Spine critics round 1 on #95 (widget fit): the Story and Concept turns showed only the empty Widget panel. The story scene
+# carries the plan's figures the Story turn no longer reads out (beginner persona: two or three numbers a turn).
+scenes:
+  - id: gcost-opening
+    step: story
+    recipe: story_scene
+    title: One part-empty centre, plans for 26 more
+    inputs:
+      cast:
+        - { id: webvan, emoji: delivery-truck, name: Webvan, role: an online grocer }
+        - { id: lender, emoji: bank, name: A lender, role: weighs the plan }
+      beats:
+        - { who: narrator, says: "In 1999 Webvan sold $13.3 million of groceries and lost $144.6 million.", emoji: receipt }
+        - { who: narrator, says: "Its one centre, in Oakland, runs at under a quarter of what it was built for.", emoji: department-store }
+        - { who: webvan, says: "We plan 26 more centres, at $30 million to $35 million each.", emoji: building-construction }
+        - { who: lender, says: "Will each new centre earn more than the money in it costs?", emoji: balance-scale }
+      caption: 30 March 2000, Webvan's first annual report
+      date: "2000-03-30"
+  - id: gcost-two-shops
+    step: concept
+    recipe: two_paths
+    title: Growth that pays, growth that costs
+    inputs:
+      question: Two shop owners each borrow to open a second branch. Whose growth adds value?
+      left:
+        emoji: woman
+        name: Asha
+        choice: Her new branch earns more than the loan costs
+        outcome: [chart-increasing, slightly-smiling-face]
+        outcomeLine: Each new branch adds value, so growing pays.
+      right:
+        emoji: man
+        name: Ravi
+        choice: His new branch earns less than the loan costs
+        outcome: [chart-decreasing, worried-face]
+        outcomeLine: Each new branch loses value, so growing faster digs deeper.
+
 skills:
   - id: growth-pays
     rule: Growth adds value only when new capital earns more than it costs; below that, growing faster cannot rescue the value.
@@ -137,7 +174,12 @@ explore:
     title: When does Webvan's growth pay?
     inputs:
       caseStory: Webvan's own claims
-      mode: { kind: roic }
+      # Spine critics round 1 on #95: the bench draws a Webvan centre filling up with the sales each dollar brings (widget
+      # fit), and says the opening return is Webvan's claim for a full centre, not what it earned (beginner persona).
+      mode:
+        kind: roic
+        emoji: department-store
+        note: "On Webvan's own claims for a full centre, not what Oakland earned."
 
 connections:
   - text: Net present value judges one centre the same way, by the cash it adds after the money it ties up.

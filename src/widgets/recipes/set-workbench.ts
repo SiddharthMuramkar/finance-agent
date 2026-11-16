@@ -2,22 +2,8 @@ import { z } from "zod";
 import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { cashWaterfallLevers } from "../workbench/cash-waterfall-model";
-import {
-  benchLingoSchema,
-  benchStorySchema,
-  bridgeReportSchema,
-  companyYearSchema,
-  costOfCapitalFiguresSchema,
-  decoderAssumptionsSchema,
-  decoderFiguresSchema,
-  decoderOpeningSchema,
-  leasesSchema,
-  sourceSchema,
-  stackStorySchema,
-  tradedMultipleSchema,
-  valueLeversModeSchema,
-  type ValueLeversMode,
-} from "../workbench/data-schemas";
+import { benchLingoSchema, benchStorySchema, bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, marketReadingIdsSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, stackStorySchema, tradedMultipleSchema, modeCases, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
+import { ROW_IDS, ROW_VARIABLES } from "../workbench/full-sheet";
 import { multipleDecoderLevers } from "../workbench/multiple-decoder-model";
 import {
   cashWaterfallData,
@@ -113,11 +99,9 @@ const leverValues = z
   })
   .strict();
 
-/** Where a Case sits among all open mode's Case chips (Spine Topic 15), so the Widget opens on its chip; -1 when the mode lists no such Case. */
+/** Where a Case sits among the mode's Case chips (all open or match price), so the Widget opens on its chip; -1 when the mode lists no such Case. */
 function casePlace(id: string, mode: ValueLeversMode | undefined): number {
-  return mode?.kind === "all_open" && mode.cases
-    ? mode.cases.findIndex((c) => c.id === id)
-    : -1;
+  return modeCases(mode)?.findIndex((c) => c.id === id) ?? -1;
 }
 
 /** The mode as the Tutor reads it: a short shape, checked in full by valueLeversModeSchema (data-schemas.ts). */
@@ -145,6 +129,7 @@ const valueLeversInputs = z
         "The chip worth the price, shown once the Insight is settled; code checks it",
       ),
     mode: z.unknown().optional().describe(MODE_SHAPE),
+    readings: marketReadingIdsSchema.optional().describe("Market readings shown beside the levers, by id, copied from the Topic file"),
   })
   .strict()
   .superRefine((inputs, ctx) => {
@@ -169,23 +154,15 @@ const valueLeversInputs = z
       });
       return;
     }
-    // Each Case the Learner can switch between (all open mode) must be a real Valuation Case, and the Case it opens on one
-    // of them: the chip starts on that Case, so a call naming one the list lacks would draw another company.
-    if (mode?.success && mode.data.kind === "all_open" && mode.data.cases) {
-      for (const [i, c] of mode.data.cases.entries()) {
-        if (!valuationCase(c.id))
-          ctx.addIssue({
-            code: "custom",
-            path: ["mode", "cases", i, "id"],
-            message: `not a Valuation Case; one of: ${valuationCaseIds().join(", ")}`,
-          });
+    // Each Case the Learner can switch between (a mode's Case chips) must be a real Valuation Case, and the Case it opens on
+    // one of them: the chip starts on that Case, so a call naming one the list lacks would draw another company.
+    const chips = mode?.success ? modeCases(mode.data) : undefined;
+    if (mode?.success && chips) {
+      for (const [i, c] of chips.entries()) {
+        if (!valuationCase(c.id)) ctx.addIssue({ code: "custom", path: ["mode", "cases", i, "id"], message: `not a Valuation Case; one of: ${valuationCaseIds().join(", ")}` });
       }
       if (casePlace(inputs.case, mode.data) < 0) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["case"],
-          message: `not one of the mode's Cases; one of: ${mode.data.cases.map((c) => c.id).join(", ")}`,
-        });
+        ctx.addIssue({ code: "custom", path: ["case"], message: `not one of the mode's Cases; one of: ${chips.map((c) => c.id).join(", ")}` });
       }
     }
     const specs = leverSpecs(block, mode?.data);
@@ -219,9 +196,16 @@ const RETAIL_1999 = {
   url: "https://www2.census.gov/retail/releases/historical/mrts/sal99.html",
 };
 
+/**
+ * Market readings an example shows beside the levers (ticket #105; src/markets/readings.ts). Before the Reveal only what was
+ * known on the Case's As-of date in its own market may show (Owner decision, 2026-11-16): for Amazon in February 2000, the
+ * US Treasury bond rate at the end of 1999.
+ */
+const AMAZON_2000_READINGS = ["us-risk-free-10y-1999"];
+
 export const valueLevers = defineRecipe({
   id: "value_levers",
-  topicInputs: ["mode"],
+  topicInputs: ["mode", "readings"],
   archetype: WORKBENCH,
   summary:
     "Value levers, a Workbench on a Case's valuation: four Levers (revenue in year 10, margin once mature, sales for each unit invested, cost of capital while it grows) and the chance it fails, feeding what the Learner's Valuation story is worth a share beside the Case's price. Use it to feel which lever moves the value most, or to find the story a price assumes.",
@@ -362,6 +346,12 @@ export const valueLevers = defineRecipe({
       refs: {},
       facts: {},
     },
+    {
+      title: "What does Amazon's $84 price assume?",
+      inputs: { case: "amazon-dcf-2000", caseStory: "Damodaran's story", mode: { kind: "match_price" }, readings: AMAZON_2000_READINGS },
+      refs: {},
+      facts: {},
+    },
   ],
   compile: ({ title, inputs }) => {
     const block = valuationCase(inputs.case)!;
@@ -375,38 +365,32 @@ export const valueLevers = defineRecipe({
     };
     const moves = Object.values(MOVE_VARIABLES);
     const market = mode?.kind === "market";
-    // All open mode may let the Learner switch Case with a chip; that pick is its own $variable, after the market slot, and
-    // starts on the chip of the Case the call names (the inputs' check makes it one of them).
-    const picker = mode?.kind === "all_open" && !!mode.cases;
+    // All open and match price modes may let the Learner switch Case with a chip; that pick is its own $variable, after the
+    // market slot, and starts on the chip of the Case the call names (the inputs' check makes it one of them).
+    const picker = !!modeCases(mode);
+    // Market readings come last, so every slot before them is filled (null, or 0 for the market and Case picks).
+    const readings = inputs.readings;
     const args = [
       str(inputs.case),
       ...LEVER_IDS.map((id) => `$${LEVER_VARIABLES[id]}`),
       ...moves.map((v) => `$${v}`),
       str(inputs.caseStory ?? "The Case's story"),
-      ...(inputs.priceStory || mode
-        ? [
-            inputs.priceStory
-              ? obj(inputs.priceStory as Record<string, number>)
-              : "null",
-          ]
-        : []),
-      ...(mode ? [lit(mode)] : []),
-      ...(market || picker ? [market ? `$${MARKET_VARIABLE}` : "0"] : []),
-      ...(picker ? [`$${CASE_VARIABLE}`] : []),
+      // Every slot is filled, so the Full sheet's rows (#104) keep their places; Market readings (#105), when given, come last.
+      inputs.priceStory ? obj(inputs.priceStory as Record<string, number>) : "null",
+      mode ? lit(mode) : "null",
+      market ? `$${MARKET_VARIABLE}` : "0",
+      picker ? `$${CASE_VARIABLE}` : "0",
+      ...ROW_IDS.map((id) => `$${ROW_VARIABLES[id]}`),
+      ...(readings ? [lit(readings)] : []),
     ];
-    return program(
-      title,
-      ["levers"],
-      [
-        ...LEVER_IDS.map((id) => `$${LEVER_VARIABLES[id]} = ${num(start[id])}`),
-        ...moves.map((v) => `$${v} = 0`),
-        ...(market ? [`$${MARKET_VARIABLE} = 0`] : []),
-        ...(picker
-          ? [`$${CASE_VARIABLE} = ${casePlace(inputs.case, mode)}`]
-          : []),
-        `levers = ValueLevers(${args.join(", ")})`,
-      ],
-    );
+    return program(title, ["levers"], [
+      ...LEVER_IDS.map((id) => `$${LEVER_VARIABLES[id]} = ${num(start[id])}`),
+      ...moves.map((v) => `$${v} = 0`),
+      ...(market ? [`$${MARKET_VARIABLE} = 0`] : []),
+      ...(picker ? [`$${CASE_VARIABLE} = ${casePlace(inputs.case, mode)}`] : []),
+      ...ROW_IDS.map((id) => `$${ROW_VARIABLES[id]} = 0`),
+      `levers = ValueLevers(${args.join(", ")})`,
+    ]);
   },
 });
 
@@ -512,11 +496,8 @@ const waccStackInputs = z
       "The Case's figures in percent (relative risk a plain number): where the levers open; the cost of debt and tax rate stay",
     ),
     source: sourceSchema.describe("Where the figures come from"),
-    case: caseId
-      .optional()
-      .describe(
-        `The Valuation Case whose value a share the rate sets, ${CASE_ID}`,
-      ),
+    case: caseId.optional().describe(`The Valuation Case whose value a share the rate sets, ${CASE_ID}`),
+    readings: marketReadingIdsSchema.optional().describe("Market readings shown beside the levers, by id, copied from the Topic file"),
     story: stackStorySchema
       .optional()
       .describe("How the Topic's story leads it: copy it from the Topic file"),
@@ -534,7 +515,7 @@ const AMAZON_RATE = {
 
 export const waccStack = defineRecipe({
   id: "wacc_stack",
-  topicInputs: ["figures", "source", "story"],
+  topicInputs: ["figures", "source", "readings", "story"],
   archetype: WORKBENCH,
   summary:
     "Cost of capital stack, a Workbench: the risk-free rate, the premium for shares, relative risk and the share of debt build the cost of capital in layers; bound to a Case, it shows the value a share at that rate. Use it to show what a discount rate is made of.",
@@ -545,22 +526,9 @@ export const waccStack = defineRecipe({
   },
   budget: WORKBENCH_BUDGET,
   examples: [
-    {
-      title: "What return should Amazon's shareholders require?",
-      inputs: {
-        figures: AMAZON_RATE,
-        source: HIGHGROW,
-        case: "amazon-dcf-2000",
-      },
-      refs: {},
-      facts: {},
-    },
-    {
-      title: "Amazon's cost of capital, layer by layer",
-      inputs: { figures: AMAZON_RATE, source: HIGHGROW },
-      refs: {},
-      facts: {},
-    },
+    { title: "What return should Amazon's shareholders require?", inputs: { figures: AMAZON_RATE, source: HIGHGROW, case: "amazon-dcf-2000" }, refs: {}, facts: {} },
+    { title: "Amazon's cost of capital, layer by layer", inputs: { figures: AMAZON_RATE, source: HIGHGROW }, refs: {}, facts: {} },
+    { title: "What return should Amazon's shareholders require?", inputs: { figures: AMAZON_RATE, source: HIGHGROW, case: "amazon-dcf-2000", readings: AMAZON_2000_READINGS }, refs: {}, facts: {} },
   ],
   compile: ({ title, inputs }) => {
     const found = waccStackData({
@@ -581,7 +549,7 @@ export const waccStack = defineRecipe({
       ["stack"],
       [
         ...declarations,
-        `stack = WaccStack(${[lit(figures), lit(inputs.source), ...args, inputs.case ? str(inputs.case) : "null"].join(", ")})`,
+        `stack = WaccStack(${[lit(figures), lit(inputs.source), ...args, inputs.case ? str(inputs.case) : "null", ...(inputs.readings ? [lit(inputs.readings)] : [])].join(", ")})`,
       ],
     );
   },

@@ -37,8 +37,8 @@ cases:
 
 concept: >
   Gross domestic product (GDP) is the value of all final goods and services produced in a country in a
-  year. It can be added up from the spending side, GDP = consumption + investment + government spending +
-  exports - imports, or from the output side. Nominal GDP uses current prices; real GDP removes inflation,
+  year. It can be added up from the spending side, as consumption plus investment plus government spending plus
+  exports minus imports, or from the output side. Nominal GDP uses current prices; real GDP removes inflation,
   and growth is quoted in real terms. Output does not rise in a straight line: the business cycle moves
   from a peak down to a trough (a recession) and back up in an expansion. A recession was historically
   defined as two consecutive quarters of falling real GDP; agencies today look at a broader set of
@@ -50,6 +50,11 @@ concept: >
 principle: >
   Read growth together with its financing. Ask who is borrowing, from whom and in which currency; a
   boom paid for with deficits and foreign debt looks the same as a healthy one until the lenders stop.
+
+goDeeper: >
+  Written as a sum, the spending side is GDP = consumption + investment + government spending +
+  exports - imports. Imports are taken away because they are already counted in the spending but were
+  produced abroad.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
@@ -68,7 +73,7 @@ questions:
       - { id: d, text: "Wages, rent, interest and profit added together", mistake: { tag: used_income_approach, fix: "That is the income approach; the spending approach adds up what is bought." } }
     answer: a
     explanation: >
-      GDP by spending is C + I + G + (X - M): what households, firms and government buy, plus what foreigners buy from us, less what we buy from abroad. Imports come out because they are not made at home.
+      GDP by spending adds up what households, firms and government buy, plus what foreigners buy from us, less what we buy from abroad. Imports come out because they are not made at home.
     source: >
       OpenStax, Principles of Macroeconomics 2e (CC BY 4.0), 6.1 Measuring the Size of the Economy: Gross Domestic Product: https://openstax.org/books/principles-macroeconomics-2e/pages/6-1-measuring-the-size-of-the-economy-gross-domestic-product
   - id: gdp-q-recession
