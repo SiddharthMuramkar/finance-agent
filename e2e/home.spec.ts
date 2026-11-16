@@ -200,7 +200,7 @@ test("[7.2.3, QA 10, 12] the levers story moves the stage with the scroll and ke
   await expect(value).toHaveText(mine!);
 });
 
-/** #75: "Where you end up" shows the one-page note Spine Topic 15 saves to the Notebook, under the promise it keeps. */
+/** #75: "Where you end up" shows the one-page note the Assignment saves to the Notebook, under the promise it keeps. */
 test("[#75] Where you end up shows a real one-page note from the Notebook", async ({ page }, info) => {
   test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
   await page.goto("/");
@@ -208,16 +208,12 @@ test("[#75] Where you end up shows a real one-page note from the Notebook", asyn
   await end.scrollIntoViewIfNeeded();
   await expect(end.getByRole("heading", { level: 2, name: "By the end, you value a company yourself." })).toBeVisible();
   const note = end.locator("[data-end-note]");
-  await expect(note).toContainText("My Valuation story: Amazon, Feb 2000, against the price of 3 Feb 2000");
+  await expect(note).toContainText("Kikkoman");
   await expect(note.locator("li")).toHaveText([
-    "How big it gets: revenue in year 10 $39bn",
-    "What it keeps: operating margin once mature 10%",
-    "What growth costs: sales for each dollar invested $3.00",
-    "How risky: cost of capital while it grows 12.84%",
-    "Chance it fails: 0%",
-    "Worth: $35 a share",
-    "Price on 3 Feb 2000: $84",
-    "Value from after year 10: 112%",
+    "Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.",
+    "From the report: sales ¥745.5bn, operating profit ¥75.9bn (a margin of 10.19%), tax rate 30.5%, debt ¥18.2bn, cash ¥111.8bn, 927,741,900 shares, price ¥1,435 on 31 Mar 2026.",
+    "My Estimate: growth 10% a year for five years, fading to 2.82%; the margin heading for 5.11%; ¥1.92 of sales for each ¥1 invested; cost of capital 3.84%.",
+    "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026.",
   ]);
 });
 
