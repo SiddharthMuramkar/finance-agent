@@ -21,13 +21,15 @@ export type PublicFile = { id: string; pattern: RegExp; samples: readonly string
 /** The case pages, from the same list as their generateStaticParams, so an unknown slug is never public. */
 const CASE_PAGES = EXAMPLE_SLUGS.map(examplePath);
 
-/** Home, How it works, Examples, the case pages, About, and the Waitlist (/join, issue #33). */
+/** Home, How it works, Examples, the case pages, About, Privacy and Terms (#77), and the Waitlist (/join, issue #33). */
 export const PUBLIC_PAGES: readonly PublicPage[] = [
   { path: "/", site: true, sitemap: true },
   { path: "/how-it-works", site: true, sitemap: true },
   { path: "/examples", site: true, sitemap: true },
   ...CASE_PAGES.map((path) => ({ path, site: true, sitemap: true })),
   { path: "/about", site: true, sitemap: true },
+  { path: "/privacy", site: true, sitemap: true },
+  { path: "/terms", site: true, sitemap: true },
   { path: JOIN_PATH, site: false, sitemap: true },
 ];
 

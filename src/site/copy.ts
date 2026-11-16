@@ -41,6 +41,110 @@ export const chrome = {
   studyWorkspace: "Study Workspace",
 } as const;
 
+/** The contact address (spec §14): plain text a Visitor can copy, in the footer and on /join. */
+export const CONTACT_EMAIL = "hello@value-it.xyz";
+
+/**
+ * Privacy and Terms (issue #77), linked from the footer and /join. Plainly true for what the app keeps and sets: Clerk
+ * runs sign-in and the waitlist, the Learner record is in Neon, the Tutor's model is OpenAI's, Vercel hosts the site and
+ * counts page views with no cookie. Change a cookie or a service and change these words (and the FAQ's) with it.
+ */
+export const legal = {
+  links: [
+    { href: "/privacy", label: "Privacy" },
+    { href: "/terms", label: "Terms" },
+  ],
+  contact: "Contact",
+  updated: "Last changed 16 November 2026.",
+  privacy: {
+    title: "Privacy",
+    lede: "What Value It keeps about you, who else handles it, and the cookies the site sets.",
+    sections: [
+      {
+        heading: "When you join the waitlist",
+        body: [
+          "You give us your email. Clerk, the company that runs our sign-in, keeps it on the waitlist. We use it to let you in and to email you when you’re in. We don’t sell it and we don’t send marketing.",
+        ],
+      },
+      {
+        heading: "When you have an account",
+        body: [
+          "Clerk keeps your email and your sign-in details. We keep your Learner record in our database, hosted by Neon: your conversations with the Tutor, your answers to quizzes and practice, your progress through the Topics, your Notebook notes and your settings.",
+          "To write the Tutor’s replies, we send your messages and the Topic you’re on to OpenAI, whose AI model writes them.",
+        ],
+      },
+      {
+        heading: "Page views",
+        body: [
+          "Vercel hosts the site. We count page views with Vercel Web Analytics, which records the page address (with any sign-in code removed), where you came from, and your browser, device and country. It sets no cookie. Vercel also checks that a message to the Tutor comes from a browser and not a bot.",
+        ],
+      },
+      {
+        heading: "Cookies",
+        body: [
+          "There are no ad or tracking cookies. Clerk sets __session and __client_uat on this site, and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. A private copy that signs in with a passcode instead of Clerk uses fa_access for that.",
+        ],
+      },
+      {
+        heading: "Who sees it",
+        body: [
+          "The Owner, who runs Value It, can read Learner records, to let people in and to improve the course. Clerk, Neon, Vercel and OpenAI handle it for us as described above. Nobody else, and we never sell it.",
+        ],
+      },
+      {
+        heading: "Keeping and deleting",
+        body: [
+          "We keep your record while you have an account. Starting over in Settings archives your old record; it doesn’t delete it. To see what we hold, or to have your account and your record deleted, email us.",
+        ],
+      },
+    ],
+  },
+  terms: {
+    title: "Terms",
+    lede: "The rules for using Value It during early access.",
+    sections: [
+      {
+        heading: "What Value It is",
+        body: ["A course in what things are worth, with an AI Tutor and widgets built from past events. It is for learning."],
+      },
+      {
+        heading: "Not advice",
+        body: [
+          "Nothing here is investment, financial, tax or legal advice. The cases are past events and the numbers are there to learn from. Make your own decisions, and ask a licensed adviser about your own money.",
+        ],
+      },
+      {
+        heading: "The Tutor can be wrong",
+        body: ["The Tutor is an AI model and it makes mistakes. Check anything that matters against the Sources."],
+      },
+      {
+        heading: "Early access",
+        body: [
+          "Early access is free, and no price has been decided. We let people in by hand and may close an account or the waitlist at any time. The site may change, break or go offline while it grows.",
+        ],
+      },
+      {
+        heading: "Your account",
+        body: [
+          "One account per person; keep your sign-in to yourself. Don’t try to break the site, overload it or use the Tutor for anything but learning.",
+        ],
+      },
+      {
+        heading: "What’s ours and what’s yours",
+        body: [
+          "The course, the widgets and the site are ours. Sources belong to their owners and are credited where they appear. What you write stays yours; you let us store it and send it to the Tutor’s model so the course works.",
+        ],
+      },
+      {
+        heading: "Liability",
+        body: [
+          "Value It is provided as it is, with no promises that it is complete or free of errors. As far as the law allows, we are not responsible for losses from using it, including decisions you make.",
+        ],
+      },
+    ],
+  },
+} as const;
+
 /**
  * The CTA and the note under it, by viewer state (§7.1). A visitor's Join opens /join, Clerk's Waitlist (#33), which
  * owns the email check and the "you're in" email.
@@ -168,7 +272,7 @@ export const FAQ = [
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
   { q: "How do I get in?", a: "Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
-  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie." },
+  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. The site’s own cookies: Clerk, which runs sign-in, sets __session and __client_uat here and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. A private copy that signs in with a passcode instead of Clerk uses fa_access. The Privacy page has the rest." },
 ] as const;
 
 export const howItWorks = {

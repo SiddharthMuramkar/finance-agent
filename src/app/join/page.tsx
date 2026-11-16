@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SIGN_IN_PATH } from "@/auth/destination";
 import { clerkOn } from "@/auth/gates";
 import { joining } from "@/site/copy";
+import { LegalLinks } from "../(site)/site-chrome";
 import { testBedCard } from "../sign-in/provider-card";
 import { AuthPage, authNote } from "../sign-in/auth-page";
 
@@ -11,7 +12,8 @@ import { AuthPage, authNote } from "../sign-in/auth-page";
  * them in place, under the page's own heading and what happens next (free, reviewed by hand, an email when you're in,
  * a laptop or a phone). The Owner lets them in from the Clerk Dashboard, and Clerk emails the invitation, which lands on
  * /sign-up. Public: the proxy lets it through signed out. On the test bed a plain stand-in takes the card's place
- * (testBedCard); anywhere else without Clerk nobody can join, so the page sends the person to /sign-in.
+ * (testBedCard); anywhere else without Clerk nobody can join, so the page sends the person to /sign-in. Before the card,
+ * Privacy, Terms and the contact address (issue #77), so a Visitor knows what happens to their email before giving it.
  */
 export default async function JoinPage() {
   const card = clerkOn(process.env) ? <Waitlist /> : await testBedCard("waitlist");
@@ -26,6 +28,9 @@ export default async function JoinPage() {
             <li key={line}>{line}</li>
           ))}
         </ul>
+        <div className="text-sm leading-5 text-[var(--ink-2)]">
+          <LegalLinks />
+        </div>
       </div>
       {card}
     </AuthPage>

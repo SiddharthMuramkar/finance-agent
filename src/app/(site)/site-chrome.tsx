@@ -2,9 +2,10 @@ import "./site.css";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { SIGN_IN_PATH } from "@/auth/destination";
-import { BRAND, chrome, NAV } from "@/site/copy";
+import { BRAND, chrome, legal, NAV } from "@/site/copy";
 import { SiteJoinEvents } from "@/site/join-events";
 import type { Viewer } from "@/site/viewer";
+import { ContactAddress } from "./legal-page";
 import { Glyph } from "./parts";
 import { RouteFocus } from "./route-focus";
 import { SiteNav } from "./site-nav";
@@ -14,7 +15,7 @@ import { SiteNav } from "./site-nav";
 // who is there. Each control says what kind it is (`data-affordance`, as the app's primitives do), so the browser audits
 // can judge it (ADR 0018).
 
-/** The footer (4.3): brand, links (Sign in for visitors) and the line. */
+/** The footer (4.3): brand, links (Sign in for visitors), the line, then Privacy, Terms and the contact address (#77). */
 export function SiteFooter({ viewer }: { viewer: Viewer }) {
   return (
     <footer className="v-footer">
@@ -37,7 +38,26 @@ export function SiteFooter({ viewer }: { viewer: Viewer }) {
         </nav>
         <p className="v-fine">{chrome.footer}</p>
       </div>
+      <div className="v-wrap v-footer-row v-fine">
+        <LegalLinks />
+      </div>
     </footer>
+  );
+}
+
+/** Privacy and Terms, and the contact address as text (issue #77): the footer's last row and /join's line. */
+export function LegalLinks() {
+  return (
+    <p className="v-legal-links">
+      {legal.links.map((link) => (
+        <Link key={link.href} href={link.href} className="link" data-affordance="link">
+          {link.label}
+        </Link>
+      ))}
+      <span>
+        {legal.contact}: <ContactAddress />
+      </span>
+    </p>
   );
 }
 
