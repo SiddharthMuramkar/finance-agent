@@ -6,21 +6,19 @@ import { SPINE_MAX_MINUTES } from "./outline.ts";
 // (its own or through valuationFrom); one Workbench Widget at explore, with one Insight found by play; exactly one Concept
 // card; three to five Lingo terms; six to eight Quick tries; one quiz Check of judgement questions, four drawn per attempt
 // and three to pass; at most one conversation Check; at most two Primers (the Topic schema caps them); a why line; and a
-// length of fifteen minutes or less. Two Topics are built differently: Spine Topic 2 explores the existing annuity Widget
-// on the Mega Millions Case, and Spine Topic 3 a cash waterfall from one year's inputs, so neither values a Case with
-// the engine. What the Check's questions are (judgement kinds, computed ones) is lesson lint L13's (lesson-lint.ts).
-// The last Spine Topic, where the Learner values a company of their choice, ends on a conversation Check marked
-// `ownWork`, which is also what keeps skip ahead off it (A8, src/course/skip-ahead.ts).
+// length of fifteen minutes or less. Two Topics are built differently: the one that explores the existing annuity Widget
+// (an AnnuityChart) on the Mega Millions Case, and the one that explores a cash waterfall from one year's inputs, so
+// neither values a Case with the engine. What the Check's questions are (judgement kinds, computed ones) is lesson lint
+// L13's (lesson-lint.ts). The Topic where the Learner values a company of their choice ends on a conversation Check
+// marked `ownWork`, which is also what keeps skip ahead off it (A8, src/course/skip-ahead.ts).
+// Every rule here is keyed on a Topic id or what the Topic explores, never on its Spine number: the number is the
+// Topic's place in the outline, so renumbering a Topic is a change to course/outline.yaml alone (ADR 0004, ADR 0020).
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
 export const SPINE_TERMS = { min: 3, max: 5 } as const;
 export const SPINE_QUICK_TRIES = { min: 6, max: 8 } as const;
 export const SPINE_PER_ATTEMPT = 4;
 export const SPINE_PASS_CORRECT = 3;
-
-/** The Spine Topic that explores the annuity written-ahead Widget, and the one that explores a cash waterfall. */
-const ANNUITY_SPINE = 2;
-const CASH_SPINE = 3;
 
 /** The Spine Topic where the Learner values a company themselves (C4), so it ends on a Check about their own work. */
 export const OWN_WORK_TOPIC = "spine-15-value-yourself";
@@ -40,22 +38,19 @@ const ANNUITY_PART = /\bAnnuityChart\(/;
 /** What a Spine Topic lacks or has too much of, each in words that say what to give it. Empty when it has the shape. */
 export function spineShapeProblems(t: Topic): string[] {
   const problems: string[] = [];
-  const n = t.spine;
   const bench = t.explore?.workbench;
+  const annuity = !bench && ANNUITY_PART.test(t.widgets.find((w) => w.id === t.explore?.widget)?.code ?? "");
+  const cash = bench?.recipe === "cash_waterfall";
 
-  // The Case: dated and revealed (the Topic schema requires both), and valued by the engine, except Topics 2 and 3.
-  if (n !== ANNUITY_SPINE && n !== CASH_SPINE && !t.cases.some((c) => c.valuation)) {
+  // The Case: dated and revealed (the Topic schema requires both), and valued by the engine, except the annuity and cash Topics.
+  if (!annuity && !cash && !t.cases.some((c) => c.valuation)) {
     problems.push("has no Case with a valuation block; give its Case one, or take Amazon's with valuationFrom");
   }
 
-  // The explore Widget: a Workbench recipe, or for Topic 2 the annuity Widget it already has.
-  if (n === ANNUITY_SPINE) {
-    const widget = t.widgets.find((w) => w.id === t.explore?.widget);
-    if (!widget || !ANNUITY_PART.test(widget.code)) problems.push("explores no annuity Widget; Spine Topic 2 explores the written-ahead annuity Widget (an AnnuityChart) on its Mega Millions Case");
-  } else if (!bench) {
-    problems.push(`has no Workbench Widget at explore; give explore a workbench naming one of ${WORKBENCH_RECIPES.join(", ")}`);
-  } else if (n === CASH_SPINE) {
-    if (bench.recipe !== "cash_waterfall") problems.push(`explores the Workbench "${bench.recipe}"; Spine Topic 3 explores cash_waterfall`);
+  // The explore Widget: a Workbench recipe, or the written-ahead annuity Widget (an AnnuityChart).
+  if (!bench) {
+    if (!annuity) problems.push(`has no Workbench Widget at explore; give explore a workbench naming one of ${WORKBENCH_RECIPES.join(", ")}`);
+  } else if (cash) {
     if (!Object.keys(bench.inputs).length) problems.push("gives its cash waterfall no inputs; give it one year's revenue growth, margin and sales to capital");
   } else if (bench.case && !t.cases.find((c) => c.id === bench.case)?.valuation) {
     problems.push(`binds its Workbench to Case "${bench.case}", which has no valuation block`);

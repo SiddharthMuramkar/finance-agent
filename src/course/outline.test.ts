@@ -204,9 +204,10 @@ describe("the Spine on the outline", () => {
     expect(problems(spineEntry("s1", 1, "    minutes: 20\n"))).toEqual(['Spine Topic "s1" takes 20 minutes; a Spine Topic takes 15 or fewer']);
   });
 
-  it("takes Spine numbers up to eighteen and rejects one past it (spec #68, ADR 0020)", () => {
-    expect(problems(...Array.from({ length: 18 }, (_, i) => spineEntry(`s${i + 1}`, i + 1, "    minutes: 12\n")))).toEqual([]);
-    expect(problems(spineEntry("s1", 19)).join()).toContain("spine");
+  it("holds up to eighteen Spine Topics and rejects a Spine number past eighteen (ADR 0020)", () => {
+    const eighteen = Array.from({ length: 18 }, (_, i) => spineEntry(`s${i + 1}`, i + 1));
+    expect(problems(...eighteen)).toEqual([]);
+    expect(problems(...eighteen, spineEntry("s19", 19)).join()).toContain("spine");
   });
 
   it("rejects drawsOn that names a Topic not in the outline, a Spine Topic, or one Topic twice", () => {
