@@ -2,14 +2,16 @@ import { describe, expect, it } from "vitest";
 import { widgetProblems, widgetRuleProblems } from "@/widgets/check";
 import { RECIPES } from "@/widgets/recipes";
 import { exploreWidgetOf, exploreWorkbenchBuild } from "./explore-widget";
-import { loadCourseMap } from "./map";
+import { loadCourseMap, readOutlineText } from "./map";
+import { parseOutline, spineTopics } from "./outline";
 
 // Every Topic's explore Workbench builds and passes the Widget checks, with the reason when it does not (spec C2, B2-B4),
 // so a Topic file's Workbench can never be dropped without a word. scripts/check-course.mjs runs this file too: plain
 // Node cannot load the recipes.
 
 const map = loadCourseMap();
-const SPINE = Array.from({ length: 15 }, (_, i) => `spine-${String(i + 1).padStart(2, "0")}-`);
+// Every Spine Topic the outline plans, by id, so a new or renumbered Topic is never left out.
+const SPINE = spineTopics(parseOutline(readOutlineText()).outline!).map((t) => t.id);
 
 describe("explore Workbenches build (C2, B2-B4)", () => {
   const benches = map.topics.filter((t) => t.explore?.workbench);
@@ -44,11 +46,13 @@ describe("explore Workbenches build (C2, B2-B4)", () => {
   });
 });
 
-describe("Spine Topics 1 to 15 each have their explore Widget (C2, Appendix D)", () => {
-  for (const prefix of SPINE) {
-    it(`${prefix}…`, () => {
-      const topic = map.topics.find((t) => t.id.startsWith(prefix));
-      expect(topic, `a Topic file ${prefix}*`).toBeDefined();
+describe("every Spine Topic has its explore Widget (C2, Appendix D)", () => {
+  it("finds the Spine in the outline", () => expect(SPINE.length).toBeGreaterThan(0));
+
+  for (const id of SPINE) {
+    it(id, () => {
+      const topic = map.topic(id);
+      expect(topic, `a Topic file ${id}.yaml`).toBeDefined();
       const widget = exploreWidgetOf(topic!);
       expect(widget, `${topic!.id} explore Widget`).not.toBeNull();
       if (topic!.explore?.workbench) {

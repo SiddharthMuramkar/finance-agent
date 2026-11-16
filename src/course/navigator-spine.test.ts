@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parse, stringify } from "yaml";
 import { loadCourseMap, parseCourseMap, readOutlineText, readTopicFiles, type CourseMap } from "./map";
-import { courseOverview, defaultPath, finishStep, firstTopic, jumpTo, spineLive, navigate, recordCheckResult, reviewsDue, whatComesNext, type Progress, type TopicProgress } from "./navigator";
+import { courseOverview, defaultPath, finishStep, firstTopic, jumpTo, spineLive, SPINE_LIVE_WITH, navigate, recordCheckResult, reviewsDue, whatComesNext, type Progress, type TopicProgress } from "./navigator";
 import { parseOutline, spineTopics } from "./outline";
 
 // Spec 2026-11-12 C1, C7 and C8 (ADR 0004): the written Spine Topics, in Spine order, are the default path, then Follow,
@@ -14,10 +14,9 @@ const later = (id: string, stage: string) => `  - id: ${id}\n    title: ${stage}
 
 // Spine 2 sits first in the file: the Spine runs in its own order. The Electives come after it, then the later Stages.
 // The Spine goes live once Spine Topics 1 to 5 are written (C8); s6 is the one a live Spine can still be missing.
-const LIVE = ["s1", "s2", "s3", "s4", "s5"];
-const OUTLINE = parseOutline(
-  `topics:\n${[spine("s2", 2), spine("s1", 1), spine("s3", 3), spine("s4", 4), spine("s5", 5), spine("s6", 6), elective("e1"), elective("e2", "    prerequisites: [e1]\n"), later("f1", "follow"), later("j1", "judge"), later("a1", "analyse")].join("")}`,
-);
+const LIVE = [...SPINE_LIVE_WITH];
+const OUTLINE_TEXT = `topics:\n${[spine("spine-02-money-later", 2), spine("spine-01-worth", 1), spine("spine-03-cash", 3), spine("spine-04-growth", 4), spine("spine-05-margins", 5), spine("s6", 6), elective("e1"), elective("e2", "    prerequisites: [e1]\n"), later("f1", "follow"), later("j1", "judge"), later("a1", "analyse")].join("")}`;
+const OUTLINE = parseOutline(OUTLINE_TEXT);
 
 const file = (id: string) => ({
   name: `${id}.yaml`,
@@ -72,27 +71,37 @@ describe("the default path with the Spine", () => {
   });
 
   it("with some of Spine Topics 1 to 5 missing, keeps the path from before the Spine: the Spine is not live yet (C8)", () => {
-    const map = written("s3", "s1", "s2", "s4", "s6", "e1", "e2", "f1", "j1", "a1");
+    const map = written("spine-03-cash", "spine-01-worth", "spine-02-money-later", "spine-04-growth", "s6", "e1", "e2", "f1", "j1", "a1");
     expect(spineLive(map)).toBe(false);
     expect(defaultPath(map).map((t) => t.id)).toEqual(["e1", "e2", "f1", "j1", "a1"]);
     expect(walk(map)).toEqual(["e1", "e2", "f1", "j1", "a1"]);
     expect(firstTopic(map)?.id).toBe("e1");
     // A Spine Topic written early can still be chosen from the Course Map.
-    expect(jumpTo(map, empty, "s1")).toMatchObject({ ok: true });
+    expect(jumpTo(map, empty, "spine-01-worth")).toMatchObject({ ok: true });
   });
 
   it("once Spine Topics 1 to 5 are written, leads through the written ones in Spine order, skips the rest, then Follow, Judge and Analyse, never an Elective", () => {
-    const map = written("s3", "s1", "s5", "s2", "s4", "e1", "e2", "f1", "j1", "a1");
+    const map = written("spine-03-cash", "spine-01-worth", "spine-05-margins", "spine-02-money-later", "spine-04-growth", "e1", "e2", "f1", "j1", "a1");
     expect(spineLive(map)).toBe(true);
     expect(defaultPath(map).map((t) => t.id)).toEqual([...LIVE, "f1", "j1", "a1"]);
     expect(walk(map)).toEqual([...LIVE, "f1", "j1", "a1"]);
-    expect(firstTopic(map)?.id).toBe("s1");
+    expect(firstTopic(map)?.id).toBe("spine-01-worth");
+  });
+
+  it("goes live on the Topics it names, whatever their Spine numbers: renumbering is an outline change only (ADR 0004)", () => {
+    // spine-05-margins moves to Spine 6 and s6 to Spine 5.
+    const moved = parseOutline(OUTLINE_TEXT.replace("spine: 5\n", "spine: 0\n").replace("spine: 6\n", "spine: 5\n").replace("spine: 0\n", "spine: 6\n")).outline;
+    const renumbered = (...ids: string[]) => parseCourseMap(ids.map(file), moved).map!;
+    expect(renumbered(...LIVE, "e1").topic("spine-05-margins")?.spine).toBe(6);
+    expect(spineLive(renumbered(...LIVE, "e1"))).toBe(true);
+    expect(spineLive(renumbered(...LIVE.slice(0, 4), "s6", "e1"))).toBe(false);
+    expect(defaultPath(renumbered(...LIVE, "s6", "e1", "f1")).map((t) => t.id)).toEqual([...LIVE.slice(0, 4), "s6", "spine-05-margins", "f1"]);
   });
 
   it("with every Spine Topic written, leads through all of them in Spine order first", () => {
     const map = written(...LIVE, "s6", "e1", "e2", "f1", "j1", "a1");
     expect(walk(map)).toEqual([...LIVE, "s6", "f1", "j1", "a1"]);
-    expect(whatComesNext(map, empty)).toMatchObject({ kind: "next_topic", label: "Next Topic: Topic s1" });
+    expect(whatComesNext(map, empty)).toMatchObject({ kind: "next_topic", label: "Next Topic: Topic spine-01-worth" });
   });
 
   it("ends once the default path is passed, though Electives are still open to choose", () => {
@@ -116,21 +125,21 @@ describe("the default path with the Spine", () => {
     if (!jump.ok) throw new Error(jump.reason);
     const after = passCurrent(map, jump.progress);
     expect(after.topics).toMatchObject({ e1: { status: "passed" } });
-    expect(after.topics.s1).toBeUndefined();
-    expect(navigate(map, after)).toMatchObject({ topic: { id: "s1" }, status: "not_started" });
+    expect(after.topics["spine-01-worth"]).toBeUndefined();
+    expect(navigate(map, after)).toMatchObject({ topic: { id: "spine-01-worth" }, status: "not_started" });
   });
 
   it("keeps a Learner in the middle of an Elective on it (Resume), then sends them to the first Spine Topic they have not passed (C7)", () => {
     const map = written(...LIVE, "e1", "e2", "f1");
-    const midway: Progress = { currentTopicId: "e2", topics: { s1: { ...passed, passedChecks: ["s1-check"] }, e2: { step: "concept", passedChecks: [], revealShown: false, status: "in_progress" } } };
+    const midway: Progress = { currentTopicId: "e2", topics: { "spine-01-worth": { ...passed, passedChecks: ["spine-01-worth-check"] }, e2: { step: "concept", passedChecks: [], revealShown: false, status: "in_progress" } } };
     expect(whatComesNext(map, midway)).toMatchObject({ kind: "chosen", label: "Resume: Topic e2" });
     expect(navigate(map, midway)).toMatchObject({ topic: { id: "e2" }, step: "concept" });
-    expect(whatComesNext(map, passCurrent(map, midway))).toMatchObject({ kind: "next_topic", label: "Next Topic: Topic s2" });
+    expect(whatComesNext(map, passCurrent(map, midway))).toMatchObject({ kind: "next_topic", label: "Next Topic: Topic spine-02-money-later" });
   });
 
   it("still takes a Learner back to a passed Elective for a required Check added since, before the next Spine Topic", () => {
     const withDue = parseCourseMap(
-      [file("s1"), { ...file("e1"), text: `${file("e1").text}  - { id: e1-new, kind: conversation, prompt: Q, passCriteria: A, required: true }\n` }],
+      [file("spine-01-worth"), { ...file("e1"), text: `${file("e1").text}  - { id: e1-new, kind: conversation, prompt: Q, passCriteria: A, required: true }\n` }],
       OUTLINE.outline,
     ).map!;
     expect(navigate(withDue, passing("e1"))).toMatchObject({ topic: { id: "e1" }, check: { id: "e1-new" } });
@@ -138,7 +147,7 @@ describe("the default path with the Spine", () => {
 
   it("lists each Spine Topic's number and length, and which Spine Topics use an Elective's idea, written or coming", () => {
     const view = courseOverview(written(...LIVE, "e1", "e2", "f1"), empty);
-    expect(view.find((t) => t.id === "s1")).toMatchObject({ spine: 1, minutes: 12, current: true, onDefaultPath: true });
+    expect(view.find((t) => t.id === "spine-01-worth")).toMatchObject({ spine: 1, minutes: 12, current: true, onDefaultPath: true });
     expect(view.find((t) => t.id === "e1")?.usedInSpine).toEqual([1, 2, 3, 4, 5, 6]);
     expect(view.find((t) => t.id === "e2")).not.toHaveProperty("usedInSpine");
     expect(view.find((t) => t.id === "e2")).not.toHaveProperty("spine");
@@ -159,13 +168,12 @@ describe("a Learner with progress, before and after the Spine", () => {
   // with Spine Topic 1 alone, which is not live yet. A Spine Topic file not written is stood in for by a minimal one.
   const outline = parseOutline(readOutlineText()).outline!;
   const files = readTopicFiles();
-  const spineFile = (n: number) => {
-    const id = spineTopics(outline).find((t) => t.spine === n)!.id;
+  const spineFile = (id: string) => {
     return files.some((f) => f.name === `${id}.yaml`) ? [] : [file(id)];
   };
   const spineOneId = spineTopics(outline).find((t) => t.spine === 1)!.id;
-  const withSpine = parseCourseMap([...files, ...[1, 2, 3, 4, 5].flatMap(spineFile)], outline).map!;
-  const spineOneOnly = parseCourseMap([...files.filter((f) => !f.name.startsWith("spine-") || f.name === `${spineOneId}.yaml`), ...spineFile(1)], outline).map!;
+  const withSpine = parseCourseMap([...files, ...SPINE_LIVE_WITH.flatMap(spineFile)], outline).map!;
+  const spineOneOnly = parseCourseMap([...files.filter((f) => !f.name.startsWith("spine-") || f.name === `${spineOneId}.yaml`), ...spineFile(spineOneId)], outline).map!;
 
   const learner: Progress = {
     currentTopicId: "fs-income",
