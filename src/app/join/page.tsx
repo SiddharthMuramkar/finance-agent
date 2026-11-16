@@ -2,20 +2,32 @@ import { Waitlist } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { SIGN_IN_PATH } from "@/auth/destination";
 import { clerkOn } from "@/auth/gates";
+import { joining } from "@/site/copy";
+import { testBedCard } from "../sign-in/provider-card";
 import { AuthPage, authNote } from "../sign-in/auth-page";
 
 /**
- * /join, where a stranger asks for early access (issue #33): Clerk's <Waitlist/>, which takes their email and thanks
- * them in place. The owner lets them in from the Clerk Dashboard, and Clerk emails the invitation, which lands on
- * /sign-up. Public: the proxy lets it through signed out. Without Clerk nobody can join, so the page sends the person to
- * /sign-in (the passcode form in the test bed).
+ * /join, where a Visitor joins the waitlist (issues #33, #76): Clerk's <Waitlist/>, which takes their email and thanks
+ * them in place, under the page's own heading and what happens next (free, reviewed by hand, an email when you're in,
+ * a laptop or a phone). The Owner lets them in from the Clerk Dashboard, and Clerk emails the invitation, which lands on
+ * /sign-up. Public: the proxy lets it through signed out. On the test bed a plain stand-in takes the card's place
+ * (testBedCard); anywhere else without Clerk nobody can join, so the page sends the person to /sign-in.
  */
 export default async function JoinPage() {
-  if (!clerkOn(process.env)) redirect(SIGN_IN_PATH);
+  const card = clerkOn(process.env) ? <Waitlist /> : await testBedCard("waitlist");
+  if (!card) redirect(SIGN_IN_PATH);
+  const { title, lede, next } = joining.join;
   return (
-    <AuthPage title="Join early access">
-      <p className={authNote}>Leave your email and we&apos;ll write when your place is ready.</p>
-      <Waitlist />
+    <AuthPage title={title}>
+      <div className="flex flex-col gap-2">
+        <p className={authNote}>{lede}</p>
+        <ul className="flex list-disc flex-col gap-1 pl-5 text-sm leading-5 text-[var(--ink-2)]">
+          {next.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </div>
+      {card}
     </AuthPage>
   );
 }

@@ -9,6 +9,8 @@
 //   - any server file carries the test bed's sign-in people (issue #33): assigns globalThis.__faE2ePeople, which
 //     src/dev/e2e-identity.ts does when it loads. Every file that loads it does so behind a NODE_ENV test
 //     (src/auth/no-test-identity.test.ts); were one to reach a build, a forged test cookie could sign in as the admin.
+//   - any server or static file carries the test bed's stand-in for Clerk's card (issue #76): the `data-clerk-stand-in`
+//     mark of src/dev/clerk-stand-in.tsx, which src/app/sign-in/provider-card.tsx loads behind a NODE_ENV test.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
@@ -27,6 +29,7 @@ function* files(dir) {
 
 const SETS_TEST_DB = /__faE2eDb\s*=(?!=)/;
 const SETS_TEST_PEOPLE = /__faE2ePeople\s*=(?!=)/;
+const CLERK_STAND_IN = 'data-clerk-stand-in';
 const leaks = [];
 let seen = 0;
 for (const path of files(server)) {
@@ -38,6 +41,12 @@ for (const path of files(server)) {
     const text = readFileSync(path, 'utf8');
     if (SETS_TEST_DB.test(text)) leaks.push(`${rel}: builds the test database (assigns __faE2eDb)`);
     if (SETS_TEST_PEOPLE.test(text)) leaks.push(`${rel}: carries the test bed's sign-in people (assigns __faE2ePeople)`);
+    if (text.includes(CLERK_STAND_IN)) leaks.push(`${rel}: carries the test bed's stand-in for Clerk's card`);
+  }
+}
+for (const path of files(join(root, 'static'))) {
+  if (/\.(c|m)?js$/.test(path) && readFileSync(path, 'utf8').includes(CLERK_STAND_IN)) {
+    leaks.push(`${relative(root, path)}: carries the test bed's stand-in for Clerk's card`);
   }
 }
 

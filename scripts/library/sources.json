@@ -34,30 +34,6 @@
     "fetch": "python3 -I scripts/library/sources.py damodaran-papers <scratch> <scratch>/damodaran-papers.documents.json ; then optionally node --env-file=.env scripts/library/vision.mjs <scratch>/damodaran-papers.vision-candidates.json and run the first command again"
   },
   {
-    "id": "yale-econ-251",
-    "title": "Yale ECON 251: Financial Theory (lecture transcripts)",
-    "kind": "timeless",
-    "licence": "CC BY-NC-SA 3.0 US (third-party content excluded)",
-    "licenceUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/",
-    "credit": "John Geanakoplos, Financial Theory (Yale University: Open Yale Courses), http://oyc.yale.edu (Accessed November 2, 2026). License: Creative Commons BY-NC-SA",
-    "url": "https://oyc.yale.edu/economics/econ-251",
-    "fetchedOn": "2026-11-02",
-    "publishedOn": "2009-05-01",
-    "fetch": "python3 -I scripts/library/sources.py yale-econ-251 <scratch> <scratch>/yale-econ-251.documents.json"
-  },
-  {
-    "id": "yale-econ-252",
-    "title": "Yale ECON 252: Financial Markets (lecture transcripts)",
-    "kind": "timeless",
-    "licence": "CC BY-NC-SA 3.0 US (third-party content excluded)",
-    "licenceUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/",
-    "credit": "Robert Shiller, Financial Markets (Yale University: Open Yale Courses), http://oyc.yale.edu (Accessed November 2, 2026). License: Creative Commons BY-NC-SA",
-    "url": "https://oyc.yale.edu/economics/econ-252",
-    "fetchedOn": "2026-11-02",
-    "publishedOn": "2011-05-01",
-    "fetch": "python3 -I scripts/library/sources.py yale-econ-252 <scratch> <scratch>/yale-econ-252.documents.json"
-  },
-  {
     "id": "fed-explained",
     "title": "The Fed Explained (Federal Reserve Board)",
     "kind": "timeless",
