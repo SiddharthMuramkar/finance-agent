@@ -31,8 +31,8 @@ cases:
       On 14 August it filed to sell shares to the public: in 2018 it sold $1.82 billion and lost
       $1.93 billion, and its revenue was growing 86% a year. The $47 billion is about 26 times its
       2018 revenue. Today a newspaper sets WeWork beside IWG, the owner of Regus, which is listed in
-      London and makes a small profit. The two have about the same number of desks, yet IWG's
-      shares are worth $4.45 billion, about a tenth as much: about 1.4 times its 2018 revenue. Is
+      London and makes a small profit. The two have about the same number of desks, yet the
+      stock market puts IWG's shares at $4.45 billion, about a tenth as much: about 1.4 times its 2018 revenue. Is
       $47 billion what WeWork is worth, or a price that needs a story?
     reveal: >
       On 9 September 2019 Aswath Damodaran published his own story: sales growing 60% a year for five
@@ -127,7 +127,7 @@ primers:
     quickTry:
       id: s12-primer-try
       skill: s12-price
-      ask: "IWG's shares are worth $4.45 billion, and it owes more than it holds in cash. Is its whole business worth more or less than its shares?"
+      ask: "The stock market puts IWG's shares at $4.45 billion, and IWG owes more than it holds in cash. Is its whole business worth more or less than its shares?"
       kind: choice
       answer: more
       choices:
@@ -339,7 +339,7 @@ checks:
             mistake: { tag: price_for_value, fix: "Dividing a price by revenue still gives a price, just in shorthand." }
       - id: s12-try-iwg-cap
         skill: s12-price
-        ask: "On 20 August 2019 IWG's shares are worth $4.45 billion on the stock market. Is that a price or a value?"
+        ask: "On 20 August 2019 the stock market puts IWG's shares at $4.45 billion. Is that a price or a value?"
         kind: choice
         answer: price
         choices:
