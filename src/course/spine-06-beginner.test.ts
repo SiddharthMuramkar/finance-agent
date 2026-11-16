@@ -25,7 +25,10 @@ describe("Spine Topic 6, what growth costs, for beginners", () => {
     const talk = topic.checks.find((c) => c.id === "growth-cost-talk")!;
     expect(talk.kind).toBe("conversation");
     if (talk.kind !== "conversation") return;
-    expect(talk.prompt).toMatch(/Webvan's founders said each new centre would pay for itself/);
+    // Review 3, L04: Webvan's own estimates from its 10-K, and the "could only add value" claim is an analyst's to judge.
+    expect(talk.prompt).toMatch(/In its first annual report, Webvan estimated/);
+    expect(talk.prompt).toMatch(/An analyst reading the report concludes/);
+    expect(talk.prompt).not.toMatch(/founders said/i);
     expect(talk.prompt).toMatch(/\bjudge\b/i);
     expect(talk.prompt).not.toMatch(/\btell\b[^.?!]*?\bstory\b/i);
     expect(talk.prompt).not.toMatch(/\byour\s+(?:\w+\s+)?story\b/i);
