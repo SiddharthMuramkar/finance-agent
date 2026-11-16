@@ -32,17 +32,23 @@ cases:
 
 concept: >
   The weighted average cost of capital is the average return that a firm's capital providers
-  require, weighted by the market value of each source: WACC = (E/V) x Re + (D/V) x Rd x (1 - T),
-  where E is the market value of equity, D of debt, V = D + E, Re the cost of equity, Rd the pre-tax
-  cost of debt and T the tax rate. Debt is cheaper than equity because lenders are paid first and
-  because interest is tax-deductible, which is why the after-tax cost of debt is Rd x (1 - T).
-  The cost of equity can be estimated with the CAPM: Re = risk-free rate + beta x equity risk
-  premium. Use market values for the weights, not book values, because they show what investors
-  actually have at stake. WACC is the right discount rate for a project only if the project has the
-  same risk as the firm's business; a riskier venture needs a higher rate. A firm whose assets
-  earn less than its WACC is destroying value, and a firm borrowing so much that interest takes a
-  large share of revenue leaves little for anyone else: the cost of capital then rises for both
-  lenders and shareholders.
+  require, weighted by the market value of each source. Take the cost of equity and weight it by
+  equity's share of the firm's total market value; take the cost of debt, cut it for tax, and weight
+  it by debt's share; then add the two. Debt is cheaper than equity because lenders are paid first
+  and because interest is tax-deductible, which is why the debt cost goes in after tax: a firm paying
+  6 percent interest at a 25 percent tax rate really pays about 4.5 percent. The cost of equity can
+  be estimated with the CAPM: the risk-free rate plus beta times the equity risk premium. Use market
+  values for the weights, not book values, because they show what investors actually have at stake.
+  WACC is the right discount rate for a project only if the project has the same risk as the firm's
+  business; a riskier venture needs a higher rate. A firm whose assets earn less than its WACC is
+  destroying value, and a firm borrowing so much that interest takes a large share of revenue leaves
+  little for anyone else: the cost of capital then rises for both lenders and shareholders.
+
+goDeeper: >
+  Typed out, the blend is WACC = (E/V) x Re + (D/V) x Rd x (1 - T), where E is the market value of
+  equity, D of debt, V = D + E, Re the cost of equity, Rd the pre-tax cost of debt and T the tax rate;
+  the CAPM gives Re = risk-free rate + beta x equity risk premium. The weights move as the share
+  price moves, so a firm's WACC shifts even when it borrows nothing new.
 
 principle: >
   Every pound of capital has a price. A project or business is worth funding only if it earns
@@ -72,7 +78,7 @@ questions:
         mistake: { tag: equity_only, fix: "WACC blends all funding, debt as well as equity." }
     answer: a
     explanation: >
-      WACC blends the costs by the market-value weights, with debt after tax. For a firm 60% equity at 12% and 40% debt at 6% with 25% tax: 0.6 x 12% + 0.4 x 6% x 0.75 = 9.0%. Ignoring the tax shield would give 9.6%.
+      WACC blends the costs by the market-value weights, with debt after tax. For a firm 60% equity at 12% and 40% debt at 6% with 25% tax: weight the 12% equity cost by its 60% share, cut the 6% debt cost for tax to 4.5% and weight it by its 40% share, then add: about 9.0%. Ignoring the tax shield would give 9.6%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.3 Calculating the Weighted Average Cost of Capital: https://openstax.org/books/principles-finance-2e/pages/17-3-calculating-the-weighted-average-cost-of-capital
 

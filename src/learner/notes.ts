@@ -31,6 +31,8 @@ export type FilledNote = {
   formulas: NoteFormula[];
   insight?: NoteInsight;
   principle: string;
+  /** The Topic's daily-life line (spec #68), if it has one. */
+  dailyLife?: string;
   connections: { text: string; titles: string[] }[];
   mistakes: string[];
 };
@@ -80,6 +82,7 @@ export function buildFilledNote(topic: Topic, records: NoteRecords): FilledNote 
     formulas: topic.formulas.map((formulaId) => ({ formulaId, values: exampleValues(topic, formulaId) })),
     insight,
     principle: topic.principle,
+    ...(topic.dailyLife && { dailyLife: topic.dailyLife }),
     connections: topic.connections.map((c) => ({ text: c.text, titles: c.titles })),
     mistakes: records.mistakes,
   };

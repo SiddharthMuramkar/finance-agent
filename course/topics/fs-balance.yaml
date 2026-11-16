@@ -31,11 +31,17 @@ cases:
 concept: >
   The balance sheet shows a company's financial position on one date. Assets are what it owns
   (cash, money owed by customers, inventory, buildings); liabilities are what it owes; equity is
-  what is left for the owners. The accounting equation always holds: assets = liabilities +
-  equity. Equity grows with profit kept in the business (retained earnings) and shrinks with
+  what is left for the owners. The accounting equation always holds: what a company owns always
+  equals what it owes plus what belongs to its owners. Equity grows with profit kept in the business (retained earnings) and shrinks with
   dividends. Because the equation must balance, an overstated asset means an overstated equity
   or an understated liability somewhere else. Current assets and liabilities are those due within
   a year; the others are long term.
+
+goDeeper: >
+  The accounting equation in symbols is assets = liabilities + equity, so equity = assets -
+  liabilities. Every transaction is recorded twice (double entry) to keep it balanced: borrowing
+  raises cash and a liability by the same amount, and a profit kept in the business raises an
+  asset and retained earnings together.
 
 principle: >
   Every number on a balance sheet is a claim that something exists or is owed. Ask what
@@ -180,7 +186,7 @@ questions:
       - { id: d, text: "Debtors", mistake: { tag: debtors_for_equity, fix: "Debtors are customers who owe the company. They are an asset." } }
     answer: a
     explanation: >
-      Assets = liabilities + equity, so equity is what remains of the assets after the liabilities are met.
+      What a company owns always equals what it owes plus what belongs to its owners, so equity is what remains of the assets after the liabilities are met.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet, the accounting equation: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 

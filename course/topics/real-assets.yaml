@@ -85,7 +85,7 @@ questions:
         mistake: { tag: yield_ignored, fix: "The required yield is what turns a rent into a price." }
     answer: b
     explanation: >
-      Price = net rent / required yield. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate. For example, Rs 6,00,000 of rent at a 5 per cent yield gives about Rs 1.2 crore.
+      To get the price, divide the net rent by the required yield. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate. For example, Rs 6,00,000 of rent at a 5 per cent yield gives about Rs 1.2 crore.
     source: >
       Arithmetic from the stated figures, using the present-value principle that an asset's value is the present value of its expected cash flows; Damodaran, valuation introduction slides: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
 

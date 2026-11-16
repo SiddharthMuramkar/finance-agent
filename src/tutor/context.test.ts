@@ -251,3 +251,22 @@ describe("the open Widgets line", () => {
     expect(openWidgetsNote([])).toBeNull();
   });
 });
+
+// Spec #68 (ticket #86): Topic 1's Go deeper text reaches the Tutor when the Learner presses Go deeper, and its daily-life
+// line is on the Learner's screen at the Principle step.
+describe("Go deeper and the daily-life line (spec #68)", () => {
+  const facts: TurnFacts = { step: "concept", cap: 80, exampleCurrency: "USD", caseCurrencies: ["USD"], quizOpen: false, openItems: [], blockedNumbers: [], internalWords: [] };
+  const topic = () => loadCourseMap().topic("spine-01-worth")!;
+  const deeper = () => topic().goDeeper!.replace(/\s+/g, " ").trim();
+
+  it("gives the Tutor Topic 1's Go deeper text to give now when the Learner presses Go deeper", () => {
+    const text = stepContext(placeAt("spine-01-worth", "concept", 0), [], undefined, false, undefined, { ...facts, replyKind: "go_deeper" });
+    expect(text).toContain(`The Learner pressed Go deeper: give them this Go deeper material now, in your own words (no Check tests it, so never quiz it): ${deeper()}`);
+  });
+
+  it("names the daily-life line on the Learner's screen at the Principle step only", () => {
+    const line = topic().dailyLife!.replace(/\s+/g, " ").trim();
+    expect(stepContext(placeAt("spine-01-worth", "principle", 2), [], undefined, false, undefined, { ...facts, step: "principle" })).toContain(`Daily-life line (code shows it under the principle): ${line}`);
+    expect(stepContext(placeAt("spine-01-worth", "concept", 0), [], undefined, false, undefined, facts)).not.toContain("Daily-life line");
+  });
+});

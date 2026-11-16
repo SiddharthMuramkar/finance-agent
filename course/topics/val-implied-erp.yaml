@@ -65,14 +65,21 @@ concept: >
   the riskfree rate. A historical premium averages past returns, with a large standard error. An
   implied premium reverses the logic of valuation: instead of using a required return to find the
   price, it takes today's price as given and solves for the return that makes expected cash flows
-  worth that price. In the simplest version, with cash flows that grow at a steady rate g,
-  index = expected cash flow next year / (r - g), so r = expected cash flow yield + g, and the
-  implied ERP = r - riskfree rate. For example, with an index at 1,000, next year's expected
-  dividends of 20 and growth of 5 percent, r = 2% + 5% = 7%, and with a riskfree rate of 4%
-  the ERP is 3%. Fuller versions use cash flow to equity (dividends plus buybacks) and several
-  years of growth. The implied premium depends on the cash flow and growth assumptions, so it is
-  an estimate, but it is consistent with today's price. It changes whenever prices or
-  expectations change, which makes the market-level discount rate time-varying.
+  worth that price. In the simplest version, with cash flows that grow at a steady rate for
+  ever, the return investors expect is next year's expected cash flow as a share of the index,
+  plus the growth rate, and the implied ERP is that return less the riskfree rate. For example,
+  with an index at 1,000, next year's expected dividends of 20 and growth of 5 percent, the
+  dividends are 2 percent of the index, so the expected return is 2 percent plus 5 percent, or 7
+  percent, and with a riskfree rate of 4 percent the ERP is 3 percent. Fuller versions use cash
+  flow to equity (dividends plus buybacks) and several years of growth. The implied premium
+  depends on the cash flow and growth assumptions, so it is an estimate, but it is consistent
+  with today's price. It changes whenever prices or expectations change, which makes the
+  market-level discount rate time-varying.
+
+goDeeper: >
+  The simplest version is the growing perpetuity read backwards. With cash flows that grow at a
+  steady rate g, index = expected cash flow next year / (r - g), so r = expected cash flow yield
+  + g, and the implied ERP = r - riskfree rate.
 
 principle: >
   The equity risk premium is not a constant of nature. Read it from today's prices and

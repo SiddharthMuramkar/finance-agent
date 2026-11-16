@@ -37,8 +37,8 @@ cases:
 
 concept: >
   Gross domestic product (GDP) is the value of all final goods and services produced in a country in a
-  year. It can be added up from the spending side, GDP = consumption + investment + government spending +
-  exports - imports, or from the output side. Nominal GDP uses current prices; real GDP removes inflation,
+  year. It can be added up from the spending side, as consumption plus investment plus government spending plus
+  exports minus imports, or from the output side. Nominal GDP uses current prices; real GDP removes inflation,
   and growth is quoted in real terms. Output does not rise in a straight line: the business cycle moves
   from a peak down to a trough (a recession) and back up in an expansion. A recession was historically
   defined as two consecutive quarters of falling real GDP; agencies today look at a broader set of
@@ -50,6 +50,11 @@ concept: >
 principle: >
   Read growth together with its financing. Ask who is borrowing, from whom and in which currency; a
   boom paid for with deficits and foreign debt looks the same as a healthy one until the lenders stop.
+
+goDeeper: >
+  Written as a sum, the spending side is GDP = consumption + investment + government spending +
+  exports - imports. Imports are taken away because they are already counted in the spending but were
+  produced abroad.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
