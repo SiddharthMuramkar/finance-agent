@@ -53,7 +53,7 @@ test("[7.2.1, QA 1] Home opens on the finished jackpot conversation, its control
   await openHome(page);
   const thread = page.getByTestId("demo-thread");
   await expect(thread).toContainText("Is ₹25 crore over 30 years worth ₹25 crore?");
-  await expect(thread).toContainText("The Tutor picked this widget. Tested code draws it.");
+  await expect(thread).toContainText("The AI Tutor picked this Example. Checked numbers draw it.");
   const jackpot = thread.locator('[data-widget="jackpot"]');
   await expect(jackpot).toBeVisible();
   // Call first: the rate slider waits for the learner's call, and nothing is marked yet.

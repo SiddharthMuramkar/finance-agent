@@ -5,12 +5,12 @@ import { LEVERS, leverBand, PRICE, REFERENCE, type Lever, type LeverKey } from "
 // are worked out from the levers model, never hard-coded, so they follow the engine (#18). Read on the server; the
 // client story gets strings only, so the valuation engine never ships to the browser for it.
 
-/** The story sentence for each lever, as the spec writes it. */
+/** The story sentence for each lever, in plain words and round numbers (#74, spec §7.2.3). */
 const STORY: Record<LeverKey, string> = {
-  rev: "Revenue in year 10: **$39bn**, against $1.1bn today.",
-  margin: "Operating margin once mature: **10%**. Today it is −36.7%.",
-  s2c: "**$3.00** of sales for each dollar it invests to grow.",
-  wacc: "Cost of capital while it grows: **12.84%** a year.",
+  rev: "Sales in year 10: **$39bn**, against $1.1bn today.",
+  margin: "Once grown, it **keeps 10¢ of each $1** of sales. Today it loses 37¢.",
+  s2c: "Each **$1 it invests** to grow brings **$3** of new sales.",
+  wacc: "While it grows, **investors want 13% a year** for the risk.",
 };
 
 /** A lever setting in the slider's own unit. */
@@ -31,7 +31,7 @@ export function leverSteps(): LeverStep[] {
     if (band.atMax < band.atMin) {
       power = `This lever runs backwards. More risk means less value: from **${share(band.atMin)}** at the safest setting down to **${share(band.atMax)}** at the riskiest.`;
     } else {
-      const range = `On its own it can move his value anywhere from **${share(band.lo)}** to **${share(band.hi)}** a share.`;
+      const range = `On its own it can move the value anywhere from **${share(band.lo)}** to **${share(band.hi)}** a share.`;
       if (band.reach === null) power = `${range} It cannot reach the $${PRICE} price by itself.`;
       else if (reachers === 1) power = `${range} It is the only lever that reaches the $${PRICE} price by itself, at ${setting(lever, band.reach)}.`;
       else power = `${range} It reaches the $${PRICE} price by itself, at ${setting(lever, band.reach)}.`;

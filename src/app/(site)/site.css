@@ -57,7 +57,7 @@
 .v-small { font-size: 14px; line-height: 1.5; color: var(--muted); }
 .v-fine { font-size: 13px; line-height: 1.5; color: var(--muted); }
 .v-eyebrow { font-size: 13px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; color: var(--blue); }
-.v-label { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.v-label { font-family: var(--font-body); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .v-dateline { color: var(--blue); font-weight: 700; text-transform: uppercase; font-size: 0.82em; letter-spacing: 0.04em; }
 .v-dateline + * { margin-left: 0.3em; }
 .site mark.key { background: linear-gradient(transparent 58%, var(--blue-tint-2) 58%); color: var(--ink); font-weight: 600; }
@@ -137,7 +137,7 @@
 
 /* Progress steps (5.17) */
 .v-prog { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.v-prog li { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 12px 4px 6px; border-radius: 999px; background: var(--wash); color: var(--faint); font-size: 13.5px; font-weight: 600; }
+.v-prog li { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 12px 4px 6px; border-radius: 999px; background: var(--wash); color: var(--muted); font-size: 13.5px; font-weight: 600; }
 .v-prog .n { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; background: var(--paper); box-shadow: inset 0 0 0 1px currentColor; }
 .v-prog li.now { background: var(--blue-tint); color: var(--blue); }
 .v-prog li.done { background: var(--gain-tint); color: var(--gain-ink); }
@@ -343,7 +343,7 @@
 .v-lingo dd { margin: 0; }
 .v-mock { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; padding: 16px; position: relative; }
 .v-mock-chat { display: grid; gap: 10px; align-content: start; }
-.v-mock-input { border: 1px solid var(--line); border-radius: var(--r-btn); padding: 10px 14px; color: var(--faint); font-size: 15px; background: var(--paper); }
+.v-mock-input { border: 1px solid var(--line); border-radius: var(--r-btn); padding: 10px 14px; color: var(--muted); font-size: 15px; background: var(--paper); }
 .v-mock-widget { display: grid; gap: 12px; align-content: start; }
 .v-stepbar { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 3px; grid-column: 1 / -1; }
 .v-stepbar span { height: 6px; border-radius: 3px; background: var(--wash-2); }
@@ -441,7 +441,8 @@
   .v-qrow .meta { grid-column: 1 / -1; grid-auto-flow: column; justify-content: start; align-items: center; }
   .v-qrow .v-mini { display: none; }
   .v-trust, .v-closing { grid-template-columns: minmax(0, 1fr); }
-  .v-bars { justify-content: flex-start; height: 140px; }
+  /* #74: on a phone the bars sat under the CTA like an empty chart. */
+  .v-bars { display: none; }
 }
 @media (max-width: 640px) {
   /* A phone puts the Tutor demo right under the h1 (spec 7.2.1, #73): something to play without scrolling. */
@@ -453,6 +454,10 @@
   .v-pager a.next { text-align: left; }
 }
 @media (max-width: 560px) {
+  /* #74: one fact a row, so three facts never leave an empty cell; the join steps stack, with no rule left dangling. */
+  .v-facts { grid-template-columns: minmax(0, 1fr); }
+  .v-join-steps { flex-direction: column; align-items: flex-start; }
+  .v-join-steps li + li::before { display: none; }
   .v-nav .v-continue { min-height: 40px; }
   .v-nav .v-continue .sub { display: none; }
   .v-colours { grid-template-columns: minmax(0, 1fr); }

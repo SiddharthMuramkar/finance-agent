@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/site-metadata";
 import { about, COURSE } from "@/site/copy";
 import { Rich } from "@/site/rich";
 import { courseStats } from "@/site/stats";
@@ -14,7 +15,7 @@ import { Icon, Pill, SectionHead } from "../parts";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: about.title, description: about.lede };
+export const metadata: Metadata = pageMetadata({ title: about.title, description: about.lede, path: "/about" });
 
 /** The line with the Source it names drawn as a link to that Source (#75). */
 function NamedSource({ text, source }: { text: string; source: { name: string; url: string } }) {

@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { SIGN_IN_PATH } from "../src/auth/destination";
+import { SITE_PAGES_ONE_CASE } from "../src/site/routes";
 import { hydrated, quietDevtools, seed } from "./support/app";
 
 /**
@@ -11,7 +13,8 @@ import { hydrated, quietDevtools, seed } from "./support/app";
 const ONE = "w1280";
 const PUBLIC = "header.v-nav";
 const APP = 'header:has(nav[aria-label="Pages"])';
-const SITE_PAGES = ["/", "/how-it-works", "/examples", "/examples/amazon-2000", "/about", "/sign-in"];
+/** The site pages (one case page for the five) and the sign-in page, from the one public-route list (issue #69). */
+const SITE_PAGES = [...SITE_PAGES_ONE_CASE, SIGN_IN_PATH];
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(info.project.name !== ONE, "one width is enough: which header a page has does not depend on it");

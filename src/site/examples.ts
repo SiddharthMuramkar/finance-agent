@@ -99,9 +99,9 @@ export const EXAMPLES: readonly Example[] = [
     topicId: "spine-01-worth",
     topic: "What is a business worth? Price against value, and the four levers",
     question: "Is $84 a fair price for Amazon?",
-    hook: "Amazon sells books online, loses money, and its shares cost $84. Set four levers and see what one story is worth.",
+    hook: "Amazon sells books online, loses money, and its shares cost $84. Set four levers and judge what the price needed.",
     story:
-      "**February 2000.** Amazon sells books and music online. In the twelve months to September 1999 it sold **$1,117 million** and lost **$410 million** on its operations. Its shares cost $84. A professor in New York, Aswath Damodaran, writes down what he thinks its future looks like: how big it gets, what it keeps of each sale, what its growth costs and how risky it is.",
+      "**February 2000.** Amazon sells books and music online. In the twelve months to September 1999 it sold **$1,117 million** and lost **$410 million** on its operations. Its shares cost $84. One published valuation writes down a Story about its future: how big it gets, what it keeps of each sale, what its growth costs and how risky it is.",
     facts: [
       { label: "Sales, 12 months to Sep 1999", value: "$1,117M" },
       { label: "Operating loss, same period", value: "$410M" },
@@ -110,25 +110,25 @@ export const EXAMPLES: readonly Example[] = [
     ask: "If Amazon loses money, how can it be worth anything at all?",
     chip: "Amazon at $84",
     demoAsk: "How can a loss-making Amazon be worth $84 a share?",
-    lead: "Start with what people knew that day. Buyers paid **$84** a share. One professor’s story about Amazon’s future came to **$35**. Four levers explain the gap. Move one and watch.",
+    lead: "Start with what people knew that day. Buyers paid **$84** a share. One published valuation of Amazon’s future came to **$35**. Four levers explain the gap. Move one and watch.",
     answer:
       "**Because value comes from the cash it makes later, not the loss it makes now.** A valuation is a story told in four numbers: how big the business gets, what it keeps of each sale, what that growth costs, and how risky the ride is. Set those four levers and the cash flows, and the value, follow.",
     // The spec gives Amazon one follow-up for every call.
     follow: {
-      right: "That is your story now. Green adds value to his $35. Red takes it away. Can you find a story worth $84?",
-      other: "That is your story now. Green adds value to his $35. Red takes it away. Can you find a story worth $84?",
+      right: "Green adds value to the published $35. Red takes it away. What did the $84 price need? Would you have believed it in 2000?",
+      other: "Green adds value to the published $35. Red takes it away. What did the $84 price need? Would you have believed it in 2000?",
     },
     endingLabel: "What really happened",
     endingKind: "next",
     ending:
-      "Damodaran’s story came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong.",
+      "The published valuation came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong.",
     sources: [
       {
         label: "Aswath Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (NYU Stern, March 2000)",
         url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
       },
       { label: "Amazon.com, Form 10-K for 2000 (SEC)", url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt" },
-      { note: "The widget runs the course’s tested valuation engine on his inputs: $35.04 a share against his published $35.08." },
+      { note: "The widget runs the course’s tested valuation engine on Damodaran’s inputs: $35.04 a share against his published $35.08." },
     ],
     widget: "levers",
   },

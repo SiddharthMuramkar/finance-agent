@@ -318,7 +318,9 @@ export function WidgetFoot({ keys, source, table }: { keys: readonly { swatch: S
           </li>
         ))}
       </ul>
-      <p className="sig-src">{source}</p>
+      <p className="sig-src" data-source-line="">
+        {source}
+      </p>
       {table}
     </footer>
   );
