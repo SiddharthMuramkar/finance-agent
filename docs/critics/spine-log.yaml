@@ -48,6 +48,12 @@ topics:
     rounds: 2
     lastRound: "46c4165"
     open: 0
+  spine-cost-of-capital:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 1
+    lastRound: "a7cae63"
+    open: 0
+    note: New with the split of the risk Topic (#91). The entry lands with the Topic file, as the course check needs; the round itself is the orchestrator's critics round after the build, which sets lastRound to the commit that fixed its confirmed findings.
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 2

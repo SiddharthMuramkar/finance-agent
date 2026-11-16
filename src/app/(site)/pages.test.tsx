@@ -60,7 +60,7 @@ describe("Home", () => {
     expect(html).toMatch(/data-widget="jackpot" data-case="mega-millions-2018"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
-    expect(text).toContain("110 Topics wait inside.");
+    expect(text).toContain("111 Topics wait inside.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
@@ -123,7 +123,7 @@ describe("About", () => {
   it("says the valuations are Damodaran's published work and that Value It is not affiliated", async () => {
     const text = words(renderToStaticMarkup(await AboutPage()));
     expect(text).toContain("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.");
-    expect(text).toContain("Topics 110");
+    expect(text).toContain("Topics 111");
     expect(text).toContain("Do you track me?");
   });
 });

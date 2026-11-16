@@ -305,19 +305,19 @@ describe("the real outline", () => {
 
   it("covers all five Stages, the Spine first, and mentions India throughout the foundation block", () => {
     expect(new Set(outline?.topics.map((t) => t.stage))).toEqual(new Set(["spine", "foundation", "follow", "judge", "analyse"]));
-    expect(outline?.topics.slice(0, 15).every((t) => t.stage === "spine")).toBe(true);
+    expect(outline?.topics.slice(0, 16).every((t) => t.stage === "spine")).toBe(true);
     const foundation = outline!.topics.filter((t) => t.stage === "foundation");
     const indian = foundation.filter((t) => /india|rbi|sebi|coffee day|satyam|sensex|yes bank|rupee|paytm|il&fs|jio|rs \d/i.test(JSON.stringify(t)));
     expect(indian.length).toBeGreaterThanOrEqual(25);
   });
 
-  // Spec 2026-11-12 C4 and Appendix D: fifteen Spine Topics, each titled by the question it answers, built from the Topics
+  // Spec 2026-11-12 C4 and Appendix D, with spec #68's splits (#91: the risk Topic and the cost of capital): the Spine Topics, each titled by the question it answers, built from the Topics
   // Appendix D names, on the Cases C4 names. Expected values are the spec's tables, not the outline read back.
   describe("the Spine", () => {
     const spine = spineTopics(outline!);
     const byNumber = (n: number) => spine.find((t) => t.spine === n)!;
 
-    it("has the fifteen Topics in C4's order, each titled by its question", () => {
+    it("has the Topics in C4's order, the cost of capital after the risk Topic (#91), each titled by its question", () => {
       expect(spine.map((t) => [t.spine, t.id])).toEqual([
         [1, "spine-01-worth"],
         [2, "spine-02-money-later"],
@@ -326,38 +326,43 @@ describe("the real outline", () => {
         [5, "spine-05-margins"],
         [6, "spine-06-growth-cost"],
         [7, "spine-07-risk"],
-        [8, "spine-08-far-future"],
-        [9, "spine-09-to-one-share"],
-        [10, "spine-10-survival"],
-        [11, "spine-11-story-to-numbers"],
-        [12, "spine-12-price-or-value"],
-        [13, "spine-13-price-assumes"],
-        [14, "spine-14-being-wrong"],
-        [15, "spine-15-value-yourself"],
+        [8, "spine-cost-of-capital"],
+        [9, "spine-08-far-future"],
+        [10, "spine-09-to-one-share"],
+        [11, "spine-10-survival"],
+        [12, "spine-11-story-to-numbers"],
+        [13, "spine-12-price-or-value"],
+        [14, "spine-13-price-assumes"],
+        [15, "spine-14-being-wrong"],
+        [16, "spine-15-value-yourself"],
       ]);
       expect(byNumber(1).title).toBe("What is a business worth? Price against value, and the four levers");
       expect(byNumber(2).title).toBe("Why is money later worth less?");
-      expect(byNumber(13).title).toBe("What does the price assume?");
-      expect(byNumber(15).title).toBe("Value one yourself, as of a past date");
+      expect(byNumber(7).title).toBe("Risk: what return should shareholders require?");
+      expect(byNumber(8).title).toBe("What does all of a company's money cost?");
+      expect(byNumber(14).title).toBe("What does the price assume?");
+      expect(byNumber(16).title).toBe("Value one yourself, as of a past date");
     });
 
     it("says how long each takes: ten minutes for the first, fifteen for the last, none over fifteen (C2, C5)", () => {
       expect(byNumber(1).minutes).toBe(10);
-      expect(byNumber(15).minutes).toBe(15);
-      for (const t of spine.slice(1, 14)) expect(t.minutes).toBeGreaterThanOrEqual(12);
+      expect(byNumber(16).minutes).toBe(15);
+      for (const t of spine.slice(1, 15)) expect(t.minutes).toBeGreaterThanOrEqual(12);
       for (const t of spine) expect(t.minutes).toBeLessThanOrEqual(15);
     });
 
     it("draws on the Topics Appendix D names", () => {
       expect(byNumber(1).drawsOn).toEqual(["val-dcf", "fol-tesla-2020", "fol-twitter-ipo"]);
-      expect(byNumber(7).drawsOn).toEqual(["risk-capm", "cf-wacc", "risk-portfolio", "bond-credit-spreads", "num-percent-bps"]);
-      expect(byNumber(15).drawsOn).toEqual(["ana-build-valuation", "val-india"]);
-      expect(usedInSpine(outline!).get("val-dcf")).toEqual([1, 8, 9]);
+      // #91 split Topic 7's list: the cost of equity draws on CAPM and spreading risk, the cost of capital on the rest.
+      expect(byNumber(7).drawsOn).toEqual(["risk-capm", "risk-portfolio"]);
+      expect(byNumber(8).drawsOn).toEqual(["cf-wacc", "bond-credit-spreads", "num-percent-bps"]);
+      expect(byNumber(16).drawsOn).toEqual(["ana-build-valuation", "val-india"]);
+      expect(usedInSpine(outline!).get("val-dcf")).toEqual([1, 9, 10]);
     });
 
-    it("runs Amazon in February 2000 through Topics 1, 7, 8, 9, 13 and one choice in 15", () => {
+    it("runs Amazon in February 2000 through Topics 1, 7, 8, 9, 10, 14 and one choice in 16", () => {
       const amazon = spine.filter((t) => t.cases.some((c) => /amazon/i.test(c.title) && c.asOf === "2000-02-01")).map((t) => t.spine);
-      expect(amazon).toEqual([1, 7, 8, 9, 13, 15]);
+      expect(amazon).toEqual([1, 7, 8, 9, 10, 14, 16]);
     });
 
     it("copies each Case it reuses from its Elective entry, sources and all", () => {
@@ -365,11 +370,11 @@ describe("the real outline", () => {
       // The Spine copies title, as-of date, outcome, sources and verified; the Elective keeps its research note.
       expect(byNumber(1).cases).toEqual(elective("val-dcf").map((c) => ({ title: c.title, asOf: c.asOf, outcome: c.outcome, sources: c.sources, verified: c.verified })));
       expect(byNumber(2).cases[0].title).toBe("The $1.537 billion Mega Millions jackpot");
-      expect(byNumber(10).cases[0].title).toBe("Coffee Day Enterprises in July 2019");
+      expect(byNumber(11).cases[0].title).toBe("Coffee Day Enterprises in July 2019");
     });
 
-    it("offers Zomato's IPO in Topic 15, verified from its research, beside Coffee Day in rupees", () => {
-      const cases = byNumber(15).cases;
+    it("offers Zomato's IPO in Topic 16, verified from its research, beside Coffee Day in rupees", () => {
+      const cases = byNumber(16).cases;
       expect(cases.map((c) => c.title)).toEqual(["Build your own value for Amazon.com", "Coffee Day's IPO, in rupees and in dollars", "Zomato's IPO, valued in rupees"]);
       // Damodaran's Rs 40.79 against the Rs 76 offer: docs/research/verify-zomato-2021.json reproduces it from sources, so it is verified.
       expect(cases[2]).toMatchObject({ asOf: "2021-07-21", verified: true });
