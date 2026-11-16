@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const viewer = await siteViewer();
-  const { topics } = courseStats();
+  const course = courseStats();
   const secondary = viewer.state === "visitor" ? { href: "/examples", label: home.hero.secondary.visitor } : viewer.state === "member" ? { href: "/course", label: home.hero.secondary.member } : null;
 
   return (
@@ -48,11 +48,9 @@ export default async function HomePage() {
           </div>
           <CtaNote viewer={viewer} />
           <ul className="v-hero-facts">
-            <li>
-              {topics} {home.hero.facts[0]}
-            </li>
-            <li>{home.hero.facts[1]}</li>
-            <li>{home.hero.facts[2]}</li>
+            <li>{home.hero.facts.topics(course)}</li>
+            <li>{home.hero.facts.minutes(course)}</li>
+            <li>{home.hero.facts.sums}</li>
           </ul>
         </div>
         <TutorDemo />
@@ -60,7 +58,7 @@ export default async function HomePage() {
 
       <section className="v-section v-rule-top" aria-labelledby="moves-h" data-site-section="moves">
         <div className="v-wrap">
-          <SectionHead eyebrow={home.moves.eyebrow} title={home.moves.h2} id="moves-h" />
+          <SectionHead eyebrow={home.moves.eyebrow} title={home.moves.h2(course)} id="moves-h" />
           <ol className="v-moves">
             {MOVES.map((move, i) => (
               <li key={move.name}>
@@ -83,11 +81,11 @@ export default async function HomePage() {
 
       <section className="v-section" aria-labelledby="questions-h" data-site-section="questions">
         <div className="v-wrap">
-          <SectionHead eyebrow={home.questions.eyebrow} title={home.questions.h2} body={home.questions.body} id="questions-h" />
+          <SectionHead eyebrow={home.questions.eyebrow(EXAMPLES.length)} title={home.questions.h2} body={home.questions.body} id="questions-h" />
           <QuestionList examples={EXAMPLES} />
           <div className="v-row v-section-link">
             <p>
-              <Rich>{home.questions.more(topics)}</Rich>
+              <Rich>{home.questions.more(course)}</Rich>
             </p>
             <ArrowLink href="/how-it-works#path">{home.questions.path}</ArrowLink>
           </div>
