@@ -154,9 +154,9 @@ explore:
     inputs:
       figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1.6, debtShare: 1.2, costOfDebt: 8, taxRate: 0 }
       source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }
-      # Market readings beside the levers (ticket #105): the premium the market implied at three year-ends, and India's cost of
-      # capital by industry, each with its month, credit and link (src/markets/readings.ts).
-      readings: [us-implied-premium-2007, us-implied-premium-2008, us-implied-premium-2019, in-auto-cost-of-capital, in-food-cost-of-capital, in-software-cost-of-capital, in-market-cost-of-capital]
+      # Market readings beside the levers (ticket #105): before the Reveal, only what was known on the Case's As-of date in
+      # its own market (Owner decision, 2026-11-16): the US Treasury bond rate at the end of 1999 (src/markets/readings.ts).
+      readings: [us-risk-free-10y-1999]
 
 connections:
   - text: The capital asset pricing model is where relative risk and the premium for shares come from.

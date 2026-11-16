@@ -14,8 +14,8 @@ async function openFixture(page: Page, fixture: string) {
 }
 
 for (const [fixture, count] of [
-  ["wacc-stack-readings", 7],
-  ["value-levers-readings", 8],
+  ["wacc-stack-readings", 1],
+  ["value-levers-readings", 1],
 ] as const) {
   test(`[#105] ${fixture}: every Market reading shows its date, credit and a working link, and none is "today" or "current"`, async ({ page }, info) => {
     test.skip(info.project.name !== ONE, "one width is enough for the behaviour");

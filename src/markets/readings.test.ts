@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MARKET_READING_INPUTS, MARKET_READINGS, marketReading, marketReadingErrors, readingMonth, readingValueText, type MarketReadingInput } from "./readings";
+import { MARKET_READING_INPUTS, MARKET_READINGS, knownOn, marketReading, marketReadingErrors, preRevealReadingErrors, readingMonth, readingValueText, type MarketReadingInput } from "./readings";
 
 // Market readings (spec #68, ticket #105): each is stored like Case Data (a value, the date it was measured, its source,
 // its credit and a link), and the course check (Seam 2) holds every one to that. Premium readings are solved with the
@@ -73,5 +73,42 @@ describe("the first set of Market readings", () => {
     expect(readingMonth("2007-12-31")).toBe("Dec 2007");
     expect(readingValueText(marketReading("in-auto-margin")!)).toBe("9.69%");
     expect(readingValueText(marketReading("in-auto-sales-to-capital")!)).toBe("1.03");
+  });
+});
+
+// Owner decision on #105 (2026-11-16): before the Reveal, a Topic's Workbench shows only readings known on its Case's As-of
+// date, from the Case's own market (GLOSSARY "As-of rule"); the course check runs preRevealReadingErrors on every Topic.
+describe("the As-of rule for readings shown before the Reveal", () => {
+  const amazon = (readings: unknown, currency = "USD") => ({
+    id: "spine-test",
+    cases: [{ id: "amazon-test", asOf: "2000-02-03", valuation: { currency } }],
+    explore: { workbench: { case: "amazon-test", inputs: { readings } } },
+  });
+
+  it("holds the US Treasury bond rate at the end of 1999, 6.44% (histimpl.xls), dated before Amazon's As-of date", () => {
+    const r = marketReading("us-risk-free-10y-1999")!;
+    expect([r.market, r.kind, r.value, r.date, r.sourceUrl]).toEqual(["US", "risk_free", 6.44, "1999-12-31", "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls"]);
+    expect(knownOn(r, { asOf: "2000-02-03", market: "US" })).toBe(true);
+    expect(preRevealReadingErrors([amazon(["us-risk-free-10y-1999"])])).toEqual([]);
+  });
+
+  it("fails a reading dated after the Case's As-of date", () => {
+    expect(preRevealReadingErrors([amazon(["us-implied-premium-2007"])])).toEqual([
+      'Topic "spine-test" explore Workbench shows "us-implied-premium-2007" (2007-12-31) before the Reveal, after Case "amazon-test"\'s As-of date 2000-02-03',
+    ]);
+  });
+
+  it("fails a reading from another market, even an older one", () => {
+    expect(preRevealReadingErrors([amazon(["us-risk-free-10y-1999"], "INR")])).toEqual([expect.stringContaining('"us-risk-free-10y-1999" from US before the Reveal, but Case "amazon-test" is in IN')]);
+    expect(preRevealReadingErrors([amazon(["in-food-margin"])])).toHaveLength(2);
+  });
+
+  it("fails readings that no Case dates, and an id that is no reading", () => {
+    expect(preRevealReadingErrors([{ ...amazon(["us-risk-free-10y-1999"]), cases: [] }])).toEqual([expect.stringContaining("names none of the Topic's Cases")]);
+    expect(preRevealReadingErrors([amazon(["no-such-reading"])])).toEqual([expect.stringContaining('"no-such-reading", which is not a Market reading')]);
+  });
+
+  it("leaves a Topic with no readings alone", () => {
+    expect(preRevealReadingErrors([amazon(undefined), { id: "plain", cases: [] }])).toEqual([]);
   });
 });

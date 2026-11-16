@@ -3,9 +3,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WidgetView } from "@/app/widget-view";
 import { valuationCase } from "@/finance/valuation-cases";
+import { MarketReadingsView } from "../market-readings-view";
 import { setRange } from "../primitives/wave1/test-kit";
 import { SavedTicksContext } from "../saved-ticks";
 import { allTasksTicked, readWidget } from "../widget-reading";
@@ -398,20 +400,25 @@ describe("Market readings beside the levers (ticket #105)", () => {
       href: li.querySelector('[data-testid="reading-credit"]')?.getAttribute("href"),
     }));
 
-  it("the Cost of capital stack shows the implied premium of Dec 2007 and India's cost of capital of Jan 2026, each credited and linked", async () => {
+  // Owner decision on #105 (2026-11-16): a Workbench on Amazon (As-of 3 February 2000) shows only US readings known by then.
+  it("the Cost of capital stack on Amazon shows the US bond rate of Dec 1999, credited and linked", async () => {
     await draw("wacc-stack-readings");
-    const shown = readings();
-    expect(shown).toHaveLength(7);
-    expect(shown[0]).toEqual({ id: "us-implied-premium-2007", date: "(Dec 2007)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" });
-    expect(text("market-readings")).toContain("Implied equity risk premium, S&P 500 (US): 4.37%");
-    expect(text("market-readings")).toContain("Cost of capital in rupees, auto and truck makers (India): 13.9% (Jan 2026)");
+    expect(readings()).toEqual([{ id: "us-risk-free-10y-1999", date: "(Dec 1999)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" }]);
+    expect(text("market-readings")).toContain("10-year US Treasury bond rate (US): 6.44%");
     expect(text("market-readings")).not.toMatch(/today|current/i);
   });
 
-  it("Value levers shows India's margins and sales for each rupee invested beside its levers", async () => {
+  it("Value levers on Amazon shows the same US reading of Dec 1999 beside its levers", async () => {
     await draw("value-levers-readings");
-    expect(readings().map((r) => r.date)).toEqual(Array(8).fill("(Jan 2026)"));
-    expect(text("market-readings")).toContain("Sales for each rupee invested, food processors (India): 2.34");
+    expect(readings().map((r) => [r.id, r.date])).toEqual([["us-risk-free-10y-1999", "(Dec 1999)"]]);
+  });
+
+  it("keeps the As-of rule on screen: a reading from after the Case's As-of date, or from another market, does not show", () => {
+    const amazon = { asOf: "2000-02-03", market: "US" } as const;
+    const shown = (ids: string[]) =>
+      [...new DOMParser().parseFromString(renderToStaticMarkup(<MarketReadingsView ids={ids} known={amazon} />), "text/html").querySelectorAll('[data-testid="market-reading"]')].map((li) => li.getAttribute("data-reading"));
+    expect(shown(["us-risk-free-10y-1999", "us-implied-premium-2007", "in-food-margin"])).toEqual(["us-risk-free-10y-1999"]);
+    expect(renderToStaticMarkup(<MarketReadingsView ids={["in-food-margin"]} known={amazon} />)).toBe("");
   });
 
   it("a Workbench with no readings shows none", async () => {

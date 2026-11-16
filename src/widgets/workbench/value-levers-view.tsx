@@ -8,7 +8,7 @@ import { Icon } from "@/icons/icon";
 import type { IconName } from "@/icons/names";
 import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
-import { MarketReadingsView } from "../market-readings-view";
+import { MarketReadingsView, caseKnownOn } from "../market-readings-view";
 import { SliderControl } from "../slider-control";
 import { LingoCardView } from "../primitives/wave3/lingo-card-view";
 import { fullSheet, NO_ROW_CHANGES, rowSpecs, withRows, type FullSheetRow, type RowId, type RowSettings } from "./full-sheet";
@@ -329,7 +329,7 @@ export function ValueLeversView({
           )}
         </div>
       )}
-      <MarketReadingsView ids={readings} />
+      <MarketReadingsView ids={readings} known={caseKnownOn(block)} />
       {tasks.length > 0 && <GuidedTasksFigure tasks={[...tasks]} reached={now} />}
     </div>
   );

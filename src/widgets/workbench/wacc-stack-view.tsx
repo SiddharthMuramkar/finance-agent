@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { BarRows, BenchFigure, BenchHeadline, BenchLeverControl, BenchNumbers, BenchTasks, useBenchSettings, useBenchTasks, type BenchViewProps } from "./bench-view";
-import { MarketReadingsView } from "../market-readings-view";
+import { MarketReadingsView, caseKnownOn } from "../market-readings-view";
 import { STACK_CAPTION, waccStackLevers, waccStackModel, waccStackTasks, type StackLeverId, type WaccStackData } from "./wacc-stack-model";
 
 // Cost of capital stack, drawn (spec 2026-11-12, B4; Spine Topic 7): four levers build the rate in layers, from the risk-free
@@ -27,7 +27,7 @@ export function WaccStackView({ data, levers: given, onLeversChange, ticked = []
       <BenchFigure caption={STACK_CAPTION} testId="wacc-stack-layers">
         <BarRows rows={rows} testId="wacc-stack-bars" />
       </BenchFigure>
-      <MarketReadingsView ids={readings} />
+      <MarketReadingsView ids={readings} known={caseKnownOn(data.block)} />
       <BenchTasks tasks={tasks} reached={reached} />
     </div>
   );
