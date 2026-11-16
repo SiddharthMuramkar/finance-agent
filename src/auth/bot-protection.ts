@@ -4,6 +4,10 @@
 
 /**
  * The requests BotID gives its challenge answer to, for initBotId(): every POST to /api/turn (a Stop too, though the
- * route checks only the turns it starts). Basic is BotID's default check level, so none is set.
+ * route checks only the turns it starts), and every POST to /api/assignment/turn (the Tutor in the Assignment, ticket
+ * #110). Basic is BotID's default check level, so none is set.
  */
-export const BOT_PROTECTED = [{ path: "/api/turn", method: "POST" }];
+export const BOT_PROTECTED = [
+  { path: "/api/turn", method: "POST" },
+  { path: "/api/assignment/turn", method: "POST" },
+];
