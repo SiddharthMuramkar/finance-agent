@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/site-metadata";
 import { COURSE, home, howItWorks } from "@/site/copy";
 import { exampleBySlug } from "@/site/examples";
 import { Rich } from "@/site/rich";
@@ -15,7 +16,11 @@ import { HowMoves } from "./moves";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "How it works", description: "Every Topic is one real event, taught in four moves, in 10 to 15 minutes." };
+export const metadata: Metadata = pageMetadata({
+  title: "How it works",
+  description: "Every Topic is one real event, taught in four moves, in 10 to 15 minutes.",
+  path: "/how-it-works",
+});
 
 const RATES = exampleBySlug("rates-up-1")!;
 

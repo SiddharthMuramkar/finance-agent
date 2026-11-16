@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/site-metadata";
 import { COURSE, examplesPage, home } from "@/site/copy";
 import { Rich } from "@/site/rich";
 import { courseStats } from "@/site/stats";
@@ -12,7 +13,7 @@ import { ExamplesFilter } from "./examples-filter";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Examples", description: "Five cases from the course, playable here." };
+export const metadata: Metadata = pageMetadata({ title: "Examples", description: "Five cases from the course, playable here.", path: "/examples" });
 
 export default async function ExamplesPage() {
   const viewer = await siteViewer();
