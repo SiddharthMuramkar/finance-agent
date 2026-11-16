@@ -29,7 +29,7 @@ const wrongFor = new Map(written.map((q) => [plain(q.prompt), q.choices!.find((c
  * the Rs 76 offer price.
  */
 function computedPick(prompt: string): string | null {
-  if (/Coffee Day story, which change moves the value most/.test(prompt)) return "What it keeps in ten years: 15% to 18%";
+  if (/Coffee Day story, each change makes one lever a fifth more hopeful/.test(prompt)) return "What it keeps, a fifth more: 15% to 18% of each sale in ten years";
   if (/Zomato story comes to about Rs 41, and the offer price is Rs 76/.test(prompt)) return "Sales of Rs 30,000 crore in ten years, keeping 41%";
   return null;
 }
