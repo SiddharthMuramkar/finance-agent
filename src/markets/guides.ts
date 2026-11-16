@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isIconName } from "../icons/names.ts";
+import { EUROPE_GUIDE } from "./guides-europe.ts";
 
 // The annual-report guide (spec #68, ticket #108; user story 80): beside each Own Case field, where that number sits in
 // one market's annual report, with a link to the rule or record that says so and a Lingo card for the word the Learner
@@ -24,7 +25,7 @@ const lingoSchema = z
 
 export const guideLineSchema = z
   .object({
-    market: z.enum(["IN", "US", "JP", "KR"]),
+    market: z.enum(["IN", "US", "JP", "KR", "EU"]),
     field: z.enum(GUIDE_FIELDS),
     /** Where the number sits in the annual report, in one or two plain sentences. */
     where: z.string().trim().min(10),
@@ -331,6 +332,7 @@ export const GUIDE_LINE_INPUTS: readonly unknown[] = [
   ...india.map((line) => ({ market: "IN", ...line })),
   ...japan.map((line) => ({ market: "JP", ...line })),
   ...korea.map((line) => ({ market: "KR", ...line })),
+  ...EUROPE_GUIDE.map((line) => ({ market: "EU", ...line })),
 ];
 
 const GUIDE_LINES: GuideLine[] = GUIDE_LINE_INPUTS.flatMap((raw) => {

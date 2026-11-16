@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { impliedPremium, impliedPremiumBlock } from "../finance/implied-erp.ts";
+import { EUROPE_READINGS } from "./readings-europe.ts";
 import { JAPAN_KOREA_READINGS } from "./readings-japan-korea.ts";
 
 // Market readings (spec #68, ticket #105; GLOSSARY "Market reading"): a market-wide number, such as the premium investors
@@ -13,7 +14,7 @@ import { JAPAN_KOREA_READINGS } from "./readings-japan-korea.ts";
 const slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "lowercase words joined by hyphens");
 
 /** What a reading measures: the implied premium of a whole market, or one of an industry's yardsticks. */
-/** A risk-free reading is a market's 10-year government bond yield on a stated day (ticket #114). */
+/** A risk-free reading is a market's 10-year government bond yield on a stated day (tickets #114, #115). */
 export const READING_KINDS = ["implied_premium", "operating_margin", "sales_to_capital", "cost_of_capital", "risk_free"] as const;
 
 export const marketReadingSchema = z
@@ -21,7 +22,7 @@ export const marketReadingSchema = z
     id: slug,
     /** What it measures, in plain words: "Operating margin, auto and truck makers (India)". */
     label: z.string().trim().min(3),
-    market: z.enum(["IN", "US", "JP", "KR"]),
+    market: z.enum(["IN", "US", "JP", "KR", "EU"]),
     kind: z.enum(READING_KINDS),
     /** The industry, as the source names it, for an industry yardstick. */
     industry: z.string().trim().min(1).optional(),
@@ -211,7 +212,7 @@ const premiums = [
 ];
 
 /** Every Market reading in the course as written: the course check runs marketReadingErrors on these. */
-export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, ...indiaYardsticks, ...JAPAN_KOREA_READINGS];
+export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, ...indiaYardsticks, ...JAPAN_KOREA_READINGS, ...EUROPE_READINGS];
 
 /** Every Market reading that parses (the course check fails on any that does not). */
 export const MARKET_READINGS: MarketReading[] = MARKET_READING_INPUTS.flatMap((r) => {
