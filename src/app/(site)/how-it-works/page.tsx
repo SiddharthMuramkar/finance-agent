@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/site-metadata";
 import { COURSE, home, howItWorks } from "@/site/copy";
 import { exampleBySlug } from "@/site/examples";
 import { Rich } from "@/site/rich";
@@ -16,7 +17,7 @@ import { HowMoves } from "./moves";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "How it works", description: howItWorks.description(courseStats()) };
+export const metadata: Metadata = pageMetadata({ title: "How it works", description: howItWorks.description(courseStats()), path: "/how-it-works" });
 
 const RATES = exampleBySlug("rbi-repo-cut-2025")!;
 
