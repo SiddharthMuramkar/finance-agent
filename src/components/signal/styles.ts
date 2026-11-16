@@ -22,7 +22,7 @@ export const SIGNAL_CSS = `
 .sig-w .sig-sub{margin-top:4px}
 .sig-w .sig-call{border:0;margin:0;padding:0;min-width:0;display:grid;gap:10px}
 .sig-w .sig-call legend{padding:0;margin-bottom:10px;font-weight:600;font-size:15px;color:var(--ink)}
-.sig-w .sig-tag{display:inline-block;margin-right:8px;padding:2px 7px;border-radius:6px;background:var(--blue-tint);color:var(--blue);font-size:11px;line-height:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;vertical-align:1px}
+.sig-w .sig-tag{display:inline-block;white-space:nowrap;flex:none;margin-right:8px;padding:2px 7px;border-radius:6px;background:var(--blue-tint);color:var(--blue);font-size:11px;line-height:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;vertical-align:1px}
 .sig-w .sig-l2.is-open .sig-tag{background:var(--paper)}
 .sig-w .sig-chips{display:flex;flex-wrap:wrap;gap:8px}
 .sig-w .sig-chip{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink);font:600 14px/20px var(--font-body,inherit);text-align:left;cursor:pointer;transition:background-color .15s,border-color .15s}
@@ -54,7 +54,7 @@ export const SIGNAL_CSS = `
 .sig-w .sig-plot{width:100%;min-width:0}
 .sig-w .sig-plot svg{display:block;font-family:var(--font-body,inherit);font-variant-numeric:tabular-nums;overflow:visible}
 .sig-w .sig-t-axis{font-size:12px;fill:var(--muted)}
-.sig-w .sig-t-faint{font-size:12px;fill:var(--faint)}
+.sig-w .sig-t-faint{font-size:12px;fill:var(--muted)}
 .sig-w .sig-t-value{font-size:14px;font-weight:600;fill:var(--ink)}
 .sig-w .sig-t-mark{font-size:11.5px;font-weight:600;fill:var(--ink-2)}
 .sig-w .sig-axis{stroke:var(--line);stroke-width:1}
@@ -153,7 +153,7 @@ export const SIGNAL_CSS = `
 .sig-w .sig-ruler-net.is-band-gain{background:var(--gain-line)}
 .sig-w .sig-ruler-net.is-band-loss{background:var(--loss-line)}
 .sig-w .sig-ruler-dot{position:absolute;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:var(--blue);border:3px solid var(--paper);box-shadow:var(--lift,none);transition:left .42s var(--ease,ease);display:grid;place-items:center;color:var(--paper);font-size:12px;line-height:1}
-.sig-w .sig-ruler-end{position:absolute;top:16px;font-size:12px;color:var(--faint)}
+.sig-w .sig-ruler-end{position:absolute;top:16px;font-size:12px;color:var(--muted)}
 .sig-w.dragging .sig-ruler-net,.sig-w.dragging .sig-ruler-dot,.sig-w.dragging .sig-lever-fill{transition:none}
 .sig-w .sig-levers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .sig-w .sig-lever{display:grid;justify-items:center;gap:6px;min-width:0;text-align:center}

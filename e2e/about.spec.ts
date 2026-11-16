@@ -72,7 +72,7 @@ test("[4.2, 7.1] signed in, About's nav offers Continue and the account menu, an
 test("[7.6] About says the valuations are Damodaran's published work and that Value It is not affiliated", async ({ page }, info) => {
   test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
   await page.goto("/about");
-  await expect(page.getByText("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.")).toBeVisible();
+  await expect(page.getByText("The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.")).toBeVisible();
 });
 
 test("[4.2] signed out, About offers Sign in and Join the waitlist, which opens /join, and no Sign out", async ({ page }) => {

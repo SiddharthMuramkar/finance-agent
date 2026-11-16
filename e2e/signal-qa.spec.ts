@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { EXAMPLE_SLUGS, examplePath } from "../src/site/examples";
+import { examplePath } from "../src/site/examples";
+import { SITE_PAGES } from "../src/site/routes";
 import { quietDevtools, siteReady } from "./support/app";
 
 /**
@@ -13,7 +14,8 @@ test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
 });
 
-const SITE_ROUTES = ["/", "/how-it-works", "/examples", ...EXAMPLE_SLUGS.map(examplePath), "/about"];
+/** Every site page, the five case pages included: the one public-route list (issue #69). */
+const SITE_ROUTES = SITE_PAGES;
 
 /** Presses Tab until `target` has the focus, at most `max` times; fails if it never does. */
 async function tabTo(page: Page, target: Locator, max = 120) {
@@ -101,6 +103,91 @@ test("[QA 24] every route at 1440 × 900 and 390 × 844 has no console error and
     }
   }
   expect(errors.filter((e) => !/Failed to load resource: net::ERR_FAILED/.test(e))).toEqual([]);
+});
+
+/** What the #74 phone audit found on one page, measured in the browser: each entry is a fault, so none should be left. */
+async function phoneFaults(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const faults: string[] = [];
+    const shown = (el: Element) => {
+      const box = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return box.width > 0 && box.height > 0 && style.visibility !== "hidden" && style.display !== "none" && !el.closest("[aria-hidden='true'], [hidden], .sr-only, .v-sr");
+    };
+    if (document.documentElement.scrollWidth > document.documentElement.clientWidth) faults.push("sideways scroll");
+    // The closing steps: no rule before a step that starts a line.
+    document.querySelectorAll(".v-join-steps li + li").forEach((li) => {
+      const rule = getComputedStyle(li, "::before");
+      const prev = li.previousElementSibling!.getBoundingClientRect();
+      if (rule.display !== "none" && rule.content !== "none" && li.getBoundingClientRect().top > prev.top + 2) faults.push("a stray rule starts a closing-steps line");
+    });
+    // The closing bars: never drawn under the CTA like an empty chart.
+    // (They are decorative, so aria-hidden: test the box, not the reading.)
+    document.querySelectorAll(".v-bars").forEach((bars) => bars.getBoundingClientRect().height > 0 && faults.push("pale closing bars"));
+    // A facts grid with a cell left empty.
+    document.querySelectorAll(".v-facts").forEach((grid) => {
+      const columns = getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length;
+      if (shown(grid) && grid.children.length % columns !== 0) faults.push(`a facts grid of ${grid.children.length} in ${columns} columns`);
+    });
+    // "Go deeper" on one line.
+    document.querySelectorAll(".sig-tag").forEach((tag) => {
+      if (shown(tag) && tag.getBoundingClientRect().height > 1.6 * parseFloat(getComputedStyle(tag).lineHeight)) faults.push(`"${tag.textContent}" wraps`);
+    });
+    // Headings never skip a level.
+    let level = 0;
+    document.querySelectorAll("main h1, main h2, main h3, main h4, main h5, main h6").forEach((h) => {
+      if (!shown(h)) return;
+      const n = Number(h.tagName[1]);
+      if (level && n > level + 1) faults.push(`h${n} "${h.textContent?.trim()}" after h${level}`);
+      level = n;
+    });
+    // Text contrast (WCAG AA): every shown text against the first solid background behind it.
+    const rgb = (c: string) => (c.match(/[\d.]+/g) ?? []).map(Number);
+    const lum = ([r, g, b]: number[]) => {
+      const f = (v: number) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    };
+    const backdrop = (el: Element | null): number[] => {
+      for (let node = el; node; node = node.parentElement) {
+        const c = rgb(getComputedStyle(node).backgroundColor);
+        if (c.length >= 3 && (c[3] ?? 1) > 0.5) return c;
+      }
+      return [255, 255, 255];
+    };
+    document.querySelectorAll("main *, header *, footer *").forEach((el) => {
+      if (el instanceof SVGElement || !shown(el)) return;
+      if (![...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim())) return;
+      if (el.closest("[disabled], [aria-disabled='true']")) return;
+      const style = getComputedStyle(el);
+      const fg = rgb(style.color);
+      const bg = backdrop(el);
+      const alpha = fg[3] ?? 1;
+      const mixed = fg.slice(0, 3).map((v, i) => v * alpha + bg[i] * (1 - alpha));
+      const [a, b] = [lum(mixed), lum(bg)].sort((x, y) => y - x);
+      const ratio = (a + 0.05) / (b + 0.05);
+      const size = parseFloat(style.fontSize);
+      const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
+      if (ratio < (large ? 3 : 4.5)) faults.push(`contrast ${ratio.toFixed(2)} on "${el.textContent?.trim().slice(0, 40)}"`);
+    });
+    return faults;
+  });
+}
+
+// #74: the phone polish the audit found (the closing steps' stray rule, the pale bars, an empty facts cell, "Go deeper"
+// wrapping, faded text, a skipped heading level) stays fixed at 360 and 390 px on every public page.
+test("[#74] no layout fault from the phone audit at 360 and 390 px, and no text below AA contrast", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "both phone sizes are set here");
+  test.setTimeout(240_000);
+  await page.route(/va\.vercel-scripts\.com/, (route) => route.abort());
+  for (const width of [360, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const path of SITE_ROUTES) {
+      await page.goto(path);
+      await siteReady(page);
+      await page.waitForLoadState("networkidle");
+      expect(await phoneFaults(page), `${path} at ${width} px`).toEqual([]);
+    }
+  }
 });
 
 /**

@@ -1,4 +1,6 @@
 import { chromium, request, type FullConfig, type LaunchOptions } from "@playwright/test";
+import { SIGN_IN_PATH } from "../../src/auth/destination";
+import { SITE_PAGES_ONE_CASE } from "../../src/site/routes";
 
 /**
  * Warms the test server, then signs the tools Learner in once through the real login route and saves the cookie every
@@ -81,5 +83,5 @@ async function warmUp(baseURL: string, launchOptions: LaunchOptions | undefined)
   }
 }
 
-/** The public site's pages (one case page compiles the route for all five) and the sign-in page. */
-const PUBLIC_PAGES = ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/sign-in"];
+/** The public site's pages (one case page compiles the route for all five) and the sign-in page: src/site/routes.ts (issue #69). */
+const PUBLIC_PAGES = [...SITE_PAGES_ONE_CASE, SIGN_IN_PATH];
