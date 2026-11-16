@@ -17,8 +17,6 @@ export const MAX_NEW_WORDS = 4;
 /** Spine Topics that bring more than four new words. */
 export const NEW_WORDS_NOT_YET: readonly string[] = [
   "spine-01-worth",
-  "spine-02-money-later",
-  "spine-03-cash",
   "spine-04-growth",
   "spine-05-margins",
   "spine-06-growth-cost",
@@ -50,8 +48,6 @@ export const YOUR_STORY_NOT_YET: readonly string[] = [
 
 /** Spine Topics with no daily-life line. */
 export const DAILY_LIFE_NOT_YET: readonly string[] = [
-  "spine-02-money-later",
-  "spine-03-cash",
   "spine-04-growth",
   "spine-05-margins",
   "spine-06-growth-cost",
