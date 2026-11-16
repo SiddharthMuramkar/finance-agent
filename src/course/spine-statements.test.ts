@@ -70,7 +70,8 @@ describe("the three financial statements, a Spine Topic of their own (#90)", () 
 
 // Spine critics round 1 on #90: the fixes each finding asked for, held here so they stay fixed.
 describe("the three financial statements, after the critics' round 1 (#90)", () => {
-  const dollars = (text: string) => text.match(/\$\d[\d,.]*/g) ?? [];
+  const dollars = (text: string) => (text.match(/\$\d[\d,.]*/g) ?? []).map((d) => d.replace(/[.,]$/, ""));
+  const amount = (d: string) => Number(d.replace(/[$,]/g, ""));
 
   it("opens on the stakes with at most two figures, leaving the rest to the scene (beginner persona)", () => {
     const story = draftOf("statements-story").text;
@@ -81,20 +82,19 @@ describe("the three financial statements, after the critics' round 1 (#90)", () 
   it("glosses the explore turn's new words in plain words, and offers no word Choice for a statement the Concept already taught (beginner persona)", () => {
     const explore = draftOf("statements-explore").text;
     expect(explore).toMatch(/free cash flow, the cash left after paying to grow/i);
-    expect(explore).toMatch(/operating income, what sales bring in after the running costs/i);
     const taught = draftOf("statements-concept").text.toLowerCase();
     const word = wordChoiceTerm(statements.terms, explore);
     expect(word === null || !taught.includes(word.toLowerCase()), String(word)).toBe(true);
     expect(Object.keys(E2E_SCRIPTS)).toContain("statements-explore");
   });
 
-  it("gives Webvan no imagined words in the opening scene: its beat quotes a figure from its own report (historian)", () => {
+  it("gives Webvan no imagined words in the opening scene: its beat quotes a figure from its own report, rounded at most (historian)", () => {
     const opening = statements.scenes.find((s) => s.id === "st-opening")!;
     const beats = (opening.inputs as { beats: { who: string; says: string }[] }).beats.filter((b) => b.who === "webvan");
-    const story = statements.cases[0].story;
+    const reported = dollars(statements.cases[0].story).map(amount);
     for (const b of beats) {
       expect(dollars(b.says).length, b.says).toBeGreaterThan(0);
-      for (const d of dollars(b.says)) expect(story, d).toContain(d);
+      for (const d of dollars(b.says)) expect(reported.some((r) => Math.abs(r - amount(d)) <= r * 0.02), d).toBe(true);
     }
   });
 
@@ -105,5 +105,40 @@ describe("the three financial statements, after the critics' round 1 (#90)", () 
     const text = JSON.stringify(concept[0].inputs).toLowerCase();
     for (const name of ["warehouse", "income statement", "balance sheet", "cash flow statement"]) expect(text).toContain(name);
     expect(buildScene(statements, concept[0]).ok).toBe(true);
+  });
+});
+
+// Spine critics round 1 on #90, after the merge: the fixes each finding asked for, held here so they stay fixed.
+describe("the three financial statements, after the critics' second round 1 (#90)", () => {
+  const dollars = (text: string) => (text.match(/\$\d[\d,.]*/g) ?? []).map((d) => d.replace(/[.,]$/, ""));
+  const opening = statements.scenes.find((s) => s.id === "st-opening")!;
+  const beats = (opening.inputs as { beats: { says: string }[] }).beats.map((b) => b.says).join(" ");
+
+  it("opens on two round figures across the reply and the scene, and leaves the spending figures to Go deeper (beginner persona)", () => {
+    const turn1 = `${draftOf("statements-story").text} ${beats}`;
+    const figures = new Set(dollars(turn1));
+    expect(figures.size, [...figures].join(", ")).toBeLessThanOrEqual(2);
+    for (const d of figures) expect(d, d).not.toMatch(/\.\d/);
+    for (const d of ["$259.8", "$263.1", "$178.5"]) expect(turn1).not.toContain(d);
+    // The gap between the loss and the cash is explained where the two figures now sit.
+    for (const d of ["$453.3", "$263.1", "$259.8"]) expect(statements.goDeeper ?? "").toContain(d);
+  });
+
+  it("leads the explore turn with one new word, free cash flow, and calls the margin a profit on each sale (beginner persona)", () => {
+    const explore = draftOf("statements-explore").text;
+    expect(explore).toMatch(/free cash flow/i);
+    expect(explore).not.toMatch(/operating income|reinvestment|operating margin/i);
+    expect(explore).toMatch(/profit on each sale/i);
+  });
+
+  it("draws the three pages as tiles on the Concept's Widget, none lit at the event and each lit in turn, with a warehouse (widget fit)", () => {
+    const concept = statements.scenes.find((s) => s.id === "st-one-warehouse")!;
+    const inputs = concept.inputs as { tiles?: { label: string }[]; steps: { light?: number; emoji?: string }[] };
+    expect(inputs.tiles?.map((t) => t.label.toLowerCase())).toEqual(["cash flow statement", "balance sheet", "income statement"]);
+    expect(inputs.steps[0].light).toBeUndefined();
+    expect(inputs.steps[0].emoji).toBeTruthy();
+    expect(inputs.steps.slice(1).map((s) => s.light)).toEqual([0, 1, 2]);
+    const built = buildScene(statements, concept);
+    expect(built.ok && built.code).toMatch(/StepThrough\(\[.*\], \[/s);
   });
 });

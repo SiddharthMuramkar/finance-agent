@@ -56,7 +56,8 @@ goDeeper: >
   takes off cash tied up in goods on the shelves. The cash flow statement's closing cash is the cash
   on the balance sheet, and a year's profit or loss also changes the owners' part of the balance
   sheet. That is why Webvan's loss of $453.3 million and the $263.1 million of cash its operations
-  used are different numbers.
+  used are different numbers. The $259.8 million it spent on warehouses and equipment in 2000 is
+  on the cash flow statement in full, but reaches the income statement only a slice each year.
 
 principle: >
   Read all three statements, never one alone. The income statement says what a year earned, the
@@ -107,10 +108,12 @@ scenes:
         - { id: webvan, emoji: delivery-truck, name: Webvan, role: an online grocer }
         - { id: investor, emoji: thinking-face, name: An investor, role: reads the report }
       beats:
-        - { who: narrator, says: "Webvan's report for 2000 shows sales of $178.5 million and a loss of $453.3 million.", emoji: receipt }
-        - { who: webvan, says: "Our report: $259.8 million spent on warehouses and equipment in 2000.", emoji: building-construction }
-        - { who: investor, says: "The cash page says $263.1 million went on running the business.", emoji: thinking-face }
-        - { who: narrator, says: "And about $212 million is left. Which page says how long that lasts?", emoji: hourglass-not-done }
+        # Critics round 1 after the merge (beginner persona): two round figures in the first turn, the loss and the cash
+        # left; the spending figures ($259.8m, $263.1m) wait for Go deeper, where the gap between loss and cash is explained.
+        - { who: narrator, says: "Webvan's report for 2000 shows a loss of about $450 million.", emoji: receipt }
+        - { who: webvan, says: "Our report: about $210 million left in cash at the end of 2000.", emoji: building-construction }
+        - { who: investor, says: "Three pages, and each tells a different part. Which one do I read?", emoji: thinking-face }
+        - { who: narrator, says: "Which page says how long that cash lasts?", emoji: hourglass-not-done }
       caption: 2 April 2001, the annual report for 2000
       date: "2001-04-02"
   - id: st-front-page
@@ -128,12 +131,18 @@ scenes:
     step: concept
     recipe: chain
     title: One warehouse, three pages
+    # Critics round 1 after the merge (widget fit): the three pages are drawn as tiles from the first step, with the
+    # warehouse beside the event, and each step lights its page.
     inputs:
+      tiles:
+        - { label: Cash flow statement, emoji: money-with-wings }
+        - { label: Balance sheet, emoji: bank }
+        - { label: Income statement, emoji: receipt }
       steps:
-        - { title: Webvan pays cash for a warehouse, body: "One event: a warehouse it will use for many years.", highlight: src }
-        - { title: The cash flow statement, body: "Shows the cash going out this year, as spending on things that last.", highlight: neutral }
-        - { title: The balance sheet, body: "Swaps cash for a warehouse: Webvan owns something else, not more.", highlight: neutral }
-        - { title: The income statement, body: "Takes only a slice of the warehouse's cost, each year it is used.", highlight: neutral }
+        - { title: Webvan pays cash for a warehouse, body: "One event: a warehouse it will use for many years.", highlight: src, emoji: building-construction }
+        - { title: The cash flow statement, body: "Shows the cash going out this year, as spending on things that last.", highlight: neutral, light: 0 }
+        - { title: The balance sheet, body: "Swaps cash for a warehouse: Webvan owns something else, not more.", highlight: neutral, light: 1 }
+        - { title: The income statement, body: "Takes only a slice of the warehouse's cost, each year it is used.", highlight: neutral, light: 2 }
 
 skills:
   - id: st-three-pages

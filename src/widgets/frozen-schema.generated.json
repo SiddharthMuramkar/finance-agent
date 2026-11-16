@@ -1226,6 +1226,31 @@
           "items": {
             "$ref": "#/$defs/Step"
           }
+        },
+        "tiles": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label"
+                ],
+                "additionalProperties": false
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -1252,10 +1277,34 @@
           ]
         },
         "ask": {
-          "type": "number"
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "askUnit": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "light": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "emoji": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
@@ -1263,7 +1312,7 @@
         "body"
       ],
       "additionalProperties": false,
-      "description": "One step of a StepThrough: Step(title, body, highlight?, ask?, askUnit?). Use it only inside StepThrough."
+      "description": "One step of a StepThrough. Use it only inside StepThrough."
     },
     "Rank": {
       "type": "object",

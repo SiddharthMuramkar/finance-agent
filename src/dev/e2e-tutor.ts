@@ -691,7 +691,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "April 2001. Webvan, the online grocer, may run out of cash within the year. " +
-              "Its report for 2000 shows a loss of $453.3 million, and about $212 million left in cash and investments. " +
+              "Its report for 2000 shows a loss of about $450 million, and about $210 million left in cash. " +
               "Three pages of that report matter, and each tells a different part of it.\n\n" +
               "Which page would you read to see how long Webvan can keep going?",
           ),
@@ -721,10 +721,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "Here is Webvan's next year as a waterfall, with sales doubling and a small profit on each sale. " +
-              "Operating income, what sales bring in after the running costs, is above zero. " +
-              "Free cash flow, the cash left after paying to grow, is far below it. " +
-              "Reinvestment is that paying to grow: warehouses, vans and groceries bought before the new sales arrive.\n\n" +
-              "Why do the two point opposite ways, and where did the cash go?",
+              "Look at the last bar: free cash flow, the cash left after paying to grow, is far below zero.\n\n" +
+              "Webvan makes a profit on each sale, yet its cash goes out. Where did the cash go?",
           ),
         ],
       },

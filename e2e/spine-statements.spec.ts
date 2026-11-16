@@ -128,7 +128,12 @@ test("[#90] the three financial statements play as a Spine Topic: Story, Concept
   expect(explore.widget).not.toMatch(/-179|−179/);
   // Critics round 2: the story renders the Topic file's own Webvan beat (the round's inputs had a stale one), and the
   // explore Workbench draws where the cash went, buildings and all, not only sliders, stats and bars.
-  expect(story.widget).toContain("$259.8 million spent on warehouses and equipment in 2000");
+  expect(story.widget).toContain("about $210 million left in cash at the end of 2000");
+  // Critics round 1 after the merge: two round figures in the first turn, no spending figures; the Concept draws the
+  // three pages as tiles from its first step; the explore reply leads with free cash flow alone.
+  expect(`${story.tutor} ${story.widget}`).not.toMatch(/\$259\.8|\$263\.1|\$178\.5/);
+  for (const page of ["Cash flow statement", "Balance sheet", "Income statement"]) expect(concept.widget).toContain(page);
+  expect(explore.tutor).not.toMatch(/operating income|reinvestment/i);
   expect(story.widget).not.toContain("customers are growing");
   expect(explore.widget).toContain("More sales need warehouses, vans and stock first, so the cash goes out.");
   expect(explore.widget).toContain("Free cash flow in 2001");
