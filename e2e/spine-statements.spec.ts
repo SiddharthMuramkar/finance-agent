@@ -130,5 +130,6 @@ test("[#90] the three financial statements play as a Spine Topic: Story, Concept
   // explore Workbench draws where the cash went, buildings and all, not only sliders, stats and bars.
   expect(story.widget).toContain("$259.8 million spent on warehouses and equipment in 2000");
   expect(story.widget).not.toContain("customers are growing");
-  expect(explore.widget).toMatch(/became buildings and stock it owns, on the balance sheet/);
+  expect(explore.widget).toContain("More sales need warehouses, vans and stock first, so the cash goes out.");
+  expect(explore.widget).toContain("Free cash flow in 2001");
 });

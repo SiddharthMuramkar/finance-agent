@@ -4,6 +4,8 @@ import { wordChoiceTerm } from "@/tutor/choices";
 import { loadCourseMap } from "./map";
 import { courseOverview, defaultPath, navigate, type Progress } from "./navigator";
 import { buildScene } from "./scenes";
+import { cashWaterfallScene } from "@/widgets/workbench/cash-waterfall-model";
+import { cashWaterfallData } from "@/widgets/workbench/registry";
 
 // Ticket #90 (spec #68; ADR 0004, ADR 0020): the three-statements Primer leaves the cash Topic and becomes its own Spine
 // Topic, right after it, on a real Case (Webvan's report for 2000) with a reused Workbench (the Cash waterfall). The cash
@@ -32,6 +34,13 @@ describe("the three financial statements, a Spine Topic of their own (#90)", () 
   it("plays on a real Case, Webvan's report for 2000, with a reused Workbench", () => {
     expect(statements.cases.map((c) => [c.id, c.asOf])).toEqual([["spine-statements-webvan-2001", "2001-04-02"]]);
     expect(statements.explore?.workbench?.recipe).toBe("cash_waterfall");
+  });
+
+  it("draws where the cash went: the Workbench's scene of Webvan building, in years the Case names (critics round 2)", () => {
+    const found = cashWaterfallData(statements.explore?.workbench?.inputs);
+    if ("problem" in found) throw new Error(found.problem);
+    expect(found.data.years).toEqual({ from: "2000", to: "2001" });
+    expect(cashWaterfallScene(found.data, found.data.opening)?.line).toBe("More sales need warehouses, vans and stock first, so the cash goes out.");
   });
 
   it("takes the three-statements Primer from the cash Topic", () => {
