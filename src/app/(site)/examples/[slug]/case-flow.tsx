@@ -151,7 +151,7 @@ export function CaseFlow({ example }: { example: Example }) {
                   <span key={"url" in source ? source.url : source.note}>
                     {i > 0 && "; "}
                     {"url" in source ? (
-                      <a href={source.url} target="_blank" rel="noopener noreferrer">
+                      <a href={source.url} className="link" target="_blank" rel="noopener noreferrer">
                         {source.label}
                       </a>
                     ) : (
