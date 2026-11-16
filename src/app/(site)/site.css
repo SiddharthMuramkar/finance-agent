@@ -221,8 +221,11 @@
 .v-footer nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Home hero (7.2.1) */
-.v-hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 72px); align-items: start; padding-block: clamp(40px, 6vw, 80px) clamp(56px, 7vw, 96px); }
-.v-hero-copy { display: grid; gap: 20px; }
+/* Page order: eyebrow and h1, the demo, then the rest. A laptop draws the demo in the right column, beside both (7.2.1). */
+.v-hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-rows: auto 1fr; grid-template-areas: "head demo" "copy demo"; column-gap: clamp(32px, 5vw, 72px); row-gap: 20px; align-items: start; padding-block: clamp(40px, 6vw, 80px) clamp(56px, 7vw, 96px); }
+.v-hero-head { grid-area: head; display: grid; gap: 20px; }
+.v-hero > .v-demo { grid-area: demo; }
+.v-hero-copy { grid-area: copy; display: grid; gap: 20px; }
 .v-hero-facts { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; color: var(--muted); }
 .v-hero-facts li { display: inline-flex; align-items: center; gap: 8px; }
 .v-hero-facts li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
@@ -405,7 +408,8 @@
 
 /* Breakpoints (3.6, 11) */
 @media (max-width: 980px) {
-  .v-hero { grid-template-columns: minmax(0, 1fr); }
+  /* One column: the demo right under the h1, before the lede, as the page's order has it (7.2.1, WCAG 2.4.3). */
+  .v-hero { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "head" "demo" "copy"; }
   .v-case { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "story" "question" "widget" "answer" "ending"; }
   .v-case > .widget.sticky { position: static; }
   .v-about-head { grid-template-columns: minmax(0, 1fr); }
@@ -450,11 +454,6 @@
   .v-bars { display: none; }
 }
 @media (max-width: 640px) {
-  /* A phone puts the Tutor demo right under the h1 (spec 7.2.1, #73): something to play without scrolling. */
-  .v-hero { gap: 20px; }
-  .v-hero-copy { display: contents; }
-  .v-hero > .v-demo { order: 1; }
-  .v-hero-copy > :not(.v-eyebrow):not(h1) { order: 2; }
   .v-pager { grid-template-columns: minmax(0, 1fr); }
   .v-pager a.next { text-align: left; }
 }
