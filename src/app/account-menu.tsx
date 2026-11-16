@@ -1,7 +1,9 @@
 "use client";
 
+import { chrome } from "@/site/copy";
 import { IconButton, MenuItem, MenuLink, useMenu } from "./primitives";
 import { SignOutForm } from "./sign-out";
+import { ThemeSwitch, usePhone } from "./theme-switch";
 
 /**
  * The header's account menu (A5): a 32px ghost icon button holding the Learner's initial in a 28px avatar circle
@@ -10,14 +12,17 @@ import { SignOutForm } from "./sign-out";
  * rows: Settings and Sign out (the same SignOutForm as SignOutButton, drawn as a menu row so the arrows reach it). The
  * email is the one the account's Clerk session carries (accountFor); a passcode Learner has none. The admin (and only an
  * account whose session says admin: `admin` comes from accountFor) also gets an Admin row first (issue #33: who waits
- * is Clerk's Waitlist now, so the row carries no count). The keyboard works through
- * useMenu in primitives, like the Topic options menu.
+ * is Clerk's Waitlist now, so the row carries no count). On a phone the sun/moon switch is a row here too, after
+ * Settings (the app bar shows it only from 768 px: AppBarThemeSwitch). The keyboard works through useMenu in
+ * primitives, like the Topic options menu.
  */
 export function AccountMenu({ name, email, admin }: { name: string; email?: string; admin?: boolean }) {
   const { open, setOpen, toggleRef, rootRef, menuRef, menuId, onMenuKeyDown, onToggleKeyDown } = useMenu();
+  const phone = usePhone();
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
   return (
-    <div ref={rootRef} className="relative ml-1 flex items-center">
+    // 4px more air from the gear from 768 px; a phone's one-line bar has none to spare (spec #68, #84).
+    <div ref={rootRef} className="relative flex items-center md:ml-1">
       <IconButton
         ref={toggleRef}
         label="Account menu"
@@ -62,6 +67,8 @@ export function AccountMenu({ name, email, admin }: { name: string; email?: stri
             </MenuLink>
           )}
           <MenuLink href="/settings">Settings</MenuLink>
+          {/* ADR 0019: as in the site's Menu sheet, the phone's switch is a row with a word beside the icon. */}
+          {phone && <ThemeSwitch role="menuitem" className="menu-item" text={chrome.theme} />}
           <SignOutForm>
             <MenuItem type="submit">Sign out</MenuItem>
           </SignOutForm>

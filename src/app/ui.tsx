@@ -1,6 +1,6 @@
 // Shared look pieces of the design system (ADR 0015 for colour, ADR 0018 for the rest; issue #43). Colours come only from the tokens in
 // globals.css (Light and Dark, ADR 0019). Server-safe: no "use client" here; the only client pieces rendered
-// are AccountMenu, NavLink, SignOutForm and ThemeSwitch.
+// are AccountMenu, NavLink, SignOutForm and AppBarThemeSwitch.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -9,7 +9,7 @@ import { SignOutForm } from "./sign-out";
 import { NavLink } from "./nav-link";
 import { Button, Tag } from "./primitives";
 import { RisingBars } from "./rising-bars";
-import { ThemeSwitch } from "./theme-switch";
+import { AppBarThemeSwitch } from "./theme-switch";
 
 
 /**
@@ -128,12 +128,13 @@ function GearMark() {
  * same one as the site nav), a gear to Settings and the account menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
  * accent bar on the hairline under it. current = the page showing; account names the signed-in
  * Learner (left out only by the loading skeleton and the signed-out 404). One line at every width down to a 360px phone
- * (spec #68, #84): below 768px the wordmark shows only its bars and the page links tighten.
+ * (spec #68, #84): below 768px the wordmark shows only its bars, the page links and gaps tighten, and the theme switch
+ * is a row of the account menu instead (ADR 0019; AppBarThemeSwitch), so the row fits inside the page's gutters.
  */
 export function AppHeader({ current, account, className = "" }: { current?: HeaderPage; account?: HeaderAccount; className?: string }) {
   return (
     // Above what follows it (relative z-30): the account menu drops over the Study Workspace's Topic bar, a positioned Band.
-    <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-2 border-b border-[var(--rule)] bg-[var(--paper)] md:gap-3 lg:gap-6 ${className}`}>
+    <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-1 border-b border-[var(--rule)] bg-[var(--paper)] md:gap-3 lg:gap-6 ${className}`}>
       <h1 className="flex shrink-0 items-center">
         <Link href="/" title="Home" data-affordance="nav" className={BRAND_LINK}>
           <RisingBars size={16} className="bars-still" />
@@ -154,7 +155,7 @@ export function AppHeader({ current, account, className = "" }: { current?: Head
         </ul>
       </nav>
       <div className="ml-auto flex items-center gap-1 self-stretch">
-        <ThemeSwitch className="btn btn-icon" />
+        <AppBarThemeSwitch />
         <span data-current={current === "settings" ? "true" : undefined} className={`${TAB} self-stretch after:inset-x-1.5`}>
           {/* On Settings the gear is ink with the bar, like a current page link, not the tinted face of a pressed icon. */}
           <Link

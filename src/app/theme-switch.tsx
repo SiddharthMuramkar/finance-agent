@@ -1,7 +1,9 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useAnnounce } from "./announcer";
 import { Button } from "./primitives";
+import { TABLET_UP } from "./screen";
 import { setTheme, useTheme } from "./theme-store";
 import type { ThemeId } from "./theme";
 
@@ -17,9 +19,10 @@ const icon = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke
 /**
  * One button that flips the theme. A press switches at once, saves the choice in the `theme` cookie for a year, keeps
  * focus on the button, and says "Dark theme on" or "Light theme on" to screen readers. `text` adds a visible word beside
- * the icon (the phone menu); without it the button is an icon with a tooltip.
+ * the icon (the phone menu); without it the button is an icon with a tooltip. `role="menuitem"` makes it a row of a
+ * menu (the account menu on a phone), which the menu's arrows reach.
  */
-export function ThemeSwitch({ className = "", text }: { className?: string; text?: Record<ThemeId, string> }) {
+export function ThemeSwitch({ className = "", text, role }: { className?: string; text?: Record<ThemeId, string>; role?: "menuitem" }) {
   const theme = useTheme();
   const announce = useAnnounce();
   const next: ThemeId = theme === "dark" ? "light" : "dark";
@@ -27,8 +30,9 @@ export function ThemeSwitch({ className = "", text }: { className?: string; text
     <Button
       unstyled
       className={className}
+      role={role}
       data-testid="theme-switch"
-      data-affordance="icon"
+      data-affordance={role ? "button" : "icon"}
       aria-label={SWITCH_LABEL[theme]}
       title={text ? undefined : SWITCH_LABEL[theme]}
       onClick={() => {
@@ -51,4 +55,28 @@ export function ThemeSwitch({ className = "", text }: { className?: string; text
       )}
     </Button>
   );
+}
+
+const watchTablet = (changed: () => void) => {
+  const query = window.matchMedia(TABLET_UP);
+  query.addEventListener("change", changed);
+  return () => query.removeEventListener("change", changed);
+};
+
+/**
+ * Whether this is a phone by the one screen-size rule (./screen: below 768 px), kept up to date as it resizes. A server
+ * render says no, so a page hydrates as it was drawn; CSS has laid the phone out from the first frame.
+ */
+export function usePhone(): boolean {
+  return useSyncExternalStore(watchTablet, () => !window.matchMedia(TABLET_UP).matches, () => false);
+}
+
+/**
+ * The app bar's switch (ADR 0019): a 32px ghost icon from 768 px. On a phone the bar has no room for it beside the gear
+ * and the account menu (spec #68, #84: one line at 360 px), so the switch is a row of the account menu there
+ * (AccountMenu). CSS hides this one from the first frame, and once the page runs it is not mounted at all: the page has
+ * one switch.
+ */
+export function AppBarThemeSwitch() {
+  return usePhone() ? null : <ThemeSwitch className="btn btn-icon max-md:hidden" />;
 }

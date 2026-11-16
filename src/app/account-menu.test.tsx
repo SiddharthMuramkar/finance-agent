@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountMenu } from "./account-menu";
 
 // The header's account menu (A5): the Learner's initial in a 28px avatar circle on a 32px ghost icon button;
@@ -139,5 +139,64 @@ describe("account menu", () => {
     await click(button());
     expect(items().map((i) => i.textContent)).toEqual(["Settings", "Sign out"]);
     expect(host.querySelector('a[href="/admin"]')).toBeNull();
+  });
+});
+
+/** A screen of this width, by the matchMedia queries the screen-size rule asks (./screen). */
+const screenOf = (width: number) =>
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: width >= Number(query.match(/(\d+)px/)?.[1]),
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+
+// ADR 0019 and spec #68, #84: a phone's one-line app bar has no room for the sun/moon switch beside the gear and this
+// menu, so on a phone the switch is a row here, after Settings, with a word beside the icon as in the site's Menu sheet.
+describe("account menu, the theme switch row", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete document.documentElement.dataset.theme;
+  });
+
+  it("on a phone, the switch is a row after Settings, with a word beside the icon, and the arrows reach it", async () => {
+    screenOf(360);
+    await mount({ name: "Asha" });
+    button().focus();
+    await press(button(), "ArrowDown");
+    const rows = items();
+    expect(rows.map((i) => i.getAttribute("aria-label") ?? i.textContent)).toEqual(["Settings", "Switch to dark theme", "Sign out"]);
+    const theme = rows[1];
+    expect(theme.getAttribute("data-testid")).toBe("theme-switch");
+    expect(theme.className).toMatch(/\bmenu-item\b/);
+    expect(theme.querySelector("span.theme-show-light")?.textContent).toBe("Dark theme");
+    expect(theme.querySelector("span.theme-show-dark")?.textContent).toBe("Light theme");
+    expect(document.activeElement).toBe(rows[0]);
+    await press(rows[0], "ArrowDown");
+    expect(document.activeElement).toBe(theme);
+  });
+
+  it("on a phone, a press on the row flips the theme and the menu stays open on it", async () => {
+    screenOf(390);
+    await mount({ name: "Asha" });
+    await click(button());
+    items()[1].focus();
+    await click(items()[1]);
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(menu()).not.toBeNull();
+    expect(items()[1].getAttribute("aria-label")).toBe("Switch to light theme");
+    expect(document.activeElement).toBe(items()[1]);
+  });
+
+  it("from 768 px there is no row: the switch sits in the app bar", async () => {
+    for (const width of [768, 1024, 1512]) {
+      screenOf(width);
+      await mount({ name: "Asha", admin: true });
+      await click(button());
+      expect(items().map((i) => i.textContent), `${width} px`).toEqual(["Admin", "Settings", "Sign out"]);
+      expect(host.querySelector('[data-testid="theme-switch"]'), `${width} px`).toBeNull();
+      await click(button());
+      vi.unstubAllGlobals();
+    }
   });
 });
