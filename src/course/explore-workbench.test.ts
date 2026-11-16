@@ -62,3 +62,20 @@ describe("every Spine Topic has its explore Widget (C2, Appendix D)", () => {
     });
   }
 });
+
+describe("Market readings in the Spine's Workbenches (ticket #105)", () => {
+  const code = (id: string) => {
+    const built = exploreWorkbenchBuild(map.topics.find((t) => t.id === id)!);
+    return built?.ok ? built.code : "";
+  };
+
+  it("the cost-of-capital Topic shows the implied premiums and India's cost of capital by industry", () => {
+    expect(code("spine-07-risk")).toContain('"us-implied-premium-2008"');
+    expect(code("spine-07-risk")).toContain('"in-software-cost-of-capital"');
+  });
+
+  it("'What does the price assume?' shows India's margins and sales for each rupee invested", () => {
+    expect(code("spine-13-price-assumes")).toContain('"in-food-margin"');
+    expect(code("spine-13-price-assumes")).toContain('"in-market-sales-to-capital"');
+  });
+});

@@ -16,6 +16,7 @@ import { homeAnnuityCheckErrors, writtenAheadCheckErrors, writtenAheadCheckWarni
 import { goalCheckErrors } from "../src/course/goal-check.ts";
 import { beginnerCheckErrors } from "../src/course/beginner-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
+import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
 
@@ -70,6 +71,11 @@ if (goals.length) fail("Topic goals, why lines and found lines that break the ru
 // line on every Spine Topic. Each rule's list of known failures (src/course/beginner-check.ts) can only shrink.
 const beginner = beginnerCheckErrors(map.topics);
 if (beginner.length) fail("Spine Topics that break the beginner rules (spec #68)", beginner);
+
+// Every Market reading (ticket #105) has its measured date, source, credit and working link, never calls itself today's
+// or current, and a premium reading's inputs give the premium it states.
+const readings = marketReadingErrors(MARKET_READING_INPUTS);
+if (readings.length) fail("Market readings that are not dated and sourced (spec #68)", readings);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 // The valuation Case registry (spec 2026-11-12 B1): what client and server code value a Case from, by its id.

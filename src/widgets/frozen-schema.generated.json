@@ -3538,6 +3538,19 @@
         },
         "caseChoice": {
           "type": "number"
+        },
+        "readings": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -3622,6 +3635,19 @@
           "type": [
             "string",
             "null"
+          ]
+        },
+        "readings": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },
