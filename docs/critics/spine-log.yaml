@@ -16,16 +16,16 @@ topics:
     note: Round 3 found nothing. After it, the reveal's $91.50 high was restored as a high a month before the Case date (spec C5; the round-2 historian finding was that it read as a later rise).
   spine-02-money-later:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "131125b"
+    rounds: 4
+    lastRound: "81d8f11"
     open: 0
-    note: Round 3 (ws-i-round2) read the round-2 content (the far-rate question, the jackpot's Case Data through dataFrom); 2 confirmed, fixed. Findings in ws-i-round2-critics.json in pull request 616's history.
+    note: Round 4 (#89 for beginners, critics round 1) found the annuity Widget chart-only; fixed with the winner and the lottery in a StoryScene that reacts at 0% and the even rate. The phone-width finding (no Study Workspace under 390px) is app-wide, out of #89's scope, and needs a triage issue.
   spine-03-cash:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "131125b"
+    rounds: 4
+    lastRound: "81d8f11"
     open: 0
-    note: Round 3 (ws-i-round2) read the Topic rebuilt on one Webvan Case, its computed questions on Webvan's own plan; 2 confirmed, fixed. Findings in ws-i-round2-critics.json in pull request 616's history.
+    note: Round 4 (#89 for beginners, critics round 1) 6 confirmed, fixed (one new word in the concept, no worked division on the card, the bench's profit said to be a what-if, its years named 1999 into 2000, a reacting Webvan scene); the app-wide phone-width finding is out of #89's scope.
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 3
@@ -99,3 +99,9 @@ topics:
     rounds: 2
     lastRound: "3c5b952"
     open: 0
+  spine-annual-report:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "e8c3775"
+    open: 0
+    note: Round 2 (#93), 5 confirmed, all fixed - inputs were stale (before bfabe7f); re-captured from HEAD, and the e2e spec now pins the one-number opener, a lot or a little, and the report's debt and cash on the reply and page.

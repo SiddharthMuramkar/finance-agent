@@ -25,7 +25,17 @@ export type BridgeSettings = Record<BridgeLeverId, number>;
 /** Leases the Topic counts as debt (spec C4: WeWork's lease obligations), in the block's unit, with what they are. */
 export type BridgeLeases = { amount: number; label: string };
 
-export type ValueBridgeData = { block: ValuationBlock; leases?: BridgeLeases };
+/** A report's lines beside the bridge (#93), amounts in the block's unit; a line with a lever can be put into that lever. */
+export type BridgeReportLine = { line: string; amount: number; lever?: "cash" | "debt" };
+export type BridgeReport = { title: string; lines: BridgeReportLine[] };
+
+export type ValueBridgeData = { block: ValuationBlock; leases?: BridgeLeases; report?: BridgeReport };
+
+/** The report's figure for a lever, if it gives one. */
+export const reportFigure = (data: ValueBridgeData, lever: BridgeLeverId): number | undefined => data.report?.lines.find((l) => l.lever === lever)?.amount;
+
+/** The report's levers, in the order its Thing to try names them: debt, then cash. */
+const reportLevers = (data: ValueBridgeData): ("debt" | "cash")[] => (["debt", "cash"] as const).filter((id) => reportFigure(data, id) !== undefined);
 
 /** The business value the engine gives the Case's own story, before cash, debt and options; null when it cannot be valued. */
 export function bridgeBusinessValue(block: ValuationBlock): number | null {
@@ -35,7 +45,11 @@ export function bridgeBusinessValue(block: ValuationBlock): number | null {
 
 /** The Things to try (B7: each can be reached on any Case, since debt and leases go up to the business value and options down to nothing). */
 export function valueBridgeTasks(data: ValueBridgeData): string[] {
-  return [data.leases ? "Raise debt and leases until shareholders get nothing" : "Raise debt until shareholders get nothing", `Set the options to ${moneyText(0, data.block)}. What does a share gain?`];
+  const raise = data.leases ? "Raise debt and leases until shareholders get nothing" : "Raise debt until shareholders get nothing";
+  // With a report beside it (#93), its figures come first and the options wait under More settings.
+  const fromReport = reportLevers(data);
+  if (fromReport.length) return [`Put in the report's ${fromReport.join(" and ")}. Watch one share.`, raise];
+  return [raise, `Set the options to ${moneyText(0, data.block)}. What does a share gain?`];
 }
 
 /**
@@ -49,7 +63,7 @@ export function valueBridgeLevers(data: ValueBridgeData): BenchLever<BridgeLever
   const debtOpening = block.debt + (leases?.amount ?? 0);
   const top = niceUp(Math.max(business, block.cash, debtOpening, block.options, 1));
   const step = oneFigure(top / 100);
-  const lever = (id: BridgeLeverId, label: string, opening: number, chips: number[] = [], caption?: string): BenchLever<BridgeLeverId> => {
+  const lever = (id: BridgeLeverId, label: string, opening: number, chips: number[] = [], caption?: string, more = false): BenchLever<BridgeLeverId> => {
     const range = { min: 0, max: top };
     return {
       id,
@@ -59,16 +73,21 @@ export function valueBridgeLevers(data: ValueBridgeData): BenchLever<BridgeLever
       opening,
       chips: stopsOf(range, chips),
       stops: stopsOf(range, [opening, ...chips]),
-      more: false,
+      more,
       reading: (v) => moneyText(v, block),
       spoken: (v) => moneySpoken(v, block),
       ...(caption ? { caption } : {}),
+      ...(reportFigure(data, id) !== undefined ? { marks: [{ value: reportFigure(data, id)!, label: "In the report" }] } : {}),
     };
   };
+  const at = (id: BridgeLeverId) => {
+    const figure = reportFigure(data, id);
+    return figure === undefined ? [] : [figure];
+  };
   return [
-    lever("cash", "Cash", block.cash),
-    lever("debt", leases ? "Debt and leases" : "Debt", debtOpening, [], leases ? `Includes ${leases.label}: ${moneyText(leases.amount, block)}` : undefined),
-    lever("options", "Options", block.options, [0]),
+    lever("cash", "Cash", block.cash, at("cash")),
+    lever("debt", leases ? "Debt and leases" : "Debt", debtOpening, at("debt"), leases ? `Includes ${leases.label}: ${moneyText(leases.amount, block)}` : undefined),
+    lever("options", "Options", block.options, data.report ? [] : [0], undefined, Boolean(data.report)),
   ];
 }
 
@@ -129,7 +148,9 @@ export function valueBridgeModel(data: ValueBridgeData, settings: BridgeSettings
       { label: SHAREHOLDERS_LABEL, text: money(Math.max(0, result.equity)) },
     ],
     steps,
-    conditions: [nothingLeft, near(settings.options, 0)],
+    conditions: reportLevers(data).length
+      ? [reportLevers(data).every((id) => near(settings[id], reportFigure(data, id) ?? Number.NaN)), nothingLeft]
+      : [nothingLeft, near(settings.options, 0)],
   };
 }
 
@@ -137,7 +158,7 @@ export function valueBridgeModel(data: ValueBridgeData, settings: BridgeSettings
 export function valueBridgeShape(data: ValueBridgeData): BenchShape {
   const levers = valueBridgeLevers(data);
   const model = valueBridgeModel(data, { cash: levers[0].opening, debt: levers[1].opening, options: levers[2].opening });
-  const prose = [`${model.headline.before}${model.headline.key}${model.headline.after}`, ...model.numbers.map((n) => n.label), BRIDGE_CAPTION, ...levers.flatMap((l) => (l.caption ? [l.caption] : []))];
+  const prose = [`${model.headline.before}${model.headline.key}${model.headline.after}`, ...model.numbers.map((n) => n.label), BRIDGE_CAPTION, ...levers.flatMap((l) => (l.caption ? [l.caption] : [])), ...(data.report ? [data.report.title, ...data.report.lines.map((l) => l.line)] : [])];
   return benchShape(levers, 1 + model.numbers.length, prose, valueBridgeTasks(data).length);
 }
 
@@ -148,6 +169,11 @@ export function valueBridgeReading(data: ValueBridgeData, settings: BridgeSettin
   const value = model.value === null ? `Value: cannot be valued (${model.error})` : model.nothingLeft ? `Value: ${model.headline.key}${model.headline.after}` : `Value: ${model.headline.key}${data.block.per === "company" ? " for the owners" : " a share"}`;
   return {
     sliders: levers.map((l) => ({ label: l.label, text: l.reading(settings[l.id]) })),
-    readouts: [value, ...model.numbers.map((n) => `${n.label}: ${n.text}`)],
+    readouts: [value, ...model.numbers.map((n) => `${n.label}: ${n.text}`), ...(data.report ? [reportReadout(data.report, data.block)] : [])],
   };
+}
+
+/** The report's lines in one readout: "Amazon's 10-K for 2000: Long-term debt $2.1bn; ...". */
+export function reportReadout(report: BridgeReport, block: ValuationBlock): string {
+  return `${report.title}: ${report.lines.map((l) => `${l.line} ${moneyText(l.amount, block)}`).join("; ")}`;
 }

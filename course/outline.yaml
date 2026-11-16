@@ -5,7 +5,8 @@
 # A Topic whose file does not exist yet is Coming. `verified: false` means the Case's facts must be checked before the Topic is written.
 # docs/course-map.md is generated from this file (npm run course:doc); npm run course:check fails if it is stale.
 topics:
-  # The Spine (spec 2026-11-12 C1, C4): the default path's first sixteen Topics, which teach valuation in order.
+  # The Spine (spec 2026-11-12 C1, C4; ADR 0020): the default path's first Topics, which teach valuation in order; the last, the
+  # annual report Topic (#93), leads into the Assignments.
   # Titles are the questions in C4's table; drawsOn is Appendix D; each Case is copied from the Elective entry that holds it.
   # A Spine Topic with no file yet is Coming, and the default path skips it (C8).
   - id: spine-01-worth
@@ -308,6 +309,52 @@ topics:
           - https://economictimes.indiatimes.com/markets/stocks/news/zomato-delivers-a-full-spread-on-listing-day/articleshow/84695358.cms
           - https://aswathdamodaran.substack.com/p/a-zomato-2022-update-price-value
         # Verified 2026-11-13: docs/research/verify-zomato-2021.json reproduces Rs 40.79 to within 0.005%, every number re-opened at source, and dcf-engine-cases.test.ts covers it.
+        verified: true
+  - id: spine-annual-report
+    title: "Where are a valuation's numbers in an annual report?"
+    stage: spine
+    spine: 17
+    minutes: 13
+    drawsOn: [fs-filings, fs-income, fs-balance, ana-build-valuation]
+    cases:
+      - title: "Amazon's annual report for 2000, next to Damodaran's story"
+        asOf: 2001-03-23
+        outcome: "Amazon's Form 10-K for 2000, filed on 23 Mar 2001, showed net sales of $2,762m (Damodaran's year 1: about $2,793m) and a loss from operations of $864m, about -31% of sales against his -13.35%. It had no provision for income taxes; Note 13 lists net operating loss carryforwards. The balance sheet showed long-term debt of $2,127m, cash and cash equivalents of $822m and marketable securities of $278m, and 357.14m shares at 31 Dec 2000 (358,555,061 at 28 Feb 2001). Put into his bridge, the report's debt and cash move a share by about $2, from $35.04 to $32.98; a mature margin of 8% instead of 10% takes it to $21.57."
+        sources:
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/0001032210-01-500087-index.htm
+          - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+        verified: true
+      - title: "Zomato's annual report for 2021-22, next to Damodaran's IPO story"
+        asOf: 2022-08-05
+        outcome: "Zomato's Integrated Annual Report 2021-22, sent to the BSE and the NSE on 5 Aug 2022, shows (consolidated, Rs million) revenue from operations of 41,924 against 19,938 a year earlier, the base Damodaran valued from; other income 4,949; finance costs 120; a loss before exceptional items and tax of 15,179 and a loss before tax of 12,205; total tax 20. The balance sheet at 31 Mar 2022 shows no borrowings (13 a year earlier), cash and cash equivalents of 3,923, other bank balances of 11,832 and current investments of 16,317; note 15(a) lists 7,871,932,776 equity shares of Rs 1 each, 228,992,198 of them held by the ESOP trust."
+        sources:
+          - https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf
+          - https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html
+        verified: true
+      - title: "Nintendo's results for the year to March 2025, a report from Japan"
+        asOf: 2025-05-08
+        outcome: "Nintendo's Consolidated Financial Highlights (kessan tanshin, Japanese GAAP) for the year to 31 Mar 2025, sent to the Tokyo Stock Exchange on 8 May 2025, show (yen million) net sales 1,164,922; operating profit 282,553; interest income 56,176; ordinary profit 372,316; profit before income taxes 372,331; total income taxes 93,478 (current 84,403, deferred 9,075); profit attributable to owners of parent 278,806. The balance sheet at 31 Mar 2025 shows no borrowings, cash and deposits of 1,586,275 and securities of 471,915; 1,298,690,000 shares issued including 134,441,816 treasury shares. The tanshin gives 26 Jun 2025 as the date the annual securities report (yuho) was due on EDINET."
+        sources:
+          - https://www.nintendo.co.jp/ir/pdf/2025/250508e.pdf
+          - https://www2.jpx.co.jp/disc/79740/140120250502530638.pdf
+          - https://www.nintendo.co.jp/ir/pdf/2025/250508.pdf
+        verified: true
+      - title: "Samsung Electronics' business report for 2024, a report from Korea"
+        asOf: 2025-03-11
+        outcome: "Samsung Electronics filed its business report for 2024 on DART on 11 Mar 2025. Its audited consolidated statements (K-IFRS, KRW million) show revenue 300,870,903; operating profit 32,725,961; profit before income tax 37,529,734; income tax expense 3,078,383. At 31 Dec 2024: short-term borrowings 13,172,504, current portion of long-term liabilities 2,207,290, debentures 14,530, long-term borrowings 3,935,860; cash and cash equivalents 53,705,579 and short-term financial instruments 58,909,334. Note 18: 5,969,782,550 ordinary and 822,886,700 preference shares issued (W100 par), fewer outstanding after KRW 1,811,775 million of treasury shares bought in 2024."
+        sources:
+          - https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250311001085
+          - https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2024_4Q_Interim_Report.pdf
+          - https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2024_con_quarter04_all.pdf
+        verified: true
+      - title: "LVMH's universal registration document for 2024, a report from Europe"
+        asOf: 2025-03-25
+        outcome: "LVMH filed its 2024 universal registration document, holding the annual financial report, with the AMF on 25 Mar 2025 in ESEF format (D.25-0150). Its IFRS consolidated statements (EUR million) show revenue 84,683; profit from recurring operations 19,571; other operating income and expenses (664); operating profit 18,907; income taxes (5,157). At 31 Dec 2024: long-term borrowings 12,091, short-term borrowings 10,851, non-current lease liabilities 14,860, current lease liabilities 2,972, cash and cash equivalents 9,631; 500,341,700 shares in the statement of changes in equity, and treasury shares carried at EUR (603) million."
+        sources:
+          - https://lvmh-com.cdn.prismic.io/lvmh-com/Z6ysCJbqstJ9-hws_LVMHComptesconsolid%C3%A9s2024-VA-.pdf
+          - https://lvmh-com.cdn.prismic.io/lvmh-com/Z-PY3HdAxsiBv6wN_UniversalRegistrationDocument2024.pdf
+          - https://live.euronext.com/en/products/equities/company-news/2025-03-26-lvmh-availability-2024-universal-registration-document
         verified: true
   - id: num-percent-bps
     title: "Percent, percentage points and basis points"

@@ -27,23 +27,27 @@ const spineItems: OpenItem[] = [
 const isSpine = (name: E2eScriptName) => /^spine[123]-/.test(name);
 /** Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts) are checked against their own Topics. */
 const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")! } as const;
-/** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts). */
+/** #93's three-turn play of the annual report Topic (e2e/spine-annual-report.spec.ts). */
+const annualReport = map.topic("spine-annual-report")!;
+const isReport = (name: E2eScriptName) => name.startsWith("ar-");
 /** #95's three-turn plays of Spine Topics 4, 5, 6 and 9 (e2e/spine-04-09.spec.ts), by script prefix. */
 const BEGINNER_OF = { "growth-": "spine-04-growth", "margins-": "spine-05-margins", "gcost-": "spine-06-growth-cost", "far-": "spine-08-far-future" } as const;
 const beginnerTopic = (name: E2eScriptName) => {
   const id = Object.entries(BEGINNER_OF).find(([prefix]) => name.startsWith(prefix))?.[1];
   return id ? map.topic(id) : undefined;
 };
+/** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts), and #95's. */
 const splitTopic = (name: E2eScriptName) =>
   name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : beginnerTopic(name);
-const topicOf = (name: E2eScriptName) => splitTopic(name) ?? Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic);
+const topicOf = (name: E2eScriptName) =>
+  isReport(name) ? annualReport : (splitTopic(name) ?? Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic));
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
   const t = topicOf(name);
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
-    exampleCurrency: isSpine(name) || splitTopic(name) ? "USD" : "INR",
+    exampleCurrency: isSpine(name) || isReport(name) || splitTopic(name) ? "USD" : "INR",
     caseCurrencies: ["USD"],
     openItems: name === "quiz-open" ? openItems : isSpine(name) && checkStep ? spineItems : [],
     internalWords: [t.id, ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)],
@@ -53,6 +57,9 @@ const context = (name: E2eScriptName): ReplyCheckContext => {
 describe("the scripted Tutor", () => {
   it("every named script passes the reply checks", () => {
     expect(Object.keys(E2E_SCRIPTS).sort()).toEqual([
+      "ar-concept",
+      "ar-explore",
+      "ar-story",
       "coc-concept",
       "coc-explore",
       "coc-story",
@@ -217,6 +224,40 @@ describe("test 4's scripted replies", () => {
         if (picked?.kind === "scene") shown.scenes.push(picked.key);
         if (picked?.kind === "lingo") shown.terms.push(picked.key);
       }
+    }
+  });
+});
+
+describe("the annual report Topic's scripted Tutor (#93)", () => {
+  const flat = (t: string) => t.replace(/\s+/g, " ");
+  const [amazon] = annualReport.cases;
+
+  it("opens on Amazon's 10-K with his value against the price, in figures from the Topic's own Case, and the report's question", () => {
+    expect(E2E_SCRIPTS["ar-story"].step).toBe("story");
+    const said = draftOf("ar-story").text;
+    for (const figure of ["$35.08", "$84"]) {
+      expect(said).toContain(figure);
+      expect(flat(amazon.story)).toContain(figure);
+    }
+    expect(said).toMatch(/the report is out\. Was he right\?/);
+  });
+
+  it("names the two pages at Concept, and shows the Value bridge on the Topic's Amazon Case at Explore", () => {
+    expect(draftOf("ar-concept").text).toMatch(/income statement/);
+    expect(draftOf("ar-concept").text).toMatch(/balance sheet/);
+    const shown = draftOf("ar-explore").widgets;
+    expect(shown).toHaveLength(1);
+    expect(shown[0]).toMatchObject({ id: "value_bridge", params: { inputs: { case: "spine-ar-amazon-2000", report: annualReport.explore?.workbench?.inputs.report } } });
+    expect(annualReport.explore?.workbench).toMatchObject({ recipe: "value_bridge", case: "spine-ar-amazon-2000" });
+  });
+
+  it("says at Concept that Japan, Korea and Europe keep the same two pages, each under the name of a Case's report (#94)", () => {
+    const said = draftOf("ar-concept").text;
+    const stories = annualReport.cases.map((c) => flat(c.story)).join(" ");
+    for (const [market, report] of [["Japan", "yuho"], ["Korea", "business report"], ["Europe", "IFRS"]]) {
+      expect(said).toContain(market);
+      expect(said).toContain(report);
+      expect(stories).toContain(report);
     }
   });
 });
