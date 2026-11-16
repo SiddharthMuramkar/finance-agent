@@ -81,7 +81,7 @@ describe("Growth and compounding, converted", () => {
 
   it("passes the lesson lint and the typed-formula check, and keeps every old question id but the log-return one", () => {
     expect(lessonLintErrors([topic], { notYet: [], l10NotYet: L10_NOT_YET_STORY.filter((id) => id === topic.id) })).toEqual([]);
-    expect(formulaCheckErrors([topic], [])).toEqual([]);
+    expect(formulaCheckErrors([topic])).toEqual([]);
     for (const id of ["cp-q-doubling-rate", "cp-q-down-up", "cp-q-rule-72", "cp-q-three-years", "cp-q-index-rate"]) {
       expect(topic.questions.some((q) => q.id === id), id).toBe(true);
     }
