@@ -441,6 +441,11 @@
   .v-bars { justify-content: flex-start; height: 140px; }
 }
 @media (max-width: 640px) {
+  /* A phone puts the Tutor demo right under the h1 (spec 7.2.1, #73): something to play without scrolling. */
+  .v-hero { gap: 20px; }
+  .v-hero-copy { display: contents; }
+  .v-hero > .v-demo { order: 1; }
+  .v-hero-copy > :not(.v-eyebrow):not(h1) { order: 2; }
   .v-pager { grid-template-columns: minmax(0, 1fr); }
   .v-pager a.next { text-align: left; }
 }
