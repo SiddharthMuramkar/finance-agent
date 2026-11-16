@@ -150,7 +150,9 @@ export function auditAffordances(page: Page, opts: LetOff = {}): Promise<Afforda
   return page.evaluate((letOffSelector) => {
     const root = document;
     const INTERACTIVE = 'a[href], button, [role="button"], [role="menuitem"], [role="menuitemradio"], summary, input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])';
-    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none"; };
+    // checkVisibility: the rows of a closed <details> (an account menu) keep a laid-out box under Chrome's
+    // content-visibility: hidden, so the box alone would judge controls nobody can see (G38).
+    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && el.checkVisibility(); };
     const name = (el: Element) => `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""} "${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}"`;
     const out = { interactiveWithoutSignifier: [] as string[], pointerOnStatic: [] as string[], staticLooksPressable: [] as string[], tooSmall: [] as string[], notFlat: [] as string[], counts: {} as { interactive?: number; tags?: number; letOff?: number } };
     const kindOf = (el: Element) => (el.closest("[data-affordance]") || el).getAttribute("data-affordance");
@@ -317,7 +319,7 @@ export function pressLook(page: Page, opts: LetOff = {}): Promise<PressLook> {
     const INTERACTIVE = 'a[href], button, [role="button"], [role="menuitem"], [role="menuitemradio"], summary, [tabindex]:not([tabindex="-1"])';
     const BANDS = ".band, .home-band";
     const out: PressLook = { readingLinks: [], bandLinks: [], bandButtons: [], keyNumberLook: [], bareBlueWords: [], bandsTouching: [], counts: { pressable: 0, links: 0, bands: 0, letOff: 0 } };
-    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && s.display !== "none"; };
+    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && s.display !== "none" && el.checkVisibility(); };
     const name = (el: Element) => `${el.tagName.toLowerCase()} "${(el.getAttribute("aria-label") || el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40)}"`;
     const colourOf = (css: string) => { const probe = document.createElement("span"); probe.style.color = css; document.body.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c; };
     const ACCENT = colourOf("var(--accent)");

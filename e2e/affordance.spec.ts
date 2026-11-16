@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { MATRIX_PAGES, SIGN_IN_WRONG, type MatrixPage } from "../src/dev/preview-matrix";
 import { hydrated, quietDevtools, replyLanded, seed, settled, type State } from "./support/app";
 import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
+import { SIGNAL_SITE, SIGNAL_SPEC_LOOKS } from "./support/signal-site";
 
 /**
  * A3b: every button looks like a button, every link like a link, every tag like a tag (spec 2026-11-05, ticket A3b,
@@ -39,22 +40,6 @@ async function visit(page: Page, state: State, path: string) {
   await page.goto(path);
   await hydrated(page);
 }
-
-/**
- * The Signal site's pages (decision #7: Home, How it works, Examples, the case pages and About) are judged like every other
- * page, but for the few Signal spec §5 components whose look the spec draws against the app's rules, while the owner
- * decides which rule wins (#32):
- * - text links (`.v-tlink`) and whole-row question links (`.v-qrow`, "Play →") have no underline until hover (§5.2),
- *   where ADR 0018 underlines a link in a reading area at rest;
- * - an FAQ row (`.v-faq summary`, §5.17) shows a "+" drawn in CSS, not a chevron icon;
- * - the Tutor demo's question chips (`.v-qchip`) are pills, and a case page's Previous and Next cards (`.v-linkcard`, a
- *   whole card that is a link) keep a card's 14 px corners, where ADR 0018 caps a control's corners at 12 px.
- * Only these, only inside `#main`, are let off, and only the look rules (signifier, flatness, F4's link and blue-word
- * rules). Everything else on those pages, the site chrome included, is judged. When the owner decides, either the site
- * follows ADR 0018 and its selector leaves this list, or the ADR makes room for the Signal spec here.
- */
-const SIGNAL_SITE = new Set(["home", "home-signed-out", "about", "how-it-works", "examples", "case-amazon", "privacy", "terms"]);
-const SIGNAL_SPEC_LOOKS = ["#main .v-tlink", "#main .v-qrow", "#main .v-faq summary", "#main .v-qchip", "#main .v-linkcard"].join(", ");
 
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {

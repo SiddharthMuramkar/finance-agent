@@ -84,10 +84,15 @@ async function record(page: Page, learner: string, name: string) {
   });
 }
 
-/** A screenshot at 1280 px and one at 390 px of the same moment, then back to the project's width. */
+/**
+ * A screenshot at 1280 px and one at 390 px of the same moment, then back to the project's width. Only the critics' run
+ * (w1280) calls it, so a second run of the play (p390) never overwrites its files (G40); each shot sets its own width,
+ * so a file's name always says the width it was taken at.
+ */
 async function shoot(page: Page, name: string) {
   mkdirSync(OUT, { recursive: true });
   const size = page.viewportSize()!;
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.screenshot({ path: join(OUT, `spine-01-${name}-1280.png`) });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: join(OUT, `spine-01-${name}-390.png`) });
@@ -213,7 +218,7 @@ async function passQuiz(quiz: Locator) {
 
 test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in under 15 minutes", async ({ page }, info) => {
   test.skip(info.project.name !== "w1280", "one width is enough: the play is the behaviour");
-  await playTopicOne(page);
+  await playTopicOne(page, { critics: true });
 });
 
 test.describe("on a phone", () => {
@@ -221,7 +226,8 @@ test.describe("on a phone", () => {
 
   test("[#83] Spine Topic 1 is passed whole at 390 px, by taps and Lever moves", async ({ page }, info) => {
     test.skip(info.project.name !== "p390", "one phone width is enough (#83)");
-    await playTopicOne(page);
+    // The critics' transcript and shots come from the w1280 play only (G40): this run writes none.
+    await playTopicOne(page, { critics: false });
   });
 
   test("[#83] a due spaced Review has an entry in the conversation, and is answered in the sheet", async ({ page }, info) => {
@@ -243,8 +249,10 @@ test.describe("on a phone", () => {
   });
 });
 
-async function playTopicOne(page: Page) {
+/** Plays Spine Topic 1 whole. `critics` writes the critics' transcript and screenshots to OUT (one run only, G40). */
+async function playTopicOne(page: Page, { critics }: { critics: boolean }) {
   test.setTimeout(LIMIT_MS + 120_000);
+  const snap = (name: string) => (critics ? shoot(page, name) : Promise.resolve());
   const started = Date.now();
 
   // Story: the page starts the Topic's opener on its empty Session.
@@ -256,7 +264,7 @@ async function playTopicOne(page: Page) {
   await expect(currentStep(page)).toHaveText(/^The moment — Step 1 of \d+$/);
   await landedAsWritten(page, "spine1-story");
   await record(page, "[opened the Topic]", "spine1-story");
-  await shoot(page, "story");
+  await snap("story");
 
   // Concept: code shows the quiz Check's Concept card; the Tutor names the four levers.
   await next(page, "Next: Concept", "spine1-concept");
@@ -295,7 +303,7 @@ async function playTopicOne(page: Page) {
   await expect(page.getByTestId("insight-pick-result")).toHaveAttribute("data-released", "found");
   await expect(page.getByTestId("insight-pick-result")).toContainText("a cheaper cost of capital alone could not get there");
   await record(page, "[tapped Insight choices] Only a lower cost of capital, then Far more sales, and more kept of each sale", "insight-pick (code)");
-  await shoot(page, "explore");
+  await snap("explore");
 
   // Your turn: the Quick tries, tapped right until every Skill of the Check is fluent; then code moves on to the Check
   // and the page starts the Tutor's follow-up, which points to the quiz.
@@ -332,7 +340,7 @@ async function playTopicOne(page: Page) {
   const judging = page.getByTestId("quiz");
   await openSheet(page, "check");
   await expect(judging).toBeVisible({ timeout: TURN_MS });
-  await shoot(page, "judging-check");
+  await snap("judging-check");
   await record(page, "[the judging Check open in the Check tab]", "spine1-talk-prompt");
   await passQuiz(judging);
   await expect(page.getByTestId("quiz-result").last()).toContainText("Passed.");
@@ -349,8 +357,8 @@ async function playTopicOne(page: Page) {
   await next(page, "Complete this Topic", "spine1-complete");
   await expect(page.getByTestId("topic-complete-card")).toBeVisible({ timeout: TURN_MS });
   await expect(page.getByTestId("topic-complete-card").getByTestId("topic-daily-life")).toContainText(DAILY_LIFE);
-  await shoot(page, "complete");
-  writeTranscript();
+  await snap("complete");
+  if (critics) writeTranscript();
 
   const played = Date.now() - started;
   console.log(`[Part C] Spine Topic 1 played whole in ${(played / 1000).toFixed(1)} s (${tries} Quick tries${revealTaught ? ", Reveal taught by its own Next" : ""}).`);
