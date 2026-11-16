@@ -130,6 +130,7 @@ const valueLeversInputs = z
       ),
     mode: z.unknown().optional().describe(MODE_SHAPE),
     readings: marketReadingIdsSchema.optional().describe("Market readings shown beside the levers, by id, copied from the Topic file"),
+    firstLook: z.boolean().optional().describe("Spine Topic 1's first look, copied from the Topic file"),
   })
   .strict()
   .superRefine((inputs, ctx) => {
@@ -368,8 +369,10 @@ export const valueLevers = defineRecipe({
     // All open and match price modes may let the Learner switch Case with a chip; that pick is its own $variable, after the
     // market slot, and starts on the chip of the Case the call names (the inputs' check makes it one of them).
     const picker = !!modeCases(mode);
-    // Market readings come last, so every slot before them is filled (null, or 0 for the market and Case picks).
+    // Market readings come after the rows, so every slot before them is filled (null, or 0 for the market and Case picks);
+    // a first look (Spine Topic 1, #88) comes last, after the readings' slot.
     const readings = inputs.readings;
+    const firstLook = inputs.firstLook === true;
     const args = [
       str(inputs.case),
       ...LEVER_IDS.map((id) => `$${LEVER_VARIABLES[id]}`),
@@ -381,7 +384,8 @@ export const valueLevers = defineRecipe({
       market ? `$${MARKET_VARIABLE}` : "0",
       picker ? `$${CASE_VARIABLE}` : "0",
       ...ROW_IDS.map((id) => `$${ROW_VARIABLES[id]}`),
-      ...(readings ? [lit(readings)] : []),
+      ...(readings || firstLook ? [readings ? lit(readings) : "null"] : []),
+      ...(firstLook ? ["true"] : []),
     ];
     return program(title, ["levers"], [
       ...LEVER_IDS.map((id) => `$${LEVER_VARIABLES[id]} = ${num(start[id])}`),

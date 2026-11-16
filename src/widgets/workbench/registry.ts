@@ -135,7 +135,7 @@ const valueLevers = entry<ValueLeversData, string>({
   recipe: "value_levers",
   data: (props, ownCases) => valueLeversData(props, ownCases),
   levers: (data) => valueLeversLevers(data),
-  shape: (data) => valueLeversShape(data.block, data.mode),
+  shape: (data) => valueLeversShape(data.block, data.mode, data.firstLook),
   tasks: (data) => valueLeversTasks(data.block),
   // The Full sheet's changed rows (#104) are valued with the Levers, and the Tutor is told each one, so it and the screen agree.
   reading: (data, _settings, props) => {

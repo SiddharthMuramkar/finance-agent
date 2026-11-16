@@ -10,10 +10,10 @@
 topics:
   spine-01-worth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "3bd57ab"
+    rounds: 4
+    lastRound: "899e34d"
     open: 0
-    note: Round 3 found nothing. After it, the reveal's $91.50 high was restored as a high a month before the Case date (spec C5; the round-2 historian finding was that it read as a later rise).
+    note: Round 4 (#88 Topic 1 for beginners) confirmed 5, all closed. The Workbench is a first look (lever 1 says sales, no over-100% share after year 10), each judged Story names its teller with an Icon, the fan's price choices are stories in words asking which comes nearest $84, and the phone finding was already fixed by #82/#83 (spine-01 passes at 390px).
   spine-02-money-later:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 4

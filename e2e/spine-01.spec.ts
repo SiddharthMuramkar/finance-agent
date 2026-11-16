@@ -116,7 +116,7 @@ const DAILY_LIFE = "A headline says a firm is worth $50bn. A price someone paid,
 /** The quiz Check's right choice for each of its six questions, found by the question's words (predict: the band it lands in). */
 function quizPick(prompt: string): string | null {
   // The judging Check (worth-talk): other people's stories, judged by tap. First: its founder story also "contradicts itself".
-  if (/Which story must the fan believe/i.test(prompt)) return "$70bn of sales and an 11% margin";
+  if (/A fan says \$84 is a fair price/i.test(prompt)) return "A far bigger Amazon that keeps a little more of each sale";
   if (/A headline says/i.test(prompt)) return "A price someone paid";
   if (/An analyst writes/i.test(prompt)) return "A value someone argued";
   if (/founder pitches/i.test(prompt)) return "Sales grow ten times over and it builds no new warehouses";
@@ -208,7 +208,7 @@ async function passQuiz(quiz: Locator) {
   expect(count, "questions drawn for one attempt").toBe(4);
   for (let i = 0; i < count; i++) {
     const question = questions.nth(i);
-    const prompt = plain(await question.locator("legend span").nth(1).innerText());
+    const prompt = plain(await question.getByTestId("quiz-prompt").innerText());
     const pick = quizPick(prompt);
     if (pick) await press(question.getByText(pick, { exact: true }));
     else await question.getByRole("radio").first().check();
@@ -286,6 +286,8 @@ async function playTopicOne(page: Page, { critics }: { critics: boolean }) {
   // Read once the Workbench is on screen: on a phone that is after its entry slides the sheet up (#83).
   await expect(page.getByRole("slider", { name: "Sales for each dollar invested" })).toBeVisible();
   await expect(page.getByText("Cash it makes each year, then after year 10")).toBeVisible();
+  // A first look (critics round 4): lever 1 says sales, as the Topic does, and no share of the value after year 10 (over 100%).
+  await expect(page.getByTestId("value-levers-numbers")).not.toContainText("after year 10");
   await page.getByRole("slider", { name: "Sales in year 10" }).fill("60");
   await page.getByRole("slider", { name: "Operating margin once mature" }).fill("12.5");
   await expect(headline).toHaveText("This story is worth $84 a share");
@@ -340,6 +342,9 @@ async function playTopicOne(page: Page, { critics }: { critics: boolean }) {
   const judging = page.getByTestId("quiz");
   await openSheet(page, "check");
   await expect(judging).toBeVisible({ timeout: TURN_MS });
+  // Each judged Story names who tells it, with its line Icon (critics round 4).
+  await expect(judging.getByTestId("quiz-speaker").first()).toBeVisible();
+  await expect(judging.getByTestId("quiz-speaker")).toHaveCount(4);
   await snap("judging-check");
   await record(page, "[the judging Check open in the Check tab]", "spine1-talk-prompt");
   await passQuiz(judging);

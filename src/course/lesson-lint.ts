@@ -488,10 +488,11 @@ function emojiNamesIn(value: unknown, out: string[]): string[] {
   return out;
 }
 
-/** The emoji names a Topic file uses: `scenes:`, `terms[].emoji` and `runningExample.scene`. */
+/** The emoji names a Topic file uses: `scenes:`, `terms[].emoji`, `runningExample.scene` and `questions[].speaker`. */
 export function topicEmojiNames(t: Topic): string[] {
-  const loose = t as unknown as { scenes?: unknown; terms?: unknown; runningExample?: { scene?: unknown } };
-  return [...new Set([...emojiNamesIn(loose.scenes, []), ...emojiNamesIn(loose.terms, []), ...emojiNamesIn(loose.runningExample?.scene, [])])];
+  const loose = t as unknown as { scenes?: unknown; terms?: unknown; runningExample?: { scene?: unknown }; questions?: { speaker?: unknown }[] };
+  const speakers = (loose.questions ?? []).map((q) => q.speaker);
+  return [...new Set([...emojiNamesIn(loose.scenes, []), ...emojiNamesIn(loose.terms, []), ...emojiNamesIn(loose.runningExample?.scene, []), ...emojiNamesIn(speakers, [])])];
 }
 
 /** L11: every emoji name in the Topic file is an Icon name (`src/icons/names.ts`). The key stays `emoji` because that is what the Topic file writes. */

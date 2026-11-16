@@ -19,7 +19,7 @@ const RATE_MOVE_PARAMS = { title: "A savings rate from 4% to 5%", inputs: { old:
 /** Spine Topic 1's explore Workbench (its Topic file's explore.workbench), as the Tutor shows it with show_widget. */
 const SPINE_ONE_LEVERS = {
   title: "Amazon, February 2000: the four levers",
-  inputs: { case: "spine-01-amazon-2000", caseStory: "Damodaran's story", priceStory: { revenue: 60, margin: 12.5 } },
+  inputs: { case: "spine-01-amazon-2000", caseStory: "Damodaran's story", priceStory: { revenue: 60, margin: 12.5 }, firstLook: true },
   refs: {},
   facts: {},
 };

@@ -756,11 +756,12 @@ export function movesFrom(values: { moved?: unknown; mostLever?: unknown; mostBy
  * headline, its prose words (the headline, captions, the readouts' labels and a mode's readout, which names any marks) and
  * its Things to try.
  */
-export function valueLeversShape(block: ValuationBlock, mode?: ValueLeversMode): { controls: number; more: number; visuals: number; numbers: number; headlines: number; words: number; tasks: number } {
+export function valueLeversShape(block: ValuationBlock, mode?: ValueLeversMode, firstLook = false): { controls: number; more: number; visuals: number; numbers: number; headlines: number; words: number; tasks: number } {
   const specs = leverSpecs(block, mode);
   const model = valueLeversModel(block, specs, openingSettings(specs), mode);
   const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
-  const readout = model.readout ? [model.readout.label, model.readout.text, model.readout.note ?? ""] : [AFTER_YEAR_10_LABEL];
+  const afterYear10 = firstLook ? null : model.afterYear10;
+  const readout = model.readout ? [model.readout.label, model.readout.text, model.readout.note ?? ""] : afterYear10 ? [AFTER_YEAR_10_LABEL] : [];
   const prose = [
     `${model.headline.before}${model.headline.key}${model.headline.after}`,
     ...specs.flatMap((s) => (s.caption ? [s.caption] : [])),
@@ -773,7 +774,7 @@ export function valueLeversShape(block: ValuationBlock, mode?: ValueLeversMode):
     controls: specs.filter((s) => !s.more).length,
     more: specs.filter((s) => s.more).length,
     visuals: 1,
-    numbers: 1 + 1 + (model.readout || model.afterYear10 ? 1 : 0),
+    numbers: 1 + 1 + (model.readout || afterYear10 ? 1 : 0),
     headlines: 1,
     words: prose.reduce((sum, text) => sum + words(text), 0),
     tasks: valueLeversTasks(block).length,
@@ -782,8 +783,12 @@ export function valueLeversShape(block: ValuationBlock, mode?: ValueLeversMode):
 
 // ——— The part's data, what the check lists and what the Tutor is told ———
 
-/** What a ValueLevers part draws: its Valuation Case, its Spine Topic's mode, and the names and settings of its stories. */
-export type ValueLeversData = { block: ValuationBlock; mode?: ValueLeversMode; caseStory?: string; priceStory?: Partial<LeverSettings> };
+/**
+ * What a ValueLevers part draws: its Valuation Case, its Spine Topic's mode, the names and settings of its stories, and
+ * whether it is a first look (Spine Topic 1, #88): the share of the value after year 10, which a first Topic does not teach
+ * (Amazon's is over 100%), is left out.
+ */
+export type ValueLeversData = { block: ValuationBlock; mode?: ValueLeversMode; caseStory?: string; priceStory?: Partial<LeverSettings>; firstLook?: boolean };
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -809,6 +814,7 @@ export function valueLeversData(props: Record<string, unknown>, ownCases?: OwnCa
       ...(mode ? { mode } : {}),
       ...(typeof props.caseStory === "string" ? { caseStory: props.caseStory } : {}),
       ...(priceStory?.success ? { priceStory: priceStory.data } : {}),
+      ...(props.firstLook === true ? { firstLook: true } : {}),
     },
   };
 }
@@ -856,7 +862,7 @@ export function valueLeversReading(data: ValueLeversData, props: Record<string, 
     readouts: [
       valued,
       `${model.price.label}: ${model.price.text}`,
-      ...(model.readout ? [`${model.readout.label}: ${model.readout.text}${model.readout.note ? `. ${model.readout.note}` : ""}`] : model.afterYear10 ? [`Share of the value from after year 10: ${model.afterYear10.text}`] : []),
+      ...(model.readout ? [`${model.readout.label}: ${model.readout.text}${model.readout.note ? `. ${model.readout.note}` : ""}`] : model.afterYear10 && !data.firstLook ? [`Share of the value from after year 10: ${model.afterYear10.text}`] : []),
       ...(chosen ? [`Market: ${chosen.label}, ${moneyText(chosen.size, block)} today${chosen.growthPercent ? `, growing ${chosen.growthPercent}% a year` : ""} (sourced: ${chosen.source.title})`] : []),
       ...model.flags.map((flag) => `Flag: ${flag}`),
       most ? `Moved the value most so far: ${most.spec.title} (${most.spec.label.toLowerCase()}), by ${most.by}` : "No lever moved yet",

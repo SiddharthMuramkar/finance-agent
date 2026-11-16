@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { Speaker } from "@/course/map";
 import type { Marking } from "@/course/quiz";
 import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import { MarkedText } from "@/widgets/marked-text";
+import { Pic } from "@/widgets/primitives/wave3/shared";
 import type { SessionItemData } from "./session-item-view";
 import { PrimaryButton, SecondaryButton } from "./ui";
 import { OptionRow, ResultIcon } from "./workspace-parts";
@@ -29,6 +31,21 @@ export const checkTabName = (
 function choiceWithFigure(q: Marking["questions"][number], id: string | null): string | undefined {
   const c = q.choices.find((x) => x.id === id);
   return c && (c.figure ? `${c.text} (${c.figure})` : c.text);
+}
+
+/**
+ * Who tells a judged Story (a fan, a headline, an analyst, a founder): its line Icon and its name, a small mark beside the
+ * question so each tap in a judging Check is a story moment (Spine critics round 4, #88). The name carries the meaning;
+ * the Icon is decorative.
+ */
+function SpeakerMark({ speaker }: { speaker?: Speaker }) {
+  if (!speaker) return null;
+  return (
+    <span data-testid="quiz-speaker" className="inline-flex items-center gap-1.5 self-start rounded-full bg-[var(--wash)] px-2.5 py-1 text-[13px] font-medium leading-[18px] text-[var(--ink)]">
+      <Pic name={speaker.emoji} size={16} />
+      {speaker.who}
+    </span>
+  );
 }
 
 /**
@@ -158,6 +175,7 @@ export function QuizPanel({
         <ol className="mt-4 divide-y divide-[var(--rule)] border-t border-[var(--rule)] text-sm leading-5">
           {result.questions.map((q) => (
             <li key={q.id} className="flex flex-col gap-2 py-4">
+              <SpeakerMark speaker={q.speaker} />
               <p className="font-medium">{q.prompt}</p>
               {q.predict ? (
                 // A predict tap is stored and shown beside the result, never marked wrong (spec D1).
@@ -247,7 +265,12 @@ export function QuizPanel({
                 <span className="type-eyebrow block text-[var(--muted)]">
                   Question {i + 1} of {count}
                 </span>{" "}
-                <span className="mt-1 block text-[15px] font-semibold leading-[22px] text-[var(--ink)]">{q.prompt}</span>
+                {q.speaker && (
+                  <span className="mt-2 flex">
+                    <SpeakerMark speaker={q.speaker} />{" "}
+                  </span>
+                )}
+                <span data-testid="quiz-prompt" className="mt-1 block text-[15px] font-semibold leading-[22px] text-[var(--ink)]">{q.prompt}</span>
               </legend>
               <div className="flex flex-col gap-2">
                 {q.choices.map((c) => (
