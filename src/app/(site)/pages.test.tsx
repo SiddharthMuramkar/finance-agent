@@ -413,6 +413,21 @@ describe("the plain words", () => {
     expect(lines.some((line) => words(line).replace(/\s+([.,])/g, "$1").includes(quoted!))).toBe(true);
   });
 
+  // #74/#72 (F34): Home keeps to its four product words in the FAQ it picks, and How it works' closing names the first
+  // Spine Topic from the course.
+  it("Home's FAQ says no 'Assignment' or 'Spine'; About's full FAQ keeps them", async () => {
+    const home = words(/<div class="v-faq">[\s\S]*?<\/div>/.exec(renderToStaticMarkup(await HomePage()))![0]);
+    expect(home).toContain("Do I need to be good at maths?");
+    expect(home).not.toMatch(/Assignment|Spine/);
+    expect(words(renderToStaticMarkup(await AboutPage()))).toContain("the Assignment after the Spine");
+  });
+
+  it("How it works' closing names the first Spine Topic as the course titles it", async () => {
+    const how = words(renderToStaticMarkup(await HowItWorksPage()));
+    expect(how).toContain("Start with Topic 1: What is a business worth?");
+    expect(how).not.toContain("Start with Topic 1: What is a business worth? Price");
+  });
+
   // #75 (F30): every named Source is a link. A widget's source line that names a Source links it; only a line that names
   // none ("No outside figures") is plain text.
   it("every source line on a public page links the Source it names", async () => {

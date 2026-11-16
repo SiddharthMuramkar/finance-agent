@@ -186,7 +186,7 @@ export default async function HowItWorksPage() {
       <section className="v-section v-wash" aria-labelledby="start-h" data-site-section="closing">
         <div className="v-wrap v-stack">
           <h2 className="v-h2" id="start-h">
-            {howItWorks.closing}
+            {howItWorks.closing(course)}
           </h2>
           <div className="v-row">
             <PrimaryCta viewer={viewer} />

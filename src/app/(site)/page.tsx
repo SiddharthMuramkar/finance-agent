@@ -160,7 +160,7 @@ export default async function HomePage() {
             </h2>
             <ArrowLink href="/about#faq">{home.faq.link}</ArrowLink>
           </div>
-          <FaqList numbers={home.faq.pick} />
+          <FaqList numbers={home.faq.pick} home />
         </div>
       </section>
 

@@ -281,7 +281,12 @@ export type ColourTile = (typeof COLOURS)[number]["tile"];
 /** Appendix B: the FAQ, in order (numbered from 1). */
 export const FAQ = [
   { q: "Is Value It investment advice?", a: "No. It teaches how finance works through past events. It never tells you what to buy or sell, and gives no tips." },
-  { q: "Do I need to be good at maths?", a: "No. You never type a number to answer a question: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. The one place you type numbers is the Assignment after the Spine, where you copy figures from a company's annual report." },
+  {
+    q: "Do I need to be good at maths?",
+    a: "No. You never type a number to answer a question: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. The one place you type numbers is the Assignment after the Spine, where you copy figures from a company's annual report.",
+    // Home asks a Visitor to learn only four product words (#74), so Home says the same thing without "Assignment" and "Spine".
+    home: "No. You never type a number to answer a question: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. The one place you type numbers is near the end, where you copy a few figures from a company's annual report.",
+  },
   { q: "Where do the facts come from?", a: "From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage." },
   { q: "Does the AI make up the charts?", a: "No. The AI Tutor chooses which chart to open and at which numbers; the chart is drawn from checked figures. Made-up numbers are labelled Illustration." },
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
@@ -352,7 +357,8 @@ export const howItWorks = {
     stages: (c: CourseFacts) => `${c.byStage.length} stages that read real arguments`,
     number: (n: number) => String(n).padStart(2, "0"),
   },
-  closing: "Start with Topic 1: What is a business worth?",
+  /** The first Spine Topic's question, from the course (#72: no Spine title typed here). */
+  closing: (c: CourseFacts) => (c.spine[0] ? `Start with Topic ${c.spine[0].n}: ${c.spine[0].title.replace(/\?.*$/, "?")}` : "Start with Topic 1"),
 } as const;
 
 /** Appendix C: the course map the site shows. The Spine, the Subjects and the counts come from the course (#72). */
