@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "@/site/copy";
 import { SiteShell } from "./(site)/site-chrome";
@@ -12,6 +13,9 @@ import { ReadingPage, primaryButtonClass, secondaryButtonClass } from "./ui";
 // - a Member keeps the app's page, with the account menu and the ways back to their Topic and the Course Map.
 // A 404 for an address the proxy's matcher skips (a missing /_next/static file) never went through clerkMiddleware, so
 // Clerk's auth() throws there (issue #33): the page then draws the Visitor's version rather than fail.
+/** Its own title (issue #71), and no canonical link: a missing page has no address to stand for. */
+export const metadata: Metadata = { title: "Page not found" };
+
 export default async function NotFound() {
   const account = await currentAccount().catch(() => undefined);
   if (!account) return <VisitorNotFound />;

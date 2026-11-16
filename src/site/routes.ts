@@ -33,13 +33,19 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   { path: JOIN_PATH, site: false, sitemap: true },
 ];
 
+/** The share cards a shared link shows (issue #71): Home's and one per Example (src/site/share-card.ts). */
+export const SHARE_IMAGES: readonly string[] = ["home", ...EXAMPLE_SLUGS];
+
+/** A share card's address (src/app/share-image/[name]/route.tsx draws it). */
+export const shareImagePath = (name: string) => `/share-image/${name}.png`;
+
 /**
- * The files: the link-preview images (src/app/site-metadata.ts), the icons (src/app/icon.svg, favicon.ico and
+ * The files: the share cards (src/app/site-metadata.ts), matched exactly, the icons (src/app/icon.svg, favicon.ico and
  * apple-icon.png; scripts/make-icons.mjs draws the last two) and the crawler files (src/app/robots.ts and sitemap.ts,
  * issue #70).
  */
 export const PUBLIC_FILES: readonly PublicFile[] = [
-  { id: "share-images", pattern: /^\/landing-assets\/[\w-]+\.(png|webp)$/, samples: ["/landing-assets/workspace-light.png"] },
+  { id: "share-images", pattern: new RegExp(`^/share-image/(?:${SHARE_IMAGES.join("|")})\\.png$`), samples: SHARE_IMAGES.map(shareImagePath) },
   { id: "icon", pattern: /^\/(icon\.svg|favicon\.ico|apple-icon\.png)$/, samples: ["/icon.svg", "/favicon.ico", "/apple-icon.png"] },
   { id: "crawler", pattern: /^\/(robots\.txt|sitemap\.xml)$/, samples: ["/robots.txt", "/sitemap.xml"] },
 ];

@@ -493,10 +493,13 @@ export const notFound = {
   home: "Back to Home",
 } as const;
 
+const SHARE_PROMISE = "Learn what things are worth.";
+
 /** Search results and shared links (src/app/site-metadata.ts). */
 export const meta = {
   title: BRAND,
   description: "Ask a money question. The Tutor answers with a live widget built from a real event, and you move the numbers until it makes sense.",
-  shareTitle: `${BRAND}: Learn what things are worth.`,
-  screenshotAlt: "The Study Workspace: a Tutor conversation on the left and a worked widget on the right.",
+  shareTitle: `${BRAND}: ${SHARE_PROMISE}`,
+  /** The line under Home's question on its share card (issue #71). */
+  sharePromise: SHARE_PROMISE,
 } as const;

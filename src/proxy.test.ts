@@ -86,9 +86,15 @@ describe("The signed-out gate", () => {
     expect((await proxy(request("/course", { method: "POST", headers: { "Next-Action": "abc" } }))).status).toBe(401);
   });
 
-  it("serves any .png or .webp file under /landing-assets/ signed out, the link-preview image among them", async () => {
-    expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
-    expect(allowed(await proxy(request("/landing-assets/workspace.webp")))).toBe(true);
+  // Issue #71: the share images (Home's and one per Example) are public; the old screenshot is gone, so it and any other
+  // name reach the not-found page (issue #70) rather than a file.
+  it("serves the share images signed out, and sends the old screenshot or an unknown card to the not-found page", async () => {
+    for (const path of ["/share-image/home.png", "/share-image/amazon-2000.png", "/share-image/kerala-bumper-2024.png"]) {
+      expect(allowed(await proxy(request(path))), path).toBe(true);
+    }
+    for (const path of ["/landing-assets/workspace-light.png", "/share-image/nope.png", "/share-image/home.webp", "/share-image/a/b.png"]) {
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
+    }
   });
 
   // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.
@@ -440,8 +446,10 @@ describe("One public-route list", () => {
     }
   });
 
-  it("every page folder of the app is a public page, an auth root or a signed-in root", () => {
-    const listed = new Set([...PUBLIC_PAGES.map((p) => p.path), ...AUTH_ROOTS, ...SIGNED_IN_ROOTS]);
+  it("every page folder of the app is a public page, a public file's folder, an auth root or a signed-in root", () => {
+    // A public file's folder: the share cards' route (/share-image, issue #71).
+    const fileRoots = PUBLIC_FILES.flatMap((f) => f.samples.map((path) => `/${path.split("/")[1]}`));
+    const listed = new Set([...PUBLIC_PAGES.map((p) => p.path), ...fileRoots, ...AUTH_ROOTS, ...SIGNED_IN_ROOTS]);
     const app = join(process.cwd(), "src/app");
     const isDir = (path: string) => statSync(path).isDirectory();
     /** A folder Next.js answers for: a page or a route handler somewhere under it. */

@@ -1,7 +1,9 @@
 import { SignUp } from "@clerk/nextjs";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { DEFAULT_DESTINATION, JOIN_PATH, SIGN_IN_PATH } from "@/auth/destination";
+import { pageMetadata } from "@/app/site-metadata";
+import { DEFAULT_DESTINATION, JOIN_PATH, SIGN_IN_PATH, SIGN_UP_PATH } from "@/auth/destination";
 import { clerkOn } from "@/auth/gates";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { joining } from "@/site/copy";
@@ -20,6 +22,8 @@ type Props = { params?: Promise<{ "sign-up"?: string[] }>; searchParams?: Promis
  * - On the test bed, a plain stand-in takes the card's place (testBedCard).
  * - Anywhere else without Clerk there is nothing to finish, so the page sends the person to /sign-in.
  */
+export const metadata: Metadata = pageMetadata({ title: joining.signUp.title, path: SIGN_UP_PATH });
+
 export default async function SignUpPage({ params, searchParams }: Props = {}) {
   const on = clerkOn(process.env);
   if (!on && !e2eEnabled(process.env)) redirect(SIGN_IN_PATH);
