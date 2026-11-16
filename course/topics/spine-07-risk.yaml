@@ -195,7 +195,7 @@ questions:
     source: "Damodaran, The Dark Side of Valuation (HighGrow.pdf, Feb 2000): beta 1.60 for internet retailers against 1.00 for specialty retailers. https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
   - id: rate-q-fed
     kind: direction
-    prompt: Suppose the Treasury yield had been 25 basis points higher, with every other input the same. Which way would Amazon's value move, and how far?
+    prompt: Suppose the Treasury yield had been a quarter of a percentage point higher, with every other input the same. Which way would Amazon's value move, and how far?
     skill: rate-matters-less
     choices:
       - { id: down-little, text: "Down, by a little" }

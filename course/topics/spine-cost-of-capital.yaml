@@ -2,7 +2,9 @@
 # equity. This Topic adds what lenders charge, the tax that interest saves, and the weights, and names the WACC once.
 # The Case is Damodaran's Amazon of February 2000; its valuation block is Amazon's in val-dcf, taken with valuationFrom.
 # The Cost of capital stack opens at Damodaran's own figures for the mature Amazon of year ten (beta 1.00, 15% debt,
-# 7% before tax, a 35% tax rate: 9.61%), from his table in HighGrow.pdf. The Primer "Basis points" is cut from the
+# 7% before tax, a 35% tax rate: 9.61%), from his table in HighGrow.pdf. A mix other than his re-levers the beta
+# (review 3, M03; the Workbench's model and Go deeper): 30% of debt in years one to three, at their 0% tax rate, gives
+# 13.27%, 15% gives 13.05% and none 12.82% (releveredRisk in src/finance/cost-of-capital-stack.ts). The Primer "Basis points" is cut from the
 # Elective num-percent-bps (spec C3). Stage, place and length live in course/outline.yaml.
 id: spine-cost-of-capital
 title: "What does all of a company's money cost?"
@@ -40,7 +42,9 @@ concept: >
   interest, and its debt costs less after tax. Blend the two costs by how much of the company's money each puts in, and
   you have the cost of capital, the rate for all of its money. Analysts call this the WACC, short for weighted average
   cost of capital. The blend leans toward whoever puts in most: Amazon's lenders put in 1.2%, so its rate is almost its
-  cost of equity. Like the beta, the mix matters, but it moves a value less than growth and margins do.
+  cost of equity. More debt also makes the shares riskier, because lenders are paid first, so shareholders then require
+  more; that takes back much of what cheaper debt saves. Like the beta, the mix matters, but it moves a value less than
+  growth and margins do.
 
 principle: >
   Blend what shareholders and lenders each require by how much of the money each puts in, with debt counted after its
@@ -53,8 +57,12 @@ dailyLife: >
 goDeeper: >
   Damodaran weighted the two costs by what the market paid, not by the amounts in the accounts: at $84 a share,
   Amazon's 340.79 million shares were worth $28,626 million, against debt of about 1.2% of the total. He also had its
-  lenders charging less as it matured, 8% before tax at first and 7% by year ten. A Learner who wants more can ask why
-  more debt also makes a company's shares riskier.
+  lenders charging less as it matured, 8% before tax at first and 7% by year ten. Another mix needs another beta,
+  because more debt makes the shares riskier. In the same paper he re-levered Boston Chicken's beta from its industry's
+  beta with no debt: beta with debt = beta with no debt × (1 + (1 − tax rate) × debt ÷ equity). On that rule, at the 0%
+  tax rate of Amazon's loss-making years, borrowing 30% of its money from year one would lift its beta of 1.60 to about
+  2.26, its cost of equity to 15.53% and its cost of capital to 13.27%, up from 12.84%, not down; with no debt at all it
+  would be 12.82%. The Workbench re-levers the same way when you move the share of debt.
 
 youllLearn:
   - "Blend the cost of equity and the after-tax cost of debt into a cost of capital."
@@ -115,7 +123,7 @@ primers:
 
 insight:
   question: Take Damodaran's mature Amazon and move its share of debt down to none, then back up to where he set it. Does the cost of capital move a lot or a little, and why does it stay so close to what shareholders require?
-  written: With no debt the cost of capital is the cost of equity, and at his share of debt it falls by less than a point; shareholders still put in most of the money, so the blend leans their way, and cheap debt after tax only pulls on its own share.
+  written: With no debt the cost of capital is the cost of equity, and at his share of debt it falls by about half a point; shareholders still put in most of the money, so the blend leans their way, cheap debt after tax only pulls on its own share, and the riskier shares take back part of the saving.
   foundWhen: The Learner moves the share of debt between none and where he set it, sees the cost of capital move only a little, and says the blend stays near the cost of equity because shareholders put in most of the money.
   hints:
     - Watch the cost of capital while you move the share of debt down to none, then back to where it opened.
@@ -147,8 +155,8 @@ questions:
       case: spine-coc-amazon-mix
       changes:
         - { id: thinner, label: "Margin 10% to 8%", levers: { marginTarget: 8 } }
-        - { id: heavy-debt, label: "Rate while it grows 12.84% to 11.43%, borrowing 30% at 8% from year one", levers: { costOfCapitalGrowing: 11.43 } }
-        - { id: no-debt, label: "Rate while it grows 12.84% to 12.90%, borrowing nothing", levers: { costOfCapitalGrowing: 12.9 } }
+        - { id: heavy-debt, label: "Rate while it grows 12.84% to 13.27%, borrowing 30% at 8% from year one", levers: { costOfCapitalGrowing: 13.27 } }
+        - { id: no-debt, label: "Rate while it grows 12.84% to 12.82%, borrowing nothing", levers: { costOfCapitalGrowing: 12.82 } }
   - id: coc-q-price
     kind: price_assumes
     prompt: Amazon's shares cost $84. Which story gets near that price?
@@ -158,7 +166,7 @@ questions:
       case: spine-coc-amazon-mix
       changes:
         - { id: bigger-richer, label: "$60bn of revenue in year 10, keeping 12.5%", levers: { revenueYear10: 60000, marginTarget: 12.5 } }
-        - { id: heavy-debt, label: "His story with 30% debt at 8% from year one, 11.43% while it grows", levers: { costOfCapitalGrowing: 11.43 } }
+        - { id: heavy-debt, label: "His story with 30% debt at 8% from year one, 13.27% while it grows", levers: { costOfCapitalGrowing: 13.27 } }
         - { id: bigger, label: "$50bn of revenue in year 10, keeping 10%", levers: { revenueYear10: 50000 } }
   - id: coc-q-predict
     kind: predict
@@ -167,8 +175,8 @@ questions:
     computed:
       case: spine-coc-amazon-mix
       changes:
-        - { id: thirty, label: "30% of its money at 8%, so 11.43% while it grows", levers: { costOfCapitalGrowing: 11.43 } }
-        - { id: none, label: "nothing at all, so 12.90% while it grows", levers: { costOfCapitalGrowing: 12.9 } }
+        - { id: thirty, label: "30% of its money at 8%, so 13.27% while it grows", levers: { costOfCapitalGrowing: 13.27 } }
+        - { id: none, label: "nothing at all, so 12.82% while it grows", levers: { costOfCapitalGrowing: 12.82 } }
       bands:
         - { id: up-big, label: "Up by half or more", min: 1.5 }
         - { id: up-some, label: "Up, by less than half", min: 1, max: 1.5 }
@@ -250,8 +258,8 @@ checks:
           - { id: risk, text: "Lenders take more risk than shareholders", mistake: { tag: lender_risk, fix: "Lenders are paid before shareholders, so they carry less risk and ask for less." } }
       - id: coc-try-less-half
         skill: blend-matters-less
-        ask: Borrowing 30% of its money from year one would take Amazon's rate while it grows from 12.84% to 11.43%, and the price is more than twice his value. Can the mix of debt alone explain the price?
-        halfDone: "First step, done for you: that is under a point and a half on the rate, a modest change next to the gap to the price."
+        ask: With no tax yet to save, borrowing 30% of its money from year one would move Amazon's rate while it grows from 12.84% to 13.27%, because its shares would get riskier. The price is more than twice his value. Can the mix of debt alone explain the price?
+        halfDone: "First step, done for you: that is under half a point on the rate, a small change next to the gap to the price."
         kind: choice
         answer: no
         choices:
@@ -264,7 +272,7 @@ checks:
         computed:
           case: spine-coc-amazon-mix
           changes:
-            - { id: more-debt, label: "Rate while it grows 12.84% to 12.17%, borrowing 15% at 8%", levers: { costOfCapitalGrowing: 12.17 } }
+            - { id: more-debt, label: "Rate while it grows 12.84% to 13.05%, borrowing 15% at 8%", levers: { costOfCapitalGrowing: 13.05 } }
             - { id: margin-nine, label: "Margin 10% to 9%", levers: { marginTarget: 9 } }
             - { id: leaner, label: "Sales to capital 3 to 3.5", levers: { salesToCapital: 3.5 } }
       - id: coc-try-less-first

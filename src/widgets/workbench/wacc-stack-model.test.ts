@@ -142,7 +142,34 @@ describe("Cost of capital stack on Amazon (B4)", () => {
       waccStackModel(data, { ...atCase, debtShare: 30 }).funders.map(
         (f) => f.text,
       ),
-    ).toEqual(["Shareholders: 70%, want 12.9%", "Lenders: 30%, cost 8%"]);
+    ).toEqual(["Shareholders: 70%, want 15.53%", "Lenders: 30%, cost 8%"]);
+  });
+
+  // Review 3, M03: relative risk is the Case's beta at the Case's own share of debt, so another share re-levers it. With no
+  // tax to save (Amazon's years one to three), more debt makes the money dearer, not cheaper: 13.27% at 30%, 12.82% at none.
+  it("re-levers relative risk when the share of debt moves, so more debt with no tax to save raises the rate", () => {
+    const at = (debtShare: number) =>
+      waccStackModel(data, { ...atCase, debtShare }).headline.key;
+    expect([at(0), at(1.2), at(15), at(30)]).toEqual([
+      "12.82%",
+      "12.84%",
+      "13.05%",
+      "13.27%",
+    ]);
+    expect(
+      waccStackReading(data, { ...atCase, debtShare: 30 }).readouts,
+    ).toContain(
+      "Relative risk with this much debt: 2.26 (1.60 at 1.2% of debt; more debt makes the shares riskier)",
+    );
+    expect(waccStackReading(data, atCase).readouts.join("\n")).not.toMatch(
+      /Relative risk with this much debt/,
+    );
+  });
+
+  it("moves the rate with the premium for shares", () => {
+    expect(
+      waccStackModel(data, { ...atCase, premium: 5 }).numbers[0],
+    ).toEqual({ label: "Cost of equity", text: "14.5%" });
   });
 });
 
@@ -254,6 +281,15 @@ describe("Cost of capital stack, led by the Topic's story (#91)", () => {
     expect(`${model.headline.before}${model.headline.key}`).toBe(
       "The cost of capital is 9.61%",
     );
+  });
+
+  it("at No debt shows the cost of equity with the beta taken back to no debt, not his 10.50% (review 3, M03)", () => {
+    const none = waccStackModel(debt, { ...atMature, debtShare: 0 });
+    expect(none.headline.key).toBe("10.09%");
+    expect(none.funders.map((f) => f.text)).toEqual([
+      "Shareholders: 100%, want 10.09%",
+      "Lenders: 0%, cost 4.55%",
+    ]);
   });
 
   it("keeps within the Workbench budget either way", () => {

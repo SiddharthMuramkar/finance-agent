@@ -32,7 +32,9 @@ describe("Spine Topics 'how big can it get' and 'the years you cannot forecast',
   });
 
   it("each end the Principle step on a daily-life line", () => {
-    expect(growth.dailyLife).toMatch(/food-delivery app.*how big a slice/i);
+    expect(growth.dailyLife).toMatch(/food-delivery app.*how big a share/i);
+    // Review 3, L14: "slice" is the take rate in this Topic, so the market share is a "share".
+    expect(growth.dailyLife).not.toMatch(/\bslice\b/i);
     expect(far.dailyLife).toMatch(/flat.*years after/i);
   });
 

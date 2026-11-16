@@ -61,8 +61,9 @@ goDeeper: >
   in: a company that keeps earning more on its equity than shareholders could get elsewhere can grow into a higher
   value, and one that earns less shrinks its value as it grows. A Learner who wants more can ask how Webvan's plan
   would read on that measure. Analysts also track the reinvestment rate, the share of a company's after-tax operating
-  profit that it puts back into the business to grow: Webvan's ran above 100% while it built out, because it had no
-  operating profit and paid for its centres with investors' money.
+  profit that it puts back into the business to grow. It only reads as a share when there is a profit to put back:
+  Webvan made an operating loss, so it reinvested money it had not earned, paying for its centres with investors'
+  money, and the rate tells you nothing about it.
 
 youllLearn:
   - "See why growth needs money before it brings in sales."
@@ -337,6 +338,11 @@ checks:
           - { id: four-profit, text: "Each dollar invested earns four dollars of profit", mistake: { tag: sales_for_profit, fix: "It counts sales, not profit; what is kept depends on the margin." } }
   - id: growth-cost-talk
     kind: conversation
-    prompt: "Here is a Story. Webvan's founders said each new centre would pay for itself: a full centre would sell about $300 million a year and keep 12% of it as operating profit, so building 26 more could only add value. Judge that Story in two or three sentences: what does each new centre cost, what will it earn on that money, and is that more than the money costs?"
-    passCriteria: Judges the founders' Story rather than repeating it; says that growth needs the centres to be built first; ties what a centre earns to its margin and to how full it gets, noting Oakland ran at under a quarter of its capacity; compares that return with what the money costs; and says the plan adds value only when the return is the higher of the two, so the founders' claim does not hold on its own.
+    prompt: "Here is a Story. In its first annual report, Webvan estimated that a centre running at full capacity seven days a week, with an average order of about $103, would sell about $300 million a year and could keep 12% of it as operating profit. An analyst reading the report concludes that building 26 more centres could only add value. Judge the analyst's Story in two or three sentences: what does each new centre cost, what will it earn on that money, and is that more than the money costs?"
+    passCriteria: Judges the analyst's Story rather than repeating it; says that growth needs the centres to be built first; ties what a centre earns to its margin and to how full it gets, noting Oakland ran at under a quarter of its capacity; compares that return with what the money costs; and says the plan adds value only when the return is the higher of the two, so the analyst's claim does not hold on its own.
+    # Webvan's words, not an invented quote (review 3, L04): Form 10-K405 for 1999, filed 30 Mar 2000, "we estimate that it
+    # would generate annual revenue of approximately $300 million assuming an average order size of approximately $103.00"
+    # and "we can achieve an operating margin of 12%", each at designed capacity seven days a week. The "could only add
+    # value" conclusion is the analyst's, which the Learner judges.
+    # https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt
     skills: [growth-pays]

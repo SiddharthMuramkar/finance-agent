@@ -48,8 +48,8 @@ concept: >
   A forecast covers a few years, usually ten, but a business can run for decades. Terminal value
   packs every year after the forecast into one lump at year 10. That lump is then discounted back to today
   like any other cash flow. Two settings drive it: growth after year 10, which cannot beat the
-  economy for ever, and the cost of capital after year 10, usually lower than in the risky growth
-  years. The closer growth comes to the cost of capital, the bigger the lump. The cost of capital
+  economy for ever, and the cost of capital after year 10, the rate for all of the company's money
+  that the last Topic built, usually lower than in the risky growth years. The closer growth comes to the cost of capital, the bigger the lump. The cost of capital
   in the growth years only changes how far the lump and the early cash are discounted back, so a point on it moves the
   value far less than a point on either far-future setting. For a young company
   that loses cash in its early years, the forecast years can be worth less than nothing today, so
@@ -92,12 +92,6 @@ terms:
     example: "Planning a trip day by day for the first week, then guessing the rest."
     emoji: spiral-calendar
     inStory: In the story, Damodaran forecasts ten years one by one.
-  - term: cost of capital
-    means: The return investors need each year, given the risk, used to turn future cash into today's.
-    pro: The cost of capital falls to 9.61% in the stable phase.
-    example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
-    emoji: balance-scale
-    inStory: In the story, investors want 9.61% a year from Amazon after year 10.
 
 # Spine critics round 1 on #95 (widget fit): the Story and Concept turns showed only the empty Widget panel. The story scene
 # carries the years the Story turn no longer reads out (beginner persona: two or three numbers a turn).
@@ -154,8 +148,8 @@ explore:
 connections:
   - text: "The DCF Topic sets out the terminal value and discounts it with the other cash flows."
     topics: [val-dcf]
-  - text: "The cost of capital after the tenth year is the rate the risk Topic builds, for a company grown up and safer."
-    topics: [spine-07-risk]
+  - text: "The cost of capital after the tenth year is the blend of what shareholders and lenders require that the cost-of-capital Topic builds, for a company grown up and safer."
+    topics: [spine-cost-of-capital]
   - text: "Building a valuation yourself means choosing growth for ever and checking it against the economy."
     topics: [ana-build-valuation]
 
@@ -229,7 +223,7 @@ questions:
         text: "It grows with the economy and keeps investing to do so"
         mistake: { tag: steady_is_fine, fix: "Growth paid for by investment is how a mature company grows. It holds." }
     answer: faster
-    explanation: "No company can outgrow its cost of capital for ever: the lump would be infinite, and it would end up bigger than the economy."
+    explanation: "No company can outgrow its cost of capital for ever: the closer growth comes to that rate the bigger the lump, with no end to it once growth gets there, and a company growing that fast for ever would end up bigger than the economy."
     source: "The val-dcf Topic: g is a stable growth rate that cannot exceed the long-run growth of the economy, and growth at or above the cost of capital gives no finite value."
 
   - id: far-q-pricevalue
@@ -318,7 +312,7 @@ checks:
           - { id: balloons, text: "It balloons" }
           - id: shrinks
             text: "It shrinks"
-            mistake: { tag: gap_backwards, fix: "A narrower gap means dividing by a smaller number, so the lump grows." }
+            mistake: { tag: gap_backwards, fix: "The closer growth comes to the cost of capital, the bigger the lump, so it grows." }
       - id: far-try-settings-2
         skill: far-settings
         ask: "Two analysts both have Amazon growing 3% a year for ever after year 10. One says investors want 9% then, the other 12%. Whose terminal value is bigger?"

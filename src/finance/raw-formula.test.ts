@@ -31,6 +31,12 @@ describe("raw-formula detector", () => {
     "A put pays max(strike - price, 0) at expiry.",
     "The floor is min(loss, cap).",
     "The weights are E / V and D / V.",
+    // Still caught after the rules were narrowed for prose (review 3, L16).
+    "The value is price × shares outstanding.",
+    "Divide sales ÷ capital to get the ratio.",
+    "Take x x y for the area.",
+    "Its cost is debt / (debt + equity).",
+    "Earnings + 2 x growth gives the score.",
   ])("flags the typed formula %j", (text) => {
     expect(hasRawFormula(text)).toBe(true);
   });
@@ -52,6 +58,13 @@ describe("raw-formula detector", () => {
     "Plan A - the cheap one - won, and Plan B - the dear one - lost.",
     "* A Markdown bullet\n* another bullet\nand a line after it.",
     "The max (most) a buyer can lose is the premium; at a minimum (min) it is zero.",
+    // Ordinary prose the F10 rules caught (review 3, L16); the detector also grades Tutor replies.
+    "Time runs along the x axis and the value up the y axis.",
+    "Plot the years on the x axes of both charts.",
+    "A P/E of 20 x earnings is what buyers paid for each share.",
+    "Sort each figure as price / value.",
+    "Tata Motors + JLR sold more cars that year.",
+    "Its 2008 deal (Tata Motors + JLR) closed in June.",
   ])("leaves %j alone", (text) => {
     expect(rawFormulaHits(text)).toEqual([]);
   });
