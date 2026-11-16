@@ -9,15 +9,9 @@ import { textsIn, topicTexts, type TextGroup } from "./topic-texts.ts";
 
 /** Topics that still type formulas. Remove an ID when its Topic is converted; never add one. */
 export const NOT_YET_CONVERTED: readonly string[] = [
-  "num-probability",
   "fs-balance",
   "fs-ratios",
   "fs-tax",
-  "num-statistics",
-  "eco-inflation-real",
-  "eco-gdp-cycles",
-  "fx-basics",
-  "sov-default-country-risk",
   "cf-wacc",
   "cf-capital-structure",
   "val-dcf",
@@ -26,17 +20,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "val-implied-erp",
   "val-india",
   "cf-venture",
-  "struct-securitisation",
-  "hist-macro-regimes",
-  "fol-sov-ratings",
-  "fol-erp",
-  "jud-assumptions",
-  "jud-units-periods",
-  "jud-filing-vs-claim",
-  "ana-build-valuation",
-  "ana-india-transfer",
-  "ana-decide-between",
-  "ana-anthropic-s1",
 ];
 
 type Labelled = { where: string; text: string };
