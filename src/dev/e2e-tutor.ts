@@ -731,6 +731,56 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /**
+   * The three financial statements, a Spine Topic of their own after the cash Topic (#90, e2e/spine-statements.spec.ts):
+   * its first three Tutor Turns, Story, Concept and Explore, played for the critics' screenshots and transcript. Its
+   * figures are the Topic file's Case figures; code opens the Cash waterfall at explore, so the explore reply only points at it.
+   */
+  "statements-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "April 2001. Webvan, the online grocer, files its report for 2000, and three of its pages matter. " +
+              "The first shows sales of $178.5 million and a loss of $453.3 million. " +
+              "The second shows about $212 million left in cash and investments on the last day of the year. " +
+              "The third shows $263.1 million used in running the business, and $259.8 million spent on warehouses and equipment.\n\n" +
+              "Three pages, three different numbers. Which one would you read to see how long Webvan can keep going?",
+          ),
+        ],
+      },
+    ],
+  },
+  "statements-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Each page answers one question. The income statement shows what a year earned, down to net income, the profit or loss. " +
+              "The balance sheet shows what the company owns and owes on one day. " +
+              "The cash flow statement shows where the cash came from and where it went over the year.\n\n" +
+              "When Webvan pays cash for a warehouse, which page do you think shows the warehouse itself?",
+          ),
+        ],
+      },
+    ],
+  },
+  "statements-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Webvan's next year as a waterfall, with sales doubling and a small profit on each sale. " +
+              "Operating income is the income statement's line; free cash flow at the end is the cash flow statement's.\n\n" +
+              "Why do the two point opposite ways, and where did the cash go?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;
