@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
-import type { DcfResult } from "./dcf-engine";
+import { valueStory, type DcfResult } from "./dcf-engine";
 import { marginPath } from "./dcf-paths";
 import { AMAZON_2000 } from "./fixtures/amazon-2000.valuation";
-import { applyLevers, matchesPublished, returnOnNewCapital, toEngineInputs, valuationBlock, valueCase, type Levers, type ValuationBlockInput } from "./valuation-case";
+import {
+  applyLevers,
+  caseProvenance,
+  inputsFor,
+  matchesPublished,
+  returnOnNewCapital,
+  toEngineInputs,
+  valuationBlock,
+  valuationInputs,
+  valueCase,
+  type Levers,
+  type ValuationBlockInput,
+} from "./valuation-case";
 
 // Golden numbers from spec 2026-11-12: Appendix B.2 (Value levers on Damodaran's Amazon, February 2000, from
 // HighGrow.pdf) and the table under decision B3. Each is the value a share with the levers moved, in dollars.
@@ -69,6 +81,60 @@ describe("the valuation block a Topic file's Case holds", () => {
     expect(inputs.margin[0]).toBeCloseTo(-0.13355, 12);
     expect(inputs.marginAfter).toBe(0.1);
     expect(inputs.taxRate).toBe(0.35);
+  });
+});
+
+describe("a Case's valuation inputs, apart from its provenance", () => {
+  const { price, illustration, published, sources, reproduces, ...inputsOnly } = AMAZON_2000;
+
+  it("reads the inputs alone, with no published value, sources or price, and values them as the Case: $35.04", () => {
+    const inputs = valuationInputs.parse(inputsOnly);
+    expect(valued(valueStory(toEngineInputs(inputs))).valuePerShare.toFixed(2)).toBe("35.04");
+    expect(valuationInputs.safeParse({ ...inputsOnly, sources: AMAZON_2000.sources }).success).toBe(false);
+  });
+
+  it("reads the provenance alone: price, published value, notes and sources", () => {
+    const provenance = caseProvenance.parse({ price, illustration, published, notes: ["How the figures were built."], sources, reproduces });
+    expect(provenance.published.valuePerShare).toBe(35.08);
+    expect(caseProvenance.safeParse({ price, published, sources, reproduces, baseRevenue: 1640 }).success).toBe(false);
+  });
+
+  it("keeps the inputs' own rules: growth after year 10 below the year-10 cost of capital, one share for a whole company", () => {
+    expect(valuationInputs.safeParse({ ...inputsOnly, growthAfterPercent: 9.61 }).error?.issues[0].path).toEqual(["growthAfterPercent"]);
+    expect(valuationInputs.safeParse({ ...inputsOnly, per: "company" }).error?.issues[0].path).toEqual(["shares"]);
+  });
+});
+
+describe("the inputs for a set of Lever settings", () => {
+  it("are the Case's own inputs when no Lever moves", () => {
+    expect(inputsFor(amazon, {})).toEqual({ ok: true, inputs: toEngineInputs(amazon) });
+  });
+
+  it("value, by the engine alone, to the Lever golden values: $60bn and 12.5% is $84.07, 2 sales to capital is $25.14", () => {
+    const at = (levers: Levers) => {
+      const made = inputsFor(amazon, levers);
+      if (!made.ok) throw new Error(made.error);
+      return valued(valueStory(made.inputs)).valuePerShare;
+    };
+    expectCents(at({ revenueYear10: 60_000, marginTarget: 12.5 }), 84.07);
+    expectCents(at({ salesToCapital: 2 }), 25.14);
+  });
+
+  it("show what the Levers moved: year 10's revenue, the margin after year 10, the chance it fails", () => {
+    const made = inputsFor(amazon, { revenueYear10: 60_000, marginTarget: 12, failureChance: 20, cash: 1 });
+    if (!made.ok) throw new Error(made.error);
+    const revenue10 = made.inputs.growth.reduce((r, g) => r * (1 + g), made.inputs.baseRevenue);
+    expect(revenue10).toBeCloseTo(60_000, 6);
+    expect(made.inputs.marginAfter).toBe(0.12);
+    expect(made.inputs.failure).toEqual({ chance: 0.2, recovered: 0 });
+    expect(made.inputs.cash).toBe(1);
+    expect(made.inputs.debt).toBe(amazon.debt);
+  });
+
+  it("refuse a revenue no growth path of the Case's shape reaches, as valuing does", () => {
+    const made = inputsFor(amazon, { revenueYear10: -5 });
+    expect(made.ok).toBe(false);
+    expect(applyLevers(amazon, { revenueYear10: -5 })).toEqual(made);
   });
 });
 

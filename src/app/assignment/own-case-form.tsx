@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { CURRENCY_STYLE } from "@/finance/money";
-import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
+import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, valueOwnCase, type OwnCaseEstimate, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
 import { annualReportGuide, type GuideField } from "@/markets/guides";
 import { readingMonth } from "@/markets/readings";
 import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
 import { dateText, priceText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
+import { OwnCaseFullSheet } from "./own-case-full-sheet";
 
 /** How each market's report counts its money (₹ crore; Japan's 百万円 and Korea's 백만원 are millions; Europe's € millions, #115). */
 const MONEY_WORDS: Record<OwnCaseMarket, string> = { IN: "₹ crore", JP: "¥ millions (百万円)", KR: "₩ millions (백만원)", EU: "€ millions" };
@@ -77,6 +78,8 @@ export function OwnCaseForm() {
   const [shown, setShown] = useState<Shown>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  // The Own Case last valued, for Go deeper's Full sheet (#111); a new valuation opens a fresh sheet.
+  const [valued, setValued] = useState<{ inputs: OwnCaseInputs; estimate: OwnCaseEstimate; at: number } | null>(null);
 
   const inputs = (): OwnCaseInputs | null =>
     industry && {
@@ -91,7 +94,9 @@ export function OwnCaseForm() {
     setSaved(null);
     const typed = inputs();
     if (!typed) return setShown({ kind: "problem", text: "Pick the company's industry." });
-    const value = valueOwnCase(typed, openingEstimate(typed.industry, market));
+    const estimate = openingEstimate(typed.industry, market);
+    const value = valueOwnCase(typed, estimate);
+    setValued(value.ok ? { inputs: typed, estimate, at: Date.now() } : null);
     setShown(
       value.ok
         ? { kind: "value", text: `The engine's value: ${priceText(value.valuePerShare, money)} a share, beside a price of ${priceText(typed.price, money)} on ${dateText(typed.reportDate)}.` }
@@ -240,6 +245,7 @@ export function OwnCaseForm() {
           {shown.text}
         </p>
       )}
+      {shown?.kind === "value" && valued && <OwnCaseFullSheet key={valued.at} inputs={valued.inputs} estimate={valued.estimate} />}
       {saved && (
         <p data-own-case-saved role="status" className="text-sm leading-5">
           {saved} <TextLink href="/notebook#own-cases">Open the Notebook</TextLink>
