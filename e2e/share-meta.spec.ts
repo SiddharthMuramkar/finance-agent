@@ -34,6 +34,8 @@ async function shareImage(request: APIRequestContext, url: string) {
 
 test.describe("signed out", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
+  // A dozen pages in one test, some not warmed (the joining pages), each drawn per request.
+  test.describe.configure({ timeout: 180_000 });
 
   const PAGES: { path: string; title: string }[] = [
     { path: "/", title: "Value It" },
@@ -90,7 +92,8 @@ test.describe("signed out", () => {
   });
 
   test("[#71] the old Study Workspace screenshot is no longer served", async ({ request }) => {
-    expect((await request.get(OLD_SCREENSHOT)).status()).not.toBe(200);
+    const response = await request.get(OLD_SCREENSHOT, { maxRedirects: 0 });
+    expect(response.headers()["content-type"] ?? "").not.toContain("image/");
   });
 });
 

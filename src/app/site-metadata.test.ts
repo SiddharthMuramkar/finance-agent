@@ -10,6 +10,11 @@ describe("Site metadata", () => {
     expect(String(siteMetadata.description)).not.toMatch(/private/i);
   });
 
+  // Spec 7.1, issue #71: every page with its own title, the joining pages and the 404 too, reads "Page · Value It".
+  it("titles every page 'Page · Value It', and a page with none plain 'Value It'", () => {
+    expect(siteMetadata.title).toEqual({ template: "%s · Value It", default: "Value It" });
+  });
+
   it("gives shared links a title, description and Home's share card on the public domain", () => {
     const og = siteMetadata.openGraph!;
     expect(String(og.title)).toBe("Value It: Learn what things are worth.");
