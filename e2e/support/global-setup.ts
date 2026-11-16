@@ -57,7 +57,14 @@ async function warmUp(baseURL: string, launchOptions: LaunchOptions | undefined)
       // `/notebook` compiles in about 17 s on a 4-core box and took 24.8 s on a slow runner, inside the first test that opens it.
       await page.goto("/notebook", { timeout: WARM_MS });
       await page.waitForLoadState("networkidle", { timeout: WARM_MS });
-      console.log(`Test server warmed (story seed, /study and its opener, /course, /notebook) in ${((Date.now() - started) / 1000).toFixed(1)} s.`);
+      // The routes a tap posts to (LEARNER_POSTS), each sent an empty body: it answers 400 and writes nothing, but compiles.
+      // A test's first tap otherwise pays the compile inside its 5 s expect: on a loaded box `e2e/spine-01.spec.ts`'s first
+      // Quick try waited over 5 s on `/api/quick-try` and its quiz Check on `/api/quiz`, with no bug in the app.
+      for (const path of LEARNER_POSTS) {
+        const warmed = await page.request.post(path, { data: {}, timeout: WARM_MS });
+        if (warmed.status() >= 500) throw new Error(`POST ${path} {} answered ${warmed.status()}`);
+      }
+      console.log(`Test server warmed (story seed, /study and its opener, /course, /notebook, ${LEARNER_POSTS.join(", ")}) in ${((Date.now() - started) / 1000).toFixed(1)} s.`);
     } catch (error) {
       console.warn(`Test server warm-up did not finish, so the first test may compile cold: ${(error as Error).message}`);
     } finally {
@@ -80,6 +87,9 @@ async function warmUp(baseURL: string, launchOptions: LaunchOptions | undefined)
     await browser.close();
   }
 }
+
+/** The routes the page posts to when the Learner taps a Quick try, submits a quiz or moves a Widget. */
+const LEARNER_POSTS = ["/api/quick-try", "/api/quiz", "/api/widget-state"];
 
 /** The public site's pages (one case page compiles the route for all five) and the sign-in page. */
 const PUBLIC_PAGES = ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/sign-in"];

@@ -124,6 +124,23 @@ describe("finishReply", () => {
     expect(lines[0]).toBe(asked[0]);
   });
 
+  it("drops an empty part an item left at the reply's end, so its last words keep the usage and Save, as a reload draws it", () => {
+    // Complete this Topic: the Topic complete card comes after the closing reply's words, and no words follow it.
+    const card = { kind: "topic_complete", data: { topicId: "t", title: "T", principle: "P", next: null } };
+    const streamed = run(startReply(asked, "a-1", {}), replyCursor("a-1"), (c) => addText(c, "You have finished."), (c) => placeItem(c, card));
+    expect(tags(streamed.lines)).toEqual(["u:Why discount?", "a:You have finished.+", "[topic_complete]", "a:"]);
+    const usage: TurnUsage = { model: "m", inputTokens: 1, outputTokens: 1, cacheReadTokens: 0, cacheWriteTokens: 0, thinkingTokens: null, durationMs: 1, costUsd: 0.01, tools: [], steps: [] };
+    const ref = { sessionId: 4, turnSeq: 7 };
+    const lines = finishReply(streamed.cursor, { usage, ref })(streamed.lines);
+    expect(tags(lines)).toEqual(["u:Why discount?", "a:You have finished.", "[topic_complete]"]);
+    expect(lines[1]).toMatchObject({ usage, ref });
+  });
+
+  it("keeps a reply that has no words at all", () => {
+    const lines = finishReply(replyCursor("a-1"), {})(startReply(asked, "a-1", {}));
+    expect(tags(lines)).toEqual(["u:Why discount?", "a:"]);
+  });
+
   it("puts the Session ref on a Widget code showed in the reply, drawn before it, and on no other item", () => {
     // A Next: its step divider and step Widget come before the reply's first words (reply-items.ts: both are the Next's).
     const shown = { kind: WIDGET_SHOWN, data: { id: "t1", recipe: "grow_money", params: {}, title: "Rates", code: "x", source: "recipe" } };
