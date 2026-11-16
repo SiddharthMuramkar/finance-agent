@@ -75,7 +75,7 @@ describe("Value levers in a Widget (the recipe's fixture)", () => {
 
   it("says each lever with its unit, and puts the chance it fails under More settings", async () => {
     await drawFixture();
-    expect(lever("Revenue in year 10").getAttribute("aria-valuetext")).toBe("39 billion dollars");
+    expect(lever("Sales in year 10").getAttribute("aria-valuetext")).toBe("39 billion dollars");
     expect(lever("Operating margin once mature").getAttribute("aria-valuetext")).toBe("10 percent");
     expect(lever("Cost of capital while it grows").getAttribute("aria-valuetext")).toBe("12.84 percent");
     expect(host.querySelector('[data-testid="value-levers-more"]')?.textContent).toContain("Chance it fails");
@@ -85,7 +85,7 @@ describe("Value levers in a Widget (the recipe's fixture)", () => {
   it("shows $84 at revenue $60bn and margin 12.5%, and ticks Find a story worth the $84 price", async () => {
     const onTicked = vi.fn();
     await drawFixture({ onTicked });
-    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Sales in year 10"), 60);
     await settle();
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
@@ -115,7 +115,7 @@ describe("Value levers in a Widget (the recipe's fixture)", () => {
     await act(async () => priceChip.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await settle();
     expect(headline()).toBe("This story is worth $84 a share");
-    expect(lever("Revenue in year 10").getAttribute("aria-valuetext")).toBe("60 billion dollars");
+    expect(lever("Sales in year 10").getAttribute("aria-valuetext")).toBe("60 billion dollars");
   });
 });
 
@@ -130,8 +130,8 @@ describe("ValueLeversView on its own, as Home draws it", () => {
       root.render(<ValueLeversView block={amazon} stories={stories} tasks={valueLeversTasks(amazon)} onFirstLeverMove={onFirstLeverMove} onPriceFound={onPriceFound} />);
     });
     expect(headline()).toBe("This story is worth $35 a share");
-    setRange(lever("Revenue in year 10"), 60);
-    setRange(lever("Revenue in year 10"), 61);
+    setRange(lever("Sales in year 10"), 60);
+    setRange(lever("Sales in year 10"), 61);
     await settle();
     expect(onFirstLeverMove).toHaveBeenCalledTimes(1);
     expect(onPriceFound).not.toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe("Value levers' liveliness", () => {
     expect(fill.className).toMatch(/motion-reduce:transition-none/);
     const price = () => host.querySelector('[data-testid="value-levers-price-marker"]')!;
     expect(price().hasAttribute("data-reached")).toBe(false);
-    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Sales in year 10"), 60);
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
     expect(price().hasAttribute("data-reached")).toBe(true);

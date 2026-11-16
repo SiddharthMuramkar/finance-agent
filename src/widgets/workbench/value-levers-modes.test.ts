@@ -134,7 +134,7 @@ describe("market mode (Spine Topic 4: the same sums give far-apart values when t
     const first = valueLeversModel(block, specs, opening, market, 0);
     const second = valueLeversModel(block, specs, opening, market, 1);
     expect(second.value!).toBeGreaterThan(first.value!);
-    expect(second.readout).toEqual({ label: "Revenue in year 10", text: "$52bn of a $3tn market" });
+    expect(second.readout).toEqual({ label: "Sales in year 10", text: "$52bn of a $3tn market" });
     const reading = valueLeversReading({ block, mode: market }, { market: 1 });
     expect(reading.readouts).toContain("Market: All US retail, $3tn today (sourced: A Topic's source)");
   });
@@ -198,7 +198,7 @@ describe("all_open mode (Spine Topic 15: their own Valuation story, saved to the
     const note = storyNote(block, specs, settings, valueLeversModel(block, specs, settings, open), "Amazon");
     expect(note.title).toBe("My Valuation story: Amazon, against the price of 3 Feb 2000");
     expect(note.lines).toEqual([
-      "How big it gets: revenue in year 10 $39bn",
+      "How big it gets: sales in year 10 $39bn",
       "What it keeps: operating margin once mature 10%",
       "What growth costs: sales for each dollar invested $3.00",
       "How risky: cost of capital while it grows 12.84%",

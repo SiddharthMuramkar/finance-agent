@@ -34,7 +34,7 @@ test("[B3] moving Value levers to revenue $60bn and margin 12.5% shows $84 and t
   test.skip(info.project.name !== ONE, "one width is enough for the behaviour");
   await openFixture(page, "value-levers");
   await expect(headline(page)).toHaveText("This story is worth $35 a share");
-  await setSlider(page, "Revenue in year 10", "60");
+  await setSlider(page, "Sales in year 10", "60");
   await setSlider(page, "Operating margin once mature", "12.5");
   await expect(headline(page)).toHaveText("This story is worth $84 a share");
   await expect(tasks(page).nth(1)).toHaveAttribute("data-state", "done");
@@ -182,7 +182,7 @@ test("[#102] a Learner opens the Full sheet from Go deeper and reads every input
   // Nothing on the Full sheet can be typed into (#104 gives some rows a slider, never a typed number).
   await expect(sheet.locator('input:not([type="range"]), select, textarea, [contenteditable]')).toHaveCount(0);
   // It follows the Levers: a bigger revenue in year 10 reads as faster growth.
-  await setSlider(page, "Revenue in year 10", "60");
+  await setSlider(page, "Sales in year 10", "60");
   await expect(sheet.locator('[data-row="growth"]')).not.toContainText("150% in year 1,");
 });
 
@@ -215,7 +215,7 @@ test("[#103] moving a Lever marks the Full sheet rows it moved, and each row ope
   const sheet = page.getByTestId("full-sheet");
   // At the Case's own story nothing has moved.
   await expect(sheet.locator("[data-moved]")).toHaveCount(0);
-  await setSlider(page, "Revenue in year 10", "60");
+  await setSlider(page, "Sales in year 10", "60");
   await expect(sheet.locator("[data-moved]")).toHaveCount(1);
   await expect(sheet.locator('[data-row="growth"]')).toHaveAttribute("data-moved", "true");
   await expect(sheet.locator('[data-row="growth"]').getByTestId("full-sheet-moved")).toHaveText("Moved");
