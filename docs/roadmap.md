@@ -127,6 +127,16 @@ Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can bec
 | F6 | Google sign-in for Clerk. | Clerk went live with email link only (ADR 0017). Many people expect "Sign in with Google". | The owner makes the Google OAuth client (`docs/owner-actions.md`, step 5). Then the agent turns Google on and runs the smoke test again (step 4). |
 | F7 | The Dependabot widget-freeze step. | A Dependabot PR that bumps `@openuidev/lang-core` changes `src/widgets/frozen.generated.json`, so `src/widgets/widgets.test.ts` fails until someone runs `npm run widgets:freeze` and commits the result. #46 and #49 failed this way. | Add a step for lang-core bumps: run `npm run widgets:freeze`, raise the instruction-size budget in `src/widgets/widgets.test.ts` if the text grows, and commit. Or keep lang-core out of the Dependabot group, so a person updates it. |
 
+## Next Case builds (#117, spec #68)
+
+The Owner's delegated picks from the six proposals in `docs/cases/2026-11-case-proposals.md` (2026-11-16): the top-ranked proposal of each region. No Case tickets are opened now; each becomes a ticket when it is next.
+
+| Region | Case | Currency | First step |
+|---|---|---|---|
+| India #1 | Paytm's IPO at Rs 2,150 (November 2021) | INR | Build it as an illustration (`match_price`), from the proposal's Rank 2 section. |
+| Japan/Korea #1 | Krafton's IPO at 498,000 won (August 2021) | KRW (#112, Korea market parts #114) | Build it from the proposal's Rank 3 section. |
+| Europe/US #1 | Peloton's IPO at $29 (September 2019) | USD | Reproduce the published value with the engine, from the proposal's Rank 1 section. |
+
 ## Out of scope (ruled 2026-11-14 and 2026-11-15)
 
 - **Offer shape after early access** ([#29](https://github.com/SiddharthMuramkar/finance-agent/issues/29)): shape, price, payments provider, price wording. Out of scope 2026-11-15. The owner is in the developer phase. Early access stays free. The hard cap per Learner (#13) stays. Licence fact for later: any paid part makes the whole site commercial, so Yale 251/252 and the Damodaran blog must leave or get permission.

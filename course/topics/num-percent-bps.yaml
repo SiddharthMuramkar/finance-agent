@@ -299,6 +299,9 @@ principle: >
   relative (percent of the old rate), and they differ by a lot. Name the base every time, and
   state rate changes in basis points to avoid mixing them up.
 
+# The daily-life line (spec #68 story 57): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: "A home-loan rate going from 8% to 8.5% has risen half a percentage point, or 50 basis points, yet the interest on the same balance goes up 6.25 percent."
+
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
   - "Tell a change in percentage points from a change in percent."

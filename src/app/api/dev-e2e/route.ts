@@ -34,7 +34,7 @@ export const runtime = "nodejs";
  * a named state on the fresh Learner (signing this browser in as it); `POST {script}` picks the scripted Tutor's next
  * reply; `POST {reset: true}` is `{state: "fresh"}`; `GET` says which database is open.
  *
- * `POST {person: "owner" | "asha"}` (issue #33) signs this browser in as one of the test bed's people
+ * `POST {person: "owner" | "asha" | "ravi"}` (issue #33) signs this browser in as one of the test bed's people
  * (src/dev/e2e-identity.ts): Clerk is off in the test bed, so a signed `fa_e2e_person` cookie stands in for a Clerk
  * session, and the person's Learner is found or made as a first Clerk sign-in makes it. The owner is the admin.
  * Idempotent: the same person and Learner come back. `ravi` (spec #68) comes back with every Spine Topic passed.
