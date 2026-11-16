@@ -318,8 +318,11 @@ describe("every mode", () => {
     for (const raw of modes) {
       const m = mode(raw);
       const specs = leverSpecs(block, m);
-      const { headline, readout } = valueLeversModel(block, specs, openingSettings(specs), m);
+      const model = valueLeversModel(block, specs, openingSettings(specs), m);
+      const { headline, readout } = model;
       expect(`${headline.before}${headline.key}${headline.after} ${readout?.label ?? ""}`, raw.kind).not.toMatch(/\byour story\b/i);
+      // Every word the model hands the view, the ladder's own face and the marker titles included (review 4 K11).
+      expect(JSON.stringify(model), raw.kind).not.toMatch(/\byour story\b/i);
     }
   });
 

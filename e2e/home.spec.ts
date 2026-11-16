@@ -210,12 +210,60 @@ test("[#75] Where you end up shows a real one-page note from the Notebook", asyn
   const note = end.locator("[data-end-note]");
   await expect(note).toContainText("Kikkoman");
   await expect(note.locator("li")).toHaveText([
-    "Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.",
-    "From the report: sales ¥745.5bn, operating profit ¥75.9bn (a margin of 10.19%), tax rate 30.5%, debt ¥18.2bn, cash ¥111.8bn, 927,741,900 shares, price ¥1,435 on 31 Mar 2026.",
+    "Kikkoman, Japan. Annual report of 19 Jun 2026. Industry: Food processors.",
+    "From the report: sales ¥745.5bn, operating profit ¥75.9bn (a margin of 10.19%), tax rate 30.5%, debt ¥61.4bn, cash ¥111.8bn, 927,741,900 shares, price ¥1,540 on 19 Jun 2026.",
     "My Estimate: growth 10% a year for five years, fading to 2.82%; the margin heading for 5.11%; ¥1.92 of sales for each ¥1 invested; cost of capital 3.84%.",
     "Employee stock options are not entered: the engine counts none.",
-    "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026.",
+    "The engine's value: ¥1,187 a share, beside a price of ¥1,540 on 19 Jun 2026.",
   ]);
+});
+
+/**
+ * WCAG 2.4.3 (F36, L08): the Tab key meets the hero's controls in the order they are seen. A phone and a tablet show the
+ * demo right under the h1, before the lede and the buttons, so focus reaches the demo's questions first; each next stop
+ * sits lower down, or further right on the same row.
+ */
+test("[F36] the hero's focus order is the order a phone and a tablet show it", async ({ page }, info) => {
+  test.skip(!["p390", "t768"].includes(info.project.name), "a phone and a tablet");
+  await openHome(page);
+  await page.getByRole("heading", { level: 1 }).focus();
+  const stops: { name: string; top: number; left: number }[] = [];
+  for (let i = 0; i < 40; i++) {
+    await page.keyboard.press("Tab");
+    const stop = await page.evaluate(() => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || !el.closest('[data-site-section="hero"]')) return null;
+      const box = el.getBoundingClientRect();
+      return { name: (el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 40), top: box.top + window.scrollY, left: box.left };
+    });
+    if (!stop) break;
+    stops.push(stop);
+  }
+  const names = stops.map((s) => s.name);
+  expect(names.indexOf("Try the jackpot"), "the buttons are reached").toBeGreaterThan(0);
+  const firstQuestion = await page.getByRole("group", { name: "Pick a question" }).getByRole("button").first().textContent();
+  expect(names[0], "the demo's first question comes first").toBe(firstQuestion?.trim().slice(0, 40));
+  for (let i = 1; i < stops.length; i++) {
+    const [a, b] = [stops[i - 1], stops[i]];
+    const sameRow = Math.abs(b.top - a.top) < 8;
+    expect(sameRow ? b.left > a.left : b.top > a.top, `${a.name} → ${b.name}`).toBe(true);
+  }
+});
+
+/** The laptop hero keeps its two columns: the demo on the right, level with the eyebrow, beside the h1 and the buttons. */
+test("[7.2.1, F36] a laptop shows the demo in the right column beside the h1 and the buttons", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "1512");
+  await openHome(page);
+  const hero = page.locator('[data-site-section="hero"]');
+  const eyebrow = (await hero.getByText("Finance for beginners").boundingBox())!;
+  const h1 = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
+  const cta = (await hero.getByRole("link", { name: "Try the jackpot", exact: true }).boundingBox())!;
+  const demo = (await hero.locator(".v-demo").boundingBox())!;
+  expect(Math.abs(demo.y - eyebrow.y), "the demo starts level with the eyebrow").toBeLessThan(2);
+  expect(demo.x, "the demo is right of the h1").toBeGreaterThan(h1.x + h1.width);
+  expect(demo.x, "the demo is right of the buttons").toBeGreaterThan(cta.x + cta.width);
+  expect(cta.y, "the buttons sit under the h1").toBeGreaterThan(h1.y + h1.height);
+  expect(cta.y - (h1.y + h1.height), "with only the lede between them").toBeLessThan(400);
 });
 
 test("[QA 24] Home never scrolls sideways", async ({ page }, info) => {

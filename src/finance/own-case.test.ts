@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { valueCase } from "./valuation-case";
 import { valuationCase } from "./valuation-cases";
-import { INDIA_INDUSTRIES, US_INDUSTRIES, openingEstimate, ownCaseBlock, ownCaseIndustries, ownCaseMarket, ownCaseReadingIds, readingsAfterReport, valueOwnCase, type OwnCaseInputs } from "./own-case";
+import { INDIA_INDUSTRIES, US_INDUSTRIES, openingEstimate, ownCaseBlock, ownCaseIndustries, ownCaseMarket, ownCaseReadingIds, readFigure, readingsAfterReport, valueOwnCase, type OwnCaseInputs } from "./own-case";
 
 // Seam 3 (spec #68): an Own Case is the course's valuation input shape filled from about eight typed numbers, so the one
 // engine values it with no new maths (ADR 0010). Coffee Day's IPO, as the course Case "coffee-day-rupee-valuation-2015"
@@ -95,18 +95,19 @@ describe("bad inputs get a readable message, never a throw", () => {
 
 // The US (#113): a US Own Case is copied from a Form 10-K, in US$ millions, with the share count as the cover prints it.
 // Apple's 10-K for the year to 27 Sep 2025 (https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm).
+// Debt counts the ASC 842 lease liabilities too: the 10-K keeps them in "Other current/non-current liabilities".
 const APPLE: OwnCaseInputs = {
   company: "Apple Inc.",
   market: "US",
-  reportDate: "2025-09-27",
+  reportDate: "2025-10-31", // EDGAR's Filing Date, when the figures were public (F07), not the fiscal year end 27 Sep 2025
   industry: "market",
   sales: 416_161,
   operatingProfit: 133_050,
-  taxPercent: 21,
-  debt: 98_657, // commercial paper 7,979 + term debt 12,350 + 78,328
+  taxPercent: 25, // the combined federal and state rate (M04): OECD 25.53% for 2026, as Damodaran's US yardsticks assume 25%
+  debt: 112_377, // commercial paper 7,979 + term debt 12,350 + 78,328, and total lease liabilities 13,720 (leases note; M05)
   cash: 35_934,
   shares: 14_776_353_000,
-  price: 255.46,
+  price: 270.37, // Nasdaq close on 31 Oct 2025 (as e2e/own-case.spec.ts)
 };
 
 describe("a US Own Case (#113)", () => {
@@ -114,7 +115,7 @@ describe("a US Own Case (#113)", () => {
     const built = ownCaseBlock(APPLE, openingEstimate("market", "US"));
     expect(built.ok).toBe(true);
     if (!built.ok) return;
-    expect(built.block).toMatchObject({ currency: "USD", unit: "millions", price: { value: 255.46, date: "2025-09-27" }, illustration: true, reproduces: false });
+    expect(built.block).toMatchObject({ currency: "USD", unit: "millions", price: { value: 270.37, date: "2025-10-31" }, illustration: true, reproduces: false });
     expect(built.block.shares).toBeCloseTo(14_776.353, 6);
   });
 
@@ -164,5 +165,49 @@ describe("readings dated after the Own Case's report", () => {
   it("is empty until the report's date is a day", () => {
     expect(ids("US", "")).toEqual([]);
     expect(ids("US", "2025-13-40")).toEqual([]);
+  });
+});
+
+// L15: reports print a loss in brackets; the form reads it as below zero, not as no number.
+describe("a figure as the Learner types it", () => {
+  it("reads commas, currency and percent signs, and a loss in brackets", () => {
+    expect(readFigure("1,23,456.7")).toBe(123456.7);
+    expect(readFigure("$ 416,161")).toBe(416161);
+    expect(readFigure("25.168%")).toBe(25.168);
+    expect(readFigure("(1,234)")).toBe(-1234);
+    expect(readFigure("-1,234")).toBe(-1234);
+    expect(readFigure("₹ (52.5)")).toBe(-52.5);
+  });
+
+  it("an empty box or words are no number", () => {
+    expect(readFigure("")).toBeNaN();
+    expect(readFigure("  ")).toBeNaN();
+    expect(readFigure("()")).toBeNaN();
+    expect(readFigure("n/a")).toBeNaN();
+  });
+
+  it("a loss typed in brackets values like one typed with a minus sign", () => {
+    const loss = { ...APPLE, operatingProfit: readFigure("(1,234)") };
+    const minus = { ...APPLE, operatingProfit: -1234 };
+    const a = valueOwnCase(loss, openingEstimate("market", "US"));
+    const b = valueOwnCase(minus, openingEstimate("market", "US"));
+    expect(a).toEqual(b);
+  });
+});
+
+// G21: with no report link, the Own Case credits each yardstick's own sheet, not only the cost-of-capital one.
+describe("an Own Case's sources", () => {
+  it("lists the margin, capital and cost-of-capital sheets when no report link is given", () => {
+    const built = ownCaseBlock(APPLE, openingEstimate("market", "US"));
+    expect(built.ok && built.block.sources.map((s) => s.url)).toEqual([
+      "https://pages.stern.nyu.edu/~adamodar/pc/datasets/margin.xls",
+      "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capex.xls",
+      "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wacc.xls",
+    ]);
+  });
+
+  it("is the annual report alone when the Learner links it", () => {
+    const built = ownCaseBlock({ ...APPLE, reportUrl: "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm" }, openingEstimate("market", "US"));
+    expect(built.ok && built.block.sources).toEqual([{ title: "Apple Inc. annual report", url: "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm" }]);
   });
 });

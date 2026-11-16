@@ -65,6 +65,25 @@ describe("the course check on the annual-report guide", () => {
     expect(company).not.toContain("second full set");
   });
 
+  it("sends every market's price to the next trading day when the market was shut, never to a day before (L03)", () => {
+    for (const market of ["IN", "US", "JP", "KR", "EU"] as const) {
+      const price = annualReportGuide(market).price;
+      expect(price.where, market).toContain("use the next trading day");
+      expect(`${price.where} ${price.lingo.example}`, market).not.toMatch(/trading day before|31 December|year-end close/);
+    }
+    const price = { ...line, field: "price" as const, where: "The closing price on the report's date. If that day had no trading, use the last trading day before it." };
+    expect(guideErrors([price])).toEqual(expect.arrayContaining(['Guide line IN "price" must send a shut market\'s price to the next trading day, never to a day before the report']));
+  });
+
+  it("guides the industry pick in every market, from the report's business section and segment note (L21)", () => {
+    expect(GUIDE_FIELDS).toContain("industry");
+    for (const market of ["IN", "US", "JP", "KR", "EU"] as const) {
+      const industry = annualReportGuide(market).industry;
+      expect(industry.where, market).toContain("Any other firm");
+      expect(industry.where, market).toMatch(/segment|セグメント|사업부문/i);
+    }
+  });
+
   it("fails a market whose guide misses a field, and a field guided twice", () => {
     expect(guideErrors([line])).toEqual(expect.arrayContaining([expect.stringMatching(/^The IN guide has no line for "company"/)]));
     expect(guideErrors([line, line])).toEqual(expect.arrayContaining(['Guide line IN "sales" is listed twice']));
@@ -76,7 +95,7 @@ describe("the US guide (#113): a Form 10-K on SEC EDGAR", () => {
     const us = annualReportGuide("US");
     expect(Object.keys(us).sort()).toEqual([...GUIDE_FIELDS].sort());
     for (const field of GUIDE_FIELDS) {
-      expect(us[field].sourceUrl).toMatch(/^https:\/\/www\.(sec|investor|nasdaq)\.(gov|com)\//);
+      expect(us[field].sourceUrl).toMatch(/^https:\/\/www\.(sec|investor|nasdaq|oecd)\.(gov|com|org)\//);
       expect(us[field].lingo.term.length).toBeGreaterThan(2);
     }
   });
@@ -88,6 +107,24 @@ describe("the US guide (#113): a Form 10-K on SEC EDGAR", () => {
     expect(us.sales.where).toMatch(/\$ millions/);
     expect(us.operatingProfit.where).toMatch(/Operating income/);
     expect(us.shares.where).toMatch(/cover page/);
+  });
+
+  it("asks for the combined federal and state tax rate, about 25%, as the US yardsticks assume (M04)", () => {
+    const tax = annualReportGuide("US").taxPercent;
+    expect(tax.where).toContain("Type the combined federal and state rate, about 25%");
+    expect(tax.where).toContain("26 USC 11(b)");
+    expect(tax.where).toContain("25.53%");
+    expect(tax.source).toContain("OECD");
+    expect(tax.lingo.means).toContain("about 25%");
+  });
+
+  it("names generic debt lines and the ASC 842 lease liabilities, not Apple's own line names (M05)", () => {
+    const debt = annualReportGuide("US").debt;
+    expect(debt.where).toContain("Long-term debt");
+    expect(debt.where).toContain("lease liabilities (ASC 842)");
+    expect(debt.where).toContain("Total lease liabilities");
+    expect(debt.where).not.toContain("Term debt");
+    expect(debt.lingo.term).toBe("Lease liability");
   });
 
   it("fails a US guide line with no source", () => {

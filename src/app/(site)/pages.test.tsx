@@ -41,6 +41,8 @@ const words = (html: string) =>
     .replaceAll("&amp;", "&")
     .replace(/\s+/g, " ");
 const h1 = (html: string) => words(/<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html)?.[1] ?? "").trim();
+/** Home's hero, up to the next section: the demo's widget is a section of its own, so the hero's own close is not the first. */
+const heroOf = (html: string) => /data-site-section="hero"[\s\S]*?(?=data-site-section=")/.exec(html)![0];
 const params = (slug: string) => ({ params: Promise.resolve({ slug }) });
 
 const member: Viewer = { state: "member", button: { kind: "resume", topic: "Why is money later worth less?" }, name: "Asha" };
@@ -98,7 +100,7 @@ describe("Home", () => {
   // Spec #68, ticket #73: the first screen speaks to a beginner, with headline numbers they have seen.
   it("opens on a hero for beginners: What is it really worth?, three headline numbers, the Tutor and no sums", async () => {
     const html = renderToStaticMarkup(await HomePage());
-    const hero = words(/data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0]);
+    const hero = words(heroOf(html));
     expect(hero).toContain("Finance for beginners");
     for (const number of ["₹25 crore jackpot", "$3 billion “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
     expect(hero).toContain("An AI Tutor explains every money word");
@@ -114,7 +116,8 @@ describe("Home", () => {
 
   it("offers a visitor Try the jackpot first, then Join the waitlist, with the waitlist note", async () => {
     const html = renderToStaticMarkup(await HomePage());
-    const hero = /data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0];
+    // The demo comes before the lede and the buttons in the page's order (F36), so read the links of the copy after it.
+    const hero = heroOf(html).split('class="v-hero-copy"')[1];
     const links = [...hero.matchAll(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => [words(m[2]).trim(), m[1]]);
     expect(links.slice(0, 2)).toEqual([
       ["Try the jackpot", "/examples/kerala-bumper-2024"],
@@ -216,6 +219,18 @@ describe("About", () => {
   });
 });
 
+// #74 (F31, L22): Home writes dollars one way, in words ("$3 billion", "$39 billion"), as the Examples do: never "$39bn"
+// beside "$3 billion".
+describe("Home's money", () => {
+  it("writes every dollar amount in one style, in words", async () => {
+    const text = words(renderToStaticMarkup(await HomePage()));
+    expect(text).toContain("$3 billion");
+    expect(text).toContain("Sales in year 10: $39 billion");
+    expect(text).toContain("$39 billion Revenue in year 10");
+    expect(text).not.toMatch(/\$[\d.,]+\s?(bn|B|M|m|tn)\b/);
+  });
+});
+
 // #75: Home's "Where you end up" shows a real one-page note: the one the Assignment saves to the Notebook after the
 // Spine (F14: the Spine no longer saves a Valuation story, so Home must not show one).
 describe("Where you end up", () => {
@@ -226,7 +241,7 @@ describe("Where you end up", () => {
     expect(text).toContain("Where you end up");
     expect(text).toContain("By the end, you value a company yourself.");
     expect(text).toContain("you pick a listed company and copy a few figures from its annual report");
-    for (const line of ["Kikkoman, Japan. Annual report of 31 Mar 2026.", "My Estimate: growth 10% a year", "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026."]) {
+    for (const line of ["Kikkoman, Japan. Annual report of 19 Jun 2026.", "My Estimate: growth 10% a year", "The engine's value: ¥1,187 a share, beside a price of ¥1,540 on 19 Jun 2026."]) {
       expect(text).toContain(line);
     }
     expect(text).not.toMatch(/Valuation story|Story you told/);

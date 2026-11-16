@@ -1,6 +1,7 @@
 import type { OwnCaseEstimate, OwnCaseInputs } from "../finance/own-case.ts";
 import type { ValuationBlock } from "../finance/valuation-case.ts";
-import { MARKET_READINGS, readingMonth, readingValueText, type MarketReading } from "./readings.ts";
+import { MARKET_READINGS, readingId, readingMonth, readingValueText, type MarketReading } from "./readings.ts";
+import type { YardstickKind } from "./yardsticks.ts";
 
 // The range check (spec #68, ticket #109; user story 83): each Own Case input is compared with its industry's yardsticks
 // from the Market readings (src/markets/readings.ts), and an input far outside the usual range is named, so a Learner
@@ -12,8 +13,6 @@ import { MARKET_READINGS, readingMonth, readingValueText, type MarketReading } f
 
 /** The inputs an industry yardstick can be held against. */
 export type RangeInputs = { marginPercent?: number; salesToCapital?: number; costOfCapitalPercent?: number };
-
-type YardstickKind = "operating_margin" | "sales_to_capital" | "cost_of_capital";
 
 const INPUTS: { kind: YardstickKind; key: keyof RangeInputs; name: string }[] = [
   { kind: "operating_margin", key: "marginPercent", name: "operating margin" },
@@ -51,9 +50,6 @@ export type RangeFlag = {
 /** Where the yardstick comes from: Korea's are Damodaran's Emerging Markets figures (src/markets/readings-japan-korea.ts). */
 const MARKET_WORD = { IN: "India", US: "the US", JP: "Japan", KR: "emerging markets", EU: "Europe" } as const;
 
-/** The id word each yardstick kind carries: "in-food-margin" (src/markets/readings.ts). */
-const KIND_ID = { operating_margin: "margin", sales_to_capital: "sales-to-capital", cost_of_capital: "cost-of-capital" } as const;
-
 /**
  * Every input far outside its industry's usual range, in the order margin, sales to capital, cost of capital. The industry
  * is the source's name ("Food Processing") or the word in its readings' ids ("food", as the Own Case industry pick has it).
@@ -62,7 +58,7 @@ export function rangeCheck(inputs: RangeInputs, where: { market: MarketReading["
   return INPUTS.flatMap(({ kind, key, name }) => {
     const value = inputs[key];
     if (value === undefined || !Number.isFinite(value)) return [];
-    const yardstick = MARKET_READINGS.find((r) => r.kind === kind && r.market === where.market && (r.industry === where.industry || r.id === `${where.market.toLowerCase()}-${where.industry}-${KIND_ID[kind]}`));
+    const yardstick = MARKET_READINGS.find((r) => r.kind === kind && r.market === where.market && (r.industry === where.industry || r.id === readingId(where.market, where.industry, kind)));
     if (!yardstick?.industry) return [];
     const { low, high } = usualRange(yardstick);
     if (value >= low && value <= high) return [];

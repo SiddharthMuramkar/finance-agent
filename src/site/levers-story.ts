@@ -7,7 +7,7 @@ import { LEVERS, leverBand, PRICE, REFERENCE, type Lever, type LeverKey } from "
 
 /** The story sentence for each lever, in plain words and round numbers (#74, spec §7.2.3). */
 const STORY: Record<LeverKey, string> = {
-  rev: "Sales in year 10: **$39bn**, against $1.1bn today.",
+  rev: "Sales in year 10: **$39 billion**, against $1.1 billion today.",
   margin: "Once grown, it **keeps 10¢ of each $1** of sales. Today it loses 37¢.",
   s2c: "Each **$1 it invests** to grow brings **$3** of new sales.",
   wacc: "While it grows, **investors want 13% a year** for the risk.",
@@ -15,7 +15,7 @@ const STORY: Record<LeverKey, string> = {
 
 /** A lever setting in the slider's own unit. */
 export function setting(lever: Lever, value: number): string {
-  if (lever.key === "rev") return `$${trim(value, 0)}bn`;
+  if (lever.key === "rev") return `$${trim(value, 0)} billion`;
   if (lever.key === "s2c") return `$${value.toFixed(2)}`;
   return `${trim(value, 2)}%`;
 }

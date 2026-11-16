@@ -7,18 +7,20 @@ import { OWN_CASE_MARKETS, openingEstimate, ownCaseBlock, ownCaseIndustries, own
 // - Kikkoman, 有価証券報告書 for the year to 31 Mar 2026 (EDINET S100YE5V, filed 2026-06-19), IFRS, 百万円:
 //   https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100YE5V.pdf . Debt = 短期借入金 3,817 + 1年内返済予定の
 //   長期借入金 400 + 長期借入金 14,000 + リース負債 8,282 (current) and 34,930 (non-current), from 連結財政状態計算書; shares = 発行済株式総数 969,416,010 − 自己株式 41,674,110; tax = 法定実効税率 30.5%.
-//   TSE close on 31 Mar 2026: ¥1,435.
+//   Dated at the filing, 2026-06-19 (【提出日】), when the figures were public, not at the year end (F07, G33); TSE close
+//   that day ¥1,540 (Yahoo Finance 2801.T daily history, read 2026-11-16, as e2e/own-case-japan-korea.spec.ts).
 // - Samsung Electronics, 2025 Business Report (year to 31 Dec 2025), K-IFRS, KRW millions:
 //   https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2025_4Q_Interim_Report.pdf . Debt = short-term
 //   borrowings 17,574,980 + current portion of long-term liabilities 1,177,508 + debentures 7,134 + long-term borrowings
 //   6,479,517 (the last two hold the lease liabilities, 1,168,438 and 3,673,503: note 12); shares outstanding (I.4,
-//   "Total number of shares", row VI) 5,827,808,935 common + 802,371,203 preferred = 6,630,180,138; tax 26.4% (24% top rate plus 10% local, 2025). KRX close on
-//   30 Dec 2025, the year's last trading day: ₩119,900.
+//   "Total number of shares", row VI) 5,827,808,935 common + 802,371,203 preferred = 6,630,180,138; tax 26.4% (24% top rate plus 10% local, 2025).
+//   Dated at the filing on DART, 2026-03-10 (접수일자), not the year end (F07, G33); KRX close that day ₩187,900 (Yahoo
+//   Finance 005930.KS daily history, read 2026-11-16, as e2e/own-case-japan-korea.spec.ts).
 
 const KIKKOMAN: OwnCaseInputs = {
   company: "Kikkoman",
   market: "JP",
-  reportDate: "2026-03-31",
+  reportDate: "2026-06-19",
   industry: "food",
   sales: 745_539,
   operatingProfit: 75_940,
@@ -26,13 +28,13 @@ const KIKKOMAN: OwnCaseInputs = {
   debt: 61_429,
   cash: 111_770,
   shares: 927_741_900,
-  price: 1_435,
+  price: 1_540,
 };
 
 const SAMSUNG: OwnCaseInputs = {
   company: "Samsung Electronics",
   market: "KR",
-  reportDate: "2025-12-31",
+  reportDate: "2026-03-10",
   industry: "market",
   sales: 333_605_938,
   operatingProfit: 43_601_051,
@@ -40,7 +42,7 @@ const SAMSUNG: OwnCaseInputs = {
   debt: 25_239_139,
   cash: 57_856_378,
   shares: 6_630_180_138,
-  price: 119_900,
+  price: 187_900,
 };
 
 const NOW = new Date("2026-11-16T10:00:00Z");
@@ -59,7 +61,7 @@ describe("Own Cases in Japan and Korea", () => {
     const built = ownCaseBlock(KIKKOMAN, openingEstimate("food", "JP"), NOW);
     expect(built.ok).toBe(true);
     if (!built.ok) return;
-    expect(built.block).toMatchObject({ currency: "JPY", unit: "millions", price: { value: 1435, date: "2026-03-31" }, illustration: true, reproduces: false });
+    expect(built.block).toMatchObject({ currency: "JPY", unit: "millions", price: { value: 1540, date: "2026-06-19" }, illustration: true, reproduces: false });
     expect(built.block.shares).toBeCloseTo(927.7419, 4);
     const value = valueOwnCase(KIKKOMAN, openingEstimate("food", "JP"), NOW);
     expect(value.ok && value.valuePerShare > 0).toBe(true);
@@ -69,7 +71,7 @@ describe("Own Cases in Japan and Korea", () => {
     const built = ownCaseBlock(SAMSUNG, openingEstimate("market", "KR"), NOW);
     expect(built.ok).toBe(true);
     if (!built.ok) return;
-    expect(built.block).toMatchObject({ currency: "KRW", unit: "millions", price: { value: 119_900, date: "2025-12-31" } });
+    expect(built.block).toMatchObject({ currency: "KRW", unit: "millions", price: { value: 187_900, date: "2026-03-10" } });
     expect(built.block.shares).toBeCloseTo(6630.180138, 6);
     const value = valueOwnCase(SAMSUNG, openingEstimate("market", "KR"), NOW);
     expect(value.ok && value.valuePerShare > 0).toBe(true);

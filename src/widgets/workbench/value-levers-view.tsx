@@ -5,7 +5,7 @@ import { Chip, Tag } from "@/app/primitives";
 import { Chevron, SecondaryButton } from "@/app/ui";
 import type { ValuationBlock } from "@/finance/valuation-case";
 import { Icon } from "@/icons/icon";
-import type { IconName } from "@/icons/names";
+import { isIconName, type IconName } from "@/icons/names";
 import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
 import { MarketReadingsView, caseKnownOn } from "../market-readings-view";
@@ -25,6 +25,7 @@ import {
   storyNote,
   taskConditions,
   valueLeversModel,
+  valueLeversStage,
   type SavedStory,
   type CashFlowBar,
   type LeverId,
@@ -35,6 +36,7 @@ import {
   type MoveRun,
   type Story,
   type ValueLeversModel,
+  type ValueLeversStage,
 } from "./value-levers-model";
 import type { ValueLeversMode } from "./data-schemas";
 
@@ -211,7 +213,9 @@ export function ValueLeversView({
     onPriceFound?.();
   }, [nearPrice, onPriceFound]);
 
-  const atRest = specs.filter((s) => !s.more);
+  // In failure mode the chance it fails is the Topic's idea, so it is the first control (Spine critics round 1 on #96).
+  const atRest = specs.filter((s) => !s.more).sort((a, b) => (mode?.kind === "failure" ? Number(b.id === "failure") - Number(a.id === "failure") : 0));
+  const stage = valueLeversStage(block, specs, settings, model, mode, market);
   const more = specs.filter((s) => s.more);
   const shown = stories.filter((s) => !s.afterInsight || insightSettled);
   const control = (id: LeverId) => {
@@ -247,6 +251,7 @@ export function ValueLeversView({
       )}
       <Headline model={model} />
       <ValueBar model={model} reached={nearPrice} />
+      <Stage stage={stage} />
       <dl className="mt-3 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm" data-testid="value-levers-numbers">
         <dt className="text-[var(--muted)]">{model.price.label}</dt>
         <dd className="text-right tabular-nums">{model.price.text}</dd>
@@ -343,6 +348,73 @@ export function ValueLeversView({
 }
 
 /**
+ * The Topic's own idea beside the headline (Spine critics round 1 on #96): a cast whose line reacts as the value moves
+ * against the price, the survive-or-fail fork, the story-to-lever map, or what the price assumes, lever by lever.
+ */
+function Stage({ stage }: { stage: ValueLeversStage }) {
+  const { scene, fork, map, checklist } = stage;
+  if (!scene && !fork && !map && !checklist) return null;
+  return (
+    <div className="mt-3 space-y-2">
+      {scene && (
+        <div data-testid="value-levers-scene" data-mood={scene.mood} className="flex items-center gap-3 rounded-xl border border-[var(--rule)] border-l-2 border-l-[var(--sun)] bg-[var(--raised)] p-2">
+          <span aria-hidden="true" className="flex shrink-0 items-end gap-2">
+            {scene.cast.map((c) => (
+              <span key={c.name} className="flex w-16 flex-col items-center text-center text-[11px] leading-4 text-[var(--muted)]">
+                {isIconName(c.icon) && <Icon name={c.icon} size={32} />}
+                {c.name}
+              </span>
+            ))}
+          </span>
+          <p key={scene.line} className="story-step text-sm leading-5" aria-live="polite">
+            {scene.line}
+          </p>
+        </div>
+      )}
+      {fork && (
+        <div data-testid="value-levers-fork" role="group" aria-label="Survive or fail" className="grid grid-cols-2 gap-2 text-sm">
+          <ForkRoad testId="value-levers-fork-survives" icon="seedling" title="Survives" chance={fork.survives.chance} note="The business keeps running" value={fork.survives.text} tone="var(--mint)" />
+          <ForkRoad testId="value-levers-fork-fails" icon="chart-decreasing" title="Fails" chance={fork.fails.chance} note="Assets sold in a hurry, lenders first" value={fork.fails.text} tone="var(--coral)" />
+        </div>
+      )}
+      {map && (
+        <figure data-testid="value-levers-map">
+          <figcaption className="text-xs text-[var(--muted)]">Each story, and the lever it sets</figcaption>
+          <ul className="mt-1 space-y-1 text-sm">
+            {map.map((row) => (
+              <li key={`${row.label}-${row.lever}`} data-now={row.now ? "" : undefined} className={`rounded-lg border p-2 ${row.now ? "border-[var(--ink-2)]" : "border-[var(--rule)]"}`}>
+                <span className="font-medium">{row.label}: </span>
+                <span>{row.says}</span>
+                <span aria-hidden="true"> → </span>
+                <span className="sr-only">, which sets </span>
+                <span className="text-[var(--ink-2)]">{row.lever}: </span>
+                <span className="tabular-nums">{row.reading}</span>
+              </li>
+            ))}
+          </ul>
+        </figure>
+      )}
+      {checklist && (
+        <figure data-testid="value-levers-checklist">
+          <figcaption className="text-xs text-[var(--muted)]">Each lever now, against the Case&apos;s story</figcaption>
+          <ul className="mt-1 space-y-0.5 text-sm">
+            {checklist.items.map((item) => (
+              <li key={item.lever} data-moved={item.moved ? "" : undefined} className="flex items-center gap-2">
+                <Icon name={item.moved ? "check-mark-button" : "hourglass-not-done"} size={16} />
+                <span className="min-w-0 flex-1">{item.lever}</span>
+                <span className="tabular-nums">{item.now}</span>
+                <span className="text-xs text-[var(--muted)] tabular-nums">story {item.story}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-sm font-medium" aria-live="polite">{checklist.reaches ? "This story reaches the price." : "Not yet at the price."}</p>
+        </figure>
+      )}
+    </div>
+  );
+}
+
+/**
  * Go deeper: the Full sheet, every input of the valuation on screen in plain words. Its rows are worked out only once it is
  * opened, and a closed Go deeper adds nothing to the Workbench at rest. A row the Levers do not set has its own slider
  * (ADR 0020: a tap or a slider, never a typed number); the rest follow the Levers.
@@ -431,6 +503,26 @@ export function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof 
         onChange={(value) => onChange(spec.id, value - spec.opening)}
         stops={[spec.opening]}
       />
+    </div>
+  );
+}
+
+/** One road of the fork: its Icon, its chance in 100 as ten dots, and what a share is worth down it. */
+function ForkRoad({ testId, icon, title, chance, note, value, tone }: { testId: string; icon: "seedling" | "chart-decreasing"; title: string; chance: number; note: string; value: string; tone: string }) {
+  const dots = Math.round(chance / 10);
+  return (
+    <div data-testid={testId} className="rounded-xl border border-[var(--rule)] bg-[var(--raised)] p-2" style={{ opacity: 0.55 + (0.45 * chance) / 100 }}>
+      <p className="flex items-center gap-1.5 font-medium">
+        <Icon name={icon} size={20} />
+        {title}: {chance} in 100
+      </p>
+      <span aria-hidden="true" className="mt-1 flex gap-0.5">
+        {Array.from({ length: 10 }, (_, i) => (
+          <span key={i} className="size-2 rounded-full transition-colors duration-300 motion-reduce:transition-none" style={{ background: i < dots ? tone : "var(--hairline)" }} />
+        ))}
+      </span>
+      <p className="mt-1 text-xs text-[var(--muted)]">{note}</p>
+      <p className="tabular-nums">{value}</p>
     </div>
   );
 }

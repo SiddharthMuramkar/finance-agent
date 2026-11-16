@@ -196,7 +196,8 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
   it("failure: the chance it fails is a main lever, and the readout says what it is worth if it survives", async () => {
     await draw("value-levers-failure");
     const atRest = [...host.querySelectorAll('[data-testid="value-levers-controls"] input[type="range"]')].map((el) => el.getAttribute("aria-label"));
-    expect(atRest).toEqual(["Sales in year 10", "Operating margin once mature", "Cost of capital while it grows", "Chance it fails"]);
+    // The chance it fails is the Topic's idea, so it comes first (Spine critics round 1 on #96).
+    expect(atRest).toEqual(["Chance it fails", "Sales in year 10", "Operating margin once mature", "Cost of capital while it grows"]);
     setRange(lever("Chance it fails"), 30);
     await settle();
     expect(text("value-levers-headline")).toBe("This story is worth $22 a share");
@@ -403,10 +404,10 @@ describe("Market readings beside the levers (ticket #105)", () => {
   // Owner decision on #105 (2026-11-16): a Workbench on Amazon (As-of 3 February 2000) shows only US readings known by then.
   it("the Cost of capital stack on Amazon shows the US bond rate of Dec 1999, credited and linked", async () => {
     await draw("wacc-stack-readings");
-    expect(readings()).toEqual([{ id: "us-risk-free-10y-1999", date: "(Dec 1999)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" }]);
+    expect(readings()).toEqual([{ id: "us-risk-free-10y-1999", date: "(Dec 1999)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/implpr.html" }]);
     expect(text("market-readings")).toContain("10-year US Treasury bond rate (US): 6.44%");
     // The source's name is visible text, not only a hover title (review F42).
-    expect(host.querySelector('[data-testid="reading-source"]')?.textContent).toBe("Damodaran, Historical Implied Equity Risk Premiums (histimpl.xls)");
+    expect(host.querySelector('[data-testid="reading-source"]')?.textContent).toBe("Damodaran, Historical Implied Equity Risk Premiums for the US");
     expect(text("market-readings")).not.toMatch(/today|current/i);
   });
 

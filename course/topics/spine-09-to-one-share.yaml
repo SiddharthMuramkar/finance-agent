@@ -65,24 +65,24 @@ concept: >
   of employee options, which will turn into new shares at a low price. What remains is equity value,
   divided by the number of shares. The order matters because those claims are paid in full before
   shareholders get anything, so a business can be worth a lot while its shares are worth little, or
-  nothing. A group of companies adds two more steps. Stakes it holds in other companies (cross
-  holdings) are not part of the operations the cash flows value, so they are added, like cash. And
-  when its accounts count the whole of a subsidiary it only partly owns, the part outside owners hold
-  (minority interests) is taken off, like debt. The bridge does not change the business; it changes
-  who owns how much of it.
+  nothing. A company that owns stakes in other companies adds one more step: those stakes are not
+  part of the operations the cash flows value, so they are added, like cash. The bridge does not
+  change the business; it changes who owns how much of it.
 
 principle: >
   A share gets what is left of the business after everyone ahead of it is paid. Before you compare
-  a value with a price, walk the bridge and count every claim: debt, leases, options and outside
-  owners of subsidiaries included, and add what the company owns in other companies.
+  a value with a price, walk the bridge and count every claim, debt, leases and options included,
+  and add what the company owns in other companies.
 
 dailyLife: "A friend offers you half of her house: ask what is still owed on its mortgage before you pay half its price."
 
+# Go deeper (H1): beyond the Topic's Checks, for a Learner who asks. No Check, Skill or Lingo term tests it: the main
+# path never brings up subsidiaries others part own (review 4, K03/K09: the four-word cap is met by cutting the words).
 goDeeper: >
-  Analysts call the part of a subsidiary that outside shareholders own minority interests (accounts also say
-  non-controlling interests). When a group's accounts count the whole of a company it owns only a little over half of,
-  that outside part is shown below the parent's own equity and comes off on the bridge, like debt: if you own a little
-  over half of a shop, the part your partner owns is not yours to count. A Learner who wants more can ask how Coffee
+  A company that owns more than half of another company (a subsidiary) counts the whole of it in its accounts. The part
+  that outside shareholders own is called minority interests (accounts also say non-controlling interests). It is shown
+  below the parent's own equity and comes off on the bridge, like debt: if you own a little over half of a shop, the
+  part your partner owns is not yours to count. A Learner who wants more can ask how Coffee
   Day's accounts treat its logistics arm Sical, which other shareholders own part of.
 
 youllLearn:
@@ -118,7 +118,7 @@ terms:
 
 skills:
   - id: claims-first
-    rule: "Lenders, landlords, option holders and outside owners of subsidiaries are paid before shareholders; stakes in companies its accounts do not count in full are added, like cash; a share gets what is left."
+    rule: "Lenders, landlords and option holders are paid before shareholders; cash and stakes in other companies are added; a share gets what is left."
   - id: leases-debt
     rule: "A long lease is a promise to pay, like debt; count it before the shareholders."
 
@@ -158,12 +158,26 @@ explore:
     recipe: value_bridge
     case: spine-09-amazon-2000
     title: "From Amazon's business to one share"
-    inputs: {}
+    # A story moment above the bridge (Spine critics round 1 on #96: a Waterfall with sliders alone is chart-only): who
+    # stands in the queue before one share. Words only; every figure is the bridge's.
+    inputs:
+      scene:
+        cast:
+          - { id: lenders, emoji: bank, name: "The lenders", role: "lent Amazon money" }
+          - { id: staff, emoji: office-worker, name: "Staff with options", role: "may buy shares cheap" }
+          - { id: owner, emoji: person, name: "One shareholder", role: "owns one share" }
+        beats:
+          - { who: narrator, says: "Amazon's whole business has one value. Who gets a slice of it?" }
+          - { who: lenders, says: "Our loans are paid back first, in full.", emoji: money-bag }
+          - { who: staff, says: "Our options come next: they turn into shares.", emoji: ticket }
+          - { who: owner, says: "What is left, split over every share, is what one share is worth.", emoji: balance-scale }
+        caption: "Who is paid before one share"
+        date: 2000-02-03
 
 connections:
   - text: "The DCF Topic builds the business value this bridge starts from."
     topics: [val-dcf]
-  - text: "The balance sheet is where cash, debt, stakes in other companies and minority interests are written down; leases and debt shows how to count a lease as a promise to pay."
+  - text: "The balance sheet is where cash, debt and stakes in other companies are written down; leases and debt shows how to count a lease as a promise to pay."
     topics: [fs-balance, fs-leases-debt]
   - text: "Reading a company's commitments means finding every promise to pay, on the balance sheet or off it, before the shareholders; multiples need the same bridge."
     topics: [ana-commitments-debt, val-multiples]
@@ -230,19 +244,20 @@ questions:
 
   - id: share-q-direction-group
     kind: direction
-    prompt: "At the end of March 2019 Coffee Day owned 17.12% of the IT company Mindtree. Its accounts also counted all of its logistics arm Sical, though it owned only a little over half of it. On the bridge from Coffee Day's business to one share, what happens to each?"
+    prompt: "At the end of March 2019 Coffee Day owned 17.12% of the IT company Mindtree. On the bridge from the value of Coffee Day's own businesses to one share, what happens to the Mindtree stake?"
     skill: claims-first
+    # Choice ids kept from the two-part version (review 4, K03: the part of a subsidiary others own left the main path).
     choices:
-      - { id: add-take, text: "The Mindtree stake is added; the part of Sical others own is taken off" }
+      - { id: add-take, text: "It is added, like cash" }
       - id: take-add
-        text: "The Mindtree stake is taken off; the part of Sical others own is added"
-        mistake: { tag: bridge_backwards, fix: "A stake in another company is something Coffee Day owns, so it is added. The part of Sical others own is theirs, so it comes off." }
+        text: "It is taken off, like debt"
+        mistake: { tag: bridge_backwards, fix: "A stake in another company is something Coffee Day owns, so it is added. Claims are what others are owed." }
       - id: neither
-        text: "Neither moves: both are already in the business"
-        mistake: { tag: group_ignored, fix: "Mindtree is not part of Coffee Day's operations, so it is added on top; and the business counts all of Sical, so the outside owners' part comes off." }
+        text: "Nothing: it is already in the business"
+        mistake: { tag: group_ignored, fix: "Mindtree is not part of Coffee Day's own businesses, so the value of those leaves it out: it is added on top." }
     answer: add-take
-    explanation: "A cross holding is owned but sits outside the operations, so it is added like cash; a minority interest is a slice of a subsidiary the parent counts in full, so it is taken off like debt."
-    source: "Coffee Day Enterprises Annual Report 2018-19: Mindtree, 2,74,56,012 shares (17.12%) in the associates table; non-controlling interests of ₹637.06 crore on the consolidated balance sheet; Sical held at a little over half (research note in docs/research/verify-coffee-day.json, to confirm against the report). https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf"
+    explanation: "A stake in another company is owned but sits outside the operations, so it is added, like cash."
+    source: "Coffee Day Enterprises Annual Report 2018-19: Mindtree, 2,74,56,012 shares (17.12%) in the associates table. https://www.bseindia.com/bseplus/AnnualReport/539436/5394360319.pdf"
 
   - id: share-q-direction-options
     kind: direction
@@ -312,10 +327,10 @@ checks:
       title: "From the business to one share"
       lines:
         - "A valuation first gives the business value: what the whole business is worth."
-        - "Add cash and stakes the accounts leave out; take off every claim paid first: debt, leases, options, minority interests."
+        - "Add cash and stakes in other companies; take off every claim paid first: debt, leases, options."
         - "What is left is equity value, shared among the shares."
         - "The bridge never changes the business, only who owns how much of it."
-      writeDown: "A share gets what is left after lenders, landlords, option holders and outside owners of subsidiaries."
+      writeDown: "A share gets what is left after lenders, landlords and option holders."
       skills: [claims-first, leases-debt]
     quickTries:
       - id: share-try-claims-half
@@ -359,16 +374,20 @@ checks:
           - id: taken
             text: "Taken off, like debt"
             mistake: { tag: holding_as_claim, fix: "WeWork owns the stakes, so they add to what its shareholders have. Claims are what others are owed." }
+      # Id kept from the minority-interests try (review 4, K03): it now walks a whole bridge in plain words.
       - id: share-try-minority
         skill: claims-first
-        ask: "A company's accounts count all of a subsidiary it owns a little over half of. On the bridge to one of the company's shares, what happens to the part outside owners hold?"
+        ask: "A bakery's business is worth $10 million. It holds $1 million of cash and owes the bank $3 million. What is left for its shareholders?"
         kind: choice
-        answer: taken
+        answer: eight
         choices:
-          - { id: taken, text: "It is taken off, like debt" }
-          - id: kept
-            text: "It stays in: the accounts count all of it"
-            mistake: { tag: minority_kept, fix: "The accounts count all of it, so the outside owners' part must come off: it belongs to them." }
+          - { id: eight, text: "$8 million: add the cash, take off the debt" }
+          - id: fourteen
+            text: "$14 million: add the cash and the debt"
+            mistake: { tag: debt_added, fix: "The $3 million is owed to the bank, a claim paid first: it comes off." }
+          - id: ten
+            text: "$10 million: the business is what they own"
+            mistake: { tag: claims_ignored, fix: "Business value is for everyone with a claim. Add the cash, then take off what the bank is owed." }
       - id: share-try-leases-half
         skill: leases-debt
         ask: "WeWork's US leases ran about 15 years, but its members committed for about 15 months. If members leave, who still owes the rent?"

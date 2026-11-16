@@ -191,6 +191,8 @@ export const topicStorySchema = z
   .object({
     label: z.string().trim().min(3).max(40),
     levers: leverSettingsSchema,
+    /** The story in words (Spine critics round 1 on #96): set beside the lever it moves, so the Widget maps story to lever. */
+    says: z.string().trim().min(10).max(90).optional(),
   })
   .strict();
 
@@ -229,6 +231,60 @@ const bandSchema = z
   );
 
 /**
+ * A Lingo card beside a Workbench (Spine critics round 1 on #96): the one word the Topic teaches, as the LingoCard part
+ * draws it, so the bench is not chart-only. Words only: the bench's figures are the engine's.
+ */
+export const benchLingoSchema = z
+  .object({
+    term: z.string().trim().min(2).max(30),
+    means: z.string().trim().min(10).max(140),
+    pro: z.string().trim().min(10).max(100),
+    example: z.string().trim().min(10).max(140),
+    emoji: iconNameSchema,
+    inStory: z.string().trim().min(10).max(140).optional(),
+  })
+  .strict();
+
+/**
+ * A story moment beside a Workbench (Spine critics round 1 on #96), as the StoryScene part draws it: a small cast and two
+ * to five beats, such as who is paid before the shareholders on the Value bridge.
+ */
+export const benchStorySchema = z
+  .object({
+    cast: z
+      .array(z.object({ id: z.string().trim().min(1).max(20), emoji: iconNameSchema, name: z.string().trim().min(2).max(28), role: z.string().trim().max(40).optional() }).strict())
+      .min(1)
+      .max(4),
+    beats: z
+      .array(z.object({ who: z.string().trim().min(1).max(20), says: z.string().trim().min(5).max(110), emoji: iconNameSchema.optional() }).strict())
+      .min(2)
+      .max(5),
+    caption: z.string().trim().max(90).optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  })
+  .strict()
+  .refine((s) => s.beats.every((b) => b.who === "narrator" || s.cast.some((c) => c.id === b.who)), "each beat's who is a cast id or narrator");
+
+/**
+ * A small cast on Value levers that reacts as the value moves against the price (Spine critics round 1 on #96: a bench of
+ * only a headline, sliders and bars is chart-only). One to three characters, each an Icon and a short name, and the line
+ * one of them says when the Learner's value sits below the price, near it, or above it.
+ */
+const sceneLine = z.string().trim().min(10).max(110);
+export const benchSceneSchema = z
+  .object({
+    cast: z
+      .array(z.object({ icon: iconNameSchema, name: z.string().trim().min(2).max(28) }).strict())
+      .min(1)
+      .max(3),
+    below: sceneLine,
+    near: sceneLine,
+    above: sceneLine,
+  })
+  .strict();
+export type BenchScene = z.infer<typeof benchSceneSchema>;
+
+/**
  * What Value levers adds for a Spine Topic (Appendix D): each mode swaps one readout (or, for failure, which lever is under
  * More settings, and for all open, opens it), never adding controls beyond four at rest and one more.
  */
@@ -240,6 +296,7 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
     .object({
       kind: z.literal("market"),
       markets: z.array(marketSchema).min(1).max(2),
+      scene: benchSceneSchema.optional(),
     })
     .strict(),
   z
@@ -248,6 +305,7 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
       marks: z.array(marginMarkSchema).min(1).max(3),
       /** The company's own face, which climbs the ladder as its margin moves; a rocket when left out. */
       emoji: iconName.optional(),
+      scene: benchSceneSchema.optional(),
     })
     .strict(),
   z
@@ -257,17 +315,19 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
       note: z.string().trim().min(3).max(120).optional(),
       /** What the new capital buys, drawn filling up with the sales each dollar brings; a factory when left out. */
       emoji: iconName.optional(),
+      scene: benchSceneSchema.optional(),
     })
     .strict(),
-  z.object({ kind: z.literal("failure") }).strict(),
+  z.object({ kind: z.literal("failure"), scene: benchSceneSchema.optional() }).strict(),
   z
     .object({
       kind: z.literal("two_stories"),
       stories: z.tuple([topicStorySchema, topicStorySchema]),
+      scene: benchSceneSchema.optional(),
     })
     .strict(),
   // match_price may carry Case chips: the ready-Case valuation Topic judges a published Story on one of three Cases.
-  z.object({ kind: z.literal("match_price"), cases: caseChipsSchema.optional() }).strict(),
+  z.object({ kind: z.literal("match_price"), cases: caseChipsSchema.optional(), scene: benchSceneSchema.optional() }).strict(),
   z
     .object({
       kind: z.literal("range"),
@@ -281,11 +341,12 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
         })
         .strict()
         .optional(),
+      scene: benchSceneSchema.optional(),
     })
     .strict(),
   // all_open: every lever open, "Save my story", and optionally Case chips. No Spine Topic uses it (spine-check.ts: on the
   // Spine the Learner judges a published Story); it is kept for an Own Case's Estimate, saved as a one-page note.
-  z.object({ kind: z.literal("all_open"), cases: caseChipsSchema.optional() }).strict(),
+  z.object({ kind: z.literal("all_open"), cases: caseChipsSchema.optional(), scene: benchSceneSchema.optional() }).strict(),
 ]);
 
 export type ValueLeversMode = z.infer<typeof valueLeversModeSchema>;

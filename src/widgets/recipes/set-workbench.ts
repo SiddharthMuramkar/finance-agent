@@ -2,7 +2,7 @@ import { z } from "zod";
 import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { cashWaterfallLevers } from "../workbench/cash-waterfall-model";
-import { bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, marketReadingIdsSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, stackStorySchema, tradedMultipleSchema, modeCases, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
+import { benchLingoSchema, benchStorySchema, bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, marketReadingIdsSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, stackStorySchema, tradedMultipleSchema, modeCases, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
 import { ROW_IDS, ROW_VARIABLES } from "../workbench/full-sheet";
 import { multipleDecoderLevers } from "../workbench/multiple-decoder-model";
 import {
@@ -409,12 +409,13 @@ const valueBridgeInputs = z
         "Lease obligations the Case's debt does not count, which the Topic counts as debt, with their source",
       ),
     report: bridgeReportSchema.optional().describe("A report's lines shown beside the bridge, its debt and cash ready to put in, with their source"),
+    scene: benchStorySchema.optional().describe("A story moment above the bridge: copy it from the Topic file"),
   })
   .strict();
 
 export const valueBridge = defineRecipe({
   id: "value_bridge",
-  topicInputs: ["leases", "report"],
+  topicInputs: ["leases", "report", "scene"],
   archetype: WORKBENCH,
   summary:
     "Value bridge, a Workbench on a Case's valuation: business value steps down through cash, debt and leases, and options to what one share is worth. Use it to show who is paid before shareholders.",
@@ -447,7 +448,7 @@ export const valueBridge = defineRecipe({
       ["bridge"],
       [
         ...declarations,
-        `bridge = ValueBridge(${[str(inputs.case), ...args, inputs.leases ? lit(inputs.leases) : "null", ...(inputs.report ? [lit(inputs.report)] : [])].join(", ")})`,
+        `bridge = ValueBridge(${[str(inputs.case), ...args, inputs.leases ? lit(inputs.leases) : "null", ...(inputs.report || inputs.scene ? [inputs.report ? lit(inputs.report) : "null"] : []), ...(inputs.scene ? [lit(inputs.scene)] : [])].join(", ")})`,
       ],
     );
   },
@@ -667,6 +668,7 @@ const multipleDecoderInputs = z
       .describe(
         `The Topic's Case the multiples come from, checked but not drawn, ${CASE_ID}`,
       ),
+    lingo: benchLingoSchema.optional().describe("A Lingo card above the decoder: copy it from the Topic file"),
   })
   .strict()
   .superRefine((inputs, ctx) => {
@@ -693,7 +695,7 @@ const IWG_2018 = {
 
 export const multipleDecoder = defineRecipe({
   id: "multiple_decoder",
-  topicInputs: ["subject", "peers", "assumptions", "opening"],
+  topicInputs: ["subject", "peers", "assumptions", "opening", "lingo"],
   archetype: WORKBENCH,
   summary:
     "Multiple decoder, a Workbench: growth, risk and margin set the multiple of revenue they justify, beside the sourced multiples the company and its peers trade at, each row with its Icon and short fact. Use it to read a multiple back as a view on growth, risk and margins.",
@@ -745,7 +747,7 @@ export const multipleDecoder = defineRecipe({
       ["decoder"],
       [
         ...declarations,
-        `decoder = MultipleDecoder(${[lit(inputs.subject), lit(inputs.peers), lit(inputs.assumptions), lit(inputs.opening), ...args].join(", ")})`,
+        `decoder = MultipleDecoder(${[lit(inputs.subject), lit(inputs.peers), lit(inputs.assumptions), lit(inputs.opening), ...args, ...(inputs.lingo ? [lit(inputs.lingo)] : [])].join(", ")})`,
       ],
     );
   },

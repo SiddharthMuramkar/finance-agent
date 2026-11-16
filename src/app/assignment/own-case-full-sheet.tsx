@@ -30,7 +30,7 @@ export function OwnCaseFullSheet({ inputs, estimate }: { inputs: OwnCaseInputs; 
       {sheet?.ok && (
         <>
           <p data-testid="own-case-sheet-value" role="status" className="text-sm font-semibold leading-5">
-            {sheetValueLine(sheet.valuePerShare, sheet.block)}
+            {sheetValueLine(sheet.valuePerShare, sheet.valued)}
           </p>
           <ul className="mb-2 text-sm" data-testid="full-sheet" aria-label="Every input of your Own Case">
             {sheet.rows.map((row) => (

@@ -2,6 +2,7 @@ import { valueStory } from "@/finance/dcf-engine";
 import { CURRENCY_STYLE } from "@/finance/money";
 import { openingEstimate, ownCaseBlock, ownCaseMarket, type OwnCaseEstimate, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
 import { toEngineInputs, type ValuationBlock } from "@/finance/valuation-case";
+import { nothingLeftWords } from "@/learner/own-case-words";
 import { fullSheetRows, NO_ROW_CHANGES, withRows, type FullSheetRow, type RowSettings } from "./full-sheet";
 import { priceText } from "./value-levers-model";
 
@@ -111,10 +112,11 @@ const wordsOf = (origins: { origin: RowOrigin; field?: EstimateField }[]) =>
 
 /**
  * The engine's value on the sheet in a sentence. A value at or below zero is no price a share can have: it reads 0 with
- * the words the form and the note use (own-case-words.ts), so the sheet and the form never disagree (F06).
+ * the words the form and the note use (own-case-words.ts), so the sheet and the form never disagree (F06). Pass the block
+ * the rows valued (`valued`), so a debt moved to 0 on the sheet no longer blames lenders (L05).
  */
 export function sheetValueLine(valuePerShare: number, block: ValuationBlock): string {
-  if (!(valuePerShare > 0)) return `The engine's value with these rows: ${CURRENCY_STYLE[block.currency].symbol}0 a share. Lenders take everything: nothing is left for shareholders.`;
+  if (!(valuePerShare > 0)) return `The engine's value with these rows: ${CURRENCY_STYLE[block.currency].symbol}0 a share. ${nothingLeftWords(block.debt)}`;
   return `The engine's value with these rows: ${priceText(valuePerShare, block)} a share.`;
 }
 
@@ -152,8 +154,8 @@ export function ownCaseSheet(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, r
     card: {
       term: "Share price",
       pro: "The price one share last traded at, on the report's date",
-      means: "What one share sold for on the day the report closes; the Own Case's value is read beside it.",
-      example: `${priceText(inputs.price, block)} for one share, on the day the report closes.`,
+      means: "What one share sold for on the day the report's figures became public; the Own Case's value is read beside it.",
+      example: `${priceText(inputs.price, block)} for one share, on the day the report came out.`,
       emoji: "receipt",
     },
     ...marked("price"),

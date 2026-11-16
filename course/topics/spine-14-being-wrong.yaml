@@ -99,6 +99,14 @@ explore:
       # capital in years 1-5 only; the lever scales all ten years, so its swing here is wider than in his runs.
       mode:
         kind: range
+        # A cast that reacts as the story moves against the price (Spine critics round 1 on #96).
+        scene:
+          cast:
+            - { icon: teacher, name: "Damodaran" }
+            - { icon: person, name: "You" }
+          below: "Damodaran: these settings sit below the price. Which lever, if you are wrong, could lift them?"
+          near: "You: my story lands near the price. A small miss on one lever could tip it either way."
+          above: "Damodaran: these settings sit above the price. Which lever, if you are wrong, could sink them?"
         bands:
           revenue: [91, 171]
           margin: [9.23, 15.28]
@@ -212,7 +220,7 @@ questions:
       - id: margin-up
         text: "What it keeps, up"
       - id: none
-        text: "None: stick with your first number"
+        text: "None: he should stick with his first number"
         mistake: { tag: anchoring, fix: "That is anchoring. News about the top lever is exactly what should move his value." }
       - id: risk-up
         text: "How risky it is, up"

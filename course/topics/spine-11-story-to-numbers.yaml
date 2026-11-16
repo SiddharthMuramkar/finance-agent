@@ -23,7 +23,7 @@ cases:
       December 2014. Uber is five years old and still private. It says it runs in 51 countries and
       about 230 cities. In June the valuation professor Aswath Damodaran told Uber's story as a city
       car service: a $100 billion market growing 6% a year, a 10% share of it, and 20% of each fare
-      taken as revenue. That came to about $6 billion, while venture investors had just put in $1.2
+      kept as revenue. He valued that Uber at about $6 billion, while venture investors had just put in $1.2
       billion at $17 billion. In July the investor Bill Gurley argued the market could be many times
       bigger, because cheaper, quicker rides bring in new riders and some people might one day give
       up their cars; Damodaran counted giving up cars apart, as a chance worth $10 billion or more.
@@ -157,17 +157,29 @@ explore:
     case: s11-uber-2014-inputs
     inputs:
       caseStory: "The sheet's opening story"
+      # Opens on Damodaran's June story (Spine critics round 1 on #96), so the headline matches the "about $6 billion" the
+      # Story names; the sheet's own opening story stays a chip.
+      start: { revenue: 3.58 }
       mode:
         kind: two_stories
+        scene:
+          cast:
+            - { icon: teacher, name: "Damodaran" }
+            - { icon: office-worker, name: "Bill Gurley" }
+          below: "Damodaran: a smaller story than the $40bn talk. Which part of it would you change?"
+          near: "Bill Gurley: now the settings are worth about the $40bn talk. Does every part still fit?"
+          above: "Bill Gurley: bigger than the talk. Is that still a story about one company?"
         stories:
           # His June story's revenue in year 10, $3,582m (ubervaluation.xls Valuation!L5); his other inputs (40% margin,
           # sales to capital 5, 12% falling to 8%, a 10% chance of failure) are the December sheet's opening ones.
           - label: "Damodaran's June story"
             levers: { revenue: 3.58 }
+            says: "A $100bn market growing 6% a year, a 10% share, a 20% slice"
           # The post's grid row A1/B4/C5/D4: a $100bn market growing 10.39% a year, a 40% share, a 20% slice (published
           # $31,952m; the engine gives $31,973m). Revenue in year 10 by the sheet's rule, market x share x slice: $21.5bn.
           - label: "Market grows fast, Uber wins 40%"
             levers: { revenue: 21.5 }
+            says: "A $100bn market growing fast, not Gurley's $300bn, so it sits below his $53.4bn"
 
 connections:
   - text: "How big the market is and what share of it a company wins set how big it gets."
@@ -369,10 +381,10 @@ checks:
       July 2014: Bill Gurley's story is that Uber's market is many times bigger than city cars, because cheaper,
       quicker rides bring in new riders. Judge it in two or three sentences: which lever does his story move, which
       of its settings is the least sure, and does it still hold together if Uber's edge stays local, city by city?
+    # Every pass criterion answers a part of the prompt (review 4, K12): the lever, the least sure setting, the local edge.
     passCriteria: >
-      Names the market as the lever Gurley's story moves and ties it to a part of the story (new
-      riders, cheaper and quicker rides); says which setting is the least sure or pulls against
-      another, with a reason (for example a local, city-by-city edge against a big share of a world
-      market); treats a value far from the talk of the day as a different story, not as an error in
-      the arithmetic.
+      Says his story moves how big Uber gets, through a bigger market, and ties it to a part of the
+      story (new riders, cheaper and quicker rides); says which setting is the least sure, with a
+      reason; says whether the story holds if Uber's edge stays local, city by city (for example, a
+      local edge does not win a big share of a world market).
     skills: [s11-story-levers, s11-story-holds]

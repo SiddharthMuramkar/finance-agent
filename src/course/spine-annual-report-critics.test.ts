@@ -59,6 +59,21 @@ describe("the annual report Topic after critics round 1", () => {
     expect(Object.fromEntries(q.choices.map((c) => [c.id, c.figure]))).toEqual({ margin: "$21.57", debt: "$29.82", cash: "$38.20" });
   });
 
+  it("glosses report words where they appear and keeps unglossed ones out of the Concept the Tutor reads (reviews 2 G13, G29; 4 K17, K18)", () => {
+    expect(topic.concept).not.toMatch(/\byuho\b|\bIFRS\b/);
+    const all = flat(JSON.stringify([topic.cases.map((c) => [c.story, c.reveal]), topic.concept, topic.goDeeper, topic.questions, topic.checks, topic.explore]));
+    for (const [word, gloss] of [
+      ["exceptional items", " (one-off gains or costs)"],
+      ["marketable securities", ", investments it can sell quickly"],
+      ["debentures", " (bonds Samsung has sold to lenders)"],
+      ["current portion of long-term liabilities", " (the part of its long-term debts due within a year)"],
+    ] as const) {
+      const at = [...all.matchAll(new RegExp(word, "gi"))];
+      expect(at.length, word).toBeGreaterThan(0);
+      for (const m of at) expect(all.slice(m.index + word.length, m.index + word.length + gloss.length), word).toBe(gloss);
+    }
+  });
+
   it("teaches the report's deeper loss as evidence against the mature margin, not as what the value rested on (review F03)", () => {
     const insight = topic.insight!;
     for (const text of [flat(amazon.reveal), insight.written, insight.foundWhen]) {

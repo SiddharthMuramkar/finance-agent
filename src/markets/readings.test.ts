@@ -112,7 +112,9 @@ describe("the As-of rule for readings shown before the Reveal", () => {
 
   it("holds the US Treasury bond rate at the end of 1999, 6.44% (histimpl.xls), dated before Amazon's As-of date", () => {
     const r = marketReading("us-risk-free-10y-1999")!;
-    expect([r.market, r.kind, r.value, r.date, r.sourceUrl]).toEqual(["US", "risk_free", 6.44, "1999-12-31", "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls"]);
+    expect([r.market, r.kind, r.value, r.date, r.sourceUrl]).toEqual(["US", "risk_free", 6.44, "1999-12-31", "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/implpr.html"]);
+    // L27: the link opens Damodaran's web page of the table; the .xls is named in the check note.
+    expect(r.checkNote).toContain("histimpl.xls");
     expect(knownOn(r, { asOf: "2000-02-03", market: "US" })).toBe(true);
     expect(preRevealReadingErrors([amazon(["us-risk-free-10y-1999"])])).toEqual([]);
   });

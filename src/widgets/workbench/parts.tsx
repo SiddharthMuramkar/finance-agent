@@ -8,7 +8,10 @@ import {
 } from "@openuidev/react-lang";
 import { useContext, useMemo, type ReactNode } from "react";
 import { z } from "zod/v4";
+import { LingoCardView } from "../primitives/wave3/lingo-card";
+import { StorySceneView } from "../primitives/wave3/story-scene";
 import { SavedTicksContext } from "../saved-ticks";
+import { benchLingoSchema, benchStorySchema } from "./data-schemas";
 import { benchSettings, type BenchLever } from "./bench";
 import { cashWaterfallLevers } from "./cash-waterfall-model";
 import { CashWaterfallView } from "./cash-waterfall-view";
@@ -81,6 +84,7 @@ export const valueBridgeProps = z.object({
     "Leases counted as debt, {amount, label, source}, or null",
   ).optional(),
   report: figures("A report's lines beside the bridge, {title, lines, source}, or null").optional(),
+  scene: figures("A story moment above the bridge, {cast, beats, caption?, date?}, or null").optional(),
 });
 
 function ValueBridgePart({
@@ -103,14 +107,18 @@ function ValueBridgePart({
   );
   const { settings, set } = useLevers(fields, levers);
   if (!("data" in parsed)) return <Unavailable>{parsed.problem}</Unavailable>;
+  const scene = benchStorySchema.safeParse(props.scene);
   return (
-    <ValueBridgeView
-      data={parsed.data}
-      levers={settings}
-      onLeversChange={set}
-      ticked={saved?.ticked}
-      onTicked={saved?.onTicked}
-    />
+    <>
+      {scene.success && <StorySceneView {...scene.data} />}
+      <ValueBridgeView
+        data={parsed.data}
+        levers={settings}
+        onLeversChange={set}
+        ticked={saved?.ticked}
+        onTicked={saved?.onTicked}
+      />
+    </>
   );
 }
 
@@ -288,6 +296,7 @@ export const multipleDecoderProps = z.object({
   growth: lever("Revenue growth in years 1 to 5, in percent"),
   risk: lever("Cost of capital, in percent"),
   margin: lever("Operating margin, in percent"),
+  lingo: figures("A Lingo card above the decoder, {term, means, pro, example, emoji, inStory?}, or null").optional(),
 });
 
 function MultipleDecoderPart({
@@ -310,14 +319,18 @@ function MultipleDecoderPart({
   );
   const { settings, set } = useLevers(fields, levers);
   if (!("data" in parsed)) return <Unavailable>{parsed.problem}</Unavailable>;
+  const lingo = benchLingoSchema.safeParse(props.lingo);
   return (
-    <MultipleDecoderView
-      data={parsed.data}
-      levers={settings}
-      onLeversChange={set}
-      ticked={saved?.ticked}
-      onTicked={saved?.onTicked}
-    />
+    <>
+      {lingo.success && <LingoCardView {...lingo.data} />}
+      <MultipleDecoderView
+        data={parsed.data}
+        levers={settings}
+        onLeversChange={set}
+        ticked={saved?.ticked}
+        onTicked={saved?.onTicked}
+      />
+    </>
   );
 }
 

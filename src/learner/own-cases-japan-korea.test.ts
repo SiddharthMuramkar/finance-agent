@@ -3,11 +3,12 @@ import { openingEstimate, valueOwnCase, type OwnCaseInputs } from "@/finance/own
 import { ownCaseNote } from "./own-cases";
 
 // The one-page note of a Japanese or Korean Own Case (spec #68, ticket #114) names its market and writes its money in
-// yen or won, whole, as those currencies have no minor unit. Kikkoman's figures: src/finance/own-case-japan-korea.test.ts.
+// yen or won, whole, as those currencies have no minor unit. Each is dated at its filing, with that day's close (G33);
+// the figures and their sources: src/finance/own-case-japan-korea.test.ts.
 
 const NOW = new Date("2026-11-16T10:00:00Z");
-const KIKKOMAN: OwnCaseInputs = { company: "Kikkoman", market: "JP", reportDate: "2026-03-31", industry: "food", sales: 745_539, operatingProfit: 75_940, taxPercent: 30.5, debt: 61_429, cash: 111_770, shares: 927_741_900, price: 1_435 };
-const SAMSUNG: OwnCaseInputs = { company: "Samsung Electronics", market: "KR", reportDate: "2025-12-31", industry: "market", sales: 333_605_938, operatingProfit: 43_601_051, taxPercent: 26.4, debt: 25_239_139, cash: 57_856_378, shares: 6_630_180_138, price: 119_900 };
+const KIKKOMAN: OwnCaseInputs = { company: "Kikkoman", market: "JP", reportDate: "2026-06-19", industry: "food", sales: 745_539, operatingProfit: 75_940, taxPercent: 30.5, debt: 61_429, cash: 111_770, shares: 927_741_900, price: 1_540 };
+const SAMSUNG: OwnCaseInputs = { company: "Samsung Electronics", market: "KR", reportDate: "2026-03-10", industry: "market", sales: 333_605_938, operatingProfit: 43_601_051, taxPercent: 26.4, debt: 25_239_139, cash: 57_856_378, shares: 6_630_180_138, price: 187_900 };
 
 function note(inputs: OwnCaseInputs) {
   const estimate = openingEstimate(inputs.industry, inputs.market);
@@ -19,17 +20,17 @@ function note(inputs: OwnCaseInputs) {
 describe("the one-page note of a Japanese or Korean Own Case", () => {
   it("names Japan and writes yen", () => {
     const text = note(KIKKOMAN);
-    expect(text).toContain("Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.");
-    expect(text).toContain("price ¥1,435 on 31 Mar 2026");
+    expect(text).toContain("Kikkoman, Japan. Annual report of 19 Jun 2026. Industry: Food processors.");
+    expect(text).toContain("price ¥1,540 on 19 Jun 2026");
     expect(text).toContain("¥1.92 of sales for each ¥1 invested");
-    expect(text).toMatch(/The engine's value: ¥[\d,]+ a share, beside a price of ¥1,435 on 31 Mar 2026\./);
+    expect(text).toMatch(/The engine's value: ¥[\d,]+ a share, beside a price of ¥1,540 on 19 Jun 2026\./);
     expect(text).not.toMatch(/₹|crore/);
   });
 
   it("names Korea and writes won", () => {
     const text = note(SAMSUNG);
-    expect(text).toContain("Samsung Electronics, Korea. Annual report of 31 Dec 2025.");
-    expect(text).toContain("price ₩119,900 on 31 Dec 2025");
+    expect(text).toContain("Samsung Electronics, Korea. Annual report of 10 Mar 2026.");
+    expect(text).toContain("price ₩187,900 on 10 Mar 2026");
     expect(text).toContain("6,630,180,138 shares");
     expect(text).toContain("cost of capital 8.92%");
     expect(text).not.toMatch(/your story|cheap|dear|undervalued|overvalued|\bbuy\b|\bsell\b/i);

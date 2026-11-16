@@ -112,8 +112,9 @@ cases:
     # The same valuation as Case webvan-centre-npv-2000, whose block holds the figures and their sources (spec C2).
     valuationFrom: webvan-centre-npv-2000
 
-  # A third Case, for Spine Topic 15 (spec C4): Zomato's IPO in rupees. Facts from docs/research/verify-zomato-2021.json;
-  # the outline keeps the Case verified: false until the owner checks it the usual way (spec C4).
+  # A third Case, for Spine Topic 15 (spec C4): Zomato's IPO in rupees. Facts from docs/research/verify-zomato-2021.json
+  # (in pull request 616's history); the outline's Case entry is verified: true (2026-11-13), and Spine critics round 1 on
+  # #96 re-opened the listing and update facts at source on 2026-11-16 (see the outline entry's note).
   - id: zomato-ipo-2021
     title: "Zomato's IPO, valued in rupees"
     asOf: 2021-07-21

@@ -39,7 +39,7 @@ describe("the levers widget renders", () => {
     expect(textOf(w.querySelector(".sig-ruler"))).toContain("Published $35");
     expect(textOf(w.querySelector(".sig-ruler"))).toContain("Price paid, 3 Feb 2000");
     expect(pills(w)).toEqual([null, null, null, null]);
-    expect(LEVERS.map((l) => textOf(lever(w, l.key).querySelector(".sig-lever-value")))).toEqual(["$39bn", "10%", "$3.00", "12.84%"]);
+    expect(LEVERS.map((l) => textOf(lever(w, l.key).querySelector(".sig-lever-value")))).toEqual(["$39 billion", "10%", "$3.00", "12.84%"]);
     expect(textOf(w)).toContain("It reproduces his $35.08 within 2%.");
   });
 
@@ -94,7 +94,7 @@ describe("key numbers on the engine", () => {
     expect(value(container)).toBe("$84");
     expect(sub(container)).toBe("Worth the $84 price, on this story.");
     expect(pills(container)).toEqual(["+$27", "+$17", null, "+$5"]);
-    expect(reading(container)).toBe("You reached the price To reach the $84 price, Amazon needs $59bn of sales in year 10 and a margin of 12%. Would you have believed that in 2000?");
+    expect(reading(container)).toBe("You reached the price To reach the $84 price, Amazon needs $59 billion of sales in year 10 and a margin of 12%. Would you have believed that in 2000?");
     expect(onEvent).toHaveBeenCalledWith({ type: "milestone", id: "reached_price", rev: 59, margin: 12 });
   });
 

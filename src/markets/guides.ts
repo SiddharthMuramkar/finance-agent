@@ -9,8 +9,8 @@ import { EUROPE_GUIDE } from "./guides-europe.ts";
 // no database) fails a guide line with no source. One guide per market (India #108, the US #113); more markets (#114, #115) add their lines here.
 // Imports only packages and relative modules, so plain Node runs it.
 
-/** The Own Case fields a guide covers: the company, the report's date and the seven figures typed from the report. */
-export const GUIDE_FIELDS = ["company", "reportDate", "sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"] as const;
+/** The Own Case fields a guide covers: the company, the report's date, the industry it picks (L21) and the seven figures typed from the report. */
+export const GUIDE_FIELDS = ["company", "reportDate", "industry", "sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"] as const;
 export type GuideField = (typeof GUIDE_FIELDS)[number];
 
 /** A Lingo card's makings, as the LingoCard Widget takes them (term, means, pro, example, emoji). */
@@ -45,6 +45,9 @@ const CARD_LIMITS = { pro: 14, means: 20, example: 20 } as const;
 
 const wordCount = (text: string) => text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 
+/** A price line that falls back to a day before the report's date, or to the year end (L03). */
+const PRICE_BEFORE = /\b(?:last|previous) trading day before\b|\byear[- ]end close\b|\bshuts on 31 December\b/i;
+
 /** Every way the guide lines break the rules, as sentences; empty when all pass. */
 export function guideErrors(lines: readonly unknown[]): string[] {
   const errors: string[] = [];
@@ -76,6 +79,10 @@ export function guideErrors(lines: readonly unknown[]): string[] {
     for (const [line, max] of Object.entries(CARD_LIMITS) as [keyof typeof CARD_LIMITS, number][]) {
       const n = wordCount(lingo[line]);
       if (n > max) errors.push(`${name}'s Lingo card ${line} has ${n} words; at most ${max}`);
+    }
+    // One fallback day in every market (L03): a price from before the report's date could not know its figures.
+    if (parsed.data.field === "price" && (!/next trading day/i.test(where) || PRICE_BEFORE.test(`${where} ${lingo.example}`))) {
+      errors.push(`${name} must send a shut market's price to the next trading day, never to a day before the report`);
     }
   });
   for (const [market, fields] of seen) {
@@ -119,6 +126,20 @@ const india: GuideLineInput[] = [
       pro: "the statements were approved by the Board on 12 May 2025",
       example: "A year ending 31 March 2025 may be approved on 12 May 2025: the report's date is 12 May.",
       emoji: "calendar",
+    },
+  },
+  {
+    field: "industry",
+    where:
+      "The Board's Report and its Management Discussion and Analysis say what the company makes and sells. The segment note (Ind AS 108) splits revenue by business: pick the industry that brings in most of it, or \"Any other firm\" when it is none of them. Banks, NBFCs and insurers do not fit the Own Case.",
+    source: "Ind AS 108, Operating Segments (ICAI)",
+    sourceUrl: "https://resource.cdn.icai.org/94035indas2025-26-108.pdf",
+    lingo: {
+      term: "Operating segment",
+      means: "A part of the business the report counts on its own, with its own revenue and profit.",
+      pro: "segment revenue shows where the sales come from",
+      example: "A tea maker with a small café chain has two segments; most revenue is tea: a food processor.",
+      emoji: "factory",
     },
   },
   {
@@ -222,6 +243,12 @@ const EDGAR = { source: "SEC, EDGAR company search", sourceUrl: "https://www.sec
 const HOW_TO_READ = { source: "Investor.gov (SEC), How to Read a 10-K", sourceUrl: "https://www.investor.gov/introduction-investing/getting-started/researching-investments/how-read-10-k" };
 const APPLE_10K = { source: "Apple Inc., Form 10-K for the year to 27 Sep 2025 (SEC EDGAR)", sourceUrl: "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm" };
 const NASDAQ = { source: "Nasdaq, historical quotes", sourceUrl: "https://www.nasdaq.com/market-activity/quotes/historical" };
+/**
+ * The OECD's combined (federal and state) statutory rate on company profit: 25.53% for the US in 2026 (series CIT_C,
+ * 25.5285, read 2026-11-16 from its data at sdmx.oecd.org, dataflow DSD_TAX_CIT@DF_CIT 2.0). Review M04: Damodaran's US
+ * cost of capital (wacc.xls) assumes a 25% marginal rate, so the Own Case types the combined rate too.
+ */
+const OECD_TAX = { source: "OECD, Corporate Income Tax Rates Database (combined central and sub-central rate)", sourceUrl: "https://www.oecd.org/en/data/datasets/corporate-income-tax-rates-database.html" };
 
 const us: GuideLineInput[] = [
   {
@@ -247,6 +274,19 @@ const us: GuideLineInput[] = [
       pro: "a fiscal year can end in any month",
       example: "Apple's fiscal 2025 ended on 27 September 2025.",
       emoji: "calendar",
+    },
+  },
+  {
+    field: "industry",
+    where:
+      'Item 1, "Business", says what the company makes and sells. The segment note in Item 8 splits revenue by business: pick the industry that brings in most of it, or "Any other firm" when it is none of them. Banks and insurers do not fit the Own Case.',
+    ...HOW_TO_READ,
+    lingo: {
+      term: "Operating segment",
+      means: "A part of the business the 10-K counts on its own, with its own revenue and profit.",
+      pro: "segment revenue shows where the sales come from",
+      example: "A company with chip and cloud segments earns most of its revenue from cloud software: a software maker.",
+      emoji: "factory",
     },
   },
   {
@@ -276,25 +316,27 @@ const us: GuideLineInput[] = [
   },
   {
     field: "taxPercent",
-    where: 'The income-tax note sets the company\'s effective rate beside the 21% "statutory federal income tax rate". State taxes come on top of the federal rate.',
-    ...APPLE_10K,
+    where:
+      'Type the combined federal and state rate, about 25%. The income-tax note starts from the 21% "statutory federal income tax rate" that 26 USC 11(b) sets, and state taxes come on top: the OECD puts the two together at 25.53% for 2026. Not the federal 21% alone, and not the "effective tax rate" the note ends on.',
+    ...OECD_TAX,
     lingo: {
-      term: "Statutory rate",
-      means: "The rate the law sets on company profit: 21% federal in the US, before state taxes.",
-      pro: "the statutory rate, not the effective rate",
-      example: "Apple's effective rate was 15.6% in fiscal 2025; the statutory federal rate was 21%.",
+      term: "Combined statutory rate",
+      means: "The federal 21% and the state taxes on company profit together: about 25% in the US.",
+      pro: "the combined statutory rate, not the effective rate",
+      example: "Apple's effective rate was 15.6% in fiscal 2025; type the combined statutory rate, about 25%.",
       emoji: "classical-building",
     },
   },
   {
     field: "debt",
-    where: 'The balance sheet: add "Commercial paper" and "Term debt", in current and in non-current liabilities. Leave out accounts payable: they are bills owed to suppliers, not borrowing.',
+    where:
+      'The balance sheet: add the borrowings in current and in non-current liabilities ("Short-term borrowings" or "Commercial paper", "Current portion of long-term debt", "Long-term debt"), and the lease liabilities (ASC 842). Many 10-Ks keep leases inside "Other liabilities": the leases note gives "Total lease liabilities". Leave out accounts payable: they are bills owed to suppliers.',
     ...APPLE_10K,
     lingo: {
-      term: "Commercial paper",
-      means: "Short-term loans a large company raises from investors and repays within months.",
-      pro: "commercial paper is short-term debt",
-      example: "Apple owed $7,979 million of commercial paper on 27 Sep 2025.",
+      term: "Lease liability",
+      means: "Rent the company has promised to pay in future years, counted like a loan.",
+      pro: "lease liabilities are debt in all but name",
+      example: "Apple's leases note shows $13,720 million of lease liabilities on 27 Sep 2025, beside its borrowings.",
       emoji: "bank",
     },
   },
@@ -326,7 +368,7 @@ const us: GuideLineInput[] = [
   {
     field: "price",
     where:
-      "Not in the 10-K: on the exchange that lists the shares (Nasdaq or NYSE), read the closing price on the report's date, in $ a share. If that day had no trading, use the last trading day before it.",
+      "Not in the 10-K: on the exchange that lists the shares (Nasdaq or NYSE), read the closing price on the report's date, in $ a share. If that day had no trading, use the next trading day: a day before it could not know the figures.",
     ...NASDAQ,
     lingo: {
       term: "Closing price",
@@ -358,6 +400,13 @@ const japan: GuideLineInput[] = [
       "The cover (表紙): 【提出日】, the day the Yuho was filed on EDINET, when its figures were public. Not the year end in 【事業年度】 (e.g. 至 2026年3月31日; most Japanese years end on 31 March): nobody outside knew the figures then.",
     ...EDINET,
     lingo: { term: "有価証券報告書 (Yuho)", means: "Japan's annual securities report, filed on EDINET after the year ends.", pro: "the Yuho is the audited annual filing", example: "Kikkoman's Yuho for the year to March 2026 was filed in June.", emoji: "scroll" },
+  },
+  {
+    field: "industry",
+    where:
+      "第1【企業の概況】 3【事業の内容】 says what the company makes and sells. The セグメント情報 note splits revenue by business: pick the industry that brings in most of it, or \"Any other firm\" when it is none of them. Banks and insurers do not fit the Own Case.",
+    ...FORM_JP,
+    lingo: { term: "セグメント", means: "Segment: a part of the business the report counts on its own, with its own sales and profit.", pro: "segment sales show where the money comes from", example: "A soy-sauce maker that also runs restaurants: most sales are food, so it is a food processor.", emoji: "factory" },
   },
   {
     field: "sales",
@@ -402,10 +451,10 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "price",
-    where: "Not in the report: the Tokyo Stock Exchange closing price on the report's date (or the last trading day before it), in whole yen.",
+    where: "Not in the report: the Tokyo Stock Exchange closing price on the report's date, in whole yen. If that day had no trading, use the next trading day: a day before it could not know the figures.",
     source: "Japan Exchange Group, daily stock price statistics",
     sourceUrl: "https://www.jpx.co.jp/markets/statistics-equities/daily/03.html",
-    lingo: { term: "終値", means: "The closing price: the last price a share traded at that day.", pro: "the close on the as-of date", example: "Kikkoman closed at ¥1,435 on 31 March 2026.", emoji: "yen-banknote" },
+    lingo: { term: "終値", means: "The closing price: the last price a share traded at that day.", pro: "the close on the as-of date", example: "Kikkoman closed at ¥1,540 on 19 June 2026, the day its Yuho was filed.", emoji: "yen-banknote" },
   },
 ];
 
@@ -425,6 +474,13 @@ const korea: GuideLineInput[] = [
       "DART's list of filings: 접수일자, the day the 사업보고서 was filed, when its figures were public. Not the year end in 사업연도 on the cover (most Korean years end on 31 December; the report follows within 90 days).",
     ...DART,
     lingo: { term: "사업보고서", means: "Korea's annual business report, filed on DART after the year ends.", pro: "the audited annual filing under K-IFRS", example: "Samsung Electronics filed its 2025 business report in March 2026.", emoji: "scroll" },
+  },
+  {
+    field: "industry",
+    where:
+      "II. 사업의 내용 → 1. 사업의 개요 says what the company makes and sells, with sales split by business (사업부문). Pick the industry that brings in most of them, or \"Any other firm\" when it is none of them. Banks and insurers do not fit the Own Case.",
+    ...FORM_KR,
+    lingo: { term: "사업부문", means: "Business segment: a part of the business the report counts on its own, with its own sales and profit.", pro: "segment sales show where the money comes from", example: "A food group that also runs a shipping arm: most sales are food, so it is a food processor.", emoji: "factory" },
   },
   {
     field: "sales",
@@ -469,10 +525,10 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "price",
-    where: "Not in the report: the Korea Exchange closing price on the report's date (or the last trading day before it; the market shuts on 31 December), in whole won.",
+    where: "Not in the report: the Korea Exchange closing price on the report's date, in whole won. If that day had no trading, use the next trading day: a day before it could not know the figures.",
     source: "KRX Data Marketplace, Korea Exchange",
     sourceUrl: "https://data.krx.co.kr/",
-    lingo: { term: "종가", means: "The closing price: the last price a share traded at that day.", pro: "the close on the as-of date", example: "Samsung Electronics closed at ₩119,900 on 30 December 2025.", emoji: "chart-increasing" },
+    lingo: { term: "종가", means: "The closing price: the last price a share traded at that day.", pro: "the close on the as-of date", example: "Samsung Electronics closed at ₩187,900 on 10 March 2026, the day its report was filed.", emoji: "chart-increasing" },
   },
 ];
 

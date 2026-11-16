@@ -96,6 +96,8 @@ describe("changing a row revalues the Own Case through the engine", () => {
     expect(sheet.valuePerShare).toBeLessThan(0);
     expect(sheetValueLine(sheet.valuePerShare, sheet.block)).toBe("The engine's value with these rows: ₹0 a share. Lenders take everything: nothing is left for shareholders.");
     expect(sheetValueLine(123.4, sheet.block)).toBe("The engine's value with these rows: ₹123 a share.");
+    // L05: with no debt left on the block valued, lenders take nothing; the losses used the value up.
+    expect(sheetValueLine(-5, { ...sheet.block, debt: 0 })).toBe("The engine's value with these rows: ₹0 a share. Losses use up the whole value: nothing is left for shareholders.");
   });
 
   it("at the sheet's opening the value is the form's value", () => {
@@ -127,5 +129,26 @@ describe("changing a row revalues the Own Case through the engine", () => {
       expect(moved.valuePerShare, id).not.toBeCloseTo(opening, 4);
     }
     expect(sheetOf(OPENING, NO_ROW_CHANGES).valuePerShare).toBe(opening);
+  });
+});
+
+// L21: the Full sheet's Lingo cards speak the Own Case's money, never "dollar" on a rupee or yen Case.
+describe("the Full sheet's cards in the Own Case's money", () => {
+  const cardText = (inputs: OwnCaseInputs) => {
+    const sheet = ownCaseSheet(inputs, openingEstimate(inputs.industry, inputs.market), NO_ROW_CHANGES, NOW);
+    if (!sheet.ok) throw new Error(sheet.error);
+    return sheet.rows.map((r) => [r.card.term, r.card.pro, r.card.means, r.card.example].join(" ")).join("\n");
+  };
+
+  it("a rupee Own Case's cards say rupees", () => {
+    const text = cardText(COFFEE_DAY);
+    expect(text).not.toMatch(/dollar|cents|\{money/);
+    expect(text).toContain("each rupee of sales");
+  });
+
+  it("a yen Own Case's cards say yen", () => {
+    const text = cardText({ ...COFFEE_DAY, company: "Kikkoman", market: "JP", reportDate: "2026-06-19", price: 1540, shares: 927_741_900 });
+    expect(text).not.toMatch(/dollar|rupee|cents|\{money/);
+    expect(text).toContain("a hundred yen in the till");
   });
 });
