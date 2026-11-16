@@ -28,13 +28,11 @@ describe("the course check on Market readings", () => {
   });
 
   it("fails a reading with no date", () => {
-    const { date: _date, ...undated } = yardstick;
-    expect(marketReadingErrors([undated])).toEqual([expect.stringContaining('"in-test-margin" needs date')]);
+    expect(marketReadingErrors([{ ...yardstick, date: undefined }])).toEqual([expect.stringContaining('"in-test-margin" needs date')]);
   });
 
   it("fails a reading with no source, and one with no working link", () => {
-    const { source: _source, ...unsourced } = yardstick;
-    expect(marketReadingErrors([unsourced])).toEqual([expect.stringContaining('"in-test-margin" needs source')]);
+    expect(marketReadingErrors([{ ...yardstick, source: undefined }])).toEqual([expect.stringContaining('"in-test-margin" needs source')]);
     expect(marketReadingErrors([{ ...yardstick, sourceUrl: "not a link" }])).toEqual([expect.stringContaining('"in-test-margin" needs sourceUrl')]);
   });
 
