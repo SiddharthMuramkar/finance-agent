@@ -47,6 +47,20 @@ describe("L13: a Spine Check tests judgement (D4)", () => {
     expect(rule(lint(written), "L13")).toEqual(['L13: Spine Check "worth-check" has no computed question (which_lever, price_assumes or predict); it needs at least 1 (Topic "spine-01-worth")']);
   });
 
+  it("asks no computed question of a Spine Topic with no valued Case, such as the lottery Topic (spec #68 story 55)", () => {
+    // The jackpot is an annuity, not a business: a computed question would need a company's valuation block in it.
+    const lottery = spineData((d) => {
+      d.questions = d.questions.filter((q) => !("computed" in q));
+      const extra = d.questions.map((q) => ({ ...q, id: `${q.id}-2` }));
+      d.questions.push(...extra);
+      d.checks[0].questions = d.questions.map((q) => q.id);
+      d.checks[0].quickTries = d.checks[0].quickTries!.filter((q) => !("computed" in q));
+      d.checks[0].quickTries!.push({ ...(d.checks[0].quickTries![1] as object), id: "worth-try-pv-4" } as never);
+      for (const c of d.cases as { valuation?: unknown }[]) delete c.valuation;
+    });
+    expect(rule(lint(lottery), "L13")).toEqual([]);
+  });
+
   it("fails a Spine Check question that asks what a term is called", () => {
     for (const ask of ["What is the result called?", "Which word means what buyers pay?", "What is the term for what buyers pay?", "What is the name for what buyers pay?"]) {
       const named = spineData((d) => void (d.questions.find((q) => q.id === "worth-q-pricevalue")!.prompt = ask));
