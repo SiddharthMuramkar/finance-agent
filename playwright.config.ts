@@ -41,7 +41,7 @@ export const SMALL_VIEWPORTS = {
   p390: { width: 390, height: 844 },
   t768: { width: 768, height: 1024 },
 } as const;
-export const SMALL_SPECS = /(?:^|\/)(?:home|about|sign-in|phone-note|matrix|signal-qa|phone-workspace)\.spec\.ts$/;
+export const SMALL_SPECS = /(?:^|\/)(?:home|about|sign-in|phone-note|matrix|signal-qa|phone-workspace|theme)\.spec\.ts$/;
 
 /**
  * The narrowest phone (spec #68, #82: "at 360 and 390 px"): only the phone specs run here, the Study Workspace's first;
