@@ -28,8 +28,8 @@ const SIGNS: { name: string; pattern: RegExp }[] = [
   { name: "a minus or division between letters", pattern: /(?<![\w'])[A-Z][ \t]+[−/÷-][ \t]+(?:[A-Z](?![\w'])|\()/ },
   // A division between words: "pre-money valuation / shares outstanding". "and/or" and "P/E" have no spaces.
   { name: "a division between words", pattern: /[a-z)%][ \t]+[÷/][ \t]+[a-z(]/i },
-  // Maths symbols and functions.
-  { name: "a maths symbol", pattern: /[Σ∑∏√]|\bsqrt\(/ },
+  // Maths symbols and functions: "√", "sqrt(", and a payoff typed as "max(S - K, 0)" or "min(...)" (review 2, G30).
+  { name: "a maths symbol", pattern: /[Σ∑∏√]|\b(?:sqrt|max|min)\(/i },
 ];
 
 function visible(text: string): string {
