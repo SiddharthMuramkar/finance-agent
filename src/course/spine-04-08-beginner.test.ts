@@ -45,8 +45,10 @@ describe("Spine Topics 'how big can it get' and 'the years you cannot forecast',
 });
 
 describe("Spine Topics 4 to 9 for beginners (#95)", () => {
-  it("are Spine Topics 4 to 9 in the outline", () => {
-    expect(SPINE_4_TO_9.map((id) => map.topic(id)?.spine)).toEqual([4, 5, 6, 7, 8, 9]);
+  // #90's statements Topic is Spine 4 in the merged outline, so these six follow it, numbered 5 to 10.
+  it("are the six Spine Topics after #90's statements Topic in the outline", () => {
+    const after = map.topic("spine-statements")!.spine!;
+    expect(SPINE_4_TO_9.map((id) => map.topic(id)?.spine)).toEqual([1, 2, 3, 4, 5, 6].map((n) => after + n));
   });
 
   it("are on no beginner-rule list", () => {
