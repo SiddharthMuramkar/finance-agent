@@ -108,10 +108,19 @@ for (const play of PLAYS) {
     writeFileSync(join(out, `transcript-${play.topic}.md`), markdown(play, turns));
     writeFileSync(join(out, `transcript-${play.topic}.json`), JSON.stringify({ seed: play.seed, topic: play.topic, turns }, null, 2));
 
-    // The six numbers at Story, the two pages at Concept, and the Value bridge on Amazon's Case at Explore.
-    expect(turns[0].tutor).toContain("sales, operating profit, tax, debt, cash and shares");
+    // His value against the price at Story, the two pages at Concept, and the Value bridge on Amazon's Case at Explore, with
+    // the report's page beside it (critics round 1: its debt and cash to tap in).
+    expect(turns[0].tutor).toContain("Was he right?");
     expect(turns[1].tutor).toMatch(/income statement[\s\S]*balance sheet/);
     expect(turns[2].widget).toMatch(/Business value/);
     expect(turns[2].widget).toMatch(/Left for shareholders/);
+    expect(turns[2].widget).toMatch(/Amazon's 10-K for 2000/);
+    expect(turns[2].widget).toMatch(/Put in the report's debt and cash/);
+
+    // Taking the report's debt and cash off its page moves a share about $2, from $35 to $33: a little.
+    const report = page.getByTestId("value-bridge-report").first();
+    await report.getByRole("button", { name: /Long-term debt/ }).click();
+    await report.getByRole("button", { name: /Cash and marketable securities/ }).click();
+    await expect(page.getByTestId("value-bridge-headline").first()).toContainText("$33");
   });
 }

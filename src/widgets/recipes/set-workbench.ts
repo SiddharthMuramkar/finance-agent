@@ -2,7 +2,7 @@ import { z } from "zod";
 import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { cashWaterfallLevers } from "../workbench/cash-waterfall-model";
-import { companyYearSchema, costOfCapitalFiguresSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, tradedMultipleSchema, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
+import { bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, tradedMultipleSchema, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
 import { multipleDecoderLevers } from "../workbench/multiple-decoder-model";
 import { cashWaterfallData, multipleDecoderData, terminalSeesawData, valueBridgeData, waccStackData } from "../workbench/registry";
 import { terminalSeesawLevers } from "../workbench/terminal-seesaw-model";
@@ -213,12 +213,13 @@ const valueBridgeInputs = z
   .object({
     case: caseId,
     leases: leasesSchema.optional().describe("Lease obligations the Case's debt does not count, which the Topic counts as debt, with their source"),
+    report: bridgeReportSchema.optional().describe("A report's lines shown beside the bridge, its debt and cash ready to put in, with their source"),
   })
   .strict();
 
 export const valueBridge = defineRecipe({
   id: "value_bridge",
-  topicInputs: ["leases"],
+  topicInputs: ["leases", "report"],
   archetype: WORKBENCH,
   summary:
     "Value bridge, a Workbench on a Case's valuation: business value steps down through cash, debt and leases, and options to what one share is worth. Use it to show who is paid before shareholders.",
@@ -226,10 +227,10 @@ export const valueBridge = defineRecipe({
   budget: WORKBENCH_BUDGET,
   examples: [{ title: "From Amazon's business to one share", inputs: { case: "amazon-dcf-2000" }, refs: {}, facts: {} }],
   compile: ({ title, inputs }) => {
-    const found = valueBridgeData({ caseId: inputs.case, leases: inputs.leases });
+    const found = valueBridgeData({ caseId: inputs.case, leases: inputs.leases, report: inputs.report });
     if (!("data" in found)) throw new Error(found.problem);
     const { declarations, args } = leverStatements(valueBridgeLevers(found.data));
-    return program(title, ["bridge"], [...declarations, `bridge = ValueBridge(${[str(inputs.case), ...args, inputs.leases ? lit(inputs.leases) : "null"].join(", ")})`]);
+    return program(title, ["bridge"], [...declarations, `bridge = ValueBridge(${[str(inputs.case), ...args, inputs.leases ? lit(inputs.leases) : "null", ...(inputs.report ? [lit(inputs.report)] : [])].join(", ")})`]);
   },
 });
 

@@ -203,14 +203,14 @@ describe("the annual report Topic's scripted Tutor (#93)", () => {
   const flat = (t: string) => t.replace(/\s+/g, " ");
   const [amazon] = annualReport.cases;
 
-  it("opens on Amazon's 10-K with the six numbers to find, in figures from the Topic's own Case", () => {
+  it("opens on Amazon's 10-K with his value against the price, in figures from the Topic's own Case, and the report's question", () => {
     expect(E2E_SCRIPTS["ar-story"].step).toBe("story");
     const said = draftOf("ar-story").text;
-    for (const figure of ["$35.08", "$84", "$349 million", "$26 million"]) {
+    for (const figure of ["$35.08", "$84"]) {
       expect(said).toContain(figure);
       expect(flat(amazon.story)).toContain(figure);
     }
-    expect(said).toMatch(/sales, operating profit, tax, debt, cash and shares/);
+    expect(said).toMatch(/the report is out\. Was he right\?/);
   });
 
   it("names the two pages at Concept, and shows the Value bridge on the Topic's Amazon Case at Explore", () => {
@@ -218,7 +218,7 @@ describe("the annual report Topic's scripted Tutor (#93)", () => {
     expect(draftOf("ar-concept").text).toMatch(/balance sheet/);
     const shown = draftOf("ar-explore").widgets;
     expect(shown).toHaveLength(1);
-    expect(shown[0]).toMatchObject({ id: "value_bridge", params: { inputs: { case: "spine-ar-amazon-2000" } } });
+    expect(shown[0]).toMatchObject({ id: "value_bridge", params: { inputs: { case: "spine-ar-amazon-2000", report: annualReport.explore?.workbench?.inputs.report } } });
     expect(annualReport.explore?.workbench).toMatchObject({ recipe: "value_bridge", case: "spine-ar-amazon-2000" });
   });
 });

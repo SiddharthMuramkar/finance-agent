@@ -42,6 +42,20 @@ const SPINE_ONE_LEVERS = {
   facts: {},
 };
 
+/** The report's page beside the annual report Topic's Value bridge, copied from its Topic file as the Tutor copies it (ADR 0010). */
+const AR_REPORT = {
+  title: "Amazon's 10-K for 2000",
+  lines: [
+    { line: "Long-term debt", amount: 2127, lever: "debt" },
+    { line: "Cash and marketable securities", amount: 1101, lever: "cash" },
+    { line: "Loss from operations", amount: 864 },
+  ],
+  source: {
+    title: "Amazon.com Form 10-K405 for 2000, Consolidated Balance Sheets and Statements of Operations",
+    url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt",
+  },
+};
+
 export const E2E_SCRIPTS = {
   /** About 90 words of story at the Story step, one ask on the last line, no Widget. */
   "story-reply": {
@@ -645,10 +659,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "March 2001. Amazon files its annual report for 2000. A year earlier Aswath Damodaran, a valuation professor in New York, valued it at $35.08 a share against an $84 price. " +
-              "His story used $349 million of debt, $26 million of cash and 340.79 million shares. " +
-              "Six numbers in a report matter for a valuation: sales, operating profit, tax, debt, cash and shares.\n\n" +
-              "Which of the six would you look for first?",
+            "March 2001. Amazon files its annual report for 2000. A year earlier Aswath Damodaran, a valuation professor in New York, said a share was worth $35.08 while it sold for $84. " +
+              "Now the report is out. Was he right?\n\n" +
+              "What would you look for first in it?",
           ),
         ],
       },
@@ -674,13 +687,13 @@ export const E2E_SCRIPTS = {
   "ar-explore": {
     step: "explore",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_ar_bridge", name: "show_widget", input: { recipe: "value_bridge", params: { title: "Put Amazon's 2000 report into the bridge", inputs: { case: "spine-ar-amazon-2000" }, refs: {}, facts: {} } } }] },
+      { content: [{ type: "tool_use", id: "toolu_e2e_ar_bridge", name: "show_widget", input: { recipe: "value_bridge", params: { title: "Put Amazon's 2000 report into the bridge", inputs: { case: "spine-ar-amazon-2000", report: AR_REPORT }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
-            "Here is his bridge from Amazon's business to one share. His debt and cash are where the bar opens. " +
-              "The 2000 report shows far more of both. Raise the debt to about the report's figure, then the cash, and watch one share.\n\n" +
-              "How far does a share move, and is that the number his value rested on?",
+            "Here is his bridge from Amazon's business to one share, with the report's page beside it. " +
+              "The 2000 report shows about $2.1 billion of debt and $1.1 billion of cash. Tap each on the page, or slide debt to $2.1bn and cash to $1.1bn, and watch one share.\n\n" +
+              "Does a share move a lot or a little, and is that what his value rested on?",
           ),
         ],
       },

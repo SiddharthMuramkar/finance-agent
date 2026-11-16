@@ -65,6 +65,7 @@ export function BenchLeverControl<Id extends string>({ lever, value, onChange }:
       onChange={onChange}
       stops={lever.stops}
       chips={lever.chips.map((v) => ({ value: v, label: lever.reading(v) }))}
+      marks={lever.marks}
     />
   );
 }

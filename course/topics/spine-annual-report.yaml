@@ -27,8 +27,9 @@ cases:
       debt, cash and shares. Where does each one sit in the report, and how far is each from his story?
     reveal: >
       The income statement shows net sales of $2,762 million, close to his first year, and a loss from operations of
-      $864 million, about 31 cents lost on each $1 of sales, far deeper than his 13. There is no tax line at all: Amazon
-      paid no income tax, and the tax note lists past losses it can set against future profit. The balance sheet shows
+      $864 million, about 31 cents lost on each $1 of sales, far deeper than his 13. The income statement has no tax line;
+      the report says the tax Amazon provided for was immaterial, too small to matter, and the tax note lists about $1.65
+      billion of past losses it may set against future profit. The balance sheet shows
       long-term debt of $2,127 million and cash of $822 million plus $278 million of marketable securities, and 357.14
       million shares at the year end. Put the report's debt and cash into his bridge and a share moves by about $2; the
       deeper loss is the number his whole value rested on.
@@ -112,11 +113,11 @@ skills:
     rule: Put a report's numbers next to a story; the ones that move a value most are what the business keeps and how big it gets, not cash and debt.
 
 insight:
-  question: Amazon's report shows far more debt and far more cash than Damodaran used. Put them into his bridge. How far does a share move, and is that the number his value rested on?
+  question: Amazon's report shows far more debt and far more cash than Damodaran used. Put them into his bridge. Does a share move a lot or a little, and is that what his value rested on?
   written: Swapping in the report's debt and cash moves a share by only a couple of dollars, because the two nearly cancel and both are small next to the business; the number the value rested on was the deeper operating loss, what Amazon kept of its sales.
-  foundWhen: The Learner moves debt and cash to the report's figures, sees a share move by only a couple of dollars, and says the bigger gap is in what Amazon kept of its sales, its operating loss.
+  foundWhen: The Learner puts the report's debt and cash into the bridge, says they move a share little, and says the bigger gap is the operating loss, what Amazon kept of its sales.
   hints:
-    - Raise the debt to about the report's figure, then the cash. Watch one share.
+    - The report's page beside the bridge gives its debt and cash. Tap the debt in, then the cash, and watch one share.
     - Now compare that with Amazon losing more than twice as much of each dollar of sales as he had set.
 
 explore:
@@ -125,7 +126,16 @@ explore:
     recipe: value_bridge
     case: spine-ar-amazon-2000
     title: "Put Amazon's 2000 report into the bridge"
-    inputs: {}
+    inputs:
+      report:
+        title: "Amazon's 10-K for 2000"
+        lines:
+          - { line: Long-term debt, amount: 2127, lever: debt }
+          - { line: Cash and marketable securities, amount: 1101, lever: cash }
+          - { line: Loss from operations, amount: 864 }
+        source:
+          title: "Amazon.com Form 10-K405 for 2000, Consolidated Balance Sheets and Statements of Operations"
+          url: https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
 
 connections:
   - text: Reading filings goes further into the US annual report, the prospectus and the Indian annual report.
@@ -195,13 +205,13 @@ questions:
     source: "Zomato Limited, Integrated Annual Report 2021-22, Consolidated Balance Sheet as at 31 March 2022: cash and cash equivalents Rs 3,923m, other bank balances Rs 11,832m, current investments Rs 16,317m. https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf"
   - id: ar-q-tax
     kind: price_or_value
-    prompt: "Amazon's 2000 income statement has no tax line, and its tax note lists past losses it can set against future profit. Damodaran's story charged no tax until those losses were used up. Is that tax a reported fact or a part of his story?"
+    prompt: "Amazon's 2000 income statement has no tax line, and its tax note lists past losses it may set against future profit. Damodaran's story charged no tax until those losses were used up. Is that tax a reported fact or a part of his story?"
     skill: check-the-story
     choices:
       - { id: story, text: "Part of his story, which the report backs" }
       - { id: fact, text: "A reported fact, so it cannot change", mistake: { tag: forecast_as_fact, fix: "The report shows the past year; tax in future years is his forecast, which the report makes believable." } }
     answer: story
-    explanation: The report shows Amazon paid no tax in 2000; when it starts paying is his forecast, which the past losses in the note make believable.
+    explanation: The report shows no tax line for 2000, only an immaterial amount provided; when Amazon starts paying is his forecast, which the past losses in the note make believable.
     source: "Amazon.com Form 10-K405 for 2000, Consolidated Statements of Operations (no provision for income taxes) and Note 13, Income Taxes (net operating loss carryforwards). https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt"
 
 checks:
