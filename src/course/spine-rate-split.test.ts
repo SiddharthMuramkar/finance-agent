@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { draftOf } from "@/dev/e2e-tutor";
 import { loadCourseMap } from "./map";
+import { parseOutline } from "./outline";
 import { courseOverview, navigate, type Progress } from "./navigator";
 import { topicTexts } from "./topic-texts";
 
@@ -170,5 +173,18 @@ describe("Topic 7 split into the cost of equity and the cost of capital (#91)", 
 
   it("tells no figure its sources do not hold: no 6.60% past premium (Historian)", () => {
     expect(words(RISK).join(" ")).not.toContain("6.60");
+  });
+
+  it("sources the 2001 revaluation it tells, and tells no 2008 premium its sources lack (Historian, round 2 on #91)", () => {
+    const { outline } = parseOutline(
+      readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8"),
+    );
+    const told = outline.topics.find((t) => t.id === RISK)!.cases[0];
+    expect(told.sources).toContain(
+      "https://pages.stern.nyu.edu/~adamodar/pdfiles/dcfveg.pdf",
+    );
+    for (const figure of ["$20.83", "2.18", "13.81%"])
+      expect(told.outcome).toContain(figure);
+    expect(words(RISK).join(" ")).not.toMatch(/2008/);
   });
 });

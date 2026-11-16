@@ -3,7 +3,7 @@
 # (spine-cost-of-capital). The Case's valuation block is Amazon's in val-dcf, taken with valuationFrom; the Cost of
 # capital stack's figures (risk-free rate, premium, relative risk, share and cost of debt, tax) are Damodaran's own,
 # with their source. Case facts: HighGrow.pdf, Amazon's 10-K, and for the 4% implied premium of 1960 to 1999 Damodaran's
-# "Equity Risk Premiums" paper (valquestions/RiskPrem.htm), listed in course/outline.yaml. The Primer
+# "Equity Risk Premiums" paper (valquestions/RiskPrem.htm), and for the January 2001 revaluation his slides (dcfveg.pdf), listed in course/outline.yaml. The Primer
 # "Spreading risk" is cut from the Elective risk-portfolio (spec C3). Stage, place and length live in course/outline.yaml.
 id: spine-07-risk
 title: "Risk: what return should shareholders require?"
@@ -56,8 +56,7 @@ dailyLife: >
 
 goDeeper: >
   Damodaran took the equity risk premium from what the market's own prices implied, not from the past returns of
-  shares over bonds. He wrote that, when valuing emerging markets before September 2008, he used four percent as the
-  mature market's premium, and he raised it after the crisis that autumn. A Learner who wants more can ask how a premium can be read back from today's prices.
+  shares over bonds. A Learner who wants more can ask how a premium can be read back from today's prices.
 
 youllLearn:
   - "Build a cost of equity from the risk-free rate, the premium for risk and relative risk."
