@@ -26,7 +26,7 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   const { page } = await person({ person: "ravi" });
   await page.goto("/course");
   await page.locator("[data-assignment-link]").click();
-  await expect(page).toHaveURL(/\/assignment$/);
+  await expect(page).toHaveURL(/\/assignment$/, { timeout: 60_000 });
   await expect(page.getByRole("heading", { level: 1, name: "Assignment: value a company you pick" })).toBeVisible();
 
   const form = page.locator("[data-own-case-form]");
@@ -49,7 +49,7 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
 
   await form.getByRole("link", { name: "Open the Notebook" }).click();
-  await expect(page).toHaveURL(/\/notebook#own-cases$/);
+  await expect(page).toHaveURL(/\/notebook#own-cases$/, { timeout: 60_000 }); // the dev server compiles the Notebook on first visit
   const note = page.locator("#own-cases [data-own-case-note]").first();
   await expect(note).toContainText("Coffee Day Enterprises");
   await expect(note).toContainText("Coffee Day Enterprises, India. Annual report of 21 Oct 2015. Industry: Food processors.");
@@ -114,7 +114,7 @@ test("[#113] a Spine-passed Learner values a US company from its 10-K, with the 
   await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
 
   await form.getByRole("link", { name: "Open the Notebook" }).click();
-  await expect(page).toHaveURL(/\/notebook#own-cases$/);
+  await expect(page).toHaveURL(/\/notebook#own-cases$/, { timeout: 60_000 }); // the dev server compiles the Notebook on first visit
   const note = page.locator("#own-cases [data-own-case-note]").first();
   await expect(note).toContainText("Apple Inc., the US. Annual report of 27 Sep 2025.");
   await expect(note).toContainText("14,776,353,000 shares, price $255 on 27 Sep 2025");
