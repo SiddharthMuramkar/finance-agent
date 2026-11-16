@@ -326,7 +326,8 @@ export const howItWorks = {
     // The mock's two bubbles are the rates example's (examples.ts): the learner's question and the Tutor's lead.
     h2: "The Study Workspace",
     input: "Ask the Tutor anything",
-    readout: "4% → 5%: **1 point · 100 bp · 25%**",
+    // The same move as the bubbles (src/site/how-it-works.test.ts checks it against rateChange).
+    readout: "6% → 5.5%: **½ point · 50 bp · about 8%**",
     saved: "Saved to your Notebook",
     legend: ["Ask anything, any time.", "The Tutor picks the widget; tested code draws it.", "The step bar shows where you are in the Topic’s 15 short steps.", "What you find lands in your Notebook."],
   },
