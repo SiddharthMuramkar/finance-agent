@@ -479,6 +479,13 @@ export const joining = {
   },
 } as const;
 
+/** The Visitor's 'page not found' (issue #70, src/app/not-found.tsx): an unknown address, signed out. */
+export const notFound = {
+  h1: "Page not found",
+  lede: "The address may be mistyped, or the page has moved. Everything on Value It starts from Home.",
+  home: "Back to Home",
+} as const;
+
 /** Search results and shared links (src/app/site-metadata.ts). */
 export const meta = {
   title: BRAND,
