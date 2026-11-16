@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { CURRENCY_STYLE } from "@/finance/money";
-import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, ownCaseReadingIds, valueOwnCase, type OwnCaseEstimate, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
+import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, ownCaseReadingIds, readingsAfterReport, valueOwnCase, type OwnCaseEstimate, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
 import { OPTIONS_NOT_ENTERED, ownCaseValueLine } from "@/learner/own-case-words";
 import { annualReportGuide, type GuideField } from "@/markets/guides";
 import { ownCaseRangeInputs, rangeCheck, type RangeFlag } from "@/markets/range-check";
-import { readingMonth } from "@/markets/readings";
+import { marketReading, readingMonth, type MarketReading } from "@/markets/readings";
 import { MarketReadingsView } from "@/widgets/market-readings-view";
 import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
 import { RangeCheckView } from "@/widgets/range-check-view";
@@ -90,6 +90,19 @@ function FieldGuide({ market, field }: { market: OwnCaseMarket; field: GuideFiel
 
 type Shown = { kind: "value"; text: string; flags: RangeFlag[] } | { kind: "problem"; text: string } | null;
 
+/** What each yardstick's link says, in the estimate line (G21: each yardstick links its own sheet, not one for all three). */
+const yardstickWords = (r: MarketReading, symbol: string) =>
+  r.kind === "operating_margin" ? "margin" : r.kind === "sales_to_capital" ? `sales for each ${symbol}1 invested` : r.kind === "cost_of_capital" ? "cost of capital" : r.label;
+
+/** The readings dated after the report's date, in words (G17): "the 10-year US Treasury yield (US) of 30 Oct 2026 and the industry's yardsticks of Jan 2026". */
+function laterReadingsWords(later: MarketReading[]): string {
+  const riskFree = later.filter((r) => r.kind === "risk_free").map((r) => `the ${r.label} of ${dateText(r.date)}`);
+  const yardsticks = later.filter((r) => r.kind !== "risk_free");
+  const months = [...new Set(yardsticks.map((r) => readingMonth(r.date)))];
+  const parts = [...riskFree, ...(yardsticks.length ? [`the industry's yardsticks of ${months.join(" and ")}`] : [])];
+  return parts.join(" and ");
+}
+
 /**
  * The Own Case form: the one place a Learner types numbers (ADR 0020 narrows ADR 0002). The engine values it on the
  * page; Save writes the one-page note to the Notebook. The industry is a tap, like every question.
@@ -105,6 +118,14 @@ export function OwnCaseForm() {
   const [saved, setSaved] = useState<string | null>(null);
   // The Own Case last valued, for Go deeper's Full sheet (#111); a new valuation opens a fresh sheet.
   const [valued, setValued] = useState<{ inputs: OwnCaseInputs; estimate: OwnCaseEstimate; at: number } | null>(null);
+
+  // G15: what was valued is what is saved. Any edit after Value it clears the result, so Save never stores figures the
+  // screen did not value; Save sends the valued inputs and Estimate, not the boxes.
+  const edited = () => {
+    setShown(null);
+    setSaved(null);
+    setValued(null);
+  };
 
   const inputs = (): OwnCaseInputs | null =>
     industry && {
@@ -135,14 +156,14 @@ export function OwnCaseForm() {
   };
 
   const save = async () => {
-    const typed = inputs();
-    if (!typed) return;
+    if (!valued) return;
+    const { inputs: typed, estimate } = valued;
     setSaving(true);
     const json = (n: number) => (Number.isFinite(n) ? n : null);
     const response = await fetch("/api/own-cases", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ inputs: Object.fromEntries(Object.entries(typed).map(([k, v]) => [k, typeof v === "number" ? json(v) : v])), estimate: openingEstimate(typed.industry, market) }),
+      body: JSON.stringify({ inputs: Object.fromEntries(Object.entries(typed).map(([k, v]) => [k, typeof v === "number" ? json(v) : v])), estimate }),
     }).catch(() => null);
     setSaving(false);
     const body = (await response?.json().catch(() => null)) as { error?: string } | null;
@@ -156,7 +177,8 @@ export function OwnCaseForm() {
   const fields = fieldsFor(market);
   const riskFree = place.riskFree;
   const estimate = industry ? openingEstimate(industry, market) : null;
-  const yardsticks = industry ? place.industries.find((i) => i.id === industry)?.source : undefined;
+  const yardsticks = industry ? ownCaseReadingIds(market, industry).flatMap((id) => marketReading(id) ?? []) : [];
+  const later = industry ? readingsAfterReport(market, industry, reportDate) : [];
   return (
     <form
       data-own-case-form
@@ -179,8 +201,7 @@ export function OwnCaseForm() {
               onClick={() => {
                 setMarket(m);
                 setIndustry(null);
-                setShown(null);
-                setSaved(null);
+                edited();
               }}
             >
               {marketLabel(m)}
@@ -190,10 +211,10 @@ export function OwnCaseForm() {
         {riskFree && (
           <p data-risk-free={riskFree.id} className="text-xs leading-4 text-[var(--muted)]">
             {riskFree.label}: {riskFree.value}% on {dateText(riskFree.date)}.{" "}
-            <a data-reading-source href={riskFree.sourceUrl} target="_blank" rel="noreferrer" title={`Credit: ${riskFree.credit}`} className="underline">
+            <a data-reading-source href={riskFree.sourceUrl} target="_blank" rel="noreferrer" className="underline">
               {riskFree.source}
             </a>
-            . Your Estimate&rsquo;s growth after year 10 opens here.
+            . <span data-reading-credit>Credit: {riskFree.credit}.</span> Your Estimate&rsquo;s growth after year 10 opens here.
           </p>
         )}
       </fieldset>
@@ -201,14 +222,20 @@ export function OwnCaseForm() {
         <label htmlFor="own-case-company" className="text-sm font-medium leading-5">
           Company
         </label>
-        <input id="own-case-company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="field w-full" autoComplete="off" />
+        <input id="own-case-company" type="text" value={company} onChange={(e) => {
+            setCompany(e.target.value);
+            edited();
+          }} className="field w-full" autoComplete="off" />
         <FieldGuide market={market} field="company" />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="own-case-date" className="text-sm font-medium leading-5">
           Date of the annual report
         </label>
-        <input id="own-case-date" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="field w-full" />
+        <input id="own-case-date" type="date" value={reportDate} onChange={(e) => {
+            setReportDate(e.target.value);
+            edited();
+          }} className="field w-full" />
         <p className="text-xs leading-4 text-[var(--muted)]">{DATE_HINT[market]}</p>
         <FieldGuide market={market} field="reportDate" />
       </div>
@@ -216,7 +243,10 @@ export function OwnCaseForm() {
         <legend className="mb-1 text-sm font-medium leading-5">Industry</legend>
         <div className="flex flex-wrap gap-2">
           {place.industries.map((i) => (
-            <Button key={i.id} variant="secondary" size="sm" pressed={industry === i.id} data-industry={i.id} onClick={() => setIndustry(i.id)}>
+            <Button key={i.id} variant="secondary" size="sm" pressed={industry === i.id} data-industry={i.id} onClick={() => {
+                setIndustry(i.id);
+                edited();
+              }}>
               {i.label}
             </Button>
           ))}
@@ -232,7 +262,10 @@ export function OwnCaseForm() {
             data-own-case-field={f.key}
             inputMode="decimal"
             value={figures[f.key]}
-            onChange={(e) => setFigures((all) => ({ ...all, [f.key]: e.target.value }))}
+            onChange={(e) => {
+              setFigures((all) => ({ ...all, [f.key]: e.target.value }));
+              edited();
+            }}
             aria-describedby={`own-case-${f.key}-hint`}
             className="field w-full tabular-nums"
             autoComplete="off"
@@ -252,16 +285,27 @@ export function OwnCaseForm() {
           Your Estimate opens at the industry&rsquo;s yardsticks: growth {estimate.growthPercent}% a year for five years, fading to {estimate.growthAfterPercent}%; the
           margin heading for {estimate.targetMarginPercent}%; {symbol}
           {estimate.salesToCapital} of sales for each {symbol}1 invested; cost of capital {estimate.costOfCapitalPercent}%.
-          {yardsticks && (
+          {yardsticks.length > 0 && (
             <>
               {" "}
-              Yardsticks of {readingMonth(yardsticks.date)}:{" "}
-              <a data-yardstick-source href={yardsticks.sourceUrl} target="_blank" rel="noreferrer" title={`Credit: ${yardsticks.credit}`} className="underline">
-                {yardsticks.source}
-              </a>
-              .
+              Yardsticks of {readingMonth(yardsticks[0].date)}, each from its own sheet:{" "}
+              {yardsticks.map((r, i) => (
+                <span key={r.id}>
+                  {i > 0 && ", "}
+                  <a data-yardstick-source={r.kind} href={r.sourceUrl} target="_blank" rel="noreferrer" title={r.source} className="underline">
+                    {yardstickWords(r, symbol)}
+                  </a>
+                </span>
+              ))}
+              . <span data-yardstick-credit>Credit: {[...new Set(yardsticks.map((r) => r.credit))].join(", ")}.</span>
             </>
           )}
+        </p>
+      )}
+      {later.length > 0 && (
+        <p data-own-case-later-readings className="text-sm leading-5 text-[var(--muted)]">
+          Dated after your report&rsquo;s date ({dateText(reportDate)}): {laterReadingsWords(later)}. Nobody knew them on that day, so your Estimate opens at
+          figures from after the price.
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
