@@ -205,7 +205,7 @@ describe("the Spine on the outline", () => {
   });
 
   it("takes Spine numbers up to eighteen and rejects one past it (spec #68, ADR 0020)", () => {
-    expect(problems(spineEntry("s1", 18, "    minutes: 12\n"))).toEqual([]);
+    expect(problems(...Array.from({ length: 18 }, (_, i) => spineEntry(`s${i + 1}`, i + 1, "    minutes: 12\n")))).toEqual([]);
     expect(problems(spineEntry("s1", 19)).join()).toContain("spine");
   });
 
