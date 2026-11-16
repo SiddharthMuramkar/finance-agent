@@ -57,8 +57,12 @@ describe("an Own Case in Europe", () => {
     }
   });
 
-  it("with no report link, credits Europe's yardstick sheet", () => {
+  it("with no report link, credits each of Europe's yardstick sheets, one for each yardstick (G21)", () => {
     const built = ownCaseBlock(DANONE, openingEstimate("food", "EU"), new Date("2026-11-16"));
-    expect(built.ok && built.block.sources[0].url).toBe("https://pages.stern.nyu.edu/~adamodar/pc/datasets/waccEurope.xls");
+    expect(built.ok && built.block.sources.map((s) => s.url)).toEqual([
+      "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+      "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexEurope.xls",
+      "https://pages.stern.nyu.edu/~adamodar/pc/datasets/waccEurope.xls",
+    ]);
   });
 });

@@ -172,7 +172,11 @@ const usRiskFree = {
   checkNote: 'The "10 Yr" column of the 10/30/2026 row in the Treasury\'s 2026 par yield curve file (4.98% on 10/29, 4.91% on 11/02).',
 };
 
-const HISTIMPL = { title: "Damodaran, Historical Implied Equity Risk Premiums (histimpl.xls)", url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" };
+/**
+ * Damodaran's web page of the US implied premiums (review L27: a page that opens, not an .xls that downloads). It prints
+ * the same table as his histimpl.xls, which the check notes name, and links the .xls itself.
+ */
+const HISTIMPL = { title: "Damodaran, Historical Implied Equity Risk Premiums for the US", url: "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/implpr.html" };
 const ERP_PAPER = { title: "Damodaran, Equity Risk Premiums (ERP): Determinants, Estimation and Implications, Tables 16 and 17", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/ERPpageproof.pdf" };
 
 /** The S&P 500's implied premium at a year's end, as histimpl.xls gives it, with the inputs the course's maths solves. */
@@ -190,7 +194,7 @@ function premiumReading(spec: { year: number; level: number; bond: number; cash:
     sourceUrl: HISTIMPL.url,
     credit: CREDIT,
     checkedOn: CHECKED,
-    checkNote: `The ${spec.year} row: S&P 500 at ${spec.level}, dividends and buybacks of ${spec.cash}, T-bond rate ${spec.bond}%, growth ${spec.growth}% for five years, implied ERP (FCFE) ${spec.premium}%; the course's two-stage maths gives the same premium.`,
+    checkNote: `The ${spec.year} row of histimpl.xls and of its web page: S&P 500 at ${spec.level}, dividends and buybacks of ${spec.cash}, T-bond rate ${spec.bond}%, growth ${spec.growth}% for five years, implied ERP (FCFE) ${spec.premium}%; the course's two-stage maths gives the same premium.`,
     impliedPremium: {
       index: { name: "S&P 500", level: spec.level, date },
       riskFreePercent: spec.bond,
@@ -237,7 +241,8 @@ const usRiskFree1999 = {
   sourceUrl: HISTIMPL.url,
   credit: CREDIT,
   checkedOn: CHECKED,
-  checkNote: 'The 1999 row of the sheet "Historical Impl Premiums", column "T.Bond Rate": 0.0644, the rate at the end of 1999.',
+  checkNote:
+    'The 1999 row of the sheet "Historical Impl Premiums" in histimpl.xls (https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls), column "T.Bond Rate": 0.0644, the rate at the end of 1999; the web page\'s 1999 row prints 6.44%.',
 };
 
 /** Every Market reading in the course as written: the course check runs marketReadingErrors on these. */

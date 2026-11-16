@@ -29,7 +29,7 @@ export function ownCaseNote(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, va
     `From the report: sales ${moneyText(inputs.sales, money)}, operating profit ${moneyText(inputs.operatingProfit, money)} (a margin of ${percent(margin)}), tax rate ${percent(inputs.taxPercent)}, debt ${moneyText(inputs.debt, money)}, cash ${moneyText(inputs.cash, money)}, ${inputs.shares.toLocaleString(locale)} shares, price ${priceText(inputs.price, money)} on ${on}.`,
     `My Estimate: growth ${percent(estimate.growthPercent)} a year for five years, fading to ${percent(estimate.growthAfterPercent)}; the margin heading for ${percent(estimate.targetMarginPercent)}; ${symbol}${estimate.salesToCapital} of sales for each ${symbol}1 invested; cost of capital ${percent(estimate.costOfCapitalPercent)}.`,
     OPTIONS_NOT_ENTERED,
-    ownCaseValueLine(value.valuePerShare, inputs.price, inputs.reportDate, money),
+    ownCaseValueLine(value.valuePerShare, inputs.price, inputs.reportDate, money, inputs.debt),
   ].join("\n");
 }
 

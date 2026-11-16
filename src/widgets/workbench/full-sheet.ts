@@ -1,7 +1,8 @@
 import type { DcfInputs } from "@/finance/dcf-engine";
 import { inputsFor, toEngineInputs, type ValuationBlock } from "@/finance/valuation-case";
 import { clean, floorTo, near, niceUp, oneFigure, roundTo } from "./bench";
-import { FULL_SHEET_WORDS, withMoney, type LingoWords } from "./full-sheet-words";
+import { CURRENCY_STYLE } from "@/finance/money";
+import { FULL_SHEET_WORDS, cardWithMoney, withMoney, type LingoWords } from "./full-sheet-words";
 import type { ValueLeversMode } from "./data-schemas";
 import { currencySign, leversFor, moneyText, type LeverSettings, type LeverSpec } from "./value-levers-model";
 
@@ -57,12 +58,13 @@ function sameFigure(a: unknown, b: unknown): boolean {
  */
 export function fullSheetRows(block: ValuationBlock, inputs: DcfInputs, opening: DcfInputs = inputs): FullSheetRow[] {
   const sign = currencySign(block);
+  const word = CURRENCY_STYLE[block.currency].word;
   const money = (v: number) => moneyText(v, block);
   const sales = (v: number) => `${sign}${roundTo(v, 2)}`;
   // Its name and Lingo card, in the Case's currency; `besidePath` when a year-by-year path of the same figure sits below it.
   const named = (input: keyof DcfInputs, besidePath = false) => {
     const { words, besidePath: other, card } = FULL_SHEET_WORDS[input];
-    return { words: withMoney(besidePath && other ? other : words, sign), card: { ...card, term: withMoney(card.term, sign) } };
+    return { words: withMoney(besidePath && other ? other : words, sign, word), card: cardWithMoney(card, sign, word) };
   };
   const row = (input: keyof DcfInputs, reading: string, besidePath = false): FullSheetRow => ({ input, ...named(input, besidePath), reading, value: inputs[input], moved: false });
   const pathRow = (input: keyof DcfInputs, path: readonly number[], text: (v: number) => string): FullSheetRow => {

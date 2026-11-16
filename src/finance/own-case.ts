@@ -1,6 +1,7 @@
 import { FORECAST_YEARS, valueStory, type DcfValue } from "./dcf-engine.ts";
 import { marginPath } from "./dcf-paths.ts";
-import { marketReading, type MarketReading } from "../markets/readings.ts";
+import { marketReading, readingId, type MarketReading } from "../markets/readings.ts";
+import { YARDSTICK_KINDS, type YardstickKind } from "../markets/yardsticks.ts";
 import { toEngineInputs, valuationBlock, type ValuationBlock, type ValuationBlockInput } from "./valuation-case.ts";
 
 // An Own Case (GLOSSARY.md; spec #68, Assignments and Own Cases): a listed company the Learner picks, dated at its
@@ -14,9 +15,9 @@ import { toEngineInputs, valuationBlock, type ValuationBlock, type ValuationBloc
 export const OWN_CASE_MARKETS = ["IN", "US", "JP", "KR", "EU"] as const;
 export type OwnCaseMarket = (typeof OWN_CASE_MARKETS)[number];
 
-/** The yardstick a Market reading (#105) gives, by market, industry and kind: `<market>-<industry>-<kind>`. */
-function yardstick(market: OwnCaseMarket, industry: string, kind: "margin" | "sales-to-capital" | "cost-of-capital") {
-  const id = `${market.toLowerCase()}-${industry}-${kind}`;
+/** The yardstick a Market reading (#105) gives, by market, industry and kind: its id comes from the one builder (readingId, review L28). */
+function yardstick(market: OwnCaseMarket, industry: string, kind: YardstickKind) {
+  const id = readingId(market, industry, kind);
   const reading = marketReading(id);
   if (!reading) throw new Error(`No Market reading ${id}`);
   return reading;
@@ -36,13 +37,13 @@ export type OwnCaseIndustry = (typeof INDUSTRY_PICKS)[number]["id"];
  * valued as "Any other firm".
  */
 function industriesOf(market: OwnCaseMarket) {
-  return INDUSTRY_PICKS.filter((i) => marketReading(`${market.toLowerCase()}-${i.id}-margin`)).map((i) => ({
+  return INDUSTRY_PICKS.filter((i) => marketReading(readingId(market, i.id, "operating_margin"))).map((i) => ({
     ...i,
-    operatingMarginPercent: yardstick(market, i.id, "margin").value,
-    salesToCapital: yardstick(market, i.id, "sales-to-capital").value,
-    costOfCapitalPercent: yardstick(market, i.id, "cost-of-capital").value,
-    /** The reading the yardsticks come from: its source, for the Own Case's sources when the Learner gives no report link. */
-    source: yardstick(market, i.id, "cost-of-capital"),
+    operatingMarginPercent: yardstick(market, i.id, "operating_margin").value,
+    salesToCapital: yardstick(market, i.id, "sales_to_capital").value,
+    costOfCapitalPercent: yardstick(market, i.id, "cost_of_capital").value,
+    /** The readings the yardsticks come from, each from its own sheet: the Own Case's sources when the Learner gives no report link (G21). */
+    sources: YARDSTICK_KINDS.map((kind) => yardstick(market, i.id, kind)),
   }));
 }
 export type OwnCaseIndustryRow = ReturnType<typeof industriesOf>[number];
@@ -89,8 +90,7 @@ export const ownCaseIndustries = (market: OwnCaseMarket): OwnCaseIndustryRow[] =
 export const US_INDUSTRIES = ownCaseIndustries("US");
 
 /** The Market readings shown beside an Own Case's industry pick (#113): that industry's three dated yardsticks in its market. */
-export const ownCaseReadingIds = (market: OwnCaseMarket, industry: OwnCaseIndustry): string[] =>
-  (["margin", "sales-to-capital", "cost-of-capital"] as const).map((kind) => `${market.toLowerCase()}-${industry}-${kind}`);
+export const ownCaseReadingIds = (market: OwnCaseMarket, industry: OwnCaseIndustry): string[] => YARDSTICK_KINDS.map((kind) => readingId(market, industry, kind));
 
 const isMarket = (m: string): m is OwnCaseMarket => (OWN_CASE_MARKETS as readonly string[]).includes(m);
 
@@ -173,6 +173,17 @@ const round = (n: number) => Math.round(n * 1e10) / 1e10;
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const isDay = (s: string) => ISO_DAY.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`)) && new Date(`${s}T00:00:00Z`).toISOString().startsWith(s);
 
+/**
+ * A figure as the Learner types it from the report: commas the report prints, a currency sign and a percent sign
+ * ("25.168%") are fine; a loss in brackets, as reports print it ("(1,234)"), is below zero (L15); an empty box is no number.
+ */
+export function readFigure(text: string): number {
+  const bare = text.replace(/[,\s₹$¥₩€%]/g, "");
+  if (bare === "") return Number.NaN;
+  const bracketed = /^\((.+)\)$/.exec(bare);
+  return bracketed ? -Number(bracketed[1]) : Number(bare);
+}
+
 /** Why these typed figures cannot make an Own Case, in a sentence the Learner reads; null when they can. */
 function typedProblem(inputs: OwnCaseInputs, now: Date): string | null {
   if (!isMarket(inputs.market)) return "Pick the company's market.";
@@ -189,11 +200,11 @@ function typedProblem(inputs: OwnCaseInputs, now: Date): string | null {
   return null;
 }
 
-/** The industry's yardstick reading as a source line. */
-function industrySource(market: OwnCaseMarket, industry: OwnCaseIndustry) {
+/** The industry's yardsticks as source lines, one for each sheet they come from (G21: margin, sales to capital and cost of capital each have their own). */
+function industrySources(market: OwnCaseMarket, industry: OwnCaseIndustry) {
   const industries = ownCaseIndustries(market);
-  const r = (industries.find((i) => i.id === industry) ?? industries[industries.length - 1]).source;
-  return { title: `${r.source} (${r.date})`, url: r.sourceUrl };
+  const row = industries.find((i) => i.id === industry) ?? industries[industries.length - 1];
+  return row.sources.map((r) => ({ title: `${r.source} (${r.date})`, url: r.sourceUrl }));
 }
 
 export type OwnCaseBlockResult = { ok: true; block: ValuationBlock } | { ok: false; error: string };
@@ -226,7 +237,10 @@ export function ownCaseBlock(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, n
     price: { value: inputs.price, date: inputs.reportDate },
     illustration: true,
     published: { note: `An Own Case: ${inputs.company.trim()}, from its annual report of ${inputs.reportDate}.` },
-    sources: [inputs.reportUrl && /^https?:\/\//i.test(inputs.reportUrl) && URL.canParse(inputs.reportUrl) ? { title: `${inputs.company.trim()} annual report`, url: inputs.reportUrl } : industrySource(inputs.market, inputs.industry)],
+    sources:
+      inputs.reportUrl && /^https?:\/\//i.test(inputs.reportUrl) && URL.canParse(inputs.reportUrl)
+        ? [{ title: `${inputs.company.trim()} annual report`, url: inputs.reportUrl }]
+        : industrySources(inputs.market, inputs.industry),
     reproduces: false,
   };
   // The engine's own sentences first (no shares, growth that never ends), then the shape the course's blocks keep.

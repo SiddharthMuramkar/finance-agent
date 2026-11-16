@@ -35,7 +35,7 @@ test("a Spine-passed Learner values a European company, from the pick to a note 
   await expect(form.locator('[data-own-case-guide="price"] [data-guide-where]')).not.toContainText("London");
 
   const guides = form.locator("[data-own-case-guide]");
-  await expect(guides).toHaveCount(9);
+  await expect(guides).toHaveCount(10);
   for (const guide of await guides.all()) await expect(guide.locator("a[data-guide-source]")).toHaveAttribute("href", /^https:\/\//);
   await expect(form.locator('[data-own-case-guide="sales"] [data-guide-where]')).toContainText("TEUR");
   await form.locator('[data-own-case-guide="debt"] [data-guide-lingo] > summary').click();

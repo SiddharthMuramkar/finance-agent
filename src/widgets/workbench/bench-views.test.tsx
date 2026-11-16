@@ -403,10 +403,10 @@ describe("Market readings beside the levers (ticket #105)", () => {
   // Owner decision on #105 (2026-11-16): a Workbench on Amazon (As-of 3 February 2000) shows only US readings known by then.
   it("the Cost of capital stack on Amazon shows the US bond rate of Dec 1999, credited and linked", async () => {
     await draw("wacc-stack-readings");
-    expect(readings()).toEqual([{ id: "us-risk-free-10y-1999", date: "(Dec 1999)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" }]);
+    expect(readings()).toEqual([{ id: "us-risk-free-10y-1999", date: "(Dec 1999)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/implpr.html" }]);
     expect(text("market-readings")).toContain("10-year US Treasury bond rate (US): 6.44%");
     // The source's name is visible text, not only a hover title (review F42).
-    expect(host.querySelector('[data-testid="reading-source"]')?.textContent).toBe("Damodaran, Historical Implied Equity Risk Premiums (histimpl.xls)");
+    expect(host.querySelector('[data-testid="reading-source"]')?.textContent).toBe("Damodaran, Historical Implied Equity Risk Premiums for the US");
     expect(text("market-readings")).not.toMatch(/today|current/i);
   });
 

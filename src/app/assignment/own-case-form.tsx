@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CURRENCY_STYLE } from "@/finance/money";
-import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, ownCaseReadingIds, readingsAfterReport, valueOwnCase, type OwnCaseEstimate, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
+import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, ownCaseReadingIds, readFigure, readingsAfterReport, valueOwnCase, type OwnCaseEstimate, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
 import { OPTIONS_NOT_ENTERED, ownCaseValueLine } from "@/learner/own-case-words";
 import { annualReportGuide, type GuideField } from "@/markets/guides";
 import { ownCaseRangeInputs, rangeCheck, type RangeFlag } from "@/markets/range-check";
@@ -27,32 +27,33 @@ const fieldsFor = (market: OwnCaseMarket) => {
   return [
     { key: "sales", label: "Sales", hint: `${market === "US" ? "Total net sales or revenues" : "Revenue from operations"} for the year, in ${money}.` },
     { key: "operatingProfit", label: "Operating profit", hint: `Profit before interest and tax (EBIT), in ${money}. Below zero for a loss.` },
-    { key: "taxPercent", label: "Tax rate", hint: "The rate the law sets for the company's profit, as the tax note names it (not tax paid over profit), in percent." },
     {
-      key: "debt",
-      label: "Debt",
+      key: "taxPercent",
+      label: "Tax rate",
       hint:
-        market === "US" ? `Commercial paper and term debt, long and short, in ${money}.` : `Borrowings and lease liabilities, long and short, in ${money}.`,
+        market === "US"
+          ? "The rate the law sets for the company's profit, federal and state together (about 25%), not tax paid over profit, in percent."
+          : "The rate the law sets for the company's profit, as the tax note names it (not tax paid over profit), in percent.",
     },
+    // Every market counts leases as debt (M05, G10), the US's ASC 842 lease liabilities too.
+    { key: "debt", label: "Debt", hint: `Borrowings and lease liabilities, long and short, in ${money}.` },
     { key: "cash", label: "Cash", hint: market === "IN" ? "Cash and cash equivalents, with other bank balances, in ₹ crore." : `Cash and cash equivalents, in ${money}.` },
-    { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },
+    { key: "shares", label: "Shares", hint: "The full number of shares, one by one: a report that counts them in millions or thousands is multiplied out." },
     {
       key: "price",
       label: "Share price on the report's date",
+      // One fallback day in every market (L03): a day before the report's date could not know its figures.
       hint:
         market === "IN"
           ? "In ₹, the closing price on that day, or on the next trading day if the market was shut."
           : market === "EU" || market === "US"
-            ? `In ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`
-            : `In whole ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`,
+            ? `In ${word[1]} (${symbol}), the closing price on that day, or on the next trading day if the market was shut.`
+            : `In whole ${word[1]} (${symbol}), the closing price on that day, or on the next trading day if the market was shut.`,
     },
   ] as const;
 };
 const FIELD_KEYS = ["sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"] as const;
 type FieldKey = (typeof FIELD_KEYS)[number];
-
-/** A typed figure as a number: commas the report prints, a currency sign and a percent sign ("25.168%") are fine; an empty box is no number. */
-const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹$¥₩€%]/g, "")));
 
 /** When the Own Case is dated: the day the year's figures became public, never the year end before them (the past-only rule). */
 const DATE_HINT: Record<OwnCaseMarket, string> = {
@@ -129,7 +130,7 @@ export function OwnCaseForm() {
       market,
       reportDate,
       industry,
-      ...(Object.fromEntries(FIELD_KEYS.map((k) => [k, figure(figures[k])])) as Record<FieldKey, number>),
+      ...(Object.fromEntries(FIELD_KEYS.map((k) => [k, readFigure(figures[k])])) as Record<FieldKey, number>),
     };
 
   const valueIt = () => {
@@ -143,7 +144,7 @@ export function OwnCaseForm() {
       value.ok
         ? {
             kind: "value",
-            text: ownCaseValueLine(value.valuePerShare, typed.price, typed.reportDate, money),
+            text: ownCaseValueLine(value.valuePerShare, typed.price, typed.reportDate, money, typed.debt),
             // The range check (#109): the margin as typed, and the Estimate, each held to the industry's dated yardstick.
             flags: rangeCheck(ownCaseRangeInputs(typed, estimate), { market, industry: typed.industry }),
           }
@@ -247,6 +248,7 @@ export function OwnCaseForm() {
             </Button>
           ))}
         </div>
+        <FieldGuide market={market} field="industry" />
       </fieldset>
       {fields.map((f) => (
         <div key={f.key} className="flex flex-col gap-1">

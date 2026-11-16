@@ -161,7 +161,7 @@ describe("the Assignment's Session after a model or instructions change", () => 
 describe("the AI Tutor on a US Own Case (#113)", () => {
   it("lets the Tutor write dollars, the Own Case's currency, and names the input flagged against the US yardsticks", async () => {
     const db = await testDb();
-    const apple: OwnCaseInputs = { company: "Apple Inc.", market: "US", reportDate: "2025-09-27", industry: "market", sales: 416_161, operatingProfit: 133_050, taxPercent: 21, debt: 98_657, cash: 35_934, shares: 14_776_353_000, price: 255.46 };
+    const apple: OwnCaseInputs = { company: "Apple Inc.", market: "US", reportDate: "2025-09-27", industry: "market", sales: 416_161, operatingProfit: 133_050, taxPercent: 25, debt: 112_377, cash: 35_934, shares: 14_776_353_000, price: 255.46 };
     await readyLearner(db, apple);
     const reply = "Your operating margin of 31.97% on $416,161 million of sales is far above the US usual range.\nWhat story about Apple does that margin assume?";
     const { client, requests } = scriptedClient([text(reply)]);

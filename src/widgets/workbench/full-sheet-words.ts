@@ -4,7 +4,8 @@ import type { LingoCardProps } from "../primitives/wave3/lingo-card-view.tsx";
 // The Full sheet's words (spec #68, "Valuation, Full sheet"): each row's name, and the Lingo card the row opens inline
 // (glossary "Lingo card"; not a Companion Widget, so it costs no Tutor Turn). They sit in this module, apart from the
 // rows' figures, so `scripts/check-course.mjs` can lint them under plain Node: relative `.ts` imports only, no "@/".
-// "{money}" stands for the Case's currency sign ("$", "₹").
+// "{money}" stands for the Case's currency sign ("$", "₹"); "{money-word}" and "{money-words}" for its money's name, one
+// and many ("rupee", "rupees"), so a card on a yen Case never says "dollar" (review L21).
 
 /** The words of a Lingo card, as `LingoCard` takes them (its own shape, less the story side): pro at most 14 words, means and example at most 20. A type import, erased under plain Node. */
 export type LingoWords = Omit<LingoCardProps, "inStory">;
@@ -21,7 +22,7 @@ export const FULL_SHEET_WORDS: Record<FullSheetInput, RowWords> = {
       term: "Revenue",
       pro: "Revenue is the top line: everything customers paid in the year",
       means: "All the money customers paid the company for what it sold in a year, before any costs.",
-      example: "A lemonade stand that sells a hundred cups at a dollar each takes in a hundred dollars.",
+      example: "A lemonade stand that sells a hundred cups at a {money-word} each takes in a hundred {money-words}.",
       emoji: "money-bag",
     },
   },
@@ -39,9 +40,9 @@ export const FULL_SHEET_WORDS: Record<FullSheetInput, RowWords> = {
     words: "Operating margin, year by year",
     card: {
       term: "Operating margin",
-      pro: "The operating margin is what each dollar of sales keeps after running costs",
+      pro: "The operating margin is what each {money-word} of sales keeps after running costs",
       means: "The share of revenue left once the costs of running the business are paid, before tax.",
-      example: "A shop that keeps ten cents of every dollar it sells, after rent and wages, has a tenth.",
+      example: "A shop that keeps ten of every hundred {money-words} it sells, after rent and wages, has a tenth.",
       emoji: "receipt",
     },
   },
@@ -91,9 +92,9 @@ export const FULL_SHEET_WORDS: Record<FullSheetInput, RowWords> = {
     besidePath: "Sales for each {money} invested, in a year that sets none",
     card: {
       term: "Sales to capital",
-      pro: "Sales to capital says how much new revenue each dollar invested buys",
-      means: "How much more the business sells for each dollar it puts into stores, machines and software.",
-      example: "A new oven costing a dollar that lets a bakery sell three more dollars of bread.",
+      pro: "Sales to capital says how much new revenue each {money-word} invested buys",
+      means: "How much more the business sells for each {money-word} it puts into stores, machines and software.",
+      example: "An oven costing a hundred {money-words} that lets a bakery sell three hundred {money-words} more bread.",
       emoji: "factory",
     },
   },
@@ -102,7 +103,7 @@ export const FULL_SHEET_WORDS: Record<FullSheetInput, RowWords> = {
     card: {
       term: "Sales to capital, year by year",
       pro: "Sales to capital can change as the business builds, then uses what it built",
-      means: "How much more the business sells for each dollar invested, set for each year ahead.",
+      means: "How much more the business sells for each {money-word} invested, set for each year ahead.",
       example: "A taxi firm buys many cars early, then sells far more rides from the same cars later.",
       emoji: "building-construction",
     },
@@ -131,9 +132,9 @@ export const FULL_SHEET_WORDS: Record<FullSheetInput, RowWords> = {
     words: "Return on new investment after year 10",
     card: {
       term: "Return on new investment",
-      pro: "Return on capital is what each dollar invested earns a year",
-      means: "What each dollar the grown-up business invests earns back each year, after tax.",
-      example: "A dollar spent on a second shop that earns ten cents a year earns a tenth.",
+      pro: "Return on capital is what each {money-word} invested earns a year",
+      means: "What each {money-word} the grown-up business invests earns back each year, after tax.",
+      example: "A hundred {money-words} spent on a second shop that earns ten {money-words} a year earns a tenth.",
       emoji: "direct-hit",
     },
   },
@@ -143,8 +144,8 @@ export const FULL_SHEET_WORDS: Record<FullSheetInput, RowWords> = {
       term: "Cash",
       pro: "Cash on the balance sheet belongs to the shareholders on top of the business",
       means: "Money the company has in the bank today; it adds to what the owners have.",
-      example: "Buy a shop with a hundred dollars in the till and you get those dollars too.",
-      emoji: "dollar-banknote",
+      example: "Buy a shop with a hundred {money-words} in the till and you get those {money-words} too.",
+      emoji: "money-bag",
     },
   },
   debt: {
@@ -189,5 +190,17 @@ export const FULL_SHEET_WORDS: Record<FullSheetInput, RowWords> = {
   },
 };
 
-/** A row's words with the Case's currency sign in place of "{money}". */
-export const withMoney = (words: string, sign: string): string => words.replaceAll("{money}", sign);
+/** A row's words with the Case's currency sign in place of "{money}", and, given its money's name (one, many), "{money-word}" and "{money-words}". */
+export const withMoney = (words: string, sign: string, word?: readonly [string, string]): string => {
+  const named = word ? words.replaceAll("{money-words}", word[1]).replaceAll("{money-word}", word[0]) : words;
+  return named.replaceAll("{money}", sign);
+};
+
+/** A Lingo card in the Case's money: every line with its sign and its money's name (L21). */
+export const cardWithMoney = (card: LingoWords, sign: string, word: readonly [string, string]): LingoWords => ({
+  ...card,
+  term: withMoney(card.term, sign, word),
+  pro: withMoney(card.pro, sign, word),
+  means: withMoney(card.means, sign, word),
+  example: withMoney(card.example, sign, word),
+});

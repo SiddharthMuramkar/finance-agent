@@ -143,7 +143,7 @@ test("beside every field, the Own Case form shows where it sits in an Indian ann
   const { page } = await person({ person: "ravi" });
   await page.goto("/assignment");
   const form = page.locator("[data-own-case-form]");
-  const fields = ["company", "reportDate", "sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"];
+  const fields = ["company", "reportDate", "industry", "sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"];
   await expect(form.locator("[data-own-case-guide]")).toHaveCount(fields.length);
   for (const field of fields) {
     const guide = form.locator(`[data-own-case-guide="${field}"]`);
@@ -163,13 +163,15 @@ test("beside every field, the Own Case form shows where it sits in an Indian ann
  * Apple's Form 10-K for the year to 27 Sep 2025, in $ millions, as a Learner copies it (#113). Dated when its figures were
  * public (F07, G33): EDGAR's "Filing Date" 2025-10-31
  * (https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.html), with Nasdaq's
- * close that day, $270.37 (Yahoo Finance AAPL daily history, read 2026-11-16).
+ * close that day, $270.37 (Yahoo Finance AAPL daily history, read 2026-11-16). The tax rate is the combined federal and
+ * state rate, about 25% (M04: OECD 25.53% for 2026); the debt counts the leases note's lease liabilities, 13,720, beside
+ * commercial paper and term debt (M05).
  */
 const APPLE = {
   sales: "416,161",
   operatingProfit: "133,050",
-  taxPercent: "21",
-  debt: "98,657",
+  taxPercent: "25",
+  debt: "112,377",
   cash: "35,934",
   shares: "14,776,353,000",
   price: "270.37",
@@ -184,8 +186,13 @@ test("[#113] a Spine-passed Learner values a US company from its 10-K, with the 
 
   // The guide: where the 10-K puts each figure, every line with a working source link and a Lingo card (#108's markup).
   const guides = form.locator("[data-own-case-guide]");
-  await expect(guides).toHaveCount(9);
-  for (const guide of await guides.all()) await expect(guide.locator("a[data-guide-source]")).toHaveAttribute("href", /^https:\/\/www\.(sec|investor|nasdaq)\.(gov|com)\//);
+  await expect(guides).toHaveCount(10);
+  for (const guide of await guides.all()) await expect(guide.locator("a[data-guide-source]")).toHaveAttribute("href", /^https:\/\/www\.(sec|investor|nasdaq|oecd)\.(gov|com|org)\//);
+  // M04: the combined federal and state rate, as the US yardsticks assume; M05: leases count as debt.
+  await expect(form.locator('[data-own-case-guide="taxPercent"] [data-guide-where]')).toContainText("about 25%");
+  await expect(form.locator("#own-case-taxPercent-hint")).toContainText("federal and state together");
+  await expect(form.locator("#own-case-debt-hint")).toHaveText("Borrowings and lease liabilities, long and short, in $ millions.");
+  await expect(form.locator('[data-own-case-guide="debt"] [data-guide-where]')).toContainText("lease liabilities");
   await expect(form.locator('[data-own-case-guide="company"] [data-guide-where]')).toContainText("EDGAR");
   await expect(form.locator('[data-own-case-guide="sales"] [data-guide-where]')).toContainText("Item 8");
   await expect(form.locator('[data-own-case-guide="sales"] [data-guide-lingo] > summary')).toHaveText("Lingo: Net sales");
