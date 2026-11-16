@@ -62,6 +62,15 @@ principle: >
   going concern against what is left in failure, by how likely each is, before you compare the
   value with a price.
 
+dailyLife: "A cousin with big debts asks to borrow ₹5,000: before you lend, weigh how likely he is to pay you back, not only what he promises."
+
+goDeeper: >
+  Analysts watch pledged shares: shares an owner hands to lenders as security for a loan, which the lenders can sell if
+  the loan goes bad, like leaving your gold with a lender who may sell it if you miss repayments. When a founder has
+  pledged many shares, a falling price can make lenders sell them, which pushes the price down further. A Learner who
+  wants more can ask how the Coffee Day founder's family holding fell from 54% to 17% by January 2020 as lenders took
+  the pledged shares.
+
 youllLearn:
   - "Weigh a going-concern value against what is left if the company fails."
   - "Read heavy debt and pledged shares as signs that failure is likelier."
@@ -92,12 +101,6 @@ terms:
     example: "A raffle ticket that pays ₹300 one time in four is worth less than ₹300 before the draw."
     emoji: game-die
     inStory: In the story, survival and failure are weighed by their chances.
-  - term: pledged shares
-    means: Shares an owner hands to lenders as security for a loan; lenders can sell them if the loan goes bad.
-    pro: The promoter's shares were pledged for group loans.
-    example: "Leaving your gold with a lender, who may sell it if you miss repayments."
-    emoji: locked
-    inStory: In the story, the founder had pledged shares for group loans.
 
 skills:
   - id: weigh-failure
@@ -324,6 +327,6 @@ checks:
 
   - id: survival-talk
     kind: conversation
-    prompt: "In two or three sentences, say how you would value Coffee Day on 29 July 2019, given its debt. What would you weigh, and which part are you least sure of?"
-    passCriteria: "Weighs a survival (going-concern) value against what is left in a distress sale, by the chance of failure; ties that chance to the debt, the thin interest cover or the pledged shares; says the debt is paid before the shareholders; names the chance of failure or what is recovered as the part they are least sure of, with a reason."
+    prompt: "A lender said Coffee Day was worth its market price on 29 July 2019, valued as a going concern sure to survive, whatever its debt. In two or three sentences, judge that Story: what does it leave out, and which part of a better value is least certain?"
+    passCriteria: "Says the lender's Story leaves out the chance Coffee Day fails; weighs a survival (going-concern) value against what is left in a distress sale, by the chance of failure; ties that chance to the debt, the thin interest cover or the pledged shares; says the debt is paid before the shareholders; names the chance of failure or what is recovered as the part they are least sure of, with a reason."
     skills: [weigh-failure, failure-signs]

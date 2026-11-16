@@ -56,6 +56,8 @@ principle: >
   Any price can be read back as a set of beliefs. Before calling a price too high or too low, find the stories that reach
   it, name the lever each one leans on, and argue with those beliefs rather than with the number.
 
+dailyLife: "A seller's asking price for a small business: before you haggle over the number, ask what would have to be true about its future sales for it to be worth that."
+
 youllLearn:
   - "Run a valuation backwards, from the price to the story it needs."
   - "Name the lever a price leans on, and judge whether that belief is believable."
@@ -65,7 +67,7 @@ terms:
   - term: what the price assumes
     means: "The lever settings whose value equals today's price: the story buyers at that price are betting on."
     pro: "Reverse engineering the price"
-    example: "To be worth the price, the company must grow twice as big as your story says."
+    example: "To be worth the asking price, a shop must sell twice as much as its owner's plan says."
     emoji: magnifying-glass-tilted-left
     inStory: "Damodaran turns the question round: under what circumstances is the $84 price justified?"
   - term: equity risk premium

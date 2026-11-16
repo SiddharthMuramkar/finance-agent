@@ -9,7 +9,7 @@
 # worked out by code from the block (spec D2).
 id: spine-15-value-yourself
 title: "Value one yourself, as of a past date"
-goal: "Value a company yourself as of a past date, lever by lever, and save your story"
+goal: "Value a company yourself as of a past date, lever by lever, and save it to your Notebook"
 why: "This is the whole course in one go: a story of your own, set as four levers on a real company, read against the price of the day."
 minutes: 15
 exampleCurrency: USD
@@ -65,16 +65,18 @@ concept: >
   To value a company yourself, fix a date and use only what was known on it. Set each of the four levers to the story
   you believe, with a reason: how big it gets, what it keeps, what growth costs, how risky it is. Check the story holds
   together: growth needs capital, and margins are capped by what rivals allow. Read your value against the price of the
-  day, ask what the price assumes, and write your story down so you can judge it later.
+  day, ask what the price assumes, and write your valuation down so you can judge it later.
 
 principle: >
-  A valuation is your story, set lever by lever, as of one date. Write it down with your reasons, so that when the
+  A valuation is a story, set lever by lever, as of one date. Write it down with your reasons, so that when the
   price or the news moves you can see which lever you were wrong about.
+
+dailyLife: "Before you buy a used bike, write down what you think it is worth and why, then read the seller's price against your note."
 
 youllLearn:
   - "Value a company yourself, using only what was known on one date."
   - "Set each lever to a story you can give reasons for."
-  - "Write your story down and read it against the price."
+  - "Write your valuation down and read it against the price."
 
 terms:
   - term: as-of date
@@ -105,12 +107,12 @@ skills:
     rule: "Set every lever to a story you can give a reason for, check it holds together, and read the gap to the price as a question."
 
 insight:
-  question: "Pick a company, set every lever to your own story, and say which lever your value rests on most. Then save your story to your Notebook."
+  question: "Pick a company, set every lever to what you believe, and say which lever your value rests on most. Then save the valuation to your Notebook."
   written: "A value of your own is a story you can name lever by lever; the price then either agrees with it or tells you which lever the buyers set differently."
   foundWhen: "The Learner has set the levers to a story of their own for one of the three Cases, gives a reason for at least two levers, and names the lever their value rests on most."
   hints:
     - "Start from the story it opens on, and move only the levers you disagree with. Say why for each."
-    - "Which lever, if you are wrong about it, would change your value most? That is the one your story rests on."
+    - "Which lever, if you are wrong about it, would change your value most? That is the one your value rests on."
 
 explore:
   before: yourself-check
@@ -177,7 +179,7 @@ questions:
         - { id: some, label: "Some of it is left", min: 0.15, max: 0.6 }
         - { id: none, label: "Little or nothing left", max: 0.15 }
   - id: yourself-q-asof
-    prompt: "You are valuing Zomato as of 21 July 2021. Which fact may your story use?"
+    prompt: "You are valuing Zomato as of 21 July 2021. Which fact may your valuation use?"
     skill: as-of
     choices:
       - id: revenue
@@ -222,14 +224,14 @@ questions:
     source: "Damodaran, The Zomato IPO: A Bet on Big Markets and Platforms!, 22 Jul 2021: https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html"
   - id: yourself-q-pv
     kind: price_or_value
-    prompt: "Your story for Zomato comes to well under the offer price. The Rs 76 at which its shares are sold is:"
+    prompt: "Your valuation of Zomato comes to well under the offer price. The Rs 76 at which its shares are sold is:"
     skill: own-story
     choices:
       - id: price
         text: "A price, which asks what story buyers are paying for"
       - id: value
-        text: "A value, so your story must be wrong"
-        mistake: { tag: price_for_value, fix: "Rs 76 is what buyers pay: a price. The gap is a question about levers, not a verdict on your story." }
+        text: "A value, so your valuation must be wrong"
+        mistake: { tag: price_for_value, fix: "Rs 76 is what buyers pay: a price. The gap is a question about levers, not a verdict on your valuation." }
     answer: price
     explanation: "A price is paid; your value is argued. The gap asks which lever buyers set differently."
     source: "Zomato Limited, Prospectus dated 19 July 2021: https://www.morganstanley.com/content/dam/msdotcom/en/indiaofferdocuments/pdfs/Zomato_Limited_Prospectus.pdf"
@@ -241,12 +243,12 @@ checks:
     perAttempt: 4
     passRule: { correct: 3 }
     card:
-      title: "Your story, as of one date"
+      title: "A valuation, as of one date"
       lines:
         - "Fix a date, and use only what was known on it."
         - "Set each lever to the story you believe, with a reason."
         - "Check the story holds together: growth costs capital, and rivals cap margins."
-        - "Read your value against the price, and write your story down."
+        - "Read your value against the price, and write your valuation down."
       writeDown: "My value is my story, set lever by lever, as of one date."
       skills: [as-of, own-story]
     quickTries:
@@ -275,7 +277,7 @@ checks:
             mistake: { tag: not_hindsight, fix: "The bond yield was known on 22 October. The first day's close came later." }
       - id: yourself-try-asof-3
         skill: as-of
-        ask: "Your Zomato story is written on 21 July 2021. Which fact is hindsight for it?"
+        ask: "Your Zomato valuation is written on 21 July 2021. Which fact is hindsight for it?"
         kind: choice
         answer: peak
         choices:
@@ -309,7 +311,7 @@ checks:
             mistake: { tag: free_growth, fix: "New cafés cost money. Growth that costs nothing does not hold together." }
       - id: yourself-try-gap
         skill: own-story
-        ask: "Your Amazon story comes to well under half the $84 price. What do you ask first?"
+        ask: "Your Amazon valuation comes to well under half the $84 price. What do you ask first?"
         kind: choice
         answer: lever
         choices:
@@ -331,6 +333,6 @@ checks:
   - id: yourself-talk
     kind: conversation
     ownWork: true
-    prompt: "Tell your Valuation story for the company you picked, as of its date: how you set each lever and why, what it comes to against the price, and which lever you are least sure of."
-    passCriteria: "Names the company and its as-of date and uses nothing known only after it; gives a setting and a reason for at least three of the four levers (how big it gets, what it keeps, what growth costs, how risky); says what the story is worth against the price of the day and treats the gap as a question about levers; names one lever as least sure, with a reason."
+    prompt: "Walk through the valuation you saved for the company you picked, as of its date: how each lever was set and why, what it comes to against the price, and which lever you are least sure of."
+    passCriteria: "Names the company and its as-of date and uses nothing known only after it; gives a setting and a reason for at least three of the four levers (how big it gets, what it keeps, what growth costs, how risky); says what the valuation is worth against the price of the day and treats the gap as a question about levers; names one lever as least sure, with a reason."
     skills: [as-of, own-story]
