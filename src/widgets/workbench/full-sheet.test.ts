@@ -3,8 +3,9 @@ import { valueStory, type DcfInputs } from "@/finance/dcf-engine";
 import { AMAZON_2000 } from "@/finance/fixtures/amazon-2000.valuation";
 import { inputsFor, valuationBlock } from "@/finance/valuation-case";
 import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
+import { valueLeversModeSchema } from "./data-schemas";
 import { fullSheet } from "./full-sheet";
-import { leverSpecs, leversFor, openingSettings, valueOf, type LeverSettings } from "./value-levers-model";
+import { LEVER_IDS, leverSpecs, leversFor, openingSettings, valueOf, type LeverId, type LeverSettings } from "./value-levers-model";
 
 // The Full sheet behind Go deeper (spec #68, "Valuation, Full sheet"; ADR 0010): every input the valuation engine takes,
 // in plain words, read-only. Seam 3: the rows are exactly the engine's inputs, on every valuation Case.
@@ -75,5 +76,64 @@ describe("the Full sheet on Amazon in February 2000, in plain words", () => {
     expect(growth.years).toEqual(["150%", "100%", "75%", "50%", "30%", "25.2%", "20.4%", "15.6%", "10.8%", "6%"]);
     const cost = sheet.rows.find((r) => r.input === "costOfCapital")!;
     expect(cost.years?.[0]).toBe("12.84%");
+  });
+});
+
+// #103: the rows a Lever moves. What each Lever changes, from the spec ("Valuation, Full sheet") and the Lever words: the
+// revenue in year 10 is reached by a faster or slower growth path; the margin Lever sets the margin it heads to, so the
+// path and the margin after year 10; sales for each $ invested scale every year that sets its own; risk is the cost of
+// capital while the business grows; failure is the chance it fails.
+const ROWS_A_LEVER_MOVES: Record<LeverId, (inputs: DcfInputs) => (keyof DcfInputs)[]> = {
+  revenue: () => ["growth"],
+  margin: () => ["margin", "marginAfter"],
+  salesToCapital: (inputs) => (inputs.salesToCapitalByYear ? ["salesToCapital", "salesToCapitalByYear"] : ["salesToCapital"]),
+  risk: () => ["costOfCapital"],
+  failure: () => ["failure"],
+};
+
+describe("moving each Lever marks exactly the rows it changes", () => {
+  it.each(valuationCaseIds())("%s, each Lever a step off its opening on its own", (id) => {
+    const block = valuationCase(id)!;
+    const specs = leverSpecs(block);
+    const opening = openingSettings(specs);
+    const atCase = fullSheet(block, specs, opening);
+    if (!atCase.ok) throw new Error(atCase.error);
+    // At the Case's own story nothing has moved.
+    expect(atCase.rows.filter((r) => r.moved)).toEqual([]);
+    for (const lever of LEVER_IDS) {
+      const spec = specs.find((s) => s.id === lever)!;
+      const step = spec.opening + spec.step <= spec.max ? spec.step : -spec.step;
+      const sheet = fullSheet(block, specs, { ...opening, [lever]: spec.opening + step });
+      if (!sheet.ok) continue; // a revenue no growth path of the Case's shape reaches: no rows, the error instead
+      const made = inputsFor(block, {});
+      if (!made.ok) throw new Error(made.error);
+      const marked = sheet.rows.filter((r) => r.moved).map((r) => r.input);
+      expect([lever, marked.sort()]).toEqual([lever, ROWS_A_LEVER_MOVES[lever](made.inputs).sort()]);
+    }
+  });
+
+  it("marks the rows of every Lever moved at once, and none once each is back at its opening", () => {
+    const amazon = valuationBlock.parse(AMAZON_2000);
+    const specs = leverSpecs(amazon);
+    const opening = openingSettings(specs);
+    const moved = Object.fromEntries(specs.map((s) => [s.id, s.opening + s.step])) as LeverSettings;
+    const all = fullSheet(amazon, specs, moved);
+    if (!all.ok) throw new Error(all.error);
+    expect(all.rows.filter((r) => r.moved).map((r) => r.input).sort()).toEqual(["costOfCapital", "failure", "growth", "margin", "marginAfter", "salesToCapital"]);
+    const back = fullSheet(amazon, specs, { ...opening });
+    if (!back.ok) throw new Error(back.error);
+    expect(back.rows.some((r) => r.moved)).toBe(false);
+  });
+
+  it("in market mode, a bigger share of the market moves only the growth path", () => {
+    const amazon = valuationBlock.parse(AMAZON_2000);
+    const source = { title: "US Census Bureau, Annual Retail Trade Survey", url: "https://www.census.gov/programs-surveys/arts.html" };
+    const mode = valueLeversModeSchema.parse({ kind: "market", markets: [{ label: "US retail, excluding cars", size: 2_245_899, source }] });
+    const specs = leverSpecs(amazon, mode);
+    const opening = openingSettings(specs);
+    const revenue = specs.find((s) => s.id === "revenue")!;
+    const sheet = fullSheet(amazon, specs, { ...opening, revenue: revenue.opening + revenue.step }, mode, 0);
+    if (!sheet.ok) throw new Error(sheet.error);
+    expect(sheet.rows.filter((r) => r.moved).map((r) => r.input)).toEqual(["growth"]);
   });
 });

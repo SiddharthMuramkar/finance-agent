@@ -1,6 +1,6 @@
 import type { DcfInputs } from "@/finance/dcf-engine";
 import { inputsFor, type ValuationBlock } from "@/finance/valuation-case";
-import { roundTo } from "./bench";
+import { near, roundTo } from "./bench";
 import type { ValueLeversMode } from "./data-schemas";
 import { currencySign, leversFor, moneyText, type LeverSettings, type LeverSpec } from "./value-levers-model";
 
@@ -20,6 +20,8 @@ export type FullSheetRow = {
   years?: string[];
   /** The engine's own figure, as the engine takes it (rates as fractions). */
   value: DcfInputs[keyof DcfInputs];
+  /** The Levers moved it: its figure is not the Case's own (#103). */
+  moved: boolean;
 };
 
 export type FullSheet = { ok: true; rows: FullSheetRow[] } | { ok: false; error: string };
@@ -37,15 +39,29 @@ function pathReading(years: string[], first: number, last: number): string {
 
 function pathRow(input: keyof DcfInputs, words: string, path: readonly number[], text: (v: number) => string): FullSheetRow {
   const years = path.map(text);
-  return { input, words, reading: pathReading(years, path[0], path[path.length - 1]), years, value: path };
+  return { input, words, reading: pathReading(years, path[0], path[path.length - 1]), years, value: path, moved: false };
 }
 
-/** The Full sheet's rows for these engine inputs, in the order a valuation is told: the business, then what it is owed and owns. */
-export function fullSheetRows(block: ValuationBlock, inputs: DcfInputs): FullSheetRow[] {
+/** The same figure: numbers equal to rounding, paths year by year, a chance of failure field by field. */
+function sameFigure(a: unknown, b: unknown): boolean {
+  if (typeof a === "number" && typeof b === "number") return near(a, b);
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((v, i) => sameFigure(v, b[i]));
+  if (a && b && typeof a === "object" && typeof b === "object") {
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    return [...keys].every((k) => sameFigure((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+  }
+  return a === b;
+}
+
+/**
+ * The Full sheet's rows for these engine inputs, in the order a valuation is told: the business, then what it is owed and
+ * owns. A row is marked moved when its figure is not the one in `opening`, the inputs of the Case's own story.
+ */
+export function fullSheetRows(block: ValuationBlock, inputs: DcfInputs, opening: DcfInputs = inputs): FullSheetRow[] {
   const sign = currencySign(block);
   const money = (v: number) => moneyText(v, block);
   const sales = (v: number) => `${sign}${roundTo(v, 2)}`;
-  const row = (input: keyof DcfInputs, words: string, reading: string): FullSheetRow => ({ input, words, reading, value: inputs[input] });
+  const row = (input: keyof DcfInputs, words: string, reading: string): FullSheetRow => ({ input, words, reading, value: inputs[input], moved: false });
   const rows: FullSheetRow[] = [
     row("baseRevenue", "Revenue in the year before year 1", money(inputs.baseRevenue)),
     pathRow("growth", "Revenue growth, year by year", inputs.growth, percent),
@@ -74,11 +90,16 @@ export function fullSheetRows(block: ValuationBlock, inputs: DcfInputs): FullShe
     const back = recoveredShare !== undefined ? `${percent(recoveredShare)} of its value is recovered` : recovered > 0 ? `${money(recovered)} is recovered` : "nothing is recovered";
     rows.push(row("failure", "Chance the business fails", `${percent(chance)}; if it fails, ${back}`));
   } else rows.push(row("failure", "Chance the business fails", "0%: none in this story"));
-  return rows;
+  return rows.map((r) => ({ ...r, moved: !sameFigure(r.value, opening[r.input]) }));
 }
 
-/** The Full sheet for the Lever settings shown: the engine's inputs for them, row by row, or why they cannot be valued. */
+/**
+ * The Full sheet for the Lever settings shown: the engine's inputs for them, row by row, or why they cannot be valued. The
+ * rows the Levers moved off the Case's own story are marked (#103); with no Lever moved the inputs are the Case's own.
+ */
 export function fullSheet(block: ValuationBlock, specs: readonly LeverSpec[], settings: LeverSettings, mode?: ValueLeversMode, market = 0): FullSheet {
   const made = inputsFor(block, leversFor(block, specs, settings, mode, market));
-  return made.ok ? { ok: true, rows: fullSheetRows(block, made.inputs) } : made;
+  if (!made.ok) return made;
+  const own = inputsFor(block, {});
+  return { ok: true, rows: fullSheetRows(block, made.inputs, own.ok ? own.inputs : made.inputs) };
 }
