@@ -88,7 +88,7 @@ export const legal = {
       {
         heading: "Cookies",
         body: [
-          "There are no ad or tracking cookies. Clerk sets __session and __client_uat on this site, and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. A private copy that signs in with a passcode instead of Clerk uses fa_access for that.",
+          "There are no ad or tracking cookies. Clerk sets __session and __client_uat on this site, and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark. A private copy that signs in with a passcode instead of Clerk uses fa_access for that.",
         ],
       },
       {
