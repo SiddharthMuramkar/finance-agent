@@ -14,6 +14,8 @@ import { describe, expect, it } from "vitest";
 const OTHER_SWITCH: Record<string, string> = {
   "e2e/matrix.spec.ts": "the preview matrix runs only with UI_MATRIX=1 and writes to the git-ignored evidence/ folder",
   "e2e/spine-02-03.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
+  "e2e/spine-01.spec.ts": "the Spine critics' screenshots go to CRITICS_OUT, else the git-ignored test-results/spine-01 folder, never into docs/ (#88)",
+  "e2e/spine-annual-report.spec.ts": "the Spine critics' screenshots go to CRITICS_OUT, else the test's own git-ignored output folder, never into docs/ (#93)",
 };
 
 function specs(dir: string, acc: string[] = []): string[] {

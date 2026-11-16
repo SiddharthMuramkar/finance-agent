@@ -65,7 +65,7 @@ const INVENTORY: Record<string, Use> = {
   "src/widgets/primitives/wave2/rate-move.tsx": { uses: 1, verdict: "mark", why: "A 2px violet rule beside the three ways to say the move; each line is labelled" },
   "src/widgets/primitives/wave2/step-through.tsx": { uses: 2, verdict: "mark", why: "A 2px underline in the tone's base colour under a number the step's words already name" },
   "src/widgets/primitives/wave3/headline.tsx": { uses: 1, verdict: "mark", why: "A sunflower top edge on the front page" },
-  "src/widgets/primitives/wave3/lingo-card.tsx": { uses: 2, verdict: "mark", why: "A violet edge on the front and a sunflower edge on the story side; the Lingo and In the story Tags name them" },
+  "src/widgets/primitives/wave3/lingo-card-view.tsx": { uses: 2, verdict: "mark", why: "A violet edge on the front and a sunflower edge on the story side; the Lingo and In the story Tags name them (the card's view, moved out of lingo-card.tsx by #103 so the Full sheet can show it)" },
   "src/widgets/primitives/wave3/money-jar.tsx": { uses: 5, verdict: "mark", why: "A mint or coral base edge, a thin mint edge on a new object and a dashed coral outline where one left; the words line says the size" },
   "src/widgets/primitives/wave3/story-scene.tsx": { uses: 2, verdict: "mark", why: "A sunflower edge on the stage and a sunflower ring on the character who is speaking" },
   "src/widgets/primitives/wave3/timeline-strip.tsx": { uses: 2, verdict: "mark", why: "A 2px sunflower line up to the story's date and a sunflower edge on the open moment's card" },
