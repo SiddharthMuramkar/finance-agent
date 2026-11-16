@@ -222,6 +222,13 @@
   --lh-small: 18px;
 }
 
+/* The one screen-size rule (src/app/screen.ts): a phone is below md (768 px), a tablet below lg (1024 px), a laptop from
+   lg up. Tailwind's own values, written here so CSS and script read one rule; screen.test.ts keeps them equal. */
+@theme {
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+}
+
 /* The same tokens as Tailwind colours (bg-blue, text-gain-ink, bg-brand, text-muted, border-border ...). "inline" keeps
    the var() reference, so a utility follows its token; the older bg-[var(--brand)] spelling keeps working beside them. */
 @theme inline {
@@ -544,7 +551,7 @@ body {
 
 /* The Study Workspace's columns (spec 2026-11-11, C2a): the conversation takes --chat-share percent of the width the two
    columns share (the frame less the Split handle's column, which is --gap wide), the Widget panel the rest, and neither
-   goes under 360 px. The server sets --split-saved on the frame from the `split` cookie; it applies from 1024 px up,
+   goes under 360 px. The server sets --split-saved on the frame from the `split` cookie; it applies from lg (a laptop) up,
    where the Split handle shows. Below that the default holds. No transition: the columns move with the hand. */
 .workspace-split {
   --chat-share: 45;
@@ -552,8 +559,8 @@ body {
   grid-template-columns: minmax(360px, calc((100% - var(--gap)) * var(--chat-share) / 100)) var(--gap) minmax(360px, 1fr);
   grid-template-rows: minmax(0, 1fr);
 }
-@media (width >= 1024px) {
-  .workspace-split { --chat-share: var(--split-saved, 45); }
+.workspace-split {
+  @variant lg { --chat-share: var(--split-saved, 45); }
 }
 
 /* The Split handle (C2b): a 1 px rule and a grip. Hover, focus and a drag turn the rule accent. No lift, no shadow. */

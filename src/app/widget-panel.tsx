@@ -21,6 +21,7 @@ import { cappedTabs, sameTab } from "./widget-tabs";
 import { WidgetView } from "./widget-view";
 import { keepsOwnArrows, pagerStops, WidgetPager, type PagerEntry } from "./widget-pager";
 import { FoldedRow } from "./workspace-parts";
+import { LAPTOP_UP, TABLET_UP, type Screen } from "./screen";
 
 /**
  * One Widget in the conversation. key is `${messageId}:${index}`; number counts Widgets across the conversation from 1.
@@ -133,31 +134,41 @@ export const EXPLORE_KEY = "explore";
 /** What the panel shows when it shows the open quiz's Check; no Widget's key looks like it (theirs are `${messageId}:${index}` or "explore"). */
 export const CHECK_VIEW = "check";
 
-/** Tailwind's lg breakpoint: from here the panel carries the explore Widget; below it, the conversation column does. */
-const LAPTOP = "(min-width: 1024px)";
+/** What a server render assumes: a laptop, as the layout is desktop-first. Tests render the narrow cases with NarrowScreen and PhoneScreen. */
+const ServerScreen = createContext<Screen>("laptop");
 
-/** The width a server render assumes: a laptop, as the layout is desktop-first. Tests render the narrow case with NarrowScreen. */
-const ServerWidth = createContext<"laptop" | "narrow">("laptop");
-
-/** Renders its children as on a screen below the laptop breakpoint, where no screen is measured (the server, tests). */
+/** Renders its children as on a tablet (below the laptop breakpoint), where no screen is measured (the server, tests). */
 export function NarrowScreen({ children }: { children: ReactNode }) {
-  return <ServerWidth.Provider value="narrow">{children}</ServerWidth.Provider>;
+  return <ServerScreen.Provider value="tablet">{children}</ServerScreen.Provider>;
 }
 
-const watchWidth = (changed: () => void) => {
-  const query = window.matchMedia(LAPTOP);
-  query.addEventListener("change", changed);
-  return () => query.removeEventListener("change", changed);
+/** Renders its children as on a phone, where no screen is measured (the server, tests). */
+export function PhoneScreen({ children }: { children: ReactNode }) {
+  return <ServerScreen.Provider value="phone">{children}</ServerScreen.Provider>;
+}
+
+const watchScreen = (changed: () => void) => {
+  const queries = [TABLET_UP, LAPTOP_UP].map((q) => window.matchMedia(q));
+  for (const q of queries) q.addEventListener("change", changed);
+  return () => queries.forEach((q) => q.removeEventListener("change", changed));
 };
+const measuredScreen = (): Screen => (window.matchMedia(LAPTOP_UP).matches ? "laptop" : window.matchMedia(TABLET_UP).matches ? "tablet" : "phone");
 
 /**
- * Whether the screen is at least laptop width, kept up to date as it resizes. The explore Widget is drawn in one
- * place only, chosen by this, so it is mounted once: no hidden copy keeps its own sliders or fetches its own data.
+ * Which screen this is by the one screen-size rule (./screen), kept up to date as it resizes. The layout itself is CSS
+ * (Tailwind's md and lg), so it is right at first paint; script reads this only for what CSS cannot do: where the
+ * explore Widget is mounted, and whether Back closes an open panel view.
  */
-function useLaptopWidth(): boolean {
-  const server = useContext(ServerWidth) === "laptop";
-  return useSyncExternalStore(watchWidth, () => window.matchMedia(LAPTOP).matches, () => server);
+export function useScreen(): Screen {
+  const server = useContext(ServerScreen);
+  return useSyncExternalStore(watchScreen, measuredScreen, () => server);
 }
+
+/**
+ * Whether the screen is at least laptop width. The explore Widget is drawn in one place only, chosen by this, so it is
+ * mounted once: no hidden copy keeps its own sliders or fetches its own data.
+ */
+const useLaptopWidth = (): boolean => useScreen() === "laptop";
 
 /**
  * The Topic's explore Widget as a panel item: a written-ahead Widget (`id`), so its work is saved under that id. In an
