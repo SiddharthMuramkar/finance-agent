@@ -676,8 +676,8 @@ const topicSchema = z.object({
     .default([]),
   principle: z.string().min(1),
   /**
-   * The daily-life line (spec #68): one line from a beginner's everyday life that ends the Principle step, so the idea
-   * meets something they already know. Words only.
+   * The daily-life line (spec #68): one line tying the Topic's idea to something a beginner meets in daily life. Code
+   * shows it at the Principle step and on the Topic complete card, and the Topic Note keeps it. Words only.
    */
   dailyLife: z.string().trim().min(1).optional(),
   /**
@@ -737,8 +737,8 @@ const topicSchema = z.object({
 }).superRefine((topic, ctx) => {
   // Formula markers ({{formula:...}}) must name a formula on this Topic's own list and give exactly its inputs. They are
   // read in the texts every Topic had before the teaching fields (topic-texts.ts): Cases, questions, concept, principle,
-  // Insight, Connections and conversation Checks.
-  for (const { text } of textsIn(topic, ["case", "question", "earlier"])) {
+  // Insight, Connections, conversation Checks and the daily-life line, and in Go deeper.
+  for (const { text } of textsIn(topic, ["case", "question", "earlier", "deeper"])) {
     for (const problem of markerProblems(text, topic.formulas)) ctx.addIssue({ code: "custom", message: `formula marker ${problem}` });
   }
   for (const problem of stepSettingProblems(topic)) ctx.addIssue({ code: "custom", message: problem });

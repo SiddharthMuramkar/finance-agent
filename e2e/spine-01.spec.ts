@@ -70,6 +70,9 @@ function writeTranscript() {
   writeFileSync(join(OUT, "transcript-spine-01.json"), JSON.stringify(transcript, null, 2));
 }
 
+/** Topic 1's daily-life line, as its Topic file writes it (spec #68, ticket #88). */
+const DAILY_LIFE = "A headline says a firm is worth $50bn. A price someone paid, or a value someone argued?";
+
 /** The quiz Check's right choice for each of its six questions, found by the question's words (predict: the band it lands in). */
 function quizPick(prompt: string): string | null {
   if (/which change lifts the value most/i.test(prompt)) return "Margin 10% to 12%";
@@ -266,8 +269,11 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
   const revealTaught = (await chip.innerText()).startsWith("Next: Reveal");
   if (revealTaught) await next(page, "Next: Reveal", "spine1-reveal");
   await next(page, "Next: Principle", "spine1-principle");
+  // Spec #68: code shows the Topic's daily-life line at its Principle step, and the Topic complete card repeats it.
+  await expect(page.getByTestId("daily-life-line")).toContainText(DAILY_LIFE);
   await next(page, "Complete this Topic", "spine1-complete");
   await expect(page.getByTestId("topic-complete-card")).toBeVisible({ timeout: TURN_MS });
+  await expect(page.getByTestId("topic-complete-card").getByTestId("topic-daily-life")).toContainText(DAILY_LIFE);
   await shoot(page, "complete");
   writeTranscript();
 
@@ -278,4 +284,22 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
   // The Course Map shows the Topic passed.
   await page.goto("/course");
   await expect(page.locator('li[data-topic="spine-01-worth"]')).toHaveAttribute("data-status", "passed");
+});
+
+test("[spec #68] Pressing Go deeper in Spine Topic 1 shows its Go deeper text", async ({ page }, info) => {
+  test.skip(info.project.name !== "w1280", "one width is enough: the press is the behaviour");
+  test.setTimeout(4 * TURN_MS);
+  await seedSpineOne(page);
+  await script(page, "spine1-story");
+  await page.goto("/study");
+  await replyLanded(page);
+  await next(page, "Next: Concept", "spine1-concept");
+  // The Go deeper Choice posts "Go deeper."; the Tutor answers with the Topic's Go deeper material.
+  await script(page, "spine1-go-deeper");
+  const before = await page.getByTestId("assistant-message").count();
+  await page.getByTestId("choices").last().getByTestId("choice").filter({ hasText: /^Go deeper$/ }).click();
+  await expect(page.getByTestId("assistant-message")).toHaveCount(before + 1, { timeout: TURN_MS });
+  await settled(page, TURN_MS);
+  await landedAsWritten(page, "spine1-go-deeper");
+  await expect(page.getByTestId("assistant-message").last()).toContainText("code shrinks every future year's cash by the cost of capital");
 });

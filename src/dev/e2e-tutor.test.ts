@@ -57,6 +57,7 @@ describe("the scripted Tutor", () => {
       "spine1-complete",
       "spine1-concept",
       "spine1-explore",
+      "spine1-go-deeper",
       "spine1-principle",
       "spine1-quiz-open",
       "spine1-reveal",
@@ -121,6 +122,14 @@ describe("Spine Topic 1's scripted Tutor", () => {
     expect(params.title).toBe(bench!.title);
     expect(params.inputs).toEqual({ case: bench!.case, ...bench!.inputs });
     expect(draftOf("spine1-explore").widgets).toHaveLength(1);
+  });
+
+  it("gives Topic 1's Go deeper material in the Topic file's own words when the Learner presses Go deeper (spec #68)", () => {
+    const flat = (t: string) => t.replace(/\s+/g, " ").trim();
+    const [body] = draftOf("spine1-go-deeper").text.split("\n\n");
+    expect(spine.goDeeper).toBeDefined();
+    expect(flat(spine.goDeeper!)).toContain(flat(body));
+    expect(checkReply(draftOf("spine1-go-deeper"), { ...context("spine1-go-deeper"), replyKind: "go_deeper" })).toEqual([]);
   });
 
   it("asks the Learner to type nothing: no Insight words to record and no Check verdict, every answer a tap (#88)", () => {

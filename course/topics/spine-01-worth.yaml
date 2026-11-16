@@ -115,11 +115,18 @@ concept: >
   Amazon had about $39 billion of sales in ten years, a 10% operating margin (10 cents kept from each $1 of sales),
   and $3 of sales for each dollar invested in warehouses and systems.
 
+# Go deeper (spec H1, #68): beyond the Checks, for the Tutor to give when the Learner presses Go deeper. Never quizzed.
+goDeeper: >
+  Behind the four levers sits one sum that code does for you. Each year's cash is worth less the further away it
+  is, so code shrinks every future year's cash by the cost of capital and adds the years up. Take away what the
+  company owes and what it has promised its staff, split the rest over its shares, and you have a value for one
+  share. A Learner who wants more can ask why a higher cost of capital shrinks the far years most.
+
 principle: >
   A value is a story set as four levers. When a price and a value differ, ask what the price
   assumes before you call it wrong.
 
-# The daily-life line (spec #68): it ends the Principle step, on the Topic complete card and in the Topic Note.
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note (ticket #88's line).
 dailyLife: "A headline says a firm is worth $50bn. A price someone paid, or a value someone argued?"
 
 # You'll learn: shown on the Topic Start card and the Welcome.
