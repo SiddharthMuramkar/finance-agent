@@ -18,7 +18,7 @@ import { ArrowLink, Glyph, SectionHead } from "./parts";
 import { QuestionList } from "./question-list";
 
 // Home, at "/" (spec 7.2): hero for beginners with the Tutor demo (on a phone, right under the h1), four moves, the
-// levers story, the colour language, the questions, where you end up (#75: a real saved Notebook note), trust, FAQ and
+// levers story, the colour language, the questions, where you end up (#75: a real Notebook note, the Assignment's), trust, FAQ and
 // early access. Open to everyone; the CTAs follow the viewer state, so the page is drawn per request and sent no-store
 // (next.config.ts). A visitor costs no Learner read, and the page makes no model call and no write.
 

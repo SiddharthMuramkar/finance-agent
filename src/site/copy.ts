@@ -232,12 +232,12 @@ export const home = {
       { heading: "Code draws the charts.", body: "The Tutor picks the widget; tested code draws it. **The AI never invents a chart.**" },
     ],
   },
-  /** #75: the one-page note a Learner saves to the Notebook at the end of the Spine (src/site/end-note.ts). */
+  /** #75: the one-page note the Assignment saves to the Notebook once the Spine is passed (src/site/end-note.ts). */
   end: {
     eyebrow: "Where you end up",
     h2: "By the end, you value a company yourself.",
-    body: "Near the end of the core Topics you value a real company as of a past date, lever by lever, and save the Story you told. This is the note it leaves in your Notebook.",
-    caption: "From the Notebook. Every figure worked out by the course’s tested valuation engine.",
+    body: "After the Topics that teach valuation in order, you pick a listed company and copy a few figures from its annual report. The site values it beside its price and keeps a one-page note. This is one.",
+    caption: "Kikkoman’s annual report for the year to 31 March 2026, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine.",
   },
   faq: { eyebrow: "Questions", h2: "Before you ask.", link: "More questions", pick: [1, 2, 4, 5] },
   closing: {

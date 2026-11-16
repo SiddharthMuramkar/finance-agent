@@ -208,16 +208,20 @@ describe("About", () => {
   });
 });
 
-// #75: Home's "Where you end up" shows the real one-page note Spine Topic 15 saves to the Notebook.
+// #75: Home's "Where you end up" shows a real one-page note: the one the Assignment saves to the Notebook after the
+// Spine (F14: the Spine no longer saves a Valuation story, so Home must not show one).
 describe("Where you end up", () => {
-  it("shows the saved Amazon note under 'By the end, you value a company yourself.'", async () => {
+  it("shows an Own Case note from the Assignment under 'By the end, you value a company yourself.'", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const section = /<section[^>]*data-site-section="end"[\s\S]*?<\/section>/.exec(html)?.[0] ?? "";
-    const text = words(section);
+    const text = words(section).replaceAll("&#x27;", "'");
     expect(text).toContain("Where you end up");
     expect(text).toContain("By the end, you value a company yourself.");
-    expect(text).toContain("My Valuation story: Amazon, Feb 2000, against the price of 3 Feb 2000");
-    for (const line of ["How big it gets: revenue in year 10 $39bn", "Worth: $35 a share", "Price on 3 Feb 2000: $84", "Value from after year 10: 112%"]) expect(text).toContain(line);
+    expect(text).toContain("you pick a listed company and copy a few figures from its annual report");
+    for (const line of ["Kikkoman, Japan. Annual report of 31 Mar 2026.", "My Estimate: growth 10% a year", "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026."]) {
+      expect(text).toContain(line);
+    }
+    expect(text).not.toMatch(/Valuation story|Story you told/);
   });
 });
 
