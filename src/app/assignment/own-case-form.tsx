@@ -1,44 +1,45 @@
 "use client";
 
 import { useState } from "react";
-import { OWN_CASE_MARKET, openingEstimate, ownCaseIndustries, ownCaseReadingIds, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
+import { CURRENCY_STYLE } from "@/finance/money";
+import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, ownCaseReadingIds, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
 import { annualReportGuide, type GuideField } from "@/markets/guides";
 import { MarketReadingsView } from "@/widgets/market-readings-view";
 import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
 import { dateText, priceText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
 
-/** The markets a Learner picks from, by tap: India (#107), the US (#113). */
-const MARKETS: { id: OwnCaseMarket; label: string }[] = [
-  { id: "IN", label: "India" },
-  { id: "US", label: "United States" },
-];
+/** How each market's report counts its money (₹ crore; a US 10-K's $ millions; Japan's 百万円 and Korea's 백만원 are millions). */
+const MONEY_WORDS: Record<OwnCaseMarket, string> = { IN: "₹ crore", US: "$ millions", JP: "¥ millions (百万円)", KR: "₩ millions (백만원)" };
 
-/** How each market's report names and counts the money: ₹ crore in an Indian annual report, $ millions in a US 10-K. */
-const WORDS = {
-  IN: { money: "₹ crore", symbol: "₹", sales: "Revenue from operations", debt: "Borrowings and lease liabilities", cash: "Cash and cash equivalents, with other bank balances" },
-  US: { money: "$ millions", symbol: "$", sales: "Total net sales or revenues", debt: "Commercial paper and term debt", cash: "Cash and cash equivalents" },
-} as const;
+/** A market's name on its button: "United States" where a sentence says "the US". */
+const marketLabel = (m: OwnCaseMarket) => (m === "US" ? "United States" : ownCaseMarket(m).name);
 
 /** The eight figures copied from the report (spec #68, user story 79), each with what it is and where the money is counted. */
-const fields = (market: OwnCaseMarket) => {
-  const w = WORDS[market];
+const fieldsFor = (market: OwnCaseMarket) => {
+  const money = MONEY_WORDS[market];
+  const { symbol, word } = CURRENCY_STYLE[ownCaseMarket(market).currency];
   return [
-    { key: "sales", label: "Sales", hint: `${w.sales} for the year, in ${w.money}.` },
-    { key: "operatingProfit", label: "Operating profit", hint: `Profit before interest and tax (EBIT), in ${w.money}. Below zero for a loss.` },
+    { key: "sales", label: "Sales", hint: `${market === "US" ? "Total net sales or revenues" : "Revenue from operations"} for the year, in ${money}.` },
+    { key: "operatingProfit", label: "Operating profit", hint: `Profit before interest and tax (EBIT), in ${money}. Below zero for a loss.` },
     { key: "taxPercent", label: "Tax rate", hint: "The tax rate the company pays, in percent." },
-    { key: "debt", label: "Debt", hint: `${w.debt}, long and short, in ${w.money}.` },
-    { key: "cash", label: "Cash", hint: `${w.cash}, in ${w.money}.` },
+    { key: "debt", label: "Debt", hint: market === "IN" ? "Borrowings and lease liabilities, long and short, in ₹ crore." : `${market === "US" ? "Commercial paper and term debt" : "Borrowings"}, long and short, in ${money}.` },
+    { key: "cash", label: "Cash", hint: market === "IN" ? "Cash and cash equivalents, with other bank balances, in ₹ crore." : `Cash and cash equivalents, in ${money}.` },
     { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },
-    { key: "price", label: "Share price on the report's date", hint: `In ${w.symbol}, the closing price on that day.` },
+    {
+      key: "price",
+      label: "Share price on the report's date",
+      hint: market === "IN" ? "In ₹, the closing price on that day." : `In whole ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`,
+    },
   ] as const;
 };
-type FieldKey = ReturnType<typeof fields>[number]["key"];
+const FIELD_KEYS = ["sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"] as const;
+type FieldKey = (typeof FIELD_KEYS)[number];
 
 /** A typed figure as a number: commas the report prints are fine; an empty box is no number. */
-const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹$]/g, "")));
+const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹$¥₩]/g, "")));
 
-/** The guide beside one field: where the number sits in the market's annual report (India #108, the US #113), the rule or record that says so, and its word as a Lingo card. */
+/** Beside a field: where it sits in the market's annual report, the source that says so, and a Lingo card (#108, #114). */
 function FieldGuide({ market, field }: { market: OwnCaseMarket; field: GuideField }) {
   const line = annualReportGuide(market)[field];
   if (!line) return null;
@@ -81,7 +82,7 @@ export function OwnCaseForm() {
       market,
       reportDate,
       industry,
-      ...(Object.fromEntries(fields(market).map((f) => [f.key, figure(figures[f.key])])) as Record<FieldKey, number>),
+      ...(Object.fromEntries(FIELD_KEYS.map((k) => [k, figure(figures[k])])) as Record<FieldKey, number>),
     };
 
   const valueIt = () => {
@@ -89,7 +90,6 @@ export function OwnCaseForm() {
     const typed = inputs();
     if (!typed) return setShown({ kind: "problem", text: "Pick the company's industry." });
     const value = valueOwnCase(typed, openingEstimate(typed.industry, market));
-    const money = OWN_CASE_MARKET[market];
     setShown(
       value.ok
         ? { kind: "value", text: `The engine's value: ${priceText(value.valuePerShare, money)} a share, beside a price of ${priceText(typed.price, money)} on ${dateText(typed.reportDate)}.` }
@@ -113,8 +113,12 @@ export function OwnCaseForm() {
     setSaved("Saved to your Notebook.");
   };
 
+  const place = ownCaseMarket(market);
+  const money = { currency: place.currency, unit: place.unit } as const;
+  const symbol = CURRENCY_STYLE[place.currency].symbol;
+  const fields = fieldsFor(market);
+  const riskFree = place.riskFree;
   const estimate = industry ? openingEstimate(industry, market) : null;
-  const symbol = WORDS[market].symbol;
   return (
     <form
       data-own-case-form
@@ -127,24 +131,33 @@ export function OwnCaseForm() {
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium leading-5">Market</legend>
         <div className="flex flex-wrap gap-2">
-          {MARKETS.map((m) => (
+          {OWN_CASE_MARKETS.map((m) => (
             <Button
-              key={m.id}
+              key={m}
               variant="secondary"
               size="sm"
-              pressed={market === m.id}
-              data-market={m.id}
+              pressed={market === m}
+              data-market={m}
               onClick={() => {
-                setMarket(m.id);
+                setMarket(m);
                 setIndustry(null);
                 setShown(null);
                 setSaved(null);
               }}
             >
-              {m.label}
+              {marketLabel(m)}
             </Button>
           ))}
         </div>
+        {riskFree && (
+          <p data-risk-free={riskFree.id} className="text-xs leading-4 text-[var(--muted)]">
+            {riskFree.label}: {riskFree.value}% on {dateText(riskFree.date)}.{" "}
+            <a data-reading-source href={riskFree.sourceUrl} target="_blank" rel="noreferrer" title={`Credit: ${riskFree.credit}`} className="underline">
+              {riskFree.source}
+            </a>
+            . Your Estimate&rsquo;s growth after year 10 opens here.
+          </p>
+        )}
       </fieldset>
       <div className="flex flex-col gap-1">
         <label htmlFor="own-case-company" className="text-sm font-medium leading-5">
@@ -164,15 +177,14 @@ export function OwnCaseForm() {
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium leading-5">Industry</legend>
         <div className="flex flex-wrap gap-2">
-          {ownCaseIndustries(market).map((i) => (
+          {place.industries.map((i) => (
             <Button key={i.id} variant="secondary" size="sm" pressed={industry === i.id} data-industry={i.id} onClick={() => setIndustry(i.id)}>
               {i.label}
             </Button>
           ))}
         </div>
       </fieldset>
-      {industry && <MarketReadingsView ids={ownCaseReadingIds(market, industry)} />}
-      {fields(market).map((f) => (
+      {fields.map((f) => (
         <div key={f.key} className="flex flex-col gap-1">
           <label htmlFor={`own-case-${f.key}`} className="text-sm font-medium leading-5">
             {f.label}
@@ -193,6 +205,7 @@ export function OwnCaseForm() {
           <FieldGuide market={market} field={f.key} />
         </div>
       ))}
+      {industry && <MarketReadingsView ids={ownCaseReadingIds(market, industry)} />}
       {estimate && (
         <p data-own-case-estimate className="text-sm leading-5 text-[var(--muted)]">
           Your Estimate opens at the industry&rsquo;s yardsticks: growth {estimate.growthPercent}% a year for five years, fading to {estimate.growthAfterPercent}%; the

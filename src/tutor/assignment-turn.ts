@@ -2,7 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { ownCases } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { OWN_CASE_MARKET, type OwnCaseEstimate, type OwnCaseInputs } from "@/finance/own-case";
+import { ownCaseMarket, type OwnCaseEstimate, type OwnCaseInputs } from "@/finance/own-case";
 import { assignmentOpen } from "@/learner/own-cases";
 import { rangeCheck, type RangeFlag } from "@/markets/range-check";
 import type { Effort, Message, ModelClient } from "./model";
@@ -27,7 +27,7 @@ import { saveStepUsage, stepUsage } from "./usage";
 export const ASSIGNMENT_SESSION_TOPIC = "assignment";
 
 /** What the Tutor is told of the Learner's Own Case: its one-page note, the range check's flags and (#113) its currency. Null: none saved yet. */
-export type AssignmentFacts = { note: string; flags: Pick<RangeFlag, "name" | "sentence">[]; currency?: "INR" | "USD" } | null;
+export type AssignmentFacts = { note: string; flags: Pick<RangeFlag, "name" | "sentence">[]; currency?: ReturnType<typeof ownCaseMarket>["currency"] } | null;
 
 /** The prefix of the context note code adds after the Learner's message. */
 export const ASSIGNMENT_CONTEXT_PREFIX = "[Assignment context, from code]";
@@ -66,7 +66,7 @@ export async function assignmentFacts(db: Db, learnerId: number): Promise<Assign
     { marginPercent: (inputs.operatingProfit / inputs.sales) * 100, salesToCapital: estimate.salesToCapital, costOfCapitalPercent: estimate.costOfCapitalPercent },
     { market: inputs.market, industry: inputs.industry },
   );
-  const currency = (OWN_CASE_MARKET[inputs.market] ?? OWN_CASE_MARKET.IN).currency;
+  const currency = (ownCaseMarket(inputs.market) ?? ownCaseMarket("IN")).currency;
   return { note: row.note ?? `${row.company}, report of ${row.reportDate}.`, flags: flags.map(({ name, sentence }) => ({ name, sentence })), currency };
 }
 

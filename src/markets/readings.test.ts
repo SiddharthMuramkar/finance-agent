@@ -82,15 +82,15 @@ describe("the first set of Market readings", () => {
   });
 
   it("holds the US risk-free reading: the 10-year Treasury yield of 4.94% on 30 Oct 2026, credited to the US Treasury (#113)", () => {
-    const riskFree = marketReading("us-treasury-10y");
+    const riskFree = marketReading("us-risk-free-10y");
     expect(riskFree).toMatchObject({ market: "US", kind: "risk_free", value: 4.94, unit: "percent", date: "2026-10-30", credit: "U.S. Department of the Treasury" });
     expect(riskFree?.sourceUrl).toMatch(/^https:\/\/home\.treasury\.gov\//);
   });
 
   it("fails a risk-free reading with no date or no source, as any reading (#113)", () => {
-    const riskFree = marketReading("us-treasury-10y")!;
-    expect(marketReadingErrors([{ ...riskFree, date: undefined }])).toEqual([expect.stringContaining('"us-treasury-10y" needs date')]);
-    expect(marketReadingErrors([{ ...riskFree, sourceUrl: undefined }])).toEqual([expect.stringContaining('"us-treasury-10y" needs sourceUrl')]);
+    const riskFree = marketReading("us-risk-free-10y")!;
+    expect(marketReadingErrors([{ ...riskFree, date: undefined }])).toEqual([expect.stringContaining('"us-risk-free-10y" needs date')]);
+    expect(marketReadingErrors([{ ...riskFree, sourceUrl: undefined }])).toEqual([expect.stringContaining('"us-risk-free-10y" needs sourceUrl')]);
   });
 
   it("writes a reading's month and year, and its value in its unit", () => {

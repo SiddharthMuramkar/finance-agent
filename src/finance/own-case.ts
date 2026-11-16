@@ -1,6 +1,6 @@
 import { FORECAST_YEARS, valueStory, type DcfValue } from "./dcf-engine.ts";
 import { marginPath } from "./dcf-paths.ts";
-import { marketReading } from "../markets/readings.ts";
+import { marketReading, type MarketReading } from "../markets/readings.ts";
 import { toEngineInputs, valuationBlock, type ValuationBlock, type ValuationBlockInput } from "./valuation-case.ts";
 
 // An Own Case (GLOSSARY.md; spec #68, Assignments and Own Cases): a listed company the Learner picks, dated at its
@@ -10,73 +10,86 @@ import { toEngineInputs, valuationBlock, type ValuationBlock, type ValuationBloc
 //
 // This module imports only relative modules (no "@/" paths), so plain Node and the page can both run it.
 
-/** The markets an Own Case can be in. India first (#107), then the US (#113); more markets add their code here. */
-export const OWN_CASE_MARKETS = ["IN", "US"] as const;
+/** The markets an Own Case can be in. India first (#107), then the US (#113), Japan and Korea (#114); more markets add their code here. */
+export const OWN_CASE_MARKETS = ["IN", "US", "JP", "KR"] as const;
 export type OwnCaseMarket = (typeof OWN_CASE_MARKETS)[number];
 
-/**
- * How each market's annual report counts money, and the Estimate it opens with. India: rupees crore (shares counted
- * in crores, 1e7 each). The US: a Form 10-K's US$ millions (shares in millions). Growth after year 10 is a mature company
- * growing with the economy in that currency; in the US it sits below the 10-year Treasury yield (`us-treasury-10y`).
- */
-export const OWN_CASE_MARKET = {
-  IN: { name: "India", currency: "INR", unit: "crores", shareScale: 1e7, growthAfterPercent: 5, riskFree: null },
-  US: { name: "the US", currency: "USD", unit: "millions", shareScale: 1e6, growthAfterPercent: 3, riskFree: "us-treasury-10y" },
-} as const satisfies Record<OwnCaseMarket, { name: string; currency: "INR" | "USD"; unit: "crores" | "millions"; shareScale: number; growthAfterPercent: number; riskFree: string | null }>;
-
-type YardstickKind = "margin" | "sales-to-capital" | "cost-of-capital";
-const YARDSTICK_KINDS: readonly YardstickKind[] = ["margin", "sales-to-capital", "cost-of-capital"];
-
-/** The id of the Market reading (#105, #113) an industry's yardstick comes from: `<market>-<industry>-<kind>`. */
-const yardstickId = (market: OwnCaseMarket, industry: string, kind: YardstickKind) => `${market.toLowerCase()}-${industry}-${kind}`;
-
-/** The yardstick a Market reading gives, by market, industry and kind. */
-function yardstick(market: OwnCaseMarket, industry: string, kind: YardstickKind): number {
-  const reading = marketReading(yardstickId(market, industry, kind));
-  if (!reading) throw new Error(`No Market reading ${yardstickId(market, industry, kind)}`);
-  return reading.value;
+/** The yardstick a Market reading (#105) gives, by market, industry and kind: `<market>-<industry>-<kind>`. */
+function yardstick(market: OwnCaseMarket, industry: string, kind: "margin" | "sales-to-capital" | "cost-of-capital") {
+  const id = `${market.toLowerCase()}-${industry}-${kind}`;
+  const reading = marketReading(id);
+  if (!reading) throw new Error(`No Market reading ${id}`);
+  return reading;
 }
 
-const INDUSTRY_PICK = [
+const INDUSTRY_PICKS = [
   { id: "auto", label: "Auto and truck makers" },
   { id: "food", label: "Food processors" },
   { id: "software", label: "Software makers" },
   { id: "market", label: "Any other firm (not a bank or insurer)" },
 ] as const;
-export type OwnCaseIndustry = (typeof INDUSTRY_PICK)[number]["id"];
+export type OwnCaseIndustry = (typeof INDUSTRY_PICKS)[number]["id"];
 
-/** A market's industries, each with the yardsticks its opening Estimate takes, read from that market's dated Market readings. */
+/** The industries a Learner picks from in a market, each with the yardsticks its opening Estimate takes. */
 function industriesOf(market: OwnCaseMarket) {
-  return INDUSTRY_PICK.map((i) => ({
+  return INDUSTRY_PICKS.map((i) => ({
     ...i,
-    operatingMarginPercent: yardstick(market, i.id, "margin"),
-    salesToCapital: yardstick(market, i.id, "sales-to-capital"),
-    costOfCapitalPercent: yardstick(market, i.id, "cost-of-capital"),
+    operatingMarginPercent: yardstick(market, i.id, "margin").value,
+    salesToCapital: yardstick(market, i.id, "sales-to-capital").value,
+    costOfCapitalPercent: yardstick(market, i.id, "cost-of-capital").value,
     /** The reading the yardsticks come from: its source, for the Own Case's sources when the Learner gives no report link. */
-    source: marketReading(yardstickId(market, i.id, "cost-of-capital"))!,
+    source: yardstick(market, i.id, "cost-of-capital"),
   }));
 }
+export type OwnCaseIndustryRow = ReturnType<typeof industriesOf>[number];
 
 /**
- * The industries a Learner picks from, each with the yardsticks its opening Estimate takes: the industry's operating
+ * The industries a Learner picks from in India, each with the yardsticks its opening Estimate takes: the industry's operating
  * margin, sales for each rupee invested, and cost of capital in rupees, read from the dated Market readings for India
  * (src/markets/readings.ts: Damodaran's India data, January 2026; ids match them).
  */
 export const INDIA_INDUSTRIES = industriesOf("IN");
 
+/**
+ * Each market's money and its dated readings. The report's money unit is the one its statements print: India's ₹ crore,
+ * a US 10-K's $ millions, Japan's 百万円 and Korea's 백만원 (millions). Growth after year 10 opens at the market's dated risk-free reading (the
+ * 10-year government bond yield) where it has one, so a mature company never outgrows its economy; India keeps 5%.
+ */
+const MARKETS = {
+  IN: { code: "IN", name: "India", currency: "INR", unit: "crores", unitSize: 1e7, riskFree: undefined },
+  US: { code: "US", name: "the US", currency: "USD", unit: "millions", unitSize: 1e6, riskFree: "us-risk-free-10y" },
+  JP: { code: "JP", name: "Japan", currency: "JPY", unit: "millions", unitSize: 1e6, riskFree: "jp-risk-free-10y" },
+  KR: { code: "KR", name: "Korea", currency: "KRW", unit: "millions", unitSize: 1e6, riskFree: "kr-risk-free-10y" },
+} as const;
+
+/** Growth after year 10 an Indian opening Estimate assumes: a mature company growing with the economy, in rupees. */
+const INDIA_GROWTH_AFTER = 5;
+
+const MARKET_ROWS = Object.fromEntries(
+  OWN_CASE_MARKETS.map((m) => {
+    const spec = MARKETS[m];
+    const riskFree = spec.riskFree ? marketReading(spec.riskFree) : undefined;
+    if (spec.riskFree && !riskFree) throw new Error(`No Market reading ${spec.riskFree}`);
+    return [m, { ...spec, riskFree, industries: m === "IN" ? INDIA_INDUSTRIES : industriesOf(m), growthAfter: riskFree?.value ?? INDIA_GROWTH_AFTER }];
+  }),
+) as Record<OwnCaseMarket, { code: OwnCaseMarket; name: string; currency: "INR" | "USD" | "JPY" | "KRW"; unit: "crores" | "millions"; unitSize: number; riskFree: MarketReading | undefined; industries: OwnCaseIndustryRow[]; growthAfter: number }>;
+
+/** A market's money, name, dated risk-free reading and industries. */
+export const ownCaseMarket = (market: OwnCaseMarket) => MARKET_ROWS[market];
+
+/** The industries a Learner picks from in this market. */
+export const ownCaseIndustries = (market: OwnCaseMarket): OwnCaseIndustryRow[] => MARKET_ROWS[market].industries;
+
 /** The same industries from Damodaran's US data, January 2026 (#113). */
-export const US_INDUSTRIES = industriesOf("US");
+export const US_INDUSTRIES = ownCaseIndustries("US");
 
-/** The industries an Own Case in this market picks from. */
-export const ownCaseIndustries = (market: OwnCaseMarket) => (market === "US" ? US_INDUSTRIES : INDIA_INDUSTRIES);
+/** The Market readings shown beside an Own Case's industry pick (#113): that industry's three dated yardsticks in its market. */
+export const ownCaseReadingIds = (market: OwnCaseMarket, industry: OwnCaseIndustry): string[] =>
+  (["margin", "sales-to-capital", "cost-of-capital"] as const).map((kind) => `${market.toLowerCase()}-${industry}-${kind}`);
 
-/** The Market readings shown beside an Own Case: the industry's three yardsticks, then the market's risk-free rate if it has one. */
-export function ownCaseReadingIds(market: OwnCaseMarket, industry: OwnCaseIndustry): string[] {
-  const riskFree = OWN_CASE_MARKET[market].riskFree;
-  return [...YARDSTICK_KINDS.map((kind) => yardstickId(market, industry, kind)), ...(riskFree ? [riskFree] : [])];
-}
+const isMarket = (m: string): m is OwnCaseMarket => (OWN_CASE_MARKETS as readonly string[]).includes(m);
 
-/** What the Learner types from the annual report. Money in the market's unit (₹ crore, US$ millions); shares as the plain count the report prints. */
+/** What the Learner types from the annual report. Money in the market's report unit (₹ crore, ¥ or ₩ millions); shares as the plain count the report prints. */
 export type OwnCaseInputs = {
   company: string;
   market: OwnCaseMarket;
@@ -90,7 +103,7 @@ export type OwnCaseInputs = {
   cash: number;
   /** Shares outstanding, as a plain count (20,60,01,719). */
   shares: number;
-  /** The share price on the report's date, in rupees or dollars. */
+  /** The share price on the report's date, in the market's money (rupees, yen, won). */
   price: number;
   /** A link to the annual report, when the Learner gives one. */
   reportUrl?: string;
@@ -113,13 +126,13 @@ export type OwnCaseEstimate = {
 /** Growth in years 1 to 5 an opening Estimate assumes, before the Learner moves it. */
 const OPENING_GROWTH = 10;
 
-/** The Estimate an Own Case opens with: the industry's yardsticks in its market, a 10% growth fading to the market's growth after year 10. */
+/** The Estimate an Own Case opens with: the industry's yardsticks, a 10% growth fading to the market's growth after year 10. */
 export function openingEstimate(industry: OwnCaseIndustry, market: OwnCaseMarket = "IN"): OwnCaseEstimate {
-  const industries = ownCaseIndustries(market);
+  const { industries, growthAfter } = MARKET_ROWS[isMarket(market) ? market : "IN"];
   const row = industries.find((i) => i.id === industry) ?? industries[industries.length - 1];
   return {
     growthPercent: OPENING_GROWTH,
-    growthAfterPercent: OWN_CASE_MARKET[market].growthAfterPercent,
+    growthAfterPercent: growthAfter,
     targetMarginPercent: row.operatingMarginPercent,
     salesToCapital: row.salesToCapital,
     costOfCapitalPercent: row.costOfCapitalPercent,
@@ -140,6 +153,7 @@ const isDay = (s: string) => ISO_DAY.test(s) && !Number.isNaN(Date.parse(`${s}T0
 
 /** Why these typed figures cannot make an Own Case, in a sentence the Learner reads; null when they can. */
 function typedProblem(inputs: OwnCaseInputs, now: Date): string | null {
+  if (!isMarket(inputs.market)) return "Pick the company's market.";
   if (!inputs.company?.trim()) return "Name the company.";
   if (!isDay(inputs.reportDate ?? "")) return "Give the report's date as a day, month and year.";
   if (inputs.reportDate > now.toISOString().slice(0, 10)) return "The report's date must be in the past.";
@@ -166,7 +180,7 @@ export type OwnCaseBlockResult = { ok: true; block: ValuationBlock } | { ok: fal
 export function ownCaseBlock(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, now: Date = new Date()): OwnCaseBlockResult {
   const problem = typedProblem(inputs, now);
   if (problem) return { ok: false, error: problem };
-  const market = OWN_CASE_MARKET[inputs.market] ?? OWN_CASE_MARKET.IN;
+  const market = MARKET_ROWS[inputs.market];
   const raw: ValuationBlockInput = {
     currency: market.currency,
     unit: market.unit,
@@ -185,12 +199,12 @@ export function ownCaseBlock(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, n
     cash: inputs.cash,
     debt: inputs.debt,
     options: 0,
-    shares: inputs.shares / market.shareScale,
+    shares: inputs.shares / market.unitSize,
     per: "share",
     price: { value: inputs.price, date: inputs.reportDate },
     illustration: true,
     published: { note: `An Own Case: ${inputs.company.trim()}, from its annual report of ${inputs.reportDate}.` },
-    sources: [inputs.reportUrl && URL.canParse(inputs.reportUrl) ? { title: `${inputs.company.trim()} annual report`, url: inputs.reportUrl } : industrySource(inputs.market in OWN_CASE_MARKET ? inputs.market : "IN", inputs.industry)],
+    sources: [inputs.reportUrl && URL.canParse(inputs.reportUrl) ? { title: `${inputs.company.trim()} annual report`, url: inputs.reportUrl } : industrySource(inputs.market, inputs.industry)],
     reproduces: false,
   };
   // The engine's own sentences first (no shares, growth that never ends), then the shape the course's blocks keep.

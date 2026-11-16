@@ -118,14 +118,16 @@ test("[#113] a Spine-passed Learner values a US company from its 10-K, with the 
   await form.getByLabel("Company").fill("Apple Inc.");
   await form.getByLabel("Date of the annual report").fill("2025-09-27");
   await form.locator('[data-industry="software"]').click();
-  // The US yardsticks and the risk-free reading, each dated, credited and linked.
+  // The US risk-free reading and the industry's yardsticks, each dated, credited and linked.
+  const riskFree = form.locator('[data-risk-free="us-risk-free-10y"]');
+  await expect(riskFree).toContainText("4.94% on 30 Oct 2026");
+  await expect(riskFree.locator("a[data-reading-source]")).toHaveAttribute("href", /^https:\/\/home\.treasury\.gov\//);
   const readings = form.getByTestId("market-reading");
-  await expect(readings).toHaveCount(4);
+  await expect(readings).toHaveCount(3);
   for (const reading of await readings.all()) {
-    await expect(reading.getByTestId("reading-date")).toHaveText(/^\((Jan|Oct) 2026\)$/);
-    await expect(reading.getByTestId("reading-credit")).toHaveAttribute("href", /^https:\/\/(pages\.stern\.nyu\.edu|home\.treasury\.gov)\//);
+    await expect(reading.getByTestId("reading-date")).toHaveText("(Jan 2026)");
+    await expect(reading.getByTestId("reading-credit")).toHaveAttribute("href", /^https:\/\/pages\.stern\.nyu\.edu\/~adamodar\/pc\/datasets\/(margin|capex|wacc)\.xls$/);
   }
-  await expect(form.locator('[data-reading="us-treasury-10y"]')).toContainText("4.94%");
   await expect(form.locator("[data-own-case-estimate]")).toContainText("$1.54 of sales for each $1 invested");
   await form.locator('[data-industry="market"]').click();
   for (const [key, value] of Object.entries(APPLE)) await form.locator(`[data-own-case-field="${key}"]`).fill(value);

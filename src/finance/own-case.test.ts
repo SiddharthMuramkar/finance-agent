@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { valueCase } from "./valuation-case";
 import { valuationCase } from "./valuation-cases";
-import { INDIA_INDUSTRIES, US_INDUSTRIES, openingEstimate, ownCaseBlock, ownCaseIndustries, ownCaseReadingIds, valueOwnCase, type OwnCaseInputs } from "./own-case";
+import { INDIA_INDUSTRIES, US_INDUSTRIES, openingEstimate, ownCaseBlock, ownCaseIndustries, ownCaseMarket, ownCaseReadingIds, valueOwnCase, type OwnCaseInputs } from "./own-case";
 
 // Seam 3 (spec #68): an Own Case is the course's valuation input shape filled from about eight typed numbers, so the one
 // engine values it with no new maths (ADR 0010). Coffee Day's IPO, as the course Case "coffee-day-rupee-valuation-2015"
@@ -132,9 +132,10 @@ describe("a US Own Case (#113)", () => {
     expect(valueOwnCase(APPLE, openingEstimate("market", "US")).ok).toBe(true);
   });
 
-  it("opens with growth after year 10 below the US risk-free reading, and shows that reading beside the yardsticks", () => {
-    expect(openingEstimate("food", "US").growthAfterPercent).toBeLessThan(4.94);
-    expect(ownCaseReadingIds("US", "food")).toEqual(["us-food-margin", "us-food-sales-to-capital", "us-food-cost-of-capital", "us-treasury-10y"]);
+  it("opens with growth after year 10 at the US risk-free reading (4.94%, Oct 2026), and shows the industry's dated yardsticks", () => {
+    expect(ownCaseMarket("US").riskFree).toMatchObject({ id: "us-risk-free-10y", value: 4.94, date: "2026-10-30" });
+    expect(openingEstimate("food", "US").growthAfterPercent).toBe(4.94);
+    expect(ownCaseReadingIds("US", "food")).toEqual(["us-food-margin", "us-food-sales-to-capital", "us-food-cost-of-capital"]);
   });
 
   it("India's opening Estimate stays as it was", () => {
