@@ -42,6 +42,25 @@ const SPINE_ONE_LEVERS = {
   facts: {},
 };
 
+/** The ready-Case valuation Topic's explore Workbench (its Topic file's explore.workbench), as the Tutor shows it with show_widget. */
+const SPINE_FIFTEEN_LEVERS = {
+  title: "Judge a published story",
+  inputs: {
+    case: "amazon-yourself-2000",
+    caseStory: "The story it opens on",
+    mode: {
+      kind: "match_price",
+      cases: [
+        { id: "amazon-yourself-2000", label: "Amazon, Feb 2000" },
+        { id: "coffee-day-yourself-2015", label: "Coffee Day, Oct 2015" },
+        { id: "zomato-yourself-2021", label: "Zomato, Jul 2021" },
+      ],
+    },
+  },
+  refs: {},
+  facts: {},
+};
+
 export const E2E_SCRIPTS = {
   /** About 90 words of story at the Story step, one ask on the last line, no Widget. */
   "story-reply": {
@@ -612,6 +631,57 @@ export const E2E_SCRIPTS = {
           text(
             "You have finished this Topic. You can tell a price from a value, set a story as four levers, and read a price back as the story it needs.\n\n" +
               "Which company would you like to value next?",
+          ),
+        ],
+      },
+    ],
+  },
+  /**
+   * The ready-Case valuation Topic (spine-15-value-yourself, e2e/spine-15-judge.spec.ts): the Learner judges a published
+   * Story. Its figures are the Topic file's (Amazon's $84 price, $1,117 million of sales and a $410 million loss).
+   */
+  "spine15-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon sells books and music online, and its shares cost $84. " +
+              "In the twelve months to September 1999 it sold $1,117 million and lost $410 million on its operations. " +
+              "A professor, Aswath Damodaran, has published what he thinks its future looks like, and what that makes a share worth. " +
+              "This Topic is about judging a story like his.\n\n" +
+              "Which part of a story like his would you want to check first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** Concept: a published valuation is a story set as four levers; judging it means finding the lever it rests on. */
+  "spine15-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A published valuation is someone's story, set as four levers: how big it gets, what it keeps, what growth costs and how risky it is. " +
+              "Judging it means finding the lever its value rests on most, then asking what the price assumes instead.\n\n" +
+              "Which of the four levers would you check first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** Explore: the Tutor opens the Topic's Value levers Workbench, a chip for each company, and asks the Insight question. */
+  "spine15-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_spine15_levers", name: "show_widget", input: { recipe: "value_levers", params: SPINE_FIFTEEN_LEVERS } }] },
+      {
+        content: [
+          text(
+            "Here is his Amazon story as four levers, with a chip for each company. " +
+              "Move one lever at a time and watch which one moves the value most; the readout names any lever that reaches the price alone.\n\n" +
+              "Which lever does his story rest on most?",
           ),
         ],
       },
