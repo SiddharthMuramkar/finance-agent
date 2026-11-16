@@ -114,3 +114,30 @@ describe("QuizPanel template questions", () => {
     expect(html).not.toContain("go over what you missed");
   });
 });
+
+// Spine critics round 4 (Topic 1, widget-fit, #88): a judging Check names who tells each Story with a small mark, its line
+// Icon and its name, so each tap is a story moment; a question with no speaker shows none.
+describe("QuizPanel judged Stories", () => {
+  const judging: OpenQuiz = {
+    ...quiz,
+    questions: [
+      { id: "fan", prompt: "A fan says $84 is a fair price. Which story comes nearest $84?", speaker: { who: "A fan", emoji: "star-struck" }, choices: [{ id: "a", text: "A" }, { id: "b", text: "B" }] },
+      { id: "plain", prompt: "What is a rate?", choices: [{ id: "a", text: "A" }, { id: "b", text: "B" }] },
+    ],
+  };
+
+  it("shows the speaker's Icon and name above the question it tells, and none where there is no speaker", () => {
+    const html = renderToStaticMarkup(<QuizPanel quiz={judging} />);
+    const marks = html.match(/<span data-testid="quiz-speaker"[^>]*>.*?<\/span>/g) ?? [];
+    expect(marks).toHaveLength(1);
+    expect(marks[0]).toMatch(/<svg[^>]*>.*<\/svg>A fan<\/span>$/);
+    expect(html.indexOf("A fan<")).toBeLessThan(html.indexOf("A fan says"));
+    expect(html).toMatch(/<span data-testid="quiz-prompt"[^>]*>A fan says \$84 is a fair price\./);
+  });
+
+  it("keeps the mark on the marking too", () => {
+    const marked: MissedQuiz = { ...missed, result: { ...missed.result, questions: [{ ...missed.result.questions[1], speaker: { who: "A headline", emoji: "newspaper" } }] } };
+    const html = renderToStaticMarkup(<QuizPanel quiz={null} missed={marked} />);
+    expect(html).toMatch(/<span data-testid="quiz-speaker"[^>]*><svg[^>]*>.*?<\/svg>A headline<\/span>/);
+  });
+});

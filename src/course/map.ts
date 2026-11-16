@@ -292,6 +292,13 @@ const conversationCheck = z.object({
 });
 
 /**
+ * Who tells a judged Story (spec #68, ADR 0020; Spine critics round 4, #88): a small mark beside the question, its line
+ * Icon (an Icon name, lint L11) and a word or two ("A fan"), so each tap in a judging Check is a story moment.
+ */
+const speakerSchema = z.object({ who: z.string().trim().min(1).max(24), emoji: z.string().trim().min(1) }).strict();
+export type Speaker = z.infer<typeof speakerSchema>;
+
+/**
  * A computed judgement question: its words and its changes, never its answer or its figures. Code values each change from
  * the Case, so changing the Case's valuation block changes the right choice and the figure on every choice with no edit here.
  */
@@ -300,6 +307,7 @@ const computedQuestion = z
     id,
     kind: z.enum(COMPUTED_KINDS),
     prompt: z.string().min(1),
+    speaker: speakerSchema.optional(),
     skill: id.optional(),
     computed: computedSchema,
     /** Words shown after the Learner has answered, beside the figures code adds. No figures of its own. */
@@ -317,6 +325,8 @@ const writtenQuestion = z.object({
   id,
   kind: z.enum(WRITTEN_KINDS).optional(),
   prompt: z.string().min(1),
+  /** Who tells the Story it judges, shown as a small mark beside the question. */
+  speaker: speakerSchema.optional(),
   /** `mistake`: a wrong choice's Known mistake, whose one-line fix the marking shows. */
   choices: z
     .array(z.object({ id, text: z.string().min(1), mistake: z.object({ fix: z.string().trim().min(1), tag: z.string().min(1).optional() }).optional() }))

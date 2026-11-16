@@ -3621,6 +3621,12 @@
               "type": "null"
             }
           ]
+        },
+        "firstLook": {
+          "type": [
+            "boolean",
+            "null"
+          ]
         }
       },
       "required": [

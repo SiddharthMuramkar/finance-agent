@@ -36,7 +36,8 @@ cases:
 
 # Four new words (spec #68), each on a card: price, value, operating margin and the cost of capital, which the Insight
 # and four question labels use. "share" is said in plain words in the Moment. The Topic says "sales", never "revenue", so
-# revenue has no card here (decision on F12, #87/#88; the Widget's lever is titled "How big it gets").
+# revenue has no card here (decision on F12, #87/#88; the Widget's lever is titled "How big it gets" and, in this Topic's
+# first look, labelled "Sales in year 10").
 terms:
   - term: price
     means: What buyers pay for one share today.
@@ -98,6 +99,9 @@ explore:
     inputs:
       caseStory: Damodaran's story
       priceStory: { revenue: 60, margin: 12.5 }
+      # A first look (critics round 4, #88): lever 1 says "Sales in year 10", as this Topic says sales and gives revenue no
+      # card, and the share of the value after year 10 (over 100% here, as the early years lose money) is left out.
+      firstLook: true
 
 connections:
   - text: Discounted cash flow puts each lever into a value one year at a time, and is where this story's figures come from.
@@ -218,22 +222,28 @@ questions:
     answer: price
     explanation: Ten times sales compares what buyers pay; it says nothing about the business's own future cash.
     source: "Illustrative statement, not from the paper; price against value as in Damodaran, valuation of Amazon, February 2000 (HighGrow.pdf)"
-  # The judging Check (worth-talk, ADR 0020): other people's Stories about Amazon, judged by tap. No own story.
+  # The judging Check (worth-talk, ADR 0020): other people's Stories about Amazon, judged by tap. No own story. Each names
+  # who tells it (speaker: its line Icon and name, critics round 4), so each tap is a story moment.
+  # The fan's choices are stories in words, each against the professor's (critics round 4: pairs of figures read as sums):
+  # far bigger is $70bn of sales in year 10 against his $39bn; a little more kept is 11% against his 10%, much more 15%,
+  # a bit more 12%; a bit bigger is $50bn; a much lower cost of capital is 8% against his 12.84%.
   - id: worth-q-judge-price
     kind: price_assumes
-    prompt: A fan says $84 is a fair price. Which story must the fan believe?
+    prompt: A fan says $84 is a fair price. Next to the professor's story, which story comes nearest $84?
+    speaker: { who: "A fan", emoji: star-struck }
     skill: price-value
-    explanation: Only a much bigger Amazon that keeps more of each sale comes near the price; one lever alone falls short.
+    explanation: To call the price fair, the fan has to believe a story worth about that much. Only a far bigger Amazon that keeps a little more of each sale comes near it; a fatter margin alone, a lower cost of capital alone, or a bit more of both falls short.
     computed:
       case: spine-01-amazon-2000
       changes:
-        - { id: fan-big, label: "$70bn of sales and an 11% margin", levers: { revenueYear10: 70000, marginTarget: 11 } }
-        - { id: fan-margin, label: "$39bn of sales and a 15% margin", levers: { marginTarget: 15 } }
-        - { id: fan-size, label: "$50bn of sales and a 12% margin", levers: { revenueYear10: 50000, marginTarget: 12 } }
-        - { id: fan-money, label: "$39bn, 10% and an 8% cost of capital", levers: { costOfCapitalGrowing: 8 } }
+        - { id: fan-big, label: "A far bigger Amazon that keeps a little more of each sale", levers: { revenueYear10: 70000, marginTarget: 11 } }
+        - { id: fan-margin, label: "Just as big, but keeping much more of each sale", levers: { marginTarget: 15 } }
+        - { id: fan-size, label: "A bit bigger, and keeping a bit more of each sale", levers: { revenueYear10: 50000, marginTarget: 12 } }
+        - { id: fan-money, label: "The professor's story as it is, with a much lower cost of capital", levers: { costOfCapitalGrowing: 8 } }
   - id: worth-q-judge-headline
     kind: price_or_value
     prompt: "A headline says \"Amazon is now a $30bn company\", counting every share at that day's price. A price someone paid, or a value someone argued?"
+    speaker: { who: "A headline", emoji: newspaper }
     skill: price-value
     choices:
       - { id: price, text: "A price someone paid" }
@@ -246,6 +256,7 @@ questions:
   - id: worth-q-judge-analyst
     kind: price_or_value
     prompt: "An analyst writes: \"On my sales and margins, a share is worth $40.\" A price someone paid, or a value someone argued?"
+    speaker: { who: "An analyst", emoji: face-with-monocle }
     skill: price-value
     choices:
       - { id: value, text: "A value someone argued" }
@@ -258,6 +269,7 @@ questions:
   - id: worth-q-judge-founder
     kind: cannot_hold
     prompt: A founder pitches three stories for a shop that sells online. Which one contradicts itself?
+    speaker: { who: "A founder", emoji: technologist }
     skill: levers
     choices:
       - { id: free, text: "Sales grow ten times over and it builds no new warehouses" }
@@ -273,6 +285,7 @@ questions:
   - id: worth-q-judge-rivals
     kind: direction
     prompt: An analyst's story says rival shops will never cut their prices. If they do, which lever in her story moves, and which way?
+    speaker: { who: "An analyst", emoji: face-with-monocle }
     skill: levers
     choices:
       - { id: margin-down, text: "What it keeps, down" }
@@ -288,6 +301,7 @@ questions:
   - id: worth-q-judge-safer
     kind: direction
     prompt: A fan's story says investors will soon see Amazon as a safer bet. Which lever in the fan's story moves, and which way?
+    speaker: { who: "A fan", emoji: star-struck }
     skill: levers
     choices:
       - { id: risk-down, text: "How risky it is, down" }

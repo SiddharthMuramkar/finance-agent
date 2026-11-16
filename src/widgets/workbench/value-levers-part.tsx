@@ -55,6 +55,8 @@ export const valueLeversProps = z.object({
   optionsRow: optionalNumber("Full sheet: change to employee options, in the Case's unit, a $variable starting at 0"),
   // Market readings (#105) come after the rows, last.
   readings: z.array(z.string()).nullish().describe("Market readings shown beside the levers, by id"),
+  // A first look (Spine Topic 1, #88) comes after the readings, last.
+  firstLook: z.boolean().nullish().describe("A first look: lever 1 says sales, and the share after year 10 is left out"),
 });
 
 type Props = z.infer<typeof valueLeversProps>;
@@ -93,13 +95,13 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
   const chosen = pickable.length ? Math.min(pickable.length - 1, Math.max(0, Math.round(Number(caseField.value) || 0))) : 0;
   const caseId = pickable[chosen]?.id ?? props.caseId;
   // The literal props, as one key, so the Case, the mode and the stories are worked out once per change.
-  const key = JSON.stringify([caseId, props.caseStory ?? null, props.priceStory ?? null, props.mode ?? null]);
+  const key = JSON.stringify([caseId, props.caseStory ?? null, props.priceStory ?? null, props.mode ?? null, props.firstLook ?? null]);
   const parsed = useMemo(() => {
-    const [cid, caseStory, priceStory, mode] = JSON.parse(key) as unknown[];
-    return valueLeversData({ caseId: cid, caseStory, priceStory, mode }, ownCases);
+    const [cid, caseStory, priceStory, mode, firstLook] = JSON.parse(key) as unknown[];
+    return valueLeversData({ caseId: cid, caseStory, priceStory, mode, firstLook }, ownCases);
   }, [key, ownCases]);
   const data = "data" in parsed ? parsed.data : null;
-  const specs = useMemo(() => (data ? leverSpecs(data.block, data.mode) : []), [data]);
+  const specs = useMemo(() => (data ? leverSpecs(data.block, data.mode, data.firstLook) : []), [data]);
   const stories = useMemo(() => (data ? valueLeversStories(data.block, specs, { caseStory: data.caseStory, priceStory: data.priceStory }, data.mode) : []), [data, specs]);
   if (!data) return <p className="py-2 text-sm text-[var(--muted)]">{"problem" in parsed ? parsed.problem : null}</p>;
   const levers = settingsFrom(
@@ -139,6 +141,7 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
       cases={pickable.map((c) => c.label)}
       caseChoice={chosen}
       readings={props.readings ?? []}
+      firstLook={data.firstLook}
       onChooseCase={(next) => {
         const target = pickable[next];
         if (!target || next === chosen) return;

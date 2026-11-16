@@ -142,6 +142,30 @@ describe("ValueLeversView on its own, as Home draws it", () => {
   });
 });
 
+// Spine critics round 4 (Topic 1, beginner-persona, #88): Topic 1 says "sales" and gives revenue no Lingo card, and never
+// teaches the share of the value after year 10, which reads over 100% for Amazon and looks like a bug to a beginner.
+describe("Spine Topic 1's explore Workbench, a first look", () => {
+  it('labels lever 1 "Sales in year 10" and leaves out the share of the value after year 10', async () => {
+    const widget = exploreWidgetOf(loadCourseMap().topic("spine-01-worth")!);
+    expect(widget).not.toBeNull();
+    await act(async () => {
+      root.render(<WidgetView code={widget!.code} complete />);
+    });
+    await settle();
+    expect(host.textContent).not.toContain("could not be drawn");
+    expect(lever("Sales in year 10").getAttribute("aria-valuetext")).toBe("39 billion dollars");
+    expect(host.textContent).not.toMatch(/revenue/i);
+    expect(host.textContent).toContain("Price on 3 Feb 2000");
+    expect(host.querySelector('[data-testid="value-levers-numbers"]')?.textContent).not.toMatch(/after year 10|%/);
+  });
+
+  it("keeps both in the Widget elsewhere", async () => {
+    await drawFixture();
+    expect(lever("Revenue in year 10")).toBeTruthy();
+    expect(host.querySelector('[data-testid="value-levers-numbers"]')?.textContent).toContain("Value from after year 10");
+  });
+});
+
 // Review finding talk-label-missing-from-bar-aria: Spine Topic 11's $40bn is a talk nobody paid (price.label), and the screen
 // says so; the bar's accessible name called it "the price of $40bn", so a screen reader heard what the screen does not say.
 describe("a Case whose figure is not a price (price.label): the bar's accessible name uses the Case's word", () => {

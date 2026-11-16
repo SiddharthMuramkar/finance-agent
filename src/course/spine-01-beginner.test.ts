@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readWidget } from "@/widgets/widget-reading";
+import { exploreWidgetOf } from "./explore-widget";
+import { computedKeyedQuestion, publicQuestions, type QuestionLookup } from "./quiz";
 import { loadCourseMap } from "./map";
 import { courseOverview, navigate, type Progress } from "./navigator";
 import { topicTexts } from "./topic-texts";
@@ -55,6 +58,34 @@ describe("Spine Topic 1 for beginners", () => {
       ...topic.checks.flatMap((c) => c.quickTries.flatMap((t) => ["ask" in t ? t.ask : "", ...("choices" in t && t.choices ? t.choices.map((c) => c.text) : []), ...("computed" in t && t.computed ? t.computed.changes.map((c) => c.label) : [])])),
     ];
     expect(asked.filter((s) => /\d\.\d/.test(s))).toEqual([]);
+  });
+
+  it("shows a Workbench that says 'sales', never 'revenue', and no share of the value after year 10 (critics round 4)", () => {
+    // What the Learner sees is what the Tutor is told (widget-reading.ts), read from the Workbench code compiles for the Topic.
+    const reading = readWidget(exploreWidgetOf(topic)!.code, undefined, () => undefined)!;
+    expect(reading.sliders[0].label).toBe("Sales in year 10 (how big it gets)");
+    const said = [...reading.sliders.map((s) => s.label), ...reading.readouts];
+    expect(said.filter((t) => /revenue/i.test(t))).toEqual([]);
+    expect(said.filter((t) => /after year 10/i.test(t))).toEqual([]);
+  });
+
+  it("names who tells each Story its judging Check judges, with a line Icon, as the Learner sees it (critics round 4)", () => {
+    const judging = topic.checks.find((c) => c.id === "worth-talk");
+    if (judging?.kind !== "quiz") throw new Error("worth-talk is a quiz Check");
+    const lookup: QuestionLookup = { question: (id) => map.question(id) ?? computedKeyedQuestion(map, id) };
+    const shown = publicQuestions(lookup, judging.questions);
+    expect(shown.map((q) => q.speaker?.who)).toEqual(["A fan", "A headline", "An analyst", "A founder", "An analyst", "A fan"]);
+    // Each name is in the question's own words, so the mark and the Story agree.
+    for (const q of shown) expect(q.prompt.toLowerCase()).toContain(q.speaker!.who.toLowerCase().replace(/^an? /, ""));
+  });
+
+  it("words the fan's price question as stories, not sums, and asks which comes nearest the price (critics round 4)", () => {
+    const q = computedKeyedQuestion(map, "worth-q-judge-price")!;
+    expect(q.prompt).toMatch(/comes nearest \$84\?$/);
+    expect(q.prompt).not.toMatch(/must/);
+    expect(q.choices.filter((c) => /\d/.test(c.text))).toEqual([]);
+    const right = q.choices.find((c) => c.id === q.answer)!;
+    expect(right.text).toBe("A far bigger Amazon that keeps a little more of each sale");
   });
 
   it("names its levers as the Workbench does: 'Sales for each dollar invested'", () => {

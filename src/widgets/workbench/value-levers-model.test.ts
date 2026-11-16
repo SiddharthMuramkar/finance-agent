@@ -207,6 +207,13 @@ describe("the Workbench budget at rest (B2)", () => {
     expect(shape).toMatchObject({ controls: 4, more: 1, visuals: 1, numbers: 3, headlines: 1, tasks: 2 });
     expect(shape.words).toBeLessThanOrEqual(40);
   });
+
+  it("in a first look (Spine Topic 1, #88), lever 1 says sales and the share after year 10 is left out: two numbers at rest", () => {
+    expect(leverSpecs(amazon, undefined, true).map((s) => s.label)).toEqual(["Sales in year 10", "Operating margin once mature", "Sales for each dollar invested", "Cost of capital while it grows", "Chance it fails"]);
+    const shape = valueLeversShape(amazon, undefined, true);
+    expect(shape).toMatchObject({ controls: 4, more: 1, visuals: 1, numbers: 2, headlines: 1, tasks: 2 });
+    expect(shape.words).toBe(valueLeversShape(amazon).words - "Value from after year 10".split(" ").length);
+  });
 });
 
 describe("money in the Case's own currency", () => {

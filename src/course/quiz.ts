@@ -1,6 +1,6 @@
 import { choicesFor, choiceSet, drawTemplate, type DrawnItem } from "@/teaching";
 import { instantiateJudgement, type JudgementKind } from "@/teaching/judgement";
-import type { ComputedQuestion, CourseMap, QuizCheck, Topic } from "./map";
+import type { ComputedQuestion, CourseMap, QuizCheck, Speaker, Topic } from "./map";
 
 /**
  * Quiz Checks, in pure code: which questions an attempt shows, what the browser
@@ -14,6 +14,8 @@ import type { ComputedQuestion, CourseMap, QuizCheck, Topic } from "./map";
 export type KeyedQuestion = {
   id: string;
   prompt: string;
+  /** Who tells the Story a judging question judges (a fan, a headline): shown as a small mark beside it. */
+  speaker?: Speaker;
   /**
    * A wrong choice's `mistake` is a Known mistake: its one-line fix shows in the marking. A template draw's choices come
    * from `choicesFor`. `figure` is what code worked out a computed question's choice is worth ("$48.51"), shown once answered.
@@ -42,11 +44,13 @@ export type PublicQuestion = {
   id: string;
   prompt: string;
   choices: { id: string; text: string }[];
+  speaker?: Speaker;
 };
 
 export type MarkedQuestion = {
   id: string;
   prompt: string;
+  speaker?: Speaker;
   /** The choice the Learner picked, or null if none (or one that does not exist). */
   chosen: string | null;
   answer: string;
@@ -139,6 +143,7 @@ export function computedKeyedQuestion(map: Pick<CourseMap, "topics">, id: string
   return {
     id,
     prompt: i.prompt,
+    ...(question.speaker ? { speaker: question.speaker } : {}),
     choices: i.choices.map((c) => ({ id: c.id, text: c.text, ...(c.figure && { figure: c.figure }), ...(c.mistake && { mistake: c.mistake }) })),
     answer: i.answer,
     explanation: i.explanation,
@@ -256,7 +261,7 @@ export function publicQuestions(map: QuestionLookup, ids: string[]): PublicQuest
   return ids.map((id) => {
     const q = map.question(id);
     if (!q) throw new Error(`Question "${id}" is not on the Course Map or in the Question Bank.`);
-    return { id: q.id, prompt: q.prompt, choices: q.choices.map(({ id, text }) => ({ id, text })) };
+    return { id: q.id, prompt: q.prompt, choices: q.choices.map(({ id, text }) => ({ id, text })), ...(q.speaker ? { speaker: q.speaker } : {}) };
   });
 }
 
@@ -265,7 +270,7 @@ export function markAttempt(map: QuestionLookup, check: Pick<QuizCheck, "passRul
   const questions = ids.map((id): MarkedQuestion => {
     const q = map.question(id);
     if (!q) throw new Error(`Question "${id}" is not on the Course Map or in the Question Bank.`);
-    const shared = { id, prompt: q.prompt, verified: q.verified ?? true, ...(q.credit ? { credit: q.credit } : {}), ...(q.skill ? { skill: q.skill } : {}) };
+    const shared = { id, prompt: q.prompt, verified: q.verified ?? true, ...(q.speaker ? { speaker: q.speaker } : {}), ...(q.credit ? { credit: q.credit } : {}), ...(q.skill ? { skill: q.skill } : {}) };
     const picked = answers[id];
     const chosen = q.choices.some((c) => c.id === picked) ? picked : null;
     const correct = isRight(q, chosen);

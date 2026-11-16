@@ -85,6 +85,8 @@ export type ValueLeversViewProps = {
   /** Each Full sheet row's change from the Case's figure (full-sheet.ts); with onRowsChange, the caller keeps them. None changed when left out. */
   rows?: RowSettings;
   onRowsChange?: (rows: RowSettings) => void;
+  /** A first look (Spine Topic 1, #88): lever 1 says sales, and the share of the value after year 10 is left out. */
+  firstLook?: boolean;
 };
 
 export function ValueLeversView({
@@ -111,8 +113,9 @@ export function ValueLeversView({
   readings = [],
   rows: givenRows,
   onRowsChange,
+  firstLook = false,
 }: ValueLeversViewProps) {
-  const specs = useMemo(() => leverSpecs(block, mode), [block, mode]);
+  const specs = useMemo(() => leverSpecs(block, mode, firstLook), [block, mode, firstLook]);
   const [ownLevers, setOwnLevers] = useState<LeverSettings>(() => levers ?? openingSettings(specs));
   const [ownMoves, setOwnMoves] = useState<Moves>(() => givenMoves ?? NO_MOVES);
   const [ownMarket, setOwnMarket] = useState(() => givenMarket ?? 0);
@@ -253,7 +256,8 @@ export function ValueLeversView({
             </dd>
           </>
         ) : (
-          model.afterYear10 && (
+          model.afterYear10 &&
+          !firstLook && (
             <>
               <dt className="text-[var(--muted)]">{AFTER_YEAR_10_LABEL}</dt>
               <dd className="text-right tabular-nums">{model.afterYear10.text}</dd>
