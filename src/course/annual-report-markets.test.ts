@@ -34,6 +34,10 @@ describe("annual-report Topic: Japan, Korea and Europe (#94)", () => {
     });
   }
 
+  it("no Case's opening question asks the Learner to count (critics round 1: recognise, don't tally)", () => {
+    for (const c of topic.cases) expect(c.story, c.id).not.toMatch(/how many/i);
+  });
+
   it("the concept names the five markets' reports", () => {
     for (const word of ["10-K", "India", "Japan", "Korea", "Europe"]) expect(topic.concept).toContain(word);
   });
