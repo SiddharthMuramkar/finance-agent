@@ -120,7 +120,7 @@ describe("the AI Tutor on a US Own Case (#113)", () => {
     const { client, requests } = scriptedClient([text(reply)]);
     const result = await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
     expect(result).toMatchObject({ ok: true, reply, failed: [] });
-    expect(JSON.stringify(requests[0].messages)).toContain("in the US.");
+    expect(JSON.stringify(requests[0].messages)).toContain("in the US (Jan 2026)");
   });
 });
 

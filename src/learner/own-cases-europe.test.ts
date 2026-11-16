@@ -31,6 +31,7 @@ describe("a European Own Case's note", () => {
     expect(note[1]).toContain("640,172,858 shares, price €77 on 31 Dec 2025.");
     expect(note[2]).toContain("fading to 3.4%");
     expect(note[2]).toContain("€1.88 of sales for each €1 invested; cost of capital 4.77%.");
-    expect(note[3]).toMatch(/^The engine's value: €[\d,.]+ a share, beside a price of €77 on 31 Dec 2025\.$/);
+    expect(note[3]).toBe("Employee stock options are not entered: the engine counts none.");
+    expect(note[4]).toMatch(/^The engine's value: €[\d,.]+ a share, beside a price of €77 on 31 Dec 2025\.$/);
   });
 });
