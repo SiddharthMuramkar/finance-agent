@@ -122,7 +122,7 @@ questions:
     explanation: >
       A corporate bond's risk and return depend on how creditworthy the company is. Governments can raise taxes to meet their payments, so their bonds carry little credit risk, and a company's bond has to pay more to attract lenders.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.1 Characteristics of Bonds: https://openstax.org/books/principles-finance-2e/pages/10-1-characteristics-of-bonds
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.1 Characteristics of Bonds: https://openstax.org/books/principles-finance-2e/pages/10-1-characteristics-of-bonds
 
   - id: gs-q-ready-forward
     prompt: >

@@ -1,6 +1,6 @@
 {
-  "about": "Library search test questions (#20, extended in #21). Each question is in a Learner's own words. A question scores when a passage that answers it is in the top 5. Original OpenStax questions list `expect` as bare OpenStax module IDs; the questions added for the other sources list `expect` as `<source id>/<document ref>` and/or `sources` plus `expectText` (a passage from one of those sources that contains one of the phrases, for sources cut as a single long document such as the S-1). `hindsight` probes run with a Case's as-of date and report any passage that mentions a later year or the Case's outcome (`outcome` words, matched as whole words, ignoring case; the judge is src/library/hindsight.ts). Probes with a `case` guard one Signal Case's ending (#25): every Signal Case with an as-of date has one, and src/library/hindsight.test.ts checks the as-of rule against the same words; rates-up-1 and compounding-1000 are worked examples with no as-of date and nothing to withhold. `alsoExpect` lists passages from other sources that were read and judged to answer the question too (a note on what the strict `expect` misses when richer sources compete); the score prints both the strict and the judged count. Author-named questions (#21 follow-up) are asked as a Learner words them, with the writer's name in the query; `scoped` gives the query the Tutor should send instead (no name) and the `source` filter to pair with it. The score prints both: the name left in the query, and the scoped search.",
-  "source": "openstax-principles-finance-2e",
+  "about": "Library search test questions (#20, extended in #21). Each question is in a Learner's own words. A question scores when a passage that answers it is in the top 5. Original OpenStax questions list `expect` as bare OpenStax module IDs; the questions added for the other sources list `expect` as `<source id>/<document ref>` and/or `sources` plus `expectText` (a passage from one of those sources that contains one of the phrases, for sources cut as a single long document such as the S-1). `hindsight` probes run with a Case's as-of date and report any passage that mentions the Case's outcome (`outcome` words, matched as whole words, ignoring case) or, in timeless text, a later year; a later year in a dated text published by that date is a plan, not hindsight (the judge is src/library/hindsight.ts). Probes with a `case` guard one Signal Case's ending (#25): every Signal Case with an as-of date has one, and src/library/hindsight.test.ts checks the as-of rule against the same words; rates-up-1 and compounding-1000 are worked examples with no as-of date and nothing to withhold. `alsoExpect` lists passages from other sources that were read and judged to answer the question too (a note on what the strict `expect` misses when richer sources compete); the score prints both the strict and the judged count. Author-named questions (#21 follow-up) are asked as a Learner words them, with the writer's name in the query; `scoped` gives the query the Tutor should send instead (no name) and the `source` filter to pair with it. The score prints both: the name left in the query, and the scoped search.",
+  "source": "openstax-principles-finance-1e",
   "questions": [
     {
       "q": "Why is a dollar today worth more than a dollar next year?",
@@ -339,7 +339,7 @@
       "expect": [
         "yale-econ-252/lecture-7",
         "yale-econ-252/lecture-11",
-        "openstax-principles-finance-2e/m00071"
+        "openstax-principles-finance-1e/m00071"
       ]
     },
     {
@@ -357,7 +357,7 @@
       "q": "What do forward and futures contracts do for someone who wants to hedge?",
       "expect": [
         "yale-econ-252/lecture-15",
-        "openstax-principles-finance-2e/m00130"
+        "openstax-principles-finance-1e/m00130"
       ],
       "alsoExpect": [
         "damodaran-papers/paper-hedging"
@@ -611,8 +611,189 @@
         "q": "leverage cycle and collateral",
         "source": "Geanakoplos"
       }
+    },
+    {
+      "q": "Should a lottery winner take the lump-sum cash or the yearly payments?",
+      "expect": [
+        "m00053",
+        "m00058",
+        "m00047"
+      ],
+      "signal": {
+        "case": "mega-millions-2018",
+        "asOf": "2018-10-24"
+      }
+    },
+    {
+      "q": "What are 30 yearly payments that grow 5% each year worth today?",
+      "expect": [
+        "m00053"
+      ],
+      "sources": [
+        "damodaran-papers",
+        "damodaran-blog"
+      ],
+      "expectText": [
+        "growing annuity"
+      ],
+      "signal": {
+        "case": "mega-millions-2018",
+        "asOf": "2018-10-24"
+      }
+    },
+    {
+      "q": "If interest rates go up, what happens to the value today of payments I get later?",
+      "expect": [
+        "m00047",
+        "m00048",
+        "m00053",
+        "m00062"
+      ],
+      "signal": {
+        "case": "mega-millions-2018",
+        "asOf": "2018-10-24"
+      }
+    },
+    {
+      "q": "How do you value a company like Amazon that loses money but grows very fast?",
+      "expect": [
+        "damodaran-papers/paper-younggrowth",
+        "damodaran-papers/paper-HighGrow"
+      ],
+      "sources": [
+        "damodaran-papers"
+      ],
+      "expectText": [
+        "Amazon"
+      ],
+      "signal": {
+        "case": "amazon-2000",
+        "asOf": "2000-02-03"
+      }
+    },
+    {
+      "q": "Why is most of a growth company's value in its terminal value?",
+      "expect": [
+        "m00068",
+        "m00069"
+      ],
+      "sources": [
+        "damodaran-papers",
+        "damodaran-blog"
+      ],
+      "expectText": [
+        "terminal value"
+      ],
+      "signal": {
+        "case": "amazon-2000",
+        "asOf": "2000-02-03"
+      }
+    },
+    {
+      "q": "Why should WeWork's long-term lease commitments count as debt?",
+      "expect": [
+        "damodaran-papers/paper-newlease"
+      ],
+      "sources": [
+        "damodaran-blog"
+      ],
+      "expectText": [
+        "WeWork"
+      ],
+      "signal": {
+        "case": "wework-2019",
+        "asOf": "2019-08-14"
+      }
+    },
+    {
+      "q": "What is community-adjusted EBITDA and why do people distrust adjusted earnings?",
+      "sources": [
+        "damodaran-blog",
+        "damodaran-papers"
+      ],
+      "expectText": [
+        "adjusted EBITDA",
+        "community-adjusted"
+      ],
+      "signal": {
+        "case": "wework-2019",
+        "asOf": "2019-08-14"
+      }
+    },
+    {
+      "q": "What is a basis point, and how is it different from a percentage point?",
+      "sources": [
+        "openstax-principles-finance-1e",
+        "fed-explained",
+        "yale-econ-251",
+        "yale-econ-252"
+      ],
+      "expectText": [
+        "basis point",
+        "percentage point"
+      ],
+      "signal": {
+        "case": "fed-1994",
+        "asOf": "1994-02-03"
+      }
+    },
+    {
+      "q": "When the Fed raises the federal funds rate, what happens to other interest rates?",
+      "expect": [
+        "m00063"
+      ],
+      "sources": [
+        "fed-explained",
+        "nyfed-explainers"
+      ],
+      "expectText": [
+        "federal funds rate"
+      ],
+      "signal": {
+        "case": "fed-1994",
+        "asOf": "1994-02-03"
+      }
+    },
+    {
+      "q": "How do I work out the average yearly growth rate of an index that went from 100 to 4,000 in 13 years?",
+      "expect": [
+        "m00050",
+        "m00078"
+      ],
+      "signal": {
+        "case": "sensex-1992",
+        "asOf": "1992-03-31"
+      }
+    },
+    {
+      "q": "What is the rule of 72 for how fast money doubles?",
+      "expect": [
+        "m00050"
+      ],
+      "signal": {
+        "case": "sensex-1992",
+        "asOf": "1992-03-31"
+      }
+    },
+    {
+      "q": "Why is the average of yearly returns different from the compound growth rate?",
+      "expect": [
+        "m00078"
+      ],
+      "sources": [
+        "damodaran-papers",
+        "yale-econ-252"
+      ],
+      "expectText": [
+        "geometric mean"
+      ],
+      "signal": {
+        "case": "sensex-1992",
+        "asOf": "1992-03-31"
+      }
     }
   ],
+  "aboutSignal": "Signal Case questions (#24) carry `signal`: the Case and its as-of date. library-score scores them apart from the rest, once with no as-of limit and once with the Case's as-of date (as the Tutor searches during a Case), and leaves them out of the per-source counts. The reranker re-test (#28, #37) compares the same runs with and without --rerank.",
   "hindsight": [
     {
       "q": "Mega Millions jackpot winner cash option or annuity in 2018",
@@ -714,6 +895,26 @@
       "q": "what happened to WeWork after its IPO filing",
       "asOf": "2019-08-14",
       "outcome": ["withdrew its IPO", "withdrew its share sale", "withdrew its offering", "pulled its IPO", "IPO was pulled", "IPO was withdrawn", "failed IPO", "WeWork's collapse", "collapse of WeWork", "filed for bankruptcy", "Neumann stepped down", "Neumann was ousted", "SoftBank rescue", "SoftBank bailout"]
+    },
+    {
+      "q": "Webvan IPO price and first day of trading",
+      "asOf": "1999-11-04",
+      "outcome": ["24.875", "65% above", "7.9 billion", "$7.9bn", "acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
+    },
+    {
+      "q": "Webvan distribution centres, warehouses and cash after its IPO",
+      "asOf": "1999-11-05",
+      "outcome": ["acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
+    },
+    {
+      "q": "Webvan plan for 26 more distribution centers and its capital spending",
+      "asOf": "2000-03-30",
+      "outcome": ["acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
+    },
+    {
+      "q": "Webvan cash burn and funding",
+      "asOf": "2001-04-02",
+      "outcome": ["filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
     }
   ]
 }

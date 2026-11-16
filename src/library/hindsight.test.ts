@@ -123,10 +123,19 @@ describe("outcome words", () => {
     expect(outcomeWordsIn("She took the cash: $877,784,124.", ["877,784,124", "Took the cash", "lump sum"])).toEqual(["877,784,124", "Took the cash"]);
   });
 
-  it("a dated passage published after the as-of date, or one mentioning a later year, is flagged even without outcome words", () => {
+  it("a dated passage published after the as-of date, or a timeless one mentioning a later year, is flagged even without outcome words", () => {
     const probe = { asOf: "2019-08-14", outcome: ["failed IPO"] };
     expect(hindsightFlag({ kind: "dated", publishedOn: "2019-09-30", text: "Desks." }, probe)).toEqual({ laterYears: [], outcomeWords: [], datedAfterAsOf: true });
     expect(hindsightFlag({ kind: "timeless", publishedOn: null, text: "By 2023 it had a failed IPO behind it." }, probe)).toEqual({ laterYears: [2023], outcomeWords: ["failed IPO"], datedAfterAsOf: false });
     expect(hindsightFlag({ kind: "timeless", publishedOn: null, text: "In 2018 it leased desks." }, probe)).toBeNull();
+  });
+
+  it("a later year in a dated passage published by the as-of date is a plan, not hindsight: only its outcome words count", () => {
+    const probe = { asOf: "1999-11-05", outcome: ["filed for bankruptcy"] };
+    const filing = (text: string) => ({ kind: "dated" as const, publishedOn: "1999-11-05", text });
+
+    expect(hindsightFlag(filing("We plan to open distribution centers in 26 markets by 2001; the notes are due 2008."), probe)).toBeNull();
+    expect(hindsightFlag(filing("By 2001 Webvan had filed for bankruptcy."), probe)).toEqual({ laterYears: [], outcomeWords: ["filed for bankruptcy"], datedAfterAsOf: false });
+    expect(hindsightFlag({ kind: "dated", publishedOn: "2001-07-10", text: "In 2001 it shut down." }, probe)).toEqual({ laterYears: [2001], outcomeWords: [], datedAfterAsOf: true });
   });
 });

@@ -70,7 +70,7 @@ questions:
     explanation: >
       Current yield is the yearly coupon over the price you pay. Paying less than face value makes it come out above the 8% coupon rate. It ignores the gain as the price returns to par at maturity, which is why the yield to maturity is higher still.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation (yield and coupon definitions): https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation (yield and coupon definitions): https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: by-q-ytm-order
     prompt: >
@@ -84,7 +84,7 @@ questions:
     explanation: >
       Below face value, the coupon is a bigger share of the price, so the current yield beats the coupon rate. The holder also gains as the price climbs back to face value at maturity, so the yield to maturity is highest of all.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: by-q-ytm-meaning
     prompt: >
@@ -98,7 +98,7 @@ questions:
     explanation: >
       Yield to maturity is the yearly return a buyer earns on the price paid, if the bond is held to maturity and every coupon and the face value are paid. It is the single rate that makes those payments worth today's price. Selling early breaks the promise.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: by-q-sell-early
     prompt: >
@@ -112,7 +112,7 @@ questions:
     explanation: >
       A yield to maturity is a promise only to someone who holds the bond to the end. Once rates rose, buyers would pay less for Asha's 6% bond, because new bonds paid more. Selling early locked in that lower price, which cancelled part of the coupon she had collected.
     source: >
-      Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+      Worked with the present value method of OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: by-q-leverage
     prompt: >
