@@ -15,7 +15,7 @@ How to read this document: sections 1 to 5 are the system (rules, tokens, compon
 
 ## 1. Product in one paragraph
 
-Value It teaches money, markets and valuation through real past events. A learner asks a question, the Tutor (a chatbot) answers and opens a live widget, and the learner moves the numbers until the idea makes sense. The Tutor chooses which widget to open and at which numbers. Tested code draws it. The site sells a waitlist ("early access"), is free during early access, and speaks to anyone curious about money rather than to one persona.
+Value It teaches money, markets and valuation through real past events. A learner asks a question, the Tutor (a chatbot) answers and opens a live widget, and the learner moves the numbers until the idea makes sense. The Tutor chooses which widget to open and at which numbers. Tested code draws it. The site sells a waitlist ("early access"), is free during early access, and speaks to one person: a beginner with no finance background (#68). Home asks a Visitor to learn only four product words: AI Tutor, Example, Topic, move the numbers. Published valuations are "one published valuation"; their authors are named only in source lines and the About credit.
 
 ### 1.1 Design principles (non-negotiable)
 
@@ -541,7 +541,7 @@ Presets:
 
 | Key | Chip label | rev | margin | s2c | wacc | Value |
 |---|---|---|---|---|---|---|
-| `damodaran` (the reference, "his story") | His story | 39 | 10 | 3 | 12.84 | 35.04 → `$35` |
+| `damodaran` (the reference, "his story") | The published Story | 39 | 10 | 3 | 12.84 | 35.04 → `$35` |
 | `grocer` | A grocer’s margins | 39 | 5 | 3 | 12.84 | 1.30 → `$1` |
 | `price` | One story worth $84 | 59 | 12 | 3 | 11.84 | 83.69 → `$84` |
 
@@ -571,7 +571,7 @@ Sixteen model runs per update. No throttling is needed.
 
 Used by the levers widget and by the home scroll story.
 
-**Top line.** Left: label "Your story is worth" over the value in blue (`share(v)`). Right: a sub-line.
+**Top line.** Left: label "This Story is worth" over the value in blue (`share(v)`). Right: a sub-line.
 
 | Condition | Sub-line |
 |---|---|
@@ -585,7 +585,7 @@ Used by the levers widget and by the home scroll story.
 |---|---|
 | Track | 10px high, radius 5px, `--wash-2` |
 | Price pin | 2px ink line at 50%, extending 6px above and below the track. Label above: "$84" (display 600 17px) over "Price paid, 3 Feb 2000" (12px muted). |
-| Reference notch | 2px ink-2 line at 55% opacity at `pos(35.04)`. Label below: "His story $35". |
+| Reference notch | 2px ink-2 line at 55% opacity at `pos(35.04)`. Label below: "Published $35". |
 | Your dot | 20px blue circle with a 3px white border and shadow at `pos(v)`. When `v > 168` it pins to the right end and shows a "›". |
 | Net segment (free mode) | From the notch to the dot. Green when `v ≥ reference`, red when below. |
 | Band (band mode) | Soft red (`--loss-line`) from `pos(lo)` to the notch and soft green (`--gain-line`) from the notch to `pos(hi)` for one lever. |
@@ -617,7 +617,7 @@ Interaction:
 | Mouse | Press anywhere on the track and drag. Pointer capture on the track. |
 | Touch | Drag only from the knob (`touch-action: none` on the knob, `pan-y` on the track, so the page still scrolls over a lever). A tap on the track (moved ≤ 8px) sets the value. |
 | Keyboard | A visually hidden native range input per lever. Arrow keys move one step. Focus draws a 2px blue outline around the track. |
-| Screen reader | `aria-valuetext`: e.g. "Operating margin 12 percent, adds 17 dollars a share". A polite live region announces "Your story is worth $84 a share." on commit (pointer up, tap, `change`). |
+| Screen reader | `aria-valuetext`: e.g. "Operating margin 12 percent, adds 17 dollars a share". A polite live region announces "This Story is worth $84 a share." on commit (pointer up, tap, `change`). |
 
 While dragging, the lab gets a `dragging` class that removes position transitions so marks track the pointer exactly.
 
@@ -631,9 +631,9 @@ Reading line:
 
 | Condition | Text |
 |---|---|
-| `|v − 35.04| < 0.5` | This is his story: **$35** a share, against a price of **$84**. Drag any lever to write your own. |
-| `round(v) ≥ 84` | [pill blue ✓ You reached the price] Your story needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000? |
-| otherwise | Your story is worth **$N more / less** than his. The pills under each lever show where that came from. |
+| `|v − 35.04| < 0.5` | This is one published valuation: **$35** a share, against a price of **$84**. Drag any lever to test it. |
+| `round(v) ≥ 84` | [pill blue ✓ You reached the price] To reach the $84 price, Amazon needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000? |
+| otherwise | This Story is worth **$N more / less** than the published one. The pills under each lever show where that came from. |
 
 The call: this widget has no right answer, so the call is the first lever change or preset tap. That opens Go deeper and fires `onCall`.
 
@@ -647,7 +647,7 @@ Go deeper, "Where the value comes from":
 | Cash from years 1 to 10 | 0 → yrs | Green if positive, red if negative | `d$(yrs)` |
 | Everything after year 10 | yrs → yrs + after | Green | `d$(after)` |
 | What it owes others | previous → previous − owes | Red | `d$(−owes)` |
-| Your story, a share (total, bold, ruled above) | 0 → total | Blue | `share(total)` |
+| This Story, a share (total, bold, ruled above) | 0 → total | Blue | `share(total)` |
 
 Scale: `lo = min(0, total, every segment low)`, `hi = max(84 × 1.1, total, every segment high)`, `X(v) = (v − lo) / (hi − lo) × 100%`. A 1px `--line` marks zero and a 2px ink line marks the $84 price through every row. Minimum bar width 0.6%. Row grid: label 11.5em, bar flexible, value 4.2em. At 560px and below the label and value sit above the bar.
 
@@ -660,7 +660,7 @@ Scale: `lo = min(0, total, every segment low)`, `hi = max(84 × 1.1, total, ever
 | `0 < tvShare ≤ 1` | **N%** of this business’s value arrives after year 10. |
 | `tvShare` null | (nothing) |
 
-Foot key: blue knob "You: drag these", green "Adds value to his story", red "Takes value away", notch "His story", pin "Price paid". Source: "Damodaran’s valuation of Amazon, Feb 2000, on the course’s tested valuation engine. It reproduces his $35.08 within 2%."
+Foot key: blue knob "You: drag these", green "Adds value to the published Story", red "Takes value away", notch "The published Story", pin "Price paid". Source: "Damodaran’s valuation of Amazon, Feb 2000, on the course’s tested valuation engine. It reproduces his $35.08 within 2%."
 
 #### 6.2.4 Acceptance values
 
@@ -959,7 +959,7 @@ CTA by state:
 
 ### 7.2 Home
 
-Section order: hero, four moves, levers story, colour language, questions, trust, FAQ, early access.
+Section order: hero, four moves, levers story, questions, trust, FAQ, early access. The colour language is on How it works only (#74). "Tested code" appears once on Home, in Trust.
 
 #### 7.2.1 Hero
 
@@ -1001,7 +1001,7 @@ Script when a different chip is tapped (all delays are 0 with reduced motion):
 | 0ms | Cancel pending timers. Destroy the current widget. Mark the chip. Clear the thread. Add the learner's bubble. |
 | 200ms | Add the typing indicator |
 | 950ms | Remove typing. Add the Tutor bubble with the case's `lead`. Add the skeleton "Opening a widget…". |
-| 1600ms | Remove the skeleton. Add the caption "The Tutor picked this widget. Tested code draws it." (with glyph). Mount the widget in compact mode with the staggered `build` animation. |
+| 1600ms | Remove the skeleton. Add the caption "The AI Tutor picked this Example. Checked numbers draw it." (with glyph). Mount the widget in compact mode with the staggered `build` animation. |
 | On the learner's call | Append a Tutor bubble: `follow.right` if the verdict was right, otherwise `follow.other` |
 
 On first load the jackpot conversation is already complete (learner's bubble, Tutor bubble, caption, widget) with no animation, so the first frame is the finished state.
@@ -1014,8 +1014,8 @@ Eyebrow "How a Topic works". H2 "One real event. Four moves. Ten to fifteen minu
 
 | Move | Name | Line |
 |---|---|---|
-| 1 | Hear the story | A true moment, and what people knew that day. |
-| 2 | Learn the lingo | Each money word in plain English, when the story needs it. |
+| 1 | Meet the moment | A true event, and what people knew that day. |
+| 2 | Learn the lingo | The AI Tutor explains each money word in plain English, when you need it. |
 | 3 | Try it | Tap an answer or move a lever. No sums. |
 | 4 | Value it | Put your own number on it, then see what really happened. |
 
@@ -1029,39 +1029,39 @@ Scroll spy: the active step is the last one whose top edge is above 55% of the v
 
 | Step | Left column | Stage |
 |---|---|---|
-| 0 | Eyebrow "A worked example". H2 "Every value comes down to four levers." "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. A professor in New York, Aswath Damodaran, writes down his story about its future, and his story says **$35**." "Four numbers make the difference." | His story. All four levers shown, none draggable. Net segment hidden (value equals reference). Hint: "Scroll to meet the four levers." |
-| 1 to 4 | "LEVER n OF 4", the lever's name as H2, its story sentence, and its power sentence in a block with a 2px blue-line left border | Reset to his story. That lever's band on the ruler. Only that lever is enabled and undimmed. Dragging it moves the dot inside the band. Hint: "Lever n of 4. Drag it. The shaded band is as far as it can move the value on its own." |
-| 5 | "YOUR TURN". H2 "Now it’s your story." "**Drag any lever.** Green means your change adds value to his story. Red means it takes value away. *Find a story worth the $84 price.*" Preset chips. Win line. Link "Open the full case, with what happened next →". | All four levers live. Net segment shown. The learner's last story is restored. Hint: "Drag any lever. Arrow keys work too." |
+| 0 | Eyebrow "A worked example". H2 "Every value comes down to four levers." "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. One published valuation tells a Story about its future, and that Story says **$35**." "Four numbers make the difference." Then the source line, the only place Home names Damodaran: "Source: [Aswath Damodaran, “Valuing Amazon.com”, February 2000](https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf)". | The published Story. All four levers shown, none draggable. Net segment hidden (value equals reference). Hint: "Scroll to meet the four levers." |
+| 1 to 4 | "LEVER n OF 4", the lever's name as H2, its story sentence, and its power sentence in a block with a 2px blue-line left border | Reset to the published Story. That lever's band on the ruler. Only that lever is enabled and undimmed. Dragging it moves the dot inside the band. Hint: "Lever n of 4. Drag it. The shaded band is as far as it can move the value on its own." |
+| 5 | "YOUR TURN: JUDGE IT". H2 "What did the $84 price need?" "**Drag any lever** until the value reaches $84. Green adds value to the published Story. Red takes value away. *Would you have believed it in 2000?*" Preset chips. Win line. Link "Open the full Example, with what happened next →". The step ends on judging the Price's Story, never on inventing one (#74). | All four levers live. Net segment shown. The learner's last story is restored. Hint: "Drag any lever. Arrow keys work too." |
 
-Lever story sentences:
+Lever story sentences, in plain words and round numbers (#74):
 
 | Lever | Story sentence |
 |---|---|
-| How big it gets | Revenue in year 10: **$39bn**, against $1.1bn today. |
-| What it keeps | Operating margin once mature: **10%**. Today it is −36.7%. |
-| What growth costs | **$3.00** of sales for each dollar it invests to grow. |
-| How risky | Cost of capital while it grows: **12.84%** a year. |
+| How big it gets | Sales in year 10: **$39bn**, against $1.1bn today. |
+| What it keeps | Once grown, it **keeps 10¢ of each $1** of sales. Today it loses 37¢. |
+| What growth costs | Each **$1 it invests** to grow brings **$3** of new sales. |
+| How risky | While it grows, **investors want 13% a year** for the risk. |
 
 Power sentences are generated from the model, never hard-coded:
 
 | Case | Template | Current output |
 |---|---|---|
-| Value rises with the lever, cannot reach $84 | On its own it can move his value anywhere from **{lo}** to **{hi}** a share. It cannot reach the $84 price by itself. | "…from **$0** to **$81**…" (How big), "…from **$0** to **$45**…" (What growth costs) |
+| Value rises with the lever, cannot reach $84 | On its own it can move the value anywhere from **{lo}** to **{hi}** a share. It cannot reach the $84 price by itself. | "…from **$0** to **$81**…" (How big), "…from **$0** to **$45**…" (What growth costs) |
 | Value rises with the lever, reaches $84 | …from **{lo}** to **{hi}** a share. It is the only lever that reaches the $84 price by itself, at {setting}. ("It reaches…" if more than one lever does.) | "…from **$0** to **$102**… at 17.5%." (What it keeps) |
 | Value falls as the lever rises | This lever runs backwards. More risk means less value: from **{atMin}** at the safest setting down to **{atMax}** at the riskiest. | "…from **$53**… down to **$22**…" (How risky) |
 
 Step rules:
 
-- Leaving step 5 saves the learner's four values. Entering any step below 5 resets the stage to his story. Returning to step 5 restores the saved values.
+- Leaving step 5 saves the learner's four values. Entering any step below 5 resets the stage to the published Story. Returning to step 5 restores the saved values.
 - Tapping a preset always switches the stage to step 5 first, whatever the scroll position, then applies the preset.
-- The win line appears only in step 5 when `round(value) ≥ 84`: [pill blue ✓ You reached the price] "Your story needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000?"
+- The win line appears only in step 5 when `round(value) ≥ 84`: [pill blue ✓ You reached the price] "To reach the $84 price, Amazon needs `{rev}` of sales in year 10 and a margin of `{margin}`. Would you have believed that in 2000?"
 - Step heights: 56vh, first step 48vh aligned to the top, last step 70vh. Content is vertically centred.
 
 At 900px and below the stage becomes a full-bleed sticky strip directly under the nav with no shadow or border: lever height 84px, value 30px, lever value 14px, unit labels hidden, hint hidden, step height 52vh.
 
-#### 7.2.4 Colour language
+#### 7.2.4 Colour language (How it works only)
 
-Wash band. Eyebrow "Reading a widget". H2 "Every colour means one thing." Body: "Learn five colours and one pattern once and you can read any widget in the course at a glance. Each colour also carries a sign or a word, so it reads the same if you can’t tell red from green."
+This block is drawn on How it works (7.3 item 4), not on Home (#74). Wash band. Eyebrow "Reading a widget". H2 "Every colour means one thing." Body: "Learn five colours and one pattern once and you can read any widget in the course at a glance. Each colour also carries a sign or a word, so it reads the same if you can’t tell red from green."
 
 A 3 × 2 grid of cells divided by hairlines (2 columns at 860px, 1 at 560px). Each cell: a 44px wash tile holding a small example, then the colour name with its meaning beside it in muted text, then one line.
 
@@ -1078,7 +1078,7 @@ The same block appears on How it works with the body: "The same five colours and
 
 #### 7.2.5 Questions
 
-Eyebrow "Five cases, open now". H2 "Start with a question you already have." Body: "No finance background needed. **If you can read a headline, you can start.**"
+Eyebrow "Five Examples, open now". H2 "Start with a question you already have." Body: "No finance background needed. **If you can read a headline, you can start.**"
 
 A ruled list (`.qlist`). Each row is one link with four columns: stamp and category (84px), the question (display 600 clamp(19px, 2vw, 24px)) with its hook beneath in 15px muted, a 132 × 36 mini picture of the widget in the colour language, and "Play →". Hover: wash background and the arrow moves 3px. At 760px and below the mini picture is hidden and the stamp row sits above the question.
 
@@ -1130,34 +1130,34 @@ Applicants and members see the CTA and note for their state instead of the form.
 
 | Move | Interactive body |
 |---|---|
-| 01 Hear the story | The Amazon story paragraph and its three facts |
+| 01 Meet the moment | The Amazon moment's paragraph, its three facts and the source line "Source: Aswath Damodaran, “Valuing Amazon.com”, February 2000" (linked), the only place How it works names him |
 | 02 Learn the lingo | Chips "price" and "value". Shows the term (display 600 30px), a bold definition and three rows: Say it like a pro, For example, In the story (Appendix D). |
-| 03 Try it | A call: "His story says $35 a share. Is that a price or a value?" "A value" is right ("It is what one story says a share is worth. The price is what buyers paid: $84."). "A price" is wrong ("A price is what buyers pay on the day. $35 is what his story says a share is worth: a value."). |
-| 04 Value it | Slider "Your value for one share", 0 to 150, start 50. Button "Reveal what really happened" shows four facts: Your value (blue), His value $35.08, Price, 3 Feb 2000 $84.00, Low, late 2000 $14.88, and the key line. |
+| 03 Try it | A call: "One published valuation says $35 a share. Is that a price or a value?" "A value" is right ("It is what one Story says a share is worth. The price is what buyers paid: $84."). "A price" is wrong ("A price is what buyers pay on the day. $35 is what one published valuation says a share is worth: a value."). |
+| 04 Value it | Slider "Your value for one share", 0 to 150, start 50. Button "Reveal what really happened" shows four facts: Your value (blue), Published value $35.08, Price, 3 Feb 2000 $84.00, Low, late 2000 $14.88, and the key line. |
 
-Each move ends with "Inside this move:" and step chips (Story / The idea / Your turn, Wrap up and its Check / Reveal, Principle). Closing line: "*15 short steps in all. Your place is saved after each one.* Moves 2 and 3 repeat for each idea in a Topic, usually four."
+Each move ends with "Inside this move:" and step chips (The moment / The idea / Your turn, Wrap up and its Check / Reveal, Principle). Closing line: "*15 short steps in all. Your place is saved after each one.* Moves 2 and 3 repeat for each idea in a Topic, usually four."
 
 3. **The workspace**: an annotated mock of the Study Workspace. Chat on the left (a Tutor bubble, a learner bubble, a fake input "Ask the Tutor anything"), a widget on the right (a rates mini picture, "4% → 5%: **1 point · 100 bp · 25%**", "Saved to your Notebook"), a 15-segment step bar and four numbered black callouts with this legend: Ask anything, any time. / The Tutor picks the widget; tested code draws it. / The step bar shows where you are in the Topic’s 15 short steps. / What you find lands in your Notebook.
-4. **Colour language** (7.2.4).
+4. **Colour language** (7.2.4): eyebrow "Reading a widget", H2 "Every colour means one thing.", the How it works body. Home no longer draws it.
 5. **Reviews**: H2 "It brings back what you missed." with a labelled illustration: a green "Check passed" dot, three blue review rings spaced further and further apart, and a red dashed arc for "missed: back sooner". The drawing carries the word "Illustration".
 6. **The path**: 15 core Topics (numbered, with minutes), 9 subjects with counts, 3 stages with counts (Appendix C).
 7. Closing CTA: "Start with Topic 1: What is a business worth?"
 
 ### 7.4 Examples
 
-Header: H1 "Real events. Move the numbers." Lede: "Five cases from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last."
+Header: H1 "Real events. Move the numbers." Lede: "Five Examples from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last."
 
 Filter chips with counts: All 5, Everyday money 2, The news 1, Real companies 2. Filtering hides rows with the `hidden` attribute. Then the question list (7.2.5). Then "110 Topics wait inside." with nine locked Topics (category, title, a "Members" badge with a lock icon) and the CTA.
 
 ### 7.5 Case page
 
-Top: "← All cases", stamp and category, the question as H1, and a four-step progress row.
+Top: "← All Examples", stamp and category, the question as H1, and a four-step progress row.
 
 Body: a two-column grid (5fr / 6fr), with rows `auto auto auto 1fr` so the left column stays compact beside a tall widget.
 
 | Left column, in order | Content |
 |---|---|
-| The story | Label, story paragraph with dateline, facts grid |
+| The moment | Label (an H2, so the widget's H3 title never skips a level), the moment's paragraph with dateline, facts grid |
 | Question | "You ask" + the learner's bubble (`ask`), then "Tutor" + the lead bubble (`lead`) |
 | The Tutor's answer | A waiting bubble: lock icon + "The Tutor explains after your call." Replaced by `answer` after the call. |
 | The ending | A locked box, then a ready box, then the reveal |
@@ -1315,6 +1315,7 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 8. Product nouns are capitalised: Topic, Tutor, Check, Review, Notebook, Library, Study Workspace.
 9. Made-up numbers are labelled "Illustration". Recorded conversations are labelled as recorded.
 10. Sources are named with a date on every widget.
+11. **Familiar first.** Every page and Topic starts from something a beginner already knows. No name or word they must look up: a published author is named only in a linked source line (and the About credit), and their work is "one published valuation". On screen an Example is never a "case", a Story is someone's claim to judge (never "your story"), and the event is "The moment". Round numbers in plain words come first ("keeps 10¢ of each $1", "investors want 13% a year"); exact figures follow in the widget. One label never repeats beside itself (no "THE NEWS · The news").
 
 ---
 
@@ -1397,15 +1398,15 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Slug / stamp / category | `amazon-2000` / Feb 2000 / Real companies |
 | Topic | What is a business worth? Price against value, and the four levers |
 | Question | Is $84 a fair price for Amazon? |
-| Hook | Amazon sells books online, loses money, and its shares cost $84. Set four levers and see what one story is worth. |
-| Story | **February 2000.** Amazon sells books and music online. In the twelve months to September 1999 it sold **$1,117 million** and lost **$410 million** on its operations. Its shares cost $84. A professor in New York, Aswath Damodaran, writes down what he thinks its future looks like: how big it gets, what it keeps of each sale, what its growth costs and how risky it is. |
+| Hook | Amazon sells books online, loses money, and its shares cost $84. Set four levers and judge what the price needed. |
+| Story | **February 2000.** Amazon sells books and music online. In the twelve months to September 1999 it sold **$1,117 million** and lost **$410 million** on its operations. Its shares cost $84. One published valuation writes down a Story about its future: how big it gets, what it keeps of each sale, what its growth costs and how risky it is. |
 | Facts | Sales, 12 months to Sep 1999: $1,117M · Operating loss, same period: $410M · Share price, 3 Feb 2000: $84 |
 | Learner asks | If Amazon loses money, how can it be worth anything at all? |
-| Tutor's lead | Start with what people knew that day. Buyers paid **$84** a share. One professor’s story about Amazon’s future came to **$35**. Four levers explain the gap. Move one and watch. |
+| Tutor's lead | Start with what people knew that day. Buyers paid **$84** a share. One published valuation of Amazon’s future came to **$35**. Four levers explain the gap. Move one and watch. |
 | Tutor's answer | **Because value comes from the cash it makes later, not the loss it makes now.** A valuation is a story told in four numbers: how big the business gets, what it keeps of each sale, what that growth costs, and how risky the ride is. Set those four levers and the cash flows, and the value, follow. |
-| Follow-up | That is your story now. Green adds value to his $35. Red takes it away. Can you find a story worth $84? |
+| Follow-up | Green adds value to the published $35. Red takes it away. What did the $84 price need? Would you have believed it in 2000? |
 | Ending label | What really happened |
-| Ending | Damodaran’s story came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong. |
+| Ending | The published valuation came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong. |
 | Sources | Damodaran’s published valuation of Amazon, 2000. The widget runs the course’s valuation engine on his inputs and reproduces his $35.08 within 2%. |
 
 ### A.3 WeWork, August 2019
@@ -1431,7 +1432,7 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 
 | Field | Text |
 |---|---|
-| Slug / stamp / category | `rates-up-1` / The news / The news |
+| Slug / stamp / category | `rates-up-1` / Any morning / The news |
 | Topic | Percent, percentage points and basis points |
 | Question | A headline says rates are up 1%. How big a move is that? |
 | Hook | Points, basis points and percent: three true answers of different sizes. |
@@ -1473,9 +1474,9 @@ FAQ, in order:
 | # | Question | Answer |
 |---|---|---|
 | 1 | Is Value It investment advice? | No. It teaches how finance works through past events. It never tells you what to buy or sell, and gives no tips. |
-| 2 | Do I need to be good at maths? | No. You never type a number: every question is a tap, or a sentence in your own words. Widgets work out the sums with tested code, and the Tutor explains them in words. |
+| 2 | Do I need to be good at maths? | No. You never type a number: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. |
 | 3 | Where do the facts come from? | From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage. |
-| 4 | Does the AI make up the charts? | No. The Tutor chooses which widget to open and at which numbers; tested code draws it. Made-up numbers are labelled Illustration. |
+| 4 | Does the AI make up the charts? | No. The AI Tutor chooses which chart to open and at which numbers; the chart is drawn from checked figures. Made-up numbers are labelled Illustration. |
 | 5 | What does it cost? | Nothing during early access. No price has been decided yet. |
 | 6 | How do I get in? | Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in. |
 | 7 | Can I start again? | Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted. |
@@ -1492,7 +1493,7 @@ About, promises:
 
 About, sourcing flow: **Real event** (A past moment whose outcome is known, like Amazon in February 2000.) → **Checked dataset** (Each figure stored with its public source and the date it was checked.) → **Tested widget** (Code draws the chart from that data, from a tested design.) → **The Tutor explains** (Quotes from its Library carry a number that opens the passage.)
 
-Non-affiliation line: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
+Non-affiliation line: "The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
 
 Early access: **Join** (Sign up with an email link. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
 
@@ -1528,14 +1529,14 @@ Locked Topics listed on Examples:
 
 | Category | Title |
 |---|---|
-| Follow | Damodaran, Tesla valuation (Feb 2020) |
+| Follow | Tesla, a valuation (Feb 2020) |
 | Judge | Twitter's 2013 IPO valuation versus what happened |
-| Follow | Damodaran, crowd valuation of Uber (Dec 2014) |
+| Follow | Uber, a crowd valuation (Dec 2014) |
 | Banks, crises & the system | Bank runs and interest-rate risk in banks |
 | Economics & policy | India's economy and the 1991 reforms |
 | Judge | Junk or BB+? |
 | Banks, crises & the system | Securitisation, MBS and CDOs |
-| Follow | Zitron, The Subprime AI Crisis (Sep 2024) |
+| Follow | OpenAI’s cheap AI prices (Sep 2024) |
 | Analyse | Transfer to India (G-sec, bank, rupee) |
 
 ---
@@ -1545,7 +1546,7 @@ Locked Topics listed on Examples:
 | Term | Definition | Say it like a pro | For example | In the story |
 |---|---|---|---|---|
 | price | What buyers pay for one share today. | The shares closed at $84. | A used bike sells for $200 on the day, whatever it is worth to you. | In the story, $84 is what buyers pay for an Amazon share. |
-| value | What one story about the business says a share is worth. | His story values the shares at $35. | You think the bike is worth $150 to you, whatever it sells for. | In the story, $35 is what Damodaran’s story says a share is worth. |
+| value | What one story about the business says a share is worth. | One published valuation puts the shares at $35. | You think the bike is worth $150 to you, whatever it sells for. | In the story, $35 is what one published valuation says a share is worth. |
 
 ---
 
