@@ -11,10 +11,6 @@ import { PEOPLE, becomePerson, test } from "./support/people";
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
-/** Spec 2026-11-12 G9: on the phone project every signed-in page shows only the phone note, so cases that go on there skip. */
-const onPhone = (name: string) => name.startsWith("p390");
-const PHONE_SKIP = "a signed-in page shows only the phone note below 768 px (e2e/phone-note.spec.ts)";
-
 test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
 });
@@ -86,8 +82,7 @@ test("[G1, F1] the sign-in page has the site nav, Sign in as the page showing, a
 
 // No wrong passcode is typed here: every project shares one server and one address, and five wrong ones pause the door
 // for everyone for 15 minutes (src/auth/login-guard.test.ts covers the wrong passcode and the pause).
-test("the passcode form signs the tools Learner in", async ({ page }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("the passcode form signs the tools Learner in", async ({ page }) => {
   await page.goto("/sign-in");
   await page.locator('input[name="passcode"]').fill("e2e-passcode");
   await page.getByRole("button", { name: "Enter" }).click();
@@ -106,16 +101,14 @@ test("while Clerk is off, /join and /sign-up send the visitor to /sign-in", asyn
   }
 });
 
-test("a signed-in person skips the sign-in page and lands where they were going", async ({ page }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("a signed-in person skips the sign-in page and lands where they were going", async ({ page }) => {
   await becomePerson(page, { person: "asha" });
   await page.goto("/sign-in?next=%2Fcourse");
   await expect(page).toHaveURL((url) => url.pathname === "/course");
   await expect(page.getByRole("heading", { name: "Course Map" })).toBeVisible();
 });
 
-test("an account's Learner shows their email, and signs out with one click", async ({ page, context }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("an account's Learner shows their email, and signs out with one click", async ({ page, context }) => {
   // Four pages, the first of them (Settings, Home after the sign-out) compiled cold by the dev server on a first run.
   test.slow();
   const asha = await becomePerson(page, { person: "asha" });
@@ -146,8 +139,7 @@ test("an account's Learner shows their email, and signs out with one click", asy
   await expect(page).toHaveURL((url) => url.pathname === "/sign-in" && url.searchParams.get("next") === "/settings");
 });
 
-test("the passcode Learner's Settings say so", async ({ page }, info) => {
-  test.skip(onPhone(info.project.name), PHONE_SKIP);
+test("the passcode Learner's Settings say so", async ({ page }) => {
   const login = await page.request.post("/api/login", { form: { passcode: "e2e-passcode" }, maxRedirects: 0 });
   expect(login.status()).toBe(303);
   await page.goto("/settings");

@@ -2,7 +2,8 @@
  * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 16 pages in the one Light theme
  * (decision #17), plus one `/sign-in?wrong=1` (the sign-in page with its error) shot per project; and (spec 2026-11-12 G9,
  * F6) a phone, 390 px wide, for the public pages only (the Signal site's Home, How it works, Examples, a case page, About,
- * and sign-in): the Study Workspace shows only its phone note there.
+ * and sign-in). The signed-in pages open on a phone too (spec #68, #82-#84); e2e/phone-workspace.spec.ts and
+ * e2e/phone-pages.spec.ts measure them there, so the matrix still shoots only the public pages at 390.
  * Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs both read it, and src/dev/preview-matrix.test.ts
  * checks its shape.
  */

@@ -4,7 +4,7 @@ import { getDb } from "@/db/client";
 import { loadProfile } from "@/learner/profile";
 import { loadYourTopics } from "@/learner/your-topics";
 import { currentAccount } from "../account";
-import { ReadingPage, SignedInFrame } from "../ui";
+import { ReadingPage } from "../ui";
 import { SettingsView } from "./settings-view";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +18,13 @@ export default async function SettingsPage() {
     loadYourTopics(getDb(), loadCourseMap(), learner.id),
   ]);
   return (
-    <SignedInFrame>
-      <ReadingPage current="settings" account={account}>
-        <SettingsView
-          profile={{ work: p.work ?? "", location: p.location ?? "", loan: p.loan ?? "", savingFor: p.savingFor ?? "" }}
-          developerDetails={learner.showDeveloperDetails}
-          account={account ?? { name: learner.name }}
-          topics={topics}
-        />
-      </ReadingPage>
-    </SignedInFrame>
+    <ReadingPage current="settings" account={account}>
+      <SettingsView
+        profile={{ work: p.work ?? "", location: p.location ?? "", loan: p.loan ?? "", savingFor: p.savingFor ?? "" }}
+        developerDetails={learner.showDeveloperDetails}
+        account={account ?? { name: learner.name }}
+        topics={topics}
+      />
+    </ReadingPage>
   );
 }
