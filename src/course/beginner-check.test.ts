@@ -81,6 +81,28 @@ describe("the beginner rules in the course check (spec #68)", () => {
     ]);
   });
 
+  it("fails a Spine Topic added to a real list, since the lists it started with are frozen, not copied from the live ones", () => {
+    const map = loadCourseMap();
+    const added = "spine-02-money-later";
+    expect(BEGINNER_STARTED_WITH.yourStory).not.toContain(added);
+    const errors = beginnerCheckErrors(map.topics, { lists: { ...BEGINNER_LISTS, yourStory: [...BEGINNER_LISTS.yourStory, added].sort() } });
+    expect(errors).toContain(
+      `List: Topic "${added}" was added to YOUR_STORY_NOT_YET, which only shrinks: make the Topic follow the rule instead (src/course/beginner-check.ts)`,
+    );
+  });
+
+  it("keeps the lists #87 started with as literals, not copies of the live lists", () => {
+    // Topic 1 came off the new-words list (#88), so a copy of the live list would no longer hold it.
+    expect(BEGINNER_LISTS.newWords).not.toContain("spine-01-worth");
+    expect(BEGINNER_STARTED_WITH.newWords).toContain("spine-01-worth");
+  });
+
+  it("keeps every live list inside the list it started with", () => {
+    for (const rule of Object.keys(BEGINNER_LISTS) as (keyof BeginnerLists)[]) {
+      for (const id of BEGINNER_LISTS[rule]) expect(BEGINNER_STARTED_WITH[rule]).toContain(id);
+    }
+  });
+
   it("fails an id on a list that is not a Spine Topic", () => {
     const errors = check(breaksAll(), { ...all, dailyLife: [ID, "spine-99-gone"] });
     expect(errors).toEqual(['List: "spine-99-gone" is on DAILY_LIFE_NOT_YET but is not a Spine Topic: remove it from src/course/beginner-check.ts']);
