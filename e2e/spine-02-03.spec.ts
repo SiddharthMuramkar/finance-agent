@@ -8,8 +8,9 @@ import { quietDevtools, replyLanded, script, settled, signIn, type Script } from
  * Spine Topics 2 and 3 for beginners (#89, spec #68): the first three Tutor Turns of each, Story, Concept and Explore,
  * played on the Test bed with the scripted Tutor (src/dev/e2e-tutor.ts, the `spine2-*` and `spine3-*` scripts). It checks
  * what a beginner meets first (the jackpot only, no Amazon; the cash Workbench opening at a small profit on each sale)
- * and writes what the Spine critics read (docs/critics): a screenshot of each turn at 1280 and 390 px, and the transcript
- * of Learner, Tutor, Widget and Choices. `SPINE_CRITICS_OUT` names the folder (default: the test's output folder).
+ * and writes what the Spine critics read (docs/critics): the transcript of Learner, Tutor, Widget and Choices (in the
+ * test's output folder, or `SPINE_CRITICS_OUT`), and, only when `SPINE_CRITICS_OUT` is set, a screenshot of each turn at
+ * 1280 and 390 px there. CI sets neither, so it writes no PNG (src/dev/e2e-shots.test.ts).
  */
 
 const TURN_MS = 90_000;
@@ -59,8 +60,9 @@ async function seen(page: Page, topic: string, turn: number, step: string, name:
   };
 }
 
-/** One screenshot of the turn at 1280 px and one at 390 px, then back to the project's width. */
+/** One screenshot of the turn at 1280 px and one at 390 px, then back to the project's width; only for the critics' folder. */
 async function shoot(page: Page, out: string, topic: string, turn: number) {
+  if (!process.env.SPINE_CRITICS_OUT) return;
   const size = page.viewportSize()!;
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 800 });
