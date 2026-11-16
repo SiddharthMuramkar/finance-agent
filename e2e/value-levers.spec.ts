@@ -198,11 +198,11 @@ test("[#104] a Learner changes a Full sheet row by slider, never by typing, and 
   await expect(sheet.locator('[data-row="shares"]').getByRole("slider")).toHaveCount(0);
   // No row can be typed into: every input on the sheet is a slider.
   await expect(sheet.locator('input:not([type="range"]), select, textarea, [contenteditable]')).toHaveCount(0);
-  await expect(headline(page)).toHaveText("Your story is worth $35 a share");
+  await expect(headline(page)).toHaveText("This story is worth $35 a share");
   // $494m more cash, over 340.79 million shares, is about $1.45 a share more (the engine's figure: full-sheet-change.test.ts).
   await setSlider(page, "Change: Cash the company holds", "520");
   await expect(sheet.locator('[data-row="cash"]')).toContainText("$520m");
-  await expect(headline(page)).toHaveText("Your story is worth $36 a share");
+  await expect(headline(page)).toHaveText("This story is worth $36 a share");
   // The tap buttons step a row too.
   await sheet.getByRole("button", { name: "Decrease Change: Tax rate by one step" }).click();
   await expect(sheet.locator('[data-row="taxRate"]')).toContainText("34%");

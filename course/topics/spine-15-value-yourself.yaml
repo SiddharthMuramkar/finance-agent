@@ -97,12 +97,6 @@ terms:
     pro: "His story has the operating margin rising to 10%."
     example: "A shop that keeps 10 cents of every dollar it takes has a 10% operating margin."
     inStory: "In the story, the lever for what it keeps is the operating margin once the company is grown up."
-  - term: cost of capital
-    means: "How risky: the return investors need each year, given the risk, used to turn future cash into today's."
-    emoji: guard
-    pro: "His cost of capital starts at 12.84% and falls as Amazon matures."
-    example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
-    inStory: "In the story, the lever for how risky it is is the cost of capital while it grows."
   - term: hindsight
     means: "Knowing what happened after the date, which a valuation as of that date may not use."
     pro: "That figure is hindsight; leave it for the reveal."

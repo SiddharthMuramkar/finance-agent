@@ -53,7 +53,7 @@ describe("a Session saved before rows could change", () => {
   it("still draws at its saved Levers, with the Full sheet at the Case's own figures", async () => {
     const { headline, goDeeper } = await draw(BEFORE_ROWS, { $revenue: 60, $margin: 12.5 });
     expect(host.textContent).not.toContain("could not be drawn");
-    expect(headline).toBe("Your story is worth $84 a share");
+    expect(headline).toBe("This story is worth $84 a share");
     expect(goDeeper).not.toBeNull();
   });
 
@@ -68,7 +68,7 @@ describe("a Session with Full sheet rows changed", () => {
   it("draws the saved rows in the headline", async () => {
     // At the Case's own figures it is $35 a share; cash of $520m, not $26m, is $494m over 340.79 million shares: about $1.45 a share more.
     const { headline } = await draw(NOW, { $cashRow: 494 });
-    expect(headline).toBe("Your story is worth $36 a share");
+    expect(headline).toBe("This story is worth $36 a share");
   });
 
   it("tells the Tutor each changed row, its figure and the Case's, and values it with the engine", () => {

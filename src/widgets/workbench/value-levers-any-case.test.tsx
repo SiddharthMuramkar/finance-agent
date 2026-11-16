@@ -82,9 +82,9 @@ describe("Value levers drawn on an Own Case (page)", () => {
   };
   const headline = () => host.querySelector('[data-testid="value-levers-headline"]')?.textContent ?? "";
 
-  it('opens at "Your story is worth $35 a share" from the Learner\'s Own Cases', async () => {
+  it('opens at "This story is worth $35 a share" from the Learner\'s Own Cases', async () => {
     await draw(true);
-    expect(headline()).toBe("Your story is worth $35 a share");
+    expect(headline()).toBe("This story is worth $35 a share");
   });
 
   it("is not drawn without them, as for any id that is not a Valuation Case", async () => {
