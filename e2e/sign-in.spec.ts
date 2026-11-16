@@ -15,13 +15,16 @@ test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
 });
 
-// Decision #17: one Light theme, whatever the computer's setting; <html> carries no theme attribute or class.
-test("the sign-in page opens in Light, with no theme attribute", async ({ page }) => {
+// ADR 0019: the device chooses first. With no saved choice the sign-in page follows the device's setting.
+test("the sign-in page follows the device: Dark on a dark device, Light on a light one", async ({ page }) => {
+  const html = page.locator("html");
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/sign-in");
-  const html = page.locator("html");
-  await expect(html).not.toHaveAttribute("data-theme", /.*/);
-  await expect(html).not.toHaveClass(/\bdark\b/);
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(14, 17, 23)");
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.reload();
+  await expect(html).toHaveAttribute("data-theme", "light");
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
 });
 

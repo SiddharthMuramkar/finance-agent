@@ -33,15 +33,15 @@ const project = (name: string, viewport: { width: number; height: number }): Pro
 
 /**
  * Spec 2026-11-12 G9: a phone (390 x 844) and a tablet (768 x 1024) for the public pages only: the Signal site, sign-in and the
- * phone note. `testMatch` keeps every other spec at the desktop widths the Study Workspace is built for (below 768 px it
- * shows only the phone note). The preview matrix (matrix.spec.ts, UI_MATRIX=1) also shoots the public pages at 390
+ * phone specs. `testMatch` keeps every other spec at the desktop widths (spec #68: the Study Workspace and the signed-in
+ * pages open on a phone too, measured by phone-workspace and phone-pages). The preview matrix (matrix.spec.ts, UI_MATRIX=1) also shoots the public pages at 390
  * (src/dev/preview-matrix.ts).
  */
 export const SMALL_VIEWPORTS = {
   p390: { width: 390, height: 844 },
   t768: { width: 768, height: 1024 },
 } as const;
-export const SMALL_SPECS = /(?:^|\/)(?:home|about|sign-in|phone-note|matrix|signal-qa|phone-workspace|phone-pages)\.spec\.ts$/;
+export const SMALL_SPECS = /(?:^|\/)(?:home|about|sign-in|phone-note|matrix|signal-qa|phone-workspace|theme|phone-pages)\.spec\.ts$/;
 
 /**
  * The narrowest phone (spec #68, #82: "at 360 and 390 px"): only the phone specs run here, the Study Workspace's first;
