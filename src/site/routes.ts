@@ -68,5 +68,8 @@ export const isAuthPage = (path: string) => AUTH_ROOTS.some((root) => under(path
 /** A public page (exactly) or an auth page. */
 export const isPublicPage = (path: string) => PUBLIC_PAGES.some((p) => p.path === path) || isAuthPage(path);
 
+/** A signed-in page, a developer page or an API route: a signed-out request there is sent to the sign-in, or refused. */
+export const isSignedInPath = (path: string) => SIGNED_IN_ROOTS.some((root) => under(path, root));
+
 /** A public file. */
 export const isPublicFile = (path: string) => PUBLIC_FILES.some((f) => f.pattern.test(path));

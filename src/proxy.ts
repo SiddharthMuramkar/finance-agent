@@ -6,7 +6,7 @@ import { learnerFromCookie } from "@/auth/learners";
 import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 import { e2eEnabled } from "@/dev/e2e-mode";
-import { isAuthPage, isPublicFile, isPublicPage } from "@/site/routes";
+import { isAuthPage, isPublicFile, isPublicPage, isSignedInPath } from "@/site/routes";
 
 // What a signed-out visitor may open (the public pages, the auth pages and the public files) is one list,
 // src/site/routes.ts, which next.config.ts's no-store headers and the browser test bed read too (issue #69).
@@ -60,7 +60,9 @@ async function testBedPersonAtGate(request: NextRequest): Promise<boolean> {
  * (src/site/routes.ts: matched exactly; /sign-in and /sign-up with every step under them), a public file, a
  * POST to the sign-out route, and while Clerk runs a Server Action call on /sign-in and /sign-up (Clerk's own, which
  * finishes a sign-in: isClerkSignInAction), get through; any other write to a public page or Server Action call
- * answers 401; an API route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`.
+ * answers 401; an API route answers 401; a signed-in page (src/site/routes.ts SIGNED_IN_ROOTS) redirects to /sign-in,
+ * remembering a GET or HEAD's page as `next`; a GET or HEAD of any other address is no page at all, so it goes through
+ * and Next.js answers the public not-found page with a 404 (issue #70), and any other write redirects to /sign-in.
  * Signed in, a GET or HEAD of exactly /sign-in skips the form and goes to the safe `next` or /study: every sign-in here
  * is fully verified and every account has a Learner (learnerForClerkUser), so /sign-in and /study can never send anyone
  * back and forth.
@@ -88,6 +90,7 @@ async function gate(request: NextRequest, account: boolean): Promise<Response> {
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Sign-in required" }, { status: 401 });
   }
+  if (read && !isSignedInPath(pathname)) return NextResponse.next();
   const signIn = new URL(SIGN_IN_PATH, request.url);
   const next = read ? rememberedPage(request.nextUrl) : null;
   if (next) signIn.searchParams.set("next", next);
