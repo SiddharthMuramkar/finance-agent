@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 /**
  * Screenshots are written only when `SHOTS=<ID>` is set (spec 2026-11-11, line 512; ticket Z1): CI and ordinary
  * `ui:test` runs never rewrite a committed PNG. Every `screenshot({ … path … })` in a browser test must sit in a test
- * whose body, before the write, reads `process.env.SHOTS`.
+ * whose body, before the write, reads `process.env.SHOTS`. The Spine critics' shots (docs/critics/README.md) are the one
+ * other switch: a write after an `if` on `CRITICS_DIR` (a helper's `if (!CRITICS_DIR) return;`), the folder the critics
+ * run names, which is unset on CI.
  */
 
 /** Files that write screenshots on another switch, into a git-ignored folder, never into docs/. */
@@ -22,7 +24,10 @@ function specs(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
-/** `file:line` of every screenshot write with no SHOTS check between the start of its test and the write. */
+/** A check that turns screenshot writes on: SHOTS, or an `if` on CRITICS_DIR (the Spine critics' shots). */
+const SWITCH = /process\.env\.SHOTS|\bif\s*\(\s*!?\s*(process\.env\.)?CRITICS_DIR\b/;
+
+/** `file:line` of every screenshot write with no switch check between the start of its test (or file, for a helper above every test) and the write. */
 function unguardedShots(file: string, text: string): string[] {
   const lines = text.split("\n");
   const found: string[] = [];
@@ -30,7 +35,7 @@ function unguardedShots(file: string, text: string): string[] {
     if (!/\.screenshot\(\{[^)]*\bpath\s*:/.test(line)) return;
     let start = i;
     while (start > 0 && !/^\s*test\(/.test(lines[start])) start--;
-    if (!lines.slice(start, i + 1).some((l) => l.includes("process.env.SHOTS"))) found.push(`${file}:${i + 1}`);
+    if (!lines.slice(start, i + 1).some((l) => SWITCH.test(l))) found.push(`${file}:${i + 1}`);
   });
   return found;
 }
@@ -41,6 +46,13 @@ describe("browser tests write screenshots only under SHOTS (Z1)", () => {
     const guarded = ['test("a", async ({ page }) => {', '  if (process.env.SHOTS === "Z1") {', '    await page.screenshot({ path: "x.png" });', "  }", "});"].join("\n");
     expect(unguardedShots("bare.spec.ts", bare)).toEqual(["bare.spec.ts:2"]);
     expect(unguardedShots("guarded.spec.ts", guarded)).toEqual([]);
+  });
+
+  it("passes a helper that returns unless CRITICS_DIR is set, and flags one that does not check it", () => {
+    const helper = (check: string) =>
+      ["const CRITICS_DIR = process.env.CRITICS_DIR;", "async function shoot(page) {", check, '  await page.screenshot({ path: join(CRITICS_DIR, "x.png") });', "}"].join("\n");
+    expect(unguardedShots("critics.spec.ts", helper("  if (!CRITICS_DIR) return;"))).toEqual([]);
+    expect(unguardedShots("bare.spec.ts", helper("  mkdirSync(CRITICS_DIR);"))).toEqual(["bare.spec.ts:4"]);
   });
 
   it("every screenshot write in e2e/ is gated on SHOTS", () => {
