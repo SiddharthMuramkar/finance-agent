@@ -178,7 +178,7 @@ Waitlist mode also stops the owner's own sign-up. So the owner's Clerk user was 
 
 The browser tests and the simulated Learner sign in with a passcode or a test-bed cookie, on a local server. So CI needs no Clerk keys and no network.
 
-**Bot checks.** Clerk locks an account for 60 minutes after 10 failed sign-in tries. Clerk's CAPTCHA on sign-up is off in production (2026-11-16) until the owner turns it on (owner actions, #41). BotID guards the start of each Tutor turn, because each turn costs a model call. `src/instrumentation-client.ts` adds the challenge in the browser, and `POST /api/turn` checks it. A bot gets 403. The list of protected requests is in `src/auth/bot-protection.ts`.
+**Bot checks.** Value It is a new Clerk app, so Clerk Protect's "Challenge suspicious sign-ups" gives the sign-up CAPTCHA. It is on by default (the Protections page in the Clerk dashboard shows it). The old `captcha_enabled` flag reads false on such an app, and a patch to true does not change it, so `clerk security audit` reports "bot-protection unmet" by mistake. Clerk also locks an account for 60 minutes after 10 failed sign-in tries. BotID guards the start of each Tutor turn, because each turn costs a model call. `src/instrumentation-client.ts` adds the challenge in the browser, and `POST /api/turn` checks it. A bot gets 403. The list of protected requests is in `src/auth/bot-protection.ts`.
 
 **Fresh start.** Two steps finished the move to Clerk:
 
