@@ -45,7 +45,11 @@ async function record(page: Page, learner: string, name: string) {
     script: name,
     tutor: (await reply.count()) ? plain(await reply.innerText()).replace(/^Tutor\s+/, "").replace(/\s+Save to Notebook$/, "") : "",
     widget: widgetText,
-    choices: await page.getByTestId("choices").last().getByRole("button").allInnerTexts().catch(() => []),
+    // The Choices come back once the page has re-read the Learner's place after the turn.
+    choices: await page.getByTestId("choices").last().getByRole("button").first().waitFor({ timeout: 15_000 }).then(
+      () => page.getByTestId("choices").last().getByRole("button").allInnerTexts(),
+      () => [],
+    ),
   });
 }
 
