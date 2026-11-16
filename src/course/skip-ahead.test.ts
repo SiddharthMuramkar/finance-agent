@@ -8,7 +8,7 @@ import { spineData, spineMap, spineTopic } from "./spine-fixture";
 
 // Skip ahead (spec 2026-11-12 A8): "I know this: quiz me" opens one mixed quiz with one question for each Skill of the
 // Topic, at least four and at most eight; missing no more than one passes the whole Topic; a Topic whose last Check is a
-// conversation Check about the Learner's own work (the Spine's last Topic) offers none.
+// conversation Check about the Learner's own work offers none, and no Spine Topic has one.
 
 const map = loadCourseMap();
 const NONE: Progress = { currentTopicId: null, topics: {} };
@@ -76,18 +76,26 @@ describe("whether the Topic Start card offers skip ahead", () => {
     expect(skipAheadOffered(map, NONE, "eco-gdp-cycles")).toBe(false);
   });
 
-  it("does not offer it on a Topic whose last Check is a conversation Check about the Learner's own work (Spine 15)", () => {
+  it("does not offer it on a Topic whose last Check is a conversation Check about the Learner's own work", () => {
     const own = spineData((d) => void ((d.checks.at(-1) as { ownWork?: boolean }).ownWork = true));
     expect(skipAheadOffered(spineMap(), NONE, "spine-01-worth")).toBe(true);
     expect(skipAheadOffered(spineMap(own), NONE, "spine-01-worth")).toBe(false);
   });
 
-  it("requires Spine Topic 15 to end on such a Check, so it can never offer skip ahead", () => {
-    const fifteen = { ...spineTopic(), spine: 15 };
-    expect(spineShapeProblems(fifteen)).toContain(
-      "does not end on a conversation Check about the Learner's own work; Spine Topic 15 ends on one marked ownWork: true, so it offers no skip ahead (A8)",
+  it("offers it on the ready-Case valuation Topic, as on any other Spine Topic (Owner, 2026-11-16)", () => {
+    const topic = map.topic("spine-15-value-yourself")!;
+    expect(skipAheadOffered(map, NONE, topic.id)).toBe(true);
+    const ids = skipAheadQuestions(map, topic, "1.spine-15-value-yourself.2026-11-16");
+    expect(ids.length).toBeGreaterThanOrEqual(SKIP_AHEAD_MIN);
+    expect(ids.map((id) => skillOf(topic, id))).toEqual(expect.arrayContaining(topic.skills.map((s) => s.id)));
+  });
+
+  it("fails a Spine Topic with a Check about the Learner's own work: on the Spine the Learner judges a published Story", () => {
+    const own = spineTopic(spineData((d) => void ((d.checks.at(-1) as { ownWork?: boolean }).ownWork = true)));
+    expect(spineShapeProblems(own)).toContain(
+      'has a Check about the Learner\'s own work ("worth-talk"); on the Spine the Learner judges a published Story, so drop ownWork (the Learner\'s own Estimate comes in an Assignment)',
     );
-    expect(spineShapeProblems({ ...spineTopic(spineData((d) => void ((d.checks.at(-1) as { ownWork?: boolean }).ownWork = true))), spine: 15 })).toEqual([]);
+    expect(spineShapeProblems(spineTopic())).toEqual([]);
   });
 });
 

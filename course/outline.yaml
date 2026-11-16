@@ -260,13 +260,13 @@ topics:
           - https://www.wsj.com/articles/tesla-stock-is-headed-for-its-biggest-ever-annual-decline-11672374248
         verified: true
   - id: spine-15-value-yourself
-    title: "Value one yourself, as of a past date"
+    title: "Judge a published valuation, as of a past date"
     stage: spine
     spine: 15
     minutes: 15
     drawsOn: [ana-build-valuation, val-india]
     cases:
-      - title: "Build your own value for Amazon.com"
+      - title: "Judge a published value for Amazon.com"
         asOf: 2000-02-01
         outcome: "Damodaran valued Amazon in Feb 2000, in a paper dated Mar 2000, at $35.08 a share against the $84 price, after subtracting $2,892m for options. He grew revenue 150%, 100%, 75%, 50% and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6%, to $39,006m in year 10, with operating margin rising from -13.35% in year 1 to 9.95% in year 10 and a cost of capital of 12.84% falling to 9.61%. In 2000 Amazon's net sales were $2,762m, close to his year-1 figure of about $2,793m, but its operating loss was $864m (about -31%), far below his -13.35%. The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and $14.88 in the fourth. His revenue path was one many could accept, but the whole value rested on the margin reaching about 10% and on the discount rate falling."
         sources:
@@ -1677,7 +1677,7 @@ topics:
     stage: analyse
     prerequisites: [val-multiples, val-young, val-distress]
     cases:
-      - title: "Build your own value for Amazon.com"
+      - title: "Judge a published value for Amazon.com"
         asOf: 2000-02-01
         outcome: "Damodaran valued Amazon in Feb 2000, in a paper dated Mar 2000, at $35.08 a share against the $84 price, after subtracting $2,892m for options. He grew revenue 150%, 100%, 75%, 50% and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6%, to $39,006m in year 10, with operating margin rising from -13.35% in year 1 to 9.95% in year 10 and a cost of capital of 12.84% falling to 9.61%. In 2000 Amazon's net sales were $2,762m, close to his year-1 figure of about $2,793m, but its operating loss was $864m (about -31%), far below his -13.35%. The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and $14.88 in the fourth. His revenue path was one many could accept, but the whole value rested on the margin reaching about 10% and on the discount rate falling."
         sources:

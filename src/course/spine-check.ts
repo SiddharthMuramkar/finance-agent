@@ -9,8 +9,9 @@ import { SPINE_MAX_MINUTES } from "./outline.ts";
 // length of fifteen minutes or less. Two Topics are built differently: Spine Topic 2 explores the existing annuity Widget
 // on the Mega Millions Case, and Spine Topic 3 a cash waterfall from one year's inputs, so neither values a Case with
 // the engine. What the Check's questions are (judgement kinds, computed ones) is lesson lint L13's (lesson-lint.ts).
-// The last Spine Topic, where the Learner values a company of their choice, ends on a conversation Check marked
-// `ownWork`, which is also what keeps skip ahead off it (A8, src/course/skip-ahead.ts).
+// On the Spine the Learner judges other people's Stories (GLOSSARY): no Spine Topic has a Check marked `ownWork`, and no
+// Workbench in all_open mode, whose "Save my story" saves the Learner's own; their own Estimate comes in an Assignment.
+// So every Spine Topic, the ready-Case valuation Topic too, offers skip ahead (A8, src/course/skip-ahead.ts).
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
 export const SPINE_TERMS = { min: 3, max: 5 } as const;
@@ -22,12 +23,9 @@ export const SPINE_PASS_CORRECT = 3;
 const ANNUITY_SPINE = 2;
 const CASH_SPINE = 3;
 
-/** The last Spine Topic: the Learner values a company themselves (C4), so it ends on a Check about their own work. */
-export const OWN_WORK_SPINE = 15;
-
 /**
- * Whether a Topic's last Check is a conversation Check about the Learner's own work (the Spine's last Topic, where the
- * Learner values a company themselves). Such a Topic offers no skip ahead (A8): a quiz cannot stand in for one's own valuation.
+ * Whether a Topic's last Check is a conversation Check about the Learner's own work. Such a Topic offers no skip ahead
+ * (A8): a quiz cannot stand in for one's own valuation. No Spine Topic may have one (spineShapeProblems).
  */
 export function endsOnOwnWork(topic: Pick<Topic, "checks">): boolean {
   const last = topic.checks.at(-1);
@@ -83,8 +81,14 @@ export function spineShapeProblems(t: Topic): string[] {
   }
   const talks = t.checks.filter((c) => c.kind === "conversation").length;
   if (talks > 1) problems.push(`has ${talks} conversation Checks; at most one, in which the Learner tells the Valuation story`);
-  if (n === OWN_WORK_SPINE && !endsOnOwnWork(t)) {
-    problems.push("does not end on a conversation Check about the Learner's own work; Spine Topic 15 ends on one marked ownWork: true, so it offers no skip ahead (A8)");
+  for (const c of t.checks) {
+    if (c.kind === "conversation" && c.ownWork) {
+      problems.push(`has a Check about the Learner's own work ("${c.id}"); on the Spine the Learner judges a published Story, so drop ownWork (the Learner's own Estimate comes in an Assignment)`);
+    }
+  }
+  const mode = bench?.recipe === "value_levers" ? (bench.inputs as { mode?: { kind?: unknown } }).mode : undefined;
+  if (mode?.kind === "all_open") {
+    problems.push("explores Value levers in all_open mode, which saves the Learner's own story; on the Spine the Learner judges a published Story, so give it a judging mode such as match_price");
   }
 
   if (!t.why) problems.push(`has no why line; give it one line, at most ${WHY_MAX_WORDS} words, linking it to valuing a company (A6)`);

@@ -95,30 +95,34 @@ const bandSchema = z.tuple([z.number(), z.number()]).refine(([low, high]) => low
  * What Value levers adds for a Spine Topic (Appendix D): each mode swaps one readout (or, for failure, which lever is under
  * More settings, and for all open, opens it), never adding controls beyond four at rest and one more.
  */
+/** Cases the Learner can switch between with a chip: each its Case id and the company's name for the chip (and a saved note's title). */
+const caseChipsSchema = z.array(z.object({ id: z.string().min(1), label: z.string().trim().min(1).max(40) }).strict()).min(2).max(3);
+
 export const valueLeversModeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("market"), markets: z.array(marketSchema).min(1).max(2) }).strict(),
   z.object({ kind: z.literal("margin_marks"), marks: z.array(marginMarkSchema).min(1).max(3) }).strict(),
   z.object({ kind: z.literal("roic") }).strict(),
   z.object({ kind: z.literal("failure") }).strict(),
   z.object({ kind: z.literal("two_stories"), stories: z.tuple([topicStorySchema, topicStorySchema]) }).strict(),
-  z.object({ kind: z.literal("match_price") }).strict(),
+  // match_price may carry Case chips: the ready-Case valuation Topic judges a published Story on one of three Cases.
+  z.object({ kind: z.literal("match_price"), cases: caseChipsSchema.optional() }).strict(),
   z
     .object({
       kind: z.literal("range"),
       bands: z.object({ revenue: bandSchema.optional(), margin: bandSchema.optional(), salesToCapital: bandSchema.optional(), risk: bandSchema.optional(), failure: bandSchema.optional() }).strict().optional(),
     })
     .strict(),
-  // all_open (Spine Topic 15): every lever open, "Save my story", and optionally a short list of Cases the Learner can switch
-  // between with a chip, each its Case id and the company's name for the chip and the saved note's title.
-  z
-    .object({
-      kind: z.literal("all_open"),
-      cases: z.array(z.object({ id: z.string().min(1), label: z.string().trim().min(1).max(40) }).strict()).min(2).max(3).optional(),
-    })
-    .strict(),
+  // all_open: every lever open, "Save my story", and optionally Case chips. No Spine Topic uses it (spine-check.ts: on the
+  // Spine the Learner judges a published Story); it is kept for an Own Case's Estimate, saved as a one-page note.
+  z.object({ kind: z.literal("all_open"), cases: caseChipsSchema.optional() }).strict(),
 ]);
 
 export type ValueLeversMode = z.infer<typeof valueLeversModeSchema>;
+
+/** The Case chips a mode carries (all_open or match_price), or undefined when it has none. */
+export function modeCases(mode: ValueLeversMode | undefined): { id: string; label: string }[] | undefined {
+  return mode?.kind === "all_open" || mode?.kind === "match_price" ? mode.cases : undefined;
+}
 export type ValueLeversModeKind = ValueLeversMode["kind"];
 export const VALUE_LEVERS_MODE_KINDS = valueLeversModeSchema.options.map((o) => o.shape.kind.value) as ValueLeversModeKind[];
 export type Market = z.infer<typeof marketSchema>;

@@ -336,7 +336,7 @@ describe("the real outline", () => {
       expect(byNumber(1).title).toBe("What is a business worth? Price against value, and the four levers");
       expect(byNumber(2).title).toBe("Why is money later worth less?");
       expect(byNumber(13).title).toBe("What does the price assume?");
-      expect(byNumber(15).title).toBe("Value one yourself, as of a past date");
+      expect(byNumber(15).title).toBe("Judge a published valuation, as of a past date");
     });
 
     it("says how long each takes: ten minutes for the first, fifteen for the last, none over fifteen (C2, C5)", () => {
@@ -368,7 +368,7 @@ describe("the real outline", () => {
 
     it("offers Zomato's IPO in Topic 15, verified from its research, beside Coffee Day in rupees", () => {
       const cases = byNumber(15).cases;
-      expect(cases.map((c) => c.title)).toEqual(["Build your own value for Amazon.com", "Coffee Day's IPO, in rupees and in dollars", "Zomato's IPO, valued in rupees"]);
+      expect(cases.map((c) => c.title)).toEqual(["Judge a published value for Amazon.com", "Coffee Day's IPO, in rupees and in dollars", "Zomato's IPO, valued in rupees"]);
       // Damodaran's Rs 40.79 against the Rs 76 offer: docs/research/verify-zomato-2021.json reproduces it from sources, so it is verified.
       expect(cases[2]).toMatchObject({ asOf: "2021-07-21", verified: true });
       expect(cases[2].sources).toContain("https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html");
