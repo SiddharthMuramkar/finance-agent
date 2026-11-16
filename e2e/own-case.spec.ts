@@ -119,3 +119,24 @@ test("a Learner who has not passed the Spine finds the Assignment closed", async
   await expect(page.locator("[data-assignment-closed]")).toContainText("The Assignment opens once you pass every Spine Topic.");
   await expect(page.locator("[data-own-case-form]")).toHaveCount(0);
 });
+
+test("beside every field, the Own Case form shows where it sits in an Indian annual report, a source link and a Lingo card (#108)", async ({ person }) => {
+  test.setTimeout(120_000);
+  const { page } = await person({ person: "ravi" });
+  await page.goto("/assignment");
+  const form = page.locator("[data-own-case-form]");
+  const fields = ["company", "reportDate", "sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"];
+  await expect(form.locator("[data-own-case-guide]")).toHaveCount(fields.length);
+  for (const field of fields) {
+    const guide = form.locator(`[data-own-case-guide="${field}"]`);
+    await expect(guide.locator("[data-guide-where]")).toBeVisible();
+    await expect(guide.locator("a[data-guide-source]")).toHaveAttribute("href", /^https:\/\//);
+    const card = guide.locator('[data-testid="lingo-card"]');
+    await expect(card).toBeHidden();
+    await guide.locator("[data-guide-lingo] > summary").click();
+    await expect(card).toBeVisible();
+  }
+  await expect(form.locator('[data-own-case-guide="sales"] [data-guide-where]')).toContainText("Revenue from operations");
+  await expect(form.locator('[data-own-case-guide="sales"] [data-testid="lingo-card"]')).toContainText("Revenue from operations");
+  await expect(form.locator('[data-own-case-guide="debt"] a[data-guide-source]')).toContainText("Ind AS 116");
+});
