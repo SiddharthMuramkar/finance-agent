@@ -109,7 +109,7 @@ function quickLabel(q: { value: number; note?: string }, unit: Unit): string {
 const Slider = defineComponent({
   name: "Slider",
   description:
-    "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call. In Slider(name, label, min, max, step, value, unit) the Learner can set any number from min to max, on steps of `step` counted from min; the starting value sits on a step. A percent slider always moves in 0.01 steps, whatever step is written, so write 0.01 as a rate's step.",
+    "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable. In Slider(name, label, min, max, step, value, unit) the Learner can set any number from min to max, on steps of `step` counted from min; the starting value sits on a step. A percent slider always moves in 0.01 steps, whatever step is written, so write 0.01 as a rate's step.",
   props: sliderProps,
   component: SliderView,
 });
@@ -271,7 +271,7 @@ function CalculatorView({ props }: ComponentRenderProps<z.infer<typeof calculato
 const Calculator = defineComponent({
   name: "Calculator",
   description:
-    "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run here.",
+    "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models), by the calculate tool's own code, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run here.",
   props: calculatorProps,
   component: CalculatorView,
 });
@@ -346,7 +346,7 @@ function FormulaCardView({ props }: ComponentRenderProps<z.infer<typeof formulaC
 const FormulaCard = defineComponent({
   name: "FormulaCard",
   description:
-    "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers).",
+    "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider in the same widget), `sourced` (Case Data references) or `fixed` (fixed numbers).",
   props: formulaCardProps,
   component: FormulaCardView,
 });
@@ -1043,11 +1043,11 @@ swing = Stat("Swing with both shops", (55 - 45) * 1000, "inr", "Rainy year minus
     'Real numbers come from code. Historical figures reach a widget only through Query("case_data", {dataset: "caseId/datasetId"}, {rows: []}) or HistoryChart, with references from the Case Data list code sent you. Finance results come only from Query("calculate" | "calculate_range" | "annuity_schedule", …), Calculator, AnnuityChart, FormulaCard or our parts that run a calculator. Never type a historical figure or a computed result into a widget.',
     'Made-up teaching examples are the exception. You may type their numbers into a chart or table when the example is plainly hypothetical: start the Widget\'s title with "Illustration:". Before the reveal they must never match the Case\'s real outcome. For their arithmetic, write the expression (e.g. (5.5 - 5) * 100) and let the widget compute it; never type a result you worked out.',
     "Bind Sliders to $variables and pass them into Query arguments, so moving a slider recomputes the chart in the browser with no model call.",
-    "Use only numbers a Widget can show. Every number you ask the Learner to try, in your prose or in a Guided Task, lies between that slider's min and max and on one of its steps (a percent slider: 0.01 steps). Never ask for a number the Widget cannot reach.",
+    "Use only numbers a Widget can show: every number you ask the Learner to try, in your prose or in a Guided Task, lies between that slider's min and max and on one of its steps (a percent slider: 0.01 steps).",
     "Charts: for every chart with axes, give it an x-axis and a y-axis label, in plain words with the unit.",
     "Updating a Widget: code's context lists the open Widgets by title. To change an open Widget, write it again in full under exactly the same title: code replaces it in its tab. Draw a new Widget only for a new idea, never a near-copy under a new title, and never draw the same Case Data as an open Widget.",
     "Widgets only read: never use Mutation() or @Run.",
-    "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
+    "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. A FormulaCard's result comes from code; never type it.",
     "Guided Tasks: Every Widget with a Slider has GuidedTasks, last, with 1 to 3 tasks, unless a Breakeven, Predict or QuickCheck is its discovery. Each GuidedTask's condition reads a $variable bound to a Slider in the same widget, is false at the slider's starting value, and changes what the Learner sees; the last is a discovery, never a condition most slider positions satisfy. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
     'Code may add "Widget notes" about your last widget: follow them in your next widget, and never redraw one only for them.',
     "If no Case Data covers what the Learner wants, say plainly that the data is not available here, and still show what code can compute, or a clearly labelled Illustration of the idea.",
