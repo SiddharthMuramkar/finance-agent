@@ -611,8 +611,189 @@
         "q": "leverage cycle and collateral",
         "source": "Geanakoplos"
       }
+    },
+    {
+      "q": "Should a lottery winner take the lump-sum cash or the yearly payments?",
+      "expect": [
+        "m00053",
+        "m00058",
+        "m00047"
+      ],
+      "signal": {
+        "case": "mega-millions-2018",
+        "asOf": "2018-10-24"
+      }
+    },
+    {
+      "q": "What are 30 yearly payments that grow 5% each year worth today?",
+      "expect": [
+        "m00053"
+      ],
+      "sources": [
+        "damodaran-papers",
+        "damodaran-blog"
+      ],
+      "expectText": [
+        "growing annuity"
+      ],
+      "signal": {
+        "case": "mega-millions-2018",
+        "asOf": "2018-10-24"
+      }
+    },
+    {
+      "q": "If interest rates go up, what happens to the value today of payments I get later?",
+      "expect": [
+        "m00047",
+        "m00048",
+        "m00053",
+        "m00062"
+      ],
+      "signal": {
+        "case": "mega-millions-2018",
+        "asOf": "2018-10-24"
+      }
+    },
+    {
+      "q": "How do you value a company like Amazon that loses money but grows very fast?",
+      "expect": [
+        "damodaran-papers/paper-younggrowth",
+        "damodaran-papers/paper-HighGrow"
+      ],
+      "sources": [
+        "damodaran-papers"
+      ],
+      "expectText": [
+        "Amazon"
+      ],
+      "signal": {
+        "case": "amazon-2000",
+        "asOf": "2000-02-03"
+      }
+    },
+    {
+      "q": "Why is most of a growth company's value in its terminal value?",
+      "expect": [
+        "m00068",
+        "m00069"
+      ],
+      "sources": [
+        "damodaran-papers",
+        "damodaran-blog"
+      ],
+      "expectText": [
+        "terminal value"
+      ],
+      "signal": {
+        "case": "amazon-2000",
+        "asOf": "2000-02-03"
+      }
+    },
+    {
+      "q": "Why should WeWork's long-term lease commitments count as debt?",
+      "expect": [
+        "damodaran-papers/paper-newlease"
+      ],
+      "sources": [
+        "damodaran-blog"
+      ],
+      "expectText": [
+        "WeWork"
+      ],
+      "signal": {
+        "case": "wework-2019",
+        "asOf": "2019-08-14"
+      }
+    },
+    {
+      "q": "What is community-adjusted EBITDA and why do people distrust adjusted earnings?",
+      "sources": [
+        "damodaran-blog",
+        "damodaran-papers"
+      ],
+      "expectText": [
+        "adjusted EBITDA",
+        "community-adjusted"
+      ],
+      "signal": {
+        "case": "wework-2019",
+        "asOf": "2019-08-14"
+      }
+    },
+    {
+      "q": "What is a basis point, and how is it different from a percentage point?",
+      "sources": [
+        "openstax-principles-finance-1e",
+        "fed-explained",
+        "yale-econ-251",
+        "yale-econ-252"
+      ],
+      "expectText": [
+        "basis point",
+        "percentage point"
+      ],
+      "signal": {
+        "case": "fed-1994",
+        "asOf": "1994-02-03"
+      }
+    },
+    {
+      "q": "When the Fed raises the federal funds rate, what happens to other interest rates?",
+      "expect": [
+        "m00063"
+      ],
+      "sources": [
+        "fed-explained",
+        "nyfed-explainers"
+      ],
+      "expectText": [
+        "federal funds rate"
+      ],
+      "signal": {
+        "case": "fed-1994",
+        "asOf": "1994-02-03"
+      }
+    },
+    {
+      "q": "How do I work out the average yearly growth rate of an index that went from 100 to 4,000 in 13 years?",
+      "expect": [
+        "m00050",
+        "m00078"
+      ],
+      "signal": {
+        "case": "sensex-1992",
+        "asOf": "1992-03-31"
+      }
+    },
+    {
+      "q": "What is the rule of 72 for how fast money doubles?",
+      "expect": [
+        "m00050"
+      ],
+      "signal": {
+        "case": "sensex-1992",
+        "asOf": "1992-03-31"
+      }
+    },
+    {
+      "q": "Why is the average of yearly returns different from the compound growth rate?",
+      "expect": [
+        "m00078"
+      ],
+      "sources": [
+        "damodaran-papers",
+        "yale-econ-252"
+      ],
+      "expectText": [
+        "geometric mean"
+      ],
+      "signal": {
+        "case": "sensex-1992",
+        "asOf": "1992-03-31"
+      }
     }
   ],
+  "aboutSignal": "Signal Case questions (#24) carry `signal`: the Case and its as-of date. library-score scores them apart from the rest, once with no as-of limit and once with the Case's as-of date (as the Tutor searches during a Case), and leaves them out of the per-source counts. The reranker re-test (#28, #37) compares the same runs with and without --rerank.",
   "hindsight": [
     {
       "q": "Mega Millions jackpot winner cash option or annuity in 2018",
