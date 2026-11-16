@@ -124,6 +124,13 @@ export const home = {
       { heading: "Code draws the charts.", body: "The Tutor picks the widget; tested code draws it. **The AI never invents a chart.**" },
     ],
   },
+  /** #75: the one-page note a Learner saves to the Notebook at the end of the Spine (src/site/end-note.ts). */
+  end: {
+    eyebrow: "Where you end up",
+    h2: "By the end, you value a company yourself.",
+    body: "Near the end of the core Topics you value a real company as of a past date, lever by lever, and save your story. This is the note it leaves in your Notebook.",
+    caption: "From the Notebook. Every figure worked out by the course’s tested valuation engine.",
+  },
   faq: { eyebrow: "Questions", h2: "Before you ask.", link: "More questions", pick: [1, 2, 4, 5] },
   closing: {
     lines: ["Money makes sense,", "one bar at a time."],
@@ -308,7 +315,6 @@ export const about = {
       { label: "Topics", value: String(c.topics) },
       { label: "Subjects", value: String(c.bySubject.length) },
       { label: "Stages that read real arguments", value: String(c.byStage.length) },
-      { label: "Each Topic", value: `${c.minutes.low}–${c.minutes.high} min` },
       { label: "Price", value: "Free in early access" },
     ],
   },
@@ -327,12 +333,11 @@ export const about = {
     { step: "The Tutor explains", body: "Quotes from its Library carry a number that opens the passage." },
   ],
   notAffiliated: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.",
+  /** The one Source the line names, and where it links (#75: every named Source is a link). */
+  notAffiliatedSource: { name: "Aswath Damodaran", url: "https://pages.stern.nyu.edu/~adamodar/" },
   learnH2: "What you can learn",
   learnBody: (c: CourseFacts) =>
     `${Say(c.spine.length)} core Topics teach valuation in order. ${Say(c.bySubject.length)} subjects go wider, and ${say(c.byStage.length)} stages read real arguments.`,
-  founderH2: "A note from the founder",
-  // §14: a placeholder until the founder writes two or three sentences of their own.
-  founder: "The founder’s note is coming soon.",
   earlyH2: "Early access",
   early: [
     { heading: "Join", body: "Sign up with an email link. **We let people in by hand**, a few at a time." },

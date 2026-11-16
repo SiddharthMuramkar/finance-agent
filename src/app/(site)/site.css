@@ -302,6 +302,9 @@
 .v-split-head { display: grid; gap: 14px; align-content: start; }
 .v-trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; list-style: none; margin: 0; padding: 0; }
 .v-trust li { border-top: 2px solid var(--ink); padding-top: 16px; display: grid; gap: 8px; align-content: start; }
+.v-end-note { margin: 0; display: grid; gap: 12px; }
+.v-end-note ul { list-style: none; margin: 0; padding: 0; }
+.v-end-note li { border-top: 1px solid var(--rule); padding: 8px 0; font-variant-numeric: tabular-nums; }
 
 /* Closing (7.2.8) */
 .v-closing { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(32px, 5vw, 72px); align-items: end; }

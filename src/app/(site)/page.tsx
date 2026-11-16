@@ -3,6 +3,7 @@ import { home, MOVES } from "@/site/copy";
 import { EXAMPLES } from "@/site/examples";
 import { leverSteps } from "@/site/levers-story";
 import { Rich } from "@/site/rich";
+import { endNote } from "@/site/end-note";
 import { courseStats } from "@/site/stats";
 import { siteViewer } from "@/site/viewer";
 import { ClosingBars } from "./_home/closing-bars";
@@ -15,14 +16,16 @@ import { ArrowLink, Glyph, SectionHead } from "./parts";
 import { QuestionList } from "./question-list";
 
 // Home, at "/" (spec 7.2): hero with the Tutor demo, four moves, the levers story, the colour language, the questions,
-// trust, FAQ and early access. Open to everyone; the CTAs follow the viewer state, so the page is drawn per request and
-// sent no-store (next.config.ts). A visitor costs no Learner read, and the page makes no model call and no write.
+// where you end up (#75: a real saved Notebook note), trust, FAQ and early access. Open to everyone; the CTAs follow the
+// viewer state, so the page is drawn per request and sent no-store (next.config.ts). A visitor costs no Learner read,
+// and the page makes no model call and no write.
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const viewer = await siteViewer();
   const course = courseStats();
+  const note = endNote();
   const secondary = viewer.state === "visitor" ? { href: "/examples", label: home.hero.secondary.visitor } : viewer.state === "member" ? { href: "/course", label: home.hero.secondary.member } : null;
 
   return (
@@ -89,6 +92,27 @@ export default async function HomePage() {
             </p>
             <ArrowLink href="/how-it-works#path">{home.questions.path}</ArrowLink>
           </div>
+        </div>
+      </section>
+
+      <section className="v-section v-rule-top" aria-labelledby="end-h" data-site-section="end">
+        <div className="v-wrap v-split">
+          <div className="v-split-head">
+            <p className="v-eyebrow">{home.end.eyebrow}</p>
+            <h2 className="v-h2" id="end-h">
+              {home.end.h2}
+            </h2>
+            <p>{home.end.body}</p>
+          </div>
+          <figure className="v-card v-end-note" data-end-note="">
+            <p className="v-h3">{note.title}</p>
+            <ul>
+              {note.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+            <figcaption className="v-fine">{home.end.caption}</figcaption>
+          </figure>
         </div>
       </section>
 

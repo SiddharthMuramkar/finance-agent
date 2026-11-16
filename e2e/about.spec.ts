@@ -75,6 +75,18 @@ test("[7.6] About says the valuations are Damodaran's published work and that Va
   await expect(page.getByText("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.")).toBeVisible();
 });
 
+// #75: About tells the truth: no founder placeholder, nothing "coming soon", no unmeasured minutes, and the Source it
+// names is a link.
+test("[#75] About has no founder section or 'coming soon', and links Damodaran", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  await page.goto("/about");
+  const main = page.locator("main");
+  await expect(main.getByRole("heading", { level: 1, name: "About Value It" })).toBeVisible();
+  await expect(main).not.toContainText(/founder|coming soon/i);
+  await expect(main).not.toContainText("Each Topic");
+  await expect(main.getByRole("link", { name: "Aswath Damodaran", exact: true })).toHaveAttribute("href", "https://pages.stern.nyu.edu/~adamodar/");
+});
+
 test("[4.2] signed out, About offers Sign in and Join early access, which opens /join, and no Sign out", async ({ page }) => {
   await page.goto("/about");
   const nav = page.locator(NAV);
