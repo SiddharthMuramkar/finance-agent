@@ -32,11 +32,7 @@ const fieldsFor = (market: OwnCaseMarket) => {
       key: "debt",
       label: "Debt",
       hint:
-        market === "US"
-          ? `Commercial paper and term debt, long and short, in ${money}.`
-          : market === "JP" || market === "KR"
-            ? `Borrowings, long and short, in ${money}.`
-            : `Borrowings and lease liabilities, long and short, in ${money}.`,
+        market === "US" ? `Commercial paper and term debt, long and short, in ${money}.` : `Borrowings and lease liabilities, long and short, in ${money}.`,
     },
     { key: "cash", label: "Cash", hint: market === "IN" ? "Cash and cash equivalents, with other bank balances, in ₹ crore." : `Cash and cash equivalents, in ${money}.` },
     { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },

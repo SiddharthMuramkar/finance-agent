@@ -59,6 +59,12 @@ describe("the course check on the annual-report guide", () => {
     expect(annualReportGuide("IN").price.where).toContain("use the next trading day");
   });
 
+  it("points to the consolidated statements without saying which set a report prints first (F40)", () => {
+    const company = annualReportGuide("IN").company.where;
+    expect(company).toContain("use the Consolidated Financial Statements, not the Standalone ones");
+    expect(company).not.toContain("second full set");
+  });
+
   it("fails a market whose guide misses a field, and a field guided twice", () => {
     expect(guideErrors([line])).toEqual(expect.arrayContaining([expect.stringMatching(/^The IN guide has no line for "company"/)]));
     expect(guideErrors([line, line])).toEqual(expect.arrayContaining(['Guide line IN "sales" is listed twice']));
