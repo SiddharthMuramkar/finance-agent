@@ -142,3 +142,79 @@ describe("the three financial statements, after the critics' second round 1 (#90
     expect(built.ok && built.code).toMatch(/StepThrough\(\[.*\], \[/s);
   });
 });
+
+// Code review 3 on #90 (M02, M07, M08, L02, L06): the fixes each finding asked for, held here so they stay fixed.
+describe("the three financial statements, after code review 3 (#90)", () => {
+  const dollars = (text: string) => (text.match(/\$\d[\d,.]*/g) ?? []).map((d) => d.replace(/[.,]$/, ""));
+  const question = (id: string) => statements.questions.find((q) => q.id === id)!;
+  const computedChanges = (q: unknown) => ((q as { computed?: { changes: { label: string; levers: Record<string, number> }[] } }).computed?.changes ?? []);
+  const texts = () =>
+    [
+      statements.concept,
+      statements.goDeeper ?? "",
+      statements.cases[0].story,
+      ...(statements.youllLearn ?? []),
+      ...statements.skills.map((s) => s.rule),
+      JSON.stringify(statements.terms),
+      JSON.stringify(statements.scenes),
+      JSON.stringify(statements.questions),
+      JSON.stringify(statements.checks),
+      statements.insight?.written ?? "",
+    ].join("\n");
+
+  it("never has Webvan buy a warehouse: it rented them all and paid cash for the machines inside (M02, 10-K 2000 Item 2)", () => {
+    expect(texts()).not.toMatch(/pays cash for a warehouse|warehouse it will use|a warehouse bought|warehouses it has built/i);
+    expect(statements.concept).toMatch(/machines and freezers in a warehouse it rents/);
+    expect(question("st-q-warehouse").prompt).toMatch(/warehouse it rents/);
+    expect(JSON.stringify(question("st-q-warehouse"))).toMatch(/owns no real estate/);
+    const cashTry = cash.primers?.find((p) => p.id === "wc-primer-lasting")?.quickTry;
+    expect(cashTry?.ask).toMatch(/warehouse it rents/);
+  });
+
+  it("calls the reused waterfall a what-if, in its title, on screen and in the Insight's question (M07)", () => {
+    expect(statements.explore!.workbench!.title).toBe("What if Webvan's sales doubled at a profit on each sale?");
+    const found = cashWaterfallData(statements.explore?.workbench?.inputs);
+    if ("problem" in found) throw new Error(found.problem);
+    expect(found.data.whatIf).toMatch(/really lost money on most/);
+    expect(statements.insight!.question).toMatch(/^Suppose\b/);
+    expect(statements.insight!.question).toMatch(/really lost money on most/);
+  });
+
+  it("names, in each computed change, the statement that really shows it, and repeats none of the cash Topic's (M08)", () => {
+    const lever = question("st-q-which-lever");
+    const labels = computedChanges(lever).map((c) => c.label);
+    expect(labels.filter((l) => /income statement/.test(l))).toHaveLength(1);
+    expect(labels.filter((l) => /balance sheet/.test(l))).toHaveLength(1);
+    expect(labels.filter((l) => /cash flow statement/.test(l))).toHaveLength(1);
+    expect(labels.find((l) => /income statement/.test(l))).toMatch(/sales/);
+    expect(labels.find((l) => /cash flow statement/.test(l))).toMatch(/invested/);
+    expect(lever.explanation).toMatch(/Sales are on the income statement/);
+    expect(lever.explanation).toMatch(/cash flow statement and then sits on the balance sheet/);
+    expect(lever.prompt).not.toMatch(/different statement/);
+    const predict = question("st-q-predict");
+    expect(predict.prompt).toMatch(/income statement/);
+    expect(predict.prompt).not.toMatch(/cash flow statement showed/);
+    const theirs = cash.questions.flatMap((q) => computedChanges(q).map((c) => JSON.stringify(c.levers)));
+    for (const q of [lever, predict]) {
+      expect(q.skill).toBe("st-three-pages");
+      for (const c of computedChanges(q)) expect(theirs, c.label).not.toContain(JSON.stringify(c.levers));
+    }
+  });
+
+  it("says the $210 million is cash and investments, and gives the closing cash its own figure (L02, 10-K: $40.3m cash, $171.6m securities)", () => {
+    const all = texts();
+    const seen = [...all.matchAll(/\$21[02] million/g)].map((m) => all.slice(Math.max(0, m.index - 80), m.index + 60));
+    expect(seen.length).toBeGreaterThan(2);
+    for (const around of seen) expect(around, around).toMatch(/investments/);
+    expect(statements.goDeeper).toMatch(/\$40\.3 million/);
+    expect(draftOf("statements-story").text).toMatch(/\$210 million left in cash and investments/);
+  });
+
+  it("gives the real Tutor the beginner persona's fixes, not only the scripted one: two round figures in the story, a first hint with no operating income (L06)", () => {
+    const story = statements.cases[0].story;
+    expect(dollars(story).length, dollars(story).join(", ")).toBeLessThanOrEqual(2);
+    for (const d of dollars(story)) expect(d).not.toMatch(/\.\d/);
+    expect(statements.insight!.hints[0]).not.toMatch(/operating income|reinvestment/i);
+    expect(statements.insight!.hints[0]).toMatch(/free cash flow, the cash left after paying to grow/);
+  });
+});

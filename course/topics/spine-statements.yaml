@@ -7,8 +7,12 @@
 # as cf-capital-budgeting's Case webvan-centre-npv-2000 notes it. Case ids are unique across files, so the Case here is
 # "spine-statements-webvan-2001". The Check's computed questions (lint L13) value Webvan's own 1999 plan, an illustration
 # borrowed with valuationFrom, as the cash Topic's do. No sum is asked (ADR 0002).
-# Reused Workbench (spec #68): the Cash waterfall, opened on Webvan's 2000 sales doubling with a small profit on each sale,
-# so one year shows a profit on one page and cash going out on another, and the Learner finds where the cash went.
+# Reused Workbench (spec #68): the Cash waterfall, opened on a what-if, Webvan's 2000 sales doubling with a small profit on
+# each sale, so one year shows a profit on one page and cash going out on another, and the Learner finds where the cash went.
+# The one event the Topic follows (review 3 M02): Webvan owned no real estate (10-K 2000, Item 2: "Webvan does not own any
+# real estate"; every facility is leased), so it pays cash for the machines and freezers in a warehouse it rents (Note 6:
+# machinery and equipment $20.2m to $80.1m, leasehold improvements $21.8m to $97.4m; construction in progress is "materials
+# handling equipment, refrigeration and freezer storage units").
 id: spine-statements
 title: What do the three financial statements show?
 goal: Read what the income statement, the balance sheet and the cash flow statement each show.
@@ -23,15 +27,16 @@ cases:
     # Webvan's own plan as a valuation (an illustration: no published DCF of Webvan exists), written once on
     # cf-capital-budgeting's Case webvan-centre-npv-2000 and borrowed here for the Check's computed questions.
     valuationFrom: webvan-centre-npv-2000
+    # Review 3 L06: the beginner persona's two round figures in the first turn hold for the real Tutor too, so the story
+    # the Tutor reads carries only the loss and the cash left; the spending figures are in Go deeper.
     story: >
       Webvan, the online grocer, files its report for 2000 on 2 April 2001. It holds three pages
-      that matter. The first shows sales of $178.5 million for the year and a loss of $453.3
-      million. The second shows what Webvan owns and owes on the last day of the year: about $212
-      million left in cash and investments it could quickly sell, and the warehouses it has built.
-      The third shows where the cash went: $263.1 million used in running the business, and $259.8
-      million spent on property and equipment, paid for with money raised from investors. Three
-      pages, three different numbers. Investors are asking which one tells them how long Webvan can
-      keep going.
+      that matter. The first shows a loss of about $450 million for the year. The second shows what
+      Webvan owns and owes on the last day of the year: about $210 million left in cash and in
+      investments it could quickly sell, and the machines in the warehouses it rents. The third shows
+      where the cash went: into running the business and into equipment, paid for with money raised
+      from investors. Three pages, three different numbers. Investors are asking which one tells them
+      how long Webvan can keep going.
     reveal: >
       On 9 July 2001 Webvan shut all seven of its markets, which served about 750,000 customers,
       and filed for bankruptcy protection on 13 July 2001. Its losses since it began had reached
@@ -45,9 +50,10 @@ concept: >
   profit or loss, at the bottom. The balance sheet shows what the company owns and what it owes on
   one day, and the part left for the owners. The cash flow statement shows where the cash came from
   and where it went over the year: from running the business, from spending on things that last,
-  and from investors and lenders. One event moves all three. When Webvan pays cash for a warehouse,
-  the cash flow statement shows the cash going out, the balance sheet swaps cash for a warehouse,
-  and the income statement shows only a slice of its cost each year.
+  and from investors and lenders. One event moves all three. When Webvan pays cash for the machines
+  and freezers in a warehouse it rents, the cash flow statement shows the cash going out, the
+  balance sheet swaps cash for the machines, and the income statement shows only a slice of their
+  cost each year.
 
 # Go deeper (spec #68): the loop between the statements, for a Learner who asks for it.
 goDeeper: >
@@ -56,8 +62,10 @@ goDeeper: >
   takes off cash tied up in goods on the shelves. The cash flow statement's closing cash is the cash
   on the balance sheet, and a year's profit or loss also changes the owners' part of the balance
   sheet. That is why Webvan's loss of $453.3 million and the $263.1 million of cash its operations
-  used are different numbers. The $259.8 million it spent on warehouses and equipment in 2000 is
-  on the cash flow statement in full, but reaches the income statement only a slice each year.
+  used are different numbers. The $259.8 million it spent on equipment and on fitting out the
+  warehouses it rented in 2000 is on the cash flow statement in full, but reaches the income
+  statement only a slice each year. Its closing cash, $40.3 million, is the cash on the balance
+  sheet; the rest of what it had left, $171.6 million, sat in investments it could quickly sell.
 
 principle: >
   Read all three statements, never one alone. The income statement says what a year earned, the
@@ -69,7 +77,7 @@ dailyLife: "Before you lend to a friend's shop, ask what it earned, what it owes
 
 youllLearn:
   - "Say what the income statement, the balance sheet and the cash flow statement each show."
-  - "Follow one event, such as buying a warehouse, across all three."
+  - "Follow one event, such as buying machines for a warehouse, across all three."
   - "See how a year can show a profit on one page and cash going out on another."
 
 terms:
@@ -111,7 +119,7 @@ scenes:
         # Critics round 1 after the merge (beginner persona): two round figures in the first turn, the loss and the cash
         # left; the spending figures ($259.8m, $263.1m) wait for Go deeper, where the gap between loss and cash is explained.
         - { who: narrator, says: "Webvan's report for 2000 shows a loss of about $450 million.", emoji: receipt }
-        - { who: webvan, says: "Our report: about $210 million left in cash at the end of 2000.", emoji: building-construction }
+        - { who: webvan, says: "Our report: about $210 million left in cash and investments at the end of 2000.", emoji: building-construction }
         - { who: investor, says: "Three pages, and each tells a different part. Which one do I read?", emoji: thinking-face }
         - { who: narrator, says: "Which page says how long that cash lasts?", emoji: hourglass-not-done }
       caption: 2 April 2001, the annual report for 2000
@@ -126,11 +134,12 @@ scenes:
       headline: Webvan shuts all seven markets and plans to file for bankruptcy
       deck: An imagined front page. The cash had run down, as the report's pages showed.
       source: https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
-  # The Concept's own Widget (critics round 1, widget fit): one warehouse bought for cash, lighting each statement in turn.
+  # The Concept's own Widget (critics round 1, widget fit): a warehouse's machines bought for cash, lighting each statement
+  # in turn (review 3 M02: Webvan rented its warehouses and paid for what went inside them).
   - id: st-one-warehouse
     step: concept
     recipe: chain
-    title: One warehouse, three pages
+    title: One warehouse's machines, three pages
     # Critics round 1 after the merge (widget fit): the three pages are drawn as tiles from the first step, with the
     # warehouse beside the event, and each step lights its page.
     inputs:
@@ -138,36 +147,40 @@ scenes:
         - { label: Cash flow statement, emoji: money-with-wings }
         - { label: Balance sheet, emoji: bank }
         - { label: Income statement, emoji: receipt }
+      tilesLabel: The three statements
       steps:
-        - { title: Webvan pays cash for a warehouse, body: "One event: a warehouse it will use for many years.", highlight: src, emoji: building-construction }
+        - { title: Webvan buys machines for a rented warehouse, body: "One event: machines and freezers it will use for many years, paid for in cash.", highlight: src, emoji: building-construction }
         - { title: The cash flow statement, body: "Shows the cash going out this year, as spending on things that last.", highlight: neutral, light: 0 }
-        - { title: The balance sheet, body: "Swaps cash for a warehouse: Webvan owns something else, not more.", highlight: neutral, light: 1 }
-        - { title: The income statement, body: "Takes only a slice of the warehouse's cost, each year it is used.", highlight: neutral, light: 2 }
+        - { title: The balance sheet, body: "Swaps cash for the machines: Webvan owns something else, not more.", highlight: neutral, light: 1 }
+        - { title: The income statement, body: "Takes only a slice of the machines' cost, each year they are used.", highlight: neutral, light: 2 }
 
 skills:
   - id: st-three-pages
     rule: "The income statement shows what a period earned, the balance sheet what is owned and owed on one day, and the cash flow statement where the cash went."
     analogy: "A shop's year has three views: what it earned, what it owns and owes on the last day, and the cash that went in and out."
   - id: st-one-event
-    rule: "One event moves all three statements: cash spent on a warehouse goes out on the cash flow statement, becomes a warehouse on the balance sheet, and reaches the income statement a slice at a time."
+    rule: "One event moves all three statements: cash spent on warehouse machines goes out on the cash flow statement, becomes machines on the balance sheet, and reaches the income statement a slice at a time."
 
-# The Insight (ADR 0001), found at explore with the Cash waterfall. Words only.
+# The Insight (ADR 0001), found at explore with the Cash waterfall. Words only. The bench is a what-if (review 3 M07), so
+# the question supposes it.
 insight:
   question: >
-    The waterfall doubles Webvan's sales with a small profit on each sale. The income statement
-    would show that profit. What would the cash flow statement show, and where did the cash go?
+    Suppose Webvan's sales doubled with a small profit on each sale (it really lost money on most).
+    The income statement would show that profit. What would the cash flow statement show, and where
+    would the cash go?
   written: >
     One year can show a profit on the income statement and cash going out on the cash flow
-    statement. The gap is what growth costs: the cash went into warehouses and goods on the shelves,
-    which now sit on the balance sheet. Each page answers a different question, so read all three.
+    statement. The gap is what growth costs: the cash goes into machines, vans and goods on the
+    shelves, which then sit on the balance sheet. Each page answers a different question, so read all three.
   foundWhen: >
     The Learner sees that the income statement's profit and the cash flow statement's free cash flow
     point opposite ways, names what growth costs as the gap, and says the cash turned into things
     Webvan owns, on the balance sheet. Saying only that the numbers differ is not yet enough.
+  # Review 3 L06: the first hint names one word, free cash flow, glossed, as the beginner persona asked of the explore turn.
   hints:
     - >
-      Look at operating income, the income statement's line, then at free cash flow at the end. Which
-      step pulls one away from the other?
+      Find the profit near the top of the waterfall, then free cash flow, the cash left after paying
+      to grow, at the end. Which step pulls one away from the other?
     - >
       The cash spent on what growth costs did not vanish. What did Webvan get for it, and on which
       page would you find that?
@@ -177,8 +190,9 @@ explore:
   requiredWhenPassed: false
   workbench:
     recipe: cash_waterfall
-    title: Webvan's next year, with sales doubling and a profit on each sale
-    # From Webvan's 2000 sales ($178.456m, 10-K 2000) into 2001, an illustration: sales double, with a 4% margin, a
+    title: What if Webvan's sales doubled at a profit on each sale?
+    # From Webvan's 2000 sales ($178.456m, 10-K 2000) into 2001, a what-if (review 3 M07: Webvan never made a profit and
+    # shut in July 2001, so the bench says so on screen): sales double, with a 4% margin, a
     # margin a well-run grocer might keep (as the cash Topic opens), and Webvan's own sales to capital of 0.70 (revenue
     # added over net capital spending plus working capital in 2000). Tax 35%, as the recipe's example; no tax is due while
     # past losses cover the profit: about $470m, its 2000 deferred tax asset for net operating losses ($164.4m, 10-K) at
@@ -196,6 +210,7 @@ explore:
         # Spine critics round 2 (#90): the bench draws where the cash went, Webvan's van and the buildings growth pays for
         # (the cash Topic's scene, #89), and names the years, 2000's sales into 2001, not "this year" and "next year".
         years: { from: "2000", to: "2001" }
+        whatIf: "A what-if: Webvan really lost money on most sales, and it shut down the following July."
         icon: delivery-truck
         source:
           title: "Webvan Group, Form 10-K for 2000 (SEC EDGAR)"
@@ -226,7 +241,7 @@ primers:
 connections:
   - text: >
       The income statement's lines, sales less running costs, are the top of the cash Topic's waterfall,
-      from revenue to operating income.
+      from sales to operating income.
     topics: [fs-income, spine-03-cash]
   - text: >
       What a company owns and owes on one day, and the part left for its owners, is the balance sheet.
@@ -237,29 +252,31 @@ connections:
 
 questions:
   # Direction (D1).
+  # Review 3 M02: Webvan owned no real estate (10-K Item 2); it paid for the machines and freezers in the warehouses it
+  # rented (Note 6, and construction in progress).
   - id: st-q-warehouse
     kind: direction
     skill: st-one-event
     prompt: >
-      2000. Webvan pays cash for a warehouse it will use for many years. On its three statements, what
-      moves this year?
+      2000. Webvan pays cash for machines and freezers for a warehouse it rents, to use for many years.
+      On its three statements, what moves this year?
     choices:
-      - { id: cash-out, text: "Cash goes out on the cash flow statement, and the balance sheet swaps cash for a warehouse" }
+      - { id: cash-out, text: "Cash goes out on the cash flow statement, and the balance sheet swaps cash for the machines" }
       - id: whole-cost
         text: "The whole price is a cost on this year's income statement"
-        mistake: { tag: cash_for_cost, fix: "A warehouse lasts for years, so the income statement shows only a slice of its cost each year." }
+        mistake: { tag: cash_for_cost, fix: "The machines last for years, so the income statement shows only a slice of their cost each year." }
       - id: nothing
-        text: "Nothing moves until the warehouse is used"
+        text: "Nothing moves until the machines are used"
         mistake: { tag: one_statement, fix: "The cash leaves when it is paid, so the cash flow statement and the balance sheet move at once." }
       - id: owners-up
         text: "What the owners own rises, because the company owns more"
-        mistake: { tag: one_statement, fix: "Cash became a warehouse: the company owns something else, not more." }
+        mistake: { tag: one_statement, fix: "Cash became machines: the company owns something else, not more." }
     answer: cash-out
     explanation: >
-      Buying a warehouse is spending on something that lasts. The cash leaves now, on the cash flow
-      statement; the balance sheet holds a warehouse where the cash was; and the income statement takes
-      its cost a slice each year.
-    source: "Webvan Group, Form 10-K for 2000: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"
+      Buying machines is spending on something that lasts. The cash leaves now, on the cash flow
+      statement; the balance sheet holds the machines where the cash was; and the income statement takes
+      their cost a slice each year.
+    source: "Webvan Group, Form 10-K for 2000 (Item 2: it owns no real estate; note 6: machinery, equipment and leasehold improvements): https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"
   # Story that cannot hold (D1).
   - id: st-q-cannot-hold
     kind: cannot_hold
@@ -299,30 +316,34 @@ questions:
       statement showed little sign of it.
     source: "The New York Times, 6 Nov 1999, Webvan's first day of trading: https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html"
   # Which lever (D1), computed from Webvan's own plan (an illustration block, borrowed by the Case).
+  # Review 3 M08: each change names the statement that really shows it (sales on the income statement, money owed to
+  # lenders on the balance sheet, money spent on equipment on the cash flow statement and then the balance sheet), and none
+  # repeats the cash Topic's changes. The plan's sales in year 10 are $8.4 billion (28 centres at $300m a year).
   - id: st-q-which-lever
     kind: which_lever
-    skill: st-one-event
+    skill: st-three-pages
     prompt: >
-      Take Webvan's own 1999 plan, valued as an illustration. Each change is something a different
-      statement would show. Which single change lowers the value of one share most?
-    explanation: "Sales for each dollar invested is read off the cash flow statement and the balance sheet; the margin off the income statement. Each statement holds a lever. These values are an illustration built on Webvan's plan, not anyone's published value."
+      Take Webvan's own 1999 plan, valued as an illustration. Each change below is one a statement
+      would show. Which single change lowers the value of one share most?
+    explanation: "Sales are on the income statement. Money invested in equipment goes out on the cash flow statement and then sits on the balance sheet. What is owed to lenders is on the balance sheet. A change on any of the three pages can move the value. These values are an illustration built on Webvan's plan, not anyone's published value."
     computed:
       case: spine-statements-webvan-2001
       changes:
-        - { id: costly-growth, label: "The cash pages show $3 of sales for each $1 invested, not $10", levers: { salesToCapital: 3 } }
-        - { id: margin-down, label: "The income statement keeps 10% of each sale once mature, not 12%", levers: { marginTarget: 10 } }
-        - { id: may-fail, label: "A 20% chance it fails, not none", levers: { failureChance: 20 } }
-  # Predict, then see (D1), computed from the same illustration: never marked wrong.
+        - { id: sales-half, label: "The income statement shows $4.2 billion of sales in year 10, half the plan's $8.4 billion", levers: { revenueYear10: 4200 } }
+        - { id: costly-equipment, label: "The cash flow statement shows $1 invested for each $4 of new sales, not each $10", levers: { salesToCapital: 4 } }
+        - { id: more-debt, label: "The balance sheet owes lenders $500 million more", levers: { debt: 518.2 } }
+  # Predict, then see (D1), computed from the same illustration: never marked wrong. Review 3 M08: the margin, on the
+  # income statement, not the cash Topic's sales for each dollar invested.
   - id: st-q-predict
     kind: predict
-    skill: st-one-event
-    prompt: "Webvan's own plan, valued as an illustration, has each $1 invested bringing $10 of sales. If its cash flow statement showed {change}, the value of one share would be:"
-    explanation: "When each dollar spent on things that last brings fewer sales, more of every year's cash goes on growth. That spending shows on the cash flow statement and sits on the balance sheet."
+    skill: st-three-pages
+    prompt: "Webvan's own plan, valued as an illustration, keeps 12 cents of profit from each $1 of sales once mature. If its income statement showed {change}, the value of one share would be:"
+    explanation: "The profit on each sale is read off the income statement, and a mature business's cash comes from it. A few cents less on each dollar of sales, every year, can take a large slice off the value."
     computed:
       case: spine-statements-webvan-2001
       changes:
-        - { id: three, label: "only $3 of sales for each $1 invested", levers: { salesToCapital: 3 } }
-        - { id: five, label: "only $5 of sales for each $1 invested", levers: { salesToCapital: 5 } }
+        - { id: eleven, label: "11 cents of profit from each $1 of sales, not 12", levers: { marginTarget: 11 } }
+        - { id: eight, label: "8 cents of profit from each $1 of sales, not 12", levers: { marginTarget: 8 } }
       bands:
         - { id: same, label: "About the same", min: 0.9 }
         - { id: some, label: "Lower by a tenth to a third", min: 0.65, max: 0.9 }
@@ -331,8 +352,8 @@ questions:
   - id: st-q-cash-left
     skill: st-three-pages
     prompt: >
-      An investor in April 2001 wants to see the cash Webvan had left on 31 December 2000. Which
-      statement shows it?
+      An investor in April 2001 wants to see the cash and investments Webvan had left on 31 December
+      2000. Which statement shows them?
     choices:
       - { id: balance, text: "The balance sheet, which shows what it owns on that day" }
       - id: income
@@ -340,11 +361,11 @@ questions:
         mistake: { tag: one_statement, fix: "The income statement shows what a year earned, not what is left on one day." }
       - id: loss
         text: "None: take the loss away from the cash it raised"
-        mistake: { tag: profit_for_cash, fix: "The loss is not the cash used. The balance sheet shows the cash left, about $212 million." }
+        mistake: { tag: profit_for_cash, fix: "The loss is not the cash used. The balance sheet shows the cash and investments left, about $212 million." }
     answer: balance
     explanation: >
-      The balance sheet is a picture on one day: about $212 million in cash and investments it could
-      quickly sell. The cash flow statement shows how the year got there.
+      The balance sheet is a picture on one day: $40.3 million in cash and $171.6 million in investments
+      it could quickly sell, about $212 million. The cash flow statement shows how the year's cash got there.
     source: "Webvan Group, Form 10-K for 2000: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt"
   # Not a judgement kind: why the loss and the cash used differ.
   - id: st-q-loss-not-cash
@@ -358,8 +379,8 @@ questions:
         text: "One of the two pages must be wrong"
         mistake: { tag: one_statement, fix: "Both can be right: the pages measure different things." }
       - id: warehouses
-        text: "The loss includes the whole cost of the warehouses"
-        mistake: { tag: cash_for_cost, fix: "Warehouses reach the income statement a slice at a time. Their cash shows on the cash flow statement." }
+        text: "The loss includes the whole cost of its warehouse machines"
+        mistake: { tag: cash_for_cost, fix: "Machines reach the income statement a slice at a time. Their cash shows on the cash flow statement." }
     answer: no-cash-costs
     explanation: >
       The income statement counts costs that used no cash, such as paying staff in shares and spreading
@@ -379,7 +400,7 @@ checks:
         - "The income statement shows what a year earned, from sales down to net income."
         - "The balance sheet shows what is owned and owed on one day."
         - "The cash flow statement shows where the cash came from and where it went."
-        - "One event moves all three: a warehouse bought for cash shows on each page."
+        - "One event moves all three: warehouse machines bought for cash show on each page."
       writeDown: "Read all three pages: profit, what is owned and owed, and cash."
       skills: [st-three-pages, st-one-event]
     quickTries:
@@ -446,5 +467,5 @@ checks:
     passCriteria: >
       The Learner says the balance sheet shows what Webvan owns and owes on one day, including how
       little cash is left, and the cash flow statement shows where the cash went: into running the
-      business and into warehouses, paid for with money from investors. They explain that the loss
+      business and into equipment for its warehouses, paid for with money from investors. They explain that the loss
       alone does not say how long the cash lasts. No figure needs to be worked out; the idea is what passes.

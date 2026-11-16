@@ -121,14 +121,18 @@ test("[#90] the three financial statements play as a Spine Topic: Story, Concept
   // Critics round 1: the Concept shows its own Widget, one warehouse across the three pages, not the story again; and
   // the explore turn offers no word Choice for a statement the Concept already taught.
   expect(concept.widget).not.toBe(story.widget);
-  expect(concept.widget).toMatch(/One warehouse, three pages/i);
+  expect(concept.widget).toMatch(/One warehouse's machines, three pages/i);
   expect(explore.choices).not.toContain("What does 'income statement' mean?");
   expect(explore.widget).toMatch(/Operating margin/);
   expect(explore.widget).toMatch(/Free cash flow/);
   expect(explore.widget).not.toMatch(/-179|−179/);
   // Critics round 2: the story renders the Topic file's own Webvan beat (the round's inputs had a stale one), and the
   // explore Workbench draws where the cash went, buildings and all, not only sliders, stats and bars.
-  expect(story.widget).toContain("about $210 million left in cash at the end of 2000");
+  // Review 3 L02: the $210 million is cash and investments it could sell; its closing cash alone was $40.3 million.
+  expect(story.widget).toContain("about $210 million left in cash and investments at the end of 2000");
+  // Review 3 M07: the reused bench is a what-if, and says so on screen.
+  expect(explore.widget).toContain("What if Webvan's sales doubled at a profit on each sale?");
+  expect(explore.widget).toContain("A what-if: Webvan really lost money on most sales");
   // Critics round 1 after the merge: two round figures in the first turn, no spending figures; the Concept draws the
   // three pages as tiles from its first step; the explore reply leads with free cash flow alone.
   expect(`${story.tutor} ${story.widget}`).not.toMatch(/\$259\.8|\$263\.1|\$178\.5/);
