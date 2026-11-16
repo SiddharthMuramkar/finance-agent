@@ -34,7 +34,7 @@ cases:
       December, he hands readers the controls. A leaked document projects $10 billion of fares for
       2015; he assumes $3.5 billion for 2014, so about $700 million of revenue. Readers choose the
       market ($100 billion for city cars, up to $285 billion for all mobility), how fast it grows,
-      Uber's share (5% to 40%, by how strong its network effects are) and its slice (5% to 20%).
+      Uber's share (5% to 40%, by how strongly more riders draw more drivers) and its slice (5% to 20%).
       His spreadsheet opens on one sample story: all car services ($150 billion), a 25% share
       and a 15% slice. His sample stories run from $799 million to $90.5 billion, and talk of $40
       billion and more is in the news.
@@ -96,6 +96,17 @@ principle: >
   values sit far apart, look for the two stories behind them. Later facts can test a story's inputs
   one at a time; they cannot declare a story right.
 
+dailyLife: "A friend opening a third shop shows you a sales forecast: ask for the story behind it first, how many customers and what each spends, then check the numbers fit that story."
+
+# Go deeper (H1): beyond the Topic's Checks, for a Learner who asks. No Check, Skill or Lingo term tests it.
+goDeeper: >
+  Behind the share sits what economists call a network effect: a service gets better for each user as more
+  people use it, which helps the biggest player win more. More drivers in one city mean shorter waits for riders in
+  that city, which brings in more riders, which brings in more drivers. The argument in 2014 was whether Uber's network
+  effect was local, city by city, or global. A local one helps Uber win a city, but a rival can still win the next
+  city; only a global one could carry a dominant share of the whole world's market, which is why a 40% global share
+  from a local edge is a story that does not hold together.
+
 terms:
   - term: narrative
     means: The story of what the company becomes, which every number in its valuation should follow from.
@@ -114,19 +125,13 @@ terms:
     pro: They expect a dominant share in five years.
     example: "If one shop sells a quarter of the town's bread, its share is a quarter."
     emoji: bar-chart
-    inStory: In the story, the share Uber wins depends on how strong its network effects are.
+    inStory: In the story, the share Uber wins depends on how strongly more riders draw more drivers.
   - term: revenue slice
     means: The part of each fare the company takes as its own revenue; the rest goes to the driver.
     pro: The take rate slipped as competition grew.
     example: "A booking app that takes $2 of a $10 fare has a slice of a fifth."
     emoji: receipt
     inStory: In the story, Uber takes a slice of each fare and the driver gets the rest.
-  - term: network effect
-    means: A service gets better for each user as more people use it, which helps the biggest player win more.
-    pro: Their network effects are local, city by city, not global.
-    example: "More drivers in one city mean shorter waits for riders in that city."
-    emoji: link
-    inStory: In the story, local network effects help Uber city by city; global ones would help it everywhere.
 
 skills:
   - id: s11-story-levers
@@ -361,12 +366,13 @@ checks:
   - id: s11-talk
     kind: conversation
     prompt: >
-      Tell Uber's story as you see it in December 2014, in two or three sentences: the market it
-      serves, the share it can win and the slice of each fare it takes. Which of your settings would you give up
-      first if they could not all hold together, and why?
+      July 2014: Bill Gurley's story is that Uber's market is many times bigger than city cars, because cheaper,
+      quicker rides bring in new riders. Judge it in two or three sentences: which lever does his story move, which
+      of its settings is the least sure, and does it still hold together if Uber's edge stays local, city by city?
     passCriteria: >
-      Names a market, a share and a slice and ties each to a part of the story (for example local
-      or global network effects for the share, rivals for the slice); says which setting is the
-      least sure or pulls against another, with a reason; treats a value far from the talk of the
-      day as a different story, not as an error in the arithmetic.
+      Names the market as the lever Gurley's story moves and ties it to a part of the story (new
+      riders, cheaper and quicker rides); says which setting is the least sure or pulls against
+      another, with a reason (for example a local, city-by-city edge against a big share of a world
+      market); treats a value far from the talk of the day as a different story, not as an error in
+      the arithmetic.
     skills: [s11-story-levers, s11-story-holds]
