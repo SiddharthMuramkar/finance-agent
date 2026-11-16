@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { EXAMPLES, examplePath } from "../src/site/examples";
-import { quietDevtools } from "./support/app";
+import { quietDevtools, signIn } from "./support/app";
 
 /**
  * Titles, canonical links and share images (issue #71). Every public page, the joining pages and the 404 carry their own
@@ -97,7 +97,10 @@ test.describe("signed out", () => {
   });
 });
 
+// Signed in: signed out, the proxy sends an unknown address to the sign-in. Signs in itself, so it never depends on
+// another spec leaving the saved session alive.
 test("[#71] the 404 has its own title", async ({ page }) => {
+  await signIn(page);
   const response = await page.goto(`${examplePath("no-such-example")}`);
   expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle("Page not found · Value It");
