@@ -134,6 +134,9 @@ export const EXPLORE_KEY = "explore";
 /** What the panel shows when it shows the open quiz's Check; no Widget's key looks like it (theirs are `${messageId}:${index}` or "explore"). */
 export const CHECK_VIEW = "check";
 
+/** What the panel shows when it shows a spaced Review that is due; no Widget's key looks like it. */
+export const REVIEW_VIEW = "review";
+
 /** What a server render assumes: a laptop, as the layout is desktop-first. Tests render the narrow cases with NarrowScreen and PhoneScreen. */
 const ServerScreen = createContext<Screen>("laptop");
 
@@ -496,18 +499,28 @@ export function kindIconOf(code: string): IconName {
  * `picks` counts the picks, so a press on what is already showing still counts as a switch (the panel scrolls back
  * to the top); nothing pulses or rises (spec 2026-11-11 A6). `clear` forgets the pick, so a new turn's Widget, or
  * the open Check, shows on its own.
+ *
+ * It is also the panel's one 'what is open' state (#81): `pick` opens a view (a Widget's key, the explore Widget's
+ * EXPLORE_KEY, CHECK_VIEW, or REVIEW_VIEW while a Review is due, `review`) and `open` stays true until `close`, which
+ * keeps what was showing. On a laptop and a tablet the panel is always on screen, so only a phone reads `open`.
  */
-export function useWidgetPicker(widgets: readonly WidgetItem[], { newest, check = false }: { newest?: string; check?: boolean } = {}) {
+export function useWidgetPicker(
+  widgets: readonly WidgetItem[],
+  { newest, check = false, review = false }: { newest?: string; check?: boolean; review?: boolean } = {},
+) {
   const [picked, setPicked] = useState<string>();
   const [picks, setPicks] = useState(0);
+  const [open, setOpen] = useState(false);
   const newestKey = (widgets.find((w) => holdsKey(w, newest)) ?? widgets.at(-1))?.key;
   const pickedKey = widgets.find((w) => holdsKey(w, picked))?.key;
-  const view = check && (picked === CHECK_VIEW || !pickedKey) ? CHECK_VIEW : (pickedKey ?? newestKey);
+  const view =
+    review && picked === REVIEW_VIEW ? REVIEW_VIEW : check && (picked === CHECK_VIEW || !pickedKey) ? CHECK_VIEW : (pickedKey ?? newestKey);
   const pick = (key: string) => {
     setPicked(key);
     setPicks((n) => n + 1);
+    setOpen(true);
   };
-  return { view, newestKey, picks, pick, clear: () => setPicked(undefined) };
+  return { view, newestKey, picks, pick, clear: () => setPicked(undefined), open, close: () => setOpen(false) };
 }
 
 /** What a Widget is called on its tab and chip: "Explore" for the explore Widget, else its title, never a number. */

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { quietDevtools, seed } from "./support/app";
+import { screenAt } from "../src/app/screen";
 
 /** The Study Workspace's note below 768 px, as the spec quotes it (2026-11-12, Part E Evidence). */
 const PHONE_NOTE = "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad.";
@@ -16,7 +17,7 @@ test.beforeEach(async ({ page }, info) => {
   await quietDevtools(page);
 });
 
-const isPhone = (page: Page) => page.viewportSize()!.width < 768;
+const isPhone = (page: Page) => screenAt(page.viewportSize()!.width) === "phone";
 
 test("[G9] the Study Workspace shows its phone note below 768 px, and opens from 768 px", async ({ page }) => {
   await seed(page, "story");
