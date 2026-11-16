@@ -411,8 +411,9 @@ export function valueLeversModel(block: ValuationBlock, specs: readonly LeverSpe
     : nothingLeft
       ? { before: "", key: `${SYMBOL(block.currency)}0`, after: `: ${takers}` }
       : // The headline names whose story it is: a published Story judged with Case chips (the ready-Case valuation Topic) is
-        // "the story", the Learner's own in all open mode (an Own Case's Estimate) is "your story", else "this story" (#88).
-        { before: mode?.kind === "match_price" && mode.cases ? "The story is worth " : mode?.kind === "all_open" ? "Your story is worth " : "This story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
+        // "the story", every other one "this story" (#88). Never "your story" (GLOSSARY: a Story is someone's claim to judge,
+        // and the Learner's own settings are an Estimate, made only in an Assignment), all open mode included.
+        { before: mode?.kind === "match_price" && mode.cases ? "The story is worth " : "This story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
   const span = range ? { low: Math.min(1, Math.max(0, range.low) / top), high: Math.min(1, Math.max(0, range.high) / top) } : undefined;
   const cashFlows: CashFlowBar[] = [
     ...result.years.map((y) => ({ label: `Year ${y.year}`, value: y.fcf, gain: y.fcf >= 0, text: moneyText(y.fcf, block), afterYear10: false })),
@@ -478,7 +479,7 @@ function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], setting
     case "range": {
       // The range is the headline now; this readout names the single story value and ranks the levers by their swing.
       const { ranked } = valueRange(block, specs, settings, mode);
-      return { label: "Your story", text: shown(result.valuePerShare, block), note: `By effect: ${ranked.map((id) => SHORT[id]).join(", ")}` };
+      return { label: "This story", text: shown(result.valuePerShare, block), note: `By effect: ${ranked.map((id) => SHORT[id]).join(", ")}` };
     }
     case "all_open":
       return null;

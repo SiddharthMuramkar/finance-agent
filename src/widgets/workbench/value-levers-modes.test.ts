@@ -249,6 +249,15 @@ describe("every mode", () => {
     }
   });
 
+  it("never heads the value or labels a readout 'your story' (GLOSSARY: a Story is someone's claim; the Learner's own is an Estimate)", () => {
+    for (const raw of modes) {
+      const m = mode(raw);
+      const specs = leverSpecs(block, m);
+      const { headline, readout } = valueLeversModel(block, specs, openingSettings(specs), m);
+      expect(`${headline.before}${headline.key}${headline.after} ${readout?.label ?? ""}`, raw.kind).not.toMatch(/\byour story\b/i);
+    }
+  });
+
   it("is parsed from a part's literal props, and a mode that does not parse is refused in words", () => {
     expect(valueLeversData({ caseId: "amazon-dcf-2000", mode: { kind: "roic" } })).toMatchObject({ data: { mode: { kind: "roic" } } });
     expect(valueLeversData({ caseId: "amazon-dcf-2000", mode: { kind: "wishful" } })).toMatchObject({ problem: expect.stringMatching(/^mode: /) });
@@ -318,6 +327,6 @@ describe("range mode marks and headline (Spine Topic 14)", () => {
     expect(m.headline.key).toMatch(/ to /);
     expect(m.range?.where).toBe("above"); // the $749 price is above the story's range
     expect(m.bar.span).toBeTruthy();
-    expect(m.readout?.label).toBe("Your story");
+    expect(m.readout?.label).toBe("This story"); // never "your story" (GLOSSARY)
   });
 });
