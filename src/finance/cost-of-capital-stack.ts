@@ -47,6 +47,20 @@ export function costOfCapitalProblem(inputs: CostOfCapitalInputs): string | null
 }
 
 /**
+ * Relative risk (beta) at another share of debt, re-levered as Damodaran does (Boston Chicken in the same HighGrow.pdf: the
+ * restaurant industry's beta with no debt, levered to the firm's own debt to equity). A beta measured at one mix holds that
+ * mix's debt, so it is first taken back to no debt, then levered to the new mix:
+ * beta with debt = beta with no debt x (1 + (1 - tax rate) x debt / equity).
+ * More debt makes the shares riskier, so shareholders require more; with no tax to save, the blend barely moves.
+ * Debt shares are in percent, of the money at market values; a share of 100% has no equity left to lever, so it is NaN.
+ */
+export function releveredRisk(relativeRisk: number, fromDebtShare: number, toDebtShare: number, taxRate: number): number {
+  const lever = (debtShare: number) =>
+    debtShare >= 100 ? Number.NaN : 1 + (1 - taxRate / 100) * (debtShare / (100 - debtShare));
+  return (relativeRisk / lever(fromDebtShare)) * lever(toDebtShare);
+}
+
+/**
  * The cost of capital in three layers: the risk-free rate; the premium for this company's risk (relative risk times the
  * premium for shares), which together are the cost of equity; and the debt in the mix, the share of debt times the gap
  * between debt's after-tax cost and the cost of equity. Damodaran's Amazon of February 2000: 6.5% plus 1.60 × 4% is a cost

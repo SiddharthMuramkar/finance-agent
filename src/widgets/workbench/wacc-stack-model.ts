@@ -1,6 +1,7 @@
 import {
   costOfCapitalProblem,
   costOfCapitalStack,
+  releveredRisk,
   type CostOfCapitalInputs,
 } from "@/finance/cost-of-capital-stack";
 import { applyLevers, type ValuationBlock } from "@/finance/valuation-case";
@@ -252,11 +253,26 @@ const LAYER_LABELS = {
   debt: "Debt in the mix",
 } as const;
 
-/** The full inputs for these settings: the levers, with the Case's cost of debt and tax rate. */
+/**
+ * The full inputs for these settings: the levers, with the Case's cost of debt and tax rate. Relative risk is the Case's
+ * beta at the Case's own share of debt, so at another share of debt it is re-levered (review 3, M03): more debt makes the
+ * shares riskier, and a mix with no tax to save does not make the money cheaper.
+ */
 const inputsFor = (
   data: WaccStackData,
   settings: StackSettings,
-): CostOfCapitalInputs => ({ ...data.inputs, ...settings });
+): CostOfCapitalInputs => ({
+  ...data.inputs,
+  riskFree: settings.riskFree,
+  equityPremium: settings.premium,
+  debtShare: settings.debtShare,
+  relativeRisk: releveredRisk(
+    settings.relativeRisk,
+    data.inputs.debtShare,
+    settings.debtShare,
+    data.inputs.taxRate,
+  ),
+});
 
 /** Everything the Cost of capital stack shows for these settings. */
 export function waccStackModel(
@@ -266,7 +282,9 @@ export function waccStackModel(
   const levers = waccStackLevers(data);
   const conditions = taskConditions(data, levers, settings);
   const inputs = inputsFor(data, settings);
-  const problem = costOfCapitalProblem(inputs);
+  const problem =
+    costOfCapitalProblem({ ...inputs, relativeRisk: settings.relativeRisk }) ??
+    costOfCapitalProblem(inputs);
   if (problem)
     return {
       total: null,
@@ -394,6 +412,11 @@ export function waccStackReading(
             .map((l) => `${l.label} ${l.text}`)
             .join(", ")}`,
           `Who puts in the money: ${model.funders.map((f) => f.text).join("; ")}`,
+          ...(near(settings.debtShare, data.inputs.debtShare)
+            ? []
+            : [
+                `Relative risk with this much debt: ${inputsFor(data, settings).relativeRisk.toFixed(2)} (${settings.relativeRisk.toFixed(2)} at ${percentText(data.inputs.debtShare)} of debt; more debt makes the shares riskier)`,
+              ]),
           `Cost of debt ${percentText(data.inputs.costOfDebt)} before tax, tax rate ${percentText(data.inputs.taxRate)} (sourced: ${data.source.title})`,
         ];
   return {
