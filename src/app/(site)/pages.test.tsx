@@ -185,6 +185,33 @@ describe("About", () => {
     expect(text).toContain("Topics 110");
     expect(text).toContain("Do you track me?");
   });
+  // #75: no placeholder founder's note, no "coming soon", and the one Source About names is a link.
+  it("has no founder section and nothing 'coming soon'", async () => {
+    const html = renderToStaticMarkup(await AboutPage());
+    expect(words(html)).not.toMatch(/founder|coming soon/i);
+  });
+
+  it("links Damodaran, the one Source it names", async () => {
+    const html = renderToStaticMarkup(await AboutPage());
+    expect(html).toMatch(/<a [^>]*href="https:\/\/pages\.stern\.nyu\.edu\/~adamodar\/"[^>]*>Aswath Damodaran<\/a>/);
+  });
+
+  it("shows no minutes per Topic until they are measured", async () => {
+    expect(words(renderToStaticMarkup(await AboutPage()))).not.toMatch(/Each Topic \d/);
+  });
+});
+
+// #75: Home's "Where you end up" shows the real one-page note Spine Topic 15 saves to the Notebook.
+describe("Where you end up", () => {
+  it("shows the saved Amazon note under 'By the end, you value a company yourself.'", async () => {
+    const html = renderToStaticMarkup(await HomePage());
+    const section = /<section[^>]*data-site-section="end"[\s\S]*?<\/section>/.exec(html)?.[0] ?? "";
+    const text = words(section);
+    expect(text).toContain("Where you end up");
+    expect(text).toContain("By the end, you value a company yourself.");
+    expect(text).toContain("My Valuation story: Amazon, Feb 2000, against the price of 3 Feb 2000");
+    for (const line of ["How big it gets: revenue in year 10 $39bn", "Worth: $35 a share", "Price on 3 Feb 2000: $84", "Value from after year 10: 112%"]) expect(text).toContain(line);
+  });
 });
 
 // Issue #77: a privacy page and terms before a Visitor gives their email, a contact address they can copy, and a true
@@ -266,7 +293,7 @@ describe("the course counts", () => {
     expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves, in 10 to 15 minutes.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
-    expect(about).toContain("Topics 110 Subjects 9 Stages that read real arguments 3 Each Topic 10–15 min");
+    expect(about).toContain("Topics 110 Subjects 9 Stages that read real arguments 3 Price Free in early access");
     expect(about).toContain("Fifteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.");
     expect(about).toContain("Derivatives · 5");
     expect(about).toContain("Judge · 8");
@@ -303,7 +330,7 @@ describe("the course counts", () => {
     expect(how).toContain("in 10–14 minutes.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
-    expect(about).toContain("Each Topic 10–14 min");
+    expect(about).not.toContain("Each Topic"); // #75: no minutes until measured
     expect(about).toContain("Fourteen core Topics teach valuation in order.");
     expect(about).toContain("Derivatives · 4");
     expect(about).toContain("Judge · 9");

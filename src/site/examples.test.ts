@@ -49,6 +49,27 @@ describe("the public examples", () => {
     expect(exampleBySlug("nope")).toBeUndefined();
   });
 
+  // #75: a reader can follow every Source an Example names. Notes on how a figure was worked out name no Source.
+  it("link every named Source to a public https page", () => {
+    for (const example of EXAMPLES) {
+      for (const source of example.sources) {
+        if ("note" in source) continue;
+        expect(source.label.trim(), example.slug).not.toBe("");
+        expect(source.url, `${example.slug}: ${source.label}`).toMatch(/^https:\/\/[^\s]+$/);
+      }
+    }
+    const named = (slug: string) => exampleBySlug(slug)!.sources.filter((s) => "url" in s).map((s) => ("url" in s ? s.label : ""));
+    expect(named("amazon-2000")).toHaveLength(2);
+    expect(named("wework-2019")).toEqual(["WeWork S-1, 14 Aug 2019", "CNBC, 30 Sep 2019", "CNBC, 7 Nov 2023"]);
+  });
+
+  it("describe the Amazon model one way only: the tested valuation engine", () => {
+    const amazon = JSON.stringify(exampleBySlug("amazon-2000"));
+    expect(amazon).not.toMatch(/prototype/i);
+    expect(amazon).toContain("tested valuation engine");
+    expect(amazon).toContain("$35.04");
+  });
+
   it("draw each example with its own widget", () => {
     expect(EXAMPLES.map((e) => e.widget)).toEqual(["jackpot", "levers", "wework", "rates", "compound"]);
   });
@@ -64,11 +85,10 @@ describe("the Indian Moments (#116)", () => {
     expect(jackpot.asOf).toBe("2024-10-09");
     expect(rates.asOf).toBe("2025-06-06");
     for (const example of [jackpot, rates]) {
-      const linked = example.sources.filter((s) => s.url);
+      const linked = example.sources.filter((s) => "url" in s);
       expect(linked.length, example.slug).toBeGreaterThan(0);
-      for (const s of linked) expect(s.url, s.label).toMatch(/^https:\/\//);
     }
-    expect(rates.sources[0].url).toMatch(/^https:\/\/www\.rbi\.org\.in\//);
+    expect(rates.sources[0]).toMatchObject({ url: expect.stringMatching(/^https:\/\/www\.rbi\.org\.in\//) });
   });
 
   it("tells the jackpot in rupees, with the numbers the jackpot widget's Case Data hold", () => {
