@@ -104,7 +104,15 @@ export function ownCaseSheet(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, r
     const origins = originsOf(FROM[input], estimate, opening);
     return { from: FROM[input], origins, originWords: wordsOf(origins) };
   };
-  const sheet: OwnCaseSheetRow[] = fullSheetRows(valued, engineInputs, toEngineInputs(block)).map(({ value: _value, ...row }) => ({ ...row, ...marked(row.input) }));
+  const sheet: OwnCaseSheetRow[] = fullSheetRows(valued, engineInputs, toEngineInputs(block)).map(({ input, words, reading, years, moved, card }) => ({
+    input,
+    words,
+    reading,
+    ...(years ? { years } : {}),
+    moved,
+    card,
+    ...marked(input),
+  }));
   const price: OwnCaseSheetRow = {
     input: "price",
     words: "Share price on the report's date",
