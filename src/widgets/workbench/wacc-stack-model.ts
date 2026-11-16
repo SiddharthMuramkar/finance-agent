@@ -22,7 +22,7 @@ import {
   type Source,
 } from "./bench";
 import type { StackStory } from "./data-schemas";
-import { valueText } from "./value-levers-model";
+import { dateText, valueText } from "./value-levers-model";
 
 // Cost of capital stack (spec 2026-11-12, B4; Spine Topic 7), as pure functions: the risk-free rate, the premium for shares,
 // relative risk and the share of debt build the cost of capital in layers (costOfCapitalStack). The cost of debt and the tax
@@ -317,6 +317,12 @@ export function waccStackModel(
           : AT_THIS_RATE_LABEL,
       text,
     });
+    // The risk Topic's story asks whether any beta reaches the price (Spine critics round 1 on #91): show it beside the value.
+    if (equityLed && data.block.per === "share")
+      numbers.push({
+        label: `Price on ${dateText(data.block.price.date)}`,
+        text: valueText(data.block.price.value, data.block),
+      });
   } else
     numbers.push({
       label: "After-tax cost of debt",

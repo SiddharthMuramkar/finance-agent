@@ -117,7 +117,7 @@ primers:
     at: concept
 
 insight:
-  question: Move Amazon's relative risk from the beta he chose to his own rough measure, and back down to a plain retailer's. Does swapping beta move the value more or less than the gap to the price, and what does that say?
+  question: Move Amazon's relative risk from the beta he chose to his own rough measure, and back down to a plain retailer's. Can any beta bring the value near the price, and what does that say?
   written: Swapping one defensible beta for another moves Amazon's value by about a fifth, while the price is more than double his value; the rate matters less than growth and margins, and no beta explains the price.
   foundWhen: The Learner moves relative risk between a retailer's beta and the rough measure, sees the value move far less than the gap to the price, and says the beta cannot explain the price, so growth and margins must.
   hints:

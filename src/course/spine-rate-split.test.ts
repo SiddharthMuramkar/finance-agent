@@ -152,9 +152,20 @@ describe("Topic 7 split into the cost of equity and the cost of capital (#91)", 
       ).toBeLessThanOrEqual(2);
     }
     expect(draftOf("rate-concept").text).toMatch(
-      /trusts the steadier 1\.60, the internet retailers' average/,
+      /trusts the steadier average of internet retailers/,
     );
     expect(draftOf("coc-explore").text).toMatch(/as risky as an average share/);
+  });
+
+  it("keeps the risk Concept to the layers in words and beta, leaving the betas' figures to the Explore chips (beginner, round 1 on #91)", () => {
+    const text = draftOf("rate-concept").text;
+    expect(text).toMatch(/that number is called beta/);
+    expect(text.match(/\d/g) ?? []).toEqual([]);
+  });
+
+  it("asks the risk Explore whether any beta reaches the price, not to work out a size (beginner, round 1 on #91)", () => {
+    for (const q of [risk.insight?.question ?? "", draftOf("rate-explore").text])
+      expect(q).toMatch(/Can any beta bring the value near/);
   });
 
   it("tells no figure its sources do not hold: no 6.60% past premium (Historian)", () => {

@@ -756,8 +756,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "What shareholders require is the cost of equity, built in layers. " +
-              "Start with what a safe bond pays, 6.5%. Add the premium for holding average shares, 4%, scaled by how far Amazon's shares move with the market; that number is called beta. " +
-              "His own rough measure says 2.29, but he trusts the steadier 1.60, the internet retailers' average. " +
+              "Start with what a safe bond pays. Add a premium for holding average shares, scaled by how far Amazon's shares move with the market; that number is called beta. " +
+              "His own rough measure of beta is shaky, so he trusts the steadier average of internet retailers. " +
               "Only the risk that holding many shares cannot spread away earns that premium.\n\n" +
               "Which layer looks hardest to pin down?",
           ),
@@ -814,7 +814,7 @@ export const E2E_SCRIPTS = {
           text(
             "Here are his layers as a stack, with what a share is worth at that rate. Amazon borrows almost nothing, so the whole rate is nearly its cost of equity. " +
               "Move relative risk up to his rough measure, then down to a plain retailer's, and watch the value against the $84 price.\n\n" +
-              "Does swapping beta move the value more or less than the gap to the price, and what does that say?",
+              "Can any beta bring the value near the $84 price, and what does that say?",
           ),
         ],
       },

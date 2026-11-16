@@ -187,6 +187,15 @@ describe("Cost of capital stack, led by the Topic's story (#91)", () => {
     );
   });
 
+  it("shows the price beside the value a share, so the gap to the price reads at a glance (Spine critics round 1 on #91)", () => {
+    expect(waccStackModel(equity, atCase).numbers.slice(1)).toEqual([
+      { label: "Value a share at this rate", text: "$35" },
+      { label: "Price on 3 Feb 2000", text: "$84" },
+    ]);
+    // Only the risk Topic's story asks about the price; the plain stack keeps its two numbers.
+    expect(waccStackModel(data, atCase).numbers).toHaveLength(2);
+  });
+
   it("puts the story's betas on relative risk as labelled chips the slider lands on, 2.29 off the 0.05 steps", () => {
     const risk = waccStackLevers(equity).find((l) => l.id === "relativeRisk")!;
     expect(risk.chips).toEqual([1, 2.29]);
