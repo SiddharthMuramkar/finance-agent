@@ -33,7 +33,7 @@ cases:
       $864 million, about 31 cents lost on each $1 of sales, far deeper than his 13. The income statement has no tax line;
       the report says the tax Amazon provided for was immaterial, too small to matter, and the tax note lists about $1.65
       billion of past losses it may set against future profit. The balance sheet shows
-      long-term debt of $2,127 million and cash of $822 million plus $278 million of marketable securities, and 357.14
+      long-term debt of $2,127 million and cash of $822 million plus $278 million of marketable securities, investments it can sell quickly, and 357.14
       million shares at the year end. Put the report's debt and cash into his bridge and a share moves by about $2. His
       value rested on an assumption no report shows: that Amazon would keep 10 cents of each $1 of sales once mature. A
       loss of 31 cents on each $1 is evidence against that margin, not the number his value rested on.
@@ -52,7 +52,7 @@ cases:
       An Indian report prints two sets of statements: standalone, for Zomato alone, and consolidated, for Zomato with the
       companies it owns; a valuation uses the consolidated ones. The consolidated statement of profit and loss shows revenue from operations of Rs 41,924 million, against Rs
       19,938 million the year before, the very number Damodaran started from. There is no line called operating profit:
-      the loss before exceptional items and tax was Rs 15,179 million, and it already counts Rs 4,949 million of other
+      the loss before exceptional items (one-off gains or costs) and tax was Rs 15,179 million, and it already counts Rs 4,949 million of other
       income, mostly interest on the money raised at the share sale. Total tax was only Rs 20 million. The balance sheet
       shows no borrowings at all, cash and cash equivalents of only Rs 3,923 million, with much more in bank deposits and
       investments, and the share capital note lists 7,871,932,776 shares of Rs 1 each, 228,992,198 of them held by the
@@ -89,9 +89,10 @@ cases:
       The consolidated statement of profit or loss shows revenue of ₩300,870,903 million and operating profit of
       ₩32,725,961 million, on a line of its own. Income tax expense was ₩3,078,383 million. The statement of financial
       position, the report's name for the balance sheet, spreads debt over four lines: short-term borrowings of
-      ₩13,172,504 million, the current portion of long-term liabilities of ₩2,207,290 million, debentures of ₩14,530
-      million and long-term borrowings of ₩3,935,860 million. Cash and cash equivalents were ₩53,705,579 million, with
-      ₩58,909,334 million more in short-term financial instruments. The note on share capital lists 5,969,782,550
+      ₩13,172,504 million, the current portion of long-term liabilities (the part of its long-term debts due within a
+      year) of ₩2,207,290 million, debentures (bonds Samsung has sold to lenders) of ₩14,530 million and long-term
+      borrowings of ₩3,935,860 million. Cash and cash equivalents were ₩53,705,579 million, with ₩58,909,334 million
+      more in short-term financial instruments. The note on share capital lists 5,969,782,550
       ordinary shares and 822,886,700 preference shares issued, some of which Samsung has bought back.
 
   - id: spine-ar-lvmh-2024
@@ -113,8 +114,8 @@ cases:
 
 concept: >
   An annual report is the yearly report a listed company must publish: in the US it is the 10-K, in India the annual
-  report sent to the stock exchanges, in Japan the yuho, in Korea the business report, and in Europe an annual report
-  under IFRS, the international accounting rules. Two pages in it hold a valuation's numbers. The income statement runs down from
+  report sent to the stock exchanges, in Japan the annual securities report, in Korea the business report, and in Europe
+  an annual report under the international accounting rules. Two pages in it hold a valuation's numbers. The income statement runs down from
   sales to profit: sales at the top, then operating profit (what the business makes before interest and tax), then
   tax. The balance sheet shows what the company owns and owes on one day: its debt, its cash, and its shares in the
   note on share capital. Names change from report to report. Zomato's sales are revenue from operations, and its report
@@ -129,7 +130,7 @@ dailyLife: >
 
 goDeeper: >
   Analysts rarely copy a number straight from the page. For operating profit in an Indian report, they start from the
-  loss before exceptional items and tax, take away other income and add back finance costs, so that interest earned and
+  loss before exceptional items (one-off gains or costs) and tax, take away other income and add back finance costs, so that interest earned and
   paid sits below the line. For cash, they count bank deposits and investments the company could sell, not only the line
   called cash. For debt, many add the leases the company must pay. A Learner who wants more can ask how Damodaran turned
   Zomato's report into the inputs of his valuation.
@@ -190,7 +191,7 @@ explore:
         title: "Amazon's 10-K for 2000"
         lines:
           - { line: Long-term debt, amount: 2127, lever: debt }
-          - { line: Cash and marketable securities, amount: 1101, lever: cash }
+          - { line: Cash and investments it can sell quickly, amount: 1101, lever: cash }
           - { line: Loss from operations, amount: 864 }
         source:
           title: "Amazon.com Form 10-K405 for 2000, Consolidated Balance Sheets and Statements of Operations"
@@ -321,7 +322,7 @@ checks:
         kind: choice
         answer: before-tax
         choices:
-          - { id: before-tax, text: "The loss before exceptional items and tax" }
+          - { id: before-tax, text: "The loss before exceptional items (one-off gains or costs) and tax" }
           - { id: after-tax, text: "The loss for the year", mistake: { tag: after_tax_start, fix: "The loss for the year is after tax; operating profit is before it, so start higher up." } }
       - id: ar-try-tax
         skill: find-the-line

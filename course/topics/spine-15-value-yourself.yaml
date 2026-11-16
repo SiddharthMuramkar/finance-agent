@@ -52,7 +52,7 @@ cases:
     valuationFrom: zomato-ipo-2021
     story: >
       It is 21 July 2021. Zomato, an Indian food delivery app, is selling shares at Rs 76 in its listing: the offer
-      price, which buyers pay before the shares first trade. In the year to March 2021 its revenue was Rs 1,994 crore,
+      price, which buyers pay before the shares first trade. In the year to March 2021 its sales were Rs 1,994 crore,
       down from Rs 2,605 crore the year before, and it lost Rs 816 crore.
       The offer closed on 16 July with bids for many times the shares on offer. Today Aswath Damodaran values it (he
       publishes his story tomorrow), betting on a big market and a platform: his spreadsheet has about Rs 16,600 crore
@@ -69,7 +69,8 @@ concept: >
   big it gets, what it keeps, what growth costs, how risky it is. Find the lever its value rests on most, and check the
   story holds together: growth needs capital, and margins are capped by what rivals allow. Then ask what the price of
   the day assumes instead. The lever the value rests on most is the assumption to watch. In Value levers, the bars
-  under the levers are the story's free cash flow: the cash left each year after tax and after paying for growth.
+  under the levers are the cash it makes each year, left after tax and after paying for growth, then one bar for
+  every year after year 10.
 
 principle: >
   A published valuation is someone's story, set lever by lever, as of one date. Judge it by the lever it rests on
@@ -89,7 +90,7 @@ terms:
     example: "Valuing Amazon as of February 2000, you may not use its sales for 2000."
     inStory: "In the story, each company has its own date: February 2000, October 2015 or July 2021."
   - term: Valuation story
-    means: "A story about a company's future, set as four levers, that a value per share follows from: how big it gets (revenue in year 10), what it keeps (operating margin), what growth costs (sales for each dollar invested) and how risky it is (cost of capital)."
+    means: "A story about a company's future, set as four levers, that a value per share follows from: how big it gets (sales in year 10), what it keeps (operating margin), what growth costs (sales for each dollar invested) and how risky it is (cost of capital)."
     pro: "His story: a big market, high margins, little capital needed, ordinary risk."
     example: "A café owner's story: three more cafés in five years, each keeping a fifth of its sales."
     inStory: "In the story, Value levers opens on a published or a course story, set as its four levers."
@@ -200,7 +201,7 @@ questions:
     skill: as-of
     choices:
       - id: revenue
-        text: "Its revenue fell in the year to March 2021"
+        text: "Its sales fell in the year to March 2021"
       - id: listing
         text: "Its shares closed up 65.6% on their first day"
         mistake: { tag: hindsight, fix: "The first day's close came two days later. On 21 July nobody knew it yet." }

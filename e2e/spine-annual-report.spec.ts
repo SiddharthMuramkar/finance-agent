@@ -119,7 +119,7 @@ for (const play of PLAYS) {
     expect(turns[2].tutor).toMatch(/a lot or a little/);
     expect(turns[2].tutor).toMatch(/\$2\.1 billion of debt and \$1\.1 billion of cash/);
     expect(turns[2].widget).toMatch(/Long-term debt/);
-    expect(turns[2].widget).toMatch(/Cash and marketable securities/);
+    expect(turns[2].widget).toMatch(/Cash and investments it can sell quickly/);
     expect(turns[1].tutor).toMatch(/income statement[\s\S]*balance sheet/);
     // #94: the same two pages in Japan, Korea and Europe, each named by the report its Case reads.
     expect(turns[1].tutor).toMatch(/Japan, Korea and Europe/);
@@ -134,7 +134,7 @@ for (const play of PLAYS) {
     // Taking the report's debt and cash off its page moves a share about $2, from $35 to $33: a little.
     const report = page.getByTestId("value-bridge-report").first();
     await report.getByRole("button", { name: /Long-term debt/ }).click();
-    await report.getByRole("button", { name: /Cash and marketable securities/ }).click();
+    await report.getByRole("button", { name: /Cash and investments it can sell quickly/ }).click();
     await expect(page.getByTestId("value-bridge-headline").first()).toContainText("$33");
   });
 }

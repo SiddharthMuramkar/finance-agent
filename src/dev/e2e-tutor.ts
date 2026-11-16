@@ -57,7 +57,7 @@ const AR_REPORT = {
   title: "Amazon's 10-K for 2000",
   lines: [
     { line: "Long-term debt", amount: 2127, lever: "debt" },
-    { line: "Cash and marketable securities", amount: 1101, lever: "cash" },
+    { line: "Cash and investments it can sell quickly", amount: 1101, lever: "cash" },
     { line: "Loss from operations", amount: 864 },
   ],
   source: {
