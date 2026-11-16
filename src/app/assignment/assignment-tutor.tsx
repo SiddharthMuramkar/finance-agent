@@ -3,29 +3,30 @@
 import { useState } from "react";
 import { Button } from "../primitives";
 
-type Said = { kind: "reply" | "problem"; text: string };
-
 /**
  * The AI Tutor in the Assignment (spec #68, ticket #110): the Learner asks about their saved Own Case, and the Tutor
  * names each input the range check flagged and asks what story it assumes. Each message is a Tutor Turn: it counts
- * against the daily caps, and the "limit reached" words show when one is hit.
+ * against the daily caps, and the "limit reached" words show when one is hit. A screen reader hears each reply (a polite
+ * log) and each problem (an alert): both regions stay mounted, so text put in them is announced (review G25).
  */
 export function AssignmentTutor() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const [said, setSaid] = useState<Said[]>([]);
+  const [replies, setReplies] = useState<string[]>([]);
+  const [problem, setProblem] = useState<string | null>(null);
 
   const send = async () => {
     const text = message.trim();
     if (!text || sending) return;
     setSending(true);
+    setProblem(null);
     const response = await fetch("/api/assignment/turn", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: text }) }).catch(() => null);
     const body = (await response?.json().catch(() => null)) as { reply?: string; error?: string } | null;
     setSending(false);
     if (response?.ok && body?.reply) {
       setMessage("");
-      setSaid((all) => [...all, { kind: "reply", text: body.reply! }]);
-    } else setSaid((all) => [...all, { kind: "problem", text: body?.error ?? "The Tutor could not answer. Try again." }]);
+      setReplies((all) => [...all, body.reply!]);
+    } else setProblem(body?.error ?? "The Tutor could not answer. Try again.");
   };
 
   return (
@@ -34,11 +35,20 @@ export function AssignmentTutor() {
         Ask the Tutor about your Own Case
       </h2>
       <p className="text-sm leading-5 text-[var(--muted)]">Save your Own Case first. The Tutor reads your figures and asks what story each unusual one assumes.</p>
-      {said.map((s, i) => (
-        <p key={i} data-assignment-said={s.kind} className={`whitespace-pre-line text-sm leading-5 ${s.kind === "problem" ? "text-[var(--danger)]" : ""}`}>
-          {s.text}
-        </p>
-      ))}
+      <div role="log" aria-live="polite" aria-label="The Tutor's replies" className="flex flex-col gap-3 empty:hidden">
+        {replies.map((text, i) => (
+          <p key={i} data-assignment-said="reply" className="whitespace-pre-line text-sm leading-5">
+            {text}
+          </p>
+        ))}
+      </div>
+      <div role="alert" className="empty:hidden">
+        {problem && (
+          <p data-assignment-said="problem" className="text-sm leading-5 text-[var(--danger)]">
+            {problem}
+          </p>
+        )}
+      </div>
       <form
         className="flex flex-col gap-2"
         onSubmit={(e) => {
