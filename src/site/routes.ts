@@ -31,10 +31,15 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   { path: JOIN_PATH, site: false, sitemap: true },
 ];
 
-/** The files: the link-preview images (src/app/site-metadata.ts) and the icons. */
+/**
+ * The files: the link-preview images (src/app/site-metadata.ts), the icons (src/app/icon.svg, favicon.ico and
+ * apple-icon.png; scripts/make-icons.mjs draws the last two) and the crawler files (src/app/robots.ts and sitemap.ts,
+ * issue #70).
+ */
 export const PUBLIC_FILES: readonly PublicFile[] = [
   { id: "share-images", pattern: /^\/landing-assets\/[\w-]+\.(png|webp)$/, samples: ["/landing-assets/workspace-light.png"] },
-  { id: "icon", pattern: /^\/(icon\.svg|favicon\.ico)$/, samples: ["/icon.svg", "/favicon.ico"] },
+  { id: "icon", pattern: /^\/(icon\.svg|favicon\.ico|apple-icon\.png)$/, samples: ["/icon.svg", "/favicon.ico", "/apple-icon.png"] },
+  { id: "crawler", pattern: /^\/(robots\.txt|sitemap\.xml)$/, samples: ["/robots.txt", "/sitemap.xml"] },
 ];
 
 /** The sign-in and sign-up pages, with every step under them (Clerk's catch-all routes, such as /sign-in/sso-callback). */
