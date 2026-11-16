@@ -11,6 +11,8 @@ import { describe, expect, it } from "vitest";
 /** Files that write screenshots on another switch, into a git-ignored folder, never into docs/. */
 const OTHER_SWITCH: Record<string, string> = {
   "e2e/matrix.spec.ts": "the preview matrix runs only with UI_MATRIX=1 and writes to the git-ignored evidence/ folder",
+  "e2e/spine-01.spec.ts": "the Spine critics' screenshots are written to CRITICS_OUT or the git-ignored test-results/ folder",
+  "e2e/spine-annual-report.spec.ts": "the critics' screenshots are written to CRITICS_OUT or the test's git-ignored output folder",
   "e2e/spine-02-03.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
   "e2e/spine-statements.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
 };
