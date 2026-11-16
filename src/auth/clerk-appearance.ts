@@ -12,6 +12,8 @@ export const clerkAppearance = {
     colorPrimary: "var(--accent)",
     colorPrimaryForeground: "var(--on-accent)",
     colorDanger: "var(--danger)",
+    colorSuccess: "var(--gain-ink)",
+    colorWarning: "var(--wait-ink)",
     colorBackground: "var(--raised)",
     colorForeground: "var(--ink)",
     colorMuted: "var(--wash)",

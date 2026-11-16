@@ -181,6 +181,12 @@ describe("About", () => {
     expect(text).toContain("Topics 110");
     expect(text).toContain("Do you track me?");
   });
+
+  // ADR 0019 (#79): the FAQ names the theme cookie the sun/moon switch sets.
+  it("names the theme cookie in the FAQ", async () => {
+    const text = words(renderToStaticMarkup(await AboutPage()));
+    expect(text).toContain("a cookie called theme remembers Light or Dark");
+  });
 });
 
 // #72: every count and Spine title on Home, About, How it works and Examples comes from the course outline.

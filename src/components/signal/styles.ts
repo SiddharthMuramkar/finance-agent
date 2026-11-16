@@ -8,7 +8,7 @@
 export const SIGNAL_STYLES_HREF = "signal-widgets";
 
 export const SIGNAL_CSS = `
-.sig-w{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;padding:clamp(16px,2vw,24px);background:var(--paper);color:var(--ink-2);border:1px solid var(--rule);border-radius:18px;box-shadow:var(--lift-w,none);font-family:var(--font-body,inherit);font-size:15px;line-height:1.55;color-scheme:light}
+.sig-w{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;padding:clamp(16px,2vw,24px);background:var(--paper);color:var(--ink-2);border:1px solid var(--rule);border-radius:18px;box-shadow:var(--lift-w,none);font-family:var(--font-body,inherit);font-size:15px;line-height:1.55}
 .sig-w *{box-sizing:border-box}
 .sig-w b,.sig-w strong{font-weight:600;color:var(--ink)}
 .sig-w p{margin:0}

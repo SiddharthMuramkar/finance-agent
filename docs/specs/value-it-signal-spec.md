@@ -103,11 +103,42 @@ Contrast ratios (WCAG 2):
 | Orange mark on wash | claim bar | 2.61 (below 3:1: always hatched with a 1.5px orange outline and a label) |
 | Red mark on wash | bars | 5.70 |
 
+**Dark (ADR 0019).** The same pairs, measured on the Dark tokens of §3.1 by `scripts/check-theme-contrast.mjs`. In Dark the fills are light, so the text on a fill (`--on-blue`) is the dark `#0B0D12`; the table keeps the Light names.
+
+| Pair | Normal | Deuteranopia | Protanopia | Tritanopia |
+|---|---|---|---|---|
+| Green ↔ Red | 34.4 | 23.7 | 12.6 | 33.5 |
+| Green ↔ Orange | 37.6 | 36.9 | 29.1 | 36.0 |
+| Red ↔ Orange | 20.9 | 15.2 | 20.9 | 14.8 |
+| Blue ↔ Green | 29.6 | 26.5 | 26.7 | 21.2 |
+| Blue ↔ Red | 23.1 | 18.8 | 15.9 | 26.8 |
+| Blue ↔ Orange | 30.6 | 31.9 | 28.4 | 20.8 |
+| Green ↔ Deep green | 26.3 | 26.1 | 27.1 | 25.8 |
+| Red ↔ Deep green | 29.1 | **3.4** | 15.7 | 32.3 |
+
+Red and deep green stay below the floor for deuteranopia in Dark too, under the same rule: never adjacent data marks.
+
+| Use | Pair | Ratio |
+|---|---|---|
+| Body text | ink-2 `#D3D7DF` on paper `#0E1117` | 13.10 |
+| Headings | ink `#F2F4F8` on paper | 17.16 |
+| Muted text | muted `#9BA2AE` on paper / on wash | 7.35 / 6.78 |
+| Faint text (axis ends only) | faint `#7A818D` on paper | 4.82 |
+| Blue text | blue on paper / on blue-tint | 7.95 / 6.56 |
+| Pill text | gain-ink on gain-tint | 7.66 |
+| Pill text | loss-ink on loss-tint | 8.55 |
+| Pill text | wait-ink on wait-tint | 11.04 |
+| Dark text on fills | on blue / red / deep green / ink | 8.18 / 7.80 / 10.15 / 17.65 |
+| Ink on green fill | segmented-bar label | 4.84 |
+| Green mark on wash | bars | 3.27 (direct labels, tooltip and table view stay required) |
+| Orange mark on wash | claim bar | 10.84 (always hatched with an outline and a label, as in Light) |
+| Red mark on wash | bars | 7.00 |
+
 ---
 
 ## 3. Design tokens
 
-### 3.1 Colour tokens (single light theme by design)
+### 3.1 Colour tokens (Light and Dark; ADR 0019)
 
 ```css
 :root{
@@ -139,7 +170,24 @@ Each signal colour ships as a family of four or five steps with fixed jobs:
 | `-line` | Pill inner border, soft bands on the ruler |
 | `--gain-deep` | Second level of gain (compounding only) |
 
-The page commits to one light theme. `body` sets an explicit `background: var(--paper)` and `color-scheme: light` so it renders the same on a dark host. A dark theme is not specified. If one is added, every signal colour must be re-stepped and re-validated against the dark surface, never inverted.
+There are two themes, Light (above) and Dark (below), in one colour language (ADR 0019). A first visit follows the device's light or dark setting. A sun/moon switch in the site nav (and the Menu sheet on a phone) flips the theme and a `theme` cookie remembers the choice. A script at the top of `<head>` sets `data-theme` on `<html>` before the first paint, so a page never flashes the wrong theme. `body` sets an explicit `background: var(--paper)`, and each block sets its own `color-scheme`.
+
+Every signal colour and the hatch is re-stepped and re-validated against the dark surface, never inverted. The hatch is drawn in `--line`, so it takes `--line`'s dark value. On a dark page the fills are light, so the text on a fill, and on a Band, is dark. The §2.4 contrast and colour-blind checks pass in both themes (`scripts/check-theme-contrast.mjs` measures each block).
+
+```css
+:root[data-theme="dark"]{
+  --paper:#0E1117; --wash:#161A22; --wash-2:#1F2430; --grid:#1B2029;
+  --ink:#F2F4F8; --ink-2:#D3D7DF; --muted:#9BA2AE; --faint:#7A818D;
+  --rule:#272C37; --line:#3A404D;
+  --blue:#8AA4FF; --blue-hover:#9FB5FF; --blue-pressed:#B3C4FF; --on-blue:#0B0D12;
+  --blue-tint:#1A2240; --blue-tint-2:#222B4E; --blue-line:#3A4B8C;
+  --gain:#0F7A56; --gain-deep:#4FD1A1; --gain-ink:#4CC996; --gain-tint:#10261E; --gain-line:#1E5A44;
+  --loss:#FF7A8F; --loss-ink:#FF9AA8; --loss-tint:#2C1418; --loss-line:#6E2A35;
+  --wait:#FFC247; --wait-ink:#FFCC66; --wait-tint:#2B1C0E; --wait-line:#6B5221;
+  --overlay:rgba(14,17,23,.9);
+  color-scheme:dark;
+}
+```
 
 ### 3.2 Typography
 
@@ -1373,7 +1421,7 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Learner quotes | None | Real sentences from early members. Never invented. |
 | Amazon model | Done (decision #18): the widget runs the valuation engine on Damodaran's sourced inputs, $35.04 against his $35.08, and its source line says so | Nothing |
 | First market | Mixed rupee and dollar cases | Choose which currency and events lead |
-| Theme | Done (decision #17): one Light theme for the whole app; no other theme is built | Nothing |
+| Theme | Done (ADR 0019): Light and Dark; the device chooses first, the sun/moon switch remembers the choice in the `theme` cookie; Dark values measured in §2.4 | Nothing |
 | Table views | Jackpot and compounding only | Add for levers, rates and WeWork |
 | Hero demo | Recorded | Wire to the live Tutor or keep the label |
 | Named valuation author | "Not affiliated" line on About | Confirm the wording is enough for you |
@@ -1496,7 +1544,7 @@ FAQ, in order:
 | 5 | What does it cost? | Nothing during early access. No price has been decided yet. |
 | 6 | How do I get in? | Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in. |
 | 7 | Can I start again? | Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted. |
-| 8 | Do you track me? | There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. |
+| 8 | Do you track me? | There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. If you press the sun/moon switch, a cookie called theme remembers Light or Dark, and nothing else. |
 
 About, promises:
 

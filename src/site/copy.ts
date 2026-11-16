@@ -40,6 +40,8 @@ export const chrome = {
     { href: "/settings", label: "Account settings" },
   ],
   signOut: "Sign out",
+  // The theme switch in the phone menu (ADR 0019): what a press turns on, in each theme.
+  theme: { light: "Dark theme", dark: "Light theme" },
   footer: "Past events only. Nothing here is investment advice. © 2026 Value It.",
   // The member Continue button's sub-line when there is no Topic to name.
   studyWorkspace: "Study Workspace",
@@ -172,7 +174,7 @@ export const FAQ = [
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
   { q: "How do I get in?", a: "Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
-  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie." },
+  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. If you press the sun/moon switch, a cookie called theme remembers Light or Dark, and nothing else." },
 ] as const;
 
 export const howItWorks = {

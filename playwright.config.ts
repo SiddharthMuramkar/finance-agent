@@ -41,7 +41,14 @@ export const SMALL_VIEWPORTS = {
   p390: { width: 390, height: 844 },
   t768: { width: 768, height: 1024 },
 } as const;
-export const SMALL_SPECS = /(?:^|\/)(?:home|about|sign-in|phone-note|matrix|signal-qa)\.spec\.ts$/;
+export const SMALL_SPECS = /(?:^|\/)(?:home|about|sign-in|phone-note|matrix|signal-qa|phone-workspace|theme)\.spec\.ts$/;
+
+/**
+ * The narrowest phone (spec #68, #82: "at 360 and 390 px"): only the phone specs run here, the Study Workspace's first;
+ * append a spec's name to PHONE_SPECS when it holds at 360 px.
+ */
+export const PHONE_VIEWPORTS = { p360: { width: 360, height: 800 } } as const;
+export const PHONE_SPECS = /(?:^|\/)(?:phone-note|phone-workspace)\.spec\.ts$/;
 
 const small = (name: string, viewport: { width: number; height: number }): Project => ({
   ...project(name, viewport),
@@ -51,6 +58,7 @@ const small = (name: string, viewport: { width: number; height: number }): Proje
 const projects: Project[] = [
   ...Object.entries(VIEWPORTS).map(([name, viewport]) => project(name, viewport)),
   ...Object.entries(SMALL_VIEWPORTS).map(([name, viewport]) => small(name, viewport)),
+  ...Object.entries(PHONE_VIEWPORTS).map(([name, viewport]) => ({ ...project(name, viewport), testMatch: PHONE_SPECS })),
 ];
 
 export default defineConfig({
