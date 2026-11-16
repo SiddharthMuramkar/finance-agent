@@ -80,6 +80,11 @@ const INVENTORY: Record<string, Use> = {
     verdict: "mark",
     why: "The five B4 Workbenches' one chart (BarRows, spec 2026-11-12 B4): SVG bars, a gain in mint, a loss in coral and a market or history figure in sunflower, each row led by its label in words, its figure in the bar's title, and every label and figure in the chart's accessible name",
   },
+  "src/widgets/workbench/cash-waterfall-view.tsx": {
+    uses: 1,
+    verdict: "mark",
+    why: "A 2 px sunflower edge (--sun, which is ink now) down the cash waterfall's small scene (#89 critics round), whose line beside it says in words what the levers did",
+  },
   "src/widgets/workbench/value-levers-view.tsx": {
     uses: 3,
     verdict: "mark",
