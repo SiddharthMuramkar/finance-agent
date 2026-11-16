@@ -45,16 +45,16 @@ topics:
     note: Round 3 on the reinvestment rate content, in two halves. Beginner persona and math police on ws-f2-spine (fixed in 0cb474f); historian and widget fit on ws-i-round2 confirmed nothing (ws-i-round2-critics.json in pull request 616's history).
   spine-07-risk:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "9b4f854"
+    rounds: 4
+    lastRound: "80b0bae"
     open: 0
-    note: Round 3 after the split (#91), 6 findings fixed in 9b4f854 (story to two figures, beta named and chosen in Concept, direction stems, unsourced 6.60% dropped and the ERP paper cited, stack led by the cost of equity with labelled beta chips and shareholders and lenders as Icons).
+    note: Round 4 (#91 critics round 1 again), 4 findings fixed in 80b0bae (Explore captured after its stack draws, with the beta chips asserted; price beside the value a share; "Can any beta bring the value near the price?"; Concept turn in words plus beta, no figures).
   spine-cost-of-capital:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 1
-    lastRound: "9b4f854"
+    rounds: 2
+    lastRound: "80b0bae"
     open: 0
-    note: Round 1 on the new Topic (#91), 6 findings fixed in 9b4f854 (story to two figures, year-ten rates given a reason, direction stems and tasks, stack led by the share of debt with a No debt chip, shareholders and lenders as Icons).
+    note: Round 2 on the new Topic (#91), no findings; its Explore stack and Choices captured in full.
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 2
