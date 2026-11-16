@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { INDIA_INDUSTRIES, openingEstimate, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs } from "@/finance/own-case";
+import { INDIA_INDUSTRIES, openingEstimate, valueOwnCase, type OwnCaseEstimate, type OwnCaseIndustry, type OwnCaseInputs } from "@/finance/own-case";
 import { dateText, priceText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
+import { OwnCaseFullSheet } from "./own-case-full-sheet";
 
 /** The eight figures copied from the report (spec #68, user story 79), each with what it is and where the money is counted. */
 const FIELDS = [
@@ -35,6 +36,8 @@ export function OwnCaseForm() {
   const [shown, setShown] = useState<Shown>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  // The Own Case last valued, for Go deeper's Full sheet (#111); a new valuation opens a fresh sheet.
+  const [valued, setValued] = useState<{ inputs: OwnCaseInputs; estimate: OwnCaseEstimate; at: number } | null>(null);
 
   const inputs = (): OwnCaseInputs | null =>
     industry && {
@@ -49,7 +52,9 @@ export function OwnCaseForm() {
     setSaved(null);
     const typed = inputs();
     if (!typed) return setShown({ kind: "problem", text: "Pick the company's industry." });
-    const value = valueOwnCase(typed, openingEstimate(typed.industry));
+    const estimate = openingEstimate(typed.industry);
+    const value = valueOwnCase(typed, estimate);
+    setValued(value.ok ? { inputs: typed, estimate, at: Date.now() } : null);
     setShown(
       value.ok
         ? { kind: "value", text: `The engine's value: ${priceText(value.valuePerShare, RUPEES)} a share, beside a price of ${priceText(typed.price, RUPEES)} on ${dateText(typed.reportDate)}.` }
@@ -147,6 +152,7 @@ export function OwnCaseForm() {
           {shown.text}
         </p>
       )}
+      {shown?.kind === "value" && valued && <OwnCaseFullSheet key={valued.at} inputs={valued.inputs} estimate={valued.estimate} />}
       {saved && (
         <p data-own-case-saved role="status" className="text-sm leading-5">
           {saved} <TextLink href="/notebook#own-cases">Open the Notebook</TextLink>

@@ -381,7 +381,7 @@ function FullSheetDisclosure({
  * row opens its Lingo card inline, in the sheet, not as a Companion Widget, so it costs no Tutor Turn. Below it, its slider
  * when the row can be changed (#104).
  */
-function FullSheetRowView({ row, children }: { row: FullSheetRow; children?: ReactNode }) {
+export function FullSheetRowView({ row, children }: { row: Omit<FullSheetRow, "input" | "value"> & { input: string }; children?: ReactNode }) {
   return (
     <li className="border-b border-[var(--hairline)] last:border-b-0" data-row={row.input} data-moved={row.moved || undefined}>
       <details className="group/row">
@@ -405,7 +405,7 @@ function FullSheetRowView({ row, children }: { row: FullSheetRow; children?: Rea
 }
 
 /** A Full sheet row's slider: it moves the row's figure from the Case's own, which stays a stop to come back to. */
-function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof rowSpecs>[number]; change: number; onChange: (id: RowId, change: number) => void }) {
+export function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof rowSpecs>[number]; change: number; onChange: (id: RowId, change: number) => void }) {
   const figure = spec.opening + change;
   return (
     <div className="-mt-1 pb-1">

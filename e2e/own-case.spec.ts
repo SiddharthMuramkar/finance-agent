@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { openingEstimate, valueOwnCase } from "../src/finance/own-case";
 import { test } from "./support/people";
 
 /**
@@ -55,6 +56,57 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   await expect(note).toContainText("Coffee Day Enterprises, India. Annual report of 21 Oct 2015. Industry: Food processors.");
   await expect(note).toContainText("price ₹328 on 21 Oct 2015");
   await expect(note).toContainText("The engine's value: ");
+});
+
+/** The engine's value a share in a sentence: "₹-12.3" -> -12.3. */
+const rupees = (text: string) => Number(/(-?)₹(-?[\d,.]+) a share/.exec(text)!.slice(1).join("").replace(/,/g, ""));
+
+test("[#111] Go deeper on an Own Case opens the Full sheet, says where each input came from, and a row's slider or tap revalues it", async ({ person }) => {
+  test.setTimeout(180_000);
+  const { page } = await person({ person: "ravi" });
+  await page.goto("/assignment");
+  const form = page.locator("[data-own-case-form]");
+  await form.getByLabel("Company").fill("Coffee Day Enterprises");
+  await form.getByLabel("Date of the annual report").fill("2015-10-21");
+  await form.locator('[data-industry="food"]').click();
+  for (const [key, value] of Object.entries({ ...FIGURES, shares: "20,60,01,719" })) await form.locator(`[data-own-case-field="${key}"]`).fill(value);
+  await form.getByRole("button", { name: "Value it" }).click();
+  const formValue = await form.locator('[data-own-case-result="value"]').textContent();
+
+  const deeper = page.getByTestId("own-case-go-deeper");
+  await deeper.getByText("Go deeper: the Full sheet").click();
+  const sheet = deeper.getByTestId("full-sheet");
+  const origin = (row: string) => sheet.locator(`[data-row="${row}"] [data-origin]`);
+  for (const row of ["baseRevenue", "taxRate", "cash", "debt", "shares", "price"]) await expect(origin(row), row).toHaveAttribute("data-origin", "typed");
+  for (const row of ["salesToCapital", "costOfCapital", "marginAfter", "returnOnCapitalAfter"]) await expect(origin(row), row).toHaveAttribute("data-origin", "yardstick");
+  for (const row of ["growth", "growthAfter", "lossesCarried", "options", "failure"]) await expect(origin(row), row).toHaveAttribute("data-origin", "default");
+  await expect(origin("margin")).toHaveText("You typed it; then the industry's yardstick");
+  await expect(sheet.locator('[data-row="price"]')).toContainText("₹328");
+  // Nothing on the sheet can be typed into: sliders and tap buttons only (ADR 0020).
+  await expect(sheet.locator('input:not([type="range"]), textarea')).toHaveCount(0);
+
+  const value = deeper.getByTestId("own-case-sheet-value");
+  expect(rupees((await value.textContent())!)).toBe(rupees(formValue!));
+
+  // A slider: no debt at all is the value of typing a debt of 0 into the form.
+  const debt = sheet.getByRole("slider", { name: "Change: Debt the company owes" });
+  await expect(async () => {
+    await debt.fill("0");
+    await expect(debt).toHaveValue("0", { timeout: 500 });
+  }).toPass();
+  const noDebt = valueOwnCase(
+    { company: "Coffee Day Enterprises", market: "IN", reportDate: "2015-10-21", industry: "food", sales: 2479.36, operatingProfit: 109.59, taxPercent: 33.99, debt: 0, cash: 3679.63, shares: 206_001_719, price: 328 },
+    openingEstimate("food"),
+  );
+  if (!noDebt.ok) throw new Error(noDebt.error);
+  // The sentence rounds to whole rupees.
+  await expect.poll(async () => Math.abs(rupees((await value.textContent())!) - noDebt.valuePerShare)).toBeLessThanOrEqual(0.5);
+  await expect(sheet.locator('[data-row="debt"]')).toHaveAttribute("data-moved", "true");
+
+  // A tap: one step more cash raises the value.
+  const before = rupees((await value.textContent())!);
+  await sheet.getByRole("button", { name: "Increase Change: Cash the company holds by one step" }).click();
+  await expect.poll(async () => rupees((await value.textContent())!)).toBeGreaterThan(before);
 });
 
 test("a Learner who has not passed the Spine finds the Assignment closed", async ({ person }) => {
