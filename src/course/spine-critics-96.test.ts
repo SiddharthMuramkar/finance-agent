@@ -43,7 +43,19 @@ describe("Spine critics round 1 on #96", () => {
     for (const text of [t.concept, turn("survive-concept")]) {
       expect(text).not.toMatch(/discounted cash flow/i);
       expect(text).toMatch(/going concern \(a business that keeps running\)/);
-      expect(text).toMatch(/thin interest cover \(/);
+      // Plain words, no "thin interest cover" (review 4, K09/K16): interest cover is a Go deeper word.
+      expect(text).not.toMatch(/interest cover/i);
+      expect(text).toMatch(/operating income only a little above its interest bill/);
+    }
+  });
+
+  it("Topics 10 and 12's scripted openers keep the Case's facts (review 4, K10)", () => {
+    // The ₹7,200 crore is the debt at the end of March 2019, before the Mindtree money pared it.
+    expect(turn("survive-story")).toMatch(/end of March 2019 the group had borrowed about ₹7,200 crore/);
+    // IWG's $4.45 billion is the market price of its shares, not what it is worth.
+    for (const text of [turn("multiple-story"), topic("spine-12-price-or-value").cases[0].story]) {
+      expect(text).toMatch(/stock market/);
+      expect(text).not.toMatch(/(?:is|are) worth \$4\.45 billion/);
     }
   });
 

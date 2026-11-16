@@ -381,10 +381,10 @@ checks:
       July 2014: Bill Gurley's story is that Uber's market is many times bigger than city cars, because cheaper,
       quicker rides bring in new riders. Judge it in two or three sentences: which lever does his story move, which
       of its settings is the least sure, and does it still hold together if Uber's edge stays local, city by city?
+    # Every pass criterion answers a part of the prompt (review 4, K12): the lever, the least sure setting, the local edge.
     passCriteria: >
-      Names the market as the lever Gurley's story moves and ties it to a part of the story (new
-      riders, cheaper and quicker rides); says which setting is the least sure or pulls against
-      another, with a reason (for example a local, city-by-city edge against a big share of a world
-      market); treats a value far from the talk of the day as a different story, not as an error in
-      the arithmetic.
+      Says his story moves how big Uber gets, through a bigger market, and ties it to a part of the
+      story (new riders, cheaper and quicker rides); says which setting is the least sure, with a
+      reason; says whether the story holds if Uber's edge stays local, city by city (for example, a
+      local edge does not win a big share of a world market).
     skills: [s11-story-levers, s11-story-holds]

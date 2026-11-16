@@ -1297,8 +1297,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "July 2019. Coffee Day Enterprises runs Cafe Coffee Day, India's largest chain of coffee shops, and it is deep in debt: " +
-              "the group had borrowed about ₹7,200 crore, and its interest bill for the year was about ₹456 crore. " +
-              "Its founder had pledged shares for group loans, which lenders could take and sell if those loans went bad. " +
+              "at the end of March 2019 the group had borrowed about ₹7,200 crore, and its interest bill for that year was about ₹456 crore. " +
+              "Its founder had put up shares to back group loans, which lenders could take and sell if those loans went bad. " +
               "On 29 July its market value closed at about ₹4,070 crore.\n\n" +
               "What should a valuation do about the chance that it does not survive?",
           ),
@@ -1314,7 +1314,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "Our usual valuation treats the company as a going concern (a business that keeps running): it assumes it runs for ever. " +
-              "With heavy debt and thin interest cover (profit only a little above its interest bill), it may fail first and sell its assets in a hurry for far less. " +
+              "With heavy debt and operating income only a little above its interest bill, it may fail first and sell its assets in a hurry for far less. " +
               "The fix is expected value: weigh the value if it survives and if it fails by how likely each is.\n\n" +
               "Why would a value that ignores failure be too high?",
           ),
@@ -1395,7 +1395,7 @@ export const E2E_SCRIPTS = {
           text(
             "20 August 2019. WeWork rents desks in leased office buildings. In January SoftBank put in $2 billion more, most of it at a valuation of $47 billion, " +
               "about 26 times WeWork's 2018 revenue. A newspaper sets it beside IWG, the owner of Regus, which has about the same number of desks " +
-              "and is worth $4.45 billion, about 1.4 times its 2018 revenue.\n\n" +
+              "and whose shares are priced at $4.45 billion on the stock market, about 1.4 times its 2018 revenue.\n\n" +
               "Is $47 billion what WeWork is worth, or a price that needs a story?",
           ),
         ],
