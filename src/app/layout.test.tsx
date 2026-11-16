@@ -19,6 +19,7 @@ vi.mock("./route-bar", () => ({ RouteBar: () => null }));
 vi.mock("./site-analytics", () => ({ SiteAnalytics: () => null }));
 
 const { default: RootLayout } = await import("./layout");
+const { THEME_INIT_SCRIPT } = await import("./theme");
 const render = () => renderToStaticMarkup(<RootLayout>{<p id="page">The page</p>}</RootLayout>);
 
 beforeEach(() => {
@@ -36,6 +37,17 @@ describe("the root layout", () => {
     expect(html.indexOf("<body")).toBeLessThan(html.indexOf('data-clerk="provider"'));
     const props = JSON.parse(provider![1].replaceAll("&quot;", '"')) as Record<string, unknown>;
     expect(props).toMatchObject({ signInUrl: "/sign-in", signUpUrl: "/sign-up", waitlistUrl: "/join" });
+  });
+
+  // ADR 0019: the theme is set before the first paint by a script at the top of <head>, before <body> draws anything.
+  it("runs the theme script in <head>, and gives Clerk's card the page's colour tokens", () => {
+    const html = render();
+    const head = html.slice(html.indexOf("<head>"), html.indexOf("</head>"));
+    expect(head).toContain(`<script>${THEME_INIT_SCRIPT}</script>`);
+    expect(html.indexOf("</head>")).toBeLessThan(html.indexOf("<body"));
+    const props = JSON.parse(html.match(/data-props="([^"]*)"/)![1].replaceAll("&quot;", '"')) as { appearance: { variables: Record<string, string> } };
+    expect(Object.values(props.appearance.variables).every((v) => /^var\(--[\w-]+\)$/.test(v))).toBe(true);
+    expect(props.appearance.variables).toMatchObject({ colorPrimary: "var(--blue)", colorBackground: "var(--paper)", colorForeground: "var(--ink)" });
   });
 
   it("with Clerk off (the test bed, or a key missing), draws the page with no Clerk at all", () => {

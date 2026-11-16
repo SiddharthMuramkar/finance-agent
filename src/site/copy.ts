@@ -26,6 +26,8 @@ export const chrome = {
     { href: "/settings", label: "Account settings" },
   ],
   signOut: "Sign out",
+  // The theme switch in the phone menu (ADR 0019): what a press turns on, in each theme.
+  theme: { light: "Dark theme", dark: "Light theme" },
   footer: "Past events only. Nothing here is investment advice. © 2026 Value It.",
   // The member Continue button's sub-line when there is no Topic to name.
   studyWorkspace: "Study Workspace",
