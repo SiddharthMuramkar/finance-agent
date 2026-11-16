@@ -288,6 +288,13 @@
       "when": 1794759023465,
       "tag": "0040_clerk_contract",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794805298943,
+      "tag": "0041_library_licences",
+      "breakpoints": true
     }
   ]
 }

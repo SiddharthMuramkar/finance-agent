@@ -19,6 +19,7 @@ vi.mock("./route-bar", () => ({ RouteBar: () => null }));
 vi.mock("./site-analytics", () => ({ SiteAnalytics: () => null }));
 
 const { default: RootLayout } = await import("./layout");
+const { clerkAppearance } = await import("@/auth/clerk-appearance");
 const render = () => renderToStaticMarkup(<RootLayout>{<p id="page">The page</p>}</RootLayout>);
 
 beforeEach(() => {
@@ -36,6 +37,8 @@ describe("the root layout", () => {
     expect(html.indexOf("<body")).toBeLessThan(html.indexOf('data-clerk="provider"'));
     const props = JSON.parse(provider![1].replaceAll("&quot;", '"')) as Record<string, unknown>;
     expect(props).toMatchObject({ signInUrl: "/sign-in", signUpUrl: "/sign-up", waitlistUrl: "/join" });
+    // Its cards wear the site's look (issue #76; src/auth/clerk-appearance.test.ts pins it).
+    expect(props.appearance).toEqual(JSON.parse(JSON.stringify(clerkAppearance)));
   });
 
   it("with Clerk off (the test bed, or a key missing), draws the page with no Clerk at all", () => {

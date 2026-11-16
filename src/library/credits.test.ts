@@ -28,16 +28,10 @@ describe("credit lines in the form each source's owner asks for", () => {
     expect(sources.filter((s) => /Principles of Finance 2e|principles-finance-2e/.test(JSON.stringify(s))).map((s) => s.id)).toEqual([]);
   });
 
-  it("Open Yale Courses: [Name], [Course Title] (Yale University: Open Yale Courses), http://oyc.yale.edu (Accessed Date). License: Creative Commons BY-NC-SA", () => {
-    const oyc = /^[^,]+, [^(]+ \(Yale University: Open Yale Courses\), http:\/\/oyc\.yale\.edu \(Accessed [A-Z][a-z]+ \d{1,2}, \d{4}\)\. License: Creative Commons BY-NC-SA$/;
-    for (const id of ["yale-econ-251", "yale-econ-252"]) {
-      const s = source(id);
-      expect(s.credit).toMatch(oyc);
-      // The access date is the day the copy was taken.
-      expect(s.credit).toContain(`(Accessed ${new Date(`${s.fetchedOn}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })})`);
-    }
-    expect(source("yale-econ-251").credit).toMatch(/^John Geanakoplos, Financial Theory /);
-    expect(source("yale-econ-252").credit).toMatch(/^Robert Shiller, Financial Markets /);
+  it("the Yale lecture Sources are no longer listed: Open Yale Courses' terms bar a fee-charging tutor service, so no load brings them back until written permission is on file (#118)", () => {
+    expect(sources.map((s) => s.id).filter((id) => id.startsWith("yale-"))).toEqual([]);
+    // No other record loads the lectures under a new id either (their link, credit or fetch line).
+    expect(sources.filter((s) => /oyc\.yale\.edu|Open Yale Courses|econ-25[12]/i.test(JSON.stringify(s))).map((s) => s.id)).toEqual([]);
   });
 
   it("New York Fed: “© [year] Federal Reserve Bank of New York. Content from the New York Fed subject to the Terms of Use at newyorkfed.org.”", () => {

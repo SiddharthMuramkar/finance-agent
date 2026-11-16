@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { home, MOVES } from "@/site/copy";
-import { EXAMPLES } from "@/site/examples";
+import { EXAMPLES, examplePath } from "@/site/examples";
 import { leverSteps } from "@/site/levers-story";
 import { Rich } from "@/site/rich";
 import { endNote } from "@/site/end-note";
@@ -15,10 +16,10 @@ import { FaqList } from "./faq";
 import { ArrowLink, Glyph, SectionHead } from "./parts";
 import { QuestionList } from "./question-list";
 
-// Home, at "/" (spec 7.2): hero with the Tutor demo, four moves, the levers story, the colour language, the questions,
-// where you end up (#75: a real saved Notebook note), trust, FAQ and early access. Open to everyone; the CTAs follow the
-// viewer state, so the page is drawn per request and sent no-store (next.config.ts). A visitor costs no Learner read,
-// and the page makes no model call and no write.
+// Home, at "/" (spec 7.2): hero for beginners with the Tutor demo (on a phone, right under the h1), four moves, the
+// levers story, the colour language, the questions, where you end up (#75: a real saved Notebook note), trust, FAQ and
+// early access. Open to everyone; the CTAs follow the viewer state, so the page is drawn per request and sent no-store
+// (next.config.ts). A visitor costs no Learner read, and the page makes no model call and no write.
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function HomePage() {
   const viewer = await siteViewer();
   const course = courseStats();
   const note = endNote();
-  const secondary = viewer.state === "visitor" ? { href: "/examples", label: home.hero.secondary.visitor } : viewer.state === "member" ? { href: "/course", label: home.hero.secondary.member } : null;
+  const jackpot = EXAMPLES.find((e) => e.widget === "jackpot")!;
 
   return (
     <div data-page="home">
@@ -34,26 +35,37 @@ export default async function HomePage() {
         <div className="v-hero-copy">
           <p className="v-eyebrow">{home.hero.eyebrow}</p>
           <h1 className="page-h1 v-display" tabIndex={-1}>
-            {home.hero.h1.map((line) => (
-              <span key={line}>{line}</span>
+            {home.hero.h1.map((line, i) => (
+              <Fragment key={line}>
+                {i > 0 && " "}
+                <span>{line}</span>
+              </Fragment>
             ))}
           </h1>
           <p className="v-lede">
             <Rich>{home.hero.lede}</Rich>
           </p>
           <div className="v-row">
-            <PrimaryCta viewer={viewer} />
-            {secondary && (
-              <Link href={secondary.href} className="v-btn v-btn-secondary v-btn-lg" data-affordance="button">
-                {secondary.label}
-              </Link>
+            {viewer.state === "member" ? (
+              <>
+                <PrimaryCta viewer={viewer} />
+                <Link href="/course" className="v-btn v-btn-secondary v-btn-lg" data-affordance="button">
+                  {home.hero.secondary.member}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href={examplePath(jackpot.slug)} className="v-btn v-btn-primary v-btn-lg" data-affordance="button">
+                  {home.hero.tryIt}
+                </Link>
+                <PrimaryCta viewer={viewer} tone="secondary" />
+              </>
             )}
           </div>
           <CtaNote viewer={viewer} />
           <ul className="v-hero-facts">
             <li>{home.hero.facts.topics(course)}</li>
             <li>{home.hero.facts.minutes(course)}</li>
-            <li>{home.hero.facts.sums}</li>
           </ul>
         </div>
         <TutorDemo />

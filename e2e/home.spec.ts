@@ -63,6 +63,38 @@ test("[7.2.1, QA 1] Home opens on the finished jackpot conversation, its control
   expect(calls, "Home called the server").toEqual([]);
 });
 
+/**
+ * Spec #68, ticket #73: the first screen speaks to a beginner. On a 390 px phone the h1, "for beginners" and something to
+ * play (the demo's question chips, each of which plays a conversation) all show before any scroll, and the h1's accessible
+ * name is the sentence with its spaces.
+ */
+test("[7.2.1, #73] a phone shows the h1, for beginners and something to play without scrolling", async ({ page }, info) => {
+  test.skip(info.project.name !== "p390", "a 390 px phone");
+  await openHome(page);
+  const hero = page.locator('[data-site-section="hero"]');
+  const h1 = page.getByRole("heading", { level: 1 });
+  await expect(h1).toHaveAccessibleName("What is it really worth?");
+  await expect(h1).toBeInViewport({ ratio: 1 });
+  await expect(hero.getByText("Finance for beginners")).toBeInViewport({ ratio: 1 });
+  await expect(page.getByRole("group", { name: "Pick a question" })).toBeInViewport({ ratio: 1 });
+  expect(await page.evaluate(() => window.scrollY), "the page scrolled").toBe(0);
+});
+
+test("[7.2.1, #73] the hero's Try the jackpot opens the jackpot Example, and Join the waitlist opens the waitlist", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  await openHome(page);
+  const hero = page.locator('[data-site-section="hero"]');
+  await expect(hero.getByRole("link", { name: "Join the waitlist", exact: true })).toHaveAttribute("href", "/join");
+  await hero.getByRole("link", { name: "Try the jackpot", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/examples/kerala-bumper-2024");
+  await expect(page.locator('[data-widget="jackpot"]')).toBeVisible();
+  await openHome(page);
+  await page.locator('[data-site-section="hero"]').getByRole("link", { name: "Join the waitlist", exact: true }).click();
+  // Clerk is off in the test bed, so /join draws a stand-in for its Waitlist card (#76).
+  await page.waitForURL((url) => url.pathname === "/join");
+  await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { level: 1, name: "Join the waitlist" })).toBeVisible();
+});
+
 test("[7.2.1, QA 5] a picked question plays the script: typing, the Tutor's lead and a skeleton, then the levers widget at $35", async ({ page }, info) => {
   test.skip(!["mbp14", "w1280"].includes(info.project.name), "1512 and 1280");
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -92,11 +124,11 @@ test("[QA 25] with reduced motion the demo answers at once", async ({ page }, in
 
 /**
  * Spec 7.2.8 and QA rows 22 and 23, as issue #33 has them: Clerk owns sign-up, so the closing block has no email form of
- * its own. A visitor's closing CTA is Join early access, to /join (Clerk's Waitlist), with the early-access note and the
+ * its own. A visitor's closing CTA is Join the waitlist, to /join (Clerk's Waitlist), with the waitlist note and the
  * three steps; the press is counted with its place (the join event, E10). It is followed to the page it lands on, so a Join
- * to a page that is not there fails here. Clerk is off in the test bed, so /join sends the visitor on to /sign-in.
+ * to a page that is not there fails here. Clerk is off in the test bed, so /join draws a stand-in for its card (#76).
  */
-test("[7.2.8, QA 22, 23] the closing block's Join early access opens /join, with no email form", async ({ page }, info) => {
+test("[7.2.8, QA 22, 23] the closing block's Join the waitlist opens /join, with no email form", async ({ page }, info) => {
   test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
   const sent: { name: string; data?: Record<string, unknown> }[] = [];
   await page.route(/va\.vercel-scripts\.com|\/_vercel\/insights\//, (route) => route.abort());
@@ -119,13 +151,13 @@ test("[7.2.8, QA 22, 23] the closing block's Join early access opens /join, with
   const closing = page.locator('[data-site-section="closing"]');
   await closing.scrollIntoViewIfNeeded();
   await expect(closing.locator("input, form")).toHaveCount(0);
-  await expect(closing.getByText("Free during early access. We let people in by hand and email you when you’re in.")).toBeVisible();
+  await expect(closing.getByText("Free. We let people in by hand and email you when you’re in.")).toBeVisible();
   await expect(closing.locator("ol li")).toHaveText([/Request received/, /Reviewed by hand/, /Email: you’re in/]);
-  const join = closing.getByRole("link", { name: "Join early access", exact: true });
+  const join = closing.getByRole("link", { name: "Join the waitlist", exact: true });
   await expect(join).toHaveAttribute("href", "/join");
   await join.click();
-  await page.waitForURL((url) => url.pathname === "/sign-in");
-  await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { level: 1, name: "Enter your passcode" })).toBeVisible();
+  await page.waitForURL((url) => url.pathname === "/join");
+  await expect(page.locator('[data-band="sign-in-strip"]').getByRole("heading", { level: 1, name: "Join the waitlist" })).toBeVisible();
   expect(sent.filter((e) => e.name === "home_join_pressed")).toEqual([{ name: "home_join_pressed", data: { section: "closing" } }]);
 });
 

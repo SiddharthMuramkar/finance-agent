@@ -64,7 +64,7 @@ test("[4.2, 7.1] signed in, About's nav offers Continue and the account menu, an
   await expect(nav.getByRole("button", { name: /^Continue/ })).toBeVisible();
   await expect(nav.locator("summary")).toBeVisible();
   await expect(page.getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Join early access" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Join the waitlist" })).toHaveCount(0);
   await expect(page.locator('[data-site-section="closing"]').getByRole("button", { name: /^Continue/ })).toBeVisible();
 });
 
@@ -87,13 +87,13 @@ test("[#75] About has no founder section or 'coming soon', and links Damodaran",
   await expect(main.getByRole("link", { name: "Aswath Damodaran", exact: true })).toHaveAttribute("href", "https://pages.stern.nyu.edu/~adamodar/");
 });
 
-test("[4.2] signed out, About offers Sign in and Join early access, which opens /join, and no Sign out", async ({ page }) => {
+test("[4.2] signed out, About offers Sign in and Join the waitlist, which opens /join, and no Sign out", async ({ page }) => {
   await page.goto("/about");
   const nav = page.locator(NAV);
   const narrow = narrowAt(page.viewportSize()!.width);
   // Sign in sits in the nav, or in the footer once the nav folds into Menu.
   await expect((narrow ? page.locator("footer.v-footer") : nav).getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
-  const join = nav.getByRole("link", { name: "Join early access", exact: true });
+  const join = nav.getByRole("link", { name: "Join the waitlist", exact: true });
   await expect(join).toBeVisible();
   // Clerk's Waitlist (#33).
   await expect(join).toHaveAttribute("href", "/join");
