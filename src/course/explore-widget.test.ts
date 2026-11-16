@@ -170,7 +170,7 @@ describe("a Spine Topic's explore Workbench (spec C2, B3)", () => {
     const widget = exploreWidgetOf(topic);
     expect(widget).toMatchObject({ topicId: "spine-01-worth", id: "spine-01-worth-workbench" });
     expect(widget!.code).toContain("spine-01-amazon-2000");
-    expect(widget!.code).toContain("Amazon, February 2000: your story");
+    expect(widget!.code).toContain("Amazon, February 2000: the four levers");
   });
 
   // Merge review: Spine Topic 12 named a Case for the Multiple decoder when its inputs took none, so the build was refused

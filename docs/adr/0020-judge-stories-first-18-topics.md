@@ -22,6 +22,7 @@ The goal is a beginner who can value a company on their own and make real decisi
 - Three new Spine Topics to write and pass through the course check and the critics. `SPINE_LENGTH` changes, and the site says 18 Topics.
 - Renumbering must keep every pass, Session, Topic Note and Review, as ADR 0004 requires.
 - Topic 1's own-story Check and Home's "your story" step become judging steps.
+- A Spine Topic's Insight may be settled by a tap: choices written in the Topic file (`insight.pick`), marked by code like a Quick try, a wrong tap releasing the next hint. This narrows ADR 0001, where the Insight is found only in the Learner's typed words; a Topic without choices keeps that. A closing Check may be a second, judging quiz Check by tap instead of a conversation Check (ticket #88, Topic 1).
 - A Learner who wants to value their own company early waits until the Spine ends. Electives and Examples stay open.
 - The Learner types an Own Case's numbers, so they can be wrong. The Tutor's range check names the input; it never says the value is right or wrong.
 
