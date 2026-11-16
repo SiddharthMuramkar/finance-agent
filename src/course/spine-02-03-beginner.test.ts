@@ -140,3 +140,20 @@ describe("Spine Topics 2 and 3, for beginners", () => {
     expect(navigate(map, passed)?.dueChecks ?? []).toEqual([]);
   });
 });
+
+// Code review 3 (M01) and review 2 (G28) on the cash Topic: held here so they stay fixed.
+describe("Spine Topic 3, the cash Topic, after code review 3", () => {
+  it("glosses 'revenue' as its sales at its first use, the goal, and says sales everywhere else (M01: no Lingo card for it)", () => {
+    expect(cash.goal).toMatch(/revenue \(its sales\)/);
+    const later = topicTexts(cash).filter((t) => t.text !== cash.goal && /\brevenue\b/i.test(t.text));
+    expect(later.map((t) => `${t.where}: ${t.text}`)).toEqual([]);
+  });
+
+  it("teaches in the Concept the idea its Quick tries and Insight test: more sales for each dollar spent makes growth cost less (G28)", () => {
+    expect(cash.concept).toMatch(/The more sales each dollar spent on them brings in, the less growth costs\./);
+    const tries = cash.checks.flatMap((c) => c.quickTries).flatMap((q) => ("id" in q ? [q] : []));
+    expect(tries.find((q) => q.id === "wc-try-cheaper-growth")).toBeTruthy();
+    // The zero-growth Quick try's fix no longer leans on a division the Concept does not teach.
+    expect(JSON.stringify(tries.find((q) => q.id === "wc-try-zero-growth"))).not.toMatch(/over sales for each dollar/);
+  });
+});

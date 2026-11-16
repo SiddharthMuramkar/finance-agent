@@ -27,6 +27,7 @@ export const chain = defineRecipe({
       .object({
         steps: z.array(step).min(2).max(6),
         tiles: z.array(tile).min(2).max(4).optional().describe("Optional tiles drawn on every step, such as the three pages one event moves; each step's light lights one"),
+        tilesLabel: z.string().trim().min(2).max(40).optional().describe("With tiles: what they are, read out by a screen reader, such as The three statements"),
       })
       .superRefine((p, ctx) => {
         for (const s of p.steps) {
@@ -63,7 +64,7 @@ export const chain = defineRecipe({
       const extra = s.light !== undefined || s.emoji ? ["null", "null", s.light !== undefined ? num(s.light) : "null", s.emoji ? str(s.emoji) : "null"] : [];
       return `Step(${[str(s.title), str(s.body), str(s.highlight ?? "neutral"), ...extra].join(", ")})`;
     });
-    const tiles = p.tiles ? `, ${lit(p.tiles)}` : "";
+    const tiles = p.tiles ? `, ${lit(p.tiles)}${p.tilesLabel ? `, ${str(p.tilesLabel)}` : ""}` : "";
     return program(title, ["steps"], [`steps = StepThrough([${steps.join(", ")}]${tiles})`]);
   },
 });

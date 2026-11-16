@@ -51,6 +51,25 @@ describe("StepThrough tiles", () => {
     expect(lit(page)).toEqual(["true", "true", "true"]);
   });
 
+  it("reads out the lit state and keeps unlit tiles at full contrast, with a grid for the tiles given (review 3 L07)", () => {
+    const two = tiles.slice(0, 2);
+    const p = draw(<StepThroughView tilesLabel="The two pages" tiles={two} steps={[{ title: "Event", body: "A warehouse" }, ...two.map((t, i) => ({ title: t.label, body: "Moves", light: i }))]} />);
+    page = p;
+    const list = byId(p, "step-tiles")!;
+    expect(list.getAttribute("aria-label")).toBe("The two pages");
+    expect(list.className).toContain("grid-cols-2");
+    const tileEls = () => [...p.host.querySelectorAll<HTMLElement>("[data-testid=step-tile]")];
+    for (const t of tileEls()) expect(t.className).not.toMatch(/opacity-/);
+    expect(tileEls().map((t) => t.getAttribute("aria-current"))).toEqual([null, null]);
+    const next = [...p.host.querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent === "Next")!;
+    click(next);
+    expect(tileEls().map((t) => t.getAttribute("aria-current"))).toEqual(["step", null]);
+    expect(tileEls()[0].textContent).toMatch(/, lit$/);
+    click(next);
+    expect(tileEls().map((t) => t.getAttribute("aria-current"))).toEqual([null, "step"]);
+    expect(tileEls().map((t) => /, lit$/.test(t.textContent ?? ""))).toEqual([true, true]);
+  });
+
   it("draws no tiles when none are given", () => {
     page = draw(<StepThroughView steps={steps} />);
     expect(byId(page, "step-tiles")).toBeNull();

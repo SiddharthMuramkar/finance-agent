@@ -710,7 +710,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "April 2001. Webvan, the online grocer, may run out of cash within the year. " +
-              "Its report for 2000 shows a loss of about $450 million, and about $210 million left in cash. " +
+              "Its report for 2000 shows a loss of about $450 million, and about $210 million left in cash and investments it could quickly sell. " +
               "Three pages of that report matter, and each tells a different part of it.\n\n" +
               "Which page would you read to see how long Webvan can keep going?",
           ),
@@ -727,7 +727,7 @@ export const E2E_SCRIPTS = {
             "Each page answers one question. The income statement shows what a year earned, down to net income, the profit or loss. " +
               "The balance sheet shows what the company owns and owes on one day. " +
               "The cash flow statement shows where the cash came from and where it went over the year.\n\n" +
-              "When Webvan pays cash for a warehouse, which page do you think shows the warehouse itself?",
+              "When Webvan pays cash for the machines in a warehouse it rents, which page do you think shows the machines themselves?",
           ),
         ],
       },
@@ -739,9 +739,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here is Webvan's next year as a waterfall, with sales doubling and a small profit on each sale. " +
+            "Here is a what-if for Webvan's next year as a waterfall: suppose its sales doubled with a small profit on each sale (it really lost money on most). " +
               "Look at the last bar: free cash flow, the cash left after paying to grow, is far below zero.\n\n" +
-              "Webvan makes a profit on each sale, yet its cash goes out. Where did the cash go?",
+              "With a profit on each sale, its cash still goes out. Where would the cash go?",
           ),
         ],
       },
