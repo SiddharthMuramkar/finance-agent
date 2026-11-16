@@ -28,22 +28,22 @@ topics:
     note: Round 4 (#89 for beginners, critics round 1) 6 confirmed, fixed (one new word in the concept, no worked division on the card, the bench's profit said to be a what-if, its years named 1999 into 2000, a reacting Webvan scene); the app-wide phone-width finding is out of #89's scope.
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "8303798"
+    rounds: 4
+    lastRound: "dac6b7f"
     open: 0
-    note: Round 3 (#95, beginner clean-up) - 4 terms, "life cycle" moved to Go deeper, a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
+    note: Round 4 (#95 critics round) 3 confirmed, fixed in dac6b7f (a Quick try that made the Learner pick 20% of $1bn now has no figures, the check card says the slice taken not kept, the June 2014 round led by Fidelity rather than venture capital investors); widget fit clean.
   spine-05-margins:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 4
-    lastRound: "8303798"
+    rounds: 5
+    lastRound: "335e8d1"
     open: 0
-    note: Round 4 (#95, beginner clean-up) - 4 terms, "unit economics" moved to Go deeper, margins-talk now judges a given Tesla Story, a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
+    note: Round 5 (#95 critics round) 2 confirmed, fixed in 335e8d1 (margins-talk asks one judging question with the price optional, "the sums under the margin" in Go deeper said plainly); math police and historian clean, the explore reply now names the tech giants mark.
   spine-06-growth-cost:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 4
-    lastRound: "8303798"
+    rounds: 5
+    lastRound: "4b0c752"
     open: 0
-    note: Round 4 (#95, beginner clean-up) - 4 terms, "reinvestment rate" moved to Go deeper, growth-cost-talk now judges a given Webvan Story, a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
+    note: Round 5 (#95 critics round) 6 confirmed, fixed in 4b0c752 (the $1.0bn no longer read as the builder Bechtel price, no product formula in the Concept, EBITDA said without depreciation, plain profit in a Quick try, an unsourced grocer figure replaced by the lever words, cheaper money falls well short).
   spine-07-risk:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 3
@@ -58,10 +58,10 @@ topics:
     note: Round 1 on the new Topic (#91), 6 findings fixed in 9b4f854 (story to two figures, year-ten rates given a reason, direction stems and tasks, stack led by the share of debt with a No debt chip, shareholders and lenders as Icons).
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "8303798"
+    rounds: 4
+    lastRound: "9dfc570"
     open: 0
-    note: Round 3 (#95, beginner clean-up) - a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
+    note: Round 4 (#95 critics round) 3 confirmed, fixed in 9dfc570 (how-much questions reworded to where, the formula in words and the share oddity moved to Go deeper, the header numbers it Spine Topic 9); historian and widget fit clean.
   spine-09-to-one-share:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 3
