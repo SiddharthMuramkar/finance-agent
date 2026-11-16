@@ -679,6 +679,55 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /**
+   * The three financial statements, a Spine Topic of their own after the cash Topic (#90, e2e/spine-statements.spec.ts):
+   * its first three Tutor Turns, Story, Concept and Explore, played for the critics' screenshots and transcript. Its
+   * figures are the Topic file's Case figures; code opens the Cash waterfall at explore, so the explore reply only points at it.
+   */
+  "statements-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "April 2001. Webvan, the online grocer, may run out of cash within the year. " +
+              "Its report for 2000 shows a loss of about $450 million, and about $210 million left in cash. " +
+              "Three pages of that report matter, and each tells a different part of it.\n\n" +
+              "Which page would you read to see how long Webvan can keep going?",
+          ),
+        ],
+      },
+    ],
+  },
+  "statements-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Each page answers one question. The income statement shows what a year earned, down to net income, the profit or loss. " +
+              "The balance sheet shows what the company owns and owes on one day. " +
+              "The cash flow statement shows where the cash came from and where it went over the year.\n\n" +
+              "When Webvan pays cash for a warehouse, which page do you think shows the warehouse itself?",
+          ),
+        ],
+      },
+    ],
+  },
+  "statements-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Webvan's next year as a waterfall, with sales doubling and a small profit on each sale. " +
+              "Look at the last bar: free cash flow, the cash left after paying to grow, is far below zero.\n\n" +
+              "Webvan makes a profit on each sale, yet its cash goes out. Where did the cash go?",
+          ),
+        ],
+      },
+    ],
+  },
   // ——— The annual report Topic (#93, e2e/spine-annual-report.spec.ts): its first three turns, for the critics' round. Every
   // figure is its Topic file's Amazon Case (Amazon's 10-K for 2000 next to Damodaran's story of February 2000).
   /** The opener at Story: Amazon's 10-K is out, and six numbers matter. */
@@ -756,8 +805,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "What shareholders require is the cost of equity, built in layers. " +
-              "Start with what a safe bond pays, 6.5%. Add the premium for holding average shares, 4%, scaled by how far Amazon's shares move with the market; that number is called beta. " +
-              "His own rough measure says 2.29, but he trusts the steadier 1.60, the internet retailers' average. " +
+              "Start with what a safe bond pays. Add a premium for holding average shares, scaled by how far Amazon's shares move with the market; that number is called beta. " +
+              "His own rough measure of beta is shaky, so he trusts the steadier average of internet retailers. " +
               "Only the risk that holding many shares cannot spread away earns that premium.\n\n" +
               "Which layer looks hardest to pin down?",
           ),
@@ -814,7 +863,7 @@ export const E2E_SCRIPTS = {
           text(
             "Here are his layers as a stack, with what a share is worth at that rate. Amazon borrows almost nothing, so the whole rate is nearly its cost of equity. " +
               "Move relative risk up to his rough measure, then down to a plain retailer's, and watch the value against the $84 price.\n\n" +
-              "Does swapping beta move the value more or less than the gap to the price, and what does that say?",
+              "Can any beta bring the value near the $84 price, and what does that say?",
           ),
         ],
       },

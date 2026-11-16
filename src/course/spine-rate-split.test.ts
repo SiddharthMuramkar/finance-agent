@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { draftOf } from "@/dev/e2e-tutor";
 import { loadCourseMap } from "./map";
+import { parseOutline } from "./outline";
 import { courseOverview, navigate, type Progress } from "./navigator";
 import { topicTexts } from "./topic-texts";
 
@@ -152,12 +155,36 @@ describe("Topic 7 split into the cost of equity and the cost of capital (#91)", 
       ).toBeLessThanOrEqual(2);
     }
     expect(draftOf("rate-concept").text).toMatch(
-      /trusts the steadier 1\.60, the internet retailers' average/,
+      /trusts the steadier average of internet retailers/,
     );
     expect(draftOf("coc-explore").text).toMatch(/as risky as an average share/);
   });
 
+  it("keeps the risk Concept to the layers in words and beta, leaving the betas' figures to the Explore chips (beginner, round 1 on #91)", () => {
+    const text = draftOf("rate-concept").text;
+    expect(text).toMatch(/that number is called beta/);
+    expect(text.match(/\d/g) ?? []).toEqual([]);
+  });
+
+  it("asks the risk Explore whether any beta reaches the price, not to work out a size (beginner, round 1 on #91)", () => {
+    for (const q of [risk.insight?.question ?? "", draftOf("rate-explore").text])
+      expect(q).toMatch(/Can any beta bring the value near/);
+  });
+
   it("tells no figure its sources do not hold: no 6.60% past premium (Historian)", () => {
     expect(words(RISK).join(" ")).not.toContain("6.60");
+  });
+
+  it("sources the 2001 revaluation it tells, and tells no 2008 premium its sources lack (Historian, round 2 on #91)", () => {
+    const { outline } = parseOutline(
+      readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8"),
+    );
+    const told = outline!.topics.find((t) => t.id === RISK)!.cases[0];
+    expect(told.sources).toContain(
+      "https://pages.stern.nyu.edu/~adamodar/pdfiles/dcfveg.pdf",
+    );
+    for (const figure of ["$20.83", "2.18", "13.81%"])
+      expect(told.outcome).toContain(figure);
+    expect(words(RISK).join(" ")).not.toMatch(/2008/);
   });
 });

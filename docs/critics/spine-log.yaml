@@ -26,6 +26,12 @@ topics:
     lastRound: "81d8f11"
     open: 0
     note: Round 4 (#89 for beginners, critics round 1) 6 confirmed, fixed (one new word in the concept, no worked division on the card, the bench's profit said to be a what-if, its years named 1999 into 2000, a reacting Webvan scene); the app-wide phone-width finding is out of #89's scope.
+  spine-statements:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "6a63ee5"
+    open: 0
+    note: Round 3 (critics round 2 after the merge) 1 confirmed, not a Topic fix. The phone-width finding (no Study Workspace under 390px, every turn) is app-wide, out of #90's scope, and needs a triage issue. Round 2 had fixed 3 in c3f9529 (round figures in turn 1, free cash flow leads explore, the three pages as tiles).
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 4
@@ -46,16 +52,16 @@ topics:
     note: Round 5 (#95 critics round) 6 confirmed, fixed in 4b0c752 (the $1.0bn no longer read as the builder Bechtel price, no product formula in the Concept, EBITDA said without depreciation, plain profit in a Quick try, an unsourced grocer figure replaced by the lever words, cheaper money falls well short).
   spine-07-risk:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "9b4f854"
+    rounds: 5
+    lastRound: "6085684"
     open: 0
-    note: Round 3 after the split (#91), 6 findings fixed in 9b4f854 (story to two figures, beta named and chosen in Concept, direction stems, unsourced 6.60% dropped and the ERP paper cited, stack led by the cost of equity with labelled beta chips and shareholders and lenders as Icons).
+    note: Round 5 (#91 critics round 2), 3 findings fixed in 119508c and 6085684 (equity-led stack names the whole rate "Whole rate, with debt", not the next Topic's cost of capital; Jan 2001 revaluation sourced to dcfveg.pdf and in the outcome; unsourced 2008 premium sentence cut).
   spine-cost-of-capital:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 1
-    lastRound: "9b4f854"
+    rounds: 3
+    lastRound: "6085684"
     open: 0
-    note: Round 1 on the new Topic (#91), 6 findings fixed in 9b4f854 (story to two figures, year-ten rates given a reason, direction stems and tasks, stack led by the share of debt with a No debt chip, shareholders and lenders as Icons).
+    note: Round 3 on the new Topic (#91 critics round 2), no findings; its stack keeps "Cost of capital" as the headline's name.
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 4

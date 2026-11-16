@@ -8,8 +8,8 @@ import { widgetParts, widgetProblems } from "@/widgets/check";
 import { recipeById } from "@/widgets/recipes";
 import { exploreWidgetFor, exploreWidgetInSession, exploreWidgetOf } from "./explore-widget";
 import { loadCourseMap, parseCourseMap } from "./map";
-import { SPINE_LENGTH } from "./outline";
 import { finishStep, recordCheckResult, type Progress } from "./navigator";
+import { SPINE_LENGTH } from "./outline";
 
 /** The Topic's own explore Widget: its code in the Topic file, and when code shows it. */
 

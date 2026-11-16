@@ -105,11 +105,17 @@ async function seen(
     .filter({ hasText: firstSentence(name).slice(0, 60) })
     .last();
   await expect(reply, name).toBeVisible({ timeout: TURN_MS });
-  // At explore the Workbench draws after the reply lands: wait for its headline, so the screenshots show it.
-  if (name.endsWith("-explore"))
-    await expect(
-      page.getByText(/The cost of (capital|equity) is/).first(),
-    ).toBeVisible({ timeout: TURN_MS });
+  // The page's refresh after a reply brings the step, the Choices and, at explore, the Topic's Workbench. Wait for them
+  // all, so the screenshots and the transcript show what the Learner sees (Spine critics round 1 on #91: the risk
+  // Topic's Explore was shot before its stack drew, while the Concept card's "The cost of equity is" line passed the
+  // old wait).
+  await settled(page, TURN_MS);
+  await expect(page.getByTestId("choices").last().getByTestId("choice").first()).toBeVisible({ timeout: TURN_MS });
+  if (name.endsWith("-explore")) {
+    await expect(page.getByTestId("topic-bar")).toContainText(/Explore/, { timeout: TURN_MS });
+    await expect(page.getByTestId("wacc-stack-headline").last()).toBeVisible({ timeout: TURN_MS });
+    await expect(page.getByText("Widgets for this Topic will appear here.")).toHaveCount(0);
+  }
   await settled(page, TURN_MS);
   const choices = page.getByTestId("choices").last().getByTestId("choice");
   const card = page
@@ -212,7 +218,16 @@ for (const play of PLAYS) {
         "The cost of equity is 12.9%",
       );
       await expect(stack.getByRole("button", { name: "2.29, his measure" })).toBeVisible();
-      expect(turns[1].tutor).toContain("he trusts the steadier 1.60");
+      await expect(stack.getByRole("button", { name: "1.00, a retailer" })).toBeVisible();
+      // The Explore turn's own capture holds the stack, its chips and the price beside the value (round 1 on #91).
+      expect(turns[2].widget).toContain("2.29, his measure");
+      expect(turns[2].widget).toContain("1.00, a retailer");
+      expect(turns[2].widget).toContain("Price on 3 Feb 2000");
+      // Round 2 on #91: the next Topic's term stays out of the risk stack; the whole rate is named plainly.
+      expect(turns[2].widget).toContain("Whole rate, with debt");
+      expect(turns[2].widget).not.toMatch(/cost of capital \d/i);
+      expect(turns[2].choices.length).toBeGreaterThan(0);
+      expect(turns[1].tutor).toContain("he trusts the steadier average of internet retailers");
       expect(turns.map((t) => t.tutor).join(" ")).not.toMatch(/\bWACC\b/);
     }
   });
