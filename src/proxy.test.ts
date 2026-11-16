@@ -88,7 +88,7 @@ describe("The signed-out gate", () => {
 
   // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.
   it("lets a signed-out visitor read How it works, Examples and each of the five case pages", async () => {
-    const paths = ["/how-it-works", "/examples", ...["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"].map((s) => `/examples/${s}`)];
+    const paths = ["/how-it-works", "/examples", ...["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"].map((s) => `/examples/${s}`)];
     for (const path of paths) {
       expect(allowed(await proxy(request(path))), path).toBe(true);
       expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);

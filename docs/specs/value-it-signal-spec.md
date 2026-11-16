@@ -499,6 +499,7 @@ All five widgets share the five beats in principle 3 and section 5.6. Shared rul
 
 | Formatter | Rule | Examples |
 |---|---|---|
+| `inrCr(c)` | c in ₹ crore, in words with `en-IN` grouping; under 1 crore in lakh | `₹25 crore`, `₹11.29 crore`, `₹37.63 lakh` |
 | `usdM(m)` | m in $ millions. `m ≥ 999.95` → `$` + (m/1000) to 3 decimals + `B`. Else `$` + 1 decimal + `M`. | `$1.537B`, `$694.0M` |
 | `inr(x)` | `₹` + rounded, `en-IN` grouping | `₹17,449` |
 | `share(v)` | `v ≤ 0` → `$0`. Else `$` + rounded. | `$35` |
@@ -683,75 +684,77 @@ His story, cash by year in dollars a share: −2.42, −2.36, −2.02, −1.37, 
 
 ### 6.3 Jackpot (money later is worth less)
 
-**Lesson.** A bigger total paid later can be worth less than a smaller sum today.
+**Lesson.** The same total paid later is worth less than that sum today.
+
+**The Moment (#116).** Kerala's Thiruvonam Bumper lottery, BR-99, drawn on 9 October 2024: a first prize of ₹25 crore on ticket TG 434222, sold in Wayanad for ₹500. Kerala pays a prize at once, into the winner's bank account, after the agent's 10% commission and tax (about ₹12.88 crore in hand). The 30 yearly payments are a what-if: the same ₹25 crore paid the way US lotteries pay their advertised jackpots. Case Data as of 9 Oct 2024; Sources: [The Hindu, 9 Oct 2024](https://www.thehindu.com/news/national/kerala/keralas-25-crore-thiruvonam-bumper-lottery-announced-jackpot-goes-to-ticket-sold-in-wayanad/article68735952.ece), [Mathrubhumi, 9 Oct 2024](https://english.mathrubhumi.com/news/kerala/kerala-thiruvonam-bumper-lottery-result-first-prize-winner-47fe5126), [The New Indian Express, 11 Oct 2024](https://www.newindianexpress.com/states/karnataka/2024/Oct/11/mandya-bike-mechanic-wins-rs-25-crore-thiruvonam-bumper-lottery); the American annuity (one payment now and 29 yearly, each 5% bigger): [Mega Millions](https://www.megamillions.com/difference-between-cash-value-and-annuity). It replaced the 2018 Mega Millions prize on the site; the course's own Case `mega-millions-2018` is unchanged.
 
 #### 6.3.1 Model
 
 | Name | Value |
 |---|---|
-| Advertised total | $1,537M over 30 yearly payments |
-| Cash option | $877.8M now |
-| Payment growth | 5% a year, first payment at once (t = 0) |
-| First payment `p0` | `1537 / Σ_{t=0..29} 1.05^t` = $23.134M |
-| Payment `t` | `p0 × 1.05^t` (last, t = 29: $95.223M) |
+| Prize, and the plain sum of the 30 payments | ₹25 crore |
+| Cash, paid at once | ₹25 crore |
+| Payment growth | 5% a year, first payment at once (t = 0), 2024 to 2053 |
+| First payment `p0` | `25 / Σ_{t=0..29} 1.05^t` = ₹0.3763 crore (₹37.63 lakh) |
+| Payment `t` | `p0 × 1.05^t` (last, t = 29: ₹1.5488 crore) |
 | Worth today at rate `r` | `pay_t / (1 + r)^t` |
+
+Money is in ₹ crore and shown with `inrCr` (§6.1).
 
 #### 6.3.2 Parts
 
-- Head: "Live widget", "Oct 2018". Title: "Is a $1.537B jackpot really worth $1.537B?" Sub: "The 2018 Mega Millions winner could take 30 yearly payments that add up to **$1.537B**, or **$877.8M** in cash that day."
+- Head: "Live widget", "Oct 2024". Title: "Is ₹25 crore over 30 years worth ₹25 crore?" Sub: "Kerala paid its 2024 Thiruvonam Bumper prize of **₹25 crore** at once. Paid the American way, the same **₹25 crore** would come as 30 yearly payments."
 - Your call: "At an ordinary interest rate, which is worth more?"
 
 | Option | Verdict | Pill | Feedback |
 |---|---|---|---|
-| The 30 payments | wrong | Not quite | Only at very low rates. At an ordinary 5% a year the payments are worth about $694M today, less than the $877.8M in cash. |
-| The cash | right | Right | At an ordinary 5% a year the 30 payments are worth about $694M today. That is $184M less than the cash. |
-| About the same | careful | Close | They match only at about 3.4% a year. At an ordinary 5%, the cash is worth more. |
+| The 30 payments | wrong | Not quite | Only if money earned nothing. At an ordinary 5% a year the 30 payments are worth about ₹11.29 crore today, less than half the ₹25 crore paid at once. |
+| The cash | right | Right | At an ordinary 5% a year the 30 payments are worth about ₹11.29 crore today. That is ₹13.71 crore less than the cash. |
+| About the same | careful | Close | They match only at 0%, when money earns nothing. At an ordinary 5%, the cash is worth more. |
 
-- Chart: 30 columns. Plot height 150px (116px compact), top margin 22px, 22px below for labels. Scale: $100M = full plot height. Per column: a hatched ghost bar at the payment as paid (pattern 5 × 5 rotated 45°, a 2px `--line` stripe on paper, 1px `--line` outline) and a solid green bar at its worth today. Top gridline labelled "$100M a year". X labels "2018" (left), "2032" (centre), "2047" (right). Tooltip per column: `{year}` / `Paid: $X` / `Worth today: $Y`.
+- Chart: 30 columns. Plot height 150px (116px compact), top margin 22px, 22px below for labels. Scale: ₹2 crore = full plot height. Per column: a hatched ghost bar at the payment as paid (pattern 5 × 5 rotated 45°, a 2px `--line` stripe on paper, 1px `--line` outline) and a solid green bar at its worth today. Top gridline labelled "₹2 crore a year". X labels "2024" (left), "2038" (centre), "2053" (right). Tooltip per column: `{year}` / `Paid: ₹X` / `Worth today: ₹Y`.
 - Controls (locked): "Interest rate" slider 0 to 10, step 0.05, start 0, output `0.00%`. Presets 0%, 5%, 10%. Lock note: "Make your call to unlock the rate."
-- Meter, scale 0 to $1,537M:
+- Meter, scale 0 to ₹25 crore:
 
 | Row | Fill | Ghost | Value |
 |---|---|---|---|
-| 30 payments, worth today | `sum / 1537` green | `(1537 − sum) / 1537` hatched | `usdM(sum)` |
-| Cash today | `877.8 / 1537` green | none | `$877.8M` |
+| 30 payments, worth today | `sum / 25` green | `(25 − sum) / 25` hatched | `inrCr(sum)` |
+| Cash today | `25 / 25` green | none | `₹25 crore` |
 
-- Verdict line, Go deeper, foot. Key: green "Worth in today’s money", hatch "Lost by waiting", orange "About the same". Source: "Source: CNBC, 24 Oct 2018. Payments rise 5% a year; the first is paid at once." Table (full mode): Year, Paid, Worth today at 5%.
+- Verdict line, Go deeper, foot. Key: green "Worth in today’s money", hatch "Lost by waiting", orange "About the same". Source: "Source: The Hindu, 9 Oct 2024. The 30 payments are a what-if: they rise 5% a year and the first is paid at once." Table (full mode): Year, Paid, Worth today at 5%.
 
 #### 6.3.3 States
 
 | State | Trigger | Screen |
 |---|---|---|
-| Idle | Load | Rate 0. All bars solid. Controls locked. No pills. Verdict: "Added up as advertised, the 30 payments come to **$1.537B**. That is the number on the billboard." Go deeper locked: "Opens after your call." |
+| Idle | Load | Rate 0. All bars solid. Controls locked. No pills. Verdict: "Added up as paid, the 30 payments come to **₹25 crore**, the same as the prize paid at once." Go deeper locked: "Opens after your call." |
 | Called | Any chip tapped | Chip takes its verdict and feedback. First time only: controls unlock, lock note removed, Go deeper opens titled "Find the rate where the two are worth the same.", `onCall(option)` fires. Every time: the rate runs to 5% over 900ms. |
-| Exploring | Slider or preset | With `d = sum − 877.8` and `same = |d| < 5`: pills and verdict from the table below. Go deeper: "You are **$X** away. Try a lower rate." (when `d < 0`) or "Try a higher rate." (when `d > 0`). |
-| Found | `same` while the learner is moving the slider by hand | Go deeper: [pill orange ≈ Break-even found] "At about **3.4%** a year the two are worth the same. Above that rate the cash is worth more. Below it, the payments are." Stays for the session. |
+| Exploring | Slider or preset | With `d = sum − 25` and `same = |d| < 0.1` (₹10 lakh): pills and verdict from the table below. Go deeper: "You are **₹X** away. Try a lower rate." (when `d < 0`) or "Try a higher rate." (when `d > 0`). |
+| Found | `same` while the learner is moving the slider or a preset by hand | Go deeper: [pill orange ≈ Break-even found] "At **0%** a year the two are worth the same. At any rate above it, the cash is worth more." Stays for the session. |
 
-A scripted run passing through 3.4% must not count as finding it. Only a hand-set rate does.
+The scripted run starts at the same-valued 0% and must not count as finding it. Only a hand-set rate does.
 
 | Condition | Payments row pill | Cash row pill | Verdict |
 |---|---|---|---|
 | `same` | ≈ Same (orange) | ≈ Same (orange) | At `{rate}`%, the payments and the cash are worth about the same today. |
-| `d > 0` | ✓ Worth more (green) | — | At `{rate}`%, the payments are worth **$X more** than the cash. |
-| `d < 0` | — | ✓ Worth more (green) | At `{rate}`%, the payments are worth **$X less** than the cash. |
+| `d > 0` | ✓ Worth more (green) | — | At `{rate}`%, the payments are worth **₹X more** than the cash. |
+| `d < 0` | — | ✓ Worth more (green) | At `{rate}`%, the payments are worth **₹X less** than the cash. |
 
 #### 6.3.4 Acceptance values
 
 | Rate | Payments worth today |
 |---|---|
-| 0% | $1,537.0M |
-| 1% | $1,288.9M |
-| 2% | $1,090.2M |
-| 3% | $930.0M |
-| 3.35% | $881.4M (same) |
-| 3.40% | $874.8M (same) |
-| 3.45% | $868.2M |
-| 4% | $800.1M |
-| 5% | $694.0M (every payment is worth $23.13M) |
-| 7.5% | $503.7M |
-| 10% | $382.9M (the 2047 payment is worth $6.00M) |
+| 0% | ₹25 crore (same) |
+| 0.05% | ₹24.78 crore |
+| 1% | ₹20.96 crore |
+| 2% | ₹17.73 crore |
+| 3% | ₹15.13 crore |
+| 4% | ₹13.01 crore |
+| 5% | ₹11.29 crore (every payment is worth ₹37.63 lakh) |
+| 7.5% | ₹8.19 crore |
+| 10% | ₹6.23 crore (the 2053 payment is worth ₹9.76 lakh) |
 
-True break-even: 3.377%. With a 0.05 step, "same" is reachable at 3.35% and 3.40% only.
+True break-even: 0%. With a 0.05 step, "same" is reachable at 0% only.
 
 ---
 
@@ -820,14 +823,15 @@ target  = o ± literal                the rate that literal reading would give
 
 #### 6.5.2 Parts
 
-- Head: "Live widget", "The news". Title: "One move, three sizes". Sub: "A rate goes from **4%** to **5%**."
+- The Moment (#116): on 6 June 2025 the RBI's Monetary Policy Committee cut the policy repo rate by 50 basis points, from 6.00% to 5.50%, with immediate effect. Case Data as of 6 Jun 2025; Source: [RBI, Monetary Policy Statement 2025-26, Resolution of the MPC, 6 Jun 2025](https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=60604). The widget opens on old 6, new 5.5.
+- Head: "Live widget", "Jun 2025". Title: "One move, three sizes". Sub: "On 6 June 2025 the RBI cut its repo rate from **6%** to **5.5%**."
 - Your call (multi-select): "Which of these describe the move correctly? Tap each one you believe."
 
 | Option | Verdict | Feedback |
 |---|---|---|
-| Up 1% | careful | 1% of 4% is only 0.04 points, which would make the new rate 4.04%. Writers often say “up 1%” when they mean 1 point. |
-| Up 1 percentage point | right | 5 minus 4 is 1 point. Traders call the same move 100 basis points. |
-| Up 25% | right | 1 point is a quarter of the old 4%, so the rate itself grew by 25%. |
+| Down 0.5% | careful | 0.5% of 6% is only 0.03 points, which would make the new rate 5.97%. Writers often say “down 0.5%” when they mean half a point. |
+| Down 0.5 percentage points | right | 6 minus 5.5 is half a point. The RBI called the same cut 50 basis points. |
+| Down about 8% | right | Half a point is a twelfth of the old 6%, so the rate itself fell by about 8.33%. |
 
 - Chart, 262px tall, width `W`. `X(v) = 14 + (v − 1) / 7 × (W − 28)`.
 
@@ -855,7 +859,7 @@ target  = o ± literal                the rate that literal reading would give
 
 - Trap sentence (hidden when there is no move): [pill orange ! Careful] Read literally, “up 1%” is 1% of the old 4%: a move of only **0.04 points**, to 4.04%.
 - Go deeper: title "Change where the rate starts." Body: "The same 1-point move is a bigger percent of a low rate and a smaller percent of a high one." plus the "Old rate" slider.
-- Foot key: blue knob "The move you set", black "The old rate", orange "“Up 1%”, read literally". Source: "Worked example from the Topic. No outside figures."
+- Foot key: blue knob "The move you set", black "The old rate", orange "“Down 0.5%”, read literally". Source: "Source: Reserve Bank of India, Monetary Policy Statement, 6 June 2025."
 
 The first chip tap unlocks the slider, opens Go deeper and fires `onCall`. Later taps only mark chips. Direction is never coloured.
 
@@ -863,6 +867,8 @@ The first chip tap unlocks the slider, opens Go deeper and fires `onCall`. Later
 
 | Old | New | Points | Basis points | Percent of old | Literal reading |
 |---|---|---|---|---|---|
+| 6 | 5.5 | −0.5 | −50 | 8.33% (down) | 0.03 pt, to 5.97% (the RBI's cut, the default) |
+| 6 | 4.5 | −1.5 | −150 | 25% (down) | 0.09 pt, to 5.91% |
 | 4 | 5 | 1 | +100 | 25% | 0.04 pt, to 4.04% |
 | 4 | 4.5 | 0.5 | +50 | 12.5% | 0.02 pt, to 4.02% |
 | 4 | 3.5 | −0.5 | −50 | 12.5% (down) | 0.02 pt, to 3.98% |
@@ -933,7 +939,7 @@ Foot key: hatched orange "Claimed, not yet earned", black "Recorded", red "Loss"
 | `#study` | Study Workspace stub | Study Workspace · Value It |
 | `#review` | Review notes (prototype only) | Review notes · Value It |
 
-Case slugs: `mega-millions-2018`, `amazon-2000`, `wework-2019`, `rates-up-1`, `compounding-1000`.
+Case slugs: `kerala-bumper-2024`, `amazon-2000`, `wework-2019`, `rbi-repo-cut-2025`, `compounding-1000`.
 
 On every route change: run clean-ups (destroy widgets, remove listeners, disconnect observers), hide the tooltip, re-render, jump to the top without smooth scrolling, and focus the page's `h1` (`.page-h1`, `tabindex="-1"`).
 
@@ -988,9 +994,9 @@ The five questions:
 
 | Chip label | The learner's bubble | Case |
 |---|---|---|
-| A $1.5B jackpot | Is a $1.537B jackpot really worth $1.537B? | mega-millions-2018 |
+| A ₹25 crore jackpot | Is ₹25 crore over 30 years worth ₹25 crore? | kerala-bumper-2024 |
 | Amazon at $84 | How can a loss-making Amazon be worth $84 a share? | amazon-2000 |
-| Rates up 1% | Rates are up 1%. How big a move is that? | rates-up-1 |
+| The RBI’s June cut | The RBI cut from 6% to 5.5%. How big a cut is that? | rbi-repo-cut-2025 |
 | 10% a year | Does 10% a year grow by the same amount every year? | compounding-1000 |
 | WeWork’s $3bn | WeWork claimed a $3bn run rate. Did it earn that? | wework-2019 |
 
@@ -1323,9 +1329,9 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | # | Test | Expected |
 |---|---|---|
 | 1 | Load `#home` as a visitor | Jackpot conversation complete, controls locked, verdict about the billboard number, no pills |
-| 2 | Tap "The cash" | Chip green with check, "Right" pill, rate runs to 5.00%, payments $694.0M, "Worth more" on Cash today, Go deeper: "You are **$183.8M** away. Try a lower rate." |
+| 2 | Tap "The cash" | Chip green with check, "Right" pill, rate runs to 5.00%, payments ₹11.29 crore, "Worth more" on Cash today, Go deeper: "You are **₹13.71 crore** away. Try a lower rate." |
 | 3 | During that run | "Break-even found" must not appear |
-| 4 | Set the rate to 3.40% by hand | $874.8M, "Same" on both rows, "Break-even found" |
+| 4 | Set the rate to 0% by hand | ₹25 crore, "Same" on both rows, "Break-even found" |
 | 5 | Tap "Amazon at $84" | Typing, Tutor bubble, skeleton, then the levers widget at $35 |
 | 6 | Tap "One story worth $84" | Value $84 (83.69), "100% of the $84 price." replaced by "Worth the $84 price, on this story.", pills +$27, +$17, none, +$5, "You reached the price" |
 | 7 | Tap "A grocer’s margins" | Value $1, one red pill −$34 under "What it keeps" |
@@ -1336,8 +1342,8 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | 12 | Scroll back from "Your turn" after changing levers, then return | Steps 1 to 4 show his story, step 5 restores the learner's story |
 | 13 | Compounding: tap "No, more each year" | Years run to 30, ₹17,449, growth ₹16,449, year 30 added ₹1,586 |
 | 14 | Tap "Split the growth" | Bars and segmented bar show ₹3,000 and ₹13,449, the key has three entries |
-| 15 | Rates: tap "Up 1%" | Chip orange with "!", pill "Careful", slider unlocked, Go deeper open |
-| 16 | Set the new rate to 4.50% | 0.5 points, +50 bp, up 12.5%, literal 0.02 points to 4.02% |
+| 15 | Rates: tap "Down 0.5%" | Chip orange with "!", pill "Careful", slider unlocked, Go deeper open |
+| 16 | Set the new rate to 4.50% | down 1.5 points, −150 bp, down 25%, literal 0.09 points to 5.91% |
 | 17 | Set the old rate to 2% and the new to 3% | up 1 point, +100 bp, up 50% |
 | 18 | WeWork: step to beat 5 and tap "No, it is a pace" | Three bars shown, chip green, Go deeper shows $1.00 and −$0.59 |
 | 19 | Open `#case-amazon-2000` | Tutor's answer locked, ending locked, progress at step 2 |
@@ -1371,24 +1377,27 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 
 ## Appendix A. Case copy deck
 
-### A.1 Mega Millions, October 2018
+### A.1 Kerala Thiruvonam Bumper, October 2024
+
+The copy lives in `src/site/examples.ts` (`kerala-bumper-2024`); it replaced Mega Millions 2018 on the site (#116).
 
 | Field | Text |
 |---|---|
-| Slug / stamp / category | `mega-millions-2018` / Oct 2018 / Everyday money |
+| Slug / stamp / category | `kerala-bumper-2024` / Oct 2024 / Everyday money |
 | Topic | Why is money later worth less? |
-| Question | Is a $1.537B jackpot really worth $1.537B? |
-| Hook | Thirty yearly payments, or $877.8M in cash today. Which is worth more? |
-| Story | **October 2018.** One ticket sold in South Carolina wins the Mega Millions jackpot, advertised at **$1.537 billion**. The winner can take it as 30 yearly payments that rise 5% a year, or take **$877.8 million** in cash now. |
-| Facts | Advertised jackpot, 30 payments: $1.537B · Cash option, paid now: $877.8M · Drawing: 23 Oct 2018 |
-| Learner asks | Thirty payments add up to $1.537 billion. Isn’t that obviously more than $877.8 million? |
-| Tutor's lead | The winner had two choices that day: 30 yearly payments that add up to **$1.537 billion**, or **$877.8 million** in cash at once. Make your call in the widget, then test it. |
-| Tutor's answer | **Only if a dollar later is worth as much as a dollar now. It isn’t.** A payment in 2047 can’t be spent or invested until 2047. Put the cash in a bond at 5% instead, and each far-off payment is worth much less today. Add the 30 payments up in today’s money, then compare. |
-| Follow-up, right | Right. Now drag the rate. Somewhere between 3% and 4% the two are worth the same. Find it. |
+| Question | Is ₹25 crore over 30 years worth ₹25 crore? |
+| Hook | Kerala paid its ₹25 crore jackpot at once. American lotteries pay theirs over 30 years. Is that the same prize? |
+| Story | **9 October 2024.** Kerala’s Thiruvonam Bumper lottery draws its first prize of **₹25 crore**, on ticket TG 434222, sold in Wayanad for ₹500. Kerala pays a prize at once. American lotteries advertise theirs as the sum of **30 yearly payments** that rise 5% a year. Paid that way, would the same ₹25 crore be worth as much? |
+| Facts | First prize, paid at once: ₹25 crore · Ticket price: ₹500 · Drawing: 9 Oct 2024 |
+| Learner asks | ₹25 crore is ₹25 crore. Why would it matter when it’s paid? |
+| Tutor's lead | Two ways to pay the same prize: **₹25 crore** at once, as Kerala does, or 30 yearly payments that add up to **₹25 crore**, the American way. Make your call in the widget, then test it. |
+| Tutor's answer | **Only if a rupee later is worth as much as a rupee now. It isn’t.** A payment in 2053 can’t be spent or invested until 2053. Put the cash in a deposit at 5% instead, and each far-off payment is worth much less today. Add the 30 payments up in today’s money, then compare. |
+| Follow-up, right | Right. Now drag the rate down. Only at 0%, when money earns nothing, are the two worth the same. |
 | Follow-up, other | Most people start there. Watch what a 5% rate does to the far-off payments, then look for the rate where the two match. |
-| Ending label | What the winner did |
-| Ending | The winner, who stayed anonymous, claimed the prize in 2019 and **took the cash: $877,784,124** before tax. At any rate above about 3.4% a year, the cash was worth more than the 30 payments. *A bigger total paid later can be worth less than a smaller sum today.* |
-| Sources | Mega Millions, 2019; CNBC, 24 Oct 2018. The 3.4% crossover is worked out from the payment schedule. |
+| Ending label | What the winner got |
+| Ending | Kerala’s Lotteries department pays the prize into the winner’s bank account in one go, after the agent’s 10% commission and tax: about **₹12.88 crore** of the ₹25 crore reached the winner. Paid over 30 years instead, the same ₹25 crore would be worth only about **₹11.29 crore** today at 5% a year, before any tax. *A rupee later is worth less than a rupee today.* |
+| As-of date | 9 Oct 2024 |
+| Sources | The Hindu, 9 Oct 2024; Mathrubhumi, 9 Oct 2024; The New Indian Express, 11 Oct 2024; Mega Millions, Difference Between Cash Value and Annuity (links in §6.3). The 30 payments are a what-if, worked out the American way. |
 
 ### A.2 Amazon, February 2000
 
@@ -1427,23 +1436,26 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | Ending | Six weeks later, on **30 September 2019**, WeWork withdrew its share sale. In November 2023 it filed for bankruptcy. *A run rate is a pace. Revenue is what was recorded.* |
 | Sources | WeWork S-1, 14 Aug 2019; CNBC, 30 Sep 2019; Forbes, 7 Nov 2023. |
 
-### A.4 Rates up 1%
+### A.4 The RBI's repo-rate cut, June 2025
+
+The copy lives in `src/site/examples.ts` (`rbi-repo-cut-2025`); it replaced the undated "Rates up 1%" (#116).
 
 | Field | Text |
 |---|---|
-| Slug / stamp / category | `rates-up-1` / The news / The news |
+| Slug / stamp / category | `rbi-repo-cut-2025` / Jun 2025 / The news |
 | Topic | Percent, percentage points and basis points |
-| Question | A headline says rates are up 1%. How big a move is that? |
-| Hook | Points, basis points and percent: three true answers of different sizes. |
-| Story | **Any morning.** A headline says rates are **up 1%**. Your loan, your deposit and the bond market all move on that number, but the headline doesn’t say which 1% it means. |
-| Facts | Old rate: 4% · New rate: 5% · What the headline says: up 1% |
-| Learner asks | A headline says rates are up 1%. How big a move is that? |
-| Tutor's lead | Take a rate that goes from **4% to 5%**. Three ways of describing that move are in the widget. Tap each one you think is correct. |
-| Tutor's answer | **It depends which size the writer means.** Take a rate going from 4% to 5%: that is 1 point, 100 basis points, and 25% of the old rate. All three are true, but they are different sizes. Up 1% could mean 1 point, or 1% of the old 4%, which is only 0.04 points. So say up 1 point, or up 100 bp. |
+| Question | The RBI cut its repo rate from 6% to 5.5%. How big a cut is that? |
+| Hook | Half a point, 50 basis points, or about 8%: three true answers of different sizes. |
+| Story | **6 June 2025.** The Reserve Bank of India cuts its repo rate, the rate at which it lends to banks, from **6%** to **5.5%**. Home loans, deposits and the bond market all move on that number. But “cut by 0.5%” could mean two very different sizes. |
+| Facts | Repo rate before: 6% · Repo rate after: 5.5% · Decided: 6 Jun 2025 |
+| Learner asks | The RBI cut its rate from 6% to 5.5%. Is that a 0.5% cut? |
+| Tutor's lead | On 6 June 2025 the repo rate went from **6% to 5.5%**. Three ways of describing that move are in the widget. Tap each one you think is correct. |
+| Tutor's answer | **It depends which size you mean.** From 6% to 5.5% is half a percentage point, 50 basis points, and about 8% of the old rate. All three are true, but they are different sizes. Down 0.5% could mean half a point, or 0.5% of the old 6%, which is only 0.03 points. So say down half a point, or down 50 bp. |
 | Follow-up | Tap the other two as well. Two are right, and one is the trap headlines fall into. |
 | Ending label | The rule to keep |
-| Ending | *Name the base of every change.* A move from 4% to 5% is up 1 percentage point, up 100 basis points, and up 25% on the old rate. Traders quote basis points so nobody has to ask which one you meant. |
-| Sources | Worked example from the Topic. No outside figures. |
+| Ending | *Name the base of every change.* A move from 6% to 5.5% is down 0.5 percentage points, down 50 basis points, and down about 8% on the old rate. The RBI announced it as **50 basis points**, so nobody had to ask which one it meant. |
+| As-of date | 6 Jun 2025 |
+| Sources | [RBI, Monetary Policy Statement 2025-26, Resolution of the MPC, 6 Jun 2025](https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=60604) |
 
 ### A.5 Compounding ₹1,000
 
