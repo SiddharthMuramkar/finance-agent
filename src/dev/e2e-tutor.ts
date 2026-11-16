@@ -374,8 +374,9 @@ export const E2E_SCRIPTS = {
   /**
    * Spine Topic 1 (spine-01-worth), played whole through the page by e2e/spine-01.spec.ts: one script per Tutor Turn
    * the play passes through, in order. Every number is the Case's or the valuation engine's, rounded as the Topic
-   * rounds them for a beginner ($84 price, about $1.1bn of sales, about a $400m operating loss, his $35 a share, $39bn
-   * of sales in year 10, a 10% margin, $3 of sales per dollar invested, a cost of capital near 13%). The Learner types
+   * rounds them for a beginner where the Learner reads one to answer ($84 price, about $1.1bn of sales, about a $400m
+   * operating loss, $39bn of sales in year 10, a 10% margin, $3 of sales per dollar invested, a cost of capital near 13%;
+   * the reveal keeps its exact $35.08, $91.50 and $14.88). The Learner types
    * nothing: the Insight and both Checks are taps (ticket #88). The replies at
    * the Check step hold no number and no choice's words, so they never touch an open quiz (V5).
    */
@@ -510,9 +511,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "His story came to about $35 a share against the $84 price. The $84 was already below the year's high: " +
-              "a month earlier, in early January 2000, the shares had traded above $90. The price fell through 2000: " +
-              "by the fourth quarter the shares had been below $15. " +
+            "His story came to $35.08 a share against the $84 price. The $84 was already below the year's high: " +
+              "a month earlier, in early January 2000, the shares had traded as high as $91.50. The price fell through 2000: " +
+              "by the fourth quarter the shares had been as low as $14.88. " +
               "Neither number proves the other wrong. A price is what buyers paid that day, and a value is what one story about the business is worth.\n\n" +
               "Why might the price swing so far while his story stayed put?",
           ),

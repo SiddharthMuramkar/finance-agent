@@ -26,16 +26,23 @@ cases:
       how big it gets, what it keeps of each sale, what its growth costs and how risky it is.
       What is Amazon worth, and is $84 a fair price for it?
     reveal: >
-      His story came to about $35 a share against the $84 price. The $84 was already below the year's
-      high: a month earlier, in early January 2000, the shares had traded above $90. The price
-      fell through 2000: by the fourth quarter the shares had been below $15. Neither number
+      His story came to $35.08 a share against the $84 price. The $84 was already below the year's
+      high: a month earlier, in early January 2000, the shares had traded as high as $91.50. The price
+      fell through 2000: by the fourth quarter the shares had been as low as $14.88. Neither number
       proves the other wrong: a price is what buyers paid that day, and a value is what one story
       about the business is worth.
     # Damodaran's valuation, written once in val-dcf (spec Appendix B.1); the engine gives $35.04 against his $35.08.
     valuationFrom: amazon-dcf-2000
 
-# Four new words (spec #68): "share" and "price" are said in plain words in the Moment, before the Learner meets them.
+# Four new words (spec #68): "share" is said in plain words in the Moment, and the cost of capital, how risky the
+# company is, in the Concept, each before the Learner meets it.
 terms:
+  - term: price
+    means: What buyers pay for one share today.
+    pro: The shares closed at $84.
+    example: "A used bike sells for $200 on the day, whatever it is worth to you."
+    emoji: label
+    inStory: In the story, $84 is what buyers pay for an Amazon share.
   - term: value
     means: What the business's future cash is worth today, for one share, argued from a story.
     pro: On my story the shares are worth $35.
@@ -43,7 +50,7 @@ terms:
     emoji: thinking-face
     inStory: In the story, the professor works out a value from what he thinks Amazon's future holds.
   - term: revenue
-    means: What a company sells in a year, before any costs.
+    means: "What a company sells in a year, before any costs: its sales."
     pro: Revenue for the twelve months to September 1999 was about $1.1 billion.
     example: "A lemonade stand that sells 300 cups a day at $1 a cup has $300 of revenue a day."
     emoji: money-bag
@@ -54,12 +61,6 @@ terms:
     example: "A lemonade stand that keeps 10 cents of every $1 cup has a margin of a tenth."
     emoji: bar-chart
     inStory: In the story, the margin is what Amazon keeps of each sale.
-  - term: cost of capital
-    means: The return investors need on their money, given the risk they take, used to turn future cash into today's.
-    pro: The cost of capital starts near 13% and falls as the company matures.
-    example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
-    emoji: balance-scale
-    inStory: In the story, the cost of capital is how risky Amazon is.
 
 skills:
   - id: price-value
@@ -109,7 +110,8 @@ concept: >
   A price is what buyers pay for a share today. A value is what the business's future cash is worth
   today. The two can differ for years. A value starts as a story about the business: how big the
   company gets, what it keeps of each sale, what its growth costs, and how risky it is. Each part
-  of the story is one lever. Set the four levers and code works out a value. Damodaran's story for
+  of the story is one lever. How risky it is sets the cost of capital: the yearly return investors
+  ask for the risk they take, which turns future cash into today's money. Set the four levers and code works out a value. Damodaran's story for
   Amazon had about $39 billion of sales in ten years, a 10% operating margin (10 cents kept from each $1 of sales),
   and $3 of sales for each dollar invested in warehouses and systems.
 
