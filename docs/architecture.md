@@ -2,7 +2,7 @@
 
 Facts as of 2026-11-16. This page describes `main` as it is now. It starts with the map, then zooms in, one layer at a time. File paths are signposts. The page shows no code.
 
-Two pull requests are about to land: #44 deletes old code, and PR C finishes the move to Clerk. Where they change a fact, the page says "after #44" or "after PR C". Section 2 lists them. ADR means an architecture decision record in [`docs/adr/`](adr/README.md).
+Section 2 lists the most recent changes. ADR means an architecture decision record in [`docs/adr/`](adr/README.md).
 
 ## 1. The picture
 
@@ -10,9 +10,9 @@ Value It teaches money, markets and valuation through real past events. A visito
 
 The Tutor is an OpenAI model, gpt-6.1-sol, on the Responses API. The server runs on Vercel, in region `sin1`. Each Learner action starts one Tutor turn on the server. During the turn, the model calls tools. The tools search a private Library of real sources, show Widgets, calculate, and record progress. Code checks replies before the Learner sees them. Daily Spend caps limit what each Learner and each day can cost. One Neon Postgres database keeps all state. The course is YAML files in the repo. A merge to `main` is the only way to deploy.
 
-## 2. What changed on 2026-11-15, and what comes next
+## 2. What changed on 2026-11-15 and 2026-11-16
 
-These pull requests merged into `main` on 2026-11-15, in this order:
+**2026-11-15.** These pull requests merged into `main`, in this order:
 
 | Area | PR | What it brought |
 |---|---|---|
@@ -26,13 +26,17 @@ These pull requests merged into `main` on 2026-11-15, in this order:
 | Library sources | #43 | New public sources, and a ranking rule that keeps one big source from filling the results |
 | Reranker test | #42 | Reranker flags in the Library scorer. The reranker itself is parked: the app's search does not use it |
 
-Next, in this order:
+**2026-11-16.** Two runs by hand changed production:
 
-1. **The wipe.** After a dump and a Neon snapshot, and a rehearsal on a Neon branch copy, the owner's run deletes the pre-Clerk Learners and their history.
-2. **#44.** It deletes the dead lanes: the `compose_widget` tool, the engine-off lane and `src/comparison` (section 8).
-3. **PR C.** Its migration 0040 drops the Better Auth tables and `learners.auth_user_id` (section 5.4).
-4. **The production Library load.** The owner loads the new sources into production, after a Neon snapshot (section 9).
-5. **Wrap-up #41.** It adds the list of tasks that only the owner can do, for example: switch the firewall to enforce, make the Better Stack account, add the Google client for Clerk.
+- **The production Library load.** After a Neon snapshot, it loaded the new sources, dropped the 2nd edition of Principles of Finance and stored the embeddings. The scores passed (section 9).
+- **The wipe.** After a dump, a Neon snapshot and a rehearsal on a Neon branch copy, it deleted the 2 pre-Clerk Learners and their history. One Learner is left: the owner's Clerk account (section 5.4).
+
+Then two pull requests merged, in this order:
+
+- **#44.** It deleted the dead lanes: the `compose_widget` tool, the engine-off lane and the old model comparison code (section 8).
+- **PR C.** Its migration 0040 dropped the Better Auth tables, the other old sign-in tables, the model comparison tables and `learners.auth_user_id` (section 5.4).
+
+Some tasks only the owner can do, for example: switch the firewall to enforce, make the Better Stack account, add the Google client for Clerk. The owner actions list (#41) holds them.
 
 ## 3. The map
 
@@ -151,7 +155,7 @@ Clerk hosts the sign-in, the sign-up, the Waitlist and the emails ([ADR 0017](ad
 
 1. A visitor opens `/join` (`src/app/join/page.tsx`) and leaves an email on Clerk's Waitlist.
 2. The owner approves the person in the Clerk dashboard. Clerk sends the "You're in" email.
-3. The invite link opens `/sign-up`. The person signs in with an email link. There is no password. Google sign-in comes later.
+3. The invite link opens `/sign-up`. The person signs in with an email link. There is no password. Google sign-in is off for now.
 4. On the first request, `src/auth/clerk-learner.ts` makes a Learner for that Clerk user and stores the id in `learners.clerk_user_id`. Every account has a Learner, so `/sign-in` and `/study` can never send a person back and forth.
 
 Waitlist mode also stops the owner's own sign-up. So the owner's Clerk user was made in advance. An old `/login` link answers 308 and sends the browser to `/sign-in` (`next.config.ts`).
@@ -178,10 +182,12 @@ The browser tests and the simulated Learner sign in with a passcode or a test-be
 
 **Bot checks.** Clerk guards the sign-up with its own bot protection and lockout. BotID guards the start of each Tutor turn, because each turn costs a model call. `src/instrumentation-client.ts` adds the challenge in the browser, and `POST /api/turn` checks it. A bot gets 403. The list of protected requests is in `src/auth/bot-protection.ts`.
 
-**Fresh start (next).** The database still holds the old Better Auth tables. No app code reads them. Two steps finish the move to Clerk:
+**Fresh start.** Two steps finished the move to Clerk:
 
-1. The wipe. The owner's run takes a dump and a Neon snapshot, rehearses on a Neon branch copy, then deletes the old Learners that have no Clerk id, with their history.
-2. PR C. Its migration 0040 drops the tables `user`, `session`, `account`, `verification`, `access_denials`, `invites`, `rate_limit` and `email_link_sends`, the old comparison tables (#44 deletes their code first), and the column `learners.auth_user_id`. It keeps `login_failures`, which the passcode door uses.
+1. The wipe, on 2026-11-16. The owner's run took a dump and a Neon snapshot. It rehearsed the wipe and migration 0040 on a Neon branch copy. Then it deleted the 2 old Learners that had no Clerk id, with their history. One Learner is left: the owner's Clerk account.
+2. PR C. Its migration 0040 dropped the tables `user`, `session`, `account`, `verification`, `access_denials`, `invites`, `rate_limit` and `email_link_sends`, the model comparison tables `model_comparison_runs` and `model_comparison_answers`, and the column `learners.auth_user_id`. It kept `login_failures`, which the passcode door uses.
+
+So no Better Auth table or column is left in the database.
 
 ### 5.5 Routes
 
@@ -202,7 +208,7 @@ One Neon Postgres database keeps all state: Learners, Sessions, messages, turns,
 2. `npm run db:generate` writes a new SQL file in `drizzle/`.
 3. On a production deploy, `scripts/migrate-on-build.mjs` takes a Neon snapshot, then applies the new files (section 10).
 
-Every migration is expand-then-contract: first add, deploy, and only later remove. Clerk follows this rule: #35 added `learners.clerk_user_id`, #48 stopped all use of the old Better Auth column and tables, and PR C removes them. The rules are in [`docs/agents/migrations.md`](agents/migrations.md). Files: `src/db/client.ts`, `src/db/one-write.ts`, `src/db/schema.ts`, `drizzle.config.ts`.
+Every migration is expand-then-contract: first add, deploy, and only later remove. Clerk follows this rule: #35 added `learners.clerk_user_id`, #48 stopped all use of the old Better Auth column and tables, and PR C's migration 0040 removed them. The rules are in [`docs/agents/migrations.md`](agents/migrations.md). Files: `src/db/client.ts`, `src/db/one-write.ts`, `src/db/schema.ts`, `drizzle.config.ts`.
 
 ### 5.7 Course content
 
@@ -262,7 +268,7 @@ Each layer of a turn has a limit, so each layer has a known worst case (decision
 - The evals, the Library refresh and Voyage are not counted. Only the OpenAI project's hard spend limit catches those.
 - The evals run with `noLimits`, so no cap stops them.
 
-**The Step ledger** counts the model steps of one turn, across all its runs (the first run and each resume). Every saved step counts: a loop step, a reply retry, a step that a tool saves, and a step cut short. Before each step, the tool loop asks the ledger how many steps are left. The last allowed step must write the reply.
+**The Step ledger** counts the model steps of one turn, across all its runs (the first run and each resume). Every saved step counts: a loop step, a reply retry, a fold or compaction, and a step cut short. Before each step, the tool loop asks the ledger how many steps are left. The last allowed step must write the reply.
 
 Files: `src/tutor/quota.ts`, `src/tutor/step-ledger.ts`, `src/tutor/turn-admission.ts`.
 
@@ -287,18 +293,18 @@ Every number has a known origin:
 
 Other Widget tools: `open_widget` opens a written-ahead Widget from the Topic YAML. `update_widget` moves the sliders of an open Widget. Workbench Widgets (`src/widgets/workbench/`) get their figures on the server, from `src/finance/valuation-cases.generated.ts` or the Topic YAML.
 
-Two older lanes are still in the code: the free-form `compose_widget` tool and the engine-off lane. New Sessions do not get them, because the `widget_engine` setting is on. Only an old Session that already lists `compose_widget` keeps it. After #44, both lanes and `src/comparison` are gone. Later, the Study Workspace will open the five Signal widgets through a thin recipe part (ADR 0011). That part is not built yet.
+The widget engine is the only Widget lane, and every Session freezes it. #44 deleted the two older lanes, the free-form `compose_widget` tool and the engine-off lane, and the old model comparison code. ADR 0011 plans a thin recipe part, so that the Study Workspace can open the five Signal widgets. That part is not built.
 
 ## 9. How the Library (RAG) works
 
 **Sources.** `scripts/library/sources.json` lists each source with its licence and credit line. The repo holds the loaders, not the source text. #43 added these sources:
 
-- OpenStax Principles of Finance, 1st edition (CC BY 4.0). It replaces the 2nd edition (CC BY-NC-SA 4.0).
+- OpenStax Principles of Finance, 1st edition (CC BY 4.0). It replaced the 2nd edition (CC BY-NC-SA 4.0).
 - FOMC statements, minutes and policy records, 1979 to 2001.
 - SEC filings: Amazon 1997 to 2000, Webvan 1999 to 2001, and the We Company S-1 of 2019.
 - Investor.gov explainers. This entry is in the list, but it is not loaded: the site refused the fetcher (403).
 
-The 2nd edition stays in `sources.json` until the production drop, because production still stores its passages.
+Since the load on 2026-11-16, production holds no 2nd edition passages. Its entry is still in `sources.json`.
 
 **Ingest** runs by hand, not on deploy:
 
@@ -310,9 +316,25 @@ The 2nd edition stays in `sources.json` until the production drop, because produ
 
 Pictures and spreadsheets have their own loaders (`scripts/library-pictures.mjs`, `scripts/library-sheets.mjs`). Each week, the cron route (`src/app/api/cron/library-refresh/route.ts`) runs `src/library/refresh.ts`. It adds new or edited posts from Damodaran's blog.
 
-**New sources are tested on a copy first.** They load into a Neon branch copy, never into `main`. There they are embedded and scored. The bars are: 72 or more of 78 questions with the right passage in the top 5 (92%), MRR of 0.82 or more, and clean outcome-word probes. On 2026-11-15, the new Library passed on a copy: 75 of 78, MRR 0.827, probes 19 of 19. The write-up is [`docs/library/2026-11-15-sources-eval.md`](library/2026-11-15-sources-eval.md).
+**New sources are tested on a copy first.** They load first into a Neon branch copy, not into `main`. There they are embedded and scored. Only after a pass do they load into production. The bars are: 72 or more of 78 questions with the right passage in the top 5 (92%), MRR of 0.82 or more, and clean outcome-word probes. On 2026-11-15, the new Library passed on a copy: 75 of 78, MRR 0.827, probes 19 of 19. The write-up is [`docs/library/2026-11-15-sources-eval.md`](library/2026-11-15-sources-eval.md).
 
-The production load is a separate step by hand, after a Neon snapshot. It loads the new sources, drops the 2nd edition, re-stamps the licence and credit lines, and stores the embeddings. Then the scorer runs again. After the load, re-dump the Library (section 11).
+**The production load** is a separate step by hand. It ran on 2026-11-16:
+
+1. A Neon snapshot of production.
+2. Load the new sources: the 1st edition (1,043 passages), the FOMC records (4,013), and the SEC filings of Amazon (765), Webvan (749) and the We Company S-1 (801).
+3. Drop the 2nd edition (1,043 passages).
+4. Re-stamp the licence and credit lines.
+5. Store the Voyage embeddings.
+6. Score search on production again.
+
+Scores on production, with BM25 and Voyage together:
+
+- 75 of 78 questions have the right passage in the top 5 (96.2%, bar 92%). 58 have it first. MRR is 0.827 (bar 0.82). Pass.
+- The outcome-word probes are clean: 19 of 19.
+- The 12 open Signal questions: 9 of 12 in the top 5, MRR 0.542.
+- With keywords only (no Voyage): 71 of 78, MRR 0.715.
+
+After a load, re-dump the Library (section 11).
 
 **Search** runs on each `search_library` call:
 
@@ -396,7 +418,7 @@ Recovery has layers. #8 chose option B (#40). The details and the restore steps 
 
 - `scripts/backup-drill.sh` dumps the Library tables to the VPS. It then restores them into a throwaway Neon branch and compares counts and hashes. The first drill passed on 2026-11-15.
 - The dump and its second copy are on the same VPS disk. The owner must still copy the dump to their laptop.
-- Re-dump after each Library load. Never put a dump in git: some source text is for private search only.
+- Re-dump after each Library load. The last dump is from 2026-11-15, before the production load on 2026-11-16. Never put a dump in git: some source text is for private search only.
 - Learner data stays in Neon only. A full off-Neon dump of Learner data was too much for about 20 beta Learners.
 
 ## 12. Monitoring
@@ -432,13 +454,13 @@ Settings live in three places:
 | `CRON_SECRET` | Lets only Vercel call the cron routes |
 | `BETTERSTACK_HEARTBEAT_URL` | Where the health check reports. Optional |
 | `VOYAGE_API_KEY` | Vector half of Library search |
-| `PASSCODES`, `SESSION_SECRET` | The passcode door and the test-bed cookie. Local and test only. Production refuses every passcode. The owner removes them from Production after PR C |
+| `PASSCODES`, `SESSION_SECRET` | The passcode door and the test-bed cookie. Local and test only. Production refuses every passcode. The owner removes them from Production (owner actions, #41) |
 | `E2E` | Turns on the browser test bed. Never in production |
 | `TURN_TIME_BUDGET_MS` | Optional, for local cut-off tests |
 
 Not needed any more: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM` and `PASSCODE`.
 
-The `settings` table holds `effort` (default `medium`), `session_idle_hours`, `compact_at_tokens`, `review_cap`, `widget_engine` and the five Spend caps (section 7). The defaults are in `src/tutor/session-log.ts`. A Session keeps its `effort` from when it starts, so an `effort` edit reaches only new Sessions. The other rows take effect on the next turn or request. After #44, nothing reads `widget_engine`: every Session uses the widget engine.
+The `settings` table holds `effort` (default `medium`), `session_idle_hours`, `compact_at_tokens`, `review_cap` and the five Spend caps (section 7). The defaults are in `src/tutor/session-log.ts`. A Session keeps its `effort` from when it starts, so an `effort` edit reaches only new Sessions. The other rows take effect on the next turn or request. Nothing reads an old `widget_engine` row: every Session uses the widget engine (#44).
 
 Constants: `TUTOR_MODEL` and `DEFAULT_EFFORT` (`src/tutor/model.ts`), `TIME_BUDGET_MS` (`src/tutor/turn.ts`), `maxDuration` (`src/app/api/turn/route.ts`), `POOL`, `RRF_K`, `PER_SOURCE` and `ARCHIVAL_PER_SOURCE` (`src/library/search.ts`), the 300-word cut (`src/library/prepare.ts`), region, crons and Schedules (`vercel.json`). A change to `TUTOR_MODEL` closes each Learner's live Session on their next turn.
 
