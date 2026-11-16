@@ -479,6 +479,7 @@ export function LeversWidget({ caseSlug, compact = false, onCall, onEvent }: Sig
           { swatch: "pin", label: "Price paid" },
         ]}
         source="Damodaran’s valuation of Amazon, Feb 2000, on the course’s tested valuation engine. It reproduces his $35.08 within 2%."
+        link={{ name: "Damodaran’s valuation of Amazon, Feb 2000", href: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }}
         table={
           !compact && called ? (
             <TableView

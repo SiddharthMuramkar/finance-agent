@@ -26,33 +26,48 @@ topics:
     lastRound: "81d8f11"
     open: 0
     note: Round 4 (#89 for beginners, critics round 1) 6 confirmed, fixed (one new word in the concept, no worked division on the card, the bench's profit said to be a what-if, its years named 1999 into 2000, a reacting Webvan scene); the app-wide phone-width finding is out of #89's scope.
+  spine-statements:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "6a63ee5"
+    open: 0
+    note: Round 3 (critics round 2 after the merge) 1 confirmed, not a Topic fix. The phone-width finding (no Study Workspace under 390px, every turn) is app-wide, out of #90's scope, and needs a triage issue. Round 2 had fixed 3 in c3f9529 (round figures in turn 1, free cash flow leads explore, the three pages as tiles).
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "cdf4f01"
+    rounds: 5
+    lastRound: "6fc201d"
     open: 0
+    note: Round 5 (#95 Spine critics round 1) 2 confirmed, fixed in 6fc201d (the explore line says 10% of $100bn keeping a fifth and the market readout names "fees on all fares"; the story scene keeps only meaningful Icons).
   spine-05-margins:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "131125b"
+    rounds: 6
+    lastRound: "6fc201d"
     open: 0
-    note: Round 3 on the unit economics content, in two halves. Beginner persona and math police on ws-f2-spine (fixed in 0cb474f, ws-f2-spine-round2.json in pull request 616's history); historian and widget fit on ws-i-round2, 1 confirmed, fixed (ws-i-round2-critics.json in pull request 616's history).
+    note: Round 6 (#95 Spine critics round 1) 3 confirmed, fixed in 6fc201d (a story scene with the rivals' margins so the story turn keeps three numbers, a two-makers Concept scene, the explore bench draws rivals as faces on a margin ladder with Tesla climbing it).
   spine-06-growth-cost:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "0cb474f"
+    rounds: 6
+    lastRound: "6fc201d"
     open: 0
-    note: Round 3 on the reinvestment rate content, in two halves. Beginner persona and math police on ws-f2-spine (fixed in 0cb474f); historian and widget fit on ws-i-round2 confirmed nothing (ws-i-round2-critics.json in pull request 616's history).
+    note: Round 6 (#95 Spine critics round 1) 5 confirmed, fixed in 6fc201d ($4.2m named as prospectus sales Jun to Sep 1999, $15 the offer price, the return noted as Webvan's own claim, story and Concept scenes, a centre that fills up on the bench).
   spine-07-risk:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "46c4165"
+    rounds: 5
+    lastRound: "6085684"
     open: 0
+    note: Round 5 (#91 critics round 2), 3 findings fixed in 119508c and 6085684 (equity-led stack names the whole rate "Whole rate, with debt", not the next Topic's cost of capital; Jan 2001 revaluation sourced to dcfveg.pdf and in the outcome; unsourced 2008 premium sentence cut).
+  spine-cost-of-capital:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 3
+    lastRound: "6085684"
+    open: 0
+    note: Round 3 on the new Topic (#91 critics round 2), no findings; its stack keeps "Cost of capital" as the headline's name.
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "7756465"
+    rounds: 5
+    lastRound: "6fc201d"
     open: 0
+    note: Round 5 (#95 Spine critics round 1) 5 confirmed, fixed in 6fc201d (the seesaw says in money that after year 10 is worth more than the whole value, the lever questions set one far-future setting against the growth-years rate, story and Lingo scenes).
   spine-09-to-one-share:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 3

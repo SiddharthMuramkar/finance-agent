@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { E2E_SCRIPTS } from "../src/dev/e2e-tutor";
-import { quietDevtools, replyLanded, script, seed, settled, signIn, type Script } from "./support/app";
+import { quietDevtools, replyLanded, RESET_RETRIES, script, seed, settled, signIn, type Script } from "./support/app";
 
 /**
  * Spine Topic 1 on the Test bed (spec 2026-11-12 Part C, "Done when"): a browser test completes Spine Topic 1 ("What is
@@ -144,7 +144,7 @@ function tryPick(prompt: string): string {
 async function seedSpineOne(page: Page) {
   await quietDevtools(page);
   await signIn(page);
-  const response = await page.request.post("/api/dev-e2e", { data: { state: "spine-01-start" } });
+  const response = await page.request.post("/api/dev-e2e", { data: { state: "spine-01-start" }, ...RESET_RETRIES });
   expect(response.status(), `seed spine-01-start: ${await response.text()}`).toBe(200);
 }
 
@@ -267,9 +267,6 @@ async function playTopicOne(page: Page) {
   await expect(currentStep(page)).toHaveText(/^Explore — /, { timeout: TURN_MS });
   const headline = page.getByTestId("value-levers-headline");
   await expect(headline).toHaveText("This story is worth $35 a share", { timeout: TURN_MS });
-  // One name per idea between the Topic and its Workbench (#88): the Topic's lever words, and the bars in plain words.
-  await expect(page.getByRole("slider", { name: "Sales for each dollar invested" })).toBeVisible();
-  await expect(page.getByText("Cash it makes each year, then after year 10")).toBeVisible();
   // One Value levers tab: code opens the Workbench as "Explore"; the Tutor's show_widget of the same recipe and Case is
   // pointed at it instead of adding "Amazon, February 2000: the four levers" beside it.
   await landedAsWritten(page, "spine1-explore");
@@ -277,6 +274,10 @@ async function playTopicOne(page: Page) {
   await openSheet(page, "explore");
   await expect(headline).toHaveCount(1);
   await expect(headline).toBeVisible();
+  // One name per idea between the Topic and its Workbench (#88): the Topic's lever words, and the bars in plain words.
+  // Read once the Workbench is on screen: on a phone that is after its entry slides the sheet up (#83).
+  await expect(page.getByRole("slider", { name: "Sales for each dollar invested" })).toBeVisible();
+  await expect(page.getByText("Cash it makes each year, then after year 10")).toBeVisible();
   await page.getByRole("slider", { name: "Revenue in year 10" }).fill("60");
   await page.getByRole("slider", { name: "Operating margin once mature" }).fill("12.5");
   await expect(headline).toHaveText("This story is worth $84 a share");

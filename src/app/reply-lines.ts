@@ -128,15 +128,31 @@ export function stopReply(c: ReplyCursor): Placed {
 /**
  * The finished reply: its usage on the part it ended in, and its place in the Session on every part (Save to Notebook).
  * A Widget code showed in this turn is the reply's too (reply-items.ts), a Next's step Widget drawn before it among them,
- * so it gets the ref as well.
+ * so it gets the ref as well. An item that came after the reply's last words (the Topic complete card after the closing
+ * reply) left an empty part to carry on in: it goes, and the words before the item end the reply, as a reload draws it.
  */
-export const finishReply = (c: ReplyCursor, done: { usage?: TurnUsage; ref?: TurnRef }): LinesUpdate => (lines) =>
-  lines.map((x) => {
+export const finishReply = (c: ReplyCursor, done: { usage?: TurnUsage; ref?: TurnRef }): LinesUpdate => (lines) => {
+  const { drawn, end } = withoutEmptyEnd(c, lines);
+  return drawn.map((x) => {
     if (x.role === "item") return done.ref && x.kind === WIDGET_SHOWN && inReply(c)(x) ? { ...x, ref: done.ref } : x;
-    const usage = done.usage && x.id === c.current;
+    const usage = done.usage && x.id === end;
     const ref = done.ref && x.role === "assistant" && c.parts.includes(x.id);
     return usage || ref ? { ...x, ...(usage && { usage: done.usage }), ...(ref && { ref: done.ref }) } : x;
   });
+};
+
+/** The lines without the reply's empty last part, if an earlier part of it has words, and the part that ends the reply. */
+function withoutEmptyEnd(c: ReplyCursor, lines: ThreadLine[]): { drawn: ThreadLine[]; end: string } {
+  const at = lines.findIndex((x) => x.id === c.current);
+  const kept = { drawn: lines, end: c.current };
+  if (at < 0 || lines[at].role !== "assistant" || lines[at].text) return kept;
+  const before = lines.findLastIndex((x, i) => i < at && x.role === "assistant" && c.parts.includes(x.id));
+  const prev = lines[before];
+  if (!prev || prev.role === "item") return kept;
+  const { more, ...last } = prev;
+  void more;
+  return { drawn: lines.flatMap((x, i) => (i === at ? [] : i === before ? [last] : [x])), end: last.id };
+}
 
 /** The turn could not start (another one runs, nothing was saved): its Learner message and empty reply go back off the screen. */
 export const takeBack = (c: ReplyCursor, userId: string): LinesUpdate => (lines) => lines.filter((x) => x.id !== userId && x.id !== c.current);

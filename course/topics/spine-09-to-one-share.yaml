@@ -76,6 +76,15 @@ principle: >
   a value with a price, walk the bridge and count every claim: debt, leases, options and outside
   owners of subsidiaries included, and add what the company owns in other companies.
 
+dailyLife: "A friend offers you half of her house: ask what is still owed on its mortgage before you pay half its price."
+
+goDeeper: >
+  Analysts call the part of a subsidiary that outside shareholders own minority interests (accounts also say
+  non-controlling interests). When a group's accounts count the whole of a company it owns only a little over half of,
+  that outside part is shown below the parent's own equity and comes off on the bridge, like debt: if you own a little
+  over half of a shop, the part your partner owns is not yours to count. A Learner who wants more can ask how Coffee
+  Day's accounts treat its logistics arm Sical, which other shareholders own part of.
+
 youllLearn:
   - "Walk a value from the whole business to one share."
   - "Name who is paid before shareholders, and which claim takes the biggest bite."
@@ -106,12 +115,6 @@ terms:
     example: "A fifteen-year shop lease is owed even if the customers stop coming."
     emoji: receipt
     inStory: In the story, WeWork leases buildings for years and rents desks for months.
-  - term: minority interests
-    means: The part of a subsidiary owned by outside shareholders, taken off before the parent's own shareholders.
-    pro: Non-controlling interests, shown on the balance sheet below the parent's equity.
-    example: "If you own a little over half of a shop, the part your partner owns is not yours to count."
-    emoji: link
-    inStory: In the Check, Coffee Day's accounts count all of its logistics arm Sical, though other shareholders own part of it.
 
 skills:
   - id: claims-first

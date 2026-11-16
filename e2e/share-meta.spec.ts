@@ -1,5 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { EXAMPLES, examplePath } from "../src/site/examples";
+import { AUTH_ROOTS, PUBLIC_PAGES } from "../src/site/routes";
 import { quietDevtools, signIn } from "./support/app";
 
 /**
@@ -37,19 +38,25 @@ test.describe("signed out", () => {
   // A dozen pages in one test, some not warmed (the joining pages), each drawn per request.
   test.describe.configure({ timeout: 180_000 });
 
-  const PAGES: { path: string; title: string }[] = [
-    { path: "/", title: "Value It" },
-    { path: "/how-it-works", title: "How it works · Value It" },
-    { path: "/examples", title: "Examples · Value It" },
-    ...EXAMPLES.map((e) => ({ path: examplePath(e.slug), title: `${e.question} · Value It` })),
-    { path: "/about", title: "About · Value It" },
-    { path: "/join", title: "Join the waitlist · Value It" },
-    { path: "/sign-in", title: "Sign in · Value It" },
-    { path: "/sign-up", title: "Create your account · Value It" },
-  ];
+  /** Signal spec 7.1's title for each page a Visitor may open: the public pages, then the sign-in and sign-up pages. */
+  const TITLES: Record<string, string> = {
+    "/": "Value It",
+    "/how-it-works": "How it works · Value It",
+    "/examples": "Examples · Value It",
+    ...Object.fromEntries(EXAMPLES.map((e) => [examplePath(e.slug), `${e.question} · Value It`])),
+    "/about": "About · Value It",
+    "/privacy": "Privacy · Value It",
+    "/terms": "Terms · Value It",
+    "/join": "Join the waitlist · Value It",
+    "/sign-in": "Sign in · Value It",
+    "/sign-up": "Create your account · Value It",
+  };
+  // Built from the one public-route list (src/site/routes.ts), so a new public page with no title rule here fails.
+  const PAGES = [...PUBLIC_PAGES.map((p) => p.path), ...AUTH_ROOTS].map((path) => ({ path, title: TITLES[path] }));
 
   test("[#71] every public page and joining page has its own title and a canonical link on the public domain", async ({ page }) => {
     for (const { path, title } of PAGES) {
+      expect(title, `${path} has a title rule in spec 7.1`).toBeDefined();
       const response = await page.goto(path);
       expect(response?.status(), path).toBe(200);
       await expect(page, path).toHaveTitle(title);
@@ -91,15 +98,22 @@ test.describe("signed out", () => {
     expect(seen.size, "each Example's image differs from Home's and from the others").toBe(EXAMPLES.length + 1);
   });
 
+  // Signed out, an unknown address is no page at all, so the proxy lets it through to the not-found page (issue #70).
+  test("[#71] the 404 has its own title and no canonical link, signed out", async ({ page }) => {
+    const response = await page.goto(examplePath("no-such-example"));
+    expect(response?.status()).toBe(404);
+    await expect(page).toHaveTitle("Page not found · Value It");
+    expect(await page.locator('link[rel="canonical"]').count()).toBe(0);
+  });
+
   test("[#71] the old Study Workspace screenshot is no longer served", async ({ request }) => {
     const response = await request.get(OLD_SCREENSHOT, { maxRedirects: 0 });
     expect(response.headers()["content-type"] ?? "").not.toContain("image/");
   });
 });
 
-// Signed in: signed out, the proxy sends an unknown address to the sign-in. Signs in itself, so it never depends on
-// another spec leaving the saved session alive.
-test("[#71] the 404 has its own title", async ({ page }) => {
+// Signed in too. Signs in itself, so it never depends on another spec leaving the saved session alive.
+test("[#71] the 404 has its own title, signed in", async ({ page }) => {
   await signIn(page);
   const response = await page.goto(`${examplePath("no-such-example")}`);
   expect(response?.status()).toBe(404);

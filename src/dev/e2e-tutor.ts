@@ -698,6 +698,55 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /**
+   * The three financial statements, a Spine Topic of their own after the cash Topic (#90, e2e/spine-statements.spec.ts):
+   * its first three Tutor Turns, Story, Concept and Explore, played for the critics' screenshots and transcript. Its
+   * figures are the Topic file's Case figures; code opens the Cash waterfall at explore, so the explore reply only points at it.
+   */
+  "statements-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "April 2001. Webvan, the online grocer, may run out of cash within the year. " +
+              "Its report for 2000 shows a loss of about $450 million, and about $210 million left in cash. " +
+              "Three pages of that report matter, and each tells a different part of it.\n\n" +
+              "Which page would you read to see how long Webvan can keep going?",
+          ),
+        ],
+      },
+    ],
+  },
+  "statements-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Each page answers one question. The income statement shows what a year earned, down to net income, the profit or loss. " +
+              "The balance sheet shows what the company owns and owes on one day. " +
+              "The cash flow statement shows where the cash came from and where it went over the year.\n\n" +
+              "When Webvan pays cash for a warehouse, which page do you think shows the warehouse itself?",
+          ),
+        ],
+      },
+    ],
+  },
+  "statements-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Webvan's next year as a waterfall, with sales doubling and a small profit on each sale. " +
+              "Look at the last bar: free cash flow, the cash left after paying to grow, is far below zero.\n\n" +
+              "Webvan makes a profit on each sale, yet its cash goes out. Where did the cash go?",
+          ),
+        ],
+      },
+    ],
+  },
   // ——— The annual report Topic (#93, e2e/spine-annual-report.spec.ts): its first three turns, for the critics' round. Every
   // figure is its Topic file's Amazon Case (Amazon's 10-K for 2000 next to Damodaran's story of February 2000).
   /** The opener at Story: Amazon's 10-K is out, and six numbers matter. */
@@ -809,8 +858,700 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Your operating margin of 45% is far above Food Processing's usual range in India.\n\n" +
+            "Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it.\n\n" +
               "What story about the company does a 45% operating margin assume?",
+          ),
+        ],
+      },
+    ],
+  },
+  // ——— The split of Topic 7 (#91, e2e/spine-rate-split.spec.ts): the first three turns of the risk Topic (the cost of
+  // equity) and of the cost-of-capital Topic, for the critics' round. Every figure is its Topic file's Case.
+  /** The risk Topic's opener at Story: what Amazon's shareholders should require. */
+  "rate-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor in New York, is valuing the company. " +
+              "To value its future cash he needs the return its shareholders should require, for waiting and for the risk they bear. " +
+              "A safe US Treasury bond pays 6.5%. Amazon's shares swing far more than the market does, " +
+              "though with only two years of prices nobody can say exactly how much.\n\n" +
+              "Would you ask more of Amazon's shares than of a safe bond?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The risk Topic's Concept: the cost of equity in layers. Code shows the Concept card. */
+  "rate-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "What shareholders require is the cost of equity, built in layers. " +
+              "Start with what a safe bond pays. Add a premium for holding average shares, scaled by how far Amazon's shares move with the market; that number is called beta. " +
+              "His own rough measure of beta is shaky, so he trusts the steadier average of internet retailers. " +
+              "Only the risk that holding many shares cannot spread away earns that premium.\n\n" +
+              "Which layer looks hardest to pin down?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The risk Topic's Explore: the Cost of capital stack on Amazon's Case, and the Insight question. */
+  "rate-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_rate_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What rate for Amazon?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1.6,
+                    debtShare: 1.2,
+                    costOfDebt: 8,
+                    taxRate: 0,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: {
+                    lead: "equity",
+                    marks: [
+                      { relativeRisk: 2.29, label: "his measure" },
+                      { relativeRisk: 1, label: "a retailer" },
+                    ],
+                  },
+                  case: "spine-07-amazon-rate",
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
+      {
+        content: [
+          text(
+            "Here are his layers as a stack, with what a share is worth at that rate. Amazon borrows almost nothing, so the whole rate is nearly its cost of equity. " +
+              "Move relative risk up to his rough measure, then down to a plain retailer's, and watch the value against the $84 price.\n\n" +
+              "Can any beta bring the value near the $84 price, and what does that say?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's opener at Story: lenders put in some of the money too. */
+  "coc-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Damodaran has worked out what Amazon's shareholders should require: 12.90% a year. " +
+              "But lenders put in some of Amazon's money too, and they charge interest. " +
+              "Their part is tiny, only 1.2% of the money. Amazon makes losses, so its interest saves it no tax yet. " +
+              "By year ten he expects it to borrow more, like a traditional retailer.\n\n" +
+              "Whose return do you think matters most for the rate on all of Amazon's money?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's Concept: the blend, the tax saving, and the WACC named once. Code shows the Concept card. */
+  "coc-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "The cost of capital blends what shareholders and lenders each require, by how much of the money each puts in. " +
+              "Debt counts after its tax saving: interest comes off profit before tax, so a company that pays tax pays less for each dollar of interest. " +
+              "Analysts call this blend the WACC, short for weighted average cost of capital.\n\n" +
+              "Why might lenders ask for less than shareholders do?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's Explore: the stack at mature Amazon's figures, and the Insight question. */
+  "coc-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_coc_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What does mature Amazon's money cost?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1,
+                    debtShare: 15,
+                    costOfDebt: 7,
+                    taxRate: 35,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: { lead: "debt" },
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
+      {
+        content: [
+          text(
+            "Here is his mature Amazon of year ten. Grown up, it is as risky as an average share, so shareholders ask less of it, 10.50%. " +
+              "And now it pays tax, so its debt costs under half that after tax. " +
+              "Move the share of debt down to none, then back up to where he set it.\n\n" +
+              "Does the cost of capital move a lot or a little when debt goes to none, and why?",
+          ),
+        ],
+      },
+    ],
+  },
+  // ——— Spine Topics 4 to 9 for beginners (#95, e2e/spine-04-09.spec.ts): the first three turns of the growth, margins,
+  // growth-cost and far-future Topics, for the critics' round. Every figure is its Topic file's Case. Code opens each
+  // Topic's explore Workbench, so the explore replies only point at it.
+  /** The growth Topic's opener at Story: a professor's value against the venture price. */
+  "growth-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "June 2014. Investors led by the fund manager Fidelity put $1.2 billion into Uber at a price of $17 billion for the whole company. " +
+              "Days later Aswath Damodaran, a valuation professor, valued it at about $5.9 billion as a car-service company. " +
+              "His story: taxis and car services take about $100 billion of fares a year, Uber wins 10% of them, and it takes 20% of each fare as its fee. " +
+              "An investor answers that the market is far bigger once people give up owning cars.\n\n" +
+              "Who do you think is right about how big Uber can get?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth Topic's Concept: market, share and slice. Code shows the Concept card. */
+  "growth-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Revenue years from now is a story in three parts: the total market, the market share the company wins, and its take rate, the slice of each sale it takes as its fee. " +
+              "A market can be taxis today, or every trip people take instead of driving. " +
+              "A young company has small revenue now, so the market it can win moves its value most.\n\n" +
+              "Which of the three parts would you argue about first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth Topic's Explore: Value levers in market mode, opened by code. */
+  "growth-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Uber, starting from his story: 10% of $100 billion of fares, keeping a fifth of each, growing 6% a year. " +
+              "Keep everything else where he set it and switch to the market three times bigger, then watch the value against the venture price.\n\n" +
+              "What are the professor and the investors really disagreeing about?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The margins Topic's opener at Story: what will Tesla keep? */
+  "margins-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2020. Tesla kept almost none of its 2019 sales as operating profit. " +
+              "Its shares closed at $748.96, while Damodaran had valued it at about $427 a share. " +
+              "Most carmakers keep a few cents of each dollar they sell; the big tech companies keep far more.\n\n" +
+              "Is Tesla a carmaker or a technology company, do you think?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The margins Topic's Concept: what a company keeps, and what rivals let it keep. Code shows the Concept card. */
+  "margins-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "The operating margin is the share of each sale a company keeps after its running costs, before interest and tax. " +
+              "When a business keeps a lot, rivals copy it and cut prices, so margins drift towards the industry median. " +
+              "Staying above every rival needs a competitive edge they cannot copy, such as a brand or software.\n\n" +
+              "What edge might let Tesla keep more than other carmakers?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The margins Topic's Explore: Value levers with margin marks, opened by code. */
+  "margins-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Tesla, with marks on the margin lever for what others keep: the median carmaker, Toyota, the tech giants together. " +
+              "Move what Tesla keeps from one mark to the next and watch the value against the price of the day.\n\n" +
+              "What kind of company does that price ask Tesla to be?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth-cost Topic's opener at Story: Webvan's plan to build more centres. */
+  "gcost-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "March 2000. Webvan, an online grocer, sold $13 million of groceries in 1999 and lost $145 million. " +
+              "Its one centre, in Oakland, runs far below what it was built for, yet it plans 26 more at about $30 million each. " +
+              "Webvan says a full centre would keep far more of each sale than a supermarket does.\n\n" +
+              "Would you lend Webvan the money for the next centre?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth-cost Topic's Concept: reinvestment and the return on capital. Code shows the Concept card. */
+  "gcost-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A company cannot grow for free: more sales need warehouses, trucks and systems first. " +
+              "The money it puts back is its reinvestment; sales to capital says how many dollars of new sales each dollar brings. " +
+              "Growth adds value only when the return on capital is above what that money costs. Below it, growing faster loses more.\n\n" +
+              "What would you want to know about a new Webvan centre before it is built?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth-cost Topic's Explore: Value levers in return-on-capital mode, opened by code. */
+  "gcost-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Webvan on its own claims, with levers for growth, margin and sales for each dollar invested. " +
+              "Make Webvan bigger, then try again with a supermarket's margin and the fewest sales for each dollar.\n\n" +
+              "When does getting bigger help Webvan's shareholders?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The far-future Topic's opener at Story: Amazon's years after the forecast. */
+  "far-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares cost $84, and Damodaran forecasts its cash for ten years. " +
+              "In his story Amazon loses cash for years while it grows, and only later turns it round. " +
+              "Nobody can forecast every year after that one by one, so for all of them he sets a few things once, above all how fast Amazon grows for ever and what investors want.\n\n" +
+              "Where do you think most of his value comes from: the ten years he forecasts, or the years after?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The far-future Topic's Concept: terminal value. Code shows the Concept card. */
+  "far-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A forecast period covers a few years, usually ten, but a business can run for decades. " +
+              "Terminal value packs every later year into one lump at year 10, brought back to today like any other cash. " +
+              "Two settings drive it: stable growth, which cannot beat the economy for ever, and the cost of capital after year 10.\n\n" +
+              "Why might growth for ever have to be modest?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The far-future Topic's Explore: the terminal seesaw on Amazon's Case, opened by code. */
+  "far-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Amazon's value as a seesaw: the forecast years on one side, the years after year 10 on the other. " +
+              "Look at where the weight sits, then move the two far-future settings and watch both sides.\n\n" +
+              "Which side of the seesaw holds more of Amazon's value?",
+          ),
+        ],
+      },
+    ],
+  },
+  // ——— Spine Topics 10 to 16 for beginners (#96, e2e/spine-10-16.spec.ts): the first three turns of the one-share,
+  // survival, story-to-numbers, price-or-value, price-assumes, being-wrong and ready-Case valuation (spine-15-value-yourself:
+  // judge a published valuation, #92) Topics, for the critics' round. Every figure is its Topic file's Case. Code opens
+  // each Topic's explore Workbench, so the explore replies only point at it.
+  /** The one-share Topic's opener at Story: from Amazon's business to one share. */
+  "oneshare-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares cost $84. Aswath Damodaran, a valuation professor, has valued Amazon's business itself from his story of its future cash. " +
+              "One step is left before he can set it beside the price: one share. Amazon has $26 million of cash and owes $349 million of debt, " +
+              "and its staff hold options to buy shares cheaply, which he values at $2,892 million.\n\n" +
+              "Who gets paid out of the business before a shareholder sees anything?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The one-share Topic's Concept: the bridge from the business to a share. Code shows the Concept card. */
+  "oneshare-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A share is a claim on what is left. Start from the value of the business, add the cash it does not need, " +
+              "then take off every claim paid first: lenders' debt, and staff options that will turn into new shares at a low price. " +
+              "What remains is equity value, and dividing it by the number of shares gives the value of one.\n\n" +
+              "Which of Amazon's claims do you think takes the biggest bite?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The one-share Topic's Explore: the value bridge on Amazon's Case, opened by code. */
+  "oneshare-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is the bridge from Amazon's business to one share. Move the cash, the debt and the options, and watch what is left for shareholders.\n\n" +
+              "Which claim takes the biggest bite out of what Amazon's shareholders get?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The survival Topic's opener at Story: Coffee Day deep in debt in July 2019. */
+  "survive-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "July 2019. Coffee Day Enterprises runs Cafe Coffee Day, India's largest chain of coffee shops, and it is deep in debt: " +
+              "the group had borrowed about ₹7,200 crore, and its interest bill for the year was ₹456.32 crore. " +
+              "Its founder had pledged shares for group loans, which lenders could take and sell if those loans went bad. " +
+              "On 29 July its market value closed at ₹4,067.65 crore.\n\n" +
+              "What should a valuation do about the chance that it does not survive?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The survival Topic's Concept: a going concern, and the chance it fails. Code shows the Concept card. */
+  "survive-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A discounted cash flow values a going concern: it assumes the business keeps running for ever. " +
+              "For a company with heavy debt and thin interest cover there is a real chance it fails first, and then its assets are sold in a hurry for far less. " +
+              "The fix is expected value: weigh the value if it survives and the value if it fails by how likely each is.\n\n" +
+              "Why would a value that ignores failure be too high?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The survival Topic's Explore: Value levers with a chance of failure, opened by code. */
+  "survive-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is the survival story for Coffee Day, set so that, if it is sure to survive, it is worth about its price. " +
+              "Raise the chance it fails a step at a time and watch the value.\n\n" +
+              "What does that say about valuing it as if it will surely survive?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The story-to-numbers Topic's opener at Story: two stories for Uber in 2014. */
+  "numbers-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "December 2014. Uber is five years old and still private. In June Aswath Damodaran told its story as a city car service: " +
+              "a $100 billion market, a 10% share and 20% of each fare as revenue, about $6 billion in all. " +
+              "In July the investor Bill Gurley argued the market could be many times bigger. " +
+              "Run through the same spreadsheet, a $300 billion market and a 40% share gave $53.4 billion. Only the market and the share had changed.\n\n" +
+              "How can two careful people get such different values?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The story-to-numbers Topic's Concept: each part of a story sets one number. Code shows the Concept card. */
+  "numbers-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A young company has little history, so its value starts as a story about what it becomes. Each part of the story sets one number: " +
+              "how big the market is, what share the company wins and what slice of each sale it takes set how big it gets; its edge over rivals sets what it keeps. " +
+              "What growth costs and how risky it is set the rest.\n\n" +
+              "Which part of Gurley's story changed Uber's value most?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The story-to-numbers Topic's Explore: Value levers with two Uber stories, opened by code. */
+  "numbers-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are two stories for Uber side by side: Damodaran's June story, and a market that grows fast with Uber winning 40%. " +
+              "Push every lever to the end that makes Uber worth the most.\n\n" +
+              "Is what you built still a story about one company?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-or-value Topic's opener at Story: WeWork beside IWG in August 2019. */
+  "multiple-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "20 August 2019. WeWork rents desks in leased office buildings. In January SoftBank put in $2 billion more, most of it at a valuation of $47 billion, " +
+              "about 26 times WeWork's 2018 revenue. A newspaper sets it beside IWG, the owner of Regus, which has about the same number of desks " +
+              "and is worth $4.45 billion, about 1.4 times its 2018 revenue.\n\n" +
+              "Is $47 billion what WeWork is worth, or a price that needs a story?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-or-value Topic's Concept: a multiple is still a price. Code shows the Concept card. */
+  "multiple-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A multiple divides a price by a measure of the business, such as its revenue. It is quick, but it is still a price, set by what buyers pay, " +
+              "and a comparable helps only when it really is alike. Behind every multiple sits a view of the future: how fast sales grow, how much of each sale is kept, and how risky that cash is.\n\n" +
+              "What might make WeWork and IWG less alike than their desks suggest?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-or-value Topic's Explore: the multiple decoder on WeWork and IWG, opened by code. */
+  "multiple-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is the decoder with WeWork and IWG. Set it so it justifies WeWork's multiple, then IWG's.\n\n" +
+              "What did you have to believe each time?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-assumes Topic's opener at Story: what buyers at $84 had to believe about Amazon. */
+  "assumes-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares trade at about $84. Aswath Damodaran sets his story as four levers: $39 billion of sales in ten years, " +
+              "with 10% of each sale kept as operating profit. It comes to about $35 a share. Then he turns the question round.\n\n" +
+              "What would buyers at $84 have to believe?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-assumes Topic's Concept: running a valuation backwards. Code shows the Concept card. */
+  "assumes-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A valuation usually runs forwards: set a story as levers and the engine works out a value. It also runs backwards: start from the price, " +
+              "hold what you trust, and move the levers until the value meets the price. A price can usually be met by more than one story.\n\n" +
+              "Which story would you have to believe for Amazon at $84?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-assumes Topic's Explore: Value levers matching the price, opened by code. */
+  "assumes-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Amazon, with the $84 price marked. Find a story worth the price, then a different one that also gets there.\n\n" +
+              "What would buyers at the price have to believe?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The being-wrong Topic's opener at Story: Tesla's range against its price. */
+  "wrong-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "30 January 2020. Aswath Damodaran puts Tesla's value at about $427 a share, and with the price at $640 he sells his own shares. " +
+              "He knows four of his guesses could be wrong, so he draws them 100,000 times from a spread of likely values. " +
+              "Eight times in ten the value lands between about $237 and $673. Within a week the price closes at $887.\n\n" +
+              "Was he wrong, or was the price?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The being-wrong Topic's Concept: a value is a range. Code shows the Concept card. */
+  "wrong-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A value rests on guesses about the future, so it is a range, not one number. Move each lever across what is likely and rank the levers by how far they move the value: " +
+              "the top lever is the one to watch, and news that moves it is news that should change a mind. " +
+              "When a price sits outside the range, ask which lever the buyers set differently.\n\n" +
+              "Which of Tesla's levers would you watch?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The being-wrong Topic's Explore: Value levers with likely ranges, opened by code. */
+  "wrong-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Tesla, each with a band of likely settings. Set them to what you think is likely, then move one at a time.\n\n" +
+              "Which lever would change the value most?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The ready-Case valuation Topic's opener at Story: Amazon in February 2000, and one professor's published story to judge. */
+  "yourself-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon sells books, music and more online, and its shares cost $84. In the twelve months to September 1999 it sold $1,117 million " +
+              "and lost $410 million on its operations. Specialty retailers keep about 10% of each sale. One professor has published his story of Amazon's future, " +
+              "for you to judge lever by lever.\n\n" +
+              "Which part of his story would you want to check first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The ready-Case valuation Topic's Concept: fix the date, read the story as four levers, find the one it rests on. Code shows the Concept card. */
+  "yourself-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "To judge a published valuation, fix its date and use only what was known on it. Read the story as four levers: how big it gets, what it keeps, " +
+              "what growth costs and how risky it is. Find the lever its value rests on most, check the story holds together, and ask what the price of the day assumes instead.\n\n" +
+              "Which lever would you check first in the professor's Amazon story?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The ready-Case valuation Topic's Explore: Value levers on the published story, a chip for each company, opened by code. */
+  "yourself-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are the levers, opening on one professor's published story for Amazon, with Coffee Day and Zomato to pick from too. " +
+              "Move one lever at a time and watch which one moves the value most; the readout names any lever that reaches the price alone.\n\n" +
+              "Which lever does his story rest on most?",
           ),
         ],
       },

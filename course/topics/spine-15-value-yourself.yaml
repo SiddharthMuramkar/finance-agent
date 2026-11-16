@@ -75,6 +75,8 @@ principle: >
   A published valuation is someone's story, set lever by lever, as of one date. Judge it by the lever it rests on
   most: when that assumption fails, the value goes with it, whatever the other levers say.
 
+dailyLife: "A seller says a used bike is worth her price because it is barely ridden: before you pay, check that one reason, since her whole figure rests on it."
+
 youllLearn:
   - "Judge a published valuation, using only what was known on one date."
   - "Find the lever a story's value rests on most."
@@ -97,11 +99,12 @@ terms:
     pro: "His story has the operating margin rising to 10%."
     example: "A shop that keeps 10 cents of every dollar it takes has a 10% operating margin."
     inStory: "In the story, the lever for what it keeps is the operating margin once the company is grown up."
-  - term: hindsight
-    means: "Knowing what happened after the date, which a valuation as of that date may not use."
-    pro: "That figure is hindsight; leave it for the reveal."
-    example: "Knowing who won a match before you bet on it."
-    inStory: "In the story, what each company's shares did after its date is hindsight."
+  - term: cost of capital
+    means: "How risky: the return investors need each year, given the risk, used to turn future cash into today's."
+    emoji: guard
+    pro: "His cost of capital starts at 12.84% and falls as Amazon matures."
+    example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
+    inStory: "In the story, the lever for how risky it is is the cost of capital while it grows."
 
 skills:
   - id: as-of
@@ -192,7 +195,7 @@ questions:
         text: "Its revenue fell in the year to March 2021"
       - id: listing
         text: "Its shares closed up 65.6% on their first day"
-        mistake: { tag: hindsight, fix: "The first day's close came two days later. As of 21 July it is hindsight." }
+        mistake: { tag: hindsight, fix: "The first day's close came two days later. On 21 July nobody knew it yet." }
       - id: low
         text: "Its price hit a record low in July 2022"
         mistake: { tag: hindsight, fix: "That happened a year later; a valuation as of July 2021 cannot know it." }
@@ -275,7 +278,7 @@ checks:
     quickTries:
       - id: yourself-try-asof-half
         skill: as-of
-        ask: "You are valuing Amazon as of February 2000. Which figure may you use?"
+        ask: "You are judging a valuation of Amazon as of February 2000. Which figure may it use?"
         halfDone: "First step, done for you: the as-of date is early February 2000."
         kind: choice
         answer: known
@@ -284,10 +287,10 @@ checks:
             text: "Its sales in the twelve months to September 1999"
           - id: later
             text: "Its sales for the year 2000"
-            mistake: { tag: hindsight, fix: "Sales for 2000 were reported in 2001. As of February 2000 they are hindsight." }
+            mistake: { tag: hindsight, fix: "Sales for 2000 were reported in 2001. In February 2000 nobody knew them yet." }
       - id: yourself-try-asof-2
         skill: as-of
-        ask: "You are valuing Coffee Day on 22 October 2015. Which is hindsight?"
+        ask: "You are judging a valuation of Coffee Day made on 22 October 2015. Which fact came out only after that day?"
         kind: choice
         answer: close
         choices:
@@ -298,7 +301,7 @@ checks:
             mistake: { tag: not_hindsight, fix: "The bond yield was known on 22 October. The first day's close came later." }
       - id: yourself-try-asof-3
         skill: as-of
-        ask: "Damodaran's Zomato story is written on 21 July 2021. Which fact is hindsight for it?"
+        ask: "Damodaran's Zomato story is written on 21 July 2021. Which fact came out only after he wrote it?"
         kind: choice
         answer: peak
         choices:
@@ -340,7 +343,7 @@ checks:
             text: "Which lever the price needs set higher than his"
           - id: wrong
             text: "Why the buyers are fools"
-            mistake: { tag: price_as_wrong, fix: "Ask what the price assumes before calling it wrong; it may be a lever you set low." }
+            mistake: { tag: price_as_wrong, fix: "Ask what the price assumes before calling it wrong; it may be a lever the story set low." }
       - id: yourself-try-lever
         skill: own-story
         kind: price_assumes

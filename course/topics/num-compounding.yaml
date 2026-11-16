@@ -58,6 +58,9 @@ principle: >
   And ask whether the pace was steady: a long-run compound rate can hide a short, much faster,
   more fragile final stretch.
 
+# The daily-life line (spec #68 story 57): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: "A fund that doubled your savings in ten years grew about 7% a year, not 10%: ask for the compound rate, never the total gain split over the years."
+
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
   - "See how growth earned on growth builds up over the years."

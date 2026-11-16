@@ -1,22 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { END_NOTE_TOPIC, endNote } from "./end-note";
+import { openingEstimate, valueOwnCase } from "@/finance/own-case";
+import { ownCaseNote } from "@/learner/own-cases";
+import { END_NOTE_CASE, endNote } from "./end-note";
 
-// #75 "Where you end up": Home shows the one-page note Spine Topic 15 saves to the Notebook, worked out by the course's
-// tested valuation engine, not typed in by hand.
+// #75 "Where you end up": Home shows the one-page note the Assignment saves to the Notebook (an Own Case on the Estimate
+// the Assignment opens with), worked out by the course's tested valuation engine, not typed in by hand. Spec #68 (F14):
+// the Spine's last Topics no longer save a Valuation story, so Home shows the note a Learner can make.
 describe("the note Home shows under 'Where you end up'", () => {
-  it("is the one-page Valuation story the Notebook holds after Topic 15, on Amazon as of 3 Feb 2000", () => {
-    expect(END_NOTE_TOPIC).toBe("spine-15-value-yourself");
+  it("is the Assignment's Own Case note, line for line, for Kikkoman's annual report", () => {
+    const estimate = openingEstimate(END_NOTE_CASE.industry, END_NOTE_CASE.market);
+    const value = valueOwnCase(END_NOTE_CASE, estimate);
+    expect(value.ok).toBe(true);
+    if (!value.ok) return;
     const note = endNote();
-    expect(note.title).toBe("My Valuation story: Amazon, Feb 2000, against the price of 3 Feb 2000");
+    expect(note.title).toBe("Kikkoman");
+    expect(note.lines).toEqual(ownCaseNote(END_NOTE_CASE, estimate, value).split("\n"));
     expect(note.lines).toEqual([
-      "How big it gets: revenue in year 10 $39bn",
-      "What it keeps: operating margin once mature 10%",
-      "What growth costs: sales for each dollar invested $3.00",
-      "How risky: cost of capital while it grows 12.84%",
-      "Chance it fails: 0%",
-      "Worth: $35 a share",
-      "Price on 3 Feb 2000: $84",
-      "Value from after year 10: 112%",
+      "Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.",
+      "From the report: sales ¥745.5bn, operating profit ¥75.9bn (a margin of 10.19%), tax rate 30.5%, debt ¥18.2bn, cash ¥111.8bn, 927,741,900 shares, price ¥1,435 on 31 Mar 2026.",
+      "My Estimate: growth 10% a year for five years, fading to 2.82%; the margin heading for 5.11%; ¥1.92 of sales for each ¥1 invested; cost of capital 3.84%.",
+      "Employee stock options are not entered: the engine counts none.",
+      "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026.",
     ]);
   });
 });

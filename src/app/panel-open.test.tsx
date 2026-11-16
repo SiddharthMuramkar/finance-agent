@@ -145,7 +145,45 @@ describe("on a phone, Back closes what is open", () => {
     expect(host.open).toBe(false);
   });
 
+  it("a phone turned past the breakpoint with the view open still closes it on Back, and the step goes with it", async () => {
+    window.history.replaceState({ __next: "tree" }, "");
+    await render();
+    await run(() => chip("a1").click());
+    screenOf(1512);
+    await render();
+    expect(host.open).toBe(true);
+    await run(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { __next: "tree" } })));
+    expect(host.open).toBe(false);
+  });
+
+  it("a page reloaded on the open view's step takes the step as its own: no second step, and Back or close uses it up", async () => {
+    window.history.replaceState({ __next: "tree", panelOpen: true }, "");
+    const push = vi.spyOn(window.history, "pushState");
+    await render();
+    expect(host.open).toBe(false);
+    await run(() => chip("a1").click());
+    expect(push).not.toHaveBeenCalled();
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    await run(() => host.close());
+    expect([back.mock.calls.length, host.open]).toEqual([1, false]);
+  });
+
+  it("a double tap on close goes Back once, never twice (which would leave the page)", async () => {
+    window.history.replaceState({ __next: "tree" }, "");
+    await render();
+    await run(() => chip("a1").click());
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    await run(() => {
+      host.close();
+      host.close();
+    });
+    expect(back).toHaveBeenCalledTimes(1);
+    await run(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { __next: "tree" } })));
+    expect(host.open).toBe(false);
+  });
+
   it("a Back that is not its own step (nothing open) closes nothing and opens nothing", async () => {
+    window.history.replaceState({ __next: "tree" }, "");
     await render();
     await run(() => window.dispatchEvent(new PopStateEvent("popstate")));
     expect(host.open).toBe(false);

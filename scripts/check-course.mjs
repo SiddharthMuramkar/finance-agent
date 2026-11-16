@@ -17,7 +17,7 @@ import { goalCheckErrors } from "../src/course/goal-check.ts";
 import { beginnerCheckErrors } from "../src/course/beginner-check.ts";
 import { fullSheetWordsErrors } from "../src/course/full-sheet-words-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
-import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
+import { MARKET_READING_INPUTS, marketReadingErrors, preRevealReadingErrors } from "../src/markets/readings.ts";
 import { GUIDE_LINE_INPUTS, guideErrors } from "../src/markets/guides.ts";
 import { parseOutline, renderCourseMapDoc, spineCountProblems } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
@@ -31,10 +31,6 @@ const fail = (title, errors) => {
 
 const planned = parseOutline(readOutlineText());
 if (!planned.outline) fail("Course Map outline is invalid", planned.errors);
-// The Spine has exactly SPINE_LENGTH Topics (ADR 0020; 18 once every split has landed), so Home, About and How it works,
-// which read their counts from the outline (src/site/stats.ts), say the number the course check holds.
-const count = spineCountProblems(planned.outline);
-if (count.length) fail("The Spine's length (ADR 0020)", count);
 const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
 if (!map) fail("Course Map is invalid", errors);
 // The lesson lint (L1 to L14, including L10 with its allowlist src/course/l10-allowlist.ts, L13's judgement Checks on Spine
@@ -42,6 +38,12 @@ if (!map) fail("Course Map is invalid", errors);
 // src/course/lesson-presets.test.ts checks those under vitest (part of npm run check).
 const lesson = lessonLintErrors(map.topics);
 if (lesson.length) fail("Lesson lint for converted Topics (spec #229, ADR 0001)", lesson);
+
+// The Spine has exactly SPINE_LENGTH Topics (ADR 0020; 18 once every split has landed), so Home, About and How it works,
+// which read their counts from the outline (src/site/stats.ts), say the number the course check holds. Run after the lesson
+// lint, so a one-Topic fixture map (src/behaviour/tutor-eval/fixtures) still reaches the lint rule it tests.
+const count = spineCountProblems(planned.outline);
+if (count.length) fail("The Spine's length (ADR 0020)", count);
 
 // The shape of every Spine Topic: its Case, Workbench, Insight, card, terms, Quick tries, Check, why line and length.
 const spine = spineCheckErrors(map.topics);
@@ -82,6 +84,11 @@ if (beginner.length) fail("Spine Topics that break the beginner rules (spec #68)
 // or current, and a premium reading's inputs give the premium it states.
 const readings = marketReadingErrors(MARKET_READING_INPUTS);
 if (readings.length) fail("Market readings that are not dated and sourced (spec #68)", readings);
+
+// The As-of rule for readings (Owner decision on #105): an explore Workbench comes before the Reveal, so every reading it
+// shows is dated on or before its Case's As-of date and comes from that Case's market.
+const preReveal = preRevealReadingErrors(map.topics);
+if (preReveal.length) fail("Market readings shown before the Reveal that break the As-of rule (spec #68)", preReveal);
 
 // The Full sheet's row words and each row's Lingo card (spec #68, #103): plain words, no typed formula, card word limits.
 const fullSheetWords = fullSheetWordsErrors();

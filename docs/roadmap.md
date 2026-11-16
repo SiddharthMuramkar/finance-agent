@@ -133,13 +133,13 @@ What the spec #68 build (PR #119) left open. One line per item, with the ticket 
 
 ### Next build: the three #117 Cases
 
-Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region in `docs/cases/2026-11-case-proposals.md` (facts, sources, build notes). They are the next build. No tickets were opened.
+Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region in `docs/cases/2026-11-case-proposals.md` (facts, sources, build notes). They are the next build. No Case tickets are opened now; each becomes a ticket when it is next.
 
 | Region | Case | As-of | Build |
 |---|---|---|---|
-| India #1 | Paytm's IPO at Rs 2,150 | 2021-11-07 | INR works today. An illustration judged with `match_price` (no usable published value). NSE symbol `PAYTM`. |
-| Japan/Korea #1 | Krafton's IPO at 498,000 won | 2021-08-01 | Needs KRW (#112) and the Korea market parts (#114), both built in spec #68, and the Tutor's won check (Markets, below). Its published peer-P/E value (579,153 won a share) is a multiple, so the engine does not reproduce it. KRX code 259960. |
-| Europe/US #1 | Peloton's IPO at $29 | 2019-09-25 | USD works today. Build it like `s12-wework-iwg` against the published $19.35 a share; `reproduces` only within `REPRODUCE_TOLERANCE`. Nasdaq symbol `PTON`. |
+| India #1 | Paytm's IPO at Rs 2,150 | 2021-11-07 | INR works today. An illustration judged with `match_price` (no usable published value). NSE symbol `PAYTM`. From the proposal's Rank 2 section. |
+| Japan/Korea #1 | Krafton's IPO at 498,000 won | 2021-08-01 | Needs KRW (#112) and the Korea market parts (#114), both built in spec #68, and the Tutor's won check (Markets, below). Its published peer-P/E value (579,153 won a share) is a multiple, so the engine does not reproduce it. KRX code 259960. From the proposal's Rank 3 section. |
+| Europe/US #1 | Peloton's IPO at $29 | 2019-09-25 | USD works today. Build it like `s12-wework-iwg` against the published $19.35 a share; `reproduces` only within `REPRODUCE_TOLERANCE`. Nasdaq symbol `PTON`. From the proposal's Rank 1 section. |
 
 ### Library
 

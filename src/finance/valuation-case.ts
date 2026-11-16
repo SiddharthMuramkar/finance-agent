@@ -104,6 +104,11 @@ const provenanceFields = {
   published: z
     .object({ valuePerShare: z.number().optional(), fcff: yearly("published.fcff").optional(), note: z.string().trim().min(1).optional() })
     .strict(),
+  /**
+   * What the base revenue is, when it is not the last full year's sales: shown in place of "Today" beside lever 1
+   * (Webvan's $4.2m is its prospectus's sales from launch on 2 Jun to 30 Sep 1999: "Sales, Jun to Sep 1999").
+   */
+  baseRevenueLabel: z.string().trim().min(3).max(40).optional(),
   /** How the figures were built where the source's own sheet differs from the plain B1 reading (a margin path, a share count). */
   notes: z.array(z.string().trim().min(1)).optional(),
   sources: z.array(z.object({ title: z.string().trim().min(1), url: z.url() }).strict()).min(1),

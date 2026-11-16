@@ -58,7 +58,7 @@ export const AUTH_ROOTS: readonly string[] = [SIGN_IN_PATH, SIGN_UP_PATH];
  * outside production only) and the API (401 signed out).
  */
 export const SIGNED_IN_ROOTS: readonly string[] = [
-  "/study", "/course", "/notebook", "/settings", "/profile", "/admin", "/welcome", "/sessions", "/passages", "/dev", "/api",
+  "/study", "/course", "/assignment", "/notebook", "/settings", "/profile", "/admin", "/welcome", "/sessions", "/passages", "/dev", "/api",
 ];
 
 /** The Signal site's pages, in the order the site nav lists them. */

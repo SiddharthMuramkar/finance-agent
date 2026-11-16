@@ -14,4 +14,4 @@ $returnAfterRow = 0
 $cashRow = 0
 $debtRow = 0
 $optionsRow = 0
-levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "match_price"}, 0, 0, $taxRow, $lossesRow, $growthAfterRow, $returnAfterRow, $cashRow, $debtRow, $optionsRow, ["in-auto-margin", "in-food-margin", "in-software-margin", "in-market-margin", "in-auto-sales-to-capital", "in-food-sales-to-capital", "in-software-sales-to-capital", "in-market-sales-to-capital"])
+levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "match_price"}, 0, 0, $taxRow, $lossesRow, $growthAfterRow, $returnAfterRow, $cashRow, $debtRow, $optionsRow, ["us-risk-free-10y-1999"])

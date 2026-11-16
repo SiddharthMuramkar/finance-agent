@@ -7,6 +7,7 @@ import { CURRENCY_STYLE } from "@/finance/money";
 import { OWN_CASE_MARKETS, ownCaseIndustries, ownCaseMarket, valueOwnCase, type OwnCaseEstimate, type OwnCaseInputs, type OwnCaseValue } from "@/finance/own-case";
 import { dateText, moneyText, priceText } from "@/widgets/workbench/value-levers-model";
 import { loadProgress } from "./memory";
+import { OPTIONS_NOT_ENTERED, ownCaseValueLine } from "./own-case-words";
 
 /**
  * The Learner's Own Cases (spec #68, Assignments): each one a listed company they valued from its annual report, kept
@@ -27,7 +28,8 @@ export function ownCaseNote(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, va
     `${inputs.company.trim()}, ${market.name}. Annual report of ${on}. Industry: ${industry}.`,
     `From the report: sales ${moneyText(inputs.sales, money)}, operating profit ${moneyText(inputs.operatingProfit, money)} (a margin of ${percent(margin)}), tax rate ${percent(inputs.taxPercent)}, debt ${moneyText(inputs.debt, money)}, cash ${moneyText(inputs.cash, money)}, ${inputs.shares.toLocaleString(locale)} shares, price ${priceText(inputs.price, money)} on ${on}.`,
     `My Estimate: growth ${percent(estimate.growthPercent)} a year for five years, fading to ${percent(estimate.growthAfterPercent)}; the margin heading for ${percent(estimate.targetMarginPercent)}; ${symbol}${estimate.salesToCapital} of sales for each ${symbol}1 invested; cost of capital ${percent(estimate.costOfCapitalPercent)}.`,
-    `The engine's value: ${priceText(value.valuePerShare, money)} a share, beside a price of ${priceText(inputs.price, money)} on ${on}.`,
+    OPTIONS_NOT_ENTERED,
+    ownCaseValueLine(value.valuePerShare, inputs.price, inputs.reportDate, money),
   ].join("\n");
 }
 
@@ -53,10 +55,13 @@ export async function saveOwnCase(db: Db, map: CourseMap, learnerId: number, inp
   const value = valueOwnCase(inputs, estimate, now);
   if (!value.ok) return { ok: false, status: 400, error: value.error };
   const note = ownCaseNote(inputs, estimate, value);
-  const [row] = await db
-    .insert(ownCases)
-    .values({ learnerId, company: inputs.company.trim(), market: inputs.market, reportDate: inputs.reportDate, inputs, estimate, note, createdAt: now, updatedAt: now })
-    .returning({ id: ownCases.id });
+  const company = inputs.company.trim();
+  // One Own Case per company, market and report: saving it again updates it, so the Notebook never holds two notes of it.
+  const same = and(eq(ownCases.learnerId, learnerId), eq(ownCases.company, company), eq(ownCases.market, inputs.market), eq(ownCases.reportDate, inputs.reportDate));
+  const [old] = await db.select({ id: ownCases.id }).from(ownCases).where(same).orderBy(desc(ownCases.updatedAt), desc(ownCases.id)).limit(1);
+  const [row] = old
+    ? await db.update(ownCases).set({ inputs, estimate, note, updatedAt: now }).where(eq(ownCases.id, old.id)).returning({ id: ownCases.id })
+    : await db.insert(ownCases).values({ learnerId, company, market: inputs.market, reportDate: inputs.reportDate, inputs, estimate, note, createdAt: now, updatedAt: now }).returning({ id: ownCases.id });
   return { ok: true, id: row.id, valuePerShare: value.valuePerShare, note };
 }
 

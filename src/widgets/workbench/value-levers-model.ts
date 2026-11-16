@@ -5,6 +5,7 @@ import { valuationCaseIds } from "@/finance/valuation-cases";
 import { findValuation, type OwnCases } from "@/finance/valuation-lookup";
 import { near, niceUp, oneFigure, onStep, type BenchLever, type BenchReading } from "./bench";
 import { modeCases, topicStorySchema, valueLeversModeSchema, type Market, type TopicStory, type ValueLeversMode } from "./data-schemas";
+import { MONTHS } from "../months";
 
 // Value levers, the first Workbench Widget (spec 2026-11-12, B3; ADR 0010), as pure functions over one Case's valuation
 // block: the four Levers and "More settings" with their ranges, the value a story gives (from the one valuation engine,
@@ -112,12 +113,18 @@ export function priceText(value: number, block: Money): string {
   return `${value < 0 ? "-" : ""}${symbol}${text}`;
 }
 
+/** A move in a share's value, to the minor unit and grouped for the currency: "$10.04", "₹1,234.50"; yen and won whole ("₩1,500"). */
+export function moveText(value: number, block: Money): string {
+  const digits = CURRENCY_STYLE[block.currency].cents ? 2 : 0;
+  const text = Math.abs(value).toLocaleString(LOCALE(block.currency), { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return `${value < 0 ? "-" : ""}${SYMBOL(block.currency)}${text}`;
+}
+
 /** A Workbench's headline figure: a share's value, or for a company valued whole (per: company) the company's value. */
 export function valueText(value: number, block: ValuationBlock): string {
   return block.per === "company" ? moneyText(value, block) : priceText(value, block);
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** An ISO date as the Widget writes it: "1 Feb 2000". */
 export function dateText(iso: string): string {
@@ -200,7 +207,7 @@ function baseSpecs(block: ValuationBlock): LeverSpec[] {
       // At its opening the lever leaves the Case's own revenue alone, so it reads that figure (to three figures), not the step.
       reading: (n) => revenue.short(n === onStep(year10, revenueStep) ? Number(year10.toPrecision(3)) : n),
       spoken: (n) => revenue.spoken(n === onStep(year10, revenueStep) ? Number(year10.toPrecision(3)) : n),
-      caption: `Today: ${moneyText(block.baseRevenue, block)}`,
+      caption: `${block.baseRevenueLabel ?? "Today"}: ${moneyText(block.baseRevenue, block)}`,
     }),
     lever({
       id: "margin",
@@ -364,9 +371,61 @@ export type ValueLeversModel = {
   readout: ModeReadout | null;
   /** Settings that contradict each other, in words (two stories mode); none when the story holds together. */
   flags: string[];
+  /** A mode's picture beside the levers (margin marks: a ladder of rivals; roic: the company's centre filling up); null without one. */
+  picture: ModePicture | null;
   /** The engine's sentence when the story cannot be valued. */
   error?: string;
 };
+
+/** Where a face sits on the margin ladder, from 0 (the bottom of the margin lever) to 1 (its top). */
+export type LadderRung = { label: string; percent: number; emoji: string; at: number };
+
+/**
+ * A mode's picture (Spine critics round 1 on #95, widget fit: sliders and a stat alone are chart-only). It adds no control:
+ * margin marks draw the rivals as faces on a ladder and the company's own face climbing it with the margin; roic draws what
+ * the new capital buys filling up with the sales each dollar brings, its face worried once new capital earns less than it costs.
+ */
+export type ModePicture =
+  | { kind: "ladder"; rungs: LadderRung[]; you: LadderRung; line: string }
+  | { kind: "centre"; emoji: string; fill: number; face: "slightly-smiling-face" | "worried-face"; line: string };
+
+/** The default faces a mode draws when the Topic names none. */
+const LADDER_RIVAL = "office-building";
+const LADDER_YOU = "rocket";
+const CENTRE = "factory";
+
+function modePicture(block: ValuationBlock, specs: readonly LeverSpec[], settings: LeverSettings, mode: ValueLeversMode | undefined): ModePicture | null {
+  if (mode?.kind === "margin_marks") {
+    const spec = specs.find((s) => s.id === "margin")!;
+    const at = (percent: number) => Math.min(1, Math.max(0, (percent - spec.min) / (spec.max - spec.min || 1)));
+    const rungs = [...mode.marks].sort((a, b) => a.percent - b.percent).map((m) => ({ label: m.label, percent: m.percent, emoji: m.emoji ?? LADDER_RIVAL, at: at(m.percent) }));
+    const margin = settings.margin;
+    const below = rungs.filter((r) => r.percent < margin);
+    const above = rungs.filter((r) => r.percent > margin);
+    const keeps = `Keeps ${percentReading2(margin)}`;
+    const line = !above.length
+      ? `${keeps}: more than every mark`
+      : !below.length
+        ? `${keeps}: less than every mark`
+        : `${keeps}: more than ${below.at(-1)!.label}, less than ${above[0].label}`;
+    return { kind: "ladder", rungs, you: { label: "Your story", percent: margin, emoji: mode.emoji ?? LADDER_YOU, at: at(margin) }, line };
+  }
+  if (mode?.kind === "roic") {
+    const spec = specs.find((s) => s.id === "salesToCapital")!;
+    const earns = returnOnNewCapital(settings.margin, settings.salesToCapital, block.taxPercent);
+    const sales = settings.salesToCapital;
+    const symbol = SYMBOL(block.currency);
+    const salesText = Number.isInteger(sales) ? `${sales}` : sales.toFixed(2);
+    return {
+      kind: "centre",
+      emoji: mode.emoji ?? CENTRE,
+      fill: Math.min(1, Math.max(0, sales / spec.max)),
+      face: earns < settings.risk ? "worried-face" : "slightly-smiling-face",
+      line: `Each ${symbol}1 invested brings ${symbol}${salesText} of sales a year`,
+    };
+  }
+  return null;
+}
 
 /** A mode's readout: a label and its figure, with a line under it for the range's ranking, in coral when it warns. */
 export type ModeReadout = { label: string; text: string; note?: string; warn?: boolean };
@@ -391,6 +450,7 @@ export function valueLeversModel(block: ValuationBlock, specs: readonly LeverSpe
       nearPrice: false,
       readout: null,
       flags: [],
+      picture: modePicture(block, specs, settings, mode),
       error: result.error,
     };
   }
@@ -411,8 +471,9 @@ export function valueLeversModel(block: ValuationBlock, specs: readonly LeverSpe
     : nothingLeft
       ? { before: "", key: `${SYMBOL(block.currency)}0`, after: `: ${takers}` }
       : // The headline names whose story it is: a published Story judged with Case chips (the ready-Case valuation Topic) is
-        // "the story", the Learner's own in all open mode (an Own Case's Estimate) is "your story", else "this story" (#88).
-        { before: mode?.kind === "match_price" && mode.cases ? "The story is worth " : mode?.kind === "all_open" ? "Your story is worth " : "This story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
+        // "the story", every other one "this story" (#88). Never "your story" (GLOSSARY: a Story is someone's claim to judge,
+        // and the Learner's own settings are an Estimate, made only in an Assignment), all open mode included.
+        { before: mode?.kind === "match_price" && mode.cases ? "The story is worth " : "This story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
   const span = range ? { low: Math.min(1, Math.max(0, range.low) / top), high: Math.min(1, Math.max(0, range.high) / top) } : undefined;
   const cashFlows: CashFlowBar[] = [
     ...result.years.map((y) => ({ label: `Year ${y.year}`, value: y.fcf, gain: y.fcf >= 0, text: moneyText(y.fcf, block), afterYear10: false })),
@@ -429,6 +490,7 @@ export function valueLeversModel(block: ValuationBlock, specs: readonly LeverSpe
     cashFlows,
     nearPrice: Math.abs(value - block.price.value) <= priceTolerance(block) + 1e-9,
     readout: mode ? modeReadout(block, specs, settings, mode, market, result) : null,
+    picture: modePicture(block, specs, settings, mode),
     // In all open mode (Spine Topic 15) only the wish is flagged: the Learner's own story starts at the Case's risk, which can sit in the "safe" third.
     flags: mode?.kind === "two_stories" ? contradictions(specs, settings) : mode?.kind === "all_open" ? contradictions(specs, settings).filter((f) => f.startsWith("Every lever")) : [],
   };
@@ -451,7 +513,7 @@ function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], setting
       const chosen = mode.markets[Math.min(mode.markets.length - 1, Math.max(0, Math.round(market)))];
       const size = marketInYear10(chosen);
       const revenue = result.years[FORECAST_YEARS - 1].revenue;
-      return { label: "Revenue in year 10", text: `${moneyText(revenue, block)} of a ${moneyText(size, block)} market` };
+      return { label: "Revenue in year 10", text: chosen.pool ? `${moneyText(revenue, block)} of ${moneyText(size, block)} of ${chosen.pool}` : `${moneyText(revenue, block)} of a ${moneyText(size, block)} market` };
     }
     case "margin_marks":
       // The marks on lever 2 are ticks; this readout names them, so their words sit beside the Widget once (ADR 0015: colour is never the only signal).
@@ -459,7 +521,7 @@ function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], setting
     case "roic": {
       const earns = returnOnNewCapital(settings.margin, settings.salesToCapital, block.taxPercent);
       const below = earns < settings.risk;
-      return { label: "Return on new capital", text: `${oneDecimal(earns)}%, ${below ? "below" : "above"} the ${Number(settings.risk.toFixed(2))}% it costs`, warn: below };
+      return { label: "Return on new capital", text: `${oneDecimal(earns)}%, ${below ? "below" : "above"} the ${Number(settings.risk.toFixed(2))}% it costs`, warn: below, ...(mode.note && { note: mode.note }) };
     }
     case "failure": {
       const survives = (result.goingConcern + block.cash - block.debt - block.options) / block.shares;
@@ -478,7 +540,7 @@ function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], setting
     case "range": {
       // The range is the headline now; this readout names the single story value and ranks the levers by their swing.
       const { ranked } = valueRange(block, specs, settings, mode);
-      return { label: "Your story", text: shown(result.valuePerShare, block), note: `By effect: ${ranked.map((id) => SHORT[id]).join(", ")}` };
+      return { label: "This story", text: shown(result.valuePerShare, block), note: `By effect: ${ranked.map((id) => SHORT[id]).join(", ")}` };
     }
     case "all_open":
       return null;
@@ -667,7 +729,7 @@ export function taskConditions(model: ValueLeversModel, moves: Moves): boolean[]
 export function biggestMover(moves: Moves, specs: readonly LeverSpec[], block: ValuationBlock): { spec: LeverSpec; by: string } | null {
   const id = LEVER_IDS[moves.mostLever - 1];
   if (!id || !(moves.mostBy > 0)) return null;
-  const by = block.per === "company" ? moneyText(moves.mostBy, block) : `${SYMBOL(block.currency)}${moves.mostBy.toFixed(2)}`;
+  const by = block.per === "company" ? moneyText(moves.mostBy, block) : moveText(moves.mostBy, block);
   return { spec: specOf(specs, id), by };
 }
 

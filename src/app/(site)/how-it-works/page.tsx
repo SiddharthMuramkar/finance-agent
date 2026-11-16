@@ -17,7 +17,7 @@ import { HowMoves } from "./moves";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = pageMetadata({ title: "How it works", description: howItWorks.description(courseStats()), path: "/how-it-works" });
+export const metadata: Metadata = pageMetadata({ title: "How it works", description: howItWorks.description, path: "/how-it-works" });
 
 const RATES = exampleBySlug("rbi-repo-cut-2025")!;
 
@@ -118,7 +118,7 @@ export default async function HowItWorksPage() {
           {howItWorks.h1}
         </h1>
         <p className="v-lede">
-          <Rich>{howItWorks.lede(course)}</Rich>
+          <Rich>{howItWorks.lede}</Rich>
         </p>
       </header>
 
@@ -153,7 +153,6 @@ export default async function HowItWorksPage() {
                   <li key={topic.n}>
                     <span className="n">{howItWorks.path.number(topic.n)}</span>
                     <span>{topic.title}</span>
-                    {topic.minutes !== undefined && <span className="min">{howItWorks.path.minutes(topic.minutes)}</span>}
                   </li>
                 ))}
               </ol>
@@ -187,7 +186,7 @@ export default async function HowItWorksPage() {
       <section className="v-section v-wash" aria-labelledby="start-h" data-site-section="closing">
         <div className="v-wrap v-stack">
           <h2 className="v-h2" id="start-h">
-            {howItWorks.closing}
+            {howItWorks.closing(course)}
           </h2>
           <div className="v-row">
             <PrimaryCta viewer={viewer} />

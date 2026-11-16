@@ -39,11 +39,11 @@ function change(css: string, token: string, value: string) {
 /** Adds one declaration at the top of the :root block. */
 const add = (css: string, declaration: string) => css.replace(OPEN, `${OPEN}\n  ${declaration}`);
 
-/** The Light block's declarations, copied whole: a Dark block that sets every colour (to the Light values). */
-const DARK_COPY = REAL.slice(REAL.indexOf(OPEN) + OPEN.length, REAL.indexOf("\n}", REAL.indexOf(OPEN))).replace(/\/\*[\s\S]*?\*\//g, "");
+/** The real Dark block's declarations, copied whole (its color-scheme left out): a Dark block that sets every colour. */
+const DARK_COPY = (REAL.match(/:root\[data-theme="dark"\] \{\n([^}]*)\}/)?.[1] ?? "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*color-scheme:[^;]*;\n/m, "");
 
-/** The real stylesheet with its Dark block taken out: Light only. */
-const LIGHT = REAL.replace(/\n:root\[data-theme="dark"\] \{[^}]*\}\n/, "\n");
+/** The real stylesheet with its Dark block (on screen only, so a print is Light) taken out: Light only. */
+const LIGHT = REAL.replace(/\n@media screen \{\n {2}:root\[data-theme="dark"\] \{[^}]*\}\n\}\n/, "\n");
 
 /** The Light-only stylesheet with a Dark block (ADR 0019) holding `declarations`. */
 const dark = (declarations: string) => `${LIGHT}\n:root[data-theme="dark"] {\n  color-scheme: dark;\n${declarations}\n}\n`;
@@ -60,6 +60,8 @@ describe("the contrast guard", () => {
   // passes in Dark as well as in Light.
   it("measures the real stylesheet in both themes", () => {
     expect(REAL).toContain(':root[data-theme="dark"] {');
+    expect(LIGHT).not.toContain(':root[data-theme="dark"] {');
+    expect(DARK_COPY).toContain("--paper: #0e1117;");
     expect(real.output).toContain("[Dark: spec §2.4 contrast]");
     expect(real.output).toContain("[Dark: spec §2.4 colour separation, OKLab x 100]");
     expect(real.output).toContain("ok   Dark: color-scheme is dark");
@@ -97,7 +99,7 @@ describe("the contrast guard", () => {
     expect(whole.status).toBe(0);
 
     // A faint that melts into the Dark paper fails in Dark, by name, while Light still passes.
-    const faint = run(dark(DARK_COPY.replace(/--faint: [^;]+;/, "--faint: #f2f2f2;")));
+    const faint = run(dark(DARK_COPY.replace(/--faint: [^;]+;/, "--faint: #14181f;")));
     expect(faint.status).toBe(1);
     expect(faint.output).toMatch(/FAIL Dark: --faint on --paper 1\.\d\d:1 \(min 3\)/);
     expect(faint.output).toContain("ok   --faint on --paper 3.17:1");
@@ -111,6 +113,20 @@ describe("the contrast guard", () => {
     expect(half.output).toContain("FAIL Dark: --band-todo has no dark value");
     expect(half.output).toContain("FAIL Dark: --check-tick has no dark value");
     expect(half.output).not.toContain("--paper has no dark value");
+  });
+
+  // A printed page is white paper whatever the theme: Dark is for the screen only, and print takes Light and its own block.
+  it("keeps Dark to the screen, so a page printed in Dark comes out in the print palette", () => {
+    expect(REAL).toMatch(/@media screen \{\n {2}:root\[data-theme="dark"\] \{/);
+    expect(REAL).toMatch(/@media print \{\n {2}:root \{\n {4}color-scheme: light !important;/);
+  });
+
+  it("freezes the spec §3.1 Dark values too, so a Dark colour cannot drift while its pairs still pass", () => {
+    expect(real.output).toContain("ok   Dark: --blue is #8aa4ff (spec §3.1 Dark)");
+    const drift = run(dark(DARK_COPY.replace(/--blue: [^;]+;/, "--blue: #8ca6ff;")));
+    expect(drift.status).toBe(1);
+    expect(drift.output).toContain("FAIL Dark: --blue is #8aa4ff (spec §3.1 Dark)");
+    expect(drift.output).toMatch(/ok {3}Dark: --accent on --paper \d+\.\d\d:1 \(min 4\.5\)/);
   });
 
   it("freezes the spec §3.1 values", () => {

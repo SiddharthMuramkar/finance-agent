@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { rawFormulaHits } from "../finance/raw-formula.ts";
 import { isIconName } from "../icons/names.ts";
+import { EUROPE_GUIDE } from "./guides-europe.ts";
 
 // The annual-report guide (spec #68, ticket #108; user story 80): beside each Own Case field, where that number sits in
 // one market's annual report, with a link to the rule or record that says so and a Lingo card for the word the Learner
 // meets there, so a Learner can find every number alone. Guides live in git so the course check (scripts/check-course.mjs,
-// no database) fails a guide line with no source. One guide per market; more markets (#113-#115) add their lines here.
+// no database) fails a guide line with no source. One guide per market (India #108, the US #113); more markets (#114, #115) add their lines here.
 // Imports only packages and relative modules, so plain Node runs it.
 
 /** The Own Case fields a guide covers: the company, the report's date and the seven figures typed from the report. */
@@ -24,7 +26,7 @@ const lingoSchema = z
 
 export const guideLineSchema = z
   .object({
-    market: z.enum(["IN", "US", "JP", "KR"]),
+    market: z.enum(["IN", "US", "JP", "KR", "EU"]),
     field: z.enum(GUIDE_FIELDS),
     /** Where the number sits in the annual report, in one or two plain sentences. */
     where: z.string().trim().min(10),
@@ -37,6 +39,11 @@ export const guideLineSchema = z
 
 export type GuideLine = z.output<typeof guideLineSchema>;
 export type GuideLineInput = Partial<z.input<typeof guideLineSchema>>;
+
+/** LingoCard's word limits (src/widgets/primitives/wave3/lingo-card.tsx), as the Full sheet's cards keep them. */
+const CARD_LIMITS = { pro: 14, means: 20, example: 20 } as const;
+
+const wordCount = (text: string) => text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 
 /** Every way the guide lines break the rules, as sentences; empty when all pass. */
 export function guideErrors(lines: readonly unknown[]): string[] {
@@ -59,7 +66,17 @@ export function guideErrors(lines: readonly unknown[]): string[] {
       for (const issue of parsed.error.issues) errors.push(`${name} needs ${issue.path.map(String).join(".") || "a value"}: ${issue.message}`);
       return;
     }
-    if (!isIconName(parsed.data.lingo.emoji)) errors.push(`${name} has the Lingo picture "${parsed.data.lingo.emoji}", which is not an Icon name (src/icons/names.ts)`);
+    const { lingo, where } = parsed.data;
+    if (!isIconName(lingo.emoji)) errors.push(`${name} has the Lingo picture "${lingo.emoji}", which is not an Icon name (src/icons/names.ts)`);
+    // No typed formula (ADR 0003): a sum is told in steps, as a Topic's cards tell it.
+    for (const text of [where, lingo.term, lingo.means, lingo.pro, lingo.example]) {
+      const hits = rawFormulaHits(text);
+      if (hits.length) errors.push(`${name} types a formula (ADR 0003): ${hits.join("; ")}`);
+    }
+    for (const [line, max] of Object.entries(CARD_LIMITS) as [keyof typeof CARD_LIMITS, number][]) {
+      const n = wordCount(lingo[line]);
+      if (n > max) errors.push(`${name}'s Lingo card ${line} has ${n} words; at most ${max}`);
+    }
   });
   for (const [market, fields] of seen) {
     for (const field of GUIDE_FIELDS) if (!fields.has(field)) errors.push(`The ${market} guide has no line for "${field}": every Own Case field needs one`);
@@ -81,7 +98,7 @@ const india: GuideLineInput[] = [
   {
     field: "company",
     where:
-      "Type the name as the annual report's cover prints it. Inside, use the Consolidated Financial Statements (the second full set), not the Standalone ones; a company that owns no other company prints only standalone.",
+      "Type the name as the annual report's cover prints it. Inside, use the Consolidated Financial Statements, not the Standalone ones (a report may print either set first); a company that owns no other company prints only standalone.",
     ...MCA,
     lingo: {
       term: "Consolidated statements",
@@ -93,13 +110,14 @@ const india: GuideLineInput[] = [
   },
   {
     field: "reportDate",
-    where: "The Balance Sheet's heading: \"as at 31 March 2025\". That year end is the report's date; most Indian companies close their year on 31 March.",
+    where:
+      "The signature page at the end of the consolidated statements: the date the Board approved them (section 134), when the year's figures went to the stock exchanges. Not the Balance Sheet's year end, \"as at 31 March 2025\": nobody outside knew the year's figures then, and a price from that day could not reflect them.",
     ...MCA,
     lingo: {
-      term: "Financial year",
-      means: "The twelve months an annual report covers; in India it ends on 31 March.",
-      pro: "FY25 means the year to 31 March 2025",
-      example: "A report for FY25 counts sales from 1 April 2024 to 31 March 2025.",
+      term: "Board approval",
+      means: "The day the company's directors sign off the year's statements; the figures are made public that day.",
+      pro: "the statements were approved by the Board on 12 May 2025",
+      example: "A year ending 31 March 2025 may be approved on 12 May 2025: the report's date is 12 May.",
       emoji: "calendar",
     },
   },
@@ -125,7 +143,7 @@ const india: GuideLineInput[] = [
       term: "Operating profit (EBIT)",
       means: "Profit from running the business, before interest and tax.",
       pro: "EBIT is earnings before interest and taxes",
-      example: "Profit before tax 150 + finance costs 30 - other income 40 = operating profit 140.",
+      example: "From profit before tax of 150, add finance costs of 30 and take away other income of 40: 140.",
       emoji: "factory",
     },
   },
@@ -184,13 +202,137 @@ const india: GuideLineInput[] = [
   {
     field: "price",
     where:
-      "Not in the report: on NSE's price archives, pick the company's symbol and the report's date and read the closing price, in ₹ a share. If that day had no trading, use the last trading day before it.",
+      "Not in the report: on NSE's price archives, pick the company's symbol and the report's date and read the closing price, in ₹ a share. If that day had no trading, use the next trading day: a day before it could not know the figures.",
     ...NSE,
     lingo: {
       term: "Closing price",
       means: "The last price a share traded at on one day, as the exchange records it.",
       pro: "the close is the day's last traded price",
       example: "A share that opens at ₹ 320 and ends the day at ₹ 328 closed at ₹ 328.",
+      emoji: "chart-increasing",
+    },
+  },
+];
+
+// ——— The US (#113, checked 2026-11-16) ———
+// A US company's annual report is its Form 10-K, filed with the SEC and free on EDGAR; the accounts follow US GAAP. Each
+// line was checked in Apple's 10-K for the year to 27 Sep 2025, the worked example linked below.
+
+const EDGAR = { source: "SEC, EDGAR company search", sourceUrl: "https://www.sec.gov/edgar/searchedgar/companysearch.html" };
+const HOW_TO_READ = { source: "Investor.gov (SEC), How to Read a 10-K", sourceUrl: "https://www.investor.gov/introduction-investing/getting-started/researching-investments/how-read-10-k" };
+const APPLE_10K = { source: "Apple Inc., Form 10-K for the year to 27 Sep 2025 (SEC EDGAR)", sourceUrl: "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm" };
+const NASDAQ = { source: "Nasdaq, historical quotes", sourceUrl: "https://www.nasdaq.com/market-activity/quotes/historical" };
+
+const us: GuideLineInput[] = [
+  {
+    field: "company",
+    where: "Search the company on SEC EDGAR and open its Form 10-K for the year you value. Type the name as the 10-K's cover prints it.",
+    ...EDGAR,
+    lingo: {
+      term: "Form 10-K",
+      means: "The annual report a US listed company files with the SEC, with its audited accounts.",
+      pro: "the 10-K is the US annual report",
+      example: "Apple's 10-K for the year to 27 Sep 2025 is free on EDGAR.",
+      emoji: "office-building",
+    },
+  },
+  {
+    field: "reportDate",
+    where:
+      'EDGAR\'s filing index for the 10-K: its "Filing Date", when its figures were public. Not the year end on the cover page, "For the fiscal year ended" and a date: nobody outside knew the figures then (and not every company closes in December).',
+    ...APPLE_10K,
+    lingo: {
+      term: "Fiscal year",
+      means: "The twelve months a 10-K covers; it need not end in December.",
+      pro: "a fiscal year can end in any month",
+      example: "Apple's fiscal 2025 ended on 27 September 2025.",
+      emoji: "calendar",
+    },
+  },
+  {
+    field: "sales",
+    where:
+      'Item 8, the income statement ("Consolidated Statements of Operations"), first total: "Total net sales", "Revenues" or "Net revenues". Most tables are in $ millions; a smaller company may print $ thousands, so divide by 1,000.',
+    ...HOW_TO_READ,
+    lingo: {
+      term: "Net sales",
+      means: "Money from selling the company's goods and services in the year, after returns and discounts.",
+      pro: "net sales is the top line",
+      example: "Apple's total net sales for fiscal 2025 were $416,161 million.",
+      emoji: "receipt",
+    },
+  },
+  {
+    field: "operatingProfit",
+    where: 'The same statement: "Operating income", after the operating expenses. A few companies leave it out; then take sales less the costs of sales and operating expenses.',
+    ...HOW_TO_READ,
+    lingo: {
+      term: "Operating income",
+      means: "Profit from running the business, before interest and tax.",
+      pro: "operating income is EBIT",
+      example: "Apple's operating income for fiscal 2025 was $133,050 million.",
+      emoji: "factory",
+    },
+  },
+  {
+    field: "taxPercent",
+    where: 'The income-tax note sets the company\'s effective rate beside the 21% "statutory federal income tax rate". State taxes come on top of the federal rate.',
+    ...APPLE_10K,
+    lingo: {
+      term: "Statutory rate",
+      means: "The rate the law sets on company profit: 21% federal in the US, before state taxes.",
+      pro: "the statutory rate, not the effective rate",
+      example: "Apple's effective rate was 15.6% in fiscal 2025; the statutory federal rate was 21%.",
+      emoji: "classical-building",
+    },
+  },
+  {
+    field: "debt",
+    where: 'The balance sheet: add "Commercial paper" and "Term debt", in current and in non-current liabilities. Leave out accounts payable: they are bills owed to suppliers, not borrowing.',
+    ...APPLE_10K,
+    lingo: {
+      term: "Commercial paper",
+      means: "Short-term loans a large company raises from investors and repays within months.",
+      pro: "commercial paper is short-term debt",
+      example: "Apple owed $7,979 million of commercial paper on 27 Sep 2025.",
+      emoji: "bank",
+    },
+  },
+  {
+    field: "cash",
+    where: 'The balance sheet, at the top of current assets: "Cash and cash equivalents".',
+    ...APPLE_10K,
+    lingo: {
+      term: "Cash equivalent",
+      means: "Money parked where it turns back into a known amount of cash within about three months.",
+      pro: "cash equivalents are as good as cash",
+      example: "Apple held $35,934 million of cash and cash equivalents on 27 Sep 2025.",
+      emoji: "money-bag",
+    },
+  },
+  {
+    field: "shares",
+    where:
+      'The cover page: "shares of common stock were issued and outstanding as of" a date. Type that full count; tables inside count shares in thousands.',
+    ...APPLE_10K,
+    lingo: {
+      term: "Shares outstanding",
+      means: "The shares owners hold on a date: those issued, less any the company bought back.",
+      pro: "outstanding, not authorised, shares",
+      example: "Apple had 14,776,353,000 shares outstanding on 17 Oct 2025.",
+      emoji: "coin",
+    },
+  },
+  {
+    field: "price",
+    where:
+      "Not in the 10-K: on the exchange that lists the shares (Nasdaq or NYSE), read the closing price on the report's date, in $ a share. If that day had no trading, use the last trading day before it.",
+    ...NASDAQ,
+    lingo: {
+      term: "Closing price",
+      means: "The last price a share traded at on one day, as the exchange records it.",
+      pro: "the close is the day's last traded price",
+      example: "A share that opens at $250 and ends the day at $255 closed at $255.",
       emoji: "chart-increasing",
     },
   },
@@ -212,13 +354,15 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "reportDate",
-    where: "The cover (表紙): 【事業年度】 gives the year, e.g. 自 2025年4月1日 至 2026年3月31日. Most Japanese years end on 31 March.",
+    where:
+      "The cover (表紙): 【提出日】, the day the Yuho was filed on EDINET, when its figures were public. Not the year end in 【事業年度】 (e.g. 至 2026年3月31日; most Japanese years end on 31 March): nobody outside knew the figures then.",
     ...EDINET,
     lingo: { term: "有価証券報告書 (Yuho)", means: "Japan's annual securities report, filed on EDINET after the year ends.", pro: "the Yuho is the audited annual filing", example: "Kikkoman's Yuho for the year to March 2026 was filed in June.", emoji: "scroll" },
   },
   {
     field: "sales",
-    where: "第5【経理の状況】 → 連結損益計算書: 売上高 (Japanese GAAP) or 売上収益 (IFRS). Read the unit line (単位：百万円) above the table.",
+    where:
+      "第5【経理の状況】 → 連結損益計算書: 売上高 (Japanese GAAP) or 売上収益 (IFRS). Read the unit line above the table: the Own Case takes 百万円 (millions of yen), so a table in 千円 (thousands) is divided by 1,000 and one in 円 by 1,000,000. Debt and cash go in the same 百万円.",
     ...FORM_JP,
     lingo: { term: "売上高 / 売上収益", means: "Sales: what customers paid for the year's goods and services.", pro: "the top line of the income statement", example: "A soy-sauce maker's bottles sold in a year.", emoji: "shopping-cart" },
   },
@@ -237,10 +381,11 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "debt",
-    where: "連結貸借対照表 (or 連結財政状態計算書): 短期借入金, 1年内返済予定の長期借入金, 社債, 長期借入金 (IFRS: 社債及び借入金). Leases under Japanese GAAP stay off the balance sheet until years from April 2027.",
-    source: "ASBJ Statement No. 34, Accounting Standard for Leases (2024)",
-    sourceUrl: "https://www.asb-j.jp/en/accounting_standards/y2024/2024-0913.html",
-    lingo: { term: "借入金 / 社債", means: "Borrowings and bonds: money the company owes lenders and must pay back with interest.", pro: "interest-bearing debt", example: "A bank loan for a new factory.", emoji: "bank" },
+    where:
+      "連結貸借対照表 (or 連結財政状態計算書), current and non-current: 短期借入金, 1年内返済予定の長期借入金, 社債, 長期借入金 and リース債務 (IFRS: 社債及び借入金 or 借入金, and リース負債). Japanese GAAP already shows finance leases as リース債務; operating leases join them from years starting on or after 1 April 2027.",
+    source: "ASBJ, 企業会計基準第34号 リースに関する会計基準 (2024), paragraph 58",
+    sourceUrl: "https://www.asb-j.jp/jp/wp-content/uploads/sites/4/lease_20240913_02.pdf",
+    lingo: { term: "リース負債 / リース債務", means: "Lease liabilities: rent the company has promised for future years, counted like a loan.", pro: "lease liabilities are debt in all but name", example: "A soy-sauce maker's rented warehouses show up as リース負債.", emoji: "bank" },
   },
   {
     field: "cash",
@@ -250,7 +395,8 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "shares",
-    where: "第4【提出会社の状況】 1【株式等の状況】: 発行済株式 (shares issued), less 自己株式 (treasury shares) from 【自己株式等】. Shares are counted in 株, one by one.",
+    where:
+      "第4【提出会社の状況】 1【株式等の状況】: 発行済株式 (shares issued), less 自己株式 (treasury shares) from 【自己株式等】. Type the full count in 株, one by one; a table in 千株 counts thousands, so multiply it by 1,000.",
     ...FORM_JP,
     lingo: { term: "発行済株式 / 自己株式", means: "Shares issued, and the ones the company bought back and holds; only the rest are outstanding.", pro: "shares outstanding exclude treasury stock", example: "969 million issued, 42 million bought back: 927 million outstanding.", emoji: "coin" },
   },
@@ -275,13 +421,15 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "reportDate",
-    where: "The cover: 사업연도, e.g. 2025년 01월 01일부터 2025년 12월 31일까지. Most Korean years end on 31 December; the report is filed within 90 days.",
+    where:
+      "DART's list of filings: 접수일자, the day the 사업보고서 was filed, when its figures were public. Not the year end in 사업연도 on the cover (most Korean years end on 31 December; the report follows within 90 days).",
     ...DART,
     lingo: { term: "사업보고서", means: "Korea's annual business report, filed on DART after the year ends.", pro: "the audited annual filing under K-IFRS", example: "Samsung Electronics filed its 2025 business report in March 2026.", emoji: "scroll" },
   },
   {
     field: "sales",
-    where: "III. 재무에 관한 사항 → 연결재무제표 → 연결손익계산서: 매출액 (or 영업수익). Read the unit line (단위 : 백만원) above the table.",
+    where:
+      "III. 재무에 관한 사항 → 연결재무제표 → 연결손익계산서: 매출액 (or 영업수익). Read the unit line above the table: the Own Case takes 백만원 (millions of won), so a table in 천원 (thousands) is divided by 1,000 and one in 원 by 1,000,000. Debt and cash go in the same 백만원.",
     ...FORM_KR,
     lingo: { term: "매출액", means: "Sales: what customers paid for the year's goods and services.", pro: "the top line of the income statement", example: "Phones, chips and TVs sold in a year.", emoji: "shopping-cart" },
   },
@@ -301,9 +449,10 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "debt",
-    where: "연결재무상태표: 단기차입금, 유동성장기부채, 사채, 장기차입금 (and 리스부채, lease liabilities, in the notes).",
+    where:
+      "연결재무상태표, current and non-current: 단기차입금, 유동성장기부채, 사채, 장기차입금 and 리스부채 (lease liabilities). Many firms put 리스부채 inside 유동성장기부채 and 장기차입금; the borrowings note (차입금) says so, and then it is in already.",
     ...FORM_KR,
-    lingo: { term: "차입금 / 사채", means: "Borrowings and bonds: money the company owes lenders and must pay back with interest.", pro: "interest-bearing debt", example: "A bank loan for a new chip plant.", emoji: "bank" },
+    lingo: { term: "리스부채", means: "Lease liabilities: rent the company has promised for future years, counted like a loan.", pro: "lease liabilities are debt in all but name", example: "Samsung's 2025 long-term borrowings of ₩6,479,517 million include ₩3,673,503 million of lease liabilities.", emoji: "bank" },
   },
   {
     field: "cash",
@@ -313,9 +462,10 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "shares",
-    where: "I. 회사의 개요 → 주식의 총수 등: 발행주식의 총수 (shares issued) less 자기주식 (treasury shares). Copy the common shares (보통주); preferred shares (우선주) trade apart.",
+    where:
+      "I. 회사의 개요 → 주식의 총수 등: 유통주식수 (shares outstanding: issued less 자기주식, treasury shares), the 합계 column, common (보통주) and preferred (우선주) together. Korean preferred shares own part of the equity like common ones, without the vote. Type the full count in 주.",
     ...FORM_KR,
-    lingo: { term: "보통주 / 자기주식", means: "Common shares, and the ones the company bought back and holds; only the rest are outstanding.", pro: "shares outstanding exclude treasury stock", example: "5.92 billion issued, 92 million bought back: 5.83 billion outstanding.", emoji: "coin" },
+    lingo: { term: "우선주", means: "Preferred shares: in Korea they share the profits like common shares, with no vote and a slightly bigger dividend.", pro: "count preferred beside common shares", example: "Samsung at the end of 2025: 5.83 billion common and 0.80 billion preferred outstanding, 6.63 billion in all.", emoji: "coin" },
   },
   {
     field: "price",
@@ -329,8 +479,10 @@ const korea: GuideLineInput[] = [
 /** Every guide line in the course as written: the course check runs guideErrors on these. */
 export const GUIDE_LINE_INPUTS: readonly unknown[] = [
   ...india.map((line) => ({ market: "IN", ...line })),
+  ...us.map((line) => ({ market: "US", ...line })),
   ...japan.map((line) => ({ market: "JP", ...line })),
   ...korea.map((line) => ({ market: "KR", ...line })),
+  ...EUROPE_GUIDE.map((line) => ({ market: "EU", ...line })),
 ];
 
 const GUIDE_LINES: GuideLine[] = GUIDE_LINE_INPUTS.flatMap((raw) => {

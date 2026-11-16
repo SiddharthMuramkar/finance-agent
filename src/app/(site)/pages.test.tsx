@@ -91,7 +91,7 @@ describe("Home", () => {
     expect(html).toMatch(/data-widget="jackpot" data-case="kerala-bumper-2024"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
-    expect(text).toContain("111 Topics wait inside.");
+    expect(text).toContain("18 Topics, in order, teach valuation.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
@@ -100,7 +100,7 @@ describe("Home", () => {
     const html = renderToStaticMarkup(await HomePage());
     const hero = words(/data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0]);
     expect(hero).toContain("Finance for beginners");
-    for (const number of ["₹25 crore jackpot", "$3bn “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
+    for (const number of ["₹25 crore jackpot", "$3 billion “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
     expect(hero).toContain("An AI Tutor explains every money word");
     expect(hero).toContain("No sums");
   });
@@ -182,7 +182,7 @@ describe("About", () => {
   it("says the valuations are Damodaran's published work and that Value It is not affiliated", async () => {
     const text = words(renderToStaticMarkup(await AboutPage()));
     expect(text).toContain("The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.");
-    expect(text).toContain("Topics 111");
+    expect(text).toContain("Topics 113");
     expect(text).toContain("Do you track me?");
   });
 
@@ -206,18 +206,30 @@ describe("About", () => {
   it("shows no minutes per Topic until they are measured", async () => {
     expect(words(renderToStaticMarkup(await AboutPage()))).not.toMatch(/Each Topic \d/);
   });
+
+  // #72/#75 (F15): the outline's minutes are guesses, so no public page or its description shows a length.
+  it("no public page shows minutes, since none are measured", async () => {
+    for (const page of [await HomePage(), await HowItWorksPage(), await ExamplesPage(), await AboutPage()]) {
+      expect(words(renderToStaticMarkup(page))).not.toMatch(/\bminutes?\b|\d+ min\b/i);
+    }
+    expect(String(howMeta.description)).not.toMatch(/minute/i);
+  });
 });
 
-// #75: Home's "Where you end up" shows the real one-page note Spine Topic 15 saves to the Notebook.
+// #75: Home's "Where you end up" shows a real one-page note: the one the Assignment saves to the Notebook after the
+// Spine (F14: the Spine no longer saves a Valuation story, so Home must not show one).
 describe("Where you end up", () => {
-  it("shows the saved Amazon note under 'By the end, you value a company yourself.'", async () => {
+  it("shows an Own Case note from the Assignment under 'By the end, you value a company yourself.'", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const section = /<section[^>]*data-site-section="end"[\s\S]*?<\/section>/.exec(html)?.[0] ?? "";
-    const text = words(section);
+    const text = words(section).replaceAll("&#x27;", "'");
     expect(text).toContain("Where you end up");
     expect(text).toContain("By the end, you value a company yourself.");
-    expect(text).toContain("My Valuation story: Amazon, Feb 2000, against the price of 3 Feb 2000");
-    for (const line of ["How big it gets: revenue in year 10 $39bn", "Worth: $35 a share", "Price on 3 Feb 2000: $84", "Value from after year 10: 112%"]) expect(text).toContain(line);
+    expect(text).toContain("you pick a listed company and copy a few figures from its annual report");
+    for (const line of ["Kikkoman, Japan. Annual report of 31 Mar 2026.", "My Estimate: growth 10% a year", "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026."]) {
+      expect(text).toContain(line);
+    }
+    expect(text).not.toMatch(/Valuation story|Story you told/);
   });
 });
 
@@ -237,9 +249,12 @@ describe("Privacy, Terms and the contact address", () => {
 
   it("the privacy page says what is kept, by whom, and the cookies", async () => {
     const text = words(renderToStaticMarkup(await PrivacyPage()));
-    for (const name of ["Clerk", "Neon", "Vercel Web Analytics", "OpenAI", "__session", "__client_uat", "split", "sets no cookie"]) {
+    for (const name of ["Clerk", "Neon", "Vercel Web Analytics", "OpenAI", "Voyage AI", "__session", "__client_uat", "split", "sets no cookie"]) {
       expect(text, name).toContain(name);
     }
+    // F32: Clerk's suffixed copies are named, and "for that" follows the sign-in sentence it refers to.
+    expect(text).toContain("__session_Ab12");
+    expect(text).toMatch(/to know whether you’re signed in\. A private copy that signs in with a passcode instead of Clerk uses fa_access for that\./);
   });
 
   it("the footer links Privacy and Terms and shows the contact address as text, for every viewer", () => {
@@ -284,36 +299,37 @@ function siteCookies(): string[] {
 
 // #72: every count and Spine title on Home, About, How it works and Examples comes from the course outline.
 describe("the course counts", () => {
-  it("read the Spine's length from the outline: 16 Topics on #93's branch, ending on the annual report Topic", async () => {
+  it("read the Spine's length from the outline: 18 Topics with #90's statements Topic fourth, #91's cost of capital ninth and #93's annual report Topic last", async () => {
     const home = words(renderToStaticMarkup(await HomePage()));
-    expect(home).toContain("111 Topics wait inside. 16 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
-    expect(home).toContain("111 Topics 10 to 15 minutes each");
-    expect(home).toContain("One real event. Four moves. Ten to fifteen minutes.");
+    expect(home).toContain("18 Topics, in order, teach valuation. 72 more go wider across 9 subjects, and 23 read real arguments.");
+    expect(home).toContain("One real event. Four moves.");
     expect(home).toContain("Five Examples, open now");
 
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
-    expect(how).toContain("taught in four moves , in 10–15 minutes.");
-    expect(how).toContain("16 core Topics 01 What is a business worth? Price against value, and the four levers 10 min 02 Why is money later worth less? 12 min");
-    expect(how).toContain("15 Judge a published valuation, as of a past date 15 min");
-    expect(how).toContain("16 Where are a valuation's numbers in an annual report? 13 min");
+    expect(how).toContain("taught in four moves .");
+    expect(how).toContain("18 core Topics 01 What is a business worth? Price against value, and the four levers 02 Why is money later worth less?");
+    expect(how).toContain("04 What do the three financial statements show?");
+    expect(how).toContain("09 What does all of a company's money cost?");
+    expect(how).toContain("17 Judge a published valuation, as of a past date");
+    expect(how).toContain("18 Where are a valuation's numbers in an annual report?");
     expect(how).toContain("9 subjects Numbers & time value 6 Financial statements 11 Economics & policy 11 Bonds & credit 7 Currencies & countries 4 Markets & investing 9 Valuation & corporate finance 12 Derivatives 5 Banks, crises & the system 7");
     expect(how).toContain("3 stages that read real arguments Follow , understand what a writer argues 9 Judge , spot where an argument is weak 8 Analyse , reach your own view from the numbers 6");
-    expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves, in 10 to 15 minutes.");
+    expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
-    expect(about).toContain("Topics 111 Subjects 9 Stages that read real arguments 3 Price Free in early access");
-    expect(about).toContain("Sixteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.");
+    expect(about).toContain("Topics 113 Subjects 9 Stages that read real arguments 3 Price Free in early access");
+    expect(about).toContain("Eighteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.");
     expect(about).toContain("Derivatives · 5");
     expect(about).toContain("Judge · 8");
 
     const examples = words(renderToStaticMarkup(await ExamplesPage()));
     expect(examples).toContain("Five Examples from the course, playable here.");
-    expect(examples).toContain("111 Topics wait inside. 16 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
+    expect(examples).toContain("18 Topics, in order, teach valuation. 72 more go wider across 9 subjects, and 23 read real arguments.");
     expect(examplesMeta.description).toBe("Five Examples from the course, playable here.");
   });
 
   it("change on every page when the Spine changes in the course", async () => {
-    // The outline with its last two Spine Topics (15 and #93's annual report Topic) dropped, Spine Topic 3 retitled, and one
+    // The outline with its last four Spine Topics (from 15 to #93's annual report Topic) dropped, Spine Topic 3 retitled, and one
     // Derivatives Elective moved to Judge.
     const raw = parse(readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8")) as { topics: Record<string, unknown>[] };
     const topics = raw.topics.filter((t) => !(typeof t.spine === "number" && t.spine >= 15));
@@ -326,17 +342,14 @@ describe("the course counts", () => {
     course.outline = outline;
 
     const home = words(renderToStaticMarkup(await HomePage()));
-    expect(home).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
-    expect(home).toContain("10 to 14 minutes each");
-    expect(home).toContain("Ten to fourteen minutes.");
+    expect(home).toContain("14 Topics, in order, teach valuation. 71 more go wider across 9 subjects, and 24 read real arguments.");
 
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
     expect(how).toContain("14 core Topics 01 What is a business worth?");
-    expect(how).toContain("03 Cash, the first statement 12 min");
+    expect(how).toContain("03 Cash, the first statement");
     expect(how).not.toContain("Judge a published valuation");
     expect(how).toContain("Derivatives 4");
     expect(how).toContain("Judge , spot where an argument is weak 9");
-    expect(how).toContain("in 10–14 minutes.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
     expect(about).not.toContain("Each Topic"); // #75: no minutes until measured
@@ -345,7 +358,7 @@ describe("the course counts", () => {
     expect(about).toContain("Judge · 9");
 
     const examples = words(renderToStaticMarkup(await ExamplesPage()));
-    expect(examples).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
+    expect(examples).toContain("14 Topics, in order, teach valuation. 71 more go wider across 9 subjects, and 24 read real arguments.");
   });
 });
 
@@ -368,6 +381,8 @@ describe("the plain words", () => {
     ["Examples", await ExamplesPage()],
     ...(await Promise.all(EXAMPLE_SLUGS.map(async (slug) => [slug, await casePage.default(params(slug))] as const))),
     ["About", await AboutPage()],
+    ["Privacy", await PrivacyPage()],
+    ["Terms", await TermsPage()],
   ] as const;
 
   it("no page says 'your story' or calls an Example a case", async () => {
@@ -375,6 +390,7 @@ describe("the plain words", () => {
       const text = words(renderToStaticMarkup(page));
       expect(text, name).not.toMatch(/your story/i);
       expect(text, name).not.toMatch(/\bcases?\b/); // a course Case keeps its capital
+      expect(text, name).not.toMatch(/\bcheap/i); // voice rule 7 (F32)
     }
   });
 
@@ -382,9 +398,50 @@ describe("the plain words", () => {
     for (const page of [await HomePage(), await HowItWorksPage()]) {
       const html = renderToStaticMarkup(page);
       expect(words(html.replace(SOURCE_LINE, " "))).not.toContain("Damodaran");
-      const lines = html.match(SOURCE_LINE) ?? [];
-      expect(lines.some((line) => line.includes("Damodaran") && /<a [^>]*href="https:\/\//.test(line))).toBe(true);
+      const lines = (html.match(SOURCE_LINE) ?? []).filter((line) => line.includes("Damodaran"));
+      expect(lines.length).toBeGreaterThan(0);
+      // F30: every line that names him links his work, the widgets' own source lines included.
+      for (const line of lines) expect(line).toMatch(/<a [^>]*href="https:\/\/[^"]*"[^>]*>[^<]*Damodaran/);
     }
+  });
+
+  // F30: Home's trust column quotes a source line a live widget really shows (the Mega Millions one went with its Example).
+  it("Home's trust column quotes the jackpot widget's own source line", async () => {
+    const home = words(renderToStaticMarkup(await HomePage()));
+    const quoted = /The jackpot’s says “([^”]+)”/.exec(home)?.[1];
+    expect(quoted).toBe("Source: The Hindu, 9 Oct 2024.");
+    const jackpot = EXAMPLES.find((e) => e.widget === "jackpot")!;
+    const lines = renderToStaticMarkup(await casePage.default(params(jackpot.slug))).match(SOURCE_LINE) ?? [];
+    expect(lines.some((line) => words(line).replace(/\s+([.,])/g, "$1").includes(quoted!))).toBe(true);
+  });
+
+  // #74/#72 (F34): Home keeps to its four product words in the FAQ it picks, and How it works' closing names the first
+  // Spine Topic from the course.
+  it("Home's FAQ says no 'Assignment' or 'Spine'; About's full FAQ keeps them", async () => {
+    const home = words(/<div class="v-faq">[\s\S]*?<\/div>/.exec(renderToStaticMarkup(await HomePage()))![0]);
+    expect(home).toContain("Do I need to be good at maths?");
+    expect(home).not.toMatch(/Assignment|Spine/);
+    expect(words(renderToStaticMarkup(await AboutPage()))).toContain("the Assignment after the Spine");
+  });
+
+  it("How it works' closing names the first Spine Topic as the course titles it", async () => {
+    const how = words(renderToStaticMarkup(await HowItWorksPage()));
+    expect(how).toContain("Start with Topic 1: What is a business worth?");
+    expect(how).not.toContain("Start with Topic 1: What is a business worth? Price");
+  });
+
+  // #75 (F30): every named Source is a link. A widget's source line that names a Source links it; only a line that names
+  // none ("No outside figures") is plain text.
+  it("every source line on a public page links the Source it names", async () => {
+    let seen = 0;
+    for (const [name, page] of await publicPages()) {
+      for (const line of renderToStaticMarkup(page).match(SOURCE_LINE) ?? []) {
+        seen++;
+        if (/No outside figures/.test(line)) continue;
+        expect(line, name).toMatch(/<a [^>]*href="https:\/\//);
+      }
+    }
+    expect(seen).toBeGreaterThan(3);
   });
 
   it("ends the levers story on judging the $84 price, not on a story of your own", async () => {

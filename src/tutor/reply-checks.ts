@@ -493,11 +493,21 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   return problems;
 }
 
-/** Verdict and advice words (spec #68 voice rules): a value called right or wrong, cheap or dear, under- or overvalued, buy or sell. */
+/**
+ * Verdict and advice words (spec #68 voice rules): a value called right or wrong, cheap or dear, under- or overvalued, and
+ * buy or sell advice. "Buy" and "sell" count only as advice about the shares (G23): a company that sells tea or buys
+ * leaves is the Own Case's business, and the course's cards use "sells" so.
+ */
 const VERDICT_WORDS = [
   /\b(?:right|wrong|correct)\s+(?:value|price|valuation)\b/gi,
   /\b(?:cheap|cheaper|dear|dearer|undervalued|overvalued|under-valued|over-valued|bargain)\b/gi,
-  /\b(?:buy|buys|buying|sell|sells|selling)\b/gi,
+  // Buying or selling the shares: "sell the shares", "buying its stock", "buy some of this equity".
+  /\b(?:buy|buys|buying|sell|sells|selling)\s+(?:(?:the|its|this|that|these|those|your|my|our|their|some|more|any|a\s+few)\s+)?(?:(?:of\s+)?(?:the|its|this|that|these|those|company['’]s|firm['’]s)\s+)?(?:shares?|stocks?|equity)\b/gi,
+  // Advice to act, said to or by someone holding the shares: "you should buy", "I would not sell", "I'd buy", "should
+  // you sell", "don't buy". Not "you would sell more tea": a business selling more or less of something.
+  /\b(?:(?:i|you|we|investors|one)\s+(?:should|shouldn['’]t|would|wouldn['’]t|could|must|might)|i['’]d|you['’]d|we['’]d|should\s+(?:i|you|we|investors|one)|don['’]t|do\s+not)\s+(?:not\s+|never\s+|still\s+)?(?:buy|sell)\b(?!\s+(?:more|less|fewer)\b)/gi,
+  // A call: "a buy", "a strong sell", "buy signal", "buy or sell", "buy, hold or sell", "buy now", "worth buying".
+  /\b(?:an?\s+(?:strong\s+|clear\s+)?(?:buy|sell)|(?:buy|sell)\s+(?:signal|rating|call|recommendation|opportunity|now|today)|(?:buy|sell|hold)\s*(?:,|or)\s*(?:hold|sell|buy)|buying\s+opportunity|(?:worth|time\s+to)\s+(?:buying|selling|buy|sell))(?![\w-])/gi,
 ];
 
 /** The verdict and advice words a reply holds, as written, once each. */
@@ -662,19 +672,37 @@ export function appWordsIn(text: string, internalWords: readonly string[]): stri
 const USD_AMOUNT = /(?:US)?\$\s?\d|\bUSD\s?\d|\d\s?USD\b/;
 const INR_AMOUNT = /₹\s?\d|\bINR\s?\d|\d\s?INR\b|\bRs\.?\s?\d/;
 
-function currencyName(code: string): string {
+/**
+ * The Own Case markets' other currencies (#113-#115): yen, won and euros, by symbol or code. Read only in the Assignment,
+ * where the one currency allowed is known (the Own Case's). A Topic's allowed currencies are read from its Cases'
+ * dollar and rupee amounts only (turn-facts.ts), so a Topic whose Cases quote yen, won or euros (the annual-report
+ * Topic's Kikkoman, Samsung and LVMH) would be refused its own figures if V7 read these there.
+ */
+const OTHER_CURRENCIES = [
+  { code: "JPY", name: "yen (¥)", amount: /¥\s?\d|\bJPY\s?\d|\d\s?JPY\b/, label: /¥|\bJPY\b/ },
+  { code: "KRW", name: "won (₩)", amount: /₩\s?\d|\bKRW\s?\d|\d\s?KRW\b/, label: /₩|\bKRW\b/ },
+  { code: "EUR", name: "euros (€)", amount: /€\s?\d|\d\s?€|\bEUR\s?\d|\d\s?EUR\b/, label: /€|\bEUR\b/ },
+] as const;
+
+/** A currency code in the words a reply is told: "rupees (₹)", "yen (¥)". */
+export function currencyName(code: string): string {
   if (code === "INR") return "rupees (₹)";
   if (code === "USD") return "dollars ($)";
-  return code;
+  return OTHER_CURRENCIES.find((c) => c.code === code)?.name ?? code;
 }
 
-/** The currencies a reply uses that its Topic does not allow: $ only with dollar examples or a dollar Case, ₹ likewise for rupees. */
+/**
+ * The currencies a reply uses that its Topic does not allow: $ only with dollar examples or a dollar Case, ₹ likewise for
+ * rupees; in the Assignment also ¥, ₩ and € unless the Own Case is in them (G19).
+ */
 function wrongCurrencies(text: string, widgets: ReplyWidget[], ctx: ReplyCheckContext): string[] {
   const allows = (code: string) => ctx.exampleCurrency === code || ctx.caseCurrencies.includes(code);
   const labels = widgets.flatMap((w) => paramStrings(w.params));
   const out: string[] = [];
   if (!allows("USD") && (USD_AMOUNT.test(text) || labels.some((s) => /\$|\bUSD\b/.test(s)))) out.push("dollars ($)");
   if (!allows("INR") && (INR_AMOUNT.test(text) || labels.some((s) => /₹|\bINR\b|\bRs\b/.test(s)))) out.push("rupees (₹)");
+  if (ctx.assignment)
+    for (const c of OTHER_CURRENCIES) if (!allows(c.code) && (c.amount.test(text) || labels.some((s) => c.label.test(s)))) out.push(c.name);
   return out;
 }
 

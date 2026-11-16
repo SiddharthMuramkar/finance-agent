@@ -2,13 +2,13 @@ import { desc, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { ownCases } from "@/db/schema";
 import type { Db } from "@/db/types";
-import type { OwnCaseEstimate, OwnCaseInputs } from "@/finance/own-case";
+import { ownCaseMarket, type OwnCaseEstimate, type OwnCaseInputs } from "@/finance/own-case";
 import { assignmentOpen } from "@/learner/own-cases";
 import { rangeCheck, type RangeFlag } from "@/markets/range-check";
 import type { Effort, Message, ModelClient } from "./model";
 import { CAP_MESSAGES, checkQuota } from "./quota";
-import { checkReply, correctionText, fixReply, type ReplyCheckContext, type ReplyProblem } from "./reply-checks";
-import { openLog, readSettings, sessionForTurn } from "./session-log";
+import { checkReply, correctionText, currencyName, fixReply, type ReplyCheckContext, type ReplyProblem } from "./reply-checks";
+import { isOldModelSession, openLog, readSettings, refreezeIfChanged, retireOldModelSessions, sessionForTurn } from "./session-log";
 import { textOf } from "./transcript";
 import { BUSY_MESSAGE, startTurn, updateTurn } from "./turn-status";
 import { saveStepUsage, stepUsage } from "./usage";
@@ -26,8 +26,8 @@ import { saveStepUsage, stepUsage } from "./usage";
 /** The topic id of the Learner's Assignment Session: not a Course Map Topic, so the navigator never moves to it. */
 export const ASSIGNMENT_SESSION_TOPIC = "assignment";
 
-/** What the Tutor is told of the Learner's Own Case: its one-page note, and the range check's flags. Null: none saved yet. */
-export type AssignmentFacts = { note: string; flags: Pick<RangeFlag, "name" | "sentence">[] } | null;
+/** What the Tutor is told of the Learner's Own Case: its one-page note, the range check's flags and (#113) its currency. Null: none saved yet. */
+export type AssignmentFacts = { note: string; flags: Pick<RangeFlag, "name" | "sentence">[]; currency?: ReturnType<typeof ownCaseMarket>["currency"] } | null;
 
 /** The prefix of the context note code adds after the Learner's message. */
 export const ASSIGNMENT_CONTEXT_PREFIX = "[Assignment context, from code]";
@@ -37,13 +37,20 @@ const MAX_TOKENS = 4000;
 /** The context note: the Own Case as the Notebook shows it, each flag's sentence, and how to answer. */
 export function assignmentContext(facts: AssignmentFacts): string {
   if (!facts) return [ASSIGNMENT_CONTEXT_PREFIX, "The Learner has no Own Case saved yet. Help them pick a company and find its annual report's figures."].join("\n");
+  // The range check's words (src/markets/range-check.ts): the source prints one dated average per industry, not a range,
+  // so "far" is the course's rule and is said as such.
   const flags = facts.flags.length
-    ? ["Inputs far from the industry's usual range (the range check):", ...facts.flags.map((f) => `- ${f.sentence}`), "Name each flagged input in your reply and ask what story it assumes."]
-    : ["No input is far from the industry's usual range. Ask what story the Estimate assumes."];
+    ? [
+        "Inputs the range check flags, each far from its industry's dated figure (a margin or sales to capital under half or over double it, a cost of capital more than 3 points from it):",
+        ...facts.flags.map((f) => `- ${f.sentence}`),
+        "Name each flagged input in your reply and ask what story it assumes.",
+      ]
+    : ["The range check flags no input: none is far from its industry's dated figure. Ask what story the Estimate assumes."];
   return [
     ASSIGNMENT_CONTEXT_PREFIX,
     "The Learner's Own Case:",
     facts.note,
+    ...(facts.currency ? [`Write any amount in ${currencyName(facts.currency)}, the Own Case's currency.`] : []),
     ...flags,
     "Never call a value right or wrong, cheap or dear, undervalued or overvalued, and never say buy or sell: the Own Case is the Learner's story.",
   ].join("\n");
@@ -66,12 +73,14 @@ export async function assignmentFacts(db: Db, learnerId: number): Promise<Assign
     { marginPercent: (inputs.operatingProfit / inputs.sales) * 100, salesToCapital: estimate.salesToCapital, costOfCapitalPercent: estimate.costOfCapitalPercent },
     { market: inputs.market, industry: inputs.industry },
   );
-  return { note: row.note ?? `${row.company}, report of ${row.reportDate}.`, flags: flags.map(({ name, sentence }) => ({ name, sentence })) };
+  const currency = (ownCaseMarket(inputs.market) ?? ownCaseMarket("IN")).currency;
+  return { note: row.note ?? `${row.company}, report of ${row.reportDate}.`, flags: flags.map(({ name, sentence }) => ({ name, sentence })), currency };
 }
 
-/** The reply checks' context in the Assignment: rupees, no quiz, and the flagged inputs' names. */
+/** The reply checks' context in the Assignment: the Own Case's currency (rupees until one is saved), no quiz, and the flagged inputs' names. */
 function checkContext(facts: AssignmentFacts): ReplyCheckContext {
-  return { step: "none", exampleCurrency: "INR", caseCurrencies: ["INR"], openItems: [], internalWords: [ASSIGNMENT_SESSION_TOPIC], assignment: { flagged: facts?.flags.map((f) => f.name) ?? [] } };
+  const currency = facts?.currency ?? "INR";
+  return { step: "none", exampleCurrency: currency, caseCurrencies: [currency], openItems: [], internalWords: [ASSIGNMENT_SESSION_TOPIC], assignment: { flagged: facts?.flags.map((f) => f.name) ?? [] } };
 }
 
 export type AssignmentTurnDeps = { db: Db; client: ModelClient; learnerId: number; admin?: boolean; map?: CourseMap; now?: () => Date };
@@ -93,7 +102,16 @@ export async function runAssignmentTurn(deps: AssignmentTurnDeps, message: strin
   const turn = await startTurn(db, now(), message, learnerId);
   if (!turn) return { ok: false, status: 409, error: BUSY_MESSAGE };
 
-  const session = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  // The Session's frozen model and instructions, kept current as the Study Tutor's are (turn.ts, ADR 0007): a Session
+  // frozen for an older TUTOR_MODEL is closed (it stays readable as an older Session) and a fresh one made, and a deploy
+  // that changed the instructions refreezes them in place. The refreeze sends earlier rows rebuilt (openLog); with no
+  // tools here there is no summary step to run.
+  let target = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  if (isOldModelSession(target)) {
+    await retireOldModelSessions(db, learnerId, ASSIGNMENT_SESSION_TOPIC);
+    target = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  }
+  const session = await refreezeIfChanged(db, target);
   const log = await openLog(db, session.id, now);
   const turnSeq = log.nextSeq;
   await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });

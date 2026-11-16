@@ -24,24 +24,56 @@ const spineItems: OpenItem[] = [
     c.quickTries.flatMap((q) => ("choices" in q && Array.isArray(q.choices) ? [{ prompt: String(q.ask), choices: q.choices.map((x) => x.text), answer: q.choices.find((x) => x.id === q.answer)?.text }] : [])),
   ),
 ];
-const isSpine = (name: E2eScriptName) => /^spine(?:[123]|15)-/.test(name);
+const isSpine = (name: E2eScriptName) => /^(?:spine(?:[123]|15)|statements)-/.test(name);
 /** The ready-Case valuation Topic, whose scripts e2e/spine-15-judge.spec.ts plays. */
 const judge = map.topic("spine-15-value-yourself")!;
-/** Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts) and the ready-Case valuation Topic's are checked against their own Topics. */
-const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")!, "spine15-": judge } as const;
+/**
+ * Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts), the statements Topic's (#90, e2e/spine-statements.spec.ts)
+ * and the ready-Case valuation Topic's are checked against their own Topics.
+ */
+const SPINE_OF = {
+  "spine2-": map.topic("spine-02-money-later")!,
+  "spine3-": map.topic("spine-03-cash")!,
+  "statements-": map.topic("spine-statements")!,
+  "spine15-": judge,
+} as const;
 /** #93's three-turn play of the annual report Topic (e2e/spine-annual-report.spec.ts). */
 const annualReport = map.topic("spine-annual-report")!;
 const isReport = (name: E2eScriptName) => name.startsWith("ar-");
+/** #95's three-turn plays of Spine Topics 4, 5, 6 and 9 (e2e/spine-04-09.spec.ts), by script prefix. */
+const BEGINNER_OF = {
+  "growth-": "spine-04-growth",
+  "margins-": "spine-05-margins",
+  "gcost-": "spine-06-growth-cost",
+  "far-": "spine-08-far-future",
+  // #96's three-turn plays of the next seven Spine Topics (e2e/spine-10-16.spec.ts).
+  "oneshare-": "spine-09-to-one-share",
+  "survive-": "spine-10-survival",
+  "numbers-": "spine-11-story-to-numbers",
+  "multiple-": "spine-12-price-or-value",
+  "assumes-": "spine-13-price-assumes",
+  "wrong-": "spine-14-being-wrong",
+  "yourself-": "spine-15-value-yourself",
+} as const;
+/** Coffee Day's Case is in rupees (#96). */
+const isRupeeCase = (name: E2eScriptName) => name.startsWith("survive-");
+const beginnerTopic = (name: E2eScriptName) => {
+  const id = Object.entries(BEGINNER_OF).find(([prefix]) => name.startsWith(prefix))?.[1];
+  return id ? map.topic(id) : undefined;
+};
+/** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts), and #95's. */
+const splitTopic = (name: E2eScriptName) =>
+  name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : beginnerTopic(name);
 const topicOf = (name: E2eScriptName) =>
-  isReport(name) ? annualReport : (Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic));
+  isReport(name) ? annualReport : (splitTopic(name) ?? Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic));
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
   const t = topicOf(name);
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
-    exampleCurrency: isSpine(name) || isReport(name) ? "USD" : "INR",
-    caseCurrencies: ["USD"],
+    exampleCurrency: isRupeeCase(name) ? "INR" : isSpine(name) || isReport(name) || splitTopic(name) ? "USD" : "INR",
+    caseCurrencies: [isRupeeCase(name) ? "INR" : "USD"],
     openItems: name === "quiz-open" ? openItems : isSpine(name) && checkStep ? spineItems : [],
     internalWords: [t.id, ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)],
   };
@@ -54,9 +86,36 @@ describe("the scripted Tutor", () => {
       "ar-explore",
       "ar-story",
       "assignment-flag",
+      "assumes-concept",
+      "assumes-explore",
+      "assumes-story",
+      "coc-concept",
+      "coc-explore",
+      "coc-story",
       "concept-percent-change",
       "concept-reply-widget",
       "concept-two-ways",
+      "far-concept",
+      "far-explore",
+      "far-story",
+      "gcost-concept",
+      "gcost-explore",
+      "gcost-story",
+      "growth-concept",
+      "growth-explore",
+      "growth-story",
+      "margins-concept",
+      "margins-explore",
+      "margins-story",
+      "multiple-concept",
+      "multiple-explore",
+      "multiple-story",
+      "numbers-concept",
+      "numbers-explore",
+      "numbers-story",
+      "oneshare-concept",
+      "oneshare-explore",
+      "oneshare-story",
       "persona-bank-cut",
       "persona-bps-short",
       "persona-one-hundred",
@@ -64,6 +123,9 @@ describe("the scripted Tutor", () => {
       "persona-why-tiny",
       "plain-reply",
       "quiz-open",
+      "rate-concept",
+      "rate-explore",
+      "rate-story",
       "rejected-draft",
       "reveal-reply",
       "reveal-reply-widget",
@@ -91,10 +153,22 @@ describe("the scripted Tutor", () => {
       "stage-reply-2",
       "stage-reply-3",
       "stage-reply-4",
+      "statements-concept",
+      "statements-explore",
+      "statements-story",
       "story-hike",
       "story-reply",
       "story-trader",
+      "survive-concept",
+      "survive-explore",
+      "survive-story",
+      "wrong-concept",
+      "wrong-explore",
+      "wrong-story",
       "your-turn-reply",
+      "yourself-concept",
+      "yourself-explore",
+      "yourself-story",
     ]);
     // rejected-draft's first draft is the one script the checks must reject (A1): its retry is what passes.
     for (const name of (Object.keys(E2E_SCRIPTS) as E2eScriptName[]).filter((n) => n !== "rejected-draft")) {
@@ -252,5 +326,33 @@ describe("the annual report Topic's scripted Tutor (#93)", () => {
     // Critics round 1 (#94): no word a beginner can't read in the turn. The Cases gloss yuho and IFRS; this line names the
     // reports in plain words (and Nintendo's Case is its results, the kessan tanshin, not the yuho).
     expect(said).not.toMatch(/yuho|IFRS|kessan tanshin/);
+  });
+});
+
+describe("Spine Topics 4 to 9's scripted Tutor after the critics round (#95)", () => {
+  const flat = (t: string) => t.replace(/\s+/g, " ");
+  const growth = map.topic("spine-04-growth")!;
+
+  it("says Uber takes its slice of each fare as its fee, as the Topic does, and leaves 'keeps' for the margin", () => {
+    for (const name of ["growth-story", "growth-concept"] as const) {
+      const said = draftOf(name).text;
+      expect(said).toMatch(/takes (20% )?of each (fare|sale) (it takes )?as its fee|slice of each sale it takes as its fee/);
+      expect(said).not.toMatch(/(slice|20%) of each (fare|sale) it keeps|keeps 20% of each fare/);
+    }
+    expect(flat(growth.concept ?? "")).toContain("takes as its fee");
+  });
+
+  it("names the margin lever's marks by their own labels at Explore", () => {
+    const marks = (map.topic("spine-05-margins")!.explore?.workbench?.inputs.mode as { marks: { label: string }[] }).marks;
+    const said = draftOf("margins-explore").text.toLowerCase();
+    expect(said).toContain("tech giants together");
+    expect(said).toContain("toyota");
+    expect(said).toContain("median carmaker");
+    expect(marks.map((m) => m.label)).toContain("Tech giants together");
+    expect(said).not.toContain("median technology company");
+  });
+
+  it("names the seesaw's far side as the seesaw labels it, after year 10", () => {
+    expect(draftOf("far-explore").text).toContain("after year 10");
   });
 });

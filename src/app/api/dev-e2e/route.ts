@@ -34,7 +34,7 @@ export const runtime = "nodejs";
  * a named state on the fresh Learner (signing this browser in as it); `POST {script}` picks the scripted Tutor's next
  * reply; `POST {reset: true}` is `{state: "fresh"}`; `GET` says which database is open.
  *
- * `POST {person: "owner" | "asha"}` (issue #33) signs this browser in as one of the test bed's people
+ * `POST {person: "owner" | "asha" | "ravi"}` (issue #33) signs this browser in as one of the test bed's people
  * (src/dev/e2e-identity.ts): Clerk is off in the test bed, so a signed `fa_e2e_person` cookie stands in for a Clerk
  * session, and the person's Learner is found or made as a first Clerk sign-in makes it. The owner is the admin.
  * Idempotent: the same person and Learner come back. `ravi` (spec #68) comes back with every Spine Topic passed.
@@ -123,6 +123,24 @@ const STATES: Record<string, Build> = {
   /** Spine Topics 2 and 3 at their Story steps, for their first turns played through the page (#89, e2e/spine-02-03.spec.ts). */
   "spine-02-start": storyOf("spine-02-money-later"),
   "spine-03-start": storyOf("spine-03-cash"),
+  /** The three financial statements at their Story step, for #90's three-turn play (e2e/spine-statements.spec.ts). */
+  "spine-statements-start": storyOf("spine-statements"),
+  /** The risk Topic (the cost of equity) and the cost-of-capital Topic at their Story step, for #91's three-turn play (e2e/spine-rate-split.spec.ts). */
+  "spine-07-start": storyOf("spine-07-risk"),
+  "spine-coc-start": storyOf("spine-cost-of-capital"),
+  /** Spine Topics 4, 5, 6 and 9 at their Story steps, for #95's three-turn plays (e2e/spine-04-09.spec.ts). */
+  "spine-04-start": storyOf("spine-04-growth"),
+  "spine-05-start": storyOf("spine-05-margins"),
+  "spine-06-start": storyOf("spine-06-growth-cost"),
+  "spine-08-start": storyOf("spine-08-far-future"),
+  /** Spine Topics 10 to 16 at their Story steps, for #96's three-turn plays (e2e/spine-10-16.spec.ts). */
+  "spine-09-start": storyOf("spine-09-to-one-share"),
+  "spine-10-start": storyOf("spine-10-survival"),
+  "spine-11-start": storyOf("spine-11-story-to-numbers"),
+  "spine-12-start": storyOf("spine-12-price-or-value"),
+  "spine-13-start": storyOf("spine-13-price-assumes"),
+  "spine-14-start": storyOf("spine-14-being-wrong"),
+  "spine-15-start": storyOf("spine-15-value-yourself"),
   /** The annual report Topic at its Story step, for #93's three-turn play (e2e/spine-annual-report.spec.ts). */
   "spine-ar-start": storyOf("spine-annual-report"),
   /** The Topic at Concept, with one Widget shown by a scripted turn. */

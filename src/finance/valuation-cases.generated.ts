@@ -798,11 +798,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
@@ -989,11 +991,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
@@ -1439,6 +1443,129 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
     ],
     reproduces: true,
   },
+  "spine-coc-amazon-mix": {
+    currency: "USD",
+    unit: "millions",
+    baseRevenue: 1117,
+    growthPercent: [150, 100, 75, 50, 30, 25.2, 20.4, 15.6, 10.8, 6],
+    margin: {
+      startPercent: -36.71,
+      targetPercent: 10,
+      afterPercent: 10,
+    },
+    taxPercent: 35,
+    lossesCarried: 500,
+    salesToCapital: 3,
+    costOfCapitalPercent: [12.84, 12.84, 12.84, 12.83, 12.81, 12.13, 11.62, 11.08, 10.49, 9.61],
+    growthAfterPercent: 6,
+    returnOnCapitalAfterPercent: 20,
+    cash: 26,
+    debt: 349,
+    options: 2892,
+    shares: 340.79,
+    per: "share",
+    price: {
+      value: 84,
+      date: "2000-02-03",
+      note: "The close on 3 February 2000, after the fourth-quarter results; the paper says only February 2000.",
+    },
+    illustration: false,
+    published: {
+      valuePerShare: 35.08,
+      fcff: [-931, -1024, -989, -758, -408, -163, 177, 625, 1174, 1788],
+      note: "Terminal value $52,148m (1,881 / (9.6075% - 6%); the paper prints 9.61%), operating assets $15,170m, equity $14,847m before and $11,955m after the options, over 340.79m shares: $35.08 (his sheet: $35.0805). With the printed two-decimal costs of capital the engine gives $35.04; the gap is rounding.",
+    },
+    sources: [
+      {
+        title: "Damodaran, The Dark Side of Valuation: Firms with no Earnings, no History and no Comparables. Can Amazon.com be valued? (March 2000; valuation done Feb 2000)",
+        url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+      },
+      {
+        title: "Damodaran, amazon2000.xls: the valuation spreadsheet, listed on his Company Valuations page as 'Amazon.com in January 2000'",
+        url: "https://pages.stern.nyu.edu/~adamodar/pc/eqegs/amazon2000.xls",
+      },
+      {
+        title: "Damodaran, Valuation seminar slides (techval.pdf, March 2000): Amazon cost of capital",
+        url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/Seminars/techval.pdf",
+      },
+      {
+        title: "Amazon.com Form 10-K405 for 2000 (SEC EDGAR 0001032210-01-500087)",
+        url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt",
+      },
+    ],
+    reproduces: true,
+  },
+  "spine-statements-webvan-2001": {
+    currency: "USD",
+    unit: "millions",
+    baseRevenue: 4.2,
+    growthPercent: [2757.14, 331.83, 238.67, 91.45, 25, 20, 16.67, 14.29, 12.5, 11.11],
+    margin: {
+      marginPercent: [-128.58, -58.28, -23.14, -5.57, 3.21, 7.61, 9.8, 10.9, 11.45, 11.73],
+      afterPercent: 12,
+    },
+    taxPercent: 35,
+    lossesCarried: 50,
+    salesToCapital: 10,
+    costOfCapitalPercent: [12.35, 12.35, 12.35, 12.35, 12.35, 11.87, 11.39, 10.91, 10.43, 9.95],
+    growthAfterPercent: 5,
+    returnOnCapitalAfterPercent: 15.66,
+    cash: 669.5,
+    debt: 18.2,
+    options: 805.7,
+    shares: 321.845,
+    per: "share",
+    price: {
+      value: 15,
+      date: "1999-11-04",
+      note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
+    },
+    illustration: true,
+    published: {
+      note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
+    },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
+    sources: [
+      {
+        title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
+        url: "https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt",
+      },
+      {
+        title: "Webvan Group, Form 10-K405 for 1999, filed 30 Mar 2000, SEC accession 0000891618-00-001877",
+        url: "https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt",
+      },
+      {
+        title: "Webvan Group, Form 10-K for 2000, filed 2 Apr 2001, SEC accession 0001012870-01-001485",
+        url: "https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt",
+      },
+      {
+        title: "Federal Reserve H.15 Selected Interest Rates, release of 8 Nov 1999 (10-year Treasury 5.95% on 4 Nov 1999)",
+        url: "https://www.federalreserve.gov/releases/h15/19991108/",
+      },
+      {
+        title: "Damodaran, The Dark Side of Valuation: ... Can Amazon.com be valued? (March 2000): beta 1.60 for internet firms, risk premium 4%, beta converging to 1",
+        url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+      },
+      {
+        title: "Damodaran archived industry data, January 1999: operating margins by industry (margin98.xls)",
+        url: "https://pages.stern.nyu.edu/~adamodar/pc/archives/margin98.xls",
+      },
+      {
+        title: "Damodaran archived industry data, January 1999: EVA, ROC and cost of capital by industry (EVA98.xls)",
+        url: "https://pages.stern.nyu.edu/~adamodar/pc/archives/EVA98.xls",
+      },
+      {
+        title: "Tax Policy Center, Historical Corporate Top Tax Rate and Bracket 1909-2014 (1999: 35%)",
+        url: "http://www.taxpolicycenter.org/sites/default/files/legacy/taxfacts/content/pdf/corporate_historical_bracket.pdf",
+      },
+      {
+        title: "New York Times, 6 Nov 1999, 'Webvan Stock Price Closes 65% Above Initial Offering'",
+        url: "https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html",
+      },
+    ],
+    reproduces: false,
+  },
   "tesla-being-wrong-2020": {
     currency: "USD",
     unit: "millions",
@@ -1585,11 +1712,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
@@ -1654,11 +1783,13 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
       note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
     },
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     sources: [
       {
         title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",

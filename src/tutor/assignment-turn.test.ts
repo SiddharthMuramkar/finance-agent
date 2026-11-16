@@ -8,6 +8,7 @@ import { saveOwnCase } from "@/learner/own-cases";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { ASSIGNMENT_SESSION_TOPIC, assignmentContext, runAssignmentTurn } from "./assignment-turn";
+import { TUTOR_MODEL } from "./model";
 import { CAP_MESSAGES, dailyUse } from "./quota";
 import { readSettings } from "./session-log";
 
@@ -17,7 +18,7 @@ import { readSettings } from "./session-log";
 const map = loadCourseMap();
 const NOW = new Date("2026-11-16T10:00:00Z");
 
-/** A food company typed with an operating margin of 45%: far above Food Processing's usual range, so the range check flags it. */
+/** A food company typed with an operating margin of 45%: more than double Food Processing's 7.26%, so the range check flags it. */
 const WIDE_MARGIN: OwnCaseInputs = {
   company: "Tata Consumer Products",
   market: "IN",
@@ -33,11 +34,11 @@ const WIDE_MARGIN: OwnCaseInputs = {
 };
 
 const text = (t: string) => ({ content: [{ type: "text", text: t }] });
-const NAMES_MARGIN = "Your operating margin of 45% is far above Food Processing's usual range in India.\nWhat story about the company does a 45% margin assume?";
+const NAMES_MARGIN = "Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026).\nWhat story about the company does a 45% margin assume?";
 
 async function readyLearner(db: Db, inputs: OwnCaseInputs = WIDE_MARGIN) {
   for (const t of map.topics.filter((t) => t.stage === "spine")) await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: t.id, step: "principle", status: "passed" });
-  const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, inputs, openingEstimate("food"), NOW);
+  const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, inputs, openingEstimate(inputs.industry, inputs.market), NOW);
   expect(saved.ok).toBe(true);
 }
 
@@ -111,16 +112,107 @@ describe("the AI Tutor in the Assignment", () => {
   });
 });
 
+// ADR 0007 (review G06): the Assignment's Session is kept current as the Study Tutor's is (turn.ts). After a TUTOR_MODEL
+// change its Session is closed and a fresh one made, so the turn never calls a model that is gone; after a deploy that
+// changed the instructions, they are refrozen in the same Session.
+describe("the Assignment's Session after a model or instructions change", () => {
+  const sessionsOf = (db: Db) => db.select().from(sessions).where(eq(sessions.learnerId, OWNER_LEARNER_ID)).orderBy(sessions.id);
+  const sent = (r: { messages: unknown }) => JSON.stringify(r.messages);
+
+  it("closes a Session frozen for an older model and runs the turn in a fresh one on TUTOR_MODEL", async () => {
+    const db = await testDb();
+    await readyLearner(db);
+    const { client, requests } = scriptedClient([text("Picture the old margin.\nWhat story does your operating margin assume?"), text(NAMES_MARGIN)]);
+    await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    const [first] = await sessionsOf(db);
+    // As if TUTOR_MODEL changed after this Session was frozen.
+    await db.update(sessions).set({ model: "gpt-6-sol" }).where(eq(sessions.id, first.id));
+
+    const result = await runAssignmentTurn(deps(db, client), "And now?");
+    expect(result).toMatchObject({ ok: true, reply: NAMES_MARGIN });
+    expect(requests[1].model).toBe(TUTOR_MODEL);
+    expect(sent(requests[1])).not.toContain("Picture the old margin.");
+    const [old, fresh] = await sessionsOf(db);
+    expect(old).toMatchObject({ id: first.id, older: true, model: "gpt-6-sol", topicId: ASSIGNMENT_SESSION_TOPIC });
+    expect(fresh).toMatchObject({ older: false, model: TUTOR_MODEL, topicId: ASSIGNMENT_SESSION_TOPIC });
+    if (result.ok) expect(result.sessionId).toBe(fresh.id);
+  });
+
+  it("refreezes changed instructions in the same Session, which keeps its history", async () => {
+    const db = await testDb();
+    await readyLearner(db);
+    const { client, requests } = scriptedClient([text("Picture the first reply.\nWhat story does your operating margin assume?"), text(NAMES_MARGIN)]);
+    await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    const [first] = await sessionsOf(db);
+    const current = { instructions: first.instructions, fingerprint: first.fingerprint };
+    // As if a deploy changed the instructions after this Session was frozen.
+    await db.update(sessions).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." }).where(eq(sessions.id, first.id));
+
+    await runAssignmentTurn(deps(db, client), "And now?");
+    expect(requests[1].instructions).toBe(current.instructions);
+    expect(sent(requests[1])).toContain("Picture the first reply.");
+    const all = await sessionsOf(db);
+    expect(all).toHaveLength(1);
+    expect(all[0]).toMatchObject({ id: first.id, older: false, fingerprint: current.fingerprint });
+    expect(all[0].refrozenAtSeq).toBeGreaterThan(0);
+  });
+});
+
+describe("the AI Tutor on a US Own Case (#113)", () => {
+  it("lets the Tutor write dollars, the Own Case's currency, and names the input flagged against the US yardsticks", async () => {
+    const db = await testDb();
+    const apple: OwnCaseInputs = { company: "Apple Inc.", market: "US", reportDate: "2025-09-27", industry: "market", sales: 416_161, operatingProfit: 133_050, taxPercent: 21, debt: 98_657, cash: 35_934, shares: 14_776_353_000, price: 255.46 };
+    await readyLearner(db, apple);
+    const reply = "Your operating margin of 31.97% on $416,161 million of sales is far above the US usual range.\nWhat story about Apple does that margin assume?";
+    const { client, requests } = scriptedClient([text(reply)]);
+    const result = await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    expect(result).toMatchObject({ ok: true, reply, failed: [] });
+    expect(JSON.stringify(requests[0].messages)).toContain("in the US (Jan 2026)");
+  });
+});
+
+// G19: the reply checks take the Own Case's currency, so a Japanese Own Case's reply may write yen and not rupees.
+describe("the AI Tutor on a Japanese Own Case (#114)", () => {
+  /** Kikkoman's figures (own-cases-japan-korea.test.ts) with its operating profit typed as 45% of sales, so the margin is flagged. */
+  const WIDE_KIKKOMAN: OwnCaseInputs = { company: "Kikkoman", market: "JP", reportDate: "2026-03-31", industry: "food", sales: 745_539, operatingProfit: 335_493, taxPercent: 30.5, debt: 18_217, cash: 111_770, shares: 927_741_900, price: 1_435 };
+
+  it("lets the Tutor write yen, refuses rupees, and is told to write yen", async () => {
+    const db = await testDb();
+    await readyLearner(db, WIDE_KIKKOMAN);
+    const yen = "Your operating margin of 45% on ¥745,539 million of sales is far above the food industry's figure in Japan.\nWhat story about Kikkoman does that margin assume?";
+    const rupees = "Your operating margin of 45% on ₹745,539 million of sales is far above the food industry's figure.\nWhat story about Kikkoman does that margin assume?";
+    const { client, requests } = scriptedClient([text(rupees), text(yen)]);
+    const result = await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    expect(result).toMatchObject({ ok: true, reply: yen, failed: ["V7"], fallback: false });
+    expect(JSON.stringify(requests[0].messages)).toContain("Write any amount in yen (¥)");
+    expect(JSON.stringify(requests[1].messages)).toContain("use yen (¥)");
+  });
+});
+
 describe("assignmentContext", () => {
   it("lists the Own Case's figures and asks the Tutor to name each flagged input without a verdict", () => {
     const lines = assignmentContext({
       note: "Tata Consumer Products, India. Annual report of 31 Mar 2025.",
-      flags: [{ name: "operating margin", sentence: "Your operating margin of 45% is far above Food Processing's usual 3.63% to 14.52% in India." }],
+      flags: [{ name: "operating margin", sentence: "Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it." }],
+      currency: "INR",
     });
     expect(lines).toContain("Tata Consumer Products, India.");
     expect(lines).toContain("Your operating margin of 45% is far above");
     expect(lines).toMatch(/name each flagged input/i);
     expect(lines).toMatch(/what story it assumes/i);
+    expect(lines).toContain("Write any amount in rupees (₹), the Own Case's currency.");
+  });
+
+  // The source prints one dated average per industry, not a range (range-check.ts): the context never calls the
+  // course's half-to-double band the industry's "usual range" (round-1 deferral of F08/F09).
+  it("words the range check as the flag sentences do: the industry's dated figure, not a usual range", () => {
+    const flagged = assignmentContext({ note: "Kikkoman, Japan.", flags: [{ name: "operating margin", sentence: "Your operating margin of 60% is far above x." }], currency: "JPY" });
+    const clean = assignmentContext({ note: "Kikkoman, Japan.", flags: [], currency: "JPY" });
+    for (const lines of [flagged, clean]) {
+      expect(lines).not.toMatch(/usual range/i);
+      expect(lines).toMatch(/industry's dated figure/);
+      expect(lines).toContain("Write any amount in yen (¥), the Own Case's currency.");
+    }
   });
 
   it("says when no Own Case is saved yet", () => {

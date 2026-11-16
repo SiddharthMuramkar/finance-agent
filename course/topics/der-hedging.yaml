@@ -48,7 +48,7 @@ concept: >
   how much the exposure swings by how much the hedge swings, then multiply that by their correlation,
   how closely the two move together. A hedge never removes
   all risk: basis risk is what is left when the hedge instrument and the exposure do not move
-  together. Leverage multiplies a position's sensitivity: an asset with duration D loses about D x
+  together. Leverage multiplies a position's sensitivity: an asset with duration D loses about D times
   the change in yield in percent of its value, and on the borrower's own money that is multiplied by
   assets divided by equity. Good risk management also asks whether the position can be funded
   through a bad period, who bears the loss, and what the people who rely on it have been told.

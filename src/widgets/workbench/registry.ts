@@ -3,7 +3,7 @@ import type { ValuationBlock } from "@/finance/valuation-case";
 import type { OwnCases } from "@/finance/valuation-lookup";
 import { benchSettings, type BenchLever, type BenchReading, type BenchShape } from "./bench";
 import { cashWaterfallFromCase, cashWaterfallLevers, cashWaterfallModel, cashWaterfallReading, cashWaterfallShape, cashWaterfallTasks, type CashWaterfallData } from "./cash-waterfall-model";
-import { bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, decoderFiguresSchema, leasesSchema, sourceSchema } from "./data-schemas";
+import { bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, decoderFiguresSchema, leasesSchema, sourceSchema, stackStorySchema } from "./data-schemas";
 import { multipleDecoderLevers, multipleDecoderModel, multipleDecoderReading, multipleDecoderShape, multipleDecoderTasks, type MultipleDecoderData } from "./multiple-decoder-model";
 import { terminalSeesawLevers, terminalSeesawModel, terminalSeesawReading, terminalSeesawShape, terminalSeesawTasks, type TerminalSeesawData } from "./terminal-seesaw-model";
 import { valueBridgeLevers, valueBridgeModel, valueBridgeReading, valueBridgeShape, valueBridgeTasks, type ValueBridgeData } from "./value-bridge-model";
@@ -20,7 +20,13 @@ import { waccStackLevers, waccStackModel, waccStackReading, waccStackShape, wacc
 // Cases first, then there (spec #68), so the Tutor reads a Widget on an Own Case as the page draws it.
 
 /** A Workbench lever as the check lists it for the Tutor: the prop holding its $variable, its name and its range. */
-export type WorkbenchLeverInfo = { prop: string; name: string; min: number; max: number; step: number };
+export type WorkbenchLeverInfo = {
+  prop: string;
+  name: string;
+  min: number;
+  max: number;
+  step: number;
+};
 
 export type WorkbenchEntry = {
   part: string;
@@ -47,8 +53,16 @@ type Typed<D, Id extends string> = {
   levers(data: D): BenchLever<Id>[];
   shape(data: D): BenchShape;
   tasks(data: D): string[];
-  reading(data: D, settings: Record<Id, number>, props: Record<string, unknown>): BenchReading;
-  conditions(data: D, settings: Record<Id, number>, props: Record<string, unknown>): (boolean | null)[];
+  reading(
+    data: D,
+    settings: Record<Id, number>,
+    props: Record<string, unknown>,
+  ): BenchReading;
+  conditions(
+    data: D,
+    settings: Record<Id, number>,
+    props: Record<string, unknown>,
+  ): (boolean | null)[];
 };
 
 /** A typed entry with its data parsed once per call, erased to what the check needs. */
@@ -75,7 +89,18 @@ function entry<D, Id extends string>(spec: Typed<D, Id>): WorkbenchEntry {
     levers: (props, ownCases) => {
       const d = data(props, ownCases);
       if (d === null) return [];
-      return spec.levers(d).map((l) => ({ prop: l.id, name: l.title && l.title !== l.label ? `${l.title}: ${l.label.toLowerCase()}` : l.label, min: l.min, max: l.max, step: l.step }));
+      return spec
+        .levers(d)
+        .map((l) => ({
+          prop: l.id,
+          name:
+            l.title && l.title !== l.label
+              ? `${l.title}: ${l.label.toLowerCase()}`
+              : l.label,
+          min: l.min,
+          max: l.max,
+          step: l.step,
+        }));
     },
     reading: (props, ownCases) => {
       const d = data(props, ownCases);
@@ -92,11 +117,18 @@ function entry<D, Id extends string>(spec: Typed<D, Id>): WorkbenchEntry {
 function caseOf(id: unknown): { block: ValuationBlock } | { problem: string } {
   const block = typeof id === "string" ? valuationCase(id) : null;
   if (block) return { block };
-  return { problem: `${typeof id === "string" ? `"${id}"` : "This part"} is not a Valuation Case. Cases: ${valuationCaseIds().join(", ")}.` };
+  return {
+    problem: `${typeof id === "string" ? `"${id}"` : "This part"} is not a Valuation Case. Cases: ${valuationCaseIds().join(", ")}.`,
+  };
 }
 
 /** A zod issue list as one line. */
-const issues = (error: { issues: { path: PropertyKey[]; message: string }[] }) => error.issues.map((i) => `${i.path.map(String).join(".") || "value"}: ${i.message}`).join("; ");
+const issues = (error: {
+  issues: { path: PropertyKey[]; message: string }[];
+}) =>
+  error.issues
+    .map((i) => `${i.path.map(String).join(".") || "value"}: ${i.message}`)
+    .join("; ");
 
 const valueLevers = entry<ValueLeversData, string>({
   part: "ValueLevers",
@@ -119,7 +151,9 @@ const valueLevers = entry<ValueLeversData, string>({
 });
 
 /** A ValueBridge part's data: its Valuation Case and any leases counted as debt. */
-export function valueBridgeData(props: Record<string, unknown>): { data: ValueBridgeData } | { problem: string } {
+export function valueBridgeData(
+  props: Record<string, unknown>,
+): { data: ValueBridgeData } | { problem: string } {
   const found = caseOf(props.caseId);
   if ("problem" in found) return found;
   const data: ValueBridgeData = { block: found.block };
@@ -143,12 +177,20 @@ const valueBridge = entry<ValueBridgeData, string>({
   levers: valueBridgeLevers,
   shape: valueBridgeShape,
   tasks: valueBridgeTasks,
-  reading: (data, settings) => valueBridgeReading(data, settings as Parameters<typeof valueBridgeReading>[1]),
-  conditions: (data, settings) => valueBridgeModel(data, settings as Parameters<typeof valueBridgeModel>[1]).conditions,
+  reading: (data, settings) =>
+    valueBridgeReading(
+      data,
+      settings as Parameters<typeof valueBridgeReading>[1],
+    ),
+  conditions: (data, settings) =>
+    valueBridgeModel(data, settings as Parameters<typeof valueBridgeModel>[1])
+      .conditions,
 });
 
 /** A TerminalSeesaw part's data: its Valuation Case. */
-export function terminalSeesawData(props: Record<string, unknown>): { data: TerminalSeesawData } | { problem: string } {
+export function terminalSeesawData(
+  props: Record<string, unknown>,
+): { data: TerminalSeesawData } | { problem: string } {
   const found = caseOf(props.caseId);
   return "problem" in found ? found : { data: { block: found.block } };
 }
@@ -160,19 +202,57 @@ const terminalSeesaw = entry<TerminalSeesawData, string>({
   levers: terminalSeesawLevers,
   shape: terminalSeesawShape,
   tasks: terminalSeesawTasks,
-  reading: (data, settings) => terminalSeesawReading(data, settings as Parameters<typeof terminalSeesawReading>[1]),
-  conditions: (data, settings) => terminalSeesawModel(data, settings as Parameters<typeof terminalSeesawModel>[1]).conditions,
+  reading: (data, settings) =>
+    terminalSeesawReading(
+      data,
+      settings as Parameters<typeof terminalSeesawReading>[1],
+    ),
+  conditions: (data, settings) =>
+    terminalSeesawModel(
+      data,
+      settings as Parameters<typeof terminalSeesawModel>[1],
+    ).conditions,
 });
 
 /** A WaccStack part's data: the Case's figures with their source, and the Valuation Case whose value it sets, if any. */
-export function waccStackData(props: Record<string, unknown>): { data: WaccStackData } | { problem: string } {
-  const figures = costOfCapitalFiguresSchema.safeParse(props.figures);
+export function waccStackData(
+  props: Record<string, unknown>,
+): { data: WaccStackData } | { problem: string } {
+  // The story rides in the figures in the Widget's code (`{...figures, story}`), which keeps the part's signature, and so
+  // the frozen instructions, as they were (src/widgets/widget-fixes.test.tsx); the recipe and tests may pass it apart.
+  const packed =
+    props.figures &&
+    typeof props.figures === "object" &&
+    "story" in props.figures
+      ? (props.figures as Record<string, unknown>)
+      : null;
+  const { story: packedStory, ...plain } = packed ?? {};
+  const figures = costOfCapitalFiguresSchema.safeParse(
+    packed ? plain : props.figures,
+  );
   if (!figures.success) return { problem: `figures: ${issues(figures.error)}` };
   const source = sourceSchema.safeParse(props.source);
   if (!source.success) return { problem: `source: ${issues(source.error)}` };
-  if (props.caseId === undefined || props.caseId === null) return { data: { inputs: figures.data, source: source.data } };
+  const given = props.story ?? packedStory;
+  const told =
+    given === undefined || given === null
+      ? null
+      : stackStorySchema.safeParse(given);
+  if (told && !told.success) return { problem: `story: ${issues(told.error)}` };
+  const story = told?.data ? { story: told.data } : {};
+  if (props.caseId === undefined || props.caseId === null)
+    return { data: { inputs: figures.data, source: source.data, ...story } };
   const found = caseOf(props.caseId);
-  return "problem" in found ? found : { data: { inputs: figures.data, source: source.data, block: found.block } };
+  return "problem" in found
+    ? found
+    : {
+        data: {
+          inputs: figures.data,
+          source: source.data,
+          block: found.block,
+          ...story,
+        },
+      };
 }
 
 const waccStack = entry<WaccStackData, string>({
@@ -182,19 +262,32 @@ const waccStack = entry<WaccStackData, string>({
   levers: waccStackLevers,
   shape: waccStackShape,
   tasks: waccStackTasks,
-  reading: (data, settings) => waccStackReading(data, settings as Parameters<typeof waccStackReading>[1]),
-  conditions: (data, settings) => waccStackModel(data, settings as Parameters<typeof waccStackModel>[1]).conditions,
+  reading: (data, settings) =>
+    waccStackReading(data, settings as Parameters<typeof waccStackReading>[1]),
+  conditions: (data, settings) =>
+    waccStackModel(data, settings as Parameters<typeof waccStackModel>[1])
+      .conditions,
 });
 
 /** The Cash waterfall's year: a Valuation Case's base year, or a company's from the Topic file. */
-export function cashWaterfallData(base: unknown): { data: CashWaterfallData } | { problem: string } {
-  const record = typeof base === "object" && base !== null ? (base as Record<string, unknown>) : {};
+export function cashWaterfallData(
+  base: unknown,
+): { data: CashWaterfallData } | { problem: string } {
+  const record =
+    typeof base === "object" && base !== null
+      ? (base as Record<string, unknown>)
+      : {};
   if (record.caseId !== undefined) {
     const found = caseOf(record.caseId);
-    return "problem" in found ? found : { data: cashWaterfallFromCase(found.block) };
+    return "problem" in found
+      ? found
+      : { data: cashWaterfallFromCase(found.block) };
   }
   const company = companyYearSchema.safeParse(record.company);
-  if (!company.success) return { problem: `base: a Valuation Case ({caseId}) or a company ({company}) is needed; ${issues(company.error)}` };
+  if (!company.success)
+    return {
+      problem: `base: a Valuation Case ({caseId}) or a company ({company}) is needed; ${issues(company.error)}`,
+    };
   const c = company.data;
   return {
     data: {
@@ -217,14 +310,31 @@ const cashWaterfall = entry<CashWaterfallData, string>({
   levers: cashWaterfallLevers,
   shape: cashWaterfallShape,
   tasks: () => cashWaterfallTasks(),
-  reading: (data, settings) => cashWaterfallReading(data, settings as Parameters<typeof cashWaterfallReading>[1]),
-  conditions: (data, settings) => cashWaterfallModel(data, settings as Parameters<typeof cashWaterfallModel>[1]).conditions,
+  reading: (data, settings) =>
+    cashWaterfallReading(
+      data,
+      settings as Parameters<typeof cashWaterfallReading>[1],
+    ),
+  conditions: (data, settings) =>
+    cashWaterfallModel(
+      data,
+      settings as Parameters<typeof cashWaterfallModel>[1],
+    ).conditions,
 });
 
 /** A MultipleDecoder part's data: the company's and its peers' multiples, the figures held still, and where the levers open. */
-export function multipleDecoderData(props: Record<string, unknown>): { data: MultipleDecoderData } | { problem: string } {
-  const figures = decoderFiguresSchema.safeParse({ subject: props.subject, peers: props.peers, assumptions: props.assumptions, opening: props.opening });
-  return figures.success ? { data: figures.data } : { problem: issues(figures.error) };
+export function multipleDecoderData(
+  props: Record<string, unknown>,
+): { data: MultipleDecoderData } | { problem: string } {
+  const figures = decoderFiguresSchema.safeParse({
+    subject: props.subject,
+    peers: props.peers,
+    assumptions: props.assumptions,
+    opening: props.opening,
+  });
+  return figures.success
+    ? { data: figures.data }
+    : { problem: issues(figures.error) };
 }
 
 const multipleDecoder = entry<MultipleDecoderData, string>({
@@ -234,16 +344,34 @@ const multipleDecoder = entry<MultipleDecoderData, string>({
   levers: multipleDecoderLevers,
   shape: multipleDecoderShape,
   tasks: multipleDecoderTasks,
-  reading: (data, settings) => multipleDecoderReading(data, settings as Parameters<typeof multipleDecoderReading>[1]),
-  conditions: (data, settings) => multipleDecoderModel(data, settings as Parameters<typeof multipleDecoderModel>[1]).conditions,
+  reading: (data, settings) =>
+    multipleDecoderReading(
+      data,
+      settings as Parameters<typeof multipleDecoderReading>[1],
+    ),
+  conditions: (data, settings) =>
+    multipleDecoderModel(
+      data,
+      settings as Parameters<typeof multipleDecoderModel>[1],
+    ).conditions,
 });
 
 /** Every Workbench part by name. */
-export const WORKBENCH_ENTRIES: Record<string, WorkbenchEntry> = Object.fromEntries(
-  [valueLevers, valueBridge, terminalSeesaw, waccStack, cashWaterfall, multipleDecoder].map((e) => [e.part, e]),
-);
+export const WORKBENCH_ENTRIES: Record<string, WorkbenchEntry> =
+  Object.fromEntries(
+    [
+      valueLevers,
+      valueBridge,
+      terminalSeesaw,
+      waccStack,
+      cashWaterfall,
+      multipleDecoder,
+    ].map((e) => [e.part, e]),
+  );
 
 /** The Workbench entry of a part, or undefined for any other part. */
 export function workbenchEntry(typeName: string): WorkbenchEntry | undefined {
-  return Object.hasOwn(WORKBENCH_ENTRIES, typeName) ? WORKBENCH_ENTRIES[typeName] : undefined;
+  return Object.hasOwn(WORKBENCH_ENTRIES, typeName)
+    ? WORKBENCH_ENTRIES[typeName]
+    : undefined;
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AMAZON_2000 } from "@/finance/fixtures/amazon-2000.valuation";
 import { valuationBlock } from "@/finance/valuation-case";
+import { valuationCase } from "@/finance/valuation-cases";
 import {
   barTop,
   biggestMover,
@@ -8,6 +9,7 @@ import {
   leversMoved,
   moneySpoken,
   moneyText,
+  moveText,
   NO_MOVES,
   NO_RUN,
   openingSettings,
@@ -50,6 +52,13 @@ describe("the levers (B3)", () => {
     expect(byId.revenue.reading(39)).toBe("$39bn");
     expect(byId.revenue.spoken(39)).toBe("39 billion dollars");
     expect(byId.revenue.caption).toBe("Today: $1.1bn");
+  });
+
+  // Spine critics round 1 on #95 (historian): Webvan's $4.2m base is its prospectus's sales from launch to 30 Sep 1999, not a
+  // year's sales "today"; a block that names its base year's revenue shows that name in place of "Today".
+  it("names the base revenue as the Case's block does, when it says what the figure is", () => {
+    const webvan = valuationCase("webvan-centre-npv-2000")!;
+    expect(leverSpecs(webvan).find((s) => s.id === "revenue")!.caption).toBe("Sales, Jun to Sep 1999: $4.2m");
   });
 
   it("What it keeps: operating margin once mature, 2% to 20% in steps of 0.5, opening at 10%", () => {
@@ -258,6 +267,16 @@ describe("money in yen, won and euros (#112)", () => {
     expect(moneySpoken(1e-6, euros)).toBe("1 euro");
     expect(priceText(8.4, euros)).toBe("€8.40");
     expect(priceText(712.3, euros)).toBe("€712");
+  });
+
+  it("says the biggest move to the currency's minor unit, grouped: whole won and yen, never '₩1500.00'", () => {
+    expect(moveText(1500, won)).toBe("₩1,500");
+    expect(moveText(12.6, yen)).toBe("¥13");
+    expect(moveText(1.5, euros)).toBe("€1.50");
+    expect(moveText(1234.5, valuationBlock.parse(AMAZON_2000))).toBe("$1,234.50");
+    const amazon = valuationBlock.parse(AMAZON_2000);
+    expect(biggestMover({ moved: 1, mostLever: 1, mostBy: 1500 }, leverSpecs(won), won)?.by).toBe("₩1,500");
+    expect(biggestMover({ moved: 1, mostLever: 1, mostBy: 10.04 }, leverSpecs(amazon), amazon)?.by).toBe("$10.04");
   });
 
   it("names the unit invested in the Case's own currency on lever 3", () => {

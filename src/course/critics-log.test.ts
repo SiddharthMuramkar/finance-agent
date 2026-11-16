@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CRITICS_LOG_PATH, criticsLogErrors } from "./critics-log";
-import { loadCourseMap } from "./map";
+import { loadCourseMap, readOutlineText } from "./map";
+import { parseOutline, spineTopics } from "./outline";
 
 // Spec 2026-11-12 C8: a Spine Topic ships only when the course check and the critics pass. The course check holds the
 // critics' record: every written Spine Topic read by the four critics C8 names, with no confirmed finding left open.
@@ -43,9 +44,9 @@ describe("the critics' record for the Spine (C8)", () => {
     expect(criticsLogErrors([{ id: "e1", stage: "foundation" }], null)).toEqual([]);
   });
 
-  it("holds for the real course: all sixteen Spine Topics have a passing record", () => {
+  it("holds for the real course: every Spine Topic in the outline is written and has a passing record", () => {
     const map = loadCourseMap();
-    expect(map.topics.filter((t) => t.stage === "spine")).toHaveLength(16);
+    expect(map.topics.filter((t) => t.stage === "spine")).toHaveLength(spineTopics(parseOutline(readOutlineText()).outline!).length);
     expect(criticsLogErrors(map.topics, readFileSync(CRITICS_LOG_PATH, "utf8"))).toEqual([]);
   });
 });

@@ -11,7 +11,8 @@ describe("pressed toggle", () => {
   it("the LingoCard's In the story button has a visible pressed face in the stylesheet", () => {
     const css = readFileSync(join(DIR, "../../../app/globals.css"), "utf8");
     expect(css).toMatch(/\.btn\[aria-pressed="true"\]/);
-    const source = readFileSync(join(DIR, "lingo-card.tsx"), "utf8");
+    // The card's face lives in LingoCardView (#103: the Full sheet's rows draw it without OpenUI); lingo-card.tsx wraps it.
+    const source = readFileSync(join(DIR, "lingo-card-view.tsx"), "utf8");
     expect(source).not.toContain("story-toggle");
     expect(source).toContain("pressed={turned}");
   });

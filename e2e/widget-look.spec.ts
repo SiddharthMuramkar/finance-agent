@@ -62,7 +62,8 @@ const PARTS: Part[] = [
   { ticket: "#105", fixture: "value-levers-readings", root: "value-levers", press: '[data-story="case"]' },
   { ticket: "#105", fixture: "wacc-stack-readings", root: "wacc-stack" },
 ];
-const PROJECTS = ["mbp14"];
+// And mbp14-dark: the same audits in Dark (ADR 0019, #80), on a device set to dark.
+const PROJECTS = ["mbp14", "mbp14-dark"];
 const NONE = { fills: [], text: [], shadows: [], tilted: [], heavy: [], semibold: [] };
 const SHOTS = join("docs", "specs", "img", "2026-11-11");
 

@@ -107,7 +107,7 @@ Section 6 explains each step.
 
 ### 5.1 Public site (Signal)
 
-A signed-out visitor can read these pages: Home (`/`), How it works (`/how-it-works`), Examples (`/examples`), the five Example pages (`/examples/<slug>`) and About (`/about`). The files are in `src/app/(site)/`. One data file, `src/site/examples.ts`, lists the five Examples. The proxy, the pages and Home all read it, so they always agree. The proxy also lets a signed-out visitor open `/join`, `/sign-in` and `/sign-up`.
+A signed-out visitor can read these pages: Home (`/`), How it works (`/how-it-works`), Examples (`/examples`), the five Example pages (`/examples/<slug>`), About (`/about`), Privacy (`/privacy`) and Terms (`/terms`). The files are in `src/app/(site)/`. One data file, `src/site/examples.ts`, lists the five Examples. One route list, `src/site/routes.ts`, names every public page and file: the proxy, the no-store headers, the sitemap and the browser tests all read it, so they always agree. The proxy also lets a signed-out visitor open `/join`, `/sign-in` and `/sign-up`, the share cards, the icons, `robots.txt` and `sitemap.xml`. Any other unknown path outside the signed-in pages gets the 404 page (`src/app/not-found.tsx`).
 
 Each Example shows one Signal widget: Jackpot, Four levers, Compounding, Rates or WeWork.
 
@@ -115,7 +115,7 @@ Each Example shows one Signal widget: Jackpot, Four levers, Compounding, Rates o
 - Its numbers come from tested models in `src/finance/signal/`. Four levers runs on the one valuation engine, `src/finance/dcf-engine.ts` ([ADR 0010](adr/0010-one-valuation-engine.md)).
 - No Tutor runs on the public pages. The "Call" in a widget starts a Tutor turn only in the Study Workspace ([ADR 0012](adr/0012-only-the-call-starts-a-turn.md)).
 
-The whole app has one Light theme, in the Signal colour language: five colours and one pattern, and each has one meaning ([ADR 0015](adr/0015-one-light-theme-colour-language.md)). The tokens are in `src/app/globals.css`. Controls are flat, sections use hairlines, and pictures are line icons ([ADR 0018](adr/0018-flat-controls-hairlines-line-icons.md)). The spec is [`docs/specs/value-it-signal-spec.md`](specs/value-it-signal-spec.md).
+The whole app has two themes, Light and Dark, both in the Signal colour language: five colours and one pattern, and each has one meaning ([ADR 0015](adr/0015-one-light-theme-colour-language.md), [ADR 0019](adr/0019-light-and-dark-device-first.md)). A first visit follows the device; a switch in the site nav flips the theme and keeps the choice in a cookie. The tokens of both themes are in `src/app/globals.css`, and `scripts/check-theme-contrast.mjs` measures both. Controls are flat, sections use hairlines, and pictures are line icons ([ADR 0018](adr/0018-flat-controls-hairlines-line-icons.md)). The spec is [`docs/specs/value-it-signal-spec.md`](specs/value-it-signal-spec.md).
 
 The site's join button opens `/join`, which shows Clerk's Waitlist (section 5.4).
 
@@ -314,7 +314,7 @@ Since the load on 2026-11-16, production holds no 2nd edition passages, and #41 
 
 Pictures and spreadsheets have their own loaders (`scripts/library-pictures.mjs`, `scripts/library-sheets.mjs`). Each week, the cron route (`src/app/api/cron/library-refresh/route.ts`) runs `src/library/refresh.ts`. It adds new or edited posts from Damodaran's blog.
 
-**New sources are tested on a copy first.** They load first into a Neon branch copy, not into `main`. There they are embedded and scored. Only after a pass do they load into production. The bars are: 72 or more of 78 questions with the right passage in the top 5 (92%), MRR of 0.82 or more, and clean outcome-word probes. On 2026-11-15, the new Library passed on a copy: 75 of 78, MRR 0.827, probes 19 of 19. The write-up is [`docs/library/2026-11-15-sources-eval.md`](library/2026-11-15-sources-eval.md).
+**New sources are tested on a copy first.** They load first into a Neon branch copy, not into `main`. There they are embedded and scored. Only after a pass do they load into production. The bars are: 92% or more of the original questions with the right passage in the top 5 (72 of 78; 63 of 68 since #118, below), MRR of 0.82 or more, and clean outcome-word probes. On 2026-11-15, the new Library passed on a copy: 75 of 78, MRR 0.827, probes 19 of 19. The write-up is [`docs/library/2026-11-15-sources-eval.md`](library/2026-11-15-sources-eval.md).
 
 **The production load** is a separate step by hand. It ran on 2026-11-16:
 
@@ -331,6 +331,8 @@ Scores on production, with BM25 and Voyage together:
 - The outcome-word probes are clean: 19 of 19.
 - The 12 open Signal questions: 9 of 12 in the top 5, MRR 0.542.
 - With keywords only (no Voyage): 71 of 78, MRR 0.715.
+
+**The Yale lectures left the Library (#118).** Their terms bar a fee-charging tutor service. On a copy, after the removal, the 78 original questions scored 64 of 78 and MRR 0.742, failing both bars; every new miss expected a Yale lecture. The question set (`scripts/library/eval/questions.json`) then dropped the 10 questions whose only answer was a Yale lecture. Two more (bubbles and psychology; forwards and futures for hedging) now expect the passages already read and judged to answer them (`alsoExpect`). That leaves 68 original questions. No Yale passage is left to find, so the other questions keep their ranks from that run: 66 of 68 in the top 5 (97%), 55 first, MRR 0.88. Both bars pass. A live score on the next load confirms it.
 
 After a load, re-dump the Library (section 11).
 

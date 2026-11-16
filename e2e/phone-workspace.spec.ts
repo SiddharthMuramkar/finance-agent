@@ -116,3 +116,25 @@ test("[#82] the sheet's own Back button returns to the same place, and leaves no
   expect(await page.evaluate(() => (history.state as { panelOpen?: boolean } | null)?.panelOpen ?? false)).toBe(false);
   await expect(page.getByTestId("chat-column")).toBeVisible();
 });
+
+test("[#82] the open sheet is a modal dialog: focus moves in, the conversation is out of reach, Escape closes it and focus returns to the chip", async ({ page }) => {
+  await studyWithWidget(page);
+  const { chip, place } = await chipInMiddle(page);
+  await chip.tap();
+  const dialog = page.getByRole("dialog", { name: "Widget sheet" });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back to the conversation" })).toBeFocused();
+  // The conversation under the sheet is inert: out of the tab order and the accessibility tree.
+  expect(await page.getByTestId("chat-column").evaluate((el) => !!el.closest("[inert]"))).toBe(true);
+  for (let i = 0; i < 6; i++) {
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]')), "Tab stays in the sheet").toBe(true);
+  }
+  await page.keyboard.press("Escape");
+  await expect(sheet(page)).toBeHidden();
+  await expect(chip).toBeFocused();
+  expect(await scrollTop(page), "the same place in the conversation").toBe(place);
+  expect(await page.getByTestId("chat-column").evaluate((el) => !!el.closest("[inert]"))).toBe(false);
+  await expect(page).toHaveURL(/\/study$/);
+  expect(await page.evaluate(() => (history.state as { panelOpen?: boolean } | null)?.panelOpen ?? false), "no Back step left").toBe(false);
+});

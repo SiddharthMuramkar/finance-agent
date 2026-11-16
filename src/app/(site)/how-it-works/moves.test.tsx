@@ -36,7 +36,7 @@ describe("How it works' moves", () => {
     expect([...host.querySelectorAll(".v-rail button")].map((b) => b.textContent)).toEqual(["Meet the moment", "Learn the lingo", "Try it", "Value it"]);
     expect(host.querySelector(".v-rail")?.textContent).toContain("Running example: Amazon, Feb 2000");
     expect(host.querySelector("#move-1 .v-dateline")?.textContent).toBe("February 2000.");
-    expect(host.querySelector("#move-1 .v-facts")?.textContent).toContain("$1,117M");
+    expect(host.querySelector("#move-1 .v-facts")?.textContent).toContain("$1,117 million");
   });
 
   // Signal spec 7.3: the rail marks the move in view. The mark sits on the move's list item (a Button may not carry

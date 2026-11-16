@@ -1,15 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { BEGINNER_LISTS, BEGINNER_STARTED_WITH, beginnerCheckErrors, type BeginnerLists } from "./beginner-check";
+import { beginnerCheckErrors } from "./beginner-check";
 import { loadCourseMap, type Topic } from "./map";
 import { spineData, spineTopic } from "./spine-fixture";
 
 // The beginner rules in the course check (spec #68): a Spine Topic brings at most four new words, no Spine Check asks for
-// the Learner's own story, no "your story" wording, and every Spine Topic has a daily-life line. Each rule starts with a
-// list of the Topics that fail it today, and the list can only shrink.
-
-const ID = "spine-01-worth";
-const none: BeginnerLists = { newWords: [], ownStory: [], yourStory: [], dailyLife: [] };
-const all: BeginnerLists = { newWords: [ID], ownStory: [ID], yourStory: [ID], dailyLife: [ID] };
+// the Learner's own story, no "your story" wording, and every Spine Topic has a daily-life line. Every Spine Topic
+// follows every rule; there are no lists of known failures. A converted Elective (one with Skills) needs its daily-life line too.
 
 /** The fixture with "your story" in its Workbench title: it then breaks all four rules. */
 const breaksAll = (): Topic =>
@@ -26,73 +22,42 @@ const followsAll = (): Topic =>
     }),
   );
 
-const check = (topic: Topic, lists: BeginnerLists) => beginnerCheckErrors([topic], { lists, startedWith: all });
-
 describe("the beginner rules in the course check (spec #68)", () => {
-  it("passes the real Course Map with each rule's list of known failures", () => {
+  it("passes the whole Spine of the real Course Map", () => {
     expect(beginnerCheckErrors(loadCourseMap().topics)).toEqual([]);
   });
 
-  it("passes a Topic that breaks every rule while it is on every list", () => {
-    expect(check(breaksAll(), all)).toEqual([]);
+  it("passes a Topic that follows every rule", () => {
+    expect(beginnerCheckErrors([followsAll()])).toEqual([]);
   });
 
-  it("passes a Topic that follows every rule and is on no list", () => {
-    expect(check(followsAll(), none)).toEqual([]);
-  });
-
-  it("fails a Topic taken off the new-words list until it brings at most four new words", () => {
-    expect(check(breaksAll(), { ...all, newWords: [] })).toEqual([
+  it("reports every rule a Spine Topic breaks", () => {
+    expect(beginnerCheckErrors([breaksAll()])).toEqual([
       'Spine Topic "spine-01-worth" brings 5 new words (price, value, revenue, operating margin, cost of capital); a Spine Topic brings at most 4: move the rest to Go deeper or an Elective (spec #68)',
-    ]);
-  });
-
-  it("fails a Topic taken off the own-story list until no Check asks for the Learner's own story", () => {
-    expect(check(breaksAll(), { ...all, ownStory: [] })).toEqual([
       'Spine Topic "spine-01-worth" has a Check "worth-talk" that asks for the Learner\'s own story ("Tell Amazon\'s story"); a Spine Check judges a Story instead (spec #68)',
-    ]);
-  });
-
-  it('fails a Topic taken off the "your story" list until it no longer says "your story"', () => {
-    expect(check(breaksAll(), { ...all, yourStory: [] })).toEqual([
       'Spine Topic "spine-01-worth" says "your story" at explore.workbench.title; name whose Story it is instead (spec #68)',
-    ]);
-  });
-
-  it("fails a Topic taken off the daily-life list until it has a daily-life line", () => {
-    expect(check(breaksAll(), { ...all, dailyLife: [] })).toEqual([
       'Spine Topic "spine-01-worth" has no daily-life line; give it a dailyLife line from a beginner\'s day (spec #68)',
     ]);
   });
 
-  it("fails a listed Topic that follows the rule, so the list only shrinks", () => {
-    expect(check(followsAll(), all)).toEqual([
-      'List: Topic "spine-01-worth" follows the new-words rule: remove it from NEW_WORDS_NOT_YET in src/course/beginner-check.ts',
-      'List: Topic "spine-01-worth" follows the own-story rule: remove it from OWN_STORY_NOT_YET in src/course/beginner-check.ts',
-      'List: Topic "spine-01-worth" follows the "your story" rule: remove it from YOUR_STORY_NOT_YET in src/course/beginner-check.ts',
-      'List: Topic "spine-01-worth" follows the daily-life rule: remove it from DAILY_LIFE_NOT_YET in src/course/beginner-check.ts',
+  it("takes no lists of known failures", () => {
+    expect(beginnerCheckErrors.length).toBe(1);
+  });
+
+  it("reads Spine Topics only, apart from the daily-life line on a converted Elective", () => {
+    expect(beginnerCheckErrors([{ ...breaksAll(), stage: "foundation", skills: [] } as Topic])).toEqual([]);
+    expect(beginnerCheckErrors([{ ...breaksAll(), stage: "foundation", dailyLife: "A sale sign says 20% off." } as Topic])).toEqual([]);
+  });
+
+  it("fails a converted Elective (one with Skills) that has no daily-life line (spec story 57, review 2 G32)", () => {
+    expect(beginnerCheckErrors([{ ...breaksAll(), id: "num-percent-bps", stage: "foundation" } as Topic])).toEqual([
+      'Elective "num-percent-bps" has Skills (a converted Topic) but no daily-life line; give it a dailyLife line from a beginner\'s day (spec #68 story 57)',
     ]);
   });
 
-  it("fails a Topic added to a list it did not start on, even one that breaks the rule", () => {
-    const errors = beginnerCheckErrors([breaksAll()], { lists: all, startedWith: { ...all, newWords: [] } });
-    expect(errors).toEqual([
-      'List: Topic "spine-01-worth" was added to NEW_WORDS_NOT_YET, which only shrinks: make the Topic follow the rule instead (src/course/beginner-check.ts)',
-    ]);
-  });
-
-  it("fails an id on a list that is not a Spine Topic", () => {
-    const errors = check(breaksAll(), { ...all, dailyLife: [ID, "spine-99-gone"] });
-    expect(errors).toEqual(['List: "spine-99-gone" is on DAILY_LIFE_NOT_YET but is not a Spine Topic: remove it from src/course/beginner-check.ts']);
-  });
-
-  it("keeps each list sorted with one id each, so tickets that delete ids merge cleanly", () => {
-    for (const ids of [...Object.values(BEGINNER_LISTS), ...Object.values(BEGINNER_STARTED_WITH)]) {
-      expect(ids).toEqual([...new Set(ids)].sort());
-    }
-  });
-
-  it("reads Spine Topics only", () => {
-    expect(beginnerCheckErrors([{ ...breaksAll(), stage: "foundation" } as Topic], { lists: none, startedWith: none })).toEqual([]);
+  it("gives every converted Elective on the real Course Map a daily-life line", () => {
+    const electives = loadCourseMap().topics.filter((t) => t.stage !== "spine" && t.skills.length > 0);
+    expect(electives.map((t) => t.id).sort()).toEqual(["num-compounding", "num-percent-bps"]);
+    for (const t of electives) expect(t.dailyLife, t.id).toBeTruthy();
   });
 });
