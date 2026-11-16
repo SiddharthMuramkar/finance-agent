@@ -44,7 +44,10 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   await form.locator('[data-own-case-field="shares"]').fill("20,60,01,719");
   await form.getByRole("button", { name: "Value it" }).click();
   const value = form.locator('[data-own-case-result="value"]');
-  await expect(value).toContainText(/^The engine's value: -?₹[\d,.]+ a share, beside a price of ₹328 on 21 Oct 2015\.$/);
+  // On the industry's opening Estimate, Coffee Day's debt outweighs its business: never a negative price (F06), but ₹0
+  // and the words Value levers uses, on screen and in the note.
+  await expect(value).toHaveText("The engine's value: ₹0 a share, beside a price of ₹328 on 21 Oct 2015. Lenders take everything: nothing is left for shareholders.");
+  await expect(form.locator("[data-own-case-options]")).toHaveText("Employee stock options are not entered: the engine counts none.");
   await form.getByRole("button", { name: "Save to Notebook" }).click();
   await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
 
@@ -54,7 +57,8 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   await expect(note).toContainText("Coffee Day Enterprises");
   await expect(note).toContainText("Coffee Day Enterprises, India. Annual report of 21 Oct 2015. Industry: Food processors.");
   await expect(note).toContainText("price ₹328 on 21 Oct 2015");
-  await expect(note).toContainText("The engine's value: ");
+  await expect(note).toContainText("The engine's value: ₹0 a share");
+  await expect(note).toContainText("nothing is left for shareholders");
 });
 
 test("a Learner who has not passed the Spine finds the Assignment closed", async ({ person }) => {
