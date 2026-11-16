@@ -360,9 +360,8 @@
 .v-legend .v-callout { position: static; flex: none; }
 .v-path { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 64px); }
 .v-core { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
-.v-core li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 15.5px; }
+.v-core li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 15.5px; }
 .v-core .n { color: var(--muted); font-variant-numeric: tabular-nums; }
-.v-core .min { color: var(--muted); font-size: 14px; white-space: nowrap; }
 .v-counts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .v-counts li { display: flex; justify-content: space-between; gap: 12px; font-size: 15.5px; border-bottom: 1px solid var(--rule); padding: 8px 0; }
 

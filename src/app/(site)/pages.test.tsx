@@ -206,6 +206,14 @@ describe("About", () => {
   it("shows no minutes per Topic until they are measured", async () => {
     expect(words(renderToStaticMarkup(await AboutPage()))).not.toMatch(/Each Topic \d/);
   });
+
+  // #72/#75 (F15): the outline's minutes are guesses, so no public page or its description shows a length.
+  it("no public page shows minutes, since none are measured", async () => {
+    for (const page of [await HomePage(), await HowItWorksPage(), await ExamplesPage(), await AboutPage()]) {
+      expect(words(renderToStaticMarkup(page))).not.toMatch(/\bminutes?\b|\d+ min\b/i);
+    }
+    expect(String(howMeta.description)).not.toMatch(/minute/i);
+  });
 });
 
 // #75: Home's "Where you end up" shows a real one-page note: the one the Assignment saves to the Notebook after the
@@ -291,18 +299,17 @@ describe("the course counts", () => {
   it("read the Spine's length from the outline: 16 Topics on #93's branch, ending on the annual report Topic", async () => {
     const home = words(renderToStaticMarkup(await HomePage()));
     expect(home).toContain("111 Topics wait inside. 16 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
-    expect(home).toContain("111 Topics 10 to 15 minutes each");
-    expect(home).toContain("One real event. Four moves. Ten to fifteen minutes.");
+    expect(home).toContain("One real event. Four moves.");
     expect(home).toContain("Five Examples, open now");
 
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
-    expect(how).toContain("taught in four moves , in 10–15 minutes.");
-    expect(how).toContain("16 core Topics 01 What is a business worth? Price against value, and the four levers 10 min 02 Why is money later worth less? 12 min");
-    expect(how).toContain("15 Judge a published valuation, as of a past date 15 min");
-    expect(how).toContain("16 Where are a valuation's numbers in an annual report? 13 min");
+    expect(how).toContain("taught in four moves .");
+    expect(how).toContain("16 core Topics 01 What is a business worth? Price against value, and the four levers 02 Why is money later worth less?");
+    expect(how).toContain("15 Judge a published valuation, as of a past date");
+    expect(how).toContain("16 Where are a valuation's numbers in an annual report?");
     expect(how).toContain("9 subjects Numbers & time value 6 Financial statements 11 Economics & policy 11 Bonds & credit 7 Currencies & countries 4 Markets & investing 9 Valuation & corporate finance 12 Derivatives 5 Banks, crises & the system 7");
     expect(how).toContain("3 stages that read real arguments Follow , understand what a writer argues 9 Judge , spot where an argument is weak 8 Analyse , reach your own view from the numbers 6");
-    expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves, in 10 to 15 minutes.");
+    expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
     expect(about).toContain("Topics 111 Subjects 9 Stages that read real arguments 3 Price Free in early access");
@@ -331,16 +338,13 @@ describe("the course counts", () => {
 
     const home = words(renderToStaticMarkup(await HomePage()));
     expect(home).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
-    expect(home).toContain("10 to 14 minutes each");
-    expect(home).toContain("Ten to fourteen minutes.");
 
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
     expect(how).toContain("14 core Topics 01 What is a business worth?");
-    expect(how).toContain("03 Cash, the first statement 12 min");
+    expect(how).toContain("03 Cash, the first statement");
     expect(how).not.toContain("Judge a published valuation");
     expect(how).toContain("Derivatives 4");
     expect(how).toContain("Judge , spot where an argument is weak 9");
-    expect(how).toContain("in 10–14 minutes.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
     expect(about).not.toContain("Each Topic"); // #75: no minutes until measured

@@ -170,9 +170,9 @@ export const home = {
     // A visitor's first action opens the jackpot Example (the page finds it by its widget); Join the waitlist comes second.
     tryIt: "Try the jackpot",
     secondary: { member: "Course map" },
+    // #72/#75: no minutes until they are measured.
     facts: {
       topics: (c: CourseFacts) => `${c.topics} Topics`,
-      minutes: (c: CourseFacts) => `${c.minutes.low} to ${c.minutes.high} minutes each`,
     },
   },
   demo: {
@@ -187,7 +187,7 @@ export const home = {
   },
   moves: {
     eyebrow: "How a Topic works",
-    h2: (c: CourseFacts) => `One real event. Four moves. ${Say(c.minutes.low)} to ${say(c.minutes.high)} minutes.`,
+    h2: "One real event. Four moves.",
     link: "See a Topic step by step",
   },
   levers: {
@@ -291,9 +291,8 @@ export const FAQ = [
 export const howItWorks = {
   eyebrow: "How it works",
   h1: "How a Topic works",
-  lede: (c: CourseFacts) =>
-    `Every Topic is **one real event, taught in four moves**, in ${c.minutes.low}–${c.minutes.high} minutes. You never type a number to answer: you tap, drag and explain in your own words.`,
-  description: (c: CourseFacts) => `Every Topic is one real event, taught in four moves, in ${c.minutes.low} to ${c.minutes.high} minutes.`,
+  lede: "Every Topic is **one real event, taught in four moves**. You never type a number to answer: you tap, drag and explain in your own words.",
+  description: "Every Topic is one real event, taught in four moves.",
   rail: {
     title: "Running example: Amazon, Feb 2000",
     moveOf: (n: number) => `Move ${n} of 4`,
@@ -349,7 +348,6 @@ export const howItWorks = {
     subjects: (c: CourseFacts) => `${c.bySubject.length} subjects`,
     stages: (c: CourseFacts) => `${c.byStage.length} stages that read real arguments`,
     number: (n: number) => String(n).padStart(2, "0"),
-    minutes: (n: number) => `${n} min`,
   },
   closing: "Start with Topic 1: What is a business worth?",
 } as const;

@@ -69,7 +69,6 @@ export default async function HomePage() {
           <CtaNote viewer={viewer} />
           <ul className="v-hero-facts">
             <li>{home.hero.facts.topics(course)}</li>
-            <li>{home.hero.facts.minutes(course)}</li>
           </ul>
         </div>
         <TutorDemo />
@@ -77,7 +76,7 @@ export default async function HomePage() {
 
       <section className="v-section v-rule-top" aria-labelledby="moves-h" data-site-section="moves">
         <div className="v-wrap">
-          <SectionHead eyebrow={home.moves.eyebrow} title={home.moves.h2(course)} id="moves-h" />
+          <SectionHead eyebrow={home.moves.eyebrow} title={home.moves.h2} id="moves-h" />
           <ol className="v-moves">
             {MOVES.map((move, i) => (
               <li key={move.name}>
