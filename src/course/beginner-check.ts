@@ -65,13 +65,56 @@ type Rule = keyof BeginnerLists;
 export const BEGINNER_LISTS: BeginnerLists = { newWords: NEW_WORDS_NOT_YET, ownStory: OWN_STORY_NOT_YET, yourStory: YOUR_STORY_NOT_YET, dailyLife: DAILY_LIFE_NOT_YET };
 
 /**
- * The lists as spec #68's ticket #87 wrote them. Never edit: a list id that is not here was added, and fails.
+ * The lists as spec #68's ticket #87 wrote them (commit 43812ba), frozen as literals so they cannot follow the live lists.
+ * Never edit: a list id that is not here was added, and fails.
  */
 export const BEGINNER_STARTED_WITH: BeginnerLists = {
-  newWords: [...NEW_WORDS_NOT_YET],
-  ownStory: [...OWN_STORY_NOT_YET],
-  yourStory: [...YOUR_STORY_NOT_YET],
-  dailyLife: [...DAILY_LIFE_NOT_YET],
+  newWords: [
+    "spine-01-worth",
+    "spine-02-money-later",
+    "spine-03-cash",
+    "spine-04-growth",
+    "spine-05-margins",
+    "spine-06-growth-cost",
+    "spine-07-risk",
+    "spine-09-to-one-share",
+    "spine-10-survival",
+    "spine-11-story-to-numbers",
+    "spine-12-price-or-value",
+  ],
+  ownStory: [
+    "spine-01-worth",
+    "spine-05-margins",
+    "spine-06-growth-cost",
+    "spine-07-risk",
+    "spine-10-survival",
+    "spine-11-story-to-numbers",
+    "spine-14-being-wrong",
+    "spine-15-value-yourself",
+  ],
+  yourStory: [
+    "spine-01-worth",
+    "spine-12-price-or-value",
+    "spine-13-price-assumes",
+    "spine-14-being-wrong",
+    "spine-15-value-yourself",
+  ],
+  dailyLife: [
+    "spine-02-money-later",
+    "spine-03-cash",
+    "spine-04-growth",
+    "spine-05-margins",
+    "spine-06-growth-cost",
+    "spine-07-risk",
+    "spine-08-far-future",
+    "spine-09-to-one-share",
+    "spine-10-survival",
+    "spine-11-story-to-numbers",
+    "spine-12-price-or-value",
+    "spine-13-price-assumes",
+    "spine-14-being-wrong",
+    "spine-15-value-yourself",
+  ],
 };
 
 const LIST_NAME: Record<Rule, string> = {

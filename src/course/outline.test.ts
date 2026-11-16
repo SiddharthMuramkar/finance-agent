@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap } from "./map";
-import { isElective, parseOutline, renderCourseMapDoc, SPINE_LENGTH, spineCountProblems, spineTopics, SUBJECTS, usedInSpine } from "./outline";
+import { isElective, parseOutline, renderCourseMapDoc, SPINE_LENGTH, SPINE_MAX, spineCountProblems, spineTopics, SUBJECTS, usedInSpine } from "./outline";
 
 function entry(id: string, extra = "", cases = defaultCase(id)) {
   return `  - id: ${id}
@@ -204,10 +204,11 @@ describe("the Spine on the outline", () => {
     expect(problems(spineEntry("s1", 1, "    minutes: 20\n"))).toEqual(['Spine Topic "s1" takes 20 minutes; a Spine Topic takes 15 or fewer']);
   });
 
-  it("holds SPINE_LENGTH Spine Topics (18 once the splits land) and rejects a Spine number past it (ADR 0020)", () => {
-    const full = Array.from({ length: SPINE_LENGTH }, (_, i) => spineEntry(`s${i + 1}`, i + 1));
+  it("may hold up to SPINE_MAX (18) Spine Topics and rejects a Spine number past it (ADR 0020)", () => {
+    expect(SPINE_MAX).toBe(18);
+    const full = Array.from({ length: SPINE_MAX }, (_, i) => spineEntry(`s${i + 1}`, i + 1));
     expect(problems(...full)).toEqual([]);
-    expect(problems(...full, spineEntry(`s${SPINE_LENGTH + 1}`, SPINE_LENGTH + 1)).join()).toContain("spine");
+    expect(problems(...full, spineEntry(`s${SPINE_MAX + 1}`, SPINE_MAX + 1)).join()).toContain("spine");
   });
 
   it("the course check requires exactly SPINE_LENGTH Spine Topics, no fewer (#93, ADR 0020)", () => {

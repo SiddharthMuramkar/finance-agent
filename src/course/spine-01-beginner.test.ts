@@ -16,6 +16,13 @@ describe("Spine Topic 1 for beginners", () => {
     expect(topic.cases[0].story).toMatch(/\bA share is\b/);
   });
 
+  it("puts on a card each new word its texts use, and says 'sales', never 'revenue' (F12)", () => {
+    expect(topic.terms.map((t) => t.term)).toEqual(["price", "value", "operating margin", "cost of capital"]);
+    const texts = topicTexts(topic).map((t) => t.text);
+    expect(texts.some((t) => /\bcost of capital\b/i.test(t))).toBe(true);
+    expect(texts.filter((t) => /\brevenue\b/i.test(t))).toEqual([]);
+  });
+
   it("asks for no own story: its second Check is a judging Check by tap, under the same id", () => {
     expect(topic.checks.map((c) => [c.id, c.kind])).toEqual([
       ["worth-check", "quiz"],

@@ -17,7 +17,7 @@ const map = loadCourseMap();
 const me = OWNER_LEARNER_ID;
 const TOPIC = "spine-01-worth";
 const topic = map.topic(TOPIC)!;
-const LINE = "A flat's asking price is a price; what its rent over the years is worth to you is a value, and the two can differ.";
+const LINE = "A headline says a firm is worth $50bn. A price someone paid, or a value someone argued?";
 const now = () => new Date();
 
 /** The Learner at Topic 1's `step` with both its Checks passed, in its Session. */
