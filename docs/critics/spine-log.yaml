@@ -28,21 +28,22 @@ topics:
     note: Round 3 (ws-i-round2) read the Topic rebuilt on one Webvan Case, its computed questions on Webvan's own plan; 2 confirmed, fixed. Findings in ws-i-round2-critics.json in pull request 616's history.
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "cdf4f01"
+    rounds: 3
+    lastRound: "8303798"
     open: 0
+    note: Round 3 (#95, beginner clean-up) - 4 terms, "life cycle" moved to Go deeper, a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
   spine-05-margins:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "131125b"
+    rounds: 4
+    lastRound: "8303798"
     open: 0
-    note: Round 3 on the unit economics content, in two halves. Beginner persona and math police on ws-f2-spine (fixed in 0cb474f, ws-f2-spine-round2.json in pull request 616's history); historian and widget fit on ws-i-round2, 1 confirmed, fixed (ws-i-round2-critics.json in pull request 616's history).
+    note: Round 4 (#95, beginner clean-up) - 4 terms, "unit economics" moved to Go deeper, margins-talk now judges a given Tesla Story, a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
   spine-06-growth-cost:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 3
-    lastRound: "0cb474f"
+    rounds: 4
+    lastRound: "8303798"
     open: 0
-    note: Round 3 on the reinvestment rate content, in two halves. Beginner persona and math police on ws-f2-spine (fixed in 0cb474f); historian and widget fit on ws-i-round2 confirmed nothing (ws-i-round2-critics.json in pull request 616's history).
+    note: Round 4 (#95, beginner clean-up) - 4 terms, "reinvestment rate" moved to Go deeper, growth-cost-talk now judges a given Webvan Story, a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
   spine-07-risk:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 2
@@ -56,9 +57,10 @@ topics:
     note: New with the split of the risk Topic (#91). The entry lands with the Topic file, as the course check needs; the round itself is the orchestrator's critics round after the build, which sets lastRound to the commit that fixed its confirmed findings.
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "7756465"
+    rounds: 3
+    lastRound: "8303798"
     open: 0
+    note: Round 3 (#95, beginner clean-up) - a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
   spine-09-to-one-share:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 3
