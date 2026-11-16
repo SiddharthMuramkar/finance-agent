@@ -108,6 +108,9 @@ const STATES: Record<string, Build> = {
   "spine-01-start": storyOf(SPINE_ONE),
   /** The annual report Topic at its Story step, for #93's three-turn play (e2e/spine-annual-report.spec.ts). */
   "spine-ar-start": storyOf("spine-annual-report"),
+  /** Spine Topics 2 and 3 at their Story steps, for their first turns played through the page (#89, e2e/spine-02-03.spec.ts). */
+  "spine-02-start": storyOf("spine-02-money-later"),
+  "spine-03-start": storyOf("spine-03-cash"),
   /** The Topic at Concept, with one Widget shown by a scripted turn. */
   "concept-widget": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);
