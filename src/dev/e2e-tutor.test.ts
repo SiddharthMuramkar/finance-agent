@@ -240,4 +240,14 @@ describe("the annual report Topic's scripted Tutor (#93)", () => {
     expect(shown[0]).toMatchObject({ id: "value_bridge", params: { inputs: { case: "spine-ar-amazon-2000", report: annualReport.explore?.workbench?.inputs.report } } });
     expect(annualReport.explore?.workbench).toMatchObject({ recipe: "value_bridge", case: "spine-ar-amazon-2000" });
   });
+
+  it("says at Concept that Japan, Korea and Europe keep the same two pages, each under the name of a Case's report (#94)", () => {
+    const said = draftOf("ar-concept").text;
+    const stories = annualReport.cases.map((c) => flat(c.story)).join(" ");
+    for (const [market, report] of [["Japan", "yuho"], ["Korea", "business report"], ["Europe", "IFRS"]]) {
+      expect(said).toContain(market);
+      expect(said).toContain(report);
+      expect(stories).toContain(report);
+    }
+  });
 });
