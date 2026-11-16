@@ -81,7 +81,8 @@ export function useWidgetHost({
   // What the panel shows: the Check while there is one, unless the Learner picked a Widget; else the picked or newest Widget.
   const picker = useWidgetPicker(widgets, { newest: drawn.at(-1)?.key, check: !!tab, review });
   // On a phone, Back closes the open view; `close` goes through Back so no stale step is left.
-  const close = useBackCloses(picker.open, picker.close, useScreen() === "phone");
+  const phone = useScreen() === "phone";
+  const close = useBackCloses(picker.open, picker.close, phone);
   const check = tab
     ? {
         name: checkTabName(tab),
@@ -97,7 +98,8 @@ export function useWidgetHost({
   const slot: WidgetSlot = ({ messageId, index }) => {
     const item = widgets.find((w) => holdsKey(w, `${messageId}:${index}`));
     if (!item) return null;
-    const chip = <WidgetChip item={item} active={item.key === picker.view} onPick={picker.pick} />;
+    // On a phone a Widget shows only while its sheet is up, so a chip says Showing only then (#82).
+    const chip = <WidgetChip item={item} active={item.key === picker.view && (!phone || picker.open)} onPick={picker.pick} />;
     return <WidgetRetryContext.Provider value={retry}>{chip}</WidgetRetryContext.Provider>;
   };
 

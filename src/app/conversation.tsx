@@ -204,6 +204,8 @@ export function Conversation({
               <PrimaryClaims>
               <WorkspaceFrame
                 split={split}
+                open={host.open}
+                onClose={host.close}
                 left={<LeftColumn turn={turn} slot={host.slot} quizOpen={!!quiz} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
                 bar={<WorkspaceTopicBar messages={turn.messages} strip={strip} place={place} />}
                 top={<TopicHeader review={review} explore={explore} />}
