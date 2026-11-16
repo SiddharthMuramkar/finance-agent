@@ -81,3 +81,38 @@ describe("the test people never ship", () => {
     expect(check('async function f() {\n  if (process.env.NODE_ENV === "production") {\n    await import("@/dev/e2e-identity");\n  }\n}')).toBe(false);
   });
 });
+
+/**
+ * The test bed's stand-in for Clerk's card (src/dev/clerk-stand-in.tsx, issue #76) never ships either: one loader
+ * (src/app/sign-in/provider-card.tsx) imports it, behind a NODE_ENV test in the same function; no file imports it at the
+ * top. scripts/check-no-e2e-in-build.mjs checks a build for its `data-clerk-stand-in` mark.
+ */
+describe("the Clerk stand-in never ships", () => {
+  const STAND_IN = `["'][^"']*clerk-stand-in(?:\\.tsx)?["']`;
+  const LOADER = "src/app/sign-in/provider-card.tsx";
+
+  it("only the loader imports it, behind a NODE_ENV test, and nothing imports it at the top", () => {
+    const staticImports: string[] = [];
+    const loaders: string[] = [];
+    const unguarded: string[] = [];
+    for (const path of sources(join(root, "src"))) {
+      const file = relative(root, path);
+      const text = readFileSync(path, "utf8");
+      const valueImports = [...text.matchAll(new RegExp(String.raw`\b(?:import|export)\b[^;]*?from\s*${STAND_IN}`, "g"))].filter((m) => !/^import\s+type\b/.test(m[0]));
+      if (valueImports.length > 0) staticImports.push(file);
+      const at = [...text.matchAll(new RegExp(String.raw`import\(\s*${STAND_IN}\s*\)`, "g"))].map((m) => m.index);
+      if (at.length === 0) continue;
+      loaders.push(file);
+      for (const i of at) if (!guarded(text, i)) unguarded.push(file);
+    }
+    expect(staticImports).toEqual([]);
+    expect(loaders).toEqual([LOADER]);
+    expect(unguarded).toEqual([]);
+  });
+
+  it("the stand-in carries the mark the build check looks for, and the loader does not", () => {
+    expect(readFileSync(join(root, "src/dev/clerk-stand-in.tsx"), "utf8")).toContain("data-clerk-stand-in={");
+    expect(readFileSync(join(root, LOADER), "utf8")).not.toContain("data-clerk-stand-in");
+    expect(readFileSync(join(root, "scripts/check-no-e2e-in-build.mjs"), "utf8")).toContain("data-clerk-stand-in");
+  });
+});
