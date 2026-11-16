@@ -1,7 +1,8 @@
 // Market readings for Europe (spec #68, ticket #115), in the shape of src/markets/readings.ts (which lists them with the
 // rest, so the course check holds every one to a date, a source, a credit and a link). Europe has its industry
 // yardsticks (Damodaran's January 2026 update; sheet "Industry Averages", "Date updated" 2026-01-05) and a dated
-// risk-free reading: the 10-year German federal bond yield on 30 Oct 2026, from the Deutsche Bundesbank. Nothing is live
+// risk-free reading: the 10-year rate on the Bundesbank's German federal bond yield curve on 30 Oct 2026 (a Svensson
+// zero-coupon rate, about 0.1 point above the 10-year coupon yield: G27, so it is named as that). Nothing is live
 // (ADR 0013): each is history from its own day. Values were read on 2026-11-16 from the sources linked and rounded to
 // two decimals.
 //
@@ -56,21 +57,21 @@ const yardsticks = ROWS.flatMap((row) =>
   }),
 );
 
-/** The euro's 10-year risk-free reading on a stated day: the German federal bond yield an Own Case's growth stays under. */
+/** The euro's 10-year risk-free reading on a stated day: the German federal bond yield curve's 10-year rate an Own Case's growth stays under. */
 const riskFree = {
   id: "eu-risk-free-10y",
-  label: "10-year German federal bond yield (Europe)",
+  label: "10-year rate on the German federal bond yield curve (Europe)",
   market: "EU" as const,
   kind: "risk_free" as const,
   value: 3.4,
   unit: "percent" as const,
   date: "2026-10-30",
-  source: "Deutsche Bundesbank, yields on listed Federal securities, residual maturity 10 years (daily)",
+  source: "Deutsche Bundesbank, term structure of interest rates on listed Federal securities (Svensson method), residual maturity 10.0 years (daily)",
   sourceUrl: "https://api.statistiken.bundesbank.de/rest/download/BBSIS/D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A?format=csv&lang=en",
   credit: "Deutsche Bundesbank",
   checkedOn: CHECKED,
   checkNote:
-    'Series BBSIS.D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A (term structure by the Svensson method, 10.0 years), row "2026-10-30", value 3.40 percent. The ECB\'s AAA euro-area 10-year spot rate that day was 3.365%.',
+    'Series BBSIS.D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A ("Term structure of interest rates on listed Federal securities (method by Svensson) / residual maturity of 10.0 years / daily data"), row "2026-10-30", value 3.40 percent; re-read 2026-11-16. A zero-coupon rate fitted to the curve, not the coupon yield of one bond. The ECB\'s AAA euro-area 10-year spot rate that day was 3.365%.',
 };
 
 export const EUROPE_READINGS = [...yardsticks, riskFree];

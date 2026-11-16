@@ -94,6 +94,19 @@ export const ownCaseReadingIds = (market: OwnCaseMarket, industry: OwnCaseIndust
 
 const isMarket = (m: string): m is OwnCaseMarket => (OWN_CASE_MARKETS as readonly string[]).includes(m);
 
+/**
+ * The Market readings an Own Case's opening Estimate takes (the market's dated risk-free reading, then the industry's
+ * three yardsticks) that are dated after its report's date (G17). The course has one reading of each, so an Own Case dated
+ * before it opens at figures nobody knew on that day; the form says so on screen rather than hide it. Empty when every
+ * reading is on or before the report's date, or the date is not a day yet.
+ */
+export function readingsAfterReport(market: OwnCaseMarket, industry: OwnCaseIndustry, reportDate: string): MarketReading[] {
+  if (!isMarket(market) || !isDay(reportDate)) return [];
+  const riskFree = MARKET_ROWS[market].riskFree;
+  const yardsticks = ownCaseReadingIds(market, industry).flatMap((id) => marketReading(id) ?? []);
+  return [...(riskFree ? [riskFree] : []), ...yardsticks].filter((r) => r.date > reportDate);
+}
+
 /** What the Learner types from the annual report. Money in the market's report unit (₹ crore, ¥, ₩ or € millions); shares as the plain count the report prints. */
 export type OwnCaseInputs = {
   company: string;

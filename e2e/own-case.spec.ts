@@ -45,6 +45,17 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   await form.locator('[data-own-case-field="shares"]').fill("20,60,01,719");
   await form.getByRole("button", { name: "Value it" }).click();
   const value = form.locator('[data-own-case-result="value"]');
+  await expect(value).toBeVisible();
+  // G15: an edit after Value it clears the result, so Save never stores figures the screen did not value.
+  await form.locator('[data-own-case-field="cash"]').fill("3679");
+  await expect(value).toHaveCount(0);
+  await expect(form.getByRole("button", { name: "Save to Notebook" })).toHaveCount(0);
+  await form.locator('[data-own-case-field="cash"]').fill(FIGURES.cash);
+  await form.getByRole("button", { name: "Value it" }).click();
+  // G17: India's yardsticks are of Jan 2026, long after a 2015 report: the form says so on screen.
+  await expect(form.locator("[data-own-case-later-readings]")).toHaveText(
+    "Dated after your report’s date (21 Oct 2015): the industry's yardsticks of Jan 2026. Nobody knew them on that day, so your Estimate opens at figures from after the price.",
+  );
   // On the industry's opening Estimate, Coffee Day's debt outweighs its business: never a negative price (F06), but ₹0
   // and the words Value levers uses, on screen and in the note.
   await expect(value).toHaveText("The engine's value: ₹0 a share, beside a price of ₹328 on 21 Oct 2015. Lenders take everything: nothing is left for shareholders.");
@@ -82,15 +93,18 @@ test("[#111] Go deeper on an Own Case opens the Full sheet, says where each inpu
   const sheet = deeper.getByTestId("full-sheet");
   const origin = (row: string) => sheet.locator(`[data-row="${row}"] [data-origin]`);
   for (const row of ["baseRevenue", "taxRate", "cash", "debt", "shares", "price"]) await expect(origin(row), row).toHaveAttribute("data-origin", "typed");
-  for (const row of ["salesToCapital", "costOfCapital", "marginAfter", "returnOnCapitalAfter"]) await expect(origin(row), row).toHaveAttribute("data-origin", "yardstick");
-  for (const row of ["growth", "growthAfter", "lossesCarried", "options", "failure"]) await expect(origin(row), row).toHaveAttribute("data-origin", "default");
+  for (const row of ["salesToCapital", "costOfCapital", "marginAfter"]) await expect(origin(row), row).toHaveAttribute("data-origin", "yardstick");
+  for (const row of ["growth", "growthAfter", "returnOnCapitalAfter", "lossesCarried", "options", "failure"]) await expect(origin(row), row).toHaveAttribute("data-origin", "default");
+  await expect(origin("returnOnCapitalAfter")).toHaveText("A default: the same as the cost of capital after year 10");
   await expect(origin("margin")).toHaveText("You typed it; then the industry's yardstick");
   await expect(sheet.locator('[data-row="price"]')).toContainText("₹328");
   // Nothing on the sheet can be typed into: sliders and tap buttons only (ADR 0020).
   await expect(sheet.locator('input:not([type="range"]), textarea')).toHaveCount(0);
 
+  // The sheet and the form agree: Coffee Day's value is below zero on this Estimate, so both read ₹0 (F06).
   const value = deeper.getByTestId("own-case-sheet-value");
   expect(rupees((await value.textContent())!)).toBe(rupees(formValue!));
+  await expect(value).toHaveText("The engine's value with these rows: ₹0 a share. Lenders take everything: nothing is left for shareholders.");
 
   // A slider: no debt at all is the value of typing a debt of 0 into the form.
   const debt = sheet.getByRole("slider", { name: "Change: Debt the company owes" });
@@ -145,7 +159,12 @@ test("beside every field, the Own Case form shows where it sits in an Indian ann
   await expect(form.locator('[data-own-case-guide="debt"] a[data-guide-source]')).toContainText("Ind AS 116");
 });
 
-/** Apple's Form 10-K for the year to 27 Sep 2025, in $ millions, as a Learner copies it (#113). */
+/**
+ * Apple's Form 10-K for the year to 27 Sep 2025, in $ millions, as a Learner copies it (#113). Dated when its figures were
+ * public (F07, G33): EDGAR's "Filing Date" 2025-10-31
+ * (https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.html), with Nasdaq's
+ * close that day, $270.37 (Yahoo Finance AAPL daily history, read 2026-11-16).
+ */
 const APPLE = {
   sales: "416,161",
   operatingProfit: "133,050",
@@ -153,7 +172,7 @@ const APPLE = {
   debt: "98,657",
   cash: "35,934",
   shares: "14,776,353,000",
-  price: "255.46",
+  price: "270.37",
 } as const;
 
 test("[#113] a Spine-passed Learner values a US company from its 10-K, with the guide and the dated US readings, to a note", async ({ person }) => {
@@ -172,12 +191,15 @@ test("[#113] a Spine-passed Learner values a US company from its 10-K, with the 
   await expect(form.locator('[data-own-case-guide="sales"] [data-guide-lingo] > summary')).toHaveText("Lingo: Net sales");
 
   await form.getByLabel("Company").fill("Apple Inc.");
-  await form.getByLabel("Date of the annual report").fill("2025-09-27");
+  await form.getByLabel("Date of the annual report").fill("2025-10-31");
   await form.locator('[data-industry="software"]').click();
   // The US risk-free reading and the industry's yardsticks, each dated, credited and linked.
   const riskFree = form.locator('[data-risk-free="us-risk-free-10y"]');
   await expect(riskFree).toContainText("4.94% on 30 Oct 2026");
   await expect(riskFree.locator("a[data-reading-source]")).toHaveAttribute("href", /^https:\/\/home\.treasury\.gov\//);
+  // G24: each reading's credit is text on the page, not hover text.
+  await expect(riskFree.locator("[data-reading-credit]")).toBeVisible();
+  await expect(riskFree.locator("[data-reading-credit]")).toHaveText(/^Credit: .+\.$/);
   const readings = form.getByTestId("market-reading");
   await expect(readings).toHaveCount(3);
   for (const reading of await readings.all()) {
@@ -185,18 +207,26 @@ test("[#113] a Spine-passed Learner values a US company from its 10-K, with the 
     await expect(reading.getByTestId("reading-credit")).toHaveAttribute("href", /^https:\/\/pages\.stern\.nyu\.edu\/~adamodar\/pc\/datasets\/(margin|capex|wacc)\.xls$/);
   }
   await expect(form.locator("[data-own-case-estimate]")).toContainText("$1.54 of sales for each $1 invested");
+  // G21: each yardstick links its own sheet; G24: the credit is visible.
+  const estimateLine = form.locator("[data-own-case-estimate]");
+  await expect(estimateLine.locator('[data-yardstick-source="operating_margin"]')).toHaveAttribute("href", /\/margin\.xls$/);
+  await expect(estimateLine.locator('[data-yardstick-source="sales_to_capital"]')).toHaveAttribute("href", /\/capex\.xls$/);
+  await expect(estimateLine.locator('[data-yardstick-source="cost_of_capital"]')).toHaveAttribute("href", /\/wacc\.xls$/);
+  await expect(estimateLine.locator("[data-yardstick-credit]")).toHaveText("Credit: Aswath Damodaran, NYU Stern.");
+  // G17: the Treasury reading (30 Oct 2026) and the yardsticks (Jan 2026) both come after a 10-K filed on 31 Oct 2025.
+  await expect(form.locator("[data-own-case-later-readings]")).toContainText("Dated after your report’s date (31 Oct 2025): the 10-year US Treasury yield (US) of 30 Oct 2026 and the industry's yardsticks of Jan 2026.");
   await form.locator('[data-industry="market"]').click();
   for (const [key, value] of Object.entries(APPLE)) await form.locator(`[data-own-case-field="${key}"]`).fill(value);
 
   await form.getByRole("button", { name: "Value it" }).click();
-  await expect(form.locator('[data-own-case-result="value"]')).toContainText(/^The engine's value: -?\$[\d,.]+ a share, beside a price of \$255 on 27 Sep 2025\.$/);
+  await expect(form.locator('[data-own-case-result="value"]')).toContainText(/^The engine's value: -?\$[\d,.]+ a share, beside a price of \$270 on 31 Oct 2025\.$/);
   await form.getByRole("button", { name: "Save to Notebook" }).click();
   await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
 
   await form.getByRole("link", { name: "Open the Notebook" }).click();
   await expect(page).toHaveURL(/\/notebook#own-cases$/, { timeout: 60_000 }); // the dev server compiles the Notebook on first visit
   const note = page.locator("#own-cases [data-own-case-note]").first();
-  await expect(note).toContainText("Apple Inc., the US. Annual report of 27 Sep 2025.");
-  await expect(note).toContainText("14,776,353,000 shares, price $255 on 27 Sep 2025");
+  await expect(note).toContainText("Apple Inc., the US. Annual report of 31 Oct 2025.");
+  await expect(note).toContainText("14,776,353,000 shares, price $270 on 31 Oct 2025");
   await expect(note).toContainText("The engine's value: $");
 });

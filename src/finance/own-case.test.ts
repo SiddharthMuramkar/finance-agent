@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { valueCase } from "./valuation-case";
 import { valuationCase } from "./valuation-cases";
-import { INDIA_INDUSTRIES, US_INDUSTRIES, openingEstimate, ownCaseBlock, ownCaseIndustries, ownCaseMarket, ownCaseReadingIds, valueOwnCase, type OwnCaseInputs } from "./own-case";
+import { INDIA_INDUSTRIES, US_INDUSTRIES, openingEstimate, ownCaseBlock, ownCaseIndustries, ownCaseMarket, ownCaseReadingIds, readingsAfterReport, valueOwnCase, type OwnCaseInputs } from "./own-case";
 
 // Seam 3 (spec #68): an Own Case is the course's valuation input shape filled from about eight typed numbers, so the one
 // engine values it with no new maths (ADR 0010). Coffee Day's IPO, as the course Case "coffee-day-rupee-valuation-2015"
@@ -141,5 +141,28 @@ describe("a US Own Case (#113)", () => {
   it("India's opening Estimate stays as it was", () => {
     expect(openingEstimate("food")).toEqual(openingEstimate("food", "IN"));
     expect(openingEstimate("food", "IN").growthAfterPercent).toBe(5);
+  });
+});
+
+// G17: the course has one reading of each kind (yardsticks of 5 Jan 2026, risk-free readings of 30 Oct 2026), so an Own
+// Case dated before them opens at figures nobody knew on its report's date. They are listed so the form can say so.
+describe("readings dated after the Own Case's report", () => {
+  const ids = (market: Parameters<typeof readingsAfterReport>[0], date: string) => readingsAfterReport(market, "food", date).map((r) => r.id);
+
+  it("lists every opening reading dated after the report, the risk-free reading first", () => {
+    expect(ids("IN", "2015-10-21")).toEqual(["in-food-margin", "in-food-sales-to-capital", "in-food-cost-of-capital"]);
+    expect(ids("US", "2025-10-31")).toEqual(["us-risk-free-10y", "us-food-margin", "us-food-sales-to-capital", "us-food-cost-of-capital"]);
+    for (const r of readingsAfterReport("EU", "food", "2026-03-04")) expect(r.date > "2026-03-04", r.id).toBe(true);
+  });
+
+  it("leaves out a reading dated on or before the report", () => {
+    expect(ids("JP", "2026-06-19")).toEqual(["jp-risk-free-10y"]);
+    expect(ids("US", "2026-10-30")).toEqual([]);
+    expect(ids("KR", "2026-11-02")).toEqual([]);
+  });
+
+  it("is empty until the report's date is a day", () => {
+    expect(ids("US", "")).toEqual([]);
+    expect(ids("US", "2025-13-40")).toEqual([]);
   });
 });
