@@ -8,6 +8,7 @@ import { fillTaskText, type ParsedNode } from "./guided-tasks";
 import { declaredSettings } from "./settings";
 import { readingValue } from "./slider-steps";
 import type { SavedWidget } from "./widget-state";
+import type { OwnCases } from "@/finance/valuation-lookup";
 import { workbenchEntry } from "./workbench/registry";
 
 // What the Tutor sees of a Widget (spec #119, "Widgets › What the Tutor sees"): its sliders at the values the
@@ -97,9 +98,9 @@ function partReadouts(node: ParsedNode, state: Record<string, number>, lookup: S
  * the readouts its model works out with the valuation engine (workbench/registry.ts). Null for any other part, or one whose
  * Case or figures do not parse.
  */
-function workbenchReading(node: ParsedNode, state: Record<string, number>): { sliders: { label: string; text: string }[]; readouts: string[] } | null {
+function workbenchReading(node: ParsedNode, state: Record<string, number>, ownCases?: OwnCases | null): { sliders: { label: string; text: string }[]; readouts: string[] } | null {
   const entry = workbenchEntry(node.typeName);
-  return entry ? entry.reading(resolve(node.props, state) as Record<string, unknown>) : null;
+  return entry ? entry.reading(resolve(node.props, state) as Record<string, unknown>, ownCases) : null;
 }
 
 /** The two sliders ($variables) whose rate change a written-ahead Widget says three ways (Percent). */
@@ -109,13 +110,21 @@ export type RateChangeSliders = { old: string; new: string };
  * What a Widget shows now: its sliders at the saved values (else the ones its code starts at), its Guided Tasks
  * with the saved ticks, and our parts' readouts worked out from those values. A written-ahead Widget that says a rate
  * change (`rateChange`) gets those readouts from the tested rateChange too. Null when the code does not draw.
+ * A Workbench on one of the Learner's Own Cases reads only when `ownCases` holds it.
  */
-export function readWidget(code: string, saved: SavedWidget | undefined, lookup: SourcedLookup, explore = false, rateChange?: RateChangeSliders): WidgetReading | null {
+export function readWidget(
+  code: string,
+  saved: SavedWidget | undefined,
+  lookup: SourcedLookup,
+  explore = false,
+  rateChange?: RateChangeSliders,
+  ownCases?: OwnCases | null,
+): WidgetReading | null {
   const nodes = widgetNodes(code);
   const title = widgetParts(code).title?.trim();
   if (!nodes.length || !title) return null;
   const state = { ...declaredSettings(code), ...saved?.values };
-  const workbench = nodes.flatMap((n) => workbenchReading(n, state) ?? []);
+  const workbench = nodes.flatMap((n) => workbenchReading(n, state, ownCases) ?? []);
   const sliders = [
     ...nodes.flatMap((n) => {
       const value = resolve(n.props.value, state);
@@ -129,7 +138,7 @@ export function readWidget(code: string, saved: SavedWidget | undefined, lookup:
     nodes.filter((n) => n.typeName === "GuidedTask" && typeof n.props.text === "string").map((n) => [n.props.text as string, resolve(n.props.values, state)]),
   );
   // Worded at the same settings too: Value levers' second Thing to try names the price of the Case chosen with its chip.
-  const tasks = widgetTaskTexts(code, state).map((text) => {
+  const tasks = widgetTaskTexts(code, state, ownCases).map((text) => {
     const values = slotValues.get(text);
     return { text: fillTaskText(text, values && typeof values === "object" ? (values as Record<string, unknown>) : undefined), ticked: ticked.has(text) };
   });
