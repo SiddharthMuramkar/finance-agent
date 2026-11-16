@@ -111,6 +111,14 @@ for (const play of PLAYS) {
     // His value against the price at Story, the two pages at Concept, and the Value bridge on Amazon's Case at Explore, with
     // the report's page beside it (critics round 1: its debt and cash to tap in).
     expect(turns[0].tutor).toContain("Was he right?");
+    // Critics round 2: a one-number opener (no debt, cash or share count to wade through before the hook) ...
+    expect(turns[0].tutor).not.toMatch(/\$349 million|\$26 million|340\.79/);
+    // ... no sum at Explore (a lot or a little, not how far), and the report's figures named in the reply and on its page.
+    expect(turns[2].tutor).not.toMatch(/how far/i);
+    expect(turns[2].tutor).toMatch(/a lot or a little/);
+    expect(turns[2].tutor).toMatch(/\$2\.1 billion of debt and \$1\.1 billion of cash/);
+    expect(turns[2].widget).toMatch(/Long-term debt/);
+    expect(turns[2].widget).toMatch(/Cash and marketable securities/);
     expect(turns[1].tutor).toMatch(/income statement[\s\S]*balance sheet/);
     expect(turns[2].widget).toMatch(/Business value/);
     expect(turns[2].widget).toMatch(/Left for shareholders/);
