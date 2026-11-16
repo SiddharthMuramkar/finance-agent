@@ -13,6 +13,9 @@ const OTHER_SWITCH: Record<string, string> = {
   "e2e/matrix.spec.ts": "the preview matrix runs only with UI_MATRIX=1 and writes to the git-ignored evidence/ folder",
   "e2e/spine-02-03.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
   "e2e/spine-04-09.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
+  "e2e/spine-01.spec.ts": "the Spine critics' screenshots go to CRITICS_OUT outside the repo, or else the git-ignored test-results/ folder, never docs/",
+  "e2e/spine-annual-report.spec.ts": "the Spine critics' screenshots go to CRITICS_OUT outside the repo, or else the git-ignored test-results/ folder, never docs/",
+  "e2e/spine-rate-split.spec.ts": "the Spine critics' screenshots go to CRITICS_OUT outside the repo, or else the git-ignored test-results/ folder, never docs/",
 };
 
 function specs(dir: string, acc: string[] = []): string[] {
