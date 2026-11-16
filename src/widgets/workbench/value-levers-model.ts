@@ -414,7 +414,7 @@ function modePicture(block: ValuationBlock, specs: readonly LeverSpec[], setting
     const spec = specs.find((s) => s.id === "salesToCapital")!;
     const earns = returnOnNewCapital(settings.margin, settings.salesToCapital, block.taxPercent);
     const sales = settings.salesToCapital;
-    const symbol = SYMBOL[block.currency];
+    const symbol = SYMBOL(block.currency);
     const salesText = Number.isInteger(sales) ? `${sales}` : sales.toFixed(2);
     return {
       kind: "centre",

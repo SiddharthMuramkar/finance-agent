@@ -86,9 +86,9 @@ const INVENTORY: Record<string, Use> = {
     why: "A 2 px sunflower edge (--sun, which is ink now) down the cash waterfall's small scene (#89 critics round), whose line beside it says in words what the levers did",
   },
   "src/widgets/workbench/value-levers-view.tsx": {
-    uses: 3,
+    uses: 4,
     verdict: "mark",
-    why: "Value levers (spec 2026-11-12, B3): the cash-flow bars' coral losses and mint gains, as the spec asks, each bar titled with its year and figure and the whole read aloud, like Home's Explorable bars; and the 2 px sunflower tick of the price on the value bar, beside the price readout that names it",
+    why: "Value levers (spec 2026-11-12, B3): the cash-flow bars' coral losses and mint gains, as the spec asks, each bar titled with its year and figure and the whole read aloud, like Home's Explorable bars; the 2 px sunflower tick of the price on the value bar, beside the price readout that names it; and the roic picture's thin mint fill (#95 critics round), whose caption beside it says in words the sales each dollar invested brings, and whose accessible name says how full it is",
   },
 };
 
