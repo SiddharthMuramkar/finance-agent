@@ -189,15 +189,22 @@ export const marketSchema = z
     label: z.string().trim().min(3).max(40),
     size: z.number().positive(),
     growthPercent: z.number().min(-20).max(50).optional(),
+    /** What the market's size counts, said after it in the readout ("$3.6bn of $35.8bn of fees on all fares"); "market" when left out. */
+    pool: z.string().trim().min(3).max(40).optional(),
     source: sourceSchema,
   })
   .strict();
+
+/** An Icon name (src/icons/names.ts) for a face or object a mode draws. */
+const iconName = z.string().refine(isIconName, "not an Icon name (src/icons/names.ts)");
 
 /** A rival's or an industry's operating margin, marked on lever 2 (Spine Topic 5). */
 export const marginMarkSchema = z
   .object({
     label: z.string().trim().min(3).max(40),
     percent: z.number().min(-50).max(90),
+    /** The rival's face on the margin ladder, an Icon name; a building when left out. */
+    emoji: iconName.optional(),
     source: sourceSchema,
   })
   .strict();
@@ -225,9 +232,19 @@ export const valueLeversModeSchema = z.discriminatedUnion("kind", [
     .object({
       kind: z.literal("margin_marks"),
       marks: z.array(marginMarkSchema).min(1).max(3),
+      /** The company's own face, which climbs the ladder as its margin moves; a rocket when left out. */
+      emoji: iconName.optional(),
     })
     .strict(),
-  z.object({ kind: z.literal("roic") }).strict(),
+  z
+    .object({
+      kind: z.literal("roic"),
+      /** A line under the return, such as whose claim the opening settings are. */
+      note: z.string().trim().min(3).max(120).optional(),
+      /** What the new capital buys, drawn filling up with the sales each dollar brings; a factory when left out. */
+      emoji: iconName.optional(),
+    })
+    .strict(),
   z.object({ kind: z.literal("failure") }).strict(),
   z
     .object({

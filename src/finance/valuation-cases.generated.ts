@@ -778,6 +778,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
     currency: "USD",
     unit: "millions",
     baseRevenue: 4.2,
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     growthPercent: [2757.14, 331.83, 238.67, 91.45, 25, 20, 16.67, 14.29, 12.5, 11.11],
     margin: {
       marginPercent: [-128.58, -58.28, -23.14, -5.57, 3.21, 7.61, 9.8, 10.9, 11.45, 11.73],
@@ -798,6 +799,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
@@ -969,6 +971,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
     currency: "USD",
     unit: "millions",
     baseRevenue: 4.2,
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     growthPercent: [2757.14, 331.83, 238.67, 91.45, 25, 20, 16.67, 14.29, 12.5, 11.11],
     margin: {
       marginPercent: [-128.58, -58.28, -23.14, -5.57, 3.21, 7.61, 9.8, 10.9, 11.45, 11.73],
@@ -989,6 +992,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
@@ -1495,6 +1499,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
     currency: "USD",
     unit: "millions",
     baseRevenue: 4.2,
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     growthPercent: [2757.14, 331.83, 238.67, 91.45, 25, 20, 16.67, 14.29, 12.5, 11.11],
     margin: {
       marginPercent: [-128.58, -58.28, -23.14, -5.57, 3.21, 7.61, 9.8, 10.9, 11.45, 11.73],
@@ -1515,6 +1520,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
@@ -1686,6 +1692,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
     currency: "USD",
     unit: "millions",
     baseRevenue: 4.2,
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     growthPercent: [2757.14, 331.83, 238.67, 91.45, 25, 20, 16.67, 14.29, 12.5, 11.11],
     margin: {
       marginPercent: [-128.58, -58.28, -23.14, -5.57, 3.21, 7.61, 9.8, 10.9, 11.45, 11.73],
@@ -1706,6 +1713,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {
@@ -1755,6 +1763,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
     currency: "USD",
     unit: "millions",
     baseRevenue: 4.2,
+    baseRevenueLabel: "Sales, Jun to Sep 1999",
     growthPercent: [2757.14, 331.83, 238.67, 91.45, 25, 20, 16.67, 14.29, 12.5, 11.11],
     margin: {
       marginPercent: [-128.58, -58.28, -23.14, -5.57, 3.21, 7.61, 9.8, 10.9, 11.45, 11.73],
@@ -1775,6 +1784,7 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
       value: 15,
       date: "1999-11-04",
       note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+      label: "offer price",
     },
     illustration: true,
     published: {

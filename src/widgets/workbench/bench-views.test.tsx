@@ -95,11 +95,11 @@ describe("Value bridge (Spine Topic 9)", () => {
 });
 
 describe("Terminal seesaw (Spine Topic 8)", () => {
-  it('opens at "After year 10 holds 112% of the value" with both sides of the seesaw in words', async () => {
+  it("opens in money, saying after year 10 is worth more than the whole value, with both sides of the seesaw in words", async () => {
     await draw("terminal-seesaw");
-    expect(text("terminal-seesaw-headline")).toBe("After year 10 holds 112% of the value");
-    expect(keyFigures()).toEqual(["112%"]);
-    expect(host.querySelector('[data-testid="terminal-seesaw-beam"] [role="img"]')?.getAttribute("aria-label")).toBe("Years 1 to 10: -$1.8bn; After year 10: $16.9bn");
+    expect(text("terminal-seesaw-headline")).toBe("After year 10: $16.9bn, more than all; years 1 to 10 lose $1.8bn");
+    expect(keyFigures()).toEqual(["$16.9bn"]);
+    expect(host.querySelector('[data-testid="terminal-seesaw-beam"] [role="img"]')?.getAttribute("aria-label")).toBe("Years 1 to 10, a loss: -$1.8bn; After year 10: $16.9bn");
     // Things to try tick in order: half the Case's growth first, then growth within a point of the cost of capital.
     setRange(lever("Growth after year 10"), 3);
     await settle();

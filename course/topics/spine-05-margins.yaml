@@ -93,6 +93,43 @@ terms:
     example: "A bakery with a secret recipe can charge more than the one next door."
     inStory: A Tesla that keeps more than Toyota needs an edge other carmakers cannot copy.
 
+# Spine critics round 1 on #95 (widget fit): the Story and Concept turns showed only the empty Widget panel. The story scene
+# carries the rivals' margins the Story turn no longer reads out (beginner persona: two or three numbers a turn).
+scenes:
+  - id: margins-opening
+    step: story
+    recipe: story_scene
+    title: A carmaker priced like a tech company?
+    inputs:
+      cast:
+        - { id: professor, emoji: student, name: Aswath Damodaran, role: values Tesla }
+        - { id: buyers, emoji: chart-increasing, name: Share buyers, role: set the price }
+      beats:
+        - { who: buyers, says: "We pay $748.96 a share today.", emoji: money-bag }
+        - { who: professor, says: "My story: Tesla keeps 12% of each sale, so about $427 a share.", emoji: balance-scale }
+        - { who: narrator, says: "The median carmaker keeps 3.01%; Toyota, the best large one, 8.46%.", emoji: factory }
+        - { who: narrator, says: "The tech giants together keep 19.87% of each sale.", emoji: laptop }
+      caption: 6 February 2020, a carmaker or a tech company?
+      date: "2020-02-06"
+  - id: margins-two-makers
+    step: concept
+    recipe: two_paths
+    title: Who keeps the saving?
+    inputs:
+      question: Two carmakers each find a way to keep more of every sale. Who keeps it?
+      left:
+        emoji: factory
+        name: The copied maker
+        choice: Cuts a cost every rival can copy
+        outcome: [chart-decreasing, shopping-cart]
+        outcomeLine: Rivals copy it and cut prices, so buyers keep the saving.
+      right:
+        emoji: crown
+        name: The maker with an edge
+        choice: Has something rivals cannot copy
+        outcome: [crown, money-bag]
+        outcomeLine: It keeps a fatter margin for years.
+
 skills:
   - id: margin-moves
     rule: A few points of margin move a value a long way, because they apply to every sale in every year.
@@ -116,17 +153,23 @@ explore:
     inputs:
       caseStory: Damodaran's story
       priceStory: { margin: 17.5 }
+      # Spine critics round 1 on #95 (widget fit): the rivals are faces on a margin ladder and Tesla's own face climbs it as
+      # the margin moves, so the bench is not sliders and a stat alone.
       mode:
         kind: margin_marks
+        emoji: rocket
         marks:
           - label: Median global carmaker
             percent: 3.01
+            emoji: factory
             source: { title: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020), global auto margins in 2019", url: "https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html" }
           - label: Toyota, the best large carmaker
             percent: 8.46
+            emoji: trophy
             source: { title: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020), the 20 largest auto companies", url: "https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html" }
           - label: Tech giants together
             percent: 19.87
+            emoji: laptop
             source: { title: "Damodaran, A Do-it-yourself (DIY) Valuation of Tesla (6 Feb 2020), FAANG and Microsoft margins", url: "https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html" }
 
 connections:

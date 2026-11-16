@@ -994,7 +994,7 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here are Damodaran's levers for Uber, starting from his story: a fifth of $100 billion of fares, growing 6% a year. " +
+            "Here are Damodaran's levers for Uber, starting from his story: 10% of $100 billion of fares, keeping a fifth of each, growing 6% a year. " +
               "Keep everything else where he set it and switch to the market three times bigger, then watch the value against the venture price.\n\n" +
               "What are the professor and the investors really disagreeing about?",
           ),
@@ -1009,10 +1009,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "February 2020. Tesla sold $24.6 billion of cars and more in 2019, and kept almost none of it as operating profit. " +
+            "February 2020. Tesla kept almost none of its 2019 sales as operating profit. " +
               "Its shares closed at $748.96, while Damodaran had valued it at about $427 a share. " +
-              "In 2019 the median global carmaker kept 3.01% of its sales, and Toyota, the best of the large ones, kept 8.46%. " +
-              "The median technology company kept 10.25%.\n\n" +
+              "Most carmakers keep a few cents of each dollar they sell; the big tech companies keep far more.\n\n" +
               "Is Tesla a carmaker or a technology company, do you think?",
           ),
         ],
@@ -1057,10 +1056,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "March 2000. Webvan, an online grocer, delivers from one centre in Oakland built for the volume of about 18 supermarkets, and it runs at under 25% of that. " +
-              "In 1999 it sold $13.3 million and lost $144.6 million. " +
-              "Its plan is up to 26 more centres over three years, at $30 million to $35 million each. " +
-              "Webvan says a full centre would keep 12% of its sales as operating profit, where a supermarket keeps about 4%.\n\n" +
+            "March 2000. Webvan, an online grocer, sold $13 million of groceries in 1999 and lost $145 million. " +
+              "Its one centre, in Oakland, runs far below what it was built for, yet it plans 26 more at about $30 million each. " +
+              "Webvan says a full centre would keep far more of each sale than a supermarket does.\n\n" +
               "Would you lend Webvan the money for the next centre?",
           ),
         ],
@@ -1106,8 +1104,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "February 2000. Amazon's shares cost $84, and Damodaran forecasts its cash for ten years. " +
-              "In his story Amazon spends heavily to grow, loses cash in each of the first six years, and only turns cash-positive in year 7. " +
-              "Nobody can forecast year 11, year 30 or year 60 one by one, so for everything after year 10 he sets a few things once: Amazon grows 6% a year for ever, and investors want 9.61% a year.\n\n" +
+              "In his story Amazon loses cash for years while it grows, and only later turns it round. " +
+              "Nobody can forecast every year after that one by one, so for all of them he sets a few things once, above all how fast Amazon grows for ever and what investors want.\n\n" +
               "Where do you think most of his value comes from: the ten years he forecasts, or the years after?",
           ),
         ],

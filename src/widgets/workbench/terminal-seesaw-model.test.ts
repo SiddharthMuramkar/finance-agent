@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { valuationCase } from "@/finance/valuation-cases";
+import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { terminalSeesawLevers, terminalSeesawModel, terminalSeesawReading, terminalSeesawShape, terminalSeesawTasks } from "./terminal-seesaw-model";
 
@@ -12,10 +12,15 @@ const data = { block };
 const atCase = { growthAfter: 6, costAfter: 9.61 };
 
 describe("Terminal seesaw on Amazon (B4, Appendix B.1)", () => {
-  it('opens at "After year 10 holds 112% of the value", years 1 to 10 below zero', () => {
+  // Spine critics round 1 on #95 (beginner persona, widget fit): "holds 112% of the value" puzzled a beginner, a part bigger
+  // than the whole, so when years 1 to 10 lose value the headline says it in money and words, and the losing side says so.
+  it("opens in money, not a share above 100%: after year 10 is worth more than the whole value, because years 1 to 10 lose", () => {
     const model = terminalSeesawModel(data, atCase);
-    expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe("After year 10 holds 112% of the value");
-    expect(model.headline.key).toBe("112%");
+    expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe(
+      "After year 10: $16.9bn, more than all; years 1 to 10 lose $1.8bn",
+    );
+    expect(model.headline.key).toBe("$16.9bn");
+    expect(model.share).toBeCloseTo(1.12, 2);
     expect(model.numbers).toEqual([
       { label: "Terminal value at year 10", text: "$52.1bn" },
       { label: "Value a share", text: "$35" },
@@ -23,6 +28,7 @@ describe("Terminal seesaw on Amazon (B4, Appendix B.1)", () => {
     expect(model.sides![0].value).toBeCloseTo(-1_767, -1);
     expect(model.sides![1].value).toBeCloseTo(16_924, -1);
     expect(model.sides!.map((s) => s.text)).toEqual(["-$1.8bn", "$16.9bn"]);
+    expect(model.sides!.map((s) => s.label)).toEqual(["Years 1 to 10, a loss", "After year 10"]);
     expect(model.tilt).toBeGreaterThan(0);
   });
 
@@ -74,9 +80,23 @@ describe("Terminal seesaw on Amazon (B4, Appendix B.1)", () => {
         "Share of the value from after year 10: 112%",
         "Terminal value at year 10: $52.1bn",
         "Value a share: $35",
-        "Years 1 to 10, in today's money: -$1.8bn",
+        "Years 1 to 10, a loss, in today's money: -$1.8bn",
         "After year 10, in today's money: $16.9bn",
       ],
     });
+  });
+});
+
+describe("Terminal seesaw when years 1 to 10 add value", () => {
+  it('keeps the share headline, "After year 10 holds N% of the value", when the forecast years are worth something', () => {
+    const mature = valuationCaseIds()
+      .map((id) => valuationCase(id)!)
+      .map((b) => ({ b, levers: terminalSeesawLevers({ block: b }) }))
+      .map(({ b, levers }) => ({ b, model: terminalSeesawModel({ block: b }, { growthAfter: levers[0].opening, costAfter: levers[1].opening }) }))
+      .find(({ model }) => model.sides && model.sides[0].value > 0 && model.share! < 1);
+    expect(mature).toBeDefined();
+    const { model } = mature!;
+    expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toMatch(/^After year 10 holds \d+% of the value$/);
+    expect(model.sides![0].label).toBe("Years 1 to 10");
   });
 });

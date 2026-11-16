@@ -6,6 +6,7 @@ import { Chevron, SecondaryButton } from "@/app/ui";
 import type { ValuationBlock } from "@/finance/valuation-case";
 import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
+import { Pic } from "../primitives/wave3/shared";
 import { SliderControl } from "../slider-control";
 import {
   AFTER_YEAR_10_LABEL,
@@ -23,6 +24,7 @@ import {
   type CashFlowBar,
   type LeverId,
   type LeverSettings,
+  type ModePicture,
   type Moves,
   type MoveRun,
   type Story,
@@ -233,6 +235,7 @@ export function ValueLeversView({
         )}
       </dl>
       {model.readout?.note && <p className="mt-1 text-xs text-[var(--muted)]" data-testid="value-levers-readout-note">{model.readout.note}</p>}
+      {model.picture && <PictureView picture={model.picture} />}
       {mode?.kind === "market" && mode.markets.length > 1 && (
         <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Markets">
           {mode.markets.map((m, i) => (
@@ -405,6 +408,52 @@ function CashFlowBars({ bars }: { bars: readonly CashFlowBar[] }) {
           after
         </text>
       </svg>
+    </figure>
+  );
+}
+
+/**
+ * A mode's picture (Spine critics round 1 on #95, widget fit): the rivals as faces on a margin ladder with the company's own
+ * face climbing it, or what new capital buys filling up with the sales each dollar brings and a face that frowns once new
+ * capital earns less than it costs. A picture only, never a control: the levers stay four at rest and one more.
+ */
+function PictureView({ picture }: { picture: ModePicture }) {
+  if (picture.kind === "ladder") {
+    const faces = [...picture.rungs.map((r) => ({ ...r, you: false })), { ...picture.you, you: true }];
+    return (
+      <figure className="mt-3" data-testid="value-levers-ladder">
+        <div className="relative mx-4 h-16" role="img" aria-label={`${picture.line}. ${picture.rungs.map((r) => `${r.label} ${Number(r.percent.toFixed(2))}%`).join(", ")}`}>
+          <div className="absolute inset-x-0 bottom-3 h-0.5 rounded-sm bg-[var(--hairline)]" />
+          {faces.map((f) => (
+            <div
+              key={`${f.you ? "you" : "rival"}-${f.label}`}
+              className={`absolute flex -translate-x-1/2 flex-col items-center transition-[left] duration-300 motion-reduce:transition-none ${f.you ? "top-0 text-[var(--ink)]" : "bottom-0 text-[var(--muted)]"}`}
+              style={{ left: `${f.at * 100}%` }}
+              data-face={f.you ? "you" : "rival"}
+            >
+              <Pic name={f.emoji} size={f.you ? 24 : 20} />
+              {!f.you && <span className="mt-0.5 h-2 w-0.5 bg-[var(--border)]" />}
+            </div>
+          ))}
+        </div>
+        <figcaption className="mt-1 text-xs text-[var(--muted)]" data-testid="value-levers-ladder-line" aria-live="polite">
+          {picture.line}
+        </figcaption>
+      </figure>
+    );
+  }
+  return (
+    <figure className="mt-3 flex items-center gap-3" data-testid="value-levers-centre" data-face={picture.face}>
+      <Pic name={picture.emoji} size={32} />
+      <div className="min-w-0 flex-1">
+        <div className="h-3 overflow-hidden rounded-sm bg-[var(--hairline)]" role="img" aria-label={`${picture.line}: ${Math.round(picture.fill * 100)}% full`}>
+          <div className="h-full rounded-sm bg-[var(--mint)] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${picture.fill * 100}%` }} data-testid="value-levers-centre-fill" />
+        </div>
+        <figcaption className="mt-1 text-xs text-[var(--muted)]" aria-live="polite">
+          {picture.line}
+        </figcaption>
+      </div>
+      <Pic name={picture.face} size={24} />
     </figure>
   );
 }

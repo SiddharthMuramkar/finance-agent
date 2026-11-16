@@ -17,8 +17,8 @@ import { moneyText, valueText } from "./value-levers-model";
 
 // Terminal seesaw (spec 2026-11-12, B4; Spine Topic 8), as pure functions over one Case's valuation block: growth after year
 // 10 and the cost of capital after year 10 set the terminal value, and the seesaw weighs years 1 to 10 against everything
-// after, in today's money. The headline is the share of the whole that sits after year 10 (112% for Damodaran's Amazon:
-// more than all of it). Growth can never reach the cost of capital on these sliders; if a setting ever did, the engine's
+// after, in today's money. The headline is the share of the whole that sits after year 10, or, when years 1 to 10 lose
+// value (Damodaran's Amazon: 112%, more than all of it), what after year 10 is worth and what years 1 to 10 lose. Growth can never reach the cost of capital on these sliders; if a setting ever did, the engine's
 // sentence is shown, not a number.
 
 export const SEESAW_LEVER_IDS = ["growthAfter", "costAfter"] as const;
@@ -109,13 +109,18 @@ export function terminalSeesawModel(data: TerminalSeesawData, settings: SeesawSe
   const perShare = result.valuePerShare <= 0 ? `${moneyText(0, block)}, nothing left` : valueText(result.valuePerShare, block);
   return {
     share,
-    headline: { before: "After year 10 holds ", key: percentText(share * 100, 0), after: " of the value" },
+    // Spine critics round 1 on #95: a share above 100% puzzles a beginner (a part bigger than the whole), so when years 1 to
+    // 10 lose value the headline says it in money and words; the share stays in what the Tutor reads.
+    headline:
+      result.sumPv < 0
+        ? { before: "After year 10: ", key: money(result.pvTerminal), after: `, more than all; years 1 to 10 lose ${money(-result.sumPv)}` }
+        : { before: "After year 10 holds ", key: percentText(share * 100, 0), after: " of the value" },
     numbers: [
       { label: TERMINAL_LABEL, text: money(result.terminalValue) },
       { label: block.per === "company" ? "Value for the owners" : SHARE_VALUE_LABEL, text: perShare },
     ],
     sides: [
-      { label: "Years 1 to 10", value: result.sumPv, text: money(result.sumPv) },
+      { label: result.sumPv < 0 ? "Years 1 to 10, a loss" : "Years 1 to 10", value: result.sumPv, text: money(result.sumPv) },
       { label: "After year 10", value: result.pvTerminal, text: money(result.pvTerminal) },
     ],
     // Level at half the value after year 10; tipping right as more of it sits there, nearly flat out past 100%.
@@ -137,6 +142,6 @@ export function terminalSeesawReading(data: TerminalSeesawData, settings: Seesaw
   const readouts =
     model.share === null
       ? [`Cannot be valued: ${model.error}`]
-      : [`Share of the value from after year 10: ${model.headline.key}`, ...model.numbers.map((n) => `${n.label}: ${n.text}`), ...model.sides!.map((s) => `${s.label}, in today's money: ${s.text}`)];
+      : [`Share of the value from after year 10: ${percentText(model.share * 100, 0)}`, ...model.numbers.map((n) => `${n.label}: ${n.text}`), ...model.sides!.map((s) => `${s.label}, in today's money: ${s.text}`)];
   return { sliders: levers.map((l) => ({ label: l.label, text: l.reading(settings[l.id]) })), readouts };
 }
