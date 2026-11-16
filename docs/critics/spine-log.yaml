@@ -28,10 +28,10 @@ topics:
     note: Round 4 (#89 for beginners, critics round 1) 6 confirmed, fixed (one new word in the concept, no worked division on the card, the bench's profit said to be a what-if, its years named 1999 into 2000, a reacting Webvan scene); the app-wide phone-width finding is out of #89's scope.
   spine-statements:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "c3f9529"
+    rounds: 3
+    lastRound: "6a63ee5"
     open: 0
-    note: Round 2 (critics round 1 after the merge) 3 confirmed, all fixed. Turn 1 shows two round figures and the spending figures move to Go deeper; explore leads with free cash flow alone; the Concept's chain draws the three pages as tiles a step lights (StepThrough tiles, a Step's light and emoji).
+    note: Round 3 (critics round 2 after the merge) 1 confirmed, not a Topic fix. The phone-width finding (no Study Workspace under 390px, every turn) is app-wide, out of #90's scope, and needs a triage issue. Round 2 had fixed 3 in c3f9529 (round figures in turn 1, free cash flow leads explore, the three pages as tiles).
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 2
