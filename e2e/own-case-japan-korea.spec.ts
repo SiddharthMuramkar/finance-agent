@@ -73,7 +73,7 @@ test("a Spine-passed Learner values a Japanese and a Korean company, from the pi
     await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
 
     await form.getByRole("link", { name: "Open the Notebook" }).click();
-    await expect(page).toHaveURL(/\/notebook#own-cases$/);
+    await expect(page).toHaveURL(/\/notebook#own-cases$/, { timeout: 30_000 }); // the dev server may compile the Notebook here
     await expect(page.locator("#own-cases [data-own-case-note]").filter({ hasText: m.note }).first()).toBeVisible();
   }
 });
