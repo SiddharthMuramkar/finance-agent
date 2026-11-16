@@ -56,8 +56,11 @@ async function next(page: Page, name: E2eScriptName): Promise<string> {
 async function seen(page: Page, out: string, play: Play, n: number, learner: string, name: E2eScriptName): Promise<Seen> {
   const reply = page.getByTestId("assistant-message").filter({ hasText: firstSentence(name).slice(0, 60) }).last();
   await expect(reply, name).toBeVisible({ timeout: TURN_MS });
+  // At explore the Workbench draws after the reply lands: wait for its headline, so the screenshots show it.
+  if (name.endsWith("-explore")) await expect(page.getByText(/The cost of capital is/).first()).toBeVisible({ timeout: TURN_MS });
+  await settled(page, TURN_MS);
   const choices = page.getByTestId("choices").last().getByTestId("choice");
-  const card = page.getByTestId("widget-card").first();
+  const card = page.locator('[data-testid="widget-pane"], [data-testid="widget-column"], [data-testid="widget-card"]').first();
   const shots: string[] = [];
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: width === 1280 ? 800 : 844 });
