@@ -18,7 +18,10 @@ const declarations = lines.filter((line) => line.startsWith("$"));
 describe("value_levers (B3)", () => {
   it("binds Value levers to a Case id and opens each lever at the Case's own figure", () => {
     expect(levers).toMatch(/^levers = ValueLevers\("amazon-dcf-2000", \$revenue, \$margin, \$salesToCapital, \$risk, \$failure, \$moved, \$mostLever, \$mostBy, /);
-    expect(declarations).toEqual(["$revenue = 39", "$margin = 10", "$salesToCapital = 3", "$risk = 12.84", "$failure = 0", "$moved = 0", "$mostLever = 0", "$mostBy = 0"]);
+    expect(declarations).toEqual(["$revenue = 39", "$margin = 10", "$salesToCapital = 3", "$risk = 12.84", "$failure = 0", "$moved = 0", "$mostLever = 0", "$mostBy = 0",
+      // The Full sheet's rows (#104), each at no change from the Case's own figure.
+      ...["$taxRow = 0", "$lossesRow = 0", "$growthAfterRow = 0", "$returnAfterRow = 0", "$cashRow = 0", "$debtRow = 0", "$optionsRow = 0"]]);
+    expect(levers).toMatch(/, \$taxRow, \$lossesRow, \$growthAfterRow, \$returnAfterRow, \$cashRow, \$debtRow, \$optionsRow\)$/);
   });
 
   it("draws with no problem, as a Workbench", () => {

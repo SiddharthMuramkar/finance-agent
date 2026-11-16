@@ -3538,6 +3538,27 @@
         },
         "caseChoice": {
           "type": "number"
+        },
+        "taxRow": {
+          "type": "number"
+        },
+        "lossesRow": {
+          "type": "number"
+        },
+        "growthAfterRow": {
+          "type": "number"
+        },
+        "returnAfterRow": {
+          "type": "number"
+        },
+        "cashRow": {
+          "type": "number"
+        },
+        "debtRow": {
+          "type": "number"
+        },
+        "optionsRow": {
+          "type": "number"
         }
       },
       "required": [
