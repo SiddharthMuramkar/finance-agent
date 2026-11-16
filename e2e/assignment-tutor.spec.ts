@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-import { script } from "./support/app";
 import { test } from "./support/people";
 
 /**
@@ -15,7 +14,7 @@ test.beforeEach(async ({}, info) => {
 /** A food company typed with an operating margin of 45%: far above Food Processing's usual range. */
 const FIGURES = { sales: "10,000", operatingProfit: "4,500", taxPercent: "25", debt: "3,300", cash: "2,900", shares: "98,94,34,000", price: "1090" } as const;
 
-test("the Tutor in the Assignment names the flagged input of the Learner's Own Case", async ({ person }) => {
+test("the Tutor in the Assignment names the flagged input of the Learner's Own Case", async ({ person, request }) => {
   test.setTimeout(180_000); // the dev server compiles each page on first visit
   const { page } = await person({ person: "ravi" });
   await page.goto("/assignment");
@@ -28,7 +27,9 @@ test("the Tutor in the Assignment names the flagged input of the Learner's Own C
   await form.getByRole("button", { name: "Save to Notebook" }).click();
   await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
 
-  await script(page, "assignment-flag");
+  // Only the tools Learner may pick the scripted Tutor's reply: the test's own request context is signed in as it.
+  const picked = await request.post("/api/dev-e2e", { data: { script: "assignment-flag" } });
+  expect(picked.status()).toBe(200);
   const tutor = page.locator("[data-assignment-tutor]");
   await tutor.getByLabel("Your message").fill("What do you make of my figures?");
   await tutor.getByRole("button", { name: "Ask the Tutor" }).click();
