@@ -93,7 +93,7 @@ topics:
     open: 0
   spine-annual-report:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 1
-    lastRound: "bfabe7f"
+    rounds: 2
+    lastRound: "e8c3775"
     open: 0
-    note: Round 1 (#93), 6 confirmed, all fixed - report figures in Turn 3, a one-number opener, a lot or a little not how far, the 10-K's immaterial tax, the report's page beside the Value bridge with its debt and cash to tap in.
+    note: Round 2 (#93), 5 confirmed, all fixed - inputs were stale (before bfabe7f); re-captured from HEAD, and the e2e spec now pins the one-number opener, a lot or a little, and the report's debt and cash on the reply and page.
