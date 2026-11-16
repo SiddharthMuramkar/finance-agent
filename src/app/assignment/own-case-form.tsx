@@ -96,7 +96,7 @@ export function OwnCaseForm() {
     if (!typed) return setShown({ kind: "problem", text: "Pick the company's industry." });
     const estimate = openingEstimate(typed.industry, market);
     const value = valueOwnCase(typed, estimate);
-    setValued(value.ok ? { inputs: typed, estimate, at: Date.now() } : null);
+    setValued((last) => (value.ok ? { inputs: typed, estimate, at: (last?.at ?? 0) + 1 } : null));
     setShown(
       value.ok
         ? { kind: "value", text: `The engine's value: ${priceText(value.valuePerShare, money)} a share, beside a price of ${priceText(typed.price, money)} on ${dateText(typed.reportDate)}.` }
