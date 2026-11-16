@@ -106,6 +106,7 @@ export function BenchLeverControl<Id extends string>({
         value: v,
         label: lever.chipLabel?.(v) ?? lever.reading(v),
       }))}
+      marks={lever.marks}
     />
   );
 }

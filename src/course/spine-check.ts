@@ -5,7 +5,7 @@ import { SPINE_MAX_MINUTES } from "./outline.ts";
 // runs the seven Teaching Steps once, so its file must hold: a Case with an as-of date, a reveal and a valuation block
 // (its own or through valuationFrom); one Workbench Widget at explore, with one Insight found by play; exactly one Concept
 // card; three to five Lingo terms; six to eight Quick tries; one quiz Check of judgement questions, four drawn per attempt
-// and three to pass; at most one conversation Check; at most two Primers (the Topic schema caps them); a why line; and a
+// and three to pass; at most one closing Check, either a conversation Check or a second, judging quiz Check (ADR 0020); at most two Primers (the Topic schema caps them); a why line; and a
 // length of fifteen minutes or less. Two Topics are built differently: the one that explores the existing annuity Widget
 // (an AnnuityChart) on the Mega Millions Case, and the one that explores a cash waterfall from one year's inputs, so
 // neither values a Case with the engine. What the Check's questions are (judgement kinds, computed ones) is lesson lint
@@ -68,7 +68,12 @@ export function spineShapeProblems(t: Topic): string[] {
   if (tries < SPINE_QUICK_TRIES.min || tries > SPINE_QUICK_TRIES.max) problems.push(`has ${tries} Quick tries; give it ${SPINE_QUICK_TRIES.min} to ${SPINE_QUICK_TRIES.max}`);
 
   const quizzes = t.checks.filter((c) => c.kind === "quiz");
-  if (quizzes.length !== 1) problems.push(`has ${quizzes.length} quiz Checks; a Spine Topic has one quiz Check of judgement questions`);
+  const talks = t.checks.filter((c) => c.kind === "conversation").length;
+  if (quizzes.length < 1) problems.push(`has ${quizzes.length} quiz Checks; a Spine Topic has one quiz Check of judgement questions`);
+  // After the quiz Check, at most one closing Check: a judging Check by tap (a second quiz Check, ADR 0020) or a conversation.
+  if (quizzes.length > 2 || (quizzes.length === 2 && talks > 0)) {
+    problems.push(`has ${quizzes.length} quiz Checks and ${talks} conversation Checks; a Spine Topic has one quiz Check and at most one closing Check, a judging quiz Check or a conversation Check`);
+  }
   for (const q of quizzes) {
     const shown = q.perAttempt ?? q.passRule.correct;
     if (shown !== SPINE_PER_ATTEMPT || q.passRule.correct !== SPINE_PASS_CORRECT) {
@@ -76,7 +81,6 @@ export function spineShapeProblems(t: Topic): string[] {
     }
     if (q.templates.length) problems.push(`quiz Check "${q.id}" draws from templates; a Spine Check asks judgement questions, so list questions only`);
   }
-  const talks = t.checks.filter((c) => c.kind === "conversation").length;
   if (talks > 1) problems.push(`has ${talks} conversation Checks; at most one, in which the Learner tells the Valuation story`);
   if (t.id === OWN_WORK_TOPIC && !endsOnOwnWork(t)) {
     problems.push(`does not end on a conversation Check about the Learner's own work; "${OWN_WORK_TOPIC}" ends on one marked ownWork: true, so it offers no skip ahead (A8)`);

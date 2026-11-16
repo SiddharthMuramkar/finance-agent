@@ -54,6 +54,48 @@ describe("Spine Topic 3, the cash, for beginners", () => {
   });
 });
 
+// Spine critics round 1 on #89 (beginner persona, widget fit).
+describe("Spine Topic 3 after the critics' round 1", () => {
+  const company = () => cash.explore!.workbench!.inputs.company as { years?: { from: string; to: string }; whatIf?: string; icon?: string };
+
+  it("names one new word in the concept, free cash flow, and leaves operating income, tax and reinvestment to Go deeper", () => {
+    expect(cash.concept).toMatch(/free cash flow/i);
+    expect(cash.concept).toMatch(/cash left after paying for growth/i);
+    expect(cash.concept).not.toMatch(/operating income|reinvestment|\btax\b/i);
+    expect(cash.goDeeper).toMatch(/operating income/i);
+    expect(cash.goDeeper).toMatch(/tax/i);
+  });
+
+  it("drops the worked division from the check's card", () => {
+    const card = cash.checks.find((c) => c.id === "wc-check")!.card!;
+    expect(card.lines.join(" ")).not.toMatch(/divided by|\$1 invested brings/);
+    expect(card.example ?? []).not.toEqual([60, 3, 20]);
+  });
+
+  it("says on screen that the profit on each sale is a what-if: the title, the bench's line and the Insight's question", () => {
+    expect(cash.explore!.workbench!.title).toMatch(/^What if Webvan had made a profit on each sale\?$/);
+    expect(company().whatIf).toMatch(/really lost money on most/);
+    expect(cash.insight!.question).toMatch(/really lost money on most/);
+    expect(cash.concept).toMatch(/really lost money on most/);
+  });
+
+  it("labels the bench with its real years, 1999 into 2000, and gives it Webvan's van", () => {
+    expect(company().years).toEqual({ from: "1999", to: "2000" });
+    expect(company().icon).toBe("delivery-truck");
+  });
+});
+
+describe("Spine Topic 2 after the critics' round 1", () => {
+  it("puts the winner and the lottery beside the chart, reacting at 0% and at the even rate the second task names", () => {
+    const code = lottery.widgets.find((w) => w.id === "ml-annuity")!.code;
+    expect(code).toMatch(/StoryScene\(/);
+    expect(code).toMatch(/root = Widget\([^\n]*\bscene\b/);
+    // It reacts only where a task already ticks, so it never gives away which side wins before the Insight is settled.
+    expect(code).toMatch(/\$rate == 0 \?/);
+    expect(code).toMatch(/\$rate >= 3\.33 && \$rate <= 3\.43 \?/);
+  });
+});
+
 describe("Spine Topics 2 and 3, for beginners", () => {
   it("bring at most four new words each", () => {
     expect(lottery.terms.length).toBeLessThanOrEqual(4);

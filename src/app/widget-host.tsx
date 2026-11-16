@@ -80,7 +80,9 @@ export function useWidgetHost({
     ? {
         name: checkTabName(tab),
         // When the marking is dismissed the tab goes, unless the server has opened the next attempt.
-        body: <QuizPanel quiz={quiz} missed={missed} onSubmitted={onQuizSubmitted} onDismiss={() => setHeld(quiz)} />,
+        // Keyed by the held attempt: a Topic's next quiz Check (a judging Check, ADR 0020) opens fresh, never under the
+        // last Check's marking.
+        body: <QuizPanel key={held?.attemptId ?? "missed"} quiz={quiz} missed={missed} onSubmitted={onQuizSubmitted} onDismiss={() => setHeld(quiz)} />,
       }
     : undefined;
 

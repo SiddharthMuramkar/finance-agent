@@ -353,6 +353,14 @@ function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widget
     );
     return lines;
   }
+  if (insight.pick) {
+    // Settled by a tap (ADR 0020): code shows the choices and marks the tap, so the Tutor never asks for typed words.
+    lines.push(
+      explore?.hints.length ? `Hints released so far: ${explore.hints.map((h, i) => `hint ${i + 1}: ${h.trim()}`).join(" ")}` : "No hint has been released yet.",
+      `The Learner settles the Insight with a tap: code shows the question with these choices under the conversation and marks the tap itself: ${insight.pick.choices.map((c) => `"${c.text}"`).join(", ")}. Point the Learner to the Widget, then to the choices. Never ask them to type their answer and never say which choice is right. Call record_insight_attempt only when they ask to be told (Just tell me): outcome asked_to_be_told, with their words.`,
+    );
+    return lines;
+  }
   lines.push(
     explore?.hints.length ? `Hints released so far: ${explore.hints.map((h, i) => `hint ${i + 1}: ${h.trim()}`).join(" ")}` : "No hint has been released yet.",
     "Put the question to the Learner, then wait for their own words. Do not state, paraphrase or hint at the Insight yourself, and do not draw a conclusion for them. When they answer, call record_insight_attempt with outcome found, not_yet or asked_to_be_told (when they ask you to just tell them), and their words copied exactly from their message this turn. A turn code started when the Learner pressed a button (Next, Finish this reply), with no words of theirs, is not an attempt. Code replies with the hint or the written Insight; write your confirmation or hint after that result, as the final text of your reply.",

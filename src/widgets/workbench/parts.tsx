@@ -80,6 +80,7 @@ export const valueBridgeProps = z.object({
   leases: figures(
     "Leases counted as debt, {amount, label, source}, or null",
   ).optional(),
+  report: figures("A report's lines beside the bridge, {title, lines, source}, or null").optional(),
 });
 
 function ValueBridgePart({
@@ -91,10 +92,10 @@ function ValueBridgePart({
     options: useStateField("options", props.options),
   };
   const saved = useContext(SavedTicksContext);
-  const key = keyOf(props, ["caseId", "leases"]);
+  const key = keyOf(props, ["caseId", "leases", "report"]);
   const parsed = useMemo(() => {
-    const [caseId, leases] = JSON.parse(key) as unknown[];
-    return valueBridgeData({ caseId, leases });
+    const [caseId, leases, report] = JSON.parse(key) as unknown[];
+    return valueBridgeData({ caseId, leases, report });
   }, [key]);
   const levers = useMemo(
     () => ("data" in parsed ? valueBridgeLevers(parsed.data) : []),

@@ -105,3 +105,52 @@ describe("Value bridge with leases counted as debt (C4, Spine Topic 9: lenders, 
     expect(valueBridgeData({ caseId: "tesla-2020" })).toMatchObject({ problem: expect.stringMatching(/"tesla-2020" is not a Valuation Case/) });
   });
 });
+
+describe("Value bridge with a report's figures beside it (#93: put Amazon's 2000 report into his bridge)", () => {
+  const report = {
+    title: "Amazon's 10-K for 2000",
+    lines: [
+      { line: "Long-term debt", amount: 2_127, lever: "debt" },
+      { line: "Cash and marketable securities", amount: 1_101, lever: "cash" },
+      { line: "Loss from operations", amount: 864 },
+    ],
+    source: { title: "Amazon.com Form 10-K405 for 2000", url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt" },
+  };
+  const found = valueBridgeData({ caseId: "amazon-dcf-2000", report });
+  if (!("data" in found)) throw new Error(found.problem);
+  const withReport = found.data;
+
+  it("marks the report's debt and cash on their sliders, and puts the options under More settings", () => {
+    const [cash, debt, options] = valueBridgeLevers(withReport);
+    expect(cash.chips).toEqual([1_101]);
+    expect(cash.stops).toContain(1_101);
+    expect(debt.chips).toEqual([2_127]);
+    expect(debt.stops).toContain(2_127);
+    expect(options.more).toBe(true);
+    expect(cash.more || debt.more).toBe(false);
+  });
+
+  it("asks first for the report's debt and cash, ticked once both are in", () => {
+    expect(valueBridgeTasks(withReport)[0]).toBe("Put in the report's debt and cash. Watch one share.");
+    expect(valueBridgeTasks(withReport)).not.toContain("Set the options to $0. What does a share gain?");
+    expect(valueBridgeModel(withReport, { ...atCase, debt: 2_127 }).conditions[0]).toBe(false);
+    const both = valueBridgeModel(withReport, { ...atCase, debt: 2_127, cash: 1_101 });
+    expect(both.conditions[0]).toBe(true);
+    // A share moves by about $2, not by the gap the deeper operating loss makes.
+    expect(Math.abs((both.value ?? 0) - (valueBridgeModel(withReport, atCase).value ?? 0))).toBeLessThan(3);
+  });
+
+  it("keeps within the Workbench budget with the report's lines, and tells the Tutor them", () => {
+    const shape = valueBridgeShape(withReport);
+    expect(shape.controls).toBeLessThanOrEqual(WORKBENCH_BUDGET.controls);
+    expect(shape.more).toBeLessThanOrEqual(WORKBENCH_BUDGET.more);
+    expect(shape.words).toBeLessThanOrEqual(WORKBENCH_BUDGET.words);
+    expect(valueBridgeReading(withReport, atCase).readouts).toContain("Amazon's 10-K for 2000: Long-term debt $2.1bn; Cash and marketable securities $1.1bn; Loss from operations $864m");
+  });
+
+  it("refuses a report without a source, or with two lines for one lever", () => {
+    expect(valueBridgeData({ caseId: "amazon-dcf-2000", report: { ...report, source: undefined } })).toMatchObject({ problem: expect.stringMatching(/^report: /) });
+    const twice = { ...report, lines: [report.lines[0], { line: "Other debt", amount: 5, lever: "debt" }] };
+    expect(valueBridgeData({ caseId: "amazon-dcf-2000", report: twice })).toMatchObject({ problem: expect.stringMatching(/^report: /) });
+  });
+});

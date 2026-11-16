@@ -3,7 +3,7 @@ import { loadCourseMap, writtenQuestions } from "@/course/map";
 import type { TeachingStep } from "@/course/navigator";
 import { pickCompanion } from "@/tutor/companion";
 import { checkReply, countWords, type OpenItem, type ReplyCheckContext, type StepKind } from "@/tutor/reply-checks";
-import { E2E_SCRIPTS, SPINE_ONE_SAYS, draftOf, freshScriptReplies, type E2eScriptName } from "./e2e-tutor";
+import { E2E_SCRIPTS, draftOf, freshScriptReplies, type E2eScriptName } from "./e2e-tutor";
 
 const map = loadCourseMap();
 const topic = map.topic("num-percent-bps")!;
@@ -29,14 +29,18 @@ const isSpine = (name: E2eScriptName) => /^spine[123]-/.test(name);
 const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")! } as const;
 /** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts). */
 const splitTopic = (name: E2eScriptName) => (name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : undefined);
-const topicOf = (name: E2eScriptName) => splitTopic(name) ?? Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic);
+/** #93's three-turn play of the annual report Topic (e2e/spine-annual-report.spec.ts). */
+const annualReport = map.topic("spine-annual-report")!;
+const isReport = (name: E2eScriptName) => name.startsWith("ar-");
+const topicOf = (name: E2eScriptName) =>
+  splitTopic(name) ?? (isReport(name) ? annualReport : (Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic)));
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
   const t = topicOf(name);
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
-    exampleCurrency: isSpine(name) || splitTopic(name) ? "USD" : "INR",
+    exampleCurrency: isSpine(name) || splitTopic(name) || isReport(name) ? "USD" : "INR",
     caseCurrencies: ["USD"],
     openItems: name === "quiz-open" ? openItems : isSpine(name) && checkStep ? spineItems : [],
     internalWords: [t.id, ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)],
@@ -46,6 +50,9 @@ const context = (name: E2eScriptName): ReplyCheckContext => {
 describe("the scripted Tutor", () => {
   it("every named script passes the reply checks", () => {
     expect(Object.keys(E2E_SCRIPTS).sort()).toEqual([
+      "ar-concept",
+      "ar-explore",
+      "ar-story",
       "coc-concept",
       "coc-explore",
       "coc-story",
@@ -69,13 +76,11 @@ describe("the scripted Tutor", () => {
       "spine1-concept",
       "spine1-explore",
       "spine1-go-deeper",
-      "spine1-insight",
       "spine1-principle",
       "spine1-quiz-open",
       "spine1-reveal",
       "spine1-story",
       "spine1-talk-concept",
-      "spine1-talk-pass",
       "spine1-talk-prompt",
       "spine1-talk-your-turn",
       "spine1-your-turn",
@@ -151,18 +156,12 @@ describe("Spine Topic 1's scripted Tutor", () => {
     expect(checkReply(draftOf("spine1-go-deeper"), { ...context("spine1-go-deeper"), replyKind: "go_deeper" })).toEqual([]);
   });
 
-  it("records the Insight in words the Learner typed, and passes the conversation Check by its id", () => {
-    const [insight] = toolUses("spine1-insight");
-    expect(insight.name).toBe("record_insight_attempt");
-    expect(insight.input.outcome).toBe("found");
-    expect(SPINE_ONE_SAYS.insight).toContain(String(insight.input.learner_words));
-    const [verdict] = toolUses("spine1-talk-pass");
-    expect(verdict.name).toBe("record_check_verdict");
-    const talk = spine.checks.find((c) => c.kind === "conversation")!;
-    expect(verdict.input).toMatchObject({ check_id: talk.id, verdict: "pass" });
-    // What the Learner types at each step is within a message's reach, and says the Topic's own figures.
-    expect(countWords(SPINE_ONE_SAYS.talk)).toBeLessThanOrEqual(120);
-    for (const figure of ["$60bn", "12.5%", "$84"]) expect(SPINE_ONE_SAYS.insight).toContain(figure);
+  it("asks the Learner to type nothing: no Insight words to record and no Check verdict, every answer a tap (#88)", () => {
+    for (const name of Object.keys(E2E_SCRIPTS).filter((n) => n.startsWith("spine1-")) as E2eScriptName[]) {
+      expect(toolUses(name).map((t) => t.name), name).not.toContain("record_insight_attempt");
+      expect(toolUses(name).map((t) => t.name), name).not.toContain("record_check_verdict");
+    }
+    expect(spine.checks.some((c) => c.kind === "conversation")).toBe(false);
   });
 });
 
@@ -207,5 +206,42 @@ describe("test 4's scripted replies", () => {
         if (picked?.kind === "lingo") shown.terms.push(picked.key);
       }
     }
+  });
+});
+
+describe("the annual report Topic's scripted Tutor (#93)", () => {
+  const flat = (t: string) => t.replace(/\s+/g, " ");
+  const [amazon] = annualReport.cases;
+
+  it("opens on Amazon's 10-K with his value against the price, in figures from the Topic's own Case, and the report's question", () => {
+    expect(E2E_SCRIPTS["ar-story"].step).toBe("story");
+    const said = draftOf("ar-story").text;
+    for (const figure of ["$35.08", "$84"]) {
+      expect(said).toContain(figure);
+      expect(flat(amazon.story)).toContain(figure);
+    }
+    expect(said).toMatch(/the report is out\. Was he right\?/);
+  });
+
+  it("names the two pages at Concept, and shows the Value bridge on the Topic's Amazon Case at Explore", () => {
+    expect(draftOf("ar-concept").text).toMatch(/income statement/);
+    expect(draftOf("ar-concept").text).toMatch(/balance sheet/);
+    const shown = draftOf("ar-explore").widgets;
+    expect(shown).toHaveLength(1);
+    expect(shown[0]).toMatchObject({ id: "value_bridge", params: { inputs: { case: "spine-ar-amazon-2000", report: annualReport.explore?.workbench?.inputs.report } } });
+    expect(annualReport.explore?.workbench).toMatchObject({ recipe: "value_bridge", case: "spine-ar-amazon-2000" });
+  });
+
+  it("says at Concept that Japan, Korea and Europe keep the same two pages, in the reports their Cases read (#94)", () => {
+    const said = draftOf("ar-concept").text;
+    const stories = annualReport.cases.map((c) => flat(c.story)).join(" ");
+    for (const [market, report] of [["Japan", "Nintendo's yearly results"], ["Korea", "Samsung's business report"], ["Europe", "LVMH's annual report"]]) {
+      expect(said).toContain(market);
+      expect(said).toContain(report);
+    }
+    expect(stories).toContain("business report");
+    // Critics round 1 (#94): no word a beginner can't read in the turn. The Cases gloss yuho and IFRS; this line names the
+    // reports in plain words (and Nintendo's Case is its results, the kessan tanshin, not the yuho).
+    expect(said).not.toMatch(/yuho|IFRS|kessan tanshin/);
   });
 });

@@ -16,7 +16,6 @@ export const MAX_NEW_WORDS = 4;
 
 /** Spine Topics that bring more than four new words. */
 export const NEW_WORDS_NOT_YET: readonly string[] = [
-  "spine-01-worth",
   "spine-04-growth",
   "spine-05-margins",
   "spine-06-growth-cost",
@@ -28,7 +27,6 @@ export const NEW_WORDS_NOT_YET: readonly string[] = [
 
 /** Spine Topics with a Check that asks for the Learner's own story. */
 export const OWN_STORY_NOT_YET: readonly string[] = [
-  "spine-01-worth",
   "spine-05-margins",
   "spine-06-growth-cost",
   "spine-10-survival",
@@ -39,7 +37,6 @@ export const OWN_STORY_NOT_YET: readonly string[] = [
 
 /** Spine Topics that say "your story". */
 export const YOUR_STORY_NOT_YET: readonly string[] = [
-  "spine-01-worth",
   "spine-12-price-or-value",
   "spine-13-price-assumes",
   "spine-14-being-wrong",

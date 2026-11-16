@@ -100,6 +100,9 @@ describe("show_widget and the widget engine", () => {
       taxPercent: 35,
       lossesCarried: 470,
       opening: { growth: 1241.3, margin: 4, salesToCapital: 0.7 },
+      years: { from: "1999", to: "2000" },
+      whatIf: "A what-if: Webvan really lost money on most sales, so the cash it really used, in the Story, was far more.",
+      icon: "delivery-truck",
       source: { title: "Webvan Group, Form 10-K for 2000 (SEC EDGAR)", url: "https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt" },
     };
     const shownTitle = async (company: unknown) => {

@@ -14,42 +14,28 @@ import type { ModelClient } from "@/tutor/model";
 const text = (t: string) => ({ type: "text", text: t });
 
 /** The Topic every fixture state opens (src/app/api/dev-e2e/route.ts). Its running example is a savings rate from 4% to 5%. */
-const RATE_MOVE_PARAMS = {
-  title: "A savings rate from 4% to 5%",
-  inputs: { old: 4, new: 5, mode: "show" },
+const RATE_MOVE_PARAMS = { title: "A savings rate from 4% to 5%", inputs: { old: 4, new: 5, mode: "show" }, refs: {}, facts: {} };
+
+/** Spine Topic 1's explore Workbench (its Topic file's explore.workbench), as the Tutor shows it with show_widget. */
+const SPINE_ONE_LEVERS = {
+  title: "Amazon, February 2000: the four levers",
+  inputs: { case: "spine-01-amazon-2000", caseStory: "Damodaran's story", priceStory: { revenue: 60, margin: 12.5 } },
   refs: {},
   facts: {},
 };
 
-/**
- * Spine Topic 1 (spine-01-worth, e2e/spine-01.spec.ts): what the Learner types in the play, so a Tutor tool call can
- * quote their own words (record_insight_attempt and the Check verdict take only words from the Learner's message).
- * The spec types exactly these; src/dev/e2e-tutor.test.ts holds the two together.
- */
-export const SPINE_ONE_SAYS = {
-  /** At explore, once the Value levers reach $84: the Insight in the Learner's words. */
-  insight:
-    "I moved sales to $60bn and the margin to 12.5%, and the story reached $84. The price needs a much bigger Amazon that keeps more of each sale; a cheaper cost of capital alone could not get there.",
-  /** At the conversation Check: Amazon's story as four levers, the lever least sure of, and the price read as a question. */
-  talk:
-    "Amazon grows to about $39bn of sales in ten years and keeps 10% of each sale. It needs $1 invested for every $3 of new sales, and its 12.84% cost of capital falls as it matures, so on that story it is worth about $35 a share. " +
-    "I am least sure of the margin, because Amazon still loses money on what it sells. The $84 price is not proof the story is wrong: it is a question about the bigger, richer Amazon it assumes.",
-} as const;
-
-/** The words of the Insight the Learner's message holds, as record_insight_attempt quotes them. */
-const SPINE_ONE_INSIGHT_WORDS =
-  "The price needs a much bigger Amazon that keeps more of each sale";
-
-/** Spine Topic 1's explore Workbench (its Topic file's explore.workbench), as the Tutor shows it with show_widget. */
-const SPINE_ONE_LEVERS = {
-  title: "Amazon, February 2000: your story",
-  inputs: {
-    case: "spine-01-amazon-2000",
-    caseStory: "Damodaran's story",
-    priceStory: { revenue: 60, margin: 12.5 },
+/** The report's page beside the annual report Topic's Value bridge, copied from its Topic file as the Tutor copies it (ADR 0010). */
+const AR_REPORT = {
+  title: "Amazon's 10-K for 2000",
+  lines: [
+    { line: "Long-term debt", amount: 2127, lever: "debt" },
+    { line: "Cash and marketable securities", amount: 1101, lever: "cash" },
+    { line: "Loss from operations", amount: 864 },
+  ],
+  source: {
+    title: "Amazon.com Form 10-K405 for 2000, Consolidated Balance Sheets and Statements of Operations",
+    url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt",
   },
-  refs: {},
-  facts: {},
 };
 
 export const E2E_SCRIPTS = {
@@ -75,16 +61,7 @@ export const E2E_SCRIPTS = {
   "concept-reply-widget": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_show",
-            name: "show_widget",
-            input: { recipe: "rate_move", params: RATE_MOVE_PARAMS },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_show", name: "show_widget", input: { recipe: "rate_move", params: RATE_MOVE_PARAMS } }] },
       {
         content: [
           text(
@@ -119,34 +96,7 @@ export const E2E_SCRIPTS = {
   "stage-reply-2": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_stage2",
-            name: "show_widget",
-            input: {
-              recipe: "percent_points",
-              params: {
-                title: "A deposit rate from 6% to 6.5%",
-                inputs: {
-                  label: "Deposit rate",
-                  slider: {
-                    label: "New rate",
-                    unit: "percent",
-                    min: 5,
-                    max: 8,
-                    step: 0.25,
-                    start: 6,
-                  },
-                },
-                refs: {},
-                facts: {},
-              },
-            },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_stage2", name: "show_widget", input: { recipe: "percent_points", params: { title: "A deposit rate from 6% to 6.5%", inputs: { label: "Deposit rate", slider: { label: "New rate", unit: "percent", min: 5, max: 8, step: 0.25, start: 6 } }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
@@ -161,31 +111,7 @@ export const E2E_SCRIPTS = {
   "stage-reply-3": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_stage3",
-            name: "show_widget",
-            input: {
-              recipe: "lingo_card",
-              params: {
-                title: "A loan rate from 9% to 8.75%",
-                inputs: {
-                  term: "Quarter point",
-                  pro: "The loan rate fell a quarter point.",
-                  means:
-                    "A move of one quarter of a percentage point, or 25 basis points.",
-                  example: "A loan rate going from 9% to 8.75%.",
-                  emoji: "bank",
-                },
-                refs: {},
-                facts: {},
-              },
-            },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_stage3", name: "show_widget", input: { recipe: "lingo_card", params: { title: "A loan rate from 9% to 8.75%", inputs: { term: "Quarter point", pro: "The loan rate fell a quarter point.", means: "A move of one quarter of a percentage point, or 25 basis points.", example: "A loan rate going from 9% to 8.75%.", emoji: "bank" }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
@@ -200,30 +126,7 @@ export const E2E_SCRIPTS = {
   "stage-reply-4": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_stage4",
-            name: "show_widget",
-            input: {
-              recipe: "lingo_card",
-              params: {
-                title: "A bond yield from 7% to 7.1%",
-                inputs: {
-                  term: "Basis point",
-                  pro: "The yield edged up 10 basis points.",
-                  means: "One hundredth of a percentage point.",
-                  example: "A bond yield going from 7% to 7.1%.",
-                  emoji: "chart-increasing",
-                },
-                refs: {},
-                facts: {},
-              },
-            },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_stage4", name: "show_widget", input: { recipe: "lingo_card", params: { title: "A bond yield from 7% to 7.1%", inputs: { term: "Basis point", pro: "The yield edged up 10 basis points.", means: "One hundredth of a percentage point.", example: "A bond yield going from 7% to 7.1%.", emoji: "chart-increasing" }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
@@ -243,24 +146,7 @@ export const E2E_SCRIPTS = {
   "persona-one-hundred": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_persona_hundred",
-            name: "show_widget",
-            input: {
-              recipe: "rate_move",
-              params: {
-                title: "A mortgage rate from 5% to 6%",
-                inputs: { old: 5, new: 6, mode: "show" },
-                refs: {},
-                facts: {},
-              },
-            },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_persona_hundred", name: "show_widget", input: { recipe: "rate_move", params: { title: "A mortgage rate from 5% to 6%", inputs: { old: 5, new: 6, mode: "show" }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
@@ -276,24 +162,7 @@ export const E2E_SCRIPTS = {
   "persona-why-tiny": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_persona_tiny",
-            name: "show_widget",
-            input: {
-              recipe: "rate_move",
-              params: {
-                title: "A home loan rate from 8% to 8.01%",
-                inputs: { old: 8, new: 8.01, mode: "show" },
-                refs: {},
-                facts: {},
-              },
-            },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_persona_tiny", name: "show_widget", input: { recipe: "rate_move", params: { title: "A home loan rate from 8% to 8.01%", inputs: { old: 8, new: 8.01, mode: "show" }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
@@ -309,24 +178,7 @@ export const E2E_SCRIPTS = {
   "persona-bank-cut": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_persona_cut",
-            name: "show_widget",
-            input: {
-              recipe: "rate_move",
-              params: {
-                title: "A bank rate cut from 6.5% to 6.25%",
-                inputs: { old: 6.5, new: 6.25, mode: "show" },
-                refs: {},
-                facts: {},
-              },
-            },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_persona_cut", name: "show_widget", input: { recipe: "rate_move", params: { title: "A bank rate cut from 6.5% to 6.25%", inputs: { old: 6.5, new: 6.25, mode: "show" }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
@@ -357,24 +209,7 @@ export const E2E_SCRIPTS = {
   "persona-one-more": {
     step: "concept",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_persona_more",
-            name: "show_widget",
-            input: {
-              recipe: "rate_move",
-              params: {
-                title: "A personal loan rate from 12% to 13.5%",
-                inputs: { old: 12, new: 13.5, mode: "show" },
-                refs: {},
-                facts: {},
-              },
-            },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_persona_more", name: "show_widget", input: { recipe: "rate_move", params: { title: "A personal loan rate from 12% to 13.5%", inputs: { old: 12, new: 13.5, mode: "show" }, refs: {}, facts: {} } } }] },
       {
         content: [
           text(
@@ -465,14 +300,7 @@ export const E2E_SCRIPTS = {
               params: {
                 title: "Lingo: quarter point",
                 // No figures: an open quiz's Blocked numbers would keep the card off the screen (V5).
-                inputs: {
-                  term: "Quarter point",
-                  pro: "The Fed moved by a quarter point.",
-                  means: "One quarter of a percentage point.",
-                  example:
-                    "A small rate move that papers write as a quarter point.",
-                  emoji: "bank",
-                },
+                inputs: { term: "Quarter point", pro: "The Fed moved by a quarter point.", means: "One quarter of a percentage point.", example: "A small rate move that papers write as a quarter point.", emoji: "bank" },
                 refs: {},
                 facts: {},
               },
@@ -543,15 +371,7 @@ export const E2E_SCRIPTS = {
    */
   "rejected-draft": {
     step: "concept",
-    replies: [
-      {
-        content: [
-          text(
-            `${"Money today is worth more than money later, because you can use it now. ".repeat(11).trim()}\n\nWhich would you pick?`,
-          ),
-        ],
-      },
-    ],
+    replies: [{ content: [text(`${"Money today is worth more than money later, because you can use it now. ".repeat(11).trim()}\n\nWhich would you pick?`)] }],
     // The gate's retry is a second run of the Tool Runner in the same turn: it plays these.
     retry: [
       {
@@ -567,9 +387,11 @@ export const E2E_SCRIPTS = {
   },
   /**
    * Spine Topic 1 (spine-01-worth), played whole through the page by e2e/spine-01.spec.ts: one script per Tutor Turn
-   * the play passes through, in order. Every number is the Case's or the valuation engine's ($84 price, $1,117m of sales,
-   * a $410m operating loss, his $35.08 a share, $39bn of sales in year 10, a 10% margin, $3 of sales per $1 invested, a
-   * 12.84% cost of capital, the $14.88 low of the fourth quarter; $60bn and 12.5% is the story worth $84). The replies at
+   * the play passes through, in order. Every number is the Case's or the valuation engine's, rounded as the Topic
+   * rounds them for a beginner where the Learner reads one to answer ($84 price, about $1.1bn of sales, about a $400m
+   * operating loss, $39bn of sales in year 10, a 10% margin, $3 of sales per dollar invested, a cost of capital near 13%;
+   * the reveal keeps its exact $35.08, $91.50 and $14.88). The Learner types
+   * nothing: the Insight and both Checks are taps (ticket #88). The replies at
    * the Check step hold no number and no choice's words, so they never touch an open quiz (V5).
    */
   /** The opener at Story: the Case's setting, ending on whether the price is fair. */
@@ -580,7 +402,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "February 2000. Amazon sells books and music online, and its shares cost $84. " +
-              "In the twelve months to September 1999 it sold $1,117 million and lost $410 million on its operations. " +
+              "A share is one small slice of the company. In the twelve months to September 1999 it sold about $1.1 billion of goods and lost about $400 million on its operations. " +
               "A professor in New York, Aswath Damodaran, writes down what he thinks its future looks like: " +
               "how big it gets, what it keeps of each sale, what its growth costs and how risky it is. " +
               "Buyers are paying for a future nobody has seen yet.\n\n" +
@@ -598,7 +420,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "A price is what buyers pay for a share today. A value is what the business's future cash is worth today, argued from a story. " +
-              "His story sets four levers: about $39 billion of sales in year 10, 10% of each sale kept, $3 of sales for each $1 invested, and a 12.84% cost of capital.\n\n" +
+              "His story sets four levers: about $39 billion of sales in year 10, 10% of each sale kept, $3 of sales for each dollar invested, and a cost of capital near 13%.\n\n" +
               "Which of the four levers do you trust least?",
           ),
         ],
@@ -609,48 +431,13 @@ export const E2E_SCRIPTS = {
   "spine1-explore": {
     step: "explore",
     replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_spine1_levers",
-            name: "show_widget",
-            input: { recipe: "value_levers", params: SPINE_ONE_LEVERS },
-          },
-        ],
-      },
+      { content: [{ type: "tool_use", id: "toolu_e2e_spine1_levers", name: "show_widget", input: { recipe: "value_levers", params: SPINE_ONE_LEVERS } }] },
       {
         content: [
           text(
             "Here is his story as four levers. At his settings it comes to $35 a share, well under the $84 price. " +
               "Each lever is one part of the story: how big Amazon gets, what it keeps, what growth costs and how risky it is.\n\n" +
-              "Which story would make Amazon worth the price, and what did you change to get there?",
-          ),
-        ],
-      },
-    ],
-  },
-  /** Explore, after the Learner's words: the Tutor records the Insight as found, quoting them, and confirms it. */
-  "spine1-insight": {
-    step: "explore",
-    replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_spine1_insight",
-            name: "record_insight_attempt",
-            input: { outcome: "found", learner_words: SPINE_ONE_INSIGHT_WORDS },
-          },
-        ],
-      },
-      {
-        content: [
-          text(
-            'You said the price "needs a much bigger Amazon that keeps more of each sale", and that is it. ' +
-              "Sales of $60bn and a 12.5% margin reach $84, while his story of $39bn and 10% stays near $35. " +
-              "The cost of capital alone could not close that gap.\n\n" +
-              "Which of your two changes feels harder to believe?",
+              "Find a story worth the price in the Workbench, then tap below what you had to change to get there.",
           ),
         ],
       },
@@ -686,7 +473,7 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
-  /** Concept of the conversation Check, reached after the quiz pass: a story only holds when its parts fit. */
+  /** Concept of the judging Check (worth-talk), reached after the quiz pass: a story only holds when its parts fit. */
   "spine1-talk-concept": {
     step: "concept",
     replies: [
@@ -694,68 +481,38 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "A story only holds when its parts fit together. Fast growth needs warehouses and systems paid for first, and a young company is risky. " +
-              "When the price and your value differ, ask what story the price assumes before you call it wrong.\n\n" +
+              "When a price and a value differ, ask what story the price assumes before you call it wrong.\n\n" +
               "Which part of his story would you argue about first?",
           ),
         ],
       },
     ],
   },
-  /** Your turn of the conversation Check (it has no Quick tries): getting ready to tell the story. */
+  /** Your turn of the judging Check (it has no Quick tries): getting ready to judge other people's stories. */
   "spine1-talk-your-turn": {
     step: "your_turn",
     replies: [
       {
         content: [
           text(
-            "Soon you will tell Amazon's story yourself. A good story names how big it gets and what it keeps, then what growth costs or how risky it is. " +
-              "Doubting one lever, with a reason, is part of a good valuation.\n\n" +
-              "Which lever would you doubt most, and why?",
+            "Next you will judge other people's stories about Amazon: a headline's, an analyst's, a founder's and a fan's. " +
+              "For each, ask whether it is a price someone paid or a value someone argued, and which lever it moves.\n\n" +
+              "Which lever would you check first in a story you read?",
           ),
         ],
       },
     ],
   },
-  /** The conversation Check's prompt, at its Check step. */
+  /** The judging Check's step: its questions are in the Check tab, so no number and no choice's words. */
   "spine1-talk-prompt": {
     step: "check",
     replies: [
       {
         content: [
           text(
-            "Time to put it in your own words. A strong answer sets a size, a margin and either a cost of growth or a risk, " +
-              "ties the value to that story, and treats the gap to the price as a question.\n\n" +
-              "Which lever are you least sure of, and how does Amazon's story go as you would set it?",
-          ),
-        ],
-      },
-    ],
-  },
-  /** The Learner told the story: the Tutor records the pass as the real Tutor does, with record_check_verdict. */
-  "spine1-talk-pass": {
-    step: "check",
-    replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_spine1_verdict",
-            name: "record_check_verdict",
-            input: {
-              check_id: "worth-talk",
-              verdict: "pass",
-              reasons:
-                "Gives a size, a margin and a cost of growth and a risk; ties the value to that story; names the margin as uncertain with a reason; reads the price as a question, not proof.",
-            },
-          },
-        ],
-      },
-      {
-        content: [
-          text(
-            "That story holds together: a size, a margin, what growth costs and a risk, with the value tied to them. " +
-              "Doubting the margin is fair, since Amazon was still losing money. And you read the price as a question about the story it needs.\n\n" +
-              "Shall we see what the price did next?",
+            "The Check tab now holds a few stories other people tell about Amazon. " +
+              "Read each one slowly, then tap your judgement.\n\n" +
+              "Which kind of story do you find hardest to judge?",
           ),
         ],
       },
@@ -805,8 +562,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "Here is the rule to keep. A value is a story set as four levers: how big it gets, what it keeps, what growth costs and how risky it is. " +
-              "When a price and your value differ, ask what the price assumes before you call it wrong. " +
-              "In February 2000 the $84 price assumed about $60bn of sales and a 12.5% margin, far more than his story.\n\n" +
+              "When a price and a value differ, ask what the price assumes before you call it wrong. " +
+              "In February 2000 the $84 price assumed far more sales and a fatter margin than his story.\n\n" +
               "Which lever would you look at first in the next company you meet?",
           ),
         ],
@@ -821,7 +578,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "You have finished this Topic. You can tell a price from a value, set a story as four levers, and read a price back as the story it needs.\n\n" +
-              "Which company would you like to value next?",
+              "Which headline would you like to judge next?",
           ),
         ],
       },
@@ -899,8 +656,8 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Operating income is what sales bring in after the running costs. " +
-              "Free cash flow takes off tax, then what growth costs: the warehouses, vans and groceries that more sales need, bought before those sales arrive. " +
+            "Free cash flow is the cash left after paying for growth. " +
+              "Growth is paid for first: the warehouses, vans and groceries that more sales need are bought before those sales arrive. " +
               "So a business can make a profit on each sale and still run short of cash.\n\n" +
               "Which grocer would you expect to use more cash: one growing fast, or one standing still?",
           ),
@@ -914,9 +671,59 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here is Webvan's year as a waterfall, from sales down to free cash flow. " +
-              "It gives Webvan a small profit on each sale, and still free cash flow is far below zero.\n\n" +
+            "Here is Webvan's 2000 as a waterfall, from sales down to free cash flow. " +
+              "Suppose Webvan made a small profit on each sale (it really lost money on most): free cash flow is still far below zero.\n\n" +
               "What happens to free cash flow when you move growth down?",
+          ),
+        ],
+      },
+    ],
+  },
+  // ——— The annual report Topic (#93, e2e/spine-annual-report.spec.ts): its first three turns, for the critics' round. Every
+  // figure is its Topic file's Amazon Case (Amazon's 10-K for 2000 next to Damodaran's story of February 2000).
+  /** The opener at Story: Amazon's 10-K is out, and six numbers matter. */
+  "ar-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "March 2001. Amazon files its annual report for 2000. A year earlier Aswath Damodaran, a valuation professor in New York, said a share was worth $35.08 while it sold for $84. " +
+              "Now the report is out. Was he right?\n\n" +
+              "What would you look for first in it?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Concept: two pages hold the six numbers, and names change from report to report. Code shows the Concept card. */
+  "ar-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Two pages hold a valuation's numbers. The income statement runs from sales down to operating profit, what the business makes before interest and tax, then tax. " +
+              "The balance sheet shows debt and cash on one day; its note on share capital counts the shares. " +
+              "Names change: Zomato calls sales revenue from operations. " +
+              "Japan, Korea and Europe keep the same two pages, in Nintendo's yearly results, Samsung's business report and LVMH's annual report.\n\n" +
+              "Where would you look for Amazon's debt?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Explore: the Value bridge on the Topic's Amazon Case, and the Insight question. */
+  "ar-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_ar_bridge", name: "show_widget", input: { recipe: "value_bridge", params: { title: "Put Amazon's 2000 report into the bridge", inputs: { case: "spine-ar-amazon-2000", report: AR_REPORT }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Here is his bridge from Amazon's business to one share, with the report's page beside it. " +
+              "The 2000 report shows about $2.1 billion of debt and $1.1 billion of cash. Tap each on the page, or slide debt to $2.1bn and cash to $1.1bn, and watch one share.\n\n" +
+              "Does a share move a lot or a little, and is that what his value rested on?",
           ),
         ],
       },
@@ -1095,10 +902,7 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
-} satisfies Record<
-  string,
-  { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }
->;
+} satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;
 
@@ -1110,19 +914,12 @@ export function isE2eScript(name: unknown): name is E2eScriptName {
 
 /** The finished reply a script gives, as the reply checks read it: its text and the Widgets its tool calls show. */
 export function draftOf(name: E2eScriptName): ReplyDraft {
-  const blocks = (E2E_SCRIPTS[name].replies as ScriptedReply[]).flatMap((r) =>
-    "content" in r ? r.content : [],
-  );
-  const textOf = blocks
-    .filter((b) => b.type === "text")
-    .map((b) => String(b.text));
+  const blocks = (E2E_SCRIPTS[name].replies as ScriptedReply[]).flatMap((r) => ("content" in r ? r.content : []));
+  const textOf = blocks.filter((b) => b.type === "text").map((b) => String(b.text));
   const widgets: ReplyWidget[] = blocks
     .filter((b) => b.type === "tool_use" && b.name === "show_widget")
     .map((b) => {
-      const input = b.input as {
-        recipe: string;
-        params?: Record<string, unknown>;
-      };
+      const input = b.input as { recipe: string; params?: Record<string, unknown> };
       return { kind: "recipe", id: input.recipe, params: input.params };
     });
   return { text: textOf.join("\n\n"), widgets };
@@ -1138,24 +935,14 @@ declare global {
  * tool calls are recorded once per tool-call id across the whole database (`once` in src/tutor/tools.ts), so
  * replaying a script's fixed ids in a later Session would store no second Widget.
  */
-export function freshScriptReplies(
-  name: E2eScriptName,
-  retry = false,
-): ScriptedReply[] {
-  const play = (globalThis.__faE2eTurnCount =
-    (globalThis.__faE2eTurnCount ?? 0) + 1);
-  const script = E2E_SCRIPTS[name] as {
-    replies: ScriptedReply[];
-    retry?: ScriptedReply[];
-  };
-  const replies = structuredClone(
-    retry && script.retry ? script.retry : script.replies,
-  ) as ScriptedReply[];
+export function freshScriptReplies(name: E2eScriptName, retry = false): ScriptedReply[] {
+  const play = (globalThis.__faE2eTurnCount = (globalThis.__faE2eTurnCount ?? 0) + 1);
+  const script = E2E_SCRIPTS[name] as { replies: ScriptedReply[]; retry?: ScriptedReply[] };
+  const replies = structuredClone(retry && script.retry ? script.retry : script.replies) as ScriptedReply[];
   for (const reply of replies) {
     if (!("content" in reply)) continue;
     for (const block of reply.content) {
-      if (block.type === "tool_use" && typeof block.id === "string")
-        block.id = `${block.id}-p${play}`;
+      if (block.type === "tool_use" && typeof block.id === "string") block.id = `${block.id}-p${play}`;
     }
   }
   return replies;
@@ -1177,13 +964,11 @@ export function currentE2eScript(): E2eScriptName {
 export function e2eTutorClient(): ModelClient {
   // A script with a `retry` plays it from the turn's second run on (the reply gate's retry, spec A1's browser test).
   let runs = 0;
-  const fresh = () =>
-    scriptedClient(freshScriptReplies(currentE2eScript(), runs++ > 0)).client;
+  const fresh = () => scriptedClient(freshScriptReplies(currentE2eScript(), runs++ > 0)).client;
   let current: ModelClient | undefined;
   return {
     forRun: fresh,
     step: (request, options) => (current ??= fresh()).step(request, options),
-    compact: (request, options) =>
-      (current ??= fresh()).compact(request, options),
+    compact: (request, options) => (current ??= fresh()).compact(request, options),
   };
 }

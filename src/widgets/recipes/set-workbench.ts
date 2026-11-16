@@ -3,6 +3,7 @@ import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { cashWaterfallLevers } from "../workbench/cash-waterfall-model";
 import {
+  bridgeReportSchema,
   companyYearSchema,
   costOfCapitalFiguresSchema,
   decoderAssumptionsSchema,
@@ -417,12 +418,13 @@ const valueBridgeInputs = z
       .describe(
         "Lease obligations the Case's debt does not count, which the Topic counts as debt, with their source",
       ),
+    report: bridgeReportSchema.optional().describe("A report's lines shown beside the bridge, its debt and cash ready to put in, with their source"),
   })
   .strict();
 
 export const valueBridge = defineRecipe({
   id: "value_bridge",
-  topicInputs: ["leases"],
+  topicInputs: ["leases", "report"],
   archetype: WORKBENCH,
   summary:
     "Value bridge, a Workbench on a Case's valuation: business value steps down through cash, debt and leases, and options to what one share is worth. Use it to show who is paid before shareholders.",
@@ -444,6 +446,7 @@ export const valueBridge = defineRecipe({
     const found = valueBridgeData({
       caseId: inputs.case,
       leases: inputs.leases,
+      report: inputs.report,
     });
     if (!("data" in found)) throw new Error(found.problem);
     const { declarations, args } = leverStatements(
@@ -454,7 +457,7 @@ export const valueBridge = defineRecipe({
       ["bridge"],
       [
         ...declarations,
-        `bridge = ValueBridge(${[str(inputs.case), ...args, inputs.leases ? lit(inputs.leases) : "null"].join(", ")})`,
+        `bridge = ValueBridge(${[str(inputs.case), ...args, inputs.leases ? lit(inputs.leases) : "null", ...(inputs.report ? [lit(inputs.report)] : [])].join(", ")})`,
       ],
     );
   },

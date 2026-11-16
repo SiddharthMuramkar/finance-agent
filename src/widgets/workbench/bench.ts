@@ -29,6 +29,8 @@ export type BenchLever<Id extends string = string> = {
   spoken: (value: number) => string;
   /** A small line under the label. */
   caption?: string;
+  /** Figures ticked on the track, such as a report's debt; they do not stop a drag. */
+  marks?: { value: number; label: string }[];
 };
 
 /** The size of a Workbench at rest, for the Workbench budget (WORKBENCH_BUDGET in check.ts). */

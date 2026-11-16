@@ -16,6 +16,7 @@ import {
   type CashWaterfallData,
 } from "./cash-waterfall-model";
 import {
+  bridgeReportSchema,
   companyYearSchema,
   costOfCapitalFiguresSchema,
   decoderFiguresSchema,
@@ -230,17 +231,18 @@ export function valueBridgeData(
 ): { data: ValueBridgeData } | { problem: string } {
   const found = caseOf(props.caseId);
   if ("problem" in found) return found;
-  if (props.leases === undefined || props.leases === null)
-    return { data: { block: found.block } };
-  const leases = leasesSchema.safeParse(props.leases);
-  return leases.success
-    ? {
-        data: {
-          block: found.block,
-          leases: { amount: leases.data.amount, label: leases.data.label },
-        },
-      }
-    : { problem: `leases: ${issues(leases.error)}` };
+  const data: ValueBridgeData = { block: found.block };
+  if (props.leases !== undefined && props.leases !== null) {
+    const leases = leasesSchema.safeParse(props.leases);
+    if (!leases.success) return { problem: `leases: ${issues(leases.error)}` };
+    data.leases = { amount: leases.data.amount, label: leases.data.label };
+  }
+  if (props.report !== undefined && props.report !== null) {
+    const report = bridgeReportSchema.safeParse(props.report);
+    if (!report.success) return { problem: `report: ${issues(report.error)}` };
+    data.report = { title: report.data.title, lines: report.data.lines };
+  }
+  return { data };
 }
 
 const valueBridge = entry<ValueBridgeData, string>({
@@ -369,6 +371,9 @@ export function cashWaterfallData(
       taxPercent: c.taxPercent,
       lossesCarried: c.lossesCarried ?? 0,
       opening: c.opening,
+      ...(c.years ? { name: c.name, years: c.years } : {}),
+      ...(c.whatIf ? { whatIf: c.whatIf } : {}),
+      ...(c.icon ? { name: c.name, icon: c.icon } : {}),
     },
   };
 }

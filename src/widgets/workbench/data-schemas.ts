@@ -23,6 +23,22 @@ export const leasesSchema = z
   })
   .strict();
 
+/**
+ * An annual report's lines beside the Value bridge (#93: put Amazon's 2000 report into Damodaran's bridge): each line as the
+ * report names it, its amount in the Case's unit, and the lever it can be put into (cash or debt), if any; one line a lever.
+ */
+export const bridgeReportSchema = z
+  .object({
+    title: z.string().trim().min(3).max(40).describe('The report, such as "Amazon\'s 10-K for 2000"'),
+    lines: z
+      .array(z.object({ line: z.string().trim().min(3).max(40), amount: z.number().min(0), lever: z.enum(["cash", "debt"]).optional() }).strict())
+      .min(1)
+      .max(3)
+      .refine((lines) => ["cash", "debt"].every((lever) => lines.filter((l) => l.lever === lever).length <= 1), "one line a lever at most"),
+    source: sourceSchema,
+  })
+  .strict();
+
 /** A Case's figures for the Cost of capital stack, in percent (relative risk a plain number). */
 export const costOfCapitalFiguresSchema = z
   .object({
@@ -77,6 +93,22 @@ export const companyYearSchema = z
         salesToCapital: z.number().positive(),
       })
       .strict(),
+    /**
+     * For a beginner (Spine critics round 1 on #89): the year the revenue is and the year the bench shows, as the Story
+     * names them ("1999", "2000"), so the bench never says "this year" of a year long past. With them, growth reads as a
+     * multiple ("13.4 times") and sales for each unit invested goes under More settings.
+     */
+    years: z.object({ from: z.string().trim().min(2).max(12), to: z.string().trim().min(2).max(12) }).strict().optional(),
+    /** One line saying what the bench makes up, in words (its figures are the engine's, so no digits). */
+    whatIf: z
+      .string()
+      .trim()
+      .min(10)
+      .max(140)
+      .refine((t) => !/\d/.test(t), { message: "must use words, not digits: the bench's figures are the engine's" })
+      .optional(),
+    /** The company's Icon, which puts a small scene on the bench that reacts as growth moves. */
+    icon: z.string().trim().refine(isIconName, { message: "is not an Icon name (src/icons/names.ts)" }).optional(),
     source: sourceSchema,
   })
   .strict();

@@ -8,6 +8,7 @@ import { widgetParts, widgetProblems } from "@/widgets/check";
 import { recipeById } from "@/widgets/recipes";
 import { exploreWidgetFor, exploreWidgetInSession, exploreWidgetOf } from "./explore-widget";
 import { loadCourseMap, parseCourseMap } from "./map";
+import { SPINE_LENGTH } from "./outline";
 import { finishStep, recordCheckResult, type Progress } from "./navigator";
 
 /** The Topic's own explore Widget: its code in the Topic file, and when code shows it. */
@@ -170,7 +171,7 @@ describe("a Spine Topic's explore Workbench (spec C2, B3)", () => {
     const widget = exploreWidgetOf(topic);
     expect(widget).toMatchObject({ topicId: "spine-01-worth", id: "spine-01-worth-workbench" });
     expect(widget!.code).toContain("spine-01-amazon-2000");
-    expect(widget!.code).toContain("Amazon, February 2000: your story");
+    expect(widget!.code).toContain("Amazon, February 2000: the four levers");
   });
 
   // Merge review: Spine Topic 12 named a Case for the Multiple decoder when its inputs took none, so the build was refused
@@ -179,7 +180,7 @@ describe("a Spine Topic's explore Workbench (spec C2, B3)", () => {
 
   it("covers every written Spine Topic", () => {
     // Numbered 1 to n with none missing, n being however many Spine Topics the outline holds (spec #68 grows it to 18).
-    expect(spine.length).toBeGreaterThanOrEqual(16);
+    expect(spine.length).toBe(SPINE_LENGTH);
     expect(spine.map((t) => t.spine).sort((a, b) => a! - b!)).toEqual(Array.from({ length: spine.length }, (_, i) => i + 1));
   });
 

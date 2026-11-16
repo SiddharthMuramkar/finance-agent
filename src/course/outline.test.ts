@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap } from "./map";
-import { isElective, parseOutline, renderCourseMapDoc, spineTopics, SUBJECTS, usedInSpine } from "./outline";
+import { isElective, parseOutline, renderCourseMapDoc, SPINE_LENGTH, spineCountProblems, spineTopics, SUBJECTS, usedInSpine } from "./outline";
 
 function entry(id: string, extra = "", cases = defaultCase(id)) {
   return `  - id: ${id}
@@ -204,10 +204,18 @@ describe("the Spine on the outline", () => {
     expect(problems(spineEntry("s1", 1, "    minutes: 20\n"))).toEqual(['Spine Topic "s1" takes 20 minutes; a Spine Topic takes 15 or fewer']);
   });
 
-  it("holds up to eighteen Spine Topics and rejects a Spine number past eighteen (ADR 0020)", () => {
-    const eighteen = Array.from({ length: 18 }, (_, i) => spineEntry(`s${i + 1}`, i + 1));
-    expect(problems(...eighteen)).toEqual([]);
-    expect(problems(...eighteen, spineEntry("s19", 19)).join()).toContain("spine");
+  it("holds SPINE_LENGTH Spine Topics (18 once the splits land) and rejects a Spine number past it (ADR 0020)", () => {
+    const full = Array.from({ length: SPINE_LENGTH }, (_, i) => spineEntry(`s${i + 1}`, i + 1));
+    expect(problems(...full)).toEqual([]);
+    expect(problems(...full, spineEntry(`s${SPINE_LENGTH + 1}`, SPINE_LENGTH + 1)).join()).toContain("spine");
+  });
+
+  it("the course check requires exactly SPINE_LENGTH Spine Topics, no fewer (#93, ADR 0020)", () => {
+    const spineOf = (n: number) => parseOutline(outlineText(...Array.from({ length: n }, (_, i) => spineEntry(`s${i + 1}`, i + 1)), entry("a"))).outline!;
+    expect(spineCountProblems(spineOf(SPINE_LENGTH))).toEqual([]);
+    expect(spineCountProblems(spineOf(SPINE_LENGTH - 1))).toEqual([
+      `The Spine has ${SPINE_LENGTH - 1} Topics; it needs exactly ${SPINE_LENGTH}, numbered 1 to ${SPINE_LENGTH} (ADR 0020)`,
+    ]);
   });
 
   it("rejects drawsOn that names a Topic not in the outline, a Spine Topic, or one Topic twice", () => {
@@ -335,6 +343,7 @@ describe("the real outline", () => {
         [14, "spine-13-price-assumes"],
         [15, "spine-14-being-wrong"],
         [16, "spine-15-value-yourself"],
+        [17, "spine-annual-report"],
       ]);
       expect(byNumber(1).title).toBe("What is a business worth? Price against value, and the four levers");
       expect(byNumber(2).title).toBe("Why is money later worth less?");
@@ -342,6 +351,26 @@ describe("the real outline", () => {
       expect(byNumber(8).title).toBe("What does all of a company's money cost?");
       expect(byNumber(14).title).toBe("What does the price assume?");
       expect(byNumber(16).title).toBe("Value one yourself, as of a past date");
+      expect(byNumber(17).title).toBe("Where are a valuation's numbers in an annual report?");
+    });
+
+    // #93: the Spine ends on finding a valuation's numbers in an annual report, which leads into the Assignments. This branch
+    // holds 17 Spine Topics (#91's split merged); with #90's split the Spine is 18, and the merger sets SPINE_LENGTH and this to 18.
+    it("ends on the annual report Topic, and the course check holds the Spine to its length", () => {
+      expect(spine.at(-1)?.id).toBe("spine-annual-report");
+      expect(spine.length).toBe(17);
+      expect(spineCountProblems(outline!)).toEqual([]);
+    });
+
+    it("finds the numbers in one annual report from each of the US, India, Japan, Korea and Europe, from the filings themselves (#93, #94)", () => {
+      const cases = byNumber(17).cases;
+      expect(cases.map((c) => c.asOf)).toEqual(["2001-03-23", "2022-08-05", "2025-05-08", "2025-03-11", "2025-03-25"]);
+      expect(cases[0].sources).toContain("https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt");
+      expect(cases[1].sources).toContain("https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf");
+      expect(cases[2].sources).toContain("https://www.nintendo.co.jp/ir/pdf/2025/250508e.pdf");
+      expect(cases[3].sources).toContain("https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250311001085");
+      expect(cases[4].sources).toContain("https://lvmh-com.cdn.prismic.io/lvmh-com/Z-PY3HdAxsiBv6wN_UniversalRegistrationDocument2024.pdf");
+      expect(cases.every((c) => c.verified)).toBe(true);
     });
 
     it("says how long each takes: ten minutes for the first, fifteen for the last, none over fifteen (C2, C5)", () => {
