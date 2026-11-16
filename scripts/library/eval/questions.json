@@ -10,6 +10,7 @@
         "m00048"
       ],
       "alsoExpect": [
+        "yale-econ-251/lecture-6",
         "damodaran-blog/post-4939519881908671034"
       ]
     },
@@ -295,14 +296,59 @@
       ]
     },
     {
+      "q": "How does the leverage cycle explain the subprime mortgage crisis?",
+      "expect": [
+        "yale-econ-251/lecture-25",
+        "yale-econ-251/lecture-26",
+        "yale-econ-252/lecture-8"
+      ]
+    },
+    {
+      "q": "What is Irving Fisher's theory of interest and impatience?",
+      "expect": [
+        "yale-econ-251/lecture-5",
+        "yale-econ-251/lecture-6"
+      ]
+    },
+    {
+      "q": "Why does Social Security matter for the economy and the stock market?",
+      "expect": [
+        "yale-econ-251/lecture-11",
+        "yale-econ-251/lecture-12",
+        "yale-econ-251/lecture-13",
+        "yale-econ-251/lecture-24"
+      ]
+    },
+    {
+      "q": "How does the prepayment option change the value of a mortgage?",
+      "expect": [
+        "yale-econ-251/lecture-17",
+        "yale-econ-251/lecture-18",
+        "yale-econ-251/lecture-19"
+      ]
+    },
+    {
+      "q": "What is yield curve arbitrage?",
+      "expect": [
+        "yale-econ-251/lecture-9",
+        "yale-econ-251/lecture-8"
+      ]
+    },
+    {
       "q": "What are the weak, semi-strong and strong forms of the efficient markets hypothesis and what do its critics say?",
       "expect": [
+        "yale-econ-252/lecture-7",
+        "yale-econ-252/lecture-11",
         "openstax-principles-finance-1e/m00071"
       ]
     },
     {
       "q": "How does psychology explain bubbles and investor mistakes?",
       "expect": [
+        "yale-econ-252/lecture-11",
+        "yale-econ-252/lecture-12"
+      ],
+      "alsoExpect": [
         "damodaran-blog/post-7024085609936664412",
         "damodaran-blog/post-2353024986123002823"
       ]
@@ -310,12 +356,37 @@
     {
       "q": "What do forward and futures contracts do for someone who wants to hedge?",
       "expect": [
-        "openstax-principles-finance-1e/m00130",
+        "yale-econ-252/lecture-15",
+        "openstax-principles-finance-1e/m00130"
+      ],
+      "alsoExpect": [
         "damodaran-papers/paper-hedging"
       ]
     },
     {
+      "q": "How does an insurance company manage risk?",
+      "expect": [
+        "yale-econ-252/lecture-5",
+        "yale-econ-252/lecture-14"
+      ]
+    },
+    {
+      "q": "What does an investment bank do when a company issues new shares?",
+      "expect": [
+        "yale-econ-252/lecture-19"
+      ]
+    },
+    {
+      "q": "How do call and put options work?",
+      "expect": [
+        "yale-econ-252/lecture-17"
+      ]
+    },
+    {
       "q": "How does monetary policy move interest rates and the economy?",
+      "expect": [
+        "yale-econ-252/lecture-18"
+      ],
       "sources": [
         "fed-explained",
         "nyfed-explainers"
@@ -516,6 +587,32 @@
       }
     },
     {
+      "q": "Robert Shiller on bubbles and irrational exuberance",
+      "sources": [
+        "yale-econ-252"
+      ],
+      "expectText": [
+        "bubble"
+      ],
+      "scoped": {
+        "q": "bubbles and irrational exuberance",
+        "source": "Shiller"
+      }
+    },
+    {
+      "q": "John Geanakoplos leverage cycle and collateral",
+      "sources": [
+        "yale-econ-251"
+      ],
+      "expectText": [
+        "collateral"
+      ],
+      "scoped": {
+        "q": "leverage cycle and collateral",
+        "source": "Geanakoplos"
+      }
+    },
+    {
       "q": "Should a lottery winner take the lump-sum cash or the yearly payments?",
       "expect": [
         "m00053",
@@ -627,7 +724,9 @@
       "q": "What is a basis point, and how is it different from a percentage point?",
       "sources": [
         "openstax-principles-finance-1e",
-        "fed-explained"
+        "fed-explained",
+        "yale-econ-251",
+        "yale-econ-252"
       ],
       "expectText": [
         "basis point",
@@ -682,7 +781,8 @@
         "m00078"
       ],
       "sources": [
-        "damodaran-papers"
+        "damodaran-papers",
+        "yale-econ-252"
       ],
       "expectText": [
         "geometric mean"
@@ -764,190 +864,57 @@
       "case": "mega-millions-2018",
       "q": "Mega Millions jackpot: did the winner take the cash or the 30 payments?",
       "asOf": "2018-10-24",
-      "outcome": [
-        "877,784,124",
-        "took the cash",
-        "chose the cash",
-        "claimed the prize",
-        "claimed the jackpot",
-        "winner claimed"
-      ]
+      "outcome": ["877,784,124", "took the cash", "chose the cash", "claimed the prize", "claimed the jackpot", "winner claimed"]
     },
     {
       "case": "mega-millions-2018",
       "q": "lottery jackpot annuity or lump sum cash option present value",
       "asOf": "2018-10-24",
-      "outcome": [
-        "877,784,124",
-        "took the cash",
-        "chose the cash",
-        "claimed the prize",
-        "claimed the jackpot",
-        "winner claimed"
-      ]
+      "outcome": ["877,784,124", "took the cash", "chose the cash", "claimed the prize", "claimed the jackpot", "winner claimed"]
     },
     {
       "case": "amazon-2000",
       "q": "Amazon share price and valuation in February 2000",
       "asOf": "2000-02-01",
-      "outcome": [
-        "14.88",
-        "dot-com crash",
-        "dot-com bust",
-        "dotcom crash",
-        "dotcom bust",
-        "dot-com collapse",
-        "bubble burst",
-        "burst of the dot-com bubble",
-        "Amazon Web Services",
-        "AWS",
-        "Kindle"
-      ]
+      "outcome": ["14.88", "dot-com crash", "dot-com bust", "dotcom crash", "dotcom bust", "dot-com collapse", "bubble burst", "burst of the dot-com bubble", "Amazon Web Services", "AWS", "Kindle"]
     },
     {
       "case": "amazon-2000",
       "q": "internet stocks bubble Nasdaq crash",
       "asOf": "2000-02-01",
-      "outcome": [
-        "14.88",
-        "dot-com crash",
-        "dot-com bust",
-        "dotcom crash",
-        "dotcom bust",
-        "dot-com collapse",
-        "bubble burst",
-        "burst of the dot-com bubble",
-        "Amazon Web Services",
-        "AWS",
-        "Kindle"
-      ]
+      "outcome": ["14.88", "dot-com crash", "dot-com bust", "dotcom crash", "dotcom bust", "dot-com collapse", "bubble burst", "burst of the dot-com bubble", "Amazon Web Services", "AWS", "Kindle"]
     },
     {
       "case": "wework-2019",
       "q": "WeWork IPO filing run rate revenue and valuation",
       "asOf": "2019-08-14",
-      "outcome": [
-        "withdrew its IPO",
-        "withdrew its share sale",
-        "withdrew its offering",
-        "pulled its IPO",
-        "IPO was pulled",
-        "IPO was withdrawn",
-        "failed IPO",
-        "WeWork's collapse",
-        "collapse of WeWork",
-        "filed for bankruptcy",
-        "Neumann stepped down",
-        "Neumann was ousted",
-        "SoftBank rescue",
-        "SoftBank bailout"
-      ]
+      "outcome": ["withdrew its IPO", "withdrew its share sale", "withdrew its offering", "pulled its IPO", "IPO was pulled", "IPO was withdrawn", "failed IPO", "WeWork's collapse", "collapse of WeWork", "filed for bankruptcy", "Neumann stepped down", "Neumann was ousted", "SoftBank rescue", "SoftBank bailout"]
     },
     {
       "case": "wework-2019",
       "q": "what happened to WeWork after its IPO filing",
       "asOf": "2019-08-14",
-      "outcome": [
-        "withdrew its IPO",
-        "withdrew its share sale",
-        "withdrew its offering",
-        "pulled its IPO",
-        "IPO was pulled",
-        "IPO was withdrawn",
-        "failed IPO",
-        "WeWork's collapse",
-        "collapse of WeWork",
-        "filed for bankruptcy",
-        "Neumann stepped down",
-        "Neumann was ousted",
-        "SoftBank rescue",
-        "SoftBank bailout"
-      ]
+      "outcome": ["withdrew its IPO", "withdrew its share sale", "withdrew its offering", "pulled its IPO", "IPO was pulled", "IPO was withdrawn", "failed IPO", "WeWork's collapse", "collapse of WeWork", "filed for bankruptcy", "Neumann stepped down", "Neumann was ousted", "SoftBank rescue", "SoftBank bailout"]
     },
     {
       "q": "Webvan IPO price and first day of trading",
       "asOf": "1999-11-04",
-      "outcome": [
-        "24.875",
-        "65% above",
-        "7.9 billion",
-        "$7.9bn",
-        "acquired HomeGrocer",
-        "acquisition of HomeGrocer",
-        "merger with HomeGrocer",
-        "merged with HomeGrocer",
-        "bought HomeGrocer",
-        "bought its rival HomeGrocer",
-        "shut all seven",
-        "filed for bankruptcy",
-        "filed for Chapter 11",
-        "Webvan's bankruptcy",
-        "bankruptcy of Webvan",
-        "went bankrupt",
-        "ceased operations",
-        "Webvan's collapse",
-        "collapse of Webvan",
-        "went out of business"
-      ]
+      "outcome": ["24.875", "65% above", "7.9 billion", "$7.9bn", "acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
     },
     {
       "q": "Webvan distribution centres, warehouses and cash after its IPO",
       "asOf": "1999-11-05",
-      "outcome": [
-        "acquired HomeGrocer",
-        "acquisition of HomeGrocer",
-        "merger with HomeGrocer",
-        "merged with HomeGrocer",
-        "bought HomeGrocer",
-        "bought its rival HomeGrocer",
-        "shut all seven",
-        "filed for bankruptcy",
-        "filed for Chapter 11",
-        "Webvan's bankruptcy",
-        "bankruptcy of Webvan",
-        "went bankrupt",
-        "ceased operations",
-        "Webvan's collapse",
-        "collapse of Webvan",
-        "went out of business"
-      ]
+      "outcome": ["acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
     },
     {
       "q": "Webvan plan for 26 more distribution centers and its capital spending",
       "asOf": "2000-03-30",
-      "outcome": [
-        "acquired HomeGrocer",
-        "acquisition of HomeGrocer",
-        "merger with HomeGrocer",
-        "merged with HomeGrocer",
-        "bought HomeGrocer",
-        "bought its rival HomeGrocer",
-        "shut all seven",
-        "filed for bankruptcy",
-        "filed for Chapter 11",
-        "Webvan's bankruptcy",
-        "bankruptcy of Webvan",
-        "went bankrupt",
-        "ceased operations",
-        "Webvan's collapse",
-        "collapse of Webvan",
-        "went out of business"
-      ]
+      "outcome": ["acquired HomeGrocer", "acquisition of HomeGrocer", "merger with HomeGrocer", "merged with HomeGrocer", "bought HomeGrocer", "bought its rival HomeGrocer", "shut all seven", "filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
     },
     {
       "q": "Webvan cash burn and funding",
       "asOf": "2001-04-02",
-      "outcome": [
-        "filed for bankruptcy",
-        "filed for Chapter 11",
-        "Webvan's bankruptcy",
-        "bankruptcy of Webvan",
-        "went bankrupt",
-        "ceased operations",
-        "Webvan's collapse",
-        "collapse of Webvan",
-        "went out of business"
-      ]
+      "outcome": ["filed for bankruptcy", "filed for Chapter 11", "Webvan's bankruptcy", "bankruptcy of Webvan", "went bankrupt", "ceased operations", "Webvan's collapse", "collapse of Webvan", "went out of business"]
     }
   ]
 }
