@@ -46,6 +46,11 @@ const INVENTORY: Record<string, Use> = {
     why: "The three counted uses are OpenUI's success, alert and danger borders (gain, wait, loss), which are paired: only danger paints, on labelled destructive buttons, an input error (whose own border is loss-ink) and a tool error (icon and text). The kit's chart series are colour-only: a series mark is needed to read the chart and a legend does not exempt it, so every CHART_SERIES token is checked at 3:1 on each chart surface (review C1)",
     pairs: CHART_SERIES.flatMap((series) => CHART_SURFACES.map((surface): [string, string] => [series, surface])),
   },
+  "src/widgets/market-readings-view.tsx": {
+    uses: 1,
+    verdict: "mark",
+    why: "A 2 px sourced edge (--src-line, which is ink, so far above 3:1 on the panel) down the Market readings block (#105), whose heading and each reading's month, credit and link already say it is sourced, as Case Data's edge does",
+  },
   "src/widgets/primitives/wave1/breakeven.tsx": {
     uses: 1,
     verdict: "mark",
@@ -65,6 +70,11 @@ const INVENTORY: Record<string, Use> = {
   "src/widgets/primitives/wave3/story-scene.tsx": { uses: 2, verdict: "mark", why: "A sunflower edge on the stage and a sunflower ring on the character who is speaking" },
   "src/widgets/primitives/wave3/timeline-strip.tsx": { uses: 2, verdict: "mark", why: "A 2px sunflower line up to the story's date and a sunflower edge on the open moment's card" },
   "src/widgets/primitives/wave3/two-paths.tsx": { uses: 1, verdict: "mark", why: "A sunflower top edge on each path; the names, choices and outcome lines are text" },
+  "src/widgets/range-check-view.tsx": {
+    uses: 1,
+    verdict: "mark",
+    why: "The same 2 px sourced edge (--src-line, which is ink, so far above 3:1) down the range check (#109), whose heading and each flag's sentence, yardstick, month and source link already say what it is",
+  },
   "src/widgets/workbench/bench-view.tsx": {
     uses: 3,
     verdict: "mark",
