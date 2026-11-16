@@ -2,7 +2,7 @@ import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import type { ValuationBlock } from "@/finance/valuation-case";
 import { benchSettings, type BenchLever, type BenchReading, type BenchShape } from "./bench";
 import { cashWaterfallFromCase, cashWaterfallLevers, cashWaterfallModel, cashWaterfallReading, cashWaterfallShape, cashWaterfallTasks, type CashWaterfallData } from "./cash-waterfall-model";
-import { companyYearSchema, costOfCapitalFiguresSchema, decoderFiguresSchema, leasesSchema, sourceSchema } from "./data-schemas";
+import { bridgeReportSchema, companyYearSchema, costOfCapitalFiguresSchema, decoderFiguresSchema, leasesSchema, sourceSchema } from "./data-schemas";
 import { multipleDecoderLevers, multipleDecoderModel, multipleDecoderReading, multipleDecoderShape, multipleDecoderTasks, type MultipleDecoderData } from "./multiple-decoder-model";
 import { terminalSeesawLevers, terminalSeesawModel, terminalSeesawReading, terminalSeesawShape, terminalSeesawTasks, type TerminalSeesawData } from "./terminal-seesaw-model";
 import { valueBridgeLevers, valueBridgeModel, valueBridgeReading, valueBridgeShape, valueBridgeTasks, type ValueBridgeData } from "./value-bridge-model";
@@ -112,9 +112,18 @@ const valueLevers = entry<ValueLeversData, string>({
 export function valueBridgeData(props: Record<string, unknown>): { data: ValueBridgeData } | { problem: string } {
   const found = caseOf(props.caseId);
   if ("problem" in found) return found;
-  if (props.leases === undefined || props.leases === null) return { data: { block: found.block } };
-  const leases = leasesSchema.safeParse(props.leases);
-  return leases.success ? { data: { block: found.block, leases: { amount: leases.data.amount, label: leases.data.label } } } : { problem: `leases: ${issues(leases.error)}` };
+  const data: ValueBridgeData = { block: found.block };
+  if (props.leases !== undefined && props.leases !== null) {
+    const leases = leasesSchema.safeParse(props.leases);
+    if (!leases.success) return { problem: `leases: ${issues(leases.error)}` };
+    data.leases = { amount: leases.data.amount, label: leases.data.label };
+  }
+  if (props.report !== undefined && props.report !== null) {
+    const report = bridgeReportSchema.safeParse(props.report);
+    if (!report.success) return { problem: `report: ${issues(report.error)}` };
+    data.report = { title: report.data.title, lines: report.data.lines };
+  }
+  return { data };
 }
 
 const valueBridge = entry<ValueBridgeData, string>({

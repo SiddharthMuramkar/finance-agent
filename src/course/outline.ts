@@ -13,7 +13,9 @@ export const STAGES = ["spine", "foundation", "follow", "judge", "analyse"] as c
 export type Stage = (typeof STAGES)[number];
 
 /** How many Topics the Spine may have (spec C4, ADR 0020), and the longest a Spine Topic may say it takes, in minutes (C2). */
-export const SPINE_LENGTH = 18;
+// 16 on #93's branch (15 + the annual report Topic); 18 once #90's and #91's splits land with it (ADR 0020). The mergers set it
+// to the number of Spine Topics in the merged outline; the course check then requires exactly that many.
+export const SPINE_LENGTH = 16;
 export const SPINE_MAX_MINUTES = 15;
 
 /** The nine Subjects: the field a Foundation Topic belongs to. Later-Stage Topics have none. */
@@ -140,6 +142,16 @@ function spineProblems(topics: OutlineTopic[], byId: Map<string, OutlineTopic>):
   const missing = Array.from({ length: Math.max(0, ...numbers.keys()) }, (_, i) => i + 1).filter((n) => !numbers.has(n));
   if (missing.length) problems.push(`The Spine skips number${missing.length === 1 ? "" : "s"} ${missing.join(", ")}: Spine numbers run from 1 with none left out`);
   return problems;
+}
+
+/**
+ * The course check's count of the Spine (ADR 0020, #93): the outline holds exactly SPINE_LENGTH Spine Topics, numbered 1
+ * to SPINE_LENGTH, so a Topic cannot drop off the Spine, or one be added, without the site's counts moving with it. Kept out
+ * of parseOutline, whose fixtures hold short Spines; scripts/check-course.mjs runs it on the real outline.
+ */
+export function spineCountProblems(outline: Outline): string[] {
+  const n = outline.topics.filter((t) => t.stage === "spine").length;
+  return n === SPINE_LENGTH ? [] : [`The Spine has ${n} Topics; it needs exactly ${SPINE_LENGTH}, numbered 1 to ${SPINE_LENGTH} (ADR 0020)`];
 }
 
 /** The Spine Topics in Spine order, 1 first. Empty while the outline has none. */

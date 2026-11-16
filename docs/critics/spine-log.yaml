@@ -91,3 +91,9 @@ topics:
     rounds: 2
     lastRound: "3c5b952"
     open: 0
+  spine-annual-report:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 2
+    lastRound: "e8c3775"
+    open: 0
+    note: Round 2 (#93), 5 confirmed, all fixed - inputs were stale (before bfabe7f); re-captured from HEAD, and the e2e spec now pins the one-number opener, a lot or a little, and the report's debt and cash on the reply and page.

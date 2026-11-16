@@ -178,7 +178,7 @@ describe("a Spine Topic's explore Workbench (spec C2, B3)", () => {
   const spine = loadCourseMap().topics.filter((t) => t.spine !== undefined);
 
   it("covers every written Spine Topic", () => {
-    expect(spine.map((t) => t.spine).sort((a, b) => a! - b!)).toEqual(Array.from({ length: 15 }, (_, i) => i + 1));
+    expect(spine.map((t) => t.spine).sort((a, b) => a! - b!)).toEqual(Array.from({ length: 16 }, (_, i) => i + 1));
   });
 
   for (const t of spine) {

@@ -1,0 +1,292 @@
+# Spine Topic (spec #68, #93): the last Spine Topic. Where a valuation's numbers sit in an annual report, on one US report
+# (Amazon's Form 10-K for 2000, SEC EDGAR, filed 23 March 2001) and one Indian report (Zomato's Integrated Annual Report
+# 2021-22, BSE, sent to the exchanges 5 August 2022). It leads into the Assignments, where the Learner finds a listed
+# company's numbers and values it as an Own Case (GLOSSARY "Assignment"). The Cases borrow Damodaran's valuation blocks
+# (Amazon's in val-dcf, Zomato's IPO valuation in ana-build-valuation) with valuationFrom, so the report's numbers can be
+# put next to the story they were checked against. The Value bridge opens at Damodaran's own Amazon figures.
+# Every report figure is copied from the filing's audited statements; page and line are named where they are used.
+# Stage, place and length live in course/outline.yaml.
+id: spine-annual-report
+title: "Where are a valuation's numbers in an annual report?"
+goal: Find sales, operating profit, tax, debt, cash and shares in a real annual report, and see which of them a value rests on
+why: "Every valuation starts from numbers a company has reported; knowing where they sit lets you check anyone's story, and start your own."
+minutes: 13
+exampleCurrency: USD
+
+cases:
+  - id: spine-ar-amazon-2000
+    title: Amazon's annual report for 2000, next to Damodaran's story
+    asOf: 2001-03-23
+    valuationFrom: amazon-dcf-2000
+    story: >
+      23 March 2001. Amazon files its annual report for 2000 with the US regulator, on a form called the 10-K. A year
+      earlier Aswath Damodaran, a valuation professor at New York University, valued Amazon at $35.08 a share against an
+      $84 price. His story had sales of about $2,793 million in the first year, an operating loss of about 13 cents on
+      each $1 of sales, no tax while Amazon used up its past losses, $349 million of debt, $26 million of cash and
+      340.79 million shares. Now the report is out. Six numbers matter for a valuation: sales, operating profit, tax,
+      debt, cash and shares. Where does each one sit in the report, and how far is each from his story?
+    reveal: >
+      The income statement shows net sales of $2,762 million, close to his first year, and a loss from operations of
+      $864 million, about 31 cents lost on each $1 of sales, far deeper than his 13. The income statement has no tax line;
+      the report says the tax Amazon provided for was immaterial, too small to matter, and the tax note lists about $1.65
+      billion of past losses it may set against future profit. The balance sheet shows
+      long-term debt of $2,127 million and cash of $822 million plus $278 million of marketable securities, and 357.14
+      million shares at the year end. Put the report's debt and cash into his bridge and a share moves by about $2; the
+      deeper loss is the number his whole value rested on.
+
+  - id: spine-ar-zomato-2022
+    title: Zomato's annual report for 2021-22, next to Damodaran's IPO story
+    asOf: 2022-08-05
+    valuationFrom: zomato-ipo-2021
+    story: >
+      5 August 2022. Zomato, the Indian food delivery company, sends its annual report for the year to 31 March 2022 to
+      the BSE and the NSE, India's stock exchanges. A year earlier, at its share sale, Damodaran valued it at Rs 40.79 a
+      share against a Rs 76 offer price, starting from Rs 19,938 million of sales in the year to March 2021. An Indian
+      report uses its own names: sales are revenue from operations, and amounts are in rupees million. Where do the six
+      numbers sit in this report, and what does it call each one?
+    reveal: >
+      The consolidated statement of profit and loss shows revenue from operations of Rs 41,924 million, against Rs
+      19,938 million the year before, the very number Damodaran started from. There is no line called operating profit:
+      the loss before exceptional items and tax was Rs 15,179 million, and it already counts Rs 4,949 million of other
+      income, mostly interest on the money raised at the share sale. Total tax was only Rs 20 million. The balance sheet
+      shows no borrowings at all, cash and cash equivalents of only Rs 3,923 million, with much more in bank deposits and
+      investments, and the share capital note lists 7,871,932,776 shares of Rs 1 each, 228,992,198 of them held by the
+      trust that pays the staff's options.
+
+concept: >
+  An annual report is the yearly report a listed company must publish: in the US it is the 10-K, in India the annual
+  report sent to the stock exchanges. Two pages in it hold a valuation's numbers. The income statement runs down from
+  sales to profit: sales at the top, then operating profit (what the business makes before interest and tax), then
+  tax. The balance sheet shows what the company owns and owes on one day: its debt, its cash, and its shares in the
+  note on share capital. Names change from report to report. Zomato's sales are revenue from operations, and its report
+  has no line called operating profit at all. A report gives you the past year. A value rests on the years to come.
+
+principle: >
+  Find the six numbers where they sit: sales, operating profit and tax on the income statement; debt, cash and shares on
+  the balance sheet and its notes. Then put them next to the story, and look hardest at the ones the value rests on.
+
+dailyLife: >
+  A payslip shows what you earned and what tax came off it; a bank statement shows what you owe and hold on one day.
+
+goDeeper: >
+  Analysts rarely copy a number straight from the page. For operating profit in an Indian report, they start from the
+  loss before exceptional items and tax, take away other income and add back finance costs, so that interest earned and
+  paid sits below the line. For cash, they count bank deposits and investments the company could sell, not only the line
+  called cash. For debt, many add the leases the company must pay. A Learner who wants more can ask how Damodaran turned
+  Zomato's report into the inputs of his valuation.
+
+youllLearn:
+  - "Find sales, operating profit and tax on an income statement."
+  - "Find debt, cash and shares on a balance sheet and its notes, in a US and an Indian report."
+  - "Put a report's numbers next to a story and see which ones the value rests on."
+
+terms:
+  - term: annual report
+    means: The yearly report a listed company must publish, with its audited accounts.
+    emoji: ledger
+    pro: The annual report is out, so check the story against it.
+    example: "Amazon's annual report for 2000 is its 10-K; Zomato's for 2021-22 went to the BSE and the NSE."
+    inStory: Amazon filed its 10-K on 23 March 2001; Zomato sent its report on 5 August 2022.
+  - term: income statement
+    means: The page that runs from a year's sales down through costs to profit or loss.
+    emoji: receipt
+    pro: Sales and operating profit are at the top of the income statement.
+    example: "Sales first, then what is left after the costs of running the business, then interest and tax."
+    inStory: Amazon's shows net sales of $2,762 million and a loss from operations of $864 million.
+  - term: balance sheet
+    means: The page that shows what a company owns and what it owes on one day.
+    emoji: balance-scale
+    pro: Debt and cash are on the balance sheet.
+    example: "At the end of 2000 Amazon owed $2,127 million of long-term debt and held $822 million of cash."
+    inStory: Zomato's showed no borrowings at all on 31 March 2022.
+  - term: operating profit
+    means: What the business makes from its sales before interest and tax.
+    emoji: money-bag
+    pro: Operating profit leaves out interest, so lenders and shareholders share it.
+    example: "Sales of $100 with $90 of running costs give $10 of operating profit."
+    inStory: Amazon's was a loss of $864 million, about 31 cents on each $1 of sales.
+
+skills:
+  - id: find-the-line
+    rule: Sales, operating profit and tax sit on the income statement; debt, cash and shares sit on the balance sheet and its notes, under whatever name the report uses.
+  - id: check-the-story
+    rule: Put a report's numbers next to a story; the ones that move a value most are what the business keeps and how big it gets, not cash and debt.
+
+insight:
+  question: Amazon's report shows far more debt and far more cash than Damodaran used. Put them into his bridge. Does a share move a lot or a little, and is that what his value rested on?
+  written: Swapping in the report's debt and cash moves a share by only a couple of dollars, because the two nearly cancel and both are small next to the business; the number the value rested on was the deeper operating loss, what Amazon kept of its sales.
+  foundWhen: The Learner puts the report's debt and cash into the bridge, says they move a share little, and says the bigger gap is the operating loss, what Amazon kept of its sales.
+  hints:
+    - The report's page beside the bridge gives its debt and cash. Tap the debt in, then the cash, and watch one share.
+    - Now compare that with Amazon losing more than twice as much of each dollar of sales as he had set.
+
+explore:
+  before: report-check
+  workbench:
+    recipe: value_bridge
+    case: spine-ar-amazon-2000
+    title: "Put Amazon's 2000 report into the bridge"
+    inputs:
+      report:
+        title: "Amazon's 10-K for 2000"
+        lines:
+          - { line: Long-term debt, amount: 2127, lever: debt }
+          - { line: Cash and marketable securities, amount: 1101, lever: cash }
+          - { line: Loss from operations, amount: 864 }
+        source:
+          title: "Amazon.com Form 10-K405 for 2000, Consolidated Balance Sheets and Statements of Operations"
+          url: https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+
+connections:
+  - text: Reading filings goes further into the US annual report, the prospectus and the Indian annual report.
+    topics: [fs-filings]
+  - text: The income statement and the balance sheet each have their own Topic, line by line.
+    topics: [fs-income, fs-balance]
+  - text: Building a valuation from a report's numbers is the next step, and the Assignments ask for one.
+    topics: [ana-build-valuation]
+
+questions:
+  - id: ar-q-lever
+    kind: which_lever
+    prompt: From Damodaran's Amazon story, which number from the 2000 report moves the value most?
+    skill: check-the-story
+    explanation: What Amazon keeps of its sales moves the value far more than the debt or cash the report shows.
+    computed:
+      case: spine-ar-amazon-2000
+      changes:
+        - { id: debt, label: "Debt $349m to the report's $2,127m", levers: { debt: 2127 } }
+        - { id: cash, label: "Cash $26m to the report's $1,101m", levers: { cash: 1101 } }
+        - { id: margin, label: "Margin once mature 10% to 8%", levers: { marginTarget: 8 } }
+  - id: ar-q-predict
+    kind: predict
+    prompt: "If Damodaran had used {change} from Amazon's 2000 report, its value will move:"
+    skill: check-the-story
+    computed:
+      case: spine-ar-amazon-2000
+      changes:
+        - { id: both, label: "both the debt ($2,127m) and the cash ($1,101m)", levers: { debt: 2127, cash: 1101 } }
+        - { id: debt-only, label: "only the debt, $2,127m", levers: { debt: 2127 } }
+      bands:
+        - { id: up, label: "Up", min: 1 }
+        - { id: down-little, label: "Down, by less than a fifth", min: 0.8, max: 1 }
+        - { id: down-big, label: "Down by a fifth or more", max: 0.8 }
+  - id: ar-q-price
+    kind: price_assumes
+    prompt: Zomato's offer price was Rs 76 against Damodaran's Rs 40.79. Which story gets near that price?
+    skill: check-the-story
+    explanation: The price needs a far bigger Zomato; no change to its cash or debt gets close.
+    computed:
+      case: spine-ar-zomato-2022
+      changes:
+        - { id: bigger, label: "Rs 350,000m of sales in year 10", levers: { revenueYear10: 350000 } }
+        - { id: no-debt, label: "His story with no borrowings, as the 2022 report shows", levers: { debt: 0 } }
+        - { id: no-options, label: "His story with no staff options", levers: { options: 0 } }
+  - id: ar-q-where-debt
+    kind: direction
+    prompt: You need Zomato's debt and its shares. Which page of its annual report do you open?
+    skill: find-the-line
+    choices:
+      - { id: balance, text: "The balance sheet and its notes" }
+      - { id: income, text: "The statement of profit and loss", mistake: { tag: debt_on_income, fix: "Profit and loss shows a year's sales and costs; what is owed and the shares are on the balance sheet, on one day." } }
+      - { id: cashflow, text: "The cash flow statement", mistake: { tag: debt_on_cashflow, fix: "Cash flows show money moving in the year; the debt and the shares at the year end are on the balance sheet." } }
+    answer: balance
+    explanation: Debt and shares are what the company owes and has issued on one day, so they sit on the balance sheet, with the share count in its note on share capital.
+    source: "Zomato Limited, Integrated Annual Report 2021-22, Consolidated Balance Sheet as at 31 March 2022 (borrowings nil, equity share capital Rs 7,643m, note 15(a)). https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf"
+  - id: ar-q-name
+    kind: cannot_hold
+    prompt: Which reading of Zomato's 2021-22 report contradicts itself?
+    skill: find-the-line
+    choices:
+      - { id: cash-is-all, text: "Cash and cash equivalents are Rs 3,923m, so that is all the money Zomato holds" }
+      - { id: sales, text: "Revenue from operations of Rs 41,924m is its sales", mistake: { tag: sales_name, fix: "An Indian report calls sales revenue from operations; that reading holds." } }
+      - { id: tax, text: "It made a loss and paid only Rs 20m of tax", mistake: { tag: tax_fine, fix: "A company that makes a loss pays little tax; that holds together." } }
+    answer: cash-is-all
+    explanation: The same balance sheet shows Rs 11,832m of other bank balances and Rs 16,317m of current investments besides the cash line, so the cash line is not all the money it holds.
+    source: "Zomato Limited, Integrated Annual Report 2021-22, Consolidated Balance Sheet as at 31 March 2022: cash and cash equivalents Rs 3,923m, other bank balances Rs 11,832m, current investments Rs 16,317m. https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf"
+  - id: ar-q-tax
+    kind: price_or_value
+    prompt: "Amazon's 2000 income statement has no tax line, and its tax note lists past losses it may set against future profit. Damodaran's story charged no tax until those losses were used up. Is that tax a reported fact or a part of his story?"
+    skill: check-the-story
+    choices:
+      - { id: story, text: "Part of his story, which the report backs" }
+      - { id: fact, text: "A reported fact, so it cannot change", mistake: { tag: forecast_as_fact, fix: "The report shows the past year; tax in future years is his forecast, which the report makes believable." } }
+    answer: story
+    explanation: The report shows no tax line for 2000, only an immaterial amount provided; when Amazon starts paying is his forecast, which the past losses in the note make believable.
+    source: "Amazon.com Form 10-K405 for 2000, Consolidated Statements of Operations (no provision for income taxes) and Note 13, Income Taxes (net operating loss carryforwards). https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt"
+
+checks:
+  - id: report-check
+    kind: quiz
+    questions: [ar-q-lever, ar-q-predict, ar-q-price, ar-q-where-debt, ar-q-name, ar-q-tax]
+    perAttempt: 4
+    passRule: { correct: 3 }
+    card:
+      title: Six numbers, two pages
+      lines:
+        - Sales, operating profit and tax are on the income statement.
+        - Debt, cash and shares are on the balance sheet and its notes.
+        - "Names change: Zomato's sales are revenue from operations."
+        - "Amazon 2000: sales $2,762m, a loss from operations of $864m, debt $2,127m."
+      writeDown: A report gives last year's six numbers; a value rests most on what the business keeps.
+      skills: [find-the-line, check-the-story]
+    quickTries:
+      - id: ar-try-sales
+        skill: find-the-line
+        ask: Where in Amazon's 10-K is its $2,762 million of net sales?
+        kind: choice
+        answer: top
+        choices:
+          - { id: top, text: "The top line of the income statement" }
+          - { id: balance, text: "On the balance sheet", mistake: { tag: sales_on_balance, fix: "Sales are a year's flow, so they open the income statement; the balance sheet is one day." } }
+      - id: ar-try-shares
+        skill: find-the-line
+        ask: Zomato's report lists 7,871,932,776 shares. Where?
+        kind: choice
+        answer: note
+        choices:
+          - { id: note, text: "In the note on share capital, under the balance sheet" }
+          - { id: pl, text: "At the top of profit and loss", mistake: { tag: shares_on_pl, fix: "Shares are what the company has issued on one day, so they sit with the balance sheet, in its note." } }
+      - id: ar-try-operating
+        skill: find-the-line
+        ask: Zomato's report has no line called operating profit. Which line is the closest start?
+        halfDone: "First step, done for you: operating profit is before interest and tax."
+        kind: choice
+        answer: before-tax
+        choices:
+          - { id: before-tax, text: "The loss before exceptional items and tax" }
+          - { id: after-tax, text: "The loss for the year", mistake: { tag: after_tax_start, fix: "The loss for the year is after tax; operating profit is before it, so start higher up." } }
+      - id: ar-try-tax
+        skill: find-the-line
+        ask: Amazon lost money in 2000. What do you expect on its tax line?
+        kind: choice
+        answer: none
+        choices:
+          - { id: none, text: "Little or no tax" }
+          - { id: full, text: "Tax at the full rate on its sales", mistake: { tag: tax_on_sales, fix: "Tax is charged on profit, not on sales; a loss leaves little or none." } }
+      - id: ar-try-matters
+        skill: check-the-story
+        ask: The report shows more debt and more cash than the story used. What do you check next?
+        halfDone: "First step, done for you: more debt and more cash nearly cancel."
+        kind: choice
+        answer: margin
+        choices:
+          - { id: margin, text: "What the business kept of its sales" }
+          - { id: stop, text: "Nothing: debt and cash are what matter most", mistake: { tag: bridge_overweight, fix: "Debt and cash move a share a little; what the business keeps moves it far more." } }
+      - id: ar-try-fact
+        skill: check-the-story
+        ask: Amazon's report shows a loss from operations for 2000. Is its margin ten years on in the report too?
+        kind: choice
+        answer: story
+        choices:
+          - { id: story, text: "No: the report shows the past; the margin to come is the story" }
+          - { id: report, text: "Yes: the report says what it will keep", mistake: { tag: future_in_report, fix: "A report holds the year just ended; what a business keeps later is the story you judge." } }
+      - id: ar-try-computed
+        skill: check-the-story
+        kind: which_lever
+        ask: From Damodaran's Zomato story, which change moves the value most?
+        computed:
+          case: spine-ar-zomato-2022
+          changes:
+            - { id: no-debt, label: "No borrowings, as the 2022 report shows", levers: { debt: 0 } }
+            - { id: margin, label: "Margin once mature 35% to 25%", levers: { marginTarget: 25 } }
+            - { id: cash, label: "Cash Rs 135,960m to Rs 100,000m", levers: { cash: 100000 } }
