@@ -13,12 +13,21 @@ const SIGNS: { name: string; pattern: RegExp }[] = [
   { name: "a power (^)", pattern: /[\w)\]]\s*\^\s*[\w(−-]/ },
   // Superscript digits or n after a number or bracket: "1.05²".
   { name: "a superscript power", pattern: /[\w)][²³¹⁰⁴-⁹ⁿ]/ },
-  // The discount factor written out: "(1 + r)", "(1 + 0.10)", "(1 − g)".
-  { name: "a bracket like (1 + r)", pattern: /\(\s*1\s*[+−-]\s*[\w.%]+\s*\)/ },
+  // The discount factor written out: "(1 + r)", "(1 + 0.10)", "(1 − g)", "(1 - tax rate)".
+  { name: "a bracket like (1 + r)", pattern: /\(\s*1\s*[+−-]\s*[\w.%][\w.%' ]*\)/ },
   // Arithmetic with spaced operators between figures: "1,100 / 1.10", "5,000 × 0.9". No spaces means a ratio or a date ("P/E", "50/50", "10/24/2018").
   { name: "spaced arithmetic", pattern: /\d[\d,.]*%?\s+[×÷*/]\s+[\d(]/ },
   // A division by a bracket: "amount / (1 + r)".
   { name: "a division by a bracket", pattern: /\S\s+[÷/]\s+\(/ },
+  // A times sign between terms, written as words or letters: "S x u", "beta x (premium + CRP)", "profit × (1 - t)",
+  // "1.60 x 4%". A lone x or × between two terms is a product; "5x" or "2x2" (no spaces) is not caught.
+  { name: "a times sign between terms", pattern: /[\w)%][ \t]+[x×][ \t]+[\w(]/ },
+  // A plus between terms: "riskfree rate + beta", "C + I + G", "6.5% + 1.60". Prose writes "and"; "18+" (no space) is not caught.
+  { name: "a plus between terms", pattern: /[\w)%][ \t]+\+[ \t]+[\w(]/ },
+  // A minus or division between single capitals or a bracket: "(X - M)", "E / V". A spaced hyphen between words is a dash.
+  { name: "a minus or division between letters", pattern: /(?<![\w'])[A-Z][ \t]+[−/÷-][ \t]+(?:[A-Z](?![\w'])|\()/ },
+  // A division between words: "pre-money valuation / shares outstanding". "and/or" and "P/E" have no spaces.
+  { name: "a division between words", pattern: /[a-z)%][ \t]+[÷/][ \t]+[a-z(]/i },
   // Maths symbols and functions.
   { name: "a maths symbol", pattern: /[Σ∑∏√]|\bsqrt\(/ },
 ];

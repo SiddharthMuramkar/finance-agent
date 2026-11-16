@@ -41,7 +41,7 @@ cases:
 
 concept: >
   An option's price is the cost of building its payoff from the share and borrowing. In a
-  one-period binomial model the share can only go up to S x u or down to S x d. With a risk-free
+  one-period binomial model the share can only go up to today's price times an up factor u, or down to today's price times a down factor d. With a risk-free
   rate r per period, find the risk-neutral probability of an up move in two steps: take what one unit
   grows to in a period at the risk-free rate and subtract the down factor d, then divide by the gap
   between the up factor u and the down factor d. The option is worth its expected payoff under that

@@ -56,7 +56,7 @@ concept: >
   comparable companies, and apply the ratio to the company you are valuing. Equity multiples
   such as price-to-earnings (P/E) divide the value of the shares by a measure that belongs to
   the shareholders. Enterprise value multiples such as EV/revenue divide enterprise value
-  (market value of equity + debt - cash) by a measure of the whole business, so the way a
+  (the market value of equity, plus debt, less cash) by a measure of the whole business, so the way a
   company is funded does not distort the comparison. A multiple is not a free-standing fact:
   it is shaped by growth, risk and profitability. For example, the justified forward P/E is the
   share of earnings paid out divided by how much the cost of equity beats growth, so a company
@@ -66,7 +66,7 @@ concept: >
   mood: if the comparables are priced too high or too low, so is your answer.
 
 goDeeper: >
-  The justified forward P/E as a formula is payout ratio / (cost of equity - growth). It comes
+  Enterprise value as a formula is market value of equity + debt - cash. The justified forward P/E as a formula is payout ratio / (cost of equity - growth). It comes
   from the dividend growth model divided by next year's earnings, so it only holds while the cost of equity
   is above growth.
 

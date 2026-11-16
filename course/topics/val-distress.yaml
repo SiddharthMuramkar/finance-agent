@@ -104,8 +104,8 @@ concept: >
   number. If it survives, it is worth its going-concern value: discounted cash flow on the
   business. If it fails, assets are sold, often quickly and at a discount, and the proceeds go
   first to lenders (secured before unsecured) and only then to shareholders. Expected firm value
-  therefore weighs the two outcomes by the chance of each: probability of survival x going
-  concern value + probability of distress x distress sale value. Equity is what is left after
+  therefore weighs the two outcomes by the chance of each: take the going-concern value times the
+  chance of survival, take the distress sale value times the chance of distress, and add the two. Equity is what is left after
   debt, so it behaves like an option: if asset value falls below the debt, shareholders lose at
   most their stake, but if it rises above the debt they keep the gain. That is why shares of a
   distressed firm can still have value when the assets are worth less than the debt, and why
@@ -113,6 +113,10 @@ concept: >
   capital that reflects the distress (not an old regression beta), and an honest view of what
   assets could fetch in a rush. Pledged shares and loan covenants can turn a price fall into
   forced selling, which makes failure more likely.
+
+goDeeper: >
+  As a formula, expected firm value = probability of survival x going-concern value + probability of
+  distress x distress sale value, where the two probabilities add up to 1.
 
 principle: >
   In distress, value depends on the odds of survival and on what the assets would fetch if

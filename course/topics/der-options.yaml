@@ -41,14 +41,18 @@ cases:
 concept: >
   An option gives its owner the right, but not the obligation, to trade at a fixed strike
   price. A call is the right to buy, a put the right to sell. The buyer pays a premium up front.
-  At expiry a call is worth max(S - K, 0) and a put max(K - S, 0), where S is the share price and K
-  the strike. The buyer's profit is that payoff minus the premium, so the most the buyer can lose
+  At expiry a call is worth the share price less the strike when that is above zero, and nothing
+  otherwise; a put is worth the strike less the share price, or nothing. The buyer's profit is that payoff minus the premium, so the most the buyer can lose
   is the premium, while the seller (writer) takes the premium and the opposite payoff, and can
   lose far more. Before expiry an option is worth its intrinsic value plus time value, the
   chance of moving further in the money. Owning shares plus a put (a protective put) gives a
   floor on the loss at the cost of the premium. The same payoff can be copied by trading the
   underlying asset in step with price moves (dynamic replication), but then the floor depends on
   being able to trade at the prices the model expects.
+
+goDeeper: >
+  Written as formulas, at expiry a call is worth max(S - K, 0) and a put max(K - S, 0), where S is the
+  share price and K the strike.
 
 principle: >
   An insurance floor made by trading is only as good as the market's ability to absorb the
