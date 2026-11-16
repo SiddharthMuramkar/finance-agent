@@ -12,7 +12,8 @@
 # believes, a small profit on each sale, so play starts from the Insight's question.
 id: spine-03-cash
 title: Where does the cash come from?
-goal: Follow one year of a business from revenue down to free cash flow, and read where its cash goes.
+# Review 3 M01: "revenue" has no Lingo card, so its first use, here, says it means sales, and the Topic's texts say sales.
+goal: Follow one year of a business from revenue (its sales) down to free cash flow, and read where its cash goes.
 why: "A company is worth the cash it can hand back, not the profit it reports, and growth must be paid for before it brings any cash in."
 minutes: 12
 exampleCurrency: USD
@@ -51,7 +52,8 @@ concept: >
   A business is worth the cash it can hand back to its owners, and that is not the same as the
   profit it reports. Free cash flow is the cash left after paying for growth. Growth is paid for
   first: the warehouses, vans and groceries on the shelves that more sales need are bought before
-  those sales arrive. So a company that grows fast can run short of cash even when each sale makes
+  those sales arrive. The more sales each dollar spent on them brings in, the less growth costs.
+  So a company that grows fast can run short of cash even when each sale makes
   a profit. How long the money lasts is the cash on hand against the cash used each month. The
   explore waterfall takes Webvan's 1999 sales into 2000 at its real growth, and asks a what-if:
   suppose Webvan made a small profit on each sale (it really lost money on most).
@@ -70,21 +72,21 @@ goDeeper: >
   and the cash its operations and its warehouses used together was about $523 million.
 
 principle: >
-  Profit is an opinion; cash is a fact. Follow revenue down to free cash flow, ask what growth costs
+  Profit is an opinion; cash is a fact. Follow sales down to free cash flow, ask what growth costs
   and who is paying for it, and remember that fast growth is paid for before it pays.
 
 # The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
 dailyLife: "Stock options at a startup: ask how many months its cash lasts."
 
 youllLearn:
-  - "Follow one year of a business from revenue to free cash flow."
+  - "Follow one year of a business from its sales to free cash flow."
   - "See where growth spends cash before the new sales bring any in."
   - "Ask who is paying for growth, and what happens when that money runs out."
 
 terms:
   - term: operating income
     means: What a business makes from its sales after paying its running costs, before interest and tax.
-    pro: Operating income is what is left of revenue after operating costs.
+    pro: Operating income is what is left of sales after operating costs.
     example: "A tea stall sells $1,000 of tea and pays $900 for leaves, rent and wages: $100 of operating income."
     emoji: receipt
     inStory: In the story, Webvan's running costs were far above its sales, so its operating income was far below zero.
@@ -96,7 +98,7 @@ terms:
     inStory: In the story, Webvan's free cash flow was far below zero in 2000.
   - term: reinvestment
     means: "What growth costs: the money put into buildings, equipment, systems and goods on the shelves so that sales can rise."
-    pro: Reinvestment runs ahead of the revenue it brings.
+    pro: Reinvestment runs ahead of the sales it brings.
     example: "A bakery buys a second oven before it can sell twice the bread."
     emoji: building-construction
     inStory: In the story, Webvan spent $259.8 million on property and equipment, mostly for its warehouses, in 2000.
@@ -208,13 +210,15 @@ primers:
     quickTry:
       id: wc-primer-lasting-try
       skill: growth-uses-cash
-      ask: "Webvan pays for a warehouse it will use for many years. When does the cash leave?"
+      # Review 3 M02: Webvan rented its warehouses (10-K 2000, Item 2: it owns no real estate) and paid for the machines
+      # and freezers inside them (note 6).
+      ask: "Webvan pays for machines and freezers for a warehouse it rents, to use for many years. When does the cash leave?"
       kind: choice
       answer: now
       choices:
-        - { id: now, text: "All of it when the warehouse is paid for" }
-        - { id: spread, text: "A slice each year, as it is used", mistake: { tag: cash_for_cost, fix: "The cost is spread over the years in profit. The cash leaves when it is paid." } }
-        - { id: never, text: "Never: a warehouse is an asset, not a cost", mistake: { tag: cash_for_cost, fix: "An asset still has to be paid for, in cash, when it is bought." } }
+        - { id: now, text: "All of it when the machines are paid for" }
+        - { id: spread, text: "A slice each year, as they are used", mistake: { tag: cash_for_cost, fix: "The cost is spread over the years in profit. The cash leaves when it is paid." } }
+        - { id: never, text: "Never: machines are an asset, not a cost", mistake: { tag: cash_for_cost, fix: "An asset still has to be paid for, in cash, when it is bought." } }
     elective: fs-capex-dep
     at: explore
 
@@ -228,7 +232,7 @@ connections:
       question of what growth costs.
     topics: [spine-06-growth-cost, fs-capex-dep]
   - text: >
-      The waterfall's first steps, revenue less running costs to operating income, are the top lines of
+      The waterfall's first steps, sales less running costs to operating income, are the top lines of
       a company's page for profit; free cash flow is where it stops being about profit.
     topics: [fs-income]
 
@@ -246,7 +250,7 @@ questions:
         text: "Operating income rises, because costs fall"
         mistake: { tag: capex_in_costs, fix: "Spending on warehouses is not a running cost. It sits in what growth costs, below operating income." }
       - id: revenue-up
-        text: "Revenue rises, because less is spent"
+        text: "Sales rise, because less is spent"
         mistake: { tag: lever_mixup, fix: "Spending less on warehouses does not raise sales. If anything it slows their growth." }
       - id: fcf-down
         text: "Free cash flow falls, because it invests less"
@@ -370,7 +374,7 @@ checks:
     passRule:
       correct: 3
     card:
-      title: "From revenue to free cash flow"
+      title: "From sales to free cash flow"
       lines:
         - "Free cash flow is the cash a business makes after paying for its growth."
         - "Start from what sales bring in after the running costs, take off tax, then take off what growth costs."
@@ -396,7 +400,7 @@ checks:
         answer: tax-reinvest
         choices:
           - { id: tax-reinvest, text: "Tax, then what growth costs" }
-          - { id: revenue, text: "Revenue", mistake: { tag: skipped_steps, fix: "Revenue is above operating income. Below it come tax and what growth costs." } }
+          - { id: revenue, text: "Sales", mistake: { tag: skipped_steps, fix: "Sales are above operating income. Below it come tax and what growth costs." } }
           - { id: nothing, text: "Nothing: operating income is the cash", mistake: { tag: profit_for_cash, fix: "Tax is paid in cash, and so is the spending growth needs." } }
       - id: wc-try-zero-growth
         skill: free-cash-flow
@@ -404,7 +408,7 @@ checks:
         kind: truth
         answer: true
         mistakes:
-          - { answer: false, fix: "What growth costs is the rise in sales over sales for each dollar invested. No rise, no cost.", tag: skipped_steps }
+          - { answer: false, fix: "What growth costs pays for the extra sales. With no rise in sales, there is nothing new to pay for.", tag: skipped_steps }
       - id: wc-try-cheaper-growth
         skill: free-cash-flow
         ask: "Sales rise by the same amount. Which change makes that growth cost less?"
