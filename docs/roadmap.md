@@ -2,7 +2,7 @@
 
 Map #2 ("Wayfinder: Value It Signal, build-ready") closes with the PR that adds this file. The map decided what the Signal beta needs. This file keeps what the map did not decide (its "fog"). The decisions are indexed at the end.
 
-Written 2026-11-15.
+Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-the-2026-11-15-batch) of the 2026-11-15 batch.
 
 **How to read an item.** Each item has the question, why it matters, what it blocks, a first step and a status.
 
@@ -103,13 +103,27 @@ Written 2026-11-15.
 
 | Part | Status |
 |---|---|
-| Remove stale secrets | Partly done. Production `ANTHROPIC_API_KEY` and `THESYS_API_KEY` are already removed. Production `PASSCODE`, `PASSCODES` and `SESSION_SECRET` go with the Clerk clean-up (#33). 2 unused copies of `ANTHROPIC_API_KEY` are left: Vercel Preview and a GitHub Actions repo secret. They are an owner decision (`docs/owner-actions.md`, step 11). |
+| Remove stale secrets | Partly done. Production `ANTHROPIC_API_KEY` and `THESYS_API_KEY` are already removed. Production `PASSCODE`, `PASSCODES` and `SESSION_SECRET` go after PR C (#33) is live (`docs/owner-actions.md`, step 18). 2 unused copies of `ANTHROPIC_API_KEY` are left: Vercel Preview and a GitHub Actions repo secret. They are an owner decision (`docs/owner-actions.md`, step 11). |
 | Document `CRON_SECRET` | Open. Planned in `docs/agents/platform.md` (Clerk PR, #33). |
 | Local secret scanning (gitleaks) | Open. More important now: the repo is public. |
-| Align Node versions (Vercel 26, CI 24, VPS 22) | In progress. The CI PR pins Node 24 (`.nvmrc` and `engines`). |
-| Clean up Neon branches after an off-Neon dump | In progress. The first off-Neon dump ran on 2026-11-15 (#8). The agent deletes the stale Neon branches and their 6 Preview env vars in the final clean-up, after this PR merges (the owner said yes on 2026-11-15). |
+| Align Node versions (Vercel 26, CI 24, VPS 22) | Partly done. CI pins Node 24 (`.nvmrc` and `engines`, PR #39). The VPS stays on Node 22: the safety check stopped the agent's `nvm install` (`docs/owner-actions.md`, blocked commands). |
+| Clean up Neon branches after an off-Neon dump | In progress. The first off-Neon dump ran on 2026-11-15 (#8). The stale Preview env vars are gone (the owner removed the last 2 on 2026-11-15). The safety check stopped the agent's Neon branch deletes, so they are owner commands now (`docs/owner-actions.md`, blocked commands). |
 | Actions-minutes budget for the private repo | Not needed now. The repo is public again, so minutes are free. Look again if it goes private. |
 | Ignore the `AGENTS.md` that `next dev` writes | Done in the PR that adds this file. |
+
+## Follow-ups from the 2026-11-15 batch
+
+Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can become a ticket.
+
+| # | Follow-up | Why it matters | First step |
+|---|---|---|---|
+| F1 | A Stop during the fold still ends the turn as failed. | When the Learner presses Stop while the Tutor folds old history (`foldHistory` in `src/tutor/turn.ts`), the turn ends `failed`. The Learner sees an error, and the turn does not count in `turns_per_learner_day`. Its dollars count since #36. | A ticket: end such a turn as stopped, and count it. Source: the hardening review on PR #36. |
+| F2 | The ADR cite check is skipped on docs-only PRs that edit top-level `.md` files or `docs/specs/`. | `scripts/ci-changes.mjs` calls a PR docs-only when it edits only top-level `.md` files or `.md` files under `docs/` (not `docs/adr/`). Then CI skips the `static` job, and with it `node scripts/check-adr-cites.mjs`. A wrong ADR number in `CLAUDE.md`, `GLOSSARY.md` or a spec can merge. A PR that edits `docs/adr/` runs the full CI (#34). | Run the cite check on every PR. It needs only Node and git, not `npm ci`, so it can run in the light `changes` job. |
+| F3 | Investor.gov is not loaded. | Decision #27 adds the SEC investor-education pages (`investor-gov-explainers` in `scripts/library/sources.json`). The site answers 403 to the fetcher, so the Library has none of them (`docs/library/2026-11-15-sources-eval.md`, section 7). | Find a way to fetch the pages that the site's terms allow. Then load them like the other #38 sources. |
+| F4 | The Signal-12 as-of MRR is 0.461, below the old 0.49. | The 12 Signal Case questions, searched as of each Case's date, rank the right passage lower than before the new sources. The full set got better (75/78, MRR 0.8271). The Tutor uses the as-of search during a Case. | After the production Library load, score again. List which of the 12 questions lost rank, and why. |
+| F5 | Re-test the reranker after the Library grows. | #37 parked the reranker: about one more question found, for about 0.6 s more per search (`docs/library/2026-11-15-reranker-retest.md`). A bigger Library can change that. | When the next sources load, run the commands in that doc's "How to re-run" section. It needs a Voyage key (`docs/owner-actions.md`, step 16). |
+| F6 | Google sign-in for Clerk. | Clerk went live with email link only (ADR 0017). Many people expect "Sign in with Google". | The owner makes the Google OAuth client (`docs/owner-actions.md`, step 5). Then the agent turns Google on and runs the smoke test again (step 4). |
+| F7 | The Dependabot widget-freeze step. | A Dependabot PR that bumps `@openuidev/lang-core` changes `src/widgets/frozen.generated.json`, so `src/widgets/widgets.test.ts` fails until someone runs `npm run widgets:freeze` and commits the result. #46 and #49 failed this way. | Add a step for lang-core bumps: run `npm run widgets:freeze`, raise the instruction-size budget in `src/widgets/widgets.test.ts` if the text grows, and commit. Or keep lang-core out of the Dependabot group, so a person updates it. |
 
 ## Out of scope (ruled 2026-11-14 and 2026-11-15)
 
@@ -122,10 +136,10 @@ Written 2026-11-15.
 
 These are tickets, not fog. Each closes through its PR.
 
-- [#8](https://github.com/SiddharthMuramkar/finance-agent/issues/8) Backup and restore posture: option B (daily snapshots, protected `main`, an off-Neon Library dump, a restore drill).
-- [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) Legacy lanes and old Learner data: the wipe goes through #33. Then the dead lanes are deleted. The model-change retirement guard stays, renamed.
-- [#37](https://github.com/SiddharthMuramkar/finance-agent/issues/37) Re-test the reranker after the year fix: after the site (#32) and the new sources (#38).
-- Build issues: #23 hardening (PR #36), #31 docs (PR #34), #32 site, #33 Clerk, #38 new Library sources.
+- [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) Legacy lanes and old Learner data: the wipe goes through #33. Then PR #44 deletes the dead lanes. The model-change retirement guard stays, renamed.
+- [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) Clerk: PR #48 (Clerk replaces Better Auth) is live. PR C (migration 0040 drops the Better Auth tables) closes it.
+
+Closed on 2026-11-15 and 2026-11-16: [#8](https://github.com/SiddharthMuramkar/finance-agent/issues/8) backup posture, option B (PR #40); #23 hardening (PR #36); #31 docs (PR #34); #32 site (PR #47); [#37](https://github.com/SiddharthMuramkar/finance-agent/issues/37) reranker re-test, parked (PR #42); #38 new Library sources (PR #43).
 
 ## Decisions so far
 

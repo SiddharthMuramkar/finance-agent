@@ -2,7 +2,7 @@
 
 These steps need the owner. The agent cannot do them: they need your accounts, your email or your judgement. Each step says why, when and how. This file holds no secrets. Never paste a secret into chat, into an issue or into git.
 
-Written 2026-11-15, when map #2 closed. Tick a box when a step is done.
+Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 2026-11-15. Tick a box when a step is done.
 
 ## Checklist
 
@@ -10,7 +10,7 @@ Written 2026-11-15, when map #2 closed. Tick a box when a step is done.
 |---|---|---|
 | 1 | [Enforce the firewall](#1-enforce-the-firewall) | On or after 2026-11-17 |
 | 2 | [Better Stack account and heartbeat URL](#2-better-stack-account-and-heartbeat-url) | Before the first invite |
-| 3 | [Join, then the agent makes you admin](#3-join-then-the-agent-makes-you-admin) | When Clerk is live |
+| 3 | [Sign in once as admin](#3-sign-in-once-as-admin) | Now (Clerk is live) |
 | 4 | [Waitlist smoke test with a 2nd email](#4-waitlist-smoke-test-with-a-2nd-email) | Right after step 3 |
 | 5 | [Google OAuth client for Clerk production](#5-google-oauth-client-for-clerk-production) | When you add Google sign-in |
 | 6 | [OpenStax reuse request](#6-openstax-reuse-request) | Now |
@@ -23,7 +23,11 @@ Written 2026-11-15, when map #2 closed. Tick a box when a step is done.
 | 13 | [Write the owner content](#13-write-the-owner-content) | Before the first invite |
 | 14 | [Run the Waitlist](#14-run-the-waitlist) | Before the beta starts, then on a fixed rhythm |
 | 15 | [Decide the licence label on 16 citations](#15-decide-the-licence-label-on-16-citations) | Before any paid launch |
-| 16 | [Revoke the eval Voyage key, delete the eval env file](#16-revoke-the-eval-voyage-key-delete-the-eval-env-file) | After the Library evals |
+| 16 | [Revoke the eval Voyage key, delete the 2 env files](#16-revoke-the-eval-voyage-key-delete-the-2-env-files) | When the evals, the Library load and the wipe end |
+| 17 | [Delete the export of the old Learners](#17-delete-the-export-of-the-old-learners) | About 2026-12-15 |
+| 18 | [Remove the passcode env vars from Production](#18-remove-the-passcode-env-vars-from-production) | After PR C is live |
+| 19 | [Decide on link underlines and pill chips](#19-decide-on-link-underlines-and-pill-chips) | Any time |
+| 20 | [Decide the price of a step cut short](#20-decide-the-price-of-a-step-cut-short) | With step 12 |
 
 Also: [Commands the agent was not allowed to run](#commands-the-agent-was-not-allowed-to-run) and [Notes (no action)](#notes-no-action).
 
@@ -53,7 +57,7 @@ Also: [Commands the agent was not allowed to run](#commands-the-agent-was-not-al
    `<team>` is the Vercel team slug (`vercel teams ls`). `<digest>` comes from step 3.
 5. The agent checks: 25 fast `POST /api/turn` calls get 429 after the 20th.
 
-Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The rule bodies are in `.handoff/platform/` on branch `feat-33-clerk-cutover`. They move to `docs/agents/platform.md` with the Clerk PR.
+Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The rule bodies are in `docs/agents/platform.md` (section "Firewall").
 
 ## 2. Better Stack account and heartbeat URL
 
@@ -79,23 +83,20 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 
 6. The value reaches the live site at the next production deploy (the next merge to `main`). Within 15 minutes after that deploy, Better Stack shows the heartbeat as "up".
 
-## 3. Join, then the agent makes you admin
+## 3. Sign in once as admin
 
 - [ ] Done
 
-**Why.** In Clerk, admin is `publicMetadata.role = "admin"` on your user. The agent can set it only after your Clerk user exists. `/admin` needs it.
+**Why.** In Clerk, admin is `publicMetadata.role = "admin"` on your user. `/admin` needs it. Sign-up is a Waitlist, and in Waitlist mode `/sign-in` works only for a user who already exists. So on 2026-11-15 you made your Clerk user on production, with the admin role, in `owner-batch.sh` (see [Commands the agent was not allowed to run](#commands-the-agent-was-not-allowed-to-run)). You do not join the Waitlist.
 
-Sign-up is a Waitlist. In Waitlist mode, `/sign-in` works only for a user who already exists. The new production Clerk has no users, so `/sign-in` does not know you and sends no link. You join first, like any Learner.
-
-**When.** When Clerk is live in production (the Clerk PR for #33 is merged).
+**When.** Now. Clerk is live in production since PR #48 merged. The wipe script (`contract-run.sh`) stops at its step 1 until you sign in once.
 
 **How.** Email link only for now. Google comes later (step 5).
 
-1. Open `https://www.value-it.xyz/join`. Join with your email.
-2. Tell the agent. It approves your waitlist entry. (You can also click Approve in the Clerk dashboard, Waitlist.)
-3. Open the "you're in" email. Its link opens `/sign-up`. Finish with the email link. Now your Clerk user exists.
-4. Tell the agent "signed up". It sets `role=admin` with the Clerk CLI.
-5. Sign out. Sign in again at `/sign-in`, so your session gets the role. Open `/admin`. It must load.
+1. Open `https://www.value-it.xyz/sign-in`. Type the email of your Clerk user.
+2. Open the email from Clerk. Its link signs you in.
+3. Open `/admin`. It must load.
+4. Tell the agent "signed in". If `/admin` shows "not found" (404), tell the agent. It checks the role with the Clerk CLI.
 
 ## 4. Waitlist smoke test with a 2nd email
 
@@ -137,11 +138,15 @@ Sign-up is a Waitlist. In Waitlist mode, `/sign-in` works only for a user who al
 
 - [ ] Done
 
-**Why.** Decisions #26 and #27. Today the Library uses OpenStax *Principles of Finance* 2nd edition. The 2nd edition's web page forbids use in "generative AI offerings" without written permission, and commercial use needs permission. Decision #27 moves the Library to the 1st edition, which is CC BY 4.0. That move is PR #38. It is live only after #38 merges and the production Library is loaded again. The owner decided that the reuse request goes out in both cases.
+**Why.** Decisions #26 and #27. Today the Library uses OpenStax *Principles of Finance* 2nd edition. The 2nd edition's web page forbids use in "generative AI offerings" without written permission, and commercial use needs permission. Decision #27 moves the Library to the 1st edition, which is CC BY 4.0. That move is issue #38 (PR #43, merged 2026-11-15). The live Library uses the 1st edition only after the production Library load (`prod-load.sh`). The owner decided that the reuse request goes out in both cases.
 
 **When.** Now. It must be done before any paid launch. Before you send the form, ask the agent which edition the live Library uses. Name that edition in the form.
 
-<!-- Orchestrator: after the #38 production load passes, say "1st edition" here and in Appendix A. If #38 does not load, keep this text. -->
+<!-- TODO(orchestrator), after the production Library load passes:
+     1. Say "1st edition" here (Why) and in Appendix A. If the load does not pass, keep this text.
+     2. In this PR, remove the `openstax-principles-finance-2e` entry from scripts/library/sources.json,
+        and change src/library/credits.test.ts to match (it asserts the 2e entry today). -->
+
 
 **How.** Fill in the OpenStax reuse request form: <https://riceuniversity.tfaforms.net/52>. Points to include are in [Appendix A](#appendix-a-openstax-reuse-request-points).
 
@@ -300,54 +305,167 @@ See item 8 in `docs/roadmap.md`.
 
 Tell the agent A or B. The agent makes the change.
 
-## 16. Revoke the eval Voyage key, delete the eval env file
+## 16. Revoke the eval Voyage key, delete the 2 env files
 
 - [ ] Done
 
-**Why.** The Library evals used a Voyage key that you made for them, named "vps-eval". It is in a file on the VPS. A key that nobody uses can still leak.
+**Why.** The Library evals used a Voyage key that you made for them, named "vps-eval". 2 folders on the VPS hold secrets for the evals and the owner-run scripts:
 
-**When.** After the Library evals. The agent tells you when they end.
+- `/root/projects/.evalenv`: the eval database addresses and the vps-eval key.
+- `/root/projects/.prodenv`: the production database addresses and a copy of the vps-eval key (`prod-load.sh` and `contract-run.sh` use it).
+
+A key or an address that nobody uses can still leak.
+
+**When.** When the evals, the production Library load and the wipe end. The agent tells you when they end.
 
 **How.**
 
 1. In the Voyage AI dashboard, API keys: revoke the key named **vps-eval**. Revoke only that key.
-2. On the VPS, delete the eval env file:
+2. On the VPS, delete the 2 folders:
 
    ```sh
-   rm -rf /root/projects/.evalenv
+   rm -rf /root/projects/.evalenv /root/projects/.prodenv
    ```
 
-3. Tell the agent. A later eval (for example, the reranker re-test in [Notes](#notes-no-action)) needs a new key.
+3. Tell the agent. A later eval (for example, the reranker re-test in `docs/roadmap.md`) needs a new key.
+
+## 17. Delete the export of the old Learners
+
+- [ ] Done
+
+**Why.** Before the wipe, `contract-run.sh` exports the production tables to `/root/backups/pre-contract-2026-11-15.dump` (and its `.dump.sha256`). The export holds Learner personal data. Keep it only while a rollback of the wipe can need it. It is not in `copy2`, so the laptop copy (step 10) does not hold it. Never put it in git.
+
+**When.** About 2026-12-15 (30 days after the export).
+
+**How.**
+
+1. Ask the agent if a rollback still needs the export. If no, go on.
+2. On the VPS:
+
+   ```sh
+   rm /root/backups/pre-contract-2026-11-15.dump /root/backups/pre-contract-2026-11-15.dump.sha256
+   ```
+
+3. Tell the agent.
+
+## 18. Remove the passcode env vars from Production
+
+- [ ] Done
+
+**Why.** Clerk replaced the passcode door (ADR 0017). The door is shut in production since PR #48. `PASSCODE`, `PASSCODES` and `SESSION_SECRET` in Vercel Production open nothing now. A secret that nobody uses can still leak.
+
+**When.** After PR C is live: PR C is merged, and its production deploy is Ready. PR C deletes the old Better Auth tables (migration 0040). The agent plans to remove the 3 vars itself. First ask the agent if it did. If yes, tick the box. You have nothing more to do.
+
+**How.** If the vars are still there, run this on the VPS:
+
+```sh
+vercel env rm PASSCODE --environment production --confirm-name PASSCODE --scope <team> --project finance-agent
+vercel env rm PASSCODES --environment production --confirm-name PASSCODES --scope <team> --project finance-agent
+vercel env rm SESSION_SECRET --environment production --confirm-name SESSION_SECRET --scope <team> --project finance-agent
+```
+
+`<team>` is the same as in step 1. Then tell the agent. It checks `vercel env ls` (names only).
+
+## 19. Decide on link underlines and pill chips
+
+- [ ] Done
+
+**Why.** The public site (PR #47) follows the Signal spec look. ADR 0018 (flat controls) says something different:
+
+| Look | Signal spec §5 (the site today) | ADR 0018 |
+|---|---|---|
+| Text link | No underline. Underline on hover (§5.2). | In a reading area, a link is underlined. |
+| Question chips | Round ends, like a pill (§5.4). | No pill ends. Never rounder than 12px. |
+| Cards | 14px corners. | Never rounder than 12px. |
+
+The site's look checks (the affordance audits) let these looks off on the Signal pages until you decide. Only you can choose the look.
+
+**When.** Any time.
+
+**Options.**
+
+- **A. Keep the spec look on the public site.** The agent adds a line to ADR 0018: the public site follows spec §5; the app stays flat.
+- **B. Use ADR 0018 on the public site too.** The agent underlines the text links, makes the chips and cards 12px or less, and removes the let-off from the audits.
+
+Tell the agent A or B. The agent makes the change.
+
+## 20. Decide the price of a step cut short
+
+- [ ] Done
+
+**Why.** Hardening review, finding 4 (PR #36). Sometimes a Tutor step stops before OpenAI sends its usage report: a stream fails mid-way, the stream guard stops it, or the Learner presses Stop. Then the app does not know the cost. Today the caps count each such step at a flat $0.66, the worst case (`UNPRICED_STEP_USD` in `src/tutor/quota.ts`). About 8 Stops in one day reach the $5 Learner cap. In an incident, many failed streams can reach the $30 cap for all Learners (`usd_global_day`). This is a money rule, so you decide.
+
+**When.** With step 12, after the first real turns.
+
+**Options.**
+
+- **A. Keep the flat $0.66.** It never counts too little. A bad incident can stop the Tutor early.
+- **B. Estimate the cost from the turn's last usage report (`lastUsage`).** It is nearer the real cost. A wrong estimate can let more money through.
+
+Tell the agent A or B. The agent makes the change.
 
 ## Commands the agent was not allowed to run
 
-The agent stopped before these commands. Its safety check blocked them. Run them yourself in Claude Code as `! <command>`, or in a terminal on the VPS. The orchestrator adds the rest of the list.
+On 2026-11-15 the Claude Code safety check (the auto-mode classifier) stopped the agent before the commands below. The agent did not retry them and did not find a way around them. Run an open one yourself in Claude Code as `! <command>`, or in a terminal on the VPS.
 
-- **Delete 4 stale Neon branches.** Nothing uses them. Previews are off (#11). Your yes of 2026-11-15 covers them, but the safety check stopped the agent. Each line deletes one branch (its name is in the comment):
+### Done by you
 
-  ```sh
-  neon branches delete br-winter-boat-b39iqmcn --project-id cool-queen-75259301    # rag-baseline-2026-11-14
-  neon branches delete br-morning-brook-b3zs4na0 --project-id cool-queen-75259301  # preview/docs/architecture
-  neon branches delete br-twilight-snow-b3bfl3gk --project-id cool-queen-75259301  # preview/feat/21-signal-models
-  neon branches delete br-green-paper-b3i7otr2 --project-id cool-queen-75259301    # preview/chore/tracker-setup
-  ```
+| Command the agent could not run | How it was done |
+|---|---|
+| `git push` from the lane agents, on every lane: hardening, CI, docs, backup, site, Clerk, sources, reranker, legacy, wrapup and architecture | At 10:45 UTC you allowed a plain `git push` (no force, no delete) in `.claude/settings.local.json`. Then the agent pushed 9 lanes. The safety check still stopped later pushes from the lane agents. You ran them in `owner-batch.sh`, `owner-batch-2.sh`, `owner-batch-3.sh` and `owner-batch-4.sh` (all in `/root/projects/`). `owner-batch-2.sh` also posted the #48 comment and set the #43 body, because both needed the push first. |
+| `git push` of the #46 fix | It failed in `owner-batch.sh`: Dependabot had rebased the branch. #49 replaces #46. The agent makes the fix again in a final deps PR. |
+| `git commit` of 2 doc changes: owner actions (`docs-2-wrapup`) and the reranker re-test (`feat-37-reranker`) | `owner-batch.sh`. |
+| `vercel env rm` of the 2 stale Preview vars `DATABASE_URL` and `DATABASE_URL_UNPOOLED` (branch `docs/architecture`) | `owner-batch.sh`. The other 4 of the 6 stale Preview vars were already gone. |
+| Make your Clerk user on production, with the admin role (`clerk api /users`) | `owner-batch.sh`. Next: [step 3](#3-sign-in-once-as-admin). |
 
-- More commands come here if the safety check stops the agent again.
+### Scripts you run
 
-Not on this list: the 6 Preview `DATABASE_URL*` env vars of these 4 branches. The agent removes them in the final clean-up. If the safety check stops it, their commands come to this list.
+These 2 scripts change production data. They need a real terminal and your typed `yes`, so you run them, not the agent. Run each one in a Herdr terminal on `vps`. Read its README first. Then tell the agent the result.
 
-<!-- Orchestrator: add one bullet per command below, with why and the exact command. -->
+| What | Command | Read first |
+|---|---|---|
+| The production Library load (#38): the new sources go in, the 2e textbook goes out | `git -C /root/projects/finance-agent pull --ff-only && /root/projects/prod-load.sh` | `/root/projects/prod-load-README.md` |
+| The production wipe of the pre-Clerk Learners (#33), after [step 3](#3-sign-in-once-as-admin) | `/root/projects/contract-run.sh` | `/root/projects/contract-run-README.md` |
+
+### Not done (no step for you)
+
+- **Install Node 24 on the VPS with nvm.** Stopped. The VPS stays on Node 22. CI and `.nvmrc` use Node 24 (#39). See `docs/roadmap.md`, item 11.
+- **Download `actionlint`, a checker for the GitHub Actions files.** Stopped. The CI lane checked the job graph by hand. `src/dev/ci-workflow.test.ts` checks the gates.
+
+### Still to do
+
+**Delete 4 stale Neon branches.** Nothing uses them. Previews are off (#11). Your yes of 2026-11-15 covers them, but the safety check stopped the agent. Each line deletes one branch (its name is in the comment):
+
+```sh
+neon branches delete br-winter-boat-b39iqmcn --project-id cool-queen-75259301    # rag-baseline-2026-11-14
+neon branches delete br-morning-brook-b3zs4na0 --project-id cool-queen-75259301  # preview/docs/architecture
+neon branches delete br-twilight-snow-b3bfl3gk --project-id cool-queen-75259301  # preview/feat/21-signal-models
+neon branches delete br-green-paper-b3i7otr2 --project-id cool-queen-75259301    # preview/chore/tracker-setup
+```
+
+On 2026-11-16 only the first 2 still exist. For the last 2, Neon answers "not found". That is OK.
+
+**Eval branches: delete or let expire.**
+
+| Branch | Made by | What to do |
+|---|---|---|
+| `eval-2026-11-15` (`br-billowing-salad-b37bbjon`) | The Library evals | Nothing. It expires by itself on 2026-11-18. |
+| `rehearse-wipe-2026-11-15` | `contract-run.sh` (the wipe rehearsal) | Nothing. It expires by itself on 2026-11-17. |
+| `g2-eval` (`br-patient-bar-b3wc46f3`) | An older eval, 2026-11-06 | It has no expiry date, and nothing in the repo names it. Ask the agent to check it. Then delete it: `neon branches delete br-patient-bar-b3wc46f3 --project-id cool-queen-75259301` |
+
+If the safety check stops the agent again, the command comes here.
 
 ## Notes (no action)
 
-- **Reranker (#37) is parked.** The eval of 2026-11-15 showed a gain too small to keep. There is nothing to do now. The agent tests it again after the Library grows (after #38 merges). The eval numbers go into PR #42.
+- **Reranker (#37) is parked.** The eval of 2026-11-15 showed a gain too small to keep. PR #42 merged only the scorer flags. The numbers are in `docs/library/2026-11-15-reranker-retest.md`. The re-test after the Library grows is a follow-up in `docs/roadmap.md`.
 
 ## Appendix A. OpenStax reuse request (points)
 
 Not a draft from the research. These are the points to put in the form, from `research/library-licences.md`:
 
 - Who: Value It, an online valuation course. Today it is a free beta for about 20 invited Learners. A paid offer may come later.
-- What: *Principles of Finance*. Today the Library uses the 2nd edition. It moves to the 1st edition (CC BY 4.0, GitHub commit `3b7fc65c52`) with #38. The 2nd edition text is 99.5% the same. Name the edition that is live when you send the form (step 6).
+- What: *Principles of Finance*. Today the Library uses the 2nd edition. It moves to the 1st edition (CC BY 4.0, GitHub commit `3b7fc65c52`) with the production Library load for #38. The 2nd edition text is 99.5% the same. Name the edition that is live when you send the form (step 6).
+  <!-- TODO(orchestrator): after the production Library load passes, say "1st edition" in this point (see the TODO in step 6). -->
 - How Value It uses it: it keeps the text in a private search index, cut into passages of at most 300 words. It sends each passage to Voyage AI to make a search vector. A signed-in Learner can read a passage. The AI tutor puts passages into its prompt and quotes short parts with a credit and a link.
 - What Value It does not do: it does not train a model on the book, and it does not sell the text.
 - The ask: written permission for use in a generative AI offering, now in the free beta and later in a paid offer.
