@@ -112,6 +112,13 @@ export function priceText(value: number, block: Money): string {
   return `${value < 0 ? "-" : ""}${symbol}${text}`;
 }
 
+/** A move in a share's value, to the minor unit and grouped for the currency: "$10.04", "₹1,234.50"; yen and won whole ("₩1,500"). */
+export function moveText(value: number, block: Money): string {
+  const digits = CURRENCY_STYLE[block.currency].cents ? 2 : 0;
+  const text = Math.abs(value).toLocaleString(LOCALE(block.currency), { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return `${value < 0 ? "-" : ""}${SYMBOL(block.currency)}${text}`;
+}
+
 /** A Workbench's headline figure: a share's value, or for a company valued whole (per: company) the company's value. */
 export function valueText(value: number, block: ValuationBlock): string {
   return block.per === "company" ? moneyText(value, block) : priceText(value, block);
@@ -668,7 +675,7 @@ export function taskConditions(model: ValueLeversModel, moves: Moves): boolean[]
 export function biggestMover(moves: Moves, specs: readonly LeverSpec[], block: ValuationBlock): { spec: LeverSpec; by: string } | null {
   const id = LEVER_IDS[moves.mostLever - 1];
   if (!id || !(moves.mostBy > 0)) return null;
-  const by = block.per === "company" ? moneyText(moves.mostBy, block) : `${SYMBOL(block.currency)}${moves.mostBy.toFixed(2)}`;
+  const by = block.per === "company" ? moneyText(moves.mostBy, block) : moveText(moves.mostBy, block);
   return { spec: specOf(specs, id), by };
 }
 

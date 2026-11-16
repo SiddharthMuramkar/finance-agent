@@ -8,6 +8,7 @@ import {
   leversMoved,
   moneySpoken,
   moneyText,
+  moveText,
   NO_MOVES,
   NO_RUN,
   openingSettings,
@@ -258,6 +259,16 @@ describe("money in yen, won and euros (#112)", () => {
     expect(moneySpoken(1e-6, euros)).toBe("1 euro");
     expect(priceText(8.4, euros)).toBe("€8.40");
     expect(priceText(712.3, euros)).toBe("€712");
+  });
+
+  it("says the biggest move to the currency's minor unit, grouped: whole won and yen, never '₩1500.00'", () => {
+    expect(moveText(1500, won)).toBe("₩1,500");
+    expect(moveText(12.6, yen)).toBe("¥13");
+    expect(moveText(1.5, euros)).toBe("€1.50");
+    expect(moveText(1234.5, valuationBlock.parse(AMAZON_2000))).toBe("$1,234.50");
+    const amazon = valuationBlock.parse(AMAZON_2000);
+    expect(biggestMover({ moved: 1, mostLever: 1, mostBy: 1500 }, leverSpecs(won), won)?.by).toBe("₩1,500");
+    expect(biggestMover({ moved: 1, mostLever: 1, mostBy: 10.04 }, leverSpecs(amazon), amazon)?.by).toBe("$10.04");
   });
 
   it("names the unit invested in the Case's own currency on lever 3", () => {
