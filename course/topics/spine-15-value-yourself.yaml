@@ -28,8 +28,8 @@ cases:
       of each sale. Value levers opens on one professor's published story, for you to judge lever by lever.
     reveal: >
       Aswath Damodaran's story came to $35.08 a share against the $84 price. In 2000 Amazon's sales came in almost
-      exactly where he guessed, but on his own like-for-like count it lost about 24 cents of each dollar of sales, where
-      his story had it losing about 13 cents in the first year. Size was the easy lever to guess; what it keeps was the
+      exactly where he guessed, but it lost about 31 cents of each dollar of sales on its operations, where his story had
+      it losing about 13 cents in the first year. Size was the easy lever to guess; what it keeps was the
       hard one, and his whole value rested on it.
   - id: coffee-day-yourself-2015
     title: "The price of Coffee Day's IPO, in rupees, October 2015"
@@ -51,8 +51,9 @@ cases:
     asOf: 2021-07-21
     valuationFrom: zomato-ipo-2021
     story: >
-      It is 21 July 2021. Zomato, an Indian food delivery app, is selling shares at Rs 76 in its listing. In the year to
-      March 2021 its revenue was Rs 1,994 crore, down from Rs 2,605 crore the year before, and it lost Rs 816 crore.
+      It is 21 July 2021. Zomato, an Indian food delivery app, is selling shares at Rs 76 in its listing: the offer
+      price, which buyers pay before the shares first trade. In the year to March 2021 its revenue was Rs 1,994 crore,
+      down from Rs 2,605 crore the year before, and it lost Rs 816 crore.
       The offer closed on 16 July with bids for many times the shares on offer. Today Aswath Damodaran values it (he
       publishes his story tomorrow), betting on a big market and a platform: about Rs 16,600 crore of sales in ten
       years, keeping 35% of each sale. Value levers opens on his story, for you to judge lever by lever.
@@ -67,7 +68,8 @@ concept: >
   To judge a published valuation, fix its date and use only what was known on it. Read the story as four levers: how
   big it gets, what it keeps, what growth costs, how risky it is. Find the lever its value rests on most, and check the
   story holds together: growth needs capital, and margins are capped by what rivals allow. Then ask what the price of
-  the day assumes instead. The lever the value rests on most is the assumption to watch.
+  the day assumes instead. The lever the value rests on most is the assumption to watch. In Value levers, the bars
+  under the levers are the story's free cash flow: the cash left each year after tax and after paying for growth.
 
 principle: >
   A published valuation is someone's story, set lever by lever, as of one date. Judge it by the lever it rests on
@@ -85,15 +87,22 @@ terms:
     example: "Valuing Amazon as of February 2000, you may not use its sales for 2000."
     inStory: "In the story, each company has its own date: February 2000, October 2015 or July 2021."
   - term: Valuation story
-    means: "A story about a company's future, set as the four levers, that a value per share follows from."
+    means: "A story about a company's future, set as four levers, that a value per share follows from: how big it gets (revenue in year 10), what it keeps (operating margin), what growth costs (sales for each dollar invested) and how risky it is (cost of capital)."
     pro: "His story: a big market, high margins, little capital needed, ordinary risk."
     example: "A café owner's story: three more cafés in five years, each keeping a fifth of its sales."
     inStory: "In the story, Value levers opens on a published or a course story, set as its four levers."
-  - term: offer price
-    means: "The price a company sells its new shares at when it first lists."
-    pro: "The shares were offered at the top of the price band."
-    example: "Buyers who bid in a listing pay the offer price, before the shares first trade."
-    inStory: "In the story, Coffee Day and Zomato each set an offer price for their listing."
+  - term: operating margin
+    means: "What it keeps: the share of each sale a company keeps from its operations, before tax."
+    emoji: money-bag
+    pro: "His story has the operating margin rising to 10%."
+    example: "A shop that keeps 10 cents of every dollar it takes has a 10% operating margin."
+    inStory: "In the story, the lever for what it keeps is the operating margin once the company is grown up."
+  - term: cost of capital
+    means: "How risky: the return investors need each year, given the risk, used to turn future cash into today's."
+    emoji: guard
+    pro: "His cost of capital starts at 12.84% and falls as Amazon matures."
+    example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
+    inStory: "In the story, the lever for how risky it is is the cost of capital while it grows."
   - term: hindsight
     means: "Knowing what happened after the date, which a valuation as of that date may not use."
     pro: "That figure is hindsight; leave it for the reveal."
@@ -144,16 +153,18 @@ connections:
 questions:
   - id: yourself-q-lever
     kind: which_lever
-    prompt: "From the course's Coffee Day story, which change moves the value most?"
+    # Each change makes one lever a fifth more hopeful (critics round 1, math-police), so the sizes are alike and the idea
+    # decides it: for a company that keeps little of each sale today, what it keeps is the lever the value rests on.
+    prompt: "From the course's Coffee Day story, each change makes one lever a fifth more hopeful. Which moves the value most?"
     skill: own-story
-    explanation: "For a company that keeps little of each sale today, what it comes to keep moves the value most."
+    explanation: "Every lever moves by the same fifth, so the step sizes do not decide it: for a company that keeps little of each sale today, what it comes to keep moves the value most."
     computed:
       case: coffee-day-yourself-2015
       changes:
-        - { id: margin, label: "What it keeps in ten years: 15% to 18%", levers: { marginTarget: 18 } }
-        - { id: reinvest, label: "What growth costs: Rs 1.50 of sales per rupee invested, not Rs 1.30", levers: { salesToCapital: 1.5 } }
-        - { id: risk, label: "How risky: cost of capital 11.8% to 11.3%", levers: { costOfCapitalGrowing: 11.3 } }
-        - { id: revenue, label: "How big it gets: sales in ten years Rs 7,660 crore to Rs 9,000 crore", levers: { revenueYear10: 9000 } }
+        - { id: margin, label: "What it keeps, a fifth more: 15% to 18% of each sale in ten years", levers: { marginTarget: 18 } }
+        - { id: reinvest, label: "What growth costs, a fifth more sales per rupee invested: Rs 1.56, not Rs 1.30", levers: { salesToCapital: 1.56 } }
+        - { id: risk, label: "How risky, a fifth less: cost of capital 11.8% to 9.44%", levers: { costOfCapitalGrowing: 9.44 } }
+        - { id: revenue, label: "How big it gets, a fifth more: sales in ten years Rs 7,660 crore to Rs 9,192 crore", levers: { revenueYear10: 9192 } }
   - id: yourself-q-price
     kind: price_assumes
     prompt: "Damodaran's Zomato story comes to about Rs 41, and the offer price is Rs 76. Which story gets there?"
