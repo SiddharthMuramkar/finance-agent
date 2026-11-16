@@ -44,6 +44,12 @@ export function FilledPart({ filled }: { filled: NonNullable<TopicNote["filled"]
       <div>
         <Heading>The principle</Heading>
         <MarkedText text={filled.principle} className="mt-2 flex flex-col gap-2 text-sm leading-6" />
+        {filled.dailyLife && (
+          <p data-daily-life className="measure mt-2 text-sm leading-6">
+            <span className="text-[var(--muted)]">In daily life: </span>
+            {filled.dailyLife}
+          </p>
+        )}
       </div>
       {filled.connections.length > 0 && (
         <div className="break-inside-avoid">

@@ -36,13 +36,20 @@ cases:
 
 concept: >
   Return on equity (ROE) is net income divided by equity: the profit earned for each unit the
-  owners have put in. The DuPont method splits it into three parts that multiply:
-  ROE = net profit margin x asset turnover x equity multiplier. Net profit margin is net income
+  owners have put in. The DuPont method splits it into three numbers multiplied together:
+  margin, then turnover, then the multiplier. Net profit margin is net income
   divided by sales (how much of each sale is kept). Asset turnover is sales divided by total
   assets (how hard the assets work). The equity multiplier is total assets divided by equity
   (how much borrowing sits under the owners' money); it equals 1 plus liabilities divided by
   equity. Two companies with the same ROE can have very different risk: one from high margins,
   the other from high leverage. Leverage multiplies a loss as well as a profit.
+
+goDeeper: >
+  In symbols, ROE = net profit margin x asset turnover x equity multiplier, that is
+  (net income / sales) x (sales / assets) x (assets / equity). Sales and assets cancel, leaving
+  net income / equity, which is why the three parts always rebuild the same ROE. The five-step
+  DuPont splits the margin further into the tax burden, the interest burden and the operating
+  margin.
 
 principle: >
   Before trusting a return on equity, break it into margin, turnover and leverage. High ROE
