@@ -8,6 +8,7 @@
  */
 import { applyLevers, priceWord, type Levers, type ValuationBlock } from "../finance/valuation-case.ts";
 import { hash, shuffled } from "./choices.ts";
+import { CURRENCY_STYLE } from "../finance/money.ts";
 
 /** How close two figures may come before a question is a coin toss, and how close a story must come to the price (D1, D2). */
 export const NEAR = 0.05;
@@ -48,20 +49,21 @@ export type JudgementResult = { ok: true; instance: JudgementInstance } | { ok: 
 /** A change valued: value a share (never below zero, as a Workbench shows it), its figure, and its move from the start. */
 type Valued = { change: LeverChange; value: number; figure: string; move: number };
 
-const money = (currency: ValuationBlock["currency"]) => (currency === "INR" ? { sign: "₹", locale: "en-IN" } : { sign: "$", locale: "en-US" });
+const money = (currency: ValuationBlock["currency"]) => ({ sign: CURRENCY_STYLE[currency].symbol, locale: CURRENCY_STYLE[currency].locale, cents: CURRENCY_STYLE[currency].cents });
 
 /** A value a share as a choice shows it: "$48.51"; nothing left shows "$0", never a negative price (spec B3). */
 export function shareFigure(value: number, currency: ValuationBlock["currency"]): string {
-  const { sign, locale } = money(currency);
+  const { sign, locale, cents } = money(currency);
   if (!(value > 0)) return `${sign}0`;
-  return `${sign}${value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const digits = cents ? 2 : 0;
+  return `${sign}${value.toLocaleString(locale, { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 }
 
 /** A price as the Case states it: "$84", or "$84.50" when it has cents. */
 function priceFigure(value: number, currency: ValuationBlock["currency"]): string {
-  const { sign, locale } = money(currency);
-  const whole = Number.isInteger(Math.round(value * 100) / 100);
-  return `${sign}${value.toLocaleString(locale, { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 })}`;
+  const { sign, locale, cents } = money(currency);
+  const whole = !cents || Number.isInteger(Math.round(value * 100) / 100);
+  return `${sign}${value.toLocaleString(locale, { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole && !cents ? 0 : 2 })}`;
 }
 
 /** A move a share in words: "about $13", or "under $1" for a move too small to round to a dollar. */

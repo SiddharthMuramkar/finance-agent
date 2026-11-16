@@ -6,10 +6,12 @@ import {
   biggestMover,
   leverSpecs,
   leversMoved,
+  moneySpoken,
   moneyText,
   NO_MOVES,
   NO_RUN,
   openingSettings,
+  priceText,
   priceTolerance,
   recordMove,
   storyNote,
@@ -224,6 +226,58 @@ describe("money in the Case's own currency", () => {
     const model = valueLeversModel(whole, leverSpecs(whole), openingSettings(leverSpecs(whole)));
     expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe("Your story is worth $11.9bn");
     expect(model.price.text).toBe("$30bn");
+  });
+});
+
+describe("money in yen, won and euros (#112)", () => {
+  const inCurrency = (currency: string, price = 2450) => valuationBlock.parse({ ...AMAZON_2000, currency, price: { value: price, date: "2024-03-29" } });
+  const yen = inCurrency("JPY");
+  const won = inCurrency("KRW", 71_000);
+  const euros = inCurrency("EUR", 8.4);
+
+  it("writes yen with ¥ in the short scale, and a share's value in whole yen, never yen and sen", () => {
+    expect(moneyText(45_095_325, yen)).toBe("¥45.1tn");
+    expect(moneyText(1250, yen)).toBe("¥1.3bn");
+    expect(moneyText(931, yen)).toBe("¥931m");
+    expect(moneySpoken(15_200, yen)).toBe("15.2 billion yen");
+    expect(moneySpoken(1e-6, yen)).toBe("1 yen");
+    expect(priceText(2450.4, yen)).toBe("¥2,450");
+    expect(priceText(7.6, yen)).toBe("¥8");
+  });
+
+  it("writes won with ₩ in the short scale, and a share's value in whole won", () => {
+    expect(moneyText(258_935_494, won)).toBe("₩258.9tn");
+    expect(moneySpoken(26, won)).toBe("26 million won");
+    expect(priceText(71_000, won)).toBe("₩71,000");
+    expect(priceText(-3.2, won)).toBe("-₩3");
+  });
+
+  it("writes euros with € in the short scale, and a share's value to the cent below €10", () => {
+    expect(moneyText(86_153, euros)).toBe("€86.2bn");
+    expect(moneySpoken(15_200, euros)).toBe("15.2 billion euros");
+    expect(moneySpoken(1e-6, euros)).toBe("1 euro");
+    expect(priceText(8.4, euros)).toBe("€8.40");
+    expect(priceText(712.3, euros)).toBe("€712");
+  });
+
+  it("names the unit invested in the Case's own currency on lever 3", () => {
+    expect(leverSpecs(yen)[2].label).toBe("Sales for each yen invested");
+    expect(leverSpecs(won)[2].label).toBe("Sales for each won invested");
+    expect(leverSpecs(euros)[2].label).toBe("Sales for each euro invested");
+  });
+
+  it("leaves dollars and rupees as they were", () => {
+    const dollars = valuationBlock.parse(AMAZON_2000);
+    const rupees = valuationBlock.parse({ ...AMAZON_2000, currency: "INR", unit: "crores" });
+    expect(moneyText(2_200_000, dollars)).toBe("$2.2tn");
+    expect(moneyText(931, dollars)).toBe("$931m");
+    expect(moneySpoken(15_200, dollars)).toBe("15.2 billion dollars");
+    expect(priceText(35.04, dollars)).toBe("$35");
+    expect(priceText(2.4, dollars)).toBe("$2.40");
+    expect(moneyText(125_000, rupees)).toBe("₹1,25,000 crore");
+    expect(moneySpoken(45, rupees)).toBe("45 crore rupees");
+    expect(priceText(1234, rupees)).toBe("₹1,234");
+    expect(priceText(2.4, rupees)).toBe("₹2.40");
   });
 });
 
