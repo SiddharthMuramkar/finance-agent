@@ -279,7 +279,7 @@ export type ColourTile = (typeof COLOURS)[number]["tile"];
 /** Appendix B: the FAQ, in order (numbered from 1). */
 export const FAQ = [
   { q: "Is Value It investment advice?", a: "No. It teaches how finance works through past events. It never tells you what to buy or sell, and gives no tips." },
-  { q: "Do I need to be good at maths?", a: "No. You never type a number: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words." },
+  { q: "Do I need to be good at maths?", a: "No. You never type a number to answer a question: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words. The one place you type numbers is the Assignment after the Spine, where you copy figures from a company's annual report." },
   { q: "Where do the facts come from?", a: "From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage." },
   { q: "Does the AI make up the charts?", a: "No. The AI Tutor chooses which chart to open and at which numbers; the chart is drawn from checked figures. Made-up numbers are labelled Illustration." },
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
@@ -292,7 +292,7 @@ export const howItWorks = {
   eyebrow: "How it works",
   h1: "How a Topic works",
   lede: (c: CourseFacts) =>
-    `Every Topic is **one real event, taught in four moves**, in ${c.minutes.low}–${c.minutes.high} minutes. You never type a number: you tap, drag and explain in your own words.`,
+    `Every Topic is **one real event, taught in four moves**, in ${c.minutes.low}–${c.minutes.high} minutes. You never type a number to answer: you tap, drag and explain in your own words.`,
   description: (c: CourseFacts) => `Every Topic is one real event, taught in four moves, in ${c.minutes.low} to ${c.minutes.high} minutes.`,
   rail: {
     title: "Running example: Amazon, Feb 2000",

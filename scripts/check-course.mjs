@@ -18,6 +18,7 @@ import { beginnerCheckErrors } from "../src/course/beginner-check.ts";
 import { fullSheetWordsErrors } from "../src/course/full-sheet-words-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
 import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
+import { GUIDE_LINE_INPUTS, guideErrors } from "../src/markets/guides.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
 
@@ -81,6 +82,11 @@ if (readings.length) fail("Market readings that are not dated and sourced (spec 
 // The Full sheet's row words and each row's Lingo card (spec #68, #103): plain words, no typed formula, card word limits.
 const fullSheetWords = fullSheetWordsErrors();
 if (fullSheetWords.length) fail("Full sheet words that break the rules", fullSheetWords);
+
+// The annual-report guide (ticket #108): every Own Case field has a guide line with a source and a working link, and a
+// Lingo card whose picture is an Icon.
+const guide = guideErrors(GUIDE_LINE_INPUTS);
+if (guide.length) fail("Annual-report guide lines with no source or Lingo card (spec #68)", guide);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 // The valuation Case registry (spec 2026-11-12 B1): what client and server code value a Case from, by its id.

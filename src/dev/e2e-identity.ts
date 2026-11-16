@@ -13,6 +13,8 @@ import { e2eEnabled } from "./e2e-mode";
 export const E2E_PEOPLE = {
   owner: { userId: "user_e2e_owner", email: "owner@e2e.example", firstName: "Owner E2E", admin: true },
   asha: { userId: "user_e2e_asha", email: "asha@e2e.example", firstName: "Asha E2E", admin: false },
+  /** A Learner who has passed the Spine (spec #68): the dev-e2e route passes every Spine Topic when Ravi signs in. */
+  ravi: { userId: "user_e2e_ravi", email: "ravi@e2e.example", firstName: "Ravi E2E", admin: false },
 } as const satisfies Record<string, Identity>;
 
 export type E2ePerson = keyof typeof E2E_PEOPLE;

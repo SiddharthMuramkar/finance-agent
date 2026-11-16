@@ -59,6 +59,7 @@ async function seedLearner(c: PGlite, name: string, clerkUserId: string | null) 
     ],
     ["insert into tutor_incidents (learner_id, session_id, turn_id, kind) values ($1, $2, $3, 'replay_stripped_after_refusal')", [learner, session, turn]],
     ["insert into skip_ahead_attempts (learner_id, topic_id, day) values ($1, 'present-value', '2026-11-15')", [learner]],
+    ["insert into own_cases (learner_id, company, market, report_date, inputs, estimate) values ($1, 'Coffee Day Enterprises', 'IN', '2015-10-21', '{}', '{}')", [learner]],
     ["insert into tool_calls (tool_call_id, name, result, is_error, turn_id) values ($1, 'record_check', 'ok', false, $2)", [`${tag}-tool`, turn]],
   ];
   for (const [text, params] of rows) await c.query(text, params);

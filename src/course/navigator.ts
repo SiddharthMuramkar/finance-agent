@@ -130,6 +130,15 @@ export function defaultPath(map: CourseMap): Topic[] {
   return [...spine, ...AFTER_SPINE.flatMap((stage) => map.topics.filter((t) => t.stage === stage))];
 }
 
+/**
+ * Whether the Learner has passed the Spine (spec #68): every written Spine Topic passed. The Assignment after it opens
+ * only then (ADR 0020). A course with no Spine Topic written has no Spine to pass.
+ */
+export function spinePassed(map: CourseMap, progress: Progress): boolean {
+  const spine = map.topics.filter((t) => t.stage === "spine");
+  return spine.length > 0 && spine.every((t) => isPassed(progress, t.id));
+}
+
 /** The Welcome's first Topic (spec C6): the first on the default path, which is Spine Topic 1 once the Spine is live. */
 export function firstTopic(map: CourseMap): Topic | undefined {
   return defaultPath(map)[0];
