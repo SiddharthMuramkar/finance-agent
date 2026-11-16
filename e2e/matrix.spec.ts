@@ -285,14 +285,19 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
   expect(failing, "failing cells (each is a finding)").toEqual([]);
 });
 
+/** A public-only project (the phone, in either theme) shoots no /study cell, so the /study tests have nothing to read there. */
+const noStudyCells = (project: string) => !cellsOfProject(project).some((c) => c.page.path === "/study");
+
 // Until #32 lands and ADR 0015 remaps the tokens (--mint to gain, --coral to loss): accent families live only inside Widgets. The chrome (header, chat, Topic bar, panel frame) paints none.
 test("/study with a Widget paints no accent family outside Widget content", async ({}, info) => {
+  test.skip(noStudyCells(info.project.name), "a public-only project shoots no /study cell");
   const r = saved(info.project.name, info.project.outputDir).find((x) => x.cell === `${info.project.name}/study-concept-widget`);
   expect(r?.accents, `accent families painted outside Widget content (${r?.error ?? "measured"})`).not.toBeNull();
   expect(r!.accents!, `accent families painted in the chrome: ${JSON.stringify(r!.accentVia)}`).toEqual([]);
 });
 
 test("[ADR 0015] /study Widgets paint families only as thin marks", async ({}, info) => {
+  test.skip(noStudyCells(info.project.name), "a public-only project shoots no /study cell");
   const rows = saved(info.project.name, info.project.outputDir).filter((x) => x.cell.includes("/study-") && x.look);
   expect(rows.length).toBeGreaterThan(0);
   const bad = rows.filter((r) => r.look && Object.values(r.look).some((list) => list.length > 0));
@@ -304,6 +309,7 @@ test("[ADR 0015] /study Widgets paint families only as thin marks", async ({}, i
 // the fix, and the panel keeps that reply's rate Widget, the points-versus-basis-points move the fix is about (an opener
 // would put its own Lingo card there).
 test("[F1] the mix-up cell shows its fix, with no opener streamed in", async ({}, info) => {
+  test.skip(noStudyCells(info.project.name), "a public-only project shoots no /study cell");
   const r = saved(info.project.name, info.project.outputDir).find((x) => x.cell === `${info.project.name}/study-mixup-fix`);
   expect(r?.error, "the mix-up cell loads").toBeUndefined();
   expect(r?.openers, "openers the page asked for").toBe(0);

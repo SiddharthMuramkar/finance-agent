@@ -130,6 +130,9 @@ describe("a Notebook row's Topic Note", () => {
     expect(html).not.toMatch(/data-notebook-row="pv"[^>]*print:/);
     const css = readFileSync(new URL("../globals.css", import.meta.url), "utf8");
     expect(css).toMatch(/@media print/);
+    // ADR 0019 (#80): the print block names the Dark selector too, so Dark on screen still prints on white paper.
+    const print = css.slice(css.indexOf("@media print"));
+    expect(print).toMatch(/^@media print \{\s*:root,\s*:root\[data-theme="dark"\] \{[^}]*color-scheme: light !important;[^}]*--paper: #ffffff;/);
   });
 });
 

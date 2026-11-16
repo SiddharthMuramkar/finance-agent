@@ -4,11 +4,12 @@ import { measureLayout } from "./support/measure";
 
 /**
  * A5 and ADR 0018: the slim, flat header. A plain wordmark, three ghost page links (the current one ink at weight 600 over
- * a 2px accent bar on the header's hairline), then Settings gear and account as 32px ghost icons (no theme toggle: one
- * Light theme, decision #17); one line and at most 56px tall at 1512 and 1024; the gear opens Settings; the account menu, a popover, signs out to Home.
+ * a 2px accent bar on the header's hairline), then the theme switch (ADR 0019), Settings gear and account as 32px ghost
+ * icons; one line and at most 56px tall at 1512 and 1024; the gear opens Settings; the account menu, a popover, signs out to Home.
  */
 
-const PROJECTS = ["mbp14", "w1024"];
+// mbp14-dark: the same header in Dark (#80), on a device set to dark.
+const PROJECTS = ["mbp14", "w1024", "mbp14-dark"];
 
 test.beforeEach(async ({}, info) => {
   test.skip(!PROJECTS.includes(info.project.name), "the header is measured at 1512×982 and 1024×768");
@@ -66,10 +67,12 @@ test("[A5] header fits: 56px or less, on one line", async ({ page }) => {
   expect(Math.max(...(centres as number[])) - Math.min(...(centres as number[]))).toBeLessThanOrEqual(2);
 });
 
-test("[A5] Tab order is brand, Study, Course Map, Notebook, Settings, account", async ({ page }) => {
+const SWITCH = /^Switch to (?:dark|light) theme$/;
+
+test("[A5] Tab order is brand, Study, Course Map, Notebook, theme switch, Settings, account", async ({ page }) => {
   await course(page);
   const names: string[] = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     await page.keyboard.press("Tab");
     names.push(
       await page.evaluate(() => {
@@ -80,8 +83,9 @@ test("[A5] Tab order is brand, Study, Course Map, Notebook, Settings, account", 
   }
   expect(names[0]).toBe("Value It");
   expect(names.slice(1, 4)).toEqual(["Study", "Course Map", "Notebook"]);
-  expect(names[4]).toBe("Settings");
-  expect(names[5]).toBe("Account menu");
+  expect(names[4]).toMatch(SWITCH);
+  expect(names[5]).toBe("Settings");
+  expect(names[6]).toBe("Account menu");
 });
 
 test("[A5] clicking the gear opens /settings with h1 Settings", async ({ page }) => {
@@ -122,14 +126,14 @@ test("[ADR 0018] the header is flat: a 56px row over a 1px hairline, 32px ghost 
       return { name: (c.getAttribute("aria-label") || c.textContent || "").trim(), icon: c.dataset.affordance === "icon", shadow: s.boxShadow, radius: s.borderTopLeftRadius, height: r.height, width: r.width, transform: s.transform };
     }),
   );
-  expect(controls.map((c) => c.name)).toEqual(["Value It", "Study", "Course Map", "Notebook", "Settings", "Account menu"]);
+  expect(controls.map((c) => c.name.replace(SWITCH, "theme switch"))).toEqual(["Value It", "Study", "Course Map", "Notebook", "theme switch", "Settings", "Account menu"]);
   for (const c of controls) {
     expect({ name: c.name, shadow: c.shadow, radius: c.radius, height: c.height, transform: c.transform }).toEqual({ name: c.name, shadow: "none", radius: "8px", height: 32, transform: "none" });
     if (c.icon) expect(c.width, c.name).toBe(32);
   }
 
   // The last icon's tooltip is the browser's own (title), so focusing and pointing at it never widens the page.
-  for (let i = 0; i < 6; i++) await page.keyboard.press("Tab");
+  for (let i = 0; i < 7; i++) await page.keyboard.press("Tab");
   await expect(page.getByTestId("account-menu-button")).toBeFocused();
   await page.getByTestId("account-menu-button").hover();
   const scroll = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
