@@ -114,7 +114,20 @@ describe("the beginner rules in the course check (spec #68)", () => {
     }
   });
 
-  it("reads Spine Topics only", () => {
-    expect(beginnerCheckErrors([{ ...breaksAll(), stage: "foundation" } as Topic], { lists: none, startedWith: none })).toEqual([]);
+  it("reads Spine Topics only, apart from the daily-life line on a converted Elective", () => {
+    expect(beginnerCheckErrors([{ ...breaksAll(), stage: "foundation", skills: [] } as Topic], { lists: none, startedWith: none })).toEqual([]);
+    expect(beginnerCheckErrors([{ ...breaksAll(), stage: "foundation", dailyLife: "A sale sign says 20% off." } as Topic], { lists: none, startedWith: none })).toEqual([]);
+  });
+
+  it("fails a converted Elective (one with Skills) that has no daily-life line (spec story 57, review 2 G32)", () => {
+    expect(beginnerCheckErrors([{ ...breaksAll(), id: "num-percent-bps", stage: "foundation" } as Topic], { lists: none, startedWith: none })).toEqual([
+      'Elective "num-percent-bps" has Skills (a converted Topic) but no daily-life line; give it a dailyLife line from a beginner\'s day (spec #68 story 57)',
+    ]);
+  });
+
+  it("gives every converted Elective on the real Course Map a daily-life line", () => {
+    const electives = loadCourseMap().topics.filter((t) => t.stage !== "spine" && t.skills.length > 0);
+    expect(electives.map((t) => t.id).sort()).toEqual(["num-compounding", "num-percent-bps"]);
+    for (const t of electives) expect(t.dailyLife, t.id).toBeTruthy();
   });
 });

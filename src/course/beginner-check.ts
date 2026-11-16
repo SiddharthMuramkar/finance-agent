@@ -9,6 +9,9 @@ import type { Topic } from "./map.ts";
 // - a Topic on a list it did not start on (BEGINNER_STARTED_WITH) fails, even one that breaks the rule;
 // - an id on a list that is not a Spine Topic fails.
 // One id per line, sorted, so the tickets that rewrite Topics and delete their ids merge cleanly. Never add an id.
+// The daily-life rule also runs on every converted Elective (a Topic with Skills, its teaching written ahead): spec story
+// 57 asks it of each Topic, and those Electives carry Principle steps written for beginners. It has no list: every
+// converted Elective has its line today. An Elective not yet converted is taught live and is left out (review 2, G32).
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
 /** The most new words (Lingo terms) a Spine Topic brings. */
@@ -168,7 +171,7 @@ function ruleProblems(t: Topic): Record<Rule, string[]> {
   return { newWords, ownStory, yourStory, dailyLife };
 }
 
-/** Every problem the beginner rules find in these Topics' Spine Topics, and in the lists of known failures. */
+/** Every problem the beginner rules find in these Topics' Spine Topics and converted Electives, and in the lists of known failures. */
 export function beginnerCheckErrors(topics: readonly Topic[], opts?: { lists?: BeginnerLists; startedWith?: BeginnerLists }): string[] {
   const lists = opts?.lists ?? BEGINNER_LISTS;
   const startedWith = opts?.startedWith ?? BEGINNER_STARTED_WITH;
@@ -183,6 +186,10 @@ export function beginnerCheckErrors(topics: readonly Topic[], opts?: { lists?: B
         errors.push(`List: Topic "${id}" was added to ${LIST_NAME[rule]}, which only shrinks: make the Topic follow the rule instead (${FILE})`);
       }
     }
+  }
+  const convertedElectives = topics.filter((t) => t.stage !== "spine" && t.skills.length > 0);
+  for (const t of convertedElectives) {
+    if (!t.dailyLife) errors.push(`Elective "${t.id}" has Skills (a converted Topic) but no daily-life line; give it a dailyLife line from a beginner's day (spec #68 story 57)`);
   }
   for (const t of spine) {
     const problems = ruleProblems(t);
