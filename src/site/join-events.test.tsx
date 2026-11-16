@@ -15,9 +15,9 @@ describe("Join pressed", () => {
   it("is sent with the place of the Join button pressed, and for nothing else", async () => {
     const host = document.createElement("div");
     host.innerHTML = `
-      <header data-site-section="nav"><a href="#" data-join=""><span>Join early access</span></a></header>
-      <section data-site-section="hero"><a href="#" data-join=""><span class="bars"></span><span>Join early access</span></a><a href="#" id="other">About</a></section>
-      <section data-site-section="closing"><a href="#" data-join="">Join early access</a></section>`;
+      <header data-site-section="nav"><a href="#" data-join=""><span>Join the waitlist</span></a></header>
+      <section data-site-section="hero"><a href="#" data-join=""><span class="bars"></span><span>Join the waitlist</span></a><a href="#" id="other">About</a></section>
+      <section data-site-section="closing"><a href="#" data-join="">Join the waitlist</a></section>`;
     document.body.append(host);
     const root = createRoot(document.createElement("div"));
     await act(async () => root.render(<SiteJoinEvents />));

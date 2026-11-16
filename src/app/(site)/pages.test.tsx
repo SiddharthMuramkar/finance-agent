@@ -92,15 +92,15 @@ describe("Home", () => {
     expect(spoken).toBe("What is it really worth?");
   });
 
-  it("offers a visitor Try the jackpot first, then Join early access, with the early-access note", async () => {
+  it("offers a visitor Try the jackpot first, then Join the waitlist, with the waitlist note", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const hero = /data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0];
     const links = [...hero.matchAll(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => [words(m[2]).trim(), m[1]]);
     expect(links.slice(0, 2)).toEqual([
       ["Try the jackpot", "/examples/kerala-bumper-2024"],
-      ["Join early access", "/join"],
+      ["Join the waitlist", "/join"],
     ]);
-    expect(words(html)).toContain("Free during early access. We let people in by hand and email you when you’re in.");
+    expect(words(html)).toContain("Free. We let people in by hand and email you when you’re in.");
   });
 
   it("keeps the hero's jackpot figure the jackpot Example's own", async () => {
@@ -112,7 +112,7 @@ describe("Home", () => {
 
   // QA rows 22 and 23 as #33 has them: Clerk owns sign-up, so the closing block has no email form of its own, and every
   // Join opens /join, Clerk's Waitlist.
-  it("sends a visitor's Join early access to /join, and the closing block has no email form", async () => {
+  it("sends a visitor's Join the waitlist to /join, and the closing block has no email form", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const joins = [...html.matchAll(/<a [^>]*data-join=""[^>]*>/g)].map((m) => /href="([^"]+)"/.exec(m[0])?.[1]);
     expect(joins).toEqual(["/join", "/join"]); // the hero and the closing block
@@ -130,7 +130,7 @@ describe("Home", () => {
     expect(words(html)).toContain("Continue Why is money later worth less?");
     expect(html).toContain('action="/api/open"');
     expect(html).toContain('href="/course"');
-    expect(words(html)).not.toContain("Join early access");
+    expect(words(html)).not.toContain("Join the waitlist");
   });
 });
 

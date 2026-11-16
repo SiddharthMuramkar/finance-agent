@@ -6,7 +6,7 @@ import type { Viewer } from "@/site/viewer";
 import { Button } from "../primitives";
 import { Glyph } from "./parts";
 
-// The CTA by viewer state (spec 7.1): visitors Join early access (cta.visitor.href: /join, Clerk's Waitlist, #33),
+// The CTA by viewer state (spec 7.1): visitors Join the waitlist (cta.visitor.href: /join, Clerk's Waitlist, #33),
 // members Continue.
 
 type Size = "md" | "lg";
