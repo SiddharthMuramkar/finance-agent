@@ -126,7 +126,7 @@ export const home = {
   end: {
     eyebrow: "Where you end up",
     h2: "By the end, you value a company yourself.",
-    body: "Near the end of the core Topics you value a real company as of a past date, lever by lever, and save your story. This is the note it leaves in your Notebook.",
+    body: "Near the end of the core Topics you value a real company as of a past date, lever by lever, and save the Story you told. This is the note it leaves in your Notebook.",
     caption: "From the Notebook. Every figure worked out by the course’s tested valuation engine.",
   },
   faq: { eyebrow: "Questions", h2: "Before you ask.", link: "More questions", pick: [1, 2, 4, 5] },
