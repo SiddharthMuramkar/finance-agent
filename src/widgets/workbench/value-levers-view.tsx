@@ -428,7 +428,7 @@ function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof rowSpec
   );
 }
 
-/** "This story is worth $35 a share" ("The story" with Case chips, "Your story" in all open mode), its figure the one key number; "$0: lenders and option holders take everything" in coral. */
+/** "This story is worth $35 a share" ("The story" with Case chips), its figure the one key number; "$0: lenders and option holders take everything" in coral. */
 function Headline({ model }: { model: ValueLeversModel }) {
   const { before, key, after } = model.headline;
   if (model.nothingLeft) {
@@ -482,7 +482,7 @@ function ValueBar({ model, reached = false }: { model: ValueLeversModel; reached
           data-testid="value-levers-fill"
         />
       )}
-      {bar.span && <div className={`absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--ink)] ${GLIDE} transition-[left]`} style={{ left: `${bar.fill * 100}%` }} title={`Your story: ${model.readout?.text ?? ""}`} data-testid="value-levers-point-marker" />}
+      {bar.span && <div className={`absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--ink)] ${GLIDE} transition-[left]`} style={{ left: `${bar.fill * 100}%` }} title={`This story: ${model.readout?.text ?? ""}`} data-testid="value-levers-point-marker" />}
       {/* The verdict moment: when the Learner's story reaches the price, its mark grows and pulses once. */}
       <div
         className={`absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--sun)] ${GLIDE} transition-transform ${reached ? "scale-x-[3] scale-y-150 motion-safe:animate-[pulse_0.6s_ease-out_1]" : ""}`}

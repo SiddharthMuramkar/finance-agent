@@ -1,4 +1,5 @@
 import { formatInr, formatInrWords } from "@/finance/indian-format";
+import { CURRENCY_STYLE, type CurrencyCode } from "@/finance/money";
 
 // One formatter for every axis label and every value read, by unit, so a rupee axis never says K or M and a
 // tooltip never loses its unit.
@@ -7,7 +8,11 @@ export type PlotUnit = "inr" | "usd" | ShortScaleCurrency | "percent" | "plain";
 
 /** Currencies read in the short scale with tn, bn and m: yen and won have no minor unit, so their values carry no decimals. */
 type ShortScaleCurrency = "jpy" | "krw" | "eur";
-const SHORT_SCALE: Record<ShortScaleCurrency, { symbol: string; digits: number }> = { jpy: { symbol: "¥", digits: 0 }, krw: { symbol: "₩", digits: 0 }, eur: { symbol: "€", digits: 2 } };
+/** The currency's symbol and decimals, from the one table of currencies (src/finance/money.ts). */
+const shortScale = (kit: ShortScaleCurrency) => {
+  const style = CURRENCY_STYLE[kit.toUpperCase() as CurrencyCode];
+  return { symbol: style.symbol, digits: style.cents ? 2 : 0 };
+};
 
 
 /** Which of the kit's units a unit word means: "inr" or "rupees" or "₹", "usd" or "$", "jpy" or "yen" or "¥", "krw" or "won" or "₩", "eur" or "euros" or "€", "percent" or "%"; anything else is plain. */
@@ -44,7 +49,7 @@ export function formatAxis(v: number, unit?: string): string {
     case "eur": {
       const abs = Math.abs(v);
       const sign = v < 0 ? "-" : "";
-      const { symbol, digits } = SHORT_SCALE[kit];
+      const { symbol, digits } = shortScale(kit);
       if (abs >= 1e12) return `${sign}${symbol}${trim(abs / 1e12, 2)} tn`;
       if (abs >= 1e9) return `${sign}${symbol}${trim(abs / 1e9, 2)} bn`;
       if (abs >= 1e6) return `${sign}${symbol}${trim(abs / 1e6, 2)} m`;
@@ -68,7 +73,7 @@ export function formatValue(v: number, unit?: string): string {
     case "jpy":
     case "krw":
     case "eur":
-      return `${v < 0 ? "-" : ""}${SHORT_SCALE[kit].symbol}${grouped(Math.abs(v), SHORT_SCALE[kit].digits)}`;
+      return `${v < 0 ? "-" : ""}${shortScale(kit).symbol}${grouped(Math.abs(v), shortScale(kit).digits)}`;
     case "percent":
       return `${trim(v, 2)} %`;
     default:

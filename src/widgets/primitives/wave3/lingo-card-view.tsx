@@ -23,9 +23,10 @@ export const lingoCardProps = z.object({
   inStory: z.string().optional().describe("The word in the story: at most 20 words; adds the In the story button"),
 });
 
-type Props = z.infer<typeof lingoCardProps>;
+/** A Lingo card's words, the one shape for every card (the Widget, the Full sheet's rows). */
+export type LingoCardProps = z.infer<typeof lingoCardProps>;
 
-export function LingoCardView({ term, pro, means, example, emoji, inStory }: Props) {
+export function LingoCardView({ term, pro, means, example, emoji, inStory }: LingoCardProps) {
   const reduced = usePrefersReducedMotion();
   const [flipped, setFlipped] = useState(false);
   if (!term) return <p className="py-2 text-sm text-[var(--muted)]">The word is still arriving.</p>;

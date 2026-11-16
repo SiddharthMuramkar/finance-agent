@@ -1,12 +1,13 @@
 import type { DcfInputs } from "../../finance/dcf-engine.ts";
+import type { LingoCardProps } from "../primitives/wave3/lingo-card-view.tsx";
 
 // The Full sheet's words (spec #68, "Valuation, Full sheet"): each row's name, and the Lingo card the row opens inline
 // (glossary "Lingo card"; not a Companion Widget, so it costs no Tutor Turn). They sit in this module, apart from the
 // rows' figures, so `scripts/check-course.mjs` can lint them under plain Node: relative `.ts` imports only, no "@/".
 // "{money}" stands for the Case's currency sign ("$", "₹").
 
-/** The words of a Lingo card, as `LingoCard` takes them: pro at most 14 words, means and example at most 20. */
-export type LingoWords = { term: string; pro: string; means: string; example: string; emoji: string };
+/** The words of a Lingo card, as `LingoCard` takes them (its own shape, less the story side): pro at most 14 words, means and example at most 20. A type import, erased under plain Node. */
+export type LingoWords = Omit<LingoCardProps, "inStory">;
 
 /** One Full sheet row's words: its name, its name beside a year-by-year path of the same figure, and its Lingo card. */
 export type RowWords = { words: string; besidePath?: string; card: LingoWords };

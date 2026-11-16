@@ -3,11 +3,12 @@ import { SHARE_IMAGE_SIZE } from "@/app/site-metadata";
 import { BRAND } from "@/site/copy";
 import { SHARE_IMAGES } from "@/site/routes";
 import { shareCard, type ShareCard } from "@/site/share-card";
+import { lightTokens } from "@/app/theme-tokens";
 
 // The share cards (issue #71), at /share-image/<name>.png: Home's and one per Example, drawn at build time in today's
 // look (spec §3.1 Light tokens: paper, wash, ink, the one blue), so a shared link shows its own question and never the
-// old screenshot. Public: src/site/routes.ts lists each one. The colours are the spec's literals: an image cannot read
-// the stylesheet's tokens.
+// old screenshot. Public: src/site/routes.ts lists each one. An image cannot read the stylesheet's var() tokens, so the
+// colours are read from the Light token block of globals.css itself (theme-tokens.ts): a colour is still written once.
 
 export const dynamicParams = false;
 
@@ -15,18 +16,20 @@ export function generateStaticParams() {
   return SHARE_IMAGES.map((name) => ({ name: `${name}.png` }));
 }
 
-const INK = "#0b0d12";
-const INK_2 = "#30353f";
-const BLUE = "#1f3fae";
-const WASH = "#f5f7fb";
-const RULE = "#e2e5ea";
+const LIGHT = lightTokens();
+const INK = LIGHT.ink;
+const INK_2 = LIGHT["ink-2"];
+const BLUE = LIGHT.blue;
+const ON_BLUE = LIGHT["on-blue"];
+const WASH = LIGHT.wash;
+const RULE = LIGHT.rule;
 
 /** The site's mark (src/app/icon.svg): four rising bars on the blue. */
 function Mark() {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 6, width: 64, height: 64, padding: "12px 10px", borderRadius: 12, background: BLUE }}>
       {[10, 20, 30, 40].map((h) => (
-        <div key={h} style={{ width: 8, height: h, borderRadius: 2, background: "#ffffff" }} />
+        <div key={h} style={{ width: 8, height: h, borderRadius: 2, background: ON_BLUE }} />
       ))}
     </div>
   );

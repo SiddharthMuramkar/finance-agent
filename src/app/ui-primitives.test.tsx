@@ -149,9 +149,9 @@ describe("route skeletons", () => {
     expect(html).toMatch(/<div data-testid="topic-bar-skeleton" class="band /);
     const inside = html.slice(html.indexOf(open) + open.length);
     // Between the conversation's blocks (its composer, h-14, last) and the right column's (its first block, h-8):
-    // an empty aria-hidden div, the Split handle's place.
+    // an empty aria-hidden div, the Split handle's place. Its classes (a phone hides it, #82) are not the point.
     const middle = inside.slice(inside.indexOf("h-14"), inside.indexOf("h-8 w-1/3"));
-    expect(middle).toContain('</div></div><div aria-hidden="true"></div><div');
+    expect(middle).toMatch(/<\/div><\/div><div aria-hidden="true"(?: class="[^"]*")?><\/div><div/);
   });
 });
 

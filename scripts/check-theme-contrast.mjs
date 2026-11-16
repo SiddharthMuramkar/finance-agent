@@ -29,6 +29,17 @@ const SPEC = {
   wait: '#f97316', 'wait-ink': '#a84b00', 'wait-tint': '#fff1e3', 'wait-line': '#fbc592',
   overlay: 'rgba(255,255,255,.9)',
 };
+// Spec §3.1 Dark, frozen the same way: Dark's values are its own (re-stepped, never inverted), and they change only with
+// the spec, so a Dark value that drifts from the table fails even when its pairs still meet their minimums.
+const DARK_SPEC = {
+  paper: '#0e1117', wash: '#161a22', 'wash-2': '#1f2430', grid: '#1b2029',
+  ink: '#f2f4f8', 'ink-2': '#d3d7df', muted: '#9ba2ae', faint: '#7a818d', rule: '#272c37', line: '#3a404d',
+  blue: '#8aa4ff', 'blue-hover': '#9fb5ff', 'blue-pressed': '#b3c4ff', 'on-blue': '#0b0d12', 'blue-tint': '#1a2240', 'blue-tint-2': '#222b4e', 'blue-line': '#3a4b8c',
+  gain: '#0f7a56', 'gain-deep': '#4fd1a1', 'gain-ink': '#4cc996', 'gain-tint': '#10261e', 'gain-line': '#1e5a44',
+  loss: '#ff7a8f', 'loss-ink': '#ff9aa8', 'loss-tint': '#2c1418', 'loss-line': '#6e2a35',
+  wait: '#ffc247', 'wait-ink': '#ffcc66', 'wait-tint': '#2b1c0e', 'wait-line': '#6b5221',
+  overlay: 'rgba(14,17,23,.9)',
+};
 // The only other literal colours: the app's strong line for control edges, what sits on a Band (spec F1: white, white
 // at 72%, white at 18% and the white button's ink label; the step bar's step ahead in white at 35% and its hover wash in
 // white at 15%), and the tint of every shadow (not colour-checked).
@@ -227,6 +238,7 @@ function measure(name, own, base) {
     for (const k of missing) check(false, `${p}--${k} has no dark value in ${DARK_SELECTOR} (ADR 0019: each colour is re-stepped for Dark)`);
     if (missing.length) return;
     for (const k of [...Object.keys(SPEC), ...Object.keys(CHROME)]) check(!!parseColor(raw[k]), `${p}--${k} is a colour (${raw[k]})`);
+    for (const [k, v] of Object.entries(DARK_SPEC)) check(same(parseColor(raw[k]), parseColor(v)), `${p}--${k} is ${v} (spec §3.1 Dark)`);
   }
 
   head('every other colour points at a spec token');
