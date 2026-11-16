@@ -10,12 +10,17 @@ describe("Site metadata", () => {
     expect(String(siteMetadata.description)).not.toMatch(/private/i);
   });
 
-  it("gives shared links a title, description and the workspace screenshot on the public domain", () => {
+  // Spec 7.1, issue #71: every page with its own title, the joining pages and the 404 too, reads "Page · Value It".
+  it("titles every page 'Page · Value It', and a page with none plain 'Value It'", () => {
+    expect(siteMetadata.title).toEqual({ template: "%s · Value It", default: "Value It" });
+  });
+
+  it("gives shared links a title, description and Home's share card on the public domain", () => {
     const og = siteMetadata.openGraph!;
     expect(String(og.title)).toBe("Value It: Learn what things are worth.");
     expect(og.description).toBe(siteMetadata.description);
     const image = (Array.isArray(og.images) ? og.images[0] : og.images) as { url: string };
-    expect(new URL(image.url, siteMetadata.metadataBase!).href).toBe("https://www.value-it.xyz/landing-assets/workspace-light.png");
+    expect(new URL(image.url, siteMetadata.metadataBase!).href).toBe("https://www.value-it.xyz/share-image/home.png");
   });
 });
 
@@ -34,17 +39,25 @@ describe("Page metadata", () => {
     expect(absolute(about.alternates!.canonical as string)).toBe("https://www.value-it.xyz/about");
   });
 
-  it("gives shared links the page's own title and description with the workspace screenshot", () => {
+  it("gives shared links the page's own title and description with Home's share card", () => {
     const og = about.openGraph!;
     expect(og.title).toBe("About · Value It");
     expect(og.description).toBe("Who makes Value It.");
     expect(absolute(og.url!)).toBe("https://www.value-it.xyz/about");
-    const image = (Array.isArray(og.images) ? og.images[0] : og.images) as { url: string; alt: string };
-    expect(absolute(image.url)).toBe("https://www.value-it.xyz/landing-assets/workspace-light.png");
-    expect(image.alt).toBe("The Study Workspace: a Tutor conversation on the left and a worked widget on the right.");
+    const image = (Array.isArray(og.images) ? og.images[0] : og.images) as { url: string; alt: string; width: number; height: number };
+    expect(absolute(image.url)).toBe("https://www.value-it.xyz/share-image/home.png");
+    expect(image).toMatchObject({ width: 1200, height: 630, alt: "Value It: Learn what things are worth." });
     const twitter = about.twitter as { card: string; title: string; images: unknown[] };
     expect(twitter).toMatchObject({ card: "summary_large_image", title: "About · Value It", description: "Who makes Value It." });
-    expect(twitter.images).toHaveLength(1);
+    expect(twitter.images).toEqual(["/share-image/home.png"]);
+  });
+
+  // Issue #71: an Example's shared link shows its own card, so it shows its own question.
+  it("gives an Example its own share card", () => {
+    const amazon = pageMetadata({ title: "Is $84 a fair price for Amazon?", path: "/examples/amazon-2000", image: "amazon-2000" });
+    const image = (amazon.openGraph!.images as { url: string; alt: string }[])[0];
+    expect(image).toMatchObject({ url: "/share-image/amazon-2000.png", alt: "Is $84 a fair price for Amazon?" });
+    expect((amazon.twitter as { images: unknown[] }).images).toEqual(["/share-image/amazon-2000.png"]);
   });
 
   it("without a title (Home), keeps the site's title, description and share title", () => {

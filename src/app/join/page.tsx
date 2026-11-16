@@ -1,6 +1,8 @@
 import { Waitlist } from "@clerk/nextjs";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SIGN_IN_PATH } from "@/auth/destination";
+import { pageMetadata } from "@/app/site-metadata";
+import { JOIN_PATH, SIGN_IN_PATH } from "@/auth/destination";
 import { clerkOn } from "@/auth/gates";
 import { joining } from "@/site/copy";
 import { LegalLinks } from "../(site)/site-chrome";
@@ -15,6 +17,8 @@ import { AuthPage, authNote } from "../sign-in/auth-page";
  * (testBedCard); anywhere else without Clerk nobody can join, so the page sends the person to /sign-in. Before the card,
  * Privacy, Terms and the contact address (issue #77), so a Visitor knows what happens to their email before giving it.
  */
+export const metadata: Metadata = pageMetadata({ title: joining.join.title, path: JOIN_PATH });
+
 export default async function JoinPage() {
   const card = clerkOn(process.env) ? <Waitlist /> : await testBedCard("waitlist");
   if (!card) redirect(SIGN_IN_PATH);
