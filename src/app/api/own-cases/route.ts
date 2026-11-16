@@ -9,12 +9,15 @@ export const runtime = "nodejs";
 // Numbers arrive as the Learner typed them; the engine's own checks give the readable reason a figure cannot be valued,
 // so here a field only has to be there and be a number (NaN for an empty box).
 const num = z.number().or(z.null().transform(() => Number.NaN));
+/** A company's name as a report's cover prints it, and a link to the report: long enough for any, never unbounded. */
+const MAX_NAME = 200;
+const MAX_URL = 2000;
 const body = z.object({
   inputs: z.object({
-    company: z.string(),
-    market: z.string(),
-    reportDate: z.string(),
-    industry: z.string(),
+    company: z.string().max(MAX_NAME),
+    market: z.string().max(8),
+    reportDate: z.string().max(10),
+    industry: z.string().max(40),
     sales: num,
     operatingProfit: num,
     taxPercent: num,
@@ -22,7 +25,8 @@ const body = z.object({
     cash: num,
     shares: num,
     price: num,
-    reportUrl: z.string().optional(),
+    // A link to the report: http(s) only, so a saved source is never a script or a file path.
+    reportUrl: z.url({ protocol: /^https?$/ }).max(MAX_URL).optional(),
   }),
   estimate: z.object({
     growthPercent: z.number(),
