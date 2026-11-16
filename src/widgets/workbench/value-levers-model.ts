@@ -64,6 +64,9 @@ const SYMBOL = (currency: ValuationBlock["currency"]) => CURRENCY_STYLE[currency
 const CURRENCY_WORD = (currency: ValuationBlock["currency"]) => CURRENCY_STYLE[currency].word;
 const LOCALE = (currency: ValuationBlock["currency"]) => CURRENCY_STYLE[currency].locale;
 
+/** The currency's sign: "$", "₹". */
+export const currencySign = (block: Money): string => SYMBOL(block.currency);
+
 /** Up to `digits` decimals, none when the number is whole, grouped for the currency's locale. */
 const grouped = (n: number, block: Money, digits = 1) => n.toLocaleString(LOCALE(block.currency), { maximumFractionDigits: digits });
 

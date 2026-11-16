@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AMAZON_2000 } from "./fixtures/amazon-2000.valuation";
-import { REPRODUCE_TOLERANCE, valueCase } from "./valuation-case";
+import { REPRODUCE_TOLERANCE, inputsFor, toEngineInputs, valueCase } from "./valuation-case";
 import { valuationCase, valuationCaseIds } from "./valuation-cases";
 import { VALUATION_CASES } from "./valuation-cases.generated";
 
@@ -85,5 +85,12 @@ describe("every Case's own valuation block against what was published", () => {
     expect(webvan.ok && webvan.valuePerShare.toFixed(2)).toBe("9.02");
     const rupees = valueCase(valuationCase("coffee-day-rupee-valuation-2015")!);
     expect(rupees.ok && rupees.valuePerShare.toFixed(2)).toBe("89.32");
+  });
+});
+
+describe("every Case's inputs, seen before they are valued", () => {
+  it.each(valuationCaseIds())("%s: the inputs for no Lever moved are the Case's own engine inputs", (id) => {
+    const block = valuationCase(id)!;
+    expect(inputsFor(block, {})).toEqual({ ok: true, inputs: toEngineInputs(block) });
   });
 });

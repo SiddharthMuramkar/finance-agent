@@ -166,3 +166,64 @@ test.describe("[B5] and does not rest on it from 20 pixels away (the stop is 12)
     await restsShortOfFour(page, slider);
   });
 });
+
+test("[#102] a Learner opens the Full sheet from Go deeper and reads every input in plain words", async ({ page }, info) => {
+  test.skip(info.project.name !== ONE, "one width is enough for the behaviour");
+  await openFixture(page, "value-levers");
+  const sheet = page.getByTestId("full-sheet");
+  await expect(sheet).toBeHidden();
+  await page.getByTestId("value-levers-go-deeper").getByText("Go deeper").click();
+  await expect(sheet).toBeVisible();
+  await expect(sheet.locator("[data-row]")).toHaveCount(15);
+  await expect(sheet.locator('[data-row="taxRate"]')).toContainText("Tax rate");
+  await expect(sheet.locator('[data-row="taxRate"]')).toContainText("35%");
+  await expect(sheet.locator('[data-row="growth"]')).toContainText("150% in year 1, down to 6% in year 10");
+  await expect(sheet.locator('[data-row="shares"]')).toContainText("340.79 million");
+  // Nothing on the Full sheet can be typed into (#104 gives some rows a slider, never a typed number).
+  await expect(sheet.locator('input:not([type="range"]), select, textarea, [contenteditable]')).toHaveCount(0);
+  // It follows the Levers: a bigger revenue in year 10 reads as faster growth.
+  await setSlider(page, "Revenue in year 10", "60");
+  await expect(sheet.locator('[data-row="growth"]')).not.toContainText("150% in year 1,");
+});
+
+test("[#104] a Learner changes a Full sheet row by slider, never by typing, and the value follows the engine", async ({ page }, info) => {
+  test.skip(info.project.name !== ONE, "one width is enough for the behaviour");
+  await openFixture(page, "value-levers");
+  await page.getByTestId("value-levers-go-deeper").getByText("Go deeper").click();
+  const sheet = page.getByTestId("full-sheet");
+  await expect(sheet).toBeVisible();
+  // The rows the Levers do not set each have a slider; the Levers' own rows and the Case's facts do not.
+  await expect(sheet.getByRole("slider")).toHaveCount(7);
+  await expect(sheet.locator('[data-row="growth"]').getByRole("slider")).toHaveCount(0);
+  await expect(sheet.locator('[data-row="shares"]').getByRole("slider")).toHaveCount(0);
+  // No row can be typed into: every input on the sheet is a slider.
+  await expect(sheet.locator('input:not([type="range"]), select, textarea, [contenteditable]')).toHaveCount(0);
+  await expect(headline(page)).toHaveText("Your story is worth $35 a share");
+  // $494m more cash, over 340.79 million shares, is about $1.45 a share more (the engine's figure: full-sheet-change.test.ts).
+  await setSlider(page, "Change: Cash the company holds", "520");
+  await expect(sheet.locator('[data-row="cash"]')).toContainText("$520m");
+  await expect(headline(page)).toHaveText("Your story is worth $36 a share");
+  // The tap buttons step a row too.
+  await sheet.getByRole("button", { name: "Decrease Change: Tax rate by one step" }).click();
+  await expect(sheet.locator('[data-row="taxRate"]')).toContainText("34%");
+});
+
+test("[#103] moving a Lever marks the Full sheet rows it moved, and each row opens its Lingo card inline", async ({ page }, info) => {
+  test.skip(info.project.name !== ONE, "one width is enough for the behaviour");
+  await openFixture(page, "value-levers");
+  await page.getByTestId("value-levers-go-deeper").getByText("Go deeper").click();
+  const sheet = page.getByTestId("full-sheet");
+  // At the Case's own story nothing has moved.
+  await expect(sheet.locator("[data-moved]")).toHaveCount(0);
+  await setSlider(page, "Revenue in year 10", "60");
+  await expect(sheet.locator("[data-moved]")).toHaveCount(1);
+  await expect(sheet.locator('[data-row="growth"]')).toHaveAttribute("data-moved", "true");
+  await expect(sheet.locator('[data-row="growth"]').getByTestId("full-sheet-moved")).toHaveText("Moved");
+  // Every row has a Lingo card; pressing a row opens it in the sheet, with no reply from the Tutor.
+  await expect(sheet.locator("[data-row] [data-testid=lingo-card]")).toHaveCount(15);
+  const cash = sheet.locator('[data-row="cash"]');
+  await expect(cash.getByTestId("lingo-card")).toBeHidden();
+  await cash.locator("summary").click();
+  await expect(cash.getByTestId("lingo-card")).toBeVisible();
+  await expect(cash.getByTestId("lingo-card")).toContainText("Money the company has in the bank today");
+});
