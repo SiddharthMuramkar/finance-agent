@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { FORECAST_YEARS, valueStory, type DcfInputs, type DcfResult } from "./dcf-engine.ts";
 import { growthScaledTo, marginPath, matureRateScaled, riskScaled } from "./dcf-paths.ts";
+import { CURRENCIES } from "./money.ts";
 
 // A Case's valuation inputs as a Topic file holds them (spec 2026-11-12, B1 and C2): a `valuation:` block on the
 // Case, in git beside the story and its sources, not in the database. Rates are percents (5 means 5%), the house
@@ -33,7 +34,7 @@ const yearlyMargin = z.object({ marginPercent: yearly("marginPercent"), afterPer
  * A course Case holds them in its `valuation:` block beside its provenance; an Own Case holds the same inputs.
  */
 const inputFields = {
-  currency: z.enum(["USD", "INR"]),
+  currency: z.enum(CURRENCIES),
   unit: z.enum(["millions", "crores", "billions"]),
   /** Revenue in the base year, the year before year 1. */
   baseRevenue: z.number().positive(),

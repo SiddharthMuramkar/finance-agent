@@ -1,4 +1,5 @@
 import { cashYear } from "@/finance/cash-year";
+import { CURRENCY_STYLE } from "@/finance/money";
 import { toEngineInputs, type ValuationBlock } from "@/finance/valuation-case";
 import {
   benchShape,
@@ -57,7 +58,7 @@ export function cashWaterfallFromCase(block: ValuationBlock): CashWaterfallData 
 export function cashWaterfallLevers(data: CashWaterfallData): BenchLever<WaterfallLeverId>[] {
   const { growth, margin, salesToCapital } = data.opening;
   const growthMax = niceUp(Math.max(growth * 2, 50));
-  const [symbol, one, many] = data.money.currency === "INR" ? ["₹", "rupee", "rupees"] : ["$", "dollar", "dollars"];
+  const { symbol, word: [one, many] } = CURRENCY_STYLE[data.money.currency];
   return [
     percentLever({ id: "growth", label: "Revenue growth next year", min: Math.min(0, floorTo(growth, 10)), max: growthMax, step: oneFigure(growthMax / 60), opening: growth, chips: [0], caption: `This year: ${moneyText(data.lastRevenue, data.money)}` }),
     percentLever({ id: "margin", label: "Operating margin", min: floorTo(Math.min(margin - 15, -20), 5), max: ceilTo(Math.max(margin + 25, 25), 5), step: 0.5, opening: margin }),
