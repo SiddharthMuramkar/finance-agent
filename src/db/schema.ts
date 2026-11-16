@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, customType, date, doublePrecision, index, integer, jsonb, numeric, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, vector } from "drizzle-orm/pg-core";
+import { boolean, customType, date, doublePrecision, index, integer, jsonb, numeric, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, vector } from "drizzle-orm/pg-core";
 
 /** Settings stored in SQL, such as the Tutor's model and effort. */
 export const settings = pgTable("settings", {
@@ -10,96 +10,14 @@ export const settings = pgTable("settings", {
 /** The owner's Learner, made by the expand migration, which gave it every row from before Learners. */
 export const OWNER_LEARNER_ID = 1;
 
-// Better Auth's four core tables (Google sign-in, ADR 0014), as `auth generate` makes them for Drizzle
-// on Postgres: text ids, kept apart from `learners`. Better Auth reads and writes them; our code only
-// reads `user` through `learners.auth_user_id`.
-
-/** One Google account that has signed in (Better Auth's `user`). Made only when the invite gate lets it through. */
-export const user = pgTable("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").default(false).notNull(),
-  image: text("image"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
-
-/** One signed-in browser (Better Auth's `session`); sign-out deletes the row. */
-export const session = pgTable(
-  "session",
-  {
-    id: text("id").primaryKey(),
-    expiresAt: timestamp("expires_at").notNull(),
-    token: text("token").notNull().unique(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .$onUpdate(() => new Date())
-      .notNull(),
-    ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-  },
-  (t) => [index("session_userId_idx").on(t.userId)],
-);
-
-/** The provider side of a `user` (for us, always Google). */
-export const account = pgTable(
-  "account",
-  {
-    id: text("id").primaryKey(),
-    accountId: text("account_id").notNull(),
-    providerId: text("provider_id").notNull(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    accessToken: text("access_token"),
-    refreshToken: text("refresh_token"),
-    idToken: text("id_token"),
-    accessTokenExpiresAt: timestamp("access_token_expires_at"),
-    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-    scope: text("scope"),
-    password: text("password"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  (t) => [index("account_userId_idx").on(t.userId)],
-);
-
-/** Short-lived values Better Auth checks once (the OAuth state of a sign-in in progress). */
-export const verification = pgTable(
-  "verification",
-  {
-    id: text("id").primaryKey(),
-    identifier: text("identifier").notNull(),
-    value: text("value").notNull(),
-    expiresAt: timestamp("expires_at").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  (t) => [index("verification_identifier_idx").on(t.identifier)],
-);
-
 /**
  * One Learner: a person with their own Learner Profile, progress, Notes, Sessions and Widget state.
  * A name (from the passcode list) signs in as its one active Learner; Start over archives that
  * Learner and makes a fresh one under the same name, so at most one per name is not archived.
  * A Learner made through a Clerk sign-in carries its Clerk user in `clerk_user_id`.
  *
- * The database still has `auth_user_id` (the pre-Clerk Google user, with its foreign key to `user` and its unique
- * index), but this schema no longer names it (issue #33, PR B): Drizzle names every column it knows in each select and
- * `returning()`, so code that knew it would fail the moment PR C's migration drops it. All of them are null in
- * production. Until PR C, `drizzle-kit generate` would write that drop: do not commit it outside PR C.
+ * The contract step of issue #33 (migration 0040_clerk_contract) dropped `auth_user_id` (the pre-Clerk Google user)
+ * with the Better Auth tables, the invite list and the old model comparison tables.
  */
 export const learners = pgTable(
   "learners",
@@ -123,60 +41,6 @@ export const learners = pgTable(
       .on(t.clerkUserId)
       .where(sql`${t.archivedAt} is null and ${t.clerkUserId} is not null`),
   ],
-);
-
-/**
- * The invite list (ADR 0014): the emails that may become a Learner through Google while the Sign-up
- * switch (`signup_open`) is off. `email` is stored lowercase and trimmed. `learner_name` links an
- * existing Learner by name (the owner's email names `owner`), because ids differ per database.
- */
-export const invites = pgTable("invites", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  learnerName: text("learner_name"),
-  invitedAt: timestamp("invited_at", { withTimezone: true }).notNull().defaultNow(),
-  note: text("note"),
-});
-
-/**
- * The people the owner denied on /admin (ADR 0014), one row per Better Auth `user`. Checked first on
- * every request (by src/auth/access.ts, deleted with Better Auth in issue #33; PR C drops this table), so one row locks someone out even with an invite, the open
- * Sign-up switch or a linked Learner. Keyed on the user, not the email, so Google and the email link
- * (one `user` per address) are both covered. Approving deletes the row; the Learner was never touched,
- * so their progress comes back. A deleted `user` takes its row with it and comes back as Waiting.
- */
-export const accessDenials = pgTable("access_denials", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  deniedAt: timestamp("denied_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-/**
- * Better Auth's rate-limit counters (`rateLimit` model, `rateLimit.storage: "database"`), as `auth
- * generate` makes them: one row per caller address and path. In the database rather than memory, so
- * the limit holds across every Vercel instance (ADR 0014). The export must be named `rateLimit`.
- */
-export const rateLimit = pgTable("rate_limit", {
-  id: text("id").primaryKey(),
-  key: text("key").notNull().unique(),
-  count: integer("count").notNull(),
-  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
-});
-
-/**
- * One sign-in email asked for (by src/auth/email-throttle.ts, deleted with Better Auth in issue #33; PR C drops this table): an HMAC of the address under
- * BETTER_AUTH_SECRET, never the address, and when. Counted per address per hour and across all
- * addresses per day; rows older than a day are deleted.
- */
-export const emailLinkSends = pgTable(
-  "email_link_sends",
-  {
-    id: serial("id").primaryKey(),
-    emailHash: text("email_hash").notNull(),
-    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [index("email_link_sends_hash_sent").on(t.emailHash, t.sentAt), index("email_link_sends_sent").on(t.sentAt)],
 );
 
 /**
@@ -693,55 +557,6 @@ export const libraryDocuments = pgTable(
     recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.sourceId, t.ref] })],
-);
-
-/**
- * One run of the old model comparison script (src/comparison, deleted in #19): which models answered, who graded, the
- * written report and the recommendation. The app never reads it. The table goes in a later migration (#33 PR C).
- */
-export const modelComparisonRuns = pgTable("model_comparison_runs", {
-  id: serial("id").primaryKey(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  models: jsonb("models").notNull().$type<string[]>(),
-  graderModel: text("grader_model").notNull(),
-  /** Hash of the Tutor instructions and tools the models were given. */
-  fingerprint: text("fingerprint").notNull(),
-  report: text("report").notNull(),
-  recommendation: text("recommendation").notNull(),
-  /** Everything the run spent, Tutor turns and grading. */
-  totalCostUsd: numeric("total_cost_usd", { precision: 12, scale: 6, mode: "number" }).notNull(),
-});
-
-/** One model's answer to one question in a comparison run, with its tokens, cost and the grader's three verdicts. */
-export const modelComparisonAnswers = pgTable(
-  "model_comparison_answers",
-  {
-    id: serial("id").primaryKey(),
-    runId: integer("run_id")
-      .notNull()
-      .references(() => modelComparisonRuns.id),
-    questionId: text("question_id").notNull(),
-    /** "own" for our questions, "financebench" for the FinanceBench open sample (testing only). */
-    source: text("source").notNull(),
-    model: text("model").notNull(),
-    turns: jsonb("turns").notNull().$type<string[]>(),
-    answer: text("answer").notNull(),
-    inputTokens: integer("input_tokens").notNull(),
-    outputTokens: integer("output_tokens").notNull(),
-    cacheReadTokens: integer("cache_read_tokens").notNull(),
-    cacheWriteTokens: integer("cache_write_tokens").notNull(),
-    /** Tutor turns taken to answer (more than one for a two-step question). */
-    turnCount: integer("turn_count").notNull(),
-    costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }).notNull(),
-    durationMs: integer("duration_ms").notNull(),
-    /** pass, fail, na (does not apply) or ungraded (grader reply unreadable). */
-    correctness: text("correctness").notNull(),
-    giveAway: text("give_away").notNull(),
-    pastOnly: text("past_only").notNull(),
-    reasons: text("reasons").notNull(),
-    graderCostUsd: numeric("grader_cost_usd", { precision: 12, scale: 6, mode: "number" }).notNull(),
-  },
-  (t) => [uniqueIndex("model_comparison_answer_unique").on(t.runId, t.questionId, t.model)],
 );
 
 /**
