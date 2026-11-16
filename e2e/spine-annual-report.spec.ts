@@ -101,6 +101,8 @@ for (const play of PLAYS) {
     const concept = await next(page, play.turns[1]);
     turns.push(await seen(page, out, play, 2, `[tapped] ${concept}`, play.turns[1]));
     const explore = await next(page, play.turns[2]);
+    // The Value bridge is code-drawn after the reply lands; wait for it before the critics' screenshot.
+    await expect(page.getByTestId("widget-card").first()).toContainText("Business value", { timeout: TURN_MS });
     turns.push(await seen(page, out, play, 3, `[tapped] ${explore}`, play.turns[2]));
 
     writeFileSync(join(out, `transcript-${play.topic}.md`), markdown(play, turns));
