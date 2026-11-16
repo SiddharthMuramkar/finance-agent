@@ -91,3 +91,9 @@ topics:
     rounds: 2
     lastRound: "3c5b952"
     open: 0
+  spine-annual-report:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 1
+    lastRound: "73bb6fd"
+    open: 0
+    note: New last Spine Topic (#93). The entry lands with the Topic file, as the course check needs; the round itself is the orchestrator's critics round after the build, which sets lastRound to the commit that fixed its confirmed findings.
