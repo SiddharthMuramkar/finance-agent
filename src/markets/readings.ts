@@ -2,6 +2,9 @@ import { z } from "zod";
 import { impliedPremium, impliedPremiumBlock } from "../finance/implied-erp.ts";
 import { EUROPE_READINGS } from "./readings-europe.ts";
 import { JAPAN_KOREA_READINGS } from "./readings-japan-korea.ts";
+import { damodaranSheets, yardsticksFor, type YardstickRow } from "./yardsticks.ts";
+
+export { readingId } from "./yardsticks.ts";
 
 // Market readings (spec #68, ticket #105; GLOSSARY "Market reading"): a market-wide number, such as the premium investors
 // ask over safe bonds or an industry's usual margin, shown with the date it was measured. Each is stored like Case Data
@@ -112,108 +115,46 @@ const CHECKED = "2026-11-16";
 /** The India sheets' "Date updated" cell (Excel day 46027). */
 const INDIA_UPDATE = "2026-01-05";
 
-type Sheet = { source: string; url: string; what: string; column: string; unit: "percent" | "times" };
-type Sheets = Record<"operating_margin" | "sales_to_capital" | "cost_of_capital", Sheet>;
-
-const INDIA_SHEETS: Sheets = {
-  operating_margin: {
-    source: "Damodaran Online, Operating and Net Margins by Industry (India), January 2026 update",
-    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls",
-    what: "Operating margin before tax",
-    column: "Pre-tax Unadjusted Operating Margin",
-    unit: "percent",
-  },
-  sales_to_capital: {
-    source: "Damodaran Online, Capital Expenditures by Industry (India), January 2026 update",
-    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexIndia.xls",
-    what: "Sales for each rupee invested",
-    column: "Sales/ Invested Capital (LTM)",
-    unit: "times",
-  },
-  cost_of_capital: {
-    source: "Damodaran Online, Cost of Equity and Capital by Industry (India), January 2026 update",
-    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/waccIndia.xls",
-    what: "Cost of capital in rupees",
-    column: "Cost of Capital (Local Currency)",
-    unit: "percent",
-  },
-};
-
-type Yardsticks = { id: string; industry: string; plain: string; operating_margin: number; sales_to_capital: number; cost_of_capital: number };
+const INDIA_SHEETS = damodaranSheets({
+  region: "India",
+  files: { operating_margin: "marginIndia.xls", sales_to_capital: "capexIndia.xls", cost_of_capital: "waccIndia.xls" },
+  salesWhat: "Sales for each rupee invested",
+  costWhat: "Cost of capital in rupees",
+  costColumn: "Cost of Capital (Local Currency)",
+});
 
 /** Four of the sheets' industry rows, each figure rounded to two decimals from the cell. */
-const INDIA_INDUSTRIES: Yardsticks[] = [
+const INDIA_INDUSTRIES: YardstickRow[] = [
   { id: "auto", industry: "Auto & Truck", plain: "auto and truck makers", operating_margin: 9.69, sales_to_capital: 1.03, cost_of_capital: 13.9 },
   { id: "food", industry: "Food Processing", plain: "food processors", operating_margin: 7.26, sales_to_capital: 2.34, cost_of_capital: 11.97 },
   { id: "software", industry: "Software (System & Application)", plain: "software makers", operating_margin: 16.73, sales_to_capital: 1.85, cost_of_capital: 12.67 },
   { id: "market", industry: "Total Market (without financials)", plain: "all firms but banks and insurers", operating_margin: 11.2, sales_to_capital: 1.25, cost_of_capital: 11.45 },
 ];
 
-const KIND_ID = { operating_margin: "margin", sales_to_capital: "sales-to-capital", cost_of_capital: "cost-of-capital" } as const;
-
-/** One reading per industry and kind: `<market>-<industry>-<kind>`, as the Own Case industry pick names them. */
-const yardsticks = (market: "IN" | "US", place: string, sheets: Sheets, rows: Yardsticks[], date: string) =>
-  rows.flatMap((row) =>
-    (["operating_margin", "sales_to_capital", "cost_of_capital"] as const).map((kind) => {
-      const sheet = sheets[kind];
-      return {
-        id: `${market.toLowerCase()}-${row.id}-${KIND_ID[kind]}`,
-        label: `${sheet.what}, ${row.plain} (${place})`,
-        market,
-        kind,
-        industry: row.industry,
-        value: row[kind],
-        unit: sheet.unit,
-        date,
-        source: sheet.source,
-        sourceUrl: sheet.url,
-        credit: CREDIT,
-        checkedOn: CHECKED,
-        checkNote: `Read from the "${row.industry}" row, column "${sheet.column}", of the sheet "Industry Averages", and rounded to two decimals.`,
-      };
-    }),
-  );
-
-const indiaYardsticks = yardsticks("IN", "India", INDIA_SHEETS, INDIA_INDUSTRIES, INDIA_UPDATE);
+const indiaYardsticks = yardsticksFor({ market: "IN", place: "India", sheets: INDIA_SHEETS, rows: INDIA_INDUSTRIES, date: INDIA_UPDATE, checkedOn: CHECKED });
 
 // ——— The US (#113, checked 2026-11-16) ———
 
 /** The US sheets' "Date updated" cell (Excel day 46027), the same January 2026 update as India's. */
 const US_UPDATE = "2026-01-05";
 
-const US_SHEETS: Sheets = {
-  operating_margin: {
-    source: "Damodaran Online, Operating and Net Margins by Industry (US), January 2026 update",
-    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/margin.xls",
-    what: "Operating margin before tax",
-    column: "Pre-tax Unadjusted Operating Margin",
-    unit: "percent",
-  },
-  sales_to_capital: {
-    source: "Damodaran Online, Capital Expenditures by Industry (US), January 2026 update",
-    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capex.xls",
-    what: "Sales for each dollar invested",
-    column: "Sales/ Invested Capital (LTM)",
-    unit: "times",
-  },
-  cost_of_capital: {
-    source: "Damodaran Online, Cost of Equity and Capital by Industry (US), January 2026 update",
-    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wacc.xls",
-    what: "Cost of capital in dollars",
-    column: "Cost of Capital",
-    unit: "percent",
-  },
-};
+const US_SHEETS = damodaranSheets({
+  region: "US",
+  files: { operating_margin: "margin.xls", sales_to_capital: "capex.xls", cost_of_capital: "wacc.xls" },
+  salesWhat: "Sales for each dollar invested",
+  costWhat: "Cost of capital in dollars",
+  costColumn: "Cost of Capital",
+});
 
 /** The same four industry rows from the US sheets, each figure rounded to two decimals from the cell. */
-const US_INDUSTRIES: Yardsticks[] = [
+const US_INDUSTRIES: YardstickRow[] = [
   { id: "auto", industry: "Auto & Truck", plain: "auto and truck makers", operating_margin: 2.32, sales_to_capital: 1.08, cost_of_capital: 9.38 },
   { id: "food", industry: "Food Processing", plain: "food processors", operating_margin: 10.63, sales_to_capital: 1.71, cost_of_capital: 5.79 },
   { id: "software", industry: "Software (System & Application)", plain: "software makers", operating_margin: 32.98, sales_to_capital: 1.54, cost_of_capital: 9.34 },
   { id: "market", industry: "Total Market (without financials)", plain: "all firms but banks and insurers", operating_margin: 13.14, sales_to_capital: 1.43, cost_of_capital: 7.72 },
 ];
 
-const usYardsticks = yardsticks("US", "US", US_SHEETS, US_INDUSTRIES, US_UPDATE);
+const usYardsticks = yardsticksFor({ market: "US", place: "US", sheets: US_SHEETS, rows: US_INDUSTRIES, date: US_UPDATE, checkedOn: CHECKED });
 
 /** The US risk-free rate: the 10-year Treasury par yield on the last business day of October 2026. */
 const usRiskFree = {

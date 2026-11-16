@@ -18,9 +18,11 @@ const MARKETS = [
     company: "Kikkoman",
     reportDate: "2026-03-31",
     industry: "food",
-    figures: { sales: "745,539", operatingProfit: "75,940", taxPercent: "30.5", debt: "18,217", cash: "111,770", shares: "927,741,900", price: "1,435" },
+    figures: { sales: "745,539", operatingProfit: "75,940", taxPercent: "30.5", debt: "61,429", cash: "111,770", shares: "927,741,900", price: "1,435" },
     riskFree: { id: "jp-risk-free-10y", text: "2.817% on 30 Oct 2026", host: "https://www.mof.go.jp/" },
     report: "営業利益",
+    industries: ["auto", "food", "software", "market"],
+    costOfCapital: "cost of capital 3.84%.",
     value: /^The engine's value: ¥[\d,]+ a share, beside a price of ¥1,435 on 31 Mar 2026\.$/,
     note: "Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.",
   },
@@ -29,9 +31,12 @@ const MARKETS = [
     company: "Samsung Electronics",
     reportDate: "2025-12-31",
     industry: "market",
-    figures: { sales: "333,605,938", operatingProfit: "43,601,051", taxPercent: "26.4", debt: "25,239,139", cash: "57,856,378", shares: "5,827,808,935", price: "119,900" },
+    figures: { sales: "333,605,938", operatingProfit: "43,601,051", taxPercent: "26.4", debt: "25,239,139", cash: "57,856,378", shares: "6,630,180,138", price: "119,900" },
     riskFree: { id: "kr-risk-free-10y", text: "4.008% on 30 Oct 2026", host: "https://ecos.bok.or.kr/" },
     report: "영업이익",
+    // No software pick in Korea (G07); the cost of capital is in won (G11).
+    industries: ["auto", "food", "market"],
+    costOfCapital: "cost of capital 8.92%.",
     value: /^The engine's value: ₩[\d,]+ a share, beside a price of ₩119,900 on 31 Dec 2025\.$/,
     note: "Samsung Electronics, Korea. Annual report of 31 Dec 2025. Industry: Any other firm (not a bank or insurer).",
   },
@@ -64,8 +69,12 @@ test("a Spine-passed Learner values a Japanese and a Korean company, from the pi
 
     await form.getByLabel("Company").fill(m.company);
     await form.getByLabel("Date of the annual report").fill(m.reportDate);
+    await expect(form.locator("[data-industry]")).toHaveCount(m.industries.length);
+    for (const id of m.industries) await expect(form.locator(`[data-industry="${id}"]`)).toBeVisible();
     await form.locator(`[data-industry="${m.industry}"]`).click();
     await expect(form.locator("[data-own-case-estimate]")).toContainText("Your Estimate opens at the industry");
+    await expect(form.locator("[data-own-case-estimate]")).toContainText(m.costOfCapital);
+    await expect(form.locator("#own-case-debt-hint")).toContainText("Borrowings and lease liabilities");
     for (const [key, value] of Object.entries(m.figures)) await form.locator(`[data-own-case-field="${key}"]`).fill(value);
     await form.getByRole("button", { name: "Value it" }).click();
     await expect(form.locator('[data-own-case-result="value"]')).toHaveText(m.value);

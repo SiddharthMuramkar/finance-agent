@@ -30,9 +30,13 @@ const INDUSTRY_PICKS = [
 ] as const;
 export type OwnCaseIndustry = (typeof INDUSTRY_PICKS)[number]["id"];
 
-/** The industries a Learner picks from in a market, each with the yardsticks its opening Estimate takes. */
+/**
+ * The industries a Learner picks from in a market, each with the yardsticks its opening Estimate takes. A market offers only
+ * the industries its Market readings hold: Korea has no software yardstick (review G07), so a Korean software maker is
+ * valued as "Any other firm".
+ */
 function industriesOf(market: OwnCaseMarket) {
-  return INDUSTRY_PICKS.map((i) => ({
+  return INDUSTRY_PICKS.filter((i) => marketReading(`${market.toLowerCase()}-${i.id}-margin`)).map((i) => ({
     ...i,
     operatingMarginPercent: yardstick(market, i.id, "margin").value,
     salesToCapital: yardstick(market, i.id, "sales-to-capital").value,
@@ -100,9 +104,13 @@ export type OwnCaseInputs = {
   sales: number;
   operatingProfit: number;
   taxPercent: number;
+  /** Borrowings, bonds and lease liabilities, long and short (review G10: leases are debt in every market). */
   debt: number;
   cash: number;
-  /** Shares outstanding, as a plain count (20,60,01,719). */
+  /**
+   * Shares outstanding, as a plain count (20,60,01,719): every share that owns a part of the equity the engine divides,
+   * so Korea's preferred shares (우선주) count beside the common ones (review G08).
+   */
   shares: number;
   /** The share price on the report's date, in the market's money (rupees, yen, won, euros). */
   price: number;

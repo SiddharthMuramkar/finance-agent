@@ -6,8 +6,8 @@ import { ownCaseNote } from "./own-cases";
 // yen or won, whole, as those currencies have no minor unit. Kikkoman's figures: src/finance/own-case-japan-korea.test.ts.
 
 const NOW = new Date("2026-11-16T10:00:00Z");
-const KIKKOMAN: OwnCaseInputs = { company: "Kikkoman", market: "JP", reportDate: "2026-03-31", industry: "food", sales: 745_539, operatingProfit: 75_940, taxPercent: 30.5, debt: 18_217, cash: 111_770, shares: 927_741_900, price: 1_435 };
-const SAMSUNG: OwnCaseInputs = { company: "Samsung Electronics", market: "KR", reportDate: "2025-12-31", industry: "market", sales: 333_605_938, operatingProfit: 43_601_051, taxPercent: 26.4, debt: 25_239_139, cash: 57_856_378, shares: 5_827_808_935, price: 119_900 };
+const KIKKOMAN: OwnCaseInputs = { company: "Kikkoman", market: "JP", reportDate: "2026-03-31", industry: "food", sales: 745_539, operatingProfit: 75_940, taxPercent: 30.5, debt: 61_429, cash: 111_770, shares: 927_741_900, price: 1_435 };
+const SAMSUNG: OwnCaseInputs = { company: "Samsung Electronics", market: "KR", reportDate: "2025-12-31", industry: "market", sales: 333_605_938, operatingProfit: 43_601_051, taxPercent: 26.4, debt: 25_239_139, cash: 57_856_378, shares: 6_630_180_138, price: 119_900 };
 
 function note(inputs: OwnCaseInputs) {
   const estimate = openingEstimate(inputs.industry, inputs.market);
@@ -30,6 +30,8 @@ describe("the one-page note of a Japanese or Korean Own Case", () => {
     const text = note(SAMSUNG);
     expect(text).toContain("Samsung Electronics, Korea. Annual report of 31 Dec 2025.");
     expect(text).toContain("price ₩119,900 on 31 Dec 2025");
+    expect(text).toContain("6,630,180,138 shares");
+    expect(text).toContain("cost of capital 8.92%");
     expect(text).not.toMatch(/your story|cheap|dear|undervalued|overvalued|\bbuy\b|\bsell\b/i);
   });
 });
