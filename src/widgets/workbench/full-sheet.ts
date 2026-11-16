@@ -1,6 +1,6 @@
 import type { DcfInputs } from "@/finance/dcf-engine";
-import { inputsFor, type ValuationBlock } from "@/finance/valuation-case";
-import { near, roundTo } from "./bench";
+import { inputsFor, toEngineInputs, type ValuationBlock } from "@/finance/valuation-case";
+import { clean, floorTo, near, niceUp, oneFigure, roundTo } from "./bench";
 import { FULL_SHEET_WORDS, withMoney, type LingoWords } from "./full-sheet-words";
 import type { ValueLeversMode } from "./data-schemas";
 import { currencySign, leversFor, moneyText, type LeverSettings, type LeverSpec } from "./value-levers-model";
@@ -105,4 +105,99 @@ export function fullSheet(block: ValuationBlock, specs: readonly LeverSpec[], se
   if (!made.ok) return made;
   const own = inputsFor(block, {});
   return { ok: true, rows: fullSheetRows(block, made.inputs, own.ok ? own.inputs : made.inputs) };
+}
+
+// ——— Changing a row (#104) ———
+// A row the Levers do not set has its own slider, never a typed number (ADR 0020). Its setting is the change from the
+// Case's own figure, in the Case's units (percent points, or money in its unit), so 0 is the Case's figure: a Session saved
+// before rows could change, or a Case chip switching company, draws the Case as it is. The changed figures go into the
+// block the engine values, so the headline, the Full sheet and the Tutor all read the one engine's value (ADR 0010).
+
+/** The rows a Learner can change on the Full sheet. The paths, margin after year 10, sales to capital and the chance of
+ * failure follow the Levers; revenue before year 1 and the share count are the Case's facts. */
+export const ROW_IDS = ["taxRate", "lossesCarried", "growthAfter", "returnOnCapitalAfter", "cash", "debt", "options"] as const;
+export type RowId = (typeof ROW_IDS)[number];
+
+/** Each row's change from the Case's figure, in the Case's units; 0 is the Case's own. */
+export type RowSettings = Record<RowId, number>;
+
+/** The $variable that keeps each row's change in the Widget's state; the ValueLevers part's prop of the same name. */
+export const ROW_VARIABLES: Record<RowId, string> = {
+  taxRate: "taxRow",
+  lossesCarried: "lossesRow",
+  growthAfter: "growthAfterRow",
+  returnOnCapitalAfter: "returnAfterRow",
+  cash: "cashRow",
+  debt: "debtRow",
+  options: "optionsRow",
+};
+
+/** The block field each row changes. */
+const FIELD: Record<RowId, "taxPercent" | "lossesCarried" | "growthAfterPercent" | "returnOnCapitalAfterPercent" | "cash" | "debt" | "options"> = {
+  taxRate: "taxPercent",
+  lossesCarried: "lossesCarried",
+  growthAfter: "growthAfterPercent",
+  returnOnCapitalAfter: "returnOnCapitalAfterPercent",
+  cash: "cash",
+  debt: "debt",
+  options: "options",
+};
+
+/** A row's slider: its words (the Full sheet row's), its range in the Case's units, and the Case's own figure. */
+export type RowSpec = { id: RowId; label: string; min: number; max: number; step: number; opening: number; reading: (figure: number) => string };
+
+export const NO_ROW_CHANGES: RowSettings = Object.fromEntries(ROW_IDS.map((id) => [id, 0])) as RowSettings;
+
+/** The sliders of the rows a Learner can change, for this Case. Every figure on them can be valued by the engine. */
+export function rowSpecs(block: ValuationBlock): RowSpec[] {
+  const words = Object.fromEntries(fullSheetRows(block, toEngineInputs(block)).map((r) => [r.input, r.words]));
+  const money = (id: RowId, scale: number): RowSpec => {
+    const opening = block[FIELD[id]];
+    const max = niceUp(Math.max(opening * 2, scale));
+    return { id, label: words[id], min: 0, max, step: oneFigure(max / 40), opening, reading: (n) => moneyText(n, block) };
+  };
+  const rate = (id: RowId, min: number, max: number, step: number): RowSpec => {
+    const opening = block[FIELD[id]];
+    return { id, label: words[id], min: Math.min(min, opening), max: Math.max(max, opening), step, opening, reading: (n) => `${roundTo(n, 2)}%` };
+  };
+  // Growth after year 10 stays half a point under the year-10 cost of capital, or the value would be infinite (the engine refuses it).
+  const lastRate = block.costOfCapitalPercent[block.costOfCapitalPercent.length - 1];
+  return [
+    rate("taxRate", 0, 50, 1),
+    money("lossesCarried", block.baseRevenue),
+    rate("growthAfter", 0, floorTo(lastRate - 0.5, 0.25), 0.25),
+    rate("returnOnCapitalAfter", 1, 40, 1),
+    money("cash", block.baseRevenue / 2),
+    money("debt", block.baseRevenue / 2),
+    money("options", block.baseRevenue / 2),
+  ];
+}
+
+/** The row changes from Widget state numbers (keyed by ROW_VARIABLES): each a finite number held to its slider, else none. */
+export function rowsFrom(values: Record<string, unknown>, block: ValuationBlock): RowSettings {
+  return Object.fromEntries(
+    rowSpecs(block).map((s) => {
+      const v = values[ROW_VARIABLES[s.id]];
+      return [s.id, typeof v === "number" && Number.isFinite(v) ? clean(Math.min(s.max, Math.max(s.min, s.opening + v)) - s.opening) : 0];
+    }),
+  ) as RowSettings;
+}
+
+/** The rows changed from the Case's figures. */
+export const changedRows = (rows: Partial<RowSettings>): RowId[] => ROW_IDS.filter((id) => (rows[id] ?? 0) !== 0);
+
+/** The Case with the rows changed, for the engine to value; the very same block when no row is changed. */
+export function withRows(block: ValuationBlock, rows: Partial<RowSettings>): ValuationBlock {
+  const changed = changedRows(rows);
+  if (!changed.length) return block;
+  return { ...block, ...Object.fromEntries(changed.map((id) => [FIELD[id], clean(block[FIELD[id]] + rows[id]!)])) };
+}
+
+/** What the Tutor is told of the rows changed: each with its figure now and the Case's own. */
+export function changedRowReadouts(block: ValuationBlock, rows: Partial<RowSettings>): string[] {
+  const specs = rowSpecs(block);
+  return changedRows(rows).map((id) => {
+    const spec = specs.find((s) => s.id === id)!;
+    return `Full sheet row changed: ${spec.label}, ${spec.reading(clean(spec.opening + rows[id]!))} (the Case's ${spec.reading(spec.opening)})`;
+  });
 }
