@@ -1,4 +1,5 @@
-import { expect, test } from "./support/people";
+import { expect } from "@playwright/test";
+import { test } from "./support/people";
 
 /**
  * Spec #68, Assignments (#107): a Learner who has passed the Spine values a listed Indian company they pick, from its
