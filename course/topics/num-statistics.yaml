@@ -62,7 +62,7 @@ questions:
     explanation: >
       The standard deviation is the typical distance of a day's return from the average. A larger figure means a bumpier ride, so two funds with the same average can still feel very different to hold. Analysts divide by one less than the number of days (n - 1) when the days are only a sample.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread
   - id: st-q-sigma
     prompt: >
       A stock's daily returns usually stray only a little from their average; that typical stray is its standard deviation. One morning the stock crashes, far beyond anything its usual swings suggest. What does a normal-curve model say about a day like that?
@@ -89,7 +89,7 @@ questions:
     explanation: >
       Extreme moves are far more common than a normal distribution fitted to ordinary days implies, which is why risk managers talk about fat tails. A model built on calm years has never seen a wild day, so it calls one impossible. A statistic is only as good as the sample and the shape assumed for it.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is made up.
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is made up.
 
   - id: st-q-queues
     prompt: >

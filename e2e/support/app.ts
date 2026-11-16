@@ -93,9 +93,18 @@ export async function hydrated(page: Page) {
   await page.waitForFunction(() => document.querySelector(".openui-accordion-trigger:not([data-affordance])") === null);
 }
 
-/** Puts the page in a theme through the app's own header toggle: presses it only when the page shows the other theme. */
-export async function theme(page: Page, want: "light" | "dark") {
-  const html = page.locator("html");
-  if ((await html.getAttribute("data-theme")) !== want) await page.getByTestId("theme-toggle").first().click();
-  await expect(html).toHaveAttribute("data-theme", want);
+/**
+ * Waits until a public site page (src/app/(site), or the sign-in page in the site chrome) has hydrated: React owns the site
+ * nav and the footer, the first and last parts of the page, so a press on a link is the router's navigation (and focus
+ * moves to the new page's h1, spec 7.1) and a press on a button runs its handler. A press before that is a plain browser
+ * load of the next page, or nothing at all, depending on how fast the page loaded on that server. React marks each DOM node
+ * it has hydrated with a `__reactFiber` key, so this waits on hydration itself, not on a time.
+ */
+export async function siteReady(page: Page) {
+  await page.waitForFunction(() =>
+    ["header.v-nav", "footer.v-footer"].every((selector) => {
+      const node = document.querySelector(selector);
+      return node !== null && Object.keys(node).some((key) => key.startsWith("__reactFiber"));
+    }),
+  );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { SPLIT_COOKIE, SPLIT_DEFAULT, nextSplit, shareAtPointer, splitBounds, type SplitBounds } from "./split";
-import { writeCookie } from "./theme-store";
+import { writeCookie } from "./cookie";
 
 /**
  * The Split handle (spec 2026-11-11, C2b). The Learner drags it, or moves it with the arrow keys, Home and End, and a

@@ -49,7 +49,7 @@ async function open(page: Page) {
   await expect(page.getByTestId("choice").first()).toBeVisible();
 }
 
-test("[C1] reading block centred at 1024, 1280, 1512 and 1920", async ({ page }, info) => {
+test("[C1] reading block centred at 1024, 1280, 1512 and 1920", async ({ page }) => {
   const width = page.viewportSize()!.width;
   const want = WIDTH[width];
   test.skip(!want, "measured at the spec's four widths");
@@ -65,10 +65,10 @@ test("[C1] reading block centred at 1024, 1280, 1512 and 1920", async ({ page },
   near(r.block?.width, want, "reading block width");
   centred(r, ["assistant-message", "step-divider", "widget-chip", "composer"]);
 
-  const shot = process.env.SHOTS === "C1" && (width === 1512 || (width === 1280 && !info.project.name.endsWith("-dark")));
+  const shot = process.env.SHOTS === "C1" && (width === 1512 || (width === 1280 && !false));
   if (shot) {
     mkdirSync(SHOTS, { recursive: true });
-    const name = width === 1280 ? "1280" : info.project.name.endsWith("-dark") ? "dark" : "light";
+    const name = width === 1280 ? "1280" : "light";
     await page.screenshot({ path: join(SHOTS, `C1-reading-block-${name}.png`) });
   }
 });

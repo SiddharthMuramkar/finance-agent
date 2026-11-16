@@ -78,7 +78,7 @@ questions:
     explanation: >
       New shares sold by the company are a primary market trade, and the cash goes to the company. Later trades between investors are secondary market trades; the company receives nothing.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 1.5 Markets and Participants (Primary and Secondary Markets): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 1.5 Markets and Participants (Primary and Secondary Markets): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
 
   - id: em-q-broker-dealer
     prompt: >
@@ -92,7 +92,7 @@ questions:
     explanation: >
       Brokers bring buyers and sellers together and earn a commission. Dealers own the shares they trade and make money from the spread between the price at which they buy and the price at which they sell.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 1.5 Markets and Participants (Key Market Players): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 1.5 Markets and Participants (Key Market Players): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
 
   - id: em-q-limit
     prompt: >

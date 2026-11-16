@@ -73,7 +73,7 @@ questions:
     explanation: >
       The CAPM starts from the safe rate (a government bond) and adds a slice of the market's extra reward for risk, sized by beta. The dot-com's beta is about 2, so it should promise roughly twice the extra reward of an average share; the sleepy one, less.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (CAPM equation): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 15.3 The Capital Asset Pricing Model (CAPM equation): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
 
   - id: cm-q-beta
     prompt: >
@@ -87,7 +87,7 @@ questions:
     explanation: >
       When the market rises 10%, a beta-2 share tends to rise about 20%; when the market falls 5%, it tends to fall about 10%. That is a wild ride, not a calm one.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (Interpreting Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 15.3 The Capital Asset Pricing Model (Interpreting Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
 
   - id: cm-q-differ
     prompt: >
@@ -101,7 +101,7 @@ questions:
     explanation: >
       A beta is a regression estimate. Three- and five-year windows, weekly and monthly returns, and different indexes give different slopes for the same share.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (Calculating Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 15.3 The Capital Asset Pricing Model (Calculating Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
 
   - id: cm-q-stderr
     prompt: >

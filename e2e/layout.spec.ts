@@ -78,7 +78,7 @@ test("[#529] settings cards stack with no holes", async ({ page }, info) => {
   await page.goto("/settings");
   await expect(page.locator("#start-over")).toBeVisible();
   const rects = await page.evaluate(() =>
-    ["account", "appearance", "about-you", "your-topics", "developer-details"].map((id) => {
+    ["account", "about-you", "your-topics", "developer-details"].map((id) => {
       const r = document.getElementById(id)!.getBoundingClientRect();
       return { id, left: Math.round(r.left), right: r.right, top: r.top, bottom: r.bottom };
     }),

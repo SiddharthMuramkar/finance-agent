@@ -1,6 +1,5 @@
 import { and, eq, gte, ne, sql } from "drizzle-orm";
-import { isOwnerLearner } from "@/auth/access";
-import { learners, sessions, settings, turns, usageRows } from "@/db/schema";
+import { sessions, settings, turns, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { readSettings } from "./session-log";
 import { dayStartIst } from "./spend";
@@ -64,15 +63,15 @@ export async function dailyUse(db: Db, learnerId: number, now: Date): Promise<Da
 }
 
 /**
- * The daily cap a new turn would go past, or null when it may run. The owner has no per-Learner cap, but their spend
+ * The daily cap a new turn would go past, or null when it may run. `admin`: the turn is the admin's own (their Clerk
+ * token says admin, `identity.admin`, issue #33; never a passcode). The admin has no per-Learner cap, but their spend
  * counts toward the global ceiling, which stops everyone. The check runs before the turn, so a Learner can go past a
  * dollar cap by one turn at most.
  */
-export async function checkQuota(db: Db, learnerId: number, now: Date, given?: Caps): Promise<CapHit | null> {
-  const [caps, [learner], use] = await Promise.all([given ?? readSettings(db).then((s) => s.caps), db.select().from(learners).where(eq(learners.id, learnerId)), dailyUse(db, learnerId, now)]);
-  const owner = learner !== undefined && isOwnerLearner(learner);
-  if (!owner && use.learnerTurns >= caps.learnerTurnsPerDay) return "learner_turns";
-  if (!owner && use.learnerUsd >= caps.learnerUsdPerDay) return "learner_usd";
+export async function checkQuota(db: Db, learnerId: number, now: Date, { admin = false, caps: given }: { admin?: boolean; caps?: Caps } = {}): Promise<CapHit | null> {
+  const [caps, use] = await Promise.all([given ?? readSettings(db).then((s) => s.caps), dailyUse(db, learnerId, now)]);
+  if (!admin && use.learnerTurns >= caps.learnerTurnsPerDay) return "learner_turns";
+  if (!admin && use.learnerUsd >= caps.learnerUsdPerDay) return "learner_usd";
   if (use.globalUsd >= caps.globalUsdPerDay) return "global_usd";
   return null;
 }
