@@ -185,3 +185,23 @@ test("[#102] a Learner opens the Full sheet from Go deeper and reads every input
   await setSlider(page, "Revenue in year 10", "60");
   await expect(sheet.locator('[data-row="growth"]')).not.toContainText("150% in year 1,");
 });
+
+test("[#103] moving a Lever marks the Full sheet rows it moved, and each row opens its Lingo card inline", async ({ page }, info) => {
+  test.skip(info.project.name !== ONE, "one width is enough for the behaviour");
+  await openFixture(page, "value-levers");
+  await page.getByTestId("value-levers-go-deeper").getByText("Go deeper").click();
+  const sheet = page.getByTestId("full-sheet");
+  // At the Case's own story nothing has moved.
+  await expect(sheet.locator("[data-moved]")).toHaveCount(0);
+  await setSlider(page, "Revenue in year 10", "60");
+  await expect(sheet.locator("[data-moved]")).toHaveCount(1);
+  await expect(sheet.locator('[data-row="growth"]')).toHaveAttribute("data-moved", "true");
+  await expect(sheet.locator('[data-row="growth"]').getByTestId("full-sheet-moved")).toHaveText("Moved");
+  // Every row has a Lingo card; pressing a row opens it in the sheet, with no reply from the Tutor.
+  await expect(sheet.locator("[data-row] [data-testid=lingo-card]")).toHaveCount(15);
+  const cash = sheet.locator('[data-row="cash"]');
+  await expect(cash.getByTestId("lingo-card")).toBeHidden();
+  await cash.getByText("Cash the company holds").click();
+  await expect(cash.getByTestId("lingo-card")).toBeVisible();
+  await expect(cash.getByTestId("lingo-card")).toContainText("Money the company has in the bank today");
+});
