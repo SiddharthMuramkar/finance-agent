@@ -18,8 +18,8 @@ const plain = (text: string) => text.replace(/\s+/g, " ").trim();
 type Seen = { topic: string; turn: number; step: string; script: Script; learner: string; tutor: string; widget: string; choices: string[] };
 
 const TOPICS = [
-  { id: "spine-02-money-later", seed: "spine-02-start", title: "Why is money later worth less?", scripts: ["spine2-story", "spine2-concept", "spine2-explore"] },
-  { id: "spine-03-cash", seed: "spine-03-start", title: "Where does the cash come from?", scripts: ["spine3-story", "spine3-concept", "spine3-explore"] },
+  { id: "spine-02-money-later", seed: "spine-02-start", title: "Why is money later worth less?", scripts: ["spine2-story", "spine2-concept", "spine2-explore"], bench: "annuity-slider" },
+  { id: "spine-03-cash", seed: "spine-03-start", title: "Where does the cash come from?", scripts: ["spine3-story", "spine3-concept", "spine3-explore"], bench: "cash-waterfall" },
 ] as const;
 
 /** The script's reply landed as written: a Tutor reply on the page holds its first sentence. */
@@ -43,9 +43,9 @@ async function next(page: Page, label: string, name: Script) {
 }
 
 /** What the Learner sees after a turn: the latest reply, the Widget on the stage, and the Choices under the reply. */
-async function seen(page: Page, topic: string, turn: number, step: string, name: Script, learner: string): Promise<Seen> {
+async function seen(page: Page, topic: string, turn: number, step: string, name: Script, learner: string, bench?: string): Promise<Seen> {
   const reply = await page.getByTestId("assistant-message").last().innerText();
-  const pane = page.getByTestId("widget-pane").first();
+  const pane = bench ? page.getByTestId("widget-pane").filter({ has: page.getByTestId(bench) }).first() : page.getByTestId("widget-pane").first();
   const choices = page.getByTestId("choices").last().getByTestId("choice");
   return {
     topic,
@@ -103,8 +103,10 @@ test("[#89] Spine Topics 2 and 3 open for a beginner: the jackpot only, and the 
     await shoot(page, out, topic.id, 2);
 
     await next(page, "Next: Explore", topic.scripts[2]);
-    await expect(page.getByTestId("widget-pane").first()).toBeVisible({ timeout: TURN_MS });
-    transcript.push(await seen(page, topic.id, 3, "explore", topic.scripts[2], "[tapped Choice] Next: Explore"));
+    // Code opens the Topic's explore Widget when the explore step begins: the annuity Widget, or the cash waterfall.
+    await expect(page.getByTestId(topic.bench).first()).toBeVisible({ timeout: TURN_MS });
+    await settled(page, TURN_MS);
+    transcript.push(await seen(page, topic.id, 3, "explore", topic.scripts[2], "[tapped Choice] Next: Explore", topic.bench));
     await shoot(page, out, topic.id, 3);
   }
 
