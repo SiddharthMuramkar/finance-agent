@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { isConverted, loadCourseMap } from "@/course/map";
 import { courseOverview, jumpTo, navigate, whatComesNext, type Progress, type TopicOverview } from "@/course/navigator";
+import { OWN_CASE_MARKETS, ownCaseMarket } from "@/finance/own-case";
 import { CourseMapView } from "./course-map-view";
 
 const topic = (t: Partial<TopicOverview> & Pick<TopicOverview, "id" | "title">): TopicOverview => ({
@@ -257,6 +258,13 @@ describe("the Spine on the Course Map", () => {
     expect(assignment(false)).not.toContain('href="/assignment"');
     expect(assignment(true)).toContain('href="/assignment"');
     expect(assignment(true)).toContain("Value a company you pick");
+  });
+
+  // G34: the Assignment takes a company from any Own Case market, as /assignment says, not only an Indian one.
+  it("names every Own Case market on the open Assignment row", () => {
+    const open = renderToStaticMarkup(<CourseMapView topics={written} coming={coming} recommended={null} assignmentOpen />).split('data-stage="assignment"')[1].split("</section>")[0];
+    expect(open).not.toContain("Indian");
+    for (const m of OWN_CASE_MARKETS) expect(open).toContain(ownCaseMarket(m).name);
   });
 
   it("lists all fifteen rows in order, written or coming, each numbered in the key-number blue", () => {

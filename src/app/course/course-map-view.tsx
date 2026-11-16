@@ -267,7 +267,7 @@ export function CourseMapView({
           </h2>
           {assignmentOpen ? (
             <div className="mt-2 flex flex-col items-start gap-3">
-              <p className="text-sm leading-5 text-[var(--muted)]">Value a listed Indian company you pick, from its annual report: your Own Case.</p>
+              <p className="text-sm leading-5 text-[var(--muted)]">Value a listed company you pick in India, the US, Japan, Korea or Europe, from its annual report: your Own Case.</p>
               <ButtonLink href="/assignment" variant="secondary" size="sm" data-assignment-link>
                 Value a company you pick
               </ButtonLink>
