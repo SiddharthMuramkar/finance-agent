@@ -12,6 +12,8 @@ export type InsightPickView = {
   settled?: { how: "found" | "told"; written: string };
 };
 
+const NOT_MARKED = "That tap could not be marked. Try again.";
+
 type Marked = { released: "found" | "hint_1" | "hint_2" | "told"; fix?: string; hint?: string; written?: string };
 
 /**
@@ -33,11 +35,14 @@ export function InsightPick({ pick }: { pick: InsightPickView }) {
     try {
       const response = await fetch("/api/insight-pick", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ choice }) });
       const body = (await response.json().catch(() => ({}))) as Marked & { error?: string };
-      if (!response.ok) setError(body.error ?? "That tap could not be marked. Try again.");
+      if (!response.ok) setError(body.error ?? NOT_MARKED);
       else {
         setMarked({ ...body, choice });
         if (body.released === "found" || body.released === "told") router.refresh();
       }
+    } catch {
+      // No answer at all (offline, a dropped connection): say so, and the choices stay to tap again.
+      setError(NOT_MARKED);
     } finally {
       setPressed(null);
     }
@@ -56,6 +61,7 @@ export function InsightPick({ pick }: { pick: InsightPickView }) {
             size="sm"
             data-testid="insight-pick-choice"
             data-picked={marked?.choice === c.id ? "" : undefined}
+            pressed={marked?.choice === c.id}
             loading={pressed === c.id}
             disabled={pressed !== null || settled}
             onClick={() => void tap(c.id)}
@@ -64,19 +70,25 @@ export function InsightPick({ pick }: { pick: InsightPickView }) {
           </Button>
         ))}
       </div>
-      {shown && (
-        <div data-testid="insight-pick-result" data-released={shown.released} className="mt-2 text-sm leading-5" role="status">
-          {shown.released === "found" && <p className="text-[var(--success)]">Found it.</p>}
-          {shown.fix && shown.released !== "found" && <p>{shown.fix}</p>}
-          {shown.hint && <p className="text-[var(--muted)]">Hint: {shown.hint}</p>}
-          {shown.written && <p className="font-medium">{shown.written}</p>}
-        </div>
-      )}
-      {error && (
-        <p className="mt-2 text-sm leading-5 text-[var(--danger)]" data-testid="insight-pick-error">
-          {error}
-        </p>
-      )}
+      {/* Both live regions stay mounted, so a screen reader announces what is put in them (a region inserted together with
+          its text may not be read). The marking is polite; a tap that could not be marked is an alert. */}
+      <div role="status" className="empty:hidden">
+        {shown && (
+          <div data-testid="insight-pick-result" data-released={shown.released} className="mt-2 text-sm leading-5">
+            {shown.released === "found" && <p className="text-[var(--success)]">Found it.</p>}
+            {shown.fix && shown.released !== "found" && <p>{shown.fix}</p>}
+            {shown.hint && <p className="text-[var(--muted)]">Hint: {shown.hint}</p>}
+            {shown.written && <p className="font-medium">{shown.written}</p>}
+          </div>
+        )}
+      </div>
+      <div role="alert" className="empty:hidden">
+        {error && (
+          <p className="mt-2 text-sm leading-5 text-[var(--danger)]" data-testid="insight-pick-error">
+            {error}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
