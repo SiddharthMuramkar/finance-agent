@@ -109,12 +109,14 @@ scenes:
     title: A professor against the venture investors
     inputs:
       cast:
-        - { id: professor, emoji: teacher, name: A valuation professor, role: values Uber }
+        # Spine critics round 1 on #95 (widget fit): every Icon stands for something; the professor is a graduation cap,
+        # not a school house, and the decorative brain and key are gone (the Icon set has no car).
+        - { id: professor, emoji: student, name: A valuation professor, role: values Uber }
         - { id: investor, emoji: man-office-worker, name: A venture investor }
       beats:
         - { who: investor, says: "We put in $1.2 billion at a $17 billion valuation.", emoji: money-bag }
-        - { who: narrator, says: "In June, Damodaran valued Uber at about $5.9 billion, as a car-service company.", emoji: thinking-face }
-        - { who: investor, says: "Think of everyone who might give up owning a car.", emoji: key }
+        - { who: professor, says: "In June I valued Uber at about $5.9 billion, as a car-service company.", emoji: balance-scale }
+        - { who: investor, says: "Think of everyone who might give up owning a car." }
         - { who: narrator, says: "Now estimates of $40 billion and more are in the news.", emoji: newspaper }
       caption: 2 December 2014, two stories about one company
       date: "2014-12-02"
@@ -173,6 +175,8 @@ explore:
         kind: market
         markets:
           - label: "Uber's 20% slice of $100bn of fares"
+            # Spine critics round 1 on #95: the readout says "of fees on all fares", so $35.8bn never reads as the $100bn market.
+            pool: fees on all fares
             # His $100bn of fares a year, at his 20% slice: $20bn of revenue to share in, growing 6% a year.
             size: 20000
             growthPercent: 6
@@ -180,6 +184,7 @@ explore:
               title: "Damodaran, A Disruptive Cab Ride to Riches: The Uber Payoff (9 Jun 2014), and ubervaluation.xls"
               url: https://aswathdamodaran.blogspot.com/2014/06/a-disruptive-cab-ride-to-riches-uber.html
           - label: "Uber's 20% slice of $300bn of fares"
+            pool: fees on all fares
             # His breakeven: "the total market has to be ... three times bigger than my estimate (around $300 billion)".
             size: 60000
             growthPercent: 6

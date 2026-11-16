@@ -99,6 +99,36 @@ terms:
     emoji: balance-scale
     inStory: In the story, investors want 9.61% a year from Amazon after year 10.
 
+# Spine critics round 1 on #95 (widget fit): the Story and Concept turns showed only the empty Widget panel. The story scene
+# carries the years the Story turn no longer reads out (beginner persona: two or three numbers a turn).
+scenes:
+  - id: far-opening
+    step: story
+    recipe: story_scene
+    title: Ten years forecast, and then the rest
+    inputs:
+      cast:
+        - { id: professor, emoji: student, name: Aswath Damodaran, role: values Amazon }
+        - { id: amazon, emoji: package, name: Amazon.com, role: an online retailer }
+      beats:
+        - { who: narrator, says: "Amazon's shares cost $84.", emoji: dollar-banknote }
+        - { who: professor, says: "I forecast Amazon's cash for ten years, one year at a time.", emoji: spiral-calendar }
+        - { who: amazon, says: "We lose cash for six years while we grow, then it turns.", emoji: chart-decreasing }
+        - { who: professor, says: "For every year after year 10, I set two things once.", emoji: hourglass-done }
+      caption: 3 February 2000, a forecast with a long tail
+      date: "2000-02-03"
+  - id: far-lingo
+    step: concept
+    recipe: lingo_card
+    title: "Lingo: terminal value"
+    inputs:
+      term: Terminal value
+      pro: Everything after the forecast is packed into the terminal value.
+      means: Every year after the forecast, packed into one lump at the end of it.
+      example: A shop you plan in detail for ten years, then sum up as one lump for all the years after.
+      emoji: hourglass-done
+      inStory: In the story, it is everything after year 10, set above all by two settings.
+
 skills:
   - id: far-weight
     rule: "For a young company, most of the value, sometimes more than all of it, sits after the forecast years."
@@ -134,27 +164,25 @@ questions:
     kind: which_lever
     prompt: "From his story, which single change moves the value a share most?"
     skill: far-settings
-    explanation: "Growth for ever and the rate after the forecast change the size of the lump itself, through the gap between them; the rate in the growth years only changes how far the lump and the early cash are discounted."
+    explanation: "Growth for ever changes the size of the lump itself, through its gap to the rate after the forecast; the rate in the growth years only changes how far the lump and the early cash are discounted."
     computed:
       case: spine-08-amazon-2000
+      # Spine critics round 1 on #95 (math police): the choices differ in kind, one far-future setting against the rate in the
+      # growth years, each moved one point, so no subtraction of a gap tells them apart.
       changes:
-        - { id: cost-after, label: "Cost of capital after year 10, 9.61% to 10.5%", levers: { costOfCapitalAfter: 10.5 } }
-        - { id: growth-after, label: "Growth after year 10, 6% to 5.5%", levers: { growthAfter: 5.5 } }
+        - { id: growth-after, label: "Growth after year 10, 6% to 5%", levers: { growthAfter: 5 } }
         - { id: cost-growing, label: "Cost of capital in years 1 to 10, starting at 13.84% instead of 12.84%", levers: { costOfCapitalGrowing: 13.84 } }
-      shown: 3
 
   - id: far-q-least
     kind: which_lever
     prompt: "From his story, which single change moves the value a share least?"
     skill: far-settings
-    explanation: "The rate in the growth years only changes how far the lump and the early cash are discounted. Growth for ever and the rate after the forecast change the size of the lump itself."
+    explanation: "The rate in the growth years only changes how far the lump and the early cash are discounted. The rate after the forecast changes the size of the lump itself."
     computed:
       case: spine-08-amazon-2000
       changes:
         - { id: cost-growing, label: "Cost of capital in years 1 to 10, starting at 11.84% instead of 12.84%", levers: { costOfCapitalGrowing: 11.84 } }
-        - { id: cost-after, label: "Cost of capital after year 10, 9.61% to 8.5%", levers: { costOfCapitalAfter: 8.5 } }
-        - { id: growth-after, label: "Growth after year 10, 6% to 7%", levers: { growthAfter: 7 } }
-      shown: 3
+        - { id: cost-after, label: "Cost of capital after year 10, 9.61% to 8.61%", levers: { costOfCapitalAfter: 8.61 } }
 
   - id: far-q-predict
     kind: predict
@@ -307,9 +335,10 @@ checks:
         ask: "From his story, which single change lifts the value a share most?"
         computed:
           case: spine-08-amazon-2000
+          # Spine critics round 1 on #95 (math police): one far-future setting against the rate in the growth years, each
+          # moved one point, so the choice rests on the idea, not on working out a gap.
           changes:
-            - { id: cost-after, label: "Cost of capital after year 10, 9.61% to 8.5%", levers: { costOfCapitalAfter: 8.5 } }
-            - { id: growth-after, label: "Growth after year 10, 6% to 6.5%", levers: { growthAfter: 6.5 } }
+            - { id: growth-after, label: "Growth after year 10, 6% to 7%", levers: { growthAfter: 7 } }
             - { id: cost-growing, label: "Cost of capital in years 1 to 10, starting at 11.84% instead of 12.84%", levers: { costOfCapitalGrowing: 11.84 } }
 
   - id: far-talk
