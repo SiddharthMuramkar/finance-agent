@@ -7,8 +7,11 @@ import { BRAND, meta } from "@/site/copy";
 /** The one share image: the Study Workspace screenshot (public: src/site/routes.ts lets a Visitor fetch it). */
 const SHARE_IMAGE = { url: "/landing-assets/workspace-light.png", width: 1280, height: 800, alt: meta.screenshotAlt };
 
+/** The site's own address: the base of every canonical link, robots.txt's sitemap line and sitemap.xml's pages. */
+export const SITE_URL = new URL("https://www.value-it.xyz");
+
 export const siteMetadata: Metadata = {
-  metadataBase: new URL("https://www.value-it.xyz"),
+  metadataBase: SITE_URL,
   title: meta.title,
   description: meta.description,
   openGraph: {

@@ -36,6 +36,8 @@ function request(path: string, init: { method?: string; headers?: Record<string,
 }
 
 const allowed = (r: Response) => r.headers.get("x-middleware-next") === "1";
+/** An unknown address, let through so Next.js answers it with the not-found page and a 404 (issue #70). */
+const reachesNotFound = allowed;
 const redirectedToSignIn = (r: Response) =>
   r.status >= 300 && r.status < 400 && new URL(r.headers.get("location")!).pathname === "/sign-in";
 /** Where a signed-in visit to /sign-in is sent instead (a temporary redirect). */
@@ -70,8 +72,9 @@ describe("The signed-out gate", () => {
     for (const path of ["/sign-in", "/sign-in?next=%2Fcourse", "/sign-in/factor-one", "/sign-in/sso-callback", "/sign-up", "/sign-up/verify-email-address"]) {
       expect(allowed(await proxy(request(path))), path).toBe(true);
     }
-    for (const path of ["/sign-inx", "/sign-upx", "/joinx", "/join/x", "/login"]) {
-      expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+    // Issue #70: an address that is no page reaches the not-found page, never the sign-in.
+    for (const path of ["/sign-inx", "/sign-upx", "/joinx", "/join/x"]) {
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
     }
   });
 
@@ -97,9 +100,18 @@ describe("The signed-out gate", () => {
     }
   });
 
-  it("sends an unknown case slug to the sign-in, so the public list stays exact", async () => {
+  // Issue #70: an unknown case slug or site address is a 404 for a Visitor, not the sign-in card.
+  it("lets an unknown case slug or site address reach the not-found page", async () => {
     for (const path of ["/examples/nope", "/examples/amazon-2000/x", "/examples/", "/examplesx", "/how-it-works/x"]) {
-      expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
+      expect(reachesNotFound(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
+    }
+  });
+
+  it("still refuses a write or a Server Action call to an unknown address", async () => {
+    for (const path of ["/examples/nope", "/nope"]) {
+      expect(reachesNotFound(await proxy(request(path, { method: "POST" }))), path).toBe(false);
+      expect((await proxy(request(path, { method: "POST", headers: { "Next-Action": "abc" } }))).status, path).toBe(401);
     }
   });
 
@@ -109,9 +121,12 @@ describe("The signed-out gate", () => {
     }
   });
 
-  it("sends every other page to the sign-in", async () => {
-    for (const path of ["/course", "/sessions/1", "/landing-assets/x.txt", "/landing-assets/a/b.png", "/about/x", "/aboutx", "/admin"]) {
+  it("sends every signed-in page to the sign-in, and lets any other address reach the not-found page (issue #70)", async () => {
+    for (const path of ["/course", "/sessions/1", "/admin", "/settings/x", "/welcome"]) {
       expect(redirectedToSignIn(await proxy(request(path))), path).toBe(true);
+    }
+    for (const path of ["/landing-assets/x.txt", "/landing-assets/a/b.png", "/about/x", "/aboutx", "/nope", "/coursex", "/Study"]) {
+      expect(reachesNotFound(await proxy(request(path))), path).toBe(true);
     }
   });
 
@@ -235,9 +250,10 @@ describe("Developer pages (/dev)", () => {
     expect(redirectedToSignIn(await proxy(request("/dev/widgets")))).toBe(true);
   });
 
-  it("do not open for a path that only starts with the same letters", async () => {
-    vi.stubEnv("NODE_ENV", "development");
-    expect(redirectedToSignIn(await proxy(request("/devices")))).toBe(true);
+  it("do not open for a path that only starts with the same letters: it is a 404 (issue #70)", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(reachesNotFound(await proxy(request("/devices")))).toBe(true);
+    expect(redirectedToSignIn(await proxy(request("/dev")))).toBe(true);
   });
 });
 
@@ -394,11 +410,12 @@ describe("One public-route list", () => {
     return rules.filter((r) => r.headers.some((h) => h.key === "Cache-Control" && /no-store/.test(h.value))).map((r) => r.source);
   };
 
-  it("the gate lets a signed-out visitor read every public page, and nothing one segment further", async () => {
+  it("the gate lets a signed-out visitor read every public page; one segment further is the not-found page", async () => {
     for (const { path } of PUBLIC_PAGES) {
       expect(allowed(await proxy(request(path))), path).toBe(true);
       expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
-      expect(redirectedToSignIn(await proxy(request(`${path === "/" ? "" : path}/x-not-a-page`))), `${path}/x`).toBe(true);
+      expect(reachesNotFound(await proxy(request(`${path === "/" ? "" : path}/x-not-a-page`))), `${path}/x`).toBe(true);
+      expect(reachesNotFound(await proxy(request(`${path === "/" ? "" : path}/x-not-a-page`, { method: "POST" }))), `POST ${path}/x`).toBe(false);
     }
   });
 

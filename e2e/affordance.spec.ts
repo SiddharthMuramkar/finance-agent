@@ -52,7 +52,7 @@ async function visit(page: Page, state: State, path: string) {
  * rules). Everything else on those pages, the site chrome included, is judged. When the owner decides, either the site
  * follows ADR 0018 and its selector leaves this list, or the ADR makes room for the Signal spec here.
  */
-const SIGNAL_SITE = new Set(["home", "home-signed-out", "about", "how-it-works", "examples", "case-amazon"]);
+const SIGNAL_SITE = new Set(["home", "home-signed-out", "about", "how-it-works", "examples", "case-amazon", "privacy", "terms"]);
 const SIGNAL_SPEC_LOOKS = ["#main .v-tlink", "#main .v-qrow", "#main .v-faq summary", "#main .v-qchip", "#main .v-linkcard"].join(", ");
 
 test.describe("affordance audit is clean", () => {
@@ -64,7 +64,7 @@ test.describe("affordance audit is clean", () => {
       await clean(page, "/sign-in");
     });
 
-    for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000"]) {
+    for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/privacy", "/terms"]) {
       test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path} (the Signal site)`, async ({ page }) => {
         await page.goto(path);
         await hydrated(page);

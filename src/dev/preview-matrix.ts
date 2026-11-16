@@ -38,7 +38,7 @@ export type MatrixPage = {
   cardsAsColumns?: true;
 };
 
-/** The sixteen pages and states, in the order they are shot. Signed-out pages run last (they sign the Learner out). */
+/** The eighteen pages and states, in the order they are shot. Signed-out pages run last (they sign the Learner out). */
 export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "home", path: "/", seed: "story", kind: "reading", signedOut: false, public: true },
   // The About page (spec 2026-11-11, D1): public and static, Home's layout, so it has no reading column to measure.
@@ -61,6 +61,9 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "how-it-works", path: "/how-it-works", seed: null, kind: "reading", signedOut: true, public: true },
   { id: "examples", path: "/examples", seed: null, kind: "reading", signedOut: true, public: true },
   { id: "case-amazon", path: "/examples/amazon-2000", seed: null, kind: "reading", signedOut: true, public: true },
+  // Privacy and Terms (issue #77): plain reading pages in the site chrome.
+  { id: "privacy", path: "/privacy", seed: null, kind: "reading", signedOut: true, public: true },
+  { id: "terms", path: "/terms", seed: null, kind: "reading", signedOut: true, public: true },
   // The sign-in page as the test bed draws it: Clerk is off there (issue #33), so it is the passcode door's form.
   { id: "sign-in", path: "/sign-in", seed: null, kind: "sign-in", signedOut: true, public: true },
 ];

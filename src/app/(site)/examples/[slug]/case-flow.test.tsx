@@ -52,7 +52,7 @@ describe("the case page's flow", () => {
     expect(steps()).toEqual(["done", "done", "done", "done"]);
     const reveal = host.querySelector('[data-testid="case-reveal"]')!.textContent!;
     for (const figure of ["$35.08", "$91.50", "$14.88"]) expect(reveal).toContain(figure);
-    expect(reveal).toContain("Sources: Damodaran’s published valuation of Amazon, 2000.");
+    expect(reveal).toContain("Sources: Aswath Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (NYU Stern, March 2000); Amazon.com, Form 10-K for 2000 (SEC); The widget runs the course’s tested valuation engine");
   });
 
   it("counts the first chip tap in a widget's Your call as the call", async () => {

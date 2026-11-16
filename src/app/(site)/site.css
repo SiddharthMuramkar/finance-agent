@@ -214,6 +214,10 @@
 .v-footer nav { display: flex; flex-wrap: wrap; gap: 0 24px; font-size: 15px; font-weight: 500; }
 /* 4 px above and below make each link a 33 px target (the audits' 28 px floor for a nav link); the row gap shrinks to match. */
 .v-footer nav a { padding: 4px 0; }
+.v-footer-row + .v-footer-row { margin-top: 16px; }
+.v-legal-links { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 24px; }
+.v-contact { user-select: all; color: var(--ink-2); }
+.v-legal { padding-bottom: clamp(64px, 8vw, 112px); gap: 40px; }
 .v-footer nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Home hero (7.2.1) */
@@ -304,6 +308,9 @@
 .v-split-head { display: grid; gap: 14px; align-content: start; }
 .v-trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; list-style: none; margin: 0; padding: 0; }
 .v-trust li { border-top: 2px solid var(--ink); padding-top: 16px; display: grid; gap: 8px; align-content: start; }
+.v-end-note { margin: 0; display: grid; gap: 12px; }
+.v-end-note ul { list-style: none; margin: 0; padding: 0; }
+.v-end-note li { border-top: 1px solid var(--rule); padding: 8px 0; font-variant-numeric: tabular-nums; }
 
 /* Closing (7.2.8) */
 .v-closing { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(32px, 5vw, 72px); align-items: end; }

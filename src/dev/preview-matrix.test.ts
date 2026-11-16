@@ -6,11 +6,11 @@ describe("preview matrix [S3]", () => {
     const cells = matrixCells();
     const desktop = cells.filter((c) => c.viewport.id !== "p390");
     const main = desktop.filter((c) => c.page.id !== SIGN_IN_WRONG.id);
-    expect(MATRIX_PAGES).toHaveLength(16);
-    expect(main).toHaveLength(4 * 16); // 64
+    expect(MATRIX_PAGES).toHaveLength(18); // with Privacy and Terms (#77)
+    expect(main).toHaveLength(4 * 18); // 72
     expect(desktop.filter((c) => c.page.id === SIGN_IN_WRONG.id)).toHaveLength(4); // one per desktop project
-    expect(desktop).toHaveLength(68);
-    expect(cells).toHaveLength(75); // and the phone's 7 (G9)
+    expect(desktop).toHaveLength(76);
+    expect(cells).toHaveLength(85); // and the phone's 9 (G9)
     expect(MATRIX_PAGES.find((p) => p.id === "about")).toMatchObject({ path: "/about" });
     expect(new Set(cells.map((c) => c.project)).size).toBe(5);
     // Decision #17: one Light theme, so every cell is Light and no project is a dark twin.
@@ -25,7 +25,7 @@ describe("preview matrix [S3]", () => {
     const phone = matrixCells().filter((c) => c.viewport.id === "p390");
     expect(MATRIX_VIEWPORTS.find((v) => v.id === "p390")).toMatchObject({ width: 390, height: 844 });
     expect([...new Set(phone.map((c) => c.project))]).toEqual(["p390"]);
-    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/sign-in", "/sign-in?wrong=1"]);
+    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/privacy", "/terms", "/sign-in", "/sign-in?wrong=1"]);
   });
 
   // Spec §8.3 (colour-liveliness) "Inputs: screenshots of 6 states (reply with Story scene, Lingo card, Choices, Course
@@ -73,7 +73,7 @@ describe("preview matrix [S3]", () => {
       home: null, about: null, "study-story": null, "study-story-scene": null, "study-lingo": null, "study-concept-widget": null, "study-quiz-open": null,
       "study-mixup-fix": null, "study-topic-complete": null,
       "course-map": "if-any", notebook: "required", settings: "required",
-      "how-it-works": null, examples: null, "case-amazon": null, "sign-in": null,
+      "how-it-works": null, examples: null, "case-amazon": null, privacy: null, terms: null, "sign-in": null,
     });
     expect(SIGN_IN_WRONG.prose ?? null).toBeNull();
     // Settings (A5) is a card-grid at every matrix viewport and A1 says "Running paragraphs inside cards use `measure`":

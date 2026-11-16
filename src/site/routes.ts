@@ -21,20 +21,27 @@ export type PublicFile = { id: string; pattern: RegExp; samples: readonly string
 /** The case pages, from the same list as their generateStaticParams, so an unknown slug is never public. */
 const CASE_PAGES = EXAMPLE_SLUGS.map(examplePath);
 
-/** Home, How it works, Examples, the case pages, About, and the Waitlist (/join, issue #33). */
+/** Home, How it works, Examples, the case pages, About, Privacy and Terms (#77), and the Waitlist (/join, issue #33). */
 export const PUBLIC_PAGES: readonly PublicPage[] = [
   { path: "/", site: true, sitemap: true },
   { path: "/how-it-works", site: true, sitemap: true },
   { path: "/examples", site: true, sitemap: true },
   ...CASE_PAGES.map((path) => ({ path, site: true, sitemap: true })),
   { path: "/about", site: true, sitemap: true },
+  { path: "/privacy", site: true, sitemap: true },
+  { path: "/terms", site: true, sitemap: true },
   { path: JOIN_PATH, site: false, sitemap: true },
 ];
 
-/** The files: the link-preview images (src/app/site-metadata.ts) and the icons. */
+/**
+ * The files: the link-preview images (src/app/site-metadata.ts), the icons (src/app/icon.svg, favicon.ico and
+ * apple-icon.png; scripts/make-icons.mjs draws the last two) and the crawler files (src/app/robots.ts and sitemap.ts,
+ * issue #70).
+ */
 export const PUBLIC_FILES: readonly PublicFile[] = [
   { id: "share-images", pattern: /^\/landing-assets\/[\w-]+\.(png|webp)$/, samples: ["/landing-assets/workspace-light.png"] },
-  { id: "icon", pattern: /^\/(icon\.svg|favicon\.ico)$/, samples: ["/icon.svg", "/favicon.ico"] },
+  { id: "icon", pattern: /^\/(icon\.svg|favicon\.ico|apple-icon\.png)$/, samples: ["/icon.svg", "/favicon.ico", "/apple-icon.png"] },
+  { id: "crawler", pattern: /^\/(robots\.txt|sitemap\.xml)$/, samples: ["/robots.txt", "/sitemap.xml"] },
 ];
 
 /** The sign-in and sign-up pages, with every step under them (Clerk's catch-all routes, such as /sign-in/sso-callback). */
@@ -67,6 +74,9 @@ export const isAuthPage = (path: string) => AUTH_ROOTS.some((root) => under(path
 
 /** A public page (exactly) or an auth page. */
 export const isPublicPage = (path: string) => PUBLIC_PAGES.some((p) => p.path === path) || isAuthPage(path);
+
+/** A signed-in page, a developer page or an API route: a signed-out request there is sent to the sign-in, or refused. */
+export const isSignedInPath = (path: string) => SIGNED_IN_ROOTS.some((root) => under(path, root));
 
 /** A public file. */
 export const isPublicFile = (path: string) => PUBLIC_FILES.some((f) => f.pattern.test(path));

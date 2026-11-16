@@ -200,6 +200,27 @@ test("[7.2.3, QA 10, 12] the levers story moves the stage with the scroll and ke
   await expect(value).toHaveText(mine!);
 });
 
+/** #75: "Where you end up" shows the one-page note Spine Topic 15 saves to the Notebook, under the promise it keeps. */
+test("[#75] Where you end up shows a real one-page note from the Notebook", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  await page.goto("/");
+  const end = page.locator('[data-site-section="end"]');
+  await end.scrollIntoViewIfNeeded();
+  await expect(end.getByRole("heading", { level: 2, name: "By the end, you value a company yourself." })).toBeVisible();
+  const note = end.locator("[data-end-note]");
+  await expect(note).toContainText("My Valuation story: Amazon, Feb 2000, against the price of 3 Feb 2000");
+  await expect(note.locator("li")).toHaveText([
+    "How big it gets: revenue in year 10 $39bn",
+    "What it keeps: operating margin once mature 10%",
+    "What growth costs: sales for each dollar invested $3.00",
+    "How risky: cost of capital while it grows 12.84%",
+    "Chance it fails: 0%",
+    "Worth: $35 a share",
+    "Price on 3 Feb 2000: $84",
+    "Value from after year 10: 112%",
+  ]);
+});
+
 test("[QA 24] Home never scrolls sideways", async ({ page }, info) => {
   test.skip(!["w1024", "p390", "t768"].includes(info.project.name), "1024, a tablet and a phone");
   await openHome(page);

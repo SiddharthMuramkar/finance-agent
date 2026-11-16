@@ -1,10 +1,11 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { parse, stringify } from "yaml";
 import { parseOutline, type Outline } from "@/course/outline";
 import { EXAMPLES, EXAMPLE_SLUGS } from "@/site/examples";
+import { PUBLIC_PAGES } from "@/site/routes";
 import type { Viewer } from "@/site/viewer";
 
 // Every page of the public site (decision #7, Signal spec 7.2 to 7.6), drawn on the server for each viewer state. The
@@ -29,6 +30,9 @@ const { default: HowItWorksPage, metadata: howMeta } = await import("./how-it-wo
 const { default: ExamplesPage, metadata: examplesMeta } = await import("./examples/page");
 const casePage = await import("./examples/[slug]/page");
 const { default: AboutPage, metadata: aboutMeta } = await import("./about/page");
+const { default: PrivacyPage, metadata: privacyMeta } = await import("./privacy/page");
+const { default: TermsPage, metadata: termsMeta } = await import("./terms/page");
+const { SiteFooter } = await import("./site-chrome");
 
 const words = (html: string) =>
   html
@@ -186,8 +190,97 @@ describe("About", () => {
   it("names the theme cookie in the FAQ", async () => {
     const text = words(renderToStaticMarkup(await AboutPage()));
     expect(text).toContain("a cookie called theme remembers Light or Dark");
+    });
+
+  // #75: no placeholder founder's note, no "coming soon", and the one Source About names is a link.
+  it("has no founder section and nothing 'coming soon'", async () => {
+    const html = renderToStaticMarkup(await AboutPage());
+    expect(words(html)).not.toMatch(/founder|coming soon/i);
+  });
+
+  it("links Damodaran, the one Source it names", async () => {
+    const html = renderToStaticMarkup(await AboutPage());
+    expect(html).toMatch(/<a [^>]*href="https:\/\/pages\.stern\.nyu\.edu\/~adamodar\/"[^>]*>Aswath Damodaran<\/a>/);
+  });
+
+  it("shows no minutes per Topic until they are measured", async () => {
+    expect(words(renderToStaticMarkup(await AboutPage()))).not.toMatch(/Each Topic \d/);
   });
 });
+
+// #75: Home's "Where you end up" shows the real one-page note Spine Topic 15 saves to the Notebook.
+describe("Where you end up", () => {
+  it("shows the saved Amazon note under 'By the end, you value a company yourself.'", async () => {
+    const html = renderToStaticMarkup(await HomePage());
+    const section = /<section[^>]*data-site-section="end"[\s\S]*?<\/section>/.exec(html)?.[0] ?? "";
+    const text = words(section);
+    expect(text).toContain("Where you end up");
+    expect(text).toContain("By the end, you value a company yourself.");
+    expect(text).toContain("My Valuation story: Amazon, Feb 2000, against the price of 3 Feb 2000");
+    for (const line of ["How big it gets: revenue in year 10 $39bn", "Worth: $35 a share", "Price on 3 Feb 2000: $84", "Value from after year 10: 112%"]) expect(text).toContain(line);
+  });
+});
+
+// Issue #77: a privacy page and terms before a Visitor gives their email, a contact address they can copy, and a true
+// answer to "Do you track me?" that names every cookie the site sets.
+describe("Privacy, Terms and the contact address", () => {
+  it("are two public pages with one h1 each, titled and linked for the template", async () => {
+    const pages = [await PrivacyPage(), await TermsPage()].map((page) => renderToStaticMarkup(page));
+    expect(pages.map((html) => html.match(/<h1/g)?.length)).toEqual([1, 1]);
+    expect(pages.map(h1)).toEqual(["Privacy", "Terms"]);
+    expect([privacyMeta.title, termsMeta.title]).toEqual(["Privacy", "Terms"]);
+    expect([privacyMeta, termsMeta].map((m) => m.alternates?.canonical)).toEqual(["/privacy", "/terms"]);
+    for (const html of pages) expect(words(html)).toContain("hello@value-it.xyz");
+    // Public signed out, sent no-store like the other site pages, and listed for search engines (the sitemap, #70).
+    for (const path of ["/privacy", "/terms"]) expect(PUBLIC_PAGES.find((p) => p.path === path), path).toEqual({ path, site: true, sitemap: true });
+  });
+
+  it("the privacy page says what is kept, by whom, and the cookies", async () => {
+    const text = words(renderToStaticMarkup(await PrivacyPage()));
+    for (const name of ["Clerk", "Neon", "Vercel Web Analytics", "OpenAI", "__session", "__client_uat", "split", "sets no cookie"]) {
+      expect(text, name).toContain(name);
+    }
+  });
+
+  it("the footer links Privacy and Terms and shows the contact address as text, for every viewer", () => {
+    for (const viewer of [{ state: "visitor" }, member] as Viewer[]) {
+      const html = renderToStaticMarkup(<SiteFooter viewer={viewer} />);
+      expect(html).toMatch(/<a [^>]*href="\/privacy"[^>]*>Privacy<\/a>/);
+      expect(html).toMatch(/<a [^>]*href="\/terms"[^>]*>Terms<\/a>/);
+      expect(html).toMatch(/>hello@value-it\.xyz</);
+    }
+  });
+
+  it("the FAQ's \"Do you track me?\" names every cookie the site sets, and says Analytics sets none", async () => {
+    const { FAQ } = await import("@/site/copy");
+    const answer = FAQ.find((f) => f.q === "Do you track me?")!.a;
+    // Every cookie name the code defines (src/**: `export const X_COOKIE = "name"`), less the test bed's own, plus
+    // Clerk's sign-in cookies on the site and on its own address (clerk.value-it.xyz).
+    const defined = siteCookies();
+    expect(defined).toEqual(expect.arrayContaining(["split", "fa_access"]));
+    for (const name of [...defined, "__session", "__client_uat", "__client"]) expect(answer, name).toMatch(new RegExp(`\\b${name}\\b`));
+    expect(answer).toContain("Vercel Web Analytics");
+    expect(answer).toContain("It sets no cookie.");
+  });
+});
+
+/** The cookies the app's code names (`export const X_COOKIE = "name"` anywhere under src), the test bed's excepted. */
+function siteCookies(): string[] {
+  const names: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) {
+        for (const m of readFileSync(path, "utf8").matchAll(/export const (\w+)_COOKIE = "([^"]+)"/g)) {
+          if (!m[1].startsWith("E2E")) names.push(m[2]);
+        }
+      }
+    }
+  };
+  walk(join(process.cwd(), "src"));
+  return names.sort();
+}
 
 // #72: every count and Spine title on Home, About, How it works and Examples comes from the course outline.
 describe("the course counts", () => {
@@ -207,7 +300,7 @@ describe("the course counts", () => {
     expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves, in 10 to 15 minutes.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
-    expect(about).toContain("Topics 110 Subjects 9 Stages that read real arguments 3 Each Topic 10–15 min");
+    expect(about).toContain("Topics 110 Subjects 9 Stages that read real arguments 3 Price Free in early access");
     expect(about).toContain("Fifteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.");
     expect(about).toContain("Derivatives · 5");
     expect(about).toContain("Judge · 8");
@@ -244,7 +337,7 @@ describe("the course counts", () => {
     expect(how).toContain("in 10–14 minutes.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
-    expect(about).toContain("Each Topic 10–14 min");
+    expect(about).not.toContain("Each Topic"); // #75: no minutes until measured
     expect(about).toContain("Fourteen core Topics teach valuation in order.");
     expect(about).toContain("Derivatives · 4");
     expect(about).toContain("Judge · 9");
