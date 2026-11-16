@@ -8,6 +8,7 @@ import { saveOwnCase } from "@/learner/own-cases";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { ASSIGNMENT_SESSION_TOPIC, assignmentContext, runAssignmentTurn } from "./assignment-turn";
+import { TUTOR_MODEL } from "./model";
 import { CAP_MESSAGES, dailyUse } from "./quota";
 import { readSettings } from "./session-log";
 
@@ -108,6 +109,52 @@ describe("the AI Tutor in the Assignment", () => {
     expect(result.reply).toMatch(/operating margin/i);
     expect(result.reply).toMatch(/what story/i);
     expect(result.reply).not.toMatch(/cheap|buy/i);
+  });
+});
+
+// ADR 0007 (review G06): the Assignment's Session is kept current as the Study Tutor's is (turn.ts). After a TUTOR_MODEL
+// change its Session is closed and a fresh one made, so the turn never calls a model that is gone; after a deploy that
+// changed the instructions, they are refrozen in the same Session.
+describe("the Assignment's Session after a model or instructions change", () => {
+  const sessionsOf = (db: Db) => db.select().from(sessions).where(eq(sessions.learnerId, OWNER_LEARNER_ID)).orderBy(sessions.id);
+  const sent = (r: { messages: unknown }) => JSON.stringify(r.messages);
+
+  it("closes a Session frozen for an older model and runs the turn in a fresh one on TUTOR_MODEL", async () => {
+    const db = await testDb();
+    await readyLearner(db);
+    const { client, requests } = scriptedClient([text("Picture the old margin.\nWhat story does your operating margin assume?"), text(NAMES_MARGIN)]);
+    await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    const [first] = await sessionsOf(db);
+    // As if TUTOR_MODEL changed after this Session was frozen.
+    await db.update(sessions).set({ model: "gpt-6-sol" }).where(eq(sessions.id, first.id));
+
+    const result = await runAssignmentTurn(deps(db, client), "And now?");
+    expect(result).toMatchObject({ ok: true, reply: NAMES_MARGIN });
+    expect(requests[1].model).toBe(TUTOR_MODEL);
+    expect(sent(requests[1])).not.toContain("Picture the old margin.");
+    const [old, fresh] = await sessionsOf(db);
+    expect(old).toMatchObject({ id: first.id, older: true, model: "gpt-6-sol", topicId: ASSIGNMENT_SESSION_TOPIC });
+    expect(fresh).toMatchObject({ older: false, model: TUTOR_MODEL, topicId: ASSIGNMENT_SESSION_TOPIC });
+    if (result.ok) expect(result.sessionId).toBe(fresh.id);
+  });
+
+  it("refreezes changed instructions in the same Session, which keeps its history", async () => {
+    const db = await testDb();
+    await readyLearner(db);
+    const { client, requests } = scriptedClient([text("Picture the first reply.\nWhat story does your operating margin assume?"), text(NAMES_MARGIN)]);
+    await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    const [first] = await sessionsOf(db);
+    const current = { instructions: first.instructions, fingerprint: first.fingerprint };
+    // As if a deploy changed the instructions after this Session was frozen.
+    await db.update(sessions).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." }).where(eq(sessions.id, first.id));
+
+    await runAssignmentTurn(deps(db, client), "And now?");
+    expect(requests[1].instructions).toBe(current.instructions);
+    expect(sent(requests[1])).toContain("Picture the first reply.");
+    const all = await sessionsOf(db);
+    expect(all).toHaveLength(1);
+    expect(all[0]).toMatchObject({ id: first.id, older: false, fingerprint: current.fingerprint });
+    expect(all[0].refrozenAtSeq).toBeGreaterThan(0);
   });
 });
 

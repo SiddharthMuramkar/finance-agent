@@ -8,7 +8,7 @@ import { rangeCheck, type RangeFlag } from "@/markets/range-check";
 import type { Effort, Message, ModelClient } from "./model";
 import { CAP_MESSAGES, checkQuota } from "./quota";
 import { checkReply, correctionText, fixReply, type ReplyCheckContext, type ReplyProblem } from "./reply-checks";
-import { openLog, readSettings, sessionForTurn } from "./session-log";
+import { isOldModelSession, openLog, readSettings, refreezeIfChanged, retireOldModelSessions, sessionForTurn } from "./session-log";
 import { textOf } from "./transcript";
 import { BUSY_MESSAGE, startTurn, updateTurn } from "./turn-status";
 import { saveStepUsage, stepUsage } from "./usage";
@@ -95,7 +95,16 @@ export async function runAssignmentTurn(deps: AssignmentTurnDeps, message: strin
   const turn = await startTurn(db, now(), message, learnerId);
   if (!turn) return { ok: false, status: 409, error: BUSY_MESSAGE };
 
-  const session = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  // The Session's frozen model and instructions, kept current as the Study Tutor's are (turn.ts, ADR 0007): a Session
+  // frozen for an older TUTOR_MODEL is closed (it stays readable as an older Session) and a fresh one made, and a deploy
+  // that changed the instructions refreezes them in place. The refreeze sends earlier rows rebuilt (openLog); with no
+  // tools here there is no summary step to run.
+  let target = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  if (isOldModelSession(target)) {
+    await retireOldModelSessions(db, learnerId, ASSIGNMENT_SESSION_TOPIC);
+    target = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  }
+  const session = await refreezeIfChanged(db, target);
   const log = await openLog(db, session.id, now);
   const turnSeq = log.nextSeq;
   await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
