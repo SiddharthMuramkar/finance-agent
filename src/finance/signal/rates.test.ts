@@ -4,6 +4,14 @@ import { rateMove, rateMoveReadouts } from "./rates";
 // Signal spec §6.5 "One move, three sizes". Every expected value comes from the spec's acceptance table (§6.5.3)
 // and the QA checklist (§13 items 16 and 17), never from the formulas the module runs.
 describe("one rate move, three sizes (spec §6.5.3)", () => {
+  it("says the RBI's cut of 6 June 2025, 6% to 5.5%, is −0.5 points, −50 bp, down 8.33%, and read literally 0.03 points, to 5.97%", () => {
+    expect(rateMove(6, 5.5)).toEqual({ points: -0.5, basisPoints: -50, percentOfOld: -8.33, literal: { points: 0.03, target: 5.97 } });
+  });
+
+  it("QA 16: 6% to 4.50% is −1.5 points, −150 bp, down 25%, and read literally 0.09 points, to 5.91%", () => {
+    expect(rateMove(6, 4.5)).toEqual({ points: -1.5, basisPoints: -150, percentOfOld: -25, literal: { points: 0.09, target: 5.91 } });
+  });
+
   it("says 4% to 5% is 1 point, +100 bp, up 25%, and read literally only 0.04 points, to 4.04%", () => {
     expect(rateMove(4, 5)).toEqual({ points: 1, basisPoints: 100, percentOfOld: 25, literal: { points: 0.04, target: 4.04 } });
   });
@@ -32,6 +40,10 @@ describe("one rate move, three sizes (spec §6.5.3)", () => {
 
 // The facts grid under the chart (spec §6.5.2 "Readouts"): three cells, the same words the spec's table gives.
 describe("the rates readouts (spec §6.5.2)", () => {
+  it("words the RBI's cut, 6% to 5.5%, as down 0.5 points, −50 bp, down 8.33%", () => {
+    expect(rateMoveReadouts(6, 5.5)).toEqual({ howFar: "down 0.5 points", traders: "−50 bp", nextToOld: "down 8.33%" });
+  });
+
   it("words an up move of 1 point as the spec's first column does", () => {
     expect(rateMoveReadouts(4, 5)).toEqual({ howFar: "up 1 point", traders: "+100 bp", nextToOld: "up 25%" });
   });
