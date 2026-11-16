@@ -636,6 +636,56 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  // ——— The annual report Topic (#93, e2e/spine-annual-report.spec.ts): its first three turns, for the critics' round. Every
+  // figure is its Topic file's Amazon Case (Amazon's 10-K for 2000 next to Damodaran's story of February 2000).
+  /** The opener at Story: Amazon's 10-K is out, and six numbers matter. */
+  "ar-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "March 2001. Amazon files its annual report for 2000. A year earlier Aswath Damodaran, a valuation professor in New York, valued it at $35.08 a share against an $84 price. " +
+              "His story used $349 million of debt, $26 million of cash and 340.79 million shares. " +
+              "Six numbers in a report matter for a valuation: sales, operating profit, tax, debt, cash and shares.\n\n" +
+              "Which of the six would you look for first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Concept: two pages hold the six numbers, and names change from report to report. Code shows the Concept card. */
+  "ar-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Two pages hold a valuation's numbers. The income statement runs from sales at the top down to operating profit, what the business makes before interest and tax, and then tax. " +
+              "The balance sheet shows debt and cash on one day, and its note on share capital counts the shares. " +
+              "Names change: Zomato's report calls its sales revenue from operations.\n\n" +
+              "Where would you look for Amazon's debt?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Explore: the Value bridge on the Topic's Amazon Case, and the Insight question. */
+  "ar-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_ar_bridge", name: "show_widget", input: { recipe: "value_bridge", params: { title: "Put Amazon's 2000 report into the bridge", inputs: { case: "spine-ar-amazon-2000" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Here is his bridge from Amazon's business to one share. His debt and cash are where the bar opens. " +
+              "The 2000 report shows far more of both. Raise the debt to about the report's figure, then the cash, and watch one share.\n\n" +
+              "How far does a share move, and is that the number his value rested on?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;
