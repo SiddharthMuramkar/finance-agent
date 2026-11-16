@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { valuationCase } from "../finance/valuation-cases";
-import { blockRangeInputs, rangeCheck, yardstickIndustries } from "./range-check";
+import { blockRangeInputs, ownCaseRangeInputs, rangeCheck, usualRange, yardstickIndustries } from "./range-check";
 
 // The range check (spec #68, ticket #109; user story 83): each Own Case input is compared with its industry's yardsticks
-// from the Market readings, and an input far outside the usual range is named with the yardstick's date and source. It
+// from the Market readings, and an input far from its industry's figure is named with the yardstick's date and source. It
 // never calls a value right or wrong (spec voice rule 7). Seam 3: plain inputs in, flags out, no screen.
 
 const food = { market: "IN" as const, industry: "Food Processing" };
@@ -16,7 +16,7 @@ describe("the range check on an Own Case's inputs", () => {
     const [margin] = flags;
     expect(margin.side).toBe("above");
     expect(margin.value).toBe(45);
-    expect(margin.sentence).toBe("Your operating margin of 45% is far above Food Processing's usual 3.63% to 14.52% in India.");
+    expect(margin.sentence).toBe("Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it.");
     expect(margin.yardstick.id).toBe("in-food-margin");
     expect(margin.yardstick.date).toBe("2026-01-05");
     expect(margin.yardstick.sourceUrl).toBe("https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls");
@@ -28,8 +28,15 @@ describe("the range check on an Own Case's inputs", () => {
       ["sales_to_capital", "below"],
       ["cost_of_capital", "above"],
     ]);
-    expect(flags[0].sentence).toBe("Your sales to capital of 0.50 is far below Food Processing's usual 1.17 to 4.68 in India.");
-    expect(flags[1].sentence).toBe("Your cost of capital of 20% is far above Food Processing's usual 8.97% to 14.97% in India.");
+    expect(flags[0].sentence).toBe("Your sales to capital of 0.50 is far below Food Processing's 2.34 in India (Jan 2026): under half of it.");
+    expect(flags[1].sentence).toBe("Your cost of capital of 20% is far above Food Processing's 11.97% in India (Jan 2026): more than 3 points above it.");
+  });
+
+  it("never calls its band the industry's own range: the source prints one average, and the sentence quotes it with its month", () => {
+    const [flag] = rangeCheck({ marginPercent: 45 }, food);
+    expect(flag.sentence).not.toMatch(/usual|range|3\.63|14\.52/);
+    expect(flag.sentence).toContain("7.26% in India (Jan 2026)");
+    expect(usualRange(flag.yardstick)).toEqual({ low: 3.63, high: 14.52 });
   });
 
   it("never calls a value right or wrong, nor gives advice", () => {
@@ -46,11 +53,21 @@ describe("the range check on an Own Case's inputs", () => {
 
   it("takes the industry by its Market reading id too, as the Own Case form's industry pick names it", () => {
     const [flag] = rangeCheck({ marginPercent: 45 }, { market: "IN", industry: "food" });
-    expect(flag.sentence).toBe("Your operating margin of 45% is far above Food Processing's usual 3.63% to 14.52% in India.");
+    expect(flag.sentence).toBe("Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it.");
   });
 
   it("lists the industries an Own Case can be compared with", () => {
     expect(yardstickIndustries("IN")).toEqual(["Auto & Truck", "Food Processing", "Software (System & Application)", "Total Market (without financials)"]);
+  });
+});
+
+describe("the range check on an Own Case (F08)", () => {
+  it("reads the margin the Learner typed, not the engine's year 1, which is already half way to the target", () => {
+    // 4,500 of operating profit on 10,000 of sales: 45% typed. The block's year 1 would be about 26% (half way to 7.26%).
+    const inputs = ownCaseRangeInputs({ operatingProfit: 4500, sales: 10000 }, { salesToCapital: 2.34, costOfCapitalPercent: 11.97 });
+    expect(inputs).toEqual({ marginPercent: 45, salesToCapital: 2.34, costOfCapitalPercent: 11.97 });
+    const [flag] = rangeCheck(inputs, { market: "IN", industry: "food" });
+    expect([flag.input, flag.value]).toEqual(["operating_margin", 45]);
   });
 });
 
