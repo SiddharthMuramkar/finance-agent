@@ -9,7 +9,7 @@ import { navigate } from "@/course/navigator";
 import { finishForPlacement } from "@/behaviour/place";
 import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { getDb } from "@/db/client";
-import { insightAttempts, messages, reviewCards, sessions } from "@/db/schema";
+import { insightAttempts, libraryPassages, librarySources, messages, reviewCards, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
@@ -329,6 +329,35 @@ const HOME_CASH_OPTION: CaseDatasetInput = {
   points: [{ date: "2018-10-23", value: 877_784_124 }],
 };
 
+/**
+ * A Library passage for the test bed (spec #68, #84: the passage page on a phone), with the long, unbroken web address in
+ * its credit line that OpenStax asks for, the hardest thing on that page to fit at 360 px. Upserted, so a second call
+ * answers the same passage.
+ */
+async function longCreditPassage(db: Db) {
+  const credit =
+    "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax, Houston, Texas, 2026), CC BY-NC-SA 4.0. Access for free at https://openstax.org/books/principles-finance-2e/pages/1-why-it-matters";
+  const url = "https://openstax.org/books/principles-finance-2e/pages/1-1-what-is-finance";
+  await db
+    .insert(librarySources)
+    .values({ id: "e2e-openstax", title: "Principles of Finance 2e (test bed)", kind: "timeless", licence: "CC BY-NC-SA 4.0", licenceUrl: "https://creativecommons.org/licenses/by-nc-sa/4.0/", credit, url, fetchedOn: "2026-11-01" })
+    .onConflictDoNothing();
+  const [row] = await db
+    .insert(libraryPassages)
+    .values({
+      sourceId: "e2e-openstax",
+      ref: "1-1",
+      heading: "What Is Finance?",
+      url,
+      text: "Finance is the study of money. It asks how people and businesses raise, spend and save it over time. A business is worth the cash it will make, discounted back to today.",
+      licence: "CC BY-NC-SA 4.0",
+      credit,
+    })
+    .onConflictDoUpdate({ target: [libraryPassages.sourceId, libraryPassages.ref], set: { heading: "What Is Finance?" } })
+    .returning({ id: libraryPassages.id });
+  return { passageId: row.id };
+}
+
 export async function POST(request: Request) {
   if (!open()) return notFound();
   const learner = await currentLearner();
@@ -339,6 +368,7 @@ export async function POST(request: Request) {
     reset?: unknown;
     person?: unknown;
     caseData?: unknown;
+    passage?: unknown;
   };
 
   if (body.person !== undefined) return signInPerson(body.person);
@@ -346,6 +376,7 @@ export async function POST(request: Request) {
   // Spec 2026-11-12 E3: Case Data lives only in the private database, so the test bed seeds the one figure Home's
   // Explorable sets the jackpot against: the cash option, at the figure Present value's Topic file states.
   if (body.caseData === "home-cash-option") return NextResponse.json(await importCaseData(getDb(), [HOME_CASH_OPTION]));
+  if (body.passage === "long-credit") return NextResponse.json(await longCreditPassage(getDb()));
 
   if (body.script !== undefined) {
     if (!isE2eScript(body.script)) return NextResponse.json({ error: `No script "${String(body.script)}".`, scripts: Object.keys(E2E_SCRIPTS) }, { status: 400 });
