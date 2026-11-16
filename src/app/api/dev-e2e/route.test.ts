@@ -5,6 +5,7 @@ import { learners, messages, noteItems, OWNER_LEARNER_ID, reviewCards, sessionIt
 import type { Db } from "@/db/types";
 import { E2E_PEOPLE, E2E_PERSON_COOKIE, e2eIdentityFromCookie } from "@/dev/e2e-identity";
 import { loadProgress } from "@/learner/memory";
+import { reviewState } from "@/learner/review";
 import { testDb } from "@/test/pglite";
 import { loadCourseMap } from "@/course/map";
 import { spinePassed } from "@/course/navigator";
@@ -125,6 +126,15 @@ describe("the fixture route", () => {
       expect(session).toBeDefined();
       expect(await shownInWorkspace(as.db, loadCourseMap(), learnerId)).toEqual({ sessionId: session!.id });
       expect(items.at(-1)?.kind).toBe(TOPIC_COMPLETE);
+    });
+
+    // G05 (#83): the passed Topic's Session stays shown while a Review of its quiz question is due.
+    it("topic-complete-review-due shows the passed Topic's Session with a Review due", async () => {
+      const { learnerId, session, items } = await seed("topic-complete-review-due");
+      expect((await loadProgress(as.db, learnerId)).topics["num-percent-bps"]?.status).toBe("passed");
+      expect(await shownInWorkspace(as.db, loadCourseMap(), learnerId)).toEqual({ sessionId: session!.id });
+      expect(items.at(-1)?.kind).toBe(TOPIC_COMPLETE);
+      expect((await reviewState(as.db, loadCourseMap(), new Date(), learnerId)).question).toBeTruthy();
     });
 
     // #481, spec §8.3: "reply with Story scene, Lingo card, Choices, Course Map, Notebook, a wrong-choice mix-up fix".

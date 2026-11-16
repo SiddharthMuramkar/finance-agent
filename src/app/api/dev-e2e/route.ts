@@ -198,6 +198,22 @@ const STATES: Record<string, Build> = {
     await saveShownSession(db, learnerId, session.id);
   },
   /**
+   * The passed Topic still on screen (as topic-complete) while a spaced Review of its own quiz question is due (as
+   * review-due): a phone reaches that Review from the conversation's sheet entries (G05, #83).
+   */
+  "topic-complete-review-due": async (db, map, learnerId, now) => {
+    await STATES["review-due"](db, map, learnerId, now);
+    await walk(db, map, learnerId, now, TOPIC, (step) => step === "reveal");
+    await turn(db, map, learnerId, "reveal-reply", "What did the Fed do?");
+    await walk(db, map, learnerId, now, TOPIC, () => false);
+    const session = await liveSession(db, learnerId, TOPIC);
+    if (!session) throw new Error(`${TOPIC} has no live Session.`);
+    if (!(await storeTopicComplete(db, map, learnerId, session.id, now))) throw new Error(`${TOPIC} stored no Topic complete card.`);
+    await saveShownSession(db, learnerId, session.id);
+    await db.update(reviewCards).set({ due: new Date(now.getTime() - 86_400_000) }).where(eq(reviewCards.learnerId, learnerId));
+    if (!(await reviewState(db, map, now, learnerId)).question) throw new Error(`${TOPIC}'s passed page has no Review due.`);
+  },
+  /**
    * F1 matrix (#481, §8.3 "reply with Story scene"): a Story reply that code gives the step's written-ahead scene. The
    * Learner presses a Choice: an own question's reply gets no Companion Widget (B6, ADR 0008).
    */
