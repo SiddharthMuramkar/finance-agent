@@ -16,10 +16,6 @@ export const MAX_NEW_WORDS = 4;
 
 /** Spine Topics that bring more than four new words. */
 export const NEW_WORDS_NOT_YET: readonly string[] = [
-  "spine-04-growth",
-  "spine-05-margins",
-  "spine-06-growth-cost",
-  "spine-07-risk",
   "spine-09-to-one-share",
   "spine-10-survival",
   "spine-11-story-to-numbers",
@@ -28,9 +24,6 @@ export const NEW_WORDS_NOT_YET: readonly string[] = [
 
 /** Spine Topics with a Check that asks for the Learner's own story. */
 export const OWN_STORY_NOT_YET: readonly string[] = [
-  "spine-05-margins",
-  "spine-06-growth-cost",
-  "spine-07-risk",
   "spine-10-survival",
   "spine-11-story-to-numbers",
   "spine-14-being-wrong",
@@ -45,11 +38,6 @@ export const YOUR_STORY_NOT_YET: readonly string[] = [
 
 /** Spine Topics with no daily-life line. */
 export const DAILY_LIFE_NOT_YET: readonly string[] = [
-  "spine-04-growth",
-  "spine-05-margins",
-  "spine-06-growth-cost",
-  "spine-07-risk",
-  "spine-08-far-future",
   "spine-09-to-one-share",
   "spine-10-survival",
   "spine-11-story-to-numbers",

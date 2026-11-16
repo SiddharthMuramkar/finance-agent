@@ -40,15 +40,24 @@ const SPINE_OF = {
 /** #93's three-turn play of the annual report Topic (e2e/spine-annual-report.spec.ts). */
 const annualReport = map.topic("spine-annual-report")!;
 const isReport = (name: E2eScriptName) => name.startsWith("ar-");
+/** #95's three-turn plays of Spine Topics 4, 5, 6 and 9 (e2e/spine-04-09.spec.ts), by script prefix. */
+const BEGINNER_OF = { "growth-": "spine-04-growth", "margins-": "spine-05-margins", "gcost-": "spine-06-growth-cost", "far-": "spine-08-far-future" } as const;
+const beginnerTopic = (name: E2eScriptName) => {
+  const id = Object.entries(BEGINNER_OF).find(([prefix]) => name.startsWith(prefix))?.[1];
+  return id ? map.topic(id) : undefined;
+};
+/** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts), and #95's. */
+const splitTopic = (name: E2eScriptName) =>
+  name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : beginnerTopic(name);
 const topicOf = (name: E2eScriptName) =>
-  isReport(name) ? annualReport : (Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic));
+  isReport(name) ? annualReport : (splitTopic(name) ?? Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic));
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
   const t = topicOf(name);
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
-    exampleCurrency: isSpine(name) || isReport(name) ? "USD" : "INR",
+    exampleCurrency: isSpine(name) || isReport(name) || splitTopic(name) ? "USD" : "INR",
     caseCurrencies: ["USD"],
     openItems: name === "quiz-open" ? openItems : isSpine(name) && checkStep ? spineItems : [],
     internalWords: [t.id, ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)],
@@ -62,9 +71,24 @@ describe("the scripted Tutor", () => {
       "ar-explore",
       "ar-story",
       "assignment-flag",
+      "coc-concept",
+      "coc-explore",
+      "coc-story",
       "concept-percent-change",
       "concept-reply-widget",
       "concept-two-ways",
+      "far-concept",
+      "far-explore",
+      "far-story",
+      "gcost-concept",
+      "gcost-explore",
+      "gcost-story",
+      "growth-concept",
+      "growth-explore",
+      "growth-story",
+      "margins-concept",
+      "margins-explore",
+      "margins-story",
       "persona-bank-cut",
       "persona-bps-short",
       "persona-one-hundred",
@@ -72,6 +96,9 @@ describe("the scripted Tutor", () => {
       "persona-why-tiny",
       "plain-reply",
       "quiz-open",
+      "rate-concept",
+      "rate-explore",
+      "rate-story",
       "rejected-draft",
       "reveal-reply",
       "reveal-reply-widget",
@@ -263,5 +290,33 @@ describe("the annual report Topic's scripted Tutor (#93)", () => {
     // Critics round 1 (#94): no word a beginner can't read in the turn. The Cases gloss yuho and IFRS; this line names the
     // reports in plain words (and Nintendo's Case is its results, the kessan tanshin, not the yuho).
     expect(said).not.toMatch(/yuho|IFRS|kessan tanshin/);
+  });
+});
+
+describe("Spine Topics 4 to 9's scripted Tutor after the critics round (#95)", () => {
+  const flat = (t: string) => t.replace(/\s+/g, " ");
+  const growth = map.topic("spine-04-growth")!;
+
+  it("says Uber takes its slice of each fare as its fee, as the Topic does, and leaves 'keeps' for the margin", () => {
+    for (const name of ["growth-story", "growth-concept"] as const) {
+      const said = draftOf(name).text;
+      expect(said).toMatch(/takes (20% )?of each (fare|sale) (it takes )?as its fee|slice of each sale it takes as its fee/);
+      expect(said).not.toMatch(/(slice|20%) of each (fare|sale) it keeps|keeps 20% of each fare/);
+    }
+    expect(flat(growth.concept ?? "")).toContain("takes as its fee");
+  });
+
+  it("names the margin lever's marks by their own labels at Explore", () => {
+    const marks = (map.topic("spine-05-margins")!.explore?.workbench?.inputs.mode as { marks: { label: string }[] }).marks;
+    const said = draftOf("margins-explore").text.toLowerCase();
+    expect(said).toContain("tech giants together");
+    expect(said).toContain("toyota");
+    expect(said).toContain("median carmaker");
+    expect(marks.map((m) => m.label)).toContain("Tech giants together");
+    expect(said).not.toContain("median technology company");
+  });
+
+  it("names the seesaw's far side as the seesaw labels it, after year 10", () => {
+    expect(draftOf("far-explore").text).toContain("after year 10");
   });
 });

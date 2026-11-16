@@ -320,13 +320,14 @@ describe("the real outline", () => {
     expect(indian.length).toBeGreaterThanOrEqual(25);
   });
 
-  // Spec 2026-11-12 C4 and Appendix D, with spec #68's splits (#90: the three financial statements after the cash Topic):
-  // the Spine Topics, each titled by the question it answers, built from the Topics Appendix D names, on the Cases C4 names. Expected values are the spec's tables, not the outline read back.
+  // Spec 2026-11-12 C4 and Appendix D, with spec #68's splits (#90: the three financial statements after the cash Topic; #91: the
+  // risk Topic and the cost of capital): the Spine Topics, each titled by the question it answers, built from the Topics Appendix D
+  // names, on the Cases C4 names. Expected values are the spec's tables, not the outline read back.
   describe("the Spine", () => {
     const spine = spineTopics(outline!);
     const byNumber = (n: number) => spine.find((t) => t.spine === n)!;
 
-    it("has the Topics in C4's order, the three statements after the cash Topic (#90), each titled by its question", () => {
+    it("has the Topics in C4's order, the three statements after the cash Topic (#90), the cost of capital after the risk Topic (#91), each titled by its question", () => {
       expect(spine.map((t) => [t.spine, t.id])).toEqual([
         [1, "spine-01-worth"],
         [2, "spine-02-money-later"],
@@ -336,34 +337,37 @@ describe("the real outline", () => {
         [6, "spine-05-margins"],
         [7, "spine-06-growth-cost"],
         [8, "spine-07-risk"],
-        [9, "spine-08-far-future"],
-        [10, "spine-09-to-one-share"],
-        [11, "spine-10-survival"],
-        [12, "spine-11-story-to-numbers"],
-        [13, "spine-12-price-or-value"],
-        [14, "spine-13-price-assumes"],
-        [15, "spine-14-being-wrong"],
-        [16, "spine-15-value-yourself"],
-        [17, "spine-annual-report"],
+        [9, "spine-cost-of-capital"],
+        [10, "spine-08-far-future"],
+        [11, "spine-09-to-one-share"],
+        [12, "spine-10-survival"],
+        [13, "spine-11-story-to-numbers"],
+        [14, "spine-12-price-or-value"],
+        [15, "spine-13-price-assumes"],
+        [16, "spine-14-being-wrong"],
+        [17, "spine-15-value-yourself"],
+        [18, "spine-annual-report"],
       ]);
       expect(byNumber(1).title).toBe("What is a business worth? Price against value, and the four levers");
       expect(byNumber(2).title).toBe("Why is money later worth less?");
       expect(byNumber(4).title).toBe("What do the three financial statements show?");
-      expect(byNumber(14).title).toBe("What does the price assume?");
-      expect(byNumber(16).title).toBe("Judge a published valuation, as of a past date");
-      expect(byNumber(17).title).toBe("Where are a valuation's numbers in an annual report?");
+      expect(byNumber(8).title).toBe("Risk: what return should shareholders require?");
+      expect(byNumber(9).title).toBe("What does all of a company's money cost?");
+      expect(byNumber(15).title).toBe("What does the price assume?");
+      expect(byNumber(17).title).toBe("Judge a published valuation, as of a past date");
+      expect(byNumber(18).title).toBe("Where are a valuation's numbers in an annual report?");
     });
 
     // #93: the Spine ends on finding a valuation's numbers in an annual report, which leads into the Assignments. This branch
-    // holds 17 Spine Topics (#90's statements Topic is 4th); with #91's split the Spine is 18, and the merger sets SPINE_LENGTH and this to 18.
+    // holds 18 Spine Topics (#90's statements Topic is 4th, #91's cost of capital 9th), and SPINE_LENGTH is 18.
     it("ends on the annual report Topic, and the course check holds the Spine to its length", () => {
       expect(spine.at(-1)?.id).toBe("spine-annual-report");
-      expect(spine.length).toBe(17);
+      expect(spine.length).toBe(18);
       expect(spineCountProblems(outline!)).toEqual([]);
     });
 
     it("finds the numbers in one annual report from each of the US, India, Japan, Korea and Europe, from the filings themselves (#93, #94)", () => {
-      const cases = byNumber(17).cases;
+      const cases = byNumber(18).cases;
       expect(cases.map((c) => c.asOf)).toEqual(["2001-03-23", "2022-08-05", "2025-05-08", "2025-03-11", "2025-03-25"]);
       expect(cases[0].sources).toContain("https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt");
       expect(cases[1].sources).toContain("https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf");
@@ -375,22 +379,24 @@ describe("the real outline", () => {
 
     it("says how long each takes: ten minutes for the first, fifteen for the last, none over fifteen (C2, C5)", () => {
       expect(byNumber(1).minutes).toBe(10);
-      expect(byNumber(16).minutes).toBe(15);
-      for (const t of spine.slice(1, 15)) expect(t.minutes).toBeGreaterThanOrEqual(12);
+      expect(byNumber(17).minutes).toBe(15);
+      for (const t of spine.slice(1, 17)) expect(t.minutes).toBeGreaterThanOrEqual(12);
       for (const t of spine) expect(t.minutes).toBeLessThanOrEqual(15);
     });
 
     it("draws on the Topics Appendix D names", () => {
       expect(byNumber(1).drawsOn).toEqual(["val-dcf", "fol-tesla-2020", "fol-twitter-ipo"]);
       expect(byNumber(4).drawsOn).toEqual(["fs-income", "fs-balance", "fs-cashflow", "fs-links"]);
-      expect(byNumber(8).drawsOn).toEqual(["risk-capm", "cf-wacc", "risk-portfolio", "bond-credit-spreads", "num-percent-bps"]);
-      expect(byNumber(16).drawsOn).toEqual(["ana-build-valuation", "val-india"]);
-      expect(usedInSpine(outline!).get("val-dcf")).toEqual([1, 9, 10]);
+      // #91 split Topic 7's list: the cost of equity draws on CAPM and spreading risk, the cost of capital on the rest.
+      expect(byNumber(8).drawsOn).toEqual(["risk-capm", "risk-portfolio"]);
+      expect(byNumber(9).drawsOn).toEqual(["cf-wacc", "bond-credit-spreads", "num-percent-bps"]);
+      expect(byNumber(17).drawsOn).toEqual(["ana-build-valuation", "val-india"]);
+      expect(usedInSpine(outline!).get("val-dcf")).toEqual([1, 10, 11]);
     });
 
-    it("runs Amazon in February 2000 through Topics 1, 8, 9, 10, 14 and one choice in 16", () => {
+    it("runs Amazon in February 2000 through Topics 1, 8, 9, 10, 11, 15 and one choice in 17", () => {
       const amazon = spine.filter((t) => t.cases.some((c) => /amazon/i.test(c.title) && c.asOf === "2000-02-01")).map((t) => t.spine);
-      expect(amazon).toEqual([1, 8, 9, 10, 14, 16]);
+      expect(amazon).toEqual([1, 8, 9, 10, 11, 15, 17]);
     });
 
     it("copies each Case it reuses from its Elective entry, sources and all", () => {
@@ -398,11 +404,11 @@ describe("the real outline", () => {
       // The Spine copies title, as-of date, outcome, sources and verified; the Elective keeps its research note.
       expect(byNumber(1).cases).toEqual(elective("val-dcf").map((c) => ({ title: c.title, asOf: c.asOf, outcome: c.outcome, sources: c.sources, verified: c.verified })));
       expect(byNumber(2).cases[0].title).toBe("The $1.537 billion Mega Millions jackpot");
-      expect(byNumber(11).cases[0].title).toBe("Coffee Day Enterprises in July 2019");
+      expect(byNumber(12).cases[0].title).toBe("Coffee Day Enterprises in July 2019");
     });
 
-    it("offers Zomato's IPO in Topic 16, verified from its research, beside Coffee Day in rupees", () => {
-      const cases = byNumber(16).cases;
+    it("offers Zomato's IPO in Topic 17, verified from its research, beside Coffee Day in rupees", () => {
+      const cases = byNumber(17).cases;
       expect(cases.map((c) => c.title)).toEqual(["Judge a published value for Amazon.com", "Coffee Day's IPO, in rupees and in dollars", "Zomato's IPO, valued in rupees"]);
       // Damodaran's Rs 40.79 against the Rs 76 offer: docs/research/verify-zomato-2021.json reproduces it from sources, so it is verified.
       expect(cases[2]).toMatchObject({ asOf: "2021-07-21", verified: true });

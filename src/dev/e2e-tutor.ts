@@ -865,6 +865,373 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  // ——— The split of Topic 7 (#91, e2e/spine-rate-split.spec.ts): the first three turns of the risk Topic (the cost of
+  // equity) and of the cost-of-capital Topic, for the critics' round. Every figure is its Topic file's Case.
+  /** The risk Topic's opener at Story: what Amazon's shareholders should require. */
+  "rate-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor in New York, is valuing the company. " +
+              "To value its future cash he needs the return its shareholders should require, for waiting and for the risk they bear. " +
+              "A safe US Treasury bond pays 6.5%. Amazon's shares swing far more than the market does, " +
+              "though with only two years of prices nobody can say exactly how much.\n\n" +
+              "Would you ask more of Amazon's shares than of a safe bond?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The risk Topic's Concept: the cost of equity in layers. Code shows the Concept card. */
+  "rate-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "What shareholders require is the cost of equity, built in layers. " +
+              "Start with what a safe bond pays. Add a premium for holding average shares, scaled by how far Amazon's shares move with the market; that number is called beta. " +
+              "His own rough measure of beta is shaky, so he trusts the steadier average of internet retailers. " +
+              "Only the risk that holding many shares cannot spread away earns that premium.\n\n" +
+              "Which layer looks hardest to pin down?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The risk Topic's Explore: the Cost of capital stack on Amazon's Case, and the Insight question. */
+  "rate-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_rate_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What rate for Amazon?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1.6,
+                    debtShare: 1.2,
+                    costOfDebt: 8,
+                    taxRate: 0,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: {
+                    lead: "equity",
+                    marks: [
+                      { relativeRisk: 2.29, label: "his measure" },
+                      { relativeRisk: 1, label: "a retailer" },
+                    ],
+                  },
+                  case: "spine-07-amazon-rate",
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
+      {
+        content: [
+          text(
+            "Here are his layers as a stack, with what a share is worth at that rate. Amazon borrows almost nothing, so the whole rate is nearly its cost of equity. " +
+              "Move relative risk up to his rough measure, then down to a plain retailer's, and watch the value against the $84 price.\n\n" +
+              "Can any beta bring the value near the $84 price, and what does that say?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's opener at Story: lenders put in some of the money too. */
+  "coc-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Damodaran has worked out what Amazon's shareholders should require: 12.90% a year. " +
+              "But lenders put in some of Amazon's money too, and they charge interest. " +
+              "Their part is tiny, only 1.2% of the money. Amazon makes losses, so its interest saves it no tax yet. " +
+              "By year ten he expects it to borrow more, like a traditional retailer.\n\n" +
+              "Whose return do you think matters most for the rate on all of Amazon's money?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's Concept: the blend, the tax saving, and the WACC named once. Code shows the Concept card. */
+  "coc-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "The cost of capital blends what shareholders and lenders each require, by how much of the money each puts in. " +
+              "Debt counts after its tax saving: interest comes off profit before tax, so a company that pays tax pays less for each dollar of interest. " +
+              "Analysts call this blend the WACC, short for weighted average cost of capital.\n\n" +
+              "Why might lenders ask for less than shareholders do?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's Explore: the stack at mature Amazon's figures, and the Insight question. */
+  "coc-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_coc_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What does mature Amazon's money cost?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1,
+                    debtShare: 15,
+                    costOfDebt: 7,
+                    taxRate: 35,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: { lead: "debt" },
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
+      {
+        content: [
+          text(
+            "Here is his mature Amazon of year ten. Grown up, it is as risky as an average share, so shareholders ask less of it, 10.50%. " +
+              "And now it pays tax, so its debt costs under half that after tax. " +
+              "Move the share of debt down to none, then back up to where he set it.\n\n" +
+              "Does the cost of capital move a lot or a little when debt goes to none, and why?",
+          ),
+        ],
+      },
+    ],
+  },
+  // ——— Spine Topics 4 to 9 for beginners (#95, e2e/spine-04-09.spec.ts): the first three turns of the growth, margins,
+  // growth-cost and far-future Topics, for the critics' round. Every figure is its Topic file's Case. Code opens each
+  // Topic's explore Workbench, so the explore replies only point at it.
+  /** The growth Topic's opener at Story: a professor's value against the venture price. */
+  "growth-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "June 2014. Investors led by the fund manager Fidelity put $1.2 billion into Uber at a price of $17 billion for the whole company. " +
+              "Days later Aswath Damodaran, a valuation professor, valued it at about $5.9 billion as a car-service company. " +
+              "His story: taxis and car services take about $100 billion of fares a year, Uber wins 10% of them, and it takes 20% of each fare as its fee. " +
+              "An investor answers that the market is far bigger once people give up owning cars.\n\n" +
+              "Who do you think is right about how big Uber can get?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth Topic's Concept: market, share and slice. Code shows the Concept card. */
+  "growth-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Revenue years from now is a story in three parts: the total market, the market share the company wins, and its take rate, the slice of each sale it takes as its fee. " +
+              "A market can be taxis today, or every trip people take instead of driving. " +
+              "A young company has small revenue now, so the market it can win moves its value most.\n\n" +
+              "Which of the three parts would you argue about first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth Topic's Explore: Value levers in market mode, opened by code. */
+  "growth-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Uber, starting from his story: a fifth of $100 billion of fares, growing 6% a year. " +
+              "Keep everything else where he set it and switch to the market three times bigger, then watch the value against the venture price.\n\n" +
+              "What are the professor and the investors really disagreeing about?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The margins Topic's opener at Story: what will Tesla keep? */
+  "margins-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2020. Tesla sold $24.6 billion of cars and more in 2019, and kept almost none of it as operating profit. " +
+              "Its shares closed at $748.96, while Damodaran had valued it at about $427 a share. " +
+              "In 2019 the median global carmaker kept 3.01% of its sales, and Toyota, the best of the large ones, kept 8.46%. " +
+              "The median technology company kept 10.25%.\n\n" +
+              "Is Tesla a carmaker or a technology company, do you think?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The margins Topic's Concept: what a company keeps, and what rivals let it keep. Code shows the Concept card. */
+  "margins-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "The operating margin is the share of each sale a company keeps after its running costs, before interest and tax. " +
+              "When a business keeps a lot, rivals copy it and cut prices, so margins drift towards the industry median. " +
+              "Staying above every rival needs a competitive edge they cannot copy, such as a brand or software.\n\n" +
+              "What edge might let Tesla keep more than other carmakers?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The margins Topic's Explore: Value levers with margin marks, opened by code. */
+  "margins-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Tesla, with marks on the margin lever for what others keep: the median carmaker, Toyota, the tech giants together. " +
+              "Move what Tesla keeps from one mark to the next and watch the value against the price of the day.\n\n" +
+              "What kind of company does that price ask Tesla to be?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth-cost Topic's opener at Story: Webvan's plan to build more centres. */
+  "gcost-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "March 2000. Webvan, an online grocer, delivers from one centre in Oakland built for the volume of about 18 supermarkets, and it runs at under 25% of that. " +
+              "In 1999 it sold $13.3 million and lost $144.6 million. " +
+              "Its plan is up to 26 more centres over three years, at $30 million to $35 million each. " +
+              "Webvan says a full centre would keep 12% of its sales as operating profit, where a supermarket keeps about 4%.\n\n" +
+              "Would you lend Webvan the money for the next centre?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth-cost Topic's Concept: reinvestment and the return on capital. Code shows the Concept card. */
+  "gcost-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A company cannot grow for free: more sales need warehouses, trucks and systems first. " +
+              "The money it puts back is its reinvestment; sales to capital says how many dollars of new sales each dollar brings. " +
+              "Growth adds value only when the return on capital is above what that money costs. Below it, growing faster loses more.\n\n" +
+              "What would you want to know about a new Webvan centre before it is built?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The growth-cost Topic's Explore: Value levers in return-on-capital mode, opened by code. */
+  "gcost-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Webvan on its own claims, with levers for growth, margin and sales for each dollar invested. " +
+              "Make Webvan bigger, then try again with a supermarket's margin and the fewest sales for each dollar.\n\n" +
+              "When does getting bigger help Webvan's shareholders?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The far-future Topic's opener at Story: Amazon's years after the forecast. */
+  "far-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares cost $84, and Damodaran forecasts its cash for ten years. " +
+              "In his story Amazon spends heavily to grow, loses cash in each of the first six years, and only turns cash-positive in year 7. " +
+              "Nobody can forecast year 11, year 30 or year 60 one by one, so for everything after year 10 he sets a few things once: Amazon grows 6% a year for ever, and investors want 9.61% a year.\n\n" +
+              "Where do you think most of his value comes from: the ten years he forecasts, or the years after?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The far-future Topic's Concept: terminal value. Code shows the Concept card. */
+  "far-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A forecast period covers a few years, usually ten, but a business can run for decades. " +
+              "Terminal value packs every later year into one lump at year 10, brought back to today like any other cash. " +
+              "Two settings drive it: stable growth, which cannot beat the economy for ever, and the cost of capital after year 10.\n\n" +
+              "Why might growth for ever have to be modest?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The far-future Topic's Explore: the terminal seesaw on Amazon's Case, opened by code. */
+  "far-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Amazon's value as a seesaw: the forecast years on one side, the years after year 10 on the other. " +
+              "Look at where the weight sits, then move the two far-future settings and watch both sides.\n\n" +
+              "Which side of the seesaw holds more of Amazon's value?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;

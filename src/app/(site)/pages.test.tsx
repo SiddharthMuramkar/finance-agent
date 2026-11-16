@@ -91,7 +91,7 @@ describe("Home", () => {
     expect(html).toMatch(/data-widget="jackpot" data-case="kerala-bumper-2024"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
-    expect(text).toContain("112 Topics wait inside.");
+    expect(text).toContain("113 Topics wait inside.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
@@ -182,7 +182,7 @@ describe("About", () => {
   it("says the valuations are Damodaran's published work and that Value It is not affiliated", async () => {
     const text = words(renderToStaticMarkup(await AboutPage()));
     expect(text).toContain("The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.");
-    expect(text).toContain("Topics 112");
+    expect(text).toContain("Topics 113");
     expect(text).toContain("Do you track me?");
   });
 
@@ -299,36 +299,37 @@ function siteCookies(): string[] {
 
 // #72: every count and Spine title on Home, About, How it works and Examples comes from the course outline.
 describe("the course counts", () => {
-  it("read the Spine's length from the outline: 17 Topics with #93's annual report Topic last and #90's statements Topic fourth", async () => {
+  it("read the Spine's length from the outline: 18 Topics with #90's statements Topic fourth, #91's cost of capital ninth and #93's annual report Topic last", async () => {
     const home = words(renderToStaticMarkup(await HomePage()));
-    expect(home).toContain("112 Topics wait inside. 17 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
+    expect(home).toContain("113 Topics wait inside. 18 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
     expect(home).toContain("One real event. Four moves.");
     expect(home).toContain("Five Examples, open now");
 
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
     expect(how).toContain("taught in four moves .");
-    expect(how).toContain("17 core Topics 01 What is a business worth? Price against value, and the four levers 02 Why is money later worth less?");
+    expect(how).toContain("18 core Topics 01 What is a business worth? Price against value, and the four levers 02 Why is money later worth less?");
     expect(how).toContain("04 What do the three financial statements show?");
-    expect(how).toContain("16 Judge a published valuation, as of a past date");
-    expect(how).toContain("17 Where are a valuation's numbers in an annual report?");
+    expect(how).toContain("09 What does all of a company's money cost?");
+    expect(how).toContain("17 Judge a published valuation, as of a past date");
+    expect(how).toContain("18 Where are a valuation's numbers in an annual report?");
     expect(how).toContain("9 subjects Numbers & time value 6 Financial statements 11 Economics & policy 11 Bonds & credit 7 Currencies & countries 4 Markets & investing 9 Valuation & corporate finance 12 Derivatives 5 Banks, crises & the system 7");
     expect(how).toContain("3 stages that read real arguments Follow , understand what a writer argues 9 Judge , spot where an argument is weak 8 Analyse , reach your own view from the numbers 6");
     expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves.");
 
     const about = words(renderToStaticMarkup(await AboutPage()));
-    expect(about).toContain("Topics 112 Subjects 9 Stages that read real arguments 3 Price Free in early access");
-    expect(about).toContain("Seventeen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.");
+    expect(about).toContain("Topics 113 Subjects 9 Stages that read real arguments 3 Price Free in early access");
+    expect(about).toContain("Eighteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.");
     expect(about).toContain("Derivatives · 5");
     expect(about).toContain("Judge · 8");
 
     const examples = words(renderToStaticMarkup(await ExamplesPage()));
     expect(examples).toContain("Five Examples from the course, playable here.");
-    expect(examples).toContain("112 Topics wait inside. 17 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
+    expect(examples).toContain("113 Topics wait inside. 18 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
     expect(examplesMeta.description).toBe("Five Examples from the course, playable here.");
   });
 
   it("change on every page when the Spine changes in the course", async () => {
-    // The outline with its last three Spine Topics (15, 16 and #93's annual report Topic) dropped, Spine Topic 3 retitled, and one
+    // The outline with its last four Spine Topics (from 15 to #93's annual report Topic) dropped, Spine Topic 3 retitled, and one
     // Derivatives Elective moved to Judge.
     const raw = parse(readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8")) as { topics: Record<string, unknown>[] };
     const topics = raw.topics.filter((t) => !(typeof t.spine === "number" && t.spine >= 15));
