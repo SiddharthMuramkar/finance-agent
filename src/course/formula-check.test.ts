@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calculate } from "@/finance/calculators";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
+import { rawFormulaHits } from "@/finance/raw-formula";
 import { formulaCheckErrors, NOT_YET_CONVERTED, typedFormulas } from "./formula-check";
 import { convertedTopic } from "./lesson-fixture";
 import { loadCourseMap, type Topic } from "./map";
@@ -35,6 +36,17 @@ describe("the typed-formula course check", () => {
     expect(typedFormulas(behind)).toEqual([]);
     const inPrinciple = { ...behind, principle: "Keep this: PV = amount / (1 + r)^n." };
     expect(formulaCheckErrors([inPrinciple], []).join("\n")).toContain("principle");
+  });
+
+  it("the bonds, derivatives and markets Topics keep their typed formulas only behind Go deeper (#99)", () => {
+    const behindGoDeeper = ["der-forwards", "der-option-pricing", "der-rates-fx", "der-hedging", "eq-history", "risk-portfolio", "risk-capm"];
+    const wordedOnly = ["mkt-efficiency", "mkt-behavioural", "mkt-ipo-float", "real-assets"];
+    for (const id of [...behindGoDeeper, ...wordedOnly]) {
+      const topic = map.topic(id)!;
+      expect(NOT_YET_CONVERTED, id).not.toContain(id);
+      expect(typedFormulas(topic), id).toEqual([]);
+    }
+    for (const id of behindGoDeeper) expect(rawFormulaHits(map.topic(id)!.goDeeper ?? ""), id).not.toEqual([]);
   });
 
   it("lets a listed Topic type formulas, but makes a converted one come off the list", () => {
