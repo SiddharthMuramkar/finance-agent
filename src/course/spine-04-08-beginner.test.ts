@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BEGINNER_LISTS, beginnerCheckErrors, type BeginnerLists } from "./beginner-check";
+import { BEGINNER_LISTS, beginnerCheckErrors } from "./beginner-check";
 import { loadCourseMap } from "./map";
 
 // Spine Topics "how big can it get" and "the years you cannot forecast" for beginners (#95, spec #68): each brings at
@@ -13,13 +13,15 @@ const FAR = "spine-08-far-future";
 const growth = map.topic(GROWTH)!;
 const far = map.topic(FAR)!;
 
-/** BEGINNER_LISTS with these Topics deleted from every list, as the combiner will write them. */
-const without = (...ids: string[]): BeginnerLists => ({
-  newWords: BEGINNER_LISTS.newWords.filter((id) => !ids.includes(id)),
-  ownStory: BEGINNER_LISTS.ownStory.filter((id) => !ids.includes(id)),
-  yourStory: BEGINNER_LISTS.yourStory.filter((id) => !ids.includes(id)),
-  dailyLife: BEGINNER_LISTS.dailyLife.filter((id) => !ids.includes(id)),
-});
+/** Spine Topics 4 to 9 (#95), by id: the outline numbers them, the ids keep their old prefixes. */
+const SPINE_4_TO_9 = [
+  "spine-04-growth",
+  "spine-05-margins",
+  "spine-06-growth-cost",
+  "spine-07-risk",
+  "spine-cost-of-capital",
+  "spine-08-far-future",
+];
 
 describe("Spine Topics 'how big can it get' and 'the years you cannot forecast', for beginners", () => {
   it("bring at most four new words each, with life cycle moved to Go deeper", () => {
@@ -40,13 +42,20 @@ describe("Spine Topics 'how big can it get' and 'the years you cannot forecast',
     expect([...growth.checks, ...far.checks].some((c) => c.required)).toBe(false);
   });
 
-  it("follow every beginner rule, so the combiner can delete them from the lists", () => {
-    const errors = beginnerCheckErrors(map.topics, { lists: without(GROWTH, FAR) });
-    expect(errors.filter((e) => e.includes(GROWTH) || e.includes(FAR))).toEqual([]);
+});
+
+describe("Spine Topics 4 to 9 for beginners (#95)", () => {
+  it("are Spine Topics 4 to 9 in the outline", () => {
+    expect(SPINE_4_TO_9.map((id) => map.topic(id)?.spine)).toEqual([4, 5, 6, 7, 8, 9]);
   });
 
-  it("leave the risk and cost-of-capital Topics, already off every list, passing", () => {
-    const errors = beginnerCheckErrors(map.topics, { lists: without(GROWTH, FAR) });
-    expect(errors.filter((e) => e.includes("spine-07-risk") || e.includes("spine-cost-of-capital"))).toEqual([]);
+  it("are on no beginner-rule list", () => {
+    const listed = Object.values(BEGINNER_LISTS).flat();
+    expect(SPINE_4_TO_9.filter((id) => listed.includes(id))).toEqual([]);
+  });
+
+  it("follow every beginner rule", () => {
+    const errors = beginnerCheckErrors(map.topics);
+    expect(errors.filter((e) => SPINE_4_TO_9.some((id) => e.includes(`"${id}"`)))).toEqual([]);
   });
 });
