@@ -161,13 +161,13 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 
 **Why.** Decision #26. His blog has no licence. His site rule ("no resale") is not clear for a paid tutor. His material answers 11 of the 78 Library score questions.
 
-Since spec #68, Value It also shows numbers from his datasets as Market readings and yardsticks, with credit and a link only: `histimpl.xls` (the implied premium, #105), `marginIndia`, `capexIndia` and `waccIndia` (India, #105), and his Japan, Emerging Markets (#114) and Europe (#115) sheets. Any wider use waits for his yes.
+Since spec #68, Value It also shows numbers from his datasets as Market readings and yardsticks, with credit and a link only: `histimpl.xls` (the implied premium, #105), `marginIndia`, `capexIndia` and `waccIndia` (India, #105), his US sheets `margin`, `capex` and `wacc` (#113), and his Japan, Emerging Markets (#114) and Europe (#115) sheets. Any wider use waits for his yes. In his reply, confirm that his data licence covers the US yardsticks too (#113).
 
 **When.** Now.
 
 **How.** Send the draft in [Appendix B](#appendix-b-draft-email-to-damodaran) from your own email. Fill in `[email]` and `[link to Value It]`. Its point 3 covers the spreadsheet numbers; you can name the sheets above there. Tell the agent the reply. If he says no, the blog leaves the Library.
 
-**Where.** Decision #26; spec #68 (#105, #114, #115, #118).
+**Where.** Decision #26; spec #68 (#105, #113, #114, #115, #118).
 
 ## 8. Lawyer check on CC BY
 
@@ -536,6 +536,8 @@ The cost, measured on a Neon copy of production (keyword + Voyage, the mode prod
 
 - **A. Add the key to GitHub.** Run `gh secret set OPENAI_API_KEY -R SiddharthMuramkar/finance-agent` on the VPS and paste the key when it asks. The agent then runs the eval and reports.
 - **B. No key.** The scripted tests stay the only check.
+
+Also optional, and it costs money: to see a real model name the flagged input once, run `ONLY=assignment-names-flagged-input npm run behaviour` on the VPS. It needs `OPENAI_API_KEY` in `.env`. Or tell the agent to run it.
 
 **Where.** #110; `docs/roadmap.md`, item 10.
 

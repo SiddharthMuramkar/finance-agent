@@ -150,18 +150,18 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 ### Course
 
 - Daily-life line: only Spine 1, 2, 3 and the annual-report Topic have one; the rest come with #95/#96 (#86).
-- The daily-life line is stored before the Principle reply; moving it after changes `src/tutor/turn.ts` (a tutor-eval trigger) (#86).
-- The beginner check counts new words only as Lingo cards; counting words used without a card needs a word list and a shrink-only list (#87).
-- Topics 2 and 3 still end on a typed Check with a typed Insight; the `insight.pick` tap (ADR 0020) could replace typed Insights in the other Spine Topics (#88, #89, #95/#96).
-- No critics round is logged for Topics 1 to 3 (no round output) (#88, #89).
-- Topic 1's Widget still says "Revenue in year 10" while the Topic says "sales" (#88).
+- The daily-life line is stored before the Principle reply (`src/course/practice.ts`); moving it after changes the turn flow in `src/tutor/turn.ts` (a tutor-eval trigger) (#86; review 3, L20).
+- The beginner check counts new words only as Lingo cards, so nothing checks that a word is taught before it is used (how M01 passed); a rule needs a course-wide word list and a shrink-only list, and an Owner decision (#87; review 3, L19).
+- Topics 2 and 3 still end on a typed Check with a typed Insight (review 3, L20); the `insight.pick` tap (ADR 0020) could replace typed Insights in the other Spine Topics (#88, #89, #95/#96).
+- Critics rounds: Topics 2 and 3 count #89's round; Topic 1's round ran in fix round 2. Log real shas in `docs/critics/spine-log.yaml` when a Topic changes again (#88, #89; review 1, F13).
+- The Value levers part's prompt text, which the Tutor and the Library read, still says "revenue in year 10" (`value-levers-part.tsx`, the recipe description); changing it needs `widgets:freeze` (#88).
 - Retake the 390 px critics screenshots of Spine Topics 2 and 3 now that the phone Study Workspace is in (#89).
 - Old Reviews on the removed Quick try `wc-primer-loop-try` point at no question; map them to `st-primer-loop-try` or not (#90).
 - The Lingo card's "In the story" label should read "In the moment" ("The story" never labels the event, GLOSSARY) (#74).
 - A reveal-step question for "which assumption failed" in the ready-Case valuation Topic (#92).
 - A published Coffee Day valuation could replace the course illustration (#92).
 - The Assignment opens beside Follow/Judge/Analyse once the Spine is passed (Owner, 2026-11-16), and the annual-report Topic's complete card links to it (#97, #93).
-- The Tutor rule for showing Go deeper formulas is not decided (`src/tutor/instructions.ts`) (#100).
+- Go deeper formulas never reach Learners: ADR 0003 says the Tutor may say them, but `src/tutor/instructions.ts` forbids typed formulas, the context says "in your own words" and the grader fails any formula. Needs an Owner decision on one rule, then align all four (a tutor-eval trigger) (#100; review 3, L17).
 - Nintendo, Samsung and LVMH annual-report Cases with valuation blocks, now that #112 adds JPY, KRW and EUR (#94).
 
 ### Valuation and Full sheet
@@ -182,7 +182,7 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 - The range check's usual range (half to double; cost of capital ±3 points) is a stand-in; there is no tax-rate yardstick (#109).
 - Own Case report date: the guide now uses the Board's approval date (India) and the filing date (Japan, Korea), as the research advised; the Owner can overrule (#108).
 - Own Case cash: count liquid or debt mutual funds or not (#108).
-- Own Case has no field for employee stock options (`own-case.ts` sets 0) or non-controlling interests; add fields or say so on screen (#108).
+- Own Case has no field for employee stock options (shown as "not entered" on screen and in the note) or non-controlling interests; a real options field needs guide lines in 3 markets (#108).
 - Guide wording with no government source: 1 crore = 10 million, and the price rule for a shut market (#108).
 - The Assignment Session's topic id `assignment` is not on the Course Map; give it a title and a read-only view (#110).
 - Assignment Tutor Turns do not save a `reply_checks` record (#110).
@@ -191,10 +191,14 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 - A course rule for Korean preferred shares (우선주) (#114).
 - Japan's defense special corporate tax: which years and firms get 30.64% rather than 29.74% (#114).
 - Europe's Own Case takes euro reporters only; UK, Swiss, USD and TEUR reporters need a currency or unit choice (#115).
+- Europe's guide does not say shares are typed as the full count (not millions), and the form's share hint says "as the report prints it"; a slip moves the value a share 1,000,000 times (#115; review 2, G16).
+- With no report link, the Own Case block's sources list only the cost-of-capital sheet (`industrySource` in `own-case.ts`); on screen each yardstick has its own link (#114, #115; review 2, G21).
+- The Own Case form: one result line switches between `alert` and `status`, and field errors are not tied to their field (no `aria-invalid`) (#107; review 1, F24).
 - Prices of €10 or more show as whole euros (€76.78 as €77); consider cents for EUR and USD share prices (#115).
 
 ### Theme and phone
 
+- Printing a kit chart while Dark is on may keep Dark's chart colours: `pageChartPalette` in `src/widgets/genui-theme.tsx` writes them as SVG attributes; not checked (#80; review 2, G22).
 - On the server `useScreen` assumes a laptop, so on a tablet the explore Widget moves into the conversation column on load (#81).
 - Phone sheet: close it after the last due Review is done, and open the Spaced review row unfolded (#83).
 - Preview matrix: add the signed-in reading pages at 390 and 360 px (#84); its public-site cells fail in both themes (header 64 px against 56, no signifier on the account menu and example cards, Tab never reaches Settings) (#80).
@@ -207,6 +211,7 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 - Home's hero h1 is followed by the demo's h3, so Home skips a heading level (#74).
 - How it works draws 15 Spine steps (`Array.from({ length: 15 })` in `src/app/(site)/how-it-works/page.tsx`); make it follow the course (#91).
 - `src/site/end-note.ts` hard-codes the Topic 15 Case `amazon-yourself-2000`; recheck after the Spine renumbering (#75).
+- The jackpot's Go deeper task "find the rate where the two are worth the same" is always 0% for the Kerala bumper; a new task waits for the Owner (`docs/owner-actions.md`, step 27) (#116; review 1, F33).
 - Measured minutes from the timed runs go into the course files (`docs/owner-actions.md`, step 25) (#72).
 - After the merge, with Clerk on: check the Clerk cards on `/join`, `/sign-in` and `/sign-up` in Light and Dark (#76, #79); optional Lighthouse run for robots.txt (#70).
 
@@ -214,6 +219,9 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 
 - Install the Chromium build Playwright 1.65 expects (1254) on the VPS; until then e2e runs need `CHROME_PATH` set to chromium-1248 (#69, #70, #76, #81, #84, #90, #94, #106, #116).
 - Retune the ui shard weights for the new p360 and mbp14-dark projects (#80, #82).
+- `sharp` is imported by `scripts/make-icons.mjs` but not declared in `package.json` (#70; review 3, L26).
+- Duplicated helpers: the month tables (`readings.ts`, `copy.ts`; use `src/widgets/months.ts`) and theme watching (`theme-store` and the `genui-theme.tsx` MutationObserver) (review 3, L30); `KIND_ID` and the reading id built in several files, and `readings-europe.ts` still copies the yardstick builder instead of `yardsticksFor` (review 1, F29; review 2, G41); `fadePath` in `own-case.ts` repeats `fadingGrowth`; the Lingo card shape in `src/markets/guides.ts` could use `LingoCardProps`; hand-written external-source links; one phone check per e2e spec (#105, #107, #114, #115).
+- Test dates: `src/finance/own-case-japan-korea.test.ts` and `src/learner/own-cases-japan-korea.test.ts` still use year-end dates (verified: Kikkoman 2026-06-19 ¥1,540, Samsung 2026-03-10 ₩187,900); `e2e/assignment-tutor.spec.ts` types Tata Consumer's year end 2025-03-31, whose Board-approval date and price still need a primary source (#108, #114; review 2, G33).
 - Timeouts under load: the no-typing Percent quick-try (5 s first result) and `src/app/other-learners.test.ts` (10 s hook) (#88, #76).
 
 ## Out of scope (ruled 2026-11-14 and 2026-11-15)
