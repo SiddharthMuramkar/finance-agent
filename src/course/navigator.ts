@@ -103,13 +103,16 @@ function anchorCheck(topic: Topic): Check | null {
 /** The Stages that follow the Spine on the default path, in the order the Course Map lists them (spec C1). */
 const AFTER_SPINE: readonly Topic["stage"][] = ["follow", "judge", "analyse"];
 
-/** The Spine goes live to Learners once these Spine Topics are all written (spec C8: "when Topics 1 to 5 exist"). */
-export const SPINE_LIVE_WITH: readonly number[] = [1, 2, 3, 4, 5];
+/**
+ * The Spine goes live to Learners once these Spine Topics are all written (spec C8: "when Topics 1 to 5 exist"). Listed by
+ * Topic id, not Spine number, so renumbering a Topic in the outline does not change when the Spine goes live (ADR 0004).
+ */
+export const SPINE_LIVE_WITH: readonly string[] = ["spine-01-worth", "spine-02-money-later", "spine-03-cash", "spine-04-growth", "spine-05-margins"];
 
-/** Whether the Spine is live (spec C8): Spine Topics 1 to 5 are all written. */
+/** Whether the Spine is live (spec C8): the Spine Topics in SPINE_LIVE_WITH are all written. */
 export function spineLive(map: Pick<CourseMap, "topics">): boolean {
-  const written = new Set(map.topics.filter((t) => t.stage === "spine").map((t) => t.spine));
-  return SPINE_LIVE_WITH.every((n) => written.has(n));
+  const written = new Set(map.topics.filter((t) => t.stage === "spine").map((t) => t.id));
+  return SPINE_LIVE_WITH.every((id) => written.has(id));
 }
 
 /**
@@ -558,7 +561,7 @@ export type TopicOverview = {
   onDefaultPath: boolean;
   /** When the last of the Topic's parked Skills comes back; null when none is parked. */
   parkedUntil?: Date | null;
-  /** A Spine Topic's number, 1 to 15 (spec C4); absent off the Spine. */
+  /** A Spine Topic's number, 1 to SPINE_LENGTH (spec C4, ADR 0020); absent off the Spine. */
   spine?: number;
   /** How long the Topic takes, in minutes, when its outline entry or file says (every Spine Topic does). */
   minutes?: number;
