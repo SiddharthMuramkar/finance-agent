@@ -56,8 +56,8 @@ describe("the case page's flow", () => {
   });
 
   it("counts the first chip tap in a widget's Your call as the call", async () => {
-    await mount(exampleBySlug("mega-millions-2018")!);
-    expect(widget().getAttribute("data-case")).toBe("mega-millions-2018");
+    await mount(exampleBySlug("kerala-bumper-2024")!);
+    expect(widget().getAttribute("data-case")).toBe("kerala-bumper-2024");
     expect(steps()).toEqual(["done", "now", "upcoming", "upcoming"]);
     await act(async () => widget().querySelector<HTMLButtonElement>("fieldset button")!.click());
     expect(steps()).toEqual(["done", "done", "now", "upcoming"]);
@@ -72,6 +72,20 @@ describe("the case page's flow", () => {
 
   it("says the rule the Topic leaves you with for a rule ending", () => {
     expect(progressStates("load")).toEqual(["done", "now", "upcoming", "upcoming"]);
-    expect(exampleBySlug("rates-up-1")!.endingKind).toBe("rule");
+    expect(exampleBySlug("rbi-repo-cut-2025")!.endingKind).toBe("rule");
+  });
+
+  // #116: the everyday Examples are dated Indian Moments, and the reveal names each Source with its link and the As-of date.
+  it.each([
+    ["kerala-bumper-2024", "As of 9 Oct 2024.", "https://www.thehindu.com/"],
+    ["rbi-repo-cut-2025", "As of 6 Jun 2025.", "https://www.rbi.org.in/"],
+  ])("reveals %s with its As-of date and linked Sources", async (slug, asOf, href) => {
+    await mount(exampleBySlug(slug)!);
+    await act(async () => button("Skip to the ending")!.click());
+    const reveal = host.querySelector<HTMLElement>('[data-testid="case-reveal"]')!;
+    expect(reveal.textContent).toContain(asOf);
+    const links = [...reveal.querySelectorAll<HTMLAnchorElement>("a[href]")];
+    expect(links.some((a) => a.href.startsWith(href))).toBe(true);
+    for (const a of links) expect(a.getAttribute("rel")).toContain("noopener");
   });
 });

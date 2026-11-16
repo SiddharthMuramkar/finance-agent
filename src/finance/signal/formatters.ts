@@ -1,4 +1,4 @@
-import { formatInr } from "../indian-format";
+import { formatInr, formatInrWords } from "../indian-format";
 
 // Signal Widget number formats (Signal spec §6.1). Pure functions: a number in, the text a Widget shows out.
 
@@ -6,6 +6,11 @@ import { formatInr } from "../indian-format";
 export function usdM(m: number): string {
   if (m >= 999.95) return `$${(m / 1000).toFixed(3)}B`;
   return `$${m.toFixed(1)}M`;
+}
+
+/** Rupees given in crore, in words: `₹25 crore`, `₹11.29 crore`, and under one crore in lakh: `₹37.63 lakh`. */
+export function inrCr(crore: number): string {
+  return formatInrWords(crore * 10_000_000);
 }
 
 /** Whole rupees with Indian digit grouping: `₹17,449`, `₹12,34,567`. */
