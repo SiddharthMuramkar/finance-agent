@@ -251,7 +251,7 @@ Single page application with a hash router (section 7.1). `#app` is re-rendered 
 
 | State | Nav right side |
 |---|---|
-| Visitor | "Sign in" text link + primary button "Join early access" |
+| Visitor | "Sign in" text link + primary button "Join the waitlist" |
 | Applicant | Orange status pill "Request in review" (wait-tint background, wait dot) linking to `#pending` |
 | Member | Primary button "Continue" with a glyph showing moves done + avatar button opening a menu (Course map, Notebook, Account settings, Sign out) |
 
@@ -926,7 +926,7 @@ Foot key: hatched orange "Claimed, not yet earned", black "Recorded", red "Loss"
 | `#examples` | Examples | Examples · Value It |
 | `#case-{slug}` | Case page | `{question}` · Value It |
 | `#about` | About | About · Value It |
-| `#join` | Join early access | Join early access · Value It |
+| `#join` | Join the waitlist | Join the waitlist · Value It |
 | `#pending` | Request received | Request received · Value It |
 | `#signin` | Sign in | Sign in · Value It |
 | `#welcome` | Welcome | Welcome · Value It |
@@ -953,7 +953,7 @@ CTA by state:
 
 | State | Primary CTA | Note under it |
 |---|---|---|
-| Visitor | Join early access → `#join` | Free during early access. We let people in by hand and email you when you’re in. |
+| Visitor | Join the waitlist → `#join` | Free. We let people in by hand and email you when you’re in. |
 | Applicant | Play a real case while you wait → `#examples` | Your request is in. We’ll email you when you’re in. |
 | Member | Continue (sub-line: current Topic) → `#study` | Step 1 of 15 · Story |
 
@@ -1121,7 +1121,7 @@ Visitors get an inline form: an email input (`autocomplete="email"`, placeholder
 
 Applicants and members see the CTA and note for their state instead of the form.
 
-**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join early access", the CTA note and the three steps. The CTA, like every visitor Join, opens `/join` (Clerk's Waitlist page). The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
+**Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join the waitlist", the CTA note and the three steps. The CTA, like every visitor Join, opens `/join` (Clerk's Waitlist page). The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
 
 ### 7.3 How it works
 
@@ -1187,6 +1187,8 @@ Header with an "At a glance" card (Topics 110, Subjects 9, Stages that read real
 | Sign in | H1 "Welcome back". Google button, email field, "Send me a sign-in link". | Applicants go to `#pending`. Otherwise → member → `#study`. |
 | Welcome | H1 "Welcome to Value It". Card: "Topic 1 · about 10 minutes", the Topic name, "Start Topic 1", "See the course map". | |
 | Study | A stub: workspace header with the 15-step bar, a note, and the Tutor-offline error state: [pill orange ! Paused] "The Tutor is offline for a moment." "Your progress is saved. Try again in a few seconds." + "Retry" (toast: "Reconnected. Your place is saved."). | |
+
+**Production (#76).** `/join`, `/sign-in` and `/sign-up` draw Clerk's cards (Waitlist, SignIn, SignUp) under the page's own Band and its one h1; Clerk's own header is hidden. The cards take the site's tokens, font and flat controls from `src/auth/clerk-appearance.ts` (code, never the Clerk Dashboard), so Dark covers them too. One name for the list: "the waitlist". `/join`: H1 "Join the waitlist", lede "Leave your email below. What happens next:", then "It’s free." · "We review each request by hand." · "We email you when you’re in." · "You can study on a laptop or a phone." `/sign-up` with no invitation (no `__clerk_ticket`): H1 "Create your account", "You need an invitation to create an account. Join the waitlist and we’ll email you one when you’re in." and a "Join the waitlist" link to `/join`, with no card. On the test bed (Clerk off) a plain stand-in takes the card's place, so `e2e/sign-in.spec.ts` reads this copy; it never reaches a build. The table above is the prototype's behaviour.
 
 ### 7.8 Review notes (prototype only)
 
@@ -1343,8 +1345,8 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 | 19 | Open `#case-amazon-2000` | Tutor's answer locked, ending locked, progress at step 2 |
 | 20 | Move a lever on that page | Tutor's answer appears, ending becomes "Ready", progress at step 3, Go deeper open with the bridge |
 | 21 | Tap "Reveal what really happened" | Reveal text with $35.08, $91.50 and $14.88, progress all done |
-| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join early access" links to `/join`, with the early-access note and the three steps under it (7.2.8) |
-| 23 | Press "Join early access" in the closing block | It opens `/join`: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
+| 22 | As a visitor, look at the closing block | No email form here: the primary button "Join the waitlist" links to `/join`, with the waitlist note and the three steps under it (7.2.8) |
+| 23 | Press "Join the waitlist" in the closing block | It opens `/join`: Clerk's Waitlist owns that page, its email check and the "you're in" email (#33) |
 | 24 | Every route at 1440 × 900 and 390 × 844 | No console errors, no horizontal scroll |
 | 25 | Reduced motion on | No animated runs. Values jump. The demo answers at once. |
 | 26 | Keyboard only | Every chip, slider, lever, preset, toggle and reveal reachable and operable |
@@ -1477,7 +1479,7 @@ FAQ, in order:
 | 3 | Where do the facts come from? | From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage. |
 | 4 | Does the AI make up the charts? | No. The Tutor chooses which widget to open and at which numbers; tested code draws it. Made-up numbers are labelled Illustration. |
 | 5 | What does it cost? | Nothing during early access. No price has been decided yet. |
-| 6 | How do I get in? | Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in. |
+| 6 | How do I get in? | Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in. |
 | 7 | Can I start again? | Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted. |
 | 8 | Do you track me? | There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. |
 
@@ -1494,7 +1496,7 @@ About, sourcing flow: **Real event** (A past moment whose outcome is known, like
 
 Non-affiliation line: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
 
-Early access: **Join** (Sign up with an email link. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
+Early access: **Join** (Join the waitlist with your email. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
 
 ---
 
