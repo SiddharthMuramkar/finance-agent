@@ -45,11 +45,11 @@ test("a Spine-passed Learner values a European company, from the pick to a note 
   await form.getByRole("button", { name: "Value it" }).click();
   await expect(form.locator('[data-own-case-result="value"]')).toHaveText(/^The engine's value: €[\d,.]+ a share, beside a price of €77 on 31 Dec 2025\.$/);
   await form.getByRole("button", { name: "Save to Notebook" }).click();
-  await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
+  await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.", { timeout: 60_000 }); // the save route compiles on first call
 
   await form.getByRole("link", { name: "Open the Notebook" }).click();
-  await expect(page).toHaveURL(/\/notebook#own-cases$/);
+  await expect(page).toHaveURL(/\/notebook#own-cases$/, { timeout: 60_000 });
   const note = page.locator("#own-cases [data-own-case-note]").filter({ hasText: "Danone, Europe. Annual report of 31 Dec 2025. Industry: Food processors." }).first();
-  await expect(note).toBeVisible();
+  await expect(note).toBeVisible({ timeout: 30_000 });
   await expect(note).toContainText("price €77 on 31 Dec 2025");
 });
