@@ -4,7 +4,7 @@ import { sumAsk } from "@/teaching/no-sums";
  * Reply checks: the rules every Tutor reply must meet, written as code (spec #229, ticket #230).
  * Pure: no model, no database. A caller hands in a finished reply (its text, the Widgets it showed and
  * any rule it saved) and the turn's context (the Teaching Step, the Reply kind, the Topic's currencies,
- * the open quiz's questions), and gets back every rule the reply breaks (V1 to V8), with reasons a
+ * the open quiz's questions), and gets back every rule the reply breaks (V1 to V10), with reasons a
  * retry can be told. Small style slips (emoji, arrows, headings, extra bold) are fixed by `fixReply`
  * without a retry. Nothing here is wired into the Tutor Turn yet.
  */
@@ -57,6 +57,11 @@ export interface ReplyCheckContext {
    * False at a Your turn with no Quick try; left out, a Your turn is taken to have one (A7, `noAskNeeded`).
    */
   quickTry?: boolean;
+  /**
+   * Set in the Assignment (spec #68, ticket #110): the Learner's Own Case is on screen, and `flagged` names its inputs the
+   * range check found far from their industry's usual range ("operating margin"). V9 and V10 read only these replies.
+   */
+  assignment?: { flagged: string[] };
 }
 
 /** A finished reply: its text (message and last-line ask), the Widgets it showed and the rule it saved to the Topic Note. */
@@ -67,7 +72,7 @@ export interface ReplyDraft {
 }
 
 export interface ReplyProblem {
-  rule: "V1" | "V2" | "V3" | "V4" | "V5" | "V6" | "V7" | "V8";
+  rule: "V1" | "V2" | "V3" | "V4" | "V5" | "V6" | "V7" | "V8" | "V9" | "V10";
   message: string;
 }
 
@@ -377,7 +382,7 @@ export function dropSumAsks(text: string): string {
 }
 
 /**
- * Every rule (V1 to V8) the reply breaks, with a reason a retry can be told. Run it on the fixed draft
+ * Every rule (V1 to V10) the reply breaks, with a reason a retry can be told. Run it on the fixed draft
  * (`fixReply`), so that V3 fails only on what code cannot fix.
  */
 export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProblem[] {
@@ -471,7 +476,34 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   const sum = sumAsked(draft.text);
   if (sum) problems.push({ rule: "V8", message: sumAskMessage(sum) });
 
+  if (ctx.assignment) {
+    // V9: no verdict or advice words in the Assignment (spec #68 voice rules): the Own Case is the Learner's story.
+    const verdicts = verdictWordsIn(said);
+    if (verdicts.length)
+      problems.push({
+        rule: "V9",
+        message: `Remove ${quoteList(verdicts)}. Never call a value right or wrong, cheap or dear, or say buy or sell: ask what story the input assumes.`,
+      });
+    // V10: with a flagged input, the reply names one, so the Learner hears which input to think about.
+    const { flagged } = ctx.assignment;
+    if (flagged.length && !flagged.some((name) => new RegExp(`\\b${name.replace(/\s+/g, "\\s+")}\\b`, "i").test(said)))
+      problems.push({ rule: "V10", message: `Name the flagged ${flagged.length === 1 ? "input" : "inputs"} (${quoteList(flagged)}) and ask what story it assumes.` });
+  }
+
   return problems;
+}
+
+/** Verdict and advice words (spec #68 voice rules): a value called right or wrong, cheap or dear, under- or overvalued, buy or sell. */
+const VERDICT_WORDS = [
+  /\b(?:right|wrong|correct)\s+(?:value|price|valuation)\b/gi,
+  /\b(?:cheap|cheaper|dear|dearer|undervalued|overvalued|under-valued|over-valued|bargain)\b/gi,
+  /\b(?:buy|buys|buying|sell|sells|selling)\b/gi,
+];
+
+/** The verdict and advice words a reply holds, as written, once each. */
+export function verdictWordsIn(text: string): string[] {
+  const found = VERDICT_WORDS.flatMap((re) => [...prose(text).matchAll(re)].map((m) => m[0].toLowerCase().replace(/\s+/g, " ")));
+  return unique(found);
 }
 
 /**
