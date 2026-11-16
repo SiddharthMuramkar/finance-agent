@@ -203,3 +203,12 @@ describe("the course counts", () => {
     expect(examples).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
   });
 });
+
+// Spec #68 (ticket #97): Home, About and How it works say what the Course Map labels: Topics not written ahead are taught
+// live by the AI Tutor, and stay open.
+describe("Topics taught live by the AI Tutor", () => {
+  it("are named in the same words on Home, How it works and About", async () => {
+    const line = "Topics not written ahead yet are taught live by the AI Tutor. You can open any of them.";
+    for (const page of [await HomePage(), await HowItWorksPage(), await AboutPage()]) expect(words(renderToStaticMarkup(page))).toContain(line);
+  });
+});

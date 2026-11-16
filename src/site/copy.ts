@@ -13,6 +13,10 @@ export const say = (n: number) => WORDS[n] ?? String(n);
 /** The same, capitalised to open a sentence ("Fifteen"). */
 export const Say = (n: number) => say(n).charAt(0).toUpperCase() + say(n).slice(1);
 const readings = (c: CourseFacts) => c.byStage.reduce((n, s) => n + s.count, 0);
+/** The Course Map's label on every Topic not written ahead (not a Converted Topic); Home, About and How it works use the same words. */
+export const TAUGHT_LIVE = "Taught live by the AI Tutor";
+/** The line Home, About and How it works carry about those Topics. */
+export const TAUGHT_LIVE_LINE = "**Topics not written ahead yet are taught live by the AI Tutor.** You can open any of them.";
 
 /** The nav and footer links (§4.2, §4.3). */
 export const NAV = [
@@ -111,7 +115,7 @@ export const home = {
     body: "No finance background needed. **If you can read a headline, you can start.**",
     play: "Play",
     more: (c: CourseFacts) =>
-      `**${c.topics} Topics wait inside.** ${c.spine.length} teach valuation in order, ${c.electives} go wider across ${c.bySubject.length} subjects, and ${readings(c)} read real arguments.`,
+      `**${c.topics} Topics wait inside.** ${c.spine.length} teach valuation in order, ${c.electives} go wider across ${c.bySubject.length} subjects, and ${readings(c)} read real arguments. ${TAUGHT_LIVE_LINE}`,
     path: "See the whole path",
   },
   trust: {
@@ -217,6 +221,7 @@ export const howItWorks = {
   path: {
     eyebrow: "The path",
     h2: "The whole path",
+    body: TAUGHT_LIVE_LINE,
     core: (c: CourseFacts) => `${c.spine.length} core Topics`,
     subjects: (c: CourseFacts) => `${c.bySubject.length} subjects`,
     stages: (c: CourseFacts) => `${c.byStage.length} stages that read real arguments`,
@@ -329,7 +334,7 @@ export const about = {
   notAffiliated: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.",
   learnH2: "What you can learn",
   learnBody: (c: CourseFacts) =>
-    `${Say(c.spine.length)} core Topics teach valuation in order. ${Say(c.bySubject.length)} subjects go wider, and ${say(c.byStage.length)} stages read real arguments.`,
+    `${Say(c.spine.length)} core Topics teach valuation in order. ${Say(c.bySubject.length)} subjects go wider, and ${say(c.byStage.length)} stages read real arguments. ${TAUGHT_LIVE_LINE}`,
   founderH2: "A note from the founder",
   // §14: a placeholder until the founder writes two or three sentences of their own.
   founder: "The founder’s note is coming soon.",

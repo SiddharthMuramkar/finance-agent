@@ -1,6 +1,6 @@
 import type { Check, CourseMap, StepSetting, Topic } from "./map";
 import type { Subject } from "./outline";
-import { testedSkills } from "./tested-skills";
+import { isConverted, testedSkills } from "./tested-skills";
 import type { QuestionLookup } from "./quiz";
 import { conditionValue, type SavedWork } from "./written-ahead";
 
@@ -567,6 +567,8 @@ export type TopicOverview = {
   minutes?: number;
   /** The Spine Topics that use this Topic's idea, by number, lowest first (their `drawsOn`, spec C6); absent when none does. */
   usedInSpine?: number[];
+  /** True when the Topic is not written ahead (not a Converted Topic), so the Tutor teaches it live in each Turn; absent otherwise. */
+  taughtLive?: boolean;
 };
 
 /**
@@ -615,6 +617,7 @@ export function courseOverview(map: CourseMap, progress: Progress, parked?: Park
       ...(topic.spine !== undefined ? { spine: topic.spine } : {}),
       ...(topic.minutes !== undefined ? { minutes: topic.minutes } : {}),
       ...(used ? { usedInSpine: used } : {}),
+      ...(isConverted(topic) ? {} : { taughtLive: true }),
     };
   });
 }

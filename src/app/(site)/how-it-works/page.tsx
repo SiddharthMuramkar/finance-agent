@@ -143,7 +143,7 @@ export default async function HowItWorksPage() {
 
       <section className="v-section v-rule-top" aria-labelledby="path-h" id="path" data-site-section="path">
         <div className="v-wrap">
-          <SectionHead eyebrow={howItWorks.path.eyebrow} title={howItWorks.path.h2} id="path-h" />
+          <SectionHead eyebrow={howItWorks.path.eyebrow} title={howItWorks.path.h2} body={howItWorks.path.body} id="path-h" />
           <div className="v-path">
             <div className="v-stack">
               <h3 className="v-h3">{howItWorks.path.core(course)}</h3>
