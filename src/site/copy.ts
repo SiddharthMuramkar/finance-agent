@@ -168,7 +168,7 @@ export const home = {
     // Display lines; the page puts a space between them, so a screen reader reads one sentence.
     h1: ["What is it", "really worth?"],
     // Three headline numbers a beginner has seen. The jackpot's is the jackpot Example's chip (pages.test.tsx keeps them equal).
-    lede: "A **₹25 crore jackpot**. A **$3bn “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums.",
+    lede: "A **₹25 crore jackpot**. A **$3 billion “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums.",
     // A visitor's first action opens the jackpot Example (the page finds it by its widget); Join the waitlist comes second.
     tryIt: "Try the jackpot",
     secondary: { member: "Course map" },
@@ -254,7 +254,7 @@ export const home = {
  */
 export const AMAZON_SOURCE = {
   lead: "Source:",
-  label: "Aswath Damodaran, “Valuing Amazon.com”, February 2000",
+  label: "Aswath Damodaran, “Can Amazon.com be valued?”, March 2000",
   href: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
 } as const;
 

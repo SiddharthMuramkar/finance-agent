@@ -103,8 +103,8 @@ export const EXAMPLES: readonly Example[] = [
     story:
       "**February 2000.** Amazon sells books and music online. In the twelve months to September 1999 it sold **$1,117 million** and lost **$410 million** on its operations. Its shares cost $84. One published valuation writes down a Story about its future: how big it gets, what it keeps of each sale, what its growth costs and how risky it is.",
     facts: [
-      { label: "Sales, 12 months to Sep 1999", value: "$1,117M" },
-      { label: "Operating loss, same period", value: "$410M" },
+      { label: "Sales, 12 months to Sep 1999", value: "$1,117 million" },
+      { label: "Operating loss, same period", value: "$410 million" },
       { label: "Share price, 3 Feb 2000", value: "$84" },
     ],
     ask: "If Amazon loses money, how can it be worth anything at all?",
@@ -144,19 +144,19 @@ export const EXAMPLES: readonly Example[] = [
     story:
       "**14 August 2019.** WeWork, which rents desks to members, publishes its plan to sell shares to the public. In January 2019 private investors had valued it at **$47 billion**. The filing boasts of revenue racing ahead at a **$3 billion run rate**.",
     facts: [
-      { label: "Run rate claimed", value: "$3bn a year" },
-      { label: "Revenue recorded, Jan–Jun 2019", value: "$1.54bn" },
-      { label: "Net loss, Jan–Jun 2019", value: "about $905M" },
+      { label: "Run rate claimed", value: "$3 billion a year" },
+      { label: "Revenue recorded, Jan–Jun 2019", value: "$1.54 billion" },
+      { label: "Net loss, Jan–Jun 2019", value: "about $905 million" },
     ],
     ask: "WeWork boasted of $3 billion of run-rate revenue. Is that what it earned?",
-    chip: "WeWork’s $3bn",
-    demoAsk: "WeWork claimed a $3bn run rate. Did it earn that?",
+    chip: "WeWork’s $3 billion",
+    demoAsk: "WeWork claimed a $3 billion run rate. Did it earn that?",
     lead: "Good instinct to check. Step through what the filing said and what Asha found in it. Then make the call.",
     answer:
       "**Not quite.** A run rate takes a recent period and scales it to a year: WeWork’s filing took the revenue of the last month and multiplied it by 12. That is a pace, not revenue already recorded, and it is only as good as the guess that the pace repeats. The revenue it recorded in the first six months of 2019 was $1.54 billion, with a net loss of about $905 million.",
     follow: {
       right: "Right. A run rate is a pace. Revenue is what was recorded.",
-      other: "Look at the bars again. The $3bn is one month times 12. The $1.54bn is what was recorded.",
+      other: "Look at the bars again. The $3 billion is one month times 12. The $1.54 billion is what was recorded.",
     },
     endingLabel: "What really happened",
     endingKind: "next",
@@ -214,7 +214,7 @@ export const EXAMPLES: readonly Example[] = [
   },
   {
     slug: "compounding-1000",
-    stamp: "Everyday",
+    stamp: "Worked example",
     category: "Everyday money",
     group: "everyday",
     topicId: "num-compounding",

@@ -100,7 +100,7 @@ describe("Home", () => {
     const html = renderToStaticMarkup(await HomePage());
     const hero = words(/data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0]);
     expect(hero).toContain("Finance for beginners");
-    for (const number of ["₹25 crore jackpot", "$3bn “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
+    for (const number of ["₹25 crore jackpot", "$3 billion “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
     expect(hero).toContain("An AI Tutor explains every money word");
     expect(hero).toContain("No sums");
   });
