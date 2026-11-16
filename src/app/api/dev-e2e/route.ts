@@ -106,6 +106,8 @@ const STATES: Record<string, Build> = {
    * (e2e/spine-01.spec.ts): the page starts its opener, and every step after is taken in the browser.
    */
   "spine-01-start": storyOf(SPINE_ONE),
+  /** The annual report Topic at its Story step, for #93's three-turn play (e2e/spine-annual-report.spec.ts). */
+  "spine-ar-start": storyOf("spine-annual-report"),
   /** The Topic at Concept, with one Widget shown by a scripted turn. */
   "concept-widget": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);
