@@ -144,7 +144,7 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 ### Library
 
 - Replace the 11 topics that only Yale answered, with licensed Sources, or get Yale's permission (`docs/owner-actions.md`, step 23) (#118). The topics: the leverage cycle and the subprime crisis; Irving Fisher on interest and impatience; Social Security and the stock market; mortgage prepayment; yield curve arbitrage; psychology and bubbles; forwards and futures for hedging; how an insurance company manages risk; what an investment bank does in a share issue; call and put options; Geanakoplos on the leverage cycle and collateral. Without Yale the original 78 score 64/78, MRR 0.742 (bars 72/78, 0.82).
-- Confirm the new question set (Yale-only questions taken out) with a live `library:score` on a Neon copy; the 66/68, MRR 0.88 so far is worked out from the recorded run (#118).
+- Re-run `library:score` on the full question set once replacement Sources (line above) are in; the owner accepted the lower score after the Yale removal on 2026-11-16 (`docs/architecture.md`) (#118).
 - Course Topics still link to oyc.yale.edu (`real-assets.yaml`, `eq-markets.yaml`, `sov-default-country-risk.yaml`, `outline.yaml`), and `real-assets.yaml` names ECON 251 "Shiller" (it is Geanakoplos) (#118).
 
 ### Course
