@@ -9,6 +9,7 @@ import { recipeById } from "@/widgets/recipes";
 import { exploreWidgetFor, exploreWidgetInSession, exploreWidgetOf } from "./explore-widget";
 import { loadCourseMap, parseCourseMap } from "./map";
 import { finishStep, recordCheckResult, type Progress } from "./navigator";
+import { SPINE_LENGTH } from "./outline";
 
 /** The Topic's own explore Widget: its code in the Topic file, and when code shows it. */
 
@@ -178,7 +179,7 @@ describe("a Spine Topic's explore Workbench (spec C2, B3)", () => {
   const spine = loadCourseMap().topics.filter((t) => t.spine !== undefined);
 
   it("covers every written Spine Topic", () => {
-    expect(spine.map((t) => t.spine).sort((a, b) => a! - b!)).toEqual(Array.from({ length: 16 }, (_, i) => i + 1));
+    expect(spine.map((t) => t.spine).sort((a, b) => a! - b!)).toEqual(Array.from({ length: SPINE_LENGTH }, (_, i) => i + 1));
   });
 
   for (const t of spine) {

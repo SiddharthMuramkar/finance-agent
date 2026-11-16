@@ -8,7 +8,7 @@ const SPINE_COUNT = spineTopics(parseOutline(readOutlineText()).outline!).length
 
 /**
  * B1 (spec 2026-11-05): the Course Map shows progress, and the old Progress address redirects to it.
- * C6 (spec 2026-11-12): the Spine first, as fifteen numbered rows, then the Electives by Subject, then Follow, Judge and
+ * C6 (spec 2026-11-12): the Spine first, as numbered rows (one per Spine Topic in the outline), then the Electives by Subject, then Follow, Judge and
  * Analyse; every written Topic can still be opened from it.
  */
 
@@ -78,6 +78,8 @@ test("Spine first, and every Topic still listed", async ({ page }) => {
   await expect(spine.locator("[data-spine-number]")).toHaveCount(SPINE_COUNT);
   expect(await spine.locator("[data-spine-number]").allInnerTexts()).toEqual(Array.from({ length: SPINE_COUNT }, (_, i) => String(i + 1).padStart(2, "0")));
   await expect(spine.locator("[data-spine-progress]")).toContainText(`of ${SPINE_COUNT} passed`);
+  // #90: the three financial statements are a written Spine Topic, right after the cash Topic, never a Coming row.
+  await expect(spine.locator('li[data-topic="spine-statements"]')).toContainText("What do the three financial statements show?");
   const stages = await page.locator("section[data-stage]").evaluateAll((els) => els.map((el) => el.getAttribute("data-stage")));
   expect(stages).toEqual(["spine", "foundation", "follow", "judge", "analyse"]);
   await expect(page.getByRole("heading", { level: 2, name: "Electives" })).toBeVisible();
