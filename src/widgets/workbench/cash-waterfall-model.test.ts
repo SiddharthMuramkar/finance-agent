@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { valuationCase } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
-import { cashWaterfallFromCase, cashWaterfallLevers, cashWaterfallModel, cashWaterfallReading, cashWaterfallShape, cashWaterfallTasks } from "./cash-waterfall-model";
+import { cashWaterfallFromCase, cashWaterfallLevers, cashWaterfallModel, cashWaterfallReading, cashWaterfallScene, cashWaterfallShape, cashWaterfallTasks } from "./cash-waterfall-model";
 import { cashWaterfallData } from "./registry";
 
 // Cash waterfall (spec 2026-11-12, B4; Spine Topic 3: "Growth uses cash before it shows as profit"). Amazon's year 1 is
@@ -96,5 +96,28 @@ describe("Cash waterfall on a company's year from the Topic file: Webvan's 2000 
   it("refuses a company without its source, or neither a Case nor a company", () => {
     expect(cashWaterfallData({ company: { ...webvan, source: undefined } })).toMatchObject({ problem: expect.stringMatching(/source/) });
     expect(cashWaterfallData({})).toMatchObject({ problem: expect.stringMatching(/^base: a Valuation Case/) });
+  });
+});
+
+// Spine critics round 2 (#90, widget fit): the Workbench was only sliders, stats and bars (chart_only). Its scene draws
+// where the cash went: one building for each quarter of this year's revenue spent on what growth costs (at most 8), and
+// the cash flying out or kept, so the Learner watches the buildings rise and fall as growth moves.
+describe("Cash waterfall's scene: where the cash went", () => {
+  it("draws Amazon's $558.5m of reinvestment as 2 buildings, its cash going out", () => {
+    const scene = cashWaterfallScene(amazon, amazon.opening);
+    expect(scene.built).toBe(2);
+    expect(scene.cash).toBe("out");
+    expect(scene.line).toBe("$558.5m of what growth costs became buildings and stock it owns, on the balance sheet.");
+  });
+
+  it("builds nothing at 0% growth, and keeps the cash once free cash flow is above zero", () => {
+    const still = cashWaterfallScene(amazon, { ...amazon.opening, growth: 0, margin: 10 });
+    expect(still.built).toBe(0);
+    expect(still.cash).toBe("in");
+    expect(still.line).toBe("Nothing spent on growth: no new buildings, and the cash stays.");
+  });
+
+  it("stops at 8 buildings, however fast growth runs", () => {
+    expect(cashWaterfallScene(amazon, { ...amazon.opening, growth: 1000, salesToCapital: 0.25 }).built).toBe(8);
   });
 });

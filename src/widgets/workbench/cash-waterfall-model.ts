@@ -117,6 +117,28 @@ export function cashWaterfallModel(data: CashWaterfallData, settings: WaterfallS
   };
 }
 
+/**
+ * Where the cash went, drawn as a scene (Spine critics round 2, #90, widget fit: sliders, stats and bars alone read as a
+ * bare chart): one building for each quarter of this year's revenue spent on what growth costs, at most 8, and the cash
+ * flying out while free cash flow is below zero. The buildings rise and fall as the Learner moves growth.
+ */
+export type CashWaterfallScene = { built: number; cash: "in" | "out"; line: string };
+
+export const SCENE_MAX_BUILT = 8;
+
+export function cashWaterfallScene(data: CashWaterfallData, settings: WaterfallSettings): CashWaterfallScene {
+  const year = cashYear({ lastRevenue: data.lastRevenue, growthPercent: settings.growth, marginPercent: settings.margin, taxPercent: data.taxPercent, salesToCapital: settings.salesToCapital, lossesCarried: data.lossesCarried });
+  if (!year.ok) return { built: 0, cash: "in", line: "" };
+  const spent = Math.max(0, year.reinvestment);
+  const built = Math.min(SCENE_MAX_BUILT, Math.round(spent / (data.lastRevenue / 4)));
+  const cash = year.fcf < 0 ? "out" : "in";
+  const line =
+    spent > 0
+      ? `${moneyText(spent, data.money)} of what growth costs became buildings and stock it owns, on the balance sheet.`
+      : `Nothing spent on growth: no new buildings, and the cash ${cash === "out" ? "still goes out" : "stays"}.`;
+  return { built, cash, line };
+}
+
 export function cashWaterfallShape(data: CashWaterfallData): BenchShape {
   const levers = cashWaterfallLevers(data);
   const model = cashWaterfallModel(data, data.opening);

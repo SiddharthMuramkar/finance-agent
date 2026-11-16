@@ -128,9 +128,12 @@ describe("Cash waterfall (Spine Topic 3)", () => {
   it('opens on Amazon\'s year 1, "Free cash flow next year: -$931.4m", and shows growth costs nothing at 0%', async () => {
     await draw("cash-waterfall");
     expect(text("cash-waterfall-headline")).toBe("Free cash flow next year: -$931.4m");
+    expect(host.querySelectorAll('[data-testid="cash-waterfall-scene"] [data-built]')).toHaveLength(2);
+    expect(text("cash-waterfall-scene")).toContain("became buildings and stock it owns");
     setRange(lever("Revenue growth next year"), 0);
     await settle();
     expect(text("cash-waterfall-numbers")).toContain("Reinvestment$0");
+    expect(host.querySelectorAll('[data-testid="cash-waterfall-scene"] [data-built]')).toHaveLength(0);
     expect(taskStates()[0]).toBe("done");
   });
 

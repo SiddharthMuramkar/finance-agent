@@ -126,4 +126,9 @@ test("[#90] the three financial statements play as a Spine Topic: Story, Concept
   expect(explore.widget).toMatch(/Operating margin/);
   expect(explore.widget).toMatch(/Free cash flow/);
   expect(explore.widget).not.toMatch(/-179|−179/);
+  // Critics round 2: the story renders the Topic file's own Webvan beat (the round's inputs had a stale one), and the
+  // explore Workbench draws where the cash went, buildings and all, not only sliders, stats and bars.
+  expect(story.widget).toContain("$259.8 million spent on warehouses and equipment in 2000");
+  expect(story.widget).not.toContain("customers are growing");
+  expect(explore.widget).toMatch(/became buildings and stock it owns, on the balance sheet/);
 });
