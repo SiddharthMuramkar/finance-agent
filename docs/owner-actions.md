@@ -2,7 +2,7 @@
 
 These steps need the owner. The agent cannot do them: they need your accounts, your email or your judgement. Each step says why, when and how. This file holds no secrets. Never paste a secret into chat, into an issue or into git.
 
-Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 2026-11-15. Tick a box when a step is done.
+Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 2026-11-15, the production Library load and the production wipe. Tick a box when a step is done.
 
 ## Checklist
 
@@ -23,8 +23,8 @@ Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 
 | 13 | [Write the owner content](#13-write-the-owner-content) | Before the first invite |
 | 14 | [Run the Waitlist](#14-run-the-waitlist) | Before the beta starts, then on a fixed rhythm |
 | 15 | [Decide the licence label on 16 citations](#15-decide-the-licence-label-on-16-citations) | Before any paid launch |
-| 16 | [Revoke the eval Voyage key, delete the 2 env files](#16-revoke-the-eval-voyage-key-delete-the-2-env-files) | When the evals, the Library load and the wipe end |
-| 17 | [Delete the export of the old Learners](#17-delete-the-export-of-the-old-learners) | About 2026-12-15 |
+| 16 | [Revoke the eval Voyage key, delete the 2 env files](#16-revoke-the-eval-voyage-key-delete-the-2-env-files) | When the evals end (the Library load and the wipe ended on 2026-11-16) |
+| 17 | [Delete the export of the old Learners](#17-delete-the-export-of-the-old-learners) | About 2026-12-16 |
 | 18 | [Remove the passcode env vars from Production](#18-remove-the-passcode-env-vars-from-production) | After PR C is live |
 | 19 | [Decide on link underlines and pill chips](#19-decide-on-link-underlines-and-pill-chips) | Any time |
 | 20 | [Decide the price of a step cut short](#20-decide-the-price-of-a-step-cut-short) | With step 12 |
@@ -89,7 +89,7 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 
 **Why.** In Clerk, admin is `publicMetadata.role = "admin"` on your user. `/admin` needs it. Sign-up is a Waitlist, and in Waitlist mode `/sign-in` works only for a user who already exists. So on 2026-11-15 you made your Clerk user on production, with the admin role, in `owner-batch.sh` (see [Commands the agent was not allowed to run](#commands-the-agent-was-not-allowed-to-run)). You do not join the Waitlist.
 
-**When.** Now. Clerk is live in production since PR #48 merged. The wipe script (`contract-run.sh`) stops at its step 1 until you sign in once.
+**When.** Now. Clerk is live in production since PR #48 merged. On 2026-11-16 the wipe (`contract-run.sh`) found 1 Learner with a Clerk user: yours. So your first sign-in worked. Tick the box when `/admin` loads (How, point 3).
 
 **How.** Email link only for now. Google comes later (step 5).
 
@@ -138,15 +138,9 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 
 - [ ] Done
 
-**Why.** Decisions #26 and #27. Today the Library uses OpenStax *Principles of Finance* 2nd edition. The 2nd edition's web page forbids use in "generative AI offerings" without written permission, and commercial use needs permission. Decision #27 moves the Library to the 1st edition, which is CC BY 4.0. That move is issue #38 (PR #43, merged 2026-11-15). The live Library uses the 1st edition only after the production Library load (`prod-load.sh`). The owner decided that the reuse request goes out in both cases.
+**Why.** Decisions #26 and #27. The web page of OpenStax *Principles of Finance* 2nd edition forbids use in "generative AI offerings" without written permission, and commercial use needs permission. Decision #27 moved the Library to the 1st edition, which is CC BY 4.0 (GitHub commit `3b7fc65c52`). That move is issue #38 (PR #43, merged 2026-11-15). The production Library load passed on 2026-11-16 (`prod-load.sh`, see [Scripts you ran](#scripts-you-ran)). Since then the live Library uses the 1st edition only. The 2nd edition is out of the Library, and out of `scripts/library/sources.json`, so no later load brings it back. The owner decided that the reuse request goes out anyway.
 
-**When.** Now. It must be done before any paid launch. Before you send the form, ask the agent which edition the live Library uses. Name that edition in the form.
-
-<!-- TODO(orchestrator), after the production Library load passes:
-     1. Say "1st edition" here (Why) and in Appendix A. If the load does not pass, keep this text.
-     2. In this PR, remove the `openstax-principles-finance-2e` entry from scripts/library/sources.json,
-        and change src/library/credits.test.ts to match (it asserts the 2e entry today). -->
-
+**When.** Now. It must be done before any paid launch. Name the 1st edition in the form.
 
 **How.** Fill in the OpenStax reuse request form: <https://riceuniversity.tfaforms.net/52>. Points to include are in [Appendix A](#appendix-a-openstax-reuse-request-points).
 
@@ -202,7 +196,7 @@ Ask 4 questions:
 
 **Why.** Decision #8, option B. The Library dump must be in 2 places. The VPS is one place. If the VPS is lost, the laptop copy stays. Never put a dump in git: the Damodaran blog text is stored for private search only.
 
-**When.** Now: `copy2` holds 2 dumps from 2026-11-15. Then after each backup run: after each Library load, and once a month.
+**When.** Now: `copy2` holds 2 dumps from 2026-11-15. Then after each backup run: after each Library load, and once a month. The Library load of 2026-11-16 needs a new dump first (`scripts/backup-drill.sh --redump`, a follow-up that `prod-load.sh` prints at its end). Ask the agent if it ran. Then copy again.
 
 **How.** On the VPS, the dumps are in `/root/backups/`. The subfolder `/root/backups/copy2/` holds every dump again, each with its checksum file (`.dump.sha256`). Copy only `copy2`. On the laptop (`vps` is your SSH name for the VPS):
 
@@ -316,7 +310,7 @@ Tell the agent A or B. The agent makes the change.
 
 A key or an address that nobody uses can still leak.
 
-**When.** When the evals, the production Library load and the wipe end. The agent tells you when they end.
+**When.** When the evals end. The production Library load and the wipe ended on 2026-11-16. The agent tells you when the evals end.
 
 **How.**
 
@@ -333,9 +327,9 @@ A key or an address that nobody uses can still leak.
 
 - [ ] Done
 
-**Why.** Before the wipe, `contract-run.sh` exports the production tables to `/root/backups/pre-contract-2026-11-15.dump` (and its `.dump.sha256`). The export holds Learner personal data. Keep it only while a rollback of the wipe can need it. It is not in `copy2`, so the laptop copy (step 10) does not hold it. Never put it in git.
+**Why.** Before the wipe, `contract-run.sh` exported the production tables to `/root/backups/pre-contract-2026-11-15.dump` (and its `.dump.sha256`), on 2026-11-16. The export holds Learner personal data. Keep it only while a rollback of the wipe can need it. It is not in `copy2`, so the laptop copy (step 10) does not hold it. Never put it in git.
 
-**When.** About 2026-12-15 (30 days after the export).
+**When.** About 2026-12-16 (30 days after the export).
 
 **How.**
 
@@ -418,14 +412,25 @@ On 2026-11-15 the Claude Code safety check (the auto-mode classifier) stopped th
 | `vercel env rm` of the 2 stale Preview vars `DATABASE_URL` and `DATABASE_URL_UNPOOLED` (branch `docs/architecture`) | `owner-batch.sh`. The other 4 of the 6 stale Preview vars were already gone. |
 | Make your Clerk user on production, with the admin role (`clerk api /users`) | `owner-batch.sh`. Next: [step 3](#3-sign-in-once-as-admin). |
 
-### Scripts you run
+### Scripts you ran
 
-These 2 scripts change production data. They need a real terminal and your typed `yes`, so you run them, not the agent. Run each one in a Herdr terminal on `vps`. Read its README first. Then tell the agent the result.
+These 2 scripts change production data. They need a real terminal and your typed `yes`, so you ran them, not the agent. Both are done. Each README stays next to its script: `/root/projects/prod-load-README.md` and `/root/projects/contract-run-README.md`.
 
-| What | Command | Read first |
-|---|---|---|
-| The production Library load (#38): the new sources go in, the 2e textbook goes out | `git -C /root/projects/finance-agent pull --ff-only && /root/projects/prod-load.sh` | `/root/projects/prod-load-README.md` |
-| The production wipe of the pre-Clerk Learners (#33), after [step 3](#3-sign-in-once-as-admin) | `/root/projects/contract-run.sh` | `/root/projects/contract-run-README.md` |
+- [x] **The production Library load (#38): the new sources go in, the 2e textbook goes out.** Done 2026-11-16 (`/root/projects/prod-load.sh`).
+  - First: Neon snapshot `pre-library-load-2026-11-15` (`snap-curly-hall-b3zgkyik`).
+  - Loaded: OpenStax *Principles of Finance* 1st edition, `openstax-principles-finance-1e` (1043 passages); `fomc-historical` (4013); `sec-amazon-1997-2000` (765); `sec-webvan-1999-2001` (749); `sec-wework-s1-2019` (801).
+  - Dropped: `openstax-principles-finance-2e` (1043 passages deleted).
+  - Then: credits restamped, and the new passages embedded with Voyage.
+  - Score on production, keyword + Voyage vectors. The 78 original questions: hits@5 75/78 (96.2%, bar 92%), hits@1 58, MRR 0.827 (bar 0.82). **Pass.** The 12 Signal questions, open search: 9/12, MRR 0.542. Outcome-word probes: clean, 19/19. Keyword only: 71/78, MRR 0.715.
+  - Logs: `/root/projects/eval-runs/2026-11-15-prod-*.txt`.
+  - Rollback: `neon snapshots restore snap-curly-hall-b3zgkyik --project-id cool-queen-75259301 --target-branch br-shy-river-b3czlpmv`, then `neon snapshots finalize <restored branch id> --project-id cool-queen-75259301` (`docs/backup-and-restore.md`, Restore B). This puts ALL of production back to the snapshot time. The snapshot is older than the wipe, so it also brings back the 2 old Learners. Ask the agent first.
+- [x] **The production wipe of the pre-Clerk Learners (#33).** Done 2026-11-16 (`/root/projects/contract-run.sh`).
+  - First: the export `/root/backups/pre-contract-2026-11-15.dump` (step 17), and Neon snapshot `pre-wipe-contract-2026-11-15` (`snap-round-sound-b3kcyjzm`).
+  - Rehearsal on the Neon branch `rehearse-wipe-2026-11-15`: the wipe and migration 0040 passed.
+  - Production: 2 pre-Clerk Learners deleted, with their rows. 1 Learner is left: yours (your Clerk user).
+  - Migration 0040 did not run on production. PR C runs it when it deploys.
+  - Logs: `/root/projects/contract-runs/2026-11-15/`.
+  - Rollback: `neon snapshots restore snap-round-sound-b3kcyjzm --project-id cool-queen-75259301 --target-branch br-shy-river-b3czlpmv --name main-restored`, then `neon snapshots finalize <restored branch id> --project-id cool-queen-75259301 --name main-before-restore`. Or tell the agent "roll back the wipe". For one table only, the agent restores it from the export into a new Neon branch. The snapshot was taken during the Library load: after the new sources went in and the 2e textbook went out, before the restamp and the embed steps. After a restore, the agent runs those 2 steps again (`prod-load.sh --from 5`).
 
 ### Not done (no step for you)
 
@@ -464,8 +469,7 @@ If the safety check stops the agent again, the command comes here.
 Not a draft from the research. These are the points to put in the form, from `research/library-licences.md`:
 
 - Who: Value It, an online valuation course. Today it is a free beta for about 20 invited Learners. A paid offer may come later.
-- What: *Principles of Finance*. Today the Library uses the 2nd edition. It moves to the 1st edition (CC BY 4.0, GitHub commit `3b7fc65c52`) with the production Library load for #38. The 2nd edition text is 99.5% the same. Name the edition that is live when you send the form (step 6).
-  <!-- TODO(orchestrator): after the production Library load passes, say "1st edition" in this point (see the TODO in step 6). -->
+- What: *Principles of Finance*, 1st edition (CC BY 4.0, GitHub commit `3b7fc65c52`). The live Library uses the 1st edition only, since the production Library load of 2026-11-16 (#38). Before that date it used the 2nd edition. The 2nd edition text is 99.5% the same.
 - How Value It uses it: it keeps the text in a private search index, cut into passages of at most 300 words. It sends each passage to Voyage AI to make a search vector. A signed-in Learner can read a passage. The AI tutor puts passages into its prompt and quotes short parts with a credit and a link.
 - What Value It does not do: it does not train a model on the book, and it does not sell the text.
 - The ask: written permission for use in a generative AI offering, now in the free beta and later in a paid offer.

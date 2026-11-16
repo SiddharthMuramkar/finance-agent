@@ -2,7 +2,7 @@
 
 Map #2 ("Wayfinder: Value It Signal, build-ready") closes with the PR that adds this file. The map decided what the Signal beta needs. This file keeps what the map did not decide (its "fog"). The decisions are indexed at the end.
 
-Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-the-2026-11-15-batch) of the 2026-11-15 batch.
+Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-the-2026-11-15-batch) of the 2026-11-15 batch, the production Library load and the production wipe.
 
 **How to read an item.** Each item has the question, why it matters, what it blocks, a first step and a status.
 
@@ -97,7 +97,7 @@ Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-th
 - **Why it matters:** Without evals in CI, a prompt or Library change can make the Tutor worse, and nobody sees it.
 - **Blocks:** Safe changes to the Tutor and the Library.
 - **First step:** List the harnesses. Mark which ones still run and which ones die with the legacy lanes (#19).
-- **Status:** Partly done. The CI PR makes `tutor-eval.yml` say "skipped (no key)" instead of a fake pass. Library evals run by hand on a Neon branch copy of `main` (for #38 and #37). The rest is open.
+- **Status:** Partly done. The CI PR makes `tutor-eval.yml` say "skipped (no key)" instead of a fake pass. Library evals run by hand on a Neon branch copy of `main` (for #38 and #37), and on production after the Library load of 2026-11-16 (`docs/owner-actions.md`, "Scripts you ran"). The rest is open.
 
 ### 11. Housekeeping
 
@@ -120,7 +120,7 @@ Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can bec
 | F1 | A Stop during the fold still ends the turn as failed. | When the Learner presses Stop while the Tutor folds old history (`foldHistory` in `src/tutor/turn.ts`), the turn ends `failed`. The Learner sees an error, and the turn does not count in `turns_per_learner_day`. Its dollars count since #36. | A ticket: end such a turn as stopped, and count it. Source: the hardening review on PR #36. |
 | F2 | The ADR cite check is skipped on docs-only PRs that edit top-level `.md` files or `docs/specs/`. | `scripts/ci-changes.mjs` calls a PR docs-only when it edits only top-level `.md` files or `.md` files under `docs/` (not `docs/adr/`). Then CI skips the `static` job, and with it `node scripts/check-adr-cites.mjs`. A wrong ADR number in `CLAUDE.md`, `GLOSSARY.md` or a spec can merge. A PR that edits `docs/adr/` runs the full CI (#34). | Run the cite check on every PR. It needs only Node and git, not `npm ci`, so it can run in the light `changes` job. |
 | F3 | Investor.gov is not loaded. | Decision #27 adds the SEC investor-education pages (`investor-gov-explainers` in `scripts/library/sources.json`). The site answers 403 to the fetcher, so the Library has none of them (`docs/library/2026-11-15-sources-eval.md`, section 7). | Find a way to fetch the pages that the site's terms allow. Then load them like the other #38 sources. |
-| F4 | The Signal-12 as-of MRR is 0.461, below the old 0.49. | The 12 Signal Case questions, searched as of each Case's date, rank the right passage lower than before the new sources. The full set got better (75/78, MRR 0.8271). The Tutor uses the as-of search during a Case. | After the production Library load, score again. List which of the 12 questions lost rank, and why. |
+| F4 | The Signal-12 as-of MRR is 0.461, below the old 0.49. | The 12 Signal Case questions, searched as of each Case's date, rank the right passage lower than before the new sources. The full set got better (75/78, MRR 0.8271). The Tutor uses the as-of search during a Case. The production score after the load (2026-11-16) is the same: as-of 9/12 in the top 5, MRR 0.461; open search 9/12, MRR 0.542; the 78 original questions 75/78, MRR 0.827. | List which of the 12 questions lost rank, and why. The production ranks are in `/root/projects/eval-runs/2026-11-15-prod-score-voyage.txt`. |
 | F5 | Re-test the reranker after the Library grows. | #37 parked the reranker: about one more question found, for about 0.6 s more per search (`docs/library/2026-11-15-reranker-retest.md`). A bigger Library can change that. | When the next sources load, run the commands in that doc's "How to re-run" section. It needs a Voyage key (`docs/owner-actions.md`, step 16). |
 | F6 | Google sign-in for Clerk. | Clerk went live with email link only (ADR 0017). Many people expect "Sign in with Google". | The owner makes the Google OAuth client (`docs/owner-actions.md`, step 5). Then the agent turns Google on and runs the smoke test again (step 4). |
 | F7 | The Dependabot widget-freeze step. | A Dependabot PR that bumps `@openuidev/lang-core` changes `src/widgets/frozen.generated.json`, so `src/widgets/widgets.test.ts` fails until someone runs `npm run widgets:freeze` and commits the result. #46 and #49 failed this way. | Add a step for lang-core bumps: run `npm run widgets:freeze`, raise the instruction-size budget in `src/widgets/widgets.test.ts` if the text grows, and commit. Or keep lang-core out of the Dependabot group, so a person updates it. |
@@ -136,10 +136,10 @@ Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can bec
 
 These are tickets, not fog. Each closes through its PR.
 
-- [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) Legacy lanes and old Learner data: the wipe goes through #33. Then PR #44 deletes the dead lanes. The model-change retirement guard stays, renamed.
-- [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) Clerk: PR #48 (Clerk replaces Better Auth) is live. PR C (migration 0040 drops the Better Auth tables) closes it.
+- [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) Legacy lanes and old Learner data: the wipe of the old Learners ran on 2026-11-16, through #33. PR #44 deletes the dead lanes. The model-change retirement guard stays, renamed.
+- [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) Clerk: PR #48 (Clerk replaces Better Auth) is live. The production wipe of the 2 pre-Clerk Learners ran on 2026-11-16 (snapshot `pre-wipe-contract-2026-11-15`, export `/root/backups/pre-contract-2026-11-15.dump`; rollback in `docs/owner-actions.md`, "Scripts you ran"). PR C (migration 0040 drops the Better Auth tables) closes it.
 
-Closed on 2026-11-15 and 2026-11-16: [#8](https://github.com/SiddharthMuramkar/finance-agent/issues/8) backup posture, option B (PR #40); #23 hardening (PR #36); #31 docs (PR #34); #32 site (PR #47); [#37](https://github.com/SiddharthMuramkar/finance-agent/issues/37) reranker re-test, parked (PR #42); #38 new Library sources (PR #43).
+Closed on 2026-11-15 and 2026-11-16: [#8](https://github.com/SiddharthMuramkar/finance-agent/issues/8) backup posture, option B (PR #40); #23 hardening (PR #36); #31 docs (PR #34); #32 site (PR #47); [#37](https://github.com/SiddharthMuramkar/finance-agent/issues/37) reranker re-test, parked (PR #42); #38 new Library sources (PR #43; loaded in production on 2026-11-16, snapshot `pre-library-load-2026-11-15`).
 
 ## Decisions so far
 
@@ -170,4 +170,4 @@ From map #2. One line per closed ticket. Each ticket's last comment holds the fu
 | [#29](https://github.com/SiddharthMuramkar/finance-agent/issues/29) | What shape is the offer after early access? | Out of scope for now (2026-11-15). Early access stays free. |
 | [#30](https://github.com/SiddharthMuramkar/finance-agent/issues/30) | Should runLockedTurn be split first? | Move turn admission out and add a step ledger inside the hardening PR. No big refactor first. |
 
-The Clerk decisions of 2026-11-15 are in the open build issue [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33): Clerk replaces Better Auth; email link only at go-live, Google later; Waitlist sign-up; admin = Clerk `publicMetadata.role` "admin"; the passcode door stays local and test only; a fresh start (old Learners are wiped after a snapshot).
+The Clerk decisions of 2026-11-15 are in the open build issue [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33): Clerk replaces Better Auth; email link only at go-live, Google later; Waitlist sign-up; admin = Clerk `publicMetadata.role` "admin"; the passcode door stays local and test only; a fresh start (old Learners are wiped after a snapshot; done on 2026-11-16).
