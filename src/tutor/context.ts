@@ -140,7 +140,14 @@ export function stepContext(
     lines.push(`Terms this Topic introduces (define any you use where it first appears): ${topic.terms.map((t) => `${t.term}: ${plain(t.means)}`).join(" ")}`);
   }
   // Go deeper material (spec 2026-11-12 H1): an idea beyond the Topic's Checks, never quizzed.
-  if (topic.goDeeper) lines.push(`Go deeper material (use it only when the Learner presses Go deeper or asks about it; no Check tests it, so never quiz it): ${plain(topic.goDeeper.trim())}`);
+  // Pressed (spec #68), the Tutor is told to give it now; otherwise it is there for when the Learner asks about it.
+  if (topic.goDeeper) {
+    lines.push(
+      facts?.replyKind === "go_deeper"
+        ? `The Learner pressed Go deeper: give them this Go deeper material now, in your own words (no Check tests it, so never quiz it): ${plain(topic.goDeeper.trim())}`
+        : `Go deeper material (use it only when the Learner presses Go deeper or asks about it; no Check tests it, so never quiz it): ${plain(topic.goDeeper.trim())}`,
+    );
+  }
   lines.push(...teachingAidLines(place));
   lines.push(...stepSettingLines(place));
   const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
@@ -199,6 +206,8 @@ export function stepContext(
   }
   if (step === "principle") {
     lines.push("", `Principle: ${plain(topic.principle.trim())}`);
+    // Spec #68: code shows the daily-life line under the principle at this step, so the Tutor can tie back to it.
+    if (topic.dailyLife) lines.push(`Daily-life line (code shows it under the principle): ${plain(topic.dailyLife.trim())}`);
     if (topic.insight && explore?.words) {
       lines.push(`The Learner's own words about the Insight (${explore.settled === "told" ? "after being told it" : "found by themselves"}): "${explore.words}". Tie the principle back to them.`);
     }
