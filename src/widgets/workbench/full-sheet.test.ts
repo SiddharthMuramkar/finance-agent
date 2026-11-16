@@ -137,3 +137,27 @@ describe("moving each Lever marks exactly the rows it changes", () => {
     expect(sheet.rows.filter((r) => r.moved).map((r) => r.input)).toEqual(["growth"]);
   });
 });
+
+describe("every row has a Lingo card", () => {
+  it.each(valuationCaseIds())("%s: each row opens a card for its own term, in the Case's currency", (id) => {
+    const block = valuationCase(id)!;
+    const specs = leverSpecs(block);
+    const sheet = fullSheet(block, specs, openingSettings(specs));
+    if (!sheet.ok) throw new Error(sheet.error);
+    for (const row of sheet.rows) {
+      expect(row.card.term.length).toBeGreaterThan(0);
+      expect(row.card.means.length).toBeGreaterThan(0);
+      expect(`${row.words} ${row.card.term}`).not.toContain("{money}");
+    }
+    expect(new Set(sheet.rows.map((r) => r.card.term)).size).toBe(sheet.rows.length);
+  });
+
+  it("names the money in the Case's own currency", () => {
+    const amazon = valuationBlock.parse(AMAZON_2000);
+    const specs = leverSpecs(amazon);
+    const sheet = fullSheet(amazon, specs, openingSettings(specs));
+    if (!sheet.ok) throw new Error(sheet.error);
+    expect(sheet.rows.find((r) => r.input === "salesToCapital")?.words).toBe("Sales for each $ invested");
+    expect(sheet.rows.find((r) => r.input === "cash")?.card.term).toBe("Cash");
+  });
+});
