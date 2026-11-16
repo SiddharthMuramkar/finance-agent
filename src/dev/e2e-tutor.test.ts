@@ -25,13 +25,15 @@ const spineItems: OpenItem[] = [
   ),
 ];
 const isSpine = (name: E2eScriptName) => name.startsWith("spine1-");
+/** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts). */
+const splitTopic = (name: E2eScriptName) => (name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : undefined);
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
-  const t = isSpine(name) ? spine : topic;
+  const t = splitTopic(name) ?? (isSpine(name) ? spine : topic);
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
-    exampleCurrency: isSpine(name) ? "USD" : "INR",
+    exampleCurrency: isSpine(name) || splitTopic(name) ? "USD" : "INR",
     caseCurrencies: ["USD"],
     openItems: name === "quiz-open" ? openItems : isSpine(name) && checkStep ? spineItems : [],
     internalWords: [t.id, ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)],
@@ -41,6 +43,9 @@ const context = (name: E2eScriptName): ReplyCheckContext => {
 describe("the scripted Tutor", () => {
   it("every named script passes the reply checks", () => {
     expect(Object.keys(E2E_SCRIPTS).sort()).toEqual([
+      "coc-concept",
+      "coc-explore",
+      "coc-story",
       "concept-percent-change",
       "concept-reply-widget",
       "concept-two-ways",
@@ -51,6 +56,9 @@ describe("the scripted Tutor", () => {
       "persona-why-tiny",
       "plain-reply",
       "quiz-open",
+      "rate-concept",
+      "rate-explore",
+      "rate-story",
       "rejected-draft",
       "reveal-reply",
       "reveal-reply-widget",

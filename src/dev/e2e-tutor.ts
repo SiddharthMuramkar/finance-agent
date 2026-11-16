@@ -617,6 +617,106 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  // ——— The split of Topic 7 (#91, e2e/spine-rate-split.spec.ts): the first three turns of the risk Topic (the cost of
+  // equity) and of the cost-of-capital Topic, for the critics' round. Every figure is its Topic file's Case.
+  /** The risk Topic's opener at Story: what Amazon's shareholders should require. */
+  "rate-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor in New York, is valuing the company. " +
+              "To value its future cash he needs the return its shareholders should require, for waiting and for the risk they bear. " +
+              "A safe US Treasury bond pays 6.5%. Amazon's shares swing far more than the market does: his own rough measure says 2.29 times as much, " +
+              "while internet retailers average 1.60.\n\n" +
+              "Would you ask more of Amazon's shares than of a safe bond?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The risk Topic's Concept: the cost of equity in layers. Code shows the Concept card. */
+  "rate-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "What shareholders require is the cost of equity, and it is built in layers. " +
+              "Start with what a safe bond pays, 6.5%. Add the premium investors want for holding average shares, 4%, scaled by how far Amazon's shares move with the market, its beta of 1.60. " +
+              "Only the risk that holding many shares cannot spread away earns that premium.\n\n" +
+              "Which layer looks hardest to pin down?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The risk Topic's Explore: the Cost of capital stack on Amazon's Case, and the Insight question. */
+  "rate-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_rate_stack", name: "show_widget", input: { recipe: "wacc_stack", params: { title: "What rate for Amazon?", inputs: { figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1.6, debtShare: 1.2, costOfDebt: 8, taxRate: 0 }, source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }, case: "spine-07-amazon-rate" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Here are his layers as a stack, with what a share is worth at that rate. Amazon borrows almost nothing, so the whole rate is nearly its cost of equity. " +
+              "Move relative risk up to his rough measure, then down to a plain retailer's, and watch the value against the $84 price.\n\n" +
+              "How far does the value move, next to how far it is from the price?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's opener at Story: lenders put in some of the money too. */
+  "coc-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Damodaran has worked out what Amazon's shareholders should require: 12.90% a year. " +
+              "But lenders put in some of Amazon's money too, and they charge interest, 8% a year before tax. " +
+              "Their part is tiny, only 1.2% of the money. Amazon makes losses, so its interest saves it no tax yet. " +
+              "By year ten he expects it to borrow like a traditional retailer, 15% of its money.\n\n" +
+              "Whose return do you think matters most for the rate on all of Amazon's money?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's Concept: the blend, the tax saving, and the WACC named once. Code shows the Concept card. */
+  "coc-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "The cost of capital blends what shareholders and lenders each require, by how much of the money each puts in. " +
+              "Debt counts after its tax saving: interest comes off profit before tax, so a company that pays tax pays less for each dollar of interest. " +
+              "Analysts call this blend the WACC, short for weighted average cost of capital.\n\n" +
+              "Why might lenders ask for less than shareholders do?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The cost-of-capital Topic's Explore: the stack at mature Amazon's figures, and the Insight question. */
+  "coc-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_coc_stack", name: "show_widget", input: { recipe: "wacc_stack", params: { title: "What does mature Amazon's money cost?", inputs: { figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1, debtShare: 15, costOfDebt: 7, taxRate: 35 }, source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" } }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Here is his mature Amazon of year ten: shareholders require 10.50%, and debt is 15% of its money at 4.55% after tax. " +
+              "Move the share of debt down to none, then back up to where he set it.\n\n" +
+              "How far does the cost of capital move, and why so little?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;
