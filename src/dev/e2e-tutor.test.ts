@@ -251,13 +251,16 @@ describe("the annual report Topic's scripted Tutor (#93)", () => {
     expect(annualReport.explore?.workbench).toMatchObject({ recipe: "value_bridge", case: "spine-ar-amazon-2000" });
   });
 
-  it("says at Concept that Japan, Korea and Europe keep the same two pages, each under the name of a Case's report (#94)", () => {
+  it("says at Concept that Japan, Korea and Europe keep the same two pages, in the reports their Cases read (#94)", () => {
     const said = draftOf("ar-concept").text;
     const stories = annualReport.cases.map((c) => flat(c.story)).join(" ");
-    for (const [market, report] of [["Japan", "yuho"], ["Korea", "business report"], ["Europe", "IFRS"]]) {
+    for (const [market, report] of [["Japan", "Nintendo's yearly results"], ["Korea", "Samsung's business report"], ["Europe", "LVMH's annual report"]]) {
       expect(said).toContain(market);
       expect(said).toContain(report);
-      expect(stories).toContain(report);
     }
+    expect(stories).toContain("business report");
+    // Critics round 1 (#94): no word a beginner can't read in the turn. The Cases gloss yuho and IFRS; this line names the
+    // reports in plain words (and Nintendo's Case is its results, the kessan tanshin, not the yuho).
+    expect(said).not.toMatch(/yuho|IFRS|kessan tanshin/);
   });
 });

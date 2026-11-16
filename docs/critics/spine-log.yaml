@@ -101,7 +101,7 @@ topics:
     open: 0
   spine-annual-report:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "e8c3775"
+    rounds: 3
+    lastRound: "811fb6f"
     open: 0
-    note: Round 2 (#93), 5 confirmed, all fixed - inputs were stale (before bfabe7f); re-captured from HEAD, and the e2e spec now pins the one-number opener, a lot or a little, and the report's debt and cash on the reply and page.
+    note: Round 3 (#94 round 1), 3 confirmed - Concept line drops unglossed yuho/IFRS, Samsung Case asks recognition not a count; the Turn 1 number dump was already fixed in round 2 (stale input).
