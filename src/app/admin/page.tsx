@@ -6,7 +6,7 @@ import { capValues } from "@/tutor/quota";
 import { tutorSpeed } from "@/tutor/speed";
 import { spendByPerson } from "@/tutor/spend";
 import { accountFor } from "../account";
-import { ReadingPage, SignedInFrame } from "../ui";
+import { ReadingPage } from "../ui";
 import { AdminView } from "./admin-view";
 import { adminDone } from "./done";
 
@@ -29,10 +29,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const directory = await clerkDirectory(spend.people.map((p) => p.userId));
   const account = accountFor({ kind: "learner", via: "account", ...admin });
   return (
-    <SignedInFrame>
-      <ReadingPage account={account}>
-        <AdminView spend={spend} speed={speed} directory={directory} you={admin.identity.userId} caps={caps} done={adminDone(done)} />
-      </ReadingPage>
-    </SignedInFrame>
+    <ReadingPage account={account}>
+      <AdminView spend={spend} speed={speed} directory={directory} you={admin.identity.userId} caps={caps} done={adminDone(done)} />
+    </ReadingPage>
   );
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { FORECAST_YEARS, valueStory, type DcfInputs, type DcfResult } from "./dcf-engine.ts";
 import { growthScaledTo, marginPath, matureRateScaled, riskScaled } from "./dcf-paths.ts";
+import { CURRENCIES } from "./money.ts";
 
 // A Case's valuation inputs as a Topic file holds them (spec 2026-11-12, B1 and C2): a `valuation:` block on the
 // Case, in git beside the story and its sources, not in the database. Rates are percents (5 means 5%), the house
@@ -28,107 +29,142 @@ const halvingMargin = z
 /** The margin written out year by year, when the source gives each year's figure. */
 const yearlyMargin = z.object({ marginPercent: yearly("marginPercent"), afterPercent: z.number() }).strict();
 
-export const valuationBlock = z
-  .object({
-    currency: z.enum(["USD", "INR"]),
-    unit: z.enum(["millions", "crores", "billions"]),
-    /** Revenue in the base year, the year before year 1. */
-    baseRevenue: z.number().positive(),
-    growthPercent: yearlyRates("growthPercent"),
-    margin: z.union([halvingMargin, yearlyMargin]),
-    /** The tax rate after year 10, and in every forecast year when `taxPercentByYear` is left out. */
-    taxPercent: z.number().min(0).max(100),
-    /** The tax rate in each of years 1 to 10, when the source changes it by year (Damodaran's Uber: 31% rising to 40%). */
-    taxPercentByYear: yearly("taxPercentByYear").refine((p) => p.every((v) => v >= 0 && v <= 100), "taxPercentByYear lies between 0% and 100%").optional(),
-    lossesCarried: z.number().min(0).default(0),
-    /** Sales to capital in year 1, and in every forecast year when `salesToCapitalByYear` is left out; the lever's opening. */
-    salesToCapital: z.number().positive(),
-    /** Sales to capital in each of years 1 to 10, when the source changes it by year (Tesla: 3 for five years, then 2). */
-    salesToCapitalByYear: yearly("salesToCapitalByYear").refine((p) => p.every((v) => v > 0), "salesToCapitalByYear is above zero").optional(),
-    costOfCapitalPercent: yearlyRates("costOfCapitalPercent"),
-    growthAfterPercent: z.number(),
-    returnOnCapitalAfterPercent: z.number().positive(),
-    cash: z.number().min(0),
-    debt: z.number().min(0),
-    options: z.number().min(0).default(0),
-    /** Shares, counted in the block's unit (millions of shares for a Case in millions). */
-    shares: z.number().positive(),
-    /**
-     * What a Workbench's headline values (spec B3): a share of a listed company (the default), or the whole company, for
-     * a private one with no share price. A company valued whole counts one share, so the engine's value a share is the
-     * company's value for its owners, and `price` is what the whole company last sold or raised money at, in the block's unit.
-     */
-    per: z.enum(["share", "company"]).default("share"),
-    /**
-     * A chance the business fails, and what is recovered if it does: a fixed amount, or a share of the going-concern value
-     * (`recoveredPercentOfValue`, Tesla's and Zomato's 50%), which moves with the story when a lever moves it. The share
-     * wins when both are given; `recovered` then records the amount at the Case's own story.
-     */
-    failure: z
-      .object({
-        chancePercent: z.number().min(0).max(100),
-        recovered: z.number().min(0).default(0),
-        recoveredPercentOfValue: z.number().min(0).max(100).optional(),
-      })
-      .strict()
-      .optional(),
-    /**
-     * The price on the Case's date, for the marker on a Workbench's bar: a market price, or for a private company what it
-     * last sold or raised money at. `placeholder` marks a figure the source only used to work something out (WeWork's
-     * $30), which is never drawn as a price. `label` is the word shown in place of "price" when the figure is not one that
-     * anyone paid, such as "talk" for the $40bn being talked about before Uber's December 2014 round closed.
-     */
-    price: z
-      .object({
-        value: z.number().positive(),
-        date: z.iso.date(),
-        note: z.string().trim().min(1).optional(),
-        placeholder: z.boolean().optional(),
-        label: z.string().trim().regex(/^[a-z][a-z ]{1,29}$/, "one or a few lower-case words, such as \"talk\"").optional(),
-      })
-      .strict(),
-    /**
-     * An illustration: a story built for teaching from the company's own figures, with no published valuation to check it
-     * against (Coffee Day, Webvan). It never says it reproduces anything.
-     */
-    illustration: z.boolean().default(false),
-    /** What the source published, which the engine is checked against. An illustration has no published value. */
-    published: z
-      .object({ valuePerShare: z.number().optional(), fcff: yearly("published.fcff").optional(), note: z.string().trim().min(1).optional() })
-      .strict(),
-    /** How the figures were built where the source's own sheet differs from the plain B1 reading (a margin path, a share count). */
-    notes: z.array(z.string().trim().min(1)).optional(),
-    sources: z.array(z.object({ title: z.string().trim().min(1), url: z.url() }).strict()).min(1),
-    /** True when the engine comes within 2% of published.valuePerShare; the course check verifies it. */
-    reproduces: z.boolean(),
-  })
-  .strict()
-  .refine((b) => b.growthAfterPercent < b.costOfCapitalPercent[FORECAST_YEARS - 1], {
-    message: "growthAfterPercent must be below the year-10 cost of capital, or the value is infinite",
-    path: ["growthAfterPercent"],
-  })
-  .refine((b) => b.illustration || b.published.valuePerShare !== undefined, {
-    message: "a Case that is not an illustration states the published value it is checked against",
-    path: ["published", "valuePerShare"],
-  })
-  .refine((b) => !b.illustration || !b.reproduces, { message: "an illustration has no published value, so it cannot reproduce one", path: ["reproduces"] })
-  .refine((b) => b.per === "share" || b.shares === 1, {
-    message: 'a company valued whole (per: company) counts one share, so shares must be 1 and its value a share is the company\'s value',
-    path: ["shares"],
-  });
+/**
+ * A Case's valuation inputs (spec #68): what the engine values, and the currency, unit and "per" its figures are read in.
+ * A course Case holds them in its `valuation:` block beside its provenance; an Own Case holds the same inputs.
+ */
+const inputFields = {
+  currency: z.enum(CURRENCIES),
+  unit: z.enum(["millions", "crores", "billions"]),
+  /** Revenue in the base year, the year before year 1. */
+  baseRevenue: z.number().positive(),
+  growthPercent: yearlyRates("growthPercent"),
+  margin: z.union([halvingMargin, yearlyMargin]),
+  /** The tax rate after year 10, and in every forecast year when `taxPercentByYear` is left out. */
+  taxPercent: z.number().min(0).max(100),
+  /** The tax rate in each of years 1 to 10, when the source changes it by year (Damodaran's Uber: 31% rising to 40%). */
+  taxPercentByYear: yearly("taxPercentByYear").refine((p) => p.every((v) => v >= 0 && v <= 100), "taxPercentByYear lies between 0% and 100%").optional(),
+  lossesCarried: z.number().min(0).default(0),
+  /** Sales to capital in year 1, and in every forecast year when `salesToCapitalByYear` is left out; the lever's opening. */
+  salesToCapital: z.number().positive(),
+  /** Sales to capital in each of years 1 to 10, when the source changes it by year (Tesla: 3 for five years, then 2). */
+  salesToCapitalByYear: yearly("salesToCapitalByYear").refine((p) => p.every((v) => v > 0), "salesToCapitalByYear is above zero").optional(),
+  costOfCapitalPercent: yearlyRates("costOfCapitalPercent"),
+  growthAfterPercent: z.number(),
+  returnOnCapitalAfterPercent: z.number().positive(),
+  cash: z.number().min(0),
+  debt: z.number().min(0),
+  options: z.number().min(0).default(0),
+  /** Shares, counted in the block's unit (millions of shares for a Case in millions). */
+  shares: z.number().positive(),
+  /**
+   * What a Workbench's headline values (spec B3): a share of a listed company (the default), or the whole company, for
+   * a private one with no share price. A company valued whole counts one share, so the engine's value a share is the
+   * company's value for its owners, and `price` is what the whole company last sold or raised money at, in the block's unit.
+   */
+  per: z.enum(["share", "company"]).default("share"),
+  /**
+   * A chance the business fails, and what is recovered if it does: a fixed amount, or a share of the going-concern value
+   * (`recoveredPercentOfValue`, Tesla's and Zomato's 50%), which moves with the story when a lever moves it. The share
+   * wins when both are given; `recovered` then records the amount at the Case's own story.
+   */
+  failure: z
+    .object({
+      chancePercent: z.number().min(0).max(100),
+      recovered: z.number().min(0).default(0),
+      recoveredPercentOfValue: z.number().min(0).max(100).optional(),
+    })
+    .strict()
+    .optional(),
+};
+
+/** Where a Case's figures come from: the price on its date, what its source published, its notes and sources. */
+const provenanceFields = {
+  /**
+   * The price on the Case's date, for the marker on a Workbench's bar: a market price, or for a private company what it
+   * last sold or raised money at. `placeholder` marks a figure the source only used to work something out (WeWork's
+   * $30), which is never drawn as a price. `label` is the word shown in place of "price" when the figure is not one that
+   * anyone paid, such as "talk" for the $40bn being talked about before Uber's December 2014 round closed.
+   */
+  price: z
+    .object({
+      value: z.number().positive(),
+      date: z.iso.date(),
+      note: z.string().trim().min(1).optional(),
+      placeholder: z.boolean().optional(),
+      label: z.string().trim().regex(/^[a-z][a-z ]{1,29}$/, "one or a few lower-case words, such as \"talk\"").optional(),
+    })
+    .strict(),
+  /**
+   * An illustration: a story built for teaching from the company's own figures, with no published valuation to check it
+   * against (Coffee Day, Webvan). It never says it reproduces anything.
+   */
+  illustration: z.boolean().default(false),
+  /** What the source published, which the engine is checked against. An illustration has no published value. */
+  published: z
+    .object({ valuePerShare: z.number().optional(), fcff: yearly("published.fcff").optional(), note: z.string().trim().min(1).optional() })
+    .strict(),
+  /**
+   * What the base revenue is, when it is not the last full year's sales: shown in place of "Today" beside lever 1
+   * (Webvan's $4.2m is its prospectus's sales from launch on 2 Jun to 30 Sep 1999: "Sales, Jun to Sep 1999").
+   */
+  baseRevenueLabel: z.string().trim().min(3).max(40).optional(),
+  /** How the figures were built where the source's own sheet differs from the plain B1 reading (a margin path, a share count). */
+  notes: z.array(z.string().trim().min(1)).optional(),
+  sources: z.array(z.object({ title: z.string().trim().min(1), url: z.url() }).strict()).min(1),
+  /** True when the engine comes within 2% of published.valuePerShare; the course check verifies it. */
+  reproduces: z.boolean(),
+};
+
+type InputsShape = { growthAfterPercent: number; costOfCapitalPercent: number[]; per: "share" | "company"; shares: number };
+
+/** The inputs' own rules, which hold wherever the inputs come from. */
+const inputsRefined = <T extends z.ZodType<InputsShape>>(schema: T) =>
+  schema
+    .refine((b) => b.growthAfterPercent < b.costOfCapitalPercent[FORECAST_YEARS - 1], {
+      message: "growthAfterPercent must be below the year-10 cost of capital, or the value is infinite",
+      path: ["growthAfterPercent"],
+    })
+    .refine((b) => b.per === "share" || b.shares === 1, {
+      message: 'a company valued whole (per: company) counts one share, so shares must be 1 and its value a share is the company\'s value',
+      path: ["shares"],
+    });
+
+/** A Case's valuation inputs alone, with no provenance. */
+export const valuationInputs = inputsRefined(z.object(inputFields).strict());
+
+type ProvenanceShape = { illustration: boolean; published: { valuePerShare?: number }; reproduces: boolean };
+
+/** The provenance's own rules: a Case checked against a source states what it published; an illustration reproduces nothing. */
+const provenanceRefined = <T extends z.ZodType<ProvenanceShape>>(schema: T) =>
+  schema
+    .refine((b) => b.illustration || b.published.valuePerShare !== undefined, {
+      message: "a Case that is not an illustration states the published value it is checked against",
+      path: ["published", "valuePerShare"],
+    })
+    .refine((b) => !b.illustration || !b.reproduces, { message: "an illustration has no published value, so it cannot reproduce one", path: ["reproduces"] });
+
+/** A Case's provenance alone. */
+export const caseProvenance = provenanceRefined(z.object(provenanceFields).strict());
+
+/** A Case's `valuation:` block as a Topic file writes it: its inputs and its provenance in one object, refusing stray fields. */
+export const valuationBlock = provenanceRefined(inputsRefined(z.object({ ...inputFields, ...provenanceFields }).strict()));
 
 /** A `valuation:` block as written in YAML, before defaults are filled in. */
 export type ValuationBlockInput = z.input<typeof valuationBlock>;
 export type ValuationBlock = z.output<typeof valuationBlock>;
+/** A Case's valuation inputs with defaults filled in: all the engine needs, wherever they come from. */
+export type ValuationInputs = z.output<typeof valuationInputs>;
+export type CaseProvenance = z.output<typeof caseProvenance>;
 
 const fractions = (percents: readonly number[]) => percents.map((p) => p / 100);
 
 /** The margin after year 10, as a percent. */
-const marginAfterPercent = (block: ValuationBlock) =>
+const marginAfterPercent = (block: ValuationInputs) =>
   "marginPercent" in block.margin ? block.margin.afterPercent : (block.margin.afterPercent ?? block.margin.targetPercent);
 
 /** The block's percents as the engine's fractions, with the halving margin path worked out. */
-export function toEngineInputs(block: ValuationBlock): DcfInputs {
+export function toEngineInputs(block: ValuationInputs): DcfInputs {
   const margin =
     "marginPercent" in block.margin
       ? fractions(block.margin.marginPercent)
@@ -155,7 +191,7 @@ export function toEngineInputs(block: ValuationBlock): DcfInputs {
 }
 
 /** The block's failure as the engine takes it, at a given chance in percent: a share of the going concern when the block gives one. */
-function engineFailure(failure: NonNullable<ValuationBlock["failure"]>, chancePercent: number): NonNullable<DcfInputs["failure"]> {
+function engineFailure(failure: NonNullable<ValuationInputs["failure"]>, chancePercent: number): NonNullable<DcfInputs["failure"]> {
   return {
     chance: chancePercent / 100,
     recovered: failure.recovered,
@@ -164,14 +200,14 @@ function engineFailure(failure: NonNullable<ValuationBlock["failure"]>, chancePe
 }
 
 /** The Case's own story, valued by the engine. */
-export function valueCase(block: ValuationBlock): DcfResult {
+export function valueCase(block: ValuationInputs): DcfResult {
   return valueStory(toEngineInputs(block));
 }
 
-/** Whether the engine's value a share is within REPRODUCE_TOLERANCE of the published one: what `reproduces` must say. */
 /** The word a Case's price goes by: "price", or the block's own label when the figure is not a price anyone paid. */
 export const priceWord = (block: Pick<ValuationBlock, "price">): string => block.price.label ?? "price";
 
+/** Whether the engine's value a share is within REPRODUCE_TOLERANCE of the published one: what `reproduces` must say. */
 export function matchesPublished(block: ValuationBlock): boolean {
   const published = block.published.valuePerShare;
   if (block.illustration || published === undefined) return false;
@@ -208,7 +244,7 @@ export type Levers = {
 };
 
 /**
- * Values the Case with the levers moved, as Appendix B.2 sets them out:
+ * The engine inputs for the Case with the levers moved, as Appendix B.2 sets them out:
  * - revenue in year 10 scales every year's growth rate by one factor (growthScaledTo), keeping the Case's shape;
  * - the margin becomes the target of the halving path and the margin after year 10. A Case written year by year
  *   moves each year by the same share of the change the halving path would give (half in year 1, three quarters in
@@ -221,7 +257,7 @@ export type Levers = {
  *   year 10 and scales the years between, keeping year 1 (matureRateScaled), after the risk lever has had its say;
  * - cash, debt and options (spec B4, Value bridge) replace the Case's, so the bridge to a share is the engine's rule 9.
  */
-export function applyLevers(block: ValuationBlock, levers: Levers): DcfResult {
+export function inputsFor(block: ValuationInputs, levers: Levers): LeverInputs {
   const inputs = toEngineInputs(block);
   let { growth, margin, marginAfter, costOfCapital, salesToCapital, salesToCapitalByYear, failure, growthAfter, cash, debt, options } = inputs;
 
@@ -254,20 +290,32 @@ export function applyLevers(block: ValuationBlock, levers: Levers): DcfResult {
   if (levers.debt !== undefined) debt = levers.debt;
   if (levers.options !== undefined) options = levers.options;
 
-  return valueStory({
-    ...inputs,
-    growth,
-    margin,
-    marginAfter,
-    costOfCapital,
-    salesToCapital,
-    ...(salesToCapitalByYear ? { salesToCapitalByYear } : {}),
-    growthAfter,
-    cash,
-    debt,
-    options,
-    ...(failure ? { failure } : {}),
-  });
+  return {
+    ok: true,
+    inputs: {
+      ...inputs,
+      growth,
+      margin,
+      marginAfter,
+      costOfCapital,
+      salesToCapital,
+      ...(salesToCapitalByYear ? { salesToCapitalByYear } : {}),
+      growthAfter,
+      cash,
+      debt,
+      options,
+      ...(failure ? { failure } : {}),
+    },
+  };
+}
+
+/** The engine inputs a set of Lever settings gives, or why the settings cannot be met. */
+export type LeverInputs = { ok: true; inputs: DcfInputs } | { ok: false; error: string };
+
+/** Values the Case with the levers moved: the inputs for these settings, valued by the engine (ADR 0010). */
+export function applyLevers(block: ValuationInputs, levers: Levers): DcfResult {
+  const made = inputsFor(block, levers);
+  return made.ok ? valueStory(made.inputs) : made;
 }
 
 /**

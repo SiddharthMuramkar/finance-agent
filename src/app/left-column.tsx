@@ -1,7 +1,7 @@
 "use client";
 
 import { ThreadPrimitive, useAuiState } from "@assistant-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAnnounce } from "./announcer";
 import { BackToTurn, openQuickTryKey } from "./back-to-turn";
 import { WhatComesNextButton } from "./course/jump-button";
@@ -9,6 +9,7 @@ import { MessageBox } from "./message-box";
 import type { WidgetSlot } from "./reply-markdown";
 import { ThreadMessages } from "./thread";
 import { FailedTurnDetails } from "./under-the-hood";
+import { InsightPick, type InsightPickView } from "./insight-pick";
 import { spokenOf, type TurnStream } from "./turn-stream";
 import { SecondaryButton } from "./ui";
 import { Chips, type PassedTopic } from "./workspace-parts";
@@ -44,7 +45,11 @@ export function LeftColumn({
   passed = null,
   next = null,
   openQuestion = null,
+  insightPick = null,
+  entries = null,
 }: {
+  /** On a phone, the conversation's ways into the sheet (SheetEntries, #83): the open Check, Explore, a due Review. */
+  entries?: ReactNode;
   /** The Next the Course Navigator offers now (null while a Check is open), drawn as the chip under the latest reply. */
   next?: NextOffer | null;
   turn: TurnStream;
@@ -53,6 +58,8 @@ export function LeftColumn({
   passed?: PassedTopic;
   /** The question the Tutor has put to the Learner and is waiting on (the Insight question): a slim line pinned above the message box. */
   openQuestion?: string | null;
+  /** The Insight question with choices to tap (ADR 0020), in place of the Open question line, while explore lasts. */
+  insightPick?: InsightPickView | null;
 }) {
   const { messages, phase, refreshing, passage, setPassage, send, retry, stop } = turn;
   const running = phase.kind === "running";
@@ -146,6 +153,9 @@ export function LeftColumn({
         </div>
       </ThreadPrimitive.Viewport>
       <div data-testid="composer-block" className="reading-block">
+      {/* The phone's ways into the sheet (#83), on a passed Topic's page too: a Review that falls due while it is shown is
+          reached from here, as the right column that holds it is a sheet on a phone (G05). */}
+      {entries}
       {passed ? (
         <section aria-label="Topic passed" data-testid="topic-passed" className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--line)] p-3">
           {/* Read-only: a passed Topic shows Passed ✓, never Resume. */}
@@ -172,7 +182,8 @@ export function LeftColumn({
               Quiz open. Stuck? Ask the Tutor: it can explain with other numbers.
             </p>
           )}
-          {openQuestion && (
+          {insightPick && <InsightPick pick={insightPick} />}
+          {openQuestion && !insightPick && (
             <p className="relative z-[1] mb-2 truncate text-[13px] leading-[18px] text-[var(--muted)]" data-testid="open-question" title={openQuestion}>
               <span className="font-medium">Open question:</span> {openQuestion}
             </p>

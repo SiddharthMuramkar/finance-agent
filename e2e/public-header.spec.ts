@@ -1,17 +1,20 @@
 import { expect, test, type Page } from "@playwright/test";
+import { SIGN_IN_PATH } from "../src/auth/destination";
+import { SITE_PAGES_ONE_CASE } from "../src/site/routes";
 import { hydrated, quietDevtools, seed } from "./support/app";
 
 /**
  * Two headers (spec 2026-11-12 G1, kept by the Signal site): the site nav (Signal spec 4.2: Home, How it works, Examples,
  * the case pages, About and the sign-in page) and the app's (`AppHeader`: Study, Course Map and Notebook, on every
  * signed-in page). Each page shows exactly one of them, and the site nav reads the viewer state: a visitor gets Sign in and
- * Join early access; a member gets Continue and the account menu, never Sign in or Join. Measured once, at 1,280 wide.
+ * Join the waitlist; a member gets Continue and the account menu, never Sign in or Join. Measured once, at 1,280 wide.
  */
 
 const ONE = "w1280";
 const PUBLIC = "header.v-nav";
 const APP = 'header:has(nav[aria-label="Pages"])';
-const SITE_PAGES = ["/", "/how-it-works", "/examples", "/examples/amazon-2000", "/about", "/sign-in"];
+/** The site pages (one case page for the five) and the sign-in page, from the one public-route list (issue #69). */
+const SITE_PAGES = [...SITE_PAGES_ONE_CASE, SIGN_IN_PATH];
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(info.project.name !== ONE, "one width is enough: which header a page has does not depend on it");
@@ -30,7 +33,7 @@ test.describe("signed out", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   // On the sign-in page itself Sign in is the page showing and the page's own button its one primary (Signal spec 5), so
-  // the nav has no Join early access there (G1).
+  // the nav has no Join the waitlist there (G1).
   test("[G1, 4.2] every site page and the sign-in page have the site nav, once, and never the app's", async ({ page }) => {
     for (const path of SITE_PAGES) {
       const found = await headers(page, path);
@@ -40,10 +43,10 @@ test.describe("signed out", () => {
       await expect(signIn, path).toBeVisible();
       if (path === "/sign-in") {
         await expect(signIn, path).toHaveAttribute("aria-current", "page");
-        await expect(header.getByText("Join early access"), path).toHaveCount(0);
+        await expect(header.getByText("Join the waitlist"), path).toHaveCount(0);
       } else {
         await expect(signIn, path).not.toHaveAttribute("aria-current", /.*/);
-        await expect(header.getByRole("link", { name: "Join early access", exact: true }), path).toBeVisible();
+        await expect(header.getByRole("link", { name: "Join the waitlist", exact: true }), path).toBeVisible();
       }
       await expect(header.getByRole("button", { name: "Continue" }), path).toHaveCount(0);
     }
@@ -72,7 +75,7 @@ test.describe("signed in", () => {
     }
   });
 
-  test("[4.2] on Home a member's nav offers Continue and the account menu, not Sign in or Join early access", async ({ page }) => {
+  test("[4.2] on Home a member's nav offers Continue and the account menu, not Sign in or Join the waitlist", async ({ page }) => {
     await seed(page, "story");
     expect(await headers(page, "/")).toMatchObject({ public: 1, app: 0 });
     const header = page.locator(PUBLIC);
@@ -81,7 +84,7 @@ test.describe("signed in", () => {
     for (const name of ["Course map", "Notebook", "Account settings"]) await expect(header.getByRole("link", { name, exact: true })).toBeVisible();
     await expect(header.getByRole("button", { name: "Sign out", exact: true })).toBeVisible();
     await expect(header.getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
-    await expect(header.getByText("Join early access")).toHaveCount(0);
+    await expect(header.getByText("Join the waitlist")).toHaveCount(0);
     await expect(header.locator("a[data-join]")).toHaveCount(0);
   });
 
@@ -94,7 +97,7 @@ test.describe("signed in", () => {
     await page.waitForURL((url) => url.pathname === "/");
     const header = page.locator(PUBLIC);
     await expect(header.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
-    await expect(header.getByRole("link", { name: "Join early access", exact: true })).toBeVisible();
+    await expect(header.getByRole("link", { name: "Join the waitlist", exact: true })).toBeVisible();
     await expect(header.getByRole("button", { name: /^Continue/ })).toHaveCount(0);
     // Signed out for real, not only on this page: the Study Workspace now sends the visitor to sign in.
     await page.goto("/study");

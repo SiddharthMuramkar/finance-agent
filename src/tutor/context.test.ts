@@ -194,11 +194,11 @@ describe("what the Topic Start card offers, in each turn's context (A8)", () => 
     return { facts, text: stepContext(place, [], undefined, false, undefined, facts) };
   }
 
-  it("says Spine Topic 15 has no quick quiz: it ends on the Learner's own work", async () => {
+  it("says the ready-Case valuation Topic offers the quick quiz, like any other Spine Topic (Owner, 2026-11-16)", async () => {
     const { facts, text } = await contextAt("spine-15-value-yourself");
-    expect(facts.skipAhead).toBe("none");
-    expect(text).toContain(SKIP_AHEAD_LINES.none);
-    expect(text).not.toContain(SKIP_AHEAD_LINES.offer);
+    expect(facts.skipAhead).toBe("offer");
+    expect(text).toContain(SKIP_AHEAD_LINES.offer);
+    expect(text).not.toContain(SKIP_AHEAD_LINES.none);
   });
 
   it("says the card offers it on a Topic that has one, before today's quiz is taken", async () => {
@@ -249,5 +249,24 @@ describe("the open Widgets line", () => {
 
   it("is left out when no Widget is open", () => {
     expect(openWidgetsNote([])).toBeNull();
+  });
+});
+
+// Spec #68 (ticket #86): Topic 1's Go deeper text reaches the Tutor when the Learner presses Go deeper, and its daily-life
+// line is on the Learner's screen at the Principle step.
+describe("Go deeper and the daily-life line (spec #68)", () => {
+  const facts: TurnFacts = { step: "concept", cap: 80, exampleCurrency: "USD", caseCurrencies: ["USD"], quizOpen: false, openItems: [], blockedNumbers: [], internalWords: [] };
+  const topic = () => loadCourseMap().topic("spine-01-worth")!;
+  const deeper = () => topic().goDeeper!.replace(/\s+/g, " ").trim();
+
+  it("gives the Tutor Topic 1's Go deeper text to give now when the Learner presses Go deeper", () => {
+    const text = stepContext(placeAt("spine-01-worth", "concept", 0), [], undefined, false, undefined, { ...facts, replyKind: "go_deeper" });
+    expect(text).toContain(`The Learner pressed Go deeper: give them this Go deeper material now, in your own words (no Check tests it, so never quiz it): ${deeper()}`);
+  });
+
+  it("names the daily-life line on the Learner's screen at the Principle step only", () => {
+    const line = topic().dailyLife!.replace(/\s+/g, " ").trim();
+    expect(stepContext(placeAt("spine-01-worth", "principle", 2), [], undefined, false, undefined, { ...facts, step: "principle" })).toContain(`Daily-life line (code shows it under the principle): ${line}`);
+    expect(stepContext(placeAt("spine-01-worth", "concept", 0), [], undefined, false, undefined, facts)).not.toContain("Daily-life line");
   });
 });

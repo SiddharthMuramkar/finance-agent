@@ -36,8 +36,9 @@
 @import "@openuidev/react-ui/layered/styles/textContentWrapper.css";
 @import "@openuidev/react-ui/layered/styles/tooltipWrapper.css";
 
-/* One Light theme for the whole app (decision #17; spec §3.1, "single light theme by design"). There is no Dark theme:
-   no dark class, no dark variant, and the computer's setting is never read. */
+/* Two themes, Light and Dark (ADR 0019; spec §3.1). Light is :root below; Dark is :root[data-theme="dark"] after it. The
+   head script in the root layout picks one before the first paint: the device's setting on a first visit, then the
+   switch's choice. No .dark class and no prefers-color-scheme rule: the script reads the device, so a chosen theme wins. */
 
 /* Design tokens: the Signal colour language (spec §2.1, §3.1). Blue is you, green is gain, red is loss, orange is
    careful, black is the record, and hatch is not real yet. There is no sixth colour.
@@ -51,10 +52,11 @@
   --gutter: clamp(12px, 1.6vw, 32px);
   --gap: clamp(16px, 1.6vw, 28px);
   --page-max: 2200px;
-  /* Spec §3.3 shadows and §3.2 body type, shared by the site and the Signal widgets wherever they mount. A shadow is not a
-     colour token: its tint is the ink and the blue at low alpha, as the spec writes it. */
-  --lift: 0 8px 24px rgba(11, 13, 18, 0.07);
-  --lift-w: 0 1px 2px rgba(11, 13, 18, 0.05), 0 18px 44px -18px rgba(31, 63, 174, 0.28);
+  /* Spec §3.3 shadows and §3.2 body type, shared by the site and the Signal widgets wherever they mount. A shadow's tint
+     is --shadow-ink (the ink in Light) and the blue at low alpha, as the spec writes it. */
+  --lift: 0 8px 24px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
+  --lift-w: 0 1px 2px color-mix(in srgb, var(--shadow-ink) 5%, transparent),
+    0 18px 44px -18px color-mix(in srgb, var(--blue) 28%, transparent);
   --font-body: var(--font-text, "Inter"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* ---- Spec §3.1: the only literal colours ---- */
@@ -98,6 +100,10 @@
   /* ---- App chrome the spec does not list (literal, contrast-checked) ---- */
   /* A strong line for control edges: 3:1 or better on every surface a control sits on */
   --line-strong: #868c97;
+  /* The tint of every shadow: the ink in Light. Its own token, so a Dark theme keeps its shadows dark (ADR 0019). */
+  --shadow-ink: #0b0d12;
+  /* The checkbox tick, --on-fill drawn on --fill: a data URI, which var() cannot reach into, so the image is the token. */
+  --check-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
 
   /* ---- App names: each points at a spec token ---- */
   /* Surfaces: a raised card or field, a Widget frame */
@@ -162,9 +168,9 @@
   --src-tag: var(--wash-2);
   --src-tag-ink: var(--ink);
   /* Not colour-checked: Widgets' soft drop shadow, and the shadows of floating layers */
-  --shadow: rgb(11 13 18 / 0.22);
-  --shadow-pop: 0 0 0 1px var(--rule), 0 8px 24px -12px rgb(11 13 18 / 0.2);
-  --shadow-modal: 0 0 0 1px var(--rule), 0 24px 64px -24px rgb(11 13 18 / 0.32);
+  --shadow: color-mix(in srgb, var(--shadow-ink) 22%, transparent);
+  --shadow-pop: 0 0 0 1px var(--rule), 0 8px 24px -12px color-mix(in srgb, var(--shadow-ink) 20%, transparent);
+  --shadow-modal: 0 0 0 1px var(--rule), 0 24px 64px -24px color-mix(in srgb, var(--shadow-ink) 32%, transparent);
   /* Older names still in code: each follows its newer name. */
   --bg: var(--paper);
   --field: var(--raised);
@@ -192,6 +198,9 @@
   --on-band-2: rgb(255 255 255 / 0.72);
   --band-rule: rgb(255 255 255 / 0.18);
   --on-band-button-ink: #0b0d12;
+  /* The step bar on the Topic bar's Band: a step ahead in white at 35%, and the hover wash on a done step, white at 15% */
+  --band-todo: rgb(255 255 255 / 0.35);
+  --on-band-hover: rgb(255 255 255 / 0.15);
   /* A card on a Band: white */
   --band-card: var(--paper);
   /* The key-number colour (spec F2, F5): eyebrows, step numbers and a Widget's one key number. It is the accent, blue;
@@ -220,6 +229,72 @@
   --lh-ui: 20px;
   --text-small: 13px;
   --lh-small: 18px;
+}
+
+/* Dark (ADR 0019): the same colour language, each colour re-stepped for a dark page and measured again, never inverted.
+   The theme script in the root layout sets data-theme on <html> before the first paint: the device's setting on a first
+   visit, then the switch's choice from the `theme` cookie. Only colours live here; every other name follows through
+   var(). On a dark page the fills are light, so the text on a fill (--on-blue, and on a Band --on-band) is dark. The
+   hatch is drawn in --line, so it takes --line's dark value. On screen only: a printed page is always the Light palette
+   with the print block's ink, since paper is white whatever the theme, and the head script sets Dark on every
+   route, the Notebook included. */
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #0e1117;
+    --wash: #161a22;
+    --wash-2: #1f2430;
+    --grid: #1b2029;
+    --ink: #f2f4f8;
+    --ink-2: #d3d7df;
+    --muted: #9ba2ae;
+    --faint: #7a818d;
+    --rule: #272c37;
+    --line: #3a404d;
+    --blue: #8aa4ff;
+    --blue-hover: #9fb5ff;
+    --blue-pressed: #b3c4ff;
+    --on-blue: #0b0d12;
+    --blue-tint: #1a2240;
+    --blue-tint-2: #222b4e;
+    --blue-line: #3a4b8c;
+    --gain: #0f7a56;
+    --gain-deep: #4fd1a1;
+    --gain-ink: #4cc996;
+    --gain-tint: #10261e;
+    --gain-line: #1e5a44;
+    --loss: #ff7a8f;
+    --loss-ink: #ff9aa8;
+    --loss-tint: #2c1418;
+    --loss-line: #6e2a35;
+    --wait: #ffc247;
+    --wait-ink: #ffcc66;
+    --wait-tint: #2b1c0e;
+    --wait-line: #6b5221;
+    --overlay: rgba(14, 17, 23, 0.9);
+    --line-strong: #767e8b;
+    --shadow-ink: #000000;
+    --check-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%230b0d12' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
+    --on-band: #0b0d12;
+    --on-band-2: rgb(11 13 18 / 0.72);
+    --band-rule: rgb(11 13 18 / 0.18);
+    --on-band-button-ink: #f2f4f8;
+    --band-todo: rgb(11 13 18 / 0.35);
+    --on-band-hover: rgb(11 13 18 / 0.15);
+  }
+}
+
+/* The one screen-size rule (src/app/screen.ts): a phone is below md (768 px), a tablet below lg (1024 px), a laptop from
+   lg up. Tailwind's own values, written here so CSS and script read one rule; screen.test.ts keeps them equal. */
+@theme {
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+}
+
+/* The theme switch draws both its icons (and words); the theme on <html> shows one, correct from the first frame. */
+:root:not([data-theme="dark"]) .theme-show-dark,
+:root[data-theme="dark"] .theme-show-light {
+  display: none;
 }
 
 /* The same tokens as Tailwind colours (bg-blue, text-gain-ink, bg-brand, text-muted, border-border ...). "inline" keeps
@@ -538,13 +613,13 @@ body {
 /* Cards that fill the page: as many 340px-or-wider columns as fit. */
 @utility card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: var(--gap);
 }
 
 /* The Study Workspace's columns (spec 2026-11-11, C2a): the conversation takes --chat-share percent of the width the two
    columns share (the frame less the Split handle's column, which is --gap wide), the Widget panel the rest, and neither
-   goes under 360 px. The server sets --split-saved on the frame from the `split` cookie; it applies from 1024 px up,
+   goes under 360 px. The server sets --split-saved on the frame from the `split` cookie; it applies from lg (a laptop) up,
    where the Split handle shows. Below that the default holds. No transition: the columns move with the hand. */
 .workspace-split {
   --chat-share: 45;
@@ -552,12 +627,15 @@ body {
   grid-template-columns: minmax(360px, calc((100% - var(--gap)) * var(--chat-share) / 100)) var(--gap) minmax(360px, 1fr);
   grid-template-rows: minmax(0, 1fr);
 }
-@media (width >= 1024px) {
-  .workspace-split { --chat-share: var(--split-saved, 45); }
+.workspace-split {
+  @variant lg { --chat-share: var(--split-saved, 45); }
+  /* A phone (#82): the conversation alone fills the width; the Widget column is a full-screen sheet (workspace-frame.tsx). */
+  @variant max-md { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* The Split handle (C2b): a 1 px rule and a grip. Hover, focus and a drag turn the rule accent. No lift, no shadow. */
 .split-handle {
+  @variant max-md { display: none; }
   position: relative;
   cursor: col-resize;
   touch-action: none;
@@ -942,7 +1020,9 @@ html[data-splitting] * {
 }
 
 /* Printing (the Notebook page): white paper and darker ink, with the page margins left to the printer. Controls
-   carry `print:hidden` in their markup. */
+   carry `print:hidden` in their markup. The :root here is the print token block: its literal colours are a print palette,
+   the third token block beside Light and Dark (src/dev/literal-colours.test.ts allows literals only in :root blocks).
+   The Dark block sits in @media screen, so a page printed while Dark is on still prints on white paper (ADR 0019, #80). */
 @media print {
   :root {
     color-scheme: light !important;
@@ -958,7 +1038,7 @@ html[data-splitting] * {
     --line-strong: #6b717c;
   }
   body {
-    background: #ffffff;
+    background: var(--paper);
   }
   main {
     max-width: none;
@@ -1250,9 +1330,7 @@ html[data-splitting] * {
   /* The tick is --on-fill on --fill: white on royal blue. */
   input[type="checkbox"]:checked {
     border-color: var(--fill);
-    background: var(--fill)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E")
-      center / 12px no-repeat;
+    background: var(--fill) var(--check-tick) center / 12px no-repeat;
   }
   input[type="radio"]:focus-visible,
   input[type="checkbox"]:focus-visible,

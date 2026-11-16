@@ -23,7 +23,7 @@ Product specs live in `docs/specs/`. Current: `docs/specs/value-it-signal-spec.m
 - Admin = Clerk `publicMetadata.role: "admin"`, read from the session claim (`signedInAdmin`, `src/auth/owner.ts`). Never a passcode, an env var or a Learner name.
 - `clerkOn(env)` (`src/auth/gates.ts`): both Clerk keys set and not the test bed. While it is off, nothing loads or calls Clerk.
 - The passcode door (`PASSCODES`, `/api/login`) is local and test only: `passcodeDoorOpen(env)` is false in production and on Vercel.
-- Test bed: Clerk is off; `POST /api/dev-e2e {person: "owner" | "asha"}` sets a signed `fa_e2e_person` cookie in place of a Clerk session (`src/dev/e2e-identity.ts`). CI needs no Clerk keys.
+- Test bed: Clerk is off; `POST /api/dev-e2e {person: "owner" | "asha" | "ravi"}` sets a signed `fa_e2e_person` cookie in place of a Clerk session (`src/dev/e2e-identity.ts`). CI needs no Clerk keys.
 
 ## Ops
 

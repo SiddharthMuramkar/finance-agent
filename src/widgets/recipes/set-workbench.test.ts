@@ -18,7 +18,10 @@ const declarations = lines.filter((line) => line.startsWith("$"));
 describe("value_levers (B3)", () => {
   it("binds Value levers to a Case id and opens each lever at the Case's own figure", () => {
     expect(levers).toMatch(/^levers = ValueLevers\("amazon-dcf-2000", \$revenue, \$margin, \$salesToCapital, \$risk, \$failure, \$moved, \$mostLever, \$mostBy, /);
-    expect(declarations).toEqual(["$revenue = 39", "$margin = 10", "$salesToCapital = 3", "$risk = 12.84", "$failure = 0", "$moved = 0", "$mostLever = 0", "$mostBy = 0"]);
+    expect(declarations).toEqual(["$revenue = 39", "$margin = 10", "$salesToCapital = 3", "$risk = 12.84", "$failure = 0", "$moved = 0", "$mostLever = 0", "$mostBy = 0",
+      // The Full sheet's rows (#104), each at no change from the Case's own figure.
+      ...["$taxRow = 0", "$lossesRow = 0", "$growthAfterRow = 0", "$returnAfterRow = 0", "$cashRow = 0", "$debtRow = 0", "$optionsRow = 0"]]);
+    expect(levers).toMatch(/, \$taxRow, \$lossesRow, \$growthAfterRow, \$returnAfterRow, \$cashRow, \$debtRow, \$optionsRow\)$/);
   });
 
   it("draws with no problem, as a Workbench", () => {
@@ -29,7 +32,7 @@ describe("value_levers (B3)", () => {
 
   it("tells the Tutor its levers and its Things to try when code shows it", () => {
     const { sliders, tasks } = widgetControls(built.code);
-    expect(sliders[0]).toBe("$revenue (How big it gets: revenue in year 10): 10 to 100 in steps of 1, starting at 39");
+    expect(sliders[0]).toBe("$revenue (How big it gets: sales in year 10): 10 to 100 in steps of 1, starting at 39");
     expect(sliders[3]).toBe("$risk (How risky: cost of capital while it grows): 10 to 18 in steps of 0.25, starting at 12.84");
     expect(sliders[4]).toBe("$failure (Chance it fails): 0 to 50 in steps of 5, starting at 0");
     expect(tasks).toEqual(["Move one lever at a time. Which one moves the value most?", "Find a story worth the $84 price"]);
@@ -48,6 +51,20 @@ describe("value_levers (B3)", () => {
     expect(widgetTaskTexts(zomato.code)).toEqual(["Move one lever at a time. Which one moves the value most?", "Find a story worth the ₹76 price"]);
     const elsewhere = recipe.build({ ...yourself, inputs: { ...yourself.inputs, case: "amazon-yourself-2000" } });
     expect(!elsewhere.ok && elsewhere.error).toMatch(/case: not one of the mode's Cases; one of: amazon-dcf-2000, coffee-day-rupee-valuation-2015, zomato-ipo-2021/);
+  });
+
+  it("lets a judging mode carry Case chips too: match_price on Coffee Day opens on its chip, with no Save my story (Spine, #92)", () => {
+    const cases = [
+      { id: "amazon-dcf-2000", label: "Amazon, Feb 2000" },
+      { id: "coffee-day-rupee-valuation-2015", label: "Coffee Day, Oct 2015" },
+      { id: "zomato-ipo-2021", label: "Zomato, Jul 2021" },
+    ];
+    const judge = recipe.build({ title: "Judge a published story", inputs: { case: "coffee-day-rupee-valuation-2015", mode: { kind: "match_price", cases } }, refs: {}, facts: {} });
+    if (!judge.ok) throw new Error(judge.error);
+    expect(judge.code).toContain("$case = 1");
+    expect(widgetTaskTexts(judge.code)).toEqual(["Move one lever at a time. Which one moves the value most?", "Find a story worth the ₹328 price"]);
+    const elsewhere = recipe.build({ title: "Judge", inputs: { case: "amazon-yourself-2000", mode: { kind: "match_price", cases } }, refs: {}, facts: {} });
+    expect(!elsewhere.ok && elsewhere.error).toMatch(/case: not one of the mode's Cases/);
   });
 
   it("refuses a story worth the price that does not land near it, and a start off a lever's range", () => {
@@ -104,9 +121,11 @@ describe("the Workbench fixtures (B4, Done when: each Workbench has frozen fixtu
     ["value-levers-match-price", "value_levers", 7],
     ["value-levers-range", "value_levers", 8],
     ["value-levers-all-open", "value_levers", 9],
+    ["value-levers-readings", "value_levers", 10],
     ["value-bridge", "value_bridge", 0],
     ["terminal-seesaw", "terminal_seesaw", 0],
     ["wacc-stack", "wacc_stack", 0],
+    ["wacc-stack-readings", "wacc_stack", 2],
     ["cash-waterfall", "cash_waterfall", 0],
     ["cash-waterfall-company", "cash_waterfall", 1],
     ["multiple-decoder", "multiple_decoder", 0],

@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { loadCourseMap } from "@/course/map";
+import { isConverted, loadCourseMap } from "@/course/map";
 import { courseOverview, jumpTo, navigate, whatComesNext, type Progress, type TopicOverview } from "@/course/navigator";
+import { OWN_CASE_MARKETS, ownCaseMarket } from "@/finance/own-case";
 import { CourseMapView } from "./course-map-view";
 
 const topic = (t: Partial<TopicOverview> & Pick<TopicOverview, "id" | "title">): TopicOverview => ({
@@ -246,8 +247,24 @@ describe("the Spine on the Course Map", () => {
   const html = renderToStaticMarkup(<CourseMapView topics={written} coming={coming} recommended={{ topicId: "spine-2", label: "Resume: Spine question 2" }} />);
   const spine = html.split('data-stage="spine"')[1].split("</section>")[0];
 
-  it("comes first, before the Electives, Follow, Judge and Analyse", () => {
-    expect([...html.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1])).toEqual(["Spine", "Electives", "Follow"]);
+  it("comes first, before the Assignment, the Electives, Follow, Judge and Analyse", () => {
+    expect([...html.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1])).toEqual(["Spine", "Assignment", "Electives", "Follow"]);
+  });
+
+  it("the Assignment after it opens only once the Spine is passed (spec #68)", () => {
+    const assignment = (open: boolean) =>
+      renderToStaticMarkup(<CourseMapView topics={written} coming={coming} recommended={null} assignmentOpen={open} />).split('data-stage="assignment"')[1].split("</section>")[0];
+    expect(assignment(false)).toContain("Opens once you pass every Spine Topic");
+    expect(assignment(false)).not.toContain('href="/assignment"');
+    expect(assignment(true)).toContain('href="/assignment"');
+    expect(assignment(true)).toContain("Value a company you pick");
+  });
+
+  // G34: the Assignment takes a company from any Own Case market, as /assignment says, not only an Indian one.
+  it("names every Own Case market on the open Assignment row", () => {
+    const open = renderToStaticMarkup(<CourseMapView topics={written} coming={coming} recommended={null} assignmentOpen />).split('data-stage="assignment"')[1].split("</section>")[0];
+    expect(open).not.toContain("Indian");
+    for (const m of OWN_CASE_MARKETS) expect(open).toContain(ownCaseMarket(m).name);
   });
 
   it("lists all fifteen rows in order, written or coming, each numbered in the key-number blue", () => {
@@ -328,5 +345,26 @@ describe("every Topic written before the Spine, on the real Course Map", () => {
       return jump.ok && navigate(map, jump.progress)?.topic.id === t.id ? [] : [t.id];
     });
     expect(failed).toEqual([]);
+  });
+});
+
+// Spec #68 (ticket #97): every Topic not written ahead (not a Converted Topic) says so on its row, and still opens.
+describe("Topics taught live by the AI Tutor, on the real Course Map", () => {
+  const map = loadCourseMap();
+  const fresh: Progress = { currentTopicId: null, topics: {} };
+  const html = renderToStaticMarkup(<CourseMapView topics={courseOverview(map, fresh)} coming={map.coming} recommended={null} />);
+  const live = map.topics.filter((t) => !isConverted(t));
+  const written = map.topics.filter(isConverted);
+
+  it("labels every Topic not written ahead, and no written-ahead Topic", () => {
+    expect(live.length).toBeGreaterThan(80);
+    expect(written.map((t) => t.id)).toEqual(expect.arrayContaining(["spine-01-worth", "num-compounding"]));
+    expect(live.filter((t) => !row(html, t.id).includes("Taught live by the AI Tutor")).map((t) => t.id)).toEqual([]);
+    expect(written.filter((t) => row(html, t.id).includes("Taught live by the AI Tutor")).map((t) => t.id)).toEqual([]);
+  });
+
+  it("keeps each labelled Topic open: a row link that chooses it", () => {
+    expect(live.filter((t) => !html.includes(`data-row-link="${t.id}"`)).map((t) => t.id)).toEqual([]);
+    expect(live.filter((t) => !jumpTo(map, fresh, t.id).ok).map((t) => t.id)).toEqual([]);
   });
 });

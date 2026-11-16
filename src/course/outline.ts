@@ -6,14 +6,19 @@ import { z } from "zod";
 const id = z.string().regex(/^[a-z0-9-]+$/, "IDs use lower case letters, digits and hyphens");
 
 /**
- * The Stages, in the order the Course Map shows them. The Spine (spec C1) is the default path's first fifteen Topics, which
+ * The Stages, in the order the Course Map shows them. The Spine (spec C1) is the default path's first Topics, at most SPINE_MAX, which
  * teach valuation in order; a Foundation Topic is an Elective, opened when the Learner chooses it.
  */
 export const STAGES = ["spine", "foundation", "follow", "judge", "analyse"] as const;
 export type Stage = (typeof STAGES)[number];
 
-/** How many Topics the Spine has (spec C4), and the longest a Spine Topic may say it takes, in minutes (C2). */
-export const SPINE_LENGTH = 15;
+/** The most Topics the Spine may hold (ADR 0020): the outline schema's cap on a Spine number. */
+export const SPINE_MAX = 18;
+/** How many Topics the Spine has (spec C4, ADR 0020), and the longest a Spine Topic may say it takes, in minutes (C2). */
+// 18 with #90's statements Topic, #91's cost-of-capital split and #93's annual report Topic (ADR 0020). The mergers set
+// it to the number of Spine Topics in the merged outline; the course check then requires exactly that many
+// (spineCountProblems), separately from the schema's cap of SPINE_MAX.
+export const SPINE_LENGTH = 18;
 export const SPINE_MAX_MINUTES = 15;
 
 /** The nine Subjects: the field a Foundation Topic belongs to. Later-Stage Topics have none. */
@@ -49,8 +54,8 @@ const outlineTopic = z.object({
   stage: z.enum(STAGES),
   subject: z.enum(SUBJECTS).optional(),
   prerequisites: z.array(id).default([]),
-  /** A Spine Topic's number, 1 to 15: its place on the Spine (spec C4). Spine Topics only. */
-  spine: z.number().int().min(1).max(SPINE_LENGTH).optional(),
+  /** A Spine Topic's number, 1 to SPINE_MAX: its place on the Spine (spec C4). Spine Topics only. */
+  spine: z.number().int().min(1).max(SPINE_MAX).optional(),
   /** How long the Topic takes, in whole minutes; the Course Map shows it on each Spine row (spec C6). */
   minutes: z.number().int().positive().optional(),
   /**
@@ -140,6 +145,16 @@ function spineProblems(topics: OutlineTopic[], byId: Map<string, OutlineTopic>):
   const missing = Array.from({ length: Math.max(0, ...numbers.keys()) }, (_, i) => i + 1).filter((n) => !numbers.has(n));
   if (missing.length) problems.push(`The Spine skips number${missing.length === 1 ? "" : "s"} ${missing.join(", ")}: Spine numbers run from 1 with none left out`);
   return problems;
+}
+
+/**
+ * The course check's count of the Spine (ADR 0020, #93): the outline holds exactly SPINE_LENGTH Spine Topics, numbered 1
+ * to SPINE_LENGTH, so a Topic cannot drop off the Spine, or one be added, without the site's counts moving with it. Kept out
+ * of parseOutline, whose fixtures hold short Spines; scripts/check-course.mjs runs it on the real outline.
+ */
+export function spineCountProblems(outline: Outline): string[] {
+  const n = outline.topics.filter((t) => t.stage === "spine").length;
+  return n === SPINE_LENGTH ? [] : [`The Spine has ${n} Topics; it needs exactly ${SPINE_LENGTH}, numbered 1 to ${SPINE_LENGTH} (ADR 0020)`];
 }
 
 /** The Spine Topics in Spine order, 1 first. Empty while the outline has none. */

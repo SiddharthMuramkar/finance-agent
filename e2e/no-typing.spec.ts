@@ -1,10 +1,13 @@
 import { readdirSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { seed, settled, type State } from "./support/app";
+import { becomePerson } from "./support/people";
 
 /**
  * D1a: every question is a tap (ADR 0002). The Learner never types a number: a Quick try, an open Check tab and a due
  * Review show choices to tap, and a wrong tap shows its own mix-up fix. D1c adds the /dev/widgets sweep to this file.
+ * ADR 0020 narrows the rule by one form: the Own Case form of the Assignment, where a Learner copies numbers from an
+ * annual report. Every typed-number box in the app is inside that form, and nowhere else.
  */
 
 // The OpenUI devtools overlay (dev server only) has a disabled "Chunk seed" number box; it is not the Learner's UI.
@@ -56,6 +59,50 @@ test("an open Review shows choices to pick, with no typed-number input", async (
   await expect(review.getByRole("radio").first()).toBeVisible();
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
   await settled(page);
+});
+
+test("the Own Case form is the one place a Learner types numbers, and its industry is a tap", async ({ page }) => {
+  test.setTimeout(120_000);
+  await becomePerson(page, { person: "ravi" });
+  await page.goto("/assignment");
+  const form = page.locator("[data-own-case-form]");
+  await expect(form).toBeVisible();
+  const typed = page.locator(TYPED_NUMBER);
+  expect(await typed.count()).toBeGreaterThan(0);
+  await expect(typed).toHaveCount(await form.locator(TYPED_NUMBER).count());
+  // The industry is picked with a tap, not typed.
+  await expect(form.locator("[data-industry]")).toHaveCount(4);
+  await expect(form.locator("select")).toHaveCount(0);
+  // Outside the Assignment, the same Learner's pages have no box to type a number in.
+  for (const path of ["/course", "/notebook"]) {
+    await page.goto(path);
+    await expect(page.locator(TYPED_NUMBER), path).toHaveCount(0);
+  }
+});
+
+// Ticket #88: Spine Topic 1 asks for nothing typed and for no own story. Its Insight is a tap code marks, and its
+// closing Check (worth-talk, once a conversation asking for the Learner's own story) judges other people's stories by tap.
+test("Spine Topic 1 settles its Insight by a tap, with nothing to type", async ({ page }) => {
+  await study(page, "spine-01-explore");
+  const pick = page.getByTestId("insight-pick");
+  await expect(pick).toBeVisible();
+  expect((await pick.getByTestId("insight-pick-choice").allInnerTexts()).sort()).toEqual(["Far more sales, and more kept of each sale", "Only a lower cost of capital", "Only more sales for each dollar invested"]);
+  await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
+  await pick.getByTestId("insight-pick-choice").filter({ hasText: "Only a lower cost of capital" }).click();
+  // The first tap can wait on the dev server compiling its route.
+  await expect(page.getByTestId("insight-pick-result")).toHaveAttribute("data-released", "hint_1", { timeout: 60_000 });
+  await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
+});
+
+test("Spine Topic 1's closing Check judges other people's stories by tap, never the Learner's own", async ({ page }) => {
+  await study(page, "spine-01-judging");
+  const quiz = page.getByTestId("quiz");
+  await expect(quiz).toBeVisible();
+  await expect(quiz.locator("fieldset")).toHaveCount(4);
+  await expect(quiz.getByRole("radio").first()).toBeVisible();
+  await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
+  await expect(page.getByTestId("quiz-number")).toHaveCount(0);
+  await expect(page.getByText(/your story|your own story|Tell Amazon's story/i)).toHaveCount(0);
 });
 
 // D1c: every fixture Widget in the developer harness, every part: no typed-number input (the harness page is dev only).

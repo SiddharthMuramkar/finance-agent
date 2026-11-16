@@ -1,0 +1,552 @@
+import { z } from "zod";
+import { rawFormulaHits } from "../finance/raw-formula.ts";
+import { isIconName } from "../icons/names.ts";
+import { EUROPE_GUIDE } from "./guides-europe.ts";
+
+// The annual-report guide (spec #68, ticket #108; user story 80): beside each Own Case field, where that number sits in
+// one market's annual report, with a link to the rule or record that says so and a Lingo card for the word the Learner
+// meets there, so a Learner can find every number alone. Guides live in git so the course check (scripts/check-course.mjs,
+// no database) fails a guide line with no source. One guide per market (India #108, the US #113); more markets (#114, #115) add their lines here.
+// Imports only packages and relative modules, so plain Node runs it.
+
+/** The Own Case fields a guide covers: the company, the report's date, the industry it picks (L21) and the seven figures typed from the report. */
+export const GUIDE_FIELDS = ["company", "reportDate", "industry", "sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"] as const;
+export type GuideField = (typeof GUIDE_FIELDS)[number];
+
+/** A Lingo card's makings, as the LingoCard Widget takes them (term, means, pro, example, emoji). */
+const lingoSchema = z
+  .object({
+    term: z.string().trim().min(2),
+    means: z.string().trim().min(3),
+    pro: z.string().trim().min(3),
+    example: z.string().trim().min(3),
+    emoji: z.string().trim().min(1),
+  })
+  .strict();
+
+export const guideLineSchema = z
+  .object({
+    market: z.enum(["IN", "US", "JP", "KR", "EU"]),
+    field: z.enum(GUIDE_FIELDS),
+    /** Where the number sits in the annual report, in one or two plain sentences. */
+    where: z.string().trim().min(10),
+    /** The rule or record that says so: the link's words. */
+    source: z.string().trim().min(3),
+    sourceUrl: z.url({ protocol: /^https?$/ }),
+    lingo: lingoSchema,
+  })
+  .strict();
+
+export type GuideLine = z.output<typeof guideLineSchema>;
+export type GuideLineInput = Partial<z.input<typeof guideLineSchema>>;
+
+/** LingoCard's word limits (src/widgets/primitives/wave3/lingo-card.tsx), as the Full sheet's cards keep them. */
+const CARD_LIMITS = { pro: 14, means: 20, example: 20 } as const;
+
+const wordCount = (text: string) => text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+
+/** A price line that falls back to a day before the report's date, or to the year end (L03). */
+const PRICE_BEFORE = /\b(?:last|previous) trading day before\b|\byear[- ]end close\b|\bshuts on 31 December\b/i;
+
+/** Every way the guide lines break the rules, as sentences; empty when all pass. */
+export function guideErrors(lines: readonly unknown[]): string[] {
+  const errors: string[] = [];
+  const seen = new Map<string, Set<string>>();
+  lines.forEach((raw, i) => {
+    const loose = (typeof raw === "object" && raw !== null ? raw : {}) as { market?: unknown; field?: unknown };
+    const market = typeof loose.market === "string" ? loose.market : "?";
+    const field = typeof loose.field === "string" ? loose.field : `#${i + 1}`;
+    const name = `Guide line ${market} "${field}"`;
+    const fields = seen.get(market) ?? new Set<string>();
+    seen.set(market, fields);
+    if (fields.has(field)) {
+      errors.push(`${name} is listed twice`);
+      return;
+    }
+    fields.add(field);
+    const parsed = guideLineSchema.safeParse(raw);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) errors.push(`${name} needs ${issue.path.map(String).join(".") || "a value"}: ${issue.message}`);
+      return;
+    }
+    const { lingo, where } = parsed.data;
+    if (!isIconName(lingo.emoji)) errors.push(`${name} has the Lingo picture "${lingo.emoji}", which is not an Icon name (src/icons/names.ts)`);
+    // No typed formula (ADR 0003): a sum is told in steps, as a Topic's cards tell it.
+    for (const text of [where, lingo.term, lingo.means, lingo.pro, lingo.example]) {
+      const hits = rawFormulaHits(text);
+      if (hits.length) errors.push(`${name} types a formula (ADR 0003): ${hits.join("; ")}`);
+    }
+    for (const [line, max] of Object.entries(CARD_LIMITS) as [keyof typeof CARD_LIMITS, number][]) {
+      const n = wordCount(lingo[line]);
+      if (n > max) errors.push(`${name}'s Lingo card ${line} has ${n} words; at most ${max}`);
+    }
+    // One fallback day in every market (L03): a price from before the report's date could not know its figures.
+    if (parsed.data.field === "price" && (!/next trading day/i.test(where) || PRICE_BEFORE.test(`${where} ${lingo.example}`))) {
+      errors.push(`${name} must send a shut market's price to the next trading day, never to a day before the report`);
+    }
+  });
+  for (const [market, fields] of seen) {
+    for (const field of GUIDE_FIELDS) if (!fields.has(field)) errors.push(`The ${market} guide has no line for "${field}": every Own Case field needs one`);
+  }
+  return errors;
+}
+
+// ——— India (checked 2026-11-16) ———
+// Indian annual reports follow Schedule III to the Companies Act, 2013 (Division II for Ind AS companies; banks, NBFCs and
+// insurers use other formats, and the Own Case's industries leave them out).
+
+const MCA = { source: "Companies Act, 2013, with Schedule III (Ministry of Corporate Affairs)", sourceUrl: "https://www.mca.gov.in/content/dam/mca/pdf/CompaniesAct2013.pdf" };
+const TAX = { source: "Income Tax Department, tax rates for domestic companies", sourceUrl: "https://incometaxindia.gov.in/Documents/Left%20Menu/TAX%20RATES-domestic.htm" };
+const IND_AS_7 = { source: "Ind AS 7, Statement of Cash Flows, paragraph 7 (ICAI)", sourceUrl: "https://resource.cdn.icai.org/94048indas2025-26-7.pdf" };
+const IND_AS_116 = { source: "Ind AS 116, Leases, paragraphs 47 and 49 (ICAI)", sourceUrl: "https://resource.cdn.icai.org/94043indas2025-26-116.pdf" };
+const NSE = { source: "NSE, security-wise price archives", sourceUrl: "https://www.nseindia.com/report-detail/eq_security" };
+
+const india: GuideLineInput[] = [
+  {
+    field: "company",
+    where:
+      "Type the name as the annual report's cover prints it. Inside, use the Consolidated Financial Statements, not the Standalone ones (a report may print either set first); a company that owns no other company prints only standalone.",
+    ...MCA,
+    lingo: {
+      term: "Consolidated statements",
+      means: "The accounts of the company and every company it owns, added up as one.",
+      pro: "consolidated numbers include the subsidiaries",
+      example: "A tea maker that owns a café chain shows the cafés' sales in its consolidated statements.",
+      emoji: "office-building",
+    },
+  },
+  {
+    field: "reportDate",
+    where:
+      "The signature page at the end of the consolidated statements: the date the Board approved them (section 134), when the year's figures went to the stock exchanges. Not the Balance Sheet's year end, \"as at 31 March 2025\": nobody outside knew the year's figures then, and a price from that day could not reflect them.",
+    ...MCA,
+    lingo: {
+      term: "Board approval",
+      means: "The day the company's directors sign off the year's statements; the figures are made public that day.",
+      pro: "the statements were approved by the Board on 12 May 2025",
+      example: "A year ending 31 March 2025 may be approved on 12 May 2025: the report's date is 12 May.",
+      emoji: "calendar",
+    },
+  },
+  {
+    field: "industry",
+    where:
+      "The Board's Report and its Management Discussion and Analysis say what the company makes and sells. The segment note (Ind AS 108) splits revenue by business: pick the industry that brings in most of it, or \"Any other firm\" when it is none of them. Banks, NBFCs and insurers do not fit the Own Case.",
+    source: "Ind AS 108, Operating Segments (ICAI)",
+    sourceUrl: "https://resource.cdn.icai.org/94035indas2025-26-108.pdf",
+    lingo: {
+      term: "Operating segment",
+      means: "A part of the business the report counts on its own, with its own revenue and profit.",
+      pro: "segment revenue shows where the sales come from",
+      example: "A tea maker with a small café chain has two segments; most revenue is tea: a food processor.",
+      emoji: "factory",
+    },
+  },
+  {
+    field: "sales",
+    where:
+      "Statement of Profit and Loss, first line: \"Revenue from operations\", this year's column. Not \"Total income\", which adds other income. Read the unit at the top (₹ in crore, lakh or million) and turn it into crore: ₹ 5,000 million or ₹ 50,000 lakh is ₹ 500 crore.",
+    ...MCA,
+    lingo: {
+      term: "Revenue from operations",
+      means: "Money from selling the company's goods or services in the year, before any costs.",
+      pro: "revenue from operations is the top line",
+      example: "A biscuit maker's revenue from operations is its biscuit sales, not interest on its deposits.",
+      emoji: "receipt",
+    },
+  },
+  {
+    field: "operatingProfit",
+    where:
+      "Statement of Profit and Loss: no line prints it, so work it out. Take \"Profit before exceptional items and tax\", add \"Finance costs\" (inside Expenses) and take away \"Other income\".",
+    ...MCA,
+    lingo: {
+      term: "Operating profit (EBIT)",
+      means: "Profit from running the business, before interest and tax.",
+      pro: "EBIT is earnings before interest and taxes",
+      example: "From profit before tax of 150, add finance costs of 30 and take away other income of 40: 140.",
+      emoji: "factory",
+    },
+  },
+  {
+    field: "taxPercent",
+    where:
+      "The notes, \"Income tax\": the reconciliation names the tax rate that applies to the company. Under the 22% option (section 115BAA, now section 200 of the 2025 Act) with 10% surcharge and 4% cess it is 25.168%.",
+    ...TAX,
+    lingo: {
+      term: "Applicable tax rate",
+      means: "The rate the law sets for this company's profit, with surcharge and cess added.",
+      pro: "the applicable rate, not the effective rate",
+      example: "22% tax, plus 10% surcharge, plus 4% cess makes 25.168% of profit.",
+      emoji: "classical-building",
+    },
+  },
+  {
+    field: "debt",
+    where:
+      "Balance Sheet, liabilities: add \"Borrowings\" and \"Lease liabilities\", under both Non-current and Current liabilities. Leave out trade payables: they are bills owed to suppliers, not borrowing.",
+    ...IND_AS_116,
+    lingo: {
+      term: "Lease liability",
+      means: "Rent the company has promised to pay in future years, counted like a loan.",
+      pro: "lease liabilities are debt in all but name",
+      example: "A shop chain with 500 rented stores shows their future rent as a lease liability.",
+      emoji: "bank",
+    },
+  },
+  {
+    field: "cash",
+    where:
+      "Balance Sheet, current assets: add \"Cash and cash equivalents\" and \"Bank balances other than cash and cash equivalents\" (fixed deposits). Leave out balances the notes call earmarked, such as unpaid dividend accounts.",
+    ...IND_AS_7,
+    lingo: {
+      term: "Cash equivalent",
+      means: "Money parked where it turns back into a known amount of cash within about three months.",
+      pro: "cash equivalents are as good as cash",
+      example: "A two-month bank deposit is a cash equivalent; shares in another company are not.",
+      emoji: "money-bag",
+    },
+  },
+  {
+    field: "shares",
+    where:
+      "The notes, \"Equity share capital\": the number of shares issued, subscribed and fully paid at the year end (the closing line of its reconciliation). Not the rupee amount on the Balance Sheet, and not the weighted average in the EPS note.",
+    ...MCA,
+    lingo: {
+      term: "Face value",
+      means: "The small fixed amount printed on each share, like ₹ 1 or ₹ 10; not what it trades for.",
+      pro: "share capital is shares times face value",
+      example: "₹ 206 crore of ₹ 10 shares is 20.6 crore shares.",
+      emoji: "coin",
+    },
+  },
+  {
+    field: "price",
+    where:
+      "Not in the report: on NSE's price archives, pick the company's symbol and the report's date and read the closing price, in ₹ a share. If that day had no trading, use the next trading day: a day before it could not know the figures.",
+    ...NSE,
+    lingo: {
+      term: "Closing price",
+      means: "The last price a share traded at on one day, as the exchange records it.",
+      pro: "the close is the day's last traded price",
+      example: "A share that opens at ₹ 320 and ends the day at ₹ 328 closed at ₹ 328.",
+      emoji: "chart-increasing",
+    },
+  },
+];
+
+// ——— The US (#113, checked 2026-11-16) ———
+// A US company's annual report is its Form 10-K, filed with the SEC and free on EDGAR; the accounts follow US GAAP. Each
+// line was checked in Apple's 10-K for the year to 27 Sep 2025, the worked example linked below.
+
+const EDGAR = { source: "SEC, EDGAR company search", sourceUrl: "https://www.sec.gov/edgar/searchedgar/companysearch.html" };
+const HOW_TO_READ = { source: "Investor.gov (SEC), How to Read a 10-K", sourceUrl: "https://www.investor.gov/introduction-investing/getting-started/researching-investments/how-read-10-k" };
+const APPLE_10K = { source: "Apple Inc., Form 10-K for the year to 27 Sep 2025 (SEC EDGAR)", sourceUrl: "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm" };
+const NASDAQ = { source: "Nasdaq, historical quotes", sourceUrl: "https://www.nasdaq.com/market-activity/quotes/historical" };
+/**
+ * The OECD's combined (federal and state) statutory rate on company profit: 25.53% for the US in 2026 (series CIT_C,
+ * 25.5285, read 2026-11-16 from its data at sdmx.oecd.org, dataflow DSD_TAX_CIT@DF_CIT 2.0). Review M04: Damodaran's US
+ * cost of capital (wacc.xls) assumes a 25% marginal rate, so the Own Case types the combined rate too.
+ */
+const OECD_TAX = { source: "OECD, Corporate Income Tax Rates Database (combined central and sub-central rate)", sourceUrl: "https://www.oecd.org/en/data/datasets/corporate-income-tax-rates-database.html" };
+
+const us: GuideLineInput[] = [
+  {
+    field: "company",
+    where: "Search the company on SEC EDGAR and open its Form 10-K for the year you value. Type the name as the 10-K's cover prints it.",
+    ...EDGAR,
+    lingo: {
+      term: "Form 10-K",
+      means: "The annual report a US listed company files with the SEC, with its audited accounts.",
+      pro: "the 10-K is the US annual report",
+      example: "Apple's 10-K for the year to 27 Sep 2025 is free on EDGAR.",
+      emoji: "office-building",
+    },
+  },
+  {
+    field: "reportDate",
+    where:
+      'EDGAR\'s filing index for the 10-K: its "Filing Date", when its figures were public. Not the year end on the cover page, "For the fiscal year ended" and a date: nobody outside knew the figures then (and not every company closes in December).',
+    ...APPLE_10K,
+    lingo: {
+      term: "Fiscal year",
+      means: "The twelve months a 10-K covers; it need not end in December.",
+      pro: "a fiscal year can end in any month",
+      example: "Apple's fiscal 2025 ended on 27 September 2025.",
+      emoji: "calendar",
+    },
+  },
+  {
+    field: "industry",
+    where:
+      'Item 1, "Business", says what the company makes and sells. The segment note in Item 8 splits revenue by business: pick the industry that brings in most of it, or "Any other firm" when it is none of them. Banks and insurers do not fit the Own Case.',
+    ...HOW_TO_READ,
+    lingo: {
+      term: "Operating segment",
+      means: "A part of the business the 10-K counts on its own, with its own revenue and profit.",
+      pro: "segment revenue shows where the sales come from",
+      example: "A company with chip and cloud segments earns most of its revenue from cloud software: a software maker.",
+      emoji: "factory",
+    },
+  },
+  {
+    field: "sales",
+    where:
+      'Item 8, the income statement ("Consolidated Statements of Operations"), first total: "Total net sales", "Revenues" or "Net revenues". Most tables are in $ millions; a smaller company may print $ thousands, so divide by 1,000.',
+    ...HOW_TO_READ,
+    lingo: {
+      term: "Net sales",
+      means: "Money from selling the company's goods and services in the year, after returns and discounts.",
+      pro: "net sales is the top line",
+      example: "Apple's total net sales for fiscal 2025 were $416,161 million.",
+      emoji: "receipt",
+    },
+  },
+  {
+    field: "operatingProfit",
+    where: 'The same statement: "Operating income", after the operating expenses. A few companies leave it out; then take sales less the costs of sales and operating expenses.',
+    ...HOW_TO_READ,
+    lingo: {
+      term: "Operating income",
+      means: "Profit from running the business, before interest and tax.",
+      pro: "operating income is EBIT",
+      example: "Apple's operating income for fiscal 2025 was $133,050 million.",
+      emoji: "factory",
+    },
+  },
+  {
+    field: "taxPercent",
+    where:
+      'Type the combined federal and state rate, about 25%. The income-tax note starts from the 21% "statutory federal income tax rate" that 26 USC 11(b) sets, and state taxes come on top: the OECD puts the two together at 25.53% for 2026. Not the federal 21% alone, and not the "effective tax rate" the note ends on.',
+    ...OECD_TAX,
+    lingo: {
+      term: "Combined statutory rate",
+      means: "The federal 21% and the state taxes on company profit together: about 25% in the US.",
+      pro: "the combined statutory rate, not the effective rate",
+      example: "Apple's effective rate was 15.6% in fiscal 2025; type the combined statutory rate, about 25%.",
+      emoji: "classical-building",
+    },
+  },
+  {
+    field: "debt",
+    where:
+      'The balance sheet: add the borrowings in current and in non-current liabilities ("Short-term borrowings" or "Commercial paper", "Current portion of long-term debt", "Long-term debt"), and the lease liabilities (ASC 842). Many 10-Ks keep leases inside "Other liabilities": the leases note gives "Total lease liabilities". Leave out accounts payable: they are bills owed to suppliers.',
+    ...APPLE_10K,
+    lingo: {
+      term: "Lease liability",
+      means: "Rent the company has promised to pay in future years, counted like a loan.",
+      pro: "lease liabilities are debt in all but name",
+      example: "Apple's leases note shows $13,720 million of lease liabilities on 27 Sep 2025, beside its borrowings.",
+      emoji: "bank",
+    },
+  },
+  {
+    field: "cash",
+    where: 'The balance sheet, at the top of current assets: "Cash and cash equivalents".',
+    ...APPLE_10K,
+    lingo: {
+      term: "Cash equivalent",
+      means: "Money parked where it turns back into a known amount of cash within about three months.",
+      pro: "cash equivalents are as good as cash",
+      example: "Apple held $35,934 million of cash and cash equivalents on 27 Sep 2025.",
+      emoji: "money-bag",
+    },
+  },
+  {
+    field: "shares",
+    where:
+      'The cover page: "shares of common stock were issued and outstanding as of" a date. Type that full count; tables inside count shares in thousands.',
+    ...APPLE_10K,
+    lingo: {
+      term: "Shares outstanding",
+      means: "The shares owners hold on a date: those issued, less any the company bought back.",
+      pro: "outstanding, not authorised, shares",
+      example: "Apple had 14,776,353,000 shares outstanding on 17 Oct 2025.",
+      emoji: "coin",
+    },
+  },
+  {
+    field: "price",
+    where:
+      "Not in the 10-K: on the exchange that lists the shares (Nasdaq or NYSE), read the closing price on the report's date, in $ a share. If that day had no trading, use the next trading day: a day before it could not know the figures.",
+    ...NASDAQ,
+    lingo: {
+      term: "Closing price",
+      means: "The last price a share traded at on one day, as the exchange records it.",
+      pro: "the close is the day's last traded price",
+      example: "A share that opens at $250 and ends the day at $255 closed at $255.",
+      emoji: "chart-increasing",
+    },
+  },
+];
+
+// ——— Japan and Korea (ticket #114; checked 2026-11-16, every link HTTP 200) ———
+// Japan: the 有価証券報告書 (Yuho) on EDINET, Japanese GAAP or IFRS, money mostly in 百万円. Korea: the 사업보고서 on DART,
+// K-IFRS, money mostly in 백만원.
+
+const EDINET = { source: "EDINET, Financial Services Agency (有価証券報告書)", sourceUrl: "https://disclosure2.edinet-fsa.go.jp/" };
+const FORM_JP = { source: "e-Gov, 企業内容等の開示に関する内閣府令 (第三号様式, the Yuho's form)", sourceUrl: "https://laws.e-gov.go.jp/law/348M50000040005" };
+
+const japan: GuideLineInput[] = [
+  {
+    field: "company",
+    where: "Type the name as the Yuho's cover prints it (【会社名】, with 【英訳名】 in English). Inside, use the consolidated statements (連結財務諸表), not the parent's own (財務諸表).",
+    ...EDINET,
+    lingo: { term: "連結財務諸表", means: "Consolidated statements: the company and every company it owns, added up as one.", pro: "consolidated numbers include the subsidiaries", example: "A soy-sauce maker that owns a US distributor shows its sales in its consolidated statements.", emoji: "office-building" },
+  },
+  {
+    field: "reportDate",
+    where:
+      "The cover (表紙): 【提出日】, the day the Yuho was filed on EDINET, when its figures were public. Not the year end in 【事業年度】 (e.g. 至 2026年3月31日; most Japanese years end on 31 March): nobody outside knew the figures then.",
+    ...EDINET,
+    lingo: { term: "有価証券報告書 (Yuho)", means: "Japan's annual securities report, filed on EDINET after the year ends.", pro: "the Yuho is the audited annual filing", example: "Kikkoman's Yuho for the year to March 2026 was filed in June.", emoji: "scroll" },
+  },
+  {
+    field: "industry",
+    where:
+      "第1【企業の概況】 3【事業の内容】 says what the company makes and sells. The セグメント情報 note splits revenue by business: pick the industry that brings in most of it, or \"Any other firm\" when it is none of them. Banks and insurers do not fit the Own Case.",
+    ...FORM_JP,
+    lingo: { term: "セグメント", means: "Segment: a part of the business the report counts on its own, with its own sales and profit.", pro: "segment sales show where the money comes from", example: "A soy-sauce maker that also runs restaurants: most sales are food, so it is a food processor.", emoji: "factory" },
+  },
+  {
+    field: "sales",
+    where:
+      "第5【経理の状況】 → 連結損益計算書: 売上高 (Japanese GAAP) or 売上収益 (IFRS). Read the unit line above the table: the Own Case takes 百万円 (millions of yen), so a table in 千円 (thousands) is divided by 1,000 and one in 円 by 1,000,000. Debt and cash go in the same 百万円.",
+    ...FORM_JP,
+    lingo: { term: "売上高 / 売上収益", means: "Sales: what customers paid for the year's goods and services.", pro: "the top line of the income statement", example: "A soy-sauce maker's bottles sold in a year.", emoji: "shopping-cart" },
+  },
+  {
+    field: "operatingProfit",
+    where: "The same statement: 営業利益. IFRS filers may also show 事業利益 (business profit); copy 営業利益.",
+    ...FORM_JP,
+    lingo: { term: "営業利益", means: "Operating profit: sales less the costs of running the business, before interest and tax.", pro: "operating profit is EBIT", example: "What the factory and shops earn before the bank and the taxman.", emoji: "factory" },
+  },
+  {
+    field: "taxPercent",
+    where: "The tax-effect note (税効果会計関係 or 法人所得税): 法定実効税率, the statutory effective rate, about 30%. MOF's chart gives 29.74% (30.64% with the defense tax from April 2026).",
+    source: "Ministry of Finance Japan, corporate tax rates compared (084.pdf)",
+    sourceUrl: "https://www.mof.go.jp/tax_policy/summary/corporation/084.pdf",
+    lingo: { term: "法定実効税率", means: "The statutory effective tax rate: national and local corporate taxes together.", pro: "the statutory rate, not this year's paid rate", example: "Of ¥100 of taxable profit, about ¥30 goes in tax.", emoji: "receipt" },
+  },
+  {
+    field: "debt",
+    where:
+      "連結貸借対照表 (or 連結財政状態計算書), current and non-current: 短期借入金, 1年内返済予定の長期借入金, 社債, 長期借入金 and リース債務 (IFRS: 社債及び借入金 or 借入金, and リース負債). Japanese GAAP already shows finance leases as リース債務; operating leases join them from years starting on or after 1 April 2027.",
+    source: "ASBJ, 企業会計基準第34号 リースに関する会計基準 (2024), paragraph 58",
+    sourceUrl: "https://www.asb-j.jp/jp/wp-content/uploads/sites/4/lease_20240913_02.pdf",
+    lingo: { term: "リース負債 / リース債務", means: "Lease liabilities: rent the company has promised for future years, counted like a loan.", pro: "lease liabilities are debt in all but name", example: "A soy-sauce maker's rented warehouses show up as リース負債.", emoji: "bank" },
+  },
+  {
+    field: "cash",
+    where: "The balance sheet: 現金及び預金 (Japanese GAAP) or 現金及び現金同等物 (IFRS; also the last line of the cash-flow statement).",
+    ...FORM_JP,
+    lingo: { term: "現金及び現金同等物", means: "Cash and cash equivalents: cash and deposits the company can use at once.", pro: "cash on hand and near-cash", example: "Money in the company's bank accounts at the year end.", emoji: "money-bag" },
+  },
+  {
+    field: "shares",
+    where:
+      "第4【提出会社の状況】 1【株式等の状況】: 発行済株式 (shares issued), less 自己株式 (treasury shares) from 【自己株式等】. Type the full count in 株, one by one; a table in 千株 counts thousands, so multiply it by 1,000.",
+    ...FORM_JP,
+    lingo: { term: "発行済株式 / 自己株式", means: "Shares issued, and the ones the company bought back and holds; only the rest are outstanding.", pro: "shares outstanding exclude treasury stock", example: "969 million issued, 42 million bought back: 927 million outstanding.", emoji: "coin" },
+  },
+  {
+    field: "price",
+    where: "Not in the report: the Tokyo Stock Exchange closing price on the report's date, in whole yen. If that day had no trading, use the next trading day: a day before it could not know the figures.",
+    source: "Japan Exchange Group, daily stock price statistics",
+    sourceUrl: "https://www.jpx.co.jp/markets/statistics-equities/daily/03.html",
+    lingo: { term: "終値", means: "The closing price: the last price a share traded at that day.", pro: "the close on the as-of date", example: "Kikkoman closed at ¥1,540 on 19 June 2026, the day its Yuho was filed.", emoji: "yen-banknote" },
+  },
+];
+
+const DART = { source: "DART, Financial Supervisory Service (사업보고서)", sourceUrl: "https://dart.fss.or.kr/" };
+const FORM_KR = { source: "Financial Supervisory Service, guide to the 사업보고서 form", sourceUrl: "https://www.fss.or.kr/fss/cmmn/file/fileDown.do?atchFileId=baaa9c7e22044e9b8c1568417b251dcf&fileSn=1" };
+
+const korea: GuideLineInput[] = [
+  {
+    field: "company",
+    where: "Type the name as the 사업보고서's cover prints it (회사명). Inside, use the consolidated statements (연결재무제표), not the separate ones (별도재무제표).",
+    ...DART,
+    lingo: { term: "연결재무제표", means: "Consolidated statements: the company and every company it owns, added up as one.", pro: "consolidated numbers include the subsidiaries", example: "A phone maker that owns a car-audio firm shows its sales in its consolidated statements.", emoji: "office-building" },
+  },
+  {
+    field: "reportDate",
+    where:
+      "DART's list of filings: 접수일자, the day the 사업보고서 was filed, when its figures were public. Not the year end in 사업연도 on the cover (most Korean years end on 31 December; the report follows within 90 days).",
+    ...DART,
+    lingo: { term: "사업보고서", means: "Korea's annual business report, filed on DART after the year ends.", pro: "the audited annual filing under K-IFRS", example: "Samsung Electronics filed its 2025 business report in March 2026.", emoji: "scroll" },
+  },
+  {
+    field: "industry",
+    where:
+      "II. 사업의 내용 → 1. 사업의 개요 says what the company makes and sells, with sales split by business (사업부문). Pick the industry that brings in most of them, or \"Any other firm\" when it is none of them. Banks and insurers do not fit the Own Case.",
+    ...FORM_KR,
+    lingo: { term: "사업부문", means: "Business segment: a part of the business the report counts on its own, with its own sales and profit.", pro: "segment sales show where the money comes from", example: "A food group that also runs a shipping arm: most sales are food, so it is a food processor.", emoji: "factory" },
+  },
+  {
+    field: "sales",
+    where:
+      "III. 재무에 관한 사항 → 연결재무제표 → 연결손익계산서: 매출액 (or 영업수익). Read the unit line above the table: the Own Case takes 백만원 (millions of won), so a table in 천원 (thousands) is divided by 1,000 and one in 원 by 1,000,000. Debt and cash go in the same 백만원.",
+    ...FORM_KR,
+    lingo: { term: "매출액", means: "Sales: what customers paid for the year's goods and services.", pro: "the top line of the income statement", example: "Phones, chips and TVs sold in a year.", emoji: "shopping-cart" },
+  },
+  {
+    field: "operatingProfit",
+    where: "The same statement: 영업이익. Korean IFRS has required this line on the face of the statement since 2012.",
+    source: "Financial Services Commission, K-IFRS 1001 amendment on 영업이익 (2012)",
+    sourceUrl: "https://www.fsc.go.kr/po010101/70504?curPage=143&srchBeginDt&srchCtgry=1&srchEndDt&srchKey&srchText",
+    lingo: { term: "영업이익", means: "Operating profit: sales less the costs of running the business, before interest and tax.", pro: "operating profit is EBIT", example: "What the factories earn before the bank and the taxman.", emoji: "factory" },
+  },
+  {
+    field: "taxPercent",
+    where: "The tax note (법인세비용) reconciles to the statutory rate. For a large company: 24% national (25% from 2026) plus local income tax of a tenth of it: 26.4% (27.5% from 2026).",
+    source: "National Tax Service, 법인세 세율",
+    sourceUrl: "https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7746&mi=2220",
+    lingo: { term: "법인세", means: "Corporate tax, charged in brackets; the top one applies to large companies' profit.", pro: "the statutory marginal rate", example: "Of ₩100 of a large firm's profit, about ₩26 goes in tax.", emoji: "receipt" },
+  },
+  {
+    field: "debt",
+    where:
+      "연결재무상태표, current and non-current: 단기차입금, 유동성장기부채, 사채, 장기차입금 and 리스부채 (lease liabilities). Many firms put 리스부채 inside 유동성장기부채 and 장기차입금; the borrowings note (차입금) says so, and then it is in already.",
+    ...FORM_KR,
+    lingo: { term: "리스부채", means: "Lease liabilities: rent the company has promised for future years, counted like a loan.", pro: "lease liabilities are debt in all but name", example: "Samsung's 2025 long-term borrowings of ₩6,479,517 million include ₩3,673,503 million of lease liabilities.", emoji: "bank" },
+  },
+  {
+    field: "cash",
+    where: "연결재무상태표: 현금및현금성자산. Large firms also hold 단기금융상품 (short-term deposits); copy only 현금및현금성자산.",
+    ...FORM_KR,
+    lingo: { term: "현금및현금성자산", means: "Cash and cash equivalents: cash and deposits the company can use at once.", pro: "cash on hand and near-cash", example: "Money in the company's bank accounts at the year end.", emoji: "money-bag" },
+  },
+  {
+    field: "shares",
+    where:
+      "I. 회사의 개요 → 주식의 총수 등: 유통주식수 (shares outstanding: issued less 자기주식, treasury shares), the 합계 column, common (보통주) and preferred (우선주) together. Korean preferred shares own part of the equity like common ones, without the vote. Type the full count in 주.",
+    ...FORM_KR,
+    lingo: { term: "우선주", means: "Preferred shares: in Korea they share the profits like common shares, with no vote and a slightly bigger dividend.", pro: "count preferred beside common shares", example: "Samsung at the end of 2025: 5.83 billion common and 0.80 billion preferred outstanding, 6.63 billion in all.", emoji: "coin" },
+  },
+  {
+    field: "price",
+    where: "Not in the report: the Korea Exchange closing price on the report's date, in whole won. If that day had no trading, use the next trading day: a day before it could not know the figures.",
+    source: "KRX Data Marketplace, Korea Exchange",
+    sourceUrl: "https://data.krx.co.kr/",
+    lingo: { term: "종가", means: "The closing price: the last price a share traded at that day.", pro: "the close on the as-of date", example: "Samsung Electronics closed at ₩187,900 on 10 March 2026, the day its report was filed.", emoji: "chart-increasing" },
+  },
+];
+
+/** Every guide line in the course as written: the course check runs guideErrors on these. */
+export const GUIDE_LINE_INPUTS: readonly unknown[] = [
+  ...india.map((line) => ({ market: "IN", ...line })),
+  ...us.map((line) => ({ market: "US", ...line })),
+  ...japan.map((line) => ({ market: "JP", ...line })),
+  ...korea.map((line) => ({ market: "KR", ...line })),
+  ...EUROPE_GUIDE.map((line) => ({ market: "EU", ...line })),
+];
+
+const GUIDE_LINES: GuideLine[] = GUIDE_LINE_INPUTS.flatMap((raw) => {
+  const parsed = guideLineSchema.safeParse(raw);
+  return parsed.success ? [parsed.data] : [];
+});
+
+/** One market's guide, by Own Case field (the course check fails a market that misses one). */
+export function annualReportGuide(market: GuideLine["market"]): Record<GuideField, GuideLine> {
+  return Object.fromEntries(GUIDE_LINES.filter((l) => l.market === market).map((l) => [l.field, l])) as Record<GuideField, GuideLine>;
+}

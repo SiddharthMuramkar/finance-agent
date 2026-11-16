@@ -59,20 +59,23 @@ async function drawFixture({ settled = false, onTicked = () => {} }: { settled?:
 }
 
 describe("Value levers in a Widget (the recipe's fixture)", () => {
-  it('opens at "Your story is worth $35 a share", the $35 the one key number', async () => {
+  it('opens at "This story is worth $35 a share", the $35 the one key number', async () => {
     await drawFixture();
     expect(host.textContent).not.toContain("could not be drawn");
-    expect(headline()).toBe("Your story is worth $35 a share");
+    expect(headline()).toBe("This story is worth $35 a share");
     const key = host.querySelector('[data-testid="value-levers-headline"] [data-key-figure]');
     expect(key?.textContent).toBe("$35");
     expect(key?.getAttribute("data-key-number")).toBe("");
     expect(host.textContent).toContain("Price on 3 Feb 2000");
     expect(host.textContent).toContain("Today: $1.1bn");
+    // One name per idea between Topic 1 and its Workbench (ticket #88): the levers and bars in a beginner's words.
+    expect(lever("Sales for each dollar invested")).toBeTruthy();
+    expect(host.querySelector("figcaption")?.textContent).toBe("Cash it makes each year, then after year 10");
   });
 
   it("says each lever with its unit, and puts the chance it fails under More settings", async () => {
     await drawFixture();
-    expect(lever("Revenue in year 10").getAttribute("aria-valuetext")).toBe("39 billion dollars");
+    expect(lever("Sales in year 10").getAttribute("aria-valuetext")).toBe("39 billion dollars");
     expect(lever("Operating margin once mature").getAttribute("aria-valuetext")).toBe("10 percent");
     expect(lever("Cost of capital while it grows").getAttribute("aria-valuetext")).toBe("12.84 percent");
     expect(host.querySelector('[data-testid="value-levers-more"]')?.textContent).toContain("Chance it fails");
@@ -82,11 +85,11 @@ describe("Value levers in a Widget (the recipe's fixture)", () => {
   it("shows $84 at revenue $60bn and margin 12.5%, and ticks Find a story worth the $84 price", async () => {
     const onTicked = vi.fn();
     await drawFixture({ onTicked });
-    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Sales in year 10"), 60);
     await settle();
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
-    expect(headline()).toBe("Your story is worth $84 a share");
+    expect(headline()).toBe("This story is worth $84 a share");
     expect(taskStates()).toEqual(["done", "done"]);
     expect(onTicked).toHaveBeenLastCalledWith(["Move one lever at a time. Which one moves the value most?", "Find a story worth the $84 price"]);
   });
@@ -111,8 +114,8 @@ describe("Value levers in a Widget (the recipe's fixture)", () => {
     const priceChip = [...host.querySelectorAll("button")].find((b) => b.textContent === "A story worth $84")!;
     await act(async () => priceChip.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await settle();
-    expect(headline()).toBe("Your story is worth $84 a share");
-    expect(lever("Revenue in year 10").getAttribute("aria-valuetext")).toBe("60 billion dollars");
+    expect(headline()).toBe("This story is worth $84 a share");
+    expect(lever("Sales in year 10").getAttribute("aria-valuetext")).toBe("60 billion dollars");
   });
 });
 
@@ -126,16 +129,40 @@ describe("ValueLeversView on its own, as Home draws it", () => {
     await act(async () => {
       root.render(<ValueLeversView block={amazon} stories={stories} tasks={valueLeversTasks(amazon)} onFirstLeverMove={onFirstLeverMove} onPriceFound={onPriceFound} />);
     });
-    expect(headline()).toBe("Your story is worth $35 a share");
-    setRange(lever("Revenue in year 10"), 60);
-    setRange(lever("Revenue in year 10"), 61);
+    expect(headline()).toBe("This story is worth $35 a share");
+    setRange(lever("Sales in year 10"), 60);
+    setRange(lever("Sales in year 10"), 61);
     await settle();
     expect(onFirstLeverMove).toHaveBeenCalledTimes(1);
     expect(onPriceFound).not.toHaveBeenCalled();
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
     expect(onPriceFound).toHaveBeenCalledTimes(1);
-    expect(headline()).toMatch(/^Your story is worth \$8\d a share$/);
+    expect(headline()).toMatch(/^This story is worth \$8\d a share$/);
+  });
+});
+
+// Spine critics round 4 (Topic 1, beginner-persona, #88): Topic 1 says "sales" and gives revenue no Lingo card, and never
+// teaches the share of the value after year 10, which reads over 100% for Amazon and looks like a bug to a beginner.
+describe("Spine Topic 1's explore Workbench, a first look", () => {
+  it('labels lever 1 "Sales in year 10" and leaves out the share of the value after year 10', async () => {
+    const widget = exploreWidgetOf(loadCourseMap().topic("spine-01-worth")!);
+    expect(widget).not.toBeNull();
+    await act(async () => {
+      root.render(<WidgetView code={widget!.code} complete />);
+    });
+    await settle();
+    expect(host.textContent).not.toContain("could not be drawn");
+    expect(lever("Sales in year 10").getAttribute("aria-valuetext")).toBe("39 billion dollars");
+    expect(host.textContent).not.toMatch(/revenue/i);
+    expect(host.textContent).toContain("Price on 3 Feb 2000");
+    expect(host.querySelector('[data-testid="value-levers-numbers"]')?.textContent).not.toMatch(/after year 10|%/);
+  });
+
+  it("keeps the share of the value after year 10 in the Widget elsewhere", async () => {
+    await drawFixture();
+    expect(lever("Sales in year 10")).toBeTruthy();
+    expect(host.querySelector('[data-testid="value-levers-numbers"]')?.textContent).toContain("Value from after year 10");
   });
 });
 
@@ -166,5 +193,67 @@ describe("a Case whose figure is not a price (price.label): the bar's accessible
     expect(bar()).toMatch(/^A range from \$\d+ to \$\d+ on a scale up to \$150, with the talk of \$84 (inside the range|above it|below it)$/);
     await draw(amazon);
     expect(bar()).toMatch(/, with the price of \$84 (inside the range|above it|below it)$/);
+  });
+});
+
+// Spine critics round 1 (Spine Topic 15, widget-fit): each lever carries a line Icon for its idea, the value bar and the
+// story's mark glide when a lever moves (not under reduced motion), and the price mark marks the moment a story reaches it.
+describe("Value levers' liveliness", () => {
+  const specs = leverSpecs(amazon);
+  const stories = valueLeversStories(amazon, specs, { caseStory: "Damodaran's story", priceStory: { revenue: 60, margin: 12.5 } });
+
+  it("draws a meaningful Icon on every lever, glides the bar, and marks the price when a story reaches it", async () => {
+    await act(async () => {
+      root.render(<ValueLeversView block={amazon} stories={stories} tasks={valueLeversTasks(amazon)} />);
+    });
+    const icons = [...host.querySelectorAll('[data-testid="slider"] [data-icon]')].map((i) => i.getAttribute("data-icon"));
+    expect(icons).toEqual(expect.arrayContaining(["chart-increasing", "money-bag", "factory", "guard"]));
+    const fill = host.querySelector('[data-testid="value-levers-fill"]')!;
+    expect(fill.className).toMatch(/transition-\[width\]/);
+    expect(fill.className).toMatch(/motion-reduce:transition-none/);
+    const price = () => host.querySelector('[data-testid="value-levers-price-marker"]')!;
+    expect(price().hasAttribute("data-reached")).toBe(false);
+    setRange(lever("Sales in year 10"), 60);
+    setRange(lever("Operating margin once mature"), 12.5);
+    await settle();
+    expect(price().hasAttribute("data-reached")).toBe(true);
+  });
+});
+
+// Spine critics round 1 on #95 (widget fit): Topic 5's and Topic 6's benches were only sliders and a stat (chart only), so
+// margin marks draw rivals as faces on a ladder with Tesla's face climbing it, and roic draws Webvan's centre filling up.
+describe("a mode's picture in the Spine Topics' explore Workbenches", () => {
+  const draw = async (topic: string) => {
+    const widget = exploreWidgetOf(loadCourseMap().topic(topic)!);
+    expect(widget).not.toBeNull();
+    await act(async () => {
+      root.render(<WidgetView code={widget!.code} complete />);
+    });
+    await settle();
+  };
+
+  it("Topic 5: a ladder of rivals' faces, and a line naming whom Tesla's margin passes as it moves", async () => {
+    await draw("spine-05-margins");
+    const ladder = host.querySelector('[data-testid="value-levers-ladder"]');
+    expect(ladder).not.toBeNull();
+    expect(ladder!.querySelectorAll('[data-face="rival"]')).toHaveLength(3);
+    expect(ladder!.querySelectorAll('[data-face="you"]')).toHaveLength(1);
+    expect(host.querySelector('[data-testid="value-levers-ladder-line"]')?.textContent).toBe("Keeps 12%: more than Toyota, the best large carmaker, less than Tech giants together");
+    setRange(lever("Operating margin once mature"), 20);
+    await settle();
+    expect(host.querySelector('[data-testid="value-levers-ladder-line"]')?.textContent).toBe("Keeps 20%: more than every mark");
+  });
+
+  it("Topic 6: Webvan's centre fills with sales for each dollar, the face frowning once new capital earns less than it costs, and the note says whose claim it is", async () => {
+    await draw("spine-06-growth-cost");
+    const centre = () => host.querySelector('[data-testid="value-levers-centre"]');
+    expect(centre()?.getAttribute("data-face")).toBe("slightly-smiling-face");
+    expect(host.querySelector('[data-testid="value-levers-readout-note"]')?.textContent).toMatch(/own claims/);
+    expect(host.textContent).toContain("Sales, Jun to Sep 1999: $4.2m");
+    expect(host.textContent).toContain("Offer price on 4 Nov 1999");
+    setRange(lever("Operating margin once mature"), 4);
+    setRange(lever("Sales for each dollar invested"), 1);
+    await settle();
+    expect(centre()?.getAttribute("data-face")).toBe("worried-face");
   });
 });

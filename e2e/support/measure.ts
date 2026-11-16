@@ -150,7 +150,9 @@ export function auditAffordances(page: Page, opts: LetOff = {}): Promise<Afforda
   return page.evaluate((letOffSelector) => {
     const root = document;
     const INTERACTIVE = 'a[href], button, [role="button"], [role="menuitem"], [role="menuitemradio"], summary, input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])';
-    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none"; };
+    // checkVisibility: the rows of a closed <details> (an account menu) keep a laid-out box under Chrome's
+    // content-visibility: hidden, so the box alone would judge controls nobody can see (G38).
+    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && el.checkVisibility(); };
     const name = (el: Element) => `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""} "${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}"`;
     const out = { interactiveWithoutSignifier: [] as string[], pointerOnStatic: [] as string[], staticLooksPressable: [] as string[], tooSmall: [] as string[], notFlat: [] as string[], counts: {} as { interactive?: number; tags?: number; letOff?: number } };
     const kindOf = (el: Element) => (el.closest("[data-affordance]") || el).getAttribute("data-affordance");
@@ -306,8 +308,9 @@ export type PressLook = {
 
 /**
  * Spec 2026-11-12 F4 (ADR 0018), what can be pressed stays obvious: in a reading area a link is the accent and underlined
- * and a button has a face; on a Band a button is white with an ink label and a link is white and underlined; and nothing
- * that can be pressed uses the key-number style. Also F1's "two Bands never touch", by their drawn boxes. A Band is
+ * and a button has a face; on a Band a button is white with an ink label and a link is white and underlined (in each
+ * theme: the Band's --on-band and --on-band-button-ink, white and ink in Light, the other way round in Dark, ADR 0019);
+ * and nothing that can be pressed uses the key-number style. Also F1's "two Bands never touch", by their drawn boxes. A Band is
  * `.band` or `.home-band`; a `.band-card` inside one is a reading area again. Colours are compared as the browser
  * computes them, the accent read from the token. Pressable means the affordance audit's controls, visible and enabled.
  */
@@ -316,12 +319,12 @@ export function pressLook(page: Page, opts: LetOff = {}): Promise<PressLook> {
     const INTERACTIVE = 'a[href], button, [role="button"], [role="menuitem"], [role="menuitemradio"], summary, [tabindex]:not([tabindex="-1"])';
     const BANDS = ".band, .home-band";
     const out: PressLook = { readingLinks: [], bandLinks: [], bandButtons: [], keyNumberLook: [], bareBlueWords: [], bandsTouching: [], counts: { pressable: 0, links: 0, bands: 0, letOff: 0 } };
-    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && s.display !== "none"; };
+    const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && s.display !== "none" && el.checkVisibility(); };
     const name = (el: Element) => `${el.tagName.toLowerCase()} "${(el.getAttribute("aria-label") || el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40)}"`;
     const colourOf = (css: string) => { const probe = document.createElement("span"); probe.style.color = css; document.body.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c; };
     const ACCENT = colourOf("var(--accent)");
-    const WHITE = "rgb(255, 255, 255)";
-    const INK = colourOf("#0b0d12");
+    const WHITE = colourOf("var(--on-band)");
+    const INK = colourOf("var(--on-band-button-ink)");
     const onBand = (el: Element) => { const band = el.closest(BANDS); return !!band && !el.closest(".band-card"); };
     // Text decoration is not inherited as a computed value, so an underline counts from the element up to the control.
     const underlined = (el: Element, upTo: Element) => {

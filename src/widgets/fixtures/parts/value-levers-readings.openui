@@ -1,0 +1,17 @@
+root = Widget("What does Amazon's $84 price assume?", [levers])
+$revenue = 39
+$margin = 10
+$salesToCapital = 3
+$risk = 12.84
+$failure = 0
+$moved = 0
+$mostLever = 0
+$mostBy = 0
+$taxRow = 0
+$lossesRow = 0
+$growthAfterRow = 0
+$returnAfterRow = 0
+$cashRow = 0
+$debtRow = 0
+$optionsRow = 0
+levers = ValueLevers("amazon-dcf-2000", $revenue, $margin, $salesToCapital, $risk, $failure, $moved, $mostLever, $mostBy, "Damodaran's story", null, {kind: "match_price"}, 0, 0, $taxRow, $lossesRow, $growthAfterRow, $returnAfterRow, $cashRow, $debtRow, $optionsRow, ["us-risk-free-10y-1999"])

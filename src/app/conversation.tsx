@@ -15,11 +15,13 @@ import { InsightSettledContext } from "@/widgets/insight-settled";
 import { SaveStoryContext } from "@/widgets/workbench/save-story";
 import { postStoryToNotebook } from "@/widgets/workbench/story-to-notebook";
 import type { WidgetStates } from "@/widgets/widget-state";
+import type { InsightPickView } from "./insight-pick";
 import { LeftColumn } from "./left-column";
 import { TopicHeader, WorkspaceTopicBar } from "./topic-header";
 import { ParkActionsContext, type ParkActions } from "./park-offer-view";
 import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
+import { SheetEntries, sheetEntries } from "./sheet-entries";
 import { useWidgetHost, WidgetHost } from "./widget-host";
 import { WidgetReportContext, type WidgetReport } from "./widget-panel";
 import { useWidgetStates, WidgetStatesProvider } from "./widget-states";
@@ -50,6 +52,7 @@ export function Conversation({
   place = null,
   explore = null,
   insightSettled = false,
+  insightPick = null,
   writtenAhead,
   revealed = [],
   referenceClip,
@@ -81,6 +84,8 @@ export function Conversation({
   explore?: { code: string; id: string } | null;
   /** Whether the shown Topic's Insight is settled (found or told): until then Widgets hold back what gives it away. */
   insightSettled?: boolean;
+  /** The explore step's Insight question with choices to tap (ADR 0020), while explore lasts; null for a typed Insight. */
+  insightPick?: InsightPickView | null;
   /** The Topic's written-ahead Widgets as the Learner sees them now (writtenAheadFor); those the Tutor opened are drawn. */
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
@@ -114,6 +119,7 @@ export function Conversation({
     quiz,
     missed,
     writtenAhead,
+    review: !!review.question,
     // Retry on a Widget that did not arrive: the turn stream resumes the turn (in place, while it still runs).
     onRetry: turn.retry,
     onQuizSubmitted: ({ passed, item, complete }) => {
@@ -204,7 +210,21 @@ export function Conversation({
               <PrimaryClaims>
               <WorkspaceFrame
                 split={split}
-                left={<LeftColumn turn={turn} slot={host.slot} quizOpen={!!quiz} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
+                open={host.open}
+                view={host.picker.view}
+                onClose={host.close}
+                left={
+                  <LeftColumn
+                    turn={turn}
+                    slot={host.slot}
+                    quizOpen={!!quiz}
+                    passed={passed}
+                    next={next}
+                    openQuestion={insightSettled ? null : openQuestion}
+                    insightPick={passed ? null : insightPick}
+                    entries={<SheetEntries entries={sheetEntries({ check: host.check?.name, explore: !!explore, reviewDue: review.question ? review.dueCount : 0 })} onOpen={host.openView} />}
+                  />
+                }
                 bar={<WorkspaceTopicBar messages={turn.messages} strip={strip} place={place} />}
                 top={<TopicHeader review={review} explore={explore} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}

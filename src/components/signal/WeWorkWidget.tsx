@@ -106,6 +106,7 @@ export function WeWorkWidget({ caseSlug, compact = false, onCall, onEvent }: Sig
           { swatch: "loss", label: "Loss" },
         ]}
         source="Source: WeWork S-1, 14 Aug 2019."
+        link={{ name: "WeWork S-1, 14 Aug 2019", href: "https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm" }}
         table={
           !compact && chosen ? (
             <TableView label="The three figures" head={["Figure", "Amount", "Period"]} rows={view.bars.map((b) => [b.label, b.valueText, b.note])} />

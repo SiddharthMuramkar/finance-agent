@@ -25,7 +25,7 @@ cases:
       it cut it by a further 11%. The RBI's own chronology puts the cumulative devaluation at
       about 18% in US dollar terms; the IMF's account says 19%. The two steps compound:
       the rupee kept 91% of its dollar value after the first, and 89% of that after the second,
-      which leaves 0.91 x 0.89 = 81% of the original, a fall of 19%. C. Rangarajan, then a
+      which leaves about 81% of the original, a fall of 19%. C. Rangarajan, then a
       deputy governor, later wrote that the plan, code-named "hop, skip and jump", was always for
       two stages, to test the market with the first dose. After the first step the market grew
       nervous and expected a larger fall, so the second was brought forward. In March 1992
@@ -40,7 +40,7 @@ concept: >
   official cut in the value of a currency that a government has fixed against others.
   Percentage changes need care: a rupee that goes from 75 to 80 per dollar has lost 6.25% of its
   dollar value, while the dollar has gained 6.7% in rupees. Two successive cuts, 10% and then
-  20% of the new value, leave 0.90 x 0.80 = 72% of the original value: a 28% fall, not 30%. Over the long term, a currency's value should tend
+  20% of the new value, leave 72% of the original value (80% of 90%): a 28% fall, not 30%. Over the long term, a currency's value should tend
   toward purchasing power parity (PPP): the exchange rate at which the same traded goods cost
   the same in both countries, since otherwise people would buy where it is cheaper and sell
   where it is dearer. In the short and medium run exchange rates often stray from PPP. A related
@@ -52,6 +52,10 @@ principle: >
   A change in an exchange rate is a change in relative prices: it moves what imports cost, what
   exports earn and what foreign debts weigh, all at once. Always say which currency's value you
   are measuring and in which direction.
+
+goDeeper: >
+  Written as sums: two successive cuts of 10% and then 20% leave 0.90 × 0.80 = 0.72 of the original
+  value, a 28% fall. In 1991 the rupee kept 0.91 × 0.89 = 0.81 of its dollar value, a fall of 19%.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
@@ -104,7 +108,7 @@ questions:
 
   - id: fx-q-percent
     prompt: >
-      An Indian student pays fees in dollars. The rupee goes from INR 75 = USD 1 to INR 80 = USD 1, and her father reads the news. What did the rupee just do?
+      An Indian student pays fees in dollars. The rupee goes from INR 75 to the dollar to INR 80 to the dollar, and her father reads the news. What did the rupee just do?
     choices:
       - { id: a, text: "The rupee gained value, because 80 is a bigger number than 75", mistake: { tag: bigger_number_stronger, fix: "A bigger number of rupees per dollar means each rupee buys less. The rupee lost value." } }
       - { id: b, text: "The rupee and the dollar moved by exactly the same percentage", mistake: { tag: same_percent_both_ways, fix: "Each move is measured from a different starting point, so the two percentages differ." } }

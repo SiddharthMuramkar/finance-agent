@@ -47,10 +47,10 @@ concept: >
   A private company sells new shares to investors in rounds. The pre-money valuation is what the
   company is said to be worth before the new money; the post-money valuation is the pre-money
   value plus the new money. The investor's ownership is the new money divided by the post-money
-  value: $10 million into a company with a $40 million pre-money valuation buys $10 / $50 = 20
-  percent. The price per share is pre-money valuation / shares outstanding before the round, and
-  the new money buys new shares at that price. Existing owners are diluted in proportion: their
-  share is multiplied by (1 - new investors' share), so a founder with 60 percent who sells 20
+  value: $10 million into a company with a $40 million pre-money valuation makes it a $50 million
+  company, and ten dollars buys a fifth of a fifty-dollar company, 20 percent. The price per share is the pre-money valuation divided by the shares outstanding before the round, and
+  the new money buys new shares at that price. Existing owners are diluted in proportion: each
+  keeps their old share of the part the new investors did not buy, so a founder with 60 percent who sells 20
   percent of the post-money company is left with 48 percent. The headline valuation is the
   newest round's share price times all shares, including shares that were sold earlier at lower
   prices. It is not a market price: no one has to be able to buy the whole company for that
@@ -59,6 +59,11 @@ concept: >
   protection and board seats. Venture investors work backward: they estimate the value at the
   exit (a sale or IPO), divide by the return they target, and find the ownership they need for
   the money they put in.
+
+goDeeper: >
+  As formulas: post-money = pre-money + new money; the investor's ownership = new money / post-money;
+  the price per share = pre-money / shares outstanding before the round; and an existing owner's share
+  after the round = share before x (1 - new investors' share).
 
 principle: >
   A private-round valuation is the price of the newest shares times all shares, set by the terms

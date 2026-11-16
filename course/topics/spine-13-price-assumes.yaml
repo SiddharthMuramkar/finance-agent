@@ -56,6 +56,8 @@ principle: >
   Any price can be read back as a set of beliefs. Before calling a price too high or too low, find the stories that reach
   it, name the lever each one leans on, and argue with those beliefs rather than with the number.
 
+dailyLife: "A seller's asking price for a small business: before you haggle over the number, ask what would have to be true about its future sales for it to be worth that."
+
 youllLearn:
   - "Run a valuation backwards, from the price to the story it needs."
   - "Name the lever a price leans on, and judge whether that belief is believable."
@@ -65,7 +67,7 @@ terms:
   - term: what the price assumes
     means: "The lever settings whose value equals today's price: the story buyers at that price are betting on."
     pro: "Reverse engineering the price"
-    example: "To be worth the price, the company must grow twice as big as your story says."
+    example: "To be worth the asking price, a shop must sell twice as much as its owner's plan says."
     emoji: magnifying-glass-tilted-left
     inStory: "Damodaran turns the question round: under what circumstances is the $84 price justified?"
   - term: equity risk premium
@@ -110,7 +112,20 @@ explore:
     inputs:
       caseStory: "Damodaran's story"
       priceStory: { revenue: 60, margin: 12.5 }
-      mode: { kind: match_price }
+      # What the price assumes, lever by lever, is the mode's checklist; the cast reacts as the story nears the price
+      # (Spine critics round 1 on #96).
+      mode:
+        kind: match_price
+        scene:
+          cast:
+            - { icon: teacher, name: "Damodaran" }
+            - { icon: chart-increasing, name: "The market" }
+          below: "The market: $84 asks for more than these settings. Which lever must move, and how far?"
+          near: "Damodaran: this is a story worth $84. Is it one you would believe?"
+          above: "The market: these settings are worth more than $84. What would make them come true?"
+      # Market readings beside the levers (ticket #105): before the Reveal, only what was known on the Case's As-of date in
+      # its own market (Owner decision, 2026-11-16): the US Treasury bond rate at the end of 1999 (src/markets/readings.ts).
+      readings: [us-risk-free-10y-1999]
 
 connections:
   - text: "Spine Topic one sets a story forwards into a value; this Topic runs the same levers backwards from the price."

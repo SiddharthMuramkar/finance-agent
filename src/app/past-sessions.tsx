@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { PastSessionHeader } from "@/tutor/past-sessions";
 import { Eyebrow, LinkButton, PrimaryButton, Pill, Tag, TextLink } from "./ui";
+import { MONTHS } from "@/widgets/months";
 
 /**
  * The header above one Session's page (spec #119, reshaped by 2026-11-05 B2a: the list is the Notebook now). Plain
@@ -8,7 +9,6 @@ import { Eyebrow, LinkButton, PrimaryButton, Pill, Tag, TextLink } from "./ui";
  */
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "numeric", year: "numeric", timeZone: "Asia/Kolkata" });
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** "5 Sep 2026": always a three-letter month (Intl prints "Sept" for September). */
 export function shortDate(d: Date): string {

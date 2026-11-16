@@ -2,7 +2,7 @@
 
 These steps need the owner. The agent cannot do them: they need your accounts, your email or your judgement. Each step says why, when and how. This file holds no secrets. Never paste a secret into chat, into an issue or into git.
 
-Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 2026-11-15, the production Library load, the production wipe, and the merges of #42, #50, #44 and PR C (#51). Tick a box when a step is done.
+Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 2026-11-15, the production Library load, the production wipe, and the merges of #42, #50, #44 and PR C (#51). Updated again 2026-11-16 after the spec #68 build (PR #119): steps 23 to 28, and additions to steps 4, 6, 7, 8 and 13. Tick a box when a step is done.
 
 ## Checklist
 
@@ -30,6 +30,12 @@ Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 
 | 20 | [Decide the price of a step cut short](#20-decide-the-price-of-a-step-cut-short) | With step 12 |
 | 21 | [Check the Clerk sign-up CAPTCHA](#21-check-the-clerk-sign-up-captcha) | Optional, any time |
 | 22 | [Decide on Clerk two-factor and email blocks](#22-decide-on-clerk-two-factor-and-email-blocks) | Before the first invite |
+| 23 | [Ask Yale for permission, or let the Yale lectures go](#23-ask-yale-for-permission-or-let-the-yale-lectures-go) | Any time; the Library loses Yale when PR #119 merges |
+| 24 | [Forwarding for hello@value-it.xyz](#24-forwarding-for-hellovalue-itxyz) | Before the first invite |
+| 25 | [Time 3 friends on Topics 1 to 3](#25-time-3-friends-on-topics-1-to-3) | After PR #119 is live |
+| 26 | [Read the Privacy and Terms text, and check the cookie names](#26-read-the-privacy-and-terms-text-and-check-the-cookie-names) | After PR #119 is live |
+| 27 | [Kerala jackpot: check the facts, approve the lesson](#27-kerala-jackpot-check-the-facts-approve-the-lesson) | Any time |
+| 28 | [A key for the live Tutor eval](#28-a-key-for-the-live-tutor-eval) | Optional, any time |
 
 Also: [Commands the agent was not allowed to run](#commands-the-agent-was-not-allowed-to-run) and [Notes (no action)](#notes-no-action).
 
@@ -116,6 +122,7 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 4. Ask the Tutor one question. A reply must come.
 5. Open `/admin` as this user. It must show "not found" (404).
 6. Tell the agent the result. When Google is on (step 5), do the test again with Google.
+7. Since #76 (spec #68), `/sign-up` shows a "no invitation" note when the address has no invitation. With your real invitation that note must not show, also if Clerk drops `__clerk_ticket` from the address on the way. If you see it, tell the agent.
 
 ## 5. Google OAuth client for Clerk production
 
@@ -146,21 +153,27 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 
 **How.** Fill in the OpenStax reuse request form: <https://riceuniversity.tfaforms.net/52>. Points to include are in [Appendix A](#appendix-a-openstax-reuse-request-points).
 
+**Where.** Decision #26; spec #68 (#118) lists it again as an owner step.
+
 ## 7. Email to Damodaran
 
 - [ ] Done
 
 **Why.** Decision #26. His blog has no licence. His site rule ("no resale") is not clear for a paid tutor. His material answers 11 of the 78 Library score questions.
 
+Since spec #68, Value It also shows numbers from his datasets as Market readings and yardsticks, with credit and a link only: `histimpl.xls` (the implied premium, #105), `marginIndia`, `capexIndia` and `waccIndia` (India, #105), his US sheets `margin`, `capex` and `wacc` (#113), and his Japan, Emerging Markets (#114) and Europe (#115) sheets. Any wider use waits for his yes. In his reply, confirm that his data licence covers the US yardsticks too (#113).
+
 **When.** Now.
 
-**How.** Send the draft in [Appendix B](#appendix-b-draft-email-to-damodaran) from your own email. Fill in `[email]` and `[link to Value It]`. Tell the agent the reply. If he says no, the blog leaves the Library.
+**How.** Send the draft in [Appendix B](#appendix-b-draft-email-to-damodaran) from your own email. Fill in `[email]` and `[link to Value It]`. Its point 3 covers the spreadsheet numbers; you can name the sheets above there. Tell the agent the reply. If he says no, the blog leaves the Library.
+
+**Where.** Decision #26; spec #68 (#105, #113, #114, #115, #118).
 
 ## 8. Lawyer check on CC BY
 
 - [ ] Done
 
-**Why.** Decisions #27 and #29. CC BY 4.0 permits commercial use, but a lawyer must confirm that it covers a paid tutor. Any paid part makes the whole site commercial. Then Yale ECON 251/252 and the Damodaran blog must leave or get permission. The research is not legal advice.
+**Why.** Decisions #27 and #29. CC BY 4.0 permits commercial use, but a lawyer must confirm that it covers a paid tutor. Any paid part makes the whole site commercial. Then Yale ECON 251/252 and the Damodaran blog must leave or get permission. (Yale leaves the Library with #118; see step 23.) The research is not legal advice.
 
 **When.** Before any paid launch. No paid launch is planned now (#29 is out of scope).
 
@@ -266,7 +279,7 @@ A key that nobody uses can still leak. The copies can hold different keys.
 **How.** Write them and give them to the agent:
 
 - the founder's note (2–3 sentences)
-- the contact email
+- the contact email (since #77 the site shows `hello@value-it.xyz`; its forwarding is step 24)
 - the wait-time promise (or none)
 - the hero copy
 - which market and currency come first
@@ -429,6 +442,105 @@ Tell the agent A or B. The agent makes the change.
 
 Tell the agent A or B.
 
+## 23. Ask Yale for permission, or let the Yale lectures go
+
+- [ ] Done
+
+**Why.** #118 (spec #68) takes Yale ECON 251 (Geanakoplos, 1,252 passages) and ECON 252 (Shiller, 942 passages) out of the Library. The Open Yale Courses terms call any use "for the purpose of deriving profit or promoting a profit-based enterprise" prohibited, and give fee-charging tutor services as an example (`research/library-licences.md`, section 5–6). Migration `0041_library_licences` deletes the passages from production when PR #119 merges. A load guard then refuses `oyc.yale.edu`, "Open Yale" and `yale-econ` ids until written permission is on file.
+
+The cost, measured on a Neon copy of production (keyword + Voyage, the mode production uses), on the 78 original Library score questions: hits@5 **75/78 → 64/78**, MRR **0.827 → 0.742**. Both bars (72/78 and 0.82) fail. All of the drop is on the 13 questions that a Yale lecture answered; the other 65 did not get worse. The 11 topics the Library lost: the leverage cycle and the subprime crisis; Irving Fisher on interest and impatience; Social Security and the stock market; mortgage prepayment; yield curve arbitrage; psychology and bubbles; forwards and futures for hedging; how an insurance company manages risk; what an investment bank does in a share issue; call and put options; Geanakoplos on the leverage cycle and collateral.
+
+**When.** Any time. Without permission the agent looks for licensed replacement Sources for the 11 topics (`docs/roadmap.md`, "Library").
+
+**How.**
+
+1. Decide: ask Yale, or let the lectures go.
+2. To ask: write to Yale's Office of General Counsel, the permission route in `research/library-licences.md` (the terms warn that Yale "may not be able to respond to all questions"). There is no draft. The points are the same as for OpenStax ([Appendix A](#appendix-a-openstax-reuse-request-points)): a private search index, passages of at most 300 words, short quotes with a credit and a link, no model training, a free beta now and maybe a paid offer later. Yale's credit form is "[Name], [Course Title] (Yale University: Open Yale Courses), http://oyc.yale.edu (Accessed Date). License: Creative Commons BY-NC-SA".
+3. Tell the agent the answer. With a written yes, the agent lifts the load guard and loads the lectures again.
+
+**Where.** #118; the score is in the #118 comment (Voyage section).
+
+## 24. Forwarding for hello@value-it.xyz
+
+- [ ] Done
+
+**Why.** #77 shows `hello@value-it.xyz` as the contact address in the footer, on `/join` and at the end of Privacy and Terms. Nothing receives mail for it yet. `value-it.xyz` uses Vercel nameservers (`docs/agents/platform.md`), and a DNS change needs your yes (`CLAUDE.md`).
+
+**When.** Before the first invite.
+
+**How.**
+
+1. Pick where the mail goes (your inbox) and an email forwarding service.
+2. The service gives the DNS records it needs. Add them in Vercel DNS, or give them to the agent with your yes, and it adds them.
+3. Send a test mail to `hello@value-it.xyz` from another address. Tell the agent if it arrives.
+
+**Where.** #77; spec #68, Further Notes.
+
+## 25. Time 3 friends on Topics 1 to 3
+
+- [ ] Done
+
+**Why.** Spec #68, story 93: the site's minutes per Topic must be measured, not guessed. Today the `minutes` in `course/outline.yaml` are guesses (#72), so the public site shows no minutes until measured ones exist (#72, #75).
+
+**When.** After PR #119 is live.
+
+**How.**
+
+1. Pick 3 friends. (The spec's notes say "pick the 3 friends to watch, then 17"; the first 20 people are step 14.)
+2. Watch each one do Spine Topics 1, 2 and 3. Write down the minutes per Topic per person.
+3. Give the agent the minutes. It puts them into the course files, and the site follows from there (#72).
+
+**Where.** Spec #68 (story 93, Testing Decisions, Further Notes); #72, #75.
+
+## 26. Read the Privacy and Terms text, and check the cookie names
+
+- [ ] Read
+- [ ] Cookie names checked
+
+**Why.** You approved the Privacy and Terms text in advance (planning, 2026-11-16, #77). As built, the text is in `/root/projects/spec68-run/reports/t77-privacy-terms.md`. Since then the review (finding F16) found that Voyage AI receives the Tutor's Library searches, so Privacy now names Voyage AI too (commit `33b4249` on `spec68-fix-site`). The cookie answer follows Clerk's docs: `__session` and `__client_uat` on this site, `__client` on clerk.value-it.xyz. Some names may carry a suffix in production. The VPS has no browser, so the agent cannot see them.
+
+**When.** After PR #119 is live.
+
+**How.**
+
+1. Read `/privacy` and `/terms` on www.value-it.xyz. Tell the agent any change.
+2. On your laptop, sign in, open the browser's devtools (Application or Storage → Cookies), and list the cookie names on www.value-it.xyz and clerk.value-it.xyz. Tell the agent the names. It makes the FAQ and Privacy match.
+
+**Where.** #77.
+
+## 27. Kerala jackpot: check the facts, approve the lesson
+
+- [ ] Facts checked
+- [ ] Lesson approved
+
+**Why.** #116 moved the jackpot Example to the Kerala bumper of 2024. Its facts (₹25 crore, 9 Oct 2024, ticket TG 434222, a ₹500 ticket, about ₹12.88 crore in hand) come from The Hindu, Mathrubhumi and The New Indian Express. The search tools could not reach the Kerala Lotteries department's site (statelottery.kerala.gov.in), so the official BR-99 result is not checked. Kerala pays at once, so the lesson changed shape: the Widget compares ₹25 crore paid at once with 30 yearly payments (a what-if), and the break-even rate is 0% instead of the old 3.4%. The review (finding F33) says that with the break-even always at 0%, the step "Find the rate where the two are worth the same" no longer teaches anything. It suggests a new task, for example "how much less is it worth at 5%?".
+
+**When.** Any time.
+
+**How.**
+
+1. On your laptop, open the official BR-99 result on statelottery.kerala.gov.in. Compare the 4 facts above. Tell the agent any difference.
+2. Choose: **A.** keep the new shape as it is, or **B.** keep it and change the task as F33 suggests. Tell the agent A or B.
+
+**Where.** #116.
+
+## 28. A key for the live Tutor eval
+
+- [ ] Done
+
+**Why.** #110 puts the Tutor into the Assignment. Its tests used the scripted Tutor only. A live run must check that a real model's Assignment reply names the flagged input and has no verdict or advice word. `tutor-eval.yml` runs when `src/tutor/reply-checks.ts` changes, but the repo has no `OPENAI_API_KEY` GitHub secret, so it says "skipped (no key)" (`docs/roadmap.md`, item 10). Only you can give a key. Model calls cost money.
+
+**When.** Optional, any time.
+
+**Options.**
+
+- **A. Add the key to GitHub.** Run `gh secret set OPENAI_API_KEY -R SiddharthMuramkar/finance-agent` on the VPS and paste the key when it asks. The agent then runs the eval and reports.
+- **B. No key.** The scripted tests stay the only check.
+
+Also optional, and it costs money: to see a real model name the flagged input once, run `ONLY=assignment-names-flagged-input npm run behaviour` on the VPS. It needs `OPENAI_API_KEY` in `.env`. Or tell the agent to run it.
+
+**Where.** #110; `docs/roadmap.md`, item 10.
+
 ## Commands the agent was not allowed to run
 
 On 2026-11-15 the Claude Code safety check (the auto-mode classifier) stopped the agent before the commands below. The agent did not retry them and did not find a way around them. Run an open one yourself in Claude Code as `! <command>`, or in a terminal on the VPS.
@@ -475,6 +587,8 @@ Nothing. On 2026-11-16 `owner-batch-5.sh` (part b) deleted the old Neon branches
 
 ## Notes (no action)
 
+- **Approved in advance (planning, 2026-11-16):** the #77 Privacy and Terms text (step 26 is reading it afterwards) and the #79 Dark look. The #117 Case picks were delegated to the agents; the top pick per region is recorded as your pick (`docs/roadmap.md`, "Next build").
+- **Migrations when PR #119 merges.** The production build applies `0041_library_licences` (deletes the Yale passages, step 23; rehearsed on Neon copies `spec68-t118` and `spec68-t118v`) and `0042_own_cases` (adds the Own Cases table; rehearsed on `spec68-t107`), after the build's Neon snapshot.
 - **Reranker (#37) is parked.** The eval of 2026-11-15 showed a gain too small to keep. PR #42 merged only the scorer flags. The numbers are in `docs/library/2026-11-15-reranker-retest.md`. The re-test after the Library grows is a follow-up in `docs/roadmap.md`.
 
 ## Appendix A. OpenStax reuse request (points)

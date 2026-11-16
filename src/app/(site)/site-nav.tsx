@@ -8,6 +8,7 @@ import { BRAND, chrome, NAV } from "@/site/copy";
 import type { Viewer } from "@/site/viewer";
 import { Button } from "../primitives";
 import { SignOutForm } from "../sign-out";
+import { ThemeSwitch } from "../theme-switch";
 import { ContinueButton, PrimaryCta } from "./cta";
 import { Glyph } from "./parts";
 
@@ -57,7 +58,8 @@ function AccountMenu({ name }: { name: string }) {
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
   return (
     <details className="v-account">
-      <summary aria-label={chrome.account}>
+      {/* An icon control, as the app header's Account menu is: the avatar's face and rim are its signifier (ADR 0018, G38). */}
+      <summary aria-label={chrome.account} data-affordance="icon">
         <span className="v-avatar" aria-hidden="true">
           {initial}
         </span>
@@ -123,6 +125,8 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
               <AccountMenu name={viewer.name} />
             </>
           )}
+          {/* ADR 0019: the sun/moon switch. At 860 px and below it moves into the Menu sheet, with a word beside it. */}
+          <ThemeSwitch className="v-btn v-btn-quiet v-btn-sm v-theme-btn" />
           <Button unstyled className="v-btn v-btn-quiet v-btn-sm v-menu-btn" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpenOn(open ? null : pathname)}>
             {open ? chrome.close : chrome.menu}
           </Button>
@@ -143,6 +147,7 @@ export function SiteNav({ viewer }: { viewer: Viewer }) {
               {chrome.signIn}
             </Link>
           )}
+          <ThemeSwitch className="v-sheet-theme" text={chrome.theme} />
         </nav>
       )}
     </header>

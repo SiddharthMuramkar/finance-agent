@@ -289,7 +289,7 @@ describe("Tell the Tutor what I found on Value levers' Case chip (review F4)", (
     // The margin moved and back, then sales in year 10 up to ₹34,000 crore: two levers moved, and a story worth ₹74.
     await setLever("Operating margin once mature", 40);
     await setLever("Operating margin once mature", 35);
-    await setLever("Revenue in year 10", 34_000);
+    await setLever("Sales in year 10", 34_000);
     expect(taskTicks()).toEqual(["done", "done"]);
     expect(tellButton()?.textContent).toBe("Tell the Tutor what I found →");
     await click(tellButton()!);

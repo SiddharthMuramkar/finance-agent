@@ -1,10 +1,10 @@
 "use client";
 
 import { createTheme, defaultLightTheme, ThemeProvider, type Theme } from "@openuidev/react-ui";
-import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { markKeyFigures } from "./key-figure";
 
-// OpenUI's component kit (charts, tables, tabs) drawn in our design tokens, in the app's one Light theme (decision #17).
+// OpenUI's component kit (charts, tables, tabs) drawn in our design tokens, so it follows the page's theme, Light or Dark (ADR 0019).
 // Its colours read our CSS variables; its type is in our font; its chart colours are ours, one palette. The kit's
 // components see this theme only when they come from the same package entry, "@openuidev/react-ui": the "/genui-lib"
 // entry bundles a private copy of the theme context.
@@ -118,11 +118,34 @@ export const CHART_SERIES = ["line-strong", "ink", "blue", "muted"] as const;
 /** The surfaces a kit chart sits on: the page, a wash band, a raised card, and the Widget frame. */
 export const CHART_SURFACES = ["paper", "raised", "wash", "frame"] as const;
 
-/** The chart colours as hex (charts set them as SVG attributes): CHART_SERIES resolved in globals.css (a test checks it). */
-export const CHART_PALETTE: readonly string[] = ["#868c97", "#0b0d12", "#1f3fae", "#5f6571"];
+/**
+ * The chart colours before the page is read (on the server, and while hydrating): each CHART_SERIES token by name, so
+ * the colour is the page's own token and no literal colour lives outside the token block (ADR 0019).
+ */
+export const CHART_PALETTE: readonly string[] = CHART_SERIES.map((token) => `var(--${token})`);
 
-/** Our tokens as an OpenUI theme: the kit's colours, type and chart palette. */
-export const GENUI_THEME: Theme = createTheme({ ...COLOURS, ...FONTS, defaultChartPalette: [...CHART_PALETTE] });
+/**
+ * The chart colours as the page resolves them now (charts set them as SVG attributes, where a colour is safest resolved):
+ * each CHART_SERIES token read from <html>'s computed style, so a chart follows the page's theme. A token the page does
+ * not set keeps its var().
+ */
+export function pageChartPalette(style: Pick<CSSStyleDeclaration, "getPropertyValue">): string[] {
+  return CHART_SERIES.map((token, i) => style.getPropertyValue(`--${token}`).trim() || CHART_PALETTE[i]);
+}
+
+/** Our tokens as an OpenUI theme: the kit's colours, type and a chart palette. */
+const themeWith = (palette: readonly string[]): Theme => createTheme({ ...COLOURS, ...FONTS, defaultChartPalette: [...palette] });
+export const GENUI_THEME: Theme = themeWith(CHART_PALETTE);
+
+// The page's chart palette as a store: read again whenever <html>'s theme attributes change (the theme switch sets
+// data-theme on it, ADR 0019). Joined into one string, so an unchanged palette is the same snapshot.
+const subscribePalette = (changed: () => void) => {
+  const watch = new MutationObserver(changed);
+  watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class", "style"] });
+  return () => watch.disconnect();
+};
+const readPalette = () => pageChartPalette(getComputedStyle(document.documentElement)).join("|");
+const serverPalette = () => CHART_PALETTE.join("|");
 
 /** A theme key's CSS variable, named as the kit names it: textNeutralPrimary is --openui-text-neutral-primary. */
 export function kitVariable(key: string): string {
@@ -139,7 +162,8 @@ export function kitVariable(key: string): string {
 const COLOUR_STYLE = Object.fromEntries(Object.entries(COLOURS).map(([key, value]) => [kitVariable(key), value])) as CSSProperties;
 
 /**
- * Draws a widget's OpenUI kit parts in our tokens, in Light (never the computer's setting). The kit's variables are set on
+ * Draws a widget's OpenUI kit parts in our tokens. The kit runs in its "light" mode always, never the computer's setting:
+ * its "light" theme is our tokens, which are Dark when the page is (ADR 0019), so the page's theme is the only switch. The kit's variables are set on
  * this `.genui` element, and on any popover the kit opens outside it.
  */
 export function GenuiTheme({ children }: { children: ReactNode }) {
@@ -158,9 +182,11 @@ export function GenuiTheme({ children }: { children: ReactNode }) {
     watch.observe(host, { childList: true, subtree: true });
     return () => watch.disconnect();
   }, []);
+  const palette = useSyncExternalStore(subscribePalette, readPalette, serverPalette);
+  const theme = useMemo(() => (palette === serverPalette() ? GENUI_THEME : themeWith(palette.split("|"))), [palette]);
   return (
     <div ref={root} className="genui" style={COLOUR_STYLE}>
-      <ThemeProvider mode="light" cssSelector=".genui" lightTheme={GENUI_THEME}>
+      <ThemeProvider mode="light" cssSelector=".genui" lightTheme={theme}>
         {children}
       </ThemeProvider>
     </div>

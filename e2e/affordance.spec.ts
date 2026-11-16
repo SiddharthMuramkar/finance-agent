@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { MATRIX_PAGES, SIGN_IN_WRONG, type MatrixPage } from "../src/dev/preview-matrix";
 import { hydrated, quietDevtools, replyLanded, seed, settled, type State } from "./support/app";
 import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
+import { SIGNAL_SITE, SIGNAL_SPEC_LOOKS } from "./support/signal-site";
 
 /**
  * A3b: every button looks like a button, every link like a link, every tag like a tag (spec 2026-11-05, ticket A3b,
@@ -11,7 +12,8 @@ import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
  * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982.
  */
 
-const PROJECTS = ["mbp14"];
+// And mbp14-dark: the same audits in Dark (ADR 0019, #80), on a device set to dark.
+const PROJECTS = ["mbp14", "mbp14-dark"];
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(!PROJECTS.includes(info.project.name), "measured at 1512×982");
@@ -39,22 +41,6 @@ async function visit(page: Page, state: State, path: string) {
   await hydrated(page);
 }
 
-/**
- * The Signal site's pages (decision #7: Home, How it works, Examples, the case pages and About) are judged like every other
- * page, but for the few Signal spec §5 components whose look the spec draws against the app's rules, while the owner
- * decides which rule wins (#32):
- * - text links (`.v-tlink`) and whole-row question links (`.v-qrow`, "Play →") have no underline until hover (§5.2),
- *   where ADR 0018 underlines a link in a reading area at rest;
- * - an FAQ row (`.v-faq summary`, §5.17) shows a "+" drawn in CSS, not a chevron icon;
- * - the Tutor demo's question chips (`.v-qchip`) are pills, and a case page's Previous and Next cards (`.v-linkcard`, a
- *   whole card that is a link) keep a card's 14 px corners, where ADR 0018 caps a control's corners at 12 px.
- * Only these, only inside `#main`, are let off, and only the look rules (signifier, flatness, F4's link and blue-word
- * rules). Everything else on those pages, the site chrome included, is judged. When the owner decides, either the site
- * follows ADR 0018 and its selector leaves this list, or the ADR makes room for the Signal spec here.
- */
-const SIGNAL_SITE = new Set(["home", "home-signed-out", "about", "how-it-works", "examples", "case-amazon"]);
-const SIGNAL_SPEC_LOOKS = ["#main .v-tlink", "#main .v-qrow", "#main .v-faq summary", "#main .v-qchip", "#main .v-linkcard"].join(", ");
-
 test.describe("affordance audit is clean", () => {
   test.describe("signed out", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
@@ -64,7 +50,7 @@ test.describe("affordance audit is clean", () => {
       await clean(page, "/sign-in");
     });
 
-    for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000"]) {
+    for (const path of ["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/privacy", "/terms"]) {
       test(path === "/about" ? "[D1] /about passes the affordance audit, signed out" : `[A3b] ${path} (the Signal site)`, async ({ page }) => {
         await page.goto(path);
         await hydrated(page);
@@ -147,7 +133,7 @@ const F4_RULES: readonly F4Rule[] = ["readingLinks", "bandLinks", "bandButtons",
  */
 const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 
-/** Home signed out: the matrix shoots Home signed in, so the visitor's Home (its Join early access) is judged here. */
+/** Home signed out: the matrix shoots Home signed in, so the visitor's Home (its Join the waitlist) is judged here. */
 const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
 
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {
@@ -182,11 +168,17 @@ const lookOf = (el: Element) => {
 };
 const STILL = { transform: "none", translate: "none", scale: "none", shadow: "none" };
 
-// The primary fill at rest, on hover and on press (the --fill, --fill-hover and --fill-active tokens: the spec's blues).
-const FILL = ["rgb(31, 63, 174)", "rgb(26, 53, 150)", "rgb(21, 43, 122)"] as const;
-const INK_2 = "rgb(48, 53, 63)";
+// The primary fill at rest, on hover and on press (the --fill, --fill-hover and --fill-active tokens: the spec's blues),
+// and --ink-2, in each theme's block of globals.css (Dark: ADR 0019, #80).
+const PRESS = {
+  light: { fill: ["rgb(31, 63, 174)", "rgb(26, 53, 150)", "rgb(21, 43, 122)"], ink2: "rgb(48, 53, 63)" },
+  dark: { fill: ["rgb(138, 164, 255)", "rgb(159, 181, 255)", "rgb(179, 196, 255)"], ink2: "rgb(211, 215, 223)" },
+} as const;
 
-test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }) => {
+const pressColours = (project: string) => PRESS[project.endsWith("-dark") ? "dark" : "light"];
+
+test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }, info) => {
+  const { fill: FILL, ink2: INK_2 } = pressColours(info.project.name);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seed(page, "many-topics");
   await page.goto("/settings");
@@ -305,7 +297,8 @@ const WIDGET_PRESS = [
 ] as const;
 
 for (const { fixture, selector, kind, width } of WIDGET_PRESS) {
-  test(`[A4] a press inside a Widget changes colour, never position (${fixture})`, async ({ page }) => {
+  test(`[A4] a press inside a Widget changes colour, never position (${fixture})`, async ({ page }, info) => {
+    const INK_2 = pressColours(info.project.name).ink2;
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/dev/widgets?fixture=${fixture}&width=${width}`);
     await expect(page.getByTestId("widget-card")).toBeVisible();

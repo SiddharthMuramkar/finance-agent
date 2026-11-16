@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { AMAZON_2000 } from "@/finance/fixtures/amazon-2000.valuation";
 import { valuationBlock } from "@/finance/valuation-case";
+import { valuationCase } from "@/finance/valuation-cases";
 import {
   barTop,
   biggestMover,
   leverSpecs,
   leversMoved,
+  moneySpoken,
   moneyText,
+  moveText,
   NO_MOVES,
   NO_RUN,
   openingSettings,
+  priceText,
   priceTolerance,
   recordMove,
   storyNote,
@@ -44,10 +48,17 @@ describe("the levers (B3)", () => {
   const byId = Object.fromEntries(specs.map((s) => [s.id, s]));
 
   it("How big it gets: revenue in year 10, $10bn to $100bn in steps of $1bn, opening at $39bn, with today's revenue", () => {
-    expect(byId.revenue).toMatchObject({ title: "How big it gets", label: "Revenue in year 10", min: 10, max: 100, step: 1, opening: 39, more: false });
+    expect(byId.revenue).toMatchObject({ title: "How big it gets", label: "Sales in year 10", min: 10, max: 100, step: 1, opening: 39, more: false });
     expect(byId.revenue.reading(39)).toBe("$39bn");
     expect(byId.revenue.spoken(39)).toBe("39 billion dollars");
     expect(byId.revenue.caption).toBe("Today: $1.1bn");
+  });
+
+  // Spine critics round 1 on #95 (historian): Webvan's $4.2m base is its prospectus's sales from launch to 30 Sep 1999, not a
+  // year's sales "today"; a block that names its base year's revenue shows that name in place of "Today".
+  it("names the base revenue as the Case's block does, when it says what the figure is", () => {
+    const webvan = valuationCase("webvan-centre-npv-2000")!;
+    expect(leverSpecs(webvan).find((s) => s.id === "revenue")!.caption).toBe("Sales, Jun to Sep 1999: $4.2m");
   });
 
   it("What it keeps: operating margin once mature, 2% to 20% in steps of 0.5, opening at 10%", () => {
@@ -71,8 +82,8 @@ describe("the levers (B3)", () => {
 });
 
 describe("the headline, the bar and the numbers at rest (B3)", () => {
-  it('opens on the Case: "Your story is worth $35 a share", $35.04 from the engine', () => {
-    expect(headline()).toBe("Your story is worth $35 a share");
+  it('opens on the Case: "This story is worth $35 a share", $35.04 from the engine', () => {
+    expect(headline()).toBe("This story is worth $35 a share");
     expect(at({}).headline.key).toBe("$35");
     expect(at({}).value!.toFixed(2)).toBe("35.04");
   });
@@ -204,6 +215,12 @@ describe("the Workbench budget at rest (B2)", () => {
     expect(shape).toMatchObject({ controls: 4, more: 1, visuals: 1, numbers: 3, headlines: 1, tasks: 2 });
     expect(shape.words).toBeLessThanOrEqual(40);
   });
+
+  it("in a first look (Spine Topic 1, #88), the share after year 10 is left out: two numbers at rest", () => {
+    const shape = valueLeversShape(amazon, undefined, true);
+    expect(shape).toMatchObject({ controls: 4, more: 1, visuals: 1, numbers: 2, headlines: 1, tasks: 2 });
+    expect(shape.words).toBe(valueLeversShape(amazon).words - "Value from after year 10".split(" ").length);
+  });
 });
 
 describe("money in the Case's own currency", () => {
@@ -222,8 +239,70 @@ describe("money in the Case's own currency", () => {
   it("values a company counted whole (per: company) as one figure, with no 'a share'", () => {
     const whole = valuationBlock.parse({ ...AMAZON_2000, per: "company", shares: 1, price: { value: 30_000, date: "2000-02-01" } });
     const model = valueLeversModel(whole, leverSpecs(whole), openingSettings(leverSpecs(whole)));
-    expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe("Your story is worth $11.9bn");
+    expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe("This story is worth $11.9bn");
     expect(model.price.text).toBe("$30bn");
+  });
+});
+
+describe("money in yen, won and euros (#112)", () => {
+  const inCurrency = (currency: string, price = 2450) => valuationBlock.parse({ ...AMAZON_2000, currency, price: { value: price, date: "2024-03-29" } });
+  const yen = inCurrency("JPY");
+  const won = inCurrency("KRW", 71_000);
+  const euros = inCurrency("EUR", 8.4);
+
+  it("writes yen with ¥ in the short scale, and a share's value in whole yen, never yen and sen", () => {
+    expect(moneyText(45_095_325, yen)).toBe("¥45.1tn");
+    expect(moneyText(1250, yen)).toBe("¥1.3bn");
+    expect(moneyText(931, yen)).toBe("¥931m");
+    expect(moneySpoken(15_200, yen)).toBe("15.2 billion yen");
+    expect(moneySpoken(1e-6, yen)).toBe("1 yen");
+    expect(priceText(2450.4, yen)).toBe("¥2,450");
+    expect(priceText(7.6, yen)).toBe("¥8");
+  });
+
+  it("writes won with ₩ in the short scale, and a share's value in whole won", () => {
+    expect(moneyText(258_935_494, won)).toBe("₩258.9tn");
+    expect(moneySpoken(26, won)).toBe("26 million won");
+    expect(priceText(71_000, won)).toBe("₩71,000");
+    expect(priceText(-3.2, won)).toBe("-₩3");
+  });
+
+  it("writes euros with € in the short scale, and a share's value to the cent below €10", () => {
+    expect(moneyText(86_153, euros)).toBe("€86.2bn");
+    expect(moneySpoken(15_200, euros)).toBe("15.2 billion euros");
+    expect(moneySpoken(1e-6, euros)).toBe("1 euro");
+    expect(priceText(8.4, euros)).toBe("€8.40");
+    expect(priceText(712.3, euros)).toBe("€712");
+  });
+
+  it("says the biggest move to the currency's minor unit, grouped: whole won and yen, never '₩1500.00'", () => {
+    expect(moveText(1500, won)).toBe("₩1,500");
+    expect(moveText(12.6, yen)).toBe("¥13");
+    expect(moveText(1.5, euros)).toBe("€1.50");
+    expect(moveText(1234.5, valuationBlock.parse(AMAZON_2000))).toBe("$1,234.50");
+    const amazon = valuationBlock.parse(AMAZON_2000);
+    expect(biggestMover({ moved: 1, mostLever: 1, mostBy: 1500 }, leverSpecs(won), won)?.by).toBe("₩1,500");
+    expect(biggestMover({ moved: 1, mostLever: 1, mostBy: 10.04 }, leverSpecs(amazon), amazon)?.by).toBe("$10.04");
+  });
+
+  it("names the unit invested in the Case's own currency on lever 3", () => {
+    expect(leverSpecs(yen)[2].label).toBe("Sales for each yen invested");
+    expect(leverSpecs(won)[2].label).toBe("Sales for each won invested");
+    expect(leverSpecs(euros)[2].label).toBe("Sales for each euro invested");
+  });
+
+  it("leaves dollars and rupees as they were", () => {
+    const dollars = valuationBlock.parse(AMAZON_2000);
+    const rupees = valuationBlock.parse({ ...AMAZON_2000, currency: "INR", unit: "crores" });
+    expect(moneyText(2_200_000, dollars)).toBe("$2.2tn");
+    expect(moneyText(931, dollars)).toBe("$931m");
+    expect(moneySpoken(15_200, dollars)).toBe("15.2 billion dollars");
+    expect(priceText(35.04, dollars)).toBe("$35");
+    expect(priceText(2.4, dollars)).toBe("$2.40");
+    expect(moneyText(125_000, rupees)).toBe("₹1,25,000 crore");
+    expect(moneySpoken(45, rupees)).toBe("45 crore rupees");
+    expect(priceText(1234, rupees)).toBe("₹1,234");
+    expect(priceText(2.4, rupees)).toBe("₹2.40");
   });
 });
 

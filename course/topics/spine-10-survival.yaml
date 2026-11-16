@@ -23,11 +23,11 @@ cases:
     story: >
       Coffee Day Enterprises runs Cafe Coffee Day, India's largest chain of coffee shops, and owns
       businesses in logistics, tech parks and finance. It is deep in debt: at the end of March 2019
-      the group had borrowed about ₹7,200 crore, and its interest bill for the year was ₹456.32
+      the group had borrowed about ₹7,200 crore, and its interest bill for the year was about ₹456
       crore. In March and April the group sold its stake in the IT company Mindtree and used the money
-      to pare that debt. Its 2015 prospectus had warned that the founder had pledged shares for group loans, which
+      to pare that debt. Its 2015 prospectus had warned that the founder had put up shares to back group loans, which
       lenders could take and sell if those loans went bad. On 29 July 2019 its market value closed at
-      ₹4,067.65 crore, about ₹192.55 a share, down from ₹6,678 crore in September 2018. The
+      about ₹4,070 crore, about ₹193 a share, down from about ₹6,680 crore in September 2018. The
       Widget's survival story is an illustration, not a published valuation: it is set so that, if
       Coffee Day is sure to survive, it is worth about that price. What should a valuation do about
       the chance that it does not survive?
@@ -37,8 +37,8 @@ cases:
       from lenders, and of a serious shortage of cash. The shares fell by the 20% daily limit on 30
       July, to ₹154.05, and again on 31 July, to ₹123.25: a market value of ₹2,603.68 crore, 36% below
       29 July. On 17 August the company put the group's borrowings at ₹4,970 crore on 31 July. ICRA, an Indian rating agency, cut
-      its loans to BB+ (a weak borrower) on 8 August, and to D (in default) on 10 September, after a subsidiary was late paying its
-      lenders. As lenders took the pledged shares, the holding of the founder's family group (the promoters) fell from 54% to 17% by
+      its loans to BB+ (a weak borrower) on 8 August, and to D (in default) on 10 September, after a company in the group was late paying its
+      lenders. As lenders took the shares put up for loans, the holding of the founder's family group (the promoters) fell from 54% to 17% by
       January 2020. In 2023 the market regulator SEBI found that ₹3,535 crore had been moved out of the
       group to a company linked to its founder; in November 2026 an appeals tribunal set that order
       aside and ordered a fresh investigation. The market had stopped pricing a company sure to
@@ -46,9 +46,9 @@ cases:
     valuationFrom: coffee-day-distress-2019
 
 concept: >
-  A discounted cash flow values a going concern: it assumes the business keeps running for ever.
-  For most companies that is fine. For a company with heavy debt, thin interest cover (operating profit only a little above the interest bill) and loans
-  backed by pledged shares, there is a real chance it fails first, and if it does, its assets are
+  Our usual valuation treats the company as a going concern (a business that keeps running): it assumes it runs for ever.
+  For most companies that is fine. For a company with heavy debt, operating income only a little above its interest bill,
+  and loans backed by shares that lenders can sell, there is a real chance it fails first, and if it does, its assets are
   sold in a hurry for far less than the business was worth alive. A value that ignores this is
   too high. The fix is expected value: weigh the going-concern value by the chance the company
   survives, and what is recovered in a distress sale by the chance it fails. The chance of
@@ -62,9 +62,21 @@ principle: >
   going concern against what is left in failure, by how likely each is, before you compare the
   value with a price.
 
+dailyLife: "A cousin with big debts asks to borrow ₹5,000: before you lend, weigh how likely he is to pay you back, not only what he promises."
+
+# Go deeper (H1): beyond the Topic's Checks, for a Learner who asks. No Check, Skill or Lingo term tests it: the main path
+# says "shares put up to back loans" and "operating income only a little above its interest bill" in plain words, and
+# names neither pledged shares nor interest cover (review 4, K08/K09: the four-word cap is met by cutting the words).
+goDeeper: >
+  Analysts call shares an owner hands to lenders to back a loan pledged shares: the lenders can sell them if the loan
+  goes bad, like leaving your gold with a lender who may sell it if you miss repayments. They also watch interest cover,
+  how many times operating income covers the interest bill. When a founder has pledged many shares, a falling price can
+  make lenders sell them, which pushes the price down further. A Learner who wants more can ask why pledged shares can
+  turn a falling price into a faster fall.
+
 youllLearn:
   - "Weigh a going-concern value against what is left if the company fails."
-  - "Read heavy debt and pledged shares as signs that failure is likelier."
+  - "Read heavy debt, and income that barely covers the interest bill, as signs that failure is likelier."
   - "See a falling price as a market pricing in the chance of failure."
 
 terms:
@@ -92,18 +104,12 @@ terms:
     example: "A raffle ticket that pays ₹300 one time in four is worth less than ₹300 before the draw."
     emoji: game-die
     inStory: In the story, survival and failure are weighed by their chances.
-  - term: pledged shares
-    means: Shares an owner hands to lenders as security for a loan; lenders can sell them if the loan goes bad.
-    pro: The promoter's shares were pledged for group loans.
-    example: "Leaving your gold with a lender, who may sell it if you miss repayments."
-    emoji: locked
-    inStory: In the story, the founder had pledged shares for group loans.
 
 skills:
   - id: weigh-failure
     rule: "A value that assumes survival must be weighed with what is left if the company fails, by how likely failure is."
   - id: failure-signs
-    rule: "Heavy debt, thin interest cover and pledged shares make failure likelier; a falling price can be the market pricing that in."
+    rule: "Heavy debt, operating income that barely covers the interest bill, and loans backed by shares lenders can sell make failure likelier; a falling price can be the market pricing that in."
 
 primers:
   - id: survival-primer-expected
@@ -143,7 +149,17 @@ explore:
     title: "What if Coffee Day does not survive?"
     inputs:
       caseStory: "The survival story"
-      mode: { kind: failure }
+      # The cast reacts as the value moves against the price (Spine critics round 1 on #96: a bench of only sliders and bars
+      # is chart-only); the survive-or-fail fork the mode draws is the Topic's idea, and the chance it fails is the first control.
+      mode:
+        kind: failure
+        scene:
+          cast:
+            - { icon: hot-beverage, name: "Coffee Day" }
+            - { icon: bank, name: "The lenders" }
+          below: "The lenders: once failure is weighed in, the value drops under the price, and we are paid first."
+          near: "Coffee Day: sure to survive, it is worth about its price. But is survival sure?"
+          above: "Coffee Day: worth more than the price, if every lever goes our way."
 
 connections:
   - text: "Distress and default sets out how to read a chance of failure from ratings and bond prices."
@@ -219,7 +235,7 @@ questions:
     prompt: "Which story about a company contradicts itself?"
     skill: failure-signs
     choices:
-      - { id: zero, text: "Its interest bill takes nearly all its operating profit, and the chance it fails is zero" }
+      - { id: zero, text: "Its interest bill takes nearly all its operating income, and the chance it fails is zero" }
       - id: growing
         text: "Its sales grow every year and the chance it fails is low"
         mistake: { tag: growth_is_fine, fix: "Growing sales and a low chance of failure sit well together." }
@@ -232,7 +248,7 @@ questions:
 
   - id: survival-q-pricevalue
     kind: price_or_value
-    prompt: "On 29 July 2019 Coffee Day's market value closed at ₹4,067.65 crore. Is that a price or a value?"
+    prompt: "On 29 July 2019 Coffee Day's market value closed at about ₹4,070 crore. Is that a price or a value?"
     skill: weigh-failure
     choices:
       - { id: price, text: "A price" }
@@ -252,7 +268,7 @@ checks:
     card:
       title: "Weigh survival against failure"
       lines:
-        - "A discounted cash flow assumes the company survives for ever."
+        - "Our usual valuation assumes the company survives for ever."
         - "If it fails, its assets are sold in a hurry, for far less than the business alive."
         - "Weigh the two by their chances: that is expected value."
         - "The debt is still paid in full before the shareholders."
@@ -292,38 +308,44 @@ checks:
             - { id: reinvest, label: "Growth costs more: ₹1.50 of sales for each ₹1 invested, not ₹2", levers: { salesToCapital: 1.5 } }
       - id: survival-try-signs-half
         skill: failure-signs
-        ask: "In the year to March 2019 Coffee Day paid ₹456.32 crore in interest; its annual report put its interest cover at 1.47 times. Is that a sign failure is likelier?"
-        halfDone: "First step, done for you: interest cover says how many times operating profit covers the interest bill."
+        # The annual report's interest coverage ratio, 1.47: profit before tax (₹213 crore) plus finance charges (₹456
+        # crore), over finance charges (Directors' Report, financial highlights and key ratios).
+        ask: "In the year to March 2019 Coffee Day paid about ₹456 crore in interest; its profit before interest and tax was only about one and a half times that bill. Is that a sign failure is likelier?"
+        halfDone: "First step, done for you: set the interest bill beside the profit that has to pay it."
         kind: choice
         answer: likelier
         choices:
-          - { id: likelier, text: "Yes: profit barely covers the interest" }
+          - { id: likelier, text: "Yes: its profit barely covers the interest" }
           - id: safe
-            text: "No: profit still covers the interest"
-            mistake: { tag: thin_cover_safe, fix: "Profit covering interest less than one and a half times leaves little to spare if profit dips." }
+            text: "No: its profit still covers the interest"
+            mistake: { tag: thin_cover_safe, fix: "Profit less than one and a half times the interest leaves little to spare if it dips." }
       - id: survival-try-signs-2
         skill: failure-signs
         ask: "Which sign says lenders could force a sale of the founder's shares?"
         kind: choice
         answer: pledged
         choices:
-          - { id: pledged, text: "He had pledged shares for group loans" }
+          - { id: pledged, text: "He had put up his shares to back group loans" }
           - id: revenue
             text: "Revenue grew last year"
-            mistake: { tag: growth_as_risk, fix: "Growing revenue is good news. Pledged shares are what lenders can take and sell." }
+            mistake: { tag: growth_as_risk, fix: "Growing revenue is good news. Shares put up to back loans are what lenders can take and sell." }
       - id: survival-try-signs-3
         skill: failure-signs
-        ask: "A company's share price falls 20% in a day, though nothing in its cafes has changed. Which lever has the market most likely moved?"
+        # A made-up chain, not Coffee Day's 20% falls of 30 and 31 July, which only the Reveal tells (no hindsight before it).
+        ask: "A cafe chain deep in debt sees its share price fall by a third over a few months, though nothing in its cafes has changed. Which lever has the market most likely moved?"
         kind: choice
         answer: failure
         choices:
           - { id: failure, text: "The chance it fails" }
           - id: margin
             text: "What it keeps from each sale"
-            mistake: { tag: lever_mixup, fix: "Nothing changed in the cafes, so margins did not move overnight. Survival did." }
+            mistake: { tag: lever_mixup, fix: "Nothing changed in the cafes, so margins did not move. The chance it survives did." }
 
   - id: survival-talk
     kind: conversation
-    prompt: "In two or three sentences, say how you would value Coffee Day on 29 July 2019, given its debt. What would you weigh, and which part are you least sure of?"
-    passCriteria: "Weighs a survival (going-concern) value against what is left in a distress sale, by the chance of failure; ties that chance to the debt, the thin interest cover or the pledged shares; says the debt is paid before the shareholders; names the chance of failure or what is recovered as the part they are least sure of, with a reason."
+    # The Story judged is the Topic's own survival story (the Case says it is an illustration, set at about the 29 July
+    # price), not a claim put in anyone's mouth (review 4, K02/K06/K07). Every pass criterion answers a part of the prompt
+    # (K13).
+    prompt: "The survival story values Coffee Day at about its market price on 29 July 2019, as a going concern sure to survive, whatever its debt. In two or three sentences, judge that Story: what does it leave out, what about Coffee Day makes that matter, and which part of a better value is least certain?"
+    passCriteria: "Says the survival story leaves out the chance Coffee Day fails, and with it the far smaller sum a distress sale would bring; ties that chance to something about Coffee Day: the debt, an interest bill its profit barely covers, or the shares put up to back loans; names the chance of failure or what is recovered in failure as the part of a better value least certain, with a reason."
     skills: [weigh-failure, failure-signs]

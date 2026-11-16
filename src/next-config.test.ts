@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import nextConfig from "../next.config";
+import { NO_STORE_SOURCES } from "./site/routes";
 
 // Decision #7: every public site page's nav and CTAs follow the viewer state (Signal spec 7.1), so one address serves
-// several pages keyed by the cookie.
-const SITE = ["/", "/how-it-works", "/examples", "/examples/:slug", "/about"];
+// several pages keyed by the cookie. The sources come from the one public-route list (issue #69); src/proxy.test.ts
+// checks it against the gate.
+const SITE = NO_STORE_SOURCES;
 
 describe("The public site's pages are never cached as pages", () => {
   for (const source of SITE) {
@@ -22,7 +24,7 @@ describe("The public site's pages are never cached as pages", () => {
   it("they are the only private, no-store addresses", async () => {
     const rules = await nextConfig.headers!();
     const noStore = rules.filter((r) => r.headers.some((h) => h.key === "Cache-Control" && /no-store/.test(h.value)));
-    expect(noStore.map((r) => r.source)).toEqual(SITE);
+    expect(noStore.map((r) => r.source)).toEqual([...SITE]);
   });
 });
 

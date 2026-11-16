@@ -2,7 +2,7 @@
 
 Map #2 ("Wayfinder: Value It Signal, build-ready") closes with the PR that adds this file. The map decided what the Signal beta needs. This file keeps what the map did not decide (its "fog"). The decisions are indexed at the end.
 
-Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-the-2026-11-15-batch) of the 2026-11-15 batch, the production Library load, the production wipe and PR C (#51).
+Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-the-2026-11-15-batch) of the 2026-11-15 batch, the production Library load, the production wipe and PR C (#51). Updated again 2026-11-16 with [what spec #68 left](#after-spec-68-2026-11-16) (PR #119).
 
 **How to read an item.** Each item has the question, why it matters, what it blocks, a first step and a status.
 
@@ -127,9 +127,108 @@ Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can bec
 | F6 | Google sign-in for Clerk. | Clerk went live with email link only (ADR 0017). Many people expect "Sign in with Google". | The owner makes the Google OAuth client (`docs/owner-actions.md`, step 5). Then the agent turns Google on and runs the smoke test again (step 4). |
 | F7 | The Dependabot widget-freeze step. | A Dependabot PR that bumps `@openuidev/lang-core` changes `src/widgets/frozen.generated.json`, so `src/widgets/widgets.test.ts` fails until someone runs `npm run widgets:freeze` and commits the result. #46 and #49 failed this way. | Add a step for lang-core bumps: run `npm run widgets:freeze`, raise the instruction-size budget in `src/widgets/widgets.test.ts` if the text grows, and commit. Or keep lang-core out of the Dependabot group, so a person updates it. |
 
+## After spec #68 (2026-11-16)
+
+What the spec #68 build (PR #119) left open. One line per item, with the ticket it came from. Owner-only steps are in `docs/owner-actions.md`, steps 23 to 28.
+
+### Next build: the three #117 Cases
+
+Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region in `docs/cases/2026-11-case-proposals.md` (facts, sources, build notes). They are the next build. No Case tickets are opened now; each becomes a ticket when it is next.
+
+| Region | Case | As-of | Build |
+|---|---|---|---|
+| India #1 | Paytm's IPO at Rs 2,150 | 2021-11-07 | INR works today. An illustration judged with `match_price` (no usable published value). NSE symbol `PAYTM`. From the proposal's Rank 2 section. |
+| Japan/Korea #1 | Krafton's IPO at 498,000 won | 2021-08-01 | Needs KRW (#112) and the Korea market parts (#114), both built in spec #68, and the Tutor's won check (Markets, below). Its published peer-P/E value (579,153 won a share) is a multiple, so the engine does not reproduce it. KRX code 259960. From the proposal's Rank 3 section. |
+| Europe/US #1 | Peloton's IPO at $29 | 2019-09-25 | USD works today. Build it like `s12-wework-iwg` against the published $19.35 a share; `reproduces` only within `REPRODUCE_TOLERANCE`. Nasdaq symbol `PTON`. From the proposal's Rank 1 section. |
+
+### Library
+
+- Replace the 11 topics that only Yale answered, with licensed Sources, or get Yale's permission (`docs/owner-actions.md`, step 23) (#118). The topics: the leverage cycle and the subprime crisis; Irving Fisher on interest and impatience; Social Security and the stock market; mortgage prepayment; yield curve arbitrage; psychology and bubbles; forwards and futures for hedging; how an insurance company manages risk; what an investment bank does in a share issue; call and put options; Geanakoplos on the leverage cycle and collateral. Without Yale the original 78 score 64/78, MRR 0.742 (bars 72/78, 0.82).
+- Run `library:score` again on the full 78-question set, on a Neon copy, once replacement Sources are in (or Yale says yes); the set keeps every Yale answer, so the score shows the gap (`docs/architecture.md`, section 9) (#118).
+- Re-baseline the Library score bars (72/78, MRR 0.82) or keep 64/78, MRR 0.742 as the floor: an Owner decision. The Owner accepted the lower score on 2026-11-16; the bars did not change (#118).
+- Course Topics still link to oyc.yale.edu (`real-assets.yaml`, `eq-markets.yaml`, `sov-default-country-risk.yaml`, `outline.yaml`), and `real-assets.yaml` names ECON 251 "Shiller" (it is Geanakoplos) (#118).
+
+### Course
+
+- The daily-life line is stored before the Principle reply (`src/tutor/practice.ts`); moving it after changes the turn flow in `src/tutor/turn.ts` (a tutor-eval trigger) (#86; review 3, L20).
+- The beginner check counts new words only as Lingo cards, so nothing checks that a word is taught before it is used (how M01 passed); a rule needs a course-wide word list and a shrink-only list, and an Owner decision (#87; review 3, L19).
+- Topics 2 and 3 still end on a typed Check with a typed Insight (review 3, L20); the `insight.pick` tap (ADR 0020) could replace typed Insights in the other Spine Topics (#88, #89, #95/#96).
+- Critics rounds: Topics 2 and 3 count #89's round; Topic 1's round ran in fix round 2. Log real shas in `docs/critics/spine-log.yaml` when a Topic changes again (#88, #89; review 1, F13).
+- No Spine critics round has run on the statements Topic since the review fixes (79d4156); its last logged round is 6a63ee5 (`docs/critics/spine-log.yaml`) (#90).
+- The Value levers part's prompt text, which the Tutor and the Library read, still says "revenue in year 10" (`value-levers-part.tsx`, the recipe description); changing it needs `widgets:freeze` (#88).
+- The Cash waterfall's first bar is labelled "Revenue", and a bench with no named years is captioned "Next year, from revenue to free cash flow" (`src/widgets/workbench/cash-waterfall-model.ts`), while the course says "sales" (#89).
+- Retake the 390 px critics screenshots of Spine Topics 2 and 3 now that the phone Study Workspace is in (#89).
+- Old Reviews on the removed Quick try `wc-primer-loop-try` point at no question; map them to `st-primer-loop-try` or not (#90).
+- The Lingo card's "In the story" label should read "In the moment" ("The story" never labels the event, GLOSSARY) (#74).
+- A reveal-step question for "which assumption failed" in the ready-Case valuation Topic (#92).
+- A published Coffee Day valuation could replace the course illustration (#92).
+- The Assignment opens beside Follow/Judge/Analyse once the Spine is passed (Owner, 2026-11-16), and the annual-report Topic's complete card links to it (#97, #93).
+- Go deeper formulas never reach Learners: ADR 0003 says the Tutor may say them, but `src/tutor/instructions.ts` forbids typed formulas, the context says "in your own words" and the grader fails any formula. Needs an Owner decision on one rule, then align all four (a tutor-eval trigger) (#100; review 3, L17).
+- Nintendo, Samsung and LVMH annual-report Cases with valuation blocks, now that #112 adds JPY, KRW and EUR (#94).
+- The beginner check's `OWN_STORY_ASKS` (`src/course/beginner-check.ts`) could also match "my story" and "story of your own" (K04/K05); fix round 3b's course lane could not edit that file, and spine-check already fails any Spine ownWork Check (spec68-fix3b-k13-18).
+
+### Valuation and Full sheet
+
+- Full sheet path rows (growth, margin, cost of capital) and the Case facts change only through the Levers; Own Case Estimate rows have no slider or tap; decide if they get their own (#104, #111).
+- The saved Valuation story note (`storyNote`) does not list changed Full sheet rows (#104).
+- Own Case Full sheet row changes are not saved with the Own Case or its Notebook note (#111).
+
+### Markets, Own Case and Assignment
+
+- Value levers on an Own Case: `OwnCasesContext` on the Study page, `ownCaseLookup` to `readWidget` and `widgetProblems`, a wider `caseId` check in `set-workbench.ts`; today the Estimate is the industry's opening one (#106, #107).
+- In Study Topics the Tutor's reply check V7 does not catch ¥, ₩ or €: a Topic's currencies come only from its Cases' dollar and rupee amounts (`topicCurrencies` in `src/tutor/turn-facts.ts`). The Assignment checks all three (`src/tutor/reply-checks.ts`) (#112).
+- The FIGURE rule in `src/course/map.ts` has € but not ¥ or ₩ (#112).
+- The Calculator, MoneyStack and case-data-view handle only dollars and rupees (#112).
+- The Tutor's Workbench reading (`widget-reading.ts`) does not list the Market readings (#105).
+- Implied premium readings stop at Dec 2019: the course's two-stage maths does not reproduce Damodaran's 2024-2025 method (3.99% against 4.23% for 2025) (#105).
+- Decide whether a published premium that the course's maths cannot solve may show before the Reveal. The end-1999 implied premium, 2.05%, is dated before the Amazon Cases' As-of date, but Damodaran's histimpl data prints no 1999 buybacks, so the reading check refuses it; the two Amazon Topics show only the end-1999 bond rate (`src/markets/readings.ts`) (#105).
+- A Value levers view of the Price against a published non-DCF value, such as LIC's embedded value (#117, India #2).
+- The range check's usual range (half to double; cost of capital ±3 points) is a stand-in; there is no tax-rate yardstick (#109).
+- Own Case report date: the guide now uses the Board's approval date (India) and the filing date (Japan, Korea), as the research advised; the Owner can overrule (#108).
+- Own Case cash: count liquid or debt mutual funds or not (#108).
+- Own Case has no field for employee stock options (shown as "not entered" on screen and in the note) or non-controlling interests; a real options field needs guide lines in 3 markets (#108).
+- Guide wording with no government source: 1 crore = 10 million, and the price rule for a shut market (#108).
+- The Assignment Session's topic id `assignment` is not on the Course Map; give it a title and a read-only view (#110).
+- Assignment Tutor Turns do not save a `reply_checks` record (#110).
+- The course names Samsung's preference shares (the annual-report Topic) but never says they count beside the common ones; only the Own Case guide does (`src/markets/guides.ts`, Lingo card 우선주) (#114).
+- Japan's defense special corporate tax: which years and firms get 30.64% rather than 29.74% (#114).
+- Europe's Own Case takes euro reporters only; UK, Swiss, USD and TEUR reporters need a currency or unit choice (#115).
+- The Own Case form: one result line switches between `alert` and `status`, and field errors are not tied to their field (no `aria-invalid`) (#107; review 1, F24).
+- Prices of €10 or more show as whole euros (€76.78 as €77); consider cents for EUR and USD share prices (#115).
+
+### Theme and phone
+
+- Printing a kit chart while Dark is on may keep Dark's chart colours: `pageChartPalette` in `src/widgets/genui-theme.tsx` writes them as SVG attributes; not checked (#80; review 2, G22).
+- On the server `useScreen` assumes a laptop, so on a tablet the explore Widget moves into the conversation column on load (#81).
+- Phone sheet: close it after the last due Review is done, and open the Spaced review row unfolded (#83).
+- Preview matrix: add the signed-in reading pages at 390 and 360 px (#84).
+
+### Site
+
+- Redirect `/examples/mega-millions-2018` and `/examples/rates-up-1` to `/examples/kerala-bumper-2024` and `/examples/rbi-repo-cut-2025` (#116).
+- `meta.shareTitle` still says "Learn what things are worth."; align it with the hero "What is it really worth?" (#73).
+- Home's hero h1 is followed by the demo's h3, so Home skips a heading level (#74).
+- How it works draws 15 Spine steps (`Array.from({ length: 15 })` in `src/app/(site)/how-it-works/page.tsx`); make it follow the course (#91).
+- Home's end note is Kikkoman's Own Case (`src/site/end-note.ts`); consider an Indian company instead, so it is in rupees like the hero's jackpot (#75).
+- The jackpot's Go deeper task "find the rate where the two are worth the same" is always 0% for the Kerala bumper; a new task waits for the Owner (`docs/owner-actions.md`, step 27) (#116; review 1, F33).
+- Measured minutes from the timed runs go into the course files (`docs/owner-actions.md`, step 25) (#72).
+- The signed-in app still shows the outline's guessed minutes per Topic: "N min" on the Course Map and "About N minutes" on the Welcome (`src/app/course/course-map-view.tsx`, `src/app/welcome/welcome-view.tsx`); the public site shows none until they are measured (#72).
+- After the merge, with Clerk on: check the Clerk cards on `/join`, `/sign-in` and `/sign-up` in Light and Dark (#76, #79); optional Lighthouse run for robots.txt (#70).
+- Home's Kikkoman note still writes ¥745.5bn: its lines come from `ownCaseNote`/`moneyText` (`src/learner`, `src/widgets/workbench`), shared with the Workbench and Notebook and outside the site lane; Home's dollars are in words and the test checks dollars only (spec68-fix3b-site, L22 yen part).
+- WeWorkWidget's bar labels and feedback ($3.0bn, $1.54bn, "The $3bn is...") keep the compact money style: they show only after a chip is picked, not in Home's server-rendered text, and bar labels are compact chart labels; spec §6.6 still matches the code (spec68-fix3b-site).
+
+### Tests and tooling
+
+- Install the Chromium build Playwright 1.65 expects (1254) on the VPS; until then e2e runs need `CHROME_PATH` set to chromium-1248 (#69, #70, #76, #81, #84, #90, #94, #106, #116).
+- Retune the ui shard weights for the new p360 and mbp14-dark projects (#80, #82).
+- `sharp` is imported by `scripts/make-icons.mjs` but not declared in `package.json` (#70; review 3, L26).
+- Duplicated helpers: the month tables (`readings.ts`, `copy.ts`; use `src/widgets/months.ts`) and theme watching (`theme-store` and the `genui-theme.tsx` MutationObserver) (review 3, L30); `fadePath` in `own-case.ts` repeats `fadingGrowth`; the Lingo card shape in `src/markets/guides.ts` could use `LingoCardProps`; hand-written external-source links; one phone check per e2e spec (#105, #107, #114, #115).
+- Test dates: the Tata Consumer fixtures in `src/tutor/assignment-turn.test.ts` and `src/behaviour/assignment-flag.ts` still date it at its year end, 2025-03-31, at ₹1,090, and `src/app/api/own-cases/route.test.ts` pairs ₹1,090 with 2025-04-23; the sourced pair is 2025-04-23 (the Board's approval) at ₹1,150.10 (`e2e/assignment-tutor.spec.ts`) (#108, #110; review 2, G33).
+- Timeouts under load: the no-typing Percent quick-try (5 s first result) and `src/app/other-learners.test.ts` (10 s hook) (#88, #76).
+
 ## Out of scope (ruled 2026-11-14 and 2026-11-15)
 
-- **Offer shape after early access** ([#29](https://github.com/SiddharthMuramkar/finance-agent/issues/29)): shape, price, payments provider, price wording. Out of scope 2026-11-15. The owner is in the developer phase. Early access stays free. The hard cap per Learner (#13) stays. Licence fact for later: any paid part makes the whole site commercial, so Yale 251/252 and the Damodaran blog must leave or get permission.
+- **Offer shape after early access** ([#29](https://github.com/SiddharthMuramkar/finance-agent/issues/29)): shape, price, payments provider, price wording. Out of scope 2026-11-15. The owner is in the developer phase. Early access stays free. The hard cap per Learner (#13) stays. Licence fact for later: any paid part makes the whole site commercial, so Yale 251/252 and the Damodaran blog must leave or get permission (Yale leaves with #118, spec #68).
 - **Fine-tuning a model** (owner, 2026-11-14).
 - **Public self-serve sign-up.** The beta stays invite-only (Clerk Waitlist).
 - **The spec's review-notes page.** Prototype only (spec §7.8).

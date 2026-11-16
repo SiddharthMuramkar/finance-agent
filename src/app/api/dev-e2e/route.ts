@@ -9,7 +9,7 @@ import { navigate } from "@/course/navigator";
 import { finishForPlacement } from "@/behaviour/place";
 import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { getDb } from "@/db/client";
-import { insightAttempts, messages, reviewCards, sessions } from "@/db/schema";
+import { insightAttempts, libraryPassages, librarySources, messages, reviewCards, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
@@ -34,10 +34,10 @@ export const runtime = "nodejs";
  * a named state on the fresh Learner (signing this browser in as it); `POST {script}` picks the scripted Tutor's next
  * reply; `POST {reset: true}` is `{state: "fresh"}`; `GET` says which database is open.
  *
- * `POST {person: "owner" | "asha"}` (issue #33) signs this browser in as one of the test bed's people
+ * `POST {person: "owner" | "asha" | "ravi"}` (issue #33) signs this browser in as one of the test bed's people
  * (src/dev/e2e-identity.ts): Clerk is off in the test bed, so a signed `fa_e2e_person` cookie stands in for a Clerk
  * session, and the person's Learner is found or made as a first Clerk sign-in makes it. The owner is the admin.
- * Idempotent: the same person and Learner come back.
+ * Idempotent: the same person and Learner come back. `ravi` (spec #68) comes back with every Spine Topic passed.
  *
  * Closed (404) unless the test bed is on (`E2E=1`, never in production or on Vercel) AND the database is the in-memory
  * PGlite, so it can never write to Neon even if a flag leaks; 403 for any Learner but the tools Learner.
@@ -106,6 +106,43 @@ const STATES: Record<string, Build> = {
    * (e2e/spine-01.spec.ts): the page starts its opener, and every step after is taken in the browser.
    */
   "spine-01-start": storyOf(SPINE_ONE),
+  /** Spine Topic 1 at explore, the Insight not yet settled: its question with choices to tap (ticket #88, e2e/no-typing.spec.ts). */
+  "spine-01-explore": async (db, map, learnerId, now) => {
+    await storyOf(SPINE_ONE)(db, map, learnerId, now);
+    await walk(db, map, learnerId, now, SPINE_ONE, (step) => step === "explore");
+  },
+  /** Spine Topic 1 at its judging Check (worth-talk), the quiz Check passed, with the judging quiz open (ticket #88). */
+  "spine-01-judging": async (db, map, learnerId, now) => {
+    await storyOf(SPINE_ONE)(db, map, learnerId, now);
+    await walk(db, map, learnerId, now, SPINE_ONE, (step) => step === "check");
+    await saveCheckResult(db, map, { checkId: "worth-check", passed: true, evidence: "Test bed fixture." }, now, learnerId);
+    await walk(db, map, learnerId, now, SPINE_ONE, (step) => step === "check");
+    if (navigate(map, await loadProgress(db, learnerId))?.check?.id !== "worth-talk") throw new Error(`${SPINE_ONE} is not at its judging Check.`);
+    if (!(await openQuiz(db, map, now, learnerId))) throw new Error(`${SPINE_ONE}'s judging Check is not a quiz.`);
+  },
+  /** Spine Topics 2 and 3 at their Story steps, for their first turns played through the page (#89, e2e/spine-02-03.spec.ts). */
+  "spine-02-start": storyOf("spine-02-money-later"),
+  "spine-03-start": storyOf("spine-03-cash"),
+  /** The three financial statements at their Story step, for #90's three-turn play (e2e/spine-statements.spec.ts). */
+  "spine-statements-start": storyOf("spine-statements"),
+  /** The risk Topic (the cost of equity) and the cost-of-capital Topic at their Story step, for #91's three-turn play (e2e/spine-rate-split.spec.ts). */
+  "spine-07-start": storyOf("spine-07-risk"),
+  "spine-coc-start": storyOf("spine-cost-of-capital"),
+  /** Spine Topics 4, 5, 6 and 9 at their Story steps, for #95's three-turn plays (e2e/spine-04-09.spec.ts). */
+  "spine-04-start": storyOf("spine-04-growth"),
+  "spine-05-start": storyOf("spine-05-margins"),
+  "spine-06-start": storyOf("spine-06-growth-cost"),
+  "spine-08-start": storyOf("spine-08-far-future"),
+  /** Spine Topics 10 to 16 at their Story steps, for #96's three-turn plays (e2e/spine-10-16.spec.ts). */
+  "spine-09-start": storyOf("spine-09-to-one-share"),
+  "spine-10-start": storyOf("spine-10-survival"),
+  "spine-11-start": storyOf("spine-11-story-to-numbers"),
+  "spine-12-start": storyOf("spine-12-price-or-value"),
+  "spine-13-start": storyOf("spine-13-price-assumes"),
+  "spine-14-start": storyOf("spine-14-being-wrong"),
+  "spine-15-start": storyOf("spine-15-value-yourself"),
+  /** The annual report Topic at its Story step, for #93's three-turn play (e2e/spine-annual-report.spec.ts). */
+  "spine-ar-start": storyOf("spine-annual-report"),
   /** The Topic at Concept, with one Widget shown by a scripted turn. */
   "concept-widget": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);
@@ -175,6 +212,22 @@ const STATES: Record<string, Build> = {
     if (!session) throw new Error(`${TOPIC} has no live Session.`);
     if (!(await storeTopicComplete(db, map, learnerId, session.id, now))) throw new Error(`${TOPIC} stored no Topic complete card.`);
     await saveShownSession(db, learnerId, session.id);
+  },
+  /**
+   * The passed Topic still on screen (as topic-complete) while a spaced Review of its own quiz question is due (as
+   * review-due): a phone reaches that Review from the conversation's sheet entries (G05, #83).
+   */
+  "topic-complete-review-due": async (db, map, learnerId, now) => {
+    await STATES["review-due"](db, map, learnerId, now);
+    await walk(db, map, learnerId, now, TOPIC, (step) => step === "reveal");
+    await turn(db, map, learnerId, "reveal-reply", "What did the Fed do?");
+    await walk(db, map, learnerId, now, TOPIC, () => false);
+    const session = await liveSession(db, learnerId, TOPIC);
+    if (!session) throw new Error(`${TOPIC} has no live Session.`);
+    if (!(await storeTopicComplete(db, map, learnerId, session.id, now))) throw new Error(`${TOPIC} stored no Topic complete card.`);
+    await saveShownSession(db, learnerId, session.id);
+    await db.update(reviewCards).set({ due: new Date(now.getTime() - 86_400_000) }).where(eq(reviewCards.learnerId, learnerId));
+    if (!(await reviewState(db, map, now, learnerId)).question) throw new Error(`${TOPIC}'s passed page has no Review due.`);
   },
   /**
    * F1 matrix (#481, §8.3 "reply with Story scene"): a Story reply that code gives the step's written-ahead scene. The
@@ -289,6 +342,14 @@ async function passTopic(db: Db, map: CourseMap, learnerId: number, now: Date, t
   await walk(db, map, learnerId, now, topicId, () => false);
 }
 
+/** Passes every Spine Topic not passed yet, walked as a Learner would (spec #68: the test bed's "Spine passed" person). */
+async function passSpine(db: Db, map: CourseMap, learnerId: number, now: Date) {
+  const progress = await loadProgress(db, learnerId);
+  for (const t of map.topics.filter((t) => t.stage === "spine").sort((a, b) => (a.spine ?? 0) - (b.spine ?? 0))) {
+    if (progress.topics[t.id]?.status !== "passed") await passTopic(db, map, learnerId, now, t.id);
+  }
+}
+
 function open(): boolean {
   return e2eEnabled(process.env) && globalThis.__faE2eIsPglite === true;
 }
@@ -311,6 +372,7 @@ async function signInPerson(person: unknown): Promise<NextResponse> {
   if (!isE2ePerson(person)) return NextResponse.json({ error: `No person "${String(person)}".`, people: Object.keys(E2E_PEOPLE) }, { status: 400 });
   const identity = E2E_PEOPLE[person];
   const learner = await learnerForClerkUser(getDb(), identity);
+  if (person === "ravi") await passSpine(getDb(), loadCourseMap(), learner.id, new Date());
   const response = NextResponse.json({ person, email: identity.email, learnerId: learner.id });
   response.cookies.set(E2E_PERSON_COOKIE, await e2ePersonToken(person, process.env.SESSION_SECRET ?? ""), E2E_PERSON_COOKIE_OPTIONS);
   return response;
@@ -329,6 +391,35 @@ const HOME_CASH_OPTION: CaseDatasetInput = {
   points: [{ date: "2018-10-23", value: 877_784_124 }],
 };
 
+/**
+ * A Library passage for the test bed (spec #68, #84: the passage page on a phone), with the long, unbroken web address in
+ * its credit line that OpenStax asks for, the hardest thing on that page to fit at 360 px. Upserted, so a second call
+ * answers the same passage.
+ */
+async function longCreditPassage(db: Db) {
+  const credit =
+    "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax, Houston, Texas, 2026), CC BY-NC-SA 4.0. Access for free at https://openstax.org/books/principles-finance-2e/pages/1-why-it-matters";
+  const url = "https://openstax.org/books/principles-finance-2e/pages/1-1-what-is-finance";
+  await db
+    .insert(librarySources)
+    .values({ id: "e2e-openstax", title: "Principles of Finance 2e (test bed)", kind: "timeless", licence: "CC BY-NC-SA 4.0", licenceUrl: "https://creativecommons.org/licenses/by-nc-sa/4.0/", credit, url, fetchedOn: "2026-11-01" })
+    .onConflictDoNothing();
+  const [row] = await db
+    .insert(libraryPassages)
+    .values({
+      sourceId: "e2e-openstax",
+      ref: "1-1",
+      heading: "What Is Finance?",
+      url,
+      text: "Finance is the study of money. It asks how people and businesses raise, spend and save it over time. A business is worth the cash it will make, discounted back to today.",
+      licence: "CC BY-NC-SA 4.0",
+      credit,
+    })
+    .onConflictDoUpdate({ target: [libraryPassages.sourceId, libraryPassages.ref], set: { heading: "What Is Finance?" } })
+    .returning({ id: libraryPassages.id });
+  return { passageId: row.id };
+}
+
 export async function POST(request: Request) {
   if (!open()) return notFound();
   const learner = await currentLearner();
@@ -339,6 +430,7 @@ export async function POST(request: Request) {
     reset?: unknown;
     person?: unknown;
     caseData?: unknown;
+    passage?: unknown;
   };
 
   if (body.person !== undefined) return signInPerson(body.person);
@@ -346,6 +438,7 @@ export async function POST(request: Request) {
   // Spec 2026-11-12 E3: Case Data lives only in the private database, so the test bed seeds the one figure Home's
   // Explorable sets the jackpot against: the cash option, at the figure Present value's Topic file states.
   if (body.caseData === "home-cash-option") return NextResponse.json(await importCaseData(getDb(), [HOME_CASH_OPTION]));
+  if (body.passage === "long-credit") return NextResponse.json(await longCreditPassage(getDb()));
 
   if (body.script !== undefined) {
     if (!isE2eScript(body.script)) return NextResponse.json({ error: `No script "${String(body.script)}".`, scripts: Object.keys(E2E_SCRIPTS) }, { status: 400 });

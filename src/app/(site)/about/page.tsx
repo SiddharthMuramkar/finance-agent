@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/site-metadata";
 import { about, COURSE } from "@/site/copy";
 import { Rich } from "@/site/rich";
 import { courseStats } from "@/site/stats";
@@ -8,17 +9,32 @@ import { FaqList } from "../faq";
 import { Icon, Pill, SectionHead } from "../parts";
 
 // About, at /about (spec 7.6, Appendix B): the header with "At a glance", four promises, the sourcing flow with the
-// non-affiliation line, what you can learn, the founder's note (a placeholder, spec 14), early access, the full FAQ and
-// the closing CTA. Public; drawn per request for the nav's viewer state. Reads the course files for the Topic count and
-// nothing private.
+// non-affiliation line (its named Source linked), what you can learn, early access, the full FAQ and the closing CTA. No
+// founder's note (#75: no placeholders). Public; drawn per request for the nav's viewer state. Reads the course files
+// for the Topic count and nothing private.
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: about.title, description: about.lede };
+export const metadata: Metadata = pageMetadata({ title: about.title, description: about.lede, path: "/about" });
+
+/** The line with the Source it names drawn as a link to that Source (#75). */
+function NamedSource({ text, source }: { text: string; source: { name: string; url: string } }) {
+  const at = text.indexOf(source.name);
+  if (at < 0) return text;
+  return (
+    <>
+      {text.slice(0, at)}
+      <a href={source.url} className="link" data-affordance="link" target="_blank" rel="noopener noreferrer">
+        {source.name}
+      </a>
+      {text.slice(at + source.name.length)}
+    </>
+  );
+}
 
 export default async function AboutPage() {
   const viewer = await siteViewer();
-  const { topics } = courseStats();
+  const course = courseStats();
   return (
     <div data-page="about">
       <header className="v-wrap v-about-head">
@@ -33,7 +49,7 @@ export default async function AboutPage() {
             {about.glance.title}
           </h2>
           <dl>
-            {about.glance.rows(topics).map((row) => (
+            {about.glance.rows(course).map((row) => (
               <div key={row.label}>
                 <dt>{row.label}</dt>
                 <dd>{row.value}</dd>
@@ -74,16 +90,16 @@ export default async function AboutPage() {
             ))}
           </ol>
           <p className="v-small v-measure" data-about-prose="">
-            {about.notAffiliated}
+            <NamedSource text={about.notAffiliated} source={about.notAffiliatedSource} />
           </p>
         </div>
       </section>
 
       <section className="v-section tight" aria-labelledby="learn-h">
         <div className="v-wrap v-stack">
-          <SectionHead title={about.learnH2} body={about.learnBody} id="learn-h" />
+          <SectionHead title={about.learnH2} body={about.learnBody(course)} id="learn-h" />
           <ul className="v-tags" aria-label="Subjects">
-            {COURSE.subjects.map((subject) => (
+            {course.bySubject.map((subject) => (
               <li key={subject.name}>
                 <Pill tone="plain">
                   {subject.name} · {subject.count}
@@ -92,23 +108,14 @@ export default async function AboutPage() {
             ))}
           </ul>
           <ul className="v-tags" aria-label="Stages that read real arguments">
-            {COURSE.stages.map((stage) => (
-              <li key={stage.name}>
+            {course.byStage.map((stage) => (
+              <li key={stage.stage}>
                 <Pill tone="blue">
-                  {stage.name} · {stage.count}
+                  {COURSE.stages[stage.stage].name} · {stage.count}
                 </Pill>
               </li>
             ))}
           </ul>
-        </div>
-      </section>
-
-      <section className="v-section tight v-rule-top" aria-labelledby="founder-h">
-        <div className="v-wrap v-stack">
-          <h2 className="v-h2" id="founder-h">
-            {about.founderH2}
-          </h2>
-          <p className="v-measure">{about.founder}</p>
         </div>
       </section>
 

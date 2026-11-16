@@ -140,7 +140,14 @@ export function stepContext(
     lines.push(`Terms this Topic introduces (define any you use where it first appears): ${topic.terms.map((t) => `${t.term}: ${plain(t.means)}`).join(" ")}`);
   }
   // Go deeper material (spec 2026-11-12 H1): an idea beyond the Topic's Checks, never quizzed.
-  if (topic.goDeeper) lines.push(`Go deeper material (use it only when the Learner presses Go deeper or asks about it; no Check tests it, so never quiz it): ${plain(topic.goDeeper.trim())}`);
+  // Pressed (spec #68), the Tutor is told to give it now; otherwise it is there for when the Learner asks about it.
+  if (topic.goDeeper) {
+    lines.push(
+      facts?.replyKind === "go_deeper"
+        ? `The Learner pressed Go deeper: give them this Go deeper material now, in your own words (no Check tests it, so never quiz it): ${plain(topic.goDeeper.trim())}`
+        : `Go deeper material (use it only when the Learner presses Go deeper or asks about it; no Check tests it, so never quiz it): ${plain(topic.goDeeper.trim())}`,
+    );
+  }
   lines.push(...teachingAidLines(place));
   lines.push(...stepSettingLines(place));
   const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
@@ -199,6 +206,8 @@ export function stepContext(
   }
   if (step === "principle") {
     lines.push("", `Principle: ${plain(topic.principle.trim())}`);
+    // Spec #68: code shows the daily-life line under the principle at this step, so the Tutor can tie back to it.
+    if (topic.dailyLife) lines.push(`Daily-life line (code shows it under the principle): ${plain(topic.dailyLife.trim())}`);
     if (topic.insight && explore?.words) {
       lines.push(`The Learner's own words about the Insight (${explore.settled === "told" ? "after being told it" : "found by themselves"}): "${explore.words}". Tie the principle back to them.`);
     }
@@ -341,6 +350,14 @@ function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widget
     lines.push(
       `The Insight is settled (${explore.settled === "told" ? "the Learner was told it" : "the Learner found it"}). Written Insight: ${insight.written.trim()}`,
       ...(explore.words ? [`The Learner's words: "${explore.words}".`] : []),
+    );
+    return lines;
+  }
+  if (insight.pick) {
+    // Settled by a tap (ADR 0020): code shows the choices and marks the tap, so the Tutor never asks for typed words.
+    lines.push(
+      explore?.hints.length ? `Hints released so far: ${explore.hints.map((h, i) => `hint ${i + 1}: ${h.trim()}`).join(" ")}` : "No hint has been released yet.",
+      `The Learner settles the Insight with a tap: code shows the question with these choices under the conversation and marks the tap itself: ${insight.pick.choices.map((c) => `"${c.text}"`).join(", ")}. Point the Learner to the Widget, then to the choices. Never ask them to type their answer and never say which choice is right. Call record_insight_attempt only when they ask to be told (Just tell me): outcome asked_to_be_told, with their words.`,
     );
     return lines;
   }

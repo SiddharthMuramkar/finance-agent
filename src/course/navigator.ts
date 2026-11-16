@@ -1,6 +1,6 @@
 import type { Check, CourseMap, StepSetting, Topic } from "./map";
 import type { Subject } from "./outline";
-import { testedSkills } from "./tested-skills";
+import { isConverted, testedSkills } from "./tested-skills";
 import type { QuestionLookup } from "./quiz";
 import { conditionValue, type SavedWork } from "./written-ahead";
 
@@ -103,13 +103,16 @@ function anchorCheck(topic: Topic): Check | null {
 /** The Stages that follow the Spine on the default path, in the order the Course Map lists them (spec C1). */
 const AFTER_SPINE: readonly Topic["stage"][] = ["follow", "judge", "analyse"];
 
-/** The Spine goes live to Learners once these Spine Topics are all written (spec C8: "when Topics 1 to 5 exist"). */
-export const SPINE_LIVE_WITH: readonly number[] = [1, 2, 3, 4, 5];
+/**
+ * The Spine goes live to Learners once these Spine Topics are all written (spec C8: "when Topics 1 to 5 exist"). Listed by
+ * Topic id, not Spine number, so renumbering a Topic in the outline does not change when the Spine goes live (ADR 0004).
+ */
+export const SPINE_LIVE_WITH: readonly string[] = ["spine-01-worth", "spine-02-money-later", "spine-03-cash", "spine-04-growth", "spine-05-margins"];
 
-/** Whether the Spine is live (spec C8): Spine Topics 1 to 5 are all written. */
+/** Whether the Spine is live (spec C8): the Spine Topics in SPINE_LIVE_WITH are all written. */
 export function spineLive(map: Pick<CourseMap, "topics">): boolean {
-  const written = new Set(map.topics.filter((t) => t.stage === "spine").map((t) => t.spine));
-  return SPINE_LIVE_WITH.every((n) => written.has(n));
+  const written = new Set(map.topics.filter((t) => t.stage === "spine").map((t) => t.id));
+  return SPINE_LIVE_WITH.every((id) => written.has(id));
 }
 
 /**
@@ -125,6 +128,15 @@ export function defaultPath(map: CourseMap): Topic[] {
   if (!spineLive(map) && offSpine.length) return offSpine;
   const spine = map.topics.filter((t) => t.stage === "spine").sort((a, b) => (a.spine ?? 0) - (b.spine ?? 0));
   return [...spine, ...AFTER_SPINE.flatMap((stage) => map.topics.filter((t) => t.stage === stage))];
+}
+
+/**
+ * Whether the Learner has passed the Spine (spec #68): every written Spine Topic passed. The Assignment after it opens
+ * only then (ADR 0020). A course with no Spine Topic written has no Spine to pass.
+ */
+export function spinePassed(map: CourseMap, progress: Progress): boolean {
+  const spine = map.topics.filter((t) => t.stage === "spine");
+  return spine.length > 0 && spine.every((t) => isPassed(progress, t.id));
 }
 
 /** The Welcome's first Topic (spec C6): the first on the default path, which is Spine Topic 1 once the Spine is live. */
@@ -345,7 +357,9 @@ export function returnToDefaultPath(progress: Progress): Progress {
 
 /** Each Teaching Step's name in plain words, as dividers, the strip and the Next chip show it. */
 export const STEP_NAMES: Record<TeachingStep, string> = {
-  story: "Story",
+  // The event the Topic opens on is "The moment" on screen (spec #68, Familiar first; GLOSSARY: a Story is a claim the
+  // Learner judges, a Moment the event itself). The id stays `story`.
+  story: "The moment",
   concept: "Concept",
   explore: "Explore",
   your_turn: "Your turn",
@@ -360,7 +374,7 @@ export const STEP_NAMES: Record<TeachingStep, string> = {
  * dividers, the Next chip and the Tutor's notes keep STEP_NAMES, and every id stays as it was.
  */
 export const BAR_STEP_NAMES: Record<TeachingStep, string> = {
-  story: "Story",
+  story: "The moment",
   concept: "The idea",
   explore: "Explore",
   your_turn: "Your turn",
@@ -558,12 +572,14 @@ export type TopicOverview = {
   onDefaultPath: boolean;
   /** When the last of the Topic's parked Skills comes back; null when none is parked. */
   parkedUntil?: Date | null;
-  /** A Spine Topic's number, 1 to 15 (spec C4); absent off the Spine. */
+  /** A Spine Topic's number, 1 to SPINE_LENGTH (spec C4, ADR 0020); absent off the Spine. */
   spine?: number;
   /** How long the Topic takes, in minutes, when its outline entry or file says (every Spine Topic does). */
   minutes?: number;
   /** The Spine Topics that use this Topic's idea, by number, lowest first (their `drawsOn`, spec C6); absent when none does. */
   usedInSpine?: number[];
+  /** True when the Topic is not written ahead (not a Converted Topic), so the Tutor teaches it live in each Turn; absent otherwise. */
+  taughtLive?: boolean;
 };
 
 /**
@@ -612,6 +628,7 @@ export function courseOverview(map: CourseMap, progress: Progress, parked?: Park
       ...(topic.spine !== undefined ? { spine: topic.spine } : {}),
       ...(topic.minutes !== undefined ? { minutes: topic.minutes } : {}),
       ...(used ? { usedInSpine: used } : {}),
+      ...(isConverted(topic) ? {} : { taughtLive: true }),
     };
   });
 }

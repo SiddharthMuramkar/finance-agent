@@ -37,9 +37,9 @@ cases:
       The shares listed on 2 November 2015 at Rs 313 on the BSE and Rs 317 on the NSE, below the
       Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6 percent. Whichever
       currency a fund had used, the market's first-day price was well below the issue price. The
-      currency question did play out. The gap between the two bond yields (1.0758 / 1.0204,
-      about 5.4 percent a year) pointed to a rupee falling from 65.12 to roughly 68.7 to the dollar
-      within a year. By 20 January 2016 it had reached about 68. In his January 2016 update Damodaran gave
+      currency question did play out. The two bond yields, 7.58 and 2.04 percent, pointed to the
+      rupee falling about 5.4 percent a year, a little less than the 5.54-point gap between them: from
+      65.12 to roughly 68.7 to the dollar within a year. By 20 January 2016 it had reached about 68. In his January 2016 update Damodaran gave
       India a Baa3 default spread of 2.44 percent, multiplied it by 1.34, the relative volatility of
       emerging market equities against bonds, for a country risk premium of 3.28 percent, and added
       it to a mature market premium of 6 percent. Rupee cash flows, a rupee discount rate and a
@@ -93,14 +93,20 @@ concept: >
   government is treated as default free) plus a premium for risk. To value the same cash flows in
   dollars, convert them at the exchange rates the market expects and discount at a dollar rate. If
   riskless returns differ between two currencies because expected inflation differs, the
-  currency with the higher rate is expected to lose value by about (1 + rupee rate) / (1 + dollar
-  rate) - 1 a year. Done consistently, the two approaches give the same value. Country risk
-  is a separate matter: investing in India carries risks of default, regulation and political
+  currency with the higher rate is expected to lose value each year by about the gap between the
+  two rates. Done consistently, the two approaches give the same value. Country risk is a
+  separate matter: investing in India carries risks of default, regulation and political
   change that a mature market does not. One common way to add it is a country risk premium
   (CRP): the country's default spread, taken from its sovereign rating, scaled up by the
-  extra volatility of equities relative to bonds. The cost of equity is then riskfree rate +
-  beta x (mature market premium + CRP). Choose where to put the risk (in the cash flows as
+  extra volatility of equities relative to bonds. The cost of equity then starts from the riskfree
+  rate and adds beta times the sum of the mature market premium and the CRP. Choose where to put the risk (in the cash flows as
   probabilities of bad outcomes, or in the discount rate) but not in both.
+
+goDeeper: >
+  In symbols, the cost of equity with a country risk premium is riskfree rate + beta x (mature market
+  premium + CRP). The expected fall of the higher-rate currency is (1 + rupee rate) / (1 + dollar rate) - 1 a
+  year. With an Indian bond at 7.58 percent and a US Treasury at 2.04 percent, that is
+  1.0758 / 1.0204 - 1, about 5.4 percent a year.
 
 principle: >
   Match currency to currency: rupee cash flows with a rupee discount rate, dollar with dollar,

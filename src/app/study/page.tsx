@@ -8,6 +8,7 @@ import { courseOverview, stepSequence, whatComesNext } from "@/course/navigator"
 import { topicStart } from "@/course/topic-start";
 import { referenceClip, revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
+import { insightPickNow } from "@/learner/insight";
 import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
@@ -27,21 +28,22 @@ import { failedTurnView } from "@/tutor/failures";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readSplit } from "../split-cookie";
 import { currentAccount } from "../account";
-import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
+import { AppHeader, type HeaderAccount } from "../ui";
 
 // The Study Workspace, at /study. Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
 export const dynamic = "force-dynamic";
 
-// The Study Workspace's frame, box and header, around its two columns.
+// The Study Workspace's frame, box and header, around its two columns. A phone gets it too (#82): the conversation fills
+// the screen there and a Widget slides up over it (WorkspaceFrame).
 async function WorkspaceShell({ account, children }: { account?: HeaderAccount; children: ReactNode }) {
   return (
-    <SignedInFrame>
+    <>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3">
         <AppHeader current="workspace" account={account} />
         {children}
       </main>
-    </SignedInFrame>
+    </>
   );
 }
 
@@ -132,6 +134,8 @@ export default async function WorkspacePage() {
         explore={passed ? null : exploreAsSeen(exploreWidgetFor(map, progress), writtenAhead)}
         // Until the shown Topic's Insight is settled, its Widgets hold back what would give it away.
         insightSettled={!!current && progress.topics[current.id]?.insight !== undefined}
+        // Settled by a tap (ADR 0020): the Insight question with its choices, while the current Topic is at explore.
+        insightPick={passed ? null : insightPickNow(map, progress)}
         writtenAhead={writtenAhead}
         revealed={revealedCases(map, progress)}
         referenceClip={referenceClip(map, progress)}

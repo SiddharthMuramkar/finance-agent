@@ -1,13 +1,14 @@
-# Spine Topic 7 (spec 2026-11-12, C2, C4): the rate a valuation discounts at, taught through the return Damodaran
-# required of Amazon's shareholders in February 2000. The Case's valuation block is Amazon's in val-dcf, taken with
-# valuationFrom; the Cost of capital stack's figures (risk-free rate, premium, relative risk, share and cost of debt,
-# tax) are Damodaran's own, with their source. Case facts: docs/research/verify-amazon-risk-erp.json
-# (amazon-cost-of-equity-2000). The Primers "Basis points" and "Spreading risk" are cut from the Electives
-# num-percent-bps and risk-portfolio (spec C3). Stage, place and length live in course/outline.yaml.
+# Spine Topic (spec 2026-11-12, C2, C4; spec #68, #91): the cost of equity, taught through the return Damodaran
+# required of Amazon's shareholders in February 2000. The cost of debt and the weights are the next Topic's
+# (spine-cost-of-capital). The Case's valuation block is Amazon's in val-dcf, taken with valuationFrom; the Cost of
+# capital stack's figures (risk-free rate, premium, relative risk, share and cost of debt, tax) are Damodaran's own,
+# with their source. Case facts: HighGrow.pdf, Amazon's 10-K, and for the 4% implied premium of 1960 to 1999 Damodaran's
+# "Equity Risk Premiums" paper (valquestions/RiskPrem.htm), and for the January 2001 revaluation his slides (dcfveg.pdf), listed in course/outline.yaml. The Primer
+# "Spreading risk" is cut from the Elective risk-portfolio (spec C3). Stage, place and length live in course/outline.yaml.
 id: spine-07-risk
-title: "Risk: what rate do you discount at?"
-goal: Build a discount rate from its layers, and judge how much the choice of rate moves a value
-why: "Every valuation discounts future cash at a rate for its risk; knowing how that rate is built, and how little it moves the value, keeps the story in charge."
+title: "Risk: what return should shareholders require?"
+goal: Build the cost of equity from its layers, and judge how much the choice of beta moves a value
+why: "Every valuation discounts future cash at the return its owners require; knowing how that return is built, and how little it moves the value, keeps the story in charge."
 minutes: 13
 exampleCurrency: USD
 
@@ -20,44 +21,45 @@ cases:
       3 February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor at New York University, is
       valuing the company. He needs a discount rate: the return investors should require for waiting and for the risk
       they bear. The US Treasury bond pays 6.5%, his risk-free rate. For the extra return investors want for holding
-      average shares instead, the equity risk premium, he takes 4%, the average the market implied from 1960 to 1999;
-      he judges the 6.60% that shares earned over bonds in the past too high. For Amazon's relative risk, its beta, he
+      average shares instead, the equity risk premium, he takes 4%, the average the market implied from 1960 to 1999.
+      For Amazon's relative risk, its beta, he
       has two figures. His own measure, from two years of Amazon's weekly prices, gives 2.29, but
       it is rough: with so short a history its likely miss, the standard error, is 0.50. Internet retailers average 1.60, and specialty retailers 1.00. He picks 1.60 for
-      five years, fading to 1.00 by year ten as Amazon matures. Amazon borrows little: at market prices its debt is
-      1.2% of its funding, at 8% a year before tax, and its losses mean that interest saves it no tax yet. Which rate should he
-      discount Amazon's cash at, and how much does the choice matter?
+      five years, fading to 1.00 by year ten as Amazon matures. Which return should he require for Amazon's shares, and
+      how much does the choice matter?
     reveal: >
       Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five, falling to 10.50% by year ten
-      (beta 1.00). With almost no debt at first, and more borrowing assumed once Amazon was mature, his cost of capital was
-      12.84% in year one and 9.61% after year ten, and
-      his value was $35.08 a share against the $84 price. In his paper he named the inputs with the greatest impact on
+      (beta 1.00). Amazon borrowed so little that the rate he discounted at in year one, 12.84%, was almost exactly that
+      cost of equity, and his value was $35.08 a share against the $84 price. In his paper he named the inputs with the greatest impact on
       value as the estimates of sustainable margins and revenue growth, not the rate. The shares traded as high as
       $91.50 in the first quarter of 2000 and as low as $14.88 in the fourth. A year later, with the price near $14, he
       valued Amazon again at $20.83 a share, now above the price, with a beta of 2.18 and a cost of equity of 13.81%.
       The cost of equity says what return to demand, not what the price will do in the next year.
 
 concept: >
-  A value discounts future cash at a rate that pays investors for waiting and for risk. The rate is built in layers.
-  Start with the risk-free rate, what a safe government bond pays. Add a premium for risk: the equity risk premium,
-  what investors want for holding average shares, scaled by the company's relative risk, its beta. Only risk that
-  cannot be spread away by holding many shares earns that premium. That gives the cost of equity. Blend it with the
-  after-tax cost of debt, by how much of the company each funds, and you have the cost of capital. A young company's
-  beta is noisy, so analysts often borrow the average beta of similar firms. Choosing the rate matters, but it
-  usually moves a value less than growth and margins do, and a rate bent to fit the price hides where the real
-  disagreement is.
+  A value discounts future cash at the return its owners require for waiting and for risk. For shareholders that
+  return, the cost of equity, is built in layers. Start with the risk-free rate, what a safe government bond pays. Add
+  a premium for risk: the equity risk premium, what investors want for holding average shares, scaled by the
+  company's relative risk, its beta. Only risk that cannot be spread away by holding many shares earns that premium.
+  A young company's beta is noisy, so analysts often borrow the average beta of similar firms. Amazon borrows almost
+  nothing, so the whole rate the Workbench shows is almost exactly its cost of equity; the next Topic adds what its
+  lenders charge. Choosing the rate matters, but it usually moves a value less than growth and margins do, and a rate
+  bent to fit the price hides where the real disagreement is.
 
 principle: >
-  Build the rate from its layers and say where each comes from. Then put it in its place: when your value and the
-  price are far apart, look first at growth and margins, not at the rate.
+  Build the cost of equity from its layers and say where each comes from. Then put it in its place: when a value and
+  the price are far apart, look first at growth and margins, not at the rate.
+
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: >
+  A friend who asks you to fund a risky plan should offer you more than a savings account pays, and more still the riskier the plan.
 
 goDeeper: >
   Damodaran took the equity risk premium from what the market's own prices implied, not from the past returns of
-  shares over bonds. He wrote that, when valuing emerging markets before September 2008, he used four percent as the
-  mature market's premium, and he raised it after the crisis that autumn. A Learner who wants more can ask how a premium can be read back from today's prices.
+  shares over bonds. A Learner who wants more can ask how a premium can be read back from today's prices.
 
 youllLearn:
-  - "Build a cost of capital from the risk-free rate, the premium for risk, relative risk and debt."
+  - "Build a cost of equity from the risk-free rate, the premium for risk and relative risk."
   - "Choose a beta for a young company with a short, noisy history."
   - "Weigh how much the rate moves a value against growth and margins."
 
@@ -80,12 +82,6 @@ terms:
     pro: Its own measured beta is rough, so we use the sector's.
     example: "A share that rises 2% on a day the market rises 1% has acted like a beta of 2."
     inStory: His own measure gave Amazon 2.29; he used 1.60, the internet retailers' average.
-  - term: basis point
-    means: One hundredth of a percentage point, so a hundred basis points make one point.
-    emoji: coin
-    pro: The Fed raised rates by twenty-five basis points.
-    example: "Like 100 cents in $1, 100 basis points make 1 percentage point."
-    inStory: Damodaran's rates, such as Amazon's 12.84%, move by points and basis points.
   - term: diversification
     means: Spreading money over many investments, so one company's trouble hurts the whole holding less.
     emoji: package
@@ -95,29 +91,11 @@ terms:
 
 skills:
   - id: rate-build
-    rule: A cost of capital is built in layers, the risk-free rate plus relative risk times the premium for shares, blended with the cost of debt.
+    rule: A cost of equity is built in layers, the risk-free rate plus relative risk times the premium for shares.
   - id: rate-matters-less
     rule: The rate moves a value less than growth and margins; a rate that only the price needs points to a disagreement about the story.
 
 primers:
-  - id: rate-primer-bps
-    title: Basis points
-    lines:
-      - A basis point is a hundredth of a percentage point, so a hundred basis points make one point.
-      - Rates move in points and basis points, never in percent of the rate itself.
-      - A central bank's quarter-point rise is a 25 basis point rise.
-    term: basis point
-    quickTry:
-      id: rate-primer-bps-try
-      skill: rate-build
-      ask: A cost of capital rises by 100 basis points. Which says the same move?
-      kind: choice
-      answer: point
-      choices:
-        - { id: point, text: "One percentage point" }
-        - { id: percent, text: "One percent of the rate", mistake: { tag: percent_of_rate, fix: "One percent of a 12% rate is far smaller; 100 basis points is one whole percentage point." } }
-    elective: num-percent-bps
-    at: concept
   - id: rate-primer-spreading
     title: Spreading risk
     lines:
@@ -138,9 +116,9 @@ primers:
     at: concept
 
 insight:
-  question: Move Amazon's relative risk from the beta he chose to his own rough measure, and back down to a plain retailer's. How far does the value move, against how far it is from the price?
+  question: Move Amazon's relative risk from the beta he chose to his own rough measure, and back down to a plain retailer's. Can any beta bring the value near the price, and what does that say?
   written: Swapping one defensible beta for another moves Amazon's value by about a fifth, while the price is more than double his value; the rate matters less than growth and margins, and no beta explains the price.
-  foundWhen: The Learner moves relative risk between a retailer's beta and the rough measure, sees the value move by about a fifth against a gap to the price far larger, and says the beta cannot explain the price, so growth and margins must.
+  foundWhen: The Learner moves relative risk between a retailer's beta and the rough measure, sees the value move far less than the gap to the price, and says the beta cannot explain the price, so growth and margins must.
   hints:
     - Watch the value at this rate while you move relative risk up to his rough measure, then down to a retailer's.
     - Now try to reach the price with relative risk alone, at its lowest setting.
@@ -154,14 +132,16 @@ explore:
     inputs:
       figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1.6, debtShare: 1.2, costOfDebt: 8, taxRate: 0 }
       source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }
+      story: { lead: equity, marks: [{ relativeRisk: 2.29, label: his measure }, { relativeRisk: 1, label: a retailer }] }
+      # Market readings beside the levers (ticket #105): before the Reveal, only what was known on the Case's As-of date in
+      # its own market (Owner decision, 2026-11-16): the US Treasury bond rate at the end of 1999 (src/markets/readings.ts).
+      readings: [us-risk-free-10y-1999]
 
 connections:
   - text: The capital asset pricing model is where relative risk and the premium for shares come from.
     topics: [risk-capm]
-  - text: The weighted average cost of capital blends what shareholders and lenders each require.
-    topics: [cf-wacc]
-  - text: A lender's default spread is the premium for risk on the debt side of the rate.
-    topics: [bond-credit-spreads]
+  - text: Holding many shares spreads away each company's own troubles, which is why only market risk earns a premium.
+    topics: [risk-portfolio]
 
 questions:
   - id: rate-q-lever
@@ -173,9 +153,9 @@ questions:
       case: spine-07-amazon-rate
       changes:
         - { id: thinner, label: "Margin 10% to 8%", levers: { marginTarget: 8 } }
-        - { id: regression-beta, label: "Cost of capital while it grows 12.84% to 15.57%, the measured beta's rate", levers: { costOfCapitalGrowing: 15.57 } }
+        - { id: regression-beta, label: "Rate while it grows 12.84% to 15.57%, the measured beta's", levers: { costOfCapitalGrowing: 15.57 } }
         - { id: leaner, label: "Sales to capital 3 to 4", levers: { salesToCapital: 4 } }
-        - { id: retail-beta, label: "Cost of capital while it grows 12.84% to 10.47%, a retailer's beta of 1", levers: { costOfCapitalGrowing: 10.47 } }
+        - { id: retail-beta, label: "Rate while it grows 12.84% to 10.47%, a retailer's beta of 1", levers: { costOfCapitalGrowing: 10.47 } }
   - id: rate-q-price
     kind: price_assumes
     prompt: Amazon's shares cost $84. Which story gets near that price?
@@ -215,7 +195,7 @@ questions:
     source: "Damodaran, The Dark Side of Valuation (HighGrow.pdf, Feb 2000): beta 1.60 for internet retailers against 1.00 for specialty retailers. https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
   - id: rate-q-fed
     kind: direction
-    prompt: Suppose the Treasury yield had been 25 basis points higher, with every other input the same. Which way would Amazon's value move, and how far?
+    prompt: Suppose the Treasury yield had been a quarter of a percentage point higher, with every other input the same. Which way would Amazon's value move, and how far?
     skill: rate-matters-less
     choices:
       - { id: down-little, text: "Down, by a little" }
@@ -237,14 +217,14 @@ questions:
     source: "Damodaran, Valuation seminar slides (techval.pdf, March 2000): cost of equity as the risk-free rate plus beta times the premium. https://pages.stern.nyu.edu/~adamodar/pdfiles/Seminars/techval.pdf"
   - id: rate-q-pricevalue
     kind: price_or_value
-    prompt: "At $84 a share, Amazon's equity had a market value of $28,626 million, which Damodaran used to weight its rate. Is that about a price or a value?"
+    prompt: "Damodaran said Amazon's shareholders should require 12.90% a year, and they paid $84 for a share. Is the $84 a price or a value?"
     skill: rate-build
     choices:
       - { id: price, text: "A price" }
-      - { id: value, text: "A value", mistake: { tag: price_for_value, fix: "It is the share price times the shares: what buyers paid, so a price." } }
+      - { id: value, text: "A value", mistake: { tag: price_for_value, fix: "The $84 is what buyers paid for a share, so a price; the 12.90% is a return he says they should demand." } }
     answer: price
-    explanation: It is what buyers paid for each share times the shares, a price, even though he used it inside a valuation.
-    source: "Damodaran, Valuation seminar slides (techval.pdf, March 2000): market value of equity $84 x 340.79m shares = $28,626m. https://pages.stern.nyu.edu/~adamodar/pdfiles/Seminars/techval.pdf"
+    explanation: The $84 is what buyers paid, a price; the 12.90% they should require is part of how he worked out a value.
+    source: "Damodaran, The Dark Side of Valuation (HighGrow.pdf, Feb 2000): cost of equity 12.90% for years one to five, against the $84 share price. https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf"
 
 checks:
   - id: rate-check
@@ -253,13 +233,13 @@ checks:
     perAttempt: 4
     passRule: { correct: 3 }
     card:
-      title: A rate built in layers
+      title: A return built in layers
       lines:
-        - A discount rate is the return investors need for waiting and for the risk they bear.
-        - Cost of equity is a safe bond's yield, plus relative risk times the premium for average shares.
-        - Blend it with the after-tax cost of debt, by how much of the company each funds.
-        - "Amazon's layers: a 6.5% Treasury yield, beta 1.60, a 4% premium and almost no debt."
-      writeDown: A rate is built in layers, and it moves a value less than growth and margins.
+        - The cost of equity is the return shareholders need for waiting and for the risk they bear.
+        - It is a safe bond's yield, plus relative risk times the premium for average shares.
+        - Only risk that cannot be spread away over many shares earns the premium.
+        - "Amazon's layers: a 6.5% Treasury yield, beta 1.60 and a 4% premium."
+      writeDown: A cost of equity is built in layers, and it moves a value less than growth and margins.
       skills: [rate-build, rate-matters-less]
     quickTries:
       - id: rate-try-build-half
@@ -279,14 +259,14 @@ checks:
         choices:
           - { id: peers, text: "The average beta of similar companies" }
           - { id: own, text: "Its own measured beta", mistake: { tag: noisy_estimate, fix: "A short history makes its own beta rough; the average of similar firms misses by less." } }
-      - id: rate-try-build-debt
+      - id: rate-try-build-move
         skill: rate-build
-        ask: Debt was only 1.2% of Amazon's funding. Why is its cost of capital so close to its cost of equity?
+        ask: Amazon's beta of 1.60 says its shares tend to move 1.6 times as far as the market. Next to a share with a beta of 1, which needs the higher return?
         kind: choice
-        answer: shareholders
+        answer: amazon
         choices:
-          - { id: shareholders, text: "Almost all of its money comes from shareholders" }
-          - { id: cheap, text: "Its debt costs the same as its equity", mistake: { tag: debt_same, fix: "Its debt cost less than its equity; the rate barely moves because there is so little debt." } }
+          - { id: amazon, text: "Amazon's, at beta 1.60" }
+          - { id: average, text: "The share at beta 1", mistake: { tag: beta_backwards, fix: "A higher beta means bigger swings with the market, so investors require a bigger premium." } }
       - id: rate-try-less-half
         skill: rate-matters-less
         ask: Swapping his beta for his rough measure of 2.29 lowers Amazon's value by about a fifth, and the price is more than twice his value. Can the beta alone explain the price?
@@ -303,7 +283,7 @@ checks:
         computed:
           case: spine-07-amazon-rate
           changes:
-            - { id: one-point, label: "Cost of capital 12.84% to 13.84%", levers: { costOfCapitalGrowing: 13.84 } }
+            - { id: one-point, label: "Rate while it grows 12.84% to 13.84%", levers: { costOfCapitalGrowing: 13.84 } }
             - { id: margin-nine, label: "Margin 10% to 9%", levers: { marginTarget: 9 } }
             - { id: leaner, label: "Sales to capital 3 to 3.5", levers: { salesToCapital: 3.5 } }
       - id: rate-try-less-first
@@ -316,6 +296,6 @@ checks:
           - { id: rate, text: "Which discount rate gives the price?", mistake: { tag: bend_the_rate, fix: "Bending the rate to fit the price hides the real disagreement, which is usually about growth and margins." } }
   - id: rate-talk
     kind: conversation
-    prompt: Tell how you would set Amazon's discount rate in two or three sentences. Which layers would you use and where does each come from, which beta would you choose and why, and how much does that choice move the value against growth and margins?
-    passCriteria: Names the risk-free rate, a premium for risk and relative risk as layers, with a source or reason for each; chooses a beta and gives a reason that deals with how rough Amazon's own measured beta is; and says the rate moves the value less than growth and margins, or that it cannot by itself explain the price.
+    prompt: Damodaran built Amazon's cost of equity from a 6.5% Treasury yield, a 4% premium and a beta of 1.60, not his own rough measure of 2.29. In two or three sentences, judge his choice. Where does each layer come from, does the beta he picked hold up, and how much does that choice move the value against growth and margins?
+    passCriteria: Names the risk-free rate, a premium for risk and relative risk as layers, with where each comes from; judges his beta with a reason that deals with how rough Amazon's own measured beta is; and says the rate moves the value less than growth and margins, or that it cannot by itself explain the price.
     skills: [rate-build, rate-matters-less]

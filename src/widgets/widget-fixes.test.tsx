@@ -151,8 +151,12 @@ describe("the frozen instructions", () => {
   it("grow by less than 15% over the 33,662 characters they had before the Widget language v2", () => {
     // Plus the five story parts of ticket E2a (about 1,650 characters) and the four of E2b (about 1,000), allowed on purpose,
     // and the ValueLevers Workbench part of spec 2026-11-12 (B3): its signature, a "Workbench" group, about 450; then the five
-    // Workbench parts of B4, the Workbench group's note and Value levers' mode and market arguments, about 950.
-    expect(frozen.instructions.length).toBeLessThan(33662 * 1.15 + 1_700 + 1_000 + 450 + 950);
+    // Workbench parts of B4, the Workbench group's note and Value levers' mode and market arguments, about 950; then spec #68's
+    // Value levers arguments for the Full sheet's seven rows (#104), about 215, the readings argument of Value levers and
+    // the WACC stack (#105), about 45, and the Value bridge's report argument (#93, the report's page beside the bridge), 20;
+    // then StepThrough's tiles and a Step's light and emoji (#90 critics, the pages one event moves), about 40 after the Step
+    // note dropped its repeated signature.
+    expect(frozen.instructions.length).toBeLessThan(33662 * 1.15 + 1_700 + 1_000 + 450 + 950 + 215 + 45 + 20 + 50);
   });
 
   it("keep the library's drawing copy and its schema the same parts", () => {

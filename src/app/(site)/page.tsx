@@ -1,61 +1,82 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { Fragment } from "react";
+import { pageMetadata } from "@/app/site-metadata";
 import { home, MOVES } from "@/site/copy";
-import { EXAMPLES } from "@/site/examples";
+import { EXAMPLES, examplePath } from "@/site/examples";
 import { leverSteps } from "@/site/levers-story";
 import { Rich } from "@/site/rich";
+import { endNote } from "@/site/end-note";
 import { courseStats } from "@/site/stats";
 import { siteViewer } from "@/site/viewer";
 import { ClosingBars } from "./_home/closing-bars";
 import { LeversStory } from "./_home/levers-story";
 import { TutorDemo } from "./_home/tutor-demo";
-import { ColourLanguage } from "./colour-language";
 import { CtaNote, PrimaryCta } from "./cta";
 import { FaqList } from "./faq";
 import { ArrowLink, Glyph, SectionHead } from "./parts";
 import { QuestionList } from "./question-list";
 
-// Home, at "/" (spec 7.2): hero with the Tutor demo, four moves, the levers story, the colour language, the questions,
-// trust, FAQ and early access. Open to everyone; the CTAs follow the viewer state, so the page is drawn per request and
-// sent no-store (next.config.ts). A visitor costs no Learner read, and the page makes no model call and no write.
+// Home, at "/" (spec 7.2): hero for beginners with the Tutor demo (on a phone, right under the h1), four moves, the
+// levers story, the colour language, the questions, where you end up (#75: a real Notebook note, the Assignment's), trust, FAQ and
+// early access. Open to everyone; the CTAs follow the viewer state, so the page is drawn per request and sent no-store
+// (next.config.ts). A visitor costs no Learner read, and the page makes no model call and no write.
 
 export const dynamic = "force-dynamic";
 
+/** The site's own title and description (the root's), with Home's canonical link (issue #69). */
+export const metadata: Metadata = pageMetadata({ path: "/" });
+
 export default async function HomePage() {
   const viewer = await siteViewer();
-  const { topics } = courseStats();
-  const secondary = viewer.state === "visitor" ? { href: "/examples", label: home.hero.secondary.visitor } : viewer.state === "member" ? { href: "/course", label: home.hero.secondary.member } : null;
+  const course = courseStats();
+  const note = endNote();
+  const jackpot = EXAMPLES.find((e) => e.widget === "jackpot")!;
 
   return (
     <div data-page="home">
+      {/* The demo sits between the h1 and the lede in the page's order, where a phone and a tablet show it (spec 7.2.1), so
+          the order a keyboard or screen reader meets things is the order they are seen (WCAG 2.4.3, F36/L08). A laptop's
+          grid draws it in the right column beside both. */}
       <section className="v-wrap v-hero" data-site-section="hero">
-        <div className="v-hero-copy">
+        <div className="v-hero-head">
           <p className="v-eyebrow">{home.hero.eyebrow}</p>
           <h1 className="page-h1 v-display" tabIndex={-1}>
-            {home.hero.h1.map((line) => (
-              <span key={line}>{line}</span>
+            {home.hero.h1.map((line, i) => (
+              <Fragment key={line}>
+                {i > 0 && " "}
+                <span>{line}</span>
+              </Fragment>
             ))}
           </h1>
+        </div>
+        <TutorDemo />
+        <div className="v-hero-copy">
           <p className="v-lede">
             <Rich>{home.hero.lede}</Rich>
           </p>
           <div className="v-row">
-            <PrimaryCta viewer={viewer} />
-            {secondary && (
-              <Link href={secondary.href} className="v-btn v-btn-secondary v-btn-lg" data-affordance="button">
-                {secondary.label}
-              </Link>
+            {viewer.state === "member" ? (
+              <>
+                <PrimaryCta viewer={viewer} />
+                <Link href="/course" className="v-btn v-btn-secondary v-btn-lg" data-affordance="button">
+                  {home.hero.secondary.member}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href={examplePath(jackpot.slug)} className="v-btn v-btn-primary v-btn-lg" data-affordance="button">
+                  {home.hero.tryIt}
+                </Link>
+                <PrimaryCta viewer={viewer} tone="secondary" />
+              </>
             )}
           </div>
           <CtaNote viewer={viewer} />
           <ul className="v-hero-facts">
-            <li>
-              {topics} {home.hero.facts[0]}
-            </li>
-            <li>{home.hero.facts[1]}</li>
-            <li>{home.hero.facts[2]}</li>
+            <li>{home.hero.facts.topics(course)}</li>
           </ul>
         </div>
-        <TutorDemo />
       </section>
 
       <section className="v-section v-rule-top" aria-labelledby="moves-h" data-site-section="moves">
@@ -79,18 +100,37 @@ export default async function HomePage() {
 
       <LeversStory steps={leverSteps()} />
 
-      <ColourLanguage eyebrow={home.colours.eyebrow} title={home.colours.h2} body={home.colours.body} headingId="colours-h" />
-
       <section className="v-section" aria-labelledby="questions-h" data-site-section="questions">
         <div className="v-wrap">
-          <SectionHead eyebrow={home.questions.eyebrow} title={home.questions.h2} body={home.questions.body} id="questions-h" />
+          <SectionHead eyebrow={home.questions.eyebrow(EXAMPLES.length)} title={home.questions.h2} body={home.questions.body} id="questions-h" />
           <QuestionList examples={EXAMPLES} />
           <div className="v-row v-section-link">
             <p>
-              <Rich>{home.questions.more(topics)}</Rich>
+              <Rich>{home.questions.more(course)}</Rich>
             </p>
             <ArrowLink href="/how-it-works#path">{home.questions.path}</ArrowLink>
           </div>
+        </div>
+      </section>
+
+      <section className="v-section v-rule-top" aria-labelledby="end-h" data-site-section="end">
+        <div className="v-wrap v-split">
+          <div className="v-split-head">
+            <p className="v-eyebrow">{home.end.eyebrow}</p>
+            <h2 className="v-h2" id="end-h">
+              {home.end.h2}
+            </h2>
+            <p>{home.end.body}</p>
+          </div>
+          <figure className="v-card v-end-note" data-end-note="">
+            <p className="v-h3">{note.title}</p>
+            <ul>
+              {note.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+            <figcaption className="v-fine">{home.end.caption}</figcaption>
+          </figure>
         </div>
       </section>
 
@@ -125,7 +165,7 @@ export default async function HomePage() {
             </h2>
             <ArrowLink href="/about#faq">{home.faq.link}</ArrowLink>
           </div>
-          <FaqList numbers={home.faq.pick} />
+          <FaqList numbers={home.faq.pick} home />
         </div>
       </section>
 

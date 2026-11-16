@@ -7,6 +7,7 @@ import { Button } from "../../../app/primitives/button";
 import { formatAmount } from "../wave1/format";
 import { useChangeFlash, usePrefersReducedMotion } from "../wave1/motion";
 import type { Tone } from "../wave1/tones";
+import { Pic } from "../wave3/shared";
 
 // StepThrough: a worked example with Back and Next. The numbers in a step's words light up in teal (yours), amber
 // (sourced) or neutral (worked out). A step with `ask` is a faded step: the number stays hidden until the Learner
@@ -17,22 +18,30 @@ export const stepProps = z.object({
   title: z.string(),
   body: z.string().describe("A few plain words. No formulas with symbols: those are Formula Cards"),
   highlight: z.enum(["you", "src", "neutral"]).optional().describe("Lights up the numbers in the body: you = the Learner's assumption (teal), src = sourced (amber), neutral = worked out"),
-  ask: z.number().optional().describe("Makes this a faded step: the number a Show the number button reveals, from a calculator, never typed by hand"),
-  askUnit: z.string().optional().describe("The unit of the asked number, as for Stat (inr, percent, years ...)"),
+  ask: z.number().nullish().describe("Makes this a faded step: the number a Show the number button reveals, from a calculator, never typed by hand"),
+  askUnit: z.string().nullish().describe("The unit of the asked number, as for Stat (inr, percent, years ...)"),
+  light: z.number().int().nullish().describe("The tile this step lights (0 = first)"),
+  emoji: z.string().nullish().describe("An emoji name beside the title"),
 });
 
 export const Step = defineComponent({
   name: "Step",
-  description: "One step of a StepThrough: Step(title, body, highlight?, ask?, askUnit?). Use it only inside StepThrough.",
+  description: "One step of a StepThrough. Use it only inside StepThrough.",
   props: stepProps,
   component: () => null,
 });
 
 export const stepThroughProps = z.object({
   steps: z.array(Step.ref).describe("The steps in the order of the worked example"),
+  tiles: z
+    .array(z.object({ label: z.string(), emoji: z.string().optional() }))
+    .nullish()
+    .describe("Tiles drawn above every step; a step's light lights one"),
+  tilesLabel: z.string().nullish().describe("What the tiles are, read out by a screen reader, such as The three statements"),
 });
 
 export type StepData = z.infer<typeof stepProps>;
+export type StepTile = { label: string; emoji?: string };
 
 /** True when text holds a formula in symbols ("PV = FV / (1 + r)^n"): those belong on a Formula Card. */
 export function looksLikeFormula(text: string): boolean {
@@ -68,7 +77,40 @@ export function lit(body: string, tone: Tone | undefined): ReactNode {
 
 type Asked = { status: "idle" | "shown" };
 
-export function StepThroughView({ steps }: { steps: StepData[] }) {
+/** One column per tile (2 to 4), written out so Tailwind keeps each class. */
+const TILE_COLUMNS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" };
+
+/**
+ * The tiles a StepThrough draws above its steps; a tile is lit once a step up to `at` has lit it. Unlit tiles keep full
+ * contrast (the muted ink token, a dashed border), and the lit state is read out: the tile this step lights is
+ * aria-current, and each lit tile says so to a screen reader (#90, review 3 L07).
+ */
+function Tiles({ tiles, steps, at, label }: { tiles: StepTile[]; steps: StepData[]; at: number; label?: string | null }) {
+  const lit = new Set(steps.slice(0, at + 1).flatMap((s) => (typeof s.light === "number" ? [s.light] : [])));
+  const current = steps[at]?.light;
+  return (
+    <ul data-testid="step-tiles" className={`mt-2 grid ${TILE_COLUMNS[tiles.length] ?? "grid-cols-4"} gap-2`} aria-label={label?.trim() || "What the steps move"}>
+      {tiles.map((t, i) => {
+        const on = lit.has(i);
+        return (
+          <li
+            key={`${i}-${t.label}`}
+            data-testid="step-tile"
+            data-lit={on ? "true" : "false"}
+            aria-current={current === i ? "step" : undefined}
+            className={`flex flex-col items-center gap-1 rounded-md border px-2 py-2 text-center text-xs leading-4 ${on ? "border-[var(--line-strong)] font-medium text-[var(--ink)]" : "border-dashed border-[var(--line-strong)] text-[var(--muted)]"}`}
+          >
+            {t.emoji && <Pic name={t.emoji} size={20} />}
+            <span>{t.label}</span>
+            {on && <span className="sr-only">, lit</span>}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function StepThroughView({ steps, tiles, tilesLabel }: { steps: StepData[]; tiles?: StepTile[] | null; tilesLabel?: string | null }) {
   const reduced = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
   const [asked, setAsked] = useState<Record<number, Asked>>({});
@@ -93,7 +135,11 @@ export function StepThroughView({ steps }: { steps: StepData[] }) {
         Step {at + 1} of {steps.length}
       </p>
       <div role="group" aria-label={`Step ${at + 1} of ${steps.length}: ${step.title}`} style={{ opacity: fresh ? 0.35 : 1, transition: reduced ? undefined : "opacity 160ms var(--ease-out, ease-out)" }}>
-        <h4 className="mt-1 text-base font-medium">{step.title}</h4>
+        {tiles && tiles.length > 0 && <Tiles tiles={tiles} steps={steps} at={at} label={tilesLabel} />}
+        <h4 className="mt-2 flex items-center gap-2 text-base font-medium">
+          {step.emoji && <Pic name={step.emoji} size={24} />}
+          {step.title}
+        </h4>
         {formula ? (
           <p data-testid="step-formula-blocked" className="mt-1 text-sm text-[var(--muted)]">
             This step has a formula. It is shown on a Formula Card, not typed here.
@@ -132,15 +178,28 @@ function StepThroughBound({ props }: ComponentRenderProps<z.infer<typeof stepThr
   const steps = (Array.isArray(props.steps) ? props.steps : []).flatMap((s): StepData[] => {
     const p = (s as { props?: Partial<StepData> } | null)?.props;
     if (!p || typeof p.title !== "string") return [];
-    return [{ title: p.title, body: typeof p.body === "string" ? p.body : "", highlight: p.highlight, ask: typeof p.ask === "number" ? p.ask : undefined, askUnit: p.askUnit }];
+    return [
+      {
+        title: p.title,
+        body: typeof p.body === "string" ? p.body : "",
+        highlight: p.highlight,
+        ask: typeof p.ask === "number" ? p.ask : undefined,
+        askUnit: p.askUnit,
+        light: typeof p.light === "number" ? p.light : undefined,
+        emoji: typeof p.emoji === "string" ? p.emoji : undefined,
+      },
+    ];
   });
-  return <StepThroughView steps={steps} />;
+  const tiles = (Array.isArray(props.tiles) ? props.tiles : []).flatMap((t): StepTile[] =>
+    t && typeof t.label === "string" ? [{ label: t.label, ...(typeof t.emoji === "string" && { emoji: t.emoji }) }] : [],
+  );
+  return <StepThroughView steps={steps} tiles={tiles} tilesLabel={typeof props.tilesLabel === "string" ? props.tilesLabel : null} />;
 }
 
 export const StepThrough = defineComponent({
   name: "StepThrough",
   description:
-    "A worked example with Back and Next: StepThrough([Step(title, body, highlight?, ask?, askUnit?)]). highlight lights up the numbers in the body (you = teal, src = amber, neutral). A step with ask is a faded step: a Show the number button reveals the number; ask must come from a calculator. No formulas in symbols in a body: use a FormulaCard.",
+    "A worked example with Back and Next: StepThrough([Step(title, body, highlight?, ask?, askUnit?, light?, emoji?)], tiles?, tilesLabel?). tiles [{label, emoji}] sit above the steps; a step's light lights one; tilesLabel names them. highlight lights up the numbers in the body (you = teal, src = amber, neutral). A step with ask is a faded step: a Show the number button reveals the number; ask must come from a calculator. No formulas in symbols in a body: use a FormulaCard.",
   props: stepThroughProps,
   component: StepThroughBound,
 });

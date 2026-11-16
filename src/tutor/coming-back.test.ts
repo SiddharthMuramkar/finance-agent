@@ -49,7 +49,7 @@ describe("coming back after a break", () => {
     const { sessionId } = await turn(db, "Hi", at(0), [say("Once, a lottery winner had a choice.")]);
 
     // Seven hours later (the idle setting is six), the page works out the divider: nothing is stored.
-    const label = "Picking up where you left off · Step 1 of 6 · Story";
+    const label = "Picking up where you left off · Step 1 of 6 · The moment";
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(7))).toEqual([{ kind: "picking_up", data: expect.objectContaining({ label }) }]);
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(7))).toHaveLength(1);
     expect(items(await loadThread(db, sessionId, map, OWNER_LEARNER_ID))).toEqual([]);

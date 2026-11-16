@@ -1,0 +1,26 @@
+import { CURRENCY_STYLE } from "@/finance/money";
+import { dateText, priceText, type Money } from "@/widgets/workbench/value-levers-model";
+
+// The Own Case's own sentences, shared by the form (src/app/assignment/own-case-form.tsx) and the Notebook note
+// (src/learner/own-cases.ts), so the screen and the note always say the same thing.
+
+/**
+ * Why nothing is left for shareholders when the value is at or below zero. Lenders are named only when there is debt to
+ * pay them (L05): with none, the business's losses used up what it is worth.
+ */
+export function nothingLeftWords(debt: number): string {
+  return debt > 0 ? "Lenders take everything: nothing is left for shareholders." : "Losses use up the whole value: nothing is left for shareholders.";
+}
+
+/**
+ * The engine's value beside the price. A value at or below zero is no price a share can have: it shows as 0 with the words
+ * Value levers uses (value-levers-model.ts, nothingLeft), so no Own Case ever reads "-₹52 a share".
+ */
+export function ownCaseValueLine(valuePerShare: number, price: number, reportDate: string, money: Money, debt: number): string {
+  const beside = `beside a price of ${priceText(price, money)} on ${dateText(reportDate)}`;
+  if (!(valuePerShare > 0)) return `The engine's value: ${CURRENCY_STYLE[money.currency].symbol}0 a share, ${beside}. ${nothingLeftWords(debt)}`;
+  return `The engine's value: ${priceText(valuePerShare, money)} a share, ${beside}.`;
+}
+
+/** The Own Case has no field for employee stock options, so the engine counts none: said on screen and in the note. */
+export const OPTIONS_NOT_ENTERED = "Employee stock options are not entered: the engine counts none.";

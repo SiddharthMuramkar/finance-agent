@@ -488,10 +488,11 @@ function emojiNamesIn(value: unknown, out: string[]): string[] {
   return out;
 }
 
-/** The emoji names a Topic file uses: `scenes:`, `terms[].emoji` and `runningExample.scene`. */
+/** The emoji names a Topic file uses: `scenes:`, `terms[].emoji`, `runningExample.scene` and `questions[].speaker`. */
 export function topicEmojiNames(t: Topic): string[] {
-  const loose = t as unknown as { scenes?: unknown; terms?: unknown; runningExample?: { scene?: unknown } };
-  return [...new Set([...emojiNamesIn(loose.scenes, []), ...emojiNamesIn(loose.terms, []), ...emojiNamesIn(loose.runningExample?.scene, [])])];
+  const loose = t as unknown as { scenes?: unknown; terms?: unknown; runningExample?: { scene?: unknown }; questions?: { speaker?: unknown }[] };
+  const speakers = (loose.questions ?? []).map((q) => q.speaker);
+  return [...new Set([...emojiNamesIn(loose.scenes, []), ...emojiNamesIn(loose.terms, []), ...emojiNamesIn(loose.runningExample?.scene, []), ...emojiNamesIn(speakers, [])])];
 }
 
 /** L11: every emoji name in the Topic file is an Icon name (`src/icons/names.ts`). The key stays `emoji` because that is what the Topic file writes. */
@@ -576,7 +577,7 @@ export const NAME_ASK = /\bcalled\b|\bthe name for\b|\bwhat is the term\b|\bwhic
 
 /**
  * L13 (spec 2026-11-12, D4): a Spine Topic's quiz Check draws from at least six of the Topic's questions, at least four
- * of them judgement kinds and at least one computed from the Case, and none asks what a term is called. Bank questions
+ * of them judgement kinds and at least one computed from the Case (when a Case is valued), and none asks what a term is called. Bank questions
  * and templates do not count: a Spine Check is written in the Topic file, and a template draws a typed number.
  */
 function lintL13(t: Topic, add: Add) {
@@ -589,7 +590,10 @@ function lintL13(t: Topic, add: Add) {
     const where = `Spine Check "${c.id}"`;
     if (questions.length < SPINE_CHECK_QUESTIONS) add("L13", `${where} draws from ${questions.length} of the Topic's questions; it needs at least ${SPINE_CHECK_QUESTIONS}`);
     if (judgement.length < SPINE_CHECK_JUDGEMENT) add("L13", `${where} has ${judgement.length} judgement questions (a kind from D1); it needs at least ${SPINE_CHECK_JUDGEMENT}`);
-    if (computed.length < SPINE_CHECK_COMPUTED) add("L13", `${where} has no computed question (which_lever, price_assumes or predict); it needs at least ${SPINE_CHECK_COMPUTED}`);
+    // A computed question is valued from a Case's valuation block, so a Topic with no valued Case (the lottery Topic: an
+    // annuity, not a business) asks none (spec #68 story 55: lottery questions only in the lottery Topic).
+    const valued = t.cases.some((x) => x.valuation);
+    if (valued && computed.length < SPINE_CHECK_COMPUTED) add("L13", `${where} has no computed question (which_lever, price_assumes or predict); it needs at least ${SPINE_CHECK_COMPUTED}`);
     for (const q of questions) {
       const hit = NAME_ASK.exec(q.prompt);
       if (hit) add("L13", `${where} question "${q.id}" asks what a term is called ("${hit[0]}"); practise Lingo in Quick tries and Lingo cards, and ask for judgement here: ${quoted(q.prompt)}`);

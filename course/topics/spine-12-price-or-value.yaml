@@ -31,8 +31,8 @@ cases:
       On 14 August it filed to sell shares to the public: in 2018 it sold $1.82 billion and lost
       $1.93 billion, and its revenue was growing 86% a year. The $47 billion is about 26 times its
       2018 revenue. Today a newspaper sets WeWork beside IWG, the owner of Regus, which is listed in
-      London and makes a small profit. The two have about the same number of desks, yet IWG's
-      shares are worth $4.45 billion, about a tenth as much: about 1.4 times its 2018 revenue. Is
+      London and makes a small profit. The two have about the same number of desks, yet the
+      stock market puts IWG's shares at $4.45 billion, about a tenth as much: about 1.4 times its 2018 revenue. Is
       $47 billion what WeWork is worth, or a price that needs a story?
     reveal: >
       On 9 September 2019 Aswath Damodaran published his own story: sales growing 60% a year for five
@@ -57,14 +57,18 @@ concept: >
   how much of each sale is kept, and how risky that cash is. Two companies with the same sales
   deserve very different multiples when those views differ. So before you borrow a rival's
   multiple, or accept a company's own, ask what growth, margins and risk it needs, and whether the
-  business looks like that. Sales are only one measure to divide by. Buyers also use EV/EBITDA, which
-  sets the whole business against its earnings before interest, tax and the wear on its assets, and
-  the PEG ratio, which sets a price-to-earnings multiple against the growth that is expected to
-  justify it. Each one hides the same three beliefs; each one is still a price.
+  business looks like that. Sales are only one measure to divide by: buyers also divide by profit,
+  or set the whole business, lenders included, against what it earns. Each one hides the same three
+  beliefs; each one is still a price.
 
 # Go deeper (H1): beyond the Topic's Checks, for a Learner who asks. No Check, Skill or Lingo term tests it.
 goDeeper: >
-  Which measure you divide by changes what the multiple hides. A price-to-earnings multiple rests on
+  EV/EBITDA is enterprise value divided by EBITDA, the earnings before interest, tax and the wear on
+  the assets: what the whole business costs for each dollar it earns before those. A café bought for
+  $2 million whose takings less its running costs are $200,000 a year sells at ten times. IWG makes a
+  small profit, so it has earnings to set the whole business against; WeWork's losses were bigger than
+  its sales, so it is priced against its sales instead. Which measure you divide by changes what the
+  multiple hides. A price-to-earnings multiple rests on
   profit after interest, so it mixes in how much the company has borrowed; EV/EBITDA sets the whole
   business against earnings before interest and before the wear on its assets, which makes two
   companies with different debts easier to set side by side, though it flatters a business whose
@@ -77,6 +81,8 @@ goDeeper: >
 principle: >
   A multiple is a price in shorthand, not a value. Read it back as the growth, margins and risk it
   needs, then ask whether the company's own story can deliver them.
+
+dailyLife: "Pricing a flat by what the one next door sold for: first ask whether yours is really alike, the same size, the same street, the same repairs due."
 
 terms:
   - term: multiple
@@ -97,18 +103,12 @@ terms:
     example: "A shop whose owners' stake is worth $1 million and which owes the bank $1 million is a $2 million business."
     emoji: office-building
     inStory: In the story, IWG's $4.45 billion counts its shares only, not its debt.
-  - term: EV/EBITDA
-    means: What the whole business costs for each dollar of its earnings before interest, tax and the wear on its assets.
-    pro: It trades at ten times EBITDA.
-    example: "A café bought for $2 million whose takings less its running costs are $200,000 a year sells at ten times."
-    emoji: ledger
-    inStory: In the story, IWG makes a small profit, so it has earnings to set the whole business against; WeWork's losses were bigger than its sales, so it is priced against its sales.
   - term: justified multiple
     means: The multiple a story about growth, margins and risk can support.
     pro: The justified multiple sits far below what the market pays.
     example: "A café that will never grow justifies a lower multiple than one opening a new branch every year."
     emoji: magnifying-glass-tilted-left
-    inStory: In the explore step, the decoder shows the multiple your story justifies.
+    inStory: In the explore step, the decoder shows the multiple each Story for WeWork or IWG justifies.
 
 skills:
   - id: s12-price
@@ -127,7 +127,7 @@ primers:
     quickTry:
       id: s12-primer-try
       skill: s12-price
-      ask: "IWG's shares are worth $4.45 billion, and it owes more than it holds in cash. Is its whole business worth more or less than its shares?"
+      ask: "The stock market puts IWG's shares at $4.45 billion, and IWG owes more than it holds in cash. Is its whole business worth more or less than its shares?"
       kind: choice
       answer: more
       choices:
@@ -175,6 +175,15 @@ explore:
       # Topic's own (sales growing by half a year, a tenth of each sale kept, a 9% cost of capital), not anyone's valuation.
       assumptions: { taxPercent: 25, salesToCapital: 1.68, growthAfterPercent: 1.6 }
       opening: { growth: 50, risk: 9, margin: 10 }
+      # The Topic's word on a Lingo card above the decoder (Spine critics round 1 on #96: Sliders and a dot strip alone is
+      # chart-only), the same card as the term below.
+      lingo:
+        term: multiple
+        means: A price divided by a measure of the business, such as its revenue or its profit.
+        pro: It trades at twenty-six times sales.
+        example: "A café that sells for $2 million and takes $1 million a year sells at two times sales."
+        emoji: label
+        inStory: In the story, WeWork's $47 billion is about 26 times its 2018 revenue.
 
 connections:
   - text: "A multiple folds the four levers of a value into one number, and relative valuation is where that shorthand is taught in full."
@@ -330,7 +339,7 @@ checks:
             mistake: { tag: price_for_value, fix: "Dividing a price by revenue still gives a price, just in shorthand." }
       - id: s12-try-iwg-cap
         skill: s12-price
-        ask: "On 20 August 2019 IWG's shares are worth $4.45 billion on the stock market. Is that a price or a value?"
+        ask: "On 20 August 2019 the stock market puts IWG's shares at $4.45 billion. Is that a price or a value?"
         kind: choice
         answer: price
         choices:
@@ -354,13 +363,13 @@ checks:
         kind: choice
         answer: ev
         choices:
-          - { id: ev, text: "EV/EBITDA, which prices the whole business, lenders included" }
+          - { id: ev, text: "A multiple on the enterprise value, which prices the whole business, lenders included" }
           - id: pe
             text: "A price-to-earnings multiple on the shares"
             mistake: { tag: equity_multiple_hides_debt, fix: "Profit after interest already carries the debt, so two companies that borrow differently are no longer alike." }
-          - id: peg
-            text: "The PEG ratio, because growth settles it"
-            mistake: { tag: peg_hides_debt, fix: "PEG divides a share multiple by growth. It says nothing about who has borrowed what." }
+          - id: share-sales
+            text: "The shares' price over sales, because both rent out desks"
+            mistake: { tag: equity_multiple_hides_debt, fix: "Shareholders are paid after the lenders, so the company that borrowed heavily has cheaper shares for the same sales." }
       - id: s12-try-gap-half
         skill: s12-story
         ask: "Buyers pay about 26 times sales for WeWork's shares and about 1.4 times for IWG's. Which belief best explains the gap?"

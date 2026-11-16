@@ -3,6 +3,7 @@ import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { valueLeversModeSchema, type ValueLeversMode } from "./data-schemas";
 import {
+  caseListOf,
   leverSpecs,
   leversFor,
   openingSettings,
@@ -75,6 +76,63 @@ describe("roic mode (Spine Topic 6: growth adds value only when new capital earn
   it("warns when new capital earns less than it costs: 4% kept on $1.50 a dollar earns 3.9%", () => {
     expect(readout({ margin: 4, salesToCapital: 1.5 })).toEqual({ label: "Return on new capital", text: "3.9%, below the 12.84% it costs", warn: true });
   });
+
+  // Spine critics round 1 on #95 (beginner persona): a 78% return for a firm losing money confuses unless the Topic says whose claim it is.
+  it("carries the Topic's note under the return, saying whose claim the opening is", () => {
+    const noted = mode({ kind: "roic", note: "On its own claims for a full centre, not what it earns today." });
+    const specs = leverSpecs(block, noted);
+    expect(valueLeversModel(block, specs, openingSettings(specs), noted).readout?.note).toBe("On its own claims for a full centre, not what it earns today.");
+  });
+
+  // Spine critics round 1 on #95 (widget fit): the bench was only sliders and a stat, so roic mode draws the company's
+  // centre filling up with the sales each dollar brings, and a face that frowns once new capital earns less than it costs.
+  it("draws the centre: full as sales for each dollar rise, its face worried once the return is below its cost", () => {
+    const pictured = mode({ kind: "roic", emoji: "department-store" });
+    const specs = leverSpecs(block, pictured);
+    const at = (settings: Partial<LeverSettings>) => valueLeversModel(block, specs, { ...openingSettings(specs), ...settings }, pictured).picture;
+    const opening = at({});
+    expect(opening).toMatchObject({ kind: "centre", emoji: "department-store", face: "slightly-smiling-face", line: "Each $1 invested brings $3 of sales a year" });
+    const spec = specs.find((s) => s.id === "salesToCapital")!;
+    expect(opening?.kind === "centre" && opening.fill).toBeCloseTo(3 / spec.max, 6);
+    expect(at({ margin: 4, salesToCapital: 1.5 })).toMatchObject({ kind: "centre", face: "worried-face", line: "Each $1 invested brings $1.50 of sales a year" });
+  });
+});
+
+describe("margin marks mode (Spine Topic 5: a margin is judged against what rivals keep)", () => {
+  const marks = mode({
+    kind: "margin_marks",
+    emoji: "rocket",
+    marks: [
+      { label: "Median carmaker", percent: 3.01, emoji: "factory", source },
+      { label: "Toyota", percent: 8.46, emoji: "trophy", source },
+      { label: "Tech giants", percent: 19.87, emoji: "laptop", source },
+    ],
+  });
+  const at = (settings: Partial<LeverSettings>) => {
+    const specs = leverSpecs(block, marks);
+    return valueLeversModel(block, specs, { ...openingSettings(specs), ...settings }, marks).picture;
+  };
+
+  // Spine critics round 1 on #95 (widget fit): a ladder of rivals with faces, the company's own face climbing it as the margin moves.
+  it("puts the rivals on a ladder and the company's face where its margin sits, saying whom it passes", () => {
+    const opening = at({ margin: 10 });
+    expect(opening?.kind).toBe("ladder");
+    if (opening?.kind !== "ladder") return;
+    expect(opening.rungs.map((r) => [r.label, r.emoji])).toEqual([["Median carmaker", "factory"], ["Toyota", "trophy"], ["Tech giants", "laptop"]]);
+    expect(opening.you.emoji).toBe("rocket");
+    expect(opening.you.at).toBeGreaterThan(opening.rungs[1].at);
+    expect(opening.you.at).toBeLessThan(opening.rungs[2].at);
+    expect(opening.line).toBe("Keeps 10%: more than Toyota, less than Tech giants");
+    const top = at({ margin: 20 });
+    expect(top?.kind === "ladder" && top.line).toBe("Keeps 20%: more than every mark");
+    const low = at({ margin: 2 });
+    expect(low?.kind === "ladder" && low.line).toBe("Keeps 2%: less than every mark");
+  });
+
+  it("draws no picture in the base Widget", () => {
+    const specs = leverSpecs(block);
+    expect(valueLeversModel(block, specs, openingSettings(specs)).picture).toBeNull();
+  });
 });
 
 describe("match_price mode (Spine Topic 13: any price can be read back as a set of beliefs)", () => {
@@ -133,7 +191,15 @@ describe("market mode (Spine Topic 4: the same sums give far-apart values when t
     const first = valueLeversModel(block, specs, opening, market, 0);
     const second = valueLeversModel(block, specs, opening, market, 1);
     expect(second.value!).toBeGreaterThan(first.value!);
-    expect(second.readout).toEqual({ label: "Revenue in year 10", text: "$52bn of a $3tn market" });
+    expect(second.readout).toEqual({ label: "Sales in year 10", text: "$52bn of a $3tn market" });
+  });
+
+  // Spine critics round 1 on #95 (beginner persona): "$3.6bn of a $35.8bn market" clashed with the story's $100bn of fares,
+  // because the market is Uber's fee slice of the fares; the Topic now names what the pool counts.
+  it("names what the market counts when the Topic gives its pool", () => {
+    const pooled = mode({ kind: "market", markets: [{ ...retail, pool: "sales in that market" }] });
+    const specs = leverSpecs(block, pooled);
+    expect(valueLeversModel(block, specs, openingSettings(specs), pooled, 0).readout?.text).toMatch(/^\$39bn of \$[\d.]+tn of sales in that market$/);
     const reading = valueLeversReading({ block, mode: market }, { market: 1 });
     expect(reading.readouts).toContain("Market: All US retail, $3tn today (sourced: A Topic's source)");
   });
@@ -197,7 +263,7 @@ describe("all_open mode (Spine Topic 15: their own Valuation story, saved to the
     const note = storyNote(block, specs, settings, valueLeversModel(block, specs, settings, open), "Amazon");
     expect(note.title).toBe("My Valuation story: Amazon, against the price of 3 Feb 2000");
     expect(note.lines).toEqual([
-      "How big it gets: revenue in year 10 $39bn",
+      "How big it gets: sales in year 10 $39bn",
       "What it keeps: operating margin once mature 10%",
       "What growth costs: sales for each dollar invested $3.00",
       "How risky: cost of capital while it grows 12.84%",
@@ -206,6 +272,25 @@ describe("all_open mode (Spine Topic 15: their own Valuation story, saved to the
       "Price on 3 Feb 2000: $84",
       "Value from after year 10: 112%",
     ]);
+  });
+});
+
+describe("match_price mode with Case chips (the ready-Case valuation Topic: judge a published Story on one of three Cases)", () => {
+  it("lists its Cases for the chips, as all_open does, and a mode without chips lists none", () => {
+    const cases = [
+      { id: "amazon-dcf-2000", label: "Amazon, Feb 2000" },
+      { id: "zomato-ipo-2021", label: "Zomato, Jul 2021" },
+    ];
+    expect(caseListOf({ kind: "match_price", cases })).toEqual(cases);
+    expect(caseListOf({ kind: "match_price" })).toEqual([]);
+    expect(caseListOf({ kind: "roic" })).toEqual([]);
+  });
+
+  it("heads the value as the story's, not the Learner's: the Learner judges a published Story here", () => {
+    const judge = mode({ kind: "match_price", cases: [{ id: "amazon-dcf-2000", label: "Amazon, Feb 2000" }, { id: "zomato-ipo-2021", label: "Zomato, Jul 2021" }] });
+    const specs = leverSpecs(block, judge);
+    const { headline } = valueLeversModel(block, specs, openingSettings(specs), judge);
+    expect(`${headline.before}${headline.key}${headline.after}`).toBe("The story is worth $35 a share");
   });
 });
 
@@ -226,6 +311,18 @@ describe("every mode", () => {
       const shape = valueLeversShape(block, mode(raw));
       expect([raw.kind, shape.controls, shape.more, shape.numbers]).toEqual([raw.kind, WORKBENCH_BUDGET.controls, WORKBENCH_BUDGET.more, WORKBENCH_BUDGET.numbers]);
       expect(shape.words, raw.kind).toBeLessThanOrEqual(34);
+    }
+  });
+
+  it("never heads the value or labels a readout 'your story' (GLOSSARY: a Story is someone's claim; the Learner's own is an Estimate)", () => {
+    for (const raw of modes) {
+      const m = mode(raw);
+      const specs = leverSpecs(block, m);
+      const model = valueLeversModel(block, specs, openingSettings(specs), m);
+      const { headline, readout } = model;
+      expect(`${headline.before}${headline.key}${headline.after} ${readout?.label ?? ""}`, raw.kind).not.toMatch(/\byour story\b/i);
+      // Every word the model hands the view, the ladder's own face and the marker titles included (review 4 K11).
+      expect(JSON.stringify(model), raw.kind).not.toMatch(/\byour story\b/i);
     }
   });
 
@@ -298,6 +395,6 @@ describe("range mode marks and headline (Spine Topic 14)", () => {
     expect(m.headline.key).toMatch(/ to /);
     expect(m.range?.where).toBe("above"); // the $749 price is above the story's range
     expect(m.bar.span).toBeTruthy();
-    expect(m.readout?.label).toBe("Your story");
+    expect(m.readout?.label).toBe("This story"); // never "your story" (GLOSSARY)
   });
 });

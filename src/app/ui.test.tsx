@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { RisingBars } from "./rising-bars";
-import { AppHeader, Card, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
+import { AppHeader, Card, ReadingPage, Tag } from "./ui";
 
 describe("ReadingPage", () => {
   it("reading pages use the full box: one wide main for header and content, no narrow column", () => {
@@ -76,18 +76,20 @@ describe("AppHeader", () => {
 
   it("puts Value It at the left as the heading, leading to Home", () => {
     const html = header("course");
-    expect(html).toMatch(/<h1[^>]*><a[^>]*href="\/"[^>]*>(<span aria-hidden="true" class="bars[^"]*".*?<\/span>)?Value It<\/a><\/h1>/);
+    // Below 768px the words are for screen readers only (spec #68, #84: the header fits a 360px phone); the name stays.
+    expect(html).toMatch(/<h1[^>]*><a[^>]*href="\/"[^>]*>(<span aria-hidden="true" class="bars[^"]*".*?<\/span>)?<span class="max-md:sr-only">Value It<\/span><\/a><\/h1>/);
     expect(html.indexOf("Value It")).toBeLessThan(html.indexOf("<nav"));
     expect(html.match(/class="bar"/g)).toHaveLength(4);
   });
 
-  it("orders the header: brand, the three pages, Settings gear, account", () => {
+  it("orders the header: brand, the three pages, theme switch, Settings gear, account", () => {
     const html = header("course");
     const at = (pattern: RegExp) => html.search(pattern);
     const order = [
       at(/href="\/study"[^>]*><span[^>]*>Study</),
       at(/href="\/course"[^>]*><span[^>]*>Course Map</),
       at(/href="\/notebook"[^>]*><span[^>]*>Notebook</),
+      at(/data-testid="theme-switch"/),
       at(/aria-label="Settings"/),
       at(/aria-label="Account menu"/),
     ];
@@ -142,21 +144,26 @@ describe("AppHeader", () => {
     expect(html).not.toContain("underline");
   });
 
-  it("draws the two right-hand controls as 32px ghost icon buttons with tooltips", () => {
+  it("draws the three right-hand controls as 32px ghost icon buttons with tooltips", () => {
     const html = header("course");
     const icons = [...html.matchAll(/<(?:a|button)[^>]*data-affordance="icon"[^>]*>/g)].map((m) => m[0]);
-    expect(icons).toHaveLength(2);
+    expect(icons).toHaveLength(3);
     for (const tag of icons) {
       expect(tag).toMatch(/class="btn btn-icon\b/);
       expect(tag).toMatch(/\btitle="[^"]+"/);
     }
   });
 
-  // Decision #17: one Light theme, so there is no theme control at all.
-  it("has no theme toggle", () => {
-    const html = renderToStaticMarkup(<AppHeader current="workspace" account={account} />);
-    expect(html).not.toContain('data-testid="theme-toggle"');
-    expect(html).not.toMatch(/Switch to (?:dark|light) theme|dark:/);
+  // ADR 0019 (#80): the same sun/moon switch as the site nav, drawn with both icons so CSS shows the right one on the
+  // first frame; no `dark:` utilities, the tokens carry the theme. The loading skeleton has it too, so it never jumps.
+  it("has the theme switch, in the skeleton too", () => {
+    for (const html of [header("workspace"), renderToStaticMarkup(<AppHeader current="workspace" />)]) {
+      expect(html.match(/data-testid="theme-switch"/g)).toHaveLength(1);
+      expect(html).toMatch(/aria-label="Switch to (?:dark|light) theme"/);
+      expect(html).toContain('data-testid="theme-icon-moon"');
+      expect(html).toContain('data-testid="theme-icon-sun"');
+      expect(html).not.toMatch(/\bdark:/);
+    }
   });
 
   it("draws no account menu when no Learner is named (the loading skeleton and the 404 page)", () => {
@@ -171,14 +178,6 @@ describe("Tag", () => {
     // Decision #17: the provenance dots follow the Signal colours, you in blue and sourced in ink (the record).
     expect(renderToStaticMarkup(<Tag kind="you" />)).toContain('data-tone="you"');
     expect(renderToStaticMarkup(<Tag kind="src" />)).toContain('data-tone="src"');
-  });
-});
-
-describe("SignedInFrame", () => {
-  it("renders the phone note and the page", () => {
-    const html = renderToStaticMarkup(<SignedInFrame><p>The page</p></SignedInFrame>);
-    expect(html).toContain(PHONE_NOTE);
-    expect(html).toContain("The page");
   });
 });
 

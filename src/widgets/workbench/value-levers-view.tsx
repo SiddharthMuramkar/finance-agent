@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Chip } from "@/app/primitives";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Chip, Tag } from "@/app/primitives";
 import { Chevron, SecondaryButton } from "@/app/ui";
 import type { ValuationBlock } from "@/finance/valuation-case";
+import { Icon } from "@/icons/icon";
+import { isIconName, type IconName } from "@/icons/names";
 import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
+import { MarketReadingsView, caseKnownOn } from "../market-readings-view";
+import { Pic } from "../primitives/wave3/shared";
 import { SliderControl } from "../slider-control";
+import { LingoCardView } from "../primitives/wave3/lingo-card-view";
+import { fullSheet, NO_ROW_CHANGES, rowSpecs, withRows, type FullSheetRow, type RowId, type RowSettings } from "./full-sheet";
 import {
   AFTER_YEAR_10_LABEL,
   CASH_FLOW_CAPTION,
@@ -19,14 +25,18 @@ import {
   storyNote,
   taskConditions,
   valueLeversModel,
+  valueLeversStage,
   type SavedStory,
   type CashFlowBar,
   type LeverId,
   type LeverSettings,
+  type LeverSpec,
+  type ModePicture,
   type Moves,
   type MoveRun,
   type Story,
   type ValueLeversModel,
+  type ValueLeversStage,
 } from "./value-levers-model";
 import type { ValueLeversMode } from "./data-schemas";
 
@@ -34,6 +44,9 @@ import type { ValueLeversMode } from "./data-schemas";
 // draw it signed out (section 2) and the Widget library wraps it as the ValueLevers part. Four Levers and one more under
 // "More settings" feed one headline number on a bar with the price marked; story chips move every lever at once; ten bars
 // of free cash flow and one for everything after year 10; two Things to try that tick themselves.
+
+/** Each lever's line Icon, for its idea: how big it gets, what it keeps, what growth costs, how risky, the chance it fails. */
+const LEVER_ICONS: Record<LeverId, IconName> = { revenue: "chart-increasing", margin: "money-bag", salesToCapital: "factory", risk: "guard", failure: "warning" };
 
 export type ValueLeversViewProps = {
   block: ValuationBlock;
@@ -71,6 +84,13 @@ export type ValueLeversViewProps = {
   caseChoice?: number;
   /** Switch the Case: the caller changes the block and resets the levers. */
   onChooseCase?: (index: number) => void;
+  /** Market readings shown beside the levers, by id (ticket #105), each with its month, credit and link. */
+  readings?: readonly string[];
+  /** Each Full sheet row's change from the Case's figure (full-sheet.ts); with onRowsChange, the caller keeps them. None changed when left out. */
+  rows?: RowSettings;
+  onRowsChange?: (rows: RowSettings) => void;
+  /** A first look (Spine Topic 1, #88): the share of the value after year 10 is left out. */
+  firstLook?: boolean;
 };
 
 export function ValueLeversView({
@@ -94,6 +114,10 @@ export function ValueLeversView({
   cases = [],
   caseChoice = 0,
   onChooseCase,
+  readings = [],
+  rows: givenRows,
+  onRowsChange,
+  firstLook = false,
 }: ValueLeversViewProps) {
   const specs = useMemo(() => leverSpecs(block, mode), [block, mode]);
   const [ownLevers, setOwnLevers] = useState<LeverSettings>(() => levers ?? openingSettings(specs));
@@ -102,12 +126,16 @@ export function ValueLeversView({
   const settings = onLeversChange && levers ? levers : ownLevers;
   const moves = onMovesChange && givenMoves ? givenMoves : ownMoves;
   const market = onMarketChange && givenMarket !== undefined ? givenMarket : ownMarket;
+  const [ownRows, setOwnRows] = useState<RowSettings>(() => givenRows ?? NO_ROW_CHANGES);
+  const rows = onRowsChange && givenRows ? givenRows : ownRows;
+  // The Case with any Full sheet row changed: what the engine values, so the headline follows a row as it follows a Lever.
+  const valued = useMemo(() => withRows(block, rows), [block, rows]);
   const run = useRef<MoveRun>(NO_RUN);
   // The Learner has moved a lever here (not just opened at saved settings).
   const [touched, setTouched] = useState(false);
   // The save's outcome for the story on screen: cleared when a lever moves, so "Saved" never sits beside a changed story.
   const [saved, setSaved] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const model = valueLeversModel(block, specs, settings, mode, market);
+  const model = valueLeversModel(valued, specs, settings, mode, market);
 
   const setLevers = (next: LeverSettings) => {
     setOwnLevers(next);
@@ -121,7 +149,7 @@ export function ValueLeversView({
     if (value === settings[id]) return;
     setSaved("idle");
     const next = { ...settings, [id]: value };
-    const recorded = recordMove(moves, run.current, id, model.value, valueLeversModel(block, specs, next, mode, market).value);
+    const recorded = recordMove(moves, run.current, id, model.value, valueLeversModel(valued, specs, next, mode, market).value);
     run.current = recorded.run;
     setLevers(next);
     if (recorded.moves !== moves) setMoves(recorded.moves);
@@ -129,6 +157,13 @@ export function ValueLeversView({
       setTouched(true);
       onFirstLeverMove?.();
     }
+  };
+  const changeRow = (id: RowId, change: number) => {
+    if (change === rows[id]) return;
+    setSaved("idle");
+    const next = { ...rows, [id]: change };
+    setOwnRows(next);
+    onRowsChange?.(next);
   };
   const setMarket = (next: number) => {
     setOwnMarket(next);
@@ -178,7 +213,9 @@ export function ValueLeversView({
     onPriceFound?.();
   }, [nearPrice, onPriceFound]);
 
-  const atRest = specs.filter((s) => !s.more);
+  // In failure mode the chance it fails is the Topic's idea, so it is the first control (Spine critics round 1 on #96).
+  const atRest = specs.filter((s) => !s.more).sort((a, b) => (mode?.kind === "failure" ? Number(b.id === "failure") - Number(a.id === "failure") : 0));
+  const stage = valueLeversStage(block, specs, settings, model, mode, market);
   const more = specs.filter((s) => s.more);
   const shown = stories.filter((s) => !s.afterInsight || insightSettled);
   const control = (id: LeverId) => {
@@ -186,6 +223,7 @@ export function ValueLeversView({
     return (
       <SliderControl
         key={id}
+        tag={<Icon name={LEVER_ICONS[id]} size={16} className="mr-1.5 inline-block align-[-3px] text-[var(--ink-2)]" />}
         title={spec.title === spec.label ? undefined : spec.title}
         label={spec.label}
         caption={spec.caption}
@@ -212,7 +250,8 @@ export function ValueLeversView({
         </div>
       )}
       <Headline model={model} />
-      <ValueBar model={model} />
+      <ValueBar model={model} reached={nearPrice} />
+      <Stage stage={stage} />
       <dl className="mt-3 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm" data-testid="value-levers-numbers">
         <dt className="text-[var(--muted)]">{model.price.label}</dt>
         <dd className="text-right tabular-nums">{model.price.text}</dd>
@@ -224,7 +263,8 @@ export function ValueLeversView({
             </dd>
           </>
         ) : (
-          model.afterYear10 && (
+          model.afterYear10 &&
+          !firstLook && (
             <>
               <dt className="text-[var(--muted)]">{AFTER_YEAR_10_LABEL}</dt>
               <dd className="text-right tabular-nums">{model.afterYear10.text}</dd>
@@ -233,6 +273,7 @@ export function ValueLeversView({
         )}
       </dl>
       {model.readout?.note && <p className="mt-1 text-xs text-[var(--muted)]" data-testid="value-levers-readout-note">{model.readout.note}</p>}
+      {model.picture && <PictureView picture={model.picture} />}
       {mode?.kind === "market" && mode.markets.length > 1 && (
         <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Markets">
           {mode.markets.map((m, i) => (
@@ -278,6 +319,7 @@ export function ValueLeversView({
           {more.map((s) => control(s.id))}
         </details>
       )}
+      <FullSheetDisclosure block={block} valued={valued} specs={specs} settings={settings} mode={mode} market={market} rows={rows} onRowChange={changeRow} />
       <CashFlowBars bars={model.cashFlows} />
       {mode?.kind === "all_open" && onSaveStory && (
         <div className="mt-2 flex items-center gap-3">
@@ -299,12 +341,193 @@ export function ValueLeversView({
           )}
         </div>
       )}
+      <MarketReadingsView ids={readings} known={caseKnownOn(block)} />
       {tasks.length > 0 && <GuidedTasksFigure tasks={[...tasks]} reached={now} />}
     </div>
   );
 }
 
-/** "Your story is worth $35 a share", its figure the one key number; "$0: lenders and option holders take everything" in coral. */
+/**
+ * The Topic's own idea beside the headline (Spine critics round 1 on #96): a cast whose line reacts as the value moves
+ * against the price, the survive-or-fail fork, the story-to-lever map, or what the price assumes, lever by lever.
+ */
+function Stage({ stage }: { stage: ValueLeversStage }) {
+  const { scene, fork, map, checklist } = stage;
+  if (!scene && !fork && !map && !checklist) return null;
+  return (
+    <div className="mt-3 space-y-2">
+      {scene && (
+        <div data-testid="value-levers-scene" data-mood={scene.mood} className="flex items-center gap-3 rounded-xl border border-[var(--rule)] border-l-2 border-l-[var(--sun)] bg-[var(--raised)] p-2">
+          <span aria-hidden="true" className="flex shrink-0 items-end gap-2">
+            {scene.cast.map((c) => (
+              <span key={c.name} className="flex w-16 flex-col items-center text-center text-[11px] leading-4 text-[var(--muted)]">
+                {isIconName(c.icon) && <Icon name={c.icon} size={32} />}
+                {c.name}
+              </span>
+            ))}
+          </span>
+          <p key={scene.line} className="story-step text-sm leading-5" aria-live="polite">
+            {scene.line}
+          </p>
+        </div>
+      )}
+      {fork && (
+        <div data-testid="value-levers-fork" role="group" aria-label="Survive or fail" className="grid grid-cols-2 gap-2 text-sm">
+          <ForkRoad testId="value-levers-fork-survives" icon="seedling" title="Survives" chance={fork.survives.chance} note="The business keeps running" value={fork.survives.text} tone="var(--mint)" />
+          <ForkRoad testId="value-levers-fork-fails" icon="chart-decreasing" title="Fails" chance={fork.fails.chance} note="Assets sold in a hurry, lenders first" value={fork.fails.text} tone="var(--coral)" />
+        </div>
+      )}
+      {map && (
+        <figure data-testid="value-levers-map">
+          <figcaption className="text-xs text-[var(--muted)]">Each story, and the lever it sets</figcaption>
+          <ul className="mt-1 space-y-1 text-sm">
+            {map.map((row) => (
+              <li key={`${row.label}-${row.lever}`} data-now={row.now ? "" : undefined} className={`rounded-lg border p-2 ${row.now ? "border-[var(--ink-2)]" : "border-[var(--rule)]"}`}>
+                <span className="font-medium">{row.label}: </span>
+                <span>{row.says}</span>
+                <span aria-hidden="true"> → </span>
+                <span className="sr-only">, which sets </span>
+                <span className="text-[var(--ink-2)]">{row.lever}: </span>
+                <span className="tabular-nums">{row.reading}</span>
+              </li>
+            ))}
+          </ul>
+        </figure>
+      )}
+      {checklist && (
+        <figure data-testid="value-levers-checklist">
+          <figcaption className="text-xs text-[var(--muted)]">Each lever now, against the Case&apos;s story</figcaption>
+          <ul className="mt-1 space-y-0.5 text-sm">
+            {checklist.items.map((item) => (
+              <li key={item.lever} data-moved={item.moved ? "" : undefined} className="flex items-center gap-2">
+                <Icon name={item.moved ? "check-mark-button" : "hourglass-not-done"} size={16} />
+                <span className="min-w-0 flex-1">{item.lever}</span>
+                <span className="tabular-nums">{item.now}</span>
+                <span className="text-xs text-[var(--muted)] tabular-nums">story {item.story}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-sm font-medium" aria-live="polite">{checklist.reaches ? "This story reaches the price." : "Not yet at the price."}</p>
+        </figure>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Go deeper: the Full sheet, every input of the valuation on screen in plain words. Its rows are worked out only once it is
+ * opened, and a closed Go deeper adds nothing to the Workbench at rest. A row the Levers do not set has its own slider
+ * (ADR 0020: a tap or a slider, never a typed number); the rest follow the Levers.
+ */
+function FullSheetDisclosure({
+  block,
+  valued,
+  specs,
+  settings,
+  mode,
+  market,
+  rows,
+  onRowChange,
+}: {
+  block: ValuationBlock;
+  valued: ValuationBlock;
+  specs: readonly LeverSpec[];
+  settings: LeverSettings;
+  mode?: ValueLeversMode;
+  market: number;
+  rows: RowSettings;
+  onRowChange: (id: RowId, change: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const sheet = open ? fullSheet(valued, specs, settings, mode, market) : null;
+  const sliders = useMemo(() => (open ? new Map(rowSpecs(block).map((s) => [s.id as string, s])) : null), [open, block]);
+  return (
+    <details className="group mt-1 border-t border-[var(--hairline)] pt-1" data-testid="value-levers-go-deeper" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-[var(--ink-2)] [&::-webkit-details-marker]:hidden">
+        <Chevron />
+        Go deeper: the Full sheet
+      </summary>
+      {sheet && !sheet.ok && <p className="text-sm text-[var(--muted)]">{sheet.error}</p>}
+      {sheet?.ok && (
+        <ul className="mb-2 text-sm" data-testid="full-sheet" aria-label="Every input of this valuation">
+          {sheet.rows.map((row) => (
+            <FullSheetRowView key={row.input} row={row}>
+              {sliders?.has(row.input) && <RowSlider spec={sliders.get(row.input)!} change={rows[row.input as RowId]} onChange={onRowChange} />}
+            </FullSheetRowView>
+          ))}
+        </ul>
+      )}
+    </details>
+  );
+}
+
+/**
+ * One Full sheet row: its words and figure, marked when the Levers moved it off the Case's own story (#103). Pressing the
+ * row opens its Lingo card inline, in the sheet, not as a Companion Widget, so it costs no Tutor Turn. Below it, its slider
+ * when the row can be changed (#104).
+ */
+export function FullSheetRowView({ row, children }: { row: Omit<FullSheetRow, "input" | "value"> & { input: string }; children?: ReactNode }) {
+  return (
+    <li className="border-b border-[var(--hairline)] last:border-b-0" data-row={row.input} data-moved={row.moved || undefined}>
+      <details className="group/row">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-x-3 py-1 [&::-webkit-details-marker]:hidden">
+          <span className="min-w-0 flex-1 text-[var(--muted)]">{row.words}</span>
+          {row.moved && (
+            <span data-testid="full-sheet-moved">
+              <Tag tone="you">Moved</Tag>
+            </span>
+          )}
+          <span className="text-right tabular-nums">{row.reading}</span>
+        </summary>
+        <div className="pb-2" data-testid="full-sheet-lingo">
+          <LingoCardView {...row.card} />
+        </div>
+      </details>
+      {row.years && <p className="-mt-1 pb-1 text-xs tabular-nums text-[var(--muted)]">Year by year: {row.years.join(", ")}</p>}
+      {children}
+    </li>
+  );
+}
+
+/** A Full sheet row's slider: it moves the row's figure from the Case's own, which stays a stop to come back to. */
+export function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof rowSpecs>[number]; change: number; onChange: (id: RowId, change: number) => void }) {
+  const figure = spec.opening + change;
+  return (
+    <div className="-mt-1 pb-1">
+      <SliderControl
+        label={`Change: ${spec.label}`}
+        value={figure}
+        range={{ min: spec.min, max: spec.max, step: spec.step }}
+        reading={spec.reading(figure)}
+        spoken={spec.reading(figure)}
+        onChange={(value) => onChange(spec.id, value - spec.opening)}
+        stops={[spec.opening]}
+      />
+    </div>
+  );
+}
+
+/** One road of the fork: its Icon, its chance in 100 as ten dots, and what a share is worth down it. */
+function ForkRoad({ testId, icon, title, chance, note, value, tone }: { testId: string; icon: "seedling" | "chart-decreasing"; title: string; chance: number; note: string; value: string; tone: string }) {
+  const dots = Math.round(chance / 10);
+  return (
+    <div data-testid={testId} className="rounded-xl border border-[var(--rule)] bg-[var(--raised)] p-2" style={{ opacity: 0.55 + (0.45 * chance) / 100 }}>
+      <p className="flex items-center gap-1.5 font-medium">
+        <Icon name={icon} size={20} />
+        {title}: {chance} in 100
+      </p>
+      <span aria-hidden="true" className="mt-1 flex gap-0.5">
+        {Array.from({ length: 10 }, (_, i) => (
+          <span key={i} className="size-2 rounded-full transition-colors duration-300 motion-reduce:transition-none" style={{ background: i < dots ? tone : "var(--hairline)" }} />
+        ))}
+      </span>
+      <p className="mt-1 text-xs text-[var(--muted)]">{note}</p>
+      <p className="tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+/** "This story is worth $35 a share" ("The story" with Case chips), its figure the one key number; "$0: lenders and option holders take everything" in coral. */
 function Headline({ model }: { model: ValueLeversModel }) {
   const { before, key, after } = model.headline;
   if (model.nothingLeft) {
@@ -328,12 +551,15 @@ function Headline({ model }: { model: ValueLeversModel }) {
   );
 }
 
+/** The bar's marks glide to a lever's new value, and stand still for a Learner who asks for reduced motion. */
+const GLIDE = "duration-300 ease-out motion-reduce:transition-none";
+
 /**
  * The value on a bar from nothing to barTop, with the price marked in sunflower (history); full above the top. In range mode
  * a shaded span shows the range, so the price marker reads as inside, left of, or right of it. The accessible name calls the
  * mark by the Case's own word for it, as the screen does: "the talk of $40bn" for Uber's 2014 talk, which nobody paid.
  */
-function ValueBar({ model }: { model: ValueLeversModel }) {
+function ValueBar({ model, reached = false }: { model: ValueLeversModel; reached?: boolean }) {
   const { bar, price, range } = model;
   const marked = `the ${price.word} of ${price.text}`;
   const label = range
@@ -349,10 +575,21 @@ function ValueBar({ model }: { model: ValueLeversModel }) {
           data-testid="value-levers-band"
         />
       ) : (
-        <div className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-[var(--ink-2)]" style={{ width: `${bar.fill * 100}%` }} data-testid="value-levers-fill" />
+        <div
+          className={`absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-[var(--ink-2)] ${GLIDE} transition-[width]`}
+          style={{ width: `${bar.fill * 100}%` }}
+          data-testid="value-levers-fill"
+        />
       )}
-      {bar.span && <div className="absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--ink)]" style={{ left: `${bar.fill * 100}%` }} title={`Your story: ${model.readout?.text ?? ""}`} data-testid="value-levers-point-marker" />}
-      <div className="absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--sun)]" style={{ left: `${bar.marker * 100}%` }} title={`${price.label}: ${price.text}`} data-testid="value-levers-price-marker" />
+      {bar.span && <div className={`absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--ink)] ${GLIDE} transition-[left]`} style={{ left: `${bar.fill * 100}%` }} title={`This story: ${model.readout?.text ?? ""}`} data-testid="value-levers-point-marker" />}
+      {/* The verdict moment: when the Learner's story reaches the price, its mark grows and pulses once. */}
+      <div
+        className={`absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--sun)] ${GLIDE} transition-transform ${reached ? "scale-x-[3] scale-y-150 motion-safe:animate-[pulse_0.6s_ease-out_1]" : ""}`}
+        style={{ left: `${bar.marker * 100}%` }}
+        title={`${price.label}: ${price.text}`}
+        data-testid="value-levers-price-marker"
+        data-reached={reached ? "" : undefined}
+      />
     </div>
   );
 }
@@ -405,6 +642,54 @@ function CashFlowBars({ bars }: { bars: readonly CashFlowBar[] }) {
           after
         </text>
       </svg>
+    </figure>
+  );
+}
+
+/**
+ * A mode's picture (Spine critics round 1 on #95, widget fit): the rivals as faces on a margin ladder with the company's own
+ * face climbing it, or what new capital buys filling up with the sales each dollar brings and a face that frowns once new
+ * capital earns less than it costs. A picture only, never a control: the levers stay four at rest and one more. The filling
+ * is a 2 px mint rule along the hairline rail, as the ladder's rail and the timeline's line up to its date are: a Widget at
+ * rest has no family fill (spec §2.2 rule 6, ADR 0015), and the caption beside it says the sales in words.
+ */
+function PictureView({ picture }: { picture: ModePicture }) {
+  if (picture.kind === "ladder") {
+    const faces = [...picture.rungs.map((r) => ({ ...r, you: false })), { ...picture.you, you: true }];
+    return (
+      <figure className="mt-3" data-testid="value-levers-ladder">
+        <div className="relative mx-4 h-16" role="img" aria-label={`${picture.line}. ${picture.rungs.map((r) => `${r.label} ${Number(r.percent.toFixed(2))}%`).join(", ")}`}>
+          <div className="absolute inset-x-0 bottom-3 h-0.5 rounded-sm bg-[var(--hairline)]" />
+          {faces.map((f) => (
+            <div
+              key={`${f.you ? "you" : "rival"}-${f.label}`}
+              className={`absolute flex -translate-x-1/2 flex-col items-center transition-[left] duration-300 motion-reduce:transition-none ${f.you ? "top-0 text-[var(--ink)]" : "bottom-0 text-[var(--muted)]"}`}
+              style={{ left: `${f.at * 100}%` }}
+              data-face={f.you ? "you" : "rival"}
+            >
+              <Pic name={f.emoji} size={f.you ? 24 : 20} />
+              {!f.you && <span className="mt-0.5 h-2 w-0.5 bg-[var(--border)]" />}
+            </div>
+          ))}
+        </div>
+        <figcaption className="mt-1 text-xs text-[var(--muted)]" data-testid="value-levers-ladder-line" aria-live="polite">
+          {picture.line}
+        </figcaption>
+      </figure>
+    );
+  }
+  return (
+    <figure className="mt-3 flex items-center gap-3" data-testid="value-levers-centre" data-face={picture.face}>
+      <Pic name={picture.emoji} size={32} />
+      <div className="min-w-0 flex-1">
+        <div className="h-0.5 overflow-hidden rounded-sm bg-[var(--hairline)]" role="img" aria-label={`${picture.line}: ${Math.round(picture.fill * 100)}% full`}>
+          <div className="h-full rounded-sm bg-[var(--mint)] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${picture.fill * 100}%` }} data-testid="value-levers-centre-fill" />
+        </div>
+        <figcaption className="mt-1 text-xs text-[var(--muted)]" aria-live="polite">
+          {picture.line}
+        </figcaption>
+      </div>
+      <Pic name={picture.face} size={24} />
     </figure>
   );
 }

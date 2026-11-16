@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { pageMetadata } from "@/app/site-metadata";
 import { loadCourseMap } from "@/course/map";
 import { casePage, cta } from "@/site/copy";
 import { EXAMPLE_SLUGS, exampleBySlug, examplePath, neighbours, type Example } from "@/site/examples";
@@ -25,7 +26,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const example = exampleBySlug((await params).slug);
-  return example ? { title: example.question, description: plain(example.hook) } : {};
+  return example ? pageMetadata({ title: example.question, description: plain(example.hook), path: examplePath(example.slug), image: example.slug }) : {};
 }
 
 /** Whether a member can open the example's Topic: it has a Topic file (else /api/open cannot open it). */

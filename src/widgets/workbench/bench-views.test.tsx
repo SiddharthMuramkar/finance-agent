@@ -3,9 +3,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WidgetView } from "@/app/widget-view";
 import { valuationCase } from "@/finance/valuation-cases";
+import { MarketReadingsView } from "../market-readings-view";
 import { setRange } from "../primitives/wave1/test-kit";
 import { SavedTicksContext } from "../saved-ticks";
 import { allTasksTicked, readWidget } from "../widget-reading";
@@ -95,11 +97,11 @@ describe("Value bridge (Spine Topic 9)", () => {
 });
 
 describe("Terminal seesaw (Spine Topic 8)", () => {
-  it('opens at "After year 10 holds 112% of the value" with both sides of the seesaw in words', async () => {
+  it("opens in money, saying after year 10 is worth more than the whole value, with both sides of the seesaw in words", async () => {
     await draw("terminal-seesaw");
-    expect(text("terminal-seesaw-headline")).toBe("After year 10 holds 112% of the value");
-    expect(keyFigures()).toEqual(["112%"]);
-    expect(host.querySelector('[data-testid="terminal-seesaw-beam"] [role="img"]')?.getAttribute("aria-label")).toBe("Years 1 to 10: -$1.8bn; After year 10: $16.9bn");
+    expect(text("terminal-seesaw-headline")).toBe("After year 10: $16.9bn, more than all; years 1 to 10 lose $1.8bn");
+    expect(keyFigures()).toEqual(["$16.9bn"]);
+    expect(host.querySelector('[data-testid="terminal-seesaw-beam"] [role="img"]')?.getAttribute("aria-label")).toBe("Years 1 to 10, a loss: -$1.8bn; After year 10: $16.9bn");
     // Things to try tick in order: half the Case's growth first, then growth within a point of the cost of capital.
     setRange(lever("Growth after year 10"), 3);
     await settle();
@@ -138,6 +140,33 @@ describe("Cash waterfall (Spine Topic 3)", () => {
     await draw("cash-waterfall-company");
     expect(text("cash-waterfall-headline")).toMatch(/^Free cash flow next year: -\$55\d\.\dm$/);
   });
+
+  // Spine critics round 1 on #89: Spine Topic 3's bench names its years, says what it makes up, keeps sales for each
+  // dollar invested under More settings, and has Webvan's van in a scene whose line reacts to growth.
+  it("draws Spine Topic 3's what-if bench: named years, the what-if line, a reacting scene, one lever under More settings", async () => {
+    const company = fixture("cash-waterfall-company")
+      .replace("margin: -179.2, salesToCapital: 0.7}", 'margin: 4, salesToCapital: 0.7}, years: {from: "1999", to: "2000"}, whatIf: "A what-if: Webvan really lost money on most sales.", icon: "delivery-truck"')
+      .replace("$margin = -179.2", "$margin = 4");
+    expect(company).toContain('icon: "delivery-truck"');
+    await act(async () => {
+      root.render(
+        <SavedTicksContext.Provider value={{ ticked: [], onTicked: () => {} }}>
+          <WidgetView code={company} complete />
+        </SavedTicksContext.Provider>,
+      );
+    });
+    await settle();
+    expect(text("cash-waterfall-headline")).toMatch(/^Free cash flow in 2000: /);
+    expect(text("cash-waterfall-what-if")).toBe("A what-if: Webvan really lost money on most sales.");
+    expect(host.textContent).toContain("1999 sales: $13.3m");
+    expect(host.textContent).toContain("13.4 times");
+    expect(host.textContent).not.toMatch(/next year|This year/);
+    expect(host.querySelector('[data-testid="cash-waterfall-more"] input[aria-label="Sales for each dollar invested"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="cash-waterfall-scene"]')?.getAttribute("data-mood")).toBe("building");
+    setRange(lever("Sales growth, 1999 to 2000"), 0);
+    await settle();
+    expect(host.querySelector('[data-testid="cash-waterfall-scene"]')?.getAttribute("data-mood")).toBe("still");
+  });
 });
 
 describe("Multiple decoder (Spine Topic 12)", () => {
@@ -167,10 +196,11 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
   it("failure: the chance it fails is a main lever, and the readout says what it is worth if it survives", async () => {
     await draw("value-levers-failure");
     const atRest = [...host.querySelectorAll('[data-testid="value-levers-controls"] input[type="range"]')].map((el) => el.getAttribute("aria-label"));
-    expect(atRest).toEqual(["Revenue in year 10", "Operating margin once mature", "Cost of capital while it grows", "Chance it fails"]);
+    // The chance it fails is the Topic's idea, so it comes first (Spine critics round 1 on #96).
+    expect(atRest).toEqual(["Chance it fails", "Sales in year 10", "Operating margin once mature", "Cost of capital while it grows"]);
     setRange(lever("Chance it fails"), 30);
     await settle();
-    expect(text("value-levers-headline")).toBe("Your story is worth $22 a share");
+    expect(text("value-levers-headline")).toBe("This story is worth $22 a share");
     expect(text("value-levers-readout")).toBe("$35 a share");
   });
 
@@ -260,11 +290,11 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
   it("all_open: a story worth the price found on one Case does not tick the price task of the Case the chip switches to", async () => {
     const onTicked = vi.fn();
     await draw("value-levers-all-open", { onTicked });
-    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Sales in year 10"), 60);
     await settle();
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
-    expect(text("value-levers-headline")).toBe("Your story is worth $84 a share");
+    expect(text("value-levers-headline")).toBe("This story is worth $84 a share");
     expect(taskStates()).toEqual(["done", "done"]);
     await act(async () => host.querySelector('[data-case="2"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await settle();
@@ -290,7 +320,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     });
     await settle();
     const save = () => host.querySelector<HTMLButtonElement>('[data-testid="value-levers-save"]')!;
-    setRange(lever("Revenue in year 10"), 60);
+    setRange(lever("Sales in year 10"), 60);
     await settle();
     await act(async () => save().dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await settle();
@@ -301,7 +331,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     expect(save().disabled).toBe(false);
     expect(host.textContent).not.toContain("Saved to your Notebook");
     // The same lever moved on Zomato is a new move, from Zomato's own value, not from Amazon's $35 before the switch.
-    setRange(lever("Revenue in year 10"), 20_000);
+    setRange(lever("Sales in year 10"), 20_000);
     await settle();
     const zomato = valuationCase("zomato-ipo-2021")!;
     const mode = { kind: "all_open" } as const;
@@ -328,12 +358,12 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     // Zomato's own story, in crore, and the chip on Zomato: the page saves and sends these settings.
     const zomato = settings.at(-1)!;
     expect(zomato).toMatchObject({ $case: 2, $moved: 0 });
-    expect(lever("Revenue in year 10").value).toBe(String(zomato.$revenue));
+    expect(lever("Sales in year 10").value).toBe(String(zomato.$revenue));
     setRange(lever("Operating margin once mature"), 40);
     await settle();
     expect(settings.at(-1)).toMatchObject({ $case: 2, $margin: 40, $moved: 2 });
     const told = readWidget(code, { values: settings.at(-1)!, ticked: [] }, () => undefined)!;
-    expect(told.readouts[0]).toBe(`Value: ${text("value-levers-headline").replace(/^Your story is worth /, "")}`);
+    expect(told.readouts[0]).toBe(`Value: ${text("value-levers-headline").replace(/^This story is worth /, "")}`);
     expect(told.tasks.map((t) => t.text)).toEqual(shownTasks());
     expect(shownTasks()).toEqual([MOVE_ONE, "Find a story worth the ₹76 price"]);
   });
@@ -358,6 +388,44 @@ describe("what the Tutor is told of each Workbench (readWidget)", () => {
     expect(read("multiple-decoder").readouts[1]).toMatch(/^WeWork trades at 26× revenue \(sourced: /);
     expect(read("value-levers-failure", { $failure: 30 }).readouts).toContain("If it survives: $35 a share");
     expect(read("value-levers-market").sliders[0]).toEqual({ label: "Share of the market in year 10 (how big it gets)", text: "1.74%" });
-    expect(read("wacc-stack").tasks.map((t) => t.text)).toEqual(["Raise relative risk to 2.0. How far does the rate move?", "Set the share of debt to 30%"]);
+    expect(read("wacc-stack").tasks.map((t) => t.text)).toEqual(["Raise relative risk to 2.0. Does the rate move a lot or a little?", "Set the share of debt to 30%"]);
+  });
+});
+
+describe("Market readings beside the levers (ticket #105)", () => {
+  const readings = () =>
+    [...host.querySelectorAll('[data-testid="market-reading"]')].map((li) => ({
+      id: li.getAttribute("data-reading"),
+      date: li.querySelector('[data-testid="reading-date"]')?.textContent,
+      credit: li.querySelector('[data-testid="reading-credit"]')?.textContent,
+      href: li.querySelector('[data-testid="reading-credit"]')?.getAttribute("href"),
+    }));
+
+  // Owner decision on #105 (2026-11-16): a Workbench on Amazon (As-of 3 February 2000) shows only US readings known by then.
+  it("the Cost of capital stack on Amazon shows the US bond rate of Dec 1999, credited and linked", async () => {
+    await draw("wacc-stack-readings");
+    expect(readings()).toEqual([{ id: "us-risk-free-10y-1999", date: "(Dec 1999)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/implpr.html" }]);
+    expect(text("market-readings")).toContain("10-year US Treasury bond rate (US): 6.44%");
+    // The source's name is visible text, not only a hover title (review F42).
+    expect(host.querySelector('[data-testid="reading-source"]')?.textContent).toBe("Damodaran, Historical Implied Equity Risk Premiums for the US");
+    expect(text("market-readings")).not.toMatch(/today|current/i);
+  });
+
+  it("Value levers on Amazon shows the same US reading of Dec 1999 beside its levers", async () => {
+    await draw("value-levers-readings");
+    expect(readings().map((r) => [r.id, r.date])).toEqual([["us-risk-free-10y-1999", "(Dec 1999)"]]);
+  });
+
+  it("keeps the As-of rule on screen: a reading from after the Case's As-of date, or from another market, does not show", () => {
+    const amazon = { asOf: "2000-02-03", market: "US" } as const;
+    const shown = (ids: string[]) =>
+      [...new DOMParser().parseFromString(renderToStaticMarkup(<MarketReadingsView ids={ids} known={amazon} />), "text/html").querySelectorAll('[data-testid="market-reading"]')].map((li) => li.getAttribute("data-reading"));
+    expect(shown(["us-risk-free-10y-1999", "us-implied-premium-2007", "in-food-margin"])).toEqual(["us-risk-free-10y-1999"]);
+    expect(renderToStaticMarkup(<MarketReadingsView ids={["in-food-margin"]} known={amazon} />)).toBe("");
+  });
+
+  it("a Workbench with no readings shows none", async () => {
+    await draw("wacc-stack");
+    expect(host.querySelector('[data-testid="market-readings"]')).toBeNull();
   });
 });

@@ -292,6 +292,13 @@ const conversationCheck = z.object({
 });
 
 /**
+ * Who tells a judged Story (spec #68, ADR 0020; Spine critics round 4, #88): a small mark beside the question, its line
+ * Icon (an Icon name, lint L11) and a word or two ("A fan"), so each tap in a judging Check is a story moment.
+ */
+const speakerSchema = z.object({ who: z.string().trim().min(1).max(24), emoji: z.string().trim().min(1) }).strict();
+export type Speaker = z.infer<typeof speakerSchema>;
+
+/**
  * A computed judgement question: its words and its changes, never its answer or its figures. Code values each change from
  * the Case, so changing the Case's valuation block changes the right choice and the figure on every choice with no edit here.
  */
@@ -300,6 +307,7 @@ const computedQuestion = z
     id,
     kind: z.enum(COMPUTED_KINDS),
     prompt: z.string().min(1),
+    speaker: speakerSchema.optional(),
     skill: id.optional(),
     computed: computedSchema,
     /** Words shown after the Learner has answered, beside the figures code adds. No figures of its own. */
@@ -317,6 +325,8 @@ const writtenQuestion = z.object({
   id,
   kind: z.enum(WRITTEN_KINDS).optional(),
   prompt: z.string().min(1),
+  /** Who tells the Story it judges, shown as a small mark beside the question. */
+  speaker: speakerSchema.optional(),
   /** `mistake`: a wrong choice's Known mistake, whose one-line fix the marking shows. */
   choices: z
     .array(z.object({ id, text: z.string().min(1), mistake: z.object({ fix: z.string().trim().min(1), tag: z.string().min(1).optional() }).optional() }))
@@ -413,6 +423,20 @@ const insightSchema = z.object({
   foundWhen: z.string().min(1),
   /** Hint 1, then hint 2, released one per not-yet attempt. */
   hints: z.array(z.string().min(1)).min(1).max(2),
+  /**
+   * The Insight settled by a tap (ADR 0020, narrowing ADR 0001 and keeping ADR 0002): two to four choices in words, one of
+   * them `answer`, each wrong one with a one-line fix. Code marks the tap: the right one finds the Insight, a wrong one
+   * releases the next hint, as a typed not-yet does. Without it, the Insight is found in the Learner's own words.
+   */
+  pick: z
+    .object({
+      choices: z
+        .array(z.object({ id, text: z.string().trim().min(1), mistake: z.object({ fix: z.string().trim().min(1) }).optional() }))
+        .min(2)
+        .max(MAX_JUDGEMENT_CHOICES),
+      answer: id,
+    })
+    .optional(),
 });
 
 /** Where explore sits: after the concept of the named Check, before that Check's your turn. */
@@ -653,7 +677,8 @@ const topicSchema = z.object({
   concept: z.string().min(1),
   /**
    * Go deeper material (spec 2026-11-12 H1): an idea beyond the Topic's Checks that the Tutor may use when the Learner
-   * presses Go deeper or asks about it. No Check, Skill or Lingo term tests it, so the Tutor never quizzes it. Words only.
+   * presses Go deeper or asks about it. No Check, Skill or Lingo term tests it, so the Tutor never quizzes it. The one
+   * text that may hold a typed formula or a Formula Card marker (spec #68, ADR 0003; the course check skips it).
    */
   goDeeper: z.string().trim().min(1).optional(),
   /** The named formulas this Topic teaches, each shown only as a Formula Card (IDs from the formula registry). */
@@ -661,6 +686,11 @@ const topicSchema = z.object({
     .array(z.string().refine((f) => (FORMULA_IDS as readonly string[]).includes(f), { message: `Unknown formula; the formula registry has: ${FORMULA_IDS.join(", ")}` }))
     .default([]),
   principle: z.string().min(1),
+  /**
+   * The daily-life line (spec #68): one line tying the Topic's idea to something a beginner meets in daily life. Code
+   * shows it at the Principle step and on the Topic complete card, and the Topic Note keeps it. Words only.
+   */
+  dailyLife: z.string().trim().min(1).optional(),
   /**
    * You'll learn: two or three short bullets saying what the Topic gives a Learner, shown on the Topic
    * Start card and the Welcome. Drafted from the concept and principle only, in words (no figures, no
@@ -718,8 +748,8 @@ const topicSchema = z.object({
 }).superRefine((topic, ctx) => {
   // Formula markers ({{formula:...}}) must name a formula on this Topic's own list and give exactly its inputs. They are
   // read in the texts every Topic had before the teaching fields (topic-texts.ts): Cases, questions, concept, principle,
-  // Insight, Connections and conversation Checks.
-  for (const { text } of textsIn(topic, ["case", "question", "earlier"])) {
+  // Insight, Connections, conversation Checks and the daily-life line, and in Go deeper.
+  for (const { text } of textsIn(topic, ["case", "question", "earlier", "deeper"])) {
     for (const problem of markerProblems(text, topic.formulas)) ctx.addIssue({ code: "custom", message: `formula marker ${problem}` });
   }
   for (const problem of stepSettingProblems(topic)) ctx.addIssue({ code: "custom", message: problem });
@@ -864,7 +894,7 @@ export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prereq
   /** Place in the outline; lower comes first. The default path is worked out from it and the Stage (navigator.ts defaultPath). */
   path: number;
   prerequisites: string[];
-  /** A Spine Topic's number, 1 to 15 (from the outline); none off the Spine. */
+  /** A Spine Topic's number, 1 to SPINE_LENGTH (from the outline, ADR 0020); none off the Spine. */
   spine?: number;
   /** The Topics a Spine Topic is built from (from the outline). Not prerequisites. */
   drawsOn?: string[];
@@ -1215,6 +1245,15 @@ function insightProblems(t: Topic): string[] {
     const fields: [string, string][] = [["question", question], ["written", written], ["foundWhen", foundWhen], ...hints.map((h, i): [string, string] => [`hints.${i}`, h])];
     for (const [field, text] of fields) {
       if (FIGURE.test(text)) problems.push(`Topic "${t.id}" has a figure in insight.${field}; write the Insight in words`);
+    }
+    const pick = t.insight.pick;
+    if (pick) {
+      const ids = pick.choices.map((c) => c.id);
+      if (new Set(ids).size !== ids.length) problems.push(`Topic "${t.id}" insight.pick repeats a choice id`);
+      if (!ids.includes(pick.answer)) problems.push(`Topic "${t.id}" insight.pick has answer "${pick.answer}", which is not one of its choices`);
+      for (const c of pick.choices) {
+        if (c.id !== pick.answer && !c.mistake) problems.push(`Topic "${t.id}" insight.pick choice "${c.id}" is wrong but has no fix; give it mistake.fix`);
+      }
     }
   }
   return problems;

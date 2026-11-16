@@ -23,6 +23,13 @@ describe("a Spine Topic missing a part fails the course check (C2)", () => {
     expect(courseCheck(SPINE_TOPIC_DATA)).toEqual([]);
   });
 
+  it("fails with a Workbench that saves the Learner's own story (all_open, \"Save my story\")", () => {
+    const errors = shape((d) => void ((d.explore.workbench.inputs as Record<string, unknown>).mode = { kind: "all_open" }));
+    expect(errors).toEqual([
+      'Spine Topic "spine-01-worth" explores Value levers in all_open mode, which saves the Learner\'s own story; on the Spine the Learner judges a published Story, so give it a judging mode such as match_price (spec C2)',
+    ]);
+  });
+
   it("fails with no Workbench Widget at explore", () => {
     const errors = shape((d) => void delete (d.explore as { workbench?: unknown }).workbench);
     expect(errors).toEqual([
@@ -116,24 +123,42 @@ describe("the rest of a Spine Topic's shape (C2)", () => {
     expect(problems({ checks: [quiz, talk, { ...talk, id: "again" }] })).toEqual(["has 2 conversation Checks; at most one, in which the Learner tells the Valuation story"]);
   });
 
-  it("lets Spine Topic 2 explore the annuity Widget on a Case with no valuation block", () => {
-    const annuity = { id: "annuity-worth-today", code: 'root = Widget("What the annuity is worth today", [chart])\nchart = AnnuityChart(1537, 30, 5, $rate, "jackpot/cash-option", 2018)', parts: [] };
-    const two = { ...topic, spine: 2, cases: topic.cases.map((c) => ({ ...c, valuation: undefined })), widgets: [annuity], explore: { before: "worth-check", requiredWhenPassed: false, widget: annuity.id } };
-    expect(spineShapeProblems(two)).toEqual([]);
-    expect(spineShapeProblems({ ...two, widgets: [{ ...annuity, code: 'root = Widget("Rates", [])' }] })).toEqual([
-      "explores no annuity Widget; Spine Topic 2 explores the written-ahead annuity Widget (an AnnuityChart) on its Mega Millions Case",
+  it("lets a judging quiz Check by tap close the Topic in place of the conversation Check (ADR 0020), but not both", () => {
+    const [quiz, talk] = topic.checks;
+    if (quiz.kind !== "quiz") throw new Error("the fixture's first Check is its quiz");
+    const judging = { ...quiz, id: talk.id, card: undefined, quickTries: [] };
+    expect(problems({ checks: [quiz, judging] })).toEqual([]);
+    expect(problems({ checks: [quiz, judging, talk] })).toEqual([
+      "has 2 quiz Checks and 1 conversation Checks; a Spine Topic has one quiz Check and at most one closing Check, a judging quiz Check or a conversation Check",
+    ]);
+    expect(problems({ checks: [quiz, judging, { ...judging, id: "again" }] })).toEqual([
+      "has 3 quiz Checks and 0 conversation Checks; a Spine Topic has one quiz Check and at most one closing Check, a judging quiz Check or a conversation Check",
     ]);
   });
 
-  it("lets Spine Topic 3 explore a cash waterfall from one year's inputs", () => {
+  it("lets the Topic that explores the annuity Widget do so on a Case with no valuation block, whatever its Spine number", () => {
+    const annuity = { id: "annuity-worth-today", code: 'root = Widget("What the annuity is worth today", [chart])\nchart = AnnuityChart(1537, 30, 5, $rate, "jackpot/cash-option", 2018)', parts: [] };
+    const two = { ...topic, spine: 2, cases: topic.cases.map((c) => ({ ...c, valuation: undefined })), widgets: [annuity], explore: { before: "worth-check", requiredWhenPassed: false, widget: annuity.id } };
+    expect(spineShapeProblems(two)).toEqual([]);
+    expect(spineShapeProblems({ ...two, spine: 9 })).toEqual([]);
+    expect(spineShapeProblems({ ...two, widgets: [{ ...annuity, code: 'root = Widget("Rates", [])' }] })).toEqual([
+      "has no Case with a valuation block; give its Case one, or take Amazon's with valuationFrom",
+      "has no Workbench Widget at explore; give explore a workbench naming one of value_levers, cash_waterfall, wacc_stack, terminal_seesaw, value_bridge, multiple_decoder",
+    ]);
+  });
+
+  it("lets the Topic that explores a cash waterfall do so from one year's inputs, whatever its Spine number", () => {
     const waterfall = { recipe: "cash_waterfall" as const, inputs: { growthPercent: 100, marginPercent: -20, salesToCapital: 2 } };
     const three = { ...topic, spine: 3, cases: topic.cases.map((c) => ({ ...c, valuation: undefined })), explore: { ...topic.explore!, workbench: waterfall } };
     expect(spineShapeProblems(three)).toEqual([]);
+    expect(spineShapeProblems({ ...three, spine: 4 })).toEqual([]);
     expect(spineShapeProblems({ ...three, explore: { ...topic.explore!, workbench: { ...waterfall, inputs: {} } } })).toEqual([
       "gives its cash waterfall no inputs; give it one year's revenue growth, margin and sales to capital",
     ]);
+    // Any other Workbench values a Case with the engine, at Spine 3 as anywhere.
     expect(spineShapeProblems({ ...three, explore: { ...topic.explore!, workbench: { ...topic.explore!.workbench!, inputs: waterfall.inputs } } })).toEqual([
-      'explores the Workbench "value_levers"; Spine Topic 3 explores cash_waterfall',
+      "has no Case with a valuation block; give its Case one, or take Amazon's with valuationFrom",
+      'binds its Workbench to Case "amazon-worth", which has no valuation block',
     ]);
   });
 

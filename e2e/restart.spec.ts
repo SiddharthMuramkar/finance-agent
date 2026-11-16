@@ -41,7 +41,7 @@ test("restart from the Topic bar and from Settings", async ({ page }) => {
   await hydrated(page);
   await settled(page);
   await expect(page.getByTestId("topic-bar")).toContainText(title);
-  await expect(page.getByTestId("topic-bar").locator('[aria-current="step"]')).toHaveText("Story");
+  await expect(page.getByTestId("topic-bar").locator('[aria-current="step"]')).toHaveText("The moment");
   await expect(page.getByTestId("topic-bar").locator("button[data-step-number]")).toHaveCount(0);
   // An empty chat: none of the first attempt's messages; only the fresh attempt's own opener, which starts by itself.
   await expect(page.getByText(FIRST_TRY, { exact: true })).toHaveCount(0);

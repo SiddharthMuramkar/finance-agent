@@ -20,7 +20,7 @@ cases:
       illustration, not a real deal) that issues four layers: a $770 million AAA tranche, a
       $150 million A tranche, a $50 million BBB tranche and a $30 million residual tranche that the
       lender keeps. The AAA tranche is rated AAA even though the loans are subprime, because the 23%
-      of the pool beneath it (150 + 50 + 30 = 230) must be lost before it takes its first dollar of
+      of the pool beneath it (the A, BBB and residual tranches, $230 million together) must be lost before it takes its first dollar of
       loss. The BBB tranches are the hardest to sell. So an investment bank buys BBB tranches from
       many such pools, puts them into a new vehicle, a collateralised debt obligation (CDO), and
       issues layers against them again; the top layer of the CDO is also rated AAA. The rating
@@ -65,6 +65,10 @@ concept: >
 principle: >
   A rating is only as good as the assumption about how the risks are linked. A structure can re-label
   risk by slicing it, but it cannot remove the risk that is common to all the pieces.
+
+goDeeper: >
+  Written as a sum, the AAA tranche's cushion is 150 + 50 + 30 = 230 million of the 1,000 million pool,
+  so 230 / 1,000 = 23% of the loans must be lost before the AAA tranche loses anything.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:

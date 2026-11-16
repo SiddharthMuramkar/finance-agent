@@ -15,6 +15,8 @@ id: spine-04-growth
 title: "Growth: how big can it get?"
 goal: Turn a story about the market a young company can win into its future revenue, and weigh its effect on value.
 why: "A company's value starts with how big it can get, and for a young company that rests on a story about the market it can win."
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: "A food-delivery app says its market is huge: how big a share of it can it really win?"
 minutes: 12
 exampleCurrency: USD
 
@@ -24,9 +26,9 @@ cases:
     asOf: 2014-12-02
     valuationFrom: uber-vc-narrative-2014
     story: >
-      In June 2014 Uber, still a private company about five years old, raised $1.2 billion from
-      venture capital investors (who buy stakes in young private companies) at a price of $17 billion
-      for the whole company, before counting their new money. Days later Aswath Damodaran, a valuation
+      In June 2014 Uber, still a private company about five years old, raised $1.2 billion in a
+      venture round (investors buying stakes in a young private company), led by the fund manager
+      Fidelity, at a price of $17 billion for the whole company, before counting their new money. Days later Aswath Damodaran, a valuation
       professor at NYU Stern, valued it at about $5.9 billion as a car-service company, and published
       his spreadsheet so anyone could try their own story. His story: taxis and car services worldwide
       take about $100 billion of fares a year; Uber wins 10% of them within ten years; and it takes 20%
@@ -53,9 +55,16 @@ concept: >
   Topic's lever.
   Each part is a claim to argue: a market can be defined narrowly (taxis today) or widely (every
   trip people might take instead of driving their own car), and a share or a slice depends on
-  rivals. A young company is early in its life cycle, with small revenue and most of its value in
+  rivals. A young company is early in its life, with small revenue and most of its value in
   what it might become, so the size of the market it can win moves its value more than any other
   input. The sums are the same for everyone; the stories are not.
+
+# Go deeper (spec H1, #68): beyond the Checks, for the Tutor to give when the Learner presses Go deeper. Never quizzed.
+goDeeper: >
+  Analysts call the stages a company passes through its life cycle: young and growing fast, then mature, then
+  declining. A young company like Uber in 2014 has small revenue and little profit, so nearly all its value sits in
+  what it might become, and the story about its market moves that value most. A mature company's value sits more in
+  the business it already runs. A Learner who wants more can ask where a company like a decades-old coffee chain sits.
 
 principle: >
   When two values for a young company sit far apart, look first at the story each tells about the
@@ -86,12 +95,6 @@ terms:
     example: "An app takes $2 of a $10 ride as its fee and the driver gets $8."
     emoji: coin
     inStory: In the story, Uber takes 20% of each fare and drivers get the rest.
-  - term: life cycle
-    means: The stages a company passes through, from young and growing fast, to mature, to declining.
-    pro: It is early in its life cycle, so most of its value is growth.
-    example: "A new café proving itself, against a chain that has sold coffee for decades."
-    emoji: seedling
-    inStory: In the story, Uber is a few years old, small, and growing fast.
   - term: compounding
     means: "Growth earned on growth: each year's gain joins the total, and the next year grows on that."
     pro: Compounding does the heavy lifting over long horizons.
@@ -106,12 +109,14 @@ scenes:
     title: A professor against the venture investors
     inputs:
       cast:
-        - { id: professor, emoji: teacher, name: A valuation professor, role: values Uber }
+        # Spine critics round 1 on #95 (widget fit): every Icon stands for something; the professor is a graduation cap,
+        # not a school house, and the decorative brain and key are gone (the Icon set has no car).
+        - { id: professor, emoji: student, name: A valuation professor, role: values Uber }
         - { id: investor, emoji: man-office-worker, name: A venture investor }
       beats:
         - { who: investor, says: "We put in $1.2 billion at a $17 billion valuation.", emoji: money-bag }
-        - { who: narrator, says: "In June, Damodaran valued Uber at about $5.9 billion, as a car-service company.", emoji: thinking-face }
-        - { who: investor, says: "Think of everyone who might give up owning a car.", emoji: key }
+        - { who: professor, says: "In June I valued Uber at about $5.9 billion, as a car-service company.", emoji: balance-scale }
+        - { who: investor, says: "Think of everyone who might give up owning a car." }
         - { who: narrator, says: "Now estimates of $40 billion and more are in the news.", emoji: newspaper }
       caption: 2 December 2014, two stories about one company
       date: "2014-12-02"
@@ -170,6 +175,8 @@ explore:
         kind: market
         markets:
           - label: "Uber's 20% slice of $100bn of fares"
+            # Spine critics round 1 on #95: the readout says "of fees on all fares", so $35.8bn never reads as the $100bn market.
+            pool: fees on all fares
             # His $100bn of fares a year, at his 20% slice: $20bn of revenue to share in, growing 6% a year.
             size: 20000
             growthPercent: 6
@@ -177,6 +184,7 @@ explore:
               title: "Damodaran, A Disruptive Cab Ride to Riches: The Uber Payoff (9 Jun 2014), and ubervaluation.xls"
               url: https://aswathdamodaran.blogspot.com/2014/06/a-disruptive-cab-ride-to-riches-uber.html
           - label: "Uber's 20% slice of $300bn of fares"
+            pool: fees on all fares
             # His breakeven: "the total market has to be ... three times bigger than my estimate (around $300 billion)".
             size: 60000
             growthPercent: 6
@@ -230,7 +238,7 @@ questions:
         - { id: market-3x, label: "A market three times his, $300bn of fares", levers: { revenueYear10: 10745 } }
         - { id: no-failure, label: "No chance of failure, not 10%", levers: { failureChance: 0 } }
         - { id: rate-10, label: "Cost of capital 12% to 10% while it grows", levers: { costOfCapitalGrowing: 10 } }
-        - { id: lean, label: "Sales to capital 5 to 10", levers: { salesToCapital: 10 } }
+        - { id: lean, label: "Sales for each $1 invested, $5 to $10", levers: { salesToCapital: 10 } }
   # What the price assumes (D1), computed: which story is worth the $17bn venture price.
   - id: ug-q-price
     kind: price_assumes
@@ -310,8 +318,8 @@ questions:
     kind: price_or_value
     skill: story-moves-value
     prompt: >
-      June 2014. Venture capital investors put $1.2 billion into Uber at what the press reported as a "$17
-      billion valuation". Is the $17 billion a price or a value?
+      June 2014. Investors led by the fund manager Fidelity put $1.2 billion into Uber at what the press
+      reported as a "$17 billion valuation". Is the $17 billion a price or a value?
     choices:
       - { id: price, text: "A price: what investors paid for their stake, scaled up to the whole company" }
       - id: value
@@ -338,7 +346,7 @@ questions:
         mistake: { tag: profit_for_value, fix: "A young company has little profit yet. Its value is mostly in the years ahead." }
     answer: future
     explanation: >
-      Early in its life cycle a company has little revenue and less profit, so nearly all its value is
+      Early in its life a company has little revenue and less profit, so nearly all its value is
       in the business it might become, which is why the story about the market matters so much.
     source: "Damodaran, A Disruptive Cab Ride to Riches: The Uber Payoff (9 Jun 2014): https://aswathdamodaran.blogspot.com/2014/06/a-disruptive-cab-ride-to-riches-uber.html"
 
@@ -352,7 +360,7 @@ checks:
     card:
       title: "How big can it get?"
       lines:
-        - "Revenue years from now is a story in three parts: the market, the share won, the slice kept."
+        - "Revenue years from now is a story in three parts: the market, the share won, the slice taken."
         - "A made-up example: a $50bn market, a 10% share and a 30% slice give $1.5bn of revenue."
         - "A young company is early in its life: most of its value is in what it might become."
         - "So each part of the size story is a claim to argue, not a fact to look up."
@@ -362,14 +370,14 @@ checks:
     quickTries:
       - id: ug-try-slice-half
         skill: market-story
-        ask: "Uber takes 20% of each fare it carries as its fee. Riders in its share of the market pay $1 billion of fares. Which is Uber's revenue?"
+        ask: "Uber takes 20% of each fare it carries as its fee. Which part of the fares riders pay is Uber's revenue?"
         halfDone: "First step, done for you: drivers keep the other 80% of each fare."
         kind: choice
         answer: slice
         choices:
-          - { id: slice, text: "$200 million: the slice it takes" }
-          - { id: fares, text: "$1 billion: every fare riders pay", mistake: { tag: gross_for_revenue, fix: "That is what riders pay in total. Uber's revenue is only the slice it takes." } }
-          - { id: drivers, text: "$800 million: the drivers' part", mistake: { tag: gross_for_revenue, fix: "The drivers keep that. Uber's revenue is the 20% it takes." } }
+          - { id: slice, text: "The slice it takes as its fee" }
+          - { id: fares, text: "Every fare riders pay", mistake: { tag: gross_for_revenue, fix: "That is what riders pay in total. Uber's revenue is only the slice it takes." } }
+          - { id: drivers, text: "The part the drivers keep", mistake: { tag: gross_for_revenue, fix: "The drivers keep that. Uber's revenue is the 20% it takes." } }
       - id: ug-try-three-parts
         skill: market-story
         ask: "Which three parts make Uber's revenue years from now?"

@@ -23,7 +23,7 @@ cases:
       1.0. He chooses 1.60 for the first five years, fading to 1.00 by year ten as the company matures. Which beta
       would you use for the cost of equity, and why does the choice matter to the value?
     reveal: >
-      Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00).
+      Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (the 6.5% riskfree rate plus 1.60 times a 4% premium), falling to 10.50% by year ten (beta 1.00).
       The regression beta of 2.29 would have implied 15.66%. Combined with forecasts of rapid revenue growth and rising margins,
       his cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, well under the $84 market
       price. The shares did not fall in a straight line. Amazon's 10-K shows a first-quarter 2000 high of $91.50, but then quarterly lows of
@@ -37,9 +37,10 @@ cases:
 concept: >
   The capital asset pricing model (CAPM) says investors are rewarded only for systematic risk, the part
   of a share's risk that cannot be diversified away. A share's beta measures how much it moves with the market:
-  a beta of 1 moves in line, 2 moves twice as much, 0.5 half as much. The expected return is
-  Re = Rf + beta x (Rm - Rf), where Rf is the risk-free rate (usually a government bond yield) and Rm - Rf is the market
-  risk premium (equity risk premium), the extra return investors expect for holding the market instead of the risk-free asset.
+  a beta of 1 moves in line, 2 moves twice as much, 0.5 half as much. To find the expected return, start from the
+  safe rate, the risk-free rate (usually a government bond yield), then add beta times the market's extra return. That
+  extra return is the market risk premium (equity risk premium): what investors expect for holding the market instead of
+  the risk-free asset.
   A share with a beta above 1 should offer a higher expected return than the market and one below 1 a lower return. Beta is
   estimated by regressing the share's returns on the market's returns, and the estimate depends on the
   period, the return interval and the market index used, so two providers give different numbers for the same share. For a young
@@ -49,6 +50,11 @@ concept: >
   the market; factor models extend it with more, such as company size and value, and are used to explain why
   some groups of shares have earned more than beta alone would predict. In valuation, the cost of equity is the
   discount rate for equity cash flows, so the choice of beta and equity risk premium changes the value.
+
+goDeeper: >
+  Written as a formula, CAPM is Re = Rf + beta x (Rm - Rf), where Re is the expected return on the share, Rf the
+  risk-free rate and Rm the expected return on the market, so Rm - Rf is the market risk premium. With a risk-free
+  rate of 4%, a market return of 9% and a beta of 1.2, that is 4% + 1.2 x 5% = 10%.
 
 principle: >
   Beta prices only the risk you cannot diversify. The cost of equity is the return you should demand, built from

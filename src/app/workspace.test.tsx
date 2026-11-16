@@ -221,7 +221,7 @@ describe("the Next chip", () => {
 
   it("does not stand under the Topic Start card alone, while the Tutor's opener starts by itself", () => {
     const start = topicStart(loadCourseMap(), { currentTopicId: null, topics: {} }, "present-value")!;
-    expect(chips(workspace({ initial: [{ role: "item", ...start }], next: { ...toConcept, step: "story", label: "Next: Story", advances: false } }))).toHaveLength(0);
+    expect(chips(workspace({ initial: [{ role: "item", ...start }], next: { ...toConcept, step: "story", label: "Next: The moment", advances: false } }))).toHaveLength(0);
   });
 
   it("is not there while a Check is open (the Course Navigator offers none)", () => {
@@ -793,7 +793,7 @@ describe("the Topic bar", () => {
   // #544 (owner decision) supersedes the #523 lock on these names: the bar names no Check and has no exam words.
   it("groups the bar's plain step names by Check, without naming or numbering a Check", () => {
     expect(groups(workspace({ strip }))).toEqual([
-      "Story",
+      "The moment",
       "The idea Your turn Wrap up",
       "The idea Explore Your turn Wrap up",
       "Reveal",

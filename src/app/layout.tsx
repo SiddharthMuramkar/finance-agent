@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter, Inter_Tight } from "next/font/google";
 import type { ReactNode } from "react";
+import { clerkAppearance } from "@/auth/clerk-appearance";
 import { JOIN_PATH, SIGN_IN_PATH, SIGN_UP_PATH } from "@/auth/destination";
 import { clerkOn } from "@/auth/gates";
 import "./globals.css";
@@ -10,6 +11,7 @@ import { RouteBar } from "./route-bar";
 import { ClerkOn } from "./sign-out";
 import { SiteAnalytics } from "./site-analytics";
 import { siteMetadata } from "./site-metadata";
+import { THEME_INIT_SCRIPT } from "./theme";
 
 // Public metadata for search results and shared links; signed-in pages sit behind the login gate.
 export const metadata: Metadata = siteMetadata;
@@ -23,7 +25,8 @@ const display = Inter_Tight({ subsets: ["latin"], variable: "--font-display", di
 /**
  * Clerk around the page, only while Clerk runs (clerkOn, issue #33): in the test bed, in CI and on a deploy without
  * Clerk keys nothing loads or calls Clerk. Inside <body>, as Clerk asks for Next.js 16. It names the sign-in pages, so
- * Clerk's own links (Join the waitlist, Sign in) stay on this site, and its cards take the narrow column's width.
+ * Clerk's own links (Join the waitlist, Sign in) stay on this site, and its cards wear the site's tokens, font and flat
+ * controls and take the narrow column's width (clerkAppearance, issue #76).
  * ClerkOn tells the sign-out button to end Clerk's session too.
  */
 function WithClerk({ children }: { children: ReactNode }) {
@@ -33,7 +36,7 @@ function WithClerk({ children }: { children: ReactNode }) {
       signInUrl={SIGN_IN_PATH}
       signUpUrl={SIGN_UP_PATH}
       waitlistUrl={JOIN_PATH}
-      appearance={{ elements: { rootBox: "w-full", cardBox: "w-full max-w-full" } }}
+      appearance={clerkAppearance}
     >
       <ClerkOn>{children}</ClerkOn>
     </ClerkProvider>
@@ -41,9 +44,14 @@ function WithClerk({ children }: { children: ReactNode }) {
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  // One Light theme (decision #17): globals.css sets it on :root, so <html> needs no theme attributes or head script.
+  // Light and Dark (ADR 0019): the head script sets the theme on <html> before the first paint, from the `theme` cookie or
+  // the device's setting. <html> carries no theme props, so router.refresh() never strips what the script set, and the
+  // server never reads the cookie (pages stay static). suppressHydrationWarning: the script changes <html> before React.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className={`min-h-screen antialiased ${text.variable} ${display.variable}`}>
         <WithClerk>
           <RouteBar />
