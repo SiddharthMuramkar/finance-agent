@@ -26,6 +26,12 @@ topics:
     lastRound: "131125b"
     open: 0
     note: Round 3 (ws-i-round2) read the Topic rebuilt on one Webvan Case, its computed questions on Webvan's own plan; 2 confirmed, fixed. Findings in ws-i-round2-critics.json in pull request 616's history.
+  spine-statements:
+    lenses: [beginner-persona, math-police, historian, widget-fit]
+    rounds: 1
+    lastRound: "3e4dba6"
+    open: 0
+    note: New with the split of the cash Topic (#90). The entry lands with the Topic file, as the course check needs; the round itself is the orchestrator's critics round after the build, which sets lastRound to the commit that fixed its confirmed findings.
   spine-04-growth:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 2
