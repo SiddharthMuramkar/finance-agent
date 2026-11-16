@@ -587,6 +587,25 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /**
+   * Go deeper at the Concept step (spec #68): the Tutor gives Topic 1's Go deeper material, in the Topic file's own words
+   * (src/dev/e2e-tutor.test.ts holds the two together), then an invitation.
+   */
+  "spine1-go-deeper": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Behind the four levers sits one sum that code does for you. " +
+              "Each year's cash is worth less the further away it is, so code shrinks every future year's cash by the cost of capital and adds the years up. " +
+              "Take away what the company owes and what it has promised its staff, split the rest over its shares, and you have a value for one share.\n\n" +
+              "Why might a higher cost of capital shrink the far years most?",
+          ),
+        ],
+      },
+    ],
+  },
   /** Principle: the rule to keep. */
   "spine1-principle": {
     step: "principle",

@@ -53,7 +53,7 @@ export async function storeTopicComplete(db: Db, map: CourseMap, learnerId: numb
     .orderBy(desc(sessionItems.afterSeq), desc(sessionItems.id))
     .limit(1);
   if (latest?.kind === TOPIC_COMPLETE) return null;
-  const data: TopicCompleteData = { topicId: topic.id, title: topic.title, principle: principleLine(topic.principle), next: whatComesNext(map, progress)?.label ?? null };
+  const data: TopicCompleteData = { topicId: topic.id, title: topic.title, principle: principleLine(topic.principle), next: whatComesNext(map, progress)?.label ?? null, ...(topic.dailyLife && { dailyLife: topic.dailyLife }) };
   await saveItemAfterLatest(db, learnerId, sessionId, { kind: TOPIC_COMPLETE, data }, now);
   const found = cardFound(map, topic.id, await loadWidgetStates(db, sessionId, learnerId));
   return { kind: TOPIC_COMPLETE, data: { ...data, found } };
