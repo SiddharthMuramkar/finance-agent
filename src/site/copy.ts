@@ -90,7 +90,7 @@ export const legal = {
       {
         heading: "Cookies",
         body: [
-          "There are no ad or tracking cookies. Clerk sets __session and __client_uat on this site, and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark. A private copy that signs in with a passcode instead of Clerk uses fa_access for that.",
+          "There are no ad or tracking cookies. Clerk sets __session and __client_uat on this site (and copies of them whose names end in a short code, such as __session_Ab12), and __client on clerk.value-it.xyz, to know whether you’re signed in. A private copy that signs in with a passcode instead of Clerk uses fa_access for that. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark.",
         ],
       },
       {
@@ -118,7 +118,7 @@ export const legal = {
       {
         heading: "Not advice",
         body: [
-          "Nothing here is investment, financial, tax or legal advice. The cases are past events and the numbers are there to learn from. Make your own decisions, and ask a licensed adviser about your own money.",
+          "Nothing here is investment, financial, tax or legal advice. The Topics and Examples are past events and the numbers are there to learn from. Make your own decisions, and ask a licensed adviser about your own money.",
         ],
       },
       {
@@ -287,7 +287,7 @@ export const FAQ = [
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
   { q: "How do I get in?", a: "Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
-  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. The site’s own cookies: Clerk, which runs sign-in, sets __session and __client_uat here and __client on clerk.value-it.xyz, to know whether you’re signed in. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark. A private copy that signs in with a passcode instead of Clerk uses fa_access. The Privacy page has the rest." },
+  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. The site’s own cookies: Clerk, which runs sign-in, sets __session and __client_uat here (and copies whose names end in a short code) and __client on clerk.value-it.xyz, to know whether you’re signed in; a private copy that signs in with a passcode instead of Clerk uses fa_access. In the Study Workspace, a cookie called split remembers how wide you set the two columns. If you press the sun/moon switch, a cookie called theme remembers Light or Dark. The Privacy page has the rest." },
 ] as const;
 
 export const howItWorks = {
@@ -370,7 +370,7 @@ export const COURSE = {
     { category: "Economics & policy", title: "India's economy and the 1991 reforms" },
     { category: "Judge", title: "Junk or BB+?" },
     { category: "Banks, crises & the system", title: "Securitisation, MBS and CDOs" },
-    { category: "Follow", title: "OpenAI’s cheap AI prices (Sep 2024)" },
+    { category: "Follow", title: "OpenAI’s low AI prices (Sep 2024)" },
     { category: "Analyse", title: "Transfer to India (G-sec, bank, rupee)" },
   ],
 } as const;

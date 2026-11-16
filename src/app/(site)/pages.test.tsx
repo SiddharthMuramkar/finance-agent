@@ -252,6 +252,9 @@ describe("Privacy, Terms and the contact address", () => {
     for (const name of ["Clerk", "Neon", "Vercel Web Analytics", "OpenAI", "Voyage AI", "__session", "__client_uat", "split", "sets no cookie"]) {
       expect(text, name).toContain(name);
     }
+    // F32: Clerk's suffixed copies are named, and "for that" follows the sign-in sentence it refers to.
+    expect(text).toContain("__session_Ab12");
+    expect(text).toMatch(/to know whether you’re signed in\. A private copy that signs in with a passcode instead of Clerk uses fa_access for that\./);
   });
 
   it("the footer links Privacy and Terms and shows the contact address as text, for every viewer", () => {
@@ -376,6 +379,8 @@ describe("the plain words", () => {
     ["Examples", await ExamplesPage()],
     ...(await Promise.all(EXAMPLE_SLUGS.map(async (slug) => [slug, await casePage.default(params(slug))] as const))),
     ["About", await AboutPage()],
+    ["Privacy", await PrivacyPage()],
+    ["Terms", await TermsPage()],
   ] as const;
 
   it("no page says 'your story' or calls an Example a case", async () => {
@@ -383,6 +388,7 @@ describe("the plain words", () => {
       const text = words(renderToStaticMarkup(page));
       expect(text, name).not.toMatch(/your story/i);
       expect(text, name).not.toMatch(/\bcases?\b/); // a course Case keeps its capital
+      expect(text, name).not.toMatch(/\bcheap/i); // voice rule 7 (F32)
     }
   });
 
