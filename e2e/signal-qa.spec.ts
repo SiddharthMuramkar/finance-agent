@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { examplePath } from "../src/site/examples";
 import { SITE_PAGES } from "../src/site/routes";
 import { quietDevtools, siteReady } from "./support/app";
 
