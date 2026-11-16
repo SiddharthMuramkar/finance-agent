@@ -179,7 +179,7 @@ describe("Topic 7 split into the cost of equity and the cost of capital (#91)", 
     const { outline } = parseOutline(
       readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8"),
     );
-    const told = outline.topics.find((t) => t.id === RISK)!.cases[0];
+    const told = outline!.topics.find((t) => t.id === RISK)!.cases[0];
     expect(told.sources).toContain(
       "https://pages.stern.nyu.edu/~adamodar/pdfiles/dcfveg.pdf",
     );
