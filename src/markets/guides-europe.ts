@@ -13,6 +13,7 @@ const IFRS_18 = { source: "IFRS 18, Presentation and Disclosure in Financial Sta
 const IAS_12 = { source: "IAS 12, Income Taxes, paragraph 81(c) (IFRS Foundation)", sourceUrl: "https://www.ifrs.org/issued-standards/list-of-standards/ias-12-income-taxes/" };
 const IFRS_16 = { source: "IFRS 16, Leases (IFRS Foundation)", sourceUrl: "https://www.ifrs.org/issued-standards/list-of-standards/ifrs-16-leases/" };
 const IAS_7 = { source: "IAS 7, Statement of Cash Flows (IFRS Foundation)", sourceUrl: "https://www.ifrs.org/issued-standards/list-of-standards/ias-7-statement-of-cash-flows/" };
+const IFRS_8 = { source: "IFRS 8, Operating Segments (IFRS Foundation)", sourceUrl: "https://www.ifrs.org/issued-standards/list-of-standards/ifrs-8-operating-segments/" };
 const EURONEXT = { source: "Euronext, share prices of listed companies", sourceUrl: "https://live.euronext.com/en" };
 
 export const EUROPE_GUIDE = [
@@ -40,6 +41,19 @@ export const EUROPE_GUIDE = [
       pro: "the AFR is due within four months of the year end",
       example: "A company closing on 31 December 2025 publishes its annual financial report by 30 April 2026.",
       emoji: "calendar",
+    },
+  },
+  {
+    field: "industry",
+    where:
+      'The management report says what the company makes and sells. The segment note (IFRS 8, "Operating segments") splits revenue by business: pick the industry that brings in most of it, or "Any other firm" when it is none of them. Banks and insurers do not fit the Own Case.',
+    ...IFRS_8,
+    lingo: {
+      term: "Operating segment",
+      means: "A part of the business the report counts on its own, with its own revenue and profit.",
+      pro: "segment revenue shows where the sales come from",
+      example: "A dairy group that also sells bottled water earns most of its revenue from food: a food processor.",
+      emoji: "factory",
     },
   },
   {
@@ -110,7 +124,7 @@ export const EUROPE_GUIDE = [
   {
     field: "shares",
     where:
-      'The notes on equity: the number of shares issued at the year end, less the treasury shares the company holds ("shares outstanding"). Not the euro share capital, and not the weighted average in the earnings-per-share note.',
+      'The notes on equity: the number of shares issued at the year end, less the treasury shares the company holds ("shares outstanding"). Type the full count, one by one: a note that counts shares in millions or thousands is multiplied out (640.2 million is 640,200,000). Not the euro share capital, and not the weighted average in the earnings-per-share note.',
     ...IAS_1,
     lingo: {
       term: "Treasury shares",
@@ -123,7 +137,7 @@ export const EUROPE_GUIDE = [
   {
     field: "price",
     where:
-      "Not in the accounts: on the home exchange's site (Euronext, Xetra), find the company and read the closing price in euros a share on the report's date. If that day had no trading, use the last trading day before it. A price in pounds, pence or francs does not fit the Europe Own Case.",
+      "Not in the accounts: on the home exchange's site (Euronext, Xetra), find the company and read the closing price in euros a share on the report's date. If that day had no trading, use the next trading day: a day before it could not know the figures. A price in pounds, pence or francs does not fit the Europe Own Case.",
     ...EURONEXT,
     lingo: {
       term: "Closing price",

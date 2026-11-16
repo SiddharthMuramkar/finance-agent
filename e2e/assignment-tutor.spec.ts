@@ -13,8 +13,14 @@ test.beforeEach(async ({}, info) => {
   test.skip(info.project.name !== "mbp14", "one viewport is enough here");
 });
 
-/** A food company typed with an operating margin of 45%: more than double Food Processing's 7.26% (India, Jan 2026). */
-const FIGURES = { sales: "10,000", operatingProfit: "4,500", taxPercent: "25", debt: "3,300", cash: "2,900", shares: "98,94,34,000", price: "1090" } as const;
+/**
+ * A food company typed with an operating margin of 45%: more than double Food Processing's 7.26% (India, Jan 2026). Dated
+ * when its figures were public (F07, G33): Tata Consumer's Board approved the year to 31 Mar 2025 on 23 Apr 2025 (the
+ * signature page of its 2024-25 financial statements, https://www.tataconsumer.com/iar-2024-25/docs/Financial_Statements.pdf,
+ * and its results filing that day, https://nsearchives.nseindia.com/corporate/Madhur_23042025155102_Results.pdf), with
+ * NSE's close that day, ₹1,150.10 (NSE bhavcopy sec_bhavdata_full_23042025.csv, TATACONSUM EQ, read 2026-11-16).
+ */
+const FIGURES = { sales: "10,000", operatingProfit: "4,500", taxPercent: "25", debt: "3,300", cash: "2,900", shares: "98,94,34,000", price: "1,150.10" } as const;
 
 test("the Tutor in the Assignment names the flagged input of the Learner's Own Case", async ({ person, page: tools }) => {
   test.setTimeout(180_000); // the dev server compiles each page on first visit
@@ -22,7 +28,7 @@ test("the Tutor in the Assignment names the flagged input of the Learner's Own C
   await page.goto("/assignment");
   const form = page.locator("[data-own-case-form]");
   await form.getByLabel("Company").fill("Tata Consumer Products");
-  await form.getByLabel("Date of the annual report").fill("2025-03-31");
+  await form.getByLabel("Date of the annual report").fill("2025-04-23");
   await form.locator('[data-industry="food"]').click();
   for (const [key, value] of Object.entries(FIGURES)) await form.locator(`[data-own-case-field="${key}"]`).fill(value);
   await form.getByRole("button", { name: "Value it" }).click();

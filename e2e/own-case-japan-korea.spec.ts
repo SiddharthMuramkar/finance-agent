@@ -50,7 +50,7 @@ const MARKETS = [
 /** Every figure has a guide line with an https source link and a Lingo card that opens. */
 async function expectGuides(form: Locator, report: string) {
   const lines = form.locator("[data-own-case-guide]");
-  await expect(lines).toHaveCount(9);
+  await expect(lines).toHaveCount(10);
   for (const line of await lines.all()) {
     await expect(line.locator("[data-guide-source]")).toHaveAttribute("href", /^https:\/\//);
     await expect(line.locator("[data-guide-lingo] summary")).toContainText("Lingo: ");

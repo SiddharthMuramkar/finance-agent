@@ -12,7 +12,7 @@ const NOW = new Date("2026-11-16T10:00:00Z");
 const TATA: OwnCaseInputs = {
   company: "Tata Consumer Products",
   market: "IN",
-  reportDate: "2025-03-31",
+  reportDate: "2025-04-23", // the Board approved the year to 31 Mar 2025 on 23 Apr 2025, when the figures were public (F07)
   industry: "food",
   sales: 17_618,
   operatingProfit: 2_413,
@@ -20,7 +20,7 @@ const TATA: OwnCaseInputs = {
   debt: 3_300,
   cash: 2_900,
   shares: 989_434_000,
-  price: 1_090,
+  price: 1_150.1, // NSE close on 23 Apr 2025 (as e2e/assignment-tutor.spec.ts)
 };
 
 async function passSpine(db: Db, learnerId: number) {
@@ -42,13 +42,13 @@ describe("Own Cases", () => {
     const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, TATA, openingEstimate("food"), NOW);
     expect(saved.ok).toBe(true);
     if (!saved.ok) return;
-    expect(saved.note).toContain("Tata Consumer Products, India. Annual report of 31 Mar 2025. Industry: Food processors.");
-    expect(saved.note).toContain("price ₹1,090 on 31 Mar 2025");
+    expect(saved.note).toContain("Tata Consumer Products, India. Annual report of 23 Apr 2025. Industry: Food processors.");
+    expect(saved.note).toContain("price ₹1,150 on 23 Apr 2025");
     expect(saved.note).toContain("The engine's value: ");
     expect(saved.note).not.toMatch(/your story|cheap|dear|undervalued|overvalued|\bbuy\b|\bsell\b/i);
 
     const notes = await loadOwnCaseNotes(db, OWNER_LEARNER_ID);
-    expect(notes).toEqual([expect.objectContaining({ id: saved.id, company: "Tata Consumer Products", reportDate: "2025-03-31", note: saved.note })]);
+    expect(notes).toEqual([expect.objectContaining({ id: saved.id, company: "Tata Consumer Products", reportDate: "2025-04-23", note: saved.note })]);
     const [other] = await db.insert(learners).values({ name: "other" }).returning();
     expect(await loadOwnCaseNotes(db, other.id)).toEqual([]);
   });
@@ -60,8 +60,19 @@ describe("Own Cases", () => {
     if (!value.ok) throw new Error(value.error);
     expect(value.valuePerShare).toBeLessThan(0);
     const note = ownCaseNote(deep, openingEstimate("food"), value);
-    expect(note).toContain("The engine's value: ₹0 a share, beside a price of ₹1,090 on 31 Mar 2025. Lenders take everything: nothing is left for shareholders.");
+    expect(note).toContain("The engine's value: ₹0 a share, beside a price of ₹1,150 on 23 Apr 2025. Lenders take everything: nothing is left for shareholders.");
     expect(note).not.toMatch(/-₹/);
+  });
+
+  it("with no debt, a value at or below zero blames the losses, not lenders (L05)", () => {
+    // No debt and no cash, and a loss near the year's sales: the business is worth less than nothing.
+    const losses = { ...TATA, debt: 0, cash: 0, operatingProfit: -17_000 };
+    const value = valueOwnCase(losses, openingEstimate("food"), NOW);
+    if (!value.ok) throw new Error(value.error);
+    expect(value.valuePerShare).toBeLessThan(0);
+    const note = ownCaseNote(losses, openingEstimate("food"), value);
+    expect(note).toContain("Losses use up the whole value: nothing is left for shareholders.");
+    expect(note).not.toContain("Lenders");
   });
 
   it("says in the note that employee stock options were not entered (F26)", async () => {
@@ -85,21 +96,21 @@ describe("Own Cases", () => {
     const apple: OwnCaseInputs = {
       company: "Apple Inc.",
       market: "US",
-      reportDate: "2025-09-27",
+      reportDate: "2025-10-31",
       industry: "market",
       sales: 416_161,
       operatingProfit: 133_050,
-      taxPercent: 21,
-      debt: 98_657,
+      taxPercent: 25,
+      debt: 112_377,
       cash: 35_934,
       shares: 14_776_353_000,
-      price: 255.46,
+      price: 270.37,
     };
     const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, apple, openingEstimate("market", "US"), NOW);
     expect(saved.ok).toBe(true);
     if (!saved.ok) return;
-    expect(saved.note).toContain("Apple Inc., the US. Annual report of 27 Sep 2025. Industry: Any other firm (not a bank or insurer).");
-    expect(saved.note).toContain("14,776,353,000 shares, price $255 on 27 Sep 2025");
+    expect(saved.note).toContain("Apple Inc., the US. Annual report of 31 Oct 2025. Industry: Any other firm (not a bank or insurer).");
+    expect(saved.note).toContain("14,776,353,000 shares, price $270 on 31 Oct 2025");
     expect(saved.note).toContain("$1.43 of sales for each $1 invested");
     expect(saved.note).not.toContain("₹");
   });

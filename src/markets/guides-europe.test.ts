@@ -22,5 +22,8 @@ describe("the annual-report guide for Europe", () => {
     for (const field of GUIDE_FIELDS) expect(europe[field].where, field).not.toMatch(/London|year-end close/);
     expect(europe.debt.source).toContain("IFRS 16");
     expect(europe.taxPercent.source).toContain("IAS 12");
+    // G16: shares as the full count, never in millions; a shut market's price is the next trading day's (L03).
+    expect(europe.shares.where).toContain("640.2 million is 640,200,000");
+    expect(europe.price.where).toContain("use the next trading day");
   });
 });
