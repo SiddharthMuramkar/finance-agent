@@ -24,10 +24,12 @@ const spineItems: OpenItem[] = [
     c.quickTries.flatMap((q) => ("choices" in q && Array.isArray(q.choices) ? [{ prompt: String(q.ask), choices: q.choices.map((x) => x.text), answer: q.choices.find((x) => x.id === q.answer)?.text }] : [])),
   ),
 ];
-const isSpine = (name: E2eScriptName) => name.startsWith("spine1-");
+const isSpine = (name: E2eScriptName) => name.startsWith("spine1-") || name.startsWith("spine15-");
+/** The ready-Case valuation Topic, whose scripts e2e/spine-15-judge.spec.ts plays. */
+const judge = map.topic("spine-15-value-yourself")!;
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
-  const t = isSpine(name) ? spine : topic;
+  const t = name.startsWith("spine15-") ? judge : isSpine(name) ? spine : topic;
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
@@ -68,6 +70,9 @@ describe("the scripted Tutor", () => {
       "spine1-talk-prompt",
       "spine1-talk-your-turn",
       "spine1-your-turn",
+      "spine15-concept",
+      "spine15-explore",
+      "spine15-story",
       "stage-reply-2",
       "stage-reply-3",
       "stage-reply-4",
@@ -103,6 +108,17 @@ describe("the scripted Tutor", () => {
     expect(second).toHaveLength(1);
     expect(second[0]).not.toBe(first[0]);
     expect(draftOf("plain-reply").widgets).toHaveLength(0);
+  });
+});
+
+describe("the ready-Case valuation Topic's scripted Tutor", () => {
+  it("shows the Topic's explore Workbench as written: match_price with a chip for each Case, no Save my story", () => {
+    const bench = judge.explore!.workbench!;
+    const [widget] = draftOf("spine15-explore").widgets;
+    const params = widget.params as { title: string; inputs: Record<string, unknown> };
+    expect(params.title).toBe(bench.title);
+    expect(params.inputs).toEqual({ case: bench.case, ...bench.inputs });
+    expect(params.inputs.mode).toMatchObject({ kind: "match_price" });
   });
 });
 

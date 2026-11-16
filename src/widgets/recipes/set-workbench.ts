@@ -2,7 +2,7 @@ import { z } from "zod";
 import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { cashWaterfallLevers } from "../workbench/cash-waterfall-model";
-import { companyYearSchema, costOfCapitalFiguresSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, tradedMultipleSchema, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
+import { companyYearSchema, costOfCapitalFiguresSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, tradedMultipleSchema, modeCases, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
 import { multipleDecoderLevers } from "../workbench/multiple-decoder-model";
 import { cashWaterfallData, multipleDecoderData, terminalSeesawData, valueBridgeData, waccStackData } from "../workbench/registry";
 import { terminalSeesawLevers } from "../workbench/terminal-seesaw-model";
@@ -55,9 +55,9 @@ const leverValues = z
   .object({ revenue: z.number().optional(), margin: z.number().optional(), salesToCapital: z.number().optional(), risk: z.number().optional(), failure: z.number().optional() })
   .strict();
 
-/** Where a Case sits among all open mode's Case chips (Spine Topic 15), so the Widget opens on its chip; -1 when the mode lists no such Case. */
+/** Where a Case sits among the mode's Case chips (all open or match price), so the Widget opens on its chip; -1 when the mode lists no such Case. */
 function casePlace(id: string, mode: ValueLeversMode | undefined): number {
-  return mode?.kind === "all_open" && mode.cases ? mode.cases.findIndex((c) => c.id === id) : -1;
+  return modeCases(mode)?.findIndex((c) => c.id === id) ?? -1;
 }
 
 /** The mode as the Tutor reads it: a short shape, checked in full by valueLeversModeSchema (data-schemas.ts). */
@@ -84,14 +84,15 @@ const valueLeversInputs = z
       ctx.addIssue({ code: "custom", path: ["mode"], message: issuesText(mode.error) });
       return;
     }
-    // Each Case the Learner can switch between (all open mode) must be a real Valuation Case, and the Case it opens on one
-    // of them: the chip starts on that Case, so a call naming one the list lacks would draw another company.
-    if (mode?.success && mode.data.kind === "all_open" && mode.data.cases) {
-      for (const [i, c] of mode.data.cases.entries()) {
+    // Each Case the Learner can switch between (a mode's Case chips) must be a real Valuation Case, and the Case it opens on
+    // one of them: the chip starts on that Case, so a call naming one the list lacks would draw another company.
+    const chips = mode?.success ? modeCases(mode.data) : undefined;
+    if (mode?.success && chips) {
+      for (const [i, c] of chips.entries()) {
         if (!valuationCase(c.id)) ctx.addIssue({ code: "custom", path: ["mode", "cases", i, "id"], message: `not a Valuation Case; one of: ${valuationCaseIds().join(", ")}` });
       }
       if (casePlace(inputs.case, mode.data) < 0) {
-        ctx.addIssue({ code: "custom", path: ["case"], message: `not one of the mode's Cases; one of: ${mode.data.cases.map((c) => c.id).join(", ")}` });
+        ctx.addIssue({ code: "custom", path: ["case"], message: `not one of the mode's Cases; one of: ${chips.map((c) => c.id).join(", ")}` });
       }
     }
     const specs = leverSpecs(block, mode?.data);
@@ -184,9 +185,9 @@ export const valueLevers = defineRecipe({
     const start: LeverSettings = { ...openingSettings(leverSpecs(block, mode)), ...inputs.start };
     const moves = Object.values(MOVE_VARIABLES);
     const market = mode?.kind === "market";
-    // All open mode may let the Learner switch Case with a chip; that pick is its own $variable, after the market slot, and
-    // starts on the chip of the Case the call names (the inputs' check makes it one of them).
-    const picker = mode?.kind === "all_open" && !!mode.cases;
+    // All open and match price modes may let the Learner switch Case with a chip; that pick is its own $variable, after the
+    // market slot, and starts on the chip of the Case the call names (the inputs' check makes it one of them).
+    const picker = !!modeCases(mode);
     const args = [
       str(inputs.case),
       ...LEVER_IDS.map((id) => `$${LEVER_VARIABLES[id]}`),

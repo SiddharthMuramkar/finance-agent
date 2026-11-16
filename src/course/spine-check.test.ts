@@ -23,6 +23,13 @@ describe("a Spine Topic missing a part fails the course check (C2)", () => {
     expect(courseCheck(SPINE_TOPIC_DATA)).toEqual([]);
   });
 
+  it("fails with a Workbench that saves the Learner's own story (all_open, \"Save my story\")", () => {
+    const errors = shape((d) => void ((d.explore.workbench.inputs as Record<string, unknown>).mode = { kind: "all_open" }));
+    expect(errors).toEqual([
+      'Spine Topic "spine-01-worth" explores Value levers in all_open mode, which saves the Learner\'s own story; on the Spine the Learner judges a published Story, so give it a judging mode such as match_price (spec C2)',
+    ]);
+  });
+
   it("fails with no Workbench Widget at explore", () => {
     const errors = shape((d) => void delete (d.explore as { workbench?: unknown }).workbench);
     expect(errors).toEqual([
