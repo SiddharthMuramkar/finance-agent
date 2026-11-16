@@ -5,6 +5,7 @@ import { valuationCaseIds } from "@/finance/valuation-cases";
 import { findValuation, type OwnCases } from "@/finance/valuation-lookup";
 import { near, niceUp, oneFigure, onStep, type BenchLever, type BenchReading } from "./bench";
 import { modeCases, topicStorySchema, valueLeversModeSchema, type Market, type TopicStory, type ValueLeversMode } from "./data-schemas";
+import { MONTHS } from "../months";
 
 // Value levers, the first Workbench Widget (spec 2026-11-12, B3; ADR 0010), as pure functions over one Case's valuation
 // block: the four Levers and "More settings" with their ranges, the value a story gives (from the one valuation engine,
@@ -124,7 +125,6 @@ export function valueText(value: number, block: ValuationBlock): string {
   return block.per === "company" ? moneyText(value, block) : priceText(value, block);
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** An ISO date as the Widget writes it: "1 Feb 2000". */
 export function dateText(iso: string): string {
