@@ -147,7 +147,7 @@ export const FAQ = [
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
   { q: "How do I get in?", a: "Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
-  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie." },
+  { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie. If you press the sun/moon switch, a cookie called theme remembers Light or Dark, and nothing else." },
 ] as const;
 
 export const howItWorks = {
