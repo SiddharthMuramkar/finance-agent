@@ -52,7 +52,7 @@ test("[7.2.1, QA 1] Home opens on the finished jackpot conversation, its control
   const calls = apiCalls(page);
   await openHome(page);
   const thread = page.getByTestId("demo-thread");
-  await expect(thread).toContainText("Is a $1.537B jackpot really worth $1.537B?");
+  await expect(thread).toContainText("Is ₹25 crore over 30 years worth ₹25 crore?");
   await expect(thread).toContainText("The Tutor picked this widget. Tested code draws it.");
   const jackpot = thread.locator('[data-widget="jackpot"]');
   await expect(jackpot).toBeVisible();
@@ -84,7 +84,7 @@ test("[QA 25] with reduced motion the demo answers at once", async ({ page }, in
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openHome(page);
   const played = await recordDemo(page);
-  await page.getByRole("group", { name: "Pick a question" }).getByRole("button", { name: "Rates up 1%" }).click();
+  await page.getByRole("group", { name: "Pick a question" }).getByRole("button", { name: "The RBI’s June cut" }).click();
   await expect(page.getByTestId("demo-thread").locator('[data-widget="rates"]')).toBeVisible();
   // No typing dots and no skeleton: the widget is the first and only part to appear.
   expect(await played()).toEqual(["widget"]);

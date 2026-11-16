@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "How it works", description: "Every Topic is one real event, taught in four moves, in 10 to 15 minutes." };
 
-const RATES = exampleBySlug("rates-up-1")!;
+const RATES = exampleBySlug("rbi-repo-cut-2025")!;
 
 /** The annotated Study Workspace mock (7.3 item 3): chat left, a widget right, the 15-step bar and four callouts. */
 function WorkspaceMock() {

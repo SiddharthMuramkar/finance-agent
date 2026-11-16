@@ -92,10 +92,10 @@ test("[QA 26] chips, sliders, levers, presets, toggles and reveals work from the
   test.setTimeout(120_000);
 
   // A chip and a slider (rates), and a reveal.
-  await page.goto("/examples/rates-up-1");
+  await page.goto("/examples/rbi-repo-cut-2025");
   await siteReady(page);
   const rates = page.getByTestId("case-widget");
-  const chip = rates.getByRole("button", { name: "Up 1%" });
+  const chip = rates.getByRole("button", { name: "Down 0.5%" });
   await tabTo(page, chip);
   await page.keyboard.press("Space");
   await expect(chip).toHaveClass(/is-careful/);
