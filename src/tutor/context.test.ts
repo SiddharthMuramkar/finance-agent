@@ -194,11 +194,11 @@ describe("what the Topic Start card offers, in each turn's context (A8)", () => 
     return { facts, text: stepContext(place, [], undefined, false, undefined, facts) };
   }
 
-  it("says Spine Topic 15 has no quick quiz: it ends on the Learner's own work", async () => {
+  it("says the ready-Case valuation Topic offers the quick quiz, like any other Spine Topic (Owner, 2026-11-16)", async () => {
     const { facts, text } = await contextAt("spine-15-value-yourself");
-    expect(facts.skipAhead).toBe("none");
-    expect(text).toContain(SKIP_AHEAD_LINES.none);
-    expect(text).not.toContain(SKIP_AHEAD_LINES.offer);
+    expect(facts.skipAhead).toBe("offer");
+    expect(text).toContain(SKIP_AHEAD_LINES.offer);
+    expect(text).not.toContain(SKIP_AHEAD_LINES.none);
   });
 
   it("says the card offers it on a Topic that has one, before today's quiz is taken", async () => {

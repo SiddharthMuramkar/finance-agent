@@ -225,7 +225,7 @@ export const COURSE = {
     { n: "12", title: "Is a price a value? Multiples and comparables", min: 13 },
     { n: "13", title: "What does the price assume?", min: 13 },
     { n: "14", title: "How do you live with being wrong?", min: 14 },
-    { n: "15", title: "Value one yourself, as of a past date", min: 15 },
+    { n: "15", title: "Judge a published valuation, as of a past date", min: 15 },
   ],
   subjects: [
     { name: "Numbers & time value", count: 6 },
