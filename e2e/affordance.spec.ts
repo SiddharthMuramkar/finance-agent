@@ -11,7 +11,8 @@ import { WIDGET_CONTENT, auditAffordances, pressLook } from "./support/measure";
  * app's chrome lifts, sinks or is a pill). Widgets are judged the same way (ADR 0018). Measured at 1512×982.
  */
 
-const PROJECTS = ["mbp14"];
+// And mbp14-dark: the same audits in Dark (ADR 0019, #80), on a device set to dark.
+const PROJECTS = ["mbp14", "mbp14-dark"];
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(!PROJECTS.includes(info.project.name), "measured at 1512×982");
@@ -182,11 +183,15 @@ const lookOf = (el: Element) => {
 };
 const STILL = { transform: "none", translate: "none", scale: "none", shadow: "none" };
 
-// The primary fill at rest, on hover and on press (the --fill, --fill-hover and --fill-active tokens: the spec's blues).
-const FILL = ["rgb(31, 63, 174)", "rgb(26, 53, 150)", "rgb(21, 43, 122)"] as const;
-const INK_2 = "rgb(48, 53, 63)";
+// The primary fill at rest, on hover and on press (the --fill, --fill-hover and --fill-active tokens: the spec's blues),
+// and --ink-2, in each theme's block of globals.css (Dark: ADR 0019, #80).
+const PRESS = {
+  light: { fill: ["rgb(31, 63, 174)", "rgb(26, 53, 150)", "rgb(21, 43, 122)"], ink2: "rgb(48, 53, 63)" },
+  dark: { fill: ["rgb(138, 164, 255)", "rgb(159, 181, 255)", "rgb(179, 196, 255)"], ink2: "rgb(211, 215, 223)" },
+} as const;
 
-test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }) => {
+test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }, info) => {
+  const { fill: FILL, ink2: INK_2 } = PRESS[info.project.name.endsWith("-dark") ? "dark" : "light"];
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seed(page, "many-topics");
   await page.goto("/settings");
