@@ -99,7 +99,7 @@ export function ownCaseSheet(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, r
   const engineInputs = toEngineInputs(valued);
   const value = valueStory(engineInputs);
   if (!value.ok) return value;
-  const opening = openingEstimate(inputs.industry);
+  const opening = openingEstimate(inputs.industry, inputs.market);
   const marked = (input: SheetInput) => {
     const origins = originsOf(FROM[input], estimate, opening);
     return { from: FROM[input], origins, originWords: wordsOf(origins) };
@@ -122,7 +122,7 @@ export function ownCaseSheet(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, r
       term: "Share price",
       pro: "The price one share last traded at, on the report's date",
       means: "What one share sold for on the day the report closes; the Own Case's value is read beside it.",
-      example: `₹${inputs.price} for one share, on the day the report closes.`,
+      example: `${priceText(inputs.price, block)} for one share, on the day the report closes.`,
       emoji: "receipt",
     },
     ...marked("price"),
