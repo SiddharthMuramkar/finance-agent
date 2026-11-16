@@ -253,7 +253,7 @@ async function playTopicOne(page: Page) {
   await page.goto("/study");
   await replyLanded(page);
   await expect(page.getByTestId("topic-bar")).toContainText("What is a business worth?");
-  await expect(currentStep(page)).toHaveText(/^Story — Step 1 of \d+$/);
+  await expect(currentStep(page)).toHaveText(/^The moment — Step 1 of \d+$/);
   await landedAsWritten(page, "spine1-story");
   await record(page, "[opened the Topic]", "spine1-story");
   await shoot(page, "story");

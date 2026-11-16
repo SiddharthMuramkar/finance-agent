@@ -219,7 +219,7 @@ describe("the Learner's Next", () => {
     const next = await turn(db, { next: "concept" }, [say("Now the concept.")], plain, () => later);
     expect(next.events.map((e) => e.type)).toEqual(["item", "item", "text", "item", "done"]);
     expect(seen(await loadThread(db, sessionOf(first.events), plain, OWNER_LEARNER_ID)).slice(2)).toEqual([
-      { role: "item", kind: "picking_up", data: expect.objectContaining({ label: "Picking up where you left off · Step 1 of 6 · Story" }) },
+      { role: "item", kind: "picking_up", data: expect.objectContaining({ label: "Picking up where you left off · Step 1 of 6 · The moment" }) },
       { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },
       { role: "assistant", text: "Now the concept." },
     ]);
