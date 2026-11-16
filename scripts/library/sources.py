@@ -2,7 +2,7 @@
 
 Run from the laptop, with a scratch folder OUTSIDE this repo (downloads are cached there):
   python3 -I scripts/library/sources.py <source> <scratch dir> <documents.json>
-where <source> is one of: damodaran-papers, yale-econ-251, yale-econ-252, fed-explained,
+where <source> is one of: damodaran-papers, fed-explained,
 nyfed, investor-gov, fomc-historical, sec-anthropic-s1, sec-amazon-1997-2000, sec-webvan-1999-2001, sec-wework-s1-2019. Each writes a JSON
 list of documents ({ref, title, url, publishedOn, sections}) for `npm run library:load`, which cleans, cuts, repairs and checks
 the text. Nothing extracted is written into the repo: the source text lives only in the private database.
@@ -200,35 +200,6 @@ def vision_pages(pages, max_words=40):
 
 
 # ---------------------------------------------------------------- sources
-
-def yale(course, scratch, out):
-    """ECON 251 (Financial Theory, Geanakoplos, 2009) or ECON 252 (Financial Markets, Shiller, 2011): transcripts of every lecture."""
-    slug, label, taught = {"251": ("econ-251", "ECON 251 Financial Theory", "2009"), "252": ("econ-252-11", "ECON 252 Financial Markets", "2011")}[course]
-    base = f"https://oyc.yale.edu/economics/{slug}"
-    index = fetch(f"https://oyc.yale.edu/economics/{slug.removesuffix('-11')}", Path(scratch) / f"yale-{slug}.html")
-    lectures = sorted(set(re.findall(rf'href="/economics/{slug}/lecture-(\d+)"', index)), key=int)
-    docs = []
-    for n in lectures:
-        page = fetch(f"{base}/lecture-{n}", Path(scratch) / f"yale-{slug}-{n}.html")
-        start = page.find('id="transcript-top"')
-        if start < 0:
-            print(f"no transcript on lecture {n}")
-            continue
-        body = page[start:]
-        body = body[body.find(">") + 1 :]
-        end = body.find('class="element-hidden"')
-        body = body[: end if end > 0 else len(body)]
-        title_match = re.search(r"<h2>(.*?)</h2>", body, re.S)
-        title = html.unescape(re.sub(r"<[^>]+>", "", title_match.group(1))).strip() if title_match else f"{label}, lecture {n}"
-        title = re.sub(r"^ECON \d+ - ", "", title)
-        # Chapter markers are <h3>; the transcript text follows as paragraphs inside the same <p>.
-        body = re.sub(r"<h1.*?</h1>|<h2.*?</h2>", "", body, flags=re.S).replace("<p><h3>", "<h3>")
-        sections = sections_from_blocks(html_blocks(body))
-        if sections:
-            docs.append({"ref": f"lecture-{n}", "title": f"{label}: {title}", "url": f"{base}/lecture-{n}", "publishedOn": None, "sections": sections})
-    Path(out).write_text(json.dumps(docs))
-    print(f"{label}: {len(docs)} lectures, {sum(len(p.split()) for d in docs for s in d['sections'] for p in s['paragraphs'])} words (taught {taught})")
-
 
 def damodaran_papers(scratch, out):
     """Damodaran's papers page: every PDF it links under /pdfiles/papers/, dated by the file's own dates (the later of last-modified and PDF creation, so a paper is never dated earlier than it was published)."""
@@ -1093,10 +1064,6 @@ def main():
     Path(scratch).mkdir(parents=True, exist_ok=True)
     if source == "damodaran-papers":
         damodaran_papers(scratch, out)
-    elif source == "yale-econ-251":
-        yale("251", scratch, out)
-    elif source == "yale-econ-252":
-        yale("252", scratch, out)
     elif source == "fed-explained":
         fed_explained(scratch, out)
     elif source == "nyfed":
