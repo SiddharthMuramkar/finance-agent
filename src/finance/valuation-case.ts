@@ -34,6 +34,11 @@ export const valuationBlock = z
     unit: z.enum(["millions", "crores", "billions"]),
     /** Revenue in the base year, the year before year 1. */
     baseRevenue: z.number().positive(),
+    /**
+     * What the base revenue is, when it is not the last full year's sales: shown in place of "Today" beside lever 1
+     * (Webvan's $4.2m is its prospectus's sales from launch on 2 Jun to 30 Sep 1999: "Sales, Jun to Sep 1999").
+     */
+    baseRevenueLabel: z.string().trim().min(3).max(40).optional(),
     growthPercent: yearlyRates("growthPercent"),
     margin: z.union([halvingMargin, yearlyMargin]),
     /** The tax rate after year 10, and in every forecast year when `taxPercentByYear` is left out. */

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AMAZON_2000 } from "@/finance/fixtures/amazon-2000.valuation";
 import { valuationBlock } from "@/finance/valuation-case";
+import { valuationCase } from "@/finance/valuation-cases";
 import {
   barTop,
   biggestMover,
@@ -48,6 +49,13 @@ describe("the levers (B3)", () => {
     expect(byId.revenue.reading(39)).toBe("$39bn");
     expect(byId.revenue.spoken(39)).toBe("39 billion dollars");
     expect(byId.revenue.caption).toBe("Today: $1.1bn");
+  });
+
+  // Spine critics round 1 on #95 (historian): Webvan's $4.2m base is its prospectus's sales from launch to 30 Sep 1999, not a
+  // year's sales "today"; a block that names its base year's revenue shows that name in place of "Today".
+  it("names the base revenue as the Case's block does, when it says what the figure is", () => {
+    const webvan = valuationCase("webvan-centre-npv-2000")!;
+    expect(leverSpecs(webvan).find((s) => s.id === "revenue")!.caption).toBe("Sales, Jun to Sep 1999: $4.2m");
   });
 
   it("What it keeps: operating margin once mature, 2% to 20% in steps of 0.5, opening at 10%", () => {
