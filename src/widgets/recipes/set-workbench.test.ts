@@ -32,7 +32,7 @@ describe("value_levers (B3)", () => {
 
   it("tells the Tutor its levers and its Things to try when code shows it", () => {
     const { sliders, tasks } = widgetControls(built.code);
-    expect(sliders[0]).toBe("$revenue (How big it gets: revenue in year 10): 10 to 100 in steps of 1, starting at 39");
+    expect(sliders[0]).toBe("$revenue (How big it gets: sales in year 10): 10 to 100 in steps of 1, starting at 39");
     expect(sliders[3]).toBe("$risk (How risky: cost of capital while it grows): 10 to 18 in steps of 0.25, starting at 12.84");
     expect(sliders[4]).toBe("$failure (Chance it fails): 0 to 50 in steps of 5, starting at 0");
     expect(tasks).toEqual(["Move one lever at a time. Which one moves the value most?", "Find a story worth the $84 price"]);
