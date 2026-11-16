@@ -145,7 +145,17 @@ explore:
     title: "What if Coffee Day does not survive?"
     inputs:
       caseStory: "The survival story"
-      mode: { kind: failure }
+      # The cast reacts as the value moves against the price (Spine critics round 1 on #96: a bench of only sliders and bars
+      # is chart-only); the survive-or-fail fork the mode draws is the Topic's idea, and the chance it fails is the first control.
+      mode:
+        kind: failure
+        scene:
+          cast:
+            - { icon: hot-beverage, name: "Coffee Day" }
+            - { icon: bank, name: "The lenders" }
+          below: "The lenders: once failure is weighed in, the value drops under the price, and we are paid first."
+          near: "Coffee Day: sure to survive, it is worth about its price. But is survival sure?"
+          above: "Coffee Day: worth more than the price, if every lever goes our way."
 
 connections:
   - text: "Distress and default sets out how to read a chance of failure from ratings and bond prices."

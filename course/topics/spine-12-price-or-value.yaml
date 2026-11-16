@@ -175,6 +175,15 @@ explore:
       # Topic's own (sales growing by half a year, a tenth of each sale kept, a 9% cost of capital), not anyone's valuation.
       assumptions: { taxPercent: 25, salesToCapital: 1.68, growthAfterPercent: 1.6 }
       opening: { growth: 50, risk: 9, margin: 10 }
+      # The Topic's word on a Lingo card above the decoder (Spine critics round 1 on #96: Sliders and a dot strip alone is
+      # chart-only), the same card as the term below.
+      lingo:
+        term: multiple
+        means: A price divided by a measure of the business, such as its revenue or its profit.
+        pro: It trades at twenty-six times sales.
+        example: "A café that sells for $2 million and takes $1 million a year sells at two times sales."
+        emoji: label
+        inStory: In the story, WeWork's $47 billion is about 26 times its 2018 revenue.
 
 connections:
   - text: "A multiple folds the four levers of a value into one number, and relative valuation is where that shorthand is taught in full."

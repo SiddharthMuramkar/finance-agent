@@ -1283,7 +1283,8 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here are two stories for Uber side by side: Damodaran's June story, and a market that grows fast with Uber winning 40%. " +
+            "Here are two stories for Uber side by side, opening on Damodaran's June story. The other has a $100 billion market growing fast with Uber winning 40%; " +
+              "it starts from his $100 billion, not Gurley's $300 billion, so it sits below the $53.4 billion. " +
               "Push every lever to the end that makes Uber worth the most.\n\n" +
               "Is what you built still a story about one company?",
           ),

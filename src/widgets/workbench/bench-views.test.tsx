@@ -194,7 +194,8 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
   it("failure: the chance it fails is a main lever, and the readout says what it is worth if it survives", async () => {
     await draw("value-levers-failure");
     const atRest = [...host.querySelectorAll('[data-testid="value-levers-controls"] input[type="range"]')].map((el) => el.getAttribute("aria-label"));
-    expect(atRest).toEqual(["Revenue in year 10", "Operating margin once mature", "Cost of capital while it grows", "Chance it fails"]);
+    // The chance it fails is the Topic's idea, so it comes first (Spine critics round 1 on #96).
+    expect(atRest).toEqual(["Chance it fails", "Revenue in year 10", "Operating margin once mature", "Cost of capital while it grows"]);
     setRange(lever("Chance it fails"), 30);
     await settle();
     expect(text("value-levers-headline")).toBe("This story is worth $22 a share");

@@ -129,6 +129,14 @@ explore:
       caseStory: "The story it opens on"
       mode:
         kind: all_open
+        # A cast that reacts as the Learner's own story moves against the price (Spine critics round 1 on #96).
+        scene:
+          cast:
+            - { icon: person, name: "You" }
+            - { icon: chart-increasing, name: "The market" }
+          below: "You: my story is worth less than the price. Which lever did the buyers set higher?"
+          near: "You: my story lands near the price. Save it, and see later which lever I got wrong."
+          above: "You: my story is worth more than the price. Which lever did the buyers set lower?"
         cases:
           - { id: amazon-yourself-2000, label: "Amazon, Feb 2000" }
           - { id: coffee-day-yourself-2015, label: "Coffee Day, Oct 2015" }

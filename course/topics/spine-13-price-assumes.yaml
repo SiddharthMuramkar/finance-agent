@@ -112,7 +112,17 @@ explore:
     inputs:
       caseStory: "Damodaran's story"
       priceStory: { revenue: 60, margin: 12.5 }
-      mode: { kind: match_price }
+      # What the price assumes, lever by lever, is the mode's checklist; the cast reacts as the story nears the price
+      # (Spine critics round 1 on #96).
+      mode:
+        kind: match_price
+        scene:
+          cast:
+            - { icon: teacher, name: "Damodaran" }
+            - { icon: chart-increasing, name: "The market" }
+          below: "The market: $84 asks for more than these settings. Which lever must move, and how far?"
+          near: "Damodaran: this is a story worth $84. Is it one you would believe?"
+          above: "The market: these settings are worth more than $84. What would make them come true?"
 
 connections:
   - text: "Spine Topic one sets a story forwards into a value; this Topic runs the same levers backwards from the price."
