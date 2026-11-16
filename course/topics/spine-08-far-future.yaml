@@ -9,6 +9,8 @@ title: "What about the years you cannot forecast?"
 goal: "Say how much of a value rests on the years after the forecast, and which two settings it hangs on"
 # Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
 why: "A young company's value mostly sits in years nobody can forecast, so knowing what those years rest on tells you which assumptions to argue about."
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: "Buying a flat to rent out: most of what it is worth rests on the rent and price in the years after you can see."
 minutes: 12
 exampleCurrency: USD
 
