@@ -57,8 +57,8 @@ goDeeper: >
   Damodaran's update a week before the post split his change in value into pieces: the base year, a lower cost of
   capital, faster growth, a higher margin, a lower chance of failure, net debt and options. The margin was the
   largest piece, about half of the whole change. A Learner who wants more can ask which pieces moved
-  the value up and which moved it down. Analysts call the sums under the margin unit economics: what one unit, here
-  one car, sells for against what it costs to make and sell. A juice stall that sells a cup for $3 and spends $2
+  the value up and which moved it down. Analysts call a margin seen one sale at a time unit economics: what one unit,
+  here one car, sells for against what it costs to make and sell. A juice stall that sells a cup for $3 and spends $2
   making it keeps $1 a cup. Damodaran warns that if costs fall for every carmaker alike, buyers get cheaper cars,
   not makers fatter gaps per car.
 
@@ -290,6 +290,6 @@ checks:
           - { id: same, text: "It stays the same, because it sells the same cars", mistake: { tag: units_not_gap, fix: "The margin is the gap per car as a share of its price; a cheaper car at the same price widens it." } }
   - id: margins-talk
     kind: conversation
-    prompt: A fund manager says Tesla will keep a 15% margin once its fast growth is over, above every large carmaker. In two or three sentences, judge that story. Which rivals should it be set against, what edge would Tesla need to stay above them, and could that story explain the price of the day?
-    passCriteria: Judges the fund manager's 15% against what rivals keep, carmakers, technology companies or both; names an edge Tesla would need to stay above them, or doubts it has one; and treats the gap between that story and the price as a question, not a verdict.
+    prompt: A fund manager says Tesla will keep 15% of each sale once its fast growth is over, more than any large carmaker keeps. How would you judge that story? Say which rivals you would set it against, and what edge Tesla would need to stay above them.
+    passCriteria: Judges the fund manager's 15% against what rivals keep, carmakers, technology companies or both; and names an edge Tesla would need to stay above them, or doubts it has one. If it brings in the price of the day, it treats the gap between that story and the price as a question, not a verdict.
     skills: [rivals-cap]
