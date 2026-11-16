@@ -1,9 +1,10 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { parse, stringify } from "yaml";
 import { parseOutline, type Outline } from "@/course/outline";
+import { PUBLIC_PAGES } from "@/site/routes";
 import type { Viewer } from "@/site/viewer";
 
 // Every page of the public site (decision #7, Signal spec 7.2 to 7.6), drawn on the server for each viewer state. The
@@ -28,6 +29,9 @@ const { default: HowItWorksPage, metadata: howMeta } = await import("./how-it-wo
 const { default: ExamplesPage, metadata: examplesMeta } = await import("./examples/page");
 const casePage = await import("./examples/[slug]/page");
 const { default: AboutPage, metadata: aboutMeta } = await import("./about/page");
+const { default: PrivacyPage, metadata: privacyMeta } = await import("./privacy/page");
+const { default: TermsPage, metadata: termsMeta } = await import("./terms/page");
+const { SiteFooter } = await import("./site-chrome");
 
 const words = (html: string) =>
   html
@@ -181,6 +185,67 @@ describe("About", () => {
     expect(text).toContain("Do you track me?");
   });
 });
+
+// Issue #77: a privacy page and terms before a Visitor gives their email, a contact address they can copy, and a true
+// answer to "Do you track me?" that names every cookie the site sets.
+describe("Privacy, Terms and the contact address", () => {
+  it("are two public pages with one h1 each, titled and linked for the template", async () => {
+    const pages = [await PrivacyPage(), await TermsPage()].map((page) => renderToStaticMarkup(page));
+    expect(pages.map((html) => html.match(/<h1/g)?.length)).toEqual([1, 1]);
+    expect(pages.map(h1)).toEqual(["Privacy", "Terms"]);
+    expect([privacyMeta.title, termsMeta.title]).toEqual(["Privacy", "Terms"]);
+    expect([privacyMeta, termsMeta].map((m) => m.alternates?.canonical)).toEqual(["/privacy", "/terms"]);
+    for (const html of pages) expect(words(html)).toContain("hello@value-it.xyz");
+    // Public signed out, sent no-store like the other site pages, and listed for search engines (the sitemap, #70).
+    for (const path of ["/privacy", "/terms"]) expect(PUBLIC_PAGES.find((p) => p.path === path), path).toEqual({ path, site: true, sitemap: true });
+  });
+
+  it("the privacy page says what is kept, by whom, and the cookies", async () => {
+    const text = words(renderToStaticMarkup(await PrivacyPage()));
+    for (const name of ["Clerk", "Neon", "Vercel Web Analytics", "OpenAI", "__session", "__client_uat", "split", "sets no cookie"]) {
+      expect(text, name).toContain(name);
+    }
+  });
+
+  it("the footer links Privacy and Terms and shows the contact address as text, for every viewer", () => {
+    for (const viewer of [{ state: "visitor" }, member] as Viewer[]) {
+      const html = renderToStaticMarkup(<SiteFooter viewer={viewer} />);
+      expect(html).toMatch(/<a [^>]*href="\/privacy"[^>]*>Privacy<\/a>/);
+      expect(html).toMatch(/<a [^>]*href="\/terms"[^>]*>Terms<\/a>/);
+      expect(html).toMatch(/>hello@value-it\.xyz</);
+    }
+  });
+
+  it("the FAQ's \"Do you track me?\" names every cookie the site sets, and says Analytics sets none", async () => {
+    const { FAQ } = await import("@/site/copy");
+    const answer = FAQ.find((f) => f.q === "Do you track me?")!.a;
+    // Every cookie name the code defines (src/**: `export const X_COOKIE = "name"`), less the test bed's own, plus
+    // Clerk's sign-in cookies on the site and on its own address (clerk.value-it.xyz).
+    const defined = siteCookies();
+    expect(defined).toEqual(expect.arrayContaining(["split", "fa_access"]));
+    for (const name of [...defined, "__session", "__client_uat", "__client"]) expect(answer, name).toMatch(new RegExp(`\\b${name}\\b`));
+    expect(answer).toContain("Vercel Web Analytics");
+    expect(answer).toContain("It sets no cookie.");
+  });
+});
+
+/** The cookies the app's code names (`export const X_COOKIE = "name"` anywhere under src), the test bed's excepted. */
+function siteCookies(): string[] {
+  const names: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) {
+        for (const m of readFileSync(path, "utf8").matchAll(/export const (\w+)_COOKIE = "([^"]+)"/g)) {
+          if (!m[1].startsWith("E2E")) names.push(m[2]);
+        }
+      }
+    }
+  };
+  walk(join(process.cwd(), "src"));
+  return names.sort();
+}
 
 // #72: every count and Spine title on Home, About, How it works and Examples comes from the course outline.
 describe("the course counts", () => {

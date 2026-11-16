@@ -212,6 +212,10 @@
 .v-footer nav { display: flex; flex-wrap: wrap; gap: 0 24px; font-size: 15px; font-weight: 500; }
 /* 4 px above and below make each link a 33 px target (the audits' 28 px floor for a nav link); the row gap shrinks to match. */
 .v-footer nav a { padding: 4px 0; }
+.v-footer-row + .v-footer-row { margin-top: 16px; }
+.v-legal-links { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 24px; }
+.v-contact { user-select: all; color: var(--ink-2); }
+.v-legal { padding-bottom: clamp(64px, 8vw, 112px); gap: 40px; }
 .v-footer nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Home hero (7.2.1) */

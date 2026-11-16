@@ -44,6 +44,16 @@ describe("/join", () => {
     expect(html).toMatch(/<a[^>]*href="\/"[^>]*>← Back to home<\/a>/);
   });
 
+  // Issue #77: before a Visitor leaves their email, the page links the privacy page and the terms and shows the contact
+  // address as text they can copy.
+  it("links Privacy and Terms and shows the contact address before the card", async () => {
+    const html = await render();
+    expect(html).toMatch(/<a [^>]*href="\/privacy"[^>]*>Privacy<\/a>/);
+    expect(html).toMatch(/<a [^>]*href="\/terms"[^>]*>Terms<\/a>/);
+    expect(html).toMatch(/>hello@value-it\.xyz</);
+    expect(html.indexOf('href="/privacy"')).toBeLessThan(html.indexOf('data-clerk="waitlist"'));
+  });
+
   it("on the test bed, draws the stand-in in the card's place and calls no Clerk", async () => {
     vi.stubEnv("E2E", "1");
     const html = await render();
