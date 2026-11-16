@@ -19,7 +19,7 @@ import { fullSheetWordsErrors } from "../src/course/full-sheet-words-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
 import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
 import { GUIDE_LINE_INPUTS, guideErrors } from "../src/markets/guides.ts";
-import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
+import { parseOutline, renderCourseMapDoc, spineCountProblems } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
 
 const DOC = "docs/course-map.md";
@@ -31,6 +31,10 @@ const fail = (title, errors) => {
 
 const planned = parseOutline(readOutlineText());
 if (!planned.outline) fail("Course Map outline is invalid", planned.errors);
+// The Spine has exactly SPINE_LENGTH Topics (ADR 0020; 18 once every split has landed), so Home, About and How it works,
+// which read their counts from the outline (src/site/stats.ts), say the number the course check holds.
+const count = spineCountProblems(planned.outline);
+if (count.length) fail("The Spine's length (ADR 0020)", count);
 const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
 if (!map) fail("Course Map is invalid", errors);
 // The lesson lint (L1 to L14, including L10 with its allowlist src/course/l10-allowlist.ts, L13's judgement Checks on Spine

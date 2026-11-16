@@ -13,6 +13,7 @@ import { describe, expect, it } from "vitest";
 /** Files that write screenshots on another switch, into a git-ignored folder, never into docs/. */
 const OTHER_SWITCH: Record<string, string> = {
   "e2e/matrix.spec.ts": "the preview matrix runs only with UI_MATRIX=1 and writes to the git-ignored evidence/ folder",
+  "e2e/spine-02-03.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
 };
 
 function specs(dir: string, acc: string[] = []): string[] {

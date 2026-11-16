@@ -16,27 +16,9 @@ const text = (t: string) => ({ type: "text", text: t });
 /** The Topic every fixture state opens (src/app/api/dev-e2e/route.ts). Its running example is a savings rate from 4% to 5%. */
 const RATE_MOVE_PARAMS = { title: "A savings rate from 4% to 5%", inputs: { old: 4, new: 5, mode: "show" }, refs: {}, facts: {} };
 
-/**
- * Spine Topic 1 (spine-01-worth, e2e/spine-01.spec.ts): what the Learner types in the play, so a Tutor tool call can
- * quote their own words (record_insight_attempt and the Check verdict take only words from the Learner's message).
- * The spec types exactly these; src/dev/e2e-tutor.test.ts holds the two together.
- */
-export const SPINE_ONE_SAYS = {
-  /** At explore, once the Value levers reach $84: the Insight in the Learner's words. */
-  insight:
-    "I moved sales to $60bn and the margin to 12.5%, and the story reached $84. The price needs a much bigger Amazon that keeps more of each sale; a cheaper cost of capital alone could not get there.",
-  /** At the conversation Check: Amazon's story as four levers, the lever least sure of, and the price read as a question. */
-  talk:
-    "Amazon grows to about $39bn of sales in ten years and keeps 10% of each sale. It needs $1 invested for every $3 of new sales, and its 12.84% cost of capital falls as it matures, so on that story it is worth about $35 a share. " +
-    "I am least sure of the margin, because Amazon still loses money on what it sells. The $84 price is not proof the story is wrong: it is a question about the bigger, richer Amazon it assumes.",
-} as const;
-
-/** The words of the Insight the Learner's message holds, as record_insight_attempt quotes them. */
-const SPINE_ONE_INSIGHT_WORDS = "The price needs a much bigger Amazon that keeps more of each sale";
-
 /** Spine Topic 1's explore Workbench (its Topic file's explore.workbench), as the Tutor shows it with show_widget. */
 const SPINE_ONE_LEVERS = {
-  title: "Amazon, February 2000: your story",
+  title: "Amazon, February 2000: the four levers",
   inputs: { case: "spine-01-amazon-2000", caseStory: "Damodaran's story", priceStory: { revenue: 60, margin: 12.5 } },
   refs: {},
   facts: {},
@@ -59,6 +41,20 @@ const SPINE_FIFTEEN_LEVERS = {
   },
   refs: {},
   facts: {},
+};
+
+/** The report's page beside the annual report Topic's Value bridge, copied from its Topic file as the Tutor copies it (ADR 0010). */
+const AR_REPORT = {
+  title: "Amazon's 10-K for 2000",
+  lines: [
+    { line: "Long-term debt", amount: 2127, lever: "debt" },
+    { line: "Cash and marketable securities", amount: 1101, lever: "cash" },
+    { line: "Loss from operations", amount: 864 },
+  ],
+  source: {
+    title: "Amazon.com Form 10-K405 for 2000, Consolidated Balance Sheets and Statements of Operations",
+    url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt",
+  },
 };
 
 export const E2E_SCRIPTS = {
@@ -410,9 +406,11 @@ export const E2E_SCRIPTS = {
   },
   /**
    * Spine Topic 1 (spine-01-worth), played whole through the page by e2e/spine-01.spec.ts: one script per Tutor Turn
-   * the play passes through, in order. Every number is the Case's or the valuation engine's ($84 price, $1,117m of sales,
-   * a $410m operating loss, his $35.08 a share, $39bn of sales in year 10, a 10% margin, $3 of sales per $1 invested, a
-   * 12.84% cost of capital, the $14.88 low of the fourth quarter; $60bn and 12.5% is the story worth $84). The replies at
+   * the play passes through, in order. Every number is the Case's or the valuation engine's, rounded as the Topic
+   * rounds them for a beginner where the Learner reads one to answer ($84 price, about $1.1bn of sales, about a $400m
+   * operating loss, $39bn of sales in year 10, a 10% margin, $3 of sales per dollar invested, a cost of capital near 13%;
+   * the reveal keeps its exact $35.08, $91.50 and $14.88). The Learner types
+   * nothing: the Insight and both Checks are taps (ticket #88). The replies at
    * the Check step hold no number and no choice's words, so they never touch an open quiz (V5).
    */
   /** The opener at Story: the Case's setting, ending on whether the price is fair. */
@@ -423,7 +421,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "February 2000. Amazon sells books and music online, and its shares cost $84. " +
-              "In the twelve months to September 1999 it sold $1,117 million and lost $410 million on its operations. " +
+              "A share is one small slice of the company. In the twelve months to September 1999 it sold about $1.1 billion of goods and lost about $400 million on its operations. " +
               "A professor in New York, Aswath Damodaran, writes down what he thinks its future looks like: " +
               "how big it gets, what it keeps of each sale, what its growth costs and how risky it is. " +
               "Buyers are paying for a future nobody has seen yet.\n\n" +
@@ -441,7 +439,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "A price is what buyers pay for a share today. A value is what the business's future cash is worth today, argued from a story. " +
-              "His story sets four levers: about $39 billion of sales in year 10, 10% of each sale kept, $3 of sales for each $1 invested, and a 12.84% cost of capital.\n\n" +
+              "His story sets four levers: about $39 billion of sales in year 10, 10% of each sale kept, $3 of sales for each dollar invested, and a cost of capital near 13%.\n\n" +
               "Which of the four levers do you trust least?",
           ),
         ],
@@ -458,28 +456,7 @@ export const E2E_SCRIPTS = {
           text(
             "Here is his story as four levers. At his settings it comes to $35 a share, well under the $84 price. " +
               "Each lever is one part of the story: how big Amazon gets, what it keeps, what growth costs and how risky it is.\n\n" +
-              "Which story would make Amazon worth the price, and what did you change to get there?",
-          ),
-        ],
-      },
-    ],
-  },
-  /** Explore, after the Learner's words: the Tutor records the Insight as found, quoting them, and confirms it. */
-  "spine1-insight": {
-    step: "explore",
-    replies: [
-      {
-        content: [
-          { type: "tool_use", id: "toolu_e2e_spine1_insight", name: "record_insight_attempt", input: { outcome: "found", learner_words: SPINE_ONE_INSIGHT_WORDS } },
-        ],
-      },
-      {
-        content: [
-          text(
-            'You said the price "needs a much bigger Amazon that keeps more of each sale", and that is it. ' +
-              "Sales of $60bn and a 12.5% margin reach $84, while his story of $39bn and 10% stays near $35. " +
-              "The cost of capital alone could not close that gap.\n\n" +
-              "Which of your two changes feels harder to believe?",
+              "Find a story worth the price in the Workbench, then tap below what you had to change to get there.",
           ),
         ],
       },
@@ -515,7 +492,7 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
-  /** Concept of the conversation Check, reached after the quiz pass: a story only holds when its parts fit. */
+  /** Concept of the judging Check (worth-talk), reached after the quiz pass: a story only holds when its parts fit. */
   "spine1-talk-concept": {
     step: "concept",
     replies: [
@@ -523,67 +500,38 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "A story only holds when its parts fit together. Fast growth needs warehouses and systems paid for first, and a young company is risky. " +
-              "When the price and your value differ, ask what story the price assumes before you call it wrong.\n\n" +
+              "When a price and a value differ, ask what story the price assumes before you call it wrong.\n\n" +
               "Which part of his story would you argue about first?",
           ),
         ],
       },
     ],
   },
-  /** Your turn of the conversation Check (it has no Quick tries): getting ready to tell the story. */
+  /** Your turn of the judging Check (it has no Quick tries): getting ready to judge other people's stories. */
   "spine1-talk-your-turn": {
     step: "your_turn",
     replies: [
       {
         content: [
           text(
-            "Soon you will tell Amazon's story yourself. A good story names how big it gets and what it keeps, then what growth costs or how risky it is. " +
-              "Doubting one lever, with a reason, is part of a good valuation.\n\n" +
-              "Which lever would you doubt most, and why?",
+            "Next you will judge other people's stories about Amazon: a headline's, an analyst's, a founder's and a fan's. " +
+              "For each, ask whether it is a price someone paid or a value someone argued, and which lever it moves.\n\n" +
+              "Which lever would you check first in a story you read?",
           ),
         ],
       },
     ],
   },
-  /** The conversation Check's prompt, at its Check step. */
+  /** The judging Check's step: its questions are in the Check tab, so no number and no choice's words. */
   "spine1-talk-prompt": {
     step: "check",
     replies: [
       {
         content: [
           text(
-            "Time to put it in your own words. A strong answer sets a size, a margin and either a cost of growth or a risk, " +
-              "ties the value to that story, and treats the gap to the price as a question.\n\n" +
-              "Which lever are you least sure of, and how does Amazon's story go as you would set it?",
-          ),
-        ],
-      },
-    ],
-  },
-  /** The Learner told the story: the Tutor records the pass as the real Tutor does, with record_check_verdict. */
-  "spine1-talk-pass": {
-    step: "check",
-    replies: [
-      {
-        content: [
-          {
-            type: "tool_use",
-            id: "toolu_e2e_spine1_verdict",
-            name: "record_check_verdict",
-            input: {
-              check_id: "worth-talk",
-              verdict: "pass",
-              reasons: "Gives a size, a margin and a cost of growth and a risk; ties the value to that story; names the margin as uncertain with a reason; reads the price as a question, not proof.",
-            },
-          },
-        ],
-      },
-      {
-        content: [
-          text(
-            "That story holds together: a size, a margin, what growth costs and a risk, with the value tied to them. " +
-              "Doubting the margin is fair, since Amazon was still losing money. And you read the price as a question about the story it needs.\n\n" +
-              "Shall we see what the price did next?",
+            "The Check tab now holds a few stories other people tell about Amazon. " +
+              "Read each one slowly, then tap your judgement.\n\n" +
+              "Which kind of story do you find hardest to judge?",
           ),
         ],
       },
@@ -633,8 +581,8 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "Here is the rule to keep. A value is a story set as four levers: how big it gets, what it keeps, what growth costs and how risky it is. " +
-              "When a price and your value differ, ask what the price assumes before you call it wrong. " +
-              "In February 2000 the $84 price assumed about $60bn of sales and a 12.5% margin, far more than his story.\n\n" +
+              "When a price and a value differ, ask what the price assumes before you call it wrong. " +
+              "In February 2000 the $84 price assumed far more sales and a fatter margin than his story.\n\n" +
               "Which lever would you look at first in the next company you meet?",
           ),
         ],
@@ -649,7 +597,151 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "You have finished this Topic. You can tell a price from a value, set a story as four levers, and read a price back as the story it needs.\n\n" +
-              "Which company would you like to value next?",
+              "Which headline would you like to judge next?",
+          ),
+        ],
+      },
+    ],
+  },
+  /**
+   * Spine Topics 2 and 3 for beginners (#89, e2e/spine-02-03.spec.ts): the first three Tutor Turns of each, Story, Concept
+   * and Explore, played for the critics' screenshots and transcript. Their figures are each Topic file's Case figures; code
+   * opens each Topic's explore Widget, so the explore replies only point at it.
+   */
+  "spine2-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "October 2018. One ticket sold in South Carolina matches all six numbers of the Mega Millions lottery. " +
+              "The advertised jackpot is $1.537 billion, paid as 30 yearly payments that grow a little each year. " +
+              "Or the winner can take one cash payment of about $877.8 million now. " +
+              "Nobody knows yet who holds the ticket, or which way they will choose.\n\n" +
+              "Why do you think the cash is so much smaller than the jackpot?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine2-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Money in your hand today can sit in the bank and grow, so money promised later is worth less today. " +
+              "That is its present value: what a later payment is worth in today's money. " +
+              "The longer the wait, or the higher the rate, the less a later payment is worth today.\n\n" +
+              "Which of the 30 payments do you think is worth least today?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine2-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are the 30 payments, with a slider for the interest rate. At no interest at all they are worth the full advertised total. " +
+              "As you raise the rate, the later payments shrink, and the far-off ones shrink the most.\n\n" +
+              "Is there a rate where the payments are worth the same as the cash?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine3-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "April 2001. Webvan, an online grocer, files its report for 2000. " +
+              "Its sales grew from $13.3 million in 1999 to $178.5 million in 2000. " +
+              "Yet running the business used $263.1 million more cash than its sales brought in, and $259.8 million more went on warehouses and equipment. " +
+              "About $212 million is left.\n\n" +
+              "Where do you think all that cash went?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine3-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Operating income is what sales bring in after the running costs. " +
+              "Free cash flow takes off tax, then what growth costs: the warehouses, vans and groceries that more sales need, bought before those sales arrive. " +
+              "So a business can make a profit on each sale and still run short of cash.\n\n" +
+              "Which grocer would you expect to use more cash: one growing fast, or one standing still?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine3-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Webvan's year as a waterfall, from sales down to free cash flow. " +
+              "It gives Webvan a small profit on each sale, and still free cash flow is far below zero.\n\n" +
+              "What happens to free cash flow when you move growth down?",
+          ),
+        ],
+      },
+    ],
+  },
+  // ——— The annual report Topic (#93, e2e/spine-annual-report.spec.ts): its first three turns, for the critics' round. Every
+  // figure is its Topic file's Amazon Case (Amazon's 10-K for 2000 next to Damodaran's story of February 2000).
+  /** The opener at Story: Amazon's 10-K is out, and six numbers matter. */
+  "ar-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "March 2001. Amazon files its annual report for 2000. A year earlier Aswath Damodaran, a valuation professor in New York, said a share was worth $35.08 while it sold for $84. " +
+              "Now the report is out. Was he right?\n\n" +
+              "What would you look for first in it?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Concept: two pages hold the six numbers, and names change from report to report. Code shows the Concept card. */
+  "ar-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Two pages hold a valuation's numbers. The income statement runs from sales at the top down to operating profit, what the business makes before interest and tax, and then tax. " +
+              "The balance sheet shows debt and cash on one day, and its note on share capital counts the shares. " +
+              "Names change: Zomato's report calls its sales revenue from operations.\n\n" +
+              "Where would you look for Amazon's debt?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The Explore: the Value bridge on the Topic's Amazon Case, and the Insight question. */
+  "ar-explore": {
+    step: "explore",
+    replies: [
+      { content: [{ type: "tool_use", id: "toolu_e2e_ar_bridge", name: "show_widget", input: { recipe: "value_bridge", params: { title: "Put Amazon's 2000 report into the bridge", inputs: { case: "spine-ar-amazon-2000", report: AR_REPORT }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          text(
+            "Here is his bridge from Amazon's business to one share, with the report's page beside it. " +
+              "The 2000 report shows about $2.1 billion of debt and $1.1 billion of cash. Tap each on the page, or slide debt to $2.1bn and cash to $1.1bn, and watch one share.\n\n" +
+              "Does a share move a lot or a little, and is that what his value rested on?",
           ),
         ],
       },

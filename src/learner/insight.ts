@@ -1,6 +1,6 @@
 import { and, asc, eq, gte, lt, count } from "drizzle-orm";
 import type { CourseMap, Insight } from "@/course/map";
-import { navigate, type Place } from "@/course/navigator";
+import { navigate, type Place, type Progress } from "@/course/navigator";
 import { insightAttempts, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "./memory";
@@ -36,8 +36,9 @@ export type InsightAttemptInput = {
   /** What the Learner sent in this turn. */
   learnerMessage: string;
   toolCallId: string;
-  model: string;
-  turnId: number;
+  model: string | null;
+  /** The turn it happened in; null for a tap code marked with no turn (an Insight pick). */
+  turnId: number | null;
 };
 
 export type InsightAttemptResult =
@@ -145,4 +146,59 @@ export async function loadExploreInfo(db: Db, place: Place | null, turnId: numbe
     }
   }
   return { hints, settled: settledRow ? (settledRow.released as "found" | "told") : null, words: settledRow?.words ?? null, idleTurns };
+}
+
+export type InsightPickResult =
+  | { ok: true; released: Released; topicId: string; fix?: string; hint?: string; written?: string }
+  | { ok: false; status: 404 | 409; error: string };
+
+/**
+ * The Learner tapped one of the Insight's written choices (ADR 0020, `insight.pick`): code marks it with no model call.
+ * The right choice finds the Insight; a wrong one is a not-yet, which releases hint 1, then hint 2, then tells the
+ * Insight, as a typed not-yet does. 404 when no pick Insight is being explored or the choice is not one of its own; 409
+ * once the Insight is settled.
+ */
+export async function answerInsightPick(db: Db, map: CourseMap, learnerId: number, choiceId: string, now = new Date()): Promise<InsightPickResult> {
+  const progress = await loadProgress(db, learnerId);
+  const place = navigate(map, progress);
+  const pick = place?.step === "explore" ? place.topic.insight?.pick : undefined;
+  if (!place || !pick) return { ok: false, status: 404, error: "No Insight to tap is being explored." };
+  const choice = pick.choices.find((c) => c.id === choiceId);
+  if (!choice) return { ok: false, status: 404, error: "That is not one of the Insight's choices." };
+  if (progress.topics[place.topic.id]?.insight) return { ok: false, status: 409, error: "The Insight is already settled. Go on with Next." };
+  const right = choice.id === pick.answer;
+  const saved = await saveInsightAttempt(
+    db,
+    map,
+    { reported: right ? "found" : "not_yet", words: choice.text, learnerMessage: choice.text, toolCallId: `pick:${learnerId}:${place.topic.id}:${now.getTime()}:${choice.id}`, model: null, turnId: null },
+    now,
+    learnerId,
+  );
+  if (!saved.ok) return { ok: false, status: 409, error: saved.reason };
+  const settled = saved.released === "found" || saved.released === "told";
+  return {
+    ok: true,
+    released: saved.released,
+    topicId: saved.topicId,
+    ...(choice.mistake && { fix: choice.mistake.fix }),
+    ...(saved.hint && { hint: saved.hint }),
+    ...(settled && { written: saved.insight.written.trim() }),
+  };
+}
+
+/**
+ * What the Study Workspace shows of an Insight settled by a tap (ADR 0020): at the current Topic's explore step, its
+ * question and its choices' words (never which is right), and once settled how, with the written Insight. Null at any
+ * other step and for an Insight found in typed words.
+ */
+export function insightPickNow(map: CourseMap, progress: Progress): { question: string; choices: { id: string; text: string }[]; settled?: { how: "found" | "told"; written: string } } | null {
+  const place = navigate(map, progress);
+  const insight = place?.step === "explore" ? place.topic.insight : undefined;
+  if (!place || !insight?.pick) return null;
+  const how = progress.topics[place.topic.id]?.insight;
+  return {
+    question: insight.question.trim(),
+    choices: insight.pick.choices.map((c) => ({ id: c.id, text: c.text })),
+    ...(how && { settled: { how, written: insight.written.trim() } }),
+  };
 }

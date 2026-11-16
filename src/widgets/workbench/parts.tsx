@@ -58,15 +58,16 @@ export const valueBridgeProps = z.object({
   debt: lever("Debt and leases"),
   options: lever("Options"),
   leases: figures("Leases counted as debt, {amount, label, source}, or null").optional(),
+  report: figures("A report's lines beside the bridge, {title, lines, source}, or null").optional(),
 });
 
 function ValueBridgePart({ props }: ComponentRenderProps<z.infer<typeof valueBridgeProps>>) {
   const fields = { cash: useStateField("cash", props.cash), debt: useStateField("debt", props.debt), options: useStateField("options", props.options) };
   const saved = useContext(SavedTicksContext);
-  const key = keyOf(props, ["caseId", "leases"]);
+  const key = keyOf(props, ["caseId", "leases", "report"]);
   const parsed = useMemo(() => {
-    const [caseId, leases] = JSON.parse(key) as unknown[];
-    return valueBridgeData({ caseId, leases });
+    const [caseId, leases, report] = JSON.parse(key) as unknown[];
+    return valueBridgeData({ caseId, leases, report });
   }, [key]);
   const levers = useMemo(() => ("data" in parsed ? valueBridgeLevers(parsed.data) : []), [parsed]);
   const { settings, set } = useLevers(fields, levers);

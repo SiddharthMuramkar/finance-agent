@@ -3603,7 +3603,8 @@
         "options": {
           "type": "number"
         },
-        "leases": {}
+        "leases": {},
+        "report": {}
       },
       "required": [
         "caseId",

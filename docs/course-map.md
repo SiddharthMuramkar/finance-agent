@@ -2,7 +2,7 @@
 
 # Course Map
 
-110 Topics (15 Spine, 72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in outline order. The default path is the written Spine Topics, then Follow, Judge and Analyse; every Foundation Topic is an Elective, opened when the Learner chooses it. 110 written so far; the rest are Coming.
+111 Topics (16 Spine, 72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in outline order. The default path is the written Spine Topics, then Follow, Judge and Analyse; every Foundation Topic is an Elective, opened when the Learner chooses it. 111 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Spine
@@ -160,9 +160,21 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Damodaran valued Zomato on 21 Jul 2021 at Rs 40.79 a share (about Rs 41) against the Rs 76 offer price. The shares listed on 23 Jul at Rs 115 on the BSE and closed at Rs 125.85, up 65.6%, and reached a record Rs 169 on 16 Nov 2021. After the pre-IPO lock-in ended in Jul 2022 they fell to a low of Rs 40.55, and with the price at Rs 41.65 he revalued Zomato at Rs 35.32 a share, mostly because the rupee cost of capital had risen.
   - Sources: https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html https://economictimes.indiatimes.com/markets/stocks/news/zomato-delivers-a-full-spread-on-listing-day/articleshow/84695358.cms https://aswathdamodaran.substack.com/p/a-zomato-2022-update-price-value
 
+### 16. Where are a valuation's numbers in an annual report?
+
+- ID: `spine-annual-report` · Written · Spine 16 · 13 minutes
+- Needs first: nothing
+- Draws on: Reading filings: S-1, 10-K, Indian annual report and Ind AS, The income statement, The balance sheet, Analyse: build a valuation as of a past date
+- Case: **Amazon's annual report for 2000, next to Damodaran's story** (as of 2001-03-23)
+  - Outcome: Amazon's Form 10-K for 2000, filed on 23 Mar 2001, showed net sales of $2,762m (Damodaran's year 1: about $2,793m) and a loss from operations of $864m, about -31% of sales against his -13.35%. It had no provision for income taxes; Note 13 lists net operating loss carryforwards. The balance sheet showed long-term debt of $2,127m, cash and cash equivalents of $822m and marketable securities of $278m, and 357.14m shares at 31 Dec 2000 (358,555,061 at 28 Feb 2001). Put into his bridge, the report's debt and cash move a share by about $2, from $35.04 to $32.98; a mature margin of 8% instead of 10% takes it to $21.57.
+  - Sources: https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/0001032210-01-500087-index.htm http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+- Case: **Zomato's annual report for 2021-22, next to Damodaran's IPO story** (as of 2022-08-05)
+  - Outcome: Zomato's Integrated Annual Report 2021-22, sent to the BSE and the NSE on 5 Aug 2022, shows (consolidated, Rs million) revenue from operations of 41,924 against 19,938 a year earlier, the base Damodaran valued from; other income 4,949; finance costs 120; a loss before exceptional items and tax of 15,179 and a loss before tax of 12,205; total tax 20. The balance sheet at 31 Mar 2022 shows no borrowings (13 a year earlier), cash and cash equivalents of 3,923, other bank balances of 11,832 and current investments of 16,317; note 15(a) lists 7,871,932,776 equity shares of Rs 1 each, 228,992,198 of them held by the ESOP trust.
+  - Sources: https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html
+
 ## Foundation
 
-### 16. Percent, percentage points and basis points
+### 17. Percent, percentage points and basis points
 
 - ID: `num-percent-bps` · Written · Subject: Numbers & time value
 - Needs first: nothing
@@ -171,7 +183,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Fortune's 'immediate 40 bp rise in the 30-year' is not in the Treasury data (+6 bp on 4 Feb, +36 bp by 28 Feb) and is not used.
   - Sources: https://www.federalreserve.gov/fomc/19940204default.htm https://www.federalreserve.gov/fomc/MINUTES/1994/19940204min.htm https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv https://fortune.com/article/the-great-bond-massacre-fortune-1994
 
-### 17. Growth and compounding
+### 18. Growth and compounding
 
 - ID: `num-compounding` · Written · Subject: Numbers & time value
 - Needs first: Percent, percentage points and basis points
@@ -180,7 +192,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: BSE's month-end close for March 1992 is 4,285; Rediff's 4,091 for 30 Mar 1992 conflicts with it and is not used. The April 1993 level (about 1,980) is Mint, a secondary source.
   - Sources: https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf https://beta.bseindia.com/Sensex/bse_sensex.aspx https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
 
-### 18. Probability and expected value
+### 19. Probability and expected value
 
 - ID: `num-probability` · Written · Subject: Numbers & time value
 - Needs first: Percent, percentage points and basis points
@@ -189,7 +201,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Teaches leverage and loss, not the risk-model inputs.
   - Sources: https://www.federalreservehistory.org/essays/ltcm-near-failure https://www.federalreserve.gov/boarddocs/testimony/1998/19981001.htm https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
 
-### 19. Time value and present value
+### 20. Time value and present value
 
 - ID: `present-value` · Written · Subject: Numbers & time value
 - Needs first: Growth and compounding
@@ -198,7 +210,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The 5% yearly rise in the 30 payments (first payment about $23.1m, total $1.537bn) is checked by arithmetic against the 2018 payout schedule; no 2018-dated page stating the 5% was found.
   - Sources: https://www.megamillions.com/News/2018/Record-Mega-Millions-Jackpot-Won-in-South-Carolina.aspx https://www.cnbc.com/2018/10/24/heres-how-much-the-mega-millions-winner-will-get-to-save-and-spend.html https://www.reuters.com/article/lifestyle/south-carolina-lottery-winner-claims-record-877-million-cash-prize-idUSKCN1QM09L/ https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2018
 
-### 20. The income statement
+### 21. The income statement
 
 - ID: `fs-income` · Written · Subject: Financial statements
 - Needs first: Percent, percentage points and basis points
@@ -206,7 +218,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The share sale did not go ahead: co-founder and chief executive Adam Neumann stepped down on 24 Sep 2019 and WeWork asked on 30 Sep 2019 to withdraw its prospectus. It listed through a different route in 2021 and on 6 Nov 2023 filed for Chapter 11 with nearly $19bn of liabilities against about $15bn of assets. The 2019 income statement already showed the problem: first-half revenue of $1.54bn against a net loss of about $905m, a net margin of about minus 59%.
   - Sources: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall https://time.com/6332270/wework-bankruptcy/
 
-### 21. The balance sheet
+### 22. The balance sheet
 
 - ID: `fs-balance` · Written · Subject: Financial statements
 - Needs first: The income statement
@@ -215,7 +227,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The 'reported' figures are quoted from Raju's letter; Satyam's own Q2 FY09 results (6-K, Oct 2008) were not fetched.
   - Sources: https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
 
-### 22. The cash flow statement
+### 23. The cash flow statement
 
 - ID: `fs-cashflow` · Written · Subject: Financial statements
 - Needs first: The balance sheet
@@ -223,7 +235,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 9 Jul 2001 Webvan shut all seven of its markets, which served about 750,000 customers, and said it would file for bankruptcy protection; it filed for Chapter 11 on 13 Jul 2001. Its accumulated deficit was $829.7m at 31 Mar 2001. The cash flow statement had already shown it: $263.1m used in operations in 2000 (up from $58.8m in 1999) and $259.8m spent on property and equipment, paid for from money raised from investors in 1999. TIME's cash burn of $480m is a press estimate, not a filing figure.
   - Sources: https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt https://www.sec.gov/Archives/edgar/data/1092657/000101287001500862/d10q.txt https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html https://time.com/archive/6904080/webvans-last-desperate-hope
 
-### 23. How the three statements link (accrual accounting)
+### 24. How the three statements link (accrual accounting)
 
 - ID: `fs-links` · Written · Subject: Financial statements
 - Needs first: The cash flow statement
@@ -231,7 +243,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 7 Jan 2009 Raju wrote that for the September 2008 quarter Satyam had reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (24%) against actual revenue of Rs 2,112 crore and operating profit of Rs 61 crore (3%); the Rs 588 crore difference showed up as 'artificial cash and bank balances'. The SEC later said managers created more than 6,000 phony invoices and bogus bank statements, giving more than $1bn of fictitious cash, about half of total assets; Satyam paid a $10m penalty to settle. The false profit had to appear in the general ledger and the financial statements.
   - Sources: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915 https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm https://www.reuters.com/article/marketsNews/idINN1628370020081216/ https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17
 
-### 24. Ratios, return on equity and DuPont
+### 25. Ratios, return on equity and DuPont
 
 - ID: `fs-ratios` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
@@ -239,7 +251,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The IPO was priced at Rs 328, the top of the Rs 316-328 band, and subscribed 1.64 times. Shares listed on 2 Nov 2015 at Rs 313 on the BSE, below the issue price, and closed at Rs 270.15, 17.63% below it. In July 2019 founder V. G. Siddhartha was found dead after a letter dated 27 Jul citing lender pressure; the 2015 prospectus had warned that he had given personal guarantees and share pledges for group loans and that lenders could take the pledged shares.
   - Sources: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html https://www.businesstoday.in/markets/company-stock/story/coffee-day-shares-list-on-bse-plunge-within-minutes-in-trade-56487-2015-11-02 https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
 
-### 25. Revenue recognition, run rates, gross vs net
+### 26. Revenue recognition, run rates, gross vs net
 
 - ID: `fs-revenue-runrate` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
@@ -247,7 +259,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The listing never happened: WeWork filed to withdraw its IPO on 30 Sep 2019, after co-founder and chief executive Adam Neumann stepped down on 24 Sep. SoftBank's rescue in Oct 2019 valued the company at about $8bn, against $47bn in January. The S-1's run-rate revenue (the last month's revenue times 12) was $3.3bn at 30 Jun 2019, but first-half revenue was $1.54bn and the net loss about $905m, roughly 59 cents lost on every dollar of revenue.
   - Sources: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/ https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
 
-### 26. Capex, depreciation, amortisation and EBITDA
+### 27. Capex, depreciation, amortisation and EBITDA
 
 - ID: `fs-capex-dep` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
@@ -256,7 +268,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Checked against Webvan's 10-K405 for 1999 and 10-K for 2000: the Oakland centre was 336,000 sq ft, and the $143 counts operating costs only (with food cost it is $215 per $100 of sales, before goodwill, deferred compensation and restructuring).
   - Sources: https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt https://www.chicagotribune.com/2001/05/30/webvan-delivers-losses-but-not-enough-customers/ https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
 
-### 27. Leases, commitments and debt-like items
+### 28. Leases, commitments and debt-like items
 
 - ID: `fs-leases-debt` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting), Time value and present value
@@ -265,7 +277,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: That leases were rejected in the restructuring rests on Bloomberg and the Straits Times (not re-opened in the verification pass).
   - Sources: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall https://straitstimes.com/business/wework-cleared-to-exit-bankruptcy-shedding-adam-neumann-legacy
 
-### 28. Reading filings: S-1, 10-K, Indian annual report and Ind AS
+### 29. Reading filings: S-1, 10-K, Indian annual report and Ind AS
 
 - ID: `fs-filings` · Written · Subject: Financial statements
 - Needs first: Ratios, return on equity and DuPont
@@ -273,7 +285,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The IPO did not go ahead: Adam Neumann stepped down as chief executive on 24 Sep 2019 and WeWork filed to withdraw its IPO on 30 Sep. The S-1 had shown his profits interests vesting only when public market value reached $50bn, $72bn and $90bn (performance thresholds, not a cap), a $362m loan from the company for exercising options, and $236.6m of minimum lease payments on buildings in which he had interests.
   - Sources: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
 
-### 29. Earnings quality and accounting fraud
+### 30. Earnings quality and accounting fraud
 
 - ID: `fs-earnings-quality` · Written · Subject: Financial statements
 - Needs first: Ratios, return on equity and DuPont, Capex, depreciation, amortisation and EBITDA
@@ -281,7 +293,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 7 Jan 2009 Raju wrote to the board and the regulators and resigned. He said Rs 5,040 crore of the Rs 5,361 crore of cash and bank balances on the 30 Sep 2008 balance sheet did not exist, Rs 376 crore of accrued interest was non-existent and receivables were overstated by Rs 490 crore (of Rs 2,651 crore). For the September quarter the reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (a 24% margin) compared with actual figures of Rs 2,112 crore and Rs 61 crore (a 3% margin). The shares fell to Rs 39.95 in Mumbai that day. The SEC later alleged that officials used false invoices and forged bank statements to inflate results.
   - Sources: https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915 https://www.reuters.com/article/marketsNews/idINN1628370020081216/ https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17
 
-### 30. Corporate tax and after-tax cash flows
+### 31. Corporate tax and after-tax cash flows
 
 - ID: `fs-tax` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
@@ -290,7 +302,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Added in this outline to cover tax, a gap in the first draft.
   - Sources: https://www.pib.gov.in/Pressreleaseshare.aspx?PRID=1585641&lang=2&reg=48 https://www.dnaindia.com/business/report-finance-minister-nirmala-sitharaman-announces-corporate-tax-cut-to-spur-growth-2791283 https://cio.economictimes.indiatimes.com/news/government-policy/sitharamans-tax-cut-move-why-it-matters-so-much-for-india-inc-economy-and-modi-govt/71229310
 
-### 31. Statistics: mean, variance, correlation, regression
+### 32. Statistics: mean, variance, correlation, regression
 
 - ID: `num-statistics` · Written · Subject: Numbers & time value
 - Needs first: Probability and expected value
@@ -298,7 +310,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On Monday 19 Oct 1987 the S&P 500 fell about 20% in a single day, the other major US indices fell between 18% and 23%, and S&P 500 futures fell 29%. A fall that size is effectively impossible in a normal distribution fitted to ordinary days. Portfolio insurance, which sells index futures as prices fall, amplified it when the insurers sold together.
   - Sources: https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf https://time.com/archive/6711376/the-culprits-behind-the-crash
 
-### 32. Supply, demand and prices
+### 33. Supply, demand and prices
 
 - ID: `eco-supply-demand` · Written · Subject: Economics & policy
 - Needs first: Percent, percentage points and basis points
@@ -307,7 +319,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Replaces the earlier candidate (an RBI working paper on food-price volatility), which named no dated price move.
   - Sources: https://pib.gov.in/Pressreleaseshare.aspx?PRID=1595294&lang=2&reg=48 https://timesofindia.indiatimes.com/business/india-business/avg-onion-prices-jump-five-fold-to-rs-101-per-kg-compared-to-last-year/articleshow/72518678.cms https://www.hindustantimes.com/business-news/government-bans-export-of-onions-with-immediate-effect/story-LZBxPGPrPPEAI5aNB8VKyH.html https://www.newindianexpress.com/business/2019/sep/29/government-bans-export-of-onions-with-immediate-effect-imposes-stock-limit-2040807.html https://www.firstpost.com/business/lasalgaon-onion-producers-refuse-to-sell-produce-in-wholesale-market-prices-down-post-ban-on-exports-govt-imposing-stock-limit-on-traders-7426441.html
 
-### 33. Competition, market structure and pricing power
+### 34. Competition, market structure and pricing power
 
 - ID: `eco-micro-competition` · Written · Subject: Economics & policy
 - Needs first: Supply, demand and prices
@@ -316,7 +328,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Added to cover the economics of firms; later consolidation not yet sourced.
   - Sources: https://bbc.com/news/business-37273073 https://timesofindia.indiatimes.com/business/india-business/idea-airtel-shares-tank-on-rel-jios-lower-tariff-offers/articleshow/53958653.cms https://timesofindia.indiatimes.com/business/india-business/rel-jio-call-leaves-rs-13000cr-hole-in-telcos-market-cap/articleshow/53970361.cms https://www.theguardian.com/world/2016/sep/05/reliance-jio-launches-cheap-4g-services-in-india https://www.reuters.com/article/business/indias-richest-man-unveils-telecoms-venture-with-free-calls-cut-price-data-idUSKCN1175BJ/
 
-### 34. Money, banks and credit creation
+### 35. Money, banks and credit creation
 
 - ID: `eco-money-banking` · Written · Subject: Economics & policy
 - Needs first: The balance sheet, Supply, demand and prices
@@ -325,7 +337,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The April 1993 level (about 1,980, down 56%) is Mint, a secondary source; BSE gives the 28 Apr 1992 fall as 12.77%.
   - Sources: https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20 https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1 https://www.jrvarma.in/papers/vik18-1.pdf https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
 
-### 35. Central banks and monetary policy
+### 36. Central banks and monetary policy
 
 - ID: `eco-central-banks` · Written · Subject: Economics & policy
 - Needs first: Money, banks and credit creation
@@ -333,7 +345,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 4 Feb 1994 the FOMC tightened. For the first time, the Fed announced its decision the same day: its statement said the Committee had 'decided to increase slightly the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%; markets were surprised. Monthly averages from the Fed's H.15 release: the 10-year Treasury yield went from 5.75% in Jan 1994 to a peak of 7.96% in Nov (+221 bp) and the 2-year from 4.14% to 7.59%, so the 10s-2s gap shrank from 1.61 to 0.22 points; the funds rate averaged 3.05% in Jan and 5.45% in Dec. A Fed study contrasts 2004, when the Fed issued a statement after each meeting and signalled a 'measured pace', and the 10-year yield fell 8 bp on the day of the first increase.
   - Sources: https://www.federalreserve.gov/fomc/19940204default.htm https://www.federalreserve.gov/fomc/MINUTES/1994/19940204min.htm https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html https://www.federalreserve.gov/releases/h15/
 
-### 36. Inflation, nominal vs real rates
+### 37. Inflation, nominal vs real rates
 
 - ID: `eco-inflation-real` · Written · Subject: Economics & policy
 - Needs first: Central banks and monetary policy, Growth and compounding
@@ -341,7 +353,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 28 Jan 2014 the RBI raised the repo rate by another 25 bp, to 8.0%, still below CPI inflation of close to 10%, so the policy rate stayed negative in real terms. A saver in a 9% deposit earned a real return of roughly -1%: Rs 10 lakh grew to Rs 10.9 lakh but, at 10% inflation, could buy only about Rs 9.9 lakh of today's goods.
   - Sources: https://rbi.org.in/Scripts/PublicationsView.aspx?id=15709 https://bis.org/review/r160905b.htm
 
-### 37. GDP, growth and business cycles
+### 38. GDP, growth and business cycles
 
 - ID: `eco-gdp-cycles` · Written · Subject: Economics & policy
 - Needs first: Supply, demand and prices
@@ -349,7 +361,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: It did not last. Iraq invaded Kuwait in Aug 1990, oil prices jumped and Gulf remittances fell. The planned cut in the fiscal deficit did not happen (9.4% of GDP in 1990-91), the current account deficit widened to about 3.0% of GDP and inflation rose to 12.0%. Growth had averaged 7.6% a year over the three years to 1990-91, fuelled by expansionary fiscal policy. By end-March 1991 gross official reserves were $5.8bn, 1.3 months of imports. The rupee was devalued on 1 and 3 Jul 1991 (about 18% in dollar terms, RBI), and the IMF approved a stand-by of SDR 1,656m on 31 Oct 1991.
   - Sources: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter11_04122018.pdf http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
 
-### 38. Fiscal policy and government debt
+### 39. Fiscal policy and government debt
 
 - ID: `eco-fiscal-debt` · Written · Subject: Economics & policy
 - Needs first: GDP, growth and business cycles
@@ -357,7 +369,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Markets rejected the plan. On Monday 26 Sep 2022 the pound fell nearly 5% at one point to $1.0327, its lowest since decimalisation in 1971, and gilt yields rose sharply. Some long-dated bonds held by pension funds lost around half their value in days; liability-driven investment funds got margin calls and sold gilts, pushing prices down further. On 28 Sep the Bank of England announced temporary purchases of long-dated gilts of up to 65bn pounds (up to 5bn a day until 14 Oct) and postponed its gilt sales, with the Treasury covering any losses.
   - Sources: https://theguardian.com/business/2022/sep/28/bank-of-england-in-65bn-scramble-to-avert-financial-crisis https://www.cnbc.com/2022/09/29/pension-fund-panic-led-to-bank-of-englands-emergency-intervention.html
 
-### 39. Reading empirical claims: causation, data and spreadsheet errors
+### 40. Reading empirical claims: causation, data and spreadsheet errors
 
 - ID: `num-econometrics` · Written · Subject: Numbers & time value
 - Needs first: Statistics: mean, variance, correlation, regression, Fiscal policy and government debt
@@ -366,7 +378,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Added to cover econometrics beyond basics.
   - Sources: https://peri.umass.edu/wp-content/uploads/joomla/images/WP322.pdf https://www.cnbc.com/2013/04/17/reinhartrogoff-error-sparks-austerity-debate.html
 
-### 40. India: RBI, repo rate, liquidity and inflation targeting
+### 41. India: RBI, repo rate, liquidity and inflation targeting
 
 - ID: `in-rbi-policy` · Written · Subject: Economics & policy
 - Needs first: Central banks and monetary policy, Inflation, nominal vs real rates
@@ -375,7 +387,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: RBI opened a new FCNR(B) swap facility in June 2026; keep that 2026 material out of this Case.
   - Sources: https://bis.org/review/r160905b.htm https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0
 
-### 41. Bond basics and pricing
+### 42. Bond basics and pricing
 
 - ID: `bond-pricing` · Written · Subject: Bonds & credit
 - Needs first: Time value and present value, Inflation, nominal vs real rates
@@ -383,7 +395,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 4 Feb 1994 the Fed began tightening: its statement said the Committee had 'decided to increase slightly the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%. The 10-year Treasury par yield went from 5.81% (3 Feb) to 5.94% (4 Feb), 6.15% (28 Feb) and 7.49% (9 May); as a monthly average it went from 5.75% in Jan to 7.96% in Nov 1994 (daily peak 8.05% on 7 Nov), a rise of 221 bp. A 5.70% ten-year bond bought at par in January and valued at a 7.96% yield is worth about $846 per $1,000 of face value, a loss of about 15%, though every promised payment was still safe.
   - Sources: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv https://www.federalreserve.gov/fomc/19940204default.htm https://fortune.com/article/the-great-bond-massacre-fortune-1994 https://www.federalreserve.gov/releases/h15/
 
-### 42. Yield to maturity, coupon and current yield
+### 43. Yield to maturity, coupon and current yield
 
 - ID: `bond-yield` · Written · Subject: Bonds & credit
 - Needs first: Bond basics and pricing
@@ -392,7 +404,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The loss is $1.5bn in the SEC order (release 36761); SEC litigation release 15160 says $1.7bn. The Topic quotes both.
   - Sources: https://sec.gov/files/litigation/admin/3436761.txt https://sec.gov/files/litigation/litreleases/lr15160.txt https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
 
-### 43. Yield curve and term structure
+### 44. Yield curve and term structure
 
 - ID: `bond-yield-curve` · Written · Subject: Bonds & credit
 - Needs first: Yield to maturity, coupon and current yield
@@ -400,7 +412,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 4 Feb 1994 the Fed began raising the overnight rate, from about 3.00% to 3.25%, the first of a series (it averaged 5.45% in Dec 1994). The 2-year monthly average went from 4.14% in Jan to 7.59% in Dec and the 3-month from 3.04% to 5.76%, while the 10-year rose less, from 5.75% to 7.81%, so the 10s-2s gap shrank from 1.61 points to 0.22. On 30 Dec 1994 the Treasury par yields were 5.68% for 3 months, 7.69% for 2 years, 7.84% for 10 years and 7.89% for 30 years: an almost flat curve.
   - Sources: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv https://www.federalreserve.gov/fomc/19940204default.htm https://www.federalreserve.gov/releases/h15/
 
-### 44. Duration and convexity
+### 45. Duration and convexity
 
 - ID: `bond-duration` · Written · Subject: Bonds & credit
 - Needs first: Yield to maturity, coupon and current yield
@@ -408,7 +420,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: In early 2023 deposit outflows quickened. On 8 Mar 2023 SVB Financial Group announced that it had sold $21bn of available-for-sale securities at an after-tax loss of $1.8bn and planned to raise $2.25bn of equity. On 9 Mar depositors withdrew over $40bn, and management expected over $100bn more on 10 Mar. A bank cannot repay deposits from securities it carries at cost without selling them at market prices, so the unrecognised loss became real; regulators closed SVB on 10 Mar 2023. The Fed's April 2023 review describes a mismatch between long-duration securities and short-duration deposits.
   - Sources: https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2022
 
-### 45. Credit spreads, ratings and default
+### 46. Credit spreads, ratings and default
 
 - ID: `bond-credit-spreads` · Written · Subject: Bonds & credit
 - Needs first: Yield to maturity, coupon and current yield, Leases, commitments and debt-like items
@@ -416,7 +428,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: In Aug 1998 Russia devalued its currency and stopped payments on part of its debt, investors rushed to safer and more liquid assets, and the spreads LTCM had bet on narrowing widened almost everywhere. The fund lost 44% of its value in August alone. On 23 Sep 1998 fourteen banks and brokerage firms put up $3.625bn for 90% of the fund; the Fed arranged the meeting but lent nothing. The partners and other investors lost heavily, the fund sold its positions, and the last of the group's $3.6bn was returned by the end of 1999.
   - Sources: https://www.federalreservehistory.org/essays/ltcm-near-failure https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
 
-### 46. India: G-secs, T-bills, SDLs and the corporate bond market
+### 47. India: G-secs, T-bills, SDLs and the corporate bond market
 
 - ID: `in-gsec` · Written · Subject: Bonds & credit
 - Needs first: Yield curve and term structure, India: RBI, repo rate, liquidity and inflation targeting
@@ -425,7 +437,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Not verified in a primary source: the SBI shortfall differs by source (Rs 500 crore first reported, Rs 574 crore found by SBI, about Rs 650 crore in the Janakiraman Committee report per a secondary source), and the Janakiraman and 1993 JPC reports exist only as scans. The Topic gives the Rs 500 crore and Rs 574 crore figures with their sources.
   - Sources: https://www.jrvarma.in/papers/vik18-1.pdf https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20 https://www.moneylife.in/article/sitaraman-of-sbi-convicted-23-years-after-the-securities-scam-of-1992-surfaced/43889.html https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
 
-### 47. Exchange rates and parity
+### 48. Exchange rates and parity
 
 - ID: `fx-basics` · Written · Subject: Currencies & countries
 - Needs first: Inflation, nominal vs real rates
@@ -433,7 +445,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 1 Jul 1991 the RBI cut the rupee's value by about 9% and on 3 Jul by a further 11%. The RBI puts the cumulative devaluation at about 18% in US dollar terms; the IMF says 19% (0.91 x 0.89 = 0.81, a fall of 19%). The plan, code-named 'hop, skip and jump', was always for two stages (C. Rangarajan); after the first step the market grew nervous and expected a larger fall, so the second was brought forward. A dual exchange rate began in March 1992 and the two rates were unified in March 1993.
   - Sources: https://rbi.org.in/scriptS/chro_1991.aspx https://rbi.org.in/history/Brief_Chro1991to2000.html https://livemint.com/Money/08f2pqhy1c2Yh2OYTItwDL/Indias-tryst-with-currency-devaluation.html http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
 
-### 48. Trade and globalisation
+### 49. Trade and globalisation
 
 - ID: `eco-trade` · Written · Subject: Economics & policy
 - Needs first: Supply, demand and prices, Exchange rates and parity
@@ -441,7 +453,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The squeeze did its job on the balance of payments: the IMF estimates that tighter import restrictions and the lower rupee cut import intensity by over 1.5% of GDP in 1991. But the restrictions fell heavily on intermediate inputs; with tighter budgets and credit, domestic demand fell 2.5% in 1991/92, growth slowed to about 1% and industry contracted. Import liberalisation began in July 1991 (tradable Exim scrips for exporters) and a dual exchange rate began on 1 Mar 1992. Growth recovered to nearly 4.5% a year in the following two years.
   - Sources: http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
 
-### 49. Balance of payments and capital flows
+### 50. Balance of payments and capital flows
 
 - ID: `fx-bop` · Written · Subject: Currencies & countries
 - Needs first: Exchange rates and parity, GDP, growth and business cycles
@@ -449,7 +461,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The year's numbers, as the RBI reported them, were worse than 1989-90 on almost every line: exports US$18,477m, imports US$27,914m, a trade deficit of US$9,437m (up 26.5%), invisibles of minus US$242m and a current account deficit of US$9,680m (3.0% of GDP). The capital account brought in US$7,188m (non-resident Indian deposits fell from US$2,403m to US$1,536m); the overall deficit of US$2,492m was met from reserves and US$1,214m drawn from the IMF. The IMF approved a stand-by of SDR 1,656m on 31 Oct 1991 and the rupee was devalued. In 1991-92 imports were cut to US$21,064m, the trade deficit shrank to US$2,798m and the current account deficit to US$1,178m (0.3% of GDP); reserves rose from US$5,834m to US$9,220m.
   - Sources: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter11_04122018.pdf
 
-### 50. India's economy and the 1991 reforms
+### 51. India's economy and the 1991 reforms
 
 - ID: `in-economy` · Written · Subject: Economics & policy
 - Needs first: GDP, growth and business cycles, Balance of payments and capital flows
@@ -457,7 +469,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 1 and 3 Jul 1991 the RBI cut the rupee in two steps, about 18% in dollar terms. July brought a liberalised industrial policy, an investment policy opening sectors to foreign investment and a trade policy replacing import licences with tradable Exim scrips. The 24 Jul Budget ended industrial licensing for most industries (all but 18 in the RBI's account), raised the foreign equity limit to 51% in priority industries and announced stake sales in public enterprises. The IMF approved a stand-by of SDR 1,656m on 31 Oct 1991. The Narasimham Committee reported in Nov 1991; the dual exchange rate began in Mar 1992, a unified rate in 1993 and current-account convertibility in Aug 1994. SEBI framed insider-trading rules in 1992, and the NSE began operating in 1994 (its wholesale debt market in June, equity trading in November).
   - Sources: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf https://rbi.org.in/history/Brief_Chro1991to2000.html https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf https://www.nseindia.com/static/national-stock-exchange/history-milestones
 
-### 51. Exchange-rate regimes and currency crises
+### 52. Exchange-rate regimes and currency crises
 
 - ID: `fx-regimes-crises` · Written · Subject: Currencies & countries
 - Needs first: Balance of payments and capital flows, Central banks and monetary policy
@@ -466,7 +478,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The baht's low near 56 (reached in Jan 1998, not at the end of 1997) rests on ADST; the BIS Paper 24 PDF could not be retrieved and the year-end 1997 rate was not retrieved.
   - Sources: https://www.imf.org/external/np/sec/pr/1997/pr9737.htm https://adst.org/2016/12/thai-tanic-responding-asian-financial-crisis-1997 https://www.bot.or.th/en/our-roles/special-measures/Tom-Yum-Kung-lesson.html
 
-### 52. Sovereign default and country risk
+### 53. Sovereign default and country risk
 
 - ID: `sov-default-country-risk` · Written · Subject: Currencies & countries
 - Needs first: Credit spreads, ratings and default, Exchange-rate regimes and currency crises
@@ -474,7 +486,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 6 Dec 2001 the IMF withheld the next US$1.24bn of its loan; riots followed (at least 29 dead) and President de la Rua resigned on 20 Dec. On 23 Dec the caretaker president, Adolfo Rodriguez Saa, told Congress that Argentina would suspend payments on its foreign debt, the largest sovereign default to that date. The debt in default is US$88bn (US State Department), about US$100bn (Wall Street Journal), US$132bn (New York Times) or US$141bn (Yale Journal of Financial Crises). On 6 Jan 2002 Congress ended convertibility; dollar deposits were converted at 1.4 pesos per dollar. In Feb 2005 holders of 76% of the defaulted principal accepted an offer worth roughly 30 cents on the dollar; the economy grew 8.7% in 2003 and 9.0% in 2004.
   - Sources: https://elischolar.library.yale.edu/journal-of-financial-crises/vol7/iss2/3 https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm https://wsj.com/world/americas/default-review-when-a-nation-goes-bust-046db2c7 https://www.elibrary.imf.org/display/book/9781589063808/ch001.xml
 
-### 53. Equity markets, exchanges, SEBI, NSE and BSE
+### 54. Equity markets, exchanges, SEBI, NSE and BSE
 
 - ID: `eq-markets` · Written · Subject: Markets & investing
 - Needs first: The balance sheet
@@ -482,7 +494,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: SEBI in 1992 had the duty to protect investors and regulate the market, but limited powers to act quickly. Parliament widened them in the Securities Laws (Amendment) Act, 1995: the SEBI Act's footnotes show the directions power (Section 11B) was inserted by Act 9 of 1995 with effect from 25 Jan 1995, and the powers to order investigations and to call for bank records were added by the 2002 amendment. Press accounts link the scam to the 1995 amendment, but the order of events is the safer fact: SEBI gained statutory status on 30 Jan 1992, three months before the scam surfaced, and its powers were widened three years after. The NSE was incorporated in 1992, recognised by SEBI in April 1993 and began operating in 1994, with dematerialised trading from 1995-96; SEBI framed insider-trading rules in 1992.
   - Sources: https://www.sebi.gov.in/about-sebi.html https://www.sebi.gov.in/acts/act15ac.html https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf https://www.nseindia.com/static/national-stock-exchange/history-milestones https://rbi.org.in/history/Brief_Chro1991to2000.html https://www.moneycontrol.com/news/business/markets/harshad-mehta-scam-10-key-points-of-the-scam-that-jolted-india-in-1992-5939931.html https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
 
-### 54. Market history and long-run returns
+### 55. Market history and long-run returns
 
 - ID: `eq-history` · Written · Subject: Markets & investing
 - Needs first: Statistics: mean, variance, correlation, regression, Equity markets, exchanges, SEBI, NSE and BSE
@@ -490,7 +502,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The Sensex reached its high close of 4,467 in April 1992 (Forbes India: +274% from 1,194 in April 1991). On 28 Apr it fell 12.77% in a day as the securities scam came to light, and it fell 5% over April and 23% in May. It ended 1992 at 2,615, about 41% below the April high though 37% up on the calendar year, then rose 28% in 1993 (3,346) and 17% in 1994 (3,927) before falling 21% in 1995 (3,110). BSE's white paper counts positive returns in 75% of the last 40 calendar years. In the US, over 1981-2020, large company stocks returned 12.64% a year on average against 8.21% for ten-year Treasury bonds and 3.94% for bills, with bigger swings.
   - Sources: https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1 https://www.rediff.com/business/special/spec1/20071009.htm https://openstax.org/books/principles-finance-2e/pages/12-4-historical-picture-of-returns-to-stocks
 
-### 55. Risk, diversification and portfolio theory
+### 56. Risk, diversification and portfolio theory
 
 - ID: `risk-portfolio` · Written · Subject: Markets & investing
 - Needs first: Statistics: mean, variance, correlation, regression, Market history and long-run returns
@@ -498,7 +510,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On Monday 19 Oct 1987 the Dow, the S&P 500 and the Wilshire 5000 fell between 18% and 23% in a day, and S&P 500 futures fell 29% (Fed). The ten largest sellers made up half of non-market-maker futures volume and many were portfolio insurers; Wells Fargo alone sold $1.6bn of futures. Futures fell faster than stocks, so the insurers' orders pushed prices down and triggered more selling by the models. The Brady task force blamed the insurers as a main cause; the estimated $80bn of insured assets shrank by about two-thirds afterwards. Diversification across 500 shares did not help, because the shares fell together.
   - Sources: https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf https://time.com/archive/6711376/the-culprits-behind-the-crash
 
-### 56. CAPM, beta and factor models
+### 57. CAPM, beta and factor models
 
 - ID: `risk-capm` · Written · Subject: Markets & investing
 - Needs first: Risk, diversification and portfolio theory
@@ -507,7 +519,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The Topic uses the Amazon Case only; no past-dated Damodaran India beta file was found, so the India half is dropped.
   - Sources: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
 
-### 57. Market efficiency
+### 58. Market efficiency
 
 - ID: `mkt-efficiency` · Written · Subject: Markets & investing
 - Needs first: CAPM, beta and factor models
@@ -516,7 +528,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The debate was staged in early May 2000, after the 10 Mar 2000 Nasdaq peak, not on 1 Jan 2000. Only headline index closes are used (AP, CNBC, Reuters); the Nasdaq decimals come from secondary sources.
   - Sources: https://www.forbes.com/forbes/2000/0612/6514312a.html https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html https://apnews.com/general-news-5472b273b06642eaa5a0487fed43e9c4 https://cnbc.com/2007/07/13/sp-500-milestones.html
 
-### 58. Behavioural finance and bubbles
+### 59. Behavioural finance and bubbles
 
 - ID: `mkt-behavioural` · Written · Subject: Markets & investing
 - Needs first: Market efficiency
@@ -524,7 +536,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On 5 Nov 1999 the shares traded as high as $34 and closed at $24.875, 65% above the $15 offer price, valuing Webvan at $7.9bn. The company lost $453.3m in 2000. On 9 Jul 2001, about 20 months later, it shut down and said it would file for bankruptcy protection; it filed on 13 Jul 2001. The pattern came back with WeWork. Valued at $47bn in a private round in Jan 2019, with bankers having talked of $65bn for its share sale, it was reported by Bloomberg on 6 Sep 2019 to be weighing an IPO valuation of about $20bn, and by Reuters on 13 Sep to be weighing as little as $10-12bn. The sale was withdrawn on 30 Sep, and SoftBank's rescue in Oct 2019 valued the company at about $8bn.
   - Sources: https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion https://www.reuters.com/article/world/uk/exclusive-wework-considers-ipo-valuation-of-as-low-as-10-billion-sources-idUSKCN1VY1PD/ https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
 
-### 59. NPV, IRR and capital budgeting
+### 60. NPV, IRR and capital budgeting
 
 - ID: `cf-capital-budgeting` · Written · Subject: Valuation & corporate finance
 - Needs first: Time value and present value, The cash flow statement
@@ -533,7 +545,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Reuses Webvan; the Eurotunnel replacement (see cf-wacc) is the alternative.
   - Sources: https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt
 
-### 60. Cost of capital and WACC
+### 61. Cost of capital and WACC
 
 - ID: `cf-wacc` · Written · Subject: Valuation & corporate finance
 - Needs first: CAPM, beta and factor models, Credit spreads, ratings and default, NPV, IRR and capital budgeting
@@ -542,7 +554,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Replaces the Tube Investments exercise, which had no outcome.
   - Sources: https://www.nytimes.com/2007/01/15/business/worldbusiness/15iht-tunnel.4211789.html http://www.bbc.co.uk/2/hi/business/6262345.stm https://www.theguardian.com/business/2006/nov/28/transportintheuk.travel1
 
-### 61. Capital structure and Modigliani-Miller
+### 62. Capital structure and Modigliani-Miller
 
 - ID: `cf-capital-structure` · Written · Subject: Valuation & corporate finance
 - Needs first: Cost of capital and WACC
@@ -550,7 +562,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The founder's letter, dated 27 Jul 2019, said he could not take any more pressure from one of the company's private equity partners to buy back shares and referred to pressure from lenders and a serious liquidity crunch. He was found dead on 31 Jul 2019, and the shares fell by the 20% limit on two successive days. On 17 Aug the company disclosed that the group's debt on 31 Jul was Rs 4,970 crore, of which Rs 4,796 crore was secured, including Rs 1,622 crore in Tanglin Developments, Rs 1,488 crore in Sical and Rs 1,097 crore in Coffee Day Global; the sale of the Global Village Tech Park to Blackstone would cut it by about Rs 2,400 crore. The promoters' stake fell from 54% in Jul 2019 to 17% by Jan 2020 as lenders enforced the pledges.
   - Sources: https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31 https://www.businesstoday.in/latest/economy-politics/story/coffee-day-enterprises-discloses-debt-down-rs-4970-crore-slash-rs-2570-crore-global-village-sale-221819-2019-08-17 https://thehindubusinessline.com/companies/coffee-day-enterprises-debt-at-rs-4970-crore/article29119177.ece https://timesofindia.indiatimes.com/business/india-business/coffee-day-promoters-stake-dives-to-17-from-54/articleshow/73113651.cms
 
-### 62. Dividends and buybacks
+### 63. Dividends and buybacks
 
 - ID: `cf-payout` · Written · Subject: Valuation & corporate finance
 - Needs first: Capital structure and Modigliani-Miller
@@ -559,7 +571,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Replaces the earlier candidate (the Coffee Day founder's buyback remark), which was not a payout-policy Case and had no payout data.
   - Sources: https://news.microsoft.com/source/2004/07/20/microsoft-outlines-quarterly-dividend-four-year-stock-buyback-plan-and-special-dividend-to-shareholders https://www.sec.gov/Archives/edgar/data/789019/000119312505174825/d10k.htm
 
-### 63. Corporate credit analysis
+### 64. Corporate credit analysis
 
 - ID: `credit-analysis` · Written · Subject: Bonds & credit
 - Needs first: Credit spreads, ratings and default, Ratios, return on equity and DuPont, Leases, commitments and debt-like items
@@ -568,7 +580,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: As-of is 15 Aug 2018, before the 16 Aug SIDBI default. The story uses only FY2017 figures: the FY2018 accounts appear in rating reports dated 8-9 Sep 2018, after the defaults, so they sit in the reveal.
   - Sources: https://www.ilfsindia.com/media/2042/infrastructure-leasing-financial-services-limited-revision-11092018.pdf https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3 https://reuters.com/article/business/indias-ratings-firms-face-reform-pressure-after-failing-to-flag-ilfs-woes-idUSKCN1ME1YQ
 
-### 64. DCF valuation
+### 65. DCF valuation
 
 - ID: `val-dcf` · Written · Subject: Valuation & corporate finance
 - Needs first: Cost of capital and WACC, The cash flow statement, Capex, depreciation, amortisation and EBITDA
@@ -577,7 +589,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: $35.08 is the paper's one valuation (the treasury-stock method gives $40.54).
   - Sources: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
 
-### 65. Relative valuation and multiples
+### 66. Relative valuation and multiples
 
 - ID: `val-multiples` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Ratios, return on equity and DuPont
@@ -586,7 +598,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: IWG's market value ($4.45bn, shares only) is from a Wall Street Journal report (Konrad Putzier) carried by the Toronto Star on 20 Aug 2019, not a London closing price.
   - Sources: https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/ https://www.thestar.com/business/wework-is-valued-10-times-greater-than-this-profitable-public-rival/article_4f3a25b8-c326-50f6-aefc-6e39d447bee4.html https://investors.iwgplc.com/~/media/Files/I/IWG-IR/reports-and-presentations/2019/annual-results-announcement-year-ended-31-december-2018-presentation.pdf https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/ https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
 
-### 66. Valuing young, loss-making companies
+### 67. Valuing young, loss-making companies
 
 - ID: `val-young` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Relative valuation and multiples, Revenue recognition, run rates, gross vs net
@@ -595,7 +607,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The $6bn is Damodaran's June 2014 valuation of Uber as an urban car service company, revisited in his post of 2 Dec 2014; venture capital was then paying prices implying $17-18bn.
   - Sources: https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html https://www.nytimes.com/2019/05/10/technology/uber-stock-price-ipo.html https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday
 
-### 67. Valuing banks and financial firms
+### 68. Valuing banks and financial firms
 
 - ID: `val-banks` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Money, banks and credit creation
@@ -604,7 +616,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Book value per share at the as-of date is not available (the bank had not published results since Sep 2019); the Topic says so.
   - Sources: https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477 https://www.businesstoday.in/latest/economy-politics/story/yes-bank-revival-plan-gets-cabinet-go-ahead-moratorium-to-end-soon-251981-2020-03-13 https://www.businesstoday.in/industry/banks/story/yes-bank-rescue-plan-notified-moratorium-to-be-lifted-on-march-18-252087-2020-03-14 https://www.ndtvprofit.com/markets/q2-results-yes-banks-stock-tumbles-as-analysts-remain-cautious-over-asset-quality-10305078 https://timesofindia.indiatimes.com/business/india-business/yes-bank-shares-surge-6-pc-on-value-buying-after-5-day-losing-streak/amp_articleshow/72493732.cms?ps=5
 
-### 68. Valuing distressed firms
+### 69. Valuing distressed firms
 
 - ID: `val-distress` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Corporate credit analysis
@@ -612,7 +624,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On the evening of 29 Jul 2019 the founder, V. G. Siddhartha, went missing, and his body was found on 31 Jul. A letter attributed to him, dated 27 Jul, spoke of pressure from a private equity partner to buy back shares, pressure from lenders and a serious liquidity crunch. The shares fell by the 20% daily limit on 30 and on 31 Jul, to Rs 123.25, taking market value from Rs 4,067.65 crore on 29 Jul to Rs 3,254.33 crore and then Rs 2,603.68 crore, down 36% in two days. On 17 Aug the company disclosed group debt of Rs 4,970 crore on 31 Jul (Rs 3,472 crore for Coffee Day Enterprises without Sical); selling the Global Village Tech Park to Blackstone for Rs 2,600-3,000 crore could take it to about Rs 2,570 crore. By Jan 2020 the promoter group's holding had fallen from 54% to 17% as lenders invoked the pledges.
   - Sources: https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31 https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html https://www.businesstoday.in/latest/economy-politics/story/coffee-day-enterprises-discloses-debt-down-rs-4970-crore-slash-rs-2570-crore-global-village-sale-221819-2019-08-17 https://timesofindia.indiatimes.com/business/india-business/coffee-day-promoters-stake-dives-to-17-from-54/articleshow/73113651.cms https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 
-### 69. Implied equity risk premium and market-level valuation
+### 70. Implied equity risk premium and market-level valuation
 
 - ID: `val-implied-erp` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Market efficiency, Yield to maturity, coupon and current yield
@@ -620,7 +632,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: A year later, on 31 Dec 2008, the S&P 500 stood at 903.25, down 38.5%; the Treasury bond rate had fallen to 2.21% and the dividend yield risen to 3.11%. Damodaran's implied premium for the start of 2009 was 6.43%, the highest of the period (against 4.37% a year earlier). It fell back to 4.36% a year later, with the index at 1,115.10, and was 5.20% a year after that. The premium moved with prices and expectations rather than being a fixed property of stocks.
   - Sources: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
 
-### 70. Valuing Indian companies, currency and country risk
+### 71. Valuing Indian companies, currency and country risk
 
 - ID: `val-india` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Sovereign default and country risk, India: G-secs, T-bills, SDLs and the corporate bond market
@@ -628,7 +640,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The shares listed on 2 Nov 2015 at Rs 313 on the BSE and Rs 317 on the NSE, below the Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6%. The gap between the two bond yields (1.0758 / 1.0204, about 5.4% a year) pointed to a rupee falling from 65.12 to roughly 68.7 to the dollar within a year; by 20 Jan 2016 it was about 68. In his Jan 2016 update Damodaran gave India a Baa3 default spread of 2.44%, multiplied it by 1.34 for a country risk premium of 3.28%, and added it to a mature market premium of 6%.
   - Sources: https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf https://www.reuters.com/article/world/us/indian-fxdebt-factors-to-watch-oct-23-idUSL3N12L3UP/ https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2015 https://www.business-standard.com/article/markets/markets-likely-to-open-weak-tracking-asian-cues-115101300127_1.html https://www.hindustantimes.com/business/coffee-day-shares-open-below-issue-price-down-4-5/story-Gk0pIIaOJE0MRfS7uqcmfN.html https://www.bloomberg.com/news/articles/2015-11-02/starbucks-india-rival-coffee-day-falls-in-mumbai-trading-debut https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
-### 71. Venture finance and private rounds
+### 72. Venture finance and private rounds
 
 - ID: `cf-venture` · Written · Subject: Valuation & corporate finance
 - Needs first: Valuing young, loss-making companies, Capital structure and Modigliani-Miller
@@ -636,7 +648,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: In Aug 2019 WeWork's parent filed to go public and its private valuation was tested: by late September advisers said it would fetch about a quarter of $47bn and reports put the IPO valuation as low as $10bn. WeWork withdrew its IPO filing on 30 Sep. On 22 Oct 2019 SoftBank agreed a rescue that took its stake to about 80% and valued WeWork at less than $8bn, a fall of more than 80% from January; SoftBank, which had committed more than $13bn in equity, held a company now worth a fraction of what it had paid in. The $47bn had been the price of the newest shares times every share in the company, never a price at which the whole company could be sold for cash.
   - Sources: https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html https://reuters.com/article/markets/asia/wework-gets-2-billion-after-softbank-cuts-planned-investment-idUSKCN1P21OG https://www.nytimes.com/2019/01/07/business/softbank-wework.html https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/ https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
 
-### 72. IPOs, book building and float
+### 73. IPOs, book building and float
 
 - ID: `mkt-ipo-float` · Written · Subject: Markets & investing
 - Needs first: Venture finance and private rounds, Equity markets, exchanges, SEBI, NSE and BSE
@@ -644,7 +656,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The shares began trading on 2 Nov 2015, opening at Rs 313 on the BSE and Rs 317 on the NSE against the Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6%. At the NSE close the company was worth about Rs 5,571 crore against Rs 6,757 crore at the issue price. Only the 17.02% sold in the issue could be traded in the following days; most of the company, including the promoters' 52.56%, was locked in. The issue price had been set by book building before trading began; the first day showed what the open market, with its small float, would pay.
   - Sources: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html https://www.hindustantimes.com/business/coffee-day-shares-open-below-issue-price-down-4-5/story-Gk0pIIaOJE0MRfS7uqcmfN.html https://timesofindia.indiatimes.com/business/india-business/cold-debut-for-ccd-stock-plunges-18/articleshow/49637562.cms https://www.bloomberg.com/news/articles/2015-11-02/starbucks-india-rival-coffee-day-falls-in-mumbai-trading-debut
 
-### 73. Forwards and futures
+### 74. Forwards and futures
 
 - ID: `der-forwards` · Written · Subject: Derivatives
 - Needs first: Bond basics and pricing, Exchange rates and parity, Equity markets, exchanges, SEBI, NSE and BSE
@@ -653,7 +665,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Losses and rescue are ranges by source: $1.3bn (Sage) or $1.5bn (NYT, Reuters); rescue $1.9bn (Sage) to $2.2bn (NYT). As-of is 30 Sep 1993 because the loss was disclosed in Dec 1993.
   - Sources: https://sk.sagepub.com/ency/edvol/encyclopedia-of-white-collar-and-corporate-crime-2e/chpt/metallgesellschaft https://sk.sagepub.com/ency/edvol/sage-encyclopedia-of-business-ethics-and-society-2e/chpt/metallgesellschaft-ag https://www.wsj.com/articles/the-ceo-at-the-center-of-a-controversial-1993-commodity-hedge-1465178461 https://www.nytimes.com/1995/07/28/business/metallgesellschaft-to-pay-fine-to-us.html https://www.uni-trier.de/fileadmin/fb4/studium/FFA/Downloads/Risk_Management/CASE3_Metallgesellschaft_AG_1.pdf
 
-### 74. Options and payoffs
+### 75. Options and payoffs
 
 - ID: `der-options` · Written · Subject: Derivatives
 - Needs first: Forwards and futures, Probability and expected value
@@ -661,7 +673,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: On Monday 19 Oct 1987 the S&P 500 fell about 20% in a single day and the S&P 500 futures contract fell 29%, so futures traded at a deep discount to the shares they track. Roughly 40% of futures sales by traders other than market-makers came from portfolio insurers; one large institution sold thirteen instalments of just under $100m each ($1.1bn in all), and Wells Fargo alone sold $1.6bn of futures. The Fed said on 20 Oct that it was ready to supply liquidity. The Fed paper says the insurers' selling 'may have contributed' to the futures discount; because the models sell more as prices fall, the selling could feed on itself.
   - Sources: https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf https://time.com/archive/6711376/the-culprits-behind-the-crash
 
-### 75. Binomial and Black-Scholes
+### 76. Binomial and Black-Scholes
 
 - ID: `der-option-pricing` · Written · Subject: Derivatives
 - Needs first: Options and payoffs, Statistics: mean, variance, correlation, regression
@@ -669,7 +681,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: By the end of Aug 1998 LTCM had lost about half its capital: the Fed History essay says it lost 44% of its value in August alone, and the President's Working Group reports capital of $4.1bn on 31 Jul falling to $2.3bn during August. The losses came in markets all over the world at once, far beyond what the fund's risk models, estimated in calm periods, said was probable; the report concluded that LTCM's models underestimated the risk. On 23 Sep 1998 fourteen banks and brokerages put in $3.625bn for 90% of the fund, an arrangement the New York Fed organised without lending its own money.
   - Sources: https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/ https://www.federalreservehistory.org/essays/ltcm-near-failure https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm https://www.federalreserve.gov/boarddocs/testimony/1998/19981001.htm https://www.nytimes.com/1998/11/14/business/when-theory-met-reality-special-report-teachings-two-nobelists-also-proved-their.html
 
-### 76. Interest-rate and currency derivatives, swaps
+### 77. Interest-rate and currency derivatives, swaps
 
 - ID: `der-rates-fx` · Written · Subject: Derivatives
 - Needs first: Forwards and futures, Duration and convexity
@@ -678,7 +690,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: RBI opened a new FCNR(B) swap facility in June 2026; keep that 2026 material out of this Case.
   - Sources: https://bis.org/review/r160905b.htm https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0
 
-### 77. Hedging and risk management
+### 78. Hedging and risk management
 
 - ID: `der-hedging` · Written · Subject: Derivatives
 - Needs first: Binomial and Black-Scholes, Interest-rate and currency derivatives, swaps, Capital structure and Modigliani-Miller
@@ -686,7 +698,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: In early Dec 1994 the county announced that the pool's $20.6bn portfolio had lost about $1.5bn in market value; it was built on only $7.6bn of deposits, so the leverage multiplied the loss. On 6 Dec 1994 the county filed for Chapter 9 protection. After the portfolio was sold, the county realised a loss of about $600m on its own investment and lost a further $157m of expected interest earnings. In Jan 1996 the SEC found that the official statements for the county's bond offerings had material misstatements and omissions about the risks of the pools. The structure raised, rather than reduced, the pool's exposure to a rise in interest rates, while reports to the Board of Supervisors said there was no risk of losing principal.
   - Sources: https://sec.gov/files/litigation/admin/3436761.txt https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
 
-### 78. Bank regulation, capital and liquidity
+### 79. Bank regulation, capital and liquidity
 
 - ID: `bank-regulation` · Written · Subject: Banks, crises & the system
 - Needs first: Money, banks and credit creation, Ratios, return on equity and DuPont
@@ -695,7 +707,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Supervisory findings were confidential at the time, so the 31 open findings appear only in the reveal. The Topic calls them 'open supervisory findings', not 'warnings'.
   - Sources: https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm https://data.sec.gov/api/xbrl/companyconcept/CIK0000719739/us-gaap/HeldToMaturitySecuritiesAccumulatedUnrecognizedHoldingLoss.json
 
-### 79. Bank runs and interest-rate risk in banks
+### 80. Bank runs and interest-rate risk in banks
 
 - ID: `crisis-bank-runs` · Written · Subject: Banks, crises & the system
 - Needs first: Bank regulation, capital and liquidity, Duration and convexity
@@ -703,7 +715,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Uninsured depositors read the 8 Mar announcement as a sign of distress. On 9 Mar SVB lost over $40bn of deposits in a day, and management told supervisors it expected to lose over $100bn more on 10 Mar, roughly 85% of its deposit base; for scale, Wachovia lost about $10bn over eight days in 2008 and Washington Mutual $19bn over 16 days. SVB did not have enough cash or collateral to meet the outflows and had not tested its ability to borrow at the Fed's discount window in 2022. The California regulator closed the bank on the morning of 10 Mar 2023 and appointed the FDIC as receiver.
   - Sources: https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm https://data.sec.gov/api/xbrl/companyconcept/CIK0000719739/us-gaap/HeldToMaturitySecurities.json
 
-### 80. Securitisation, MBS and CDOs
+### 81. Securitisation, MBS and CDOs
 
 - ID: `struct-securitisation` · Written · Subject: Banks, crises & the system
 - Needs first: Credit spreads, ratings and default, Bank regulation, capital and liquidity
@@ -712,7 +724,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The four-tranche pool in the story is an illustration, labelled hypothetical; the real figures are the Philadelphia Fed's. The FCIC's rating counts (such as 45,000 AAA ratings) and '83% downgraded' were left out as unchecked.
   - Sources: https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
 
-### 81. Shadow banks, private credit and SPVs
+### 82. Shadow banks, private credit and SPVs
 
 - ID: `private-credit` · Written · Subject: Banks, crises & the system
 - Needs first: Securitisation, MBS and CDOs, Corporate credit analysis
@@ -720,7 +732,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: In Sep 2018 mutual fund industry assets fell 12.5%, to Rs 22 lakh crore from Rs 25.2 lakh crore, with a net outflow of Rs 2.3 lakh crore (liquid funds Rs 2.1 lakh crore, income funds Rs 30,504 crore). Not all of it was fear (advance tax and GST payments, one large SBI redemption), but fund officials said the IL&FS default led to redemptions. The Rs 2,800 crore of IL&FS paper was only about 0.11% of industry assets. On 1 Oct 2018 the government asked the NCLT to replace IL&FS's board, saying the defaults caused 'redemption pressure on the mutual funds', quality papers sold at steep discounts and a sell-off in non-bank lenders' shares.
   - Sources: https://www.thehindubusinessline.com/markets/investors-jittery-over-2800-crore-mutual-fund-investments-in-ilfs/article24937207.ece https://timesofindia.indiatimes.com/business/india-business/ilfs-default-tax-dues-suck-rs-2-3l-cr-out-of-mfs-in-sept/articleshow/66126785.cms https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3
 
-### 82. Mutual funds, ETFs and passive investing (incl. India AIFs)
+### 83. Mutual funds, ETFs and passive investing (incl. India AIFs)
 
 - ID: `funds-passive` · Written · Subject: Markets & investing
 - Needs first: Risk, diversification and portfolio theory, Market efficiency
@@ -729,7 +741,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Replaces the earlier candidate (IL&FS paper in mutual funds), which was a credit event, not a passive-versus-active Case. Berkshire's site bars reproduction, so only the letter's figures are used, with credit.
   - Sources: https://www.berkshirehathaway.com/letters/2017ltr.pdf https://longbets.org/362/
 
-### 83. Insurance and risk transfer
+### 84. Insurance and risk transfer
 
 - ID: `ins-risk-transfer` · Written · Subject: Banks, crises & the system
 - Needs first: The balance sheet, Probability and expected value
@@ -738,7 +750,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Added to cover insurance, a gap in the first draft.
   - Sources: https://www.chicagofed.org/-/media/publications/working-papers/2014/wp2014-07-pdf.pdf https://www.newyorkfed.org/aboutthefed/aig https://home.treasury.gov/news/press-releases/tg1805
 
-### 84. Real estate and commodities
+### 85. Real estate and commodities
 
 - ID: `real-assets` · Written · Subject: Markets & investing
 - Needs first: Time value and present value, Equity markets, exchanges, SEBI, NSE and BSE
@@ -747,7 +759,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: FHFA revises the series, so the Topic uses the 2026 vintage of the data and says so.
   - Sources: https://www.fhfa.gov/hpi/download/monthly/hpi_master.csv https://oyc.yale.edu/economics/econ-251/lecture-1
 
-### 85. Inflation regimes and stagflation
+### 86. Inflation regimes and stagflation
 
 - ID: `hist-macro-regimes` · Written · Subject: Economics & policy
 - Needs first: Inflation, nominal vs real rates, Fiscal policy and government debt
@@ -755,7 +767,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The funds rate, which averaged 13.77% in Oct 1979, climbed to 17.19% in Mar 1980 and 19.10% in Jun 1981, the highest monthly average in the data shown (the Fed History essay says it reached a record of about 20% in late 1980). The 10-year Treasury yield rose from 10.30% in Oct 1979 to 15.32% in Sep 1981. Inflation first rose further, peaking at 11.6% in Mar 1980. The economy fell into recession from Jul 1981 to Nov 1982 and unemployment reached 10.8% in late 1982; by Oct 1982 inflation had fallen to about 5%, and the funds rate was 12.37% in Dec 1981 and 9.20% in Nov 1982.
   - Sources: https://www.federalreservehistory.org/essays/anti-inflation-measures https://www.federalreservehistory.org/essays/recession-of-1981-82 https://www.federalreserve.gov/releases/h15/
 
-### 86. Governance, ethics and fraud
+### 87. Governance, ethics and fraud
 
 - ID: `gov-ethics` · Written · Subject: Banks, crises & the system
 - Needs first: Earnings quality and accounting fraud, Equity markets, exchanges, SEBI, NSE and BSE
@@ -763,7 +775,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Satyam's American shares fell $6.85, or 55%, to $5.70 on the NYSE that day, the biggest percentage fall on the exchange, and late the same day Satyam called the deal off. The board minutes reported a month later showed that the five independent directors had voiced concerns about the valuation, the related-party nature of the deal and the board being used as a 'rubber stamp', yet the resolution passed unanimously. On 7 Jan 2009 Raju wrote that Satyam's accounts had been inflated for years and that the Maytas deal was 'the last attempt to fill the fictitious assets with real ones'. The SEC later said the company had overstated cash and revenue by more than $1bn, and Satyam paid a $10m penalty.
   - Sources: https://www.reuters.com/article/business/media-telecom/indias-satyam-to-acquire-stake-in-maytas-infra-idUSBMA002023/ https://www.reuters.com/article/marketsNews/idINN1628370020081216/ https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17 https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm https://www.sebi.gov.in/sebi_data/attachdocs/1441894262377.pdf https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
 
-### 87. Leverage, liquidity spirals and systemic risk
+### 88. Leverage, liquidity spirals and systemic risk
 
 - ID: `crisis-leverage` · Written · Subject: Banks, crises & the system
 - Needs first: Securitisation, MBS and CDOs, Hedging and risk management, Bank runs and interest-rate risk in banks
@@ -773,7 +785,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ## Follow
 
-### 88. Follow: Damodaran, crowd valuation of Uber (Dec 2014)
+### 89. Follow: Damodaran, crowd valuation of Uber (Dec 2014)
 
 - ID: `fol-uber-2014` · Written
 - Needs first: Valuing young, loss-making companies
@@ -781,7 +793,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Uber priced its IPO at $45 on 9 May 2019, near the bottom of its range, valuing it at about $82.4bn fully diluted and raising $8.1bn; its last private round, in Aug 2018, had valued it at $76bn. On its first day the stock closed at $41.57, about 7.6% below the offer price, and Uber had lost about $3bn from operations in 2018. Against the post, whose grid of reader stories ran from under $1bn to about $90bn, the listing landed inside the range, near the upper end. Which story was right remains a judgement; the post's point was that gaps between values are gaps between stories.
   - Sources: https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday
 
-### 89. Follow: Damodaran, Twitter IPO valuation (Oct 2013)
+### 90. Follow: Damodaran, Twitter IPO valuation (Oct 2013)
 
 - ID: `fol-twitter-ipo` · Written
 - Needs first: Valuing young, loss-making companies, IPOs, book building and float
@@ -790,7 +802,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The December 2013 peak above $73 and the $54.20 take-private price come from press reports, not filings.
   - Sources: https://aswathdamodaran.blogspot.com/2013/10/the-twitter-ipo-thoughts-on-ipo-end-game.html https://www.npr.org/sections/thetwo-way/2013/11/06/243583735/twitter-sets-ipo-price-hopes-to-raise-1-8-billion https://www.reuters.com/article/technology/twitter-shares-soar-in-frenzied-nyse-debut-idUSBRE99N1AE/ https://wired.com/2015/08/twitter-stock-falls-ipo-price-first-time https://www.bloomberg.com/news/articles/2022-10-28/musk-completes-44-billion-twitter-deal-ending-months-of-enmity
 
-### 90. Follow: Damodaran, Tesla valuation (Feb 2020)
+### 91. Follow: Damodaran, Tesla valuation (Feb 2020)
 
 - ID: `fol-tesla-2020` · Written
 - Needs first: Valuing young, loss-making companies
@@ -798,7 +810,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Tesla split its shares 5-for-1 (Aug 2020) and 3-for-1 (Aug 2022), so one February 2020 share became 15 and Damodaran's $427 is about $28.47 on today's basis. On 25 Oct 2021, after Hertz announced an order for 100,000 cars, Tesla closed at a record $1,024.86, a market value just over $1tn (about $341.62 on the basis after both splits). The stock then lost about 65% in 2022 and closed the year at $123.18 after losing more than $700bn of market value, still about four times his $427 on the same basis. The post's four stories ran from about $106 to $2,106 a share before the splits; a value follows from a story you can name, and a price can sit far from a value for years in either direction.
   - Sources: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html https://cnbc.com/2022/08/24/tesla-stock-set-for-3-for-1-split-after-market-close.html https://www.reuters.com/business/autos-transportation/tesla-shares-limelight-3-1-stock-split-kicks-2022-08-25/ https://www.nytimes.com/2021/10/25/business/hertz-tesla-electric-vehicles.html https://www.wsj.com/articles/tesla-stock-is-headed-for-its-biggest-ever-annual-decline-11672374248
 
-### 91. Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)
+### 92. Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)
 
 - ID: `fol-roe` · Written
 - Needs first: Relative valuation and multiples, Ratios, return on equity and DuPont
@@ -807,7 +819,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The 6 Oct 2025 follow-up post is cited by date; its URL was not kept.
   - Sources: https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
 
-### 92. Follow: Damodaran, sovereign ratings and default risk (Jun 2025)
+### 93. Follow: Damodaran, sovereign ratings and default risk (Jun 2025)
 
 - ID: `fol-sov-ratings` · Written
 - Needs first: Sovereign default and country risk
@@ -815,7 +827,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Moody's cut the US from Aaa to Aa1 on 16 May 2025, and the post was written about the first two weeks. US Treasury par yields afterwards: the 10-year was 4.41% on 30 May 2025 and 4.46% on 2 Jun, reached its low for the year of 3.97% on 22 Oct and ended 2025 at 4.18%; the 30-year went from 4.92% to 4.84% and the 2-year from 3.89% to 3.47% over the same dates. Yields did not climb to a lasting higher level, which fits Damodaran's reading that the move was small, expected and mostly about pride. The data cannot prove it, since many other things moved yields through 2025.
   - Sources: https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html https://www.reuters.com/markets/us/moodys-downgrades-us-aa1-rating-2025-05-16/ https://www.cnbc.com/2025/05/16/moodys-downgrades-united-states-credit-rating-on-increase-in-government-debt.html https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2025/all?type=daily_treasury_yield_curve&field_tdr_date_value=2025&page&_format=csv
 
-### 93. Follow: Zitron, The Subprime AI Crisis (Sep 2024)
+### 94. Follow: Zitron, The Subprime AI Crisis (Sep 2024)
 
 - ID: `fol-subprime-ai` · Written
 - Needs first: Credit spreads, ratings and default, Revenue recognition, run rates, gross vs net
@@ -824,7 +836,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The o3 price cut rests on VentureBeat and Neowin reports (URLs not kept); the piece's own as-of figures were not re-fetched.
   - Sources: https://www.wheresyoured.at/subprimeai/ https://www.nbcchicago.com/news/business/money-report/openai-closes-funding-at-157-billion-valuation-as-microsoft-nvidia-softbank-join-round/3563420/ https://www.reuters.com/technology/artificial-intelligence/openai-raise-40-billion-softbank-led-new-funding-2025-03-31/
 
-### 94. Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)
+### 95. Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)
 
 - ID: `fol-systemic-risk` · Written
 - Needs first: Leases, commitments and debt-like items, The cash flow statement
@@ -832,7 +844,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The funding condition the essay stressed was met: SoftBank said it completed a further $22.5bn on 26 Dec 2025, fully funding its commitment to OpenAI at $41bn including $11bn from other investors, for a stake of about 11%. OpenAI completed its conversion into a for-profit public benefit corporation on 28 Oct 2025, valued at $500bn, with Microsoft holding about 27%. The first Stargate site, in Abilene, Texas, was running on Oracle's cloud by Sep 2025. One link did break: CoreWeave's $9bn purchase of Core Scientific was voted down and ended on 30 Oct 2025, a failed deal rather than a failure to pay. The essay's other claims, such as OpenAI's revenue against its commitments and what a failure would do to its suppliers, were not tested by these events.
   - Sources: https://www.wheresyoured.at/openai-is-a-systemic-risk-to-the-tech-industry-2/ https://group.softbank/en/news/press/20251231 https://www.reuters.com/business/media-telecom/softbank-has-fully-funded-its-40-billion-investment-openai-cnbc-reports-2025-12-30/ https://www.cnbc.com/2025/10/28/open-ai-for-profit-microsoft.html https://www.cnbc.com/2025/09/23/openai-first-data-center-in-500-billion-stargate-project-up-in-texas.html https://www.reuters.com/business/core-scientific-terminates-9-billion-merger-deal-with-coreweave-2025-10-30/
 
-### 95. Follow: Zitron, AI Is A Money Trap (Aug 2025)
+### 96. Follow: Zitron, AI Is A Money Trap (Aug 2025)
 
 - ID: `fol-money-trap` · Written
 - Needs first: Revenue recognition, run rates, gross vs net, Venture finance and private rounds
@@ -841,7 +853,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Uses the Nov 2025 round only; the later events are the Case of jud-predicted-outcomes.
   - Sources: https://www.wheresyoured.at/ai-is-a-money-trap/ https://www.cnbc.com/2025/11/13/cursor-ai-startup-funding-round-valuation.html
 
-### 96. Follow: Damodaran, The Price of Risk (Aug 2023)
+### 97. Follow: Damodaran, The Price of Risk (Aug 2023)
 
 - ID: `fol-erp` · Written
 - Needs first: Implied equity risk premium and market-level valuation
@@ -851,7 +863,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ## Judge
 
-### 97. Judge: where does junk start?
+### 98. Judge: where does junk start?
 
 - ID: `jud-rating-boundary` · Written
 - Needs first: Follow: Damodaran, sovereign ratings and default risk (Jun 2025), Credit spreads, ratings and default
@@ -860,7 +872,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The post's default rates (24% and 1.8%) and whether the post was later corrected were not checked.
   - Sources: https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
 
-### 98. Judge: the no-growth assumption in ROE versus earnings yield
+### 99. Judge: the no-growth assumption in ROE versus earnings yield
 
 - ID: `jud-assumptions` · Written
 - Needs first: Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)
@@ -869,7 +881,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: No Case Data: every figure is the post's input or the Learner's recomputation; the growth values are the course's reconstruction, not the post's.
   - Sources: https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/peratio.htm
 
-### 99. Judge: stories into inputs (Uber 2014 versus outcome)
+### 100. Judge: stories into inputs (Uber 2014 versus outcome)
 
 - ID: `jud-narrative-numbers` · Written
 - Needs first: Follow: Damodaran, crowd valuation of Uber (Dec 2014)
@@ -880,7 +892,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Uber priced its IPO at $45 on 9 May 2019, near the bottom of its $44-50 range, at about $82.4bn counting options and restricted stock, and raised $8.1bn; its last private round, in Aug 2018, had valued it at $76bn. On day one the shares closed at $41.57, about 7.6% below the offer price. Reuters described the 2018 result as a loss of about $3bn from operations, which is the filing's operating loss of $3,033m; the $1.8bn sometimes quoted is the Adjusted EBITDA loss, and 2018 net income was a profit of $997m because of $4,993m of other income. For 2019 Uber reported revenue of $14,147m and a loss from operations of $8,596m (8-K of 6 Feb 2020); its earnings releases for 2024 and 2025 show revenue of $43,978m and $52,017m and income from operations of $2,799m and $5,565m. These can be set beside the post's range of reader values, $799m to $90.5bn, but they do not decide which story was right.
   - Sources: https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
 
-### 100. Judge: Twitter's 2013 IPO valuation versus what happened
+### 101. Judge: Twitter's 2013 IPO valuation versus what happened
 
 - ID: `jud-ipo-forecast` · Written
 - Needs first: Follow: Damodaran, Twitter IPO valuation (Oct 2013), Reading filings: S-1, 10-K, Indian annual report and Ind AS
@@ -889,7 +901,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Whether the post's spreadsheet counted the new shares elsewhere cannot be told from the post.
   - Sources: https://aswathdamodaran.blogspot.com/2013/10/twitter-announces-ipo-valuation.html https://www.sec.gov/Archives/edgar/data/1418091/000119312513390321/d564001ds1.htm https://www.sec.gov/Archives/edgar/data/1418091/000119312513431301/d564001d424b4.htm https://www.reuters.com/article/technology/twitter-shares-soar-in-frenzied-nyse-debut-idUSBRE99N1AE/ https://wired.com/2015/08/twitter-stock-falls-ipo-price-first-time https://theguardian.com/business/live/2022/oct/28/elon-musk-bought-twitter-natwest-profits-economy-inflation-business-live
 
-### 101. Judge: Zitron's predictions versus later events
+### 102. Judge: Zitron's predictions versus later events
 
 - ID: `jud-predicted-outcomes` · Written
 - Needs first: Follow: Zitron, AI Is A Money Trap (Aug 2025), Follow: Zitron, The Subprime AI Crisis (Sep 2024), Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)
@@ -902,7 +914,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The audited figures reach us through Zitron's report and the Financial Times, not through an OpenAI filing, and OpenAI declined to comment; no primary source was seen.
   - Sources: https://www.wheresyoured.at/ai-is-a-money-trap/ https://www.wheresyoured.at/exclusive-openai-financials/
 
-### 102. Judge: units, periods and labels
+### 103. Judge: units, periods and labels
 
 - ID: `jud-units-periods` · Written
 - Needs first: Revenue recognition, run rates, gross vs net, Yield to maturity, coupon and current yield, Percent, percentage points and basis points
@@ -917,7 +929,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The Federal Reserve Bank of New York, which publishes SOFR each business day, describes it as a broad measure of the cost of borrowing cash overnight collateralised by Treasury securities, calculated from repurchase-agreement transactions between market participants. It is a private-market rate, so 'borrowing from the Fed' mislabels it; banks that do borrow from the Fed do so at the discount window, at a separate rate. The slip does not change how a floating loan is priced (SOFR plus a margin), but it changes what a reader believes the benchmark is and why it moves.
   - Sources: https://www.wheresyoured.at/credit-crunch/ https://www.newyorkfed.org/markets/reference-rates/sofr
 
-### 103. Judge: claim versus filing
+### 104. Judge: claim versus filing
 
 - ID: `jud-filing-vs-claim` · Written
 - Needs first: Reading filings: S-1, 10-K, Indian annual report and Ind AS, The income statement, Judge: units, periods and labels
@@ -930,7 +942,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: Not checked: whether the article was corrected later.
   - Sources: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm https://www.wheresyoured.at/exit-liquidity/
 
-### 104. Judge: junk or BB+?
+### 105. Judge: junk or BB+?
 
 - ID: `jud-rating-conflict` · Written
 - Needs first: Corporate credit analysis, Judge: where does junk start?
@@ -944,7 +956,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ## Analyse
 
-### 105. Analyse: build a valuation as of a past date
+### 106. Analyse: build a valuation as of a past date
 
 - ID: `ana-build-valuation` · Written
 - Needs first: Relative valuation and multiples, Valuing young, loss-making companies, Valuing distressed firms
@@ -952,7 +964,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: Damodaran valued Amazon in Feb 2000, in a paper dated Mar 2000, at $35.08 a share against the $84 price, after subtracting $2,892m for options. He grew revenue 150%, 100%, 75%, 50% and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6%, to $39,006m in year 10, with operating margin rising from -13.35% in year 1 to 9.95% in year 10 and a cost of capital of 12.84% falling to 9.61%. In 2000 Amazon's net sales were $2,762m, close to his year-1 figure of about $2,793m, but its operating loss was $864m (about -31%), far below his -13.35%. The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and $14.88 in the fourth. His revenue path was one many could accept, but the whole value rested on the margin reaching about 10% and on the discount rate falling.
   - Sources: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
 
-### 106. Analyse: trace who pays whom
+### 107. Analyse: trace who pays whom
 
 - ID: `ana-who-pays-whom` · Written
 - Needs first: Leases, commitments and debt-like items, Securitisation, MBS and CDOs, Shadow banks, private credit and SPVs
@@ -960,7 +972,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: The S-1 showed $47.2bn of undiscounted future lease payments ($17.9bn of long-term lease obligations on the balance sheet), lease cost of about $775m for the first half of 2019, a net loss of about $905m and about $2.5bn of cash at 30 Jun 2019, with SoftBank covering the shortfall through a convertible note and two warrants. The listing did not go ahead: WeWork postponed it and asked to withdraw its filing on 30 Sep 2019, after Adam Neumann stepped down as chief executive on 24 Sep. In Oct 2019 SoftBank stepped in with a rescue reported as a $5bn loan, the $1.5bn of equity due in 2020 paid early and an offer to buy up to $3bn of shares from existing holders, valuing the company at about $8bn, so in effect the investor, not the members, kept paying the landlords. WeWork filed for Chapter 11 on 6 Nov 2023, listing nearly $19bn of liabilities, and used the process to reject leases it could not afford.
   - Sources: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall
 
-### 107. Analyse: commitments as debt
+### 108. Analyse: commitments as debt
 
 - ID: `ana-commitments-debt` · Written
 - Needs first: Leases, commitments and debt-like items, DCF valuation, Judge: claim versus filing
@@ -969,7 +981,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The filing is preliminary: its aggregate committed spend and 12-month payments are blank, and the even split of the tail after 2030 is the Topic's assumption.
   - Sources: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf https://pages.stern.nyu.edu/~adamodar/New_Home_Page/AccPrimer/lease.htm
 
-### 108. Analyse: transfer to India (G-sec, bank, rupee)
+### 109. Analyse: transfer to India (G-sec, bank, rupee)
 
 - ID: `ana-india-transfer` · Written
 - Needs first: Valuing Indian companies, currency and country risk, Valuing banks and financial firms, India: G-secs, T-bills, SDLs and the corporate bond market, Exchange-rate regimes and currency crises
@@ -982,7 +994,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The RBI's January 2014 review figures are cited in the Topic but its page was not re-fetched here (the RBI site blocks scripted access).
   - Sources: https://bis.org/review/r160905b.htm https://indianexpress.com/article/business/banking-and-finance/fcnrb-deposits-push-forex-reserves-to-all-time-high-of-729-billion-in-august-10853919/ https://pages.stern.nyu.edu/~adamodar/pdfiles/ovhds/dam2ed/discountrates.pdf
 
-### 109. Analyse: decide between writers, facts versus framing
+### 110. Analyse: decide between writers, facts versus framing
 
 - ID: `ana-decide-between` · Written
 - Needs first: Judge: Zitron's predictions versus later events, Judge: units, periods and labels, Judge: claim versus filing
@@ -991,7 +1003,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Note: The share of new internet companies that disappeared was not counted, so that claim stays untested here.
   - Sources: https://www.forbes.com/forbes/2000/0612/6514312a.html https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html https://cnbc.com/2007/07/13/sp-500-milestones.html https://www.sec.gov/news/press/2003-56.htm https://www.sec.gov/litigation/litreleases/lr18115.htm
 
-### 110. Analyse: the writers' opposing readings of the Anthropic S-1
+### 111. Analyse: the writers' opposing readings of the Anthropic S-1
 
 - ID: `ana-anthropic-s1` · Written
 - Needs first: Analyse: trace who pays whom, Analyse: commitments as debt, Analyse: decide between writers, facts versus framing, Analyse: transfer to India (G-sec, bank, rupee), Judge: junk or BB+?

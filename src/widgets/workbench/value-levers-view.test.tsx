@@ -59,15 +59,18 @@ async function drawFixture({ settled = false, onTicked = () => {} }: { settled?:
 }
 
 describe("Value levers in a Widget (the recipe's fixture)", () => {
-  it('opens at "Your story is worth $35 a share", the $35 the one key number', async () => {
+  it('opens at "This story is worth $35 a share", the $35 the one key number', async () => {
     await drawFixture();
     expect(host.textContent).not.toContain("could not be drawn");
-    expect(headline()).toBe("Your story is worth $35 a share");
+    expect(headline()).toBe("This story is worth $35 a share");
     const key = host.querySelector('[data-testid="value-levers-headline"] [data-key-figure]');
     expect(key?.textContent).toBe("$35");
     expect(key?.getAttribute("data-key-number")).toBe("");
     expect(host.textContent).toContain("Price on 3 Feb 2000");
     expect(host.textContent).toContain("Today: $1.1bn");
+    // One name per idea between Topic 1 and its Workbench (ticket #88): the levers and bars in a beginner's words.
+    expect(lever("Sales for each dollar invested")).toBeTruthy();
+    expect(host.querySelector("figcaption")?.textContent).toBe("Cash it makes each year, then after year 10");
   });
 
   it("says each lever with its unit, and puts the chance it fails under More settings", async () => {
@@ -86,7 +89,7 @@ describe("Value levers in a Widget (the recipe's fixture)", () => {
     await settle();
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
-    expect(headline()).toBe("Your story is worth $84 a share");
+    expect(headline()).toBe("This story is worth $84 a share");
     expect(taskStates()).toEqual(["done", "done"]);
     expect(onTicked).toHaveBeenLastCalledWith(["Move one lever at a time. Which one moves the value most?", "Find a story worth the $84 price"]);
   });
@@ -111,7 +114,7 @@ describe("Value levers in a Widget (the recipe's fixture)", () => {
     const priceChip = [...host.querySelectorAll("button")].find((b) => b.textContent === "A story worth $84")!;
     await act(async () => priceChip.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await settle();
-    expect(headline()).toBe("Your story is worth $84 a share");
+    expect(headline()).toBe("This story is worth $84 a share");
     expect(lever("Revenue in year 10").getAttribute("aria-valuetext")).toBe("60 billion dollars");
   });
 });
@@ -126,7 +129,7 @@ describe("ValueLeversView on its own, as Home draws it", () => {
     await act(async () => {
       root.render(<ValueLeversView block={amazon} stories={stories} tasks={valueLeversTasks(amazon)} onFirstLeverMove={onFirstLeverMove} onPriceFound={onPriceFound} />);
     });
-    expect(headline()).toBe("Your story is worth $35 a share");
+    expect(headline()).toBe("This story is worth $35 a share");
     setRange(lever("Revenue in year 10"), 60);
     setRange(lever("Revenue in year 10"), 61);
     await settle();
@@ -135,7 +138,7 @@ describe("ValueLeversView on its own, as Home draws it", () => {
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
     expect(onPriceFound).toHaveBeenCalledTimes(1);
-    expect(headline()).toMatch(/^Your story is worth \$8\d a share$/);
+    expect(headline()).toMatch(/^This story is worth \$8\d a share$/);
   });
 });
 

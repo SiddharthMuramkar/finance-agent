@@ -8,6 +8,7 @@ import { courseOverview, stepSequence, whatComesNext } from "@/course/navigator"
 import { topicStart } from "@/course/topic-start";
 import { referenceClip, revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
+import { insightPickNow } from "@/learner/insight";
 import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
@@ -133,6 +134,8 @@ export default async function WorkspacePage() {
         explore={passed ? null : exploreAsSeen(exploreWidgetFor(map, progress), writtenAhead)}
         // Until the shown Topic's Insight is settled, its Widgets hold back what would give it away.
         insightSettled={!!current && progress.topics[current.id]?.insight !== undefined}
+        // Settled by a tap (ADR 0020): the Insight question with its choices, while the current Topic is at explore.
+        insightPick={passed ? null : insightPickNow(map, progress)}
         writtenAhead={writtenAhead}
         revealed={revealedCases(map, progress)}
         referenceClip={referenceClip(map, progress)}

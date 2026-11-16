@@ -15,6 +15,7 @@ import { InsightSettledContext } from "@/widgets/insight-settled";
 import { SaveStoryContext } from "@/widgets/workbench/save-story";
 import { postStoryToNotebook } from "@/widgets/workbench/story-to-notebook";
 import type { WidgetStates } from "@/widgets/widget-state";
+import type { InsightPickView } from "./insight-pick";
 import { LeftColumn } from "./left-column";
 import { TopicHeader, WorkspaceTopicBar } from "./topic-header";
 import { ParkActionsContext, type ParkActions } from "./park-offer-view";
@@ -50,6 +51,7 @@ export function Conversation({
   place = null,
   explore = null,
   insightSettled = false,
+  insightPick = null,
   writtenAhead,
   revealed = [],
   referenceClip,
@@ -81,6 +83,8 @@ export function Conversation({
   explore?: { code: string; id: string } | null;
   /** Whether the shown Topic's Insight is settled (found or told): until then Widgets hold back what gives it away. */
   insightSettled?: boolean;
+  /** The explore step's Insight question with choices to tap (ADR 0020), while explore lasts; null for a typed Insight. */
+  insightPick?: InsightPickView | null;
   /** The Topic's written-ahead Widgets as the Learner sees them now (writtenAheadFor); those the Tutor opened are drawn. */
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
@@ -206,7 +210,7 @@ export function Conversation({
                 split={split}
                 open={host.open}
                 onClose={host.close}
-                left={<LeftColumn turn={turn} slot={host.slot} quizOpen={!!quiz} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
+                left={<LeftColumn turn={turn} slot={host.slot} quizOpen={!!quiz} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} insightPick={passed ? null : insightPick} />}
                 bar={<WorkspaceTopicBar messages={turn.messages} strip={strip} place={place} />}
                 top={<TopicHeader review={review} explore={explore} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}

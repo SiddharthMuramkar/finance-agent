@@ -1,7 +1,12 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { parse } from "yaml";
+import { readOutlineText } from "../src/course/map";
+import { parseOutline, SPINE_LENGTH, spineTopics } from "../src/course/outline";
 import { hydrated, seed } from "./support/app";
+
+/** How many Topics the Spine has, from the outline; the course check holds it to SPINE_LENGTH (ADR 0020, #93). */
+const SPINE_COUNT = spineTopics(parseOutline(readOutlineText()).outline!).length;
 
 /**
  * B1 (spec 2026-11-05): the Course Map shows progress, and the old Progress address redirects to it.
@@ -105,10 +110,11 @@ test("Spine first, and every Topic still listed", async ({ page }) => {
   await page.goto("/course");
   const spine = page.locator('section[data-stage="spine"]');
   await expect(spine.getByRole("heading", { level: 2, name: "Spine" })).toBeVisible();
-  // Fifteen rows, numbered 01 to 15 in Spine order; until a Spine Topic file is written its row is Coming.
-  await expect(spine.locator("[data-spine-number]")).toHaveCount(15);
-  expect(await spine.locator("[data-spine-number]").allInnerTexts()).toEqual(Array.from({ length: 15 }, (_, i) => String(i + 1).padStart(2, "0")));
-  await expect(spine.locator("[data-spine-progress]")).toContainText("of 15 passed");
+  // One row per Spine Topic, numbered from 01 in Spine order; until a Spine Topic file is written its row is Coming.
+  expect(SPINE_COUNT).toBe(SPINE_LENGTH);
+  await expect(spine.locator("[data-spine-number]")).toHaveCount(SPINE_COUNT);
+  expect(await spine.locator("[data-spine-number]").allInnerTexts()).toEqual(Array.from({ length: SPINE_COUNT }, (_, i) => String(i + 1).padStart(2, "0")));
+  await expect(spine.locator("[data-spine-progress]")).toContainText(`of ${SPINE_COUNT} passed`);
   const stages = await page.locator("section[data-stage]").evaluateAll((els) => els.map((el) => el.getAttribute("data-stage")));
   expect(stages).toEqual(["spine", "assignment", "foundation", "follow", "judge", "analyse"]);
   await expect(page.getByRole("heading", { level: 2, name: "Electives" })).toBeVisible();
@@ -152,7 +158,7 @@ test("[C6] the Spine rows sit above the Electives on screen, and every Topic row
   expect(order.firstH2, JSON.stringify(order)).toBe("Spine");
   expect(order.visible).toBe(true);
   expect(order.spineBottom, JSON.stringify(order)).toBeLessThanOrEqual(order.electivesTop);
-  expect(order.rowsAbove, "Spine rows above the Electives heading").toBe(15);
+  expect(order.rowsAbove, "Spine rows above the Electives heading").toBe(SPINE_COUNT);
 
   const rows = await page.locator("li[data-topic] [data-row-link]").evaluateAll((links) =>
     links.map((a) => ({

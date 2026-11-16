@@ -75,6 +75,10 @@ export function topicTexts(topic: TextSource): TopicText[] {
     add("earlier", "insight written", topic.insight.written);
     add("earlier", "insight foundWhen", topic.insight.foundWhen);
     topic.insight.hints.forEach((h, i) => add("earlier", `insight hint ${i + 1}`, h));
+    for (const c of topic.insight.pick?.choices ?? []) {
+      add("earlier", `insight choice "${c.id}"`, c.text);
+      if (c.mistake) add("earlier", `insight choice "${c.id}" fix`, c.mistake.fix);
+    }
   }
   (topic.connections ?? []).forEach((c, i) => add("earlier", `Connection ${i + 1}`, c.text));
   for (const q of topic.questions) {

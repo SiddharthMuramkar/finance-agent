@@ -43,9 +43,9 @@ describe("the critics' record for the Spine (C8)", () => {
     expect(criticsLogErrors([{ id: "e1", stage: "foundation" }], null)).toEqual([]);
   });
 
-  it("holds for the real course: all fifteen Spine Topics have a passing record", () => {
+  it("holds for the real course: all sixteen Spine Topics have a passing record", () => {
     const map = loadCourseMap();
-    expect(map.topics.filter((t) => t.stage === "spine")).toHaveLength(15);
+    expect(map.topics.filter((t) => t.stage === "spine")).toHaveLength(16);
     expect(criticsLogErrors(map.topics, readFileSync(CRITICS_LOG_PATH, "utf8"))).toEqual([]);
   });
 });

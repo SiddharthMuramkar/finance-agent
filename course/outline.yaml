@@ -5,7 +5,8 @@
 # A Topic whose file does not exist yet is Coming. `verified: false` means the Case's facts must be checked before the Topic is written.
 # docs/course-map.md is generated from this file (npm run course:doc); npm run course:check fails if it is stale.
 topics:
-  # The Spine (spec 2026-11-12 C1, C4): the default path's first fifteen Topics, which teach valuation in order.
+  # The Spine (spec 2026-11-12 C1, C4; ADR 0020): the default path's first Topics, which teach valuation in order; the last, the
+  # annual report Topic (#93), leads into the Assignments.
   # Titles are the questions in C4's table; drawsOn is Appendix D; each Case is copied from the Elective entry that holds it.
   # A Spine Topic with no file yet is Coming, and the default path skips it (C8).
   - id: spine-01-worth
@@ -294,6 +295,28 @@ topics:
           - https://economictimes.indiatimes.com/markets/stocks/news/zomato-delivers-a-full-spread-on-listing-day/articleshow/84695358.cms
           - https://aswathdamodaran.substack.com/p/a-zomato-2022-update-price-value
         # Verified 2026-11-13: docs/research/verify-zomato-2021.json reproduces Rs 40.79 to within 0.005%, every number re-opened at source, and dcf-engine-cases.test.ts covers it.
+        verified: true
+  - id: spine-annual-report
+    title: "Where are a valuation's numbers in an annual report?"
+    stage: spine
+    spine: 16
+    minutes: 13
+    drawsOn: [fs-filings, fs-income, fs-balance, ana-build-valuation]
+    cases:
+      - title: "Amazon's annual report for 2000, next to Damodaran's story"
+        asOf: 2001-03-23
+        outcome: "Amazon's Form 10-K for 2000, filed on 23 Mar 2001, showed net sales of $2,762m (Damodaran's year 1: about $2,793m) and a loss from operations of $864m, about -31% of sales against his -13.35%. It had no provision for income taxes; Note 13 lists net operating loss carryforwards. The balance sheet showed long-term debt of $2,127m, cash and cash equivalents of $822m and marketable securities of $278m, and 357.14m shares at 31 Dec 2000 (358,555,061 at 28 Feb 2001). Put into his bridge, the report's debt and cash move a share by about $2, from $35.04 to $32.98; a mature margin of 8% instead of 10% takes it to $21.57."
+        sources:
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/0001032210-01-500087-index.htm
+          - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+        verified: true
+      - title: "Zomato's annual report for 2021-22, next to Damodaran's IPO story"
+        asOf: 2022-08-05
+        outcome: "Zomato's Integrated Annual Report 2021-22, sent to the BSE and the NSE on 5 Aug 2022, shows (consolidated, Rs million) revenue from operations of 41,924 against 19,938 a year earlier, the base Damodaran valued from; other income 4,949; finance costs 120; a loss before exceptional items and tax of 15,179 and a loss before tax of 12,205; total tax 20. The balance sheet at 31 Mar 2022 shows no borrowings (13 a year earlier), cash and cash equivalents of 3,923, other bank balances of 11,832 and current investments of 16,317; note 15(a) lists 7,871,932,776 equity shares of Rs 1 each, 228,992,198 of them held by the ESOP trust."
+        sources:
+          - https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf
+          - https://aswathdamodaran.blogspot.com/2021/07/the-zomato-ipo-bet-on-big-markets-and.html
         verified: true
   - id: num-percent-bps
     title: "Percent, percentage points and basis points"
