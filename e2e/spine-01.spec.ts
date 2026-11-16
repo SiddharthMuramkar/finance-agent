@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { E2E_SCRIPTS, SPINE_ONE_SAYS } from "../src/dev/e2e-tutor";
-import { quietDevtools, replyLanded, say, script, settled, signIn, type Script } from "./support/app";
+import { quietDevtools, replyLanded, say, script, seed, settled, signIn, type Script } from "./support/app";
 
 /**
  * Spine Topic 1 on the Test bed (spec 2026-11-12 Part C, "Done when"): a browser test completes Spine Topic 1 ("What is
@@ -10,11 +10,38 @@ import { quietDevtools, replyLanded, say, script, settled, signIn, type Script }
  * The scripted Tutor (src/dev/e2e-tutor.ts, the `spine1-*` scripts) plays each Tutor Turn, and its tool calls are the
  * ones the real Tutor makes: show_widget opens the explore Workbench, record_insight_attempt records the Insight in the
  * Learner's typed words, and record_check_verdict passes the conversation Check.
+ *
+ * On a phone (390 px, spec #68, #83) the same play is passed by touch: the explore Workbench and the quiz Check each have
+ * an entry in the conversation that slides them up in the full-screen sheet, and the sheet's Back button returns to the
+ * conversation. A due spaced Review has its entry too, and is answered the same way.
  */
 
 const LIMIT_MS = 15 * 60 * 1000;
 /** Each Tutor Turn's wait: the dev server compiles a route the first time it is asked for. */
 const TURN_MS = 60_000;
+
+/** A phone's width (below 768 px, src/app/screen.ts): there the Widget column is a sheet the conversation slides up. */
+const onPhone = (page: Page) => page.viewportSize()!.width < 768;
+
+/** A tap on a phone, a click elsewhere: the Learner's press. */
+const press = (target: Locator) => (onPhone(target.page()) ? target.tap() : target.click());
+
+/** The phone's sheet (the Widget column), up or away. */
+const sheet = (page: Page) => page.getByTestId("panel-column");
+
+/** On a phone, taps the conversation's entry for `view` ("explore", "check", "review") so the sheet slides it up. */
+async function openSheet(page: Page, view: "explore" | "check" | "review") {
+  if (!onPhone(page)) return;
+  await press(page.locator(`[data-testid="sheet-entry"][data-view="${view}"]`));
+  await expect(sheet(page)).toBeVisible();
+}
+
+/** On a phone, the sheet's own Back button: back to the conversation. */
+async function closeSheet(page: Page) {
+  if (!onPhone(page)) return;
+  await press(page.getByRole("button", { name: "Back to the conversation" }));
+  await expect(sheet(page)).toBeHidden();
+}
 
 const plain = (text: string) => text.replace(/\s+/g, " ").trim();
 
@@ -72,7 +99,7 @@ async function next(page: Page, label: string, name: Script) {
   const chip = page.getByTestId("next-chip").last();
   await expect(chip).toHaveText(`${label} →`, { timeout: TURN_MS });
   const before = await page.getByTestId("assistant-message").count();
-  await chip.click();
+  await press(chip);
   await expect(page.getByTestId("assistant-message")).toHaveCount(before + 1, { timeout: TURN_MS });
   await settled(page, TURN_MS);
   await landedAsWritten(page, name);
@@ -89,7 +116,7 @@ async function answerOpenTry(page: Page): Promise<boolean> {
   if (await choices.first().isDisabled()) return false;
   const prompt = plain(await card.locator(":scope > p").first().innerText());
   const answered = await page.getByTestId("quick-try-result").count();
-  await choices.filter({ hasText: new RegExp(`^${escape(tryPick(prompt))}$`) }).click();
+  await press(choices.filter({ hasText: new RegExp(`^${escape(tryPick(prompt))}$`) }));
   const result = page.getByTestId("quick-try-result").nth(answered);
   await expect(result, prompt).toHaveAttribute("data-verdict", "right");
   return true;
@@ -106,14 +133,44 @@ async function passQuiz(quiz: Locator) {
     const question = questions.nth(i);
     const prompt = plain(await question.locator("legend span").nth(1).innerText());
     const pick = quizPick(prompt);
-    if (pick) await question.getByText(pick, { exact: true }).click();
+    if (pick) await press(question.getByText(pick, { exact: true }));
     else await question.getByRole("radio").first().check();
   }
-  await quiz.getByRole("button", { name: "Submit answers" }).click();
+  await press(quiz.getByRole("button", { name: "Submit answers" }));
 }
 
 test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in under 15 minutes", async ({ page }, info) => {
   test.skip(info.project.name !== "w1280", "one width is enough: the play is the behaviour");
+  await playTopicOne(page);
+});
+
+test.describe("on a phone", () => {
+  test.use({ hasTouch: true });
+
+  test("[#83] Spine Topic 1 is passed whole at 390 px, by taps and Lever moves", async ({ page }, info) => {
+    test.skip(info.project.name !== "p390", "one phone width is enough (#83)");
+    await playTopicOne(page);
+  });
+
+  test("[#83] a due spaced Review has an entry in the conversation, and is answered in the sheet", async ({ page }, info) => {
+    test.skip(info.project.name !== "p390", "one phone width is enough (#83)");
+    await seed(page, "review-due");
+    await page.goto("/study");
+    await expect(page.getByTestId("workspace-frame")).toBeVisible();
+    await expect(sheet(page)).toBeHidden();
+    await openSheet(page, "review");
+    const review = page.getByTestId("review");
+    await expect(review).toBeVisible();
+    if (!(await review.getByRole("radio").first().isVisible())) await press(review.locator("summary"));
+    await press(review.locator('label[data-affordance="option"]').first());
+    await press(review.getByRole("button", { name: "Submit answer" }));
+    await expect(page.getByTestId("review-result")).toBeVisible({ timeout: TURN_MS });
+    await closeSheet(page);
+    await expect(page).toHaveURL(/\/study$/);
+  });
+});
+
+async function playTopicOne(page: Page) {
   test.setTimeout(LIMIT_MS + 120_000);
   const started = Date.now();
 
@@ -139,13 +196,16 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
   // pointed at it instead of adding "Amazon, February 2000: your story" beside it.
   await landedAsWritten(page, "spine1-explore");
   await expect(page.getByTestId("widget-chip").filter({ hasText: "your story" })).toHaveCount(0);
+  await openSheet(page, "explore");
   await expect(headline).toHaveCount(1);
+  await expect(headline).toBeVisible();
   await page.getByRole("slider", { name: "Revenue in year 10" }).fill("60");
   await page.getByRole("slider", { name: "Operating margin once mature" }).fill("12.5");
   await expect(headline).toHaveText("Your story is worth $84 a share");
   const tasks = page.locator('[data-testid="guided-tasks"] li');
   await expect(tasks.nth(1)).toContainText("Find a story worth the $84 price");
   await expect(tasks.nth(1)).toHaveAttribute("data-state", "done");
+  await closeSheet(page);
   // The Insight in the Learner's own typed words: the Tutor records it as found (record_insight_attempt).
   await say(page, "spine1-insight", SPINE_ONE_SAYS.insight, TURN_MS);
   await landedAsWritten(page, "spine1-insight");
@@ -170,9 +230,11 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
   // The quiz Check, in the Check tab: four of its six questions, three right to pass.
   await expect(currentStep(page)).toHaveText(/^Wrap up — /, { timeout: TURN_MS });
   const quiz = page.getByTestId("quiz");
+  await openSheet(page, "check");
   await expect(quiz).toBeVisible({ timeout: TURN_MS });
   await passQuiz(quiz);
   await expect(page.getByTestId("quiz-result")).toContainText("Passed.");
+  await closeSheet(page);
 
   // The conversation Check: its concept and Your turn are taught by Next, then its prompt, then the Learner's story,
   // which the Tutor passes with record_check_verdict.
@@ -199,4 +261,4 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
   // The Course Map shows the Topic passed.
   await page.goto("/course");
   await expect(page.locator('li[data-topic="spine-01-worth"]')).toHaveAttribute("data-status", "passed");
-});
+}
