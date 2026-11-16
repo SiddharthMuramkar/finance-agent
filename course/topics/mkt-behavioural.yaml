@@ -87,7 +87,7 @@ questions:
       - { id: d, text: "Insiders were stopped from selling for a while", mistake: { tag: mixed_up_terms, fix: "A lock-in stops insiders selling for a while; it is not the first-day price move." } }
     answer: a
     explanation: >
-      The first-day return of an issue priced at $20 that closes at $28 is 28 / 20 - 1 = 40%. Issues that close their first day well above their issue price are said to be underpriced. Dividing the gain by the closing price (8 / 28 = 28.6%) measures it from the wrong base.
+      An issue priced at $20 that closes at $28 has risen $8 on $20, which is a first-day return of 40%. Issues that close their first day well above their issue price are said to be underpriced. Dividing the $8 gain by the $28 closing price gives about 28.6%, which measures it from the wrong base.
     source: >
       Jay R. Ritter, IPO data and underpricing, University of Florida: https://site.warrington.ufl.edu/ritter/ipo-data/ ; the arithmetic is own.
 

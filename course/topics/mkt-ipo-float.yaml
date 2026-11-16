@@ -88,7 +88,7 @@ questions:
       - { id: d, text: "Most investors' bids sank and were thrown out", mistake: { tag: float_is_bids, fix: "Float is about the shares that can trade, not about bids won or lost." } }
     answer: a
     explanation: >
-      The float is the part of a company that can trade freely. With about 17 percent sold in the issue and most other shares locked in, only that slice can come to market at first, so a few buyers or sellers can move the price a lot. The prospectus states the issue as a share of the shares after it: 35,060,975 new shares / 206,001,719 = 17.02 percent.
+      The float is the part of a company that can trade freely. With about 17 percent sold in the issue and most other shares locked in, only that slice can come to market at first, so a few buyers or sellers can move the price a lot. The prospectus states the issue as a share of the shares after it: 35,060,975 new shares out of 206,001,719 is 17.02 percent.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), cover page: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 

@@ -43,6 +43,7 @@ if (spine.length) fail("Spine Topics that break the Spine shape (spec 2026-11-12
 const critics = criticsLogErrors(map.topics, existsSync(CRITICS_LOG_PATH) ? readFileSync(CRITICS_LOG_PATH, "utf8") : null);
 if (critics.length) fail("Spine Topics without a passing critics' record (spec 2026-11-12 C8)", critics);
 
+// Typed formulas (ADR 0003): none in any Topic outside Go deeper; there is no not-yet-converted list (spec #68).
 const typed = formulaCheckErrors(map.topics);
 if (typed.length) fail("Typed formulas in the Course Map (ADR 0003)", typed);
 

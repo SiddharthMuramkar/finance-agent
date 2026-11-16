@@ -32,7 +32,7 @@ concept: >
   same units as the data, which makes it the usual measure of risk. For a sample, divide by n - 1
   rather than n. Correlation (r, between -1 and +1) measures how strongly two series move together
   in a straight line; it does not show that one causes the other, and r squared is the share of the
-  variation the line explains. Regression fits a line (y = a + b x) to describe how one variable
+  variation the line explains. Regression fits a straight line, a starting level plus a slope times x, to describe how one variable
   changes with another; the slope b is the expected change in y for a one-unit change in x. If
   returns are assumed normal, about 68% of days fall within one standard deviation of the mean and
   about 95% within two. Real markets have fatter tails than the normal curve: rare extremes happen
@@ -41,6 +41,10 @@ concept: >
 principle: >
   Statistics describe the past sample you fed them. Before trusting one, ask what period it
   covers, what it assumes about extremes, and what could make the relationship change.
+
+goDeeper: >
+  Written as a sum, the regression line is y = a + b x: a is where the line crosses the y axis
+  (the value of y when x is 0), and b is the slope.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:

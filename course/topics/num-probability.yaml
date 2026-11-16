@@ -33,15 +33,20 @@ concept: >
   A probability is a number from 0 to 1 for how likely an event is. The probability that an
   event does not happen is 1 minus the probability that it does. For independent events, the
   probability that all happen is the product of their probabilities, and the probability that
-  at least one happens is 1 - (1 - p)^n. The expected value of an uncertain outcome is the sum
+  at least one happens is 1 minus the probability that none of them happens. The expected value of an uncertain outcome is the sum
   of each outcome times its probability. Expected value is a long-run average, not a forecast:
   it says nothing about the spread of outcomes, and a loss that wipes you out cannot be averaged
-  away. Borrowing makes this worse. With D of debt per 1 of capital, assets are 1 + D, so a fall
-  of 1 / (1 + D) in the value of assets destroys the capital.
+  away. Borrowing makes this worse. With D of debt per 1 of capital, assets are 1 plus D, so a fall
+  in the value of assets of 1 part in 1 plus D destroys the capital.
 
 principle: >
   A positive expected value is not the same as safe. Ask what the worst plausible outcome
   does to the survivor, and how much borrowing sits underneath it, before trusting an average.
+
+goDeeper: >
+  Written as sums: for n independent events that each happen with probability p, the chance that at
+  least one happens is 1 - (1 - p)^n. With D of debt per 1 of capital, the capital is gone after a fall in
+  asset value of 1 / (1 + D): with 9 of debt per 1 of capital, that is 1 / 10, a 10% fall.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:

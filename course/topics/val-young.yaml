@@ -155,7 +155,7 @@ questions:
         mistake: { tag: margin_as_tax, fix: "Margin is before tax, so the tax rate is a separate input." }
     answer: b
     explanation: >
-      Operating income = revenue x operating margin, so a firm with $10 billion of sales and a 20 percent margin earns $2 billion before tax. Margin is the part of the story about how profitable the business becomes when it matures.
+      Operating income is the margin's share of revenue: a firm with $10 billion of sales that keeps 20 cents of every dollar earns $2 billion before tax. Margin is the part of the story about how profitable the business becomes when it matures.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
