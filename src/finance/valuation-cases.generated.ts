@@ -1439,6 +1439,75 @@ export const VALUATION_CASES: Record<string, ValuationBlockInput> = {
     ],
     reproduces: true,
   },
+  "spine-statements-webvan-2001": {
+    currency: "USD",
+    unit: "millions",
+    baseRevenue: 4.2,
+    growthPercent: [2757.14, 331.83, 238.67, 91.45, 25, 20, 16.67, 14.29, 12.5, 11.11],
+    margin: {
+      marginPercent: [-128.58, -58.28, -23.14, -5.57, 3.21, 7.61, 9.8, 10.9, 11.45, 11.73],
+      afterPercent: 12,
+    },
+    taxPercent: 35,
+    lossesCarried: 50,
+    salesToCapital: 10,
+    costOfCapitalPercent: [12.35, 12.35, 12.35, 12.35, 12.35, 11.87, 11.39, 10.91, 10.43, 9.95],
+    growthAfterPercent: 5,
+    returnOnCapitalAfterPercent: 15.66,
+    cash: 669.5,
+    debt: 18.2,
+    options: 805.7,
+    shares: 321.845,
+    per: "share",
+    price: {
+      value: 15,
+      date: "1999-11-04",
+      note: "IPO offer price, 4 Nov 1999 (10-K 2000: 28,750,000 shares at $15.00 incl. the over-allotment). First trading day 5 Nov 1999: high $34, close $24.875, 65% above the offer, market value $7.9bn (NYT 6 Nov 1999, opened by the verifier). Q4 1999 range $34.00-$15.0625 (10-K 2000).",
+    },
+    illustration: true,
+    published: {
+      note: "No published DCF of Webvan exists in the sources searched (Damodaran's papers, blog and data pages; an independent web search found none). The inputs are an ILLUSTRATION: Damodaran's Feb 2000 Amazon method (beta 1.60 fading to 1.00, 4% premium) applied to Webvan's prospectus claims (28 centres at $300m a year, 12% operating margin, $25m-$35m a centre) and Goldman's 2000-01 projections. Show it as an illustration, never as anyone's published value.",
+    },
+    sources: [
+      {
+        title: "Webvan Group, final prospectus (Form 424B1) dated 4 Nov 1999, SEC accession 0000891618-99-004914",
+        url: "https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt",
+      },
+      {
+        title: "Webvan Group, Form 10-K405 for 1999, filed 30 Mar 2000, SEC accession 0000891618-00-001877",
+        url: "https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt",
+      },
+      {
+        title: "Webvan Group, Form 10-K for 2000, filed 2 Apr 2001, SEC accession 0001012870-01-001485",
+        url: "https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt",
+      },
+      {
+        title: "Federal Reserve H.15 Selected Interest Rates, release of 8 Nov 1999 (10-year Treasury 5.95% on 4 Nov 1999)",
+        url: "https://www.federalreserve.gov/releases/h15/19991108/",
+      },
+      {
+        title: "Damodaran, The Dark Side of Valuation: ... Can Amazon.com be valued? (March 2000): beta 1.60 for internet firms, risk premium 4%, beta converging to 1",
+        url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+      },
+      {
+        title: "Damodaran archived industry data, January 1999: operating margins by industry (margin98.xls)",
+        url: "https://pages.stern.nyu.edu/~adamodar/pc/archives/margin98.xls",
+      },
+      {
+        title: "Damodaran archived industry data, January 1999: EVA, ROC and cost of capital by industry (EVA98.xls)",
+        url: "https://pages.stern.nyu.edu/~adamodar/pc/archives/EVA98.xls",
+      },
+      {
+        title: "Tax Policy Center, Historical Corporate Top Tax Rate and Bracket 1909-2014 (1999: 35%)",
+        url: "http://www.taxpolicycenter.org/sites/default/files/legacy/taxfacts/content/pdf/corporate_historical_bracket.pdf",
+      },
+      {
+        title: "New York Times, 6 Nov 1999, 'Webvan Stock Price Closes 65% Above Initial Offering'",
+        url: "https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html",
+      },
+    ],
+    reproduces: false,
+  },
   "tesla-being-wrong-2020": {
     currency: "USD",
     unit: "millions",

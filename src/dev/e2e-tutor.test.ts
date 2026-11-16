@@ -24,11 +24,19 @@ const spineItems: OpenItem[] = [
     c.quickTries.flatMap((q) => ("choices" in q && Array.isArray(q.choices) ? [{ prompt: String(q.ask), choices: q.choices.map((x) => x.text), answer: q.choices.find((x) => x.id === q.answer)?.text }] : [])),
   ),
 ];
-const isSpine = (name: E2eScriptName) => /^spine(?:[123]|15)-/.test(name);
+const isSpine = (name: E2eScriptName) => /^(?:spine(?:[123]|15)|statements)-/.test(name);
 /** The ready-Case valuation Topic, whose scripts e2e/spine-15-judge.spec.ts plays. */
 const judge = map.topic("spine-15-value-yourself")!;
-/** Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts) and the ready-Case valuation Topic's are checked against their own Topics. */
-const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")!, "spine15-": judge } as const;
+/**
+ * Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts), the statements Topic's (#90, e2e/spine-statements.spec.ts)
+ * and the ready-Case valuation Topic's are checked against their own Topics.
+ */
+const SPINE_OF = {
+  "spine2-": map.topic("spine-02-money-later")!,
+  "spine3-": map.topic("spine-03-cash")!,
+  "statements-": map.topic("spine-statements")!,
+  "spine15-": judge,
+} as const;
 /** #93's three-turn play of the annual report Topic (e2e/spine-annual-report.spec.ts). */
 const annualReport = map.topic("spine-annual-report")!;
 const isReport = (name: E2eScriptName) => name.startsWith("ar-");
@@ -91,6 +99,9 @@ describe("the scripted Tutor", () => {
       "stage-reply-2",
       "stage-reply-3",
       "stage-reply-4",
+      "statements-concept",
+      "statements-explore",
+      "statements-story",
       "story-hike",
       "story-reply",
       "story-trader",

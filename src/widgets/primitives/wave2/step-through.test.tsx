@@ -35,3 +35,24 @@ describe("StepThrough Back and Next", () => {
     expect(byId(page, "step-through")!.getAttribute("data-step")).toBe("0");
   });
 });
+
+describe("StepThrough tiles", () => {
+  const tiles = [{ label: "Cash flow statement" }, { label: "Balance sheet" }, { label: "Income statement" }];
+  const lit = (p: Page) => [...p.host.querySelectorAll("[data-testid=step-tile]")].map((t) => t.getAttribute("data-lit"));
+
+  it("draws every tile on the first step, none lit, then lights each in turn and keeps it lit", () => {
+    page = draw(<StepThroughView tiles={tiles} steps={[{ title: "Event", body: "A warehouse" }, ...tiles.map((t, i) => ({ title: t.label, body: "Moves", light: i }))]} />);
+    expect(lit(page)).toEqual(["false", "false", "false"]);
+    const next = [...page.host.querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent === "Next")!;
+    click(next);
+    expect(lit(page)).toEqual(["true", "false", "false"]);
+    click(next);
+    click(next);
+    expect(lit(page)).toEqual(["true", "true", "true"]);
+  });
+
+  it("draws no tiles when none are given", () => {
+    page = draw(<StepThroughView steps={steps} />);
+    expect(byId(page, "step-tiles")).toBeNull();
+  });
+});
