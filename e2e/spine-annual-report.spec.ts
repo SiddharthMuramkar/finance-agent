@@ -123,7 +123,9 @@ for (const play of PLAYS) {
     expect(turns[1].tutor).toMatch(/income statement[\s\S]*balance sheet/);
     // #94: the same two pages in Japan, Korea and Europe, each named by the report its Case reads.
     expect(turns[1].tutor).toMatch(/Japan, Korea and Europe/);
-    expect(turns[1].tutor).toMatch(/yuho[\s\S]*business report[\s\S]*IFRS/);
+    expect(turns[1].tutor).toMatch(/Nintendo's yearly results[\s\S]*Samsung's business report[\s\S]*LVMH's annual report/);
+    // Critics round 1 (#94): no unglossed jargon at Concept.
+    expect(turns[1].tutor).not.toMatch(/yuho|IFRS/);
     expect(turns[2].widget).toMatch(/Business value/);
     expect(turns[2].widget).toMatch(/Left for shareholders/);
     expect(turns[2].widget).toMatch(/Amazon's 10-K for 2000/);
