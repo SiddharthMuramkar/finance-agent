@@ -148,14 +148,14 @@ export function CaseFlow({ example }: { example: Example }) {
               <p className="v-fine">
                 {casePage.sources}{" "}
                 {example.sources.map((source, i) => (
-                  <span key={source.label}>
+                  <span key={"url" in source ? source.url : source.note}>
                     {i > 0 && "; "}
-                    {source.url ? (
+                    {"url" in source ? (
                       <a href={source.url} target="_blank" rel="noopener noreferrer">
                         {source.label}
                       </a>
                     ) : (
-                      source.label
+                      source.note
                     )}
                   </span>
                 ))}

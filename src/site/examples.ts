@@ -11,8 +11,8 @@ export type ExampleWidget = "jackpot" | "levers" | "wework" | "rates" | "compoun
 /** The Examples page's filter groups (§7.4). */
 export type ExampleGroup = "everyday" | "news" | "companies";
 
-/** One Source behind an Example's figures, or a note on how a figure was worked out (no link). */
-export type ExampleSource = { label: string; url?: string };
+/** One named Source behind an Example's figures, always with its link, or a note on how a figure was worked out (no Source, no link). */
+export type ExampleSource = { label: string; url: string } | { note: string };
 
 export type Example = {
   slug: string;
@@ -42,7 +42,7 @@ export type Example = {
   ending: string;
   /** The Moment's As-of date (ISO), for an Example about a dated event: its Case Data stand as of that day. */
   asOf?: string;
-  /** Where the Case Data come from: each Source named, with its link when it has one. */
+  /** Where the Case Data come from: each Source named and linked, and any notes on how a figure was worked out. */
   sources: readonly ExampleSource[];
   widget: ExampleWidget;
 };
@@ -87,7 +87,7 @@ export const EXAMPLES: readonly Example[] = [
       { label: "Mathrubhumi, 9 Oct 2024", url: "https://english.mathrubhumi.com/news/kerala/kerala-thiruvonam-bumper-lottery-result-first-prize-winner-47fe5126" },
       { label: "The New Indian Express, 11 Oct 2024", url: "https://www.newindianexpress.com/states/karnataka/2024/Oct/11/mandya-bike-mechanic-wins-rs-25-crore-thiruvonam-bumper-lottery" },
       { label: "Mega Millions, Difference Between Cash Value and Annuity", url: "https://www.megamillions.com/difference-between-cash-value-and-annuity" },
-      { label: "The 30 payments are a what-if, worked out the American way." },
+      { note: "The 30 payments are a what-if, worked out the American way." },
     ],
     widget: "jackpot",
   },
@@ -122,7 +122,14 @@ export const EXAMPLES: readonly Example[] = [
     endingKind: "next",
     ending:
       "Damodaran’s story came to **$35.08 a share** against the $84 price. The $84 was already below the year’s high: in early January 2000 the shares had traded as high as $91.50. The price fell through 2000, and by the fourth quarter the shares had been as low as **$14.88**. *A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong.",
-    sources: [{ label: "Damodaran’s published valuation of Amazon, 2000. The widget here is a simplified prototype model calibrated to his $35.08." }],
+    sources: [
+      {
+        label: "Aswath Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (NYU Stern, March 2000)",
+        url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+      },
+      { label: "Amazon.com, Form 10-K for 2000 (SEC)", url: "https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt" },
+      { note: "The widget runs the course’s tested valuation engine on his inputs: $35.04 a share against his published $35.08." },
+    ],
     widget: "levers",
   },
   {
@@ -155,7 +162,14 @@ export const EXAMPLES: readonly Example[] = [
     endingKind: "next",
     ending:
       "Six weeks later, on **30 September 2019**, WeWork withdrew its share sale. In November 2023 it filed for bankruptcy. *A run rate is a pace. Revenue is what was recorded.*",
-    sources: [{ label: "WeWork S-1, 14 Aug 2019; CNBC, 30 Sep 2019; Forbes, 7 Nov 2023." }],
+    sources: [
+      { label: "WeWork S-1, 14 Aug 2019", url: "https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm" },
+      {
+        label: "CNBC, 30 Sep 2019",
+        url: "https://www.cnbc.com/2019/09/30/wework-says-it-will-file-request-to-withdraw-its-ipo-prospectus-after-roadshow-management-turmoil.html",
+      },
+      { label: "CNBC, 7 Nov 2023", url: "https://www.cnbc.com/2023/11/07/wework-files-for-bankruptcy.html" },
+    ],
     widget: "wework",
   },
   {
@@ -228,7 +242,7 @@ export const EXAMPLES: readonly Example[] = [
     endingKind: "rule",
     ending:
       "*Each year grows on the new total, not on the start.* After 30 years, ₹1,000 at 10% becomes about **₹17,449**, and the last year alone adds about ₹1,586. At 10% a year, money doubles roughly every 7 years (72 ÷ 10).",
-    sources: [{ label: "Worked example from the Topic. No outside figures." }],
+    sources: [{ note: "Worked example from the Topic. No outside figures." }],
     widget: "compound",
   },
 ];

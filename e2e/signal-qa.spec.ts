@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { EXAMPLE_SLUGS, examplePath } from "../src/site/examples";
+import { EXAMPLE_SLUGS, EXAMPLES, examplePath } from "../src/site/examples";
 import { quietDevtools, siteReady } from "./support/app";
 
 /**
@@ -73,6 +73,25 @@ test("[#116] the jackpot and rates Examples show a dated Indian Moment with link
     const link = reveal.locator(`a[href^="https://${host}/"]`);
     await expect(link).toHaveCount(1);
     await expect(link).toHaveAttribute("rel", /noopener/);
+  }
+});
+
+/** #75: every Example's ending links each Source it names, and the Amazon Example names one model: the tested engine. */
+test("[#75] every Example links each named Source, and Amazon says its widget runs the tested valuation engine", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "the links are the same at every size");
+  for (const example of EXAMPLES) {
+    await page.goto(examplePath(example.slug));
+    await siteReady(page);
+    await page.getByRole("button", { name: "Skip to the ending" }).click();
+    const reveal = page.getByTestId("case-reveal");
+    for (const source of example.sources) {
+      if ("note" in source) await expect(reveal).toContainText(source.note);
+      else await expect(reveal.getByRole("link", { name: source.label, exact: true }), `${example.slug}: ${source.label}`).toHaveAttribute("href", source.url);
+    }
+    if (example.slug === "amazon-2000") {
+      await expect(reveal).toContainText("tested valuation engine");
+      await expect(page.locator("main")).not.toContainText("prototype");
+    }
   }
 });
 
