@@ -18,7 +18,7 @@ _Avoid_: admin
 Someone on the public site who has not asked to come in.
 
 **Applicant**:
-Someone who asked to come in and waits for the Owner; the Owner sees them as Waiting.
+Someone who joined the Waitlist on `/join` and waits for the Owner; Clerk lists them as pending.
 
 **Member**:
 An approved person who can study.
@@ -27,7 +27,7 @@ An approved person who can study.
 The Owner's advance yes for one email address, so that person skips the wait.
 
 **Approve / Deny**:
-The Owner's decision to let an Applicant in or keep them out.
+The Owner's decision, in Clerk's Waitlist, to let an Applicant in (invite) or keep them out (reject).
 
 **Early access**:
 The free, invite-only beta that the site offers.

@@ -2,7 +2,7 @@
 
 Map #2 ("Wayfinder: Value It Signal, build-ready") closes with the PR that adds this file. The map decided what the Signal beta needs. This file keeps what the map did not decide (its "fog"). The decisions are indexed at the end.
 
-Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-the-2026-11-15-batch) of the 2026-11-15 batch, the production Library load and the production wipe.
+Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-the-2026-11-15-batch) of the 2026-11-15 batch, the production Library load, the production wipe and PR C (#51).
 
 **How to read an item.** Each item has the question, why it matters, what it blocks, a first step and a status.
 
@@ -60,7 +60,7 @@ Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-th
 
 - **Question:** Keep the direct OpenAI adapter, or move it behind a gateway?
 - **Why it matters:** A gateway can give fallbacks, one bill and an easy model change. The trap: a change of `TUTOR_MODEL` retires every Session and leaves costs unpriced (`cost_usd` empty; #13 then counts each such step as the worst step).
-- **Blocks:** Any model change. #19 keeps the model-change retirement guard, renamed.
+- **Blocks:** Any model change. The retirement guard stays as `isOldModelSession` / `retireOldModelSessions` (`src/tutor/session-log.ts`, PR #44).
 - **First step:** A grilling ticket. List what a model change touches: the price table (`src/tutor/pricing.ts`), the retirement guard, the evals.
 - **Status:** Open. Its blocker is gone: the OpenAI key proved a turn on 2026-11-15 (#3).
 
@@ -70,7 +70,7 @@ Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-th
 - **Why it matters:** It is the first thing a visitor sees. A live demo costs money per visit and needs bot protection. A recorded demo must say "recorded".
 - **Blocks:** The final home page.
 - **First step:** A prototype. Measure first paint with all 5 widgets mounted. Price one live demo turn.
-- **Status:** Open.
+- **Status:** Partly done. PR #47 ships a recorded conversation with a live widget, labelled "A recorded conversation from the course. The widget is live." (`src/site/copy.ts`). Open: whether to wire it to the live Tutor later, and the first-paint measurement with all 5 widgets.
 
 ### 8. Owner content
 
@@ -82,7 +82,7 @@ Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-th
 
 ### 9. Invite operations
 
-- **Question:** Who gets the 20 invites? How often does the owner approve? What happens to people who are never approved?
+- **Question:** Who gets the 20 invites? How often does the owner approve? What happens to people who are never approved? Also: do the "What brings you here?" chips (#14, dropped by #33) come back, for example as a Clerk Waitlist field or a first-sign-in question?
 - **Why it matters:** Sign-up is a Clerk Waitlist (#33). Nobody is approved automatically. A forgotten waitlist leaves people waiting with no answer.
 - **Blocks:** The beta start (target: end of November 2026).
 - **First step:** The owner lists the first 20 people and picks a rhythm (for example, approve twice a week). Decide what a person who waits hears. This ties to the wait-time promise (item 8). Only the owner can do this (`docs/owner-actions.md`, step 14).
@@ -96,18 +96,20 @@ Written 2026-11-15. Updated 2026-11-16 with the [follow-ups](#follow-ups-from-th
   - About 12 eval harnesses exist (for example the `vitest.*.config.ts` files). Merge them into fewer.
 - **Why it matters:** Without evals in CI, a prompt or Library change can make the Tutor worse, and nobody sees it.
 - **Blocks:** Safe changes to the Tutor and the Library.
-- **First step:** List the harnesses. Mark which ones still run and which ones die with the legacy lanes (#19).
-- **Status:** Partly done. The CI PR makes `tutor-eval.yml` say "skipped (no key)" instead of a fake pass. Library evals run by hand on a Neon branch copy of `main` (for #38 and #37), and on production after the Library load of 2026-11-16 (`docs/owner-actions.md`, "Scripts you ran"). The rest is open.
+- **First step:** List the harnesses that are left after PR #44 (#19), which deleted `browser-check.mjs`, `layout-check.mjs`, `src/comparison`, `vitest.comparison.config.ts` and `vitest.genui.config.ts`. Left: the 4 `vitest*.config.ts` files (`vitest.config.ts`, `behaviour`, `tutor-eval`, `tutor-sweep`), Playwright, `widget-eval.mjs` (widgets, delight), `library-score.mjs`, `tutor-eval-from-session.mjs`, `eval-reads.mjs` and `tutor-replay.mjs` (all in `scripts/`). Mark which ones run in CI.
+- **Status:** Partly done. The CI PR makes `tutor-eval.yml` say "skipped (no key)" instead of a fake pass. The repo has no `OPENAI_API_KEY` GitHub secret today (only `ANTHROPIC_API_KEY`), so `tutor-eval` always skips. Library evals run by hand on a Neon branch copy of `main` (for #38 and #37), and on production after the Library load of 2026-11-16 (`docs/owner-actions.md`, "Scripts you ran"). The rest is open.
 
 ### 11. Housekeeping
 
 | Part | Status |
 |---|---|
-| Remove stale secrets | Partly done. Production `ANTHROPIC_API_KEY` and `THESYS_API_KEY` are already removed. Production `PASSCODE`, `PASSCODES` and `SESSION_SECRET` go after PR C (#33) is live (`docs/owner-actions.md`, step 18). 2 unused copies of `ANTHROPIC_API_KEY` are left: Vercel Preview and a GitHub Actions repo secret. They are an owner decision (`docs/owner-actions.md`, step 11). |
-| Document `CRON_SECRET` | Open. Planned in `docs/agents/platform.md` (Clerk PR, #33). |
+| Remove stale secrets | Partly done. Production `ANTHROPIC_API_KEY` and `THESYS_API_KEY` are already removed. Production `PASSCODE`, `PASSCODES` and `SESSION_SECRET` go now that PR C (#51) is live (`docs/owner-actions.md`, step 18). Unused copies are left on Vercel Preview (`ANTHROPIC_API_KEY`, `PASSCODE`, `SESSION_SECRET`, `VOYAGE_API_KEY`) and as a GitHub Actions repo secret (`ANTHROPIC_API_KEY`). They are an owner decision (`docs/owner-actions.md`, step 11). |
+| Document `CRON_SECRET` | Partly done. `docs/agents/platform.md` lists it (Env vars, and the "Bypass Vercel Cron" firewall rule), and `src/auth/cron.ts` checks it. Open: say what it guards (`/api/cron/*`) and how to rotate it. No ticket yet. |
 | Local secret scanning (gitleaks) | Open. More important now: the repo is public. |
-| Align Node versions (Vercel 26, CI 24, VPS 22) | Partly done. CI pins Node 24 (`.nvmrc` and `engines`, PR #39). The VPS stays on Node 22: the safety check stopped the agent's `nvm install` (`docs/owner-actions.md`, blocked commands). |
-| Clean up Neon branches after an off-Neon dump | In progress. The first off-Neon dump ran on 2026-11-15 (#8). The stale Preview env vars are gone (the owner removed the last 2 on 2026-11-15). The safety check stopped the agent's Neon branch deletes, so they are owner commands now (`docs/owner-actions.md`, blocked commands). |
+| Align Node versions (Vercel project setting 26, builds 24, CI 24, VPS 22) | Partly done. `engines` and `.nvmrc` pin Node 24 (PR #39), so CI and the Vercel builds use Node 24. `engines` overrides the Vercel project setting, which still says 26.x, so each build logs a warning. Open: set the project setting to 24.x to end the warning (a Vercel change: owner's yes). The VPS stays on Node 22: the safety check stopped the agent's `nvm install` (`docs/owner-actions.md`, blocked commands). |
+| Clean up Neon branches after an off-Neon dump | Done 2026-11-16. Off-Neon dumps ran on 2026-11-15 (#8) and on 2026-11-16 (after the Library load). The stale Preview env vars are gone (the owner removed the last 2 on 2026-11-15). `owner-batch-5.sh` deleted the 6 old branches on 2026-11-16. Neon now has only `main` and `vercel-dev`. |
+| Turn the 8 `research-*` branches into tags | Open. Needs the owner's yes (it deletes branches). Per branch: `git tag <b> origin/<b> && git push origin refs/tags/<b> && git push origin --delete refs/heads/<b>`. Links like `blob/research-library-licences/...` keep working. |
+| Vercel agent token (ACME team, laptop Keychain, 90 days, made about 2026-11-15; #33) | Renew before about 2027-02-13 (owner). The VPS CLI uses its own login, not this token. |
 | Actions-minutes budget for the private repo | Not needed now. The repo is public again, so minutes are free. Look again if it goes private. |
 | Ignore the `AGENTS.md` that `next dev` writes | Done in the PR that adds this file. |
 
@@ -121,7 +123,7 @@ Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can bec
 | F2 | The ADR cite check is skipped on docs-only PRs that edit top-level `.md` files or `docs/specs/`. | `scripts/ci-changes.mjs` calls a PR docs-only when it edits only top-level `.md` files or `.md` files under `docs/` (not `docs/adr/`). Then CI skips the `static` job, and with it `node scripts/check-adr-cites.mjs`. A wrong ADR number in `CLAUDE.md`, `GLOSSARY.md` or a spec can merge. A PR that edits `docs/adr/` runs the full CI (#34). | Run the cite check on every PR. It needs only Node and git, not `npm ci`, so it can run in the light `changes` job. |
 | F3 | Investor.gov is not loaded. | Decision #27 adds the SEC investor-education pages (`investor-gov-explainers` in `scripts/library/sources.json`). The site answers 403 to the fetcher, so the Library has none of them (`docs/library/2026-11-15-sources-eval.md`, section 7). | Find a way to fetch the pages that the site's terms allow. Then load them like the other #38 sources. |
 | F4 | The Signal-12 as-of MRR is 0.461, below the old 0.49. | The 12 Signal Case questions, searched as of each Case's date, rank the right passage lower than before the new sources. The full set got better (75/78, MRR 0.8271). The Tutor uses the as-of search during a Case. The production score after the load (2026-11-16) is the same: as-of 9/12 in the top 5, MRR 0.461; open search 9/12, MRR 0.542; the 78 original questions 75/78, MRR 0.827. | List which of the 12 questions lost rank, and why. The production ranks are in `/root/projects/eval-runs/2026-11-15-prod-score-voyage.txt`. |
-| F5 | Re-test the reranker after the Library grows. | #37 parked the reranker: about one more question found, for about 0.6 s more per search (`docs/library/2026-11-15-reranker-retest.md`). A bigger Library can change that. | When the next sources load, run the commands in that doc's "How to re-run" section. It needs a Voyage key (`docs/owner-actions.md`, step 16). |
+| F5 | Re-test the reranker after the Library grows. | #37 parked the reranker: about one more question found, for about 0.2 s (p50) more per search (`docs/library/2026-11-15-reranker-retest.md`). A bigger Library can change that. | When the next sources load, run the commands in that doc's "How to re-run" section. It needs a Voyage key (`docs/owner-actions.md`, step 16). |
 | F6 | Google sign-in for Clerk. | Clerk went live with email link only (ADR 0017). Many people expect "Sign in with Google". | The owner makes the Google OAuth client (`docs/owner-actions.md`, step 5). Then the agent turns Google on and runs the smoke test again (step 4). |
 | F7 | The Dependabot widget-freeze step. | A Dependabot PR that bumps `@openuidev/lang-core` changes `src/widgets/frozen.generated.json`, so `src/widgets/widgets.test.ts` fails until someone runs `npm run widgets:freeze` and commits the result. #46 and #49 failed this way. | Add a step for lang-core bumps: run `npm run widgets:freeze`, raise the instruction-size budget in `src/widgets/widgets.test.ts` if the text grows, and commit. Or keep lang-core out of the Dependabot group, so a person updates it. |
 
@@ -134,16 +136,17 @@ Smaller items that the PRs of 2026-11-15 found and did not fix. Each one can bec
 
 ## Still open as tickets
 
-These are tickets, not fog. Each closes through its PR.
+None besides map #2, which closes with this PR. All build tickets of the map are closed. Every open item is fog (above) or an owner step (`docs/owner-actions.md`).
 
-- [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) Legacy lanes and old Learner data: the wipe of the old Learners ran on 2026-11-16, through #33. PR #44 deletes the dead lanes. The model-change retirement guard stays, renamed.
-- [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) Clerk: PR #48 (Clerk replaces Better Auth) is live. The production wipe of the 2 pre-Clerk Learners ran on 2026-11-16 (snapshot `pre-wipe-contract-2026-11-15`, export `/root/backups/pre-contract-2026-11-15.dump`; rollback in `docs/owner-actions.md`, "Scripts you ran"). PR C (migration 0040 drops the Better Auth tables) closes it.
+Left from #33 for the owner: `docs/owner-actions.md` steps 1 (enforce the firewall), 3 (sign in as admin), 4 (Waitlist smoke test), 5 (Google), 18 (Production passcode vars), 21 (Clerk bot protection) and 22 (Clerk two-factor).
 
-Closed on 2026-11-15 and 2026-11-16: [#8](https://github.com/SiddharthMuramkar/finance-agent/issues/8) backup posture, option B (PR #40); #23 hardening (PR #36); #31 docs (PR #34); #32 site (PR #47); [#37](https://github.com/SiddharthMuramkar/finance-agent/issues/37) reranker re-test, parked (PR #42); #38 new Library sources (PR #43; loaded in production on 2026-11-16, snapshot `pre-library-load-2026-11-15`).
+Open PRs: #20 (architecture overview, the map's architecture explainer; it merges last) and #45 (Dependabot actions bump; this PR folds in the same bump, so #45 can close after it).
+
+Closed on 2026-11-15 and 2026-11-16: [#8](https://github.com/SiddharthMuramkar/finance-agent/issues/8) backup posture, option B (PR #40); [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) legacy lanes (PR #44; the old Learners were wiped through #33 on 2026-11-16, and the model-change retirement guard stays, renamed); #21 widget models (PR #22); [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) Clerk (PR #35 expand, PR #48 switch, PR C #51 contract: merged 2026-11-16 at 02:19 UTC, and migration 0040 ran in its production build after Neon snapshot `pre-migrate-ebde579-2026-11-16T022009`; the wipe of the 2 pre-Clerk Learners ran before it, with snapshot `pre-wipe-contract-2026-11-15` and export `/root/backups/pre-contract-2026-11-15.dump`; rollback in `docs/owner-actions.md`, "Scripts you ran"); #23 hardening (PR #36); #31 docs (PR #34); #32 site (PR #47); [#37](https://github.com/SiddharthMuramkar/finance-agent/issues/37) reranker re-test, parked (PR #42); #38 new Library sources (PR #43; loaded in production on 2026-11-16, snapshot `pre-library-load-2026-11-15`).
 
 ## Decisions so far
 
-From map #2. One line per closed ticket. Each ticket's last comment holds the full decision and "What I learned".
+From map #2. One line per closed ticket. The ticket's resolution comment holds the full decision and "What I learned" (#37 has none: its decision is in a doc, see its row).
 
 | # | Ticket | Decision |
 |---|---|---|
@@ -152,6 +155,7 @@ From map #2. One line per closed ticket. Each ticket's last comment holds the fu
 | [#5](https://github.com/SiddharthMuramkar/finance-agent/issues/5) | Widget engine for the 5 Signal widgets | One fixed React component per widget. The site mounts them directly; the Study Workspace uses a thin OpenUI recipe later. |
 | [#6](https://github.com/SiddharthMuramkar/finance-agent/issues/6) | Sign-in launch plan | Google and email links together before the first invite. **Changed by #33 (2026-11-15):** Clerk; email link first, Google later. |
 | [#7](https://github.com/SiddharthMuramkar/finance-agent/issues/7) | Signal page map and public routes | All spec pages; Cases at `/examples/[slug]`; a `(site)` route group; replace `_landing`. |
+| [#8](https://github.com/SiddharthMuramkar/finance-agent/issues/8) | Backup and restore posture before any migration | Option B: daily Neon snapshots (22:00 UTC, kept 14 days), `main` protected, an off-Neon Library dump with a 2nd copy, a restore drill (PASS 9/9). PR #40. |
 | [#9](https://github.com/SiddharthMuramkar/finance-agent/issues/9) | Vercel Hobby or Pro for the beta? | Pro now ($20/month). Pro features are the base for the bot guard, the gates and the alerts. |
 | [#10](https://github.com/SiddharthMuramkar/finance-agent/issues/10) | Bot protection for join and Tutor routes | BotID Basic, 1 WAF rate rule on sign-in, a daily Tutor turn cap. **Changed by #33:** BotID moves to `POST /api/turn`; rate limits go on the app's POST APIs; Clerk guards sign-in. |
 | [#11](https://github.com/SiddharthMuramkar/finance-agent/issues/11) | Gate production deploys, migrations and previews | Only `main` deploys. Gate = checks + a snapshot before a migration. Deployment Policy on Pro (built as the Vercel Deployment Checks `check`, `build`, `ui`). |
@@ -162,6 +166,7 @@ From map #2. One line per closed ticket. Each ticket's last comment holds the fu
 | [#16](https://github.com/SiddharthMuramkar/finance-agent/issues/16) | Tutor-widget event contract | Only the Learner's call starts a turn; other events ride along; verdicts come from data; browser input is clamped. |
 | [#17](https://github.com/SiddharthMuramkar/finance-agent/issues/17) | Colour language and theme scope | Spec colours across the whole app, one Light theme, Dark deleted, tokens first. |
 | [#18](https://github.com/SiddharthMuramkar/finance-agent/issues/18) | Levers model source of truth | The Levers widget uses the valuation engine on the sourced Amazon Case; the spec table is updated to match. |
+| [#19](https://github.com/SiddharthMuramkar/finance-agent/issues/19) | Delete legacy lanes and old learner data? | Wipe the old Learners through #33 (done 2026-11-16), then delete the dead lanes (PR #44). The retirement guard stays as `isOldModelSession` / `retireOldModelSessions`. |
 | [#24](https://github.com/SiddharthMuramkar/finance-agent/issues/24) | What does Library search score today? | hits@5 92%, MRR 0.82 with vectors. Old Cases see about 10% of the Library. Yale 252 heading-year bug found. |
 | [#25](https://github.com/SiddharthMuramkar/finance-agent/issues/25) | How strict should the as-of rule be for timeless sources? | Fix the heading-year bug and add outcome-word probes now. Per-passage dates after the beta. |
 | [#26](https://github.com/SiddharthMuramkar/finance-agent/issues/26) | Which Library sources can Value It keep if it charges Learners? | Keep all sources for the free beta. The owner asks OpenStax and Damodaran now. The site PR fixes the credits. |
@@ -169,5 +174,6 @@ From map #2. One line per closed ticket. Each ticket's last comment holds the fu
 | [#28](https://github.com/SiddharthMuramkar/finance-agent/issues/28) | Does a reranker improve Library search enough to keep? | Park the reranker. Test again after the year fix (#37). The gain was +0.03 to 0.05 MRR for +0.6 s. |
 | [#29](https://github.com/SiddharthMuramkar/finance-agent/issues/29) | What shape is the offer after early access? | Out of scope for now (2026-11-15). Early access stays free. |
 | [#30](https://github.com/SiddharthMuramkar/finance-agent/issues/30) | Should runLockedTurn be split first? | Move turn admission out and add a step ledger inside the hardening PR. No big refactor first. |
+| [#37](https://github.com/SiddharthMuramkar/finance-agent/issues/37) | Re-test the reranker after the year fix | Still parked: on the dated Signal questions the gain is about 1 question (MRR 0.49 to 0.52-0.54), for about 0.2 s (p50) more per search, and it brings a new hindsight problem. PR #42 keeps only the scorer flags. The decision is in `docs/library/2026-11-15-reranker-retest.md` (the ticket has no resolution comment). |
 
-The Clerk decisions of 2026-11-15 are in the open build issue [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33): Clerk replaces Better Auth; email link only at go-live, Google later; Waitlist sign-up; admin = Clerk `publicMetadata.role` "admin"; the passcode door stays local and test only; a fresh start (old Learners are wiped after a snapshot; done on 2026-11-16).
+The Clerk decisions of 2026-11-15 are in build issue [#33](https://github.com/SiddharthMuramkar/finance-agent/issues/33) (closed 2026-11-16 by PR #51): Clerk replaces Better Auth; email link only at go-live, Google later; Waitlist sign-up; admin = Clerk `publicMetadata.role` "admin"; the passcode door stays local and test only; a fresh start (old Learners are wiped after a snapshot; done on 2026-11-16).
