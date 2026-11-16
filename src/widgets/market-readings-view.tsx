@@ -33,6 +33,7 @@ export function MarketReadingsView({ ids, known }: { ids: readonly string[]; kno
                 {r.credit}
                 <ArrowUpRight aria-hidden="true" size={12} strokeWidth={1.75} className="inline" />
               </a>
+              , <span data-testid="reading-source">{r.source}</span>
             </span>
           </li>
         ))}

@@ -405,6 +405,8 @@ describe("Market readings beside the levers (ticket #105)", () => {
     await draw("wacc-stack-readings");
     expect(readings()).toEqual([{ id: "us-risk-free-10y-1999", date: "(Dec 1999)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" }]);
     expect(text("market-readings")).toContain("10-year US Treasury bond rate (US): 6.44%");
+    // The source's name is visible text, not only a hover title (review F42).
+    expect(host.querySelector('[data-testid="reading-source"]')?.textContent).toBe("Damodaran, Historical Implied Equity Risk Premiums (histimpl.xls)");
     expect(text("market-readings")).not.toMatch(/today|current/i);
   });
 

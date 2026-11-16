@@ -206,7 +206,12 @@ const premiums = [
     checkNote:
       "Table 17 of the paper and the 2007 row of histimpl.xls: S&P 500 at 1468.36, dividends and buybacks averaging 59.03 over 2001 to 2007, T-bond rate 4.02%, growth 5% for five years, implied ERP 4.37%; the course's two-stage maths gives the same premium.",
   },
-  premiumReading({ year: 2008, level: 903.25, bond: 2.21, cash: 52.58, growth: 4, requiredReturn: 8.64, premium: 6.43, paper: true }),
+  // 2008: the paper adjusts the year's cash for the drop in buybacks late in 2008 (52.58); histimpl's row has the actual 67.52.
+  {
+    ...premiumReading({ year: 2008, level: 903.25, bond: 2.21, cash: 52.58, growth: 4, requiredReturn: 8.64, premium: 6.43, paper: true }),
+    checkNote:
+      "The paper's January 2009 example and the 2008 row of histimpl.xls: S&P 500 at 903.25, adjusted dividends and buybacks of 52.58 (the paper's adjustment for the drop in buybacks late in 2008; the row's actual is 67.52), T-bond rate 2.21%, growth 4% for five years, implied ERP 6.43%; the course's two-stage maths gives the same premium.",
+  },
   premiumReading({ year: 2019, level: 3230.78, bond: 1.92, cash: 150.5, growth: 3.96, requiredReturn: 7.12, premium: 5.2 }),
 ];
 
