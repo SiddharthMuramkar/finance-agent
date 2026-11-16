@@ -249,7 +249,7 @@ describe("Privacy, Terms and the contact address", () => {
 
   it("the privacy page says what is kept, by whom, and the cookies", async () => {
     const text = words(renderToStaticMarkup(await PrivacyPage()));
-    for (const name of ["Clerk", "Neon", "Vercel Web Analytics", "OpenAI", "__session", "__client_uat", "split", "sets no cookie"]) {
+    for (const name of ["Clerk", "Neon", "Vercel Web Analytics", "OpenAI", "Voyage AI", "__session", "__client_uat", "split", "sets no cookie"]) {
       expect(text, name).toContain(name);
     }
   });

@@ -52,7 +52,8 @@ export const CONTACT_EMAIL = "hello@value-it.xyz";
 
 /**
  * Privacy and Terms (issue #77), linked from the footer and /join. Plainly true for what the app keeps and sets: Clerk
- * runs sign-in and the waitlist, the Learner record is in Neon, the Tutor's model is OpenAI's, Vercel hosts the site and
+ * runs sign-in and the waitlist, the Learner record is in Neon, the Tutor's model is OpenAI's, Voyage AI embeds the
+ * Tutor's Library searches (written from the Learner's messages; src/app/api/turn/route.ts), Vercel hosts the site and
  * counts page views with no cookie. Change a cookie or a service and change these words (and the FAQ's) with it.
  */
 export const legal = {
@@ -77,6 +78,7 @@ export const legal = {
         body: [
           "Clerk keeps your email and your sign-in details. We keep your Learner record in our database, hosted by Neon: your conversations with the Tutor, your answers to quizzes and practice, your progress through the Topics, your Notebook notes and your settings.",
           "To write the Tutor’s replies, we send your messages and the Topic you’re on to OpenAI, whose AI model writes them.",
+          "When the Tutor looks something up in its Library, it writes a search from what you asked. We send that search to Voyage AI, which turns it into numbers our Library search can match.",
         ],
       },
       {
@@ -94,7 +96,7 @@ export const legal = {
       {
         heading: "Who sees it",
         body: [
-          "The Owner, who runs Value It, can read Learner records, to let people in and to improve the course. Clerk, Neon, Vercel and OpenAI handle it for us as described above. Nobody else, and we never sell it.",
+          "The Owner, who runs Value It, can read Learner records, to let people in and to improve the course. Clerk, Neon, Vercel, OpenAI and Voyage AI handle it for us as described above. Nobody else, and we never sell it.",
         ],
       },
       {
