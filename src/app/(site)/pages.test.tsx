@@ -170,7 +170,7 @@ describe("the course counts", () => {
   });
 
   it("change on every page when the Spine changes in the course", async () => {
-    // The outline with its last two Spine Topics (15 and #93's annual report Topic) dropped, Spine Topic 3 retitled, and one
+    // The outline with its last three Spine Topics (from 15 to #93's annual report Topic) dropped, Spine Topic 3 retitled, and one
     // Derivatives Elective moved to Judge.
     const raw = parse(readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8")) as { topics: Record<string, unknown>[] };
     const topics = raw.topics.filter((t) => !(typeof t.spine === "number" && t.spine >= 15));

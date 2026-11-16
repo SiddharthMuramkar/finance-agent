@@ -126,6 +126,7 @@ topics:
         sources:
           - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
           - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/valquestions/RiskPrem.htm
         verified: true
   - id: spine-cost-of-capital
     title: "What does all of a company's money cost?"

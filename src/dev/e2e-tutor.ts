@@ -740,8 +740,8 @@ export const E2E_SCRIPTS = {
           text(
             "February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor in New York, is valuing the company. " +
               "To value its future cash he needs the return its shareholders should require, for waiting and for the risk they bear. " +
-              "A safe US Treasury bond pays 6.5%. Amazon's shares swing far more than the market does: his own rough measure says 2.29 times as much, " +
-              "while internet retailers average 1.60.\n\n" +
+              "A safe US Treasury bond pays 6.5%. Amazon's shares swing far more than the market does, " +
+              "though with only two years of prices nobody can say exactly how much.\n\n" +
               "Would you ask more of Amazon's shares than of a safe bond?",
           ),
         ],
@@ -755,8 +755,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "What shareholders require is the cost of equity, and it is built in layers. " +
-              "Start with what a safe bond pays, 6.5%. Add the premium investors want for holding average shares, 4%, scaled by how far Amazon's shares move with the market, its beta of 1.60. " +
+            "What shareholders require is the cost of equity, built in layers. " +
+              "Start with what a safe bond pays, 6.5%. Add the premium for holding average shares, 4%, scaled by how far Amazon's shares move with the market; that number is called beta. " +
+              "His own rough measure says 2.29, but he trusts the steadier 1.60, the internet retailers' average. " +
               "Only the risk that holding many shares cannot spread away earns that premium.\n\n" +
               "Which layer looks hardest to pin down?",
           ),
@@ -768,13 +769,52 @@ export const E2E_SCRIPTS = {
   "rate-explore": {
     step: "explore",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_rate_stack", name: "show_widget", input: { recipe: "wacc_stack", params: { title: "What rate for Amazon?", inputs: { figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1.6, debtShare: 1.2, costOfDebt: 8, taxRate: 0 }, source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }, case: "spine-07-amazon-rate" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_rate_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What rate for Amazon?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1.6,
+                    debtShare: 1.2,
+                    costOfDebt: 8,
+                    taxRate: 0,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: {
+                    lead: "equity",
+                    marks: [
+                      { relativeRisk: 2.29, label: "his measure" },
+                      { relativeRisk: 1, label: "a retailer" },
+                    ],
+                  },
+                  case: "spine-07-amazon-rate",
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
             "Here are his layers as a stack, with what a share is worth at that rate. Amazon borrows almost nothing, so the whole rate is nearly its cost of equity. " +
               "Move relative risk up to his rough measure, then down to a plain retailer's, and watch the value against the $84 price.\n\n" +
-              "How far does the value move, next to how far it is from the price?",
+              "Does swapping beta move the value more or less than the gap to the price, and what does that say?",
           ),
         ],
       },
@@ -788,9 +828,9 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "February 2000. Damodaran has worked out what Amazon's shareholders should require: 12.90% a year. " +
-              "But lenders put in some of Amazon's money too, and they charge interest, 8% a year before tax. " +
+              "But lenders put in some of Amazon's money too, and they charge interest. " +
               "Their part is tiny, only 1.2% of the money. Amazon makes losses, so its interest saves it no tax yet. " +
-              "By year ten he expects it to borrow like a traditional retailer, 15% of its money.\n\n" +
+              "By year ten he expects it to borrow more, like a traditional retailer.\n\n" +
               "Whose return do you think matters most for the rate on all of Amazon's money?",
           ),
         ],
@@ -817,13 +857,46 @@ export const E2E_SCRIPTS = {
   "coc-explore": {
     step: "explore",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_coc_stack", name: "show_widget", input: { recipe: "wacc_stack", params: { title: "What does mature Amazon's money cost?", inputs: { figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1, debtShare: 15, costOfDebt: 7, taxRate: 35 }, source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" } }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_coc_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What does mature Amazon's money cost?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1,
+                    debtShare: 15,
+                    costOfDebt: 7,
+                    taxRate: 35,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: { lead: "debt" },
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
-            "Here is his mature Amazon of year ten: shareholders require 10.50%, and debt is 15% of its money at 4.55% after tax. " +
+            "Here is his mature Amazon of year ten. Grown up, it is as risky as an average share, so shareholders ask less of it, 10.50%. " +
+              "And now it pays tax, so its debt costs under half that after tax. " +
               "Move the share of debt down to none, then back up to where he set it.\n\n" +
-              "How far does the cost of capital move, and why so little?",
+              "Does the cost of capital move a lot or a little when debt goes to none, and why?",
           ),
         ],
       },

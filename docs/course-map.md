@@ -71,7 +71,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 - Draws on: CAPM, beta and factor models, Risk, diversification and portfolio theory
 - Case: **What return should Amazon's shareholders require? (February 2000)** (as of 2000-02-01)
   - Outcome: Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00); the regression beta of 2.29 would have implied 15.66%. His cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, against the $84 price. Amazon's 10-K shows 2000 quarterly highs and lows of $91.50 and $58.44, $68.63 and $32.47, $49.63 and $27.88, and $40.88 and $14.88: a high of $91.50 and a low of $14.88 for the year. The cost of equity says what return to demand, not what the price will do in the next year.
-  - Sources: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+  - Sources: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt https://pages.stern.nyu.edu/~adamodar/New_Home_Page/valquestions/RiskPrem.htm
 
 ### 8. What does all of a company's money cost?
 

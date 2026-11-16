@@ -46,15 +46,16 @@ topics:
     note: Round 4 (#95, beginner clean-up) - 4 terms, "reinvestment rate" moved to Go deeper, growth-cost-talk now judges a given Webvan Story, a daily-life line; Check ids kept. Read by the orchestrator's Spine critics round after the build.
   spine-07-risk:
     lenses: [beginner-persona, math-police, historian, widget-fit]
-    rounds: 2
-    lastRound: "46c4165"
+    rounds: 3
+    lastRound: "9b4f854"
     open: 0
+    note: Round 3 after the split (#91), 6 findings fixed in 9b4f854 (story to two figures, beta named and chosen in Concept, direction stems, unsourced 6.60% dropped and the ERP paper cited, stack led by the cost of equity with labelled beta chips and shareholders and lenders as Icons).
   spine-cost-of-capital:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 1
-    lastRound: "a7cae63"
+    lastRound: "9b4f854"
     open: 0
-    note: New with the split of the risk Topic (#91). The entry lands with the Topic file, as the course check needs; the round itself is the orchestrator's critics round after the build, which sets lastRound to the commit that fixed its confirmed findings.
+    note: Round 1 on the new Topic (#91), 6 findings fixed in 9b4f854 (story to two figures, year-ten rates given a reason, direction stems and tasks, stack led by the share of debt with a No debt chip, shareholders and lenders as Icons).
   spine-08-far-future:
     lenses: [beginner-persona, math-police, historian, widget-fit]
     rounds: 3
