@@ -197,7 +197,7 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
 
   // Explore: the Tutor opens the Value levers Workbench; the Learner finds a story worth the $84 price.
   await next(page, "Next: Explore", "spine1-explore");
-  await expect(currentStep(page)).toHaveText(/^Explore — /);
+  await expect(currentStep(page)).toHaveText(/^Explore — /, { timeout: TURN_MS });
   const headline = page.getByTestId("value-levers-headline");
   await expect(headline).toHaveText("This story is worth $35 a share", { timeout: TURN_MS });
   // One name per idea between the Topic and its Workbench (#88): the Topic's lever words, and the bars in plain words.
@@ -229,7 +229,7 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
   // Your turn: the Quick tries, tapped right until every Skill of the Check is fluent; then code moves on to the Check
   // and the page starts the Tutor's follow-up, which points to the quiz.
   await next(page, "Next: Your turn", "spine1-your-turn");
-  await expect(currentStep(page)).toHaveText(/^Your turn — /);
+  await expect(currentStep(page)).toHaveText(/^Your turn — /, { timeout: TURN_MS });
   await script(page, "spine1-quiz-open");
   let tries = 0;
   while (tries < 12) {
