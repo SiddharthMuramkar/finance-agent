@@ -29,6 +29,14 @@ describe("the typed-formula course check", () => {
     expect(errors.join("\n")).toContain("concept");
   });
 
+  it("lets a formula sit in Go deeper, while the same formula elsewhere still fails (spec #68: formulas only behind Go deeper)", () => {
+    const behind = { ...topicWith("deeper", "Plain words only."), goDeeper: "For the curious: PV = amount / (1 + r)^n." };
+    expect(formulaCheckErrors([behind], [])).toEqual([]);
+    expect(typedFormulas(behind)).toEqual([]);
+    const inPrinciple = { ...behind, principle: "Keep this: PV = amount / (1 + r)^n." };
+    expect(formulaCheckErrors([inPrinciple], []).join("\n")).toContain("principle");
+  });
+
   it("lets a listed Topic type formulas, but makes a converted one come off the list", () => {
     expect(formulaCheckErrors([topicWith("old", "PV = amount / (1 + r)^n.")], ["old"])).toEqual([]);
     expect(formulaCheckErrors([topicWith("old", "Worded steps only.")], ["old"])[0]).toContain("remove it from the not-yet-converted list");

@@ -9,6 +9,8 @@ export type TopicCompleteData = {
   title: string;
   principle: string;
   next: string | null;
+  /** The Topic's daily-life line (spec #68), stored with the card; absent for a Topic with none or a card stored before it. */
+  dailyLife?: string;
   /** What the Learner found, a line each, worked out by code from their saved Widget state when the card is sent or drawn (never stored; see cardFound). */
   found?: string[];
 };
