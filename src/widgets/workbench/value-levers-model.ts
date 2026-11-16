@@ -401,7 +401,8 @@ export function valueLeversModel(block: ValuationBlock, specs: readonly LeverSpe
     ? { before: "A range of values: ", key: range.text, after: "" }
     : nothingLeft
       ? { before: "", key: `${SYMBOL[block.currency]}0`, after: `: ${takers}` }
-      : { before: "Your story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
+      : // With Case chips (the ready-Case valuation Topic) the Learner judges a published Story, so it is not "your story".
+        { before: modeCases(mode) ? "The story is worth " : "Your story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
   const span = range ? { low: Math.min(1, Math.max(0, range.low) / top), high: Math.min(1, Math.max(0, range.high) / top) } : undefined;
   const cashFlows: CashFlowBar[] = [
     ...result.years.map((y) => ({ label: `Year ${y.year}`, value: y.fcf, gain: y.fcf >= 0, text: moneyText(y.fcf, block), afterYear10: false })),

@@ -220,6 +220,13 @@ describe("match_price mode with Case chips (the ready-Case valuation Topic: judg
     expect(caseListOf({ kind: "match_price" })).toEqual([]);
     expect(caseListOf({ kind: "roic" })).toEqual([]);
   });
+
+  it("heads the value as the story's, not the Learner's: the Learner judges a published Story here", () => {
+    const judge = mode({ kind: "match_price", cases: [{ id: "amazon-dcf-2000", label: "Amazon, Feb 2000" }, { id: "zomato-ipo-2021", label: "Zomato, Jul 2021" }] });
+    const specs = leverSpecs(block, judge);
+    const { headline } = valueLeversModel(block, specs, openingSettings(specs), judge);
+    expect(`${headline.before}${headline.key}${headline.after}`).toBe("The story is worth $35 a share");
+  });
 });
 
 describe("every mode", () => {

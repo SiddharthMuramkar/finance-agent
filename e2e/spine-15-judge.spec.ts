@@ -103,6 +103,8 @@ test("[#92] the Topic judges a published Story: Value levers in match_price with
   await chips.nth(2).click();
   transcript.push('Learner: taps the chip "Zomato, Jul 2021"');
   await expect(bench.getByTestId("value-levers-headline")).toContainText("₹");
+  // The Learner judges a published Story: the headline says the story's value, never "your story".
+  await expect(bench.getByTestId("value-levers-headline")).toContainText("The story is worth");
   await expect(bench.getByTestId("value-levers-numbers")).toContainText("₹76");
   transcript.push(`Widget: ${plain(await bench.innerText())}`);
   await shoot(page, "turn3-explore");
