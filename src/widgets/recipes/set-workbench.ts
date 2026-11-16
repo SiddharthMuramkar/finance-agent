@@ -110,9 +110,12 @@ const valueLeversInputs = z
 const HIGHGROW = { title: "Damodaran, Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" };
 const RETAIL_1999 = { title: "US Census Bureau, Monthly Retail Trade: estimates for 1999", url: "https://www2.census.gov/retail/releases/historical/mrts/sal99.html" };
 
-/** Market readings an example shows beside the levers (ticket #105; src/markets/readings.ts). */
-const INDIA_YARDSTICKS = ["margin", "sales-to-capital"].flatMap((kind) => ["auto", "food", "software", "market"].map((i) => `in-${i}-${kind}`));
-const RATE_READINGS = ["us-implied-premium-2007", "us-implied-premium-2008", "us-implied-premium-2019", ...["auto", "food", "software", "market"].map((i) => `in-${i}-cost-of-capital`)];
+/**
+ * Market readings an example shows beside the levers (ticket #105; src/markets/readings.ts). Before the Reveal only what was
+ * known on the Case's As-of date in its own market may show (Owner decision, 2026-11-16): for Amazon in February 2000, the
+ * US Treasury bond rate at the end of 1999.
+ */
+const AMAZON_2000_READINGS = ["us-risk-free-10y-1999"];
 
 export const valueLevers = defineRecipe({
   id: "value_levers",
@@ -186,7 +189,7 @@ export const valueLevers = defineRecipe({
     },
     {
       title: "What does Amazon's $84 price assume?",
-      inputs: { case: "amazon-dcf-2000", caseStory: "Damodaran's story", mode: { kind: "match_price" }, readings: INDIA_YARDSTICKS },
+      inputs: { case: "amazon-dcf-2000", caseStory: "Damodaran's story", mode: { kind: "match_price" }, readings: AMAZON_2000_READINGS },
       refs: {},
       facts: {},
     },
@@ -295,7 +298,7 @@ export const waccStack = defineRecipe({
   examples: [
     { title: "What return should Amazon's shareholders require?", inputs: { figures: AMAZON_RATE, source: HIGHGROW, case: "amazon-dcf-2000" }, refs: {}, facts: {} },
     { title: "Amazon's cost of capital, layer by layer", inputs: { figures: AMAZON_RATE, source: HIGHGROW }, refs: {}, facts: {} },
-    { title: "What return should Amazon's shareholders require?", inputs: { figures: AMAZON_RATE, source: HIGHGROW, case: "amazon-dcf-2000", readings: RATE_READINGS }, refs: {}, facts: {} },
+    { title: "What return should Amazon's shareholders require?", inputs: { figures: AMAZON_RATE, source: HIGHGROW, case: "amazon-dcf-2000", readings: AMAZON_2000_READINGS }, refs: {}, facts: {} },
   ],
   compile: ({ title, inputs }) => {
     const found = waccStackData({ figures: inputs.figures, source: inputs.source, caseId: inputs.case });

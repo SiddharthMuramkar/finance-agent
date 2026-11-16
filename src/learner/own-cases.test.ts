@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { loadCourseMap } from "@/course/map";
 import { learners, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { openingEstimate, type OwnCaseInputs } from "@/finance/own-case";
+import { openingEstimate, valueOwnCase, type OwnCaseInputs } from "@/finance/own-case";
 import { testDb } from "@/test/pglite";
-import { assignmentOpen, loadOwnCaseNotes, saveOwnCase } from "./own-cases";
+import { assignmentOpen, loadOwnCaseNotes, ownCaseNote, saveOwnCase } from "./own-cases";
 
 const map = loadCourseMap();
 const NOW = new Date("2026-11-16T10:00:00Z");
@@ -51,6 +51,24 @@ describe("Own Cases", () => {
     expect(notes).toEqual([expect.objectContaining({ id: saved.id, company: "Tata Consumer Products", reportDate: "2025-03-31", note: saved.note })]);
     const [other] = await db.insert(learners).values({ name: "other" }).returning();
     expect(await loadOwnCaseNotes(db, other.id)).toEqual([]);
+  });
+
+  it("a value at or below zero reads ₹0 with nothing left for shareholders, never a negative price (F06)", () => {
+    // Debt far above what the business is worth: the engine's value a share is below zero.
+    const deep = { ...TATA, debt: 900_000 };
+    const value = valueOwnCase(deep, openingEstimate("food"), NOW);
+    if (!value.ok) throw new Error(value.error);
+    expect(value.valuePerShare).toBeLessThan(0);
+    const note = ownCaseNote(deep, openingEstimate("food"), value);
+    expect(note).toContain("The engine's value: ₹0 a share, beside a price of ₹1,090 on 31 Mar 2025. Lenders take everything: nothing is left for shareholders.");
+    expect(note).not.toMatch(/-₹/);
+  });
+
+  it("says in the note that employee stock options were not entered (F26)", async () => {
+    const db = await testDb();
+    await passSpine(db, OWNER_LEARNER_ID);
+    const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, TATA, openingEstimate("food"), NOW);
+    expect(saved.ok && saved.note).toContain("Employee stock options are not entered: the engine counts none.");
   });
 
   it("bad figures come back as a readable sentence and save nothing", async () => {

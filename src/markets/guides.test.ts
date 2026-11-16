@@ -45,6 +45,20 @@ describe("the course check on the annual-report guide", () => {
     );
   });
 
+  it("fails a guide line that types a formula (ADR 0003), and a Lingo card over LingoCard's word limits", () => {
+    const sum = { ...line, lingo: { ...line.lingo!, example: "Profit before tax 150 + finance costs 30 - other income 40 = operating profit 140." } };
+    expect(guideErrors([sum])).toEqual(expect.arrayContaining([expect.stringContaining('Guide line IN "sales" types a formula (ADR 0003)')]));
+    const long = { ...line, lingo: { ...line.lingo!, pro: "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen" } };
+    expect(guideErrors([long])).toEqual(expect.arrayContaining(['Guide line IN "sales"\'s Lingo card pro has 15 words; at most 14']));
+  });
+
+  it("dates an Indian Own Case at the Board's approval, when the figures became public, not at the year end (F07)", () => {
+    const date = annualReportGuide("IN").reportDate;
+    expect(date.where).toContain("the date the Board approved them");
+    expect(date.where).toContain("Not the Balance Sheet's year end");
+    expect(annualReportGuide("IN").price.where).toContain("use the next trading day");
+  });
+
   it("fails a market whose guide misses a field, and a field guided twice", () => {
     expect(guideErrors([line])).toEqual(expect.arrayContaining([expect.stringMatching(/^The IN guide has no line for "company"/)]));
     expect(guideErrors([line, line])).toEqual(expect.arrayContaining(['Guide line IN "sales" is listed twice']));

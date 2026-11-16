@@ -17,7 +17,7 @@ import { goalCheckErrors } from "../src/course/goal-check.ts";
 import { beginnerCheckErrors } from "../src/course/beginner-check.ts";
 import { fullSheetWordsErrors } from "../src/course/full-sheet-words-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
-import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
+import { MARKET_READING_INPUTS, marketReadingErrors, preRevealReadingErrors } from "../src/markets/readings.ts";
 import { GUIDE_LINE_INPUTS, guideErrors } from "../src/markets/guides.ts";
 import { parseOutline, renderCourseMapDoc, spineCountProblems } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
@@ -84,6 +84,11 @@ if (beginner.length) fail("Spine Topics that break the beginner rules (spec #68)
 // or current, and a premium reading's inputs give the premium it states.
 const readings = marketReadingErrors(MARKET_READING_INPUTS);
 if (readings.length) fail("Market readings that are not dated and sourced (spec #68)", readings);
+
+// The As-of rule for readings (Owner decision on #105): an explore Workbench comes before the Reveal, so every reading it
+// shows is dated on or before its Case's As-of date and comes from that Case's market.
+const preReveal = preRevealReadingErrors(map.topics);
+if (preReveal.length) fail("Market readings shown before the Reveal that break the As-of rule (spec #68)", preReveal);
 
 // The Full sheet's row words and each row's Lingo card (spec #68, #103): plain words, no typed formula, card word limits.
 const fullSheetWords = fullSheetWordsErrors();

@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { CURRENCY_STYLE } from "@/finance/money";
 import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
+import { OPTIONS_NOT_ENTERED, ownCaseValueLine } from "@/learner/own-case-words";
 import { annualReportGuide, type GuideField } from "@/markets/guides";
+import { ownCaseRangeInputs, rangeCheck, type RangeFlag } from "@/markets/range-check";
 import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
-import { dateText, priceText } from "@/widgets/workbench/value-levers-model";
+import { RangeCheckView } from "@/widgets/range-check-view";
+import { dateText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
 
 /** How each market's report counts its money (₹ crore; Japan's 百万円 and Korea's 백만원 are millions). */
@@ -18,22 +21,29 @@ const fieldsFor = (market: OwnCaseMarket) => {
   return [
     { key: "sales", label: "Sales", hint: `Revenue from operations for the year, in ${money}.` },
     { key: "operatingProfit", label: "Operating profit", hint: `Profit before interest and tax (EBIT), in ${money}. Below zero for a loss.` },
-    { key: "taxPercent", label: "Tax rate", hint: "The tax rate the company pays, in percent." },
+    { key: "taxPercent", label: "Tax rate", hint: "The rate the law sets for the company's profit, as the tax note names it (not tax paid over profit), in percent." },
     { key: "debt", label: "Debt", hint: market === "IN" ? "Borrowings and lease liabilities, long and short, in ₹ crore." : `Borrowings, long and short, in ${money}.` },
     { key: "cash", label: "Cash", hint: market === "IN" ? "Cash and cash equivalents, with other bank balances, in ₹ crore." : `Cash and cash equivalents, in ${money}.` },
     { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },
     {
       key: "price",
       label: "Share price on the report's date",
-      hint: market === "IN" ? "In ₹, the closing price on that day." : `In whole ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`,
+      hint: market === "IN" ? "In ₹, the closing price on that day, or on the next trading day if the market was shut." : `In whole ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`,
     },
   ] as const;
 };
 const FIELD_KEYS = ["sales", "operatingProfit", "taxPercent", "debt", "cash", "shares", "price"] as const;
 type FieldKey = (typeof FIELD_KEYS)[number];
 
-/** A typed figure as a number: commas the report prints are fine; an empty box is no number. */
-const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹¥₩]/g, "")));
+/** A typed figure as a number: commas the report prints, a currency sign and a percent sign ("25.168%") are fine; an empty box is no number. */
+const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹¥₩%]/g, "")));
+
+/** When the Own Case is dated: the day the year's figures became public, never the year end before them (the past-only rule). */
+const DATE_HINT: Record<OwnCaseMarket, string> = {
+  IN: "The Own Case is dated here: the day the Board approved the statements, when the year's figures became public. Not the year end: nobody knew the figures then.",
+  JP: "The Own Case is dated here: the day the report was filed, when its figures were public. Not the year end: nobody knew the figures then.",
+  KR: "The Own Case is dated here: the day the report was filed, when its figures were public. Not the year end: nobody knew the figures then.",
+};
 
 /** Beside a field: where it sits in the market's annual report, the source that says so, and a Lingo card (#108, #114). */
 function FieldGuide({ market, field }: { market: OwnCaseMarket; field: GuideField }) {
@@ -56,7 +66,7 @@ function FieldGuide({ market, field }: { market: OwnCaseMarket; field: GuideFiel
   );
 }
 
-type Shown = { kind: "value"; text: string } | { kind: "problem"; text: string } | null;
+type Shown = { kind: "value"; text: string; flags: RangeFlag[] } | { kind: "problem"; text: string } | null;
 
 /**
  * The Own Case form: the one place a Learner types numbers (ADR 0020 narrows ADR 0002). The engine values it on the
@@ -85,10 +95,16 @@ export function OwnCaseForm() {
     setSaved(null);
     const typed = inputs();
     if (!typed) return setShown({ kind: "problem", text: "Pick the company's industry." });
-    const value = valueOwnCase(typed, openingEstimate(typed.industry, market));
+    const estimate = openingEstimate(typed.industry, market);
+    const value = valueOwnCase(typed, estimate);
     setShown(
       value.ok
-        ? { kind: "value", text: `The engine's value: ${priceText(value.valuePerShare, money)} a share, beside a price of ${priceText(typed.price, money)} on ${dateText(typed.reportDate)}.` }
+        ? {
+            kind: "value",
+            text: ownCaseValueLine(value.valuePerShare, typed.price, typed.reportDate, money),
+            // The range check (#109): the margin as typed, and the Estimate, each held to the industry's dated yardstick.
+            flags: rangeCheck(ownCaseRangeInputs(typed, estimate), { market, industry: typed.industry }),
+          }
         : { kind: "problem", text: value.error },
     );
   };
@@ -167,7 +183,7 @@ export function OwnCaseForm() {
           Date of the annual report
         </label>
         <input id="own-case-date" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="field w-full" />
-        <p className="text-xs leading-4 text-[var(--muted)]">The Own Case is dated here: the year end the report closes on.</p>
+        <p className="text-xs leading-4 text-[var(--muted)]">{DATE_HINT[market]}</p>
         <FieldGuide market={market} field="reportDate" />
       </div>
       <fieldset className="flex flex-col gap-2">
@@ -201,6 +217,9 @@ export function OwnCaseForm() {
           <FieldGuide market={market} field={f.key} />
         </div>
       ))}
+      <p data-own-case-options className="text-xs leading-4 text-[var(--muted)]">
+        {OPTIONS_NOT_ENTERED}
+      </p>
       {estimate && (
         <p data-own-case-estimate className="text-sm leading-5 text-[var(--muted)]">
           Your Estimate opens at the industry&rsquo;s yardsticks: growth {estimate.growthPercent}% a year for five years, fading to {estimate.growthAfterPercent}%; the
@@ -223,6 +242,7 @@ export function OwnCaseForm() {
           {shown.text}
         </p>
       )}
+      {shown?.kind === "value" && <RangeCheckView flags={shown.flags} />}
       {saved && (
         <p data-own-case-saved role="status" className="text-sm leading-5">
           {saved} <TextLink href="/notebook#own-cases">Open the Notebook</TextLink>

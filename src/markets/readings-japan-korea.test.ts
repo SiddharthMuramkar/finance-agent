@@ -53,10 +53,10 @@ describe("Japan's and Korea's Market readings", () => {
 describe("the range check in Japan and Korea", () => {
   it("names an input far from the Japanese industry's yardstick, and says Korea's come from emerging markets", () => {
     const [jp] = rangeCheck({ marginPercent: 45 }, { market: "JP", industry: "food" });
-    expect(jp.sentence).toMatch(/^Your operating margin of 45% is far above Food Processing's usual [\d.]+% to [\d.]+% in Japan\.$/);
+    expect(jp.sentence).toBe("Your operating margin of 45% is far above Food Processing's 5.11% in Japan (Jan 2026): more than double it.");
     expect(jp.yardstick.id).toBe("jp-food-margin");
     const [kr] = rangeCheck({ costOfCapitalPercent: 30 }, { market: "KR", industry: "market" });
-    expect(kr.sentence).toContain("in emerging markets.");
+    expect(kr.sentence).toContain("in emerging markets (Jan 2026): more than 3 points above it.");
     expect(rangeCheck({ marginPercent: 10, salesToCapital: 1.2, costOfCapitalPercent: 10 }, { market: "KR", industry: "market" })).toEqual([]);
   });
 });

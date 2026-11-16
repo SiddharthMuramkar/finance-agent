@@ -206,12 +206,38 @@ const premiums = [
     checkNote:
       "Table 17 of the paper and the 2007 row of histimpl.xls: S&P 500 at 1468.36, dividends and buybacks averaging 59.03 over 2001 to 2007, T-bond rate 4.02%, growth 5% for five years, implied ERP 4.37%; the course's two-stage maths gives the same premium.",
   },
-  premiumReading({ year: 2008, level: 903.25, bond: 2.21, cash: 52.58, growth: 4, requiredReturn: 8.64, premium: 6.43, paper: true }),
+  // 2008: the paper adjusts the year's cash for the drop in buybacks late in 2008 (52.58); histimpl's row has the actual 67.52.
+  {
+    ...premiumReading({ year: 2008, level: 903.25, bond: 2.21, cash: 52.58, growth: 4, requiredReturn: 8.64, premium: 6.43, paper: true }),
+    checkNote:
+      "The paper's January 2009 example and the 2008 row of histimpl.xls: S&P 500 at 903.25, adjusted dividends and buybacks of 52.58 (the paper's adjustment for the drop in buybacks late in 2008; the row's actual is 67.52), T-bond rate 2.21%, growth 4% for five years, implied ERP 6.43%; the course's two-stage maths gives the same premium.",
+  },
   premiumReading({ year: 2019, level: 3230.78, bond: 1.92, cash: 150.5, growth: 3.96, requiredReturn: 7.12, premium: 5.2 }),
 ];
 
+/**
+ * The US ten-year Treasury bond rate at the end of 1999, the row histimpl.xls solves that year's premium with: the one US
+ * reading dated before the Amazon Cases' As-of date (3 February 2000), so it may sit beside their Levers before the Reveal
+ * (Owner decision on #105, 2026-11-16). The end-1999 implied premium itself (2.05%) is not stored: histimpl prints no
+ * buybacks for 1999, so the course's maths cannot solve it from published inputs, and a premium reading must be solved.
+ */
+const usRiskFree1999 = {
+  id: "us-risk-free-10y-1999",
+  label: "10-year US Treasury bond rate (US)",
+  market: "US" as const,
+  kind: "risk_free" as const,
+  value: 6.44,
+  unit: "percent" as const,
+  date: "1999-12-31",
+  source: HISTIMPL.title,
+  sourceUrl: HISTIMPL.url,
+  credit: CREDIT,
+  checkedOn: CHECKED,
+  checkNote: 'The 1999 row of the sheet "Historical Impl Premiums", column "T.Bond Rate": 0.0644, the rate at the end of 1999.',
+};
+
 /** Every Market reading in the course as written: the course check runs marketReadingErrors on these. */
-export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, ...indiaYardsticks, ...JAPAN_KOREA_READINGS];
+export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, usRiskFree1999, ...indiaYardsticks, ...JAPAN_KOREA_READINGS];
 
 /** Every Market reading that parses (the course check fails on any that does not). */
 export const MARKET_READINGS: MarketReading[] = MARKET_READING_INPUTS.flatMap((r) => {
@@ -226,3 +252,46 @@ export const marketReading = (id: string): MarketReading | undefined => BY_ID.ge
 
 /** Every reading's id. */
 export const marketReadingIds = (): string[] => [...BY_ID.keys()];
+
+// ——— The As-of rule for readings shown before the Reveal (Owner decision on #105, 2026-11-16) ———
+
+/** The market a Case's money belongs to, for its readings: a dollar Case reads US readings, a rupee Case India's. */
+export const CURRENCY_MARKET: Partial<Record<string, MarketReading["market"]>> = { USD: "US", INR: "IN", JPY: "JP", KRW: "KR" };
+
+/** What a Case knew on its As-of date: its day and its market. */
+export type ReadingsKnownOn = { asOf: string; market: MarketReading["market"] };
+
+/** Whether a reading was known on a Case's As-of date and belongs to its market: only those show before the Reveal. */
+export const knownOn = (r: Pick<MarketReading, "date" | "market">, on: ReadingsKnownOn): boolean => r.date <= on.asOf && r.market === on.market;
+
+/** The shape of a Topic the rule reads (src/course/map.ts, parsed): its Cases, and the readings its explore Workbench shows. */
+export type ReadingsTopic = {
+  id: string;
+  cases: readonly { id: string; asOf: string; valuation?: { currency?: string } | null }[];
+  explore?: { workbench?: { case?: string; inputs?: Record<string, unknown> } | null } | null;
+};
+
+/**
+ * Every Market reading a Topic's explore Workbench shows that breaks the As-of rule (GLOSSARY "As-of rule"): the explore step
+ * comes before the Reveal, so each reading must be dated on or before its Case's As-of date and be from that Case's market.
+ */
+export function preRevealReadingErrors(topics: readonly ReadingsTopic[]): string[] {
+  return topics.flatMap((t) => {
+    const bench = t.explore?.workbench;
+    const ids = bench?.inputs?.readings;
+    if (!Array.isArray(ids) || !ids.length) return [];
+    const where = `Topic "${t.id}" explore Workbench`;
+    const c = t.cases.find((x) => x.id === bench?.case);
+    if (!c) return [`${where} shows Market readings but names none of the Topic's Cases, so nothing dates them`];
+    const market = CURRENCY_MARKET[c.valuation?.currency ?? ""];
+    if (!market) return [`${where} shows Market readings, but Case "${c.id}" has no market they could come from`];
+    return ids.flatMap((id) => {
+      const r = typeof id === "string" ? marketReading(id) : undefined;
+      if (!r) return [`${where} shows "${String(id)}", which is not a Market reading`];
+      const problems: string[] = [];
+      if (r.date > c.asOf) problems.push(`${where} shows "${r.id}" (${r.date}) before the Reveal, after Case "${c.id}"'s As-of date ${c.asOf}`);
+      if (r.market !== market) problems.push(`${where} shows "${r.id}" from ${r.market} before the Reveal, but Case "${c.id}" is in ${market}`);
+      return problems;
+    });
+  });
+}
