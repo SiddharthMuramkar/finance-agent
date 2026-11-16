@@ -37,7 +37,7 @@ const NAMES_MARGIN = "Your operating margin of 45% is far above Food Processing'
 
 async function readyLearner(db: Db, inputs: OwnCaseInputs = WIDE_MARGIN) {
   for (const t of map.topics.filter((t) => t.stage === "spine")) await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: t.id, step: "principle", status: "passed" });
-  const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, inputs, openingEstimate("food"), NOW);
+  const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, inputs, openingEstimate(inputs.industry, inputs.market), NOW);
   expect(saved.ok).toBe(true);
 }
 
@@ -108,6 +108,19 @@ describe("the AI Tutor in the Assignment", () => {
     expect(result.reply).toMatch(/operating margin/i);
     expect(result.reply).toMatch(/what story/i);
     expect(result.reply).not.toMatch(/cheap|buy/i);
+  });
+});
+
+describe("the AI Tutor on a US Own Case (#113)", () => {
+  it("lets the Tutor write dollars, the Own Case's currency, and names the input flagged against the US yardsticks", async () => {
+    const db = await testDb();
+    const apple: OwnCaseInputs = { company: "Apple Inc.", market: "US", reportDate: "2025-09-27", industry: "market", sales: 416_161, operatingProfit: 133_050, taxPercent: 21, debt: 98_657, cash: 35_934, shares: 14_776_353_000, price: 255.46 };
+    await readyLearner(db, apple);
+    const reply = "Your operating margin of 31.97% on $416,161 million of sales is far above the US usual range.\nWhat story about Apple does that margin assume?";
+    const { client, requests } = scriptedClient([text(reply)]);
+    const result = await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    expect(result).toMatchObject({ ok: true, reply, failed: [] });
+    expect(JSON.stringify(requests[0].messages)).toContain("in the US.");
   });
 });
 

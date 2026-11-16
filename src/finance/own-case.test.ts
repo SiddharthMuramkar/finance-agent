@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { valueCase } from "./valuation-case";
 import { valuationCase } from "./valuation-cases";
-import { INDIA_INDUSTRIES, openingEstimate, ownCaseBlock, valueOwnCase, type OwnCaseInputs } from "./own-case";
+import { INDIA_INDUSTRIES, US_INDUSTRIES, openingEstimate, ownCaseBlock, ownCaseIndustries, ownCaseMarket, ownCaseReadingIds, valueOwnCase, type OwnCaseInputs } from "./own-case";
 
 // Seam 3 (spec #68): an Own Case is the course's valuation input shape filled from about eight typed numbers, so the one
 // engine values it with no new maths (ADR 0010). Coffee Day's IPO, as the course Case "coffee-day-rupee-valuation-2015"
@@ -90,5 +90,56 @@ describe("bad inputs get a readable message, never a throw", () => {
   it("a report dated after today is refused: an Own Case looks back, never live", () => {
     const result = valueOwnCase({ ...COFFEE_DAY, reportDate: "2999-03-31" }, COFFEE_DAY_STORY, new Date("2026-11-16"));
     expect(result).toEqual({ ok: false, error: "The report's date must be in the past." });
+  });
+});
+
+// The US (#113): a US Own Case is copied from a Form 10-K, in US$ millions, with the share count as the cover prints it.
+// Apple's 10-K for the year to 27 Sep 2025 (https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm).
+const APPLE: OwnCaseInputs = {
+  company: "Apple Inc.",
+  market: "US",
+  reportDate: "2025-09-27",
+  industry: "market",
+  sales: 416_161,
+  operatingProfit: 133_050,
+  taxPercent: 21,
+  debt: 98_657, // commercial paper 7,979 + term debt 12,350 + 78,328
+  cash: 35_934,
+  shares: 14_776_353_000,
+  price: 255.46,
+};
+
+describe("a US Own Case (#113)", () => {
+  it("is in US dollars millions, its share count in millions, dated at the 10-K with that day's price", () => {
+    const built = ownCaseBlock(APPLE, openingEstimate("market", "US"));
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.block).toMatchObject({ currency: "USD", unit: "millions", price: { value: 255.46, date: "2025-09-27" }, illustration: true, reproduces: false });
+    expect(built.block.shares).toBeCloseTo(14_776.353, 6);
+  });
+
+  it("counts money in millions, not crores: Coffee Day's figures typed as US$ millions value at a tenth of ₹89.32", () => {
+    const own = valueOwnCase({ ...COFFEE_DAY, market: "US" }, COFFEE_DAY_STORY);
+    expect(own.ok).toBe(true);
+    if (own.ok) expect(own.valuePerShare).toBeCloseTo(8.932, 3);
+  });
+
+  it("opens its Estimate at the US yardsticks, not India's", () => {
+    const software = US_INDUSTRIES.find((i) => i.id === "software")!;
+    expect(software).toMatchObject({ operatingMarginPercent: 32.98, salesToCapital: 1.54, costOfCapitalPercent: 9.34 });
+    expect(openingEstimate("software", "US")).toMatchObject({ targetMarginPercent: 32.98, salesToCapital: 1.54, costOfCapitalPercent: 9.34 });
+    expect(ownCaseIndustries("US").map((i) => i.id)).toEqual(["auto", "food", "software", "market"]);
+    expect(valueOwnCase(APPLE, openingEstimate("market", "US")).ok).toBe(true);
+  });
+
+  it("opens with growth after year 10 at the US risk-free reading (4.94%, Oct 2026), and shows the industry's dated yardsticks", () => {
+    expect(ownCaseMarket("US").riskFree).toMatchObject({ id: "us-risk-free-10y", value: 4.94, date: "2026-10-30" });
+    expect(openingEstimate("food", "US").growthAfterPercent).toBe(4.94);
+    expect(ownCaseReadingIds("US", "food")).toEqual(["us-food-margin", "us-food-sales-to-capital", "us-food-cost-of-capital"]);
+  });
+
+  it("India's opening Estimate stays as it was", () => {
+    expect(openingEstimate("food")).toEqual(openingEstimate("food", "IN"));
+    expect(openingEstimate("food", "IN").growthAfterPercent).toBe(5);
   });
 });

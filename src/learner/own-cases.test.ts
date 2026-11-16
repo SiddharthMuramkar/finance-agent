@@ -60,4 +60,29 @@ describe("Own Cases", () => {
     expect(await saveOwnCase(db, map, OWNER_LEARNER_ID, { ...TATA, industry: "banks" as never }, openingEstimate("food"), NOW)).toEqual({ ok: false, status: 400, error: "Pick the company's industry." });
     expect(await loadOwnCaseNotes(db, OWNER_LEARNER_ID)).toEqual([]);
   });
+
+  it("a US Own Case's note is in dollars, from its 10-K (#113)", async () => {
+    const db = await testDb();
+    await passSpine(db, OWNER_LEARNER_ID);
+    const apple: OwnCaseInputs = {
+      company: "Apple Inc.",
+      market: "US",
+      reportDate: "2025-09-27",
+      industry: "market",
+      sales: 416_161,
+      operatingProfit: 133_050,
+      taxPercent: 21,
+      debt: 98_657,
+      cash: 35_934,
+      shares: 14_776_353_000,
+      price: 255.46,
+    };
+    const saved = await saveOwnCase(db, map, OWNER_LEARNER_ID, apple, openingEstimate("market", "US"), NOW);
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) return;
+    expect(saved.note).toContain("Apple Inc., the US. Annual report of 27 Sep 2025. Industry: Any other firm (not a bank or insurer).");
+    expect(saved.note).toContain("14,776,353,000 shares, price $255 on 27 Sep 2025");
+    expect(saved.note).toContain("$1.43 of sales for each $1 invested");
+    expect(saved.note).not.toContain("₹");
+  });
 });

@@ -41,7 +41,12 @@ describe("the range check on an Own Case's inputs", () => {
   it("says nothing for an input left out, or an industry with no yardsticks", () => {
     expect(rangeCheck({}, food)).toEqual([]);
     expect(rangeCheck({ marginPercent: 90 }, { market: "IN", industry: "Shipbuilding" })).toEqual([]);
-    expect(rangeCheck({ marginPercent: 90 }, { market: "US", industry: "Food Processing" })).toEqual([]);
+  });
+
+  it("holds a US Own Case to the US yardsticks, not India's (#113)", () => {
+    const [flag] = rangeCheck({ marginPercent: 90 }, { market: "US", industry: "food" });
+    expect(flag.sentence).toBe("Your operating margin of 90% is far above Food Processing's usual 5.32% to 21.26% in the US.");
+    expect(flag.yardstick.id).toBe("us-food-margin");
   });
 
   it("takes the industry by its Market reading id too, as the Own Case form's industry pick names it", () => {

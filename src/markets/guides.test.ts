@@ -50,3 +50,28 @@ describe("the course check on the annual-report guide", () => {
     expect(guideErrors([line, line])).toEqual(expect.arrayContaining(['Guide line IN "sales" is listed twice']));
   });
 });
+
+describe("the US guide (#113): a Form 10-K on SEC EDGAR", () => {
+  it("gives every Own Case field a guide line, an https source and a Lingo card", () => {
+    const us = annualReportGuide("US");
+    expect(Object.keys(us).sort()).toEqual([...GUIDE_FIELDS].sort());
+    for (const field of GUIDE_FIELDS) {
+      expect(us[field].sourceUrl).toMatch(/^https:\/\/www\.(sec|investor|nasdaq)\.(gov|com)\//);
+      expect(us[field].lingo.term.length).toBeGreaterThan(2);
+    }
+  });
+
+  it("says where the 10-K puts sales, operating income and the share count, and that its tables are in millions", () => {
+    const us = annualReportGuide("US");
+    expect(us.company.where).toMatch(/EDGAR/);
+    expect(us.sales.where).toMatch(/Item 8/);
+    expect(us.sales.where).toMatch(/\$ millions/);
+    expect(us.operatingProfit.where).toMatch(/Operating income/);
+    expect(us.shares.where).toMatch(/cover page/);
+  });
+
+  it("fails a US guide line with no source", () => {
+    const sales = GUIDE_LINE_INPUTS.find((l) => (l as GuideLineInput).market === "US" && (l as GuideLineInput).field === "sales") as GuideLineInput;
+    expect(guideErrors([{ ...sales, source: undefined }])).toEqual(expect.arrayContaining([expect.stringContaining('Guide line US "sales" needs source')]));
+  });
+});
