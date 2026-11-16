@@ -213,6 +213,7 @@ test("[#75] Where you end up shows a real one-page note from the Notebook", asyn
     "Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.",
     "From the report: sales ¥745.5bn, operating profit ¥75.9bn (a margin of 10.19%), tax rate 30.5%, debt ¥18.2bn, cash ¥111.8bn, 927,741,900 shares, price ¥1,435 on 31 Mar 2026.",
     "My Estimate: growth 10% a year for five years, fading to 2.82%; the margin heading for 5.11%; ¥1.92 of sales for each ¥1 invested; cost of capital 3.84%.",
+    "Employee stock options are not entered: the engine counts none.",
     "The engine's value: ¥1,234 a share, beside a price of ¥1,435 on 31 Mar 2026.",
   ]);
 });
