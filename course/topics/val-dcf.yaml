@@ -83,13 +83,17 @@ concept: >
   cash it will produce. For the whole firm, forecast free cash flow to the firm (FCFF): operating
   profit after tax, plus depreciation, less capital spending and the increase in working capital.
   Discount each year's FCFF at the cost of capital (WACC), and add a terminal value for the years
-  beyond the forecast: TV = FCFF in the next year / (WACC - g), where g is a stable growth rate that
-  cannot exceed the long-run growth of the economy. The sum is the value of operating assets. Add
+  beyond the forecast: take the FCFF in the year after the forecast and divide it by the gap between
+  WACC and g, where g is a stable growth rate that cannot exceed the long-run growth of the economy. The sum is the value of operating assets. Add
   cash and subtract debt to get equity value, and subtract the value of employee options before
   dividing by the number of shares. Discount free cash flow to equity at the cost of equity
   instead if you value equity directly. For a young company the early cash flows are negative, so
   most of the value is in the terminal value, and the result is very sensitive to the growth, margin
   and discount-rate assumptions. Test them and say how value changes when they do.
+
+goDeeper: >
+  Typed out, the terminal value is TV = FCFF in the next year / (WACC - g), and the bridge to the
+  shareholders is equity = operating value + cash - debt - employee options.
 
 principle: >
   A DCF is a set of explicit assumptions turned into a number. The number is only as good as the
@@ -160,7 +164,7 @@ questions:
         mistake: { tag: no_bridge, fix: "Owners get what is left after lenders, so debt and cash change the answer." }
     answer: a
     explanation: >
-      Equity = operating value + cash - debt. For example, a business worth 1,000 that owes 300 and holds 50 in cash leaves 750 for the shareholders.
+      Start from the operating value, add the cash and take off the debt. For example, a business worth 1,000 that owes 300 and holds 50 in cash leaves 750 for the shareholders.
     source: >
       CFA Institute, refresher readings on equity valuation: https://www.cfainstitute.org/insights/professional-learning/refresher-readings ; the bridge is by definition.
 
