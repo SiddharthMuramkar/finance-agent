@@ -82,15 +82,18 @@ test("[#111] Go deeper on an Own Case opens the Full sheet, says where each inpu
   const sheet = deeper.getByTestId("full-sheet");
   const origin = (row: string) => sheet.locator(`[data-row="${row}"] [data-origin]`);
   for (const row of ["baseRevenue", "taxRate", "cash", "debt", "shares", "price"]) await expect(origin(row), row).toHaveAttribute("data-origin", "typed");
-  for (const row of ["salesToCapital", "costOfCapital", "marginAfter", "returnOnCapitalAfter"]) await expect(origin(row), row).toHaveAttribute("data-origin", "yardstick");
-  for (const row of ["growth", "growthAfter", "lossesCarried", "options", "failure"]) await expect(origin(row), row).toHaveAttribute("data-origin", "default");
+  for (const row of ["salesToCapital", "costOfCapital", "marginAfter"]) await expect(origin(row), row).toHaveAttribute("data-origin", "yardstick");
+  for (const row of ["growth", "growthAfter", "returnOnCapitalAfter", "lossesCarried", "options", "failure"]) await expect(origin(row), row).toHaveAttribute("data-origin", "default");
+  await expect(origin("returnOnCapitalAfter")).toHaveText("A default: the same as the cost of capital after year 10");
   await expect(origin("margin")).toHaveText("You typed it; then the industry's yardstick");
   await expect(sheet.locator('[data-row="price"]')).toContainText("₹328");
   // Nothing on the sheet can be typed into: sliders and tap buttons only (ADR 0020).
   await expect(sheet.locator('input:not([type="range"]), textarea')).toHaveCount(0);
 
+  // The sheet and the form agree: Coffee Day's value is below zero on this Estimate, so both read ₹0 (F06).
   const value = deeper.getByTestId("own-case-sheet-value");
   expect(rupees((await value.textContent())!)).toBe(rupees(formValue!));
+  await expect(value).toHaveText("The engine's value with these rows: ₹0 a share. Lenders take everything: nothing is left for shareholders.");
 
   // A slider: no debt at all is the value of typing a debt of 0 into the form.
   const debt = sheet.getByRole("slider", { name: "Change: Debt the company owes" });
