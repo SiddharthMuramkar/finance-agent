@@ -16,6 +16,10 @@ describe("the annual-report guide for Europe", () => {
     }
     expect(europe.sales.where).toContain("Revenue");
     expect(europe.sales.where).toContain("TEUR");
+    // G09: the Europe Own Case counts in euros, so the guide names only euro exchanges and says pounds, pence and francs don't fit.
+    expect(europe.company.where).toContain("euros");
+    expect(europe.price.where).toContain("pence");
+    for (const field of GUIDE_FIELDS) expect(europe[field].where, field).not.toMatch(/London|year-end close/);
     expect(europe.debt.source).toContain("IFRS 16");
     expect(europe.taxPercent.source).toContain("IAS 12");
   });

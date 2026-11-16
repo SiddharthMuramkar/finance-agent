@@ -1,7 +1,9 @@
 // The annual-report guide for Europe (spec #68, ticket #115), in the shape of src/markets/guides.ts (which lists it with
 // India's, so the course check fails a line with no source). Listed companies in the EU file an annual financial report
-// with consolidated accounts under EU-endorsed IFRS, in ESEF (web pages with tagged figures); UK firms file the same way
-// under UK-adopted IFRS. Each line links the rule that says where the number sits. Checked 2026-11-16: every link answered.
+// with consolidated accounts under EU-endorsed IFRS, in ESEF (web pages with tagged figures). The Europe Own Case counts
+// in euros only, so the guide sends Learners to companies that report and trade in euros: a UK or Swiss company reports in
+// pounds or francs (and London quotes pence), which the form would read as euros (G09). Each line links the rule that
+// says where the number sits. Checked 2026-11-16: every link answered.
 // Imports nothing, so plain Node runs it.
 
 const IAS_REGULATION = { source: "Regulation (EC) No 1606/2002, IFRS for listed companies' consolidated accounts (EUR-Lex)", sourceUrl: "https://eur-lex.europa.eu/eli/reg/2002/1606/oj" };
@@ -17,7 +19,7 @@ export const EUROPE_GUIDE = [
   {
     field: "company",
     where:
-      "Type the name as the annual report's cover prints it (in France, the Universal Registration Document). Inside, use the consolidated financial statements, prepared under IFRS, not the parent company's own accounts.",
+      "The Europe Own Case counts in euros: pick a company whose report is in euros and whose shares trade in euros (Euronext, Xetra); a UK or Swiss company reports in pounds or francs and does not fit here. Type the name as the annual report's cover prints it (in France, the Universal Registration Document), and use the consolidated financial statements, prepared under IFRS, not the parent company's own accounts.",
     ...IAS_REGULATION,
     lingo: {
       term: "Consolidated statements",
@@ -121,7 +123,7 @@ export const EUROPE_GUIDE = [
   {
     field: "price",
     where:
-      "Not in the accounts: on the home exchange's site (Euronext, Xetra, the London Stock Exchange), find the company and read the closing price on the report's date, in euros a share. If that day had no trading, use the last trading day before it. Many annual reports print the year-end close in their share information pages.",
+      "Not in the accounts: on the home exchange's site (Euronext, Xetra), find the company and read the closing price in euros a share on the report's date. If that day had no trading, use the last trading day before it. A price in pounds, pence or francs does not fit the Europe Own Case.",
     ...EURONEXT,
     lingo: {
       term: "Closing price",

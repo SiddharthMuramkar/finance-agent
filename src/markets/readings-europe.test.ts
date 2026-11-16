@@ -19,11 +19,14 @@ describe("Europe's Market readings", () => {
     }
   });
 
-  it("give the food processors' yardsticks in euros and the Bund's 10-year yield on 30 Oct 2026", () => {
+  it("give the food processors' yardsticks in euros and the Bundesbank's 10-year yield-curve rate on 30 Oct 2026", () => {
     expect(marketReading("eu-food-margin")).toMatchObject({ value: 9.37, unit: "percent", date: "2026-01-05", industry: "Food Processing" });
     expect(marketReading("eu-food-sales-to-capital")).toMatchObject({ value: 1.88, unit: "times" });
     expect(marketReading("eu-food-cost-of-capital")).toMatchObject({ value: 4.77, sourceUrl: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/waccEurope.xls" });
     expect(marketReading("eu-risk-free-10y")).toMatchObject({ kind: "risk_free", value: 3.4, date: "2026-10-30", credit: "Deutsche Bundesbank" });
+    // G27: the series is the Bundesbank's Svensson yield-curve rate at 10.0 years, so it is named as that, not a bond's yield.
+    expect(marketReading("eu-risk-free-10y")?.label).toBe("10-year rate on the German federal bond yield curve (Europe)");
+    expect(marketReading("eu-risk-free-10y")?.source).toContain("Svensson");
   });
 
   it("the course check fails a risk-free reading with no date or no source", () => {
