@@ -361,3 +361,34 @@ describe("what the Tutor is told of each Workbench (readWidget)", () => {
     expect(read("wacc-stack").tasks.map((t) => t.text)).toEqual(["Raise relative risk to 2.0. How far does the rate move?", "Set the share of debt to 30%"]);
   });
 });
+
+describe("Market readings beside the levers (ticket #105)", () => {
+  const readings = () =>
+    [...host.querySelectorAll('[data-testid="market-reading"]')].map((li) => ({
+      id: li.getAttribute("data-reading"),
+      date: li.querySelector('[data-testid="reading-date"]')?.textContent,
+      credit: li.querySelector('[data-testid="reading-credit"]')?.textContent,
+      href: li.querySelector('[data-testid="reading-credit"]')?.getAttribute("href"),
+    }));
+
+  it("the Cost of capital stack shows the implied premium of Dec 2007 and India's cost of capital of Jan 2026, each credited and linked", async () => {
+    await draw("wacc-stack-readings");
+    const shown = readings();
+    expect(shown).toHaveLength(7);
+    expect(shown[0]).toEqual({ id: "us-implied-premium-2007", date: "(Dec 2007)", credit: "Aswath Damodaran, NYU Stern", href: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" });
+    expect(text("market-readings")).toContain("Implied equity risk premium, S&P 500 (US): 4.37%");
+    expect(text("market-readings")).toContain("Cost of capital in rupees, auto and truck makers (India): 13.9% (Jan 2026)");
+    expect(text("market-readings")).not.toMatch(/today|current/i);
+  });
+
+  it("Value levers shows India's margins and sales for each rupee invested beside its levers", async () => {
+    await draw("value-levers-readings");
+    expect(readings().map((r) => r.date)).toEqual(Array(8).fill("(Jan 2026)"));
+    expect(text("market-readings")).toContain("Sales for each rupee invested, food processors (India): 2.34");
+  });
+
+  it("a Workbench with no readings shows none", async () => {
+    await draw("wacc-stack");
+    expect(host.querySelector('[data-testid="market-readings"]')).toBeNull();
+  });
+});

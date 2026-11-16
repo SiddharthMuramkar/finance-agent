@@ -2,12 +2,13 @@
 
 import { useMemo } from "react";
 import { BarRows, BenchFigure, BenchHeadline, BenchLeverControl, BenchNumbers, BenchTasks, useBenchSettings, useBenchTasks, type BenchViewProps } from "./bench-view";
+import { MarketReadingsView } from "../market-readings-view";
 import { STACK_CAPTION, waccStackLevers, waccStackModel, waccStackTasks, type StackLeverId, type WaccStackData } from "./wacc-stack-model";
 
 // Cost of capital stack, drawn (spec 2026-11-12, B4; Spine Topic 7): four levers build the rate in layers, from the risk-free
 // rate, through the premium for this company's risk, to the debt in the mix.
 
-export function WaccStackView({ data, levers: given, onLeversChange, ticked = [], onTicked, onFirstLeverMove }: { data: WaccStackData } & BenchViewProps<StackLeverId>) {
+export function WaccStackView({ data, levers: given, onLeversChange, ticked = [], onTicked, onFirstLeverMove, readings = [] }: { data: WaccStackData; readings?: readonly string[] } & BenchViewProps<StackLeverId>) {
   const levers = useMemo(() => waccStackLevers(data), [data]);
   const tasks = useMemo(() => waccStackTasks(data), [data]);
   const { settings, move } = useBenchSettings(levers, given, onLeversChange, onFirstLeverMove);
@@ -26,6 +27,7 @@ export function WaccStackView({ data, levers: given, onLeversChange, ticked = []
       <BenchFigure caption={STACK_CAPTION} testId="wacc-stack-layers">
         <BarRows rows={rows} testId="wacc-stack-bars" />
       </BenchFigure>
+      <MarketReadingsView ids={readings} />
       <BenchTasks tasks={tasks} reached={reached} />
     </div>
   );
