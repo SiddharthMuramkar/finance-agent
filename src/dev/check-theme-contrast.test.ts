@@ -42,8 +42,11 @@ const add = (css: string, declaration: string) => css.replace(OPEN, `${OPEN}\n  
 /** The Light block's declarations, copied whole: a Dark block that sets every colour (to the Light values). */
 const DARK_COPY = REAL.slice(REAL.indexOf(OPEN) + OPEN.length, REAL.indexOf("\n}", REAL.indexOf(OPEN))).replace(/\/\*[\s\S]*?\*\//g, "");
 
-/** The real stylesheet with a Dark block (ADR 0019) holding `declarations`. */
-const dark = (declarations: string) => `${REAL}\n:root[data-theme="dark"] {\n  color-scheme: dark;\n${declarations}\n}\n`;
+/** The real stylesheet with its Dark block taken out: Light only. */
+const LIGHT = REAL.replace(/\n:root\[data-theme="dark"\] \{[^}]*\}\n/, "\n");
+
+/** The Light-only stylesheet with a Dark block (ADR 0019) holding `declarations`. */
+const dark = (declarations: string) => `${LIGHT}\n:root[data-theme="dark"] {\n  color-scheme: dark;\n${declarations}\n}\n`;
 
 describe("the contrast guard", () => {
   const real = run(REAL);
@@ -53,9 +56,20 @@ describe("the contrast guard", () => {
     expect(real.status).toBe(0);
   });
 
+  // ADR 0019 (#79): the real stylesheet has a whole Dark block, and every §2.4 contrast and colour-blind separation check
+  // passes in Dark as well as in Light.
+  it("measures the real stylesheet in both themes", () => {
+    expect(REAL).toContain(':root[data-theme="dark"] {');
+    expect(real.output).toContain("[Dark: spec §2.4 contrast]");
+    expect(real.output).toContain("[Dark: spec §2.4 colour separation, OKLab x 100]");
+    expect(real.output).toContain("ok   Dark: color-scheme is dark");
+    expect(real.output).not.toContain("FAIL");
+  });
+
   // ADR 0019: Light, and an optional Dark block in one selector shape. With Light only, nothing else is asked.
   it("passes with Light only, and keeps one selector shape for Dark: no .dark class, no reading the device in CSS", () => {
-    expect(real.output).not.toContain("[Dark:");
+    expect(run(LIGHT).output).not.toContain("[Dark:");
+    expect(run(LIGHT).status).toBe(0);
 
     const block = run(`${REAL}\n:root.dark { --paper: #0b0b0b; }\n`);
     expect(block.status).toBe(1);
