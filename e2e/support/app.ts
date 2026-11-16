@@ -9,9 +9,16 @@ import type { E2eScriptName } from "../../src/dev/e2e-tutor";
 export type State = "fresh" | "story" | "story-scene" | "lingo" | "concept-widget" | "reading" | "quiz-open" | "your-turn" | "mix-up" | "off-topic" | "review-due" | "topic-complete" | "many-topics" | "notebook-older" | "notebook-long" | "restart-topics";
 export type Script = E2eScriptName;
 
+/**
+ * Retries for the test bed's own requests (sign-in, seed, script), which are idempotent. `next dev` closes an idle
+ * keep-alive socket after 5 s, and on a loaded box that close can cross a request sent on the same socket: the request
+ * fails with ECONNRESET before the server reads it (spine-01's `script()` after 6 s idle). Playwright retries only that.
+ */
+export const RESET_RETRIES = { maxRetries: 2 } as const;
+
 /** Signs the tools Learner in through the login form (the saved cookie usually makes this unneeded). */
 export async function signIn(page: Page) {
-  const response = await page.request.post("/api/login", { form: { passcode: "e2e-passcode" }, maxRedirects: 0 });
+  const response = await page.request.post("/api/login", { form: { passcode: "e2e-passcode" }, maxRedirects: 0, ...RESET_RETRIES });
   expect(response.status(), "POST /api/login").toBe(303);
 }
 
@@ -30,14 +37,14 @@ export async function seed(page: Page, state: State) {
   // An earlier test's seed started the tools Learner over, which signs the saved cookie out: sign in as the active one.
   await quietDevtools(page);
   await signIn(page);
-  const response = await page.request.post("/api/dev-e2e", { data: { state } });
+  const response = await page.request.post("/api/dev-e2e", { data: { state }, ...RESET_RETRIES });
   expect(response.status(), `seed("${state}"): ${await response.text()}`).toBe(200);
   return (await response.json()) as { state: State; learnerId: number };
 }
 
 /** Picks the script the scripted Tutor plays next. */
 export async function script(page: Page, name: Script) {
-  const response = await page.request.post("/api/dev-e2e", { data: { script: name } });
+  const response = await page.request.post("/api/dev-e2e", { data: { script: name }, ...RESET_RETRIES });
   expect(response.status(), `script("${name}")`).toBe(200);
 }
 

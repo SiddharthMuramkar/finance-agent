@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { E2E_SCRIPTS, SPINE_ONE_SAYS } from "../src/dev/e2e-tutor";
-import { quietDevtools, replyLanded, say, script, settled, signIn, type Script } from "./support/app";
+import { quietDevtools, replyLanded, RESET_RETRIES, say, script, settled, signIn, type Script } from "./support/app";
 
 /**
  * Spine Topic 1 on the Test bed (spec 2026-11-12 Part C, "Done when"): a browser test completes Spine Topic 1 ("What is
@@ -50,7 +50,7 @@ function tryPick(prompt: string): string {
 async function seedSpineOne(page: Page) {
   await quietDevtools(page);
   await signIn(page);
-  const response = await page.request.post("/api/dev-e2e", { data: { state: "spine-01-start" } });
+  const response = await page.request.post("/api/dev-e2e", { data: { state: "spine-01-start" }, ...RESET_RETRIES });
   expect(response.status(), `seed spine-01-start: ${await response.text()}`).toBe(200);
 }
 
