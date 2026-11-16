@@ -102,6 +102,14 @@ describe("the typed-formula course check", () => {
     expect(errors).toContain('term "percentage point" example: ');
   });
 
+  it("Financial statements and Valuation Topics type no formula outside Go deeper, and are off the list (#98)", () => {
+    const converted = ["fs-balance", "fs-ratios", "fs-tax", "cf-wacc", "cf-capital-structure", "val-dcf", "val-multiples", "val-young", "val-implied-erp", "val-india", "cf-venture"];
+    for (const id of converted) {
+      expect(typedFormulas(map.topic(id)!), id).toEqual([]);
+      expect(NOT_YET_CONVERTED, id).not.toContain(id);
+    }
+  });
+
   it("makes a list entry for a Topic that does not exist come off", () => {
     expect(formulaCheckErrors([], ["gone"])[0]).toContain('"gone" is on the not-yet-converted list but is not a Topic');
   });
