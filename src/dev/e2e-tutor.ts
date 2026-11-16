@@ -798,6 +798,23 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /**
+   * The Tutor in the Assignment (spec #68, ticket #110; e2e/assignment-tutor.spec.ts): the Own Case's operating margin is
+   * flagged, so the reply names it and asks what story it assumes, with no verdict or advice word (V9, V10).
+   */
+  "assignment-flag": {
+    step: "none",
+    replies: [
+      {
+        content: [
+          text(
+            "Your operating margin of 45% is far above Food Processing's usual range in India.\n\n" +
+              "What story about the company does a 45% operating margin assume?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;

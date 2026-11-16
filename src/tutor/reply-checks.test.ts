@@ -664,3 +664,36 @@ describe("V2 at Your turn: the open Quick try is shown, not described (A7)", () 
     expect(rules(describing, ctx({ step: "your_turn", replyKind: "quick_try" }))).not.toContain("V2");
   });
 });
+
+// Spec #68 voice rules (ticket #110): in the Assignment the Tutor never calls a value right or wrong, cheap or dear,
+// under- or overvalued, and never says buy or sell. Elsewhere "a wrong choice" is ordinary feedback, so V9 reads only
+// Assignment replies. V10: with a flagged input, the reply names one, so the Learner hears which input to think about.
+describe("V9 and V10: the Assignment's voice", () => {
+  const assignment = ctx({ step: "none", assignment: { flagged: ["operating margin"] } });
+  it("refuses a verdict or advice word in the Assignment", () => {
+    for (const verdict of [
+      "Your operating margin of 45% makes this the right value. What does it assume?",
+      "At 45% your operating margin gives a wrong value. What does it assume?",
+      "With that operating margin the shares look cheap. What story does it assume?",
+      "That operating margin makes the price look dear. What story does it assume?",
+      "On that operating margin the company is undervalued. What story does it assume?",
+      "On that operating margin the company is overvalued. What story does it assume?",
+      "Your operating margin is high, so I would not buy. What story does it assume?",
+      "With that operating margin you should sell the shares. What story does it assume?",
+    ])
+      expect(rules(draft(verdict), assignment), verdict).toContain("V9");
+  });
+  it("passes a reply that names the flagged input and asks what Story it assumes", () => {
+    const named = draft("Your operating margin of 45% is far above Food Processing's usual 3.63% to 14.52% in India.\nWhat story about this company does a 45% margin assume?");
+    expect(rules(named, assignment)).toEqual([]);
+  });
+  it("refuses a reply that names no flagged input (V10), and asks for none with no flags", () => {
+    const vague = draft("Your figures are in.\nWhat story do they tell about the company?");
+    expect(rules(vague, assignment)).toEqual(["V10"]);
+    expect(rules(vague, ctx({ step: "none", assignment: { flagged: [] } }))).toEqual([]);
+  });
+  it("leaves ordinary feedback alone outside the Assignment", () => {
+    expect(rules(draft("That was a wrong choice: points are not percent. Which move is bigger?"), ctx({ step: "story" }))).not.toContain("V9");
+    expect(rules(draft("Borrowing became dearer by a twelfth. Which description sounds biggest?"), ctx({ step: "story" }))).not.toContain("V9");
+  });
+});

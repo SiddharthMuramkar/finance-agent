@@ -53,6 +53,7 @@ describe("the scripted Tutor", () => {
       "ar-concept",
       "ar-explore",
       "ar-story",
+      "assignment-flag",
       "concept-percent-change",
       "concept-reply-widget",
       "concept-two-ways",
