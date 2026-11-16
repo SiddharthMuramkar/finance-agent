@@ -115,3 +115,19 @@ test("[A1] chat lines are readable", async ({ page }, info) => {
   expect(m.charsPerLine).toBeGreaterThanOrEqual(band![0]);
   expect(m.charsPerLine).toBeLessThanOrEqual(band![1]);
 });
+
+test("[G36] nothing stands above the Widget panel unless it holds something", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "measured at 1512×982");
+  // At explore on a laptop the explore Widget is a tab in the panel, so the place above it is empty and takes no room.
+  await seed(page, "spine-01-explore");
+  await page.goto("/study");
+  await expect(page.getByTestId("workspace-frame")).toBeVisible();
+  await expect(page.getByTestId("widget-pane")).toBeVisible();
+  await expect(page.getByTestId("above-widgets")).toBeHidden();
+  // A due Review stands there.
+  await seed(page, "review-due");
+  await page.goto("/study");
+  await expect(page.getByTestId("review")).toBeVisible();
+  await expect(page.getByTestId("above-widgets")).toBeVisible();
+});
+
