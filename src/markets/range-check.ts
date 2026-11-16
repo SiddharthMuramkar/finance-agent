@@ -44,7 +44,7 @@ export type RangeFlag = {
   sentence: string;
 };
 
-const MARKET_WORD = { IN: "India", US: "the US" } as const;
+const MARKET_WORD = { IN: "India", US: "the US", EU: "Europe" } as const;
 
 /** The id word each yardstick kind carries: "in-food-margin" (src/markets/readings.ts). */
 const KIND_ID = { operating_margin: "margin", sales_to_capital: "sales-to-capital", cost_of_capital: "cost-of-capital" } as const;

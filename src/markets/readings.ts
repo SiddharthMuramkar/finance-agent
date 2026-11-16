@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { impliedPremium, impliedPremiumBlock } from "../finance/implied-erp.ts";
+import { EUROPE_READINGS } from "./readings-europe.ts";
 
 // Market readings (spec #68, ticket #105; GLOSSARY "Market reading"): a market-wide number, such as the premium investors
 // ask over safe bonds or an industry's usual margin, shown with the date it was measured. Each is stored like Case Data
@@ -12,14 +13,15 @@ import { impliedPremium, impliedPremiumBlock } from "../finance/implied-erp.ts";
 const slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "lowercase words joined by hyphens");
 
 /** What a reading measures: the implied premium of a whole market, or one of an industry's yardsticks. */
-export const READING_KINDS = ["implied_premium", "operating_margin", "sales_to_capital", "cost_of_capital"] as const;
+/** A risk-free reading is a market's 10-year government bond yield on a stated day (tickets #114, #115). */
+export const READING_KINDS = ["implied_premium", "operating_margin", "sales_to_capital", "cost_of_capital", "risk_free"] as const;
 
 export const marketReadingSchema = z
   .object({
     id: slug,
     /** What it measures, in plain words: "Operating margin, auto and truck makers (India)". */
     label: z.string().trim().min(3),
-    market: z.enum(["IN", "US"]),
+    market: z.enum(["IN", "US", "EU"]),
     kind: z.enum(READING_KINDS),
     /** The industry, as the source names it, for an industry yardstick. */
     industry: z.string().trim().min(1).optional(),
@@ -82,7 +84,7 @@ export function marketReadingErrors(readings: readonly unknown[]): string[] {
       if (Math.abs(solved - r.value) > PREMIUM_TOLERANCE || Math.abs(r.impliedPremium.published.premiumPercent - r.value) > PREMIUM_TOLERANCE) {
         errors.push(`${name} states a premium of ${r.value}%, but its inputs give ${solved.toFixed(2)}%`);
       }
-    } else if (!r.industry) {
+    } else if (r.kind !== "risk_free" && !r.industry) {
       errors.push(`${name} is an industry yardstick, so it needs its industry`);
     }
   });
@@ -209,7 +211,7 @@ const premiums = [
 ];
 
 /** Every Market reading in the course as written: the course check runs marketReadingErrors on these. */
-export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, ...indiaYardsticks];
+export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, ...indiaYardsticks, ...EUROPE_READINGS];
 
 /** Every Market reading that parses (the course check fails on any that does not). */
 export const MARKET_READINGS: MarketReading[] = MARKET_READING_INPUTS.flatMap((r) => {
