@@ -15,8 +15,8 @@ describe("the course check lints the Full sheet's words", () => {
   });
 
   it("refuses a row with no Lingo card", () => {
-    const { cash: _cash, ...rest } = FULL_SHEET_WORDS;
-    expect(fullSheetWordsErrors(rest as typeof FULL_SHEET_WORDS)).toEqual([expect.stringMatching(/"cash" has no words or Lingo card/)]);
+    const rest = Object.fromEntries(Object.entries(FULL_SHEET_WORDS).filter(([input]) => input !== "cash"));
+    expect(fullSheetWordsErrors(rest)).toEqual([expect.stringMatching(/"cash" has no words or Lingo card/)]);
   });
 
   it("refuses a spreadsheet name or a camel-cased input name in a row's words", () => {
