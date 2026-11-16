@@ -107,6 +107,11 @@ describe("the typed-formula course check", () => {
     expect(errors).toContain('Scene "pct-demo-scene" beats.0.says: ');
     expect(errors).toContain('term "percentage point" example: ');
   });
+
+  it("Financial statements and Valuation Topics type no formula outside Go deeper (#98)", () => {
+    const converted = ["fs-balance", "fs-ratios", "fs-tax", "cf-wacc", "cf-capital-structure", "val-dcf", "val-multiples", "val-young", "val-implied-erp", "val-india", "cf-venture"];
+    for (const id of converted) expect(typedFormulas(map.topic(id)!), id).toEqual([]);
+  });
 });
 
 describe("present value's formula markers", () => {

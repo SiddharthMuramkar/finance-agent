@@ -59,15 +59,16 @@ concept: >
   (market value of equity + debt - cash) by a measure of the whole business, so the way a
   company is funded does not distort the comparison. A multiple is not a free-standing fact:
   it is shaped by growth, risk and profitability. For example, the justified forward P/E is the
-  payout ratio divided by the gap between the cost of equity and growth, so a company with higher sustainable growth or
-  lower risk deserves a higher multiple. Check which period's revenue is used (last year's, or
+  share of earnings paid out divided by how much the cost of equity beats growth, so a company
+  with higher sustainable growth or lower risk deserves a higher multiple. Check which period's revenue is used (last year's, or
   the latest half-year doubled), and pick comparables with similar growth, margins and risk, or
   adjust for the difference. The weakness of the method is that multiples carry the market's
   mood: if the comparables are priced too high or too low, so is your answer.
 
 goDeeper: >
-  Typed out, the justified forward P/E is payout ratio / (cost of equity - growth), and enterprise
-  value is market value of equity + debt - cash.
+  The justified forward P/E as a formula is payout ratio / (cost of equity - growth). It comes
+  from the dividend growth model divided by next year's earnings, so it only holds while the cost of equity
+  is above growth.
 
 principle: >
   A multiple is a price tag, not a value. Before you apply one, ask what the comparable's
