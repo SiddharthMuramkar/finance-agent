@@ -58,7 +58,8 @@ function AccountMenu({ name }: { name: string }) {
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
   return (
     <details className="v-account">
-      <summary aria-label={chrome.account}>
+      {/* An icon control, as the app header's Account menu is: the avatar's face and rim are its signifier (ADR 0018, G38). */}
+      <summary aria-label={chrome.account} data-affordance="icon">
         <span className="v-avatar" aria-hidden="true">
           {initial}
         </span>
