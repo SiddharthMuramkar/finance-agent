@@ -24,7 +24,7 @@ function NamedSource({ text, source }: { text: string; source: { name: string; u
   return (
     <>
       {text.slice(0, at)}
-      <a href={source.url} className="link" target="_blank" rel="noopener noreferrer">
+      <a href={source.url} className="link" data-affordance="link" target="_blank" rel="noopener noreferrer">
         {source.name}
       </a>
       {text.slice(at + source.name.length)}

@@ -316,7 +316,7 @@ function SourceText({ text, link }: { text: string; link?: SourceLink }) {
   return (
     <>
       {text.slice(0, at)}
-      <a href={link.href} className="link" target="_blank" rel="noopener noreferrer">
+      <a href={link.href} className="link" data-affordance="link" target="_blank" rel="noopener noreferrer">
         {link.name}
       </a>
       {text.slice(at + link.name.length)}
