@@ -44,6 +44,11 @@ describe("the range check on an Own Case's inputs", () => {
     expect(rangeCheck({ marginPercent: 90 }, { market: "US", industry: "Food Processing" })).toEqual([]);
   });
 
+  it("takes the industry by its Market reading id too, as the Own Case form's industry pick names it", () => {
+    const [flag] = rangeCheck({ marginPercent: 45 }, { market: "IN", industry: "food" });
+    expect(flag.sentence).toBe("Your operating margin of 45% is far above Food Processing's usual 3.63% to 14.52% in India.");
+  });
+
   it("lists the industries an Own Case can be compared with", () => {
     expect(yardstickIndustries("IN")).toEqual(["Auto & Truck", "Food Processing", "Software (System & Application)", "Total Market (without financials)"]);
   });

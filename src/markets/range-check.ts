@@ -46,18 +46,24 @@ export type RangeFlag = {
 
 const MARKET_WORD = { IN: "India", US: "the US" } as const;
 
-/** Every input far outside its industry's usual range, in the order margin, sales to capital, cost of capital. */
+/** The id word each yardstick kind carries: "in-food-margin" (src/markets/readings.ts). */
+const KIND_ID = { operating_margin: "margin", sales_to_capital: "sales-to-capital", cost_of_capital: "cost-of-capital" } as const;
+
+/**
+ * Every input far outside its industry's usual range, in the order margin, sales to capital, cost of capital. The industry
+ * is the source's name ("Food Processing") or the word in its readings' ids ("food", as the Own Case industry pick has it).
+ */
 export function rangeCheck(inputs: RangeInputs, where: { market: MarketReading["market"]; industry: string }): RangeFlag[] {
   return INPUTS.flatMap(({ kind, key, name }) => {
     const value = inputs[key];
     if (value === undefined || !Number.isFinite(value)) return [];
-    const yardstick = MARKET_READINGS.find((r) => r.kind === kind && r.market === where.market && r.industry === where.industry);
-    if (!yardstick) return [];
+    const yardstick = MARKET_READINGS.find((r) => r.kind === kind && r.market === where.market && (r.industry === where.industry || r.id === `${where.market.toLowerCase()}-${where.industry}-${KIND_ID[kind]}`));
+    if (!yardstick?.industry) return [];
     const { low, high } = usualRange(yardstick);
     if (value >= low && value <= high) return [];
     const side = value > high ? "above" : "below";
     const text = (v: number) => readingValueText({ value: v, unit: yardstick.unit });
-    const sentence = `Your ${name} of ${text(value)} is far ${side} ${where.industry}'s usual ${text(low)} to ${text(high)} in ${MARKET_WORD[where.market]}.`;
+    const sentence = `Your ${name} of ${text(value)} is far ${side} ${yardstick.industry}'s usual ${text(low)} to ${text(high)} in ${MARKET_WORD[where.market]}.`;
     return [{ input: kind, name, value, low, high, side, yardstick, sentence }];
   });
 }
