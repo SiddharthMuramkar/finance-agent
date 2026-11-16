@@ -64,16 +64,16 @@ describe("Home", () => {
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
-  it("offers a visitor Join early access and Play a real case, with the early-access note", async () => {
+  it("offers a visitor Join the waitlist and Play a real case, with the waitlist note", async () => {
     const text = words(renderToStaticMarkup(await HomePage()));
-    expect(text).toContain("Join early access");
+    expect(text).toContain("Join the waitlist");
     expect(text).toContain("Play a real case");
-    expect(text).toContain("Free during early access. We let people in by hand and email you when you’re in.");
+    expect(text).toContain("Free. We let people in by hand and email you when you’re in.");
   });
 
   // QA rows 22 and 23 as #33 has them: Clerk owns sign-up, so the closing block has no email form of its own, and every
   // Join opens /join, Clerk's Waitlist.
-  it("sends a visitor's Join early access to /join, and the closing block has no email form", async () => {
+  it("sends a visitor's Join the waitlist to /join, and the closing block has no email form", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const joins = [...html.matchAll(/<a [^>]*data-join=""[^>]*>/g)].map((m) => /href="([^"]+)"/.exec(m[0])?.[1]);
     expect(joins).toEqual(["/join", "/join"]); // the hero and the closing block
@@ -91,7 +91,7 @@ describe("Home", () => {
     expect(words(html)).toContain("Continue Why is money later worth less?");
     expect(html).toContain('action="/api/open"');
     expect(html).toContain('href="/course"');
-    expect(words(html)).not.toContain("Join early access");
+    expect(words(html)).not.toContain("Join the waitlist");
   });
 });
 
