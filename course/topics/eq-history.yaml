@@ -37,13 +37,19 @@ concept: >
   returns and divides; the geometric average (compound annual growth rate) takes the nth root of the total growth
   factor and is the one that matches what an investor actually earned. A fall hurts more than an equal rise
   helps: after a 50% fall you need a 100% rise to be back where you started. Returns are quoted in nominal terms, or
-  in real terms after inflation, where the real return is (1 + nominal) / (1 + inflation) - 1. Long records of
+  in real terms after inflation. To find the real return, add one to the nominal return and divide it by one plus
+  the inflation rate, then take one away: what is left is the gain in what the money can buy. Long records of
   markets show three things: shares have on average earned more than bonds and cash over long periods, which is
   the reward for risk (the equity risk premium); the average hides wide swings from year to year, measured by the standard deviation; and
   booms and busts recur, with prices sometimes running far ahead of earnings. Markets that have just risen sharply
   tell you little about future returns; the starting price and what is paid for earnings matter more. A single
   extreme year, up or down, is a poor guide to the normal range, so history needs many years and an honest eye on the
   worst of them.
+
+goDeeper: >
+  Written as a formula, the real return is (1 + nominal) / (1 + inflation) - 1. With a nominal return of 15% and
+  inflation of 10%, that is 1.15 / 1.10 - 1 = 4.5%. The quick shortcut, nominal minus inflation, gives 5%; it is
+  close when prices rise slowly and drifts further off as inflation climbs.
 
 principle: >
   The long-run record rewards patience but punishes buying after a spectacular run. Judge a return by its yearly
@@ -94,7 +100,7 @@ questions:
       - { id: d, text: "No. The shares can never get back, because losses are permanent", mistake: { tag: losses_permanent, fix: "Prices can recover; the point is only that the rise needed is bigger than the fall." } }
     answer: a
     explanation: >
-      Starting at 100, a fall of 40% leaves 60. To get back to 100 the price must rise by 40 / 60 = 66.7%, more than the 40% it fell.
+      Starting at 100, a fall of 40% leaves 60. To get back to 100 it must climb 40 from 60. 40 is two thirds of 60, so the price must rise about 66.7%, more than the 40% it fell.
     source: >
       OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 13.1 Measures of Center (working with growth factors): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
@@ -108,7 +114,7 @@ questions:
       - { id: d, text: "The expected return: what is likely in future", mistake: { tag: mixed_up_terms, fix: "Expected return looks forward at what is likely; his grandfather is adjusting what was already earned." } }
     answer: a
     explanation: >
-      Real return allows for rising prices: (1.15 / 1.10) - 1 = 4.5%. Simply taking away the price rise (15 - 10 = 5%) is a rough approximation that overstates it when inflation is high.
+      Real return allows for rising prices. Divide 1.15 by 1.10 to get about 1.045, then take one away: the real return is about 4.5%. Simply taking the 10% price rise away from the 15% gives 5%, a rough approximation that overstates it when inflation is high.
     source: >
       OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 7.4 Applications of TVM in Finance (nominal versus real interest rates): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
 

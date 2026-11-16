@@ -45,8 +45,9 @@ cases:
 
 concept: >
   A currency forward fixes today the rate at which two currencies will be exchanged later. Covered
-  interest parity ties it to interest rates: the forward rate in rupees per dollar is the spot rate
-  times (1 + rupee rate) / (1 + dollar rate) for the period. The currency with the higher interest
+  interest parity ties it to interest rates: to get the forward rate in rupees per dollar, grow the
+  spot rate by the rupee interest rate for the period, then shrink it by the dollar interest rate for
+  the same period. The currency with the higher interest
   rate trades at a forward discount, so more of it is needed per dollar. A currency swap exchanges
   currencies now and swaps them back at a set rate later, so it is a spot deal plus a forward deal; a
   central bank that offers it takes the exchange-rate risk off the bank. An interest-rate swap
@@ -64,6 +65,11 @@ youllLearn:
   - "Tie a currency forward to the interest rates in the two currencies."
   - "See how an interest-rate swap trades a fixed stream for a floating one on an amount never exchanged."
   - "Ask who holds a risk after a derivative moves it, and when they win or lose."
+
+goDeeper: >
+  The typed formula is F = S x (1 + rupee rate) / (1 + dollar rate). F is the forward rate in rupees per
+  dollar, S is today's spot rate in rupees per dollar, and the rupee rate and the dollar rate are the
+  interest rates in each currency for the period of the forward.
 
 questions:
   - id: rx-q-cip

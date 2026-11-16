@@ -3,7 +3,7 @@ import type { Topic } from "./map.ts";
 import { textsIn, topicTexts, type TextGroup } from "./topic-texts.ts";
 
 // The course check for typed formulas (ADR 0003). A converted Topic must hold no typed formula in
-// any text a Learner or the Tutor reads: every text `topicTexts` gives. Topics not yet converted are on a list that can
+// any text a Learner or the Tutor reads: every text `topicTexts` gives, except Go deeper (spec #68). Topics not yet converted are on a list that can
 // only shrink: a Topic on it that is clean must come off, and a Topic off it that is dirty fails.
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
@@ -18,11 +18,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "eco-gdp-cycles",
   "fx-basics",
   "sov-default-country-risk",
-  "eq-history",
-  "risk-portfolio",
-  "risk-capm",
-  "mkt-efficiency",
-  "mkt-behavioural",
   "cf-wacc",
   "cf-capital-structure",
   "val-dcf",
@@ -31,13 +26,7 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "val-implied-erp",
   "val-india",
   "cf-venture",
-  "mkt-ipo-float",
-  "der-forwards",
-  "der-option-pricing",
-  "der-rates-fx",
-  "der-hedging",
   "struct-securitisation",
-  "real-assets",
   "hist-macro-regimes",
   "fol-sov-ratings",
   "fol-erp",
@@ -67,9 +56,9 @@ export function teachingTexts(topic: Topic): Labelled[] {
 
 const hitsIn = (texts: Labelled[]) => texts.flatMap(({ where, text }) => rawFormulaHits(text).map((hit) => `${where}: ${hit}`));
 
-/** Where a Topic types a formula, as "where: sign". */
+/** Where a Topic types a formula, as "where: sign". Go deeper may hold one (spec #68: formulas only behind Go deeper or as Formula Cards). */
 export function typedFormulas(topic: Topic): string[] {
-  return hitsIn(topicTexts(topic));
+  return hitsIn(topicTexts(topic).filter((t) => t.group !== "deeper"));
 }
 
 export function formulaCheckErrors(topics: Topic[], notYet: readonly string[] = NOT_YET_CONVERTED): string[] {

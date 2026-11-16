@@ -16,7 +16,9 @@ import type { FixedQuickTry, Topic } from "./map.ts";
  * - `question`: a quiz question's prompt, choices and explanation; for a computed question (spec D2), the words on its
  *   changes and bands, since code makes its choices from them; and a computed Quick try's ask and changes, for the same reason.
  * - `earlier`: the rest of what every Topic had before the teaching fields: the concept, the principle, the Insight, the
- *   Connections, and a conversation Check's prompt and pass criteria; and the Go deeper material, read like the concept (spec H1).
+ *   Connections, a conversation Check's prompt and pass criteria, and the daily-life line (spec #68).
+ * - `deeper`: the Go deeper material (spec H1), shown only when the Learner presses Go deeper: the one text outside a
+ *   Formula Card where a typed formula may sit (spec #68, ADR 0003). Its formula markers are still checked.
  * - `teaching`: teaching (spec #229, E3) that follows a question or the Case rather than the Topic's own examples: a quiz
  *   question's mix-up fixes, the fixes code writes for a computed Quick try, and where a term showed up in the story. Like
  *   the question or Case, it keeps its currency.
@@ -25,13 +27,14 @@ import type { FixedQuickTry, Topic } from "./map.ts";
  * - `scene`: every string in the Topic's scenes and in the Running example's scene (ids and emoji names included: the
  *   scene's recipe knows which are words).
  */
-export type TextGroup = "case" | "question" | "earlier" | "teaching" | "example" | "scene";
+export type TextGroup = "case" | "question" | "earlier" | "deeper" | "teaching" | "example" | "scene";
 
 export type TopicText = { where: string; text: string; group: TextGroup };
 
 /** What the walker reads. The Topic schema's own refinement passes a Topic file before its Connections get titles. */
 export type TextSource = Pick<Topic, "cases" | "concept" | "principle" | "insight" | "questions" | "checks" | "runningExample" | "terms" | "skills" | "templates" | "scenes" | "primers"> & {
   goDeeper?: string;
+  dailyLife?: string;
   connections?: readonly { text: string }[];
 };
 
@@ -64,8 +67,9 @@ export function topicTexts(topic: TextSource): TopicText[] {
     add("case", `Case "${c.id}" reveal`, c.reveal);
   }
   add("earlier", "concept", topic.concept);
-  if (topic.goDeeper) add("earlier", "Go deeper", topic.goDeeper);
+  if (topic.goDeeper) add("deeper", "Go deeper", topic.goDeeper);
   add("earlier", "principle", topic.principle);
+  if (topic.dailyLife) add("earlier", "daily-life line", topic.dailyLife);
   if (topic.insight) {
     add("earlier", "insight question", topic.insight.question);
     add("earlier", "insight written", topic.insight.written);

@@ -15,6 +15,12 @@ export function TopicCompleteCard({ card }: { card: TopicCompleteData }) {
       <p className="type-eyebrow mb-1 text-[var(--success)]">Topic complete ✓</p>
       <h2 className="text-base font-semibold leading-6">{card.title}</h2>
       <p className="mt-2 text-sm leading-5">{card.principle}</p>
+      {card.dailyLife && (
+        <p data-testid="topic-daily-life" className="mt-2 text-sm leading-5">
+          <span className="text-[var(--muted)]">In daily life: </span>
+          {card.dailyLife}
+        </p>
+      )}
       {card.found && card.found.length > 0 && (
         <ul data-testid="topic-found" aria-label="What you found" className="mt-2 list-disc space-y-0.5 pl-5 text-sm leading-5">
           {card.found.map((line) => (

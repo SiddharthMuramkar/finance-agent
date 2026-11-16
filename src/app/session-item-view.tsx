@@ -5,6 +5,7 @@ import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
 import {
   CHECK_RESULT,
   CONCEPT_CARD,
+  DAILY_LIFE,
   DUE_CHECK,
   NEXT_STEP,
   OFF_TOPIC,
@@ -136,6 +137,14 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
     const card = conceptCardOf(data);
     return card ? <ConceptCardView card={card} /> : null;
   },
+  // Stored when the Learner enters a Topic's Principle step (spec #68): its line from daily life.
+  [DAILY_LIFE]: (data) =>
+    typeof data.line === "string" ? (
+      <p data-testid="daily-life-line" className="measure self-start rounded-xl border border-[var(--line)] p-3 text-sm leading-5">
+        <span className="type-eyebrow mb-1 block text-[var(--muted)]">In daily life</span>
+        {data.line}
+      </p>
+    ) : null,
   // One Quick try at a converted Your turn, with its own input (QuickTryContext; read-only without one).
   [QUICK_TRY]: (data) => {
     const t = quickTryOf(data);

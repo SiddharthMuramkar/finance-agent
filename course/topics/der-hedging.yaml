@@ -44,8 +44,9 @@ concept: >
   smaller; to speculate is to take a position that adds risk in the hope of a gain. The test is not
   the instrument but what happens to the whole position when the risk factor moves. A short futures
   position hedges a crop; the same contract with no crop is a bet. To size a hedge, use the
-  hedge ratio, the amount of hedge per unit of exposure; the minimum-variance ratio is h = rho x
-  (sigma of the exposure / sigma of the hedge), where rho is their correlation. A hedge never removes
+  hedge ratio, the amount of hedge per unit of exposure; to find the minimum-variance ratio, divide
+  how much the exposure swings by how much the hedge swings, then multiply that by their correlation,
+  how closely the two move together. A hedge never removes
   all risk: basis risk is what is left when the hedge instrument and the exposure do not move
   together. Leverage multiplies a position's sensitivity: an asset with duration D loses about D x
   the change in yield in percent of its value, and on the borrower's own money that is multiplied by
@@ -61,6 +62,11 @@ youllLearn:
   - "Tell a hedge from a bet by what the whole position does when the risk moves."
   - "Size a hedge and name the basis risk it leaves behind."
   - "See how leverage multiplies a position's sensitivity and why funding through a bad period matters."
+
+goDeeper: >
+  The typed formula is h = rho x (sigma of the exposure / sigma of the hedge). h is the minimum-variance
+  hedge ratio, rho is the correlation between the exposure and the hedge, and sigma is the standard
+  deviation, how much each one swings.
 
 questions:
   - id: hr-q-hedge-defn
