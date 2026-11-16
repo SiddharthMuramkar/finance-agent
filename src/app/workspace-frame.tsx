@@ -25,6 +25,7 @@ export function WorkspaceFrame({
   right,
   split = SPLIT_DEFAULT,
   open = false,
+  view,
   onClose,
 }: {
   left: ReactNode;
@@ -34,6 +35,11 @@ export function WorkspaceFrame({
   split?: number;
   /** Whether a phone's sheet is up (the open view of useWidgetHost). */
   open?: boolean;
+  /**
+   * What the sheet shows (useWidgetHost's view). On a phone the explore Widget and a spaced Review fill the sheet from
+   * `top` (#83), and the Widget panel steps aside; for a Widget or the Check, `top` steps aside instead.
+   */
+  view?: string;
   /** The sheet's Back button (on a phone, through the Back history: useWidgetHost's `close`). */
   onClose?: () => void;
 }) {
@@ -50,7 +56,8 @@ export function WorkspaceFrame({
           id="widget-column"
           data-testid="panel-column"
           data-open={open || undefined}
-          className={`flex min-h-0 min-w-0 flex-col gap-3 max-md:fixed max-md:inset-0 max-md:z-40 max-md:h-dvh max-md:bg-[var(--paper)] max-md:px-[var(--gutter)] max-md:pb-3 max-md:pt-2 max-md:transition-[translate,visibility] max-md:duration-200 motion-reduce:transition-none ${sheet}`}
+          data-view={view}
+          className={`group/sheet flex min-h-0 min-w-0 flex-col gap-3 max-md:fixed max-md:inset-0 max-md:z-40 max-md:h-dvh max-md:bg-[var(--paper)] max-md:px-[var(--gutter)] max-md:pb-3 max-md:pt-2 max-md:transition-[translate,visibility] max-md:duration-200 motion-reduce:transition-none ${sheet}`}
         >
           {/* A phone's way back to the conversation (the browser's Back does the same); hidden on tablets and laptops. */}
           <div className="shrink-0 md:hidden">
@@ -62,7 +69,7 @@ export function WorkspaceFrame({
           {/* A size container named pane (#528), so a Widget's stage can grow with the panel's height (cqh, height queries).
               Its content is a column at least the panel's height, so the Widget card (flex-1) reaches the panel bottom. Its
               4 px of padding keeps room for the pager's and the thumbnails' focus rings inside this scroll box. */}
-          <aside aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll @container-size/pane relative min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip overscroll-contain px-1 pt-1 [scrollbar-gutter:stable]">
+          <aside aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll @container-size/pane max-md:group-data-[view=explore]/sheet:hidden max-md:group-data-[view=review]/sheet:hidden relative min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip overscroll-contain px-1 pt-1 [scrollbar-gutter:stable]">
             <div data-testid="widget-pane-column" className="flex min-h-full flex-col">
               {right}
             </div>

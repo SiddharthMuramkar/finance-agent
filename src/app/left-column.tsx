@@ -1,7 +1,7 @@
 "use client";
 
 import { ThreadPrimitive, useAuiState } from "@assistant-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAnnounce } from "./announcer";
 import { BackToTurn, openQuickTryKey } from "./back-to-turn";
 import { WhatComesNextButton } from "./course/jump-button";
@@ -44,7 +44,10 @@ export function LeftColumn({
   passed = null,
   next = null,
   openQuestion = null,
+  entries = null,
 }: {
+  /** On a phone, the conversation's ways into the sheet (SheetEntries, #83): the open Check, Explore, a due Review. */
+  entries?: ReactNode;
   /** The Next the Course Navigator offers now (null while a Check is open), drawn as the chip under the latest reply. */
   next?: NextOffer | null;
   turn: TurnStream;
@@ -165,6 +168,7 @@ export function LeftColumn({
         </section>
       ) : (
         <>
+          {entries}
           {quizOpen && (
             // The box stays usable, and the Tutor helps now: it teaches with other numbers and keeps back only the open answers.
             // Above the message box's fade band (relative z-[1]), so the note reads at full strength.

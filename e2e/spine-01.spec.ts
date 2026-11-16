@@ -32,8 +32,12 @@ const sheet = (page: Page) => page.getByTestId("panel-column");
 /** On a phone, taps the conversation's entry for `view` ("explore", "check", "review") so the sheet slides it up. */
 async function openSheet(page: Page, view: "explore" | "check" | "review") {
   if (!onPhone(page)) return;
-  await press(page.locator(`[data-testid="sheet-entry"][data-view="${view}"]`));
-  await expect(sheet(page)).toBeVisible();
+  const entry = page.locator(`[data-testid="sheet-entry"][data-view="${view}"]`);
+  // A press before the page hydrates does nothing yet: press again until the sheet is up (pressing an open entry keeps it up).
+  await expect(async () => {
+    await press(entry);
+    await expect(sheet(page)).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
 }
 
 /** On a phone, the sheet's own Back button: back to the conversation. */
@@ -118,7 +122,8 @@ async function answerOpenTry(page: Page): Promise<boolean> {
   const answered = await page.getByTestId("quick-try-result").count();
   await press(choices.filter({ hasText: new RegExp(`^${escape(tryPick(prompt))}$`) }));
   const result = page.getByTestId("quick-try-result").nth(answered);
-  await expect(result, prompt).toHaveAttribute("data-verdict", "right");
+  // The first answer may wait on the dev server compiling its route.
+  await expect(result, prompt).toHaveAttribute("data-verdict", "right", { timeout: TURN_MS });
   return true;
 }
 
@@ -154,6 +159,7 @@ test.describe("on a phone", () => {
 
   test("[#83] a due spaced Review has an entry in the conversation, and is answered in the sheet", async ({ page }, info) => {
     test.skip(info.project.name !== "p390", "one phone width is enough (#83)");
+    test.setTimeout(3 * TURN_MS);
     await seed(page, "review-due");
     await page.goto("/study");
     await expect(page.getByTestId("workspace-frame")).toBeVisible();
