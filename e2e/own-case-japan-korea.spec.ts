@@ -5,7 +5,12 @@ import { test } from "./support/people";
  * Spec #68, More markets (#114): a Spine-passed Learner values one Japanese and one Korean company, from the market pick
  * to the one-page note in the Notebook. Beside each figure the form shows where it sits in that market's annual report,
  * with a source link and a Lingo card, and the market's dated risk-free reading with its source. The figures are the
- * companies' own (see src/finance/own-case-japan-korea.test.ts for each one's place in the report).
+ * companies' own (see src/finance/own-case-japan-korea.test.ts for each one's place in the report). Each Own Case is
+ * dated when its figures were public, never at the year end (F07, G33), with that day's close:
+ * - Kikkoman's Yuho was filed on EDINET on 2026-06-19 (S100YE5V, 【提出日】); TSE close that day ¥1,540 (irbank.net and
+ *   kabutore.biz daily prices for 2801, read 2026-11-16).
+ * - Samsung Electronics' 2025 사업보고서 was filed on DART on 2026-03-10 (접수일자, https://dart.fss.or.kr); KRX close that
+ *   day ₩187,900 (Naver Finance daily prices for 005930, read 2026-11-16).
  */
 
 test.beforeEach(async ({}, info) => {
@@ -16,24 +21,24 @@ const MARKETS = [
   {
     market: "JP",
     company: "Kikkoman",
-    reportDate: "2026-03-31",
+    reportDate: "2026-06-19",
     industry: "food",
-    figures: { sales: "745,539", operatingProfit: "75,940", taxPercent: "30.5", debt: "18,217", cash: "111,770", shares: "927,741,900", price: "1,435" },
+    figures: { sales: "745,539", operatingProfit: "75,940", taxPercent: "30.5", debt: "18,217", cash: "111,770", shares: "927,741,900", price: "1,540" },
     riskFree: { id: "jp-risk-free-10y", text: "2.817% on 30 Oct 2026", host: "https://www.mof.go.jp/" },
     report: "営業利益",
-    value: /^The engine's value: ¥[\d,]+ a share, beside a price of ¥1,435 on 31 Mar 2026\.$/,
-    note: "Kikkoman, Japan. Annual report of 31 Mar 2026. Industry: Food processors.",
+    value: /^The engine's value: ¥[\d,]+ a share, beside a price of ¥1,540 on 19 Jun 2026\.$/,
+    note: "Kikkoman, Japan. Annual report of 19 Jun 2026. Industry: Food processors.",
   },
   {
     market: "KR",
     company: "Samsung Electronics",
-    reportDate: "2025-12-31",
+    reportDate: "2026-03-10",
     industry: "market",
-    figures: { sales: "333,605,938", operatingProfit: "43,601,051", taxPercent: "26.4", debt: "25,239,139", cash: "57,856,378", shares: "5,827,808,935", price: "119,900" },
+    figures: { sales: "333,605,938", operatingProfit: "43,601,051", taxPercent: "26.4", debt: "25,239,139", cash: "57,856,378", shares: "5,827,808,935", price: "187,900" },
     riskFree: { id: "kr-risk-free-10y", text: "4.008% on 30 Oct 2026", host: "https://ecos.bok.or.kr/" },
     report: "영업이익",
-    value: /^The engine's value: ₩[\d,]+ a share, beside a price of ₩119,900 on 31 Dec 2025\.$/,
-    note: "Samsung Electronics, Korea. Annual report of 31 Dec 2025. Industry: Any other firm (not a bank or insurer).",
+    value: /^The engine's value: ₩[\d,]+ a share, beside a price of ₩187,900 on 10 Mar 2026\.$/,
+    note: "Samsung Electronics, Korea. Annual report of 10 Mar 2026. Industry: Any other firm (not a bank or insurer).",
   },
 ] as const;
 
@@ -60,12 +65,15 @@ test("a Spine-passed Learner values a Japanese and a Korean company, from the pi
     const riskFree = form.locator(`[data-risk-free="${m.riskFree.id}"]`);
     await expect(riskFree).toContainText(m.riskFree.text);
     await expect(riskFree.locator("[data-reading-source]")).toHaveAttribute("href", new RegExp(`^${m.riskFree.host.replace(/\./g, "\\.")}`));
+    await expect(riskFree.locator("[data-reading-credit]")).toHaveText(/^Credit: .+\.$/); // G24: visible, not hover text
     await expectGuides(form, m.report);
 
     await form.getByLabel("Company").fill(m.company);
     await form.getByLabel("Date of the annual report").fill(m.reportDate);
     await form.locator(`[data-industry="${m.industry}"]`).click();
     await expect(form.locator("[data-own-case-estimate]")).toContainText("Your Estimate opens at the industry");
+    // G17: the risk-free reading of 30 Oct 2026 is dated after either report, and the form says so.
+    await expect(form.locator("[data-own-case-later-readings]")).toContainText(`of 30 Oct 2026`);
     for (const [key, value] of Object.entries(m.figures)) await form.locator(`[data-own-case-field="${key}"]`).fill(value);
     await form.getByRole("button", { name: "Value it" }).click();
     await expect(form.locator('[data-own-case-result="value"]')).toHaveText(m.value);
