@@ -463,7 +463,7 @@ export const about = {
   early: [
     { heading: "Join", body: "Join the waitlist with your email. **We let people in by hand**, a few at a time." },
     { heading: "Cost", body: "**Free during early access.** No price has been decided yet." },
-    { heading: "What you need", body: "A laptop or tablet to study. These pages work on any phone." },
+    { heading: "What you need", body: "A phone, a tablet or a laptop. Study works on all three." },
   ],
   faqH2: "Questions",
   closing: "Start with a question you already have.",

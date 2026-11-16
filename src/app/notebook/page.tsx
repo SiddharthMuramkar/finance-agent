@@ -4,7 +4,7 @@ import { getDb } from "@/db/client";
 import { loadNotebook } from "@/learner/notebook";
 import { loadOwnCaseNotes } from "@/learner/own-cases";
 import { currentAccount } from "../account";
-import { ReadingPage, SignedInFrame } from "../ui";
+import { ReadingPage } from "../ui";
 import { NotebookView } from "./notebook-view";
 
 // Built from saved records and the Topic files on every visit. No model call.
@@ -17,10 +17,8 @@ export default async function NotebookPage({ searchParams }: { searchParams: Pro
   const db = getDb();
   const [notebook, ownCases] = await Promise.all([loadNotebook(db, loadCourseMap(), learner.id, { all }), loadOwnCaseNotes(db, learner.id)]);
   return (
-    <SignedInFrame>
-      <ReadingPage current="notebook" account={await currentAccount()}>
-        <NotebookView notebook={notebook} showAll={all} ownCases={ownCases} />
-      </ReadingPage>
-    </SignedInFrame>
+    <ReadingPage current="notebook" account={await currentAccount()}>
+      <NotebookView notebook={notebook} showAll={all} ownCases={ownCases} />
+    </ReadingPage>
   );
 }

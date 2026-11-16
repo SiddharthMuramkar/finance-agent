@@ -1358,6 +1358,8 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 - The levers story keeps its stage visible as a compact sticky strip so each scroll step still changes something on screen.
 - Case pages put the widget between the Tutor's lead and the Tutor's answer.
 - The nav keeps the primary CTA at every width.
+- The Study Workspace opens at every width; nothing asks for a bigger screen. Below 768px the conversation fills the screen and a Widget's chip slides the Widget up full screen; Back (the browser's or the sheet's own) returns to the same place in the conversation.
+- The signed-in pages (Welcome, Course Map, Notebook, Settings, older Sessions, Library passages, Admin) open at 360px with no sideways scroll. Card grids drop to one column, and wide tables scroll inside their own box. The app header stays one line of 56px: below 768px the wordmark shows only its bars and the page links tighten.
 
 ---
 
@@ -1559,7 +1561,7 @@ About, sourcing flow: **Real event** (A past moment whose outcome is known, like
 
 Non-affiliation line: "The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them."
 
-Early access: **Join** (Join the waitlist with your email. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A laptop or tablet to study. These pages work on any phone.)
+Early access: **Join** (Join the waitlist with your email. **We let people in by hand**, a few at a time.) · **Cost** (**Free during early access.** No price has been decided yet.) · **What you need** (A phone, a tablet or a laptop. Study works on all three.)
 
 ---
 
