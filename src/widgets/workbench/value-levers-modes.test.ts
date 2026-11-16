@@ -3,6 +3,7 @@ import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { valueLeversModeSchema, type ValueLeversMode } from "./data-schemas";
 import {
+  caseListOf,
   leverSpecs,
   leversFor,
   openingSettings,
@@ -206,6 +207,18 @@ describe("all_open mode (Spine Topic 15: their own Valuation story, saved to the
       "Price on 3 Feb 2000: $84",
       "Value from after year 10: 112%",
     ]);
+  });
+});
+
+describe("match_price mode with Case chips (the ready-Case valuation Topic: judge a published Story on one of three Cases)", () => {
+  it("lists its Cases for the chips, as all_open does, and a mode without chips lists none", () => {
+    const cases = [
+      { id: "amazon-dcf-2000", label: "Amazon, Feb 2000" },
+      { id: "zomato-ipo-2021", label: "Zomato, Jul 2021" },
+    ];
+    expect(caseListOf({ kind: "match_price", cases })).toEqual(cases);
+    expect(caseListOf({ kind: "match_price" })).toEqual([]);
+    expect(caseListOf({ kind: "roic" })).toEqual([]);
   });
 });
 

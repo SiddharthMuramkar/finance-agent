@@ -50,6 +50,20 @@ describe("value_levers (B3)", () => {
     expect(!elsewhere.ok && elsewhere.error).toMatch(/case: not one of the mode's Cases; one of: amazon-dcf-2000, coffee-day-rupee-valuation-2015, zomato-ipo-2021/);
   });
 
+  it("lets a judging mode carry Case chips too: match_price on Coffee Day opens on its chip, with no Save my story (Spine, #92)", () => {
+    const cases = [
+      { id: "amazon-dcf-2000", label: "Amazon, Feb 2000" },
+      { id: "coffee-day-rupee-valuation-2015", label: "Coffee Day, Oct 2015" },
+      { id: "zomato-ipo-2021", label: "Zomato, Jul 2021" },
+    ];
+    const judge = recipe.build({ title: "Judge a published story", inputs: { case: "coffee-day-rupee-valuation-2015", mode: { kind: "match_price", cases } }, refs: {}, facts: {} });
+    if (!judge.ok) throw new Error(judge.error);
+    expect(judge.code).toContain("$case = 1");
+    expect(widgetTaskTexts(judge.code)).toEqual(["Move one lever at a time. Which one moves the value most?", "Find a story worth the ₹328 price"]);
+    const elsewhere = recipe.build({ title: "Judge", inputs: { case: "amazon-yourself-2000", mode: { kind: "match_price", cases } }, refs: {}, facts: {} });
+    expect(!elsewhere.ok && elsewhere.error).toMatch(/case: not one of the mode's Cases/);
+  });
+
   it("refuses a story worth the price that does not land near it, and a start off a lever's range", () => {
     const short = recipe.build({ title: "Amazon", inputs: { case: "amazon-dcf-2000", priceStory: { revenue: 80 } }, refs: {}, facts: {} });
     expect(!short.ok && short.error).toMatch(/priceStory: does not land near the price/);

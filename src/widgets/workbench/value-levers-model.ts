@@ -2,7 +2,7 @@ import { FORECAST_YEARS, type DcfResult } from "@/finance/dcf-engine";
 import { applyLevers, priceWord, returnOnNewCapital, type Levers, type ValuationBlock } from "@/finance/valuation-case";
 import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { near, niceUp, oneFigure, onStep, type BenchLever, type BenchReading } from "./bench";
-import { topicStorySchema, valueLeversModeSchema, type Market, type TopicStory, type ValueLeversMode } from "./data-schemas";
+import { modeCases, topicStorySchema, valueLeversModeSchema, type Market, type TopicStory, type ValueLeversMode } from "./data-schemas";
 
 // Value levers, the first Workbench Widget (spec 2026-11-12, B3; ADR 0010), as pure functions over one Case's valuation
 // block: the four Levers and "More settings" with their ranges, the value a story gives (from the one valuation engine,
@@ -715,7 +715,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 
 /** A ValueLevers part's data from its literal props, or a sentence saying what is wrong. */
 export function valueLeversData(props: Record<string, unknown>): { data: ValueLeversData } | { problem: string } {
-  // In all open mode with a Case chip (Spine Topic 15) the Learner's pick, `caseChoice`, decides which Case is valued, so
+  // In a mode with Case chips (the ready-Case valuation Topic) the Learner's pick, `caseChoice`, decides which Case is valued, so
   // what the Tutor is told matches the Widget on screen rather than the Case the program was compiled with.
   const pickable = caseListOf(props.mode);
   const picked = typeof props.caseChoice === "number" && Number.isFinite(props.caseChoice) && pickable.length > 0;
@@ -744,11 +744,11 @@ export function valueLeversLevers(data: ValueLeversData): BenchLever<LeverId>[] 
   return leverSpecs(data.block, data.mode).map((spec) => ({ ...spec, chips: [] }));
 }
 
-/** The Cases the Learner can switch between in all open mode (Spine Topic 15), or [] when the mode has none. */
+/** The Cases the Learner can switch between with a chip (all open or match price mode), or [] when the mode has none. */
 export function caseListOf(rawMode: unknown): { id: string; label: string }[] {
   if (rawMode === undefined || rawMode === null) return [];
   const parsed = valueLeversModeSchema.safeParse(rawMode);
-  return parsed.success && parsed.data.kind === "all_open" ? (parsed.data.cases ?? []) : [];
+  return parsed.success ? (modeCases(parsed.data) ?? []) : [];
 }
 
 /** The market chosen, from the Widget state number: the first one when it is missing or out of range. */
