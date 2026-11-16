@@ -4,7 +4,7 @@
 import type { ReactNode } from "react";
 import { splitStyle } from "./split";
 import { readSplit } from "./split-cookie";
-import { AppHeader, SignedInFrame, type HeaderPage } from "./ui";
+import { AppHeader, type HeaderPage } from "./ui";
 
 /** One hairline block. className sizes it. */
 export function SkeletonBlock({ className = "" }: { className?: string }) {
@@ -36,11 +36,11 @@ export async function ReadingSkeleton({ current, children }: { current: HeaderPa
  * The Study Workspace's frame, as /study draws it: the header flush at the top, the Topic bar's empty Band across the
  * width (spec 2026-11-12 F3: about 76px, its height with a one-line goal), and two columns at the saved split (the
  * `split` cookie, spec 2026-11-11 C2a), the conversation left, the Split handle's empty place, and the Widget panel
- * right. The skeleton and the page then draw the same columns.
+ * right. The skeleton and the page then draw the same columns; on a phone, the conversation's alone (#82).
  */
 export async function WorkspaceSkeleton() {
   return (
-    <SignedInFrame>
+    <>
       <main data-testid="route-skeleton" data-route="study" aria-busy="true" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3">
         <AppHeader current="workspace" />
         <div data-testid="topic-bar-skeleton" className="band -mx-[var(--gutter)] h-[76px] shrink-0" />
@@ -54,14 +54,14 @@ export async function WorkspaceSkeleton() {
               <SkeletonBlock className="h-14 w-full" />
             </div>
           </div>
-          <div aria-hidden="true" />
-          <div className="min-h-0 space-y-4">
+          <div aria-hidden="true" className="max-md:hidden" />
+          <div className="min-h-0 space-y-4 max-md:hidden">
             <SkeletonBlock className="h-8 w-1/3" />
             <SkeletonBlock className="h-48 w-full" />
             <SkeletonLines count={3} />
           </div>
         </div>
       </main>
-    </SignedInFrame>
+    </>
   );
 }

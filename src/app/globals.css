@@ -569,10 +569,13 @@ body {
 }
 .workspace-split {
   @variant lg { --chat-share: var(--split-saved, 45); }
+  /* A phone (#82): the conversation alone fills the width; the Widget column is a full-screen sheet (workspace-frame.tsx). */
+  @variant max-md { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* The Split handle (C2b): a 1 px rule and a grip. Hover, focus and a drag turn the rule accent. No lift, no shadow. */
 .split-handle {
+  @variant max-md { display: none; }
   position: relative;
   cursor: col-resize;
   touch-action: none;
