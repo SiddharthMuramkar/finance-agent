@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { howItWorks, LINGO } from "@/site/copy";
+import { AMAZON_SOURCE, howItWorks, LINGO, MOVES } from "@/site/copy";
 import { exampleBySlug } from "@/site/examples";
 import { Rich } from "@/site/rich";
 import { Button } from "../../primitives";
-import { Facts, Icon, Pill, StoryText } from "../parts";
+import { Facts, Icon, Pill, SourceLine, StoryText } from "../parts";
 
 // How it works, the moves with a rail (spec 7.3, item 2): a sticky rail on the left (the running example, four bars that
 // fill as moves are reached, a button per move and "Move n of 4"), four move articles on the right. Scroll spy: the
@@ -13,7 +13,7 @@ import { Facts, Icon, Pill, StoryText } from "../parts";
 // interactive in the browser; nothing calls the server.
 
 const AMAZON = exampleBySlug("amazon-2000")!;
-const MOVE_NAMES = ["Hear the story", "Learn the lingo", "Try it", "Value it"] as const;
+const MOVE_NAMES = MOVES.map((move) => move.name);
 const money = (n: number) => `$${n.toFixed(2)}`;
 
 function Inside({ steps }: { steps: readonly string[] }) {
@@ -211,6 +211,7 @@ export function HowMoves() {
         <Move index={0}>
           <StoryText story={AMAZON.story} />
           <Facts facts={AMAZON.facts} />
+          <SourceLine source={AMAZON_SOURCE} />
         </Move>
         <Move index={1}>
           <Lingo />
