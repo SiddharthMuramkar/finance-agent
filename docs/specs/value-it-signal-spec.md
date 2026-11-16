@@ -973,6 +973,8 @@ Foot key: hatched orange "Claimed, not yet earned", black "Recorded", red "Loss"
 
 ### 7.1 Routes and state
 
+The prototype's hash routes:
+
 | Hash | Page | Document title |
 |---|---|---|
 | `#home` (default, and any unknown hash) | Home | Value It |
@@ -988,6 +990,25 @@ Foot key: hatched orange "Claimed, not yet earned", black "Recorded", red "Loss"
 | `#review` | Review notes (prototype only) | Review notes · Value It |
 
 Case slugs: `kerala-bumper-2024`, `amazon-2000`, `wework-2019`, `rbi-repo-cut-2025`, `compounding-1000`.
+
+**Production titles (#71).** Every page has its own address. Titles follow "Page · Value It"; Home keeps the plain "Value It". Each public page also has a canonical link on `https://www.value-it.xyz`. The public pages come from one list (`PUBLIC_PAGES` in `src/site/routes.ts`), and `e2e/share-meta.spec.ts` checks the title of every page on it and of `/sign-in` and `/sign-up`.
+
+| Path | Page | Document title |
+|---|---|---|
+| `/` | Home | Value It |
+| `/how-it-works` | How it works | How it works · Value It |
+| `/examples` | Examples | Examples · Value It |
+| `/examples/{slug}` | Case page | `{question}` · Value It |
+| `/about` | About | About · Value It |
+| `/privacy` | Privacy (#77) | Privacy · Value It |
+| `/terms` | Terms (#77) | Terms · Value It |
+| `/join` | Join the waitlist (Clerk's Waitlist) | Join the waitlist · Value It |
+| `/sign-in` | Sign in | Sign in · Value It |
+| `/sign-up` | Create your account (where an invitation lands) | Create your account · Value It |
+| Any unknown address | Page not found (a 404, signed in or out; it has no canonical link) | Page not found · Value It |
+| The signed-in pages (`/welcome`, `/study`, `/course`, `/notebook`, `/assignment`, `/settings`, …) | Behind the sign-in | Value It |
+
+An unknown address never shows Home: it answers 404 with "Page not found" and a link back to Home.
 
 On every route change: run clean-ups (destroy widgets, remove listeners, disconnect observers), hide the tooltip, re-render, jump to the top without smooth scrolling, and focus the page's `h1` (`.page-h1`, `tabindex="-1"`).
 
@@ -1013,7 +1034,7 @@ CTA by state:
 
 ### 7.2 Home
 
-Section order: hero, four moves, levers story, questions, trust, FAQ, early access. The colour language is on How it works only (#74). "Tested code" appears once on Home, in Trust.
+Section order: hero, four moves, levers story, questions, where you end up (7.2.9, #75), trust, FAQ, early access. The colour language is on How it works only (#74). "Tested code" appears once on Home, in Trust.
 
 #### 7.2.1 Hero
 
@@ -1025,10 +1046,10 @@ Left column, a grid with 20px gaps:
 |---|---|
 | Eyebrow | Finance for beginners |
 | H1 (display, two lines) | What is it / really worth? The lines are joined by a space, so a screen reader reads "What is it really worth?" |
-| Lede | Three headline numbers a beginner has seen, then the promise: A **₹25 crore jackpot**. A **$3bn “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums. The jackpot's figure is the jackpot Example's chip. |
+| Lede | Three headline numbers a beginner has seen, then the promise: A **₹25 crore jackpot**. A **$3 billion “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums. The jackpot's figure is the jackpot Example's chip. |
 | CTA row | Visitors: primary "Try the jackpot" → the jackpot Example (`/examples/kerala-bumper-2024`), then "Join the waitlist" → `/join` (the Waitlist) as the second button. Members: Continue, then "Course map" → `/course` |
 | Fine print | The CTA note for the state |
-| Facts (blue dot bullets) | {Topics} Topics · {low} to {high} minutes each, from the course's own facts |
+| Facts (blue dot bullet) | {Topics} Topics: the number of Topics written, from the course's own facts. No minutes until they are measured (#72, #75). |
 
 On a phone (640px and below) the Tutor demo sits right under the H1, before the lede: at 390px the H1, "for beginners" and the demo's question chips show without scrolling. Home still loads no OpenUI code.
 
@@ -1036,7 +1057,7 @@ Right column, **the Tutor demo** (`.demo`): a wash panel, 1px rule border, radiu
 
 | Part | Spec |
 |---|---|
-| Header | 34px blue avatar with the white glyph. "The Tutor" (display 600 15px). Sub-line: "A recorded conversation from the course. The widget is live." |
+| Header | 34px blue avatar with the white glyph. "The AI Tutor" (display 600 15px). Sub-line: "A recorded conversation from the course. The Example is live: move the numbers." |
 | Question row | Label "Pick a question" + five pill chips. The selected chip is solid blue with white text. |
 | Thread | Grid, 10px gaps, 16px padding, min-height 420px, `aria-live="polite"` |
 
@@ -1148,7 +1169,7 @@ Mini pictures (static SVG, 132 × 36):
 | Rates | A line, a black ring, a blue dot, a blue-line band between them, a tiny orange sliver |
 | Compounding | 15 bars with a thin black base and a growing green top |
 
-Below the list: "**110 Topics wait inside.** 15 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments." and "See the whole path →".
+Below the list: "**{Spine} Topics, in order, teach valuation.** {Electives} more go wider across {Subjects} subjects, and {Readings} read real arguments." then the taught-live line (#97) and "See the whole path →". Every number comes from the course (#72): {Spine} is the Spine's length, so the line reads "**18 Topics, in order, teach valuation.**" once the Spine has its 18 Topics (#93).
 
 #### 7.2.6 Trust
 
@@ -1179,6 +1200,10 @@ Applicants and members see the CTA and note for their state instead of the form.
 
 **Production (#33).** Clerk owns sign-up, so the site has no email form of its own. A visitor's closing block shows the primary CTA "Join the waitlist", the CTA note and the three steps. The CTA, like every visitor Join, opens `/join` (Clerk's Waitlist page). The email check, the confirmation and the "you're in" email are Clerk's. The table above is the prototype's behaviour.
 
+#### 7.2.9 Where you end up (#75)
+
+Drawn between Questions (7.2.5) and Trust (7.2.6); numbered last so the older section numbers stay as cited. Two columns (`.v-split`). Left: eyebrow "Where you end up", H2 "By the end, you value a company yourself.", and the body "After the Topics that teach valuation in order, you pick a listed company and copy a few figures from its annual report. The site values it beside its price and keeps a one-page note. This is one." Right: a card holding a real one-page note, the note the Assignment saves to the Notebook once the Spine is passed: the company's name as its heading, then the note's lines. It is drawn by the same code the Assignment's save runs (`ownCaseNote`, through the tested valuation engine; `src/site/end-note.ts`), on Kikkoman's annual report for the year to 31 March 2026 and the starting numbers the site suggests. Caption: "Kikkoman’s annual report for the year to 31 March 2026, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine."
+
 ### 7.3 How it works
 
 1. Header: eyebrow "How it works", H1 "How a Topic works", lede "Every Topic is **one real event, taught in four moves**, in 10–15 minutes. You never type a number: you tap, drag and explain in your own words."
@@ -1203,7 +1228,7 @@ Each move ends with "Inside this move:" and step chips (The moment / The idea / 
 
 Header: H1 "Real events. Move the numbers." Lede: "Five Examples from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last."
 
-Filter chips with counts: All 5, Everyday money 2, The news 1, Real companies 2. Filtering hides rows with the `hidden` attribute. Then the question list (7.2.5). Then "110 Topics wait inside." with nine locked Topics (category, title, a "Members" badge with a lock icon) and the CTA.
+Filter chips with counts: All 5, Everyday money 2, The news 1, Real companies 2. Filtering hides rows with the `hidden` attribute. Then the question list (7.2.5). Then the same "{Spine} Topics, in order, teach valuation." line as Home (7.2.5), with nine locked Topics (category, title, a "Members" badge with a lock icon) and the CTA.
 
 ### 7.5 Case page
 
@@ -1232,7 +1257,7 @@ Foot: "From the Topic" + the Topic name + a CTA by state (visitor "Join to take 
 
 ### 7.6 About
 
-Header with an "At a glance" card (Topics 110, Subjects 9, Stages that read real arguments 3, Each Topic 10–15 min, Price Free in early access). Then: four promises, the sourcing flow (Real event → Checked dataset → Tested widget → The Tutor explains) with the non-affiliation line, what you can learn (subject and stage chips), the founder's note (placeholder, see 14), early access (Join / Cost / What you need), the full FAQ and the closing CTA. Copy is in Appendix B.
+Header with an "At a glance" card: Topics {Topics}, Subjects {Subjects}, Stages that read real arguments {Stages}, Price Free in early access. The counts come from the course (#72); there is no minutes row until minutes are measured (#75). Then: four promises, the sourcing flow (Real event → Checked dataset → Tested widget → The Tutor explains) with the non-affiliation line (its named Source is a link, #75), what you can learn (subject and stage chips), early access (Join / Cost / What you need), the full FAQ and the closing CTA. There is no founder section (#75). Copy is in Appendix B.
 
 ### 7.7 Join, pending, sign in, welcome, study
 
@@ -1416,7 +1441,6 @@ One orchestrated moment per view is enough. Nothing loops except the typing dots
 
 | Item | State | Needed |
 |---|---|---|
-| Founder's note | Placeholder | Two or three sentences in the founder's own words |
 | Contact email | Placeholder | A real address, shown as selectable text |
 | Price | "No price has been decided yet" | The shape of the offer, even before the number |
 | Wait time | No promise made | A number of days, or keep the promise out |

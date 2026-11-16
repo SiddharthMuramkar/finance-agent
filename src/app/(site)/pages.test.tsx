@@ -91,7 +91,7 @@ describe("Home", () => {
     expect(html).toMatch(/data-widget="jackpot" data-case="kerala-bumper-2024"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
-    expect(text).toContain("113 Topics wait inside.");
+    expect(text).toContain("18 Topics, in order, teach valuation.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
@@ -301,7 +301,7 @@ function siteCookies(): string[] {
 describe("the course counts", () => {
   it("read the Spine's length from the outline: 18 Topics with #90's statements Topic fourth, #91's cost of capital ninth and #93's annual report Topic last", async () => {
     const home = words(renderToStaticMarkup(await HomePage()));
-    expect(home).toContain("113 Topics wait inside. 18 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
+    expect(home).toContain("18 Topics, in order, teach valuation. 72 more go wider across 9 subjects, and 23 read real arguments.");
     expect(home).toContain("One real event. Four moves.");
     expect(home).toContain("Five Examples, open now");
 
@@ -324,7 +324,7 @@ describe("the course counts", () => {
 
     const examples = words(renderToStaticMarkup(await ExamplesPage()));
     expect(examples).toContain("Five Examples from the course, playable here.");
-    expect(examples).toContain("113 Topics wait inside. 18 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
+    expect(examples).toContain("18 Topics, in order, teach valuation. 72 more go wider across 9 subjects, and 23 read real arguments.");
     expect(examplesMeta.description).toBe("Five Examples from the course, playable here.");
   });
 
@@ -342,7 +342,7 @@ describe("the course counts", () => {
     course.outline = outline;
 
     const home = words(renderToStaticMarkup(await HomePage()));
-    expect(home).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
+    expect(home).toContain("14 Topics, in order, teach valuation. 71 more go wider across 9 subjects, and 24 read real arguments.");
 
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
     expect(how).toContain("14 core Topics 01 What is a business worth?");
@@ -358,7 +358,7 @@ describe("the course counts", () => {
     expect(about).toContain("Judge · 9");
 
     const examples = words(renderToStaticMarkup(await ExamplesPage()));
-    expect(examples).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
+    expect(examples).toContain("14 Topics, in order, teach valuation. 71 more go wider across 9 subjects, and 24 read real arguments.");
   });
 });
 

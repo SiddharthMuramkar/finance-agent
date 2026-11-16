@@ -220,8 +220,9 @@ export const home = {
     h2: "Start with a question you already have.",
     body: "No finance background needed. **If you can read a headline, you can start.**",
     play: "Play",
+    // #93: the line leads with the Spine, "N Topics, in order", N read from the course (never typed here).
     more: (c: CourseFacts) =>
-      `**${c.topics} Topics wait inside.** ${c.spine.length} teach valuation in order, ${c.electives} go wider across ${c.bySubject.length} subjects, and ${readings(c)} read real arguments. ${TAUGHT_LIVE_LINE}`,
+      `**${c.spine.length} Topics, in order, teach valuation.** ${c.electives} more go wider across ${c.bySubject.length} subjects, and ${readings(c)} read real arguments. ${TAUGHT_LIVE_LINE}`,
     path: "See the whole path",
   },
   trust: {
