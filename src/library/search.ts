@@ -40,7 +40,7 @@ export type PassageQuery = {
   /** Defaults to whatever the database has (see keywordRanking). */
   ranking?: KeywordRanking;
   limit?: number;
-  /** Scope to the sources whose id, title or credit contain this text (a writer's name, "Yale", "S-1"). */
+  /** Scope to the sources whose id, title or credit contain this text (a writer's name, "OpenStax", "S-1"). */
   source?: string;
 };
 

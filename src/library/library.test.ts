@@ -235,6 +235,8 @@ describe("sources kept out of the Library", () => {
     ["the CNBC Buffett Archive", { id: "cnbc-archive", title: "CNBC Warren Buffett Archive", url: "https://buffett.cnbc.com/" }],
     ["Investopedia", { id: "investopedia", title: "Investopedia", url: "https://www.investopedia.com/terms/b/bond.asp" }],
     ["YouTube transcripts", { id: "lectures", title: "A lecture", url: "https://www.youtube.com/watch?v=abc" }],
+    ["Open Yale Courses lectures, until Yale gives written permission", { id: "yale-econ-251", title: "Yale ECON 251: Financial Theory (lecture transcripts)", url: "https://oyc.yale.edu/economics/econ-251" }],
+    ["Open Yale Courses under another id", { id: "financial-markets", title: "Financial Markets", url: "https://oyc.yale.edu/economics/econ-252" }],
     ["RBI primers, until RBI allows storing", { id: "rbi-primer", title: "RBI primer", url: "https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711" }],
   ])("refuses %s", async (_name, source) => {
     await expect(importLibrary(await testDb(), as(source))).rejects.toThrow(/not allowed in the Library/);

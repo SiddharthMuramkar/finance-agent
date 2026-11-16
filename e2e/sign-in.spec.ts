@@ -70,7 +70,7 @@ test("[G1, F1] the sign-in page has the site nav, Sign in as the page showing, a
   const nav = page.locator("header.v-nav");
   await expect(nav).toHaveCount(1);
   await expect(nav.getByRole("link", { name: "Sign in", exact: true, includeHidden: true })).toHaveAttribute("aria-current", "page");
-  await expect(nav.getByText("Join early access")).toHaveCount(0);
+  await expect(nav.getByText("Join the waitlist")).toHaveCount(0);
   await expect(page.locator("[data-join]")).toHaveCount(0);
   // At 860 px and below the nav's page links fold into its Menu (4.2); the footer carries About there.
   const about = page.viewportSize()!.width <= 860 ? page.locator("footer.v-footer") : nav;
@@ -96,11 +96,46 @@ test("the passcode form signs the tools Learner in", async ({ page }, info) => {
   }).toPass({ timeout: 30_000 });
 });
 
-test("while Clerk is off, /join and /sign-up send the visitor to /sign-in", async ({ page }) => {
-  for (const path of ["/join", "/sign-up"]) {
-    await page.goto(path);
-    await expect(page, path).toHaveURL((url) => url.pathname === "/sign-in");
+// Issue #76: Clerk is off on the test bed, so /join and /sign-up draw a plain stand-in where Clerk's card goes (never
+// in a build: scripts/check-no-e2e-in-build.mjs), and the words around it are tested here.
+test("/join names the waitlist once and says what happens next, around a stand-in for Clerk's card", async ({ page }) => {
+  await page.goto("/join");
+  await expect(page.getByRole("heading")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Join the waitlist");
+  const main = page.locator("main");
+  for (const line of [
+    "It’s free.",
+    "We review each request by hand.",
+    "We email you when you’re in.",
+    "You can study on a laptop or a phone.",
+  ]) {
+    await expect(main.getByText(line, { exact: true })).toBeVisible();
   }
+  await expect(page.locator("[data-clerk-stand-in=waitlist]")).toBeVisible();
+  await expect(main).not.toContainText(/early access/i);
+});
+
+test("/sign-up without an invitation explains itself and links to the waitlist", async ({ page }) => {
+  await page.goto("/sign-up");
+  await expect(page.getByRole("heading")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Create your account");
+  const main = page.locator("main");
+  await expect(main.getByText("You need an invitation to create an account. Join the waitlist and we’ll email you one when you’re in.")).toBeVisible();
+  await expect(page.locator("[data-clerk-stand-in]")).toHaveCount(0);
+  await main.getByRole("link", { name: "Join the waitlist", exact: true }).click();
+  await expect(page).toHaveURL((url) => url.pathname === "/join");
+});
+
+test("/sign-up with an invitation draws the stand-in for Clerk's sign-up card", async ({ page }) => {
+  await page.goto("/sign-up?__clerk_ticket=test-ticket");
+  await expect(page.getByRole("heading")).toHaveCount(1);
+  await expect(page.locator("[data-clerk-stand-in=sign-up]")).toBeVisible();
+  await expect(page.getByText("You need an invitation", { exact: false })).toHaveCount(0);
+});
+
+test("/sign-in has one heading", async ({ page }) => {
+  await page.goto("/sign-in");
+  await expect(page.getByRole("heading")).toHaveCount(1);
 });
 
 test("a signed-in person skips the sign-in page and lands where they were going", async ({ page }, info) => {

@@ -67,25 +67,25 @@ describe("Home", () => {
   it("shows the jackpot conversation complete, the five questions and the course count", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const text = words(html);
-    expect(text).toContain("Is a $1.537B jackpot really worth $1.537B?");
+    expect(text).toContain("Is ₹25 crore over 30 years worth ₹25 crore?");
     expect(text).toContain("The AI Tutor picked this Example. Checked numbers draw it.");
-    expect(html).toMatch(/data-widget="jackpot" data-case="mega-millions-2018"/);
+    expect(html).toMatch(/data-widget="jackpot" data-case="kerala-bumper-2024"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
-    for (const slug of ["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
+    for (const slug of ["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
     expect(text).toContain("110 Topics wait inside.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
-  it("offers a visitor Join early access and Play a real Example, with the early-access note", async () => {
+  it("offers a visitor Join the waitlist and Play a real Example, with the waitlist note", async () => {
     const text = words(renderToStaticMarkup(await HomePage()));
-    expect(text).toContain("Join early access");
+    expect(text).toContain("Join the waitlist");
     expect(text).toContain("Play a real Example");
-    expect(text).toContain("Free during early access. We let people in by hand and email you when you’re in.");
+    expect(text).toContain("Free. We let people in by hand and email you when you’re in.");
   });
 
   // QA rows 22 and 23 as #33 has them: Clerk owns sign-up, so the closing block has no email form of its own, and every
   // Join opens /join, Clerk's Waitlist.
-  it("sends a visitor's Join early access to /join, and the closing block has no email form", async () => {
+  it("sends a visitor's Join the waitlist to /join, and the closing block has no email form", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const joins = [...html.matchAll(/<a [^>]*data-join=""[^>]*>/g)].map((m) => /href="([^"]+)"/.exec(m[0])?.[1]);
     expect(joins).toEqual(["/join", "/join"]); // the hero and the closing block
@@ -103,14 +103,14 @@ describe("Home", () => {
     expect(words(html)).toContain("Continue Why is money later worth less?");
     expect(html).toContain('action="/api/open"');
     expect(html).toContain('href="/course"');
-    expect(words(html)).not.toContain("Join early access");
+    expect(words(html)).not.toContain("Join the waitlist");
   });
 });
 
 describe("a case page", () => {
   it("mounts its own widget and links the cases around it", async () => {
-    const html = renderToStaticMarkup(await casePage.default(params("rates-up-1")));
-    expect(html).toMatch(/data-widget="rates" data-case="rates-up-1"/);
+    const html = renderToStaticMarkup(await casePage.default(params("rbi-repo-cut-2025")));
+    expect(html).toMatch(/data-widget="rates" data-case="rbi-repo-cut-2025"/);
     expect(html).toContain('href="/examples/wework-2019"');
     expect(html).toContain('href="/examples/compounding-1000"');
     expect(words(html)).toContain("Make your call first. This step shows the rule the Topic leaves you with.");
@@ -126,7 +126,7 @@ describe("a case page", () => {
 
   it("lists exactly the five slugs for prerendering, and 404s any other", async () => {
     expect(casePage.dynamicParams).toBe(false);
-    expect(casePage.generateStaticParams().map((p) => p.slug)).toEqual(["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]);
+    expect(casePage.generateStaticParams().map((p) => p.slug)).toEqual(["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"]);
     await expect(casePage.default(params("nope"))).rejects.toThrow();
   });
 });

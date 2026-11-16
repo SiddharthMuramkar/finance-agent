@@ -24,7 +24,7 @@ export const NAV = [
 export const chrome = {
   skip: "Skip to content",
   signIn: "Sign in",
-  join: "Join early access",
+  join: "Join the waitlist",
   continue: "Continue",
   menu: "Menu",
   close: "Close",
@@ -46,7 +46,7 @@ export const chrome = {
  * owns the email check and the "you're in" email.
  */
 export const cta = {
-  visitor: { label: "Join early access", href: "/join", note: "Free during early access. We let people in by hand and email you when you’re in." },
+  visitor: { label: "Join the waitlist", href: "/join", note: "Free. We let people in by hand and email you when you’re in." },
   member: { label: "Continue" },
 } as const;
 
@@ -163,7 +163,7 @@ export const FAQ = [
   { q: "Where do the facts come from?", a: "From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage." },
   { q: "Does the AI make up the charts?", a: "No. The AI Tutor chooses which chart to open and at which numbers; the chart is drawn from checked figures. Made-up numbers are labelled Illustration." },
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
-  { q: "How do I get in?", a: "Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in." },
+  { q: "How do I get in?", a: "Join the waitlist with your email. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
   { q: "Do you track me?", a: "There are no ads. We count page views with Vercel Web Analytics, which records the page address, where you came from, and your browser, device and country. It sets no cookie." },
 ] as const;
@@ -294,6 +294,11 @@ export const casePage = {
   ready: "Your call is in. Ready for what happened next?",
   reveal: (label: string) => `Reveal ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
   sources: "Sources:",
+  /** An Example's As-of date, "2024-10-09", as "As of 9 Oct 2024." */
+  asOf: (iso: string) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return `As of ${d} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1]} ${y}.`;
+  },
   fromTopic: "From the Topic",
   footCta: { visitor: "Join to take the full Topic", member: "Open this Topic" },
   previous: "Previous Example",
@@ -337,12 +342,29 @@ export const about = {
   founder: "The founder’s note is coming soon.",
   earlyH2: "Early access",
   early: [
-    { heading: "Join", body: "Sign up with an email link. **We let people in by hand**, a few at a time." },
+    { heading: "Join", body: "Join the waitlist with your email. **We let people in by hand**, a few at a time." },
     { heading: "Cost", body: "**Free during early access.** No price has been decided yet." },
     { heading: "What you need", body: "A laptop or tablet to study. These pages work on any phone." },
   ],
   faqH2: "Questions",
   closing: "Start with a question you already have.",
+} as const;
+
+/**
+ * The joining pages (issue #76): /join, Clerk's Waitlist, and /sign-up, where its invitation lands. One name for the
+ * list, "the waitlist", and the page's one heading is ours (Clerk's own header is hidden: src/auth/clerk-appearance.ts).
+ */
+export const joining = {
+  join: {
+    title: "Join the waitlist",
+    lede: "Leave your email below. What happens next:",
+    next: ["It’s free.", "We review each request by hand.", "We email you when you’re in.", "You can study on a laptop or a phone."],
+  },
+  signUp: {
+    title: "Create your account",
+    noInvitation: "You need an invitation to create an account. Join the waitlist and we’ll email you one when you’re in.",
+    toWaitlist: "Join the waitlist",
+  },
 } as const;
 
 /** Search results and shared links (src/app/site-metadata.ts). */

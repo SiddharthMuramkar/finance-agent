@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { d$, inr, share, trim, usdM } from "./formatters";
+import { d$, inr, inrCr, share, trim, usdM } from "./formatters";
 
 // Expected strings come from the Signal spec (docs/specs/value-it-signal-spec.md): the §6.1 formatter
 // table, and the screens in §6.2.4, §6.3 and §13 that show a number through one of these formatters.
@@ -22,6 +22,20 @@ describe("Signal formatters: usdM, dollars in millions", () => {
   it("switches to billions at 999.95, the first value that 1 decimal would print as $1000.0M", () => {
     expect(usdM(999.94)).toBe("$999.9M");
     expect(usdM(999.95)).toBe("$1.000B");
+  });
+});
+
+describe("Signal formatters: inrCr, rupees in crore", () => {
+  it.each([
+    // §6.3: the Kerala prize, the 30 payments at 5% and the gap to the cash at 5%.
+    [25, "₹25 crore"],
+    [11.2886, "₹11.29 crore"],
+    [13.7114, "₹13.71 crore"],
+    // Under one crore it reads in lakh: the first payment, and the 2053 payment at 10%.
+    [0.37629, "₹37.63 lakh"],
+    [0.09764, "₹9.76 lakh"],
+  ])("inrCr(%s) is %s", (crore, text) => {
+    expect(inrCr(crore)).toBe(text);
   });
 });
 

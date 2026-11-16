@@ -146,7 +146,20 @@ export function CaseFlow({ example }: { example: Example }) {
                 <Rich>{example.ending}</Rich>
               </p>
               <p className="v-fine">
-                {casePage.sources} {example.sources}
+                {casePage.sources}{" "}
+                {example.sources.map((source, i) => (
+                  <span key={source.label}>
+                    {i > 0 && "; "}
+                    {source.url ? (
+                      <a href={source.url} target="_blank" rel="noopener noreferrer">
+                        {source.label}
+                      </a>
+                    ) : (
+                      source.label
+                    )}
+                  </span>
+                ))}
+                {example.asOf && <> {casePage.asOf(example.asOf)}</>}
               </p>
             </div>
           )}
