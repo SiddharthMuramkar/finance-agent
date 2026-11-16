@@ -111,7 +111,7 @@ concept: >
   company gets, what it keeps of each sale, what its growth costs, and how risky it is. Each part
   of the story is one lever. Set the four levers and code works out a value. Damodaran's story for
   Amazon had about $39 billion of sales in ten years, a 10% operating margin (10 cents kept from each $1 of sales),
-  and $3 of sales for each $ invested in warehouses and systems.
+  and $3 of sales for each dollar invested in warehouses and systems.
 
 principle: >
   A value is a story set as four levers. When a price and a value differ, ask what the price
@@ -137,9 +137,9 @@ questions:
       changes:
         - { id: margin, label: "Margin 10% to 12%", levers: { marginTarget: 12 } }
         - { id: revenue, label: "Sales in year 10 $39bn to $44bn", levers: { revenueYear10: 44000 } }
-        - { id: reinvest, label: "Sales for each $ invested, $3 to $4", levers: { salesToCapital: 4 } }
+        - { id: reinvest, label: "Sales for each dollar invested, $3 to $4", levers: { salesToCapital: 4 } }
         - { id: risk, label: "Cost of capital one point lower", levers: { costOfCapitalGrowing: 11.84 } }
-        - { id: leaner, label: "Sales for each $ invested, $3 to $5", levers: { salesToCapital: 5 } }
+        - { id: leaner, label: "Sales for each dollar invested, $3 to $5", levers: { salesToCapital: 5 } }
   - id: worth-q-price
     kind: price_assumes
     prompt: The price is $84. Which story gets there?
@@ -150,7 +150,7 @@ questions:
       changes:
         - { id: bigger-richer, label: "$65bn of sales and a 12% margin", levers: { revenueYear10: 65000, marginTarget: 12 } }
         - { id: cheaper-money, label: "$39bn, 10% and a 10% cost of capital", levers: { costOfCapitalGrowing: 10 } }
-        - { id: lean, label: "$39bn, 10% and $5 of sales for each $ invested", levers: { salesToCapital: 5 } }
+        - { id: lean, label: "$39bn, 10% and $5 of sales for each dollar invested", levers: { salesToCapital: 5 } }
         - { id: bigger, label: "$50bn of sales and a 10% margin", levers: { revenueYear10: 50000 } }
   - id: worth-q-predict
     kind: predict
@@ -303,7 +303,7 @@ checks:
         - A price is what buyers pay today. A value is what the business's future cash is worth today. The two can differ for years.
         - "A value starts as a story: how big it gets, what it keeps, what growth costs, how risky it is."
         - Each part is one lever. Set the four levers and code works out a value.
-        - "His story: $39 billion of sales in ten years, 10% kept, $3 of sales for each $1 invested."
+        - "His story: $39 billion of sales in ten years, 10% kept, $3 of sales for each dollar invested."
       writeDown: A price is paid. A value is argued, with four levers.
       skills: [price-value, levers]
     quickTries:
@@ -367,7 +367,7 @@ checks:
           case: spine-01-amazon-2000
           changes:
             - { id: margin, label: "Margin 10% to 12%", levers: { marginTarget: 12 } }
-            - { id: reinvest, label: "Sales for each $ invested, $3 to $4", levers: { salesToCapital: 4 } }
+            - { id: reinvest, label: "Sales for each dollar invested, $3 to $4", levers: { salesToCapital: 4 } }
             - { id: risk, label: "Cost of capital one point lower", levers: { costOfCapitalGrowing: 11.84 } }
       - id: worth-try-hold
         skill: levers

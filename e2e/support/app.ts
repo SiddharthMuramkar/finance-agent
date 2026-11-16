@@ -6,7 +6,7 @@ import type { E2eScriptName } from "../../src/dev/e2e-tutor";
  * (global-setup.ts); `seed` then starts it over and builds a named state through POST /api/dev-e2e.
  */
 
-export type State = "fresh" | "story" | "story-scene" | "lingo" | "concept-widget" | "reading" | "quiz-open" | "your-turn" | "mix-up" | "off-topic" | "review-due" | "topic-complete" | "many-topics" | "notebook-older" | "notebook-long" | "restart-topics";
+export type State = "fresh" | "spine-01-explore" | "spine-01-judging" | "story" | "story-scene" | "lingo" | "concept-widget" | "reading" | "quiz-open" | "your-turn" | "mix-up" | "off-topic" | "review-due" | "topic-complete" | "many-topics" | "notebook-older" | "notebook-long" | "restart-topics";
 export type Script = E2eScriptName;
 
 /** Signs the tools Learner in through the login form (the saved cookie usually makes this unneeded). */

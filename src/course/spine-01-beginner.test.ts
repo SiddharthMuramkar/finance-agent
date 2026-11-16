@@ -50,10 +50,10 @@ describe("Spine Topic 1 for beginners", () => {
     expect(asked.filter((s) => /\d\.\d/.test(s))).toEqual([]);
   });
 
-  it("names its levers as the Workbench does: 'Sales for each $ invested'", () => {
+  it("names its levers as the Workbench does: 'Sales for each dollar invested'", () => {
     const labels = topic.questions.flatMap((q) => ("computed" in q && q.computed ? q.computed.changes.map((c) => c.label) : []));
     expect(labels.filter((l) => /sales to capital/i.test(l))).toEqual([]);
-    expect(labels.some((l) => /Sales for each \$ invested/.test(l))).toBe(true);
+    expect(labels.some((l) => /Sales for each dollar invested/.test(l))).toBe(true);
   });
 });
 

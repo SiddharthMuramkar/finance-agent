@@ -106,6 +106,20 @@ const STATES: Record<string, Build> = {
    * (e2e/spine-01.spec.ts): the page starts its opener, and every step after is taken in the browser.
    */
   "spine-01-start": storyOf(SPINE_ONE),
+  /** Spine Topic 1 at explore, the Insight not yet settled: its question with choices to tap (ticket #88, e2e/no-typing.spec.ts). */
+  "spine-01-explore": async (db, map, learnerId, now) => {
+    await storyOf(SPINE_ONE)(db, map, learnerId, now);
+    await walk(db, map, learnerId, now, SPINE_ONE, (step) => step === "explore");
+  },
+  /** Spine Topic 1 at its judging Check (worth-talk), the quiz Check passed, with the judging quiz open (ticket #88). */
+  "spine-01-judging": async (db, map, learnerId, now) => {
+    await storyOf(SPINE_ONE)(db, map, learnerId, now);
+    await walk(db, map, learnerId, now, SPINE_ONE, (step) => step === "check");
+    await saveCheckResult(db, map, { checkId: "worth-check", passed: true, evidence: "Test bed fixture." }, now, learnerId);
+    await walk(db, map, learnerId, now, SPINE_ONE, (step) => step === "check");
+    if (navigate(map, await loadProgress(db, learnerId))?.check?.id !== "worth-talk") throw new Error(`${SPINE_ONE} is not at its judging Check.`);
+    if (!(await openQuiz(db, map, now, learnerId))) throw new Error(`${SPINE_ONE}'s judging Check is not a quiz.`);
+  },
   /** The Topic at Concept, with one Widget shown by a scripted turn. */
   "concept-widget": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);

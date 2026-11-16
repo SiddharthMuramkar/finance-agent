@@ -9,6 +9,7 @@ import { MessageBox } from "./message-box";
 import type { WidgetSlot } from "./reply-markdown";
 import { ThreadMessages } from "./thread";
 import { FailedTurnDetails } from "./under-the-hood";
+import { InsightPick, type InsightPickView } from "./insight-pick";
 import { spokenOf, type TurnStream } from "./turn-stream";
 import { SecondaryButton } from "./ui";
 import { Chips, type PassedTopic } from "./workspace-parts";
@@ -44,6 +45,7 @@ export function LeftColumn({
   passed = null,
   next = null,
   openQuestion = null,
+  insightPick = null,
 }: {
   /** The Next the Course Navigator offers now (null while a Check is open), drawn as the chip under the latest reply. */
   next?: NextOffer | null;
@@ -53,6 +55,8 @@ export function LeftColumn({
   passed?: PassedTopic;
   /** The question the Tutor has put to the Learner and is waiting on (the Insight question): a slim line pinned above the message box. */
   openQuestion?: string | null;
+  /** The Insight question with choices to tap (ADR 0020), in place of the Open question line, while explore lasts. */
+  insightPick?: InsightPickView | null;
 }) {
   const { messages, phase, refreshing, passage, setPassage, send, retry, stop } = turn;
   const running = phase.kind === "running";
@@ -172,7 +176,8 @@ export function LeftColumn({
               Quiz open. Stuck? Ask the Tutor: it can explain with other numbers.
             </p>
           )}
-          {openQuestion && (
+          {insightPick && <InsightPick pick={insightPick} />}
+          {openQuestion && !insightPick && (
             <p className="relative z-[1] mb-2 truncate text-[13px] leading-[18px] text-[var(--muted)]" data-testid="open-question" title={openQuestion}>
               <span className="font-medium">Open question:</span> {openQuestion}
             </p>
