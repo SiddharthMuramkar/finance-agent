@@ -20,7 +20,7 @@ Vercel commands below take `--scope acme-ef4b --project prj_GhCV5t8pT2vuRQQo0hln
 
 ### Config
 
-The production config the app expects (applied to prod on 2026-11-15). Email link only, Google off (owner, 2026-11-15):
+The production config the app expects (applied to prod on 2026-11-15; `captcha_enabled` reads `false`, see the CAPTCHA note below). Email link only, Google off (owner, 2026-11-15):
 
 ```json
 {
@@ -47,12 +47,12 @@ The production config the app expects (applied to prod on 2026-11-15). Email lin
 }
 ```
 
-- **Dev differs in one key:** it keeps Google on (`"connection_oauth_google": { "enabled": true, "authenticatable": true }`, Clerk's shared test client). Never copy dev's Google setting to prod.
+- **Dev differs in two keys:** it keeps Google on (`"connection_oauth_google": { "enabled": true, "authenticatable": true }`, Clerk's shared test client), and its `paths` are unset, so dev Waitlist invitations open the Account Portal. Never copy dev's Google setting to prod.
 - **Google in prod, later:** only after the owner's Google OAuth client exists (redirect URI from `clerk deploy`) and its id and secret are in Clerk. Then patch `{"connection_oauth_google": {"enabled": true, "authenticatable": true}}` to prod (owner's yes). `/sign-in` needs no change: Clerk's card offers whatever the instance has on.
 - **Paths** are per instance (`clerk deploy` does not clone them). Without them, the links in Clerk's own emails (Waitlist invitations) open the Account Portal on `accounts.value-it.xyz`, not `/sign-up`.
 - **Names:** the email-link sign-up asks for no name, so `first_name` is usually empty; the app then names the Learner from the email address (`nameFromEmail` in `src/auth/clerk-learner.ts`). Turning on Clerk's first-name field at sign-up (owner's call) would give the first name instead.
 - The session claims are what `src/auth/identity.ts` reads: `metadata.role` (admin), `email`, `first_name` (snake case). Change them only together with that file and `types/clerk.d.ts`.
-- `captcha_enabled` read `false` after `clerk security fix` on dev. Check it with `clerk config pull`.
+- **CAPTCHA (Clerk Protect).** Value It is a new Clerk app, so its sign-up CAPTCHA is Clerk Protect's "Challenge suspicious sign-ups" (on by default; dashboard → Protect → Protections; settings need the Business plan). The legacy `captcha_enabled` flag reads `false` on such an app, and a patch to `true` is a no-op (seen on prod, 2026-11-16, as `clerk config schema` describes). So `clerk security audit` reports `bot-protection` unmet by mistake. Its other unmet items (`mfa`, `passkeys`, `block-disposable-email`, `block-email-subaddresses`) are an owner decision (`docs/owner-actions.md`, step 22).
 
 Commands (save the body above to a file outside the repo, e.g. `/tmp/clerk-patch.json`):
 
@@ -209,29 +209,29 @@ vercel api /v2/projects/prj_GhCV5t8pT2vuRQQo0hlnImPWLlAx/checks -X POST --input 
 
 Risk: if `ui` is red on `main`, production deploys wait. Fix `ui`, or (owner's yes) PATCH that check to `"blocks": "none"`.
 
-Vercel has no "production only from Git" setting: the agent's CLI deny list (no `vercel --prod`, promote, rollback, rm) keeps production Git-only.
+Vercel has no "production only from Git" setting. The repo deny list in `.claude/settings.json` (`vercel --prod`, `--target production`, `promote`, `rollback`) keeps production Git-only for agents. It does not cover `vercel redeploy` or `vercel rm`, and the VPS has no user-level Vercel deny rule (ADR 0016).
 
 ## Env vars
 
-Names only. Read them with `vercel env ls $S` (never pull Production; its values are Sensitive and cannot be read anyway).
+Names only. Read them with `vercel env ls $S` (never pull Production; its secrets are Sensitive and cannot be read anyway; the publishable key is plain Config by design).
 
 | Name | Production | Preview | Development / local | CI and test bed |
 |---|---|---|---|---|
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | live keys (go-live) | none: Clerk off, sign-in says it is off | test keys (`clerk env pull --file .env.local`) | none: Clerk is off |
-| `CLERK_JWT_KEY` (optional) | prod PEM key | none | dev PEM key | none |
-| `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | Neon main | Neon preview branches | Neon dev branch | none: PGlite in memory |
+| `CLERK_JWT_KEY` (optional) | not set | none | not set | none |
+| `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | Neon main | none (previews are off) | Neon dev branch (`vercel-dev`) | none: PGlite in memory |
 | `OPENAI_API_KEY` | yes | none | own key, if needed | none: scripted Tutor |
-| `VOYAGE_API_KEY` | yes | yes | optional | none |
+| `VOYAGE_API_KEY` | yes | yes (unused: previews are off; owner decides, `docs/owner-actions.md` step 11) | optional | none |
 | `CRON_SECRET` | yes | none | none | none |
 | `NEON_API_KEY`, `NEON_PROJECT_ID` | yes (snapshot gate) | none | none | none |
-| `PASSCODES`, `SESSION_SECRET` | **remove once PR C is live** (the door is shut there) | `SESSION_SECRET` today: remove | local passcode door | `playwright.config.ts` sets them |
-| `PASSCODE` | **remove once PR C is live** (opens nothing now) | remove | none | none |
-| `ANTHROPIC_API_KEY` | removed | still there: owner to decide | none | none |
+| `PASSCODES`, `SESSION_SECRET` | **remove** (PR C, #51, is live; the door is shut there; owner: `docs/owner-actions.md` step 18) | `SESSION_SECRET` today: opens nothing; owner decides (`docs/owner-actions.md` step 11) | local passcode door | `playwright.config.ts` sets them |
+| `PASSCODE` | **remove** (PR C, #51, is live; opens nothing; owner: step 18) | opens nothing; owner decides (step 11) | none | none |
+| `ANTHROPIC_API_KEY` | removed | still there: owner to decide (step 11) | none | none |
 | `BETTERSTACK_HEARTBEAT_URL` | to add (owner's Better Stack account) | none | none | none |
 
 Not needed any more: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `RESEND_API_KEY`, `EMAIL_FROM` (never set in Production).
 
-Stale (owner's yes to delete): the preview `DATABASE_URL*` for branches `feat/21-signal-models`, `docs/architecture`, `chore/tracker-setup`, and their Neon preview branches.
+Done: the stale Preview `DATABASE_URL*` vars were removed on 2026-11-15, and the old Neon preview and eval branches were deleted on 2026-11-16. Neon has only `main` and `vercel-dev`.
 
 Set a secret by piping it from one CLI into the other, never through the screen, for example
 `clerk env pull --instance prod --print | <pick the key> | vercel env add CLERK_SECRET_KEY production --sensitive $S`.
@@ -240,8 +240,8 @@ Set a secret by piping it from one CLI into the other, never through the screen,
 
 1. `clerk deploy --domain value-it.xyz` (owner's yes) → add the 5 CNAMEs → `clerk deploy status --wait` → apply the config above to prod (Google off, paths). Done 2026-11-15.
 2. Before the merge, on a developer's machine with dev keys (`clerk env pull --file .env.local`, `npm run dev`): one email-link sign-in finishes on `/study` with no reload (the proxy lets Clerk's sign-in Server Action through: `isClerkSignInAction` in `src/proxy.ts`), and the Clerk card looks right.
-3. Live keys into Vercel Production; test keys into Development.
-4. Merge PR B (owner's yes) → Git deploy of `main`.
-5. Waitlist mode blocks everyone's own sign-up, the owner's too: pre-create the owner's user in Clerk (or invite their Waitlist entry). Owner signs in at `/sign-in` → set `role: "admin"` (above).
-6. Smoke: a second email joins on `/join` → invite it → the link lands on `/sign-up` → email-link sign-up finishes on `/study` with no reload → one Tutor turn → `/admin` is 404 for them and 200 for the owner.
-7. Remove `PASSCODE`, `PASSCODES`, `SESSION_SECRET` from Production and Preview (owner's yes), once PR C is live: `docs/runbooks/wipe-pre-clerk.md`, step C7.
+3. Live keys into Vercel Production; test keys into Development. Done 2026-11-15.
+4. Merge PR B (owner's yes) → Git deploy of `main`. Done 2026-11-15 (PR #48).
+5. Waitlist mode blocks everyone's own sign-up, the owner's too: pre-create the owner's user in Clerk (or invite their Waitlist entry). Owner signs in at `/sign-in` → set `role: "admin"` (above). Done: the owner's user was made with the admin role in `owner-batch.sh` (2026-11-15), and the owner signed in on 2026-11-16.
+6. Smoke: a second email joins on `/join` → invite it → the link lands on `/sign-up` → email-link sign-up finishes on `/study` with no reload → one Tutor turn → `/admin` is 404 for them and 200 for the owner. Open: `docs/owner-actions.md` step 4.
+7. Done 2026-11-16: `PASSCODE`, `PASSCODES` and `SESSION_SECRET` removed from Production after PR C (#51) went live: `docs/runbooks/wipe-pre-clerk.md` step C7, run by `owner-batch-5.sh` part a (`docs/owner-actions.md` step 18). The Preview copies of `PASSCODE` and `SESSION_SECRET` open nothing (previews are off, and `passcodeDoorOpen` is false on Vercel). Removing them is the owner's call (`docs/owner-actions.md` step 11).

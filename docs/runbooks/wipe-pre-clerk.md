@@ -1,5 +1,11 @@
 # Runbook: wipe the pre-Clerk Learners (issue #33, Phase 6)
 
+**Status: done (2026-11-16).** The owner ran the wipe and C1 to C5 with `/root/projects/contract-run.sh` (export
+`/root/backups/pre-contract-2026-11-15.dump`, snapshot `pre-wipe-contract-2026-11-15`, rehearsal branch
+`rehearse-wipe-2026-11-15`): 2 pre-Clerk Learners deleted, 1 Clerk Learner kept. C6: PR C (#51) merged at 02:19 UTC;
+its build took snapshot `pre-migrate-ebde579-2026-11-16T022009` and printed `now at 41 of 41`. Left: C7
+(`docs/owner-actions.md` step 18). Keep this page for the rollback steps.
+
 The Clerk fresh start: delete every Learner with no Clerk user (`learners.clerk_user_id is null`: the passcode Learners
 and any Better Auth ones), every row of theirs, and the Sign-up switch (`settings.signup_open`). Clerk-linked Learners
 keep everything. It runs once, by hand, with `scripts/ops/wipe-pre-clerk-learners.mjs`. It is not a migration: a
@@ -150,9 +156,9 @@ To bring back one Learner without losing newer writes, restore into a new branch
 
 ## After the wipe
 
-- PR C (the contract migration) can merge. See "With PR C" below for the whole order.
-- Neon preview branches made from `main` before the wipe still hold the old Learners. Delete them with the stale
-  preview branches (Phase 5 clean-up; owner "yes").
+- PR C (the contract migration) merged on 2026-11-16 (#51). See "With PR C" below for the whole order.
+- The Neon preview branches made from `main` before the wipe were deleted on 2026-11-16. Neon has only `main` and
+  `vercel-dev`. Neon snapshots from before the wipe still hold the old Learners: `docs/owner-actions.md` step 17.
 
 ## With PR C (the contract migration)
 
@@ -227,7 +233,11 @@ with a Clerk user.
 ### C4. The owner decides on the data the drop loses
 
 `invites` has 1 row (an email). `model_comparison_runs` and `model_comparison_answers` have 4 runs and 116 answers.
-The owner exports them outside the repo, or accepts the loss. After the drop, only a snapshot (kept 30 days) has them.
+The owner exports them outside the repo, or accepts the loss. After the drop, only the export and snapshots have them.
+
+Done: `contract-run.sh` exported these 3 tables into `/root/backups/pre-contract-2026-11-15.dump`. The snapshots that
+also have them are the build's `pre-migrate-ebde579-2026-11-16T022009` (kept 30 days) and the named
+`pre-wipe-contract-2026-11-15`, which has no expiry (`docs/owner-actions.md` step 17).
 
 ### C5. The wipe on `main`
 
@@ -255,3 +265,6 @@ vercel env ls production   # the three names are gone
 ```
 
 The live deployment keeps its old values until the next deploy. Nothing needs them, so no redeploy is needed.
+
+The Preview copies of `PASSCODE` and `SESSION_SECRET` open nothing either. Removing them is the owner's call
+(`docs/owner-actions.md` step 11).

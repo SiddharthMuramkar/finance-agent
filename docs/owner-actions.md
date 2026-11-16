@@ -2,7 +2,7 @@
 
 These steps need the owner. The agent cannot do them: they need your accounts, your email or your judgement. Each step says why, when and how. This file holds no secrets. Never paste a secret into chat, into an issue or into git.
 
-Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 2026-11-15, the production Library load and the production wipe. Tick a box when a step is done.
+Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 2026-11-15, the production Library load, the production wipe, and the merges of #42, #50, #44 and PR C (#51). Tick a box when a step is done.
 
 ## Checklist
 
@@ -18,16 +18,18 @@ Written 2026-11-15, when map #2 closed. Updated 2026-11-16, after the merges of 
 | 8 | [Lawyer check on CC BY](#8-lawyer-check-on-cc-by) | Before any paid launch |
 | 9 | [OpenAI hard spend limit, old key revoked](#9-openai-hard-spend-limit-old-key-revoked) | Now |
 | 10 | [2nd copy of the backups on your laptop](#10-2nd-copy-of-the-backups-on-your-laptop) | Now, then after each backup run |
-| 11 | [Decide on the 2 unused `ANTHROPIC_API_KEY` copies](#11-decide-on-the-2-unused-anthropic_api_key-copies) | Any time |
+| 11 | [Decide on the unused Preview and GitHub copies of secrets](#11-decide-on-the-unused-preview-and-github-copies-of-secrets) | Any time |
 | 12 | [Tune the spend caps](#12-tune-the-spend-caps) | After the first real turns |
 | 13 | [Write the owner content](#13-write-the-owner-content) | Before the first invite |
 | 14 | [Run the Waitlist](#14-run-the-waitlist) | Before the beta starts, then on a fixed rhythm |
 | 15 | [Decide the licence label on 16 citations](#15-decide-the-licence-label-on-16-citations) | Before any paid launch |
 | 16 | [The eval Voyage key and the 2 env files](#16-the-eval-voyage-key-and-the-2-env-files) | Env files deleted 2026-11-16; key kept (your choice) |
-| 17 | [Delete the export of the old Learners](#17-delete-the-export-of-the-old-learners) | About 2026-12-16 |
-| 18 | [Remove the passcode env vars from Production](#18-remove-the-passcode-env-vars-from-production) | After PR C is live |
+| 17 | [Delete the export and the old snapshots of the old Learners](#17-delete-the-export-and-the-old-snapshots-of-the-old-learners) | About 2026-12-16 |
+| 18 | [Remove the passcode env vars from Production](#18-remove-the-passcode-env-vars-from-production) | Done 2026-11-16 (owner batch 5) |
 | 19 | [Decide on link underlines and pill chips](#19-decide-on-link-underlines-and-pill-chips) | Any time |
 | 20 | [Decide the price of a step cut short](#20-decide-the-price-of-a-step-cut-short) | With step 12 |
+| 21 | [Check the Clerk sign-up CAPTCHA](#21-check-the-clerk-sign-up-captcha) | Optional, any time |
+| 22 | [Decide on Clerk two-factor and email blocks](#22-decide-on-clerk-two-factor-and-email-blocks) | Before the first invite |
 
 Also: [Commands the agent was not allowed to run](#commands-the-agent-was-not-allowed-to-run) and [Notes (no action)](#notes-no-action).
 
@@ -51,10 +53,10 @@ Also: [Commands the agent was not allowed to run](#commands-the-agent-was-not-al
 4. Only you can publish. Run this in a terminal on the VPS:
 
    ```sh
-   vercel firewall publish --scope <team> --project finance-agent --confirm-name finance-agent --effects-digest <digest>
+   vercel firewall publish --scope acme-ef4b --project finance-agent --confirm-name finance-agent --effects-digest <digest>
    ```
 
-   `<team>` is the Vercel team slug (`vercel teams ls`). `<digest>` comes from step 3.
+   `<digest>` comes from step 3.
 5. The agent checks: 25 fast `POST /api/turn` calls get 429 after the 20th.
 
 Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The rule bodies are in `docs/agents/platform.md` (section "Firewall").
@@ -76,10 +78,10 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 5. Put the heartbeat URL into Vercel Production as a secret. Run this on the VPS and paste the URL when it asks:
 
    ```sh
-   vercel env add BETTERSTACK_HEARTBEAT_URL --environment production --sensitive --scope <team> --project finance-agent
+   vercel env add BETTERSTACK_HEARTBEAT_URL --environment production --sensitive --scope acme-ef4b --project finance-agent
    ```
 
-   No folder on the VPS is linked to Vercel, so the command names the team and the project. `<team>` is the same as in step 1.
+   No folder on the VPS is linked to Vercel, so the command names the team and the project.
 
 6. The value reaches the live site at the next production deploy (the next merge to `main`). Within 15 minutes after that deploy, Better Stack shows the heartbeat as "up".
 
@@ -167,7 +169,7 @@ Emergency switch: Attack Challenge Mode in the Vercel dashboard (Firewall). The 
 - `research/library-licences.md` on [`research-library-licences`](https://github.com/SiddharthMuramkar/finance-agent/blob/research-library-licences/research/library-licences.md)
 - `research/new-sources.md` on [`research-new-sources`](https://github.com/SiddharthMuramkar/finance-agent/blob/research-new-sources/research/new-sources.md)
 
-Each branch becomes a tag with the same name, so the links keep working.
+Each branch stays until it becomes a tag with the same name (`docs/roadmap.md`, item 11), so the links keep working.
 
 Ask 4 questions:
 
@@ -210,29 +212,33 @@ Each line must end with `OK`. If a line says `FAILED`, copy again and tell the a
 
 Keep the folder private (an encrypted disk, not a shared folder). `docs/backup-and-restore.md` (from the #8 PR) explains the files.
 
-## 11. Decide on the 2 unused `ANTHROPIC_API_KEY` copies
+## 11. Decide on the unused Preview and GitHub copies of secrets
 
 - [ ] Done
 
-**Why.** No code reads `ANTHROPIC_API_KEY`: the Tutor uses OpenAI now (#3). The Vercel Production copy is already removed. 2 copies are left:
+**Why.** Nothing reads these copies:
 
-- Vercel Preview. Previews are off (#11).
-- A GitHub Actions secret on the repo (set 2026-11-14). No workflow reads it, on any branch or in the history.
+- Vercel Preview: `ANTHROPIC_API_KEY`, `PASSCODE`, `SESSION_SECRET` and `VOYAGE_API_KEY`. Previews are off (#11), so no build reads Preview. Also, no code reads `ANTHROPIC_API_KEY` (the Tutor uses OpenAI now, #3), and the passcode door is shut on every Vercel build (`passcodeDoorOpen` in `src/auth/gates.ts`), so `PASSCODE` and `SESSION_SECRET` open nothing.
+- A GitHub Actions secret `ANTHROPIC_API_KEY` on the repo (set 2026-11-14). No workflow reads it, on any branch or in the history.
 
-A key that nobody uses can still leak. The 2 copies can hold different keys.
+The Vercel Production copy of `ANTHROPIC_API_KEY` is already removed. The Production copies of the passcode vars are step 18.
+
+A key that nobody uses can still leak. The copies can hold different keys.
 
 **When.** Any time.
 
 **Options.**
 
-- **A. Remove both (recommended).** Say yes, and the agent runs:
+- **A. Remove them (recommended).** Say yes, and the agent runs:
 
   ```sh
-  vercel env rm ANTHROPIC_API_KEY --environment preview --confirm-name ANTHROPIC_API_KEY --scope <team> --project finance-agent
+  vercel env rm ANTHROPIC_API_KEY --environment preview --confirm-name ANTHROPIC_API_KEY --scope acme-ef4b --project finance-agent
+  vercel env rm PASSCODE --environment preview --confirm-name PASSCODE --scope acme-ef4b --project finance-agent
+  vercel env rm SESSION_SECRET --environment preview --confirm-name SESSION_SECRET --scope acme-ef4b --project finance-agent
   gh secret delete ANTHROPIC_API_KEY -R SiddharthMuramkar/finance-agent
   ```
 
-  Then, in the Anthropic console, revoke each key that nothing else uses.
+  Then, in the Anthropic console, revoke each key that nothing else uses. The Preview copy of `VOYAGE_API_KEY` is optional: keep it only if previews come back.
 - **B. Keep them.** Nothing changes.
 
 ## 12. Tune the spend caps
@@ -312,11 +318,25 @@ You decided to keep the vps-eval key for now. A later eval (for example, the rer
 
 **How.** In the Voyage AI dashboard, API keys: revoke the key named **vps-eval**. Revoke only that key.
 
-## 17. Delete the export of the old Learners
+## 17. Delete the export and the old snapshots of the old Learners
 
 - [ ] Done
 
 **Why.** Before the wipe, `contract-run.sh` exported the production tables to `/root/backups/pre-contract-2026-11-15.dump` (and its `.dump.sha256`), on 2026-11-16. The export holds Learner personal data. Keep it only while a rollback of the wipe can need it. It is not in `copy2`, so the laptop copy (step 10) does not hold it. Never put it in git.
+
+The export is also the only file copy of the 3 tables that migration 0040 dropped: `invites` (1 row), `model_comparison_runs` (4) and `model_comparison_answers` (116). After you delete it, only Neon snapshots have them.
+
+5 Neon snapshots from before the wipe hold the old Learners too, and they never expire (checked 2026-11-16):
+
+| Snapshot | Id |
+|---|---|
+| `pre-wipe-contract-2026-11-15` | `snap-round-sound-b3kcyjzm` |
+| `pre-library-load-2026-11-15` | `snap-curly-hall-b3zgkyik` |
+| `before-backup-drill-2026-11-15` | `snap-small-heart-b394a8hm` |
+| `before-wayfinder-2026-11-14` | `snap-purple-morning-b3alrgtl` |
+| `before-go-live-2026-11-09` | `snap-lively-glitter-b3606ht5` |
+
+The other snapshots from before the wipe expire by themselves by 2026-12-15 (the daily, `pre-migrate-*` and `before-spec119-*` ones).
 
 **When.** About 2026-12-16 (30 days after the export).
 
@@ -329,25 +349,18 @@ You decided to keep the vps-eval key for now. A later eval (for example, the rer
    rm /root/backups/pre-contract-2026-11-15.dump /root/backups/pre-contract-2026-11-15.dump.sha256
    ```
 
-3. Tell the agent.
+3. The 5 snapshots in the table. Say yes, and the agent deletes each one (`neon snapshots delete <id> --project-id cool-queen-75259301`). Or keep one on purpose, and write down why. `pre-library-load-2026-11-15` is the rollback point of the Library load; the Library dumps in `copy2` replace it. A deleted snapshot also stops its rollback line in [Scripts you ran](#scripts-you-ran). If you prefer, say yes now, and the agent sets each one to expire on 2026-12-16 (`neon snapshots update <id> --expires-at 2026-12-16T00:00:00Z --project-id cool-queen-75259301`). Then they go by themselves on the same day as the export.
+4. Tell the agent.
 
 ## 18. Remove the passcode env vars from Production
 
-- [ ] Done
+- [x] Done 2026-11-16 (`owner-batch-5.sh`, part a)
 
-**Why.** Clerk replaced the passcode door (ADR 0017). The door is shut in production since PR #48. `PASSCODE`, `PASSCODES` and `SESSION_SECRET` in Vercel Production open nothing now. A secret that nobody uses can still leak.
+**Why.** Clerk replaced the passcode door (ADR 0017). The door is shut in production since PR #48. `PASSCODE`, `PASSCODES` and `SESSION_SECRET` in Vercel Production opened nothing. A secret that nobody uses can still leak.
 
-**When.** After PR C is live: PR C is merged, and its production deploy is Ready. PR C deletes the old Better Auth tables (migration 0040). The agent plans to remove the 3 vars itself. First ask the agent if it did. If yes, tick the box. You have nothing more to do.
+**What ran.** After PR C (#51) was live, `owner-batch-5.sh` part a removed the 3 vars from Production only, with `vercel env rm <NAME> --environment production --confirm-name <NAME>`. It then checked `vercel env ls --environment production` (names only): none of the 3 is left.
 
-**How.** If the vars are still there, run this on the VPS:
-
-```sh
-vercel env rm PASSCODE --environment production --confirm-name PASSCODE --scope <team> --project finance-agent
-vercel env rm PASSCODES --environment production --confirm-name PASSCODES --scope <team> --project finance-agent
-vercel env rm SESSION_SECRET --environment production --confirm-name SESSION_SECRET --scope <team> --project finance-agent
-```
-
-`<team>` is the same as in step 1. Then tell the agent. It checks `vercel env ls` (names only).
+**Preview.** Preview still holds `PASSCODE` and `SESSION_SECRET`. They open nothing there either. They are in step 11.
 
 ## 19. Decide on link underlines and pill chips
 
@@ -387,6 +400,35 @@ Tell the agent A or B. The agent makes the change.
 
 Tell the agent A or B. The agent makes the change.
 
+## 21. Check the Clerk sign-up CAPTCHA
+
+- [ ] Checked
+
+**Why.** ADR 0017: Clerk guards sign-up with a CAPTCHA and the lockout. Value It is a new Clerk app (2026-11). Clerk's docs say a new app gets **Challenge suspicious sign-ups** from Clerk Protect, on by default. It replaces the old "bot sign-up protection". On such an app the old `captcha_enabled` flag reads `false`, and a patch to `true` does not change it. On 2026-11-16 a patch to `true` was accepted and the flag stayed `false`, as Clerk's schema says for a Protect app. So `clerk security audit --instance prod` reports `bot-protection` as unmet by mistake. Lockout is on (10 tries, 60 minutes).
+
+**When.** Optional, any time. The agent cannot see Protect from the CLI.
+
+**How.**
+
+1. Clerk dashboard → **Protect** → **Protections**.
+2. Look for **Challenge suspicious sign-ups**. It should be on. Changing its setting needs Clerk's Business plan; the default ("Suspicious") is right for Value It.
+3. If you see a **Bot sign-up protection** row tagged **Legacy** instead, the app is on the old version. Then tell the agent: it turns on the old flag with `clerk config patch` and checks it.
+
+## 22. Decide on Clerk two-factor and email blocks
+
+- [ ] Done
+
+**Why.** Admin is your Clerk account, and it signs in with an email link only. So your mailbox is the only key to `/admin`: a person who gets into your mailbox gets `/admin` too. On 2026-11-16 `clerk security audit --instance prod` showed these as not met: two-factor (Clerk calls it "critical"), passkeys, a block on throwaway (disposable) emails, and a block on email subaddresses (`name+tag@`). Lockout, email verification and the session lifetime are met.
+
+**When.** Before the first invite.
+
+**Options.**
+
+- **A. Turn on two-factor and block throwaway emails.** Two-factor uses an authenticator app and backup codes. It is optional for each user, so you add it to your own account. After your yes, the agent runs `clerk security fix mfa --factors authenticator,backup-code --app app_3M88tftDykg1fsszyw09LAaHwPD --instance prod` and `clerk security fix block-disposable-email --app app_3M88tftDykg1fsszyw09LAaHwPD --instance prod`, each with `--dry-run` first and then `--yes`.
+- **B. Keep as is.** Nothing changes.
+
+Tell the agent A or B.
+
 ## Commands the agent was not allowed to run
 
 On 2026-11-15 the Claude Code safety check (the auto-mode classifier) stopped the agent before the commands below. The agent did not retry them and did not find a way around them. Run an open one yourself in Claude Code as `! <command>`, or in a terminal on the VPS.
@@ -396,10 +438,11 @@ On 2026-11-15 the Claude Code safety check (the auto-mode classifier) stopped th
 | Command the agent could not run | How it was done |
 |---|---|
 | `git push` from the lane agents, on every lane: hardening, CI, docs, backup, site, Clerk, sources, reranker, legacy, wrapup and architecture | At 10:45 UTC you allowed a plain `git push` (no force, no delete) in `.claude/settings.local.json`. Then the agent pushed 9 lanes. The safety check still stopped later pushes from the lane agents. You ran them in `owner-batch.sh`, `owner-batch-2.sh`, `owner-batch-3.sh` and `owner-batch-4.sh` (all in `/root/projects/`). `owner-batch-2.sh` also posted the #48 comment and set the #43 body, because both needed the push first. |
-| `git push` of the #46 fix | It failed in `owner-batch.sh`: Dependabot had rebased the branch. #49 replaces #46. The agent makes the fix again in a final deps PR. |
+| `git push` of the #46 fix | It failed in `owner-batch.sh`: Dependabot had rebased the branch. #49 replaced #46, and PR #50 (merged 2026-11-16) replaced #49: it took the npm group, made the widget fix again and closed the 6 Dependabot alerts. 0 are open. |
 | `git commit` of 2 doc changes: owner actions (`docs-2-wrapup`) and the reranker re-test (`feat-37-reranker`) | `owner-batch.sh`. |
 | `vercel env rm` of the 2 stale Preview vars `DATABASE_URL` and `DATABASE_URL_UNPOOLED` (branch `docs/architecture`) | `owner-batch.sh`. The other 4 of the 6 stale Preview vars were already gone. |
 | Make your Clerk user on production, with the admin role (`clerk api /users`) | `owner-batch.sh`. Next: [step 3](#3-sign-in-once-as-admin). |
+| `neon branches delete` of the 6 old Neon branches: `rag-baseline-2026-11-14`, `preview/docs/architecture`, `g2-eval`, `t28-widget-state-browser-check`, `eval-2026-11-15`, `rehearse-wipe-2026-11-15`. Also the deletes of `/root/projects/.evalenv` and `/root/projects/.prodenv` | `owner-batch-5.sh` parts b and c, 2026-11-16. `preview/feat/21-signal-models` and `preview/chore/tracker-setup` were already gone. Neon now has only `main` and `vercel-dev`. Part a (the Production passcode vars) is [step 18](#18-remove-the-passcode-env-vars-from-production). |
 
 ### Scripts you ran
 
@@ -412,14 +455,14 @@ These 2 scripts change production data. They need a real terminal and your typed
   - Then: credits restamped, and the new passages embedded with Voyage.
   - Score on production, keyword + Voyage vectors. The 78 original questions: hits@5 75/78 (96.2%, bar 92%), hits@1 58, MRR 0.827 (bar 0.82). **Pass.** The 12 Signal questions, open search: 9/12, MRR 0.542. Outcome-word probes: clean, 19/19. Keyword only: 71/78, MRR 0.715.
   - Logs: `/root/projects/eval-runs/2026-11-15-prod-*.txt`.
-  - Rollback: `neon snapshots restore snap-curly-hall-b3zgkyik --project-id cool-queen-75259301 --target-branch br-shy-river-b3czlpmv`, then `neon snapshots finalize <restored branch id> --project-id cool-queen-75259301` (`docs/backup-and-restore.md`, Restore B). This puts ALL of production back to the snapshot time. The snapshot is older than the wipe, so it also brings back the 2 old Learners. Ask the agent first.
+  - Rollback: `neon snapshots restore snap-curly-hall-b3zgkyik --project-id cool-queen-75259301 --target-branch br-shy-river-b3czlpmv`, then `neon snapshots finalize <restored branch id> --project-id cool-queen-75259301` (`docs/backup-and-restore.md`, Restore B). This puts ALL of production back to the snapshot time. The snapshot is older than the wipe, so it also brings back the 2 old Learners. It is older than migration 0040 too, so the dropped tables come back (the next production build applies 0040 again). Ask the agent first.
 - [x] **The production wipe of the pre-Clerk Learners (#33).** Done 2026-11-16 (`/root/projects/contract-run.sh`).
   - First: the export `/root/backups/pre-contract-2026-11-15.dump` (step 17), and Neon snapshot `pre-wipe-contract-2026-11-15` (`snap-round-sound-b3kcyjzm`).
   - Rehearsal on the Neon branch `rehearse-wipe-2026-11-15`: the wipe and migration 0040 passed.
   - Production: 2 pre-Clerk Learners deleted, with their rows. 1 Learner is left: yours (your Clerk user).
-  - Migration 0040 did not run on production. PR C runs it when it deploys.
+  - Migration 0040 ran on production on 2026-11-16 at 02:20 UTC, in the build of PR C (#51, `ebde579`), right after the build's Neon snapshot `pre-migrate-ebde579-2026-11-16T022009` (`snap-shiny-darkness-b396fqma`, expires 2026-12-16). The build log says `the database is now at 41 of 41`.
   - Logs: `/root/projects/contract-runs/2026-11-15/`.
-  - Rollback: `neon snapshots restore snap-round-sound-b3kcyjzm --project-id cool-queen-75259301 --target-branch br-shy-river-b3czlpmv --name main-restored`, then `neon snapshots finalize <restored branch id> --project-id cool-queen-75259301 --name main-before-restore`. Or tell the agent "roll back the wipe". For one table only, the agent restores it from the export into a new Neon branch. The snapshot was taken during the Library load: after the new sources went in and the 2e textbook went out, before the restamp and the embed steps. After a restore, the agent runs those 2 steps again (`prod-load.sh --from 5`).
+  - Rollback: `neon snapshots restore snap-round-sound-b3kcyjzm --project-id cool-queen-75259301 --target-branch br-shy-river-b3czlpmv --name main-restored`, then `neon snapshots finalize <restored branch id> --project-id cool-queen-75259301 --name main-before-restore`. Or tell the agent "roll back the wipe". For one table only, the agent restores it from the export into a new Neon branch. The snapshot was taken during the Library load: after the new sources went in and the 2e textbook went out, before the restamp and the embed steps. After a restore, the agent runs those 2 steps again (`prod-load.sh --from 5`). A restore of this snapshot also undoes migration 0040: the Better Auth tables and `learners.auth_user_id` come back. The next production build applies 0040 again.
 
 ### Not done (no step for you)
 
@@ -428,26 +471,7 @@ These 2 scripts change production data. They need a real terminal and your typed
 
 ### Still to do
 
-**Delete 4 stale Neon branches.** Nothing uses them. Previews are off (#11). Your yes of 2026-11-15 covers them, but the safety check stopped the agent. Each line deletes one branch (its name is in the comment):
-
-```sh
-neon branches delete br-winter-boat-b39iqmcn --project-id cool-queen-75259301    # rag-baseline-2026-11-14
-neon branches delete br-morning-brook-b3zs4na0 --project-id cool-queen-75259301  # preview/docs/architecture
-neon branches delete br-twilight-snow-b3bfl3gk --project-id cool-queen-75259301  # preview/feat/21-signal-models
-neon branches delete br-green-paper-b3i7otr2 --project-id cool-queen-75259301    # preview/chore/tracker-setup
-```
-
-On 2026-11-16 only the first 2 still exist. For the last 2, Neon answers "not found". That is OK.
-
-**Eval branches: delete or let expire.**
-
-| Branch | Made by | What to do |
-|---|---|---|
-| `eval-2026-11-15` (`br-billowing-salad-b37bbjon`) | The Library evals | Nothing. It expires by itself on 2026-11-18. |
-| `rehearse-wipe-2026-11-15` | `contract-run.sh` (the wipe rehearsal) | Nothing. It expires by itself on 2026-11-17. |
-| `g2-eval` (`br-patient-bar-b3wc46f3`) | An older eval, 2026-11-06 | It has no expiry date, and nothing in the repo names it. Ask the agent to check it. Then delete it: `neon branches delete br-patient-bar-b3wc46f3 --project-id cool-queen-75259301` |
-
-If the safety check stops the agent again, the command comes here.
+Nothing. On 2026-11-16 `owner-batch-5.sh` (part b) deleted the old Neon branches (see [Done by you](#done-by-you)). If the safety check stops the agent again, the command comes here.
 
 ## Notes (no action)
 
@@ -466,7 +490,7 @@ Not a draft from the research. These are the points to put in the form, from `re
 
 ## Appendix B. Draft email to Damodaran
 
-Copied from `research/library-licences.md` on `research-library-licences` (the draft at its end). That branch becomes a tag with the same name. Do not change the facts. Fill in the 2 brackets.
+Copied from `research/library-licences.md` on `research-library-licences` (the draft at its end). That branch stays until it becomes a tag with the same name (`docs/roadmap.md`, item 11). Do not change the facts. Fill in the 2 brackets.
 
 > **To:** adamodar@stern.nyu.edu
 > **Subject:** Permission to quote your blog and papers in a small valuation course
