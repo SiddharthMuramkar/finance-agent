@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withBotId } from "botid/next/config";
+import { NO_STORE_SOURCES } from "./src/site/routes";
 
 // OpenUI ships as one file, and a bundler cannot tell which of its parts a page uses. Three changes trim it (the
 // numbers are in docs/architecture.md): a loader that marks its top-level calls as pure and drops its chat shell;
@@ -7,9 +8,6 @@ import { withBotId } from "botid/next/config";
 // globals.css, only the stylesheets of the parts the Widget library keeps. See src/widgets/openui-stubs/README.md.
 // The aliases are global, and nothing else in src/ imports those packages.
 const STUBS = "./src/widgets/openui-stubs";
-
-/** The public site's addresses (src/app/(site)), each drawn per viewer: Home, How it works, Examples, a case page, About. */
-const PUBLIC_SITE_PAGES = ["/", "/how-it-works", "/examples", "/examples/:slug", "/about"];
 
 /** Browser features no page uses, turned off for every page and anything it embeds (issue #33). */
 const PERMISSIONS_POLICY = ["camera", "microphone", "geolocation", "payment", "usb", "interest-cohort", "browsing-topics"].map((f) => `${f}=()`).join(", ");
@@ -52,7 +50,8 @@ const nextConfig: NextConfig = {
     return [
       // The public site's pages (decision #7) are each one address for two or three pages, keyed only by the cookie: the
       // nav and the CTAs follow the viewer state (Signal spec 7.1). Never cached by a CDN or the browser.
-      ...PUBLIC_SITE_PAGES.map((source) => ({ source, headers: [{ key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" }] })),
+      // The list is src/site/routes.ts's, the one the sign-in gate reads (issue #69).
+      ...NO_STORE_SOURCES.map((source) => ({ source, headers: [{ key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" }] })),
       {
         source: "/:path*",
         headers: [

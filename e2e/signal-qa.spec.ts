@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { EXAMPLE_SLUGS, examplePath } from "../src/site/examples";
+import { SITE_PAGES } from "../src/site/routes";
 import { quietDevtools, siteReady } from "./support/app";
 
 /**
@@ -13,7 +13,8 @@ test.beforeEach(async ({ page }) => {
   await quietDevtools(page);
 });
 
-const SITE_ROUTES = ["/", "/how-it-works", "/examples", ...EXAMPLE_SLUGS.map(examplePath), "/about"];
+/** Every site page, the five case pages included: the one public-route list (issue #69). */
+const SITE_ROUTES = SITE_PAGES;
 
 /** Presses Tab until `target` has the focus, at most `max` times; fails if it never does. */
 async function tabTo(page: Page, target: Locator, max = 120) {

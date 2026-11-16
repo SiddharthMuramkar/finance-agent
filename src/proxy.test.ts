@@ -9,6 +9,9 @@ import type { Db } from "@/db/types";
 import { E2E_PERSON_COOKIE, e2ePersonToken } from "@/dev/e2e-identity";
 import { testDb } from "@/test/pglite";
 import nextConfig from "../next.config";
+import { MATRIX_PAGES } from "@/dev/preview-matrix";
+import { EXAMPLE_SLUGS, examplePath } from "@/site/examples";
+import { AUTH_ROOTS, NO_STORE_SOURCES, PUBLIC_FILES, PUBLIC_PAGES, SIGNED_IN_ROOTS, SITE_PAGES, SITE_PAGES_ONE_CASE } from "@/site/routes";
 
 let db: Db;
 vi.mock("@/db/client", () => ({ getDb: () => db }));
@@ -88,7 +91,7 @@ describe("The signed-out gate", () => {
 
   // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.
   it("lets a signed-out visitor read How it works, Examples and each of the five case pages", async () => {
-    const paths = ["/how-it-works", "/examples", ...["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"].map((s) => `/examples/${s}`)];
+    const paths = ["/how-it-works", "/examples", ...EXAMPLE_SLUGS.map(examplePath)];
     for (const path of paths) {
       expect(allowed(await proxy(request(path))), path).toBe(true);
       expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
@@ -378,5 +381,75 @@ describe("Server Actions", () => {
     expect(sources).toHaveLength(2);
     for (const source of sources) expect(matcher.test(source), source).toBe(false);
     expect(matcher.test("/149e9513-01fa-4fb0-aad4-566afd725d1bx")).toBe(true);
+  });
+});
+
+// Issue #69: the gate, the no-store headers and the test matrix read one list (src/site/routes.ts); these fail if they
+// disagree.
+describe("One public-route list", () => {
+  const matcher = new RegExp(`^${config.matcher[0]}$`);
+  /** A next.config header source (`/examples/:slug`) as a pattern for exact paths. */
+  const sourcePattern = (source: string) => new RegExp(`^${source.replace(/:\w+/g, "[^/]+")}$`);
+  const noStore = async () => {
+    const rules = await nextConfig.headers!();
+    return rules.filter((r) => r.headers.some((h) => h.key === "Cache-Control" && /no-store/.test(h.value))).map((r) => r.source);
+  };
+
+  it("the gate lets a signed-out visitor read every public page, and nothing one segment further", async () => {
+    for (const { path } of PUBLIC_PAGES) {
+      expect(allowed(await proxy(request(path))), path).toBe(true);
+      expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);
+      expect(redirectedToSignIn(await proxy(request(`${path === "/" ? "" : path}/x-not-a-page`))), `${path}/x`).toBe(true);
+    }
+  });
+
+  it("every public file is served signed out: the matcher skips it or the gate lets it through", async () => {
+    for (const file of PUBLIC_FILES) {
+      for (const path of file.samples) {
+        expect(file.pattern.test(path), path).toBe(true);
+        if (!matcher.test(path)) continue;
+        expect(allowed(await proxy(request(path))), path).toBe(true);
+      }
+    }
+  });
+
+  it("every signed-in root sends a signed-out visitor to the sign-in, or answers 401 for the API", async () => {
+    vi.stubEnv("NODE_ENV", "production"); // /dev is open outside production only
+    for (const root of SIGNED_IN_ROOTS) {
+      for (const path of [root, `${root}/x`]) {
+        const response = await proxy(request(path));
+        if (path.startsWith("/api/")) expect(response.status, path).toBe(401);
+        else expect(redirectedToSignIn(response), path).toBe(true);
+      }
+    }
+  });
+
+  it("every page folder of the app is a public page, an auth root or a signed-in root", () => {
+    const listed = new Set([...PUBLIC_PAGES.map((p) => p.path), ...AUTH_ROOTS, ...SIGNED_IN_ROOTS]);
+    const app = join(process.cwd(), "src/app");
+    const isDir = (path: string) => statSync(path).isDirectory();
+    /** A folder Next.js answers for: a page or a route handler somewhere under it. */
+    const routed = (dir: string): boolean =>
+      readdirSync(dir).some((name) => /^(page|route)\.tsx?$/.test(name) || (isDir(join(dir, name)) && routed(join(dir, name))));
+    const roots = (dir: string): string[] =>
+      readdirSync(dir)
+        .filter((name) => isDir(join(dir, name)) && !name.startsWith("_") && routed(join(dir, name)))
+        .flatMap((name) => (/^\(.+\)$/.test(name) ? roots(join(dir, name)) : [`/${name}`]));
+    for (const root of roots(app)) expect(listed.has(root), root).toBe(true);
+  });
+
+  it("the headers send exactly the site pages no-store, and no other public page", async () => {
+    const sources = await noStore();
+    expect(sources).toEqual([...NO_STORE_SOURCES]);
+    for (const path of SITE_PAGES) expect(sources.some((s) => sourcePattern(s).test(path)), path).toBe(true);
+    for (const { path } of PUBLIC_PAGES.filter((p) => !SITE_PAGES.includes(p.path))) {
+      expect(sources.some((s) => sourcePattern(s).test(path)), path).toBe(false);
+    }
+    for (const source of sources) expect(SITE_PAGES.some((path) => sourcePattern(source).test(path)), source).toBe(true);
+  });
+
+  it("the test matrix's public pages are the site pages (one case page for the five) and the sign-in page", () => {
+    const shot = MATRIX_PAGES.filter((p) => p.public).map((p) => p.path);
+    expect(new Set(shot)).toEqual(new Set([...SITE_PAGES_ONE_CASE, AUTH_ROOTS[0]]));
   });
 });
