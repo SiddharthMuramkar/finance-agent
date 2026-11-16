@@ -23,7 +23,7 @@ vi.mock("@/db/client", () => ({
   },
 }));
 
-const { default: HomePage } = await import("./page");
+const { default: HomePage, metadata: homeMeta } = await import("./page");
 const { default: HowItWorksPage, metadata: howMeta } = await import("./how-it-works/page");
 const { default: ExamplesPage, metadata: examplesMeta } = await import("./examples/page");
 const casePage = await import("./examples/[slug]/page");
@@ -59,6 +59,21 @@ describe("the public pages", () => {
   it("are titled for the template %s · Value It", async () => {
     expect([howMeta.title, examplesMeta.title, aboutMeta.title]).toEqual(["How it works", "Examples", "About"]);
     expect((await casePage.generateMetadata(params("wework-2019"))).title).toBe("WeWork boasted of $3 billion of run-rate revenue. Is that what it earned?");
+  });
+
+  // Issue #69: every page's metadata comes from the one helper, so each names its own canonical link and share title.
+  it("each link their own canonical address and share title", async () => {
+    const wework = await casePage.generateMetadata(params("wework-2019"));
+    const metas = [homeMeta, howMeta, examplesMeta, wework, aboutMeta];
+    expect(metas.map((m) => m.alternates?.canonical)).toEqual(["/", "/how-it-works", "/examples", "/examples/wework-2019", "/about"]);
+    expect(metas.map((m) => (m.openGraph as { title?: string }).title)).toEqual([
+      "Value It: Learn what things are worth.",
+      "How it works · Value It",
+      "Examples · Value It",
+      "WeWork boasted of $3 billion of run-rate revenue. Is that what it earned? · Value It",
+      "About · Value It",
+    ]);
+    expect(homeMeta.title).toBeUndefined(); // Home keeps the site's own title
   });
 });
 
