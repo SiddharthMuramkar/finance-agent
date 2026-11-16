@@ -696,8 +696,8 @@ export const libraryDocuments = pgTable(
 );
 
 /**
- * One run of the model comparison script (npm run compare:models): which models answered, who
- * graded, the written report and the recommendation. Saved from the laptop; the app never reads it.
+ * One run of the old model comparison script (src/comparison, deleted in #19): which models answered, who graded, the
+ * written report and the recommendation. The app never reads it. The table goes in a later migration (#33 PR C).
  */
 export const modelComparisonRuns = pgTable("model_comparison_runs", {
   id: serial("id").primaryKey(),
@@ -1017,9 +1017,10 @@ export const replyChecks = pgTable(
      */
     replyKind: text("reply_kind"),
     /**
-     * Where the turn's one Widget came from (spec 2026-11-05, E4a, ADR 0008): tutor (show_widget, compose_widget or
-     * open_widget), step (code opened a card preset, the reveal or the explore Widget), a Companion Widget's rule
-     * (scene, lingo, running_example, case), or none. Null on rows from before its migration and in engine-off Sessions.
+     * Where the turn's one Widget came from (spec 2026-11-05, E4a, ADR 0008): tutor (show_widget, open_widget, or the
+     * deleted compose_widget), step (code opened a card preset, the reveal or the explore Widget), a Companion Widget's
+     * rule (scene, lingo, running_example, case), or none. Null on rows from before its migration, and on rows from the
+     * deleted engine-off lane.
      */
     widgetSource: text("widget_source"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -14,7 +14,7 @@ const all = loadCases(CASES_DIR).cases;
 const live = all.filter((c): c is LiveCase => c.kind === "live");
 // A dialogue (T13) places its Learner the same way.
 const placed = all.filter((c): c is LiveCase | DialogueCase => c.kind === "live" || c.kind === "dialogue");
-const settings = { model: "gpt-6.1-sol", effort: "low", widgetEngine: "off" as const };
+const settings = { model: "gpt-6.1-sol", effort: "low" };
 
 describe("every live case prepares against today's Course Map", () => {
   it.each(placed.map((c) => [c.id, c] as const))(

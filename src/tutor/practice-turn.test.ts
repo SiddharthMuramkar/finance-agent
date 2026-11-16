@@ -100,7 +100,7 @@ describe("a converted Your turn", () => {
     expect((await turn(db, { quickTryFollowUp: true })).events).toEqual([{ type: "not_allowed", message: NO_QUICK_TRY_FOLLOW_UP }]);
   });
 
-  it("follows up a Quick try answered in a Claude-era Session (a tab from before the switch) in the Topic's new Session", async () => {
+  it("follows up a Quick try answered in an older model's Session (a tab from before the model change) in the Topic's new Session", async () => {
     const db = await testDb();
     const first = await atYourTurn(db);
     const [old] = await db.select().from(sessionsTable).where(eq(sessionsTable.learnerId, me));

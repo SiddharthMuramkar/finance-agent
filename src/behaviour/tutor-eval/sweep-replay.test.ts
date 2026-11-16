@@ -17,7 +17,7 @@ function deps(replies: string[], over: Partial<ReplayDeps> = {}): ReplayDeps {
   let i = 0;
   return {
     map,
-    settings: { model: "gpt-6.1-sol", effort: "medium", widgetEngine: "off" },
+    settings: { model: "gpt-6.1-sol", effort: "medium" },
     budget: new Budget(5),
     newDb: testDb,
     tutorClient: () => scriptedClient([text(replies[i++ % replies.length])]).client,

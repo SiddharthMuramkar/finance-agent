@@ -1,5 +1,5 @@
-// Safety checks shared by the dev scripts that write to or read from a database (scripts/widget-eval.mjs,
-// scripts/layout-check.mjs), kept in one place so they are tested (src/dev/script-guards.test.ts).
+// Safety checks shared by the dev scripts that write to or read from a database (scripts/widget-eval.mjs and the
+// others that import them), kept in one place so they are tested (src/dev/script-guards.test.ts).
 // Its one import has no imports of its own, so Node can load this file straight from a script.
 import { TOOLS_NAME } from "../src/auth/passcode.ts";
 

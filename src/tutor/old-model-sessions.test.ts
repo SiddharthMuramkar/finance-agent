@@ -10,7 +10,7 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { TUTOR_MODEL } from "./model";
-import { closedInFavourOf, refreezeIfChanged, retireLegacySessions, saveShownSession, type Shown } from "./session-log";
+import { closedInFavourOf, refreezeIfChanged, retireOldModelSessions, saveShownSession, type Shown } from "./session-log";
 import { loadCurrentSession, loadSession } from "./transcript";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { startTurn, updateTurn } from "./turn-status";
@@ -19,9 +19,10 @@ import { startTurn, updateTurn } from "./turn-status";
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
- * The switch to OpenAI (ADR 0007): a Session frozen for a Claude model is closed (Older, still readable) when the
- * Learner's next turn or visit reaches it, and a fresh gpt-6.1-sol Session takes over at the saved step. Nothing of a
- * Claude-era conversation is ever sent to OpenAI.
+ * A model change (ADR 0007): a Session frozen for another model than TUTOR_MODEL is closed (Older, still readable) when
+ * the Learner's next turn or visit reaches it, and a fresh Session on TUTOR_MODEL takes over at the saved step. Nothing
+ * of the old conversation is ever sent to the new model. The first change was the switch from Claude to OpenAI, so
+ * most cases here use a Session frozen for a Claude model; the same code acts at every later TUTOR_MODEL change.
  */
 
 const map = presentValueOnly({ real: loadCourseMap(), withoutQuiz: true, withoutInsight: true });
@@ -43,7 +44,7 @@ const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messag
 const allSessions = (db: Db) => db.select().from(sessionsTable).where(eq(sessionsTable.learnerId, OWNER_LEARNER_ID)).orderBy(sessionsTable.id);
 
 /** A Topic conversation as the Claude build left it: a live Session frozen for Opus, with a signed thinking block. */
-async function claudeEraSession(db: Db): Promise<number> {
+async function claudeSession(db: Db): Promise<number> {
   await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
   await turn(db, "Tell me about the lottery.", [say("Picture October 2018.")]);
   const [session] = await allSessions(db);
@@ -52,10 +53,10 @@ async function claudeEraSession(db: Db): Promise<number> {
   return session.id;
 }
 
-describe("Claude-era Sessions after the switch to OpenAI", () => {
-  it("a typed message closes the Topic's Claude-era Session and replies in a fresh gpt-6.1-sol Session; nothing of the old one is sent", async () => {
+describe("Sessions frozen for an older model, after a TUTOR_MODEL change", () => {
+  it("a typed message closes the Topic's older model's Session and replies in a fresh TUTOR_MODEL Session; nothing of the old one is sent", async () => {
     const db = await testDb();
-    const oldId = await claudeEraSession(db);
+    const oldId = await claudeSession(db);
     await saveShownSession(db, OWNER_LEARNER_ID, oldId);
 
     const { events, requests } = await turn(db, "Go on.", [say("A fresh start at the story.")], { sessionId: oldId });
@@ -79,9 +80,26 @@ describe("Claude-era Sessions after the switch to OpenAI", () => {
     expect(oldLines.join("\n")).toContain("Picture October 2018.");
   });
 
-  it("the locked Session of 11 November (spec A2): a Claude-era Session whose thinking the API refused opens fresh at the same step, progress kept", async () => {
+  it("acts the same at a later model change: a Session frozen for an earlier OpenAI model is closed, and its history is not sent", async () => {
     const db = await testDb();
-    const oldId = await claudeEraSession(db);
+    await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
+    await turn(db, "Tell me about the lottery.", [say("Picture October 2018.")]);
+    const [session] = await allSessions(db);
+    // As if TUTOR_MODEL changed after this Session was frozen.
+    await db.update(sessionsTable).set({ model: "gpt-6-sol" }).where(eq(sessionsTable.id, session.id));
+
+    const { requests } = await turn(db, "Go on.", [say("A fresh start at the story.")]);
+    expect(requests).toHaveLength(1);
+    expect(requests[0].model).toBe(TUTOR_MODEL);
+    expect(sent(requests[0])).not.toContain("Picture October 2018.");
+    const [old, fresh] = await allSessions(db);
+    expect(old).toMatchObject({ id: session.id, older: true, model: "gpt-6-sol" });
+    expect(fresh).toMatchObject({ older: false, model: TUTOR_MODEL, topicId: "present-value" });
+  });
+
+  it("the locked Session of 11 November (spec A2): a Claude Session whose thinking the API refused opens fresh at the same step, progress kept", async () => {
+    const db = await testDb();
+    const oldId = await claudeSession(db);
     // Locked as Learner `test`'s was: a later step, and a thinking block "bound to a different conversation" in its history.
     await saveFinishedStep(db, map, "story", new Date(), OWNER_LEARNER_ID);
     await db.insert(messages).values({ sessionId: oldId, seq: 100, role: "assistant", content: [{ type: "thinking", thinking: "Bound elsewhere.", signature: "stale==" }, { type: "text", text: "A basis point is a smaller ruler." }] });
@@ -101,9 +119,9 @@ describe("Claude-era Sessions after the switch to OpenAI", () => {
     expect(fresh).toMatchObject({ older: false, model: TUTOR_MODEL, topicId: "present-value" });
   });
 
-  it("a Retry of a turn left unfinished in a Claude-era Session runs afresh, from its saved message, in the new Session", async () => {
+  it("a Retry of a turn left unfinished in an older model's Session runs afresh, from its saved message, in the new Session", async () => {
     const db = await testDb();
-    const oldId = await claudeEraSession(db);
+    const oldId = await claudeSession(db);
     const unfinished = (await startTurn(db, new Date(), "What did the winner choose?", OWNER_LEARNER_ID))!;
     await updateTurn(db, unfinished.id, { status: "cut_off", sessionId: oldId, turnSeq: 2 });
 
@@ -119,7 +137,7 @@ describe("Claude-era Sessions after the switch to OpenAI", () => {
 
   it("a Widget Retry from a tab still showing the closed Session, after its turn finished, draws that turn's reply; a new message from it is still stale", async () => {
     const db = await testDb();
-    const oldId = await claudeEraSession(db);
+    const oldId = await claudeSession(db);
     await saveShownSession(db, OWNER_LEARNER_ID, oldId);
     // The tab let go of the stream before "done" (Widget Retry while the turn ran), so it still shows the closed Session.
     await turn(db, "Go on.", [say("A fresh start at the story.")], { sessionId: oldId });
@@ -137,7 +155,7 @@ describe("Claude-era Sessions after the switch to OpenAI", () => {
     expect(typed.events.some((e) => e.type === "stale")).toBe(true);
   });
 
-  it("a Claude-era Session with no message yet is refrozen in place, so no empty Older Session appears", async () => {
+  it("an older model's Session with no message yet is refrozen in place, so no empty Older Session appears", async () => {
     const db = await testDb();
     await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
     const [empty] = await db
@@ -154,22 +172,22 @@ describe("Claude-era Sessions after the switch to OpenAI", () => {
 
   it("closing on a visit: marks the Session older, unpins it from the workspace, never marks it a Start-over, and does nothing twice", async () => {
     const db = await testDb();
-    const oldId = await claudeEraSession(db);
+    const oldId = await claudeSession(db);
     await saveShownSession(db, OWNER_LEARNER_ID, oldId);
 
-    expect(await retireLegacySessions(db, OWNER_LEARNER_ID, "present-value")).toBe(true);
+    expect(await retireOldModelSessions(db, OWNER_LEARNER_ID, "present-value")).toBe(true);
     const [old] = await allSessions(db);
     expect(old).toMatchObject({ older: true, restartedAt: null });
     const [state] = await db.select().from(learnerState).where(eq(learnerState.learnerId, OWNER_LEARNER_ID));
     expect(state.shownSessionId).toBeNull();
     // Another Topic's, or the same one again: nothing to close.
-    expect(await retireLegacySessions(db, OWNER_LEARNER_ID, "present-value")).toBe(false);
-    expect(await retireLegacySessions(db, OWNER_LEARNER_ID, null)).toBe(false);
+    expect(await retireOldModelSessions(db, OWNER_LEARNER_ID, "present-value")).toBe(false);
+    expect(await retireOldModelSessions(db, OWNER_LEARNER_ID, null)).toBe(false);
   });
 
   it("a tab still showing the closed Session counts as showing its replacement, for the same Topic only", async () => {
     const db = await testDb();
-    const oldId = await claudeEraSession(db);
+    const oldId = await claudeSession(db);
     await turn(db, "Go on.", [say("A fresh start.")]);
     const [, fresh] = await allSessions(db);
     expect(await closedInFavourOf(db, OWNER_LEARNER_ID, oldId, fresh.id)).toBe(true);
@@ -179,9 +197,9 @@ describe("Claude-era Sessions after the switch to OpenAI", () => {
     expect(await closedInFavourOf(db, OWNER_LEARNER_ID, oldId, fresh.id)).toBe(false);
   });
 
-  it("refuses to refreeze a Claude-era Session: it must be closed instead", async () => {
+  it("refuses to refreeze an older model's Session: it must be closed instead", async () => {
     const db = await testDb();
-    const oldId = await claudeEraSession(db);
+    const oldId = await claudeSession(db);
     const [old] = await db.select().from(sessionsTable).where(eq(sessionsTable.id, oldId));
     await expect(refreezeIfChanged(db, old)).rejects.toThrow(/should have been retired/);
   });

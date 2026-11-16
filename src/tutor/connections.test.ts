@@ -5,7 +5,7 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { loadCourseMap } from "@/course/map";
 import { ensureTopicStarted, saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { OPENING_PREFIX } from "./context";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 
@@ -65,7 +65,7 @@ describe("Connections at the principle step", () => {
   });
 
   it("tells the Tutor to give them at the principle step", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("Connections: when the Course Navigator message for the principle step lists Connections, give them there");
+    expect(ENGINE_INSTRUCTIONS).toContain("Connections: when the Course Navigator message for the principle step lists Connections, give them there");
   });
 
   it("leaves a Topic without Connections as it was", async () => {

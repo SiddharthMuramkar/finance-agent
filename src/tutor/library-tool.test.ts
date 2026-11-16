@@ -4,7 +4,7 @@ import { NO_VOYAGE_KEY, VOYAGE_DOWN } from "@/library/library";
 import { scriptedClient, type ScriptedRequest } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 
@@ -72,7 +72,7 @@ describe("search_library tool in the Tutor Turn", () => {
     await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     expect(requests[0].tools).toContainEqual({ name: "search_library" });
-    expect(TUTOR_INSTRUCTIONS).toContain("do not name sources in your sentences");
+    expect(ENGINE_INSTRUCTIONS).toContain("do not name sources in your sentences");
   });
 
   it("returns passages with their credit line, keyword-only without Voyage, and hides later dated passages before the reveal", async () => {
@@ -169,7 +169,7 @@ describe("search_library tool in the Tutor Turn", () => {
   });
 
   it("tells the Tutor, in its instructions, to use the source filter instead of putting a writer's name in the query", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("source filter");
-    expect(TUTOR_INSTRUCTIONS).toContain("never put a writer's name in the query");
+    expect(ENGINE_INSTRUCTIONS).toContain("source filter");
+    expect(ENGINE_INSTRUCTIONS).toContain("never put a writer's name in the query");
   });
 });

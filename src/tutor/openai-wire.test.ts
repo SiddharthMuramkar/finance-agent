@@ -1,7 +1,8 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { openaiComposeClient } from "./compose";
+import OpenAI from "openai";
+import { askModel } from "@/behaviour/ask-model";
 import { describeFailure } from "./failures";
 import { StepAborted, TUTOR_MODEL, type Message, type RunnableTool, type StepEvent, type StepRequest, type StepResult } from "./model";
 import { openaiModelClient } from "./openai";
@@ -324,11 +325,11 @@ describe("the model client through the real openai SDK, over HTTP (no real key)"
     expect((seen[1].body.input as object[]).slice(1)).toEqual([...window, { type: "message", role: "user", content: "Go on." }]);
   });
 
-  it("compose_widget: one non-streamed request, its text read through the SDK's output_text", async () => {
-    replies.push({ status: 200, json: responseObject("completed", [reasoningItem, messageItem("msg_6", "```js\nwidget()\n```")]) });
-    const reply = await openaiComposeClient().create({ model: TUTOR_MODEL, instructions: "Compose a widget.", input: "A slider.", max_output_tokens: 16000 });
+  it("askModel (the harnesses' graders and judges): one non-streamed request, its text read through the SDK's output_text", async () => {
+    replies.push({ status: 200, json: responseObject("completed", [reasoningItem, messageItem("msg_6", '{"verdict":"pass"}')]) });
+    const reply = await askModel(new OpenAI(), { system: "Grade the reply.", input: "A reply.", maxOutputTokens: 16000 });
     expect(seen[0]).toMatchObject({ method: "POST", path: "/v1/responses" });
-    expect(seen[0].body).toEqual({ model: "gpt-6.1-sol", instructions: "Compose a widget.", input: "A slider.", reasoning: { effort: "medium" }, max_output_tokens: 16000, store: false });
-    expect(reply).toEqual({ content: [{ type: "text", text: "```js\nwidget()\n```" }], stop_reason: "end_turn", usage });
+    expect(seen[0].body).toEqual({ model: TUTOR_MODEL, instructions: "Grade the reply.", input: "A reply.", reasoning: { effort: "medium" }, max_output_tokens: 16000, store: false });
+    expect(reply).toMatchObject({ text: '{"verdict":"pass"}', stopReason: "end_turn", usage });
   });
 });

@@ -1,4 +1,3 @@
-import type { BrokenWidget } from "@/widgets/check";
 import { splitReply } from "@/widgets/split";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
@@ -23,7 +22,7 @@ export const RETRY_WITHIN_MS = 30_000;
 /** The writing indicator's label while code checks the reply, and while its retry runs. */
 export const CHECKING_LABEL = "Checking the reply…";
 
-/** The V4 reason for Widget code in a reply of an engine Session (ADR 0009): ready-made Widgets only. */
+/** The V4 reason for Widget code in a reply (ADR 0009): ready-made Widgets only. */
 export const FENCE_IN_ENGINE = "Write no Widget code; call open_widget or show_widget, or teach in words.";
 
 export { REPLY_CHECK_PREFIX };
@@ -74,7 +73,7 @@ const toolUses = (rows: readonly Row[], fromSeq: number) =>
     .flatMap((r) => (r.content as { type?: string; id?: string; name?: string; input?: { id?: unknown } }[]).filter((b) => b?.type === "tool_use"));
 
 /**
- * The Widgets the draft itself showed: those its own show_widget, compose_widget and open_widget calls stored. Items
+ * The Widgets the draft itself showed: those its own show_widget and open_widget calls stored. Items
  * code stored (a step's own Widget, a Concept card's preset, a Next's) are never the draft's.
  */
 export function toolWidgets(rows: readonly Row[], fromSeq: number, items: readonly StoredItem[]): ReplyWidget[] {
@@ -82,7 +81,7 @@ export function toolWidgets(rows: readonly Row[], fromSeq: number, items: readon
   const later = items.filter((i) => i.afterSeq >= fromSeq);
   const used = new Set<number>();
   return uses.flatMap((use): ReplyWidget[] => {
-    if (use.name === "show_widget" || use.name === "compose_widget") {
+    if (use.name === "show_widget") {
       const shown = later.find((i) => i.kind === WIDGET_SHOWN && i.data.id === use.id);
       if (!shown) return [];
       const recipe = typeof shown.data.recipe === "string" && shown.data.recipe ? shown.data.recipe : String(shown.data.title ?? "Widget");
@@ -121,18 +120,17 @@ export type Judged = {
 
 /**
  * Fixes the reply, then checks it with the turn's facts. Widgets the draft's tools stored pass V4 (code checked them
- * as it stored them). An openui-lang fence fails V4 in an engine Session; in a Session without the engine it is
- * checked as before (`fenceProblems`, from `newReplyWidgetProblems`).
+ * as it stored them). An openui-lang fence always fails V4: the Tutor writes no Widget code (ADR 0009).
  */
 export function judgeReply(
   text: string,
   stored: ReplyWidget[],
   facts: TurnFacts,
-  o: { engine: boolean; fenceProblems?: readonly BrokenWidget[]; savedRule?: string | null; writtenAhead?: readonly { id: string; code: string }[] },
+  o: { savedRule?: string | null; writtenAhead?: readonly { id: string; code: string }[] } = {},
 ): Judged {
   const fences = splitReply(text).filter((s) => s.type === "widget");
   const fenceWidgets: ReplyWidget[] = fences.map((_, i) => ({ kind: "recipe", id: fenceId(i) }));
-  const reasons = new Map(fenceWidgets.map((w, i) => [w.id, o.engine ? FENCE_IN_ENGINE : (o.fenceProblems?.find((b) => b.index === i)?.problems.join(" ") ?? null)]));
+  const reasons = new Map(fenceWidgets.map((w) => [w.id, FENCE_IN_ENGINE]));
   // A Widget a tool stored passes unless it names a written-ahead Widget this Topic lacks or a preset that does not fit.
   const validate = widgetValidator(o.writtenAhead ?? []);
   const ctx = replyCheckContext(facts, { widgetOk: (w) => reasons.get(w.id) ?? (w.kind === "written" && o.writtenAhead ? validate(w) : null) });

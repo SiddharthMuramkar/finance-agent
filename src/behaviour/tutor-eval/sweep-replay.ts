@@ -149,7 +149,7 @@ export function renderReplay(r: ReplayReport): string {
   const lines = [
     `# Replay of ${r.turns.length} Learner turns, ${r.startedAt.slice(0, 10)}`,
     "",
-    `Tutor: ${r.tutor.model}, effort ${r.tutor.effort}, widget engine ${r.tutor.widgetEngine}. Spent $${r.spentUsd.toFixed(2)} of the $${r.capUsd.toFixed(2)} cap. Started ${r.startedAt}, finished ${r.finishedAt}.`,
+    `Tutor: ${r.tutor.model}, effort ${r.tutor.effort}. Spent $${r.spentUsd.toFixed(2)} of the $${r.capUsd.toFixed(2)} cap. Started ${r.startedAt}, finished ${r.finishedAt}.`,
     `Checked ${checked} of ${r.turns.length} turns. Longest reply: ${r.longestWords} words (the limit is 120): **${r.longestWords <= 120 ? "within the limit" : "OVER the limit"}**.`,
     ...(r.budgetStop ? ["", `**${r.budgetStop}** Turns after that point were not run.`] : []),
     "",

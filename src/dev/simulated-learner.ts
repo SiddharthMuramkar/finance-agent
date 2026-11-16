@@ -1,4 +1,4 @@
-// The test tools' own Learner, for scripts/simulated-learner.mjs and scripts/browser-check.mjs, kept here so it is
+// The test tools' own Learner, for scripts/simulated-learner.mjs and scripts/widget-eval.mjs, kept here so it is
 // tested. Its only import has no imports of its own, so Node can load this file straight from a script.
 import { ACCESS_COOKIE, passcodeList, TOOLS_NAME } from "../auth/passcode.ts";
 
