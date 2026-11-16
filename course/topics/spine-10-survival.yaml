@@ -23,11 +23,11 @@ cases:
     story: >
       Coffee Day Enterprises runs Cafe Coffee Day, India's largest chain of coffee shops, and owns
       businesses in logistics, tech parks and finance. It is deep in debt: at the end of March 2019
-      the group had borrowed about ₹7,200 crore, and its interest bill for the year was ₹456.32
+      the group had borrowed about ₹7,200 crore, and its interest bill for the year was about ₹456
       crore. In March and April the group sold its stake in the IT company Mindtree and used the money
       to pare that debt. Its 2015 prospectus had warned that the founder had pledged shares for group loans, which
       lenders could take and sell if those loans went bad. On 29 July 2019 its market value closed at
-      ₹4,067.65 crore, about ₹192.55 a share, down from ₹6,678 crore in September 2018. The
+      about ₹4,070 crore, about ₹193 a share, down from about ₹6,680 crore in September 2018. The
       Widget's survival story is an illustration, not a published valuation: it is set so that, if
       Coffee Day is sure to survive, it is worth about that price. What should a valuation do about
       the chance that it does not survive?
@@ -46,7 +46,7 @@ cases:
     valuationFrom: coffee-day-distress-2019
 
 concept: >
-  A discounted cash flow values a going concern: it assumes the business keeps running for ever.
+  Our usual valuation treats the company as a going concern (a business that keeps running): it assumes it runs for ever.
   For most companies that is fine. For a company with heavy debt, thin interest cover (operating profit only a little above the interest bill) and loans
   backed by pledged shares, there is a real chance it fails first, and if it does, its assets are
   sold in a hurry for far less than the business was worth alive. A value that ignores this is
@@ -68,8 +68,7 @@ goDeeper: >
   Analysts watch pledged shares: shares an owner hands to lenders as security for a loan, which the lenders can sell if
   the loan goes bad, like leaving your gold with a lender who may sell it if you miss repayments. When a founder has
   pledged many shares, a falling price can make lenders sell them, which pushes the price down further. A Learner who
-  wants more can ask how the Coffee Day founder's family holding fell from 54% to 17% by January 2020 as lenders took
-  the pledged shares.
+  wants more can ask why pledged shares can turn a falling price into a faster fall.
 
 youllLearn:
   - "Weigh a going-concern value against what is left if the company fails."
@@ -146,7 +145,17 @@ explore:
     title: "What if Coffee Day does not survive?"
     inputs:
       caseStory: "The survival story"
-      mode: { kind: failure }
+      # The cast reacts as the value moves against the price (Spine critics round 1 on #96: a bench of only sliders and bars
+      # is chart-only); the survive-or-fail fork the mode draws is the Topic's idea, and the chance it fails is the first control.
+      mode:
+        kind: failure
+        scene:
+          cast:
+            - { icon: hot-beverage, name: "Coffee Day" }
+            - { icon: bank, name: "The lenders" }
+          below: "The lenders: once failure is weighed in, the value drops under the price, and we are paid first."
+          near: "Coffee Day: sure to survive, it is worth about its price. But is survival sure?"
+          above: "Coffee Day: worth more than the price, if every lever goes our way."
 
 connections:
   - text: "Distress and default sets out how to read a chance of failure from ratings and bond prices."
@@ -235,7 +244,7 @@ questions:
 
   - id: survival-q-pricevalue
     kind: price_or_value
-    prompt: "On 29 July 2019 Coffee Day's market value closed at ₹4,067.65 crore. Is that a price or a value?"
+    prompt: "On 29 July 2019 Coffee Day's market value closed at about ₹4,070 crore. Is that a price or a value?"
     skill: weigh-failure
     choices:
       - { id: price, text: "A price" }
@@ -255,7 +264,7 @@ checks:
     card:
       title: "Weigh survival against failure"
       lines:
-        - "A discounted cash flow assumes the company survives for ever."
+        - "Our usual valuation assumes the company survives for ever."
         - "If it fails, its assets are sold in a hurry, for far less than the business alive."
         - "Weigh the two by their chances: that is expected value."
         - "The debt is still paid in full before the shareholders."
@@ -295,7 +304,7 @@ checks:
             - { id: reinvest, label: "Growth costs more: ₹1.50 of sales for each ₹1 invested, not ₹2", levers: { salesToCapital: 1.5 } }
       - id: survival-try-signs-half
         skill: failure-signs
-        ask: "In the year to March 2019 Coffee Day paid ₹456.32 crore in interest; its annual report put its interest cover at 1.47 times. Is that a sign failure is likelier?"
+        ask: "In the year to March 2019 Coffee Day paid about ₹456 crore in interest; its operating profit covered that bill only about one and a half times. Is that a sign failure is likelier?"
         halfDone: "First step, done for you: interest cover says how many times operating profit covers the interest bill."
         kind: choice
         answer: likelier

@@ -3665,7 +3665,8 @@
           "type": "number"
         },
         "leases": {},
-        "report": {}
+        "report": {},
+        "scene": {}
       },
       "required": [
         "caseId",
@@ -3783,7 +3784,8 @@
         },
         "margin": {
           "type": "number"
-        }
+        },
+        "lingo": {}
       },
       "required": [
         "subject",

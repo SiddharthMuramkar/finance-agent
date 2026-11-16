@@ -889,3 +889,64 @@ export function storyNote(block: ValuationBlock, specs: readonly LeverSpec[], se
     value: model.value,
   };
 }
+
+// ——— The Topic's own idea, drawn (Spine critics round 1 on #96) ———
+
+/**
+ * What Value levers draws for the Topic's one idea, beside the headline (Spine critics round 1 on #96: a bench of only a
+ * headline, sliders and bars is chart-only, and a generic sheet only partly shows the idea). Each piece is optional:
+ * - scene: the mode's cast, and the line one of them says as the value sits below, near or above the price;
+ * - fork (failure): survive or fail, each with its chance in 100 and what one share is worth down that road;
+ * - map (two stories): each story in words, beside the lever it sets and that lever's reading in it;
+ * - checklist (match price): what the price assumes, lever by lever, against the Case's story, and whether it reaches it.
+ */
+export type ValueLeversStage = {
+  scene: { cast: { icon: string; name: string }[]; line: string; mood: "below" | "near" | "above" } | null;
+  fork: { survives: { chance: number; text: string }; fails: { chance: number; text: string } } | null;
+  map: { label: string; says: string; lever: string; reading: string; now: boolean }[] | null;
+  checklist: { items: { lever: string; now: string; story: string; moved: boolean }[]; reaches: boolean } | null;
+};
+
+export function valueLeversStage(block: ValuationBlock, specs: readonly LeverSpec[], settings: LeverSettings, model: ValueLeversModel, mode?: ValueLeversMode, market = 0): ValueLeversStage {
+  const none: ValueLeversStage = { scene: null, fork: null, map: null, checklist: null };
+  if (!mode) return none;
+  const per = block.per === "company" ? "" : " a share";
+  let scene: ValueLeversStage["scene"] = null;
+  if (mode.scene && model.value !== null) {
+    const mood = model.nearPrice ? "near" : model.value < block.price.value ? "below" : "above";
+    scene = { cast: mode.scene.cast.map((c) => ({ icon: c.icon, name: c.name })), line: mode.scene[mood], mood };
+  }
+  let fork: ValueLeversStage["fork"] = null;
+  if (mode.kind === "failure") {
+    const chance = Math.round(settings.failure);
+    const sure = valueOf(block, specs, { ...settings, failure: 0 }, mode, market);
+    const fails = valueOf(block, specs, { ...settings, failure: 100 }, mode, market);
+    if (sure.ok && fails.ok) {
+      fork = {
+        survives: { chance: 100 - chance, text: `${shown(sure.valuePerShare, block)}${per}` },
+        fails: { chance, text: `${shown(fails.valuePerShare, block)}${per}` },
+      };
+    }
+  }
+  let map: ValueLeversStage["map"] = null;
+  if (mode.kind === "two_stories") {
+    const opening = openingSettings(specs);
+    map = mode.stories.flatMap((story) => {
+      const set = storySettings(specs, opening, story);
+      const ids = LEVER_IDS.filter((id) => !near(set[id], opening[id]));
+      return (ids.length ? ids : (["revenue"] as LeverId[])).map((id) => {
+        const spec = specOf(specs, id);
+        return { label: story.label, says: story.says ?? story.label, lever: spec.title, reading: spec.reading(set[id]), now: sameSettings(settings, set) };
+      });
+    });
+  }
+  let checklist: ValueLeversStage["checklist"] = null;
+  if (mode.kind === "match_price") {
+    const opening = openingSettings(specs);
+    const items = specs
+      .filter((s) => s.id !== "failure")
+      .map((s) => ({ lever: s.title, now: s.reading(settings[s.id]), story: s.reading(opening[s.id]), moved: !near(settings[s.id], opening[s.id]) }));
+    checklist = { items, reaches: model.nearPrice };
+  }
+  return { scene, fork, map, checklist };
+}

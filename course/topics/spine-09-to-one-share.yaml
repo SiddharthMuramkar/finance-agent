@@ -158,7 +158,21 @@ explore:
     recipe: value_bridge
     case: spine-09-amazon-2000
     title: "From Amazon's business to one share"
-    inputs: {}
+    # A story moment above the bridge (Spine critics round 1 on #96: a Waterfall with sliders alone is chart-only): who
+    # stands in the queue before one share. Words only; every figure is the bridge's.
+    inputs:
+      scene:
+        cast:
+          - { id: lenders, emoji: bank, name: "The lenders", role: "lent Amazon money" }
+          - { id: staff, emoji: office-worker, name: "Staff with options", role: "may buy shares cheap" }
+          - { id: owner, emoji: person, name: "One shareholder", role: "owns one share" }
+        beats:
+          - { who: narrator, says: "Amazon's whole business has one value. Who gets a slice of it?" }
+          - { who: lenders, says: "Our loans are paid back first, in full.", emoji: money-bag }
+          - { who: staff, says: "Our options come next: they turn into shares.", emoji: ticket }
+          - { who: owner, says: "What is left, split over every share, is what one share is worth.", emoji: balance-scale }
+        caption: "Who is paid before one share"
+        date: 2000-02-03
 
 connections:
   - text: "The DCF Topic builds the business value this bridge starts from."

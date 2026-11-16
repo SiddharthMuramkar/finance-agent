@@ -28,8 +28,8 @@ cases:
       of each sale. Value levers opens on one professor's published story, for you to judge lever by lever.
     reveal: >
       Aswath Damodaran's story came to $35.08 a share against the $84 price. In 2000 Amazon's sales came in almost
-      exactly where he guessed, but it lost about 31 cents of each dollar of sales on its operations, where his story had
-      it losing about 13 cents in the first year. Size was the easy lever to guess; what it keeps was the
+      exactly where he guessed, $2,762 million, but it lost $864 million on its operations, about 31 cents of each dollar
+      of sales, where his story had it losing about 13 cents in the first year. Size was the easy lever to guess; what it keeps was the
       hard one, and his whole value rested on it.
   - id: coffee-day-yourself-2015
     title: "The price of Coffee Day's IPO, in rupees, October 2015"
@@ -55,8 +55,8 @@ cases:
       price, which buyers pay before the shares first trade. In the year to March 2021 its revenue was Rs 1,994 crore,
       down from Rs 2,605 crore the year before, and it lost Rs 816 crore.
       The offer closed on 16 July with bids for many times the shares on offer. Today Aswath Damodaran values it (he
-      publishes his story tomorrow), betting on a big market and a platform: about Rs 16,600 crore of sales in ten
-      years, keeping 35% of each sale. Value levers opens on his story, for you to judge lever by lever.
+      publishes his story tomorrow), betting on a big market and a platform: his spreadsheet has about Rs 16,600 crore
+      of sales in ten years, keeping 35% of each sale. Value levers opens on his story, for you to judge lever by lever.
     reveal: >
       Damodaran's story came to Rs 40.79 a share, about Rs 41, against the Rs 76 offer price. Zomato listed on 23 July
       2021 at Rs 115 on the BSE and closed at Rs 125.85, up 65.6%. It reached Rs 169 in November 2021. In July 2022,
@@ -136,6 +136,14 @@ explore:
       caseStory: "The story it opens on"
       mode:
         kind: match_price
+        # A cast that reacts as the story being judged moves against the price (Spine critics round 1 on #96).
+        scene:
+          cast:
+            - { icon: person, name: "You" }
+            - { icon: chart-increasing, name: "The market" }
+          below: "The market: buyers paid more than this story is worth. Which lever do they see higher?"
+          near: "You: this story lands near the price. Which lever would I still doubt?"
+          above: "The market: this story is worth more than buyers paid. Which lever do they doubt?"
         cases:
           - { id: amazon-yourself-2000, label: "Amazon, Feb 2000" }
           - { id: coffee-day-yourself-2015, label: "Coffee Day, Oct 2015" }
