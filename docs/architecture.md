@@ -107,7 +107,7 @@ Section 6 explains each step.
 
 ### 5.1 Public site (Signal)
 
-A signed-out visitor can read these pages: Home (`/`), How it works (`/how-it-works`), Examples (`/examples`), the five Example pages (`/examples/<slug>`) and About (`/about`). The files are in `src/app/(site)/`. One data file, `src/site/examples.ts`, lists the five Examples. The proxy, the pages and Home all read it, so they always agree. The proxy also lets a signed-out visitor open `/join`, `/sign-in` and `/sign-up`.
+A signed-out visitor can read these pages: Home (`/`), How it works (`/how-it-works`), Examples (`/examples`), the five Example pages (`/examples/<slug>`), About (`/about`), Privacy (`/privacy`) and Terms (`/terms`). The files are in `src/app/(site)/`. One data file, `src/site/examples.ts`, lists the five Examples. One route list, `src/site/routes.ts`, names every public page and file: the proxy, the no-store headers, the sitemap and the browser tests all read it, so they always agree. The proxy also lets a signed-out visitor open `/join`, `/sign-in` and `/sign-up`, the share cards, the icons, `robots.txt` and `sitemap.xml`. Any other unknown path outside the signed-in pages gets the 404 page (`src/app/not-found.tsx`).
 
 Each Example shows one Signal widget: Jackpot, Four levers, Compounding, Rates or WeWork.
 
@@ -115,7 +115,7 @@ Each Example shows one Signal widget: Jackpot, Four levers, Compounding, Rates o
 - Its numbers come from tested models in `src/finance/signal/`. Four levers runs on the one valuation engine, `src/finance/dcf-engine.ts` ([ADR 0010](adr/0010-one-valuation-engine.md)).
 - No Tutor runs on the public pages. The "Call" in a widget starts a Tutor turn only in the Study Workspace ([ADR 0012](adr/0012-only-the-call-starts-a-turn.md)).
 
-The whole app has one Light theme, in the Signal colour language: five colours and one pattern, and each has one meaning ([ADR 0015](adr/0015-one-light-theme-colour-language.md)). The tokens are in `src/app/globals.css`. Controls are flat, sections use hairlines, and pictures are line icons ([ADR 0018](adr/0018-flat-controls-hairlines-line-icons.md)). The spec is [`docs/specs/value-it-signal-spec.md`](specs/value-it-signal-spec.md).
+The whole app has two themes, Light and Dark, both in the Signal colour language: five colours and one pattern, and each has one meaning ([ADR 0015](adr/0015-one-light-theme-colour-language.md), [ADR 0019](adr/0019-light-and-dark-device-first.md)). A first visit follows the device; a switch in the site nav flips the theme and keeps the choice in a cookie. The tokens of both themes are in `src/app/globals.css`, and `scripts/check-theme-contrast.mjs` measures both. Controls are flat, sections use hairlines, and pictures are line icons ([ADR 0018](adr/0018-flat-controls-hairlines-line-icons.md)). The spec is [`docs/specs/value-it-signal-spec.md`](specs/value-it-signal-spec.md).
 
 The site's join button opens `/join`, which shows Clerk's Waitlist (section 5.4).
 
