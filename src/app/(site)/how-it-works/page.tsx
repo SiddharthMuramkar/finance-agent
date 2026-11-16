@@ -3,6 +3,7 @@ import { pageMetadata } from "@/app/site-metadata";
 import { COURSE, home, howItWorks } from "@/site/copy";
 import { exampleBySlug } from "@/site/examples";
 import { Rich } from "@/site/rich";
+import { courseStats } from "@/site/stats";
 import { siteViewer } from "@/site/viewer";
 import { ColourLanguage } from "../colour-language";
 import { CtaNote, PrimaryCta } from "../cta";
@@ -16,13 +17,9 @@ import { HowMoves } from "./moves";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = pageMetadata({
-  title: "How it works",
-  description: "Every Topic is one real event, taught in four moves, in 10 to 15 minutes.",
-  path: "/how-it-works",
-});
+export const metadata: Metadata = pageMetadata({ title: "How it works", description: howItWorks.description(courseStats()), path: "/how-it-works" });
 
-const RATES = exampleBySlug("rates-up-1")!;
+const RATES = exampleBySlug("rbi-repo-cut-2025")!;
 
 /** The annotated Study Workspace mock (7.3 item 3): chat left, a widget right, the 15-step bar and four callouts. */
 function WorkspaceMock() {
@@ -112,6 +109,7 @@ function ReviewsIllustration() {
 
 export default async function HowItWorksPage() {
   const viewer = await siteViewer();
+  const course = courseStats();
   return (
     <div data-page="how-it-works">
       <header className="v-wrap v-section tight v-stack">
@@ -120,7 +118,7 @@ export default async function HowItWorksPage() {
           {howItWorks.h1}
         </h1>
         <p className="v-lede">
-          <Rich>{howItWorks.lede}</Rich>
+          <Rich>{howItWorks.lede(course)}</Rich>
         </p>
       </header>
 
@@ -149,33 +147,33 @@ export default async function HowItWorksPage() {
           <SectionHead eyebrow={howItWorks.path.eyebrow} title={howItWorks.path.h2} id="path-h" />
           <div className="v-path">
             <div className="v-stack">
-              <h3 className="v-h3">{howItWorks.path.core}</h3>
+              <h3 className="v-h3">{howItWorks.path.core(course)}</h3>
               <ol className="v-core">
-                {COURSE.core.map((topic) => (
+                {course.spine.map((topic) => (
                   <li key={topic.n}>
-                    <span className="n">{topic.n}</span>
+                    <span className="n">{howItWorks.path.number(topic.n)}</span>
                     <span>{topic.title}</span>
-                    <span className="min">{howItWorks.path.minutes(topic.min)}</span>
+                    {topic.minutes !== undefined && <span className="min">{howItWorks.path.minutes(topic.minutes)}</span>}
                   </li>
                 ))}
               </ol>
             </div>
             <div className="v-stack">
-              <h3 className="v-h3">{howItWorks.path.subjects}</h3>
+              <h3 className="v-h3">{howItWorks.path.subjects(course)}</h3>
               <ul className="v-counts">
-                {COURSE.subjects.map((subject) => (
+                {course.bySubject.map((subject) => (
                   <li key={subject.name}>
                     <span>{subject.name}</span>
                     <span className="tabular">{subject.count}</span>
                   </li>
                 ))}
               </ul>
-              <h3 className="v-h3">{howItWorks.path.stages}</h3>
+              <h3 className="v-h3">{howItWorks.path.stages(course)}</h3>
               <ul className="v-counts">
-                {COURSE.stages.map((stage) => (
-                  <li key={stage.name}>
+                {course.byStage.map((stage) => (
+                  <li key={stage.stage}>
                     <span>
-                      <strong>{stage.name}</strong>, {stage.line}
+                      <strong>{COURSE.stages[stage.stage].name}</strong>, {COURSE.stages[stage.stage].line}
                     </span>
                     <span className="tabular">{stage.count}</span>
                   </li>

@@ -10,7 +10,6 @@ import { E2E_PERSON_COOKIE, e2ePersonToken } from "@/dev/e2e-identity";
 import { testDb } from "@/test/pglite";
 import nextConfig from "../next.config";
 import { MATRIX_PAGES } from "@/dev/preview-matrix";
-import { EXAMPLE_SLUGS, examplePath } from "@/site/examples";
 import { AUTH_ROOTS, NO_STORE_SOURCES, PUBLIC_FILES, PUBLIC_PAGES, SIGNED_IN_ROOTS, SITE_PAGES, SITE_PAGES_ONE_CASE } from "@/site/routes";
 
 let db: Db;
@@ -91,7 +90,7 @@ describe("The signed-out gate", () => {
 
   // Decision #7: the Signal site's pages are public, matched exactly; the case pages come from the shared examples list.
   it("lets a signed-out visitor read How it works, Examples and each of the five case pages", async () => {
-    const paths = ["/how-it-works", "/examples", ...EXAMPLE_SLUGS.map(examplePath)];
+    const paths = ["/how-it-works", "/examples", ...["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"].map((s) => `/examples/${s}`)];
     for (const path of paths) {
       expect(allowed(await proxy(request(path))), path).toBe(true);
       expect(allowed(await proxy(request(path, { method: "HEAD" }))), `HEAD ${path}`).toBe(true);

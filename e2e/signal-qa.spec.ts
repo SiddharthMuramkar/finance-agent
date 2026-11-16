@@ -57,6 +57,26 @@ test("[QA 19, 20, 21] the Amazon case: locked at step 2, a lever move opens the 
   await expect(progress.locator(".n svg")).toHaveCount(4);
 });
 
+/** #116: the jackpot and rates Examples are dated Indian Moments in rupees, and the ending names each Source with its link. */
+test("[#116] the jackpot and rates Examples show a dated Indian Moment with linked Sources", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  for (const { slug, date, figure, host, asOf } of [
+    { slug: "kerala-bumper-2024", date: "9 October 2024.", figure: "₹25 crore", host: "www.thehindu.com", asOf: "As of 9 Oct 2024." },
+    { slug: "rbi-repo-cut-2025", date: "6 June 2025.", figure: "5.5%", host: "www.rbi.org.in", asOf: "As of 6 Jun 2025." },
+  ]) {
+    await page.goto(examplePath(slug));
+    await siteReady(page);
+    await expect(page.locator("main")).toContainText(date);
+    await expect(page.locator("main")).toContainText(figure);
+    await page.getByRole("button", { name: "Skip to the ending" }).click();
+    const reveal = page.getByTestId("case-reveal");
+    await expect(reveal).toContainText(asOf);
+    const link = reveal.locator(`a[href^="https://${host}/"]`);
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute("rel", /noopener/);
+  }
+});
+
 /** QA row 24: no console error and no sideways scroll on any route, at the two sizes the row names. */
 test("[QA 24] every route at 1440 × 900 and 390 × 844 has no console error and no sideways scroll", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "both sizes are set here");
@@ -93,10 +113,10 @@ test("[QA 26] chips, sliders, levers, presets, toggles and reveals work from the
   test.setTimeout(120_000);
 
   // A chip and a slider (rates), and a reveal.
-  await page.goto("/examples/rates-up-1");
+  await page.goto("/examples/rbi-repo-cut-2025");
   await siteReady(page);
   const rates = page.getByTestId("case-widget");
-  const chip = rates.getByRole("button", { name: "Up 1%" });
+  const chip = rates.getByRole("button", { name: "Down 0.5%" });
   await tabTo(page, chip);
   await page.keyboard.press("Space");
   await expect(chip).toHaveClass(/is-careful/);

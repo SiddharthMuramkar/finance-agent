@@ -19,7 +19,7 @@ export const metadata: Metadata = pageMetadata({ title: about.title, description
 
 export default async function AboutPage() {
   const viewer = await siteViewer();
-  const { topics } = courseStats();
+  const course = courseStats();
   return (
     <div data-page="about">
       <header className="v-wrap v-about-head">
@@ -34,7 +34,7 @@ export default async function AboutPage() {
             {about.glance.title}
           </h2>
           <dl>
-            {about.glance.rows(topics).map((row) => (
+            {about.glance.rows(course).map((row) => (
               <div key={row.label}>
                 <dt>{row.label}</dt>
                 <dd>{row.value}</dd>
@@ -82,9 +82,9 @@ export default async function AboutPage() {
 
       <section className="v-section tight" aria-labelledby="learn-h">
         <div className="v-wrap v-stack">
-          <SectionHead title={about.learnH2} body={about.learnBody} id="learn-h" />
+          <SectionHead title={about.learnH2} body={about.learnBody(course)} id="learn-h" />
           <ul className="v-tags" aria-label="Subjects">
-            {COURSE.subjects.map((subject) => (
+            {course.bySubject.map((subject) => (
               <li key={subject.name}>
                 <Pill tone="plain">
                   {subject.name} · {subject.count}
@@ -93,10 +93,10 @@ export default async function AboutPage() {
             ))}
           </ul>
           <ul className="v-tags" aria-label="Stages that read real arguments">
-            {COURSE.stages.map((stage) => (
-              <li key={stage.name}>
+            {course.byStage.map((stage) => (
+              <li key={stage.stage}>
                 <Pill tone="blue">
-                  {stage.name} · {stage.count}
+                  {COURSE.stages[stage.stage].name} · {stage.count}
                 </Pill>
               </li>
             ))}
