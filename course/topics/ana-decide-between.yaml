@@ -155,7 +155,7 @@ questions:
       - { id: d, text: "150 times is always the correct figure because adjusted earnings are cleaner", mistake: { tag: adjusted-always-right, fix: "Adjusted earnings are the company's choice; ask what was left out and why." } }
     answer: b
     explanation: >
-      60 / 0.50 = 120 and 60 / 0.40 = 150. Both are correct arithmetic on different definitions of earnings. A reader asks which earnings were used, and why the writer chose them, before comparing two multiples.
+      $60 divided by $0.50 gives 120, and $60 divided by $0.40 gives 150. Both are correct arithmetic on different definitions of earnings. A reader asks which earnings were used, and why the writer chose them, before comparing two multiples.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios (P/E is market price divided by earnings per share, on trailing or forward earnings): https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
 
