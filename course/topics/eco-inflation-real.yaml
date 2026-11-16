@@ -29,7 +29,7 @@ cases:
 concept: >
   Inflation is the yearly rise in the general price level. A nominal interest rate is the rate in rupees;
   the real interest rate is the rate after inflation, roughly the nominal rate minus inflation. The exact
-  link is (1 + nominal) / (1 + inflation) - 1. When inflation is above the nominal rate, the real rate is
+  link: add 1 to the nominal rate, divide by 1 plus inflation, and take 1 away. When inflation is above the nominal rate, the real rate is
   negative: lenders and savers lose purchasing power, and borrowers gain. The same idea applies to growth:
   real growth is roughly nominal growth minus inflation. Headline inflation includes food and fuel; core
   inflation leaves them out because their prices swing with weather and world markets, so central banks
@@ -38,6 +38,10 @@ concept: >
 principle: >
   Never judge a return, a rate or a loan by its headline figure alone. Subtract inflation first, because
   what you can buy later, not how many rupees you hold, is what counts.
+
+goDeeper: >
+  Written as a sum, the exact link is real rate = (1 + nominal) / (1 + inflation) - 1. With a nominal
+  rate of 10% and inflation of 6%, that is 1.10 / 1.06 - 1, about 3.8%, a little less than the rough 4%.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:

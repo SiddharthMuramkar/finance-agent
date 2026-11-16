@@ -46,8 +46,8 @@ concept: >
   price fixed today; nothing is paid until that date. A futures contract is the same promise
   made standard and traded on an exchange: both sides post margin, and the contract is marked to
   market, meaning gains and losses are settled in cash every day. With no income or storage
-  costs, the fair forward price is the spot price grown at the interest rate: F = S x (1 + r)^T.
-  When storage and convenience matter, the futures price can sit above spot (contango) or below
+  costs, the fair forward price is the spot price grown at the interest rate: start from today's
+  spot price and grow it by the interest rate once for each year until delivery. When storage and convenience matter, the futures price can sit above spot (contango) or below
   it (backwardation). A company that must sell later hedges by selling forward or futures; one
   that must buy later hedges by buying. A hedge held in short-dated futures must be rolled as
   each contract expires, so the roll cost, the mismatch in timing, and the cash needed for daily
@@ -63,6 +63,10 @@ youllLearn:
   - "Tell a private forward from an exchange-traded future that settles every day."
   - "See how a forward price follows from the spot price and the interest rate."
   - "Ask what a hedge costs to keep and whether you can fund its daily cash calls."
+
+goDeeper: >
+  The typed formula is F = S x (1 + r)^T. F is the fair forward price, S is today's spot price, r is
+  the yearly interest rate, and T is the number of years until delivery.
 
 questions:
   - id: fw-q-fair-forward

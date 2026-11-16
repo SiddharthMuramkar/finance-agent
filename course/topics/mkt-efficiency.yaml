@@ -104,7 +104,7 @@ questions:
       - { id: d, text: "It shows the manager will beat the market again next year", mistake: { tag: streak_predicts, fix: "A lucky past gives no promise about next year; each year is a fresh draw." } }
     answer: a
     explanation: >
-      The chance of three wins in a row by luck is 0.5 x 0.5 x 0.5 = 0.125, so about 125 of 1,000 managers would do it. A streak among many managers is therefore not by itself proof of skill, which is why a track record has to be judged against the number of managers who tried.
+      The chance of one win by luck is a half. For three wins in a row, halve it three times: one in eight, about 125 in 1,000, so about 125 of 1,000 managers would do it. A streak among many managers is therefore not by itself proof of skill, which is why a track record has to be judged against the number of managers who tried.
     source: >
       Own arithmetic on the binomial probability of independent events; the efficient-market reading follows OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
 
