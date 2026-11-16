@@ -16,6 +16,9 @@
  *
  * A third (ONLY=topic-carry-over) asks "what were we just talking about?" in a fresh Topic after a
  * conversation in Present value, and checks by code that the answer names nothing of that Topic.
+ *
+ * A fourth (ONLY=assignment-names-flagged-input) saves an Own Case with a 45% food margin and asks the Assignment Tutor
+ * about it; code checks that the Tutor's own reply names the flagged operating margin (assignment-flag.ts, review G39).
  */
 import OpenAI from "openai";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -28,7 +31,9 @@ import type { Db } from "@/db/types";
 import { saveJump } from "@/learner/memory";
 import { saveProfile } from "@/learner/profile";
 import { freshToolsLearner } from "@/dev/tools-learner";
+import { runAssignmentTurn } from "@/tutor/assignment-turn";
 import { askModel } from "./ask-model";
+import { ASSIGNMENT_FLAG_ID, ASSIGNMENT_FLAG_QUESTION, gradeAssignmentFlag, prepareAssignmentLearner } from "./assignment-flag";
 import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
 import { tutorClient } from "@/tutor/tutor-client";
@@ -285,5 +290,42 @@ it(
     console.log(record);
     expect(whole, graded.grade.reasons).toBe(true);
     expect(graded.grade.verdict, graded.grade.reasons).toBe("pass");
+  },
+);
+
+/**
+ * The Assignment Tutor names a flagged input (#110, review G39), against the real model: the Own Case's 45% food margin is
+ * more than double its industry's figure, and the Tutor's own reply (not code's fallback line) must name the operating
+ * margin, ask what story it assumes and hold no verdict or advice word. Graded by code (assignment-flag.ts).
+ */
+it(
+  "the Assignment Tutor names the flagged input of the Learner's Own Case",
+  {
+    timeout: 600_000,
+    skip: Boolean((process.env.ONLY && !process.env.ONLY.split(",").includes(ASSIGNMENT_FLAG_ID)) || process.env.RULE),
+  },
+  async () => {
+    const db = await testDb();
+    const { id: learnerId } = await freshToolsLearner(db);
+    await prepareAssignmentLearner(db, map, learnerId);
+    const result = await runAssignmentTurn({ db, client: modelClient, learnerId, map, admin: true }, ASSIGNMENT_FLAG_QUESTION);
+    const graded = gradeAssignmentFlag(result);
+    const record = [
+      `# The Assignment Tutor names a flagged input, ${new Date().toISOString()}`,
+      "",
+      `${graded.verdict.toUpperCase()}: ${graded.reasons}`,
+      `Tutor (${TUTOR_MODEL}). Instruction fingerprint: ${fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS)}.`,
+      "",
+      `Learner: ${ASSIGNMENT_FLAG_QUESTION}`,
+      "",
+      "Tutor:",
+      "",
+      ...(result.ok ? result.reply : `[${result.status}] ${result.error}`).split("\n").map((l) => `> ${l}`),
+      "",
+    ].join("\n");
+    mkdirSync(OUT, { recursive: true });
+    writeFileSync(join(OUT, `${ASSIGNMENT_FLAG_ID}-${new Date().toISOString().replace(/[:.]/g, "-")}.md`), record);
+    console.log(record);
+    expect(graded.verdict, graded.reasons).toBe("pass");
   },
 );
