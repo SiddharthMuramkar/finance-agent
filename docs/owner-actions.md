@@ -196,7 +196,7 @@ Ask 4 questions:
 
 **Why.** Decision #8, option B. The Library dump must be in 2 places. The VPS is one place. If the VPS is lost, the laptop copy stays. Never put a dump in git: the Damodaran blog text is stored for private search only.
 
-**When.** Now: `copy2` holds 2 dumps from 2026-11-15. Then after each backup run: after each Library load, and once a month. The Library load of 2026-11-16 needs a new dump first (`scripts/backup-drill.sh --redump`, a follow-up that `prod-load.sh` prints at its end). Ask the agent if it ran. Then copy again.
+**When.** Now: `copy2` holds the dump made after the Library load, `library-20261116-020254.dump` (152 MB, 2026-11-16, `scripts/backup-drill.sh --redump`), and the 2 dumps from 2026-11-15. Then after each backup run: after each Library load, and once a month.
 
 **How.** On the VPS, the dumps are in `/root/backups/`. The subfolder `/root/backups/copy2/` holds every dump again, each with its checksum file (`.dump.sha256`). Copy only `copy2`. On the laptop (`vps` is your SSH name for the VPS):
 
