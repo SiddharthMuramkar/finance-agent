@@ -3,7 +3,7 @@ import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadNotebook } from "@/learner/notebook";
 import { currentAccount } from "../account";
-import { ReadingPage, SignedInFrame } from "../ui";
+import { ReadingPage } from "../ui";
 import { NotebookView } from "./notebook-view";
 
 // Built from saved records and the Topic files on every visit. No model call.
@@ -15,10 +15,8 @@ export default async function NotebookPage({ searchParams }: { searchParams: Pro
   const learner = await signedInLearner();
   const notebook = await loadNotebook(getDb(), loadCourseMap(), learner.id, { all });
   return (
-    <SignedInFrame>
-      <ReadingPage current="notebook" account={await currentAccount()}>
-        <NotebookView notebook={notebook} showAll={all} />
-      </ReadingPage>
-    </SignedInFrame>
+    <ReadingPage current="notebook" account={await currentAccount()}>
+      <NotebookView notebook={notebook} showAll={all} />
+    </ReadingPage>
   );
 }

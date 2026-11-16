@@ -15,7 +15,7 @@ import { OldSession } from "../../old-session";
 import { PastSessionHeaderView } from "../../past-sessions";
 import { currentAccount } from "../../account";
 import { readSplit } from "../../split-cookie";
-import { AppHeader, SignedInFrame } from "../../ui";
+import { AppHeader } from "../../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -45,12 +45,10 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const states = header.kind !== "older" ? await loadWidgetStates(db, id, learnerId) : {};
   const drawn = lines.map((line) => (line.role === "item" && line.kind === TOPIC_COMPLETE ? { ...line, data: { ...line.data, found: cardFound(map, line.data.topicId, states) } } : line));
   return (
-    <SignedInFrame>
-      <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col gap-3 pb-4">
-        <AppHeader current="notebook" account={await currentAccount()} />
-        <PastSessionHeaderView header={header} />
-        <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind !== "older"} revealed={revealedCases(map, progress)} referenceClip={referenceClip(map, progress)} developerDetails={learner.showDeveloperDetails} split={split} />
-      </main>
-    </SignedInFrame>
+    <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col gap-3 pb-4">
+      <AppHeader current="notebook" account={await currentAccount()} />
+      <PastSessionHeaderView header={header} />
+      <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind !== "older"} revealed={revealedCases(map, progress)} referenceClip={referenceClip(map, progress)} developerDetails={learner.showDeveloperDetails} split={split} />
+    </main>
   );
 }

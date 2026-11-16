@@ -5,7 +5,7 @@ export default function Loading() {
     <ReadingSkeleton current="notebook">
       <SkeletonBlock className="h-[34px] w-1/4" />
       <SkeletonLines count={2} />
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(420px,1fr))] gap-[var(--gap)]">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(420px,100%),1fr))] gap-[var(--gap)]">
         {Array.from({ length: 3 }, (_, i) => (
           <SkeletonBlock key={i} className="h-48 w-full" />
         ))}
