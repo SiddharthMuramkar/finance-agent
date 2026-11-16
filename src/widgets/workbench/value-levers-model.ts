@@ -1,6 +1,7 @@
 import { FORECAST_YEARS, type DcfResult } from "@/finance/dcf-engine";
 import { applyLevers, priceWord, returnOnNewCapital, type Levers, type ValuationBlock } from "@/finance/valuation-case";
-import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
+import { valuationCaseIds } from "@/finance/valuation-cases";
+import { findValuation, type OwnCases } from "@/finance/valuation-lookup";
 import { near, niceUp, oneFigure, onStep, type BenchLever, type BenchReading } from "./bench";
 import { topicStorySchema, valueLeversModeSchema, type Market, type TopicStory, type ValueLeversMode } from "./data-schemas";
 
@@ -713,14 +714,14 @@ export type ValueLeversData = { block: ValuationBlock; mode?: ValueLeversMode; c
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
-/** A ValueLevers part's data from its literal props, or a sentence saying what is wrong. */
-export function valueLeversData(props: Record<string, unknown>): { data: ValueLeversData } | { problem: string } {
+/** A ValueLevers part's data from its literal props, or a sentence saying what is wrong. Its Case is a course Case, else one of the Learner's Own Cases when given. */
+export function valueLeversData(props: Record<string, unknown>, ownCases?: OwnCases | null): { data: ValueLeversData } | { problem: string } {
   // In all open mode with a Case chip (Spine Topic 15) the Learner's pick, `caseChoice`, decides which Case is valued, so
   // what the Tutor is told matches the Widget on screen rather than the Case the program was compiled with.
   const pickable = caseListOf(props.mode);
   const picked = typeof props.caseChoice === "number" && Number.isFinite(props.caseChoice) && pickable.length > 0;
   const caseId = picked ? pickable[Math.min(pickable.length - 1, Math.max(0, Math.round(props.caseChoice as number)))].id : props.caseId;
-  const block = typeof caseId === "string" ? valuationCase(caseId) : null;
+  const block = typeof caseId === "string" ? findValuation(caseId, ownCases) : null;
   if (!block) return { problem: `${typeof props.caseId === "string" ? `"${props.caseId}"` : "This part"} is not a Valuation Case. Cases: ${valuationCaseIds().join(", ")}.` };
   let mode: ValueLeversMode | undefined;
   if (props.mode !== undefined && props.mode !== null) {
