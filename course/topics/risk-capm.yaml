@@ -23,7 +23,7 @@ cases:
       1.0. He chooses 1.60 for the first five years, fading to 1.00 by year ten as the company matures. Which beta
       would you use for the cost of equity, and why does the choice matter to the value?
     reveal: >
-      Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00).
+      Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (the 6.5% riskfree rate plus 1.60 times a 4% premium), falling to 10.50% by year ten (beta 1.00).
       The regression beta of 2.29 would have implied 15.66%. Combined with forecasts of rapid revenue growth and rising margins,
       his cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, well under the $84 market
       price. The shares did not fall in a straight line. Amazon's 10-K shows a first-quarter 2000 high of $91.50, but then quarterly lows of

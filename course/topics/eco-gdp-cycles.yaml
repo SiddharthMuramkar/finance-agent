@@ -73,7 +73,7 @@ questions:
       - { id: d, text: "Wages, rent, interest and profit added together", mistake: { tag: used_income_approach, fix: "That is the income approach; the spending approach adds up what is bought." } }
     answer: a
     explanation: >
-      GDP by spending is C + I + G + (X - M): what households, firms and government buy, plus what foreigners buy from us, less what we buy from abroad. Imports come out because they are not made at home.
+      GDP by spending adds up what households, firms and government buy, plus what foreigners buy from us, less what we buy from abroad. Imports come out because they are not made at home.
     source: >
       OpenStax, Principles of Macroeconomics 2e (CC BY 4.0), 6.1 Measuring the Size of the Economy: Gross Domestic Product: https://openstax.org/books/principles-macroeconomics-2e/pages/6-1-measuring-the-size-of-the-economy-gross-domestic-product
   - id: gdp-q-recession
