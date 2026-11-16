@@ -138,6 +138,33 @@ describe("Cash waterfall (Spine Topic 3)", () => {
     await draw("cash-waterfall-company");
     expect(text("cash-waterfall-headline")).toMatch(/^Free cash flow next year: -\$55\d\.\dm$/);
   });
+
+  // Spine critics round 1 on #89: Spine Topic 3's bench names its years, says what it makes up, keeps sales for each
+  // dollar invested under More settings, and has Webvan's van in a scene whose line reacts to growth.
+  it("draws Spine Topic 3's what-if bench: named years, the what-if line, a reacting scene, one lever under More settings", async () => {
+    const company = fixture("cash-waterfall-company")
+      .replace("margin: -179.2, salesToCapital: 0.7}", 'margin: 4, salesToCapital: 0.7}, years: {from: "1999", to: "2000"}, whatIf: "A what-if: Webvan really lost money on most sales.", icon: "delivery-truck"')
+      .replace("$margin = -179.2", "$margin = 4");
+    expect(company).toContain('icon: "delivery-truck"');
+    await act(async () => {
+      root.render(
+        <SavedTicksContext.Provider value={{ ticked: [], onTicked: () => {} }}>
+          <WidgetView code={company} complete />
+        </SavedTicksContext.Provider>,
+      );
+    });
+    await settle();
+    expect(text("cash-waterfall-headline")).toMatch(/^Free cash flow in 2000: /);
+    expect(text("cash-waterfall-what-if")).toBe("A what-if: Webvan really lost money on most sales.");
+    expect(host.textContent).toContain("1999 sales: $13.3m");
+    expect(host.textContent).toContain("13.4 times");
+    expect(host.textContent).not.toMatch(/next year|This year/);
+    expect(host.querySelector('[data-testid="cash-waterfall-more"] input[aria-label="Sales for each dollar invested"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="cash-waterfall-scene"]')?.getAttribute("data-mood")).toBe("building");
+    setRange(lever("Sales growth, 1999 to 2000"), 0);
+    await settle();
+    expect(host.querySelector('[data-testid="cash-waterfall-scene"]')?.getAttribute("data-mood")).toBe("still");
+  });
 });
 
 describe("Multiple decoder (Spine Topic 12)", () => {

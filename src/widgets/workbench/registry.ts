@@ -177,7 +177,18 @@ export function cashWaterfallData(base: unknown): { data: CashWaterfallData } | 
   const company = companyYearSchema.safeParse(record.company);
   if (!company.success) return { problem: `base: a Valuation Case ({caseId}) or a company ({company}) is needed; ${issues(company.error)}` };
   const c = company.data;
-  return { data: { money: { currency: c.currency, unit: c.unit }, lastRevenue: c.revenue, taxPercent: c.taxPercent, lossesCarried: c.lossesCarried ?? 0, opening: c.opening } };
+  return {
+    data: {
+      money: { currency: c.currency, unit: c.unit },
+      lastRevenue: c.revenue,
+      taxPercent: c.taxPercent,
+      lossesCarried: c.lossesCarried ?? 0,
+      opening: c.opening,
+      ...(c.years ? { name: c.name, years: c.years } : {}),
+      ...(c.whatIf ? { whatIf: c.whatIf } : {}),
+      ...(c.icon ? { name: c.name, icon: c.icon } : {}),
+    },
+  };
 }
 
 const cashWaterfall = entry<CashWaterfallData, string>({
