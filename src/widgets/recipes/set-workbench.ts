@@ -3,6 +3,7 @@ import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
 import { WORKBENCH_BUDGET } from "../check";
 import { cashWaterfallLevers } from "../workbench/cash-waterfall-model";
 import { companyYearSchema, costOfCapitalFiguresSchema, marketReadingIdsSchema, decoderAssumptionsSchema, decoderFiguresSchema, decoderOpeningSchema, leasesSchema, sourceSchema, tradedMultipleSchema, modeCases, valueLeversModeSchema, type ValueLeversMode } from "../workbench/data-schemas";
+import { ROW_IDS, ROW_VARIABLES } from "../workbench/full-sheet";
 import { multipleDecoderLevers } from "../workbench/multiple-decoder-model";
 import { cashWaterfallData, multipleDecoderData, terminalSeesawData, valueBridgeData, waccStackData } from "../workbench/registry";
 import { terminalSeesawLevers } from "../workbench/terminal-seesaw-model";
@@ -206,10 +207,12 @@ export const valueLevers = defineRecipe({
       ...LEVER_IDS.map((id) => `$${LEVER_VARIABLES[id]}`),
       ...moves.map((v) => `$${v}`),
       str(inputs.caseStory ?? "The Case's story"),
-      ...(inputs.priceStory || mode || readings ? [inputs.priceStory ? obj(inputs.priceStory as Record<string, number>) : "null"] : []),
-      ...(mode || readings ? [mode ? lit(mode) : "null"] : []),
-      ...(market || picker || readings ? [market ? `$${MARKET_VARIABLE}` : "0"] : []),
-      ...(picker || readings ? [picker ? `$${CASE_VARIABLE}` : "0"] : []),
+      // Every slot is filled, so the Full sheet's rows (#104) keep their places; Market readings (#105), when given, come last.
+      inputs.priceStory ? obj(inputs.priceStory as Record<string, number>) : "null",
+      mode ? lit(mode) : "null",
+      market ? `$${MARKET_VARIABLE}` : "0",
+      picker ? `$${CASE_VARIABLE}` : "0",
+      ...ROW_IDS.map((id) => `$${ROW_VARIABLES[id]}`),
       ...(readings ? [lit(readings)] : []),
     ];
     return program(title, ["levers"], [
@@ -217,6 +220,7 @@ export const valueLevers = defineRecipe({
       ...moves.map((v) => `$${v} = 0`),
       ...(market ? [`$${MARKET_VARIABLE} = 0`] : []),
       ...(picker ? [`$${CASE_VARIABLE} = ${casePlace(inputs.case, mode)}`] : []),
+      ...ROW_IDS.map((id) => `$${ROW_VARIABLES[id]} = 0`),
       `levers = ValueLevers(${args.join(", ")})`,
     ]);
   },

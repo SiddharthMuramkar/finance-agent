@@ -8,7 +8,7 @@ import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
 import { MarketReadingsView } from "../market-readings-view";
 import { SliderControl } from "../slider-control";
-import { fullSheet } from "./full-sheet";
+import { fullSheet, NO_ROW_CHANGES, rowSpecs, withRows, type RowId, type RowSettings } from "./full-sheet";
 import {
   AFTER_YEAR_10_LABEL,
   CASH_FLOW_CAPTION,
@@ -76,6 +76,9 @@ export type ValueLeversViewProps = {
   onChooseCase?: (index: number) => void;
   /** Market readings shown beside the levers, by id (ticket #105), each with its month, credit and link. */
   readings?: readonly string[];
+  /** Each Full sheet row's change from the Case's figure (full-sheet.ts); with onRowsChange, the caller keeps them. None changed when left out. */
+  rows?: RowSettings;
+  onRowsChange?: (rows: RowSettings) => void;
 };
 
 export function ValueLeversView({
@@ -100,6 +103,8 @@ export function ValueLeversView({
   caseChoice = 0,
   onChooseCase,
   readings = [],
+  rows: givenRows,
+  onRowsChange,
 }: ValueLeversViewProps) {
   const specs = useMemo(() => leverSpecs(block, mode), [block, mode]);
   const [ownLevers, setOwnLevers] = useState<LeverSettings>(() => levers ?? openingSettings(specs));
@@ -108,12 +113,16 @@ export function ValueLeversView({
   const settings = onLeversChange && levers ? levers : ownLevers;
   const moves = onMovesChange && givenMoves ? givenMoves : ownMoves;
   const market = onMarketChange && givenMarket !== undefined ? givenMarket : ownMarket;
+  const [ownRows, setOwnRows] = useState<RowSettings>(() => givenRows ?? NO_ROW_CHANGES);
+  const rows = onRowsChange && givenRows ? givenRows : ownRows;
+  // The Case with any Full sheet row changed: what the engine values, so the headline follows a row as it follows a Lever.
+  const valued = useMemo(() => withRows(block, rows), [block, rows]);
   const run = useRef<MoveRun>(NO_RUN);
   // The Learner has moved a lever here (not just opened at saved settings).
   const [touched, setTouched] = useState(false);
   // The save's outcome for the story on screen: cleared when a lever moves, so "Saved" never sits beside a changed story.
   const [saved, setSaved] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const model = valueLeversModel(block, specs, settings, mode, market);
+  const model = valueLeversModel(valued, specs, settings, mode, market);
 
   const setLevers = (next: LeverSettings) => {
     setOwnLevers(next);
@@ -127,7 +136,7 @@ export function ValueLeversView({
     if (value === settings[id]) return;
     setSaved("idle");
     const next = { ...settings, [id]: value };
-    const recorded = recordMove(moves, run.current, id, model.value, valueLeversModel(block, specs, next, mode, market).value);
+    const recorded = recordMove(moves, run.current, id, model.value, valueLeversModel(valued, specs, next, mode, market).value);
     run.current = recorded.run;
     setLevers(next);
     if (recorded.moves !== moves) setMoves(recorded.moves);
@@ -135,6 +144,13 @@ export function ValueLeversView({
       setTouched(true);
       onFirstLeverMove?.();
     }
+  };
+  const changeRow = (id: RowId, change: number) => {
+    if (change === rows[id]) return;
+    setSaved("idle");
+    const next = { ...rows, [id]: change };
+    setOwnRows(next);
+    onRowsChange?.(next);
   };
   const setMarket = (next: number) => {
     setOwnMarket(next);
@@ -284,7 +300,7 @@ export function ValueLeversView({
           {more.map((s) => control(s.id))}
         </details>
       )}
-      <FullSheetDisclosure block={block} specs={specs} settings={settings} mode={mode} market={market} />
+      <FullSheetDisclosure block={block} valued={valued} specs={specs} settings={settings} mode={mode} market={market} rows={rows} onRowChange={changeRow} />
       <CashFlowBars bars={model.cashFlows} />
       {mode?.kind === "all_open" && onSaveStory && (
         <div className="mt-2 flex items-center gap-3">
@@ -313,12 +329,32 @@ export function ValueLeversView({
 }
 
 /**
- * Go deeper: the Full sheet, every input of the valuation on screen in plain words, read-only. Its rows are worked out only
- * once it is opened, and a closed Go deeper adds nothing to the Workbench at rest.
+ * Go deeper: the Full sheet, every input of the valuation on screen in plain words. Its rows are worked out only once it is
+ * opened, and a closed Go deeper adds nothing to the Workbench at rest. A row the Levers do not set has its own slider
+ * (ADR 0020: a tap or a slider, never a typed number); the rest follow the Levers.
  */
-function FullSheetDisclosure({ block, specs, settings, mode, market }: { block: ValuationBlock; specs: readonly LeverSpec[]; settings: LeverSettings; mode?: ValueLeversMode; market: number }) {
+function FullSheetDisclosure({
+  block,
+  valued,
+  specs,
+  settings,
+  mode,
+  market,
+  rows,
+  onRowChange,
+}: {
+  block: ValuationBlock;
+  valued: ValuationBlock;
+  specs: readonly LeverSpec[];
+  settings: LeverSettings;
+  mode?: ValueLeversMode;
+  market: number;
+  rows: RowSettings;
+  onRowChange: (id: RowId, change: number) => void;
+}) {
   const [open, setOpen] = useState(false);
-  const sheet = open ? fullSheet(block, specs, settings, mode, market) : null;
+  const sheet = open ? fullSheet(valued, specs, settings, mode, market) : null;
+  const sliders = useMemo(() => (open ? new Map(rowSpecs(block).map((s) => [s.id as string, s])) : null), [open, block]);
   return (
     <details className="group mt-1 border-t border-[var(--hairline)] pt-1" data-testid="value-levers-go-deeper" onToggle={(e) => setOpen(e.currentTarget.open)}>
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-[var(--ink-2)] [&::-webkit-details-marker]:hidden">
@@ -333,11 +369,30 @@ function FullSheetDisclosure({ block, specs, settings, mode, market }: { block: 
               <dt className="text-[var(--muted)]">{row.words}</dt>
               <dd className="text-right tabular-nums">{row.reading}</dd>
               {row.years && <dd className="col-span-2 -mt-1 text-xs tabular-nums text-[var(--muted)]">Year by year: {row.years.join(", ")}</dd>}
+              {sliders?.has(row.input) && <RowSlider spec={sliders.get(row.input)!} change={rows[row.input as RowId]} onChange={onRowChange} />}
             </div>
           ))}
         </dl>
       )}
     </details>
+  );
+}
+
+/** A Full sheet row's slider: it moves the row's figure from the Case's own, which stays a stop to come back to. */
+function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof rowSpecs>[number]; change: number; onChange: (id: RowId, change: number) => void }) {
+  const figure = spec.opening + change;
+  return (
+    <dd className="col-span-2 -mt-1">
+      <SliderControl
+        label={`Change: ${spec.label}`}
+        value={figure}
+        range={{ min: spec.min, max: spec.max, step: spec.step }}
+        reading={spec.reading(figure)}
+        spoken={spec.reading(figure)}
+        onChange={(value) => onChange(spec.id, value - spec.opening)}
+        stops={[spec.opening]}
+      />
+    </dd>
   );
 }
 

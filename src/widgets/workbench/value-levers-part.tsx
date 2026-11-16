@@ -5,6 +5,7 @@ import { useContext, useMemo } from "react";
 import { z } from "zod/v4";
 import { InsightSettledContext } from "../insight-settled";
 import { SavedTicksContext } from "../saved-ticks";
+import { NO_ROW_CHANGES, ROW_IDS, ROW_VARIABLES, rowsFrom, type RowSettings } from "./full-sheet";
 import { DRAWN_BY_CODE } from "./parts";
 import { SaveStoryContext } from "./save-story";
 import { findValuation } from "@/finance/valuation-lookup";
@@ -43,6 +44,16 @@ export const valueLeversProps = z.object({
   mode: z.any().optional().describe("A Spine Topic's mode, {kind, ...}, checked by code"),
   market: optionalNumber("In market mode, which market lever 1 is a share of, a $variable starting at 0"),
   caseChoice: optionalNumber("In all open mode with a Case chip, which Case the Learner chose, a $variable starting on the Case named"),
+  // The Full sheet's rows (#104): each row's change from the Case's own figure, a $variable starting at 0. Last and
+  // optional, so a program saved before rows could change still draws, at the Case's own figures.
+  taxRow: optionalNumber("Full sheet: change to the tax rate, in percent points, a $variable starting at 0"),
+  lossesRow: optionalNumber("Full sheet: change to past losses that cut future tax, in the Case's unit, a $variable starting at 0"),
+  growthAfterRow: optionalNumber("Full sheet: change to growth after year 10, in percent points, a $variable starting at 0"),
+  returnAfterRow: optionalNumber("Full sheet: change to the return on new investment after year 10, in percent points, a $variable starting at 0"),
+  cashRow: optionalNumber("Full sheet: change to cash, in the Case's unit, a $variable starting at 0"),
+  debtRow: optionalNumber("Full sheet: change to debt, in the Case's unit, a $variable starting at 0"),
+  optionsRow: optionalNumber("Full sheet: change to employee options, in the Case's unit, a $variable starting at 0"),
+  // Market readings (#105) come after the rows, last.
   readings: z.array(z.string()).nullish().describe("Market readings shown beside the levers, by id"),
 });
 
@@ -64,6 +75,15 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
   };
   const marketField = useStateField("market", props.market);
   const caseField = useStateField("case", props.caseChoice);
+  const rowFields = {
+    taxRate: useStateField(ROW_VARIABLES.taxRate, props.taxRow),
+    lossesCarried: useStateField(ROW_VARIABLES.lossesCarried, props.lossesRow),
+    growthAfter: useStateField(ROW_VARIABLES.growthAfter, props.growthAfterRow),
+    returnOnCapitalAfter: useStateField(ROW_VARIABLES.returnOnCapitalAfter, props.returnAfterRow),
+    cash: useStateField(ROW_VARIABLES.cash, props.cashRow),
+    debt: useStateField(ROW_VARIABLES.debt, props.debtRow),
+    options: useStateField(ROW_VARIABLES.options, props.optionsRow),
+  };
   const settled = useContext(InsightSettledContext);
   const saved = useContext(SavedTicksContext);
   const saveStory = useContext(SaveStoryContext);
@@ -86,6 +106,10 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
     { revenue: fields.revenue.value, margin: fields.margin.value, salesToCapital: fields.salesToCapital.value, risk: fields.risk.value, failure: fields.failure.value },
     specs,
   );
+  const rows = rowsFrom(Object.fromEntries(ROW_IDS.map((id) => [ROW_VARIABLES[id], rowFields[id].value])), data.block);
+  const setRows = (next: RowSettings) => {
+    for (const id of ROW_IDS) if (next[id] !== rows[id]) rowFields[id].setValue(next[id]);
+  };
   const moves = movesFrom({ moved: moveFields.moved.value, mostLever: moveFields.mostLever.value, mostBy: moveFields.mostBy.value });
   const setLevers = (next: LeverSettings) => {
     for (const [id, field] of Object.entries(fields)) if (next[id as keyof LeverSettings] !== field.value) field.setValue(next[id as keyof LeverSettings]);
@@ -109,6 +133,8 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
       market={marketFrom(marketField.value, data.mode)}
       onMarketChange={(next) => marketField.setValue(next)}
       onSaveStory={saveStory ?? undefined}
+      rows={rows}
+      onRowsChange={setRows}
       caseName={pickable[chosen]?.label}
       cases={pickable.map((c) => c.label)}
       caseChoice={chosen}
@@ -119,6 +145,7 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
         const block = findValuation(target.id, ownCases);
         if (block) setLevers(openingSettings(leverSpecs(block, data.mode)));
         setMoves(NO_MOVES);
+        setRows(NO_ROW_CHANGES);
         caseField.setValue(next);
       }}
     />
