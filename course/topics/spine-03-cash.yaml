@@ -305,7 +305,7 @@ questions:
       changes:
         - { id: costly-growth, label: "Each $1 invested brings $3 of sales, not $10", levers: { salesToCapital: 3 } }
         - { id: margin-down, label: "It keeps 10% of each sale once mature, not 12%", levers: { marginTarget: 10 } }
-        - { id: rate-up, label: "A starting cost of capital of 14.35%, not 12.35%", levers: { costOfCapitalGrowing: 14.35 } }
+        - { id: rate-up, label: "A starting cost of capital two points higher", levers: { costOfCapitalGrowing: 14.35 } }
         - { id: may-fail, label: "A 20% chance it fails, not none", levers: { failureChance: 20 } }
         - { id: costly-growth-less, label: "Each $1 invested brings $7 of sales, not $10", levers: { salesToCapital: 7 } }
   # Predict, then see (D1), computed from the same illustration: never marked wrong.
