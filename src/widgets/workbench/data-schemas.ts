@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CURRENCIES } from "@/finance/money";
 import { isIconName } from "@/icons/names";
 import { marketReading, marketReadingIds } from "@/markets/readings";
 
@@ -34,7 +35,7 @@ export const marketReadingIdsSchema = z
   .min(1)
   .max(8);
 
-const currencySchema = z.enum(["USD", "INR"]);
+const currencySchema = z.enum(CURRENCIES);
 const unitSchema = z.enum(["millions", "crores", "billions"]);
 
 /** A company's year for the Cash waterfall when it has no Valuation Case: this year's revenue, its tax, and where the levers open. */

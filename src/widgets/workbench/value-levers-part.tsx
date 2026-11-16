@@ -7,7 +7,8 @@ import { InsightSettledContext } from "../insight-settled";
 import { SavedTicksContext } from "../saved-ticks";
 import { DRAWN_BY_CODE } from "./parts";
 import { SaveStoryContext } from "./save-story";
-import { valuationCase } from "@/finance/valuation-cases";
+import { findValuation } from "@/finance/valuation-lookup";
+import { OwnCasesContext } from "./own-cases";
 import { caseListOf, leverSpecs, marketFrom, movesFrom, NO_MOVES, openingSettings, settingsFrom, valueLeversData, valueLeversStories, valueLeversTasks, type LeverSettings, type Moves } from "./value-levers-model";
 import { ValueLeversView } from "./value-levers-view";
 
@@ -66,6 +67,7 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
   const settled = useContext(InsightSettledContext);
   const saved = useContext(SavedTicksContext);
   const saveStory = useContext(SaveStoryContext);
+  const ownCases = useContext(OwnCasesContext);
   // The Cases the Learner can switch between (all open mode), and which one is chosen: its id drives the block, its label names the saved note.
   const pickable = useMemo(() => caseListOf(props.mode), [props.mode]);
   const chosen = pickable.length ? Math.min(pickable.length - 1, Math.max(0, Math.round(Number(caseField.value) || 0))) : 0;
@@ -74,8 +76,8 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
   const key = JSON.stringify([caseId, props.caseStory ?? null, props.priceStory ?? null, props.mode ?? null]);
   const parsed = useMemo(() => {
     const [cid, caseStory, priceStory, mode] = JSON.parse(key) as unknown[];
-    return valueLeversData({ caseId: cid, caseStory, priceStory, mode });
-  }, [key]);
+    return valueLeversData({ caseId: cid, caseStory, priceStory, mode }, ownCases);
+  }, [key, ownCases]);
   const data = "data" in parsed ? parsed.data : null;
   const specs = useMemo(() => (data ? leverSpecs(data.block, data.mode) : []), [data]);
   const stories = useMemo(() => (data ? valueLeversStories(data.block, specs, { caseStory: data.caseStory, priceStory: data.priceStory }, data.mode) : []), [data, specs]);
@@ -114,7 +116,7 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
       onChooseCase={(next) => {
         const target = pickable[next];
         if (!target || next === chosen) return;
-        const block = valuationCase(target.id);
+        const block = findValuation(target.id, ownCases);
         if (block) setLevers(openingSettings(leverSpecs(block, data.mode)));
         setMoves(NO_MOVES);
         caseField.setValue(next);

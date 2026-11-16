@@ -12,6 +12,7 @@ import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NA
 import { ICON_NAMES, isKnownObject } from "./primitives/wave1/icons";
 import type { RecipeArchetype } from "./recipes/define";
 import { REFERENCE_CASE } from "@/case-data/reference";
+import type { OwnCases } from "@/finance/valuation-lookup";
 import { WORKBENCH_ENTRIES, workbenchEntry } from "./workbench/registry";
 
 /** How a reference dataset's reference starts: "reference/usd-inr". */
@@ -22,8 +23,8 @@ export const WIDGET_CHECK_PREFIX = "Widget check by code:";
 
 const parser = createParser(frozenSchema as unknown as LibraryJSONSchema, "Widget");
 
-/** Problems that stop a finished widget from rendering properly; empty when it is fine. */
-export function widgetProblems(code: string): string[] {
+/** Problems that stop a finished widget from rendering properly; empty when it is fine. A Workbench's Case may be one of the Learner's Own Cases when they are given. */
+export function widgetProblems(code: string, ownCases?: OwnCases | null): string[] {
   try {
     const result = parser.parse(code);
     const problems = result.meta.errors
@@ -33,7 +34,7 @@ export function widgetProblems(code: string): string[] {
     if (result.meta.unresolved.length) problems.push(`Undefined names: ${result.meta.unresolved.join(", ")}.`);
     problems.push(...formulaCardProblems(result.root?.props.children));
     problems.push(...guidedTaskProblems(result.root?.props.children));
-    problems.push(...partProblems(result.root?.props.children));
+    problems.push(...partProblems(result.root?.props.children, ownCases));
     problems.push(...toolProblems(result));
     return problems;
   } catch (e) {
@@ -46,7 +47,7 @@ export function widgetProblems(code: string): string[] {
  * whose answer index is out of range or that has not 2 to 4 options, and a Rank whose order or reasons do not fit
  * its items. Arguments the browser works out are left alone.
  */
-function partProblems(children: unknown): string[] {
+function partProblems(children: unknown, ownCases?: OwnCases | null): string[] {
   return [...walkNodes(children)].flatMap((n) => {
     const where = n.statementId ?? n.typeName;
     const { props } = n;
@@ -54,7 +55,7 @@ function partProblems(children: unknown): string[] {
       const problem = quickCheckProblem(props.options, props.answer);
       return problem ? [`${where}: ${problem}`] : [];
     }
-    const workbench = workbenchEntry(n.typeName)?.problem(props);
+    const workbench = workbenchEntry(n.typeName)?.problem(props, ownCases);
     if (workbench) return [`${where}: ${workbench}`];
     if (n.typeName === "Rank" && Array.isArray(props.items) && Array.isArray(props.correctOrder) && Array.isArray(props.reasons)) {
       const order = props.correctOrder.every((v) => typeof v === "number") ? (props.correctOrder as number[]) : null;
@@ -101,8 +102,8 @@ export function resolveAtState(raw: unknown, state: Record<string, unknown>): un
  * The Things to try of the Workbench parts among a Widget's parsed children, in order, worded at the Widget's state: Value
  * levers names the price of the Case chosen with its Case chip (Spine Topic 15), as the Widget on screen does.
  */
-function workbenchTaskTexts(children: unknown, state: Record<string, unknown>): string[] {
-  return [...walkNodes(children)].flatMap((n) => workbenchEntry(n.typeName)?.tasks(resolveAtState(n.props, state) as Record<string, unknown>) ?? []);
+function workbenchTaskTexts(children: unknown, state: Record<string, unknown>, ownCases?: OwnCases | null): string[] {
+  return [...walkNodes(children)].flatMap((n) => workbenchEntry(n.typeName)?.tasks(resolveAtState(n.props, state) as Record<string, unknown>, ownCases) ?? []);
 }
 
 /** Parts the Learner sets a value with. */
@@ -734,11 +735,11 @@ export function widgetNodes(code: string): ParsedNode[] {
  * any it is not given); none when it has no Guided Tasks. Only a Workbench's Things to try can change with them: Value
  * levers' second names the price of the Case chosen with its Case chip.
  */
-export function widgetTaskTexts(code: string, values?: Readonly<Record<string, number>>): string[] {
+export function widgetTaskTexts(code: string, values?: Readonly<Record<string, number>>, ownCases?: OwnCases | null): string[] {
   try {
     const result = parser.parse(code);
     const children = result.root?.props.children;
-    return [...parsedTasks(children).map((t) => t.text), ...workbenchTaskTexts(children, { ...(result.stateDeclarations as Record<string, unknown>), ...values })];
+    return [...parsedTasks(children).map((t) => t.text), ...workbenchTaskTexts(children, { ...(result.stateDeclarations as Record<string, unknown>), ...values }, ownCases)];
   } catch {
     return [];
   }

@@ -1,6 +1,8 @@
 import { FORECAST_YEARS, type DcfResult } from "@/finance/dcf-engine";
+import { CURRENCY_STYLE } from "@/finance/money";
 import { applyLevers, priceWord, returnOnNewCapital, type Levers, type ValuationBlock } from "@/finance/valuation-case";
-import { valuationCase, valuationCaseIds } from "@/finance/valuation-cases";
+import { valuationCaseIds } from "@/finance/valuation-cases";
+import { findValuation, type OwnCases } from "@/finance/valuation-lookup";
 import { near, niceUp, oneFigure, onStep, type BenchLever, type BenchReading } from "./bench";
 import { topicStorySchema, valueLeversModeSchema, type Market, type TopicStory, type ValueLeversMode } from "./data-schemas";
 
@@ -58,18 +60,18 @@ export const CASE_VARIABLE = "case";
 export type Money = Pick<ValuationBlock, "currency" | "unit">;
 
 const UNIT_SIZE: Record<ValuationBlock["unit"], number> = { millions: 1e6, crores: 1e7, billions: 1e9 };
-const SYMBOL: Record<ValuationBlock["currency"], string> = { USD: "$", INR: "₹" };
-const CURRENCY_WORD: Record<ValuationBlock["currency"], [one: string, many: string]> = { USD: ["dollar", "dollars"], INR: ["rupee", "rupees"] };
-const LOCALE: Record<ValuationBlock["currency"], string> = { USD: "en-US", INR: "en-IN" };
+const SYMBOL = (currency: ValuationBlock["currency"]) => CURRENCY_STYLE[currency].symbol;
+const CURRENCY_WORD = (currency: ValuationBlock["currency"]) => CURRENCY_STYLE[currency].word;
+const LOCALE = (currency: ValuationBlock["currency"]) => CURRENCY_STYLE[currency].locale;
 
 /** Up to `digits` decimals, none when the number is whole, grouped for the currency's locale. */
-const grouped = (n: number, block: Money, digits = 1) => n.toLocaleString(LOCALE[block.currency], { maximumFractionDigits: digits });
+const grouped = (n: number, block: Money, digits = 1) => n.toLocaleString(LOCALE(block.currency), { maximumFractionDigits: digits });
 
 /** An amount in the block's unit as a short figure: "$2.2tn", "$1.1bn", "$931m", "₹1,250 crore", "₹45 lakh". */
 export function moneyText(amount: number, block: Money): string {
   const sign = amount < 0 ? "-" : "";
   const whole = Math.abs(amount) * UNIT_SIZE[block.unit];
-  const symbol = SYMBOL[block.currency];
+  const symbol = SYMBOL(block.currency);
   if (block.currency === "INR") {
     if (whole >= 1e7) return `${sign}${symbol}${grouped(whole / 1e7, block)} crore`;
     if (whole >= 1e5) return `${sign}${symbol}${grouped(whole / 1e5, block)} lakh`;
@@ -85,7 +87,7 @@ export function moneyText(amount: number, block: Money): string {
 export function moneySpoken(amount: number, block: Money): string {
   const sign = amount < 0 ? "minus " : "";
   const whole = Math.abs(amount) * UNIT_SIZE[block.unit];
-  const [one, many] = CURRENCY_WORD[block.currency];
+  const [one, many] = CURRENCY_WORD(block.currency);
   const scaled = (size: number, word: string) => `${sign}${grouped(whole / size, block)} ${word} ${many}`;
   if (block.currency === "INR") {
     if (whole >= 1e7) return scaled(1e7, "crore");
@@ -99,11 +101,11 @@ export function moneySpoken(amount: number, block: Money): string {
   return `${sign}${n} ${n === "1" ? one : many}`;
 }
 
-/** A value a share as the headline shows it: whole from 10 up ("$35", "₹1,234"), to the cent below ("$2.40"). */
+/** A value a share as the headline shows it: whole from 10 up ("$35", "₹1,234"), to the cent below ("$2.40"); yen and won always whole ("¥8"). */
 export function priceText(value: number, block: Money): string {
-  const symbol = SYMBOL[block.currency];
+  const symbol = SYMBOL(block.currency);
   const n = Math.abs(value);
-  const text = n >= 10 ? Math.round(n).toLocaleString(LOCALE[block.currency]) : n.toFixed(2);
+  const text = n >= 10 || !CURRENCY_STYLE[block.currency].cents ? Math.round(n).toLocaleString(LOCALE(block.currency)) : n.toFixed(2);
   return `${value < 0 ? "-" : ""}${symbol}${text}`;
 }
 
@@ -127,12 +129,16 @@ function caseYear10Revenue(block: ValuationBlock): number {
   return block.growthPercent.reduce((revenue, g) => revenue * (1 + g / 100), block.baseRevenue);
 }
 
-/** How lever 1 shows revenue: in billions for a Case in millions of dollars that reaches a billion, else in the block's own unit. */
+/** How lever 1 shows revenue: in billions for a Case in millions of dollars, euros, yen or won that reaches a billion (trillions for yen and won that reach one), else in the block's own unit. */
 function revenueUnit(block: ValuationBlock): { per: number; short: (n: number) => string; spoken: (n: number) => string } {
-  const symbol = SYMBOL[block.currency];
-  const [, many] = CURRENCY_WORD[block.currency];
+  const symbol = SYMBOL(block.currency);
+  const [, many] = CURRENCY_WORD(block.currency);
   const figure = (n: number) => grouped(n, block, 2);
-  if (block.currency === "USD" && block.unit === "millions" && caseYear10Revenue(block) >= 1000) {
+  // Yen and won run to trillions (Toyota: ¥45tn), so a Case in millions of either that reaches a trillion reads in trillions.
+  if ((block.currency === "JPY" || block.currency === "KRW") && block.unit === "millions" && caseYear10Revenue(block) >= 1e6) {
+    return { per: 1e6, short: (n) => `${symbol}${figure(n)}tn`, spoken: (n) => `${figure(n)} trillion ${many}` };
+  }
+  if (block.currency !== "INR" && block.unit === "millions" && caseYear10Revenue(block) >= 1000) {
     return { per: 1000, short: (n) => `${symbol}${figure(n)}bn`, spoken: (n) => `${figure(n)} billion ${many}` };
   }
   // Rupees counted in millions read in crore, as Indian readers and the caption do (Zomato: ₹16,400 crore, not ₹1,64,000m).
@@ -176,8 +182,8 @@ function baseSpecs(block: ValuationBlock): LeverSpec[] {
   const firstRate = block.costOfCapitalPercent[0];
   const lastRate = block.costOfCapitalPercent[FORECAST_YEARS - 1];
   const chance = block.failure?.chancePercent ?? 0;
-  const symbol = SYMBOL[block.currency];
-  const [one, many] = CURRENCY_WORD[block.currency];
+  const symbol = SYMBOL(block.currency);
+  const [one, many] = CURRENCY_WORD(block.currency);
   const lever = (spec: Omit<LeverSpec, "stops" | "more"> & { more?: boolean }): LeverSpec => ({ ...spec, more: spec.more ?? false, stops: [spec.opening] });
   return [
     lever({
@@ -400,7 +406,7 @@ export function valueLeversModel(block: ValuationBlock, specs: readonly LeverSpe
   const headline = range
     ? { before: "A range of values: ", key: range.text, after: "" }
     : nothingLeft
-      ? { before: "", key: `${SYMBOL[block.currency]}0`, after: `: ${takers}` }
+      ? { before: "", key: `${SYMBOL(block.currency)}0`, after: `: ${takers}` }
       : { before: "Your story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
   const span = range ? { low: Math.min(1, Math.max(0, range.low) / top), high: Math.min(1, Math.max(0, range.high) / top) } : undefined;
   const cashFlows: CashFlowBar[] = [
@@ -432,7 +438,7 @@ const SHORT: Record<LeverId, string> = { revenue: "revenue", margin: "margin", s
 const oneDecimal = (n: number) => `${Number(n.toFixed(1))}`;
 
 /** A value a share as a readout writes it: $0 when nothing is left, never a negative price. */
-const shown = (value: number, block: ValuationBlock) => (value <= 0 ? `${SYMBOL[block.currency]}0` : valueText(value, block));
+const shown = (value: number, block: ValuationBlock) => (value <= 0 ? `${SYMBOL(block.currency)}0` : valueText(value, block));
 
 function modeReadout(block: ValuationBlock, specs: readonly LeverSpec[], settings: LeverSettings, mode: ValueLeversMode, market: number, result: Extract<DcfResult, { ok: true }>): ModeReadout | null {
   switch (mode.kind) {
@@ -656,7 +662,7 @@ export function taskConditions(model: ValueLeversModel, moves: Moves): boolean[]
 export function biggestMover(moves: Moves, specs: readonly LeverSpec[], block: ValuationBlock): { spec: LeverSpec; by: string } | null {
   const id = LEVER_IDS[moves.mostLever - 1];
   if (!id || !(moves.mostBy > 0)) return null;
-  const by = block.per === "company" ? moneyText(moves.mostBy, block) : `${SYMBOL[block.currency]}${moves.mostBy.toFixed(2)}`;
+  const by = block.per === "company" ? moneyText(moves.mostBy, block) : `${SYMBOL(block.currency)}${moves.mostBy.toFixed(2)}`;
   return { spec: specOf(specs, id), by };
 }
 
@@ -713,14 +719,14 @@ export type ValueLeversData = { block: ValuationBlock; mode?: ValueLeversMode; c
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
-/** A ValueLevers part's data from its literal props, or a sentence saying what is wrong. */
-export function valueLeversData(props: Record<string, unknown>): { data: ValueLeversData } | { problem: string } {
+/** A ValueLevers part's data from its literal props, or a sentence saying what is wrong. Its Case is a course Case, else one of the Learner's Own Cases when given. */
+export function valueLeversData(props: Record<string, unknown>, ownCases?: OwnCases | null): { data: ValueLeversData } | { problem: string } {
   // In all open mode with a Case chip (Spine Topic 15) the Learner's pick, `caseChoice`, decides which Case is valued, so
   // what the Tutor is told matches the Widget on screen rather than the Case the program was compiled with.
   const pickable = caseListOf(props.mode);
   const picked = typeof props.caseChoice === "number" && Number.isFinite(props.caseChoice) && pickable.length > 0;
   const caseId = picked ? pickable[Math.min(pickable.length - 1, Math.max(0, Math.round(props.caseChoice as number)))].id : props.caseId;
-  const block = typeof caseId === "string" ? valuationCase(caseId) : null;
+  const block = typeof caseId === "string" ? findValuation(caseId, ownCases) : null;
   if (!block) return { problem: `${typeof props.caseId === "string" ? `"${props.caseId}"` : "This part"} is not a Valuation Case. Cases: ${valuationCaseIds().join(", ")}.` };
   let mode: ValueLeversMode | undefined;
   if (props.mode !== undefined && props.mode !== null) {
@@ -795,7 +801,7 @@ export type SavedStory = { title: string; lines: string[]; settings: LeverSettin
 
 /** The note for these settings: the Case and its date, each lever as set, the value against the price (in the Case's own word for it), and the share after year 10. */
 export function storyNote(block: ValuationBlock, specs: readonly LeverSpec[], settings: LeverSettings, model: ValueLeversModel, caseName?: string): SavedStory {
-  const value = model.value === null ? "cannot be valued" : model.nothingLeft ? `${SYMBOL[block.currency]}0, nothing left for shareholders` : `${model.headline.key}${model.headline.after}`;
+  const value = model.value === null ? "cannot be valued" : model.nothingLeft ? `${SYMBOL(block.currency)}0, nothing left for shareholders` : `${model.headline.key}${model.headline.after}`;
   return {
     title: `My Valuation story${caseName ? `: ${caseName}` : ""}, against the ${model.price.word} of ${dateText(block.price.date)}`,
     lines: [
