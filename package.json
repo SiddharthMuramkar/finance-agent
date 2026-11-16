@@ -26,6 +26,7 @@
     "bank:import": "node --env-file=.env scripts/bank-import.mjs",
     "bank:verify": "node --env-file=.env scripts/bank-verify.mjs",
     "course:refs": "node --env-file=.env scripts/check-references.mjs",
+    "site:links": "node scripts/check-source-links.mjs",
     "library:load": "node --env-file=.env scripts/library-load.mjs",
     "library:blog": "node --env-file=.env scripts/library-blog.mjs",
     "library:pictures": "node --env-file=.env scripts/library-pictures.mjs",
