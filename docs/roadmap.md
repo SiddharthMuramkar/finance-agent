@@ -163,6 +163,7 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 - The Assignment opens beside Follow/Judge/Analyse once the Spine is passed (Owner, 2026-11-16), and the annual-report Topic's complete card links to it (#97, #93).
 - Go deeper formulas never reach Learners: ADR 0003 says the Tutor may say them, but `src/tutor/instructions.ts` forbids typed formulas, the context says "in your own words" and the grader fails any formula. Needs an Owner decision on one rule, then align all four (a tutor-eval trigger) (#100; review 3, L17).
 - Nintendo, Samsung and LVMH annual-report Cases with valuation blocks, now that #112 adds JPY, KRW and EUR (#94).
+- The beginner check's `OWN_STORY_ASKS` (`src/course/beginner-check.ts`) could also match "my story" and "story of your own" (K04/K05); fix round 3b's course lane could not edit that file, and spine-check already fails any Spine ownWork Check (spec68-fix3b-k13-18).
 
 ### Valuation and Full sheet
 
@@ -214,6 +215,8 @@ Delegated pick by the Owner, 2026-11-16: the top-ranked proposal of each region 
 - The jackpot's Go deeper task "find the rate where the two are worth the same" is always 0% for the Kerala bumper; a new task waits for the Owner (`docs/owner-actions.md`, step 27) (#116; review 1, F33).
 - Measured minutes from the timed runs go into the course files (`docs/owner-actions.md`, step 25) (#72).
 - After the merge, with Clerk on: check the Clerk cards on `/join`, `/sign-in` and `/sign-up` in Light and Dark (#76, #79); optional Lighthouse run for robots.txt (#70).
+- Home's Kikkoman note still writes ¥745.5bn: its lines come from `ownCaseNote`/`moneyText` (`src/learner`, `src/widgets/workbench`), shared with the Workbench and Notebook and outside the site lane; Home's dollars are in words and the test checks dollars only (spec68-fix3b-site, L22 yen part).
+- WeWorkWidget's bar labels and feedback ($3.0bn, $1.54bn, "The $3bn is...") keep the compact money style: they show only after a chip is picked, not in Home's server-rendered text, and bar labels are compact chart labels; spec §6.6 still matches the code (spec68-fix3b-site).
 
 ### Tests and tooling
 
