@@ -1,9 +1,12 @@
-# Spine Topic (spec #68, #93): the last Spine Topic. Where a valuation's numbers sit in an annual report, on one US report
+# Spine Topic (spec #68, #93, #94): the last Spine Topic. Where a valuation's numbers sit in an annual report, on one US report
 # (Amazon's Form 10-K for 2000, SEC EDGAR, filed 23 March 2001) and one Indian report (Zomato's Integrated Annual Report
 # 2021-22, BSE, sent to the exchanges 5 August 2022). It leads into the Assignments, where the Learner finds a listed
 # company's numbers and values it as an Own Case (GLOSSARY "Assignment"). The Cases borrow Damodaran's valuation blocks
 # (Amazon's in val-dcf, Zomato's IPO valuation in ana-build-valuation) with valuationFrom, so the report's numbers can be
 # put next to the story they were checked against. The Value bridge opens at Damodaran's own Amazon figures.
+# #94 adds one report from each of Japan (Nintendo's kessan tanshin for the year to March 2025, TSE), Korea (Samsung
+# Electronics' business report for 2024, DART) and Europe (LVMH's universal registration document for 2024, AMF, ESEF),
+# as Cases told in words, with no valuation block: the valuation engine values dollars and rupees only.
 # Every report figure is copied from the filing's audited statements; page and line are named where they are used.
 # Stage, place and length live in course/outline.yaml.
 id: spine-annual-report
@@ -53,9 +56,63 @@ cases:
       investments, and the share capital note lists 7,871,932,776 shares of Rs 1 each, 228,992,198 of them held by the
       trust that pays the staff's options.
 
+  - id: spine-ar-nintendo-2025
+    title: Nintendo's results for the year to March 2025, a report from Japan
+    asOf: 2025-05-08
+    story: >
+      8 May 2025. Nintendo, the Japanese maker of the Switch games console, sends its results for the year to 31 March
+      2025 to the Tokyo Stock Exchange. In Japan this short report is the kessan tanshin; the full annual securities
+      report, the yuho, follows in late June on EDINET, the regulator's filing site, with the same statements. Amounts
+      are in yen million. A Japanese income statement has one profit line more than most: below operating profit sits
+      ordinary profit. Where do the six numbers sit, and which of those two lines is the operating profit a valuation
+      starts from?
+    reveal: >
+      The consolidated statements of income show net sales of ¥1,164,922 million and operating profit of ¥282,553
+      million. Ordinary profit is higher, ¥372,316 million, because it adds income from outside the business, including
+      ¥56,176 million of interest income; a valuation starts from operating profit. Total income taxes were ¥93,478
+      million. The balance sheet shows no borrowings at all, cash and deposits of ¥1,586,275 million and ¥471,915 million
+      of securities. The report counts 1,298,690,000 shares including treasury shares, 134,441,816 of them shares
+      Nintendo has bought back and holds itself.
+
+  - id: spine-ar-samsung-2024
+    title: Samsung Electronics' business report for 2024, a report from Korea
+    asOf: 2025-03-11
+    story: >
+      11 March 2025. Samsung Electronics, the Korean maker of phones and memory chips, files its business report for
+      2024 on DART, the filing site of Korea's financial regulator, which every listed company in Korea uses. Its
+      statements follow Korea's version of IFRS, the international accounting rules, and amounts are in won million.
+      Samsung has two kinds of shares: ordinary shares, and preference shares, which carry no vote. Where do the six
+      numbers sit in this report, and how many lines hold its debt?
+    reveal: >
+      The consolidated statement of profit or loss shows revenue of ₩300,870,903 million and operating profit of
+      ₩32,725,961 million, on a line of its own. Income tax expense was ₩3,078,383 million. The statement of financial
+      position, the report's name for the balance sheet, spreads debt over four lines: short-term borrowings of
+      ₩13,172,504 million, the current portion of long-term liabilities of ₩2,207,290 million, debentures of ₩14,530
+      million and long-term borrowings of ₩3,935,860 million. Cash and cash equivalents were ₩53,705,579 million, with
+      ₩58,909,334 million more in short-term financial instruments. The note on share capital lists 5,969,782,550
+      ordinary shares and 822,886,700 preference shares issued, some of which Samsung has bought back.
+
+  - id: spine-ar-lvmh-2024
+    title: LVMH's universal registration document for 2024, a report from Europe
+    asOf: 2025-03-25
+    story: >
+      25 March 2025. LVMH, the French luxury group behind Louis Vuitton and Dior, files its universal registration
+      document for 2024 with the AMF, France's market regulator. It holds the annual financial report in ESEF, the
+      electronic format every company listed in the European Union files in, with accounts under IFRS, the international
+      accounting rules. Amounts are in euro million. LVMH rents most of its shops. Where do the six numbers sit, and is
+      its debt only the lines called borrowings?
+    reveal: >
+      The consolidated income statement shows revenue of €84,683 million, then profit from recurring operations of
+      €19,571 million and, after a net charge of €664 million of other operating income and expenses, operating profit of
+      €18,907 million. Income taxes were €5,157 million. The balance sheet shows long-term borrowings of €12,091 million
+      and short-term borrowings of €10,851 million, and beside them lease liabilities of €14,860 million and €2,972
+      million for what it rents, which many analysts count as debt too. Cash and cash equivalents were €9,631 million.
+      The statement of changes in equity counts 500,341,700 shares, some of them held by LVMH itself.
+
 concept: >
   An annual report is the yearly report a listed company must publish: in the US it is the 10-K, in India the annual
-  report sent to the stock exchanges. Two pages in it hold a valuation's numbers. The income statement runs down from
+  report sent to the stock exchanges, in Japan the yuho, in Korea the business report, and in Europe an annual report
+  under IFRS, the international accounting rules. Two pages in it hold a valuation's numbers. The income statement runs down from
   sales to profit: sales at the top, then operating profit (what the business makes before interest and tax), then
   tax. The balance sheet shows what the company owns and owes on one day: its debt, its cash, and its shares in the
   note on share capital. Names change from report to report. Zomato's sales are revenue from operations, and its report
@@ -77,7 +134,7 @@ goDeeper: >
 
 youllLearn:
   - "Find sales, operating profit and tax on an income statement."
-  - "Find debt, cash and shares on a balance sheet and its notes, in a US and an Indian report."
+  - "Find debt, cash and shares on a balance sheet and its notes, in a report from the US, India, Japan, Korea or Europe."
   - "Put a report's numbers next to a story and see which ones the value rests on."
 
 terms:
@@ -203,6 +260,17 @@ questions:
     answer: cash-is-all
     explanation: The same balance sheet shows Rs 11,832m of other bank balances and Rs 16,317m of current investments besides the cash line, so the cash line is not all the money it holds.
     source: "Zomato Limited, Integrated Annual Report 2021-22, Consolidated Balance Sheet as at 31 March 2022: cash and cash equivalents Rs 3,923m, other bank balances Rs 11,832m, current investments Rs 16,317m. https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf"
+  - id: ar-q-ordinary
+    kind: direction
+    prompt: "Nintendo's results for the year to March 2025 show operating profit of ¥282,553m and, below it, ordinary profit of ¥372,316m. Which is the operating profit a valuation starts from?"
+    skill: find-the-line
+    choices:
+      - { id: operating, text: "Operating profit, ¥282,553m" }
+      - { id: ordinary, text: "Ordinary profit, ¥372,316m", mistake: { tag: ordinary_as_operating, fix: "Ordinary profit adds income from outside the business, such as interest; operating profit is what the business itself makes." } }
+      - { id: owners, text: "Profit attributable to owners of parent, ¥278,806m", mistake: { tag: after_tax_profit, fix: "That line comes after tax; operating profit sits above interest and tax." } }
+    answer: operating
+    explanation: Operating profit is what Nintendo's games business makes before interest and tax; ordinary profit adds income from outside it, including ¥56,176m of interest income.
+    source: "Nintendo Co., Ltd., Consolidated Financial Highlights (kessan tanshin) for the year ended 31 March 2025, Consolidated Statements of Income: operating profit ¥282,553m, interest income ¥56,176m, ordinary profit ¥372,316m. https://www.nintendo.co.jp/ir/pdf/2025/250508e.pdf"
   - id: ar-q-tax
     kind: price_or_value
     prompt: "Amazon's 2000 income statement has no tax line, and its tax note lists past losses it may set against future profit. Damodaran's story charged no tax until those losses were used up. Is that tax a reported fact or a part of his story?"
@@ -217,7 +285,7 @@ questions:
 checks:
   - id: report-check
     kind: quiz
-    questions: [ar-q-lever, ar-q-predict, ar-q-price, ar-q-where-debt, ar-q-name, ar-q-tax]
+    questions: [ar-q-lever, ar-q-predict, ar-q-price, ar-q-where-debt, ar-q-name, ar-q-ordinary, ar-q-tax]
     perAttempt: 4
     passRule: { correct: 3 }
     card:
@@ -280,6 +348,14 @@ checks:
         choices:
           - { id: story, text: "No: the report shows the past; the margin to come is the story" }
           - { id: report, text: "Yes: the report says what it will keep", mistake: { tag: future_in_report, fix: "A report holds the year just ended; what a business keeps later is the story you judge." } }
+      - id: ar-try-leases
+        skill: find-the-line
+        ask: LVMH's balance sheet shows borrowings and, beside them, lease liabilities for the shops it rents. Which do many analysts count as debt?
+        kind: choice
+        answer: both
+        choices:
+          - { id: both, text: "Both: the rent it must pay is owed like a loan" }
+          - { id: borrowings, text: "Only the lines called borrowings", mistake: { tag: lease_not_debt, fix: "Rent under a lease must be paid like a loan, so many analysts add lease liabilities to debt." } }
       - id: ar-try-computed
         skill: check-the-story
         kind: which_lever

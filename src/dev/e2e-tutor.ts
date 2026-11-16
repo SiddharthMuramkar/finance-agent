@@ -703,9 +703,10 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Two pages hold a valuation's numbers. The income statement runs from sales at the top down to operating profit, what the business makes before interest and tax, and then tax. " +
-              "The balance sheet shows debt and cash on one day, and its note on share capital counts the shares. " +
-              "Names change: Zomato's report calls its sales revenue from operations.\n\n" +
+            "Two pages hold a valuation's numbers. The income statement runs from sales down to operating profit, what the business makes before interest and tax, then tax. " +
+              "The balance sheet shows debt and cash on one day; its note on share capital counts the shares. " +
+              "Names change: Zomato calls sales revenue from operations. " +
+              "Japan, Korea and Europe keep the same two pages: Nintendo's yuho, Samsung's business report, LVMH's report under IFRS.\n\n" +
               "Where would you look for Amazon's debt?",
           ),
         ],

@@ -359,11 +359,14 @@ describe("the real outline", () => {
       expect(spineCountProblems(outline!)).toEqual([]);
     });
 
-    it("finds the numbers in one US and one Indian annual report, from the filings themselves", () => {
+    it("finds the numbers in one annual report from each of the US, India, Japan, Korea and Europe, from the filings themselves (#93, #94)", () => {
       const cases = byNumber(16).cases;
-      expect(cases.map((c) => c.asOf)).toEqual(["2001-03-23", "2022-08-05"]);
+      expect(cases.map((c) => c.asOf)).toEqual(["2001-03-23", "2022-08-05", "2025-05-08", "2025-03-11", "2025-03-25"]);
       expect(cases[0].sources).toContain("https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt");
       expect(cases[1].sources).toContain("https://www.bseindia.com/bseplus/AnnualReport/543320/74160543320.pdf");
+      expect(cases[2].sources).toContain("https://www.nintendo.co.jp/ir/pdf/2025/250508e.pdf");
+      expect(cases[3].sources).toContain("https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250311001085");
+      expect(cases[4].sources).toContain("https://lvmh-com.cdn.prismic.io/lvmh-com/Z-PY3HdAxsiBv6wN_UniversalRegistrationDocument2024.pdf");
       expect(cases.every((c) => c.verified)).toBe(true);
     });
 
