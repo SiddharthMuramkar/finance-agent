@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { darkTokens, lightTokens } from "../src/app/theme-tokens";
 import { quietDevtools } from "./support/app";
 import { test } from "./support/people";
 
@@ -11,7 +12,16 @@ import { test } from "./support/people";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const PAPER = { light: "rgb(255, 255, 255)", dark: "rgb(14, 17, 23)" } as const; // --paper in each block of globals.css
-const PUBLIC_PAGES = ["/", "/how-it-works", "/examples", "/examples/amazon-2000", "/about", "/sign-in", "/join"];
+const PUBLIC_PAGES = ["/", "/how-it-works", "/examples", "/examples/amazon-2000", "/about", "/privacy", "/terms", "/sign-in", "/sign-up", "/join", "/no-such-page"];
+
+/** "#rrggbb" as getComputedStyle writes it, "rgb(r, g, b)". */
+const rgb = (hex: string) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
+/**
+ * The Light colours Dark never uses (paper's white, the Light wash, ink-2, muted, the Light blue...), read from the token
+ * blocks of globals.css: a page in Dark that paints one has a fixed Light colour somewhere.
+ */
+const DARK = new Set(Object.values(darkTokens()));
+const LIGHT_ONLY = [...new Set(Object.values(lightTokens()))].filter((v) => /^#[0-9a-f]{6}$/i.test(v) && !DARK.has(v)).map(rgb);
 const onPhone = (name: string) => name.startsWith("p390") || name.startsWith("t768");
 
 /**
@@ -56,18 +66,35 @@ test.describe("a device in dark mode", () => {
     for (const path of PUBLIC_PAGES) {
       await page.goto(path);
       await expectTheme(page, "dark");
-      // Every Dark colour is a token; the only pure white the site ever drew was a fixed Light value.
-      const white = await page.evaluate(() =>
+      // Every Dark colour is a token, so no element paints a colour only the Light block holds (pure white among them).
+      const fixed = await page.evaluate((lightOnly) =>
         [...document.querySelectorAll("body *")]
           // The dev server's own overlay (nextjs-portal) is not the site.
           .filter((el) => el.tagName !== "NEXTJS-PORTAL" && ((el as HTMLElement).offsetParent !== null || el.tagName === "svg"))
           .flatMap((el) => {
             const s = getComputedStyle(el);
-            return ["backgroundColor", "color"].filter((p) => s[p as "color"] === "rgb(255, 255, 255)").map((p) => `${el.tagName.toLowerCase()}.${(el as HTMLElement).className} ${p}`);
+            return (["backgroundColor", "color", "borderTopColor"] as const)
+              .filter((p) => lightOnly.includes(s[p]) && !(p === "borderTopColor" && s.borderTopWidth === "0px"))
+              .map((p) => `${el.tagName.toLowerCase()}.${(el as HTMLElement).className} ${p} ${s[p]}`);
           }),
-      );
-      expect(white, path).toEqual([]);
+      LIGHT_ONLY);
+      expect(fixed, path).toEqual([]);
     }
+  });
+});
+
+// Paper is white whatever the theme: a page printed in Dark (the head script sets Dark on every route, the Notebook too)
+// prints in the Light palette with the print block's ink, never Dark's near-white ink on white paper.
+test.describe("printing in Dark", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("prints with dark ink on white paper", async ({ page }) => {
+    await page.goto("/about");
+    await expectTheme(page, "dark");
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const printed = await page.evaluate(() => ({ paper: getComputedStyle(document.body).backgroundColor, ink: getComputedStyle(document.querySelector("h1")!).color }));
+    expect(printed).toEqual({ paper: "rgb(255, 255, 255)", ink: "rgb(0, 0, 0)" });
   });
 });
 

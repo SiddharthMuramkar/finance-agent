@@ -3,12 +3,12 @@ import { SHARE_IMAGE_SIZE } from "@/app/site-metadata";
 import { BRAND } from "@/site/copy";
 import { SHARE_IMAGES } from "@/site/routes";
 import { shareCard, type ShareCard } from "@/site/share-card";
-import { lightTokens } from "../light-tokens";
+import { lightTokens } from "@/app/theme-tokens";
 
 // The share cards (issue #71), at /share-image/<name>.png: Home's and one per Example, drawn at build time in today's
 // look (spec §3.1 Light tokens: paper, wash, ink, the one blue), so a shared link shows its own question and never the
 // old screenshot. Public: src/site/routes.ts lists each one. An image cannot read the stylesheet's var() tokens, so the
-// colours are read from the Light token block of globals.css itself: a colour is still written once (ADR 0015, ADR 0019).
+// colours are read from the Light token block of globals.css itself (theme-tokens.ts): a colour is still written once.
 
 export const dynamicParams = false;
 
