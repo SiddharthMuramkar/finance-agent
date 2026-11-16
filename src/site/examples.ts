@@ -86,6 +86,7 @@ export const EXAMPLES: readonly Example[] = [
       },
       { label: "Mathrubhumi, 9 Oct 2024", url: "https://english.mathrubhumi.com/news/kerala/kerala-thiruvonam-bumper-lottery-result-first-prize-winner-47fe5126" },
       { label: "The New Indian Express, 11 Oct 2024", url: "https://www.newindianexpress.com/states/karnataka/2024/Oct/11/mandya-bike-mechanic-wins-rs-25-crore-thiruvonam-bumper-lottery" },
+      { label: "Mega Millions, Difference Between Cash Value and Annuity", url: "https://www.megamillions.com/difference-between-cash-value-and-annuity" },
       { label: "The 30 payments are a what-if, worked out the American way." },
     ],
     widget: "jackpot",

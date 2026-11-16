@@ -686,7 +686,7 @@ His story, cash by year in dollars a share: −2.42, −2.36, −2.02, −1.37, 
 
 **Lesson.** The same total paid later is worth less than that sum today.
 
-**The Moment (#116).** Kerala's Thiruvonam Bumper lottery, BR-99, drawn on 9 October 2024: a first prize of ₹25 crore on ticket TG 434222, sold in Wayanad for ₹500. Kerala pays a prize at once, into the winner's bank account, after the agent's 10% commission and tax (about ₹12.88 crore in hand). The 30 yearly payments are a what-if: the same ₹25 crore paid the way US lotteries pay their advertised jackpots. Case Data as of 9 Oct 2024; Sources: [The Hindu, 9 Oct 2024](https://www.thehindu.com/news/national/kerala/keralas-25-crore-thiruvonam-bumper-lottery-announced-jackpot-goes-to-ticket-sold-in-wayanad/article68735952.ece), [Mathrubhumi, 9 Oct 2024](https://english.mathrubhumi.com/news/kerala/kerala-thiruvonam-bumper-lottery-result-first-prize-winner-47fe5126), [The New Indian Express, 11 Oct 2024](https://www.newindianexpress.com/states/karnataka/2024/Oct/11/mandya-bike-mechanic-wins-rs-25-crore-thiruvonam-bumper-lottery). It replaced the 2018 Mega Millions prize on the site; the course's own Case `mega-millions-2018` is unchanged.
+**The Moment (#116).** Kerala's Thiruvonam Bumper lottery, BR-99, drawn on 9 October 2024: a first prize of ₹25 crore on ticket TG 434222, sold in Wayanad for ₹500. Kerala pays a prize at once, into the winner's bank account, after the agent's 10% commission and tax (about ₹12.88 crore in hand). The 30 yearly payments are a what-if: the same ₹25 crore paid the way US lotteries pay their advertised jackpots. Case Data as of 9 Oct 2024; Sources: [The Hindu, 9 Oct 2024](https://www.thehindu.com/news/national/kerala/keralas-25-crore-thiruvonam-bumper-lottery-announced-jackpot-goes-to-ticket-sold-in-wayanad/article68735952.ece), [Mathrubhumi, 9 Oct 2024](https://english.mathrubhumi.com/news/kerala/kerala-thiruvonam-bumper-lottery-result-first-prize-winner-47fe5126), [The New Indian Express, 11 Oct 2024](https://www.newindianexpress.com/states/karnataka/2024/Oct/11/mandya-bike-mechanic-wins-rs-25-crore-thiruvonam-bumper-lottery); the American annuity (one payment now and 29 yearly, each 5% bigger): [Mega Millions](https://www.megamillions.com/difference-between-cash-value-and-annuity). It replaced the 2018 Mega Millions prize on the site; the course's own Case `mega-millions-2018` is unchanged.
 
 #### 6.3.1 Model
 
@@ -1397,7 +1397,7 @@ The copy lives in `src/site/examples.ts` (`kerala-bumper-2024`); it replaced Meg
 | Ending label | What the winner got |
 | Ending | Kerala’s Lotteries department pays the prize into the winner’s bank account in one go, after the agent’s 10% commission and tax: about **₹12.88 crore** of the ₹25 crore reached the winner. Paid over 30 years instead, the same ₹25 crore would be worth only about **₹11.29 crore** today at 5% a year, before any tax. *A rupee later is worth less than a rupee today.* |
 | As-of date | 9 Oct 2024 |
-| Sources | The Hindu, 9 Oct 2024; Mathrubhumi, 9 Oct 2024; The New Indian Express, 11 Oct 2024 (links in §6.3). The 30 payments are a what-if, worked out the American way. |
+| Sources | The Hindu, 9 Oct 2024; Mathrubhumi, 9 Oct 2024; The New Indian Express, 11 Oct 2024; Mega Millions, Difference Between Cash Value and Annuity (links in §6.3). The 30 payments are a what-if, worked out the American way. |
 
 ### A.2 Amazon, February 2000
 
