@@ -133,6 +133,14 @@ const STATES: Record<string, Build> = {
   "spine-05-start": storyOf("spine-05-margins"),
   "spine-06-start": storyOf("spine-06-growth-cost"),
   "spine-08-start": storyOf("spine-08-far-future"),
+  /** Spine Topics 10 to 16 at their Story steps, for #96's three-turn plays (e2e/spine-10-16.spec.ts). */
+  "spine-09-start": storyOf("spine-09-to-one-share"),
+  "spine-10-start": storyOf("spine-10-survival"),
+  "spine-11-start": storyOf("spine-11-story-to-numbers"),
+  "spine-12-start": storyOf("spine-12-price-or-value"),
+  "spine-13-start": storyOf("spine-13-price-assumes"),
+  "spine-14-start": storyOf("spine-14-being-wrong"),
+  "spine-15-start": storyOf("spine-15-value-yourself"),
   /** The annual report Topic at its Story step, for #93's three-turn play (e2e/spine-annual-report.spec.ts). */
   "spine-ar-start": storyOf("spine-annual-report"),
   /** The Topic at Concept, with one Widget shown by a scripted turn. */

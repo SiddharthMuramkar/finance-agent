@@ -15,6 +15,7 @@ const OTHER_SWITCH: Record<string, string> = {
   "e2e/spine-annual-report.spec.ts": "the critics' screenshots are written to CRITICS_OUT or the test's git-ignored output folder",
   "e2e/spine-02-03.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
   "e2e/spine-04-09.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
+  "e2e/spine-10-16.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
   "e2e/spine-rate-split.spec.ts": "the Spine critics' screenshots go to CRITICS_OUT outside the repo, or else the git-ignored test-results/ folder, never docs/",
   "e2e/spine-statements.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
 };
