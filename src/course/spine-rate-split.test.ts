@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { draftOf } from "@/dev/e2e-tutor";
 import { loadCourseMap } from "./map";
 import { courseOverview, navigate, type Progress } from "./navigator";
 import { topicTexts } from "./topic-texts";
@@ -24,33 +25,82 @@ describe("Topic 7 split into the cost of equity and the cost of capital (#91)", 
   it("keeps the risk Topic's Check ids and question ids, so its passes and Reviews stay", () => {
     expect(risk.checks.map((c) => c.id)).toEqual(["rate-check", "rate-talk"]);
     expect(risk.checks.every((c) => !c.required)).toBe(true);
-    for (const q of ["rate-q-lever", "rate-q-price", "rate-q-predict", "rate-q-direction", "rate-q-fed", "rate-q-hold", "rate-q-pricevalue"]) {
-      expect(risk.questions.some((x) => x.id === q), `${q} stays in the risk Topic`).toBe(true);
+    for (const q of [
+      "rate-q-lever",
+      "rate-q-price",
+      "rate-q-predict",
+      "rate-q-direction",
+      "rate-q-fed",
+      "rate-q-hold",
+      "rate-q-pricevalue",
+    ]) {
+      expect(
+        risk.questions.some((x) => x.id === q),
+        `${q} stays in the risk Topic`,
+      ).toBe(true);
     }
   });
 
   it("gives the new Topic ids of its own, so no Review or pass points across", () => {
-    const old = new Set([...risk.checks.map((c) => c.id), ...risk.questions.map((q) => q.id)]);
-    for (const id of [...capital.checks.map((c) => c.id), ...capital.questions.map((q) => q.id)]) expect(old.has(id), id).toBe(false);
+    const old = new Set([
+      ...risk.checks.map((c) => c.id),
+      ...risk.questions.map((q) => q.id),
+    ]);
+    for (const id of [
+      ...capital.checks.map((c) => c.id),
+      ...capital.questions.map((q) => q.id),
+    ])
+      expect(old.has(id), id).toBe(false);
   });
 
   it("keeps a Learner's pass of the risk Topic, and starts the new Topic unpassed", () => {
-    const passedThrough = map.topics.filter((t) => t.stage === "spine" && t.spine! <= risk.spine!);
+    const passedThrough = map.topics.filter(
+      (t) => t.stage === "spine" && t.spine! <= risk.spine!,
+    );
     const progress: Progress = {
       currentTopicId: null,
       topics: Object.fromEntries(
-        passedThrough.map((t) => [t.id, { step: "principle", passedChecks: t.id === RISK ? ["rate-check", "rate-talk"] : t.checks.map((c) => c.id), revealShown: true, status: "passed" as const }]),
+        passedThrough.map((t) => [
+          t.id,
+          {
+            step: "principle",
+            passedChecks:
+              t.id === RISK
+                ? ["rate-check", "rate-talk"]
+                : t.checks.map((c) => c.id),
+            revealShown: true,
+            status: "passed" as const,
+          },
+        ]),
       ),
     };
     const view = courseOverview(map, progress);
-    expect(view.find((t) => t.id === RISK)).toMatchObject({ status: "passed", checks: [{ id: "rate-check", passed: true }, { id: "rate-talk", passed: true }] });
-    expect(view.find((t) => t.id === CAPITAL)).toMatchObject({ status: "not_started" });
+    expect(view.find((t) => t.id === RISK)).toMatchObject({
+      status: "passed",
+      checks: [
+        { id: "rate-check", passed: true },
+        { id: "rate-talk", passed: true },
+      ],
+    });
+    expect(view.find((t) => t.id === CAPITAL)).toMatchObject({
+      status: "not_started",
+    });
     expect(navigate(map, progress)?.topic.id).toBe(CAPITAL);
   });
 
   it("teaches the cost of equity in the risk Topic, and the cost of debt and the weights in the new one, at most four new words each", () => {
-    expect(risk.terms.map((t) => t.term)).toEqual(["risk-free rate", "equity risk premium", "beta", "diversification"]);
-    expect(capital.terms.map((t) => t.term)).toEqual(["cost of debt", "tax saving on interest", "cost of capital", "basis point"]);
+    expect(risk.terms.map((t) => t.term)).toEqual([
+      "risk-free rate",
+      "equity risk premium",
+      "beta",
+      "diversification",
+    ]);
+    expect(capital.terms.map((t) => t.term)).toEqual([
+      "cost of debt",
+      "tax saving on interest",
+      "cost of capital",
+      "basis point",
+    ]);
   });
 
   it("names the WACC once, in the cost-of-capital Topic, tied to the cost of capital it explains", () => {
@@ -70,8 +120,44 @@ describe("Topic 7 split into the cost of equity and the cost of capital (#91)", 
 
   it("asks for no own story in either Topic: the risk Topic's conversation judges Damodaran's choice", () => {
     for (const t of [risk, capital]) {
-      for (const c of t.checks.filter((c) => c.kind === "conversation")) expect(c.prompt, `${t.id} ${c.id}`).not.toMatch(/how you would|your own|your story/i);
+      for (const c of t.checks.filter((c) => c.kind === "conversation"))
+        expect(c.prompt, `${t.id} ${c.id}`).not.toMatch(
+          /how you would|your own|your story/i,
+        );
     }
-    expect(words(RISK).concat(words(CAPITAL)).filter((t) => /your story/i.test(t))).toEqual([]);
+    expect(
+      words(RISK)
+        .concat(words(CAPITAL))
+        .filter((t) => /your story/i.test(t)),
+    ).toEqual([]);
+  });
+
+  // Spine critics round 1 on #91.
+  it("asks each Insight as a direction, not a size (Math police)", () => {
+    for (const t of [risk, capital])
+      expect(t.insight?.question, t.id).not.toMatch(/how far|how much/i);
+    for (const name of ["rate-explore", "coc-explore"] as const)
+      expect(draftOf(name).text, name).not.toMatch(/how far|how much/i);
+  });
+
+  it("keeps each Story turn to two figures at most, and says which beta he chose and why (beginner)", () => {
+    for (const name of ["rate-story", "coc-story"] as const) {
+      const figures =
+        draftOf(name)
+          .text.match(/\$?\d+(\.\d+)?%?/g)
+          ?.filter((f) => !/^(19|20)\d\d$/.test(f)) ?? [];
+      expect(
+        figures.length,
+        `${name}: ${figures.join(", ")}`,
+      ).toBeLessThanOrEqual(2);
+    }
+    expect(draftOf("rate-concept").text).toMatch(
+      /trusts the steadier 1\.60, the internet retailers' average/,
+    );
+    expect(draftOf("coc-explore").text).toMatch(/as risky as an average share/);
+  });
+
+  it("tells no figure its sources do not hold: no 6.60% past premium (Historian)", () => {
+    expect(words(RISK).join(" ")).not.toContain("6.60");
   });
 });

@@ -14,7 +14,12 @@ import type { ModelClient } from "@/tutor/model";
 const text = (t: string) => ({ type: "text", text: t });
 
 /** The Topic every fixture state opens (src/app/api/dev-e2e/route.ts). Its running example is a savings rate from 4% to 5%. */
-const RATE_MOVE_PARAMS = { title: "A savings rate from 4% to 5%", inputs: { old: 4, new: 5, mode: "show" }, refs: {}, facts: {} };
+const RATE_MOVE_PARAMS = {
+  title: "A savings rate from 4% to 5%",
+  inputs: { old: 4, new: 5, mode: "show" },
+  refs: {},
+  facts: {},
+};
 
 /**
  * Spine Topic 1 (spine-01-worth, e2e/spine-01.spec.ts): what the Learner types in the play, so a Tutor tool call can
@@ -32,12 +37,17 @@ export const SPINE_ONE_SAYS = {
 } as const;
 
 /** The words of the Insight the Learner's message holds, as record_insight_attempt quotes them. */
-const SPINE_ONE_INSIGHT_WORDS = "The price needs a much bigger Amazon that keeps more of each sale";
+const SPINE_ONE_INSIGHT_WORDS =
+  "The price needs a much bigger Amazon that keeps more of each sale";
 
 /** Spine Topic 1's explore Workbench (its Topic file's explore.workbench), as the Tutor shows it with show_widget. */
 const SPINE_ONE_LEVERS = {
   title: "Amazon, February 2000: your story",
-  inputs: { case: "spine-01-amazon-2000", caseStory: "Damodaran's story", priceStory: { revenue: 60, margin: 12.5 } },
+  inputs: {
+    case: "spine-01-amazon-2000",
+    caseStory: "Damodaran's story",
+    priceStory: { revenue: 60, margin: 12.5 },
+  },
   refs: {},
   facts: {},
 };
@@ -65,7 +75,16 @@ export const E2E_SCRIPTS = {
   "concept-reply-widget": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_show", name: "show_widget", input: { recipe: "rate_move", params: RATE_MOVE_PARAMS } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_show",
+            name: "show_widget",
+            input: { recipe: "rate_move", params: RATE_MOVE_PARAMS },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -100,7 +119,34 @@ export const E2E_SCRIPTS = {
   "stage-reply-2": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_stage2", name: "show_widget", input: { recipe: "percent_points", params: { title: "A deposit rate from 6% to 6.5%", inputs: { label: "Deposit rate", slider: { label: "New rate", unit: "percent", min: 5, max: 8, step: 0.25, start: 6 } }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_stage2",
+            name: "show_widget",
+            input: {
+              recipe: "percent_points",
+              params: {
+                title: "A deposit rate from 6% to 6.5%",
+                inputs: {
+                  label: "Deposit rate",
+                  slider: {
+                    label: "New rate",
+                    unit: "percent",
+                    min: 5,
+                    max: 8,
+                    step: 0.25,
+                    start: 6,
+                  },
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -115,7 +161,31 @@ export const E2E_SCRIPTS = {
   "stage-reply-3": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_stage3", name: "show_widget", input: { recipe: "lingo_card", params: { title: "A loan rate from 9% to 8.75%", inputs: { term: "Quarter point", pro: "The loan rate fell a quarter point.", means: "A move of one quarter of a percentage point, or 25 basis points.", example: "A loan rate going from 9% to 8.75%.", emoji: "bank" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_stage3",
+            name: "show_widget",
+            input: {
+              recipe: "lingo_card",
+              params: {
+                title: "A loan rate from 9% to 8.75%",
+                inputs: {
+                  term: "Quarter point",
+                  pro: "The loan rate fell a quarter point.",
+                  means:
+                    "A move of one quarter of a percentage point, or 25 basis points.",
+                  example: "A loan rate going from 9% to 8.75%.",
+                  emoji: "bank",
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -130,7 +200,30 @@ export const E2E_SCRIPTS = {
   "stage-reply-4": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_stage4", name: "show_widget", input: { recipe: "lingo_card", params: { title: "A bond yield from 7% to 7.1%", inputs: { term: "Basis point", pro: "The yield edged up 10 basis points.", means: "One hundredth of a percentage point.", example: "A bond yield going from 7% to 7.1%.", emoji: "chart-increasing" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_stage4",
+            name: "show_widget",
+            input: {
+              recipe: "lingo_card",
+              params: {
+                title: "A bond yield from 7% to 7.1%",
+                inputs: {
+                  term: "Basis point",
+                  pro: "The yield edged up 10 basis points.",
+                  means: "One hundredth of a percentage point.",
+                  example: "A bond yield going from 7% to 7.1%.",
+                  emoji: "chart-increasing",
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -150,7 +243,24 @@ export const E2E_SCRIPTS = {
   "persona-one-hundred": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_persona_hundred", name: "show_widget", input: { recipe: "rate_move", params: { title: "A mortgage rate from 5% to 6%", inputs: { old: 5, new: 6, mode: "show" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_persona_hundred",
+            name: "show_widget",
+            input: {
+              recipe: "rate_move",
+              params: {
+                title: "A mortgage rate from 5% to 6%",
+                inputs: { old: 5, new: 6, mode: "show" },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -166,7 +276,24 @@ export const E2E_SCRIPTS = {
   "persona-why-tiny": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_persona_tiny", name: "show_widget", input: { recipe: "rate_move", params: { title: "A home loan rate from 8% to 8.01%", inputs: { old: 8, new: 8.01, mode: "show" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_persona_tiny",
+            name: "show_widget",
+            input: {
+              recipe: "rate_move",
+              params: {
+                title: "A home loan rate from 8% to 8.01%",
+                inputs: { old: 8, new: 8.01, mode: "show" },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -182,7 +309,24 @@ export const E2E_SCRIPTS = {
   "persona-bank-cut": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_persona_cut", name: "show_widget", input: { recipe: "rate_move", params: { title: "A bank rate cut from 6.5% to 6.25%", inputs: { old: 6.5, new: 6.25, mode: "show" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_persona_cut",
+            name: "show_widget",
+            input: {
+              recipe: "rate_move",
+              params: {
+                title: "A bank rate cut from 6.5% to 6.25%",
+                inputs: { old: 6.5, new: 6.25, mode: "show" },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -213,7 +357,24 @@ export const E2E_SCRIPTS = {
   "persona-one-more": {
     step: "concept",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_persona_more", name: "show_widget", input: { recipe: "rate_move", params: { title: "A personal loan rate from 12% to 13.5%", inputs: { old: 12, new: 13.5, mode: "show" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_persona_more",
+            name: "show_widget",
+            input: {
+              recipe: "rate_move",
+              params: {
+                title: "A personal loan rate from 12% to 13.5%",
+                inputs: { old: 12, new: 13.5, mode: "show" },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -304,7 +465,14 @@ export const E2E_SCRIPTS = {
               params: {
                 title: "Lingo: quarter point",
                 // No figures: an open quiz's Blocked numbers would keep the card off the screen (V5).
-                inputs: { term: "Quarter point", pro: "The Fed moved by a quarter point.", means: "One quarter of a percentage point.", example: "A small rate move that papers write as a quarter point.", emoji: "bank" },
+                inputs: {
+                  term: "Quarter point",
+                  pro: "The Fed moved by a quarter point.",
+                  means: "One quarter of a percentage point.",
+                  example:
+                    "A small rate move that papers write as a quarter point.",
+                  emoji: "bank",
+                },
                 refs: {},
                 facts: {},
               },
@@ -375,7 +543,15 @@ export const E2E_SCRIPTS = {
    */
   "rejected-draft": {
     step: "concept",
-    replies: [{ content: [text(`${"Money today is worth more than money later, because you can use it now. ".repeat(11).trim()}\n\nWhich would you pick?`)] }],
+    replies: [
+      {
+        content: [
+          text(
+            `${"Money today is worth more than money later, because you can use it now. ".repeat(11).trim()}\n\nWhich would you pick?`,
+          ),
+        ],
+      },
+    ],
     // The gate's retry is a second run of the Tool Runner in the same turn: it plays these.
     retry: [
       {
@@ -433,7 +609,16 @@ export const E2E_SCRIPTS = {
   "spine1-explore": {
     step: "explore",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_spine1_levers", name: "show_widget", input: { recipe: "value_levers", params: SPINE_ONE_LEVERS } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_spine1_levers",
+            name: "show_widget",
+            input: { recipe: "value_levers", params: SPINE_ONE_LEVERS },
+          },
+        ],
+      },
       {
         content: [
           text(
@@ -451,7 +636,12 @@ export const E2E_SCRIPTS = {
     replies: [
       {
         content: [
-          { type: "tool_use", id: "toolu_e2e_spine1_insight", name: "record_insight_attempt", input: { outcome: "found", learner_words: SPINE_ONE_INSIGHT_WORDS } },
+          {
+            type: "tool_use",
+            id: "toolu_e2e_spine1_insight",
+            name: "record_insight_attempt",
+            input: { outcome: "found", learner_words: SPINE_ONE_INSIGHT_WORDS },
+          },
         ],
       },
       {
@@ -554,7 +744,8 @@ export const E2E_SCRIPTS = {
             input: {
               check_id: "worth-talk",
               verdict: "pass",
-              reasons: "Gives a size, a margin and a cost of growth and a risk; ties the value to that story; names the margin as uncertain with a reason; reads the price as a question, not proof.",
+              reasons:
+                "Gives a size, a margin and a cost of growth and a risk; ties the value to that story; names the margin as uncertain with a reason; reads the price as a question, not proof.",
             },
           },
         ],
@@ -742,8 +933,8 @@ export const E2E_SCRIPTS = {
           text(
             "February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor in New York, is valuing the company. " +
               "To value its future cash he needs the return its shareholders should require, for waiting and for the risk they bear. " +
-              "A safe US Treasury bond pays 6.5%. Amazon's shares swing far more than the market does: his own rough measure says 2.29 times as much, " +
-              "while internet retailers average 1.60.\n\n" +
+              "A safe US Treasury bond pays 6.5%. Amazon's shares swing far more than the market does, " +
+              "though with only two years of prices nobody can say exactly how much.\n\n" +
               "Would you ask more of Amazon's shares than of a safe bond?",
           ),
         ],
@@ -757,8 +948,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "What shareholders require is the cost of equity, and it is built in layers. " +
-              "Start with what a safe bond pays, 6.5%. Add the premium investors want for holding average shares, 4%, scaled by how far Amazon's shares move with the market, its beta of 1.60. " +
+            "What shareholders require is the cost of equity, built in layers. " +
+              "Start with what a safe bond pays, 6.5%. Add the premium for holding average shares, 4%, scaled by how far Amazon's shares move with the market; that number is called beta. " +
+              "His own rough measure says 2.29, but he trusts the steadier 1.60, the internet retailers' average. " +
               "Only the risk that holding many shares cannot spread away earns that premium.\n\n" +
               "Which layer looks hardest to pin down?",
           ),
@@ -770,13 +962,52 @@ export const E2E_SCRIPTS = {
   "rate-explore": {
     step: "explore",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_rate_stack", name: "show_widget", input: { recipe: "wacc_stack", params: { title: "What rate for Amazon?", inputs: { figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1.6, debtShare: 1.2, costOfDebt: 8, taxRate: 0 }, source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }, case: "spine-07-amazon-rate" }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_rate_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What rate for Amazon?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1.6,
+                    debtShare: 1.2,
+                    costOfDebt: 8,
+                    taxRate: 0,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: {
+                    lead: "equity",
+                    marks: [
+                      { relativeRisk: 2.29, label: "his measure" },
+                      { relativeRisk: 1, label: "a retailer" },
+                    ],
+                  },
+                  case: "spine-07-amazon-rate",
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
             "Here are his layers as a stack, with what a share is worth at that rate. Amazon borrows almost nothing, so the whole rate is nearly its cost of equity. " +
               "Move relative risk up to his rough measure, then down to a plain retailer's, and watch the value against the $84 price.\n\n" +
-              "How far does the value move, next to how far it is from the price?",
+              "Does swapping beta move the value more or less than the gap to the price, and what does that say?",
           ),
         ],
       },
@@ -790,9 +1021,9 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "February 2000. Damodaran has worked out what Amazon's shareholders should require: 12.90% a year. " +
-              "But lenders put in some of Amazon's money too, and they charge interest, 8% a year before tax. " +
+              "But lenders put in some of Amazon's money too, and they charge interest. " +
               "Their part is tiny, only 1.2% of the money. Amazon makes losses, so its interest saves it no tax yet. " +
-              "By year ten he expects it to borrow like a traditional retailer, 15% of its money.\n\n" +
+              "By year ten he expects it to borrow more, like a traditional retailer.\n\n" +
               "Whose return do you think matters most for the rate on all of Amazon's money?",
           ),
         ],
@@ -819,19 +1050,55 @@ export const E2E_SCRIPTS = {
   "coc-explore": {
     step: "explore",
     replies: [
-      { content: [{ type: "tool_use", id: "toolu_e2e_coc_stack", name: "show_widget", input: { recipe: "wacc_stack", params: { title: "What does mature Amazon's money cost?", inputs: { figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1, debtShare: 15, costOfDebt: 7, taxRate: 35 }, source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" } }, refs: {}, facts: {} } } }] },
+      {
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_e2e_coc_stack",
+            name: "show_widget",
+            input: {
+              recipe: "wacc_stack",
+              params: {
+                title: "What does mature Amazon's money cost?",
+                inputs: {
+                  figures: {
+                    riskFree: 6.5,
+                    equityPremium: 4,
+                    relativeRisk: 1,
+                    debtShare: 15,
+                    costOfDebt: 7,
+                    taxRate: 35,
+                  },
+                  source: {
+                    title:
+                      "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000), year 10 of his cost of capital table",
+                    url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+                  },
+                  story: { lead: "debt" },
+                },
+                refs: {},
+                facts: {},
+              },
+            },
+          },
+        ],
+      },
       {
         content: [
           text(
-            "Here is his mature Amazon of year ten: shareholders require 10.50%, and debt is 15% of its money at 4.55% after tax. " +
+            "Here is his mature Amazon of year ten. Grown up, it is as risky as an average share, so shareholders ask less of it, 10.50%. " +
+              "And now it pays tax, so its debt costs under half that after tax. " +
               "Move the share of debt down to none, then back up to where he set it.\n\n" +
-              "How far does the cost of capital move, and why so little?",
+              "Does the cost of capital move a lot or a little when debt goes to none, and why?",
           ),
         ],
       },
     ],
   },
-} satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
+} satisfies Record<
+  string,
+  { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }
+>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;
 
@@ -843,12 +1110,19 @@ export function isE2eScript(name: unknown): name is E2eScriptName {
 
 /** The finished reply a script gives, as the reply checks read it: its text and the Widgets its tool calls show. */
 export function draftOf(name: E2eScriptName): ReplyDraft {
-  const blocks = (E2E_SCRIPTS[name].replies as ScriptedReply[]).flatMap((r) => ("content" in r ? r.content : []));
-  const textOf = blocks.filter((b) => b.type === "text").map((b) => String(b.text));
+  const blocks = (E2E_SCRIPTS[name].replies as ScriptedReply[]).flatMap((r) =>
+    "content" in r ? r.content : [],
+  );
+  const textOf = blocks
+    .filter((b) => b.type === "text")
+    .map((b) => String(b.text));
   const widgets: ReplyWidget[] = blocks
     .filter((b) => b.type === "tool_use" && b.name === "show_widget")
     .map((b) => {
-      const input = b.input as { recipe: string; params?: Record<string, unknown> };
+      const input = b.input as {
+        recipe: string;
+        params?: Record<string, unknown>;
+      };
       return { kind: "recipe", id: input.recipe, params: input.params };
     });
   return { text: textOf.join("\n\n"), widgets };
@@ -864,14 +1138,24 @@ declare global {
  * tool calls are recorded once per tool-call id across the whole database (`once` in src/tutor/tools.ts), so
  * replaying a script's fixed ids in a later Session would store no second Widget.
  */
-export function freshScriptReplies(name: E2eScriptName, retry = false): ScriptedReply[] {
-  const play = (globalThis.__faE2eTurnCount = (globalThis.__faE2eTurnCount ?? 0) + 1);
-  const script = E2E_SCRIPTS[name] as { replies: ScriptedReply[]; retry?: ScriptedReply[] };
-  const replies = structuredClone(retry && script.retry ? script.retry : script.replies) as ScriptedReply[];
+export function freshScriptReplies(
+  name: E2eScriptName,
+  retry = false,
+): ScriptedReply[] {
+  const play = (globalThis.__faE2eTurnCount =
+    (globalThis.__faE2eTurnCount ?? 0) + 1);
+  const script = E2E_SCRIPTS[name] as {
+    replies: ScriptedReply[];
+    retry?: ScriptedReply[];
+  };
+  const replies = structuredClone(
+    retry && script.retry ? script.retry : script.replies,
+  ) as ScriptedReply[];
   for (const reply of replies) {
     if (!("content" in reply)) continue;
     for (const block of reply.content) {
-      if (block.type === "tool_use" && typeof block.id === "string") block.id = `${block.id}-p${play}`;
+      if (block.type === "tool_use" && typeof block.id === "string")
+        block.id = `${block.id}-p${play}`;
     }
   }
   return replies;
@@ -893,11 +1177,13 @@ export function currentE2eScript(): E2eScriptName {
 export function e2eTutorClient(): ModelClient {
   // A script with a `retry` plays it from the turn's second run on (the reply gate's retry, spec A1's browser test).
   let runs = 0;
-  const fresh = () => scriptedClient(freshScriptReplies(currentE2eScript(), runs++ > 0)).client;
+  const fresh = () =>
+    scriptedClient(freshScriptReplies(currentE2eScript(), runs++ > 0)).client;
   let current: ModelClient | undefined;
   return {
     forRun: fresh,
     step: (request, options) => (current ??= fresh()).step(request, options),
-    compact: (request, options) => (current ??= fresh()).compact(request, options),
+    compact: (request, options) =>
+      (current ??= fresh()).compact(request, options),
   };
 }

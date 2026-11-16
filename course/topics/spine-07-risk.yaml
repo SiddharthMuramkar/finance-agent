@@ -2,7 +2,8 @@
 # required of Amazon's shareholders in February 2000. The cost of debt and the weights are the next Topic's
 # (spine-cost-of-capital). The Case's valuation block is Amazon's in val-dcf, taken with valuationFrom; the Cost of
 # capital stack's figures (risk-free rate, premium, relative risk, share and cost of debt, tax) are Damodaran's own,
-# with their source. Case facts: docs/research/verify-amazon-risk-erp.json (amazon-cost-of-equity-2000). The Primer
+# with their source. Case facts: HighGrow.pdf, Amazon's 10-K, and for the 4% implied premium of 1960 to 1999 Damodaran's
+# "Equity Risk Premiums" paper (valquestions/RiskPrem.htm), listed in course/outline.yaml. The Primer
 # "Spreading risk" is cut from the Elective risk-portfolio (spec C3). Stage, place and length live in course/outline.yaml.
 id: spine-07-risk
 title: "Risk: what return should shareholders require?"
@@ -20,8 +21,8 @@ cases:
       3 February 2000. Amazon's shares cost $84, and Aswath Damodaran, a valuation professor at New York University, is
       valuing the company. He needs a discount rate: the return investors should require for waiting and for the risk
       they bear. The US Treasury bond pays 6.5%, his risk-free rate. For the extra return investors want for holding
-      average shares instead, the equity risk premium, he takes 4%, the average the market implied from 1960 to 1999;
-      he judges the 6.60% that shares earned over bonds in the past too high. For Amazon's relative risk, its beta, he
+      average shares instead, the equity risk premium, he takes 4%, the average the market implied from 1960 to 1999.
+      For Amazon's relative risk, its beta, he
       has two figures. His own measure, from two years of Amazon's weekly prices, gives 2.29, but
       it is rough: with so short a history its likely miss, the standard error, is 0.50. Internet retailers average 1.60, and specialty retailers 1.00. He picks 1.60 for
       five years, fading to 1.00 by year ten as Amazon matures. Which return should he require for Amazon's shares, and
@@ -116,9 +117,9 @@ primers:
     at: concept
 
 insight:
-  question: Move Amazon's relative risk from the beta he chose to his own rough measure, and back down to a plain retailer's. How far does the value move, against how far it is from the price?
+  question: Move Amazon's relative risk from the beta he chose to his own rough measure, and back down to a plain retailer's. Does swapping beta move the value more or less than the gap to the price, and what does that say?
   written: Swapping one defensible beta for another moves Amazon's value by about a fifth, while the price is more than double his value; the rate matters less than growth and margins, and no beta explains the price.
-  foundWhen: The Learner moves relative risk between a retailer's beta and the rough measure, sees the value move by about a fifth against a gap to the price far larger, and says the beta cannot explain the price, so growth and margins must.
+  foundWhen: The Learner moves relative risk between a retailer's beta and the rough measure, sees the value move far less than the gap to the price, and says the beta cannot explain the price, so growth and margins must.
   hints:
     - Watch the value at this rate while you move relative risk up to his rough measure, then down to a retailer's.
     - Now try to reach the price with relative risk alone, at its lowest setting.
@@ -132,6 +133,7 @@ explore:
     inputs:
       figures: { riskFree: 6.5, equityPremium: 4, relativeRisk: 1.6, debtShare: 1.2, costOfDebt: 8, taxRate: 0 }
       source: { title: "Damodaran, The Dark Side of Valuation: Can Amazon.com be valued? (valuation done February 2000)", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf" }
+      story: { lead: equity, marks: [{ relativeRisk: 2.29, label: his measure }, { relativeRisk: 1, label: a retailer }] }
 
 connections:
   - text: The capital asset pricing model is where relative risk and the premium for shares come from.
