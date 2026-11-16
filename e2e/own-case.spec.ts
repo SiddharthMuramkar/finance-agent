@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { openingEstimate, valueOwnCase } from "../src/finance/own-case";
 import { test } from "./support/people";
 
 /**
@@ -26,7 +27,7 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   const { page } = await person({ person: "ravi" });
   await page.goto("/course");
   await page.locator("[data-assignment-link]").click();
-  await expect(page).toHaveURL(/\/assignment$/);
+  await expect(page).toHaveURL(/\/assignment$/, { timeout: 60_000 }); // the dev server compiles /assignment on first visit
   await expect(page.getByRole("heading", { level: 1, name: "Assignment: value a company you pick" })).toBeVisible();
 
   const form = page.locator("[data-own-case-form]");
@@ -52,13 +53,64 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
 
   await form.getByRole("link", { name: "Open the Notebook" }).click();
-  await expect(page).toHaveURL(/\/notebook#own-cases$/);
+  await expect(page).toHaveURL(/\/notebook#own-cases$/, { timeout: 60_000 }); // the dev server compiles the Notebook on first visit
   const note = page.locator("#own-cases [data-own-case-note]").first();
   await expect(note).toContainText("Coffee Day Enterprises");
   await expect(note).toContainText("Coffee Day Enterprises, India. Annual report of 21 Oct 2015. Industry: Food processors.");
   await expect(note).toContainText("price ₹328 on 21 Oct 2015");
   await expect(note).toContainText("The engine's value: ₹0 a share");
   await expect(note).toContainText("nothing is left for shareholders");
+});
+
+/** The engine's value a share in a sentence: "₹-12.3" -> -12.3. */
+const rupees = (text: string) => Number(/(-?)₹(-?[\d,.]+) a share/.exec(text)!.slice(1).join("").replace(/,/g, ""));
+
+test("[#111] Go deeper on an Own Case opens the Full sheet, says where each input came from, and a row's slider or tap revalues it", async ({ person }) => {
+  test.setTimeout(180_000);
+  const { page } = await person({ person: "ravi" });
+  await page.goto("/assignment");
+  const form = page.locator("[data-own-case-form]");
+  await form.getByLabel("Company").fill("Coffee Day Enterprises");
+  await form.getByLabel("Date of the annual report").fill("2015-10-21");
+  await form.locator('[data-industry="food"]').click();
+  for (const [key, value] of Object.entries({ ...FIGURES, shares: "20,60,01,719" })) await form.locator(`[data-own-case-field="${key}"]`).fill(value);
+  await form.getByRole("button", { name: "Value it" }).click();
+  const formValue = await form.locator('[data-own-case-result="value"]').textContent();
+
+  const deeper = page.getByTestId("own-case-go-deeper");
+  await deeper.getByText("Go deeper: the Full sheet").click();
+  const sheet = deeper.getByTestId("full-sheet");
+  const origin = (row: string) => sheet.locator(`[data-row="${row}"] [data-origin]`);
+  for (const row of ["baseRevenue", "taxRate", "cash", "debt", "shares", "price"]) await expect(origin(row), row).toHaveAttribute("data-origin", "typed");
+  for (const row of ["salesToCapital", "costOfCapital", "marginAfter", "returnOnCapitalAfter"]) await expect(origin(row), row).toHaveAttribute("data-origin", "yardstick");
+  for (const row of ["growth", "growthAfter", "lossesCarried", "options", "failure"]) await expect(origin(row), row).toHaveAttribute("data-origin", "default");
+  await expect(origin("margin")).toHaveText("You typed it; then the industry's yardstick");
+  await expect(sheet.locator('[data-row="price"]')).toContainText("₹328");
+  // Nothing on the sheet can be typed into: sliders and tap buttons only (ADR 0020).
+  await expect(sheet.locator('input:not([type="range"]), textarea')).toHaveCount(0);
+
+  const value = deeper.getByTestId("own-case-sheet-value");
+  expect(rupees((await value.textContent())!)).toBe(rupees(formValue!));
+
+  // A slider: no debt at all is the value of typing a debt of 0 into the form.
+  const debt = sheet.getByRole("slider", { name: "Change: Debt the company owes" });
+  await expect(async () => {
+    await debt.fill("0");
+    await expect(debt).toHaveValue("0", { timeout: 500 });
+  }).toPass();
+  const noDebt = valueOwnCase(
+    { company: "Coffee Day Enterprises", market: "IN", reportDate: "2015-10-21", industry: "food", sales: 2479.36, operatingProfit: 109.59, taxPercent: 33.99, debt: 0, cash: 3679.63, shares: 206_001_719, price: 328 },
+    openingEstimate("food"),
+  );
+  if (!noDebt.ok) throw new Error(noDebt.error);
+  // The sentence rounds to whole rupees.
+  await expect.poll(async () => Math.abs(rupees((await value.textContent())!) - noDebt.valuePerShare)).toBeLessThanOrEqual(0.5);
+  await expect(sheet.locator('[data-row="debt"]')).toHaveAttribute("data-moved", "true");
+
+  // A tap: one step more cash raises the value.
+  const before = rupees((await value.textContent())!);
+  await sheet.getByRole("button", { name: "Increase Change: Cash the company holds by one step" }).click();
+  await expect.poll(async () => rupees((await value.textContent())!)).toBeGreaterThan(before);
 });
 
 test("a Learner who has not passed the Spine finds the Assignment closed", async ({ person }) => {
@@ -91,4 +143,60 @@ test("beside every field, the Own Case form shows where it sits in an Indian ann
   await expect(form.locator('[data-own-case-guide="sales"] [data-guide-where]')).toContainText("Revenue from operations");
   await expect(form.locator('[data-own-case-guide="sales"] [data-testid="lingo-card"]')).toContainText("Revenue from operations");
   await expect(form.locator('[data-own-case-guide="debt"] a[data-guide-source]')).toContainText("Ind AS 116");
+});
+
+/** Apple's Form 10-K for the year to 27 Sep 2025, in $ millions, as a Learner copies it (#113). */
+const APPLE = {
+  sales: "416,161",
+  operatingProfit: "133,050",
+  taxPercent: "21",
+  debt: "98,657",
+  cash: "35,934",
+  shares: "14,776,353,000",
+  price: "255.46",
+} as const;
+
+test("[#113] a Spine-passed Learner values a US company from its 10-K, with the guide and the dated US readings, to a note", async ({ person }) => {
+  test.setTimeout(180_000);
+  const { page } = await person({ person: "ravi" });
+  await page.goto("/assignment");
+  const form = page.locator("[data-own-case-form]");
+  await form.locator('[data-market="US"]').click();
+
+  // The guide: where the 10-K puts each figure, every line with a working source link and a Lingo card (#108's markup).
+  const guides = form.locator("[data-own-case-guide]");
+  await expect(guides).toHaveCount(9);
+  for (const guide of await guides.all()) await expect(guide.locator("a[data-guide-source]")).toHaveAttribute("href", /^https:\/\/www\.(sec|investor|nasdaq)\.(gov|com)\//);
+  await expect(form.locator('[data-own-case-guide="company"] [data-guide-where]')).toContainText("EDGAR");
+  await expect(form.locator('[data-own-case-guide="sales"] [data-guide-where]')).toContainText("Item 8");
+  await expect(form.locator('[data-own-case-guide="sales"] [data-guide-lingo] > summary')).toHaveText("Lingo: Net sales");
+
+  await form.getByLabel("Company").fill("Apple Inc.");
+  await form.getByLabel("Date of the annual report").fill("2025-09-27");
+  await form.locator('[data-industry="software"]').click();
+  // The US risk-free reading and the industry's yardsticks, each dated, credited and linked.
+  const riskFree = form.locator('[data-risk-free="us-risk-free-10y"]');
+  await expect(riskFree).toContainText("4.94% on 30 Oct 2026");
+  await expect(riskFree.locator("a[data-reading-source]")).toHaveAttribute("href", /^https:\/\/home\.treasury\.gov\//);
+  const readings = form.getByTestId("market-reading");
+  await expect(readings).toHaveCount(3);
+  for (const reading of await readings.all()) {
+    await expect(reading.getByTestId("reading-date")).toHaveText("(Jan 2026)");
+    await expect(reading.getByTestId("reading-credit")).toHaveAttribute("href", /^https:\/\/pages\.stern\.nyu\.edu\/~adamodar\/pc\/datasets\/(margin|capex|wacc)\.xls$/);
+  }
+  await expect(form.locator("[data-own-case-estimate]")).toContainText("$1.54 of sales for each $1 invested");
+  await form.locator('[data-industry="market"]').click();
+  for (const [key, value] of Object.entries(APPLE)) await form.locator(`[data-own-case-field="${key}"]`).fill(value);
+
+  await form.getByRole("button", { name: "Value it" }).click();
+  await expect(form.locator('[data-own-case-result="value"]')).toContainText(/^The engine's value: -?\$[\d,.]+ a share, beside a price of \$255 on 27 Sep 2025\.$/);
+  await form.getByRole("button", { name: "Save to Notebook" }).click();
+  await expect(form.locator("[data-own-case-saved]")).toContainText("Saved to your Notebook.");
+
+  await form.getByRole("link", { name: "Open the Notebook" }).click();
+  await expect(page).toHaveURL(/\/notebook#own-cases$/, { timeout: 60_000 }); // the dev server compiles the Notebook on first visit
+  const note = page.locator("#own-cases [data-own-case-note]").first();
+  await expect(note).toContainText("Apple Inc., the US. Annual report of 27 Sep 2025.");
+  await expect(note).toContainText("14,776,353,000 shares, price $255 on 27 Sep 2025");
+  await expect(note).toContainText("The engine's value: $");
 });

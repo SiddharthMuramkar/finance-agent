@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { impliedPremium, impliedPremiumBlock } from "../finance/implied-erp.ts";
+import { EUROPE_READINGS } from "./readings-europe.ts";
 import { JAPAN_KOREA_READINGS } from "./readings-japan-korea.ts";
 
 // Market readings (spec #68, ticket #105; GLOSSARY "Market reading"): a market-wide number, such as the premium investors
@@ -13,7 +14,7 @@ import { JAPAN_KOREA_READINGS } from "./readings-japan-korea.ts";
 const slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "lowercase words joined by hyphens");
 
 /** What a reading measures: the implied premium of a whole market, or one of an industry's yardsticks. */
-/** A risk-free reading is a market's 10-year government bond yield on a stated day (ticket #114). */
+/** A risk-free reading is a market's 10-year government bond yield on a stated day (tickets #113, #114, #115). */
 export const READING_KINDS = ["implied_premium", "operating_margin", "sales_to_capital", "cost_of_capital", "risk_free"] as const;
 
 export const marketReadingSchema = z
@@ -21,7 +22,7 @@ export const marketReadingSchema = z
     id: slug,
     /** What it measures, in plain words: "Operating margin, auto and truck makers (India)". */
     label: z.string().trim().min(3),
-    market: z.enum(["IN", "US", "JP", "KR"]),
+    market: z.enum(["IN", "US", "JP", "KR", "EU"]),
     kind: z.enum(READING_KINDS),
     /** The industry, as the source names it, for an industry yardstick. */
     industry: z.string().trim().min(1).optional(),
@@ -111,7 +112,10 @@ const CHECKED = "2026-11-16";
 /** The India sheets' "Date updated" cell (Excel day 46027). */
 const INDIA_UPDATE = "2026-01-05";
 
-const INDIA_SHEETS = {
+type Sheet = { source: string; url: string; what: string; column: string; unit: "percent" | "times" };
+type Sheets = Record<"operating_margin" | "sales_to_capital" | "cost_of_capital", Sheet>;
+
+const INDIA_SHEETS: Sheets = {
   operating_margin: {
     source: "Damodaran Online, Operating and Net Margins by Industry (India), January 2026 update",
     url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls",
@@ -133,7 +137,7 @@ const INDIA_SHEETS = {
     column: "Cost of Capital (Local Currency)",
     unit: "percent",
   },
-} as const;
+};
 
 type Yardsticks = { id: string; industry: string; plain: string; operating_margin: number; sales_to_capital: number; cost_of_capital: number };
 
@@ -147,26 +151,85 @@ const INDIA_INDUSTRIES: Yardsticks[] = [
 
 const KIND_ID = { operating_margin: "margin", sales_to_capital: "sales-to-capital", cost_of_capital: "cost-of-capital" } as const;
 
-const indiaYardsticks = INDIA_INDUSTRIES.flatMap((row) =>
-  (["operating_margin", "sales_to_capital", "cost_of_capital"] as const).map((kind) => {
-    const sheet = INDIA_SHEETS[kind];
-    return {
-      id: `in-${row.id}-${KIND_ID[kind]}`,
-      label: `${sheet.what}, ${row.plain} (India)`,
-      market: "IN" as const,
-      kind,
-      industry: row.industry,
-      value: row[kind],
-      unit: sheet.unit,
-      date: INDIA_UPDATE,
-      source: sheet.source,
-      sourceUrl: sheet.url,
-      credit: CREDIT,
-      checkedOn: CHECKED,
-      checkNote: `Read from the "${row.industry}" row, column "${sheet.column}", of the sheet "Industry Averages", and rounded to two decimals.`,
-    };
-  }),
-);
+/** One reading per industry and kind: `<market>-<industry>-<kind>`, as the Own Case industry pick names them. */
+const yardsticks = (market: "IN" | "US", place: string, sheets: Sheets, rows: Yardsticks[], date: string) =>
+  rows.flatMap((row) =>
+    (["operating_margin", "sales_to_capital", "cost_of_capital"] as const).map((kind) => {
+      const sheet = sheets[kind];
+      return {
+        id: `${market.toLowerCase()}-${row.id}-${KIND_ID[kind]}`,
+        label: `${sheet.what}, ${row.plain} (${place})`,
+        market,
+        kind,
+        industry: row.industry,
+        value: row[kind],
+        unit: sheet.unit,
+        date,
+        source: sheet.source,
+        sourceUrl: sheet.url,
+        credit: CREDIT,
+        checkedOn: CHECKED,
+        checkNote: `Read from the "${row.industry}" row, column "${sheet.column}", of the sheet "Industry Averages", and rounded to two decimals.`,
+      };
+    }),
+  );
+
+const indiaYardsticks = yardsticks("IN", "India", INDIA_SHEETS, INDIA_INDUSTRIES, INDIA_UPDATE);
+
+// ——— The US (#113, checked 2026-11-16) ———
+
+/** The US sheets' "Date updated" cell (Excel day 46027), the same January 2026 update as India's. */
+const US_UPDATE = "2026-01-05";
+
+const US_SHEETS: Sheets = {
+  operating_margin: {
+    source: "Damodaran Online, Operating and Net Margins by Industry (US), January 2026 update",
+    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/margin.xls",
+    what: "Operating margin before tax",
+    column: "Pre-tax Unadjusted Operating Margin",
+    unit: "percent",
+  },
+  sales_to_capital: {
+    source: "Damodaran Online, Capital Expenditures by Industry (US), January 2026 update",
+    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capex.xls",
+    what: "Sales for each dollar invested",
+    column: "Sales/ Invested Capital (LTM)",
+    unit: "times",
+  },
+  cost_of_capital: {
+    source: "Damodaran Online, Cost of Equity and Capital by Industry (US), January 2026 update",
+    url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wacc.xls",
+    what: "Cost of capital in dollars",
+    column: "Cost of Capital",
+    unit: "percent",
+  },
+};
+
+/** The same four industry rows from the US sheets, each figure rounded to two decimals from the cell. */
+const US_INDUSTRIES: Yardsticks[] = [
+  { id: "auto", industry: "Auto & Truck", plain: "auto and truck makers", operating_margin: 2.32, sales_to_capital: 1.08, cost_of_capital: 9.38 },
+  { id: "food", industry: "Food Processing", plain: "food processors", operating_margin: 10.63, sales_to_capital: 1.71, cost_of_capital: 5.79 },
+  { id: "software", industry: "Software (System & Application)", plain: "software makers", operating_margin: 32.98, sales_to_capital: 1.54, cost_of_capital: 9.34 },
+  { id: "market", industry: "Total Market (without financials)", plain: "all firms but banks and insurers", operating_margin: 13.14, sales_to_capital: 1.43, cost_of_capital: 7.72 },
+];
+
+const usYardsticks = yardsticks("US", "US", US_SHEETS, US_INDUSTRIES, US_UPDATE);
+
+/** The US risk-free rate: the 10-year Treasury par yield on the last business day of October 2026. */
+const usRiskFree = {
+  id: "us-risk-free-10y",
+  label: "10-year US Treasury yield (US)",
+  market: "US" as const,
+  kind: "risk_free" as const,
+  value: 4.94,
+  unit: "percent" as const,
+  date: "2026-10-30",
+  source: "U.S. Treasury, Daily Treasury Par Yield Curve Rates, October 2026",
+  sourceUrl: "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value_month=202610",
+  credit: "U.S. Department of the Treasury",
+  checkedOn: CHECKED,
+  checkNote: 'The "10 Yr" column of the 10/30/2026 row in the Treasury\'s 2026 par yield curve file (4.98% on 10/29, 4.91% on 11/02).',
+};
 
 const HISTIMPL = { title: "Damodaran, Historical Implied Equity Risk Premiums (histimpl.xls)", url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls" };
 const ERP_PAPER = { title: "Damodaran, Equity Risk Premiums (ERP): Determinants, Estimation and Implications, Tables 16 and 17", url: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/ERPpageproof.pdf" };
@@ -237,7 +300,7 @@ const usRiskFree1999 = {
 };
 
 /** Every Market reading in the course as written: the course check runs marketReadingErrors on these. */
-export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, usRiskFree1999, ...indiaYardsticks, ...JAPAN_KOREA_READINGS];
+export const MARKET_READING_INPUTS: readonly unknown[] = [...premiums, usRiskFree1999, ...indiaYardsticks, ...usYardsticks, usRiskFree, ...JAPAN_KOREA_READINGS, ...EUROPE_READINGS];
 
 /** Every Market reading that parses (the course check fails on any that does not). */
 export const MARKET_READINGS: MarketReading[] = MARKET_READING_INPUTS.flatMap((r) => {
@@ -256,7 +319,7 @@ export const marketReadingIds = (): string[] => [...BY_ID.keys()];
 // ——— The As-of rule for readings shown before the Reveal (Owner decision on #105, 2026-11-16) ———
 
 /** The market a Case's money belongs to, for its readings: a dollar Case reads US readings, a rupee Case India's. */
-export const CURRENCY_MARKET: Partial<Record<string, MarketReading["market"]>> = { USD: "US", INR: "IN", JPY: "JP", KRW: "KR" };
+export const CURRENCY_MARKET: Partial<Record<string, MarketReading["market"]>> = { USD: "US", INR: "IN", JPY: "JP", KRW: "KR", EUR: "EU" };
 
 /** What a Case knew on its As-of date: its day and its market. */
 export type ReadingsKnownOn = { asOf: string; market: MarketReading["market"] };

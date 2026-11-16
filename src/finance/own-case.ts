@@ -10,8 +10,8 @@ import { toEngineInputs, valuationBlock, type ValuationBlock, type ValuationBloc
 //
 // This module imports only relative modules (no "@/" paths), so plain Node and the page can both run it.
 
-/** The markets an Own Case can be in. India first (#107), then Japan and Korea (#114); more markets add their code here. */
-export const OWN_CASE_MARKETS = ["IN", "JP", "KR"] as const;
+/** The markets an Own Case can be in. India first (#107), then the US (#113), Japan and Korea (#114) and Europe (#115); more markets add their code here. */
+export const OWN_CASE_MARKETS = ["IN", "US", "JP", "KR", "EU"] as const;
 export type OwnCaseMarket = (typeof OWN_CASE_MARKETS)[number];
 
 /** The yardstick a Market reading (#105) gives, by market, industry and kind: `<market>-<industry>-<kind>`. */
@@ -52,13 +52,15 @@ export const INDIA_INDUSTRIES = industriesOf("IN");
 
 /**
  * Each market's money and its dated readings. The report's money unit is the one its statements print: India's ₹ crore,
- * Japan's 百万円 and Korea's 백만원 (millions). Growth after year 10 opens at the market's dated risk-free reading (the
+ * a US 10-K's $ millions, Japan's 百万円 and Korea's 백만원 (millions), Europe's € millions (€m, Mio. €, M€). Growth after year 10 opens at the market's dated risk-free reading (the
  * 10-year government bond yield) where it has one, so a mature company never outgrows its economy; India keeps 5%.
  */
 const MARKETS = {
   IN: { code: "IN", name: "India", currency: "INR", unit: "crores", unitSize: 1e7, riskFree: undefined },
+  US: { code: "US", name: "the US", currency: "USD", unit: "millions", unitSize: 1e6, riskFree: "us-risk-free-10y" },
   JP: { code: "JP", name: "Japan", currency: "JPY", unit: "millions", unitSize: 1e6, riskFree: "jp-risk-free-10y" },
   KR: { code: "KR", name: "Korea", currency: "KRW", unit: "millions", unitSize: 1e6, riskFree: "kr-risk-free-10y" },
+  EU: { code: "EU", name: "Europe", currency: "EUR", unit: "millions", unitSize: 1e6, riskFree: "eu-risk-free-10y" },
 } as const;
 
 /** Growth after year 10 an Indian opening Estimate assumes: a mature company growing with the economy, in rupees. */
@@ -71,7 +73,7 @@ const MARKET_ROWS = Object.fromEntries(
     if (spec.riskFree && !riskFree) throw new Error(`No Market reading ${spec.riskFree}`);
     return [m, { ...spec, riskFree, industries: m === "IN" ? INDIA_INDUSTRIES : industriesOf(m), growthAfter: riskFree?.value ?? INDIA_GROWTH_AFTER }];
   }),
-) as Record<OwnCaseMarket, { code: OwnCaseMarket; name: string; currency: "INR" | "JPY" | "KRW"; unit: "crores" | "millions"; unitSize: number; riskFree: MarketReading | undefined; industries: OwnCaseIndustryRow[]; growthAfter: number }>;
+) as Record<OwnCaseMarket, { code: OwnCaseMarket; name: string; currency: "INR" | "USD" | "JPY" | "KRW" | "EUR"; unit: "crores" | "millions"; unitSize: number; riskFree: MarketReading | undefined; industries: OwnCaseIndustryRow[]; growthAfter: number }>;
 
 /** A market's money, name, dated risk-free reading and industries. */
 export const ownCaseMarket = (market: OwnCaseMarket) => MARKET_ROWS[market];
@@ -79,9 +81,16 @@ export const ownCaseMarket = (market: OwnCaseMarket) => MARKET_ROWS[market];
 /** The industries a Learner picks from in this market. */
 export const ownCaseIndustries = (market: OwnCaseMarket): OwnCaseIndustryRow[] => MARKET_ROWS[market].industries;
 
+/** The same industries from Damodaran's US data, January 2026 (#113). */
+export const US_INDUSTRIES = ownCaseIndustries("US");
+
+/** The Market readings shown beside an Own Case's industry pick (#113): that industry's three dated yardsticks in its market. */
+export const ownCaseReadingIds = (market: OwnCaseMarket, industry: OwnCaseIndustry): string[] =>
+  (["margin", "sales-to-capital", "cost-of-capital"] as const).map((kind) => `${market.toLowerCase()}-${industry}-${kind}`);
+
 const isMarket = (m: string): m is OwnCaseMarket => (OWN_CASE_MARKETS as readonly string[]).includes(m);
 
-/** What the Learner types from the annual report. Money in the market's report unit (₹ crore, ¥ or ₩ millions); shares as the plain count the report prints. */
+/** What the Learner types from the annual report. Money in the market's report unit (₹ crore, ¥, ₩ or € millions); shares as the plain count the report prints. */
 export type OwnCaseInputs = {
   company: string;
   market: OwnCaseMarket;
@@ -95,7 +104,7 @@ export type OwnCaseInputs = {
   cash: number;
   /** Shares outstanding, as a plain count (20,60,01,719). */
   shares: number;
-  /** The share price on the report's date, in the market's money (rupees, yen, won). */
+  /** The share price on the report's date, in the market's money (rupees, yen, won, euros). */
   price: number;
   /** A link to the annual report, when the Learner gives one. */
   reportUrl?: string;

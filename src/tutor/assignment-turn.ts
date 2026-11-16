@@ -2,7 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { ownCases } from "@/db/schema";
 import type { Db } from "@/db/types";
-import type { OwnCaseEstimate, OwnCaseInputs } from "@/finance/own-case";
+import { ownCaseMarket, type OwnCaseEstimate, type OwnCaseInputs } from "@/finance/own-case";
 import { assignmentOpen } from "@/learner/own-cases";
 import { rangeCheck, type RangeFlag } from "@/markets/range-check";
 import type { Effort, Message, ModelClient } from "./model";
@@ -26,8 +26,8 @@ import { saveStepUsage, stepUsage } from "./usage";
 /** The topic id of the Learner's Assignment Session: not a Course Map Topic, so the navigator never moves to it. */
 export const ASSIGNMENT_SESSION_TOPIC = "assignment";
 
-/** What the Tutor is told of the Learner's Own Case: its one-page note, and the range check's flags. Null: none saved yet. */
-export type AssignmentFacts = { note: string; flags: Pick<RangeFlag, "name" | "sentence">[] } | null;
+/** What the Tutor is told of the Learner's Own Case: its one-page note, the range check's flags and (#113) its currency. Null: none saved yet. */
+export type AssignmentFacts = { note: string; flags: Pick<RangeFlag, "name" | "sentence">[]; currency?: ReturnType<typeof ownCaseMarket>["currency"] } | null;
 
 /** The prefix of the context note code adds after the Learner's message. */
 export const ASSIGNMENT_CONTEXT_PREFIX = "[Assignment context, from code]";
@@ -66,12 +66,14 @@ export async function assignmentFacts(db: Db, learnerId: number): Promise<Assign
     { marginPercent: (inputs.operatingProfit / inputs.sales) * 100, salesToCapital: estimate.salesToCapital, costOfCapitalPercent: estimate.costOfCapitalPercent },
     { market: inputs.market, industry: inputs.industry },
   );
-  return { note: row.note ?? `${row.company}, report of ${row.reportDate}.`, flags: flags.map(({ name, sentence }) => ({ name, sentence })) };
+  const currency = (ownCaseMarket(inputs.market) ?? ownCaseMarket("IN")).currency;
+  return { note: row.note ?? `${row.company}, report of ${row.reportDate}.`, flags: flags.map(({ name, sentence }) => ({ name, sentence })), currency };
 }
 
-/** The reply checks' context in the Assignment: rupees, no quiz, and the flagged inputs' names. */
+/** The reply checks' context in the Assignment: the Own Case's currency (rupees until one is saved), no quiz, and the flagged inputs' names. */
 function checkContext(facts: AssignmentFacts): ReplyCheckContext {
-  return { step: "none", exampleCurrency: "INR", caseCurrencies: ["INR"], openItems: [], internalWords: [ASSIGNMENT_SESSION_TOPIC], assignment: { flagged: facts?.flags.map((f) => f.name) ?? [] } };
+  const currency = facts?.currency ?? "INR";
+  return { step: "none", exampleCurrency: currency, caseCurrencies: [currency], openItems: [], internalWords: [ASSIGNMENT_SESSION_TOPIC], assignment: { flagged: facts?.flags.map((f) => f.name) ?? [] } };
 }
 
 export type AssignmentTurnDeps = { db: Db; client: ModelClient; learnerId: number; admin?: boolean; map?: CourseMap; now?: () => Date };

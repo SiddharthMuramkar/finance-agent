@@ -49,7 +49,7 @@ export type RangeFlag = {
 };
 
 /** Where the yardstick comes from: Korea's are Damodaran's Emerging Markets figures (src/markets/readings-japan-korea.ts). */
-const MARKET_WORD = { IN: "India", US: "the US", JP: "Japan", KR: "emerging markets" } as const;
+const MARKET_WORD = { IN: "India", US: "the US", JP: "Japan", KR: "emerging markets", EU: "Europe" } as const;
 
 /** The id word each yardstick kind carries: "in-food-margin" (src/markets/readings.ts). */
 const KIND_ID = { operating_margin: "margin", sales_to_capital: "sales-to-capital", cost_of_capital: "cost-of-capital" } as const;

@@ -68,6 +68,31 @@ describe("the first set of Market readings", () => {
     expect(auto).toEqual([9.69, 1.03, 13.9]);
   });
 
+  it("holds the US yardsticks by industry, each dated at the January 2026 update and linked to Damodaran's US sheets (#113)", () => {
+    const us = MARKET_READINGS.filter((r) => r.market === "US" && r.kind !== "implied_premium" && r.kind !== "risk_free");
+    const software = ["operating_margin", "sales_to_capital", "cost_of_capital"].map((kind) => us.find((r) => r.industry === "Software (System & Application)" && r.kind === kind)?.value);
+    expect(software).toEqual([32.98, 1.54, 9.34]);
+    expect(marketReading("us-food-cost-of-capital")?.value).toBe(5.79);
+    expect(us).toHaveLength(12);
+    for (const r of us) {
+      expect(r.date).toBe("2026-01-05");
+      expect(r.sourceUrl).toMatch(/^https:\/\/pages\.stern\.nyu\.edu\/~adamodar\/pc\/datasets\/(margin|capex|wacc)\.xls$/);
+      expect(r.credit).toBe("Aswath Damodaran, NYU Stern");
+    }
+  });
+
+  it("holds the US risk-free reading: the 10-year Treasury yield of 4.94% on 30 Oct 2026, credited to the US Treasury (#113)", () => {
+    const riskFree = marketReading("us-risk-free-10y");
+    expect(riskFree).toMatchObject({ market: "US", kind: "risk_free", value: 4.94, unit: "percent", date: "2026-10-30", credit: "U.S. Department of the Treasury" });
+    expect(riskFree?.sourceUrl).toMatch(/^https:\/\/home\.treasury\.gov\//);
+  });
+
+  it("fails a risk-free reading with no date or no source, as any reading (#113)", () => {
+    const riskFree = marketReading("us-risk-free-10y")!;
+    expect(marketReadingErrors([{ ...riskFree, date: undefined }])).toEqual([expect.stringContaining('"us-risk-free-10y" needs date')]);
+    expect(marketReadingErrors([{ ...riskFree, sourceUrl: undefined }])).toEqual([expect.stringContaining('"us-risk-free-10y" needs sourceUrl')]);
+  });
+
   it("writes a reading's month and year, and its value in its unit", () => {
     expect(readingMonth("2026-01-05")).toBe("Jan 2026");
     expect(readingMonth("2007-12-31")).toBe("Dec 2007");

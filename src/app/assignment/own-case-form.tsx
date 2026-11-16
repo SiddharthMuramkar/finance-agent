@@ -2,33 +2,53 @@
 
 import { useState } from "react";
 import { CURRENCY_STYLE } from "@/finance/money";
-import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
+import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, ownCaseReadingIds, valueOwnCase, type OwnCaseEstimate, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
 import { OPTIONS_NOT_ENTERED, ownCaseValueLine } from "@/learner/own-case-words";
 import { annualReportGuide, type GuideField } from "@/markets/guides";
 import { ownCaseRangeInputs, rangeCheck, type RangeFlag } from "@/markets/range-check";
+import { readingMonth } from "@/markets/readings";
+import { MarketReadingsView } from "@/widgets/market-readings-view";
 import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
 import { RangeCheckView } from "@/widgets/range-check-view";
 import { dateText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
+import { OwnCaseFullSheet } from "./own-case-full-sheet";
 
-/** How each market's report counts its money (₹ crore; Japan's 百万円 and Korea's 백만원 are millions). */
-const MONEY_WORDS: Record<OwnCaseMarket, string> = { IN: "₹ crore", JP: "¥ millions (百万円)", KR: "₩ millions (백만원)" };
+/** How each market's report counts its money (₹ crore; a US 10-K's $ millions; Japan's 百万円 and Korea's 백만원 are millions; Europe's € millions, #115). */
+const MONEY_WORDS: Record<OwnCaseMarket, string> = { IN: "₹ crore", US: "$ millions", JP: "¥ millions (百万円)", KR: "₩ millions (백만원)", EU: "€ millions" };
+
+/** A market's name on its button: "United States" where a sentence says "the US". */
+const marketLabel = (m: OwnCaseMarket) => (m === "US" ? "United States" : ownCaseMarket(m).name);
 
 /** The eight figures copied from the report (spec #68, user story 79), each with what it is and where the money is counted. */
 const fieldsFor = (market: OwnCaseMarket) => {
   const money = MONEY_WORDS[market];
   const { symbol, word } = CURRENCY_STYLE[ownCaseMarket(market).currency];
   return [
-    { key: "sales", label: "Sales", hint: `Revenue from operations for the year, in ${money}.` },
+    { key: "sales", label: "Sales", hint: `${market === "US" ? "Total net sales or revenues" : "Revenue from operations"} for the year, in ${money}.` },
     { key: "operatingProfit", label: "Operating profit", hint: `Profit before interest and tax (EBIT), in ${money}. Below zero for a loss.` },
     { key: "taxPercent", label: "Tax rate", hint: "The rate the law sets for the company's profit, as the tax note names it (not tax paid over profit), in percent." },
-    { key: "debt", label: "Debt", hint: market === "IN" ? "Borrowings and lease liabilities, long and short, in ₹ crore." : `Borrowings, long and short, in ${money}.` },
+    {
+      key: "debt",
+      label: "Debt",
+      hint:
+        market === "US"
+          ? `Commercial paper and term debt, long and short, in ${money}.`
+          : market === "JP" || market === "KR"
+            ? `Borrowings, long and short, in ${money}.`
+            : `Borrowings and lease liabilities, long and short, in ${money}.`,
+    },
     { key: "cash", label: "Cash", hint: market === "IN" ? "Cash and cash equivalents, with other bank balances, in ₹ crore." : `Cash and cash equivalents, in ${money}.` },
     { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },
     {
       key: "price",
       label: "Share price on the report's date",
-      hint: market === "IN" ? "In ₹, the closing price on that day, or on the next trading day if the market was shut." : `In whole ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`,
+      hint:
+        market === "IN"
+          ? "In ₹, the closing price on that day, or on the next trading day if the market was shut."
+          : market === "EU" || market === "US"
+            ? `In ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`
+            : `In whole ${word[1]} (${symbol}), the closing price on that day, or on the last trading day before it.`,
     },
   ] as const;
 };
@@ -36,16 +56,18 @@ const FIELD_KEYS = ["sales", "operatingProfit", "taxPercent", "debt", "cash", "s
 type FieldKey = (typeof FIELD_KEYS)[number];
 
 /** A typed figure as a number: commas the report prints, a currency sign and a percent sign ("25.168%") are fine; an empty box is no number. */
-const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹¥₩%]/g, "")));
+const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹$¥₩€%]/g, "")));
 
 /** When the Own Case is dated: the day the year's figures became public, never the year end before them (the past-only rule). */
 const DATE_HINT: Record<OwnCaseMarket, string> = {
   IN: "The Own Case is dated here: the day the Board approved the statements, when the year's figures became public. Not the year end: nobody knew the figures then.",
+  US: "The Own Case is dated here: the day the 10-K was filed on EDGAR, when its figures were public. Not the fiscal year end: nobody knew the figures then.",
   JP: "The Own Case is dated here: the day the report was filed, when its figures were public. Not the year end: nobody knew the figures then.",
   KR: "The Own Case is dated here: the day the report was filed, when its figures were public. Not the year end: nobody knew the figures then.",
+  EU: "The Own Case is dated here: the day the annual financial report was published, when its figures were public. Not the year end: nobody knew the figures then.",
 };
 
-/** Beside a field: where it sits in the market's annual report, the source that says so, and a Lingo card (#108, #114). */
+/** Beside a field: where it sits in the market's annual report, the source that says so, and a Lingo card (#108, #114, #115). */
 function FieldGuide({ market, field }: { market: OwnCaseMarket; field: GuideField }) {
   const line = annualReportGuide(market)[field];
   if (!line) return null;
@@ -81,6 +103,8 @@ export function OwnCaseForm() {
   const [shown, setShown] = useState<Shown>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  // The Own Case last valued, for Go deeper's Full sheet (#111); a new valuation opens a fresh sheet.
+  const [valued, setValued] = useState<{ inputs: OwnCaseInputs; estimate: OwnCaseEstimate; at: number } | null>(null);
 
   const inputs = (): OwnCaseInputs | null =>
     industry && {
@@ -97,6 +121,7 @@ export function OwnCaseForm() {
     if (!typed) return setShown({ kind: "problem", text: "Pick the company's industry." });
     const estimate = openingEstimate(typed.industry, market);
     const value = valueOwnCase(typed, estimate);
+    setValued((prev) => (value.ok ? { inputs: typed, estimate, at: (prev?.at ?? 0) + 1 } : null)); // a new key for each valuing remounts the Full sheet
     setShown(
       value.ok
         ? {
@@ -131,6 +156,7 @@ export function OwnCaseForm() {
   const fields = fieldsFor(market);
   const riskFree = place.riskFree;
   const estimate = industry ? openingEstimate(industry, market) : null;
+  const yardsticks = industry ? place.industries.find((i) => i.id === industry)?.source : undefined;
   return (
     <form
       data-own-case-form
@@ -157,7 +183,7 @@ export function OwnCaseForm() {
                 setSaved(null);
               }}
             >
-              {ownCaseMarket(m).name}
+              {marketLabel(m)}
             </Button>
           ))}
         </div>
@@ -217,6 +243,7 @@ export function OwnCaseForm() {
           <FieldGuide market={market} field={f.key} />
         </div>
       ))}
+      {industry && <MarketReadingsView ids={ownCaseReadingIds(market, industry)} />}
       <p data-own-case-options className="text-xs leading-4 text-[var(--muted)]">
         {OPTIONS_NOT_ENTERED}
       </p>
@@ -225,6 +252,16 @@ export function OwnCaseForm() {
           Your Estimate opens at the industry&rsquo;s yardsticks: growth {estimate.growthPercent}% a year for five years, fading to {estimate.growthAfterPercent}%; the
           margin heading for {estimate.targetMarginPercent}%; {symbol}
           {estimate.salesToCapital} of sales for each {symbol}1 invested; cost of capital {estimate.costOfCapitalPercent}%.
+          {yardsticks && (
+            <>
+              {" "}
+              Yardsticks of {readingMonth(yardsticks.date)}:{" "}
+              <a data-yardstick-source href={yardsticks.sourceUrl} target="_blank" rel="noreferrer" title={`Credit: ${yardsticks.credit}`} className="underline">
+                {yardsticks.source}
+              </a>
+              .
+            </>
+          )}
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
@@ -243,6 +280,7 @@ export function OwnCaseForm() {
         </p>
       )}
       {shown?.kind === "value" && <RangeCheckView flags={shown.flags} />}
+      {shown?.kind === "value" && valued && <OwnCaseFullSheet key={valued.at} inputs={valued.inputs} estimate={valued.estimate} />}
       {saved && (
         <p data-own-case-saved role="status" className="text-sm leading-5">
           {saved} <TextLink href="/notebook#own-cases">Open the Notebook</TextLink>
