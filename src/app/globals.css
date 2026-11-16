@@ -51,10 +51,11 @@
   --gutter: clamp(12px, 1.6vw, 32px);
   --gap: clamp(16px, 1.6vw, 28px);
   --page-max: 2200px;
-  /* Spec §3.3 shadows and §3.2 body type, shared by the site and the Signal widgets wherever they mount. A shadow is not a
-     colour token: its tint is the ink and the blue at low alpha, as the spec writes it. */
-  --lift: 0 8px 24px rgba(11, 13, 18, 0.07);
-  --lift-w: 0 1px 2px rgba(11, 13, 18, 0.05), 0 18px 44px -18px rgba(31, 63, 174, 0.28);
+  /* Spec §3.3 shadows and §3.2 body type, shared by the site and the Signal widgets wherever they mount. A shadow's tint
+     is --shadow-ink (the ink in Light) and the blue at low alpha, as the spec writes it. */
+  --lift: 0 8px 24px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
+  --lift-w: 0 1px 2px color-mix(in srgb, var(--shadow-ink) 5%, transparent),
+    0 18px 44px -18px color-mix(in srgb, var(--blue) 28%, transparent);
   --font-body: var(--font-text, "Inter"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* ---- Spec §3.1: the only literal colours ---- */
@@ -98,6 +99,10 @@
   /* ---- App chrome the spec does not list (literal, contrast-checked) ---- */
   /* A strong line for control edges: 3:1 or better on every surface a control sits on */
   --line-strong: #868c97;
+  /* The tint of every shadow: the ink in Light. Its own token, so a Dark theme keeps its shadows dark (ADR 0019). */
+  --shadow-ink: #0b0d12;
+  /* The checkbox tick, --on-fill drawn on --fill: a data URI, which var() cannot reach into, so the image is the token. */
+  --check-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
 
   /* ---- App names: each points at a spec token ---- */
   /* Surfaces: a raised card or field, a Widget frame */
@@ -162,9 +167,9 @@
   --src-tag: var(--wash-2);
   --src-tag-ink: var(--ink);
   /* Not colour-checked: Widgets' soft drop shadow, and the shadows of floating layers */
-  --shadow: rgb(11 13 18 / 0.22);
-  --shadow-pop: 0 0 0 1px var(--rule), 0 8px 24px -12px rgb(11 13 18 / 0.2);
-  --shadow-modal: 0 0 0 1px var(--rule), 0 24px 64px -24px rgb(11 13 18 / 0.32);
+  --shadow: color-mix(in srgb, var(--shadow-ink) 22%, transparent);
+  --shadow-pop: 0 0 0 1px var(--rule), 0 8px 24px -12px color-mix(in srgb, var(--shadow-ink) 20%, transparent);
+  --shadow-modal: 0 0 0 1px var(--rule), 0 24px 64px -24px color-mix(in srgb, var(--shadow-ink) 32%, transparent);
   /* Older names still in code: each follows its newer name. */
   --bg: var(--paper);
   --field: var(--raised);
@@ -192,6 +197,9 @@
   --on-band-2: rgb(255 255 255 / 0.72);
   --band-rule: rgb(255 255 255 / 0.18);
   --on-band-button-ink: #0b0d12;
+  /* The step bar on the Topic bar's Band: a step ahead in white at 35%, and the hover wash on a done step, white at 15% */
+  --band-todo: rgb(255 255 255 / 0.35);
+  --on-band-hover: rgb(255 255 255 / 0.15);
   /* A card on a Band: white */
   --band-card: var(--paper);
   /* The key-number colour (spec F2, F5): eyebrows, step numbers and a Widget's one key number. It is the accent, blue;
@@ -949,7 +957,8 @@ html[data-splitting] * {
 }
 
 /* Printing (the Notebook page): white paper and darker ink, with the page margins left to the printer. Controls
-   carry `print:hidden` in their markup. */
+   carry `print:hidden` in their markup. The :root here is the print token block: its literal colours are a print palette,
+   the third token block beside Light and Dark (src/dev/literal-colours.test.ts allows literals only in :root blocks). */
 @media print {
   :root {
     color-scheme: light !important;
@@ -965,7 +974,7 @@ html[data-splitting] * {
     --line-strong: #6b717c;
   }
   body {
-    background: #ffffff;
+    background: var(--paper);
   }
   main {
     max-width: none;
@@ -1257,9 +1266,7 @@ html[data-splitting] * {
   /* The tick is --on-fill on --fill: white on royal blue. */
   input[type="checkbox"]:checked {
     border-color: var(--fill);
-    background: var(--fill)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E")
-      center / 12px no-repeat;
+    background: var(--fill) var(--check-tick) center / 12px no-repeat;
   }
   input[type="radio"]:focus-visible,
   input[type="checkbox"]:focus-visible,

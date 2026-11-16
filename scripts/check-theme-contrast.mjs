@@ -1,9 +1,11 @@
 // scripts/check-theme-contrast.mjs
-// Zero-dependency guard for the app's one Light theme (decision #17; docs/specs/value-it-signal-spec.md §2.4, §3.1).
+// Zero-dependency guard for the app's two themes (ADR 0019; docs/specs/value-it-signal-spec.md §2.4, §3.1): the Light
+// token block `:root { … }`, and an optional Dark block `:root[data-theme="dark"] { … }`.
 // Run: node scripts/check-theme-contrast.mjs [path/to/tokens.css] [colour-only.json]. Exits 1 if any rule fails.
-// It checks that: there is no Dark theme left; the spec's colours are declared as literals with the spec's values; every
-// other colour name points at a spec token (token-first: no new literal colour); and the spec's §2.4 tables hold, its
-// contrast ratios and its colour separation under normal vision and three kinds of colour blindness.
+// It checks that: the spec's colours are declared as literals with the spec's values in Light, and each has its own value
+// in Dark when Dark is present (re-stepped, never inverted); every other colour name points at a spec token (token-first:
+// no new literal colour); and in each theme present the §2.4 tables hold, its contrast ratios and its colour separation
+// under normal vision and three kinds of colour blindness, with the app's text, Band and colour-only pairs.
 import { readFileSync } from 'node:fs';
 
 const CSS_PATH = process.argv[2] ?? 'src/app/globals.css'; // <-- the file that defines the :root token block
@@ -28,9 +30,15 @@ const SPEC = {
   overlay: 'rgba(255,255,255,.9)',
 };
 // The only other literal colours: the app's strong line for control edges, what sits on a Band (spec F1: white, white
-// at 72%, white at 18% and the white button's ink label), and the Widgets' drop shadow (not colour-checked).
+// at 72%, white at 18% and the white button's ink label; the step bar's step ahead in white at 35% and its hover wash in
+// white at 15%), and the tint of every shadow (not colour-checked).
 const CHROME = { 'line-strong': '#868c97', 'on-band': '#ffffff', 'on-band-2': 'rgb(255 255 255 / 0.72)', 'band-rule': 'rgb(255 255 255 / 0.18)',
-  'on-band-button-ink': '#0b0d12', shadow: 'rgb(11 13 18 / 0.22)' };
+  'on-band-button-ink': '#0b0d12', 'band-todo': 'rgb(255 255 255 / 0.35)', 'on-band-hover': 'rgb(255 255 255 / 0.15)', 'shadow-ink': '#0b0d12' };
+// Tokens that hold a colour this script cannot read (an image), so Dark must still give them their own value: the
+// checkbox tick, a data URI that var() cannot reach into.
+const DRAWN = ['check-tick'];
+// The Dark block's one selector shape (ADR 0019). The theme script sets data-theme on <html> before first paint.
+const DARK_SELECTOR = ':root[data-theme="dark"]';
 // Every other colour name, and the spec token it points at (decision #17): you is blue, src is ink (the record), mint is
 // gain, coral is loss, sunflower is the record, violet is neutral, and success, warning and danger are gain, careful and
 // loss. Older names follow their newer names.
@@ -56,9 +64,10 @@ const POINTS = {
 // ---------- parsing ----------
 const norm = s => s.replace(/\s+/g, '').replace(/'/g, '"').toLowerCase();
 const stripComments = css => css.replace(/\/\*[\s\S]*?\*\//g, '');
-function rootBlock(css) {
+/** The first block whose selector is `selector` (and, for Light, that declares --paper): its tokens and color-scheme. */
+function tokenBlock(css, selector, needsPaper) {
   for (const m of stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (norm(m[1].split(';').pop()) === ':root' && /--paper\s*:/.test(m[2])) {
+    if (norm(m[1].split(';').pop()) === norm(selector) && (!needsPaper || /--paper\s*:/.test(m[2]))) {
       const t = {};
       for (const d of m[2].matchAll(/--([\w-]+)\s*:\s*([^;]+);?/g)) t[d[1]] = d[2].trim();
       return { tokens: t, scheme: (/(?:^|[;\s])color-scheme\s*:\s*([^;]+)/.exec(m[2])?.[1] ?? '').trim() };
@@ -175,6 +184,8 @@ const BAND_PAIRS = [
   ['on-band-2', 'band', 4.5, 5.36, 'secondary text on a Band'],
   ['on-band-button-ink', 'on-band', 4.5, 19.43, 'the label of a white button on a Band'],
   ['band-rule', 'band', 0, 1.58, 'a decorative rule on a Band, which carries no meaning'],
+  ['band-todo', 'band', 0, 2.39, 'a step ahead on the step bar (spec 2026-11-12 F3), beside the done steps in solid white'],
+  ['on-band-hover', 'band', 0, 1.46, 'the hover wash on a done step: the pointer is on it'],
   ['key-number', 'paper', 4.5, 8.82, 'eyebrows, key numbers, sliders and links'],
   ['key-number', 'wash', 4.5, 8.23, 'the same, on a washed surface'],
   ['key-number', 'raised', 4.5, 8.82, 'the same, on a raised surface'],
@@ -190,69 +201,94 @@ const fails = [];
 const out = [];
 const check = (ok, msg) => { out.push(`  ${ok ? 'ok  ' : 'FAIL'} ${msg}`); if (!ok) fails.push(msg); };
 
-out.push('\n[one Light theme]');
+out.push('\n[theme blocks]');
 const code = stripComments(css);
-check(!/\.dark\b/.test(code), 'no .dark selector (there is no Dark theme)');
-check(!/@custom-variant\s+dark\b/.test(code), 'no dark variant');
-check(!/prefers-color-scheme\s*:\s*dark/.test(code), 'no prefers-color-scheme: dark (the computer\'s setting is never read)');
-check(!/data-theme\s*=\s*["']?dark/.test(code), 'no [data-theme="dark"] selector');
+check(!/\.dark\b/.test(code), `no .dark selector (the Dark theme is ${DARK_SELECTOR})`);
+check(!/prefers-color-scheme\s*:\s*dark/.test(code), 'no prefers-color-scheme: dark (the theme script reads the device, so a chosen theme wins)');
 
-const root = rootBlock(css), raw = root?.tokens;
-if (!raw) {
-  check(false, `no ":root { --paper: … }" block in ${CSS_PATH}`);
-} else {
-  check(norm(root.scheme) === 'light', 'color-scheme is light');
+/**
+ * Measures one theme. `raw` is the theme's own declarations; Dark inherits the names it does not set from Light (`base`),
+ * as the page does. Light's spec and chrome values are frozen and each §2.4 figure must equal the spec's; Dark's colours
+ * are its own (re-stepped, never inverted), so its pairs are held to their minimums and targets.
+ */
+function measure(name, own, base) {
+  const light = name === 'Light';
+  const p = light ? '' : `${name}: `;
+  const head = h => out.push(light ? `\n[${h}]` : `\n[${name}: ${h}]`);
+  const raw = { ...base, ...own.tokens };
+  check(norm(own.scheme) === (light ? 'light' : 'dark'), `${p}color-scheme is ${light ? 'light' : 'dark'}`);
 
-  out.push('\n[spec §3.1 tokens]');
-  for (const [k, v] of Object.entries(SPEC)) check(same(parseColor(raw[k]), parseColor(v)), `--${k} is ${v} (spec §3.1)`);
-  for (const [k, v] of Object.entries(CHROME)) check(same(parseColor(raw[k]), parseColor(v)), `--${k} is unchanged (${v})`);
+  head('spec §3.1 tokens');
+  if (light) {
+    for (const [k, v] of Object.entries(SPEC)) check(same(parseColor(raw[k]), parseColor(v)), `--${k} is ${v} (spec §3.1)`);
+    for (const [k, v] of Object.entries(CHROME)) check(same(parseColor(raw[k]), parseColor(v)), `--${k} is unchanged (${v})`);
+  } else {
+    const missing = [...Object.keys(SPEC), ...Object.keys(CHROME), ...DRAWN].filter(k => !(k in own.tokens));
+    for (const k of missing) check(false, `${p}--${k} has no dark value in ${DARK_SELECTOR} (ADR 0019: each colour is re-stepped for Dark)`);
+    if (missing.length) return;
+    for (const k of [...Object.keys(SPEC), ...Object.keys(CHROME)]) check(!!parseColor(raw[k]), `${p}--${k} is a colour (${raw[k]})`);
+  }
 
-  out.push('\n[every other colour points at a spec token]');
-  for (const [k, now] of Object.entries(POINTS)) check(norm(raw[k] ?? '') === `var(--${now})`, `--${k} points at --${now}`);
-  for (const [k, v] of Object.entries(raw)) {
-    if (parseColor(v) && !(k in SPEC) && !(k in CHROME)) check(false, `--${k} is a literal colour (${v}) outside the spec block: point it at a spec token`);
+  head('every other colour points at a spec token');
+  for (const [k, now] of Object.entries(POINTS)) check(norm(raw[k] ?? '') === `var(--${now})`, `${p}--${k} points at --${now}`);
+  for (const [k, v] of Object.entries(own.tokens)) {
+    if (parseColor(v) && !(k in SPEC) && !(k in CHROME)) check(false, `${p}--${k} is a literal colour (${v}) outside the spec block: point it at a spec token`);
   }
 
   const C = k => parseColor(resolve(raw, k));
   const missing = [...new Set([...SPEC_CONTRAST, ...TEXT, ...BAND_PAIRS, ...COLOUR_ONLY].flatMap(([f, b]) => [f, b]))].filter(k => !C(k));
-  for (const k of missing) check(false, `--${k} is missing or not a colour ("${resolve(raw, k)}")`);
-  if (!missing.length) {
-    const bg = C('paper'), S = k => over(C(k), bg);
-    const ratio = (f, b) => { const under = S(b); return wcag(over(C(f), under), under); };
+  for (const k of missing) check(false, `${p}--${k} is missing or not a colour ("${resolve(raw, k)}")`);
+  if (missing.length) return;
+  const bg = C('paper'), S = k => over(C(k), bg);
+  const ratio = (f, b) => { const under = S(b); return wcag(over(C(f), under), under); };
+  // Light must equal the spec's figure; Dark is held to the minimum (its §2.4 rows are measured into the spec with it).
+  const equal = (got, want, tol) => !light || Math.abs(got - want) < tol;
 
-    out.push('\n[spec §2.4 contrast]');
-    for (const [f, b, want, min, use] of SPEC_CONTRAST) {
-      const r = ratio(f, b);
-      check(r >= min && Math.abs(r - want) < 0.01, `--${f} on --${b} ${r.toFixed(2)}:1 (${min ? `min ${min}` : 'below 3:1 by design'}, spec ${want.toFixed(2)}): ${use}`);
-    }
-
-    out.push('\n[spec §2.4 colour separation, OKLab x 100]');
-    for (const [a, b, ...rest] of SPEC_SEPARATION) {
-      const why = typeof rest[rest.length - 1] === 'string' ? rest.pop() : null;
-      Object.keys(VISION).forEach((vision, i) => {
-        const d = separation(S(a), S(b), VISION[vision]), want = rest[i], floor = vision === 'normal' ? 15 : 8;
-        const meets = d >= floor;
-        check(Math.abs(d - want) < 0.05 && (meets || !!why), `--${a} and --${b} ${d.toFixed(1)} under ${vision} (target ${floor}, spec ${want.toFixed(1)})${meets ? '' : `: below target, ${why ?? 'with no reason in the spec'}`}`);
-      });
-    }
-
-    out.push('\n[app pairs]');
-    for (const [f, b, min] of TEXT) { const r = ratio(f, b); check(r >= min, `--${f} on --${b} ${r.toFixed(2)}:1 (min ${min})`); }
-    for (const [f, b, min, want, use] of BAND_PAIRS) {
-      const r = ratio(f, b);
-      check(r >= min && Math.abs(r - want) < 0.01, `--${f} on --${b} ${r.toFixed(2)}:1 (${min ? `min ${min}` : 'decorative, no minimum'}, spec ${want}): ${use}`);
-    }
-    for (const [f, b] of COLOUR_ONLY) {
-      if (!(f in raw) || !(b in raw)) { check(false, `colour-only pair [${f}, ${b}] names a fill token and a surface token`); continue; }
-      const r = ratio(f, b); check(r >= 3, `--${f} on --${b} ${r.toFixed(2)}:1 (min 3, colour alone carries the meaning)`);
-    }
-    // --accent-deep (= --brand-deep) is frozen but no longer drawn: Widget controls are flat (ADR 0018). It keeps its old
-    // promise, darker than the primary's face.
-    check(L(S('accent-deep')) < L(S('accent-fill')), '--accent-deep is darker than --accent-fill');
-    const order = ['paper', 'raised', 'wash', 'rule', 'line', 'line-strong'].map(k => L(S(k)));
-    check(order[0] >= order[1] && order[1] >= order[2] && order[2] > order[3] && order[3] > order[4] && order[4] > order[5],
-      'surfaces and lines order (paper ≥ raised ≥ wash > rule > line > line-strong)');
+  head('spec §2.4 contrast');
+  for (const [f, b, want, min, use] of SPEC_CONTRAST) {
+    const r = ratio(f, b);
+    const rule = [min ? `min ${min}` : 'below 3:1 by design', light ? `spec ${want.toFixed(2)}` : ''].filter(Boolean).join(', ');
+    check(r >= min && equal(r, want, 0.01), `${p}--${f} on --${b} ${r.toFixed(2)}:1 (${rule}): ${use}`);
   }
+
+  head('spec §2.4 colour separation, OKLab x 100');
+  for (const [a, b, ...rest] of SPEC_SEPARATION) {
+    const why = typeof rest[rest.length - 1] === 'string' ? rest.pop() : null;
+    Object.keys(VISION).forEach((vision, i) => {
+      const d = separation(S(a), S(b), VISION[vision]), want = rest[i], floor = vision === 'normal' ? 15 : 8;
+      const meets = d >= floor;
+      check(equal(d, want, 0.05) && (meets || !!why), `${p}--${a} and --${b} ${d.toFixed(1)} under ${vision} (target ${floor}${light ? `, spec ${want.toFixed(1)}` : ''})${meets ? '' : `: below target, ${why ?? 'with no reason in the spec'}`}`);
+    });
+  }
+
+  head('app pairs');
+  for (const [f, b, min] of TEXT) { const r = ratio(f, b); check(r >= min, `${p}--${f} on --${b} ${r.toFixed(2)}:1 (min ${min})`); }
+  for (const [f, b, min, want, use] of BAND_PAIRS) {
+    const r = ratio(f, b);
+    const rule = [min ? `min ${min}` : 'decorative, no minimum', light ? `spec ${want}` : ''].filter(Boolean).join(', ');
+    check(r >= min && equal(r, want, 0.01), `${p}--${f} on --${b} ${r.toFixed(2)}:1 (${rule}): ${use}`);
+  }
+  for (const [f, b] of COLOUR_ONLY) {
+    if (!(f in raw) || !(b in raw)) { check(false, `${p}colour-only pair [${f}, ${b}] names a fill token and a surface token`); continue; }
+    const r = ratio(f, b); check(r >= 3, `${p}--${f} on --${b} ${r.toFixed(2)}:1 (min 3, colour alone carries the meaning)`);
+  }
+  // Order is measured away from the paper, so it holds in Light (everything darker) and in Dark (everything lighter).
+  const away = k => Math.abs(L(S(k)) - L(bg));
+  // --accent-deep (= --brand-deep) is frozen but no longer drawn: Widget controls are flat (ADR 0018). It keeps its old
+  // promise, deeper than the primary's face.
+  check(away('accent-deep') > away('accent-fill'), light ? '--accent-deep is darker than --accent-fill' : `${p}--accent-deep is further from --paper than --accent-fill`);
+  const order = ['paper', 'raised', 'wash', 'rule', 'line', 'line-strong'].map(away);
+  check(order[0] <= order[1] && order[1] <= order[2] && order[2] < order[3] && order[3] < order[4] && order[4] < order[5],
+    light ? 'surfaces and lines order (paper ≥ raised ≥ wash > rule > line > line-strong)' : `${p}surfaces and lines order away from --paper`);
+}
+
+const root = tokenBlock(css, ':root', true);
+if (!root) {
+  check(false, `no ":root { --paper: … }" block in ${CSS_PATH}`);
+} else {
+  measure('Light', root, {});
+  const darkBlock = tokenBlock(css, DARK_SELECTOR, false);
+  if (darkBlock) measure('Dark', darkBlock, root.tokens);
 }
 out.push(`\nFills that carry meaning by colour alone: ${COLOUR_ONLY.length ? COLOUR_ONLY.map(([f, b]) => `--${f} on --${b}`).join(', ') : 'none'}`);
 console.log(out.join('\n'));
