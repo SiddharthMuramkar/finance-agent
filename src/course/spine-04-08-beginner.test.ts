@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BEGINNER_LISTS, beginnerCheckErrors } from "./beginner-check";
+import { beginnerCheckErrors } from "./beginner-check";
 import { loadCourseMap } from "./map";
 
 // Spine Topics "how big can it get" and "the years you cannot forecast" for beginners (#95, spec #68): each brings at
@@ -47,11 +47,6 @@ describe("Spine Topics 'how big can it get' and 'the years you cannot forecast',
 describe("Spine Topics 4 to 9 for beginners (#95)", () => {
   it("are Spine Topics 4 to 9 in the outline", () => {
     expect(SPINE_4_TO_9.map((id) => map.topic(id)?.spine)).toEqual([4, 5, 6, 7, 8, 9]);
-  });
-
-  it("are on no beginner-rule list", () => {
-    const listed = Object.values(BEGINNER_LISTS).flat();
-    expect(SPINE_4_TO_9.filter((id) => listed.includes(id))).toEqual([]);
   });
 
   it("follow every beginner rule", () => {

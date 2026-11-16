@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BEGINNER_LISTS, beginnerCheckErrors, type BeginnerLists } from "./beginner-check";
+import { beginnerCheckErrors } from "./beginner-check";
 import { loadCourseMap } from "./map";
 import { courseOverview, navigate, type Progress } from "./navigator";
 
@@ -44,15 +44,8 @@ describe("Spine Topic 5, margins, for beginners", () => {
     expect(talk.skills).toEqual(["rivals-cap"]);
   });
 
-  it("passes every beginner rule once taken off the lists", () => {
-    const off = (ids: readonly string[]) => ids.filter((id) => id !== MARGINS);
-    const lists: BeginnerLists = {
-      newWords: off(BEGINNER_LISTS.newWords),
-      ownStory: off(BEGINNER_LISTS.ownStory),
-      yourStory: off(BEGINNER_LISTS.yourStory),
-      dailyLife: off(BEGINNER_LISTS.dailyLife),
-    };
-    expect(beginnerCheckErrors(map.topics, { lists }).filter((e) => e.includes(MARGINS))).toEqual([]);
+  it("passes every beginner rule", () => {
+    expect(beginnerCheckErrors(map.topics).filter((e) => e.includes(MARGINS))).toEqual([]);
   });
 
   it("keeps every Check id, none required, so a Learner who passed the Topic keeps the pass", () => {

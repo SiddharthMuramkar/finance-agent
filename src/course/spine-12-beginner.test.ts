@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BEGINNER_LISTS, beginnerCheckErrors, type BeginnerLists } from "./beginner-check";
+import { beginnerCheckErrors } from "./beginner-check";
 import { loadCourseMap } from "./map";
 
 // Spine Topic 12, how a story becomes numbers, for beginners (#96, spec #68; ADR 0020): at most four new words, with
@@ -39,14 +39,7 @@ describe("Spine Topic 12, how a story becomes numbers, for beginners", () => {
     expect(topic.checks.some((c) => c.required)).toBe(false);
   });
 
-  it("passes the beginner rules off every not-yet list", () => {
-    const off = (ids: readonly string[]) => ids.filter((id) => id !== ID);
-    const lists: BeginnerLists = {
-      newWords: off(BEGINNER_LISTS.newWords),
-      ownStory: off(BEGINNER_LISTS.ownStory),
-      yourStory: off(BEGINNER_LISTS.yourStory),
-      dailyLife: off(BEGINNER_LISTS.dailyLife),
-    };
-    expect(beginnerCheckErrors(map.topics, { lists }).filter((e) => e.includes(ID))).toEqual([]);
+  it("passes every beginner rule", () => {
+    expect(beginnerCheckErrors(map.topics).filter((e) => e.includes(ID))).toEqual([]);
   });
 });
