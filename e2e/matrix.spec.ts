@@ -3,8 +3,10 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { dirname, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { cellsOfProject, MATRIX_DIR, matrixThresholds, type MatrixCell } from "../src/dev/preview-matrix";
+import { chrome } from "../src/site/copy";
 import { hydrated, quietDevtools, seed, settled } from "./support/app";
 import { WIDGET_CONTENT, accentFamilies, auditAffordances, measureLayout, widgetLook, type Affordances, type Layout, type WidgetLook } from "./support/measure";
+import { SIGNAL_SITE, SIGNAL_SPEC_LOOKS } from "./support/signal-site";
 
 /**
  * F1's preview matrix (spec 2026-11-05, ticket F1): one shot and one set of numbers for every cell of the current
@@ -83,6 +85,12 @@ function saved(project: string, outputDir: string): Result[] {
 /** The accessible names the Done-when keyboard pass needs: the header's icons, and the sign-in form's Enter (issue #33: Clerk is off in the test bed). */
 const HEADER_CONTROLS = ["Settings", "Account menu"];
 const SIGN_IN_CONTROLS = ["Enter"];
+
+/**
+ * The Signal site's nav (site-nav.tsx) is not the app's header: it has no Settings icon. A member reaches its Account menu;
+ * a visitor its Sign in, which the Menu sheet holds at 860 px and below (site.css), so there Tab must reach Menu (G38).
+ */
+const siteControls = (signedOut: boolean, width: number) => (!signedOut ? [chrome.account] : width > 860 ? [chrome.signIn] : [chrome.menu]);
 
 /**
  * Walks Tab through the whole page (until focus leaves it or comes back round, at most 80 stops). Before the first Tab
@@ -210,7 +218,8 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
     // blurbs of cards that sit beside other cards (measureLayout skips those), except on a page whose cards are its
     // columns (Settings): there each card's paragraphs are measured inside the card.
     out.layout = await measureLayout(page, p.prose ? { prose: '[data-testid="reading-column"] p', cardsAsColumns: p.cardsAsColumns === true } : {});
-    out.affordances = await auditAffordances(page);
+    // The Signal site's pages get the affordance audit's own let-off (affordance.spec.ts): the few §5 looks the owner is still deciding (#32).
+    out.affordances = await auditAffordances(page, SIGNAL_SITE.has(p.id) ? { letOff: SIGNAL_SPEC_LOOKS } : {});
     if (p.kind === "study") {
       const a = await accentFamilies(page, { outside: WIDGET_CONTENT });
       out.accents = a.families;
@@ -250,7 +259,7 @@ test("[F1] every cell loads without horizontal scroll", async ({ page }, info) =
 
 test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
   const project = info.project.name;
-  const { gutterMax, headerMax, panelMinPct, lineMin, lineMax } = matrixThresholds(project); // §6.2, 32 px gutters at 1024 too
+  const { gutterMax, headerMax, siteHeaderMax, panelMinPct, lineMin, lineMax } = matrixThresholds(project); // §6.2, 32 px gutters at 1024 too
   const failing: string[] = [];
   const cells = cellsOfProject(project);
   for (const r of saved(project, info.project.outputDir)) {
@@ -259,10 +268,12 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
     const l = r.layout, a = r.affordances;
     if (!l || !a) { failing.push(`${r.cell}: not measured (${r.error ?? "no data"})`); continue; }
     const signIn = id.startsWith("sign-in");
+    const site = SIGNAL_SITE.has(id);
     if (!signIn) {
       if (l.gutterLeft !== null && l.gutterLeft > gutterMax) failing.push(`${r.cell}: left gutter ${l.gutterLeft} > ${gutterMax}`);
       if (l.gutterRight !== null && l.gutterRight > gutterMax) failing.push(`${r.cell}: right gutter ${l.gutterRight} > ${gutterMax}`);
-      if (l.headerHeight !== null && l.headerHeight > headerMax) failing.push(`${r.cell}: header ${l.headerHeight} > ${headerMax}`);
+      const maxHeader = site ? siteHeaderMax : headerMax; // the site's 64 px nav (spec §4.2), the app's 56 px header
+      if (l.headerHeight !== null && l.headerHeight > maxHeader) failing.push(`${r.cell}: header ${l.headerHeight} > ${maxHeader}`);
     }
     if (id === "study-concept-widget" && (l.panelWidthPct === null || l.panelWidthPct < panelMinPct)) failing.push(`${r.cell}: panelWidthPct ${l.panelWidthPct} < ${panelMinPct}`);
     // Notebook and Settings (per card) have running paragraphs: measuring none is a failure. Course Map is cards and panels.
@@ -276,8 +287,8 @@ test("[F1] the §6 numbers hold in every cell", async ({}, info) => {
     if (!f || f.stops === 0) failing.push(`${r.cell}: Tab reached nothing`);
     else {
       if (f.withoutRing.length) failing.push(`${r.cell}: no focus ring on Tab at ${JSON.stringify(f.withoutRing.slice(0, 5))}${f.withoutRing.length > 5 ? ` (+${f.withoutRing.length - 5})` : ""}`);
-      // Home and the About page are public pages (Home's header, not the app's); only the plain sign-in cell must reach Enter, the error one is not held to it.
-      const needed = id === "sign-in" ? SIGN_IN_CONTROLS : signIn || id === "home" || id === "about" ? [] : HEADER_CONTROLS;
+      // The Signal site's pages have the site's nav, not the app's header; only the plain sign-in cell must reach Enter, the error one is not held to it.
+      const needed = id === "sign-in" ? SIGN_IN_CONTROLS : signIn ? [] : site ? siteControls(cell.page.signedOut, cell.viewport.width) : HEADER_CONTROLS;
       const missed = needed.filter((n) => !f.reached.includes(n));
       if (missed.length) failing.push(`${r.cell}: Tab never reaches ${JSON.stringify(missed)}`);
     }

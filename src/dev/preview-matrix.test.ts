@@ -60,13 +60,13 @@ describe("preview matrix [S3]", () => {
     // A dark twin is held to its viewport's numbers: the theme changes colours, never the layout.
     expect(matrixThresholds("w1280-dark")).toEqual(matrixThresholds("w1280"));
     for (const project of ["mbp14", "w1920"]) {
-      expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 60, lineMax: 75 });
+      expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, siteHeaderMax: 64, panelMinPct: 52, lineMin: 60, lineMax: 75 });
     }
     for (const project of ["w1280"]) {
-      expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 50, lineMax: 75 });
+      expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, siteHeaderMax: 64, panelMinPct: 52, lineMin: 50, lineMax: 75 });
     }
     for (const project of ["w1024", "p390"]) {
-      expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 45, lineMax: 80 });
+      expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, siteHeaderMax: 64, panelMinPct: 52, lineMin: 45, lineMax: 80 });
     }
   });
 

@@ -105,19 +105,21 @@ export function matrixCells(): MatrixCell[] {
 /** The cells of one project, in shooting order. */
 export const cellsOfProject = (project: string) => matrixCells().filter((c) => c.project === project);
 
-export type MatrixThresholds = { gutterMax: number; headerMax: number; panelMinPct: number; lineMin: number; lineMax: number };
+export type MatrixThresholds = { gutterMax: number; headerMax: number; siteHeaderMax: number; panelMinPct: number; lineMin: number; lineMax: number };
 
 /**
  * The §6.2 thresholds a project's cells are held to. Side gutter <= 32 px (§6.2 names 1280, 1512 and 1920 and no
  * looser bound at 1024, so 32 holds there too; A1's 17 px is its own /study test, not a §6 threshold). Prose line
  * length 45-80, 60-75 from 1440 up, and 50-75 at 1280: the reply spans the reading block,
  * min(544, conversation - 32) px (spec 2026-11-11, C1), about 63 characters of Inter at 1280 and 67 from 1512 up;
- * layout.spec holds the same bands. Header <= 56 px. Widget
+ * layout.spec holds the same bands. Header <= 56 px: the app's header (--header-h). The Signal site's own sticky nav
+ * (Home, About, How it works, Examples, the case pages, Privacy, Terms) is 64 px by its spec (value-it-signal-spec §4.2,
+ * `--nav-h: 64px` in site.css), so a site page is held to `siteHeaderMax` instead (G38). Widget
  * panel >= 52 % of the viewport: the 45 / 55 default split gives it 52.4 % (spec 2026-11-11, C2a, R21).
  */
 export function matrixThresholds(project: string): MatrixThresholds {
   const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id || project === `${v.id}-dark`);
   if (!viewport) throw new Error(`unknown matrix project: ${project}`);
   const [lineMin, lineMax] = viewport.width >= 1440 ? [60, 75] : viewport.width >= 1280 ? [50, 75] : [45, 80];
-  return { gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin, lineMax };
+  return { gutterMax: 32, headerMax: 56, siteHeaderMax: 64, panelMinPct: 52, lineMin, lineMax };
 }
