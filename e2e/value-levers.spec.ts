@@ -179,9 +179,31 @@ test("[#102] a Learner opens the Full sheet from Go deeper and reads every input
   await expect(sheet.locator('[data-row="taxRate"]')).toContainText("35%");
   await expect(sheet.locator('[data-row="growth"]')).toContainText("150% in year 1, down to 6% in year 10");
   await expect(sheet.locator('[data-row="shares"]')).toContainText("340.79 million");
-  // Read-only: nothing on the Full sheet can be typed into or dragged.
-  await expect(sheet.locator("input, select, textarea, [contenteditable]")).toHaveCount(0);
+  // Nothing on the Full sheet can be typed into (#104 gives some rows a slider, never a typed number).
+  await expect(sheet.locator('input:not([type="range"]), select, textarea, [contenteditable]')).toHaveCount(0);
   // It follows the Levers: a bigger revenue in year 10 reads as faster growth.
   await setSlider(page, "Revenue in year 10", "60");
   await expect(sheet.locator('[data-row="growth"]')).not.toContainText("150% in year 1,");
+});
+
+test("[#104] a Learner changes a Full sheet row by slider, never by typing, and the value follows the engine", async ({ page }, info) => {
+  test.skip(info.project.name !== ONE, "one width is enough for the behaviour");
+  await openFixture(page, "value-levers");
+  await page.getByTestId("value-levers-go-deeper").getByText("Go deeper").click();
+  const sheet = page.getByTestId("full-sheet");
+  await expect(sheet).toBeVisible();
+  // The rows the Levers do not set each have a slider; the Levers' own rows and the Case's facts do not.
+  await expect(sheet.getByRole("slider")).toHaveCount(7);
+  await expect(sheet.locator('[data-row="growth"]').getByRole("slider")).toHaveCount(0);
+  await expect(sheet.locator('[data-row="shares"]').getByRole("slider")).toHaveCount(0);
+  // No row can be typed into: every input on the sheet is a slider.
+  await expect(sheet.locator('input:not([type="range"]), select, textarea, [contenteditable]')).toHaveCount(0);
+  await expect(headline(page)).toHaveText("Your story is worth $35 a share");
+  // $494m more cash, over 340.79 million shares, is about $1.45 a share more (the engine's figure: full-sheet-change.test.ts).
+  await setSlider(page, "Change: Cash the company holds", "520");
+  await expect(sheet.locator('[data-row="cash"]')).toContainText("$520m");
+  await expect(headline(page)).toHaveText("Your story is worth $36 a share");
+  // The tap buttons step a row too.
+  await sheet.getByRole("button", { name: "Decrease Change: Tax rate by one step" }).click();
+  await expect(sheet.locator('[data-row="taxRate"]')).toContainText("34%");
 });

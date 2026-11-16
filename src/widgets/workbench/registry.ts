@@ -6,6 +6,7 @@ import { companyYearSchema, costOfCapitalFiguresSchema, decoderFiguresSchema, le
 import { multipleDecoderLevers, multipleDecoderModel, multipleDecoderReading, multipleDecoderShape, multipleDecoderTasks, type MultipleDecoderData } from "./multiple-decoder-model";
 import { terminalSeesawLevers, terminalSeesawModel, terminalSeesawReading, terminalSeesawShape, terminalSeesawTasks, type TerminalSeesawData } from "./terminal-seesaw-model";
 import { valueBridgeLevers, valueBridgeModel, valueBridgeReading, valueBridgeShape, valueBridgeTasks, type ValueBridgeData } from "./value-bridge-model";
+import { changedRowReadouts, rowsFrom, withRows } from "./full-sheet";
 import { leverSpecs, MARKET_VARIABLE, marketFrom, settingsFrom as leverSettingsFrom, valueLeversData, valueLeversLevers, valueLeversModel, valueLeversReading, valueLeversShape, valueLeversTasks, type ValueLeversData } from "./value-levers-model";
 import { waccStackLevers, waccStackModel, waccStackReading, waccStackShape, waccStackTasks, type WaccStackData } from "./wacc-stack-model";
 
@@ -100,10 +101,15 @@ const valueLevers = entry<ValueLeversData, string>({
   levers: (data) => valueLeversLevers(data),
   shape: (data) => valueLeversShape(data.block, data.mode),
   tasks: (data) => valueLeversTasks(data.block),
-  reading: (data, _settings, props) => valueLeversReading(data, props),
+  // The Full sheet's changed rows (#104) are valued with the Levers, and the Tutor is told each one, so it and the screen agree.
+  reading: (data, _settings, props) => {
+    const rows = rowsFrom(props, data.block);
+    const reading = valueLeversReading({ ...data, block: withRows(data.block, rows) }, props);
+    return { ...reading, readouts: [...reading.readouts, ...changedRowReadouts(data.block, rows)] };
+  },
   conditions: (data, _settings, props) => {
     const specs = leverSpecs(data.block, data.mode);
-    const model = valueLeversModel(data.block, specs, leverSettingsFrom(props, specs), data.mode, marketFrom(props[MARKET_VARIABLE], data.mode));
+    const model = valueLeversModel(withRows(data.block, rowsFrom(props, data.block)), specs, leverSettingsFrom(props, specs), data.mode, marketFrom(props[MARKET_VARIABLE], data.mode));
     return [null, model.nearPrice];
   },
 });
