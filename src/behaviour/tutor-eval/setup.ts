@@ -21,7 +21,7 @@ import { checkTabNow } from "@/learner/quiz";
 import { noteMethodUsed, recordAnswer, skillStates } from "@/learner/skill-state";
 import { scriptedClient } from "@/test/scripted-client";
 import { submitQuizAnswers } from "@/tutor/check-results";
-import { ENGINE_TOOLS, TUTOR_TOOLS } from "@/tutor/instructions";
+import { ENGINE_TOOLS } from "@/tutor/instructions";
 import { answerQuickTry, nextQuickTry, quickTryItem } from "@/tutor/practice";
 import { QUICK_TRY, QUICK_TRY_RESULT, REPLY_CHOICES, type QuickTryData, type QuickTryResultData, type ReplyChoicesData } from "@/tutor/session-item-kinds";
 import { liveSession } from "@/tutor/session-log";
@@ -37,8 +37,8 @@ import { seen, type SeenChoice, type SeenReply, type SeenTool, type SeenWidget }
 /** What placing a Learner needs from a case: a live case, or a dialogue (which has no answer). */
 export type Placed = Pick<LiveCase, "id" | "topic" | "state" | "pending"> & { answer?: LiveCase["answer"] };
 
-/** The model, effort and widget engine the Tutor runs on in this throwaway database. */
-export type TutorSettings = { model: string; effort: string; widgetEngine: "on" | "off" };
+/** The model and effort the Tutor runs on in this throwaway database. */
+export type TutorSettings = { model: string; effort: string };
 
 export type Prepared = {
   learnerId: number;
@@ -82,9 +82,9 @@ export function skillIdsOf(topic: Topic): string[] {
   return [];
 }
 
-/** Writes the Tutor's model, effort and widget engine into the throwaway database, before any Session is made. */
+/** Writes the Tutor's model and effort into the throwaway database, before any Session is made. */
 export async function saveTutorSettings(db: Db, s: TutorSettings): Promise<void> {
-  for (const [key, value] of [["model", s.model], ["effort", s.effort], ["widget_engine", s.widgetEngine]] as const) {
+  for (const [key, value] of [["model", s.model], ["effort", s.effort]] as const) {
     await db.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } });
   }
 }
@@ -197,7 +197,7 @@ export async function prepareCase(db: Db, c: Placed, opts: { map?: CourseMap; se
     ...topic.checks.map((ch) => ch.id),
     ...topic.questions.map((q) => q.id),
     ...widgets.map((w) => w.id),
-    ...new Set([...TUTOR_TOOLS, ...ENGINE_TOOLS].map((t) => t.name)),
+    ...ENGINE_TOOLS.map((t) => t.name),
   ];
   const ctx: ReplyCheckContext = {
     step: STEP_KIND[place.step] ?? "none",
@@ -235,7 +235,7 @@ export async function noteMark(db: Db, learnerId: number): Promise<number> {
 
 /**
  * What the Tutor itself stored in one turn, from the turn's successful tool calls: the ids of the Widgets its show_widget
- * and compose_widget calls stored (a shown Widget's id is its tool call's id), and whether it opened a written-ahead one.
+ * calls stored (a shown Widget's id is its tool call's id), and whether it opened a written-ahead one.
  * A Widget item that is not among them was stored by code (the Concept card's, the reveal's, a re-teach's).
  */
 async function tutorStored(db: Db, sessionId: number, turnSeq: number): Promise<{ shown: Set<string>; opened: boolean }> {
@@ -244,7 +244,7 @@ async function tutorStored(db: Db, sessionId: number, turnSeq: number): Promise<
     .from(toolCalls)
     .innerJoin(turns, eq(turns.id, toolCalls.turnId))
     .where(and(eq(turns.sessionId, sessionId), eq(turns.turnSeq, turnSeq), eq(toolCalls.isError, false)));
-  return { shown: new Set(calls.filter((c) => c.name === "show_widget" || c.name === "compose_widget").map((c) => c.id)), opened: calls.some((c) => c.name === "open_widget") };
+  return { shown: new Set(calls.filter((c) => c.name === "show_widget").map((c) => c.id)), opened: calls.some((c) => c.name === "open_widget") };
 }
 
 /** A tool result's text as code sent it back: a string, or the text of its blocks. Long results are cut, since a critic needs only the figures. */

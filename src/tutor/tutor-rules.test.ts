@@ -1,18 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { ENGINE_INSTRUCTIONS, REPLY_WORD_LIMIT, TUTOR_EXAMPLES, TUTOR_INSTRUCTIONS } from "./instructions";
+import { ENGINE_INSTRUCTIONS, REPLY_WORD_LIMIT, TUTOR_EXAMPLES } from "./instructions";
 import { sumAsk } from "@/teaching/no-sums";
 import { checkReply, countWords, fixReply, splitAsk, type ReplyCheckContext } from "./reply-checks";
 
 /**
  * The Tutor's teaching rules (spec #229, ticket #238): written for a beginner, one idea and one ask, capped by step,
- * help while a quiz is open, and Appendix A's examples said in words. Both instruction sets share them.
+ * help while a quiz is open, and Appendix A's examples said in words.
  */
 
 describe("the Tutor's rules", () => {
-  for (const [name, text] of [
-    ["widget engine off", TUTOR_INSTRUCTIONS],
-    ["widget engine on", ENGINE_INSTRUCTIONS],
-  ] as const) {
+  for (const [name, text] of [["widget engine", ENGINE_INSTRUCTIONS]] as const) {
     describe(name, () => {
       it("write for a beginner, not an analyst course", () => {
         expect(text).toContain("Write for a beginner");
@@ -112,7 +109,7 @@ describe("the Tutor's rules", () => {
 describe("Appendix A's examples", () => {
   it("are all ten (Appendix A's six, and D3b's answer given in words, maths worry, story opener and nudge) in the instructions, with no typed sums and no refusal", () => {
     expect(TUTOR_EXAMPLES).toHaveLength(10);
-    for (const e of TUTOR_EXAMPLES) expect(TUTOR_INSTRUCTIONS).toContain(e.reply);
+    for (const e of TUTOR_EXAMPLES) expect(ENGINE_INSTRUCTIONS).toContain(e.reply);
     for (const e of TUTOR_EXAMPLES) {
       expect(e.reply).not.toMatch(/[−×÷=]|\d\s*-\s*\d/);
       expect(e.reply).not.toMatch(/can't|cannot/i);
@@ -130,7 +127,7 @@ describe("Appendix A's examples", () => {
   });
 
   it("name the blocked numbers of an open quiz, and the Widget the reply shows", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain("Context: a quiz is open; blocked numbers: 4, 4.6, 60.");
+    expect(ENGINE_INSTRUCTIONS).toContain("Context: a quiz is open; blocked numbers: 4, 4.6, 60.");
     expect(ENGINE_INSTRUCTIONS).toContain("show_widget with recipe rate_move");
   });
 
@@ -171,10 +168,7 @@ describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", ()
     return list.split(/, | and /).map((m) => m.trim());
   };
 
-  for (const [name, text] of [
-    ["widget engine off", TUTOR_INSTRUCTIONS],
-    ["widget engine on", ENGINE_INSTRUCTIONS],
-  ] as const) {
+  for (const [name, text] of [["widget engine", ENGINE_INSTRUCTIONS]] as const) {
     it(`${name}: every rule that sets an ask in this reply's method carves out the half-done choice`, () => {
       const demands = sentences(text).filter((s) => s.includes("this reply's method") && /\bas the ask\b/.test(s));
       expect(demands.length).toBeGreaterThan(0);
@@ -190,7 +184,7 @@ describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", ()
   }
 
   it("every example that names a method names one on the current list", () => {
-    const methods = methodsIn(TUTOR_INSTRUCTIONS);
+    const methods = methodsIn(ENGINE_INSTRUCTIONS);
     expect(methods).toEqual(["restate the rule", "a worked example", "a half-done choice", "the Widget", "a choice drill"]);
     const named = TUTOR_EXAMPLES.map((e) => e.situation.match(/\bmethod ([^;]+);/)?.[1]).filter((m): m is string => !!m);
     expect(named.length).toBeGreaterThan(0);
@@ -209,10 +203,7 @@ describe("the half-done choice rung asks nothing of the Tutor's own (F2-C1)", ()
 
   // F2-T-2: the heading above the examples must not tell the Tutor that every example ends with an ask while the
   // half-done choice example ends with none.
-  for (const [name, text] of [
-    ["widget engine off", TUTOR_INSTRUCTIONS],
-    ["widget engine on", ENGINE_INSTRUCTIONS],
-  ] as const) {
+  for (const [name, text] of [["widget engine", ENGINE_INSTRUCTIONS]] as const) {
     it(`${name}: the examples heading carves out the half-done choice, whose example has no ask`, () => {
       const heading = text.split("\n").find((l) => l.startsWith("Examples of good replies"));
       expect(heading).toBeDefined();
@@ -238,10 +229,7 @@ describe("a Quick try on screen, or a try code posts after the reply, is the rep
   /** A sentence that sets an ask or a question for the reply to end on. */
   const PRESCRIBES_AN_ASK = /\b(?:end (?:on|with)|ends? on)\b|\b(?:choice|story or lingo|one) (?:ask|question|choice)\b|\bask about\b/i;
 
-  for (const [name, text] of [
-    ["widget engine off", TUTOR_INSTRUCTIONS],
-    ["widget engine on", ENGINE_INSTRUCTIONS],
-  ] as const) {
+  for (const [name, text] of [["widget engine", ENGINE_INSTRUCTIONS]] as const) {
     const rules = sentences(text).filter((s) => !s.startsWith("Context:"));
 
     it(`${name}: every rule about a Quick try on screen or a try code posts after the reply says the reply writes no ask of its own`, () => {
@@ -281,10 +269,7 @@ describe("a Quick try on screen, or a try code posts after the reply, is the rep
  */
 describe("round 10: quiz-me, the screen, the answer in words, one idea, numbers with a source", () => {
   const sentences = (text: string) => text.split(/(?<=[.!?])\s+(?=[A-Z"(])/);
-  for (const [name, text] of [
-    ["widget engine off", TUTOR_INSTRUCTIONS],
-    ["widget engine on", ENGINE_INSTRUCTIONS],
-  ] as const) {
+  for (const [name, text] of [["widget engine", ENGINE_INSTRUCTIONS]] as const) {
     it(`${name}: a quiz-me request with no try coming gets one fun choice question, never a framing line alone (BP-1)`, () => {
       expect(text).toContain(
         '"Quiz me", even "make it fun", always gets something to tap: when this turn\'s context says code posts a Quick try with this reply, or names one on the Learner\'s screen, name that try and what it asks in one fun line and write no ask of your own; otherwise ask one fun choice question in words, a story beat with two or three options',

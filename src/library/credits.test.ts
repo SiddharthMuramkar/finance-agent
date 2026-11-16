@@ -22,10 +22,10 @@ describe("credit lines in the form each source's owner asks for", () => {
     expect(`${credit} ${url}`).not.toContain("openstax.org");
   });
 
-  it("OpenStax 2e stays listed, with its own CC BY-NC-SA credit, so its stored passages stay explained until it is dropped", () => {
-    const { credit, licence } = source("openstax-principles-finance-2e");
-    expect(credit).toMatch(/^Julie Dahlquist and Rainford Knight, Principles of Finance 2e \(OpenStax/);
-    expect(licence).toBe("CC BY-NC-SA 4.0");
+  it("OpenStax 2e is no longer listed: production dropped it on 2026-11-16 (#38), so no later load brings it back", () => {
+    expect(sources.map((s) => s.id)).not.toContain("openstax-principles-finance-2e");
+    // No other record loads the 2e book under a new id either (its title, credit, link or fetch line).
+    expect(sources.filter((s) => /Principles of Finance 2e|principles-finance-2e/.test(JSON.stringify(s))).map((s) => s.id)).toEqual([]);
   });
 
   it("Open Yale Courses: [Name], [Course Title] (Yale University: Open Yale Courses), http://oyc.yale.edu (Accessed Date). License: Creative Commons BY-NC-SA", () => {

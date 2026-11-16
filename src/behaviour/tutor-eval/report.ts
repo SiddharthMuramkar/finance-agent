@@ -38,7 +38,7 @@ export type CaseResult = {
 export type EvalReport = {
   startedAt: string;
   finishedAt: string;
-  tutor: { model: string; effort: string; widgetEngine: string };
+  tutor: { model: string; effort: string };
   graderModel: string;
   fingerprint: string;
   capUsd: number;
@@ -75,7 +75,7 @@ const quote = (text: string) =>
 
 function header(r: EvalReport): string[] {
   return [
-    `Tutor: ${r.tutor.model}, effort ${r.tutor.effort}, widget engine ${r.tutor.widgetEngine}. Grader: ${r.graderModel}. Instruction fingerprint ${r.fingerprint}.`,
+    `Tutor: ${r.tutor.model}, effort ${r.tutor.effort}. Grader: ${r.graderModel}. Instruction fingerprint ${r.fingerprint}.`,
     `Spent ${usd(r.spentUsd)} of the ${usd(r.capUsd)} cap. Started ${r.startedAt}, finished ${r.finishedAt}.`,
     ...(r.budgetStop ? ["", `**${r.budgetStop}** Runs after that point were not started and count as not passed. A dialogue the cap cut short is skipped, not judged, unless a turn that ran failed.`] : []),
   ];

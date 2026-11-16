@@ -3,7 +3,7 @@ import { TOOLS_NAME } from "@/auth/passcode";
 import type { Db } from "@/db/types";
 
 /**
- * The Learner the comparison and behaviour runs play, as every run of the test tools begins: the tools Learner,
+ * The Learner the behaviour and Tutor eval runs play, as every run of the test tools begins: the tools Learner,
  * started over. Its active row is archived (nothing is deleted) and a fresh, empty one opened under the same
  * name, so a run never reads or writes the owner's rows or the owner's test Learner's.
  */

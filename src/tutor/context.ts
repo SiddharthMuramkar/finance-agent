@@ -73,12 +73,12 @@ export function topicCompleteContext(title: string): string {
 }
 
 /**
- * The line that tells the Tutor which Widgets are open in the panel, by title, and how to update one in place:
- * code replaces a Widget written again under the same title in its own tab. Null when none is open.
+ * The line that tells the Tutor which Widgets are open in the panel, by title, and that it moves one's sliders with
+ * update_widget, which takes that title as its key. Null when none is open.
  */
 export function openWidgetsNote(titles: readonly string[]): string | null {
   if (!titles.length) return null;
-  return `Open Widgets (tabs in the Widget panel): ${titles.map((t) => `"${t}"`).join(", ")}. To change one, write it again in full under exactly the same title: code replaces it in its tab. Draw a new Widget only for a new idea, never a near-copy under a new title, and never draw the same Case Data as an open Widget.`;
+  return `Open Widgets (tabs in the Widget panel): ${titles.map((t) => `"${t}"`).join(", ")}. To move the sliders of one, call update_widget with its title. Show a new Widget only for a new idea, never a near-copy under a new title, and never show the same Case Data as an open Widget.`;
 }
 
 /**

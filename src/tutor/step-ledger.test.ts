@@ -24,7 +24,7 @@ describe("the Step ledger", () => {
     const ledger = stepLedger(where, 3);
     expect(await ledger.left()).toBe(3);
     await ledger.save(TUTOR_MODEL, step(["calculate"]));
-    await ledger.save(TUTOR_MODEL, step(["compose_widget"]));
+    await ledger.save(TUTOR_MODEL, step(["search_library"]));
     expect(await ledger.left()).toBe(1);
     await ledger.save(TUTOR_MODEL, step([]));
     await ledger.save(TUTOR_MODEL, step(["compaction"]));
@@ -45,7 +45,7 @@ describe("the Step ledger", () => {
   it("gives steps saved at the same moment their own numbers, each counted once", async () => {
     const where = await at(await testDb());
     const ledger = stepLedger(where, 10);
-    await Promise.all([ledger.save(TUTOR_MODEL, step(["compose_widget"])), ledger.save(TUTOR_MODEL, step(["compose_widget"])), ledger.save(TUTOR_MODEL, step([]))]);
+    await Promise.all([ledger.save(TUTOR_MODEL, step(["calculate"])), ledger.save(TUTOR_MODEL, step(["search_library"])), ledger.save(TUTOR_MODEL, step([]))]);
     expect(await ledger.left()).toBe(7);
     expect((await loadStepUsages(where.db, where.sessionId, where.turnSeq)).map((s) => s.step)).toEqual([1, 2, 3]);
   });

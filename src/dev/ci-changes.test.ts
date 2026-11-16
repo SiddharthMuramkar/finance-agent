@@ -73,7 +73,6 @@ describe("node scripts/ci-changes.mjs: what CI's `changes` job writes to $GITHUB
  */
 const NAMED_BUT_NOT_READ_IN_CI: Record<string, string> = {
   "docs/specs/img/": "e2e specs write evidence screenshots there; nothing compares them",
-  "docs/research": "only scripts/dev-verify-to-blocks.mjs reads it, a dev tool CI never runs",
   "docs/archive/": "eslint.config.mjs only ignores it; a code file there (.ts, .tsx) is not docs-only anyway",
 };
 

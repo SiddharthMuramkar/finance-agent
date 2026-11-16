@@ -32,7 +32,7 @@ import { askModel } from "./ask-model";
 import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
 import { tutorClient } from "@/tutor/tutor-client";
-import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "@/tutor/instructions";
 import { TUTOR_MODEL } from "@/tutor/model";
 import { fingerprint } from "@/tutor/session-log";
 import { runTutorTurn } from "@/tutor/turn";
@@ -144,7 +144,7 @@ it("Tutor behaviour test set", { timeout: 3_600_000 }, async () => {
     }),
   );
   const date = new Date().toISOString().slice(0, 10);
-  const report = renderReport(results, date, { tutorModel: TUTOR_MODEL, graderModel: GRADER_MODEL, fingerprint: fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS) });
+  const report = renderReport(results, date, { tutorModel: TUTOR_MODEL, graderModel: GRADER_MODEL, fingerprint: fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS) });
   mkdirSync(OUT, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   writeFileSync(join(OUT, `behaviour-results-${stamp}.md`), report);
@@ -191,7 +191,7 @@ it(
       `# What were we just talking about?, ${new Date().toISOString()}`,
       "",
       `${named.length ? "FAIL" : "PASS"}: ${named.length ? `the reply names the other Topic (${named.join(", ")})` : "the reply names nothing of the other Topic"}.`,
-      `Instruction fingerprint: ${fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)}.`,
+      `Instruction fingerprint: ${fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS)}.`,
       "",
       `Present value, Learner: Tell me about the lottery story. Was the cash or the annuity bigger?`,
       "",
@@ -270,7 +270,7 @@ it(
       "",
       `${graded.grade.verdict.toUpperCase()}. Grader (${GRADER_MODEL}): ${graded.grade.reasons}`,
       `Tutor turn (${TUTOR_MODEL}): ${turnNote}. Cost: Tutor $${cost.toFixed(4)}, grader $${graded.cost.toFixed(4)}. Whole test ${((performance.now() - started) / 1000).toFixed(1)} s.`,
-      `Instruction fingerprint: ${fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)}. ${stepNote}`,
+      `Instruction fingerprint: ${fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS)}. ${stepNote}`,
       "",
       `Learner: ${MADE_UP_EXAMPLE.turns[0]}`,
       "",

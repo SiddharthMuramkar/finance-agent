@@ -224,8 +224,8 @@ Names only. Read them with `vercel env ls $S` (never pull Production; its values
 | `VOYAGE_API_KEY` | yes | yes | optional | none |
 | `CRON_SECRET` | yes | none | none | none |
 | `NEON_API_KEY`, `NEON_PROJECT_ID` | yes (snapshot gate) | none | none | none |
-| `PASSCODES`, `SESSION_SECRET` | **remove after PR B** (the door is shut there) | `SESSION_SECRET` today: remove | local passcode door | `playwright.config.ts` sets them |
-| `PASSCODE` | **remove after PR B** (opens nothing now) | remove | none | none |
+| `PASSCODES`, `SESSION_SECRET` | **remove once PR C is live** (the door is shut there) | `SESSION_SECRET` today: remove | local passcode door | `playwright.config.ts` sets them |
+| `PASSCODE` | **remove once PR C is live** (opens nothing now) | remove | none | none |
 | `ANTHROPIC_API_KEY` | removed | still there: owner to decide | none | none |
 | `BETTERSTACK_HEARTBEAT_URL` | to add (owner's Better Stack account) | none | none | none |
 
@@ -244,4 +244,4 @@ Set a secret by piping it from one CLI into the other, never through the screen,
 4. Merge PR B (owner's yes) → Git deploy of `main`.
 5. Waitlist mode blocks everyone's own sign-up, the owner's too: pre-create the owner's user in Clerk (or invite their Waitlist entry). Owner signs in at `/sign-in` → set `role: "admin"` (above).
 6. Smoke: a second email joins on `/join` → invite it → the link lands on `/sign-up` → email-link sign-up finishes on `/study` with no reload → one Tutor turn → `/admin` is 404 for them and 200 for the owner.
-7. Remove `PASSCODE`, `PASSCODES`, `SESSION_SECRET` from Production and Preview (owner's yes).
+7. Remove `PASSCODE`, `PASSCODES`, `SESSION_SECRET` from Production and Preview (owner's yes), once PR C is live: `docs/runbooks/wipe-pre-clerk.md`, step C7.

@@ -1,5 +1,5 @@
 // The 50-turn replay (spec #229, ticket #248). Run on the laptop, where .env holds DATABASE_URL and OPENAI_API_KEY:
-//   npm run tutor:replay -- [--turns 50] [--model gpt-6.1-sol] [--effort medium] [--engine on|off] [--budget 10] [--fetch-only]
+//   npm run tutor:replay -- [--turns 50] [--model gpt-6.1-sol] [--effort medium] [--budget 10] [--fetch-only]
 //
 // 1. Reads the last Learner turns from the stored Sessions. Read-only: only select statements, nothing is written.
 //    A turn counts as a Learner turn when it has the Learner's own words (not a note code wrote, like "Opener by code:").
@@ -9,7 +9,7 @@
 //    replay itself can only touch a throwaway in-memory Postgres. It sends each case through the real Tutor Turn,
 //    runs fixReply and checkReply on the reply, and writes evidence/tutor-eval/replay-latest.md: the pass rate per rule
 //    (V1 to V7), the longest reply and every failure in full.
-// --model/--effort/--engine default to the production defaults (DEFAULT_SETTINGS); pass the setting the sweep chose.
+// --model/--effort default to the production defaults (DEFAULT_SETTINGS); pass the setting the sweep chose.
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -24,14 +24,12 @@ const { values: args } = parseArgs({
     turns: { type: "string", default: "50" },
     model: { type: "string" },
     effort: { type: "string" },
-    engine: { type: "string" },
     budget: { type: "string" },
     "fetch-only": { type: "boolean", default: false },
   },
 });
 const count = Number(args.turns);
 if (!Number.isInteger(count) || count < 1) throw new Error("--turns must be a whole number of 1 or more.");
-if (args.engine && !["on", "off"].includes(args.engine)) throw new Error('--engine must be "on" or "off".');
 
 if (!process.env.DATABASE_URL && !process.env.DATABASE_URL_UNPOOLED && existsSync(".env")) process.loadEnvFile(".env");
 const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
@@ -108,7 +106,6 @@ const env = { ...process.env, TUTOR_REPLAY_CASES: casesFile, TUTOR_EVAL_OUT: out
 for (const key of Object.keys(env)) if (/^(DATABASE_URL|DIRECT_URL|POSTGRES_|PG[A-Z]*$|NEON_)/.test(key)) delete env[key];
 if (args.model) env.TUTOR_REPLAY_MODEL = args.model;
 if (args.effort) env.TUTOR_REPLAY_EFFORT = args.effort;
-if (args.engine) env.TUTOR_REPLAY_WIDGET_ENGINE = args.engine;
 if (args.budget) env.TUTOR_REPLAY_BUDGET_USD = args.budget;
 const child = spawn(
   process.execPath,

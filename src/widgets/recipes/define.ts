@@ -16,8 +16,8 @@ import { CASE_DATA_REFERENCE } from "../tool-specs";
  */
 
 /**
- * What kind of idea a Widget teaches; it feeds variety later (no two in a row). These are the kinds the Tutor may ask a
- * free-form Widget to be (compose_widget); a recipe may also be a Workbench (WORKBENCH).
+ * What kind of idea a Widget teaches; it feeds variety later (no two in a row). A recipe may also be a Workbench
+ * (WORKBENCH).
  */
 export const ARCHETYPES = ["Grow", "Compare", "History", "Formula", "Predict", "Check", "Rank", "Chain", "Convert", "Story", "Lingo"] as const;
 
