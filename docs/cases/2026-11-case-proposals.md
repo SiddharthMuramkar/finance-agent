@@ -4,7 +4,7 @@ Date: 2026-11-16. Ticket #117 asks for six new Cases: two from India, two from J
 
 **Method.** Facts come from primary sources: prospectuses and annual reports, regulators (SEBI, RBI, FSS/DART, SESC/FSA, SEC, CPSC, ESMA, BaFin), exchanges (BSE, NSE, KRX, JPX, Nasdaq, Deutsche Börse) and courts. News and price sites fill gaps only, and are named as such. Every fact has a URL. Each Story to judge holds only what was public on its As-of date (the as-of rule, ADR 0013). Everything later sits in the Known outcome. Each proposal names its Hindsight probe words: words that would give the outcome away if they showed up before the reveal.
 
-**Ranking.** Each region keeps its own order (#1 before #2). The overall rank weighs three things: a published valuation to judge, a clear dated outcome, and how soon it can be built. INR and USD Cases can be built today. JPY, KRW and EUR Cases need the new currencies (#112), and their market parts (exchange, Price data, filings) need #113-#115.
+**Ranking.** Each region keeps its own order (#1 before #2). The overall rank weighs three things: a published valuation to judge, a clear dated outcome, and how soon it can be built. INR and USD Cases can be built today. JPY, KRW and EUR Cases need the new currencies (#112), and their market parts (exchange, Price data, filings) need #113-#115. (The ranking and the Build readiness column were written before #112-#115 were built; they ship in the same PR as this file, so the yen, won and euro Cases no longer wait.)
 
 None of the six is already a Case in `course/outline.yaml` or a Topic.
 
@@ -23,7 +23,7 @@ Why this order: Peloton has a free published valuation the engine can try to rep
 
 ## Picks
 
-The Owner delegated the picks. Taking the top-ranked proposal of each region: **India #1, Paytm's IPO at Rs 2,150**; **Japan/Korea #1, Krafton's IPO at 498,000 won**; **Europe/US #1, Peloton's IPO at $29**. Each becomes its own Case ticket; none is opened yet, and the Owner confirms the picks when opening them. Paytm (INR) and Peloton (USD) can be built now. Krafton (KRW) waits for #112 and the Korea market parts (#113-#115).
+The three picks are the Owner's delegated picks, the top-ranked proposal of each region: **India #1, Paytm's IPO at Rs 2,150**; **Japan/Korea #1, Krafton's IPO at 498,000 won**; **Europe/US #1, Peloton's IPO at $29**. They are recorded in `docs/roadmap.md` as the next Case builds. No Case tickets are opened now. All three can be built now: Paytm in rupees, Peloton in dollars, and Krafton in won, since the PR that adds this file (#119) also ships the won (#112) and the US and Korea market parts (#113, #114).
 
 ---
 
