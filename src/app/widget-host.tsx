@@ -7,7 +7,8 @@ import { shownWidgetOf, WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { checkTabName, QuizPanel, type QuizSubmitted } from "./quiz-panel";
 import type { WidgetSlot } from "./reply-markdown";
 import { widgetsIn, type ThreadLine } from "./thread";
-import { holdsKey, updatedInPlace, useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, WidgetRetryContext, withExplore, type WidgetItem } from "./widget-panel";
+import { useBackCloses } from "./back-closes";
+import { holdsKey, updatedInPlace, useExploreAnchor, useScreen, useWidgetPicker, WidgetChip, WidgetPanel, WidgetRetryContext, withExplore, type WidgetItem } from "./widget-panel";
 
 const NONE: readonly WrittenAhead[] = [];
 
@@ -46,6 +47,7 @@ export function useWidgetHost({
   quiz = null,
   writtenAhead = NONE,
   missed = null,
+  review = false,
   onQuizSubmitted,
   onRetry,
 }: {
@@ -56,6 +58,8 @@ export function useWidgetHost({
   /** The Topic's written-ahead Widgets as the Learner sees them now; those the Tutor opened are drawn. */
   writtenAhead?: readonly WrittenAhead[];
   missed?: MissedQuiz | null;
+  /** Whether a spaced Review is due, so the panel can open it (REVIEW_VIEW). */
+  review?: boolean;
   /** A quiz was marked: the conversation draws its result card, and after a miss starts the Tutor's follow-up. */
   onQuizSubmitted?: (submitted: QuizSubmitted) => void;
   /** Retry on a Widget that did not arrive: the page draws the reply again (a resume of the last turn). */
@@ -75,7 +79,9 @@ export function useWidgetHost({
   if (quiz && quiz.attemptId !== held?.attemptId) setHeld(quiz);
   const tab = held ?? missed;
   // What the panel shows: the Check while there is one, unless the Learner picked a Widget; else the picked or newest Widget.
-  const picker = useWidgetPicker(widgets, { newest: drawn.at(-1)?.key, check: !!tab });
+  const picker = useWidgetPicker(widgets, { newest: drawn.at(-1)?.key, check: !!tab, review });
+  // On a phone, Back closes the open view; `close` goes through Back so no stale step is left.
+  const close = useBackCloses(picker.open, picker.close, useScreen() === "phone");
   const check = tab
     ? {
         name: checkTabName(tab),
@@ -98,7 +104,7 @@ export function useWidgetHost({
   /** Back to showing the newest Widget (or the open quiz's Check tab), as each turn starts. */
   const showNewest = picker.clear;
 
-  return { widgets, picker, check, slot, showNewest, retry };
+  return { widgets, picker, check, slot, showNewest, retry, open: picker.open, openView: picker.pick, close };
 }
 
 /** The Widget panel itself, showing what the host picked. */
