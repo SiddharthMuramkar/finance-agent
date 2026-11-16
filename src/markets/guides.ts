@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { rawFormulaHits } from "../finance/raw-formula.ts";
 import { isIconName } from "../icons/names.ts";
 
 // The annual-report guide (spec #68, ticket #108; user story 80): beside each Own Case field, where that number sits in
@@ -38,6 +39,11 @@ export const guideLineSchema = z
 export type GuideLine = z.output<typeof guideLineSchema>;
 export type GuideLineInput = Partial<z.input<typeof guideLineSchema>>;
 
+/** LingoCard's word limits (src/widgets/primitives/wave3/lingo-card.tsx), as the Full sheet's cards keep them. */
+const CARD_LIMITS = { pro: 14, means: 20, example: 20 } as const;
+
+const wordCount = (text: string) => text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+
 /** Every way the guide lines break the rules, as sentences; empty when all pass. */
 export function guideErrors(lines: readonly unknown[]): string[] {
   const errors: string[] = [];
@@ -59,7 +65,17 @@ export function guideErrors(lines: readonly unknown[]): string[] {
       for (const issue of parsed.error.issues) errors.push(`${name} needs ${issue.path.map(String).join(".") || "a value"}: ${issue.message}`);
       return;
     }
-    if (!isIconName(parsed.data.lingo.emoji)) errors.push(`${name} has the Lingo picture "${parsed.data.lingo.emoji}", which is not an Icon name (src/icons/names.ts)`);
+    const { lingo, where } = parsed.data;
+    if (!isIconName(lingo.emoji)) errors.push(`${name} has the Lingo picture "${lingo.emoji}", which is not an Icon name (src/icons/names.ts)`);
+    // No typed formula (ADR 0003): a sum is told in steps, as a Topic's cards tell it.
+    for (const text of [where, lingo.term, lingo.means, lingo.pro, lingo.example]) {
+      const hits = rawFormulaHits(text);
+      if (hits.length) errors.push(`${name} types a formula (ADR 0003): ${hits.join("; ")}`);
+    }
+    for (const [line, max] of Object.entries(CARD_LIMITS) as [keyof typeof CARD_LIMITS, number][]) {
+      const n = wordCount(lingo[line]);
+      if (n > max) errors.push(`${name}'s Lingo card ${line} has ${n} words; at most ${max}`);
+    }
   });
   for (const [market, fields] of seen) {
     for (const field of GUIDE_FIELDS) if (!fields.has(field)) errors.push(`The ${market} guide has no line for "${field}": every Own Case field needs one`);
@@ -93,13 +109,14 @@ const india: GuideLineInput[] = [
   },
   {
     field: "reportDate",
-    where: "The Balance Sheet's heading: \"as at 31 March 2025\". That year end is the report's date; most Indian companies close their year on 31 March.",
+    where:
+      "The signature page at the end of the consolidated statements: the date the Board approved them (section 134), when the year's figures went to the stock exchanges. Not the Balance Sheet's year end, \"as at 31 March 2025\": nobody outside knew the year's figures then, and a price from that day could not reflect them.",
     ...MCA,
     lingo: {
-      term: "Financial year",
-      means: "The twelve months an annual report covers; in India it ends on 31 March.",
-      pro: "FY25 means the year to 31 March 2025",
-      example: "A report for FY25 counts sales from 1 April 2024 to 31 March 2025.",
+      term: "Board approval",
+      means: "The day the company's directors sign off the year's statements; the figures are made public that day.",
+      pro: "the statements were approved by the Board on 12 May 2025",
+      example: "A year ending 31 March 2025 may be approved on 12 May 2025: the report's date is 12 May.",
       emoji: "calendar",
     },
   },
@@ -125,7 +142,7 @@ const india: GuideLineInput[] = [
       term: "Operating profit (EBIT)",
       means: "Profit from running the business, before interest and tax.",
       pro: "EBIT is earnings before interest and taxes",
-      example: "Profit before tax 150 + finance costs 30 - other income 40 = operating profit 140.",
+      example: "From profit before tax of 150, add finance costs of 30 and take away other income of 40: 140.",
       emoji: "factory",
     },
   },
@@ -184,7 +201,7 @@ const india: GuideLineInput[] = [
   {
     field: "price",
     where:
-      "Not in the report: on NSE's price archives, pick the company's symbol and the report's date and read the closing price, in ₹ a share. If that day had no trading, use the last trading day before it.",
+      "Not in the report: on NSE's price archives, pick the company's symbol and the report's date and read the closing price, in ₹ a share. If that day had no trading, use the next trading day: a day before it could not know the figures.",
     ...NSE,
     lingo: {
       term: "Closing price",
@@ -212,7 +229,8 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "reportDate",
-    where: "The cover (表紙): 【事業年度】 gives the year, e.g. 自 2025年4月1日 至 2026年3月31日. Most Japanese years end on 31 March.",
+    where:
+      "The cover (表紙): 【提出日】, the day the Yuho was filed on EDINET, when its figures were public. Not the year end in 【事業年度】 (e.g. 至 2026年3月31日; most Japanese years end on 31 March): nobody outside knew the figures then.",
     ...EDINET,
     lingo: { term: "有価証券報告書 (Yuho)", means: "Japan's annual securities report, filed on EDINET after the year ends.", pro: "the Yuho is the audited annual filing", example: "Kikkoman's Yuho for the year to March 2026 was filed in June.", emoji: "scroll" },
   },
@@ -275,7 +293,8 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "reportDate",
-    where: "The cover: 사업연도, e.g. 2025년 01월 01일부터 2025년 12월 31일까지. Most Korean years end on 31 December; the report is filed within 90 days.",
+    where:
+      "DART's list of filings: 접수일자, the day the 사업보고서 was filed, when its figures were public. Not the year end in 사업연도 on the cover (most Korean years end on 31 December; the report follows within 90 days).",
     ...DART,
     lingo: { term: "사업보고서", means: "Korea's annual business report, filed on DART after the year ends.", pro: "the audited annual filing under K-IFRS", example: "Samsung Electronics filed its 2025 business report in March 2026.", emoji: "scroll" },
   },
