@@ -68,11 +68,12 @@ export function fullSheetRows(block: ValuationBlock, inputs: DcfInputs): FullShe
     row("options", "Employee options, owed to their holders", money(inputs.options)),
     row("shares", "Shares the value is split over", block.per === "company" ? "Valued as one whole company" : `${roundTo(inputs.shares, 2).toLocaleString("en-US")} ${UNIT_WORD[block.unit]}`),
   ];
+  // Always a row, as the Levers always offer it: a story with no chance of failure leaves the engine's input out.
   if (inputs.failure) {
     const { chance, recovered = 0, recoveredShare } = inputs.failure;
     const back = recoveredShare !== undefined ? `${percent(recoveredShare)} of its value is recovered` : recovered > 0 ? `${money(recovered)} is recovered` : "nothing is recovered";
     rows.push(row("failure", "Chance the business fails", `${percent(chance)}; if it fails, ${back}`));
-  }
+  } else rows.push(row("failure", "Chance the business fails", "0%: none in this story"));
   return rows;
 }
 

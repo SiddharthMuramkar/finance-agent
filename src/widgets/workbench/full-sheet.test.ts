@@ -9,8 +9,11 @@ import { leverSpecs, leversFor, openingSettings, valueOf, type LeverSettings } f
 // The Full sheet behind Go deeper (spec #68, "Valuation, Full sheet"; ADR 0010): every input the valuation engine takes,
 // in plain words, read-only. Seam 3: the rows are exactly the engine's inputs, on every valuation Case.
 
-/** The engine's inputs that are set: an optional input left out is not a row. */
-const setKeys = (inputs: DcfInputs) => Object.keys(inputs).filter((k) => inputs[k as keyof DcfInputs] !== undefined).sort();
+/**
+ * The engine's inputs that are set: an optional yearly path left out is not a row. The chance of failure is always a row,
+ * as the Levers always offer it; a story with none leaves the input out, and the row's value is then left out too.
+ */
+const setKeys = (inputs: DcfInputs) => [...new Set([...Object.keys(inputs).filter((k) => inputs[k as keyof DcfInputs] !== undefined), "failure"])].sort();
 
 describe("the Full sheet's rows are exactly the engine's inputs", () => {
   it.each(valuationCaseIds())("%s, at the Case's own story and with every Lever moved", (id) => {
@@ -64,6 +67,7 @@ describe("the Full sheet on Amazon in February 2000, in plain words", () => {
     expect(reading("debt")).toBe("$349m");
     expect(reading("options")).toBe("$2.9bn");
     expect(reading("shares")).toBe("340.79 million");
+    expect(reading("failure")).toBe("0%: none in this story");
   });
 
   it("gives every year of a path that changes", () => {

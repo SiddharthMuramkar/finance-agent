@@ -166,3 +166,22 @@ test.describe("[B5] and does not rest on it from 20 pixels away (the stop is 12)
     await restsShortOfFour(page, slider);
   });
 });
+
+test("[#102] a Learner opens the Full sheet from Go deeper and reads every input in plain words", async ({ page }, info) => {
+  test.skip(info.project.name !== ONE, "one width is enough for the behaviour");
+  await openFixture(page, "value-levers");
+  const sheet = page.getByTestId("full-sheet");
+  await expect(sheet).toBeHidden();
+  await page.getByTestId("value-levers-go-deeper").getByText("Go deeper").click();
+  await expect(sheet).toBeVisible();
+  await expect(sheet.locator("[data-row]")).toHaveCount(15);
+  await expect(sheet.locator('[data-row="taxRate"]')).toContainText("Tax rate");
+  await expect(sheet.locator('[data-row="taxRate"]')).toContainText("35%");
+  await expect(sheet.locator('[data-row="growth"]')).toContainText("150% in year 1, down to 6% in year 10");
+  await expect(sheet.locator('[data-row="shares"]')).toContainText("340.79 million");
+  // Read-only: nothing on the Full sheet can be typed into or dragged.
+  await expect(sheet.locator("input, select, textarea, [contenteditable]")).toHaveCount(0);
+  // It follows the Levers: a bigger revenue in year 10 reads as faster growth.
+  await setSlider(page, "Revenue in year 10", "60");
+  await expect(sheet.locator('[data-row="growth"]')).not.toContainText("150% in year 1,");
+});
