@@ -4,6 +4,11 @@
 
 export const BRAND = "Value It";
 
+/** The Course Map's label on every Topic not written ahead (not a Converted Topic); Home, About and How it works use the same words. */
+export const TAUGHT_LIVE = "Taught live by the AI Tutor";
+/** The line Home, About and How it works carry about those Topics. */
+export const TAUGHT_LIVE_LINE = "**Topics not written ahead yet are taught live by the AI Tutor.** You can open any of them.";
+
 /** The nav and footer links (§4.2, §4.3). */
 export const NAV = [
   { href: "/how-it-works", label: "How it works" },
@@ -96,7 +101,7 @@ export const home = {
     h2: "Start with a question you already have.",
     body: "No finance background needed. **If you can read a headline, you can start.**",
     play: "Play",
-    more: (topics: number) => `**${topics} Topics wait inside.** 15 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.`,
+    more: (topics: number) => `**${topics} Topics wait inside.** 15 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments. ${TAUGHT_LIVE_LINE}`,
     path: "See the whole path",
   },
   trust: {
@@ -200,6 +205,7 @@ export const howItWorks = {
   path: {
     eyebrow: "The path",
     h2: "The whole path",
+    body: TAUGHT_LIVE_LINE,
     core: "15 core Topics",
     subjects: "9 subjects",
     stages: "3 stages that read real arguments",
@@ -332,7 +338,7 @@ export const about = {
   ],
   notAffiliated: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.",
   learnH2: "What you can learn",
-  learnBody: "Fifteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments.",
+  learnBody: `Fifteen core Topics teach valuation in order. Nine subjects go wider, and three stages read real arguments. ${TAUGHT_LIVE_LINE}`,
   founderH2: "A note from the founder",
   // §14: a placeholder until the founder writes two or three sentences of their own.
   founder: "The founder’s note is coming soon.",
