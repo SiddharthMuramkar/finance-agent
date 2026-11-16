@@ -17,7 +17,7 @@ import { withoutChoices } from "@/test/choices";
 // src/tutor/companion-turn.test.ts tests the companion.
 vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
-// Seam 1, the Tutor Turn (ADR 0005): with the widget engine on, the Tutor calls show_widget with a recipe and params;
+// Seam 1, the Tutor Turn (ADR 0009): with the widget engine on, the Tutor calls show_widget with a recipe and params;
 // code compiles and checks the Widget, stores it as a Session item and streams it. Off, nothing changes.
 
 async function collect(events: AsyncIterable<TurnEvent>) {
@@ -100,7 +100,7 @@ describe("show_widget and the widget engine", () => {
     expect(asked).toContain("25 years");
   });
 
-  it("marks a Workbench an Illustration when its Case figures are the Tutor's, not a Topic file's (ADR 0018)", async () => {
+  it("marks a Workbench an Illustration when its Case figures are the Tutor's, not a Topic file's (ADR 0010)", async () => {
     // Webvan's year as course/topics/spine-03-cash.yaml gives it to the cash_waterfall Workbench.
     const webvan = {
       name: "Webvan",

@@ -67,5 +67,5 @@ export default async function ScenesDevPage({ searchParams }: { searchParams: Pr
   const runningBuilt = buildRunningScene(topic);
   const running = runningBuilt ? piece("running-example", "Running example · story_scene", runningBuilt.ok ? runningBuilt.title : "The running example", runningBuilt) : null;
 
-  return <SceneList topicTitle={topic.title} theme={first(params.theme) === "dark" ? "dark" : "light"} scenes={scenes} terms={terms} running={running} />;
+  return <SceneList topicTitle={topic.title} scenes={scenes} terms={terms} running={running} />;
 }

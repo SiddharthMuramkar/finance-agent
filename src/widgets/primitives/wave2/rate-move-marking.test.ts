@@ -4,7 +4,7 @@ import { moveReadings, markReading, RATE_MOVE_LABELS, RATE_MOVE_SPEAKERS } from 
 
 const byText = (set: ReturnType<typeof moveReadings>) => Object.fromEntries(set.choices.map((c) => [c.text, c.mistake?.tag ?? "right"]));
 
-describe("the readings offered for a rate move (ADR 0009: a tap, never a typed number)", () => {
+describe("the readings offered for a rate move (ADR 0002: a tap, never a typed number)", () => {
   it("4% to 5% offers the right reading, the x10 slip and the percent mix-up", () => {
     const set = moveReadings(4, 5, "s1");
     expect(byText(set)).toEqual({ "Up 1 point, or 100 bps": "right", "Up 10 bps": "used_x10", "Up 1%": "mixed_percent_points" });

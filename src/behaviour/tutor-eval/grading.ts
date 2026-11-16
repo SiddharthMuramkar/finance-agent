@@ -216,7 +216,7 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
         break;
       }
       case "noSum": {
-        // The reading V8 uses: questions, instructions and the ask; a sum said as a fact is allowed (ADR 0009).
+        // The reading V8 uses: questions, instructions and the ask; a sum said as a fact is allowed (ADR 0002).
         // Indirect asks ("do the same steps on the Quick try's numbers") count too (run 16, MP-4).
         const phrase = sumAsked(reply.text) ?? indirectSumAsk(reply.text);
         if (phrase) out.push(`The reply asks for a sum ("${phrase}").`);

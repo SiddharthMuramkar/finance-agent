@@ -1,4 +1,4 @@
-// The one button (spec A3a; the look is ADR 0013's: flat, 8px corners, a 1px edge or a fill). The look is in globals.css
+// The one button (spec A3a; the look is ADR 0018's: flat, 8px corners, a 1px edge or a fill). The look is in globals.css
 // (.btn, .btn-primary ...); this file only picks classes and sets data-affordance="button" so the audit can see it.
 // Server-safe: no "use client".
 
@@ -39,7 +39,7 @@ export type ButtonProps = ComponentProps<"button"> & {
 };
 
 /**
- * Primary (the one fill per pane: royal blue in Light, near-white in Dark), secondary (an outline), tertiary (text only, a
+ * Primary (the one fill per pane: royal blue), secondary (an outline), tertiary (text only, a
  * muted label) or danger (red, destructive confirms only); xs, sm, md or lg; with a loading state. type defaults to "button".
  */
 export function Button({ variant = "primary", size = "md", loading, pressed, unstyled, className = "", type = "button", disabled, children, ...props }: ButtonProps) {

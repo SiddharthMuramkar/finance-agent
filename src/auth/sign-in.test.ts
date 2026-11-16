@@ -28,9 +28,12 @@ const as = vi.hoisted(() => ({
   map: undefined as CourseMap | undefined,
   cookie: undefined as string | undefined,
   client: undefined as TutorClient | undefined,
+  /** The Clerk account signed in (issue #33), or null: most tests here sign in with a passcode. */
+  identity: null as null | { userId: string; email: string | null; firstName: string | null; admin: boolean },
 }));
 
 vi.mock("@/db/client", () => ({ getDb: () => as.db }));
+vi.mock("@/auth/identity", async (original) => ({ ...(await original<typeof import("@/auth/identity")>()), currentIdentity: async () => as.identity }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: (name: string) => (name === "fa_access" && as.cookie !== undefined ? { name, value: as.cookie } : undefined) }),
 }));
@@ -60,7 +63,7 @@ const startOverRoute = await import("@/app/api/start-over/route");
 const settingsRoute = await import("@/app/api/settings/route");
 const { default: SettingsPage } = await import("@/app/settings/page");
 const { default: CourseMapPage } = await import("@/app/course/page");
-const { loadHomeButton } = await import("@/app/_landing/landing");
+const { loadHomeButton } = await import("@/site/home-button");
 
 const OWNER_PASSCODE = "correct horse battery";
 const TEST_PASSCODE = "staple gun";
@@ -84,8 +87,8 @@ async function html(page: Promise<ReactElement>) {
 }
 const json = async (response: Response | Promise<Response>) => (await response).json();
 
-/** The redirect to the login a page or route throws when the request is signed out. */
-const toLogin = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/login;/) };
+/** The redirect to the sign-in a page or route throws when the request is signed out. */
+const toLogin = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/sign-in;/) };
 const toWelcome = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/welcome;/) };
 
 async function drain(events: AsyncIterable<unknown>) {
@@ -108,6 +111,7 @@ beforeEach(async () => {
   as.db = await testDb();
   as.map = presentValueOnly();
   as.cookie = undefined;
+  as.identity = null;
   vi.stubEnv("SESSION_SECRET", "test-secret");
 });
 afterEach(() => {
@@ -134,21 +138,17 @@ describe("Signing in with a passcode", () => {
     expect(log).toHaveBeenLastCalledWith(expect.stringMatching(new RegExp(`Learner ${OWNER_LEARNER_ID} \\(owner\\)`)));
   });
 
-  it("with no passcode list, the old single passcode signs in as the owner", async () => {
-    vi.stubEnv("PASSCODE", OWNER_PASSCODE);
-    vi.spyOn(console, "info").mockImplementation(() => {});
-    await signIn(OWNER_PASSCODE);
-    expect(await session.isSignedIn()).toBe(true);
-    expect(await session.currentLearnerId()).toBe(OWNER_LEARNER_ID);
-  });
-
-  it("once the list is set, the old single passcode no longer signs in", async () => {
+  it("the old single PASSCODE signs nobody in, with or without a list (issue #33: only PASSCODES opens the door)", async () => {
+    const tryOld = async () => {
+      const form = new FormData();
+      form.set("passcode", "the old one");
+      const response = await login(new Request("https://app.example/api/login", { method: "POST", body: form }));
+      return new URL(response.headers.get("location")!).search;
+    };
     vi.stubEnv("PASSCODE", "the old one");
+    expect(await tryOld()).toBe("?wrong=1");
     vi.stubEnv("PASSCODES", `owner:${OWNER_PASSCODE}`);
-    const form = new FormData();
-    form.set("passcode", "the old one");
-    const response = await login(new Request("https://app.example/api/login", { method: "POST", body: form }));
-    expect(new URL(response.headers.get("location")!).search).toBe("?wrong=1");
+    expect(await tryOld()).toBe("?wrong=1");
   });
 });
 
@@ -337,6 +337,18 @@ describe("Start over", () => {
   beforeEach(() => {
     vi.stubEnv("PASSCODES", `owner:${OWNER_PASSCODE}, test:${TEST_PASSCODE}`);
     vi.spyOn(console, "info").mockImplementation(() => {});
+  });
+
+  it("for an account, sets no passcode cookie: the fresh Learner is the account's through its Clerk link", async () => {
+    as.identity = { userId: "user_asha", email: "asha@example.com", firstName: "Asha", admin: false };
+    const old = await session.currentLearnerId();
+    const response = await startOver();
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("https://app.example/welcome");
+    expect(response.headers.get("set-cookie")).toBeNull();
+    const fresh = await session.currentLearner();
+    expect(fresh?.id).not.toBe(old);
+    expect(fresh).toMatchObject({ name: "Asha", clerkUserId: "user_asha", archivedAt: null });
   });
 
   it("archives the Learner, starts a fresh empty one under the same name in this browser, and opens the Welcome; nothing old changes and the old cookie is refused", async () => {

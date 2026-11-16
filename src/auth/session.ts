@@ -1,75 +1,85 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { getDb } from "@/db/client";
-import { accessFor } from "./access";
-import { getAuth } from "./better-auth";
-import type { AuthUser } from "./google-learner";
+import { learnerForClerkUser } from "./clerk-learner";
+import { SIGN_IN_PATH } from "./destination";
+import { passcodeDoorOpen } from "./gates";
+import { currentIdentity, type Identity } from "./identity";
 import { type Learner, learnerFromCookie } from "./learners";
 import { ACCESS_COOKIE, passcodeList } from "./passcode";
 
 /**
- * Who this request belongs to (ADR 0014):
- * - `learner`: someone who may enter, as this Learner. `via: "account"` is a Better Auth session
- *   (Google or an email link) and carries its user; `via: "passcode"` is the `fa_access` cookie and
- *   never does, so it can never stand for the owner on /admin.
- * - `waiting` / `denied`: signed in with an account that may not enter yet, or ever. They have no
- *   Learner, so every page and route treats them as signed out; only /login shows them their status.
+ * Who this request belongs to (issue #33):
+ * - `learner` `via: "account"`: a Clerk session (in the browser test bed, its stand-in), with the identity its token
+ *   carries. Who may sign in at all is Clerk's call (Waitlist mode), so every account has a Learner.
+ * - `learner` `via: "passcode"`: the `fa_access` cookie, only while the passcode door is open (never in production). It
+ *   carries no identity, so it can never stand for the admin.
  * - `signed-out`: nobody.
  */
 export type SignIn =
-  | { kind: "learner"; learner: Learner; via: "account"; user: AuthUser }
-  | { kind: "learner"; learner: Learner; via: "passcode"; user?: undefined }
-  | { kind: "waiting" | "denied"; user: AuthUser }
+  | { kind: "learner"; learner: Learner; via: "account"; identity: Identity }
+  | { kind: "learner"; learner: Learner; via: "passcode"; identity?: undefined }
   | { kind: "signed-out" };
 
 /**
- * Who signed in, Better Auth first: a session resolves through `accessFor` (a denial first, then
- * their Learner, else waiting), and that answer stands even when it is not a Learner. Only with no
- * Better Auth session does the passcode cookie decide, and only there must the Learner's name be on
- * `PASSCODES`, and its account (if the owner linked one) not be denied. While Better Auth is off
- * (no Google and no email links) there is no instance and it is skipped. The proxy has only checked
- * that a cookie exists; every page and route checks here before reading any Learner data, so an
- * archived or denied Learner is signed out everywhere at once.
+ * Who signed in, the account first: its Learner is made or found on first use and always exists. Only with no account
+ * does the passcode cookie decide, and only while the door is open, for an active Learner whose name is on `PASSCODES`
+ * and who belongs to no account. The proxy has only let the request through; every page and route checks here before
+ * reading any Learner data, so an archived Learner is signed out everywhere at once. Read once per server render
+ * (React `cache`): a page asks through both signedInLearner and its header's currentAccount, and that is one read.
+ * Outside a render (a route handler, a test) every call reads afresh.
  */
-export async function currentSignIn(): Promise<SignIn> {
-  const auth = getAuth();
-  if (auth) {
-    const found = await auth.api.getSession({ headers: await headers() });
-    if (found) {
-      const user: AuthUser = { id: found.user.id, email: found.user.email, name: found.user.name };
-      const access = await accessFor(getDb(), user);
-      if (access.state === "approved") return { kind: "learner", learner: access.learner, via: "account", user };
-      return { kind: access.state, user };
-    }
-  }
+export const currentSignIn = cache(async function currentSignIn(): Promise<SignIn> {
+  const identity = await currentIdentity();
+  if (identity) return { kind: "learner", learner: await learnerForClerkUser(getDb(), identity), via: "account", identity };
+  if (!passcodeDoorOpen(process.env)) return { kind: "signed-out" };
   const jar = await cookies();
   const learner = await learnerFromCookie(getDb(), jar.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "", passcodeList());
   return learner ? { kind: "learner", learner, via: "passcode" } : { kind: "signed-out" };
+});
+
+/**
+ * True when the sign-in is the admin's: an account whose token says admin (Clerk `publicMetadata.role = "admin"`, which
+ * only the owner sets). Never a passcode, which carries no identity.
+ */
+export function isAdminSignIn(signIn: SignIn): signIn is Extract<SignIn, { via: "account" }> {
+  return signIn.kind === "learner" && signIn.via === "account" && signIn.identity.admin;
 }
 
-/** The signed-in Learner of this request, or null when it counts as signed out (waiting and denied included). */
+/** The signed-in Learner of this request, or null when it is signed out. */
 export async function currentLearner(): Promise<Learner | null> {
   const signIn = await currentSignIn();
   return signIn.kind === "learner" ? signIn.learner : null;
 }
 
-/** True when this request carries a cookie for an active, listed Learner. */
+/** True when this request is signed in, by an account or a passcode. */
 export async function isSignedIn() {
   return (await currentLearner()) !== null;
 }
 
 /**
  * The current Learner's id: the one whose Learner Memory, Sessions and turns every page and route
- * reads and writes. A signed-out request is sent to the login instead (the proxy normally does that
+ * reads and writes. A signed-out request is sent to the sign-in instead (the proxy normally does that
  * first; this is the check behind it).
  */
 export async function currentLearnerId(): Promise<number> {
   return (await signedInLearner()).id;
 }
 
-/** The signed-in Learner (with its Settings choices); a signed-out request is sent to the login instead. */
+/**
+ * Who takes a Tutor turn: the signed-in Learner's id, and whether it is the admin (isAdminSignIn), whose turns have no
+ * daily cap of their own (quota.ts). One sign-in read. A signed-out request is sent to the sign-in instead.
+ */
+export async function currentTurnTaker(): Promise<{ learnerId: number; admin: boolean }> {
+  const signIn = await currentSignIn();
+  if (signIn.kind !== "learner") redirect(SIGN_IN_PATH);
+  return { learnerId: signIn.learner.id, admin: isAdminSignIn(signIn) };
+}
+
+/** The signed-in Learner (with its Settings choices); a signed-out request is sent to the sign-in instead. */
 export async function signedInLearner(): Promise<Learner> {
   const learner = await currentLearner();
-  if (!learner) redirect("/login");
+  if (!learner) redirect(SIGN_IN_PATH);
   return learner;
 }

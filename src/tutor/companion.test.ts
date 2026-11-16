@@ -4,7 +4,7 @@ import { sceneFixtureTopic } from "@/course/scenes-fixture";
 import { asksWhatAWordMeans, pickCompanion, type CompanionInput } from "./companion";
 
 /**
- * Seam 3, the Companion Widget picker (spec 2026-11-12, B6, ADR 0019; was E4a): when a step-led reply has no Widget,
+ * Seam 3, the Companion Widget picker (spec 2026-11-12, B6, ADR 0008; was E4a): when a step-led reply has no Widget,
  * code may add the step's own story scene or, when the Learner asked what a word means, a Lingo card for that word.
  * Nothing else: the Running example's scene and the Case's date and title card are no longer Companions, and with
  * neither the Widget already showing stays. A candidate showing an open quiz's numbers is skipped.

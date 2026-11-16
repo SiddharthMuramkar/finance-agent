@@ -7,7 +7,7 @@ import { endsOnOwnWork } from "./spine-check";
 export { endsOnOwnWork };
 
 /**
- * Skip ahead (spec 2026-11-12 A8, ADR 0020), in pure code: which questions the "I know this: quiz me" quiz shows, whether
+ * Skip ahead (spec 2026-11-12 A8, ADR 0004), in pure code: which questions the "I know this: quiz me" quiz shows, whether
  * a Topic offers it, the pass rule, and what a pass does to the Learner's progress. No model, no database, no clock;
  * src/learner/skip-ahead.ts saves the attempt, marks it and records the pass.
  */

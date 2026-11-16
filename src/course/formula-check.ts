@@ -2,7 +2,7 @@ import { rawFormulaHits } from "../finance/raw-formula.ts";
 import type { Topic } from "./map.ts";
 import { textsIn, topicTexts, type TextGroup } from "./topic-texts.ts";
 
-// The course check for typed formulas (ADR 0002). A converted Topic must hold no typed formula in
+// The course check for typed formulas (ADR 0003). A converted Topic must hold no typed formula in
 // any text a Learner or the Tutor reads: every text `topicTexts` gives. Topics not yet converted are on a list that can
 // only shrink: a Topic on it that is clean must come off, and a Topic off it that is dirty fails.
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
@@ -81,10 +81,10 @@ export function formulaCheckErrors(topics: Topic[], notYet: readonly string[] = 
     const listed = notYet.includes(topic.id);
     const teaching = hitsIn(teachingTexts(topic));
     if (teaching.length && listed) {
-      errors.push(`Topic ${topic.id} types a formula in its teaching (cards, Skills, Quick tries, templates and scenes say sums in words; ADR 0002):`, ...teaching.map((h) => `    ${h}`));
+      errors.push(`Topic ${topic.id} types a formula in its teaching (cards, Skills, Quick tries, templates and scenes say sums in words; ADR 0003):`, ...teaching.map((h) => `    ${h}`));
     }
     if (hits.length && !listed) {
-      errors.push(`Topic ${topic.id} types a formula (use a formula marker or worded steps instead; ADR 0002):`, ...hits.map((h) => `    ${h}`));
+      errors.push(`Topic ${topic.id} types a formula (use a formula marker or worded steps instead; ADR 0003):`, ...hits.map((h) => `    ${h}`));
     }
     if (!hits.length && listed) errors.push(`Topic ${topic.id} is converted: remove it from the not-yet-converted list in src/course/formula-check.ts`);
   }

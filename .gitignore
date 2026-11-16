@@ -34,3 +34,6 @@ evidence/preview-matrix/
 
 # Agent notes that `next dev` writes at the root; never committed
 /AGENTS.md
+
+# Database dumps (docs/backup-and-restore.md) never go in git: the Library holds text licensed for private search only
+*.dump

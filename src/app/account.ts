@@ -1,26 +1,23 @@
-import { eq } from "drizzle-orm";
-import { isOwnerLearner, waitingCount } from "@/auth/access";
-import type { Learner } from "@/auth/learners";
-import { user } from "@/db/schema";
-import type { Db } from "@/db/types";
+import { currentSignIn, type SignIn } from "@/auth/session";
 import type { HeaderAccount } from "./ui";
 
+/** A request that is signed in, by an account or the passcode door. */
+export type SignedIn = Extract<SignIn, { kind: "learner" }>;
+
 /**
- * Who the header's account menu and the Settings Account card name (A5): the Learner's name and, for a Learner linked
- * to a Google or email-link account, that account's email (learners.auth_user_id -> user.email). A passcode Learner has
- * no linked user, so no email, and Settings says "Signed in with a passcode". Reads no database for a passcode Learner.
- * The owner's Learner also gets `admin`, the number of people waiting, for the menu's Admin row (ADR 0014): one count,
- * read beside the email, and only for the owner. The row is only a hint; /admin checks the owner's session itself.
+ * Who the header's account menu and the Settings Account card name (A5, issue #33): the Learner's name and, for an
+ * account, the email its Clerk session carries (no call to Clerk, no database read). A passcode Learner has no email
+ * and is marked `passcode`, so Settings says "Signed in with a passcode". `admin` (the menu's Admin row) only for an
+ * account whose session says admin; the row is only a hint, as /admin checks the session itself (signedInAdmin).
  */
-export async function accountFor(db: Db, learner: Pick<Learner, "name" | "authUserId" | "archivedAt">): Promise<HeaderAccount> {
-  if (!learner.authUserId) return { name: learner.name };
-  const [[found], waiting] = await Promise.all([
-    db.select({ email: user.email }).from(user).where(eq(user.id, learner.authUserId)).limit(1),
-    isOwnerLearner(learner) ? waitingCount(db) : null,
-  ]);
-  return {
-    name: learner.name,
-    ...(found?.email ? { email: found.email } : {}),
-    ...(waiting !== null ? { admin: { waiting } } : {}),
-  };
+export function accountFor(signIn: SignedIn): HeaderAccount {
+  if (signIn.via === "passcode") return { name: signIn.learner.name, passcode: true };
+  const { email, admin } = signIn.identity;
+  return { name: signIn.learner.name, ...(email ? { email } : {}), ...(admin ? { admin: true } : {}) };
+}
+
+/** This request's account, for the header and Settings; undefined when it is signed out. */
+export async function currentAccount(): Promise<HeaderAccount | undefined> {
+  const signIn = await currentSignIn();
+  return signIn.kind === "learner" ? accountFor(signIn) : undefined;
 }

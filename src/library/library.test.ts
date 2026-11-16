@@ -4,6 +4,7 @@ import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
+import { NYFED_SOURCE, SOFR_NOTICE } from "./credits";
 import { importLibrary, passagesToEmbed, saveEmbeddings, type LibraryFile } from "./ingest";
 import { hiddenPassages, loadPassageView, NO_VOYAGE_KEY, searchLibrary, searchResultText, VOYAGE_DOWN } from "./library";
 
@@ -289,6 +290,8 @@ describe("passage view (where a citation leads)", () => {
       heading: "Annuities",
       credit: "B. Author, A textbook (Publisher, 2022), CC BY 4.0",
       licence: "CC BY 4.0",
+      licenceUrl: "https://creativecommons.org/licenses/by/4.0/",
+      notices: [],
       url: "https://example.org/book/1",
       publishedOn: null,
       shortened: false,
@@ -343,6 +346,22 @@ describe("passage view (where a citation leads)", () => {
     expect([...(await hiddenPassages({ db, map, learnerId: OWNER_LEARNER_ID }, [id]))]).toEqual([]);
     expect(await loadPassageView({ db, map, learnerId: second.id }, id)).toEqual({ status: "hidden", asOf: "2018-10-24" });
     expect((await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, id)).status).toBe("shown");
+  });
+
+  it("links the source's licence, but not for a passage under a licence of its own, and adds the NY Fed's reference-rate notice to a passage from its SOFR page (#26)", async () => {
+    const db = await testDb();
+    await importLibrary(db, {
+      source: { ...book.source, id: NYFED_SOURCE, licence: "New York Fed Terms of Use", licenceUrl: "https://www.newyorkfed.org/privacy/termsofuse" },
+      passages: [
+        { ref: "markets-reference-rates-sofr#1", heading: "SOFR", url: "https://www.newyorkfed.org/markets/reference-rates/sofr", text: "The jackpot annuity instalments are discounted at a cash option rate." },
+        { ref: "markets-primarydealers#1", heading: "Dealers", url: "https://www.newyorkfed.org/markets/primarydealers", text: "A chart of the jackpot annuity and cash option.", licence: "Third-party chart, used by permission" },
+      ],
+    });
+    const sofr = await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, await idOf(db, "markets-reference-rates-sofr#1"));
+    const chart = await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, await idOf(db, "markets-primarydealers#1"));
+
+    expect(sofr).toMatchObject({ status: "shown", licenceUrl: "https://www.newyorkfed.org/privacy/termsofuse", notices: [SOFR_NOTICE] });
+    expect(chart).toMatchObject({ status: "shown", licence: "Third-party chart, used by permission", licenceUrl: null, notices: [] });
   });
 
   it("says a passage that does not exist is missing", async () => {

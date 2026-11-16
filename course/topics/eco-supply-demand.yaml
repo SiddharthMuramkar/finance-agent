@@ -79,7 +79,7 @@ questions:
     explanation: >
       The supply curve shifts left. With demand unchanged, the new intersection is at a higher price and a lower quantity. Because buyers have few substitutes, the price rise is large.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 3.1 Microeconomics: https://openstax.org/books/principles-finance-2e/pages/3-1-microeconomics ; and OpenStax Principles of Microeconomics 3e, 3.3 Changes in Equilibrium Price and Quantity: https://openstax.org/books/principles-microeconomics-3e/pages/3-key-concepts-and-summary
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 3.1 Microeconomics: https://openstax.org/books/principles-finance-2e/pages/3-1-microeconomics ; and OpenStax Principles of Microeconomics 3e, 3.3 Changes in Equilibrium Price and Quantity: https://openstax.org/books/principles-microeconomics-3e/pages/3-key-concepts-and-summary
 
   - id: sd-q-ban
     prompt: >

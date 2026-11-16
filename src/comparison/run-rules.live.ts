@@ -87,7 +87,7 @@ async function ask(q: ComparisonQuestion, model: string) {
   let failed = "";
   for (const turn of q.turns) {
     let text = "";
-    for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId }, turn)) {
+    for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId, noLimits: true }, turn)) {
       if (e.type === "text") text += e.text;
       if (e.type === "error") failed = e.message;
       if (e.type === "refusal") failed = `refusal: ${e.message}`;

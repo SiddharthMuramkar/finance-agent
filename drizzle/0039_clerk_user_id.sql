@@ -1,0 +1,2 @@
+ALTER TABLE "learners" ADD COLUMN "clerk_user_id" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "learners_one_active_per_clerk_user" ON "learners" USING btree ("clerk_user_id") WHERE "learners"."archived_at" is null and "learners"."clerk_user_id" is not null;

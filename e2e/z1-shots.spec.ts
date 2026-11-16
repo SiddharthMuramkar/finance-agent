@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { hydrated, say, seed, settled } from "./support/app";
 
-// Z1 (spec 2026-11-11): the finished app at 1280 × 800, 1512 × 982 and 1920 × 1080, in Light and Dark, for the critics
+// Z1 (spec 2026-11-11): the finished app at 1280 × 800, 1512 × 982 and 1920 × 1080, in the one Light theme, for the critics
 // and the owner. Written only with SHOTS=Z1 (spec line 512: CI and ordinary ui:test runs never write PNGs), and only from
 // the mbp14 project, which sets each size itself.
 const DIR = join("docs", "specs", "img", "2026-11-11");
@@ -12,10 +12,11 @@ const SIZES = [
   { name: "1512", width: 1512, height: 982 },
   { name: "1920", width: 1920, height: 1080 },
 ] as const;
-const THEMES = ["light", "dark"] as const;
+// One Light theme (decision #17); the file names keep their -light suffix.
+const THEMES = ["light"] as const;
 const ORIGIN = "http://localhost:3100";
 
-/** Skips unless SHOTS=Z1 on mbp14, and gives the run room: each test walks six sizes and themes. */
+/** Skips unless SHOTS=Z1 on mbp14, and gives the run room: each test walks three sizes. */
 function z1Only() {
   test.skip(
     process.env.SHOTS !== "Z1" || test.info().project.name !== "mbp14",
@@ -36,14 +37,13 @@ async function shoot(page: Page, name: string, fullPage = false) {
 async function at(
   page: Page,
   size: (typeof SIZES)[number],
-  theme: (typeof THEMES)[number],
   cookies: Record<string, string> = {},
 ) {
   await page.setViewportSize({ width: size.width, height: size.height });
   await page
     .context()
     .addCookies(
-      Object.entries({ theme, ...cookies }).map(([name, value]) => ({
+      Object.entries(cookies).map(([name, value]) => ({
         name,
         value,
         url: ORIGIN,
@@ -58,7 +58,7 @@ test.describe("signed out", () => {
     z1Only();
     for (const theme of THEMES)
       for (const size of SIZES) {
-        await at(page, size, theme);
+        await at(page, size);
         await page.goto("/");
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
         await hydrated(page);
@@ -79,13 +79,13 @@ test("Z1 Study on concept-widget, at the default split and at 67", async ({
   for (const theme of THEMES)
     for (const size of SIZES) {
       await page.context().clearCookies({ name: "split" });
-      await at(page, size, theme);
+      await at(page, size);
       await page.goto("/study");
       await expect(page.getByTestId("workspace-frame")).toBeVisible();
       await settled(page);
       await hydrated(page);
       await shoot(page, `Z1-study-concept-${size.name}-${theme}`);
-      await at(page, size, theme, { split: "67" });
+      await at(page, size, { split: "67" });
       await page.goto("/study");
       await expect(page.getByTestId("workspace-frame")).toBeVisible();
       await settled(page);
@@ -107,7 +107,7 @@ test("Z1 Study with four Widgets and the Check tab", async ({ page }) => {
   for (const theme of THEMES)
     for (const size of SIZES) {
       await page.context().clearCookies({ name: "split" });
-      await at(page, size, theme);
+      await at(page, size);
       await page.goto("/study");
       await expect(page.getByTestId("check-tab")).toBeVisible();
       await expect(page.getByTestId("filmstrip-thumb")).toHaveCount(4);
@@ -127,7 +127,7 @@ test("Z1 Notebook with a saved Widget", async ({ page }) => {
   await expect(save).toHaveAttribute("data-save-state", "saved");
   for (const theme of THEMES)
     for (const size of SIZES) {
-      await at(page, size, theme);
+      await at(page, size);
       await page.goto("/notebook");
       await expect(page.getByText(/^Widget · /).first()).toBeVisible();
       await hydrated(page);

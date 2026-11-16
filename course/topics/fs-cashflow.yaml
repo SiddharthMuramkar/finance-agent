@@ -53,7 +53,7 @@ youllLearn:
   - "Compare reported profit with the cash the business really produces."
   - "Work out how long a company's cash will last."
 
-# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0002).
 exampleCurrency: INR
 runningExample:
   text: "A chai stall spends ₹10,000 more cash than it takes in each month."

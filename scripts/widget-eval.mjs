@@ -460,7 +460,7 @@ async function reachStudy(browser, pool, p, seen) {
   seen.learnerId = learnerId;
   const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
   const page = await context.newPage();
-  await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/sign-in?passcode=1`, { waitUntil: "networkidle" });
   await page.getByLabel("Passcode", { exact: true }).fill(PASSCODE);
   await page.getByRole("button", { name: "Enter", exact: true }).click();
   await page.waitForURL(/\/welcome/, { timeout: 30_000 });

@@ -11,6 +11,7 @@ import type { StreamEvent } from "@/tutor/turn";
 import type { TurnBody } from "@/tutor/turn-body";
 import type { SessionItemData } from "./session-item-view";
 import { track } from "./analytics";
+import { fetchWithFreshSession } from "./fresh-session-fetch";
 import { addText, finishReply, placeItem, replayReply, replyCursor, startReply, stopReply, takeBack, type Placed } from "./reply-lines";
 import { convertMessage, withNextStepDividers, type Line, type ThreadLine } from "./thread";
 import type { WidgetStore } from "./widget-states";
@@ -216,11 +217,19 @@ export function useTurnStream({
     let busyNotice: string | null = null;
     try {
       for (;;) {
-        const res = await fetch("/api/turn", {
+        // A tab left idle may hold an expired Clerk token: the fetch renews it and asks once more (issue #33).
+        const res = await fetchWithFreshSession("/api/turn", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...request, ...(shownRef.current && { shown: shownRef.current }), ...(widgets && { widgets: widgets.all() }) }),
         });
+        if (res.status === 429) {
+          // A Spend cap (limit reached): nothing ran or was saved, and waiting would not help, so the Learner reads why.
+          const { error: limit } = (await res.json()) as { error: string };
+          if (!("resume" in request)) setMessages(takeBack(reply, userId));
+          fail(limit);
+          return;
+        }
         if (res.status === 409) {
           const { error: busy, stale } = (await res.json()) as { error: string; stale?: boolean };
           if (stale && "resume" in request) {
@@ -291,7 +300,7 @@ export function useTurnStream({
               continue;
             }
             if (event.type === "stopped") {
-              // The Learner stopped the reply, and "done" follows. Never a resume. The held reply is dropped (ADR 0008): no text
+              // The Learner stopped the reply, and "done" follows. Never a resume. The held reply is dropped (ADR 0006): no text
               // was shown, so no empty reply bubble is left, only the Stopped note.
               finished = true;
               update(() => ({ waiting: null, progress: null }));
@@ -402,7 +411,7 @@ export function useTurnStream({
     for (let tries = 0; tries < MAX_STOP_TRIES && runningRef.current && runIdRef.current === run; tries++) {
       try {
         const turn = turnIdRef.current;
-        const res = await fetch("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(turn === null ? { stop: true } : { stop: true, turn }) });
+        const res = await fetchWithFreshSession("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(turn === null ? { stop: true } : { stop: true, turn }) });
         const answer = (await res.json()) as { stopping?: boolean };
         if (answer.stopping) return;
       } catch {

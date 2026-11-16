@@ -3,7 +3,7 @@
  * page (via Context7): input $2, cached input $0.10 (5% of input), cache writes $2.50 (1.25 times input, for the
  * default 30-minute cache), output $10 (reasoning tokens are output). A request with more than 272K input tokens is
  * priced at 2 times the input and cache rates and 1.5 times the output rate, for the whole request.
- * gpt-6.1-sol is the only model (ADR 0015). Usage stored before the switch keeps the cost worked out when it was saved.
+ * gpt-6.1-sol is the only model (ADR 0007). Usage stored before the switch keeps the cost worked out when it was saved.
  */
 type Price = {
   input: number;

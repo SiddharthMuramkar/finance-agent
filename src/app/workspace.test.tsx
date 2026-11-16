@@ -336,8 +336,8 @@ describe("the Topic complete card", () => {
     expect(cardOf(workspace({ initial: [...closing, complete("New in Present value: Explore")] }))).toMatch(/<button[^>]*data-what-comes-next[^>]*>New in Present value: Explore →<\/button>/);
   });
 
-  // #479 as ADR 0013 amends it: the pass is marked in the success status, on its tint, with words and a tick, so the
-  // fill never carries it alone; chrome paints no Widget accent (no mint). Tokens only, so it holds in Light and Dark.
+  // #479 (ADR 0015: colour is never the only signal): the pass is marked in the success status, on its tint, with words and a tick, so the
+  // fill never carries it alone; chrome paints no Widget accent (no mint). Tokens only, from the one Light theme.
   it("marks the pass in the success status: a success-tint fill, a hairline border and a success Topic complete ✓ eyebrow", () => {
     const card = cardOf(workspace({ initial: [...closing, complete("Next Topic: Bond prices")] }));
     const open = card.match(/^<section[^>]*>/)?.[0] ?? "";

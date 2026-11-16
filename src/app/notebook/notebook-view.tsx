@@ -11,7 +11,7 @@ import { UndoProvider } from "./undo";
 const STAGE: Record<NotebookRow["stage"], string> = { spine: "Spine", foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 const STATUS: Record<NotebookRow["status"], string> = { not_started: "Not started", in_progress: "In progress", passed: "Passed" };
 
-/** A part of a row (what was found, the Topic Note's parts, Earlier attempts): a hairline above, no box of its own (ADR 0013). */
+/** A part of a row (what was found, the Topic Note's parts, Earlier attempts): a hairline above, no box of its own (ADR 0018). */
 const PART = "mt-5 border-t border-[var(--rule)] pt-4";
 
 /** A part's label: small capitals in muted. */

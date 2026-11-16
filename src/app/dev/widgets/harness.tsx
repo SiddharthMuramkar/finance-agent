@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import type { CaseData } from "@/case-data/case-data";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
-import { applyTheme, isTheme } from "../../theme";
 import { WidgetView } from "../../widget-view";
 import { Eyebrow } from "../../ui";
 import type { HarnessWidth } from "./widths";
@@ -18,28 +16,17 @@ export function WidgetHarness({
   code,
   title,
   width,
-  theme,
   values,
   cases,
 }: {
   code: string;
   title: string;
   width: HarnessWidth;
-  theme: "light" | "dark";
   values?: Record<string, number>;
   cases: readonly CaseData[];
 }) {
-  // The tokens switch on the page's root, so this page's own light or dark replaces what the head script set there.
-  useEffect(() => {
-    const before = document.documentElement.dataset.theme;
-    applyTheme(theme);
-    return () => {
-      applyTheme(isTheme(before) ? before : "light");
-    };
-  }, [theme]);
-
   return (
-    <main className="min-h-screen bg-[var(--bg)] p-4 text-[var(--ink)]" data-testid="harness" data-width={width} data-theme={theme}>
+    <main className="min-h-screen bg-[var(--bg)] p-4 text-[var(--ink)]" data-testid="harness" data-width={width}>
       <aside
         aria-label="Widget panel"
         data-testid="widget-pane"

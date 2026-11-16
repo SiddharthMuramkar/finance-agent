@@ -20,7 +20,7 @@ import type { FixedItem, QuestionTemplate, SignRule, Unit } from "../teaching/in
 
 const id = z.string().regex(/^[a-z0-9-]+$/, "IDs use lower case letters, digits and hyphens");
 
-// ——— The teaching a converted Topic's file holds (spec #229, ADR 0006) ———
+// ——— The teaching a converted Topic's file holds (spec #229, ADR 0001) ———
 // Every field is optional, so a Topic file written before it loads unchanged. A Topic with Skills is converted.
 
 const UNITS = ["points", "bp", "percent", "inr", "years", "ratio", "number"] as const satisfies readonly Unit[];
@@ -34,7 +34,7 @@ const answerFn = engineName("answer function", ANSWER_FNS);
 const mistakeFn = engineName("mistake function", MISTAKE_FNS);
 
 /**
- * The Workbench recipes (spec B3, B4; ADR 0018), by the ids the four workstreams share: each is a view over the valuation
+ * The Workbench recipes (spec B3, B4; ADR 0010), by the ids the four workstreams share: each is a view over the valuation
  * engine with archetype "workbench" in src/widgets/recipes. Listed here so plain Node can check a Topic file names one.
  */
 export const WORKBENCH_RECIPES = ["value_levers", "cash_waterfall", "wacc_stack", "terminal_seesaw", "value_bridge", "multiple_decoder"] as const;
@@ -429,7 +429,7 @@ const exploreSchema = z.object({
   /**
    * The Workbench Widget the explore step uses (spec B2, C2), in place of a written-ahead Widget: one of the shared
    * Workbench recipes, bound to one of the Topic's Cases (whose valuation block it reads) and given its own inputs
-   * (Value levers' stories and tasks, the cash waterfall's one-year figures). The recipes are code (ADR 0007).
+   * (Value levers' stories and tasks, the cash waterfall's one-year figures). The recipes are code (ADR 0009).
    */
   workbench: z
     .object({

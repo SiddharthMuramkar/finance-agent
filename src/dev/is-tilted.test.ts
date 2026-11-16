@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isTilted } from "../../e2e/support/measure";
 
-// A10b, ADR 0014: no sticker slant in a Widget. The browser probe's rule, pinned: a slant of any angle off the quarter
+// A10b, ADR 0018: no sticker slant in a Widget. The browser probe's rule, pinned: a slant of any angle off the quarter
 // turns counts, by `rotate` or by a matrix; a quarter turn (a disclosure chevron turned to say "open") does not.
 const rot = (deg: number) => {
   const r = (deg * Math.PI) / 180;

@@ -6,7 +6,7 @@
 # One Case (C2): the Check's computed questions (lint L13, D4) value Webvan itself, through the illustration block on
 # cf-capital-budgeting's Case webvan-centre-npv-2000 (Webvan's own 1999 plan, valued with Damodaran's method; no
 # published DCF of Webvan exists), borrowed with valuationFrom: what growth costs, the lever this Topic is about.
-# Every figure a computed question shows is the engine's (ADR 0021); no sum is asked (ADR 0009).
+# Every figure a computed question shows is the engine's, and no sum is asked (ADR 0002).
 id: spine-03-cash
 title: Where does the cash come from?
 goal: Follow one year of a business from revenue down to free cash flow, and read where its cash goes.

@@ -21,7 +21,7 @@ const signedIn = (response: Response) => (response.headers.get("set-cookie") ?? 
 describe("A right passcode", () => {
   beforeEach(async () => {
     db = await testDb();
-    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("PASSCODES", `test:${PASSCODE}`);
     vi.stubEnv("SESSION_SECRET", "test-secret");
   });
   afterEach(() => vi.unstubAllEnvs());
@@ -37,7 +37,7 @@ describe("A right passcode", () => {
 describe("Passcode login attempts", () => {
   beforeEach(async () => {
     db = await testDb();
-    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("PASSCODES", `test:${PASSCODE}`);
     vi.stubEnv("SESSION_SECRET", "test-secret");
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-11-02T09:00:00Z"));
@@ -88,7 +88,7 @@ describe("Passcode login attempts", () => {
 describe("Where the passcode lands", () => {
   beforeEach(async () => {
     db = await testDb();
-    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("PASSCODES", `test:${PASSCODE}`);
     vi.stubEnv("SESSION_SECRET", "test-secret");
   });
   afterEach(() => vi.unstubAllEnvs());
@@ -139,5 +139,12 @@ describe("Where the passcode lands", () => {
     expect(where(await login("guess", undefined, "//evil.example"))).toBe("?wrong=1");
     for (let i = 0; i < 3; i++) await login(`guess ${i}`);
     expect(where(await login(PASSCODE, undefined, "/course"))).toBe("?locked=1&next=%2Fcourse");
+  });
+
+  it("sends a wrong passcode and a pause back to the sign-in page, /sign-in (issue #33), never the old /login", async () => {
+    const page = (response: Response) => new URL(response.headers.get("location")!).pathname;
+    expect(page(await login("guess"))).toBe("/sign-in");
+    for (let i = 0; i < 5; i++) await login(`guess ${i}`);
+    expect(page(await login(PASSCODE))).toBe("/sign-in");
   });
 });

@@ -1,0 +1,42 @@
+# Dependabot: one weekly PR per ecosystem with the updates grouped. npm major updates are never opened: they change
+# behaviour and wait for a person (and a ticket). .github/workflows/dependabot-auto-merge.yml turns on auto-merge for
+# minor and patch PRs, so GitHub merges each one when the required checks (check, build, ui) pass. A GitHub Actions PR
+# that holds a major update waits for a person. docs/ci.md has the details.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # A new release waits a week before Dependabot offers it: most poisoned npm releases are found and pulled within
+    # days, and these PRs merge without a person. Security updates do not wait.
+    cooldown:
+      default-days: 7
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: chore
+      include: scope
+    # Branch names with "-", not "/": vercel.json's `"*": false` stops preview deploys only for names without "/".
+    pull-request-branch-name:
+      separator: "-"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # The same wait as npm, for the same reason: a minor or patch PR merges without a person, and the auto-merge run
+    # uses the PR's new dependabot/fetch-metadata with a write token. Security updates do not wait.
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+    pull-request-branch-name:
+      separator: "-"
