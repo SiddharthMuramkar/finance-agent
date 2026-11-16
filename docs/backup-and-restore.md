@@ -135,7 +135,7 @@ it, remove its protection (Console: Branches, the branch, Remove protection), th
 ### B. A bad migration, or a mistake found later: restore a snapshot
 
 After a bad migration, the snapshot to restore is the one taken just before it: `pre-migrate-<sha>-<time>`
-(taken by the deploy once PR #36 is live, kept 30 days) or your manual `before-<pr>-<date>`. For a mistake
+(taken by each production deploy that migrates, since PR #36; kept 30 days) or your manual `before-<pr>-<date>`. For a mistake
 found later, pick the last daily snapshot from before the mistake.
 
 ```bash
@@ -182,7 +182,7 @@ write `pg_restore --list` to a file, delete the `library_passages_bm25` line, an
 - Neon changes: manual snapshot `before-backup-drill-2026-11-15` (kept until deleted), daily snapshot
   schedule on `main` at 22:00 UTC kept 14 days, `main` protected. All three done with the neon CLI.
 - Two runs, both PASS, with the same counts and hashes on `main`. The second run used the final script.
-  Current dump: `library-20261115-092049.dump`, custom format, 118 MB (123,550,796 bytes),
+  Dump (the current one until 2026-11-16): `library-20261115-092049.dump`, custom format, 118 MB (123,550,796 bytes),
   sha256 `3569e8a5c105377968fd319b16ae757c04554fa3da7010d8c528c9b400bd8ef9`.
   First run: `library-20261115-091455.dump`, sha256 `705d2a54570b09dac0fc7bce559d312a05323bddc336f94c3e63568c1cfd8988`
   (same rows; a custom-format dump stores its own time, so the checksums differ).
@@ -213,6 +213,14 @@ After this drill, the PR review changed the script: stage 8 no longer falls back
 checks the `library_passages` columns, and the resume hints keep the flags. The dump, restore and compare
 commands did not change. `src/dev/backup-drill.test.ts` runs the script against fakes of `neon` and the
 Postgres tools; the next real drill runs the new script against Neon.
+
+### 2026-11-16 (re-dump after the production Library load)
+
+- `scripts/backup-drill.sh --redump`: `library-20261116-020254.dump`, custom format, 152 MB (159,339,199 bytes),
+  sha256 `3e8c8804883bbaa13a9fd36dd1e362bd44365172227e1a369af5e99bca1c1588`. This is the current dump.
+- Rows on `main`: 13 sources, 691 documents, 28,321 passages (all with embeddings), 2,882 pictures, 2 refresh runs.
+- On the VPS in `/root/backups/` and `/root/backups/copy2/`. Laptop copy: not yet (`docs/owner-actions.md` step 10).
+- A dump only, with no restore drill.
 
 Add a new section here after each drill (the script prints the table in stage 11 and saves it as
 `library-<stamp>.result.md`).

@@ -6,7 +6,7 @@ Issues live in GitHub Issues for `SiddharthMuramkar/finance-agent`. Use the `gh`
 - Read: `gh issue view <n> --comments`
 - List: `gh issue list`
 - Comment: `gh issue comment <n> --body "..."`
-- Close: `gh issue close <n>`
+- Close: only through a PR whose body says `Closes #<n>`. Never `gh issue close` by hand, except a wayfinder ticket when the owner says yes in that turn (see Resolve).
 
 PRs as a request surface: off. Only issues are triaged as requests.
 
@@ -25,6 +25,6 @@ How the wayfinder skill's map, tickets, blocking and frontier live on GitHub. Re
     --jq '.data.repository.issue.subIssues.nodes[] | select(.state=="OPEN" and .assignees.totalCount==0 and ([.blockedBy.nodes[] | select(.state=="OPEN")] | length)==0) | "#\(.number) \(.title)"'
   ```
 
-- **Resolve**: post the answer as a comment (`gh issue comment <n> --body "..."`), close the ticket (`gh issue close <n>`), then add one line to the map's "Decisions so far": `- [<ticket title>](<url>): <one-line gist>`.
+- **Resolve**: post the answer as a comment (`gh issue comment <n> --body "..."`), close the ticket (`gh issue close <n>`, only with the owner's yes in that turn), then add one line to the map's "Decisions so far": `- [<ticket title>](<url>): <one-line gist>`.
 - **Research findings**: commit them on a throwaway branch named `research-<slug>`, push it, never open a PR, and link the branch from the ticket. No branch but `main` gets a Vercel deploy: `vercel.json` has `"main": true, "**": false`, and `**` (unlike `*`) also matches names with `/`.
 - **Labels**: map and tickets carry only `wayfinder:*` labels. Build issues made after the map is clear carry `ready-for-agent` or `ready-for-human`.

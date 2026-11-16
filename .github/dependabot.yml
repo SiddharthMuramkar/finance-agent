@@ -21,7 +21,7 @@ updates:
     commit-message:
       prefix: chore
       include: scope
-    # Branch names with "-", not "/": vercel.json's `"*": false` stops preview deploys only for names without "/".
+    # Branch names with "-", not "/", like every branch here (vercel.json's `"**": false` stops every preview deploy).
     pull-request-branch-name:
       separator: "-"
 
