@@ -134,7 +134,9 @@ describe("widget instructions", () => {
     // the Workbench group's note and Value levers' mode and market arguments add about 950 more.
     // Review F4 bound the Workbench levers to their $variables (reactive() must wrap the schema last), so each lever prop's
     // signature reads "$binding<number>": 25 props at 10 characters, exactly 250 more.
-    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700 + 1_000 + 450 + 950 + 250);
+    // OpenUI 1.1 (@openuidev/lang-core 1.1.0) lets @Round, @Abs, @Floor and @Ceil take a list, so their four signatures
+    // read "number | number[]" for the argument and the result: 8 types at 11 characters, exactly 88 more.
+    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700 + 1_000 + 450 + 950 + 250 + 88);
   });
 
   it("include all nine story parts (wave 3, tickets E2a and E2b), in a group of their own", () => {
