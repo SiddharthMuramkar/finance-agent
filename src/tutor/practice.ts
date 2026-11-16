@@ -22,10 +22,12 @@ import { liveSession } from "./session-log";
 import { loadSessionItems, saveItemAfterLatest, stepDivider, type StoredItem } from "./session-items";
 import {
   CONCEPT_CARD,
+  DAILY_LIFE,
   QUICK_TRY,
   QUICK_TRY_RESULT,
   STEP_DIVIDER,
   type ConceptCardData,
+  type DailyLifeData,
   type QuickTryData,
   type QuickTryResultData,
   type SessionItem,
@@ -489,9 +491,23 @@ export async function enterStepItems(db: Db, map: CourseMap, learnerId: number, 
   return [...primers, ...(await stepItems(db, map, learnerId, sessionId, now))];
 }
 
+/** The Topic's daily-life line (spec #68), stored once per Session when the Learner enters its Principle step. */
+async function storeDailyLife(db: Db, topicId: string, line: string, learnerId: number, sessionId: number, now: Date): Promise<SessionItem | null> {
+  const stored = await loadSessionItems(db, sessionId, learnerId);
+  if (stored.some((i) => i.kind === DAILY_LIFE)) return null;
+  const data: DailyLifeData = { topicId, line };
+  const item: SessionItem = { kind: DAILY_LIFE, data };
+  await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+  return item;
+}
+
 /** What the step itself shows on entering it (enterStepItems, after any Primer). */
 async function stepItems(db: Db, map: CourseMap, learnerId: number, sessionId: number, now: Date): Promise<SessionItem[]> {
   const { progress, place: at } = await placeWithParked(db, map, learnerId);
+  if (at?.step === "principle" && at.topic.dailyLife) {
+    const item = await storeDailyLife(db, at.topic.id, at.topic.dailyLife, learnerId, sessionId, now);
+    return item ? [item] : [];
+  }
   if (at?.step === "reveal" && isConverted(at.topic)) {
     const item = await storeRevealWidget(db, map, at, progress, learnerId, sessionId, now);
     return item ? [item] : [];
