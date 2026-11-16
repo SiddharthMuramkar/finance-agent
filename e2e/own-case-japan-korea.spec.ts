@@ -39,15 +39,15 @@ const MARKETS = [
 
 /** Every figure has a guide line with an https source link and a Lingo card that opens. */
 async function expectGuides(form: Locator, report: string) {
-  const lines = form.locator("[data-guide-line]");
-  await expect(lines).toHaveCount(8);
+  const lines = form.locator("[data-own-case-guide]");
+  await expect(lines).toHaveCount(9);
   for (const line of await lines.all()) {
     await expect(line.locator("[data-guide-source]")).toHaveAttribute("href", /^https:\/\//);
     await expect(line.locator("[data-guide-lingo] summary")).toContainText("Lingo: ");
   }
-  await expect(form.locator('[data-guide-line="operatingProfit"]')).toContainText(report);
-  await form.locator('[data-guide-line="operatingProfit"] [data-guide-lingo] summary').click();
-  await expect(form.locator('[data-guide-line="operatingProfit"] [data-testid="lingo-card"]')).toBeVisible();
+  await expect(form.locator('[data-own-case-guide="operatingProfit"]')).toContainText(report);
+  await form.locator('[data-own-case-guide="operatingProfit"] [data-guide-lingo] summary').click();
+  await expect(form.locator('[data-own-case-guide="operatingProfit"] [data-testid="lingo-card"]')).toBeVisible();
 }
 
 test("a Spine-passed Learner values a Japanese and a Korean company, from the pick to a note in the Notebook", async ({ person }) => {

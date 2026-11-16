@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CURRENCY_STYLE } from "@/finance/money";
 import { OWN_CASE_MARKETS, openingEstimate, ownCaseMarket, valueOwnCase, type OwnCaseIndustry, type OwnCaseInputs, type OwnCaseMarket } from "@/finance/own-case";
-import { guideLine, type GuideField } from "@/markets/report-guides";
+import { annualReportGuide, type GuideField } from "@/markets/guides";
 import { LingoCardView } from "@/widgets/primitives/wave3/lingo-card";
 import { dateText, priceText } from "@/widgets/workbench/value-levers-model";
 import { Button, TextLink } from "../primitives";
@@ -19,8 +19,8 @@ const fieldsFor = (market: OwnCaseMarket) => {
     { key: "sales", label: "Sales", hint: `Revenue from operations for the year, in ${money}.` },
     { key: "operatingProfit", label: "Operating profit", hint: `Profit before interest and tax (EBIT), in ${money}. Below zero for a loss.` },
     { key: "taxPercent", label: "Tax rate", hint: "The tax rate the company pays, in percent." },
-    { key: "debt", label: "Debt", hint: `Borrowings, long and short, in ${money}.` },
-    { key: "cash", label: "Cash", hint: `Cash and cash equivalents, in ${money}.` },
+    { key: "debt", label: "Debt", hint: market === "IN" ? "Borrowings and lease liabilities, long and short, in ₹ crore." : `Borrowings, long and short, in ${money}.` },
+    { key: "cash", label: "Cash", hint: market === "IN" ? "Cash and cash equivalents, with other bank balances, in ₹ crore." : `Cash and cash equivalents, in ${money}.` },
     { key: "shares", label: "Shares", hint: "The number of shares, as the report prints it." },
     {
       key: "price",
@@ -35,19 +35,20 @@ type FieldKey = (typeof FIELD_KEYS)[number];
 /** A typed figure as a number: commas the report prints are fine; an empty box is no number. */
 const figure = (text: string) => (text.trim() === "" ? Number.NaN : Number(text.replace(/[,\s₹¥₩]/g, "")));
 
-/** Where a figure sits in the market's annual report, with its source link and a Lingo card for the report's word. */
-function GuideLineView({ market, field }: { market: OwnCaseMarket; field: GuideField }) {
-  const line = guideLine(market, field);
+/** Beside a field: where it sits in the market's annual report, the source that says so, and a Lingo card (#108, #114). */
+function FieldGuide({ market, field }: { market: OwnCaseMarket; field: GuideField }) {
+  const line = annualReportGuide(market)[field];
   if (!line) return null;
   return (
-    <div data-guide-line={field} className="flex flex-col gap-1 text-xs leading-4 text-[var(--muted)]">
-      <p>
+    <div data-own-case-guide={field} className="text-xs leading-4 text-[var(--muted)]">
+      <p data-guide-where>
+        <span className="font-medium">In the annual report: </span>
         {line.where}{" "}
         <a data-guide-source href={line.sourceUrl} target="_blank" rel="noreferrer" className="underline">
-          {line.source}
+          Source: {line.source}
         </a>
       </p>
-      <details data-guide-lingo>
+      <details data-guide-lingo className="mt-1">
         <summary className="cursor-pointer">Lingo: {line.lingo.term}</summary>
         <LingoCardView {...line.lingo} />
       </details>
@@ -159,6 +160,7 @@ export function OwnCaseForm() {
           Company
         </label>
         <input id="own-case-company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="field w-full" autoComplete="off" />
+        <FieldGuide market={market} field="company" />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="own-case-date" className="text-sm font-medium leading-5">
@@ -166,7 +168,7 @@ export function OwnCaseForm() {
         </label>
         <input id="own-case-date" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="field w-full" />
         <p className="text-xs leading-4 text-[var(--muted)]">The Own Case is dated here: the year end the report closes on.</p>
-        <GuideLineView market={market} field="reportDate" />
+        <FieldGuide market={market} field="reportDate" />
       </div>
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium leading-5">Industry</legend>
@@ -196,7 +198,7 @@ export function OwnCaseForm() {
           <p id={`own-case-${f.key}-hint`} className="text-xs leading-4 text-[var(--muted)]">
             {f.hint}
           </p>
-          <GuideLineView market={market} field={f.key} />
+          <FieldGuide market={market} field={f.key} />
         </div>
       ))}
       {estimate && (

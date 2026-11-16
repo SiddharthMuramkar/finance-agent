@@ -24,7 +24,7 @@ export default async function AssignmentPage() {
         {open ? (
           <>
             <p className="measure mb-8 mt-2 text-sm leading-5 text-[var(--muted)]">
-              Pick a listed company in India, Japan or Korea and open its annual report (for Japan and Korea, a line beside each figure says where it sits in the report). Copy eight numbers from it into your Own Case: this is the one place you type numbers.
+              Pick a listed company in India, Japan or Korea and open its annual report; beside each figure, a line says where it sits in that market&rsquo;s report. Copy eight numbers from it into your Own Case: this is the one place you type numbers.
               The Own Case is dated at the report, with the share price of that day; nothing is fetched live.
             </p>
             <OwnCaseForm />

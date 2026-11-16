@@ -16,7 +16,7 @@ import { homeAnnuityCheckErrors, writtenAheadCheckErrors, writtenAheadCheckWarni
 import { goalCheckErrors } from "../src/course/goal-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
 import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
-import { REPORT_GUIDE_INPUTS, reportGuideErrors } from "../src/markets/report-guides.ts";
+import { GUIDE_LINE_INPUTS, guideErrors } from "../src/markets/guides.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
 
@@ -71,9 +71,10 @@ if (goals.length) fail("Topic goals, why lines and found lines that break the ru
 const readings = marketReadingErrors(MARKET_READING_INPUTS);
 if (readings.length) fail("Market readings that are not dated and sourced (spec #68)", readings);
 
-// Every annual-report guide line (Japan and Korea, ticket #114) names where its figure sits and links its source.
-const guides = reportGuideErrors(REPORT_GUIDE_INPUTS);
-if (guides.length) fail("Annual-report guide lines with no source (spec #68)", guides);
+// The annual-report guide (ticket #108): every Own Case field has a guide line with a source and a working link, and a
+// Lingo card whose picture is an Icon.
+const guide = guideErrors(GUIDE_LINE_INPUTS);
+if (guide.length) fail("Annual-report guide lines with no source or Lingo card (spec #68)", guide);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 // The valuation Case registry (spec 2026-11-12 B1): what client and server code value a Case from, by its id.
