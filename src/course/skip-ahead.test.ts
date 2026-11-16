@@ -82,12 +82,12 @@ describe("whether the Topic Start card offers skip ahead", () => {
     expect(skipAheadOffered(spineMap(own), NONE, "spine-01-worth")).toBe(false);
   });
 
-  it("requires Spine Topic 15 to end on such a Check, so it can never offer skip ahead", () => {
-    const fifteen = { ...spineTopic(), spine: 15 };
-    expect(spineShapeProblems(fifteen)).toContain(
-      "does not end on a conversation Check about the Learner's own work; Spine Topic 15 ends on one marked ownWork: true, so it offers no skip ahead (A8)",
+  it("requires the own-work Topic to end on such a Check, whatever its Spine number, so it can never offer skip ahead", () => {
+    const own = { ...spineTopic(), id: "spine-15-value-yourself", spine: 16 };
+    expect(spineShapeProblems(own)).toContain(
+      'does not end on a conversation Check about the Learner\'s own work; "spine-15-value-yourself" ends on one marked ownWork: true, so it offers no skip ahead (A8)',
     );
-    expect(spineShapeProblems({ ...spineTopic(spineData((d) => void ((d.checks.at(-1) as { ownWork?: boolean }).ownWork = true))), spine: 15 })).toEqual([]);
+    expect(spineShapeProblems({ ...spineTopic(spineData((d) => void ((d.checks.at(-1) as { ownWork?: boolean }).ownWork = true))), id: "spine-15-value-yourself", spine: 16 })).toEqual([]);
   });
 });
 

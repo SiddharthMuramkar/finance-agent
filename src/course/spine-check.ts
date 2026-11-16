@@ -22,8 +22,8 @@ export const SPINE_PASS_CORRECT = 3;
 const ANNUITY_SPINE = 2;
 const CASH_SPINE = 3;
 
-/** The last Spine Topic: the Learner values a company themselves (C4), so it ends on a Check about their own work. */
-export const OWN_WORK_SPINE = 15;
+/** The Spine Topic where the Learner values a company themselves (C4), so it ends on a Check about their own work. */
+export const OWN_WORK_TOPIC = "spine-15-value-yourself";
 
 /**
  * Whether a Topic's last Check is a conversation Check about the Learner's own work (the Spine's last Topic, where the
@@ -83,8 +83,8 @@ export function spineShapeProblems(t: Topic): string[] {
   }
   const talks = t.checks.filter((c) => c.kind === "conversation").length;
   if (talks > 1) problems.push(`has ${talks} conversation Checks; at most one, in which the Learner tells the Valuation story`);
-  if (n === OWN_WORK_SPINE && !endsOnOwnWork(t)) {
-    problems.push("does not end on a conversation Check about the Learner's own work; Spine Topic 15 ends on one marked ownWork: true, so it offers no skip ahead (A8)");
+  if (t.id === OWN_WORK_TOPIC && !endsOnOwnWork(t)) {
+    problems.push(`does not end on a conversation Check about the Learner's own work; "${OWN_WORK_TOPIC}" ends on one marked ownWork: true, so it offers no skip ahead (A8)`);
   }
 
   if (!t.why) problems.push(`has no why line; give it one line, at most ${WHY_MAX_WORDS} words, linking it to valuing a company (A6)`);

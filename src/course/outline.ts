@@ -6,14 +6,14 @@ import { z } from "zod";
 const id = z.string().regex(/^[a-z0-9-]+$/, "IDs use lower case letters, digits and hyphens");
 
 /**
- * The Stages, in the order the Course Map shows them. The Spine (spec C1) is the default path's first fifteen Topics, which
+ * The Stages, in the order the Course Map shows them. The Spine (spec C1, ADR 0020) is the default path's first Topics, at most eighteen,, which
  * teach valuation in order; a Foundation Topic is an Elective, opened when the Learner chooses it.
  */
 export const STAGES = ["spine", "foundation", "follow", "judge", "analyse"] as const;
 export type Stage = (typeof STAGES)[number];
 
 /** How many Topics the Spine has (spec C4), and the longest a Spine Topic may say it takes, in minutes (C2). */
-export const SPINE_LENGTH = 15;
+export const SPINE_LENGTH = 18;
 export const SPINE_MAX_MINUTES = 15;
 
 /** The nine Subjects: the field a Foundation Topic belongs to. Later-Stage Topics have none. */
@@ -49,7 +49,7 @@ const outlineTopic = z.object({
   stage: z.enum(STAGES),
   subject: z.enum(SUBJECTS).optional(),
   prerequisites: z.array(id).default([]),
-  /** A Spine Topic's number, 1 to 15: its place on the Spine (spec C4). Spine Topics only. */
+  /** A Spine Topic's number, 1 to 18: its place on the Spine (spec C4, ADR 0020). Spine Topics only. */
   spine: z.number().int().min(1).max(SPINE_LENGTH).optional(),
   /** How long the Topic takes, in whole minutes; the Course Map shows it on each Spine row (spec C6). */
   minutes: z.number().int().positive().optional(),
