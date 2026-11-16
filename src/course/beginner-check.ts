@@ -38,7 +38,6 @@ export const OWN_STORY_NOT_YET: readonly string[] = [
   "spine-10-survival",
   "spine-11-story-to-numbers",
   "spine-14-being-wrong",
-  "spine-15-value-yourself",
 ];
 
 /** Spine Topics that say "your story". */
@@ -47,7 +46,6 @@ export const YOUR_STORY_NOT_YET: readonly string[] = [
   "spine-12-price-or-value",
   "spine-13-price-assumes",
   "spine-14-being-wrong",
-  "spine-15-value-yourself",
 ];
 
 /** Spine Topics with no daily-life line. */

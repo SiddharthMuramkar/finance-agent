@@ -151,7 +151,7 @@ describe("the course counts", () => {
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
     expect(how).toContain("taught in four moves , in 10–15 minutes.");
     expect(how).toContain("15 core Topics 01 What is a business worth? Price against value, and the four levers 10 min 02 Why is money later worth less? 12 min");
-    expect(how).toContain("15 Value one yourself, as of a past date 15 min");
+    expect(how).toContain("15 Judge a published valuation, as of a past date 15 min");
     expect(how).toContain("9 subjects Numbers & time value 6 Financial statements 11 Economics & policy 11 Bonds & credit 7 Currencies & countries 4 Markets & investing 9 Valuation & corporate finance 12 Derivatives 5 Banks, crises & the system 7");
     expect(how).toContain("3 stages that read real arguments Follow , understand what a writer argues 9 Judge , spot where an argument is weak 8 Analyse , reach your own view from the numbers 6");
     expect(howMeta.description).toBe("Every Topic is one real event, taught in four moves, in 10 to 15 minutes.");
@@ -188,7 +188,7 @@ describe("the course counts", () => {
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
     expect(how).toContain("14 core Topics 01 What is a business worth?");
     expect(how).toContain("03 Cash, the first statement 12 min");
-    expect(how).not.toContain("Value one yourself");
+    expect(how).not.toContain("Judge a published valuation");
     expect(how).toContain("Derivatives 4");
     expect(how).toContain("Judge , spot where an argument is weak 9");
     expect(how).toContain("in 10–14 minutes.");
