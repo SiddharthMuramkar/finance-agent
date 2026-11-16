@@ -290,6 +290,11 @@ export const casePage = {
   ready: "Your call is in. Ready for what happened next?",
   reveal: (label: string) => `Reveal ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
   sources: "Sources:",
+  /** An Example's As-of date, "2024-10-09", as "As of 9 Oct 2024." */
+  asOf: (iso: string) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return `As of ${d} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1]} ${y}.`;
+  },
   fromTopic: "From the Topic",
   footCta: { visitor: "Join to take the full Topic", member: "Open this Topic" },
   previous: "Previous case",
