@@ -22,8 +22,8 @@ cases:
       from one distribution centre in Oakland, California, built to handle the volume of about 18
       supermarkets. In 1999 it sold $13.3 million and lost $144.6 million, and at the end of the year Oakland ran at
       under 25% of the capacity it was designed for. The plan: up to 26 more centres over three years, to be built
-      by Bechtel, which it puts at about $1.0 billion with no firm commitment, at $30 million to $35 million a centre, with $300 million to $350 million
-      of spending in 2000 alone. Webvan says a full centre, running seven days a week with an average order of about
+      by Bechtel. Webvan has no firm commitment to build them, and puts the cost at about $1.0 billion, $30 million to
+      $35 million a centre, with $300 million to $350 million of spending in 2000 alone. Webvan says a full centre, running seven days a week with an average order of about
       $103 (against $77.65 in 1999), would sell about $300 million a year and keep 12% as operating profit, where a
       traditional supermarket keeps about 4%. It sold its shares to the public at $15 in November 1999. Damodaran's
       industry data of January 1999 showed grocers earning 15.66% a year on their capital, which cost them 8.75%, and
@@ -42,8 +42,8 @@ cases:
 
 concept: >
   A company cannot grow for free. More sales need more capital first: warehouses, trucks, systems, stock. The money
-  a company puts back into the business to grow is its reinvestment. Sales to capital says how many dollars of new sales each dollar of reinvestment brings. What that capital earns is the return on capital: the share of each new sale
-  kept after tax, times the sales each dollar brings in. Growth adds value only when the return on new capital is above the cost of capital, the return
+  a company puts back into the business to grow is its reinvestment. Sales to capital says how many dollars of new sales each dollar of reinvestment brings. What that capital earns is the return on capital: it is higher when the company
+  keeps more of each sale, and higher when each dollar brings in more sales. Growth adds value only when the return on new capital is above the cost of capital, the return
   investors could get elsewhere for the same risk. When it is above, a bigger company is worth more. When it is
   below, every new dollar invested loses value, so growing faster cannot rescue the business. So the question about any
   growth plan is not how fast, but what each new dollar will earn against what it costs. A company that must put
@@ -89,7 +89,7 @@ terms:
     example: "A $100,000 shop that earns $12,000 a year after tax returns 12% on its capital."
     inStory: Grocers earned 15.66% on their capital in Damodaran's data of January 1999.
   - term: EBITDA
-    means: Earnings before interest, tax, depreciation and amortisation, which leaves out the cost of the things a business must keep buying.
+    means: A profit figure taken before interest, tax and the yearly cost of buildings and equipment wearing out, so it leaves out the cost of the things a business must keep buying.
     emoji: receipt
     pro: The deck shows EBITDA turning positive in year two.
     example: "A taxi that makes $40,000 a year before paying for the car still needs a new car every few years."
@@ -158,13 +158,13 @@ questions:
       changes:
         - { id: grocer-margin, label: "Margin 12% to a supermarket's 4%", levers: { marginTarget: 4 } }
         - { id: half-size, label: "Revenue in year 10 $8.4bn to $4.2bn", levers: { revenueYear10: 4200 } }
-        - { id: grocer-capital, label: "Sales to capital 10 to a grocer's 4.16", levers: { salesToCapital: 4.16 } }
+        - { id: grocer-capital, label: "Sales for each $1 invested $10 to $4", levers: { salesToCapital: 4 } }
         - { id: riskier, label: "Cost of capital 12.35% to 15%", levers: { costOfCapitalGrowing: 15 } }
   - id: growth-cost-q-price
     kind: price_assumes
     prompt: Webvan sold its shares to the public at $15 in November 1999. Which story gets near that price?
     skill: growth-pays
-    explanation: At its own size, only keeping more of every sale gets near the offer price; more sales for each dollar or cheaper money barely move it, and twice the size goes past it.
+    explanation: At its own size, only keeping more of every sale gets near the offer price; more sales for each dollar or cheaper money fall well short of it, and twice the size goes past it.
     computed:
       case: spine-06-webvan-growth
       changes:
@@ -262,7 +262,7 @@ checks:
           - { id: both, text: "Both, since both grow sales", mistake: { tag: growth_is_value, fix: "Sales growth alone is not value; the second shop loses value on every new dollar." } }
       - id: growth-cost-try-pays-rate
         skill: growth-pays
-        ask: Two shops grow equally fast. One puts back a third of its after-tax operating profit to do it, the other puts back all of it. Which earns more on its new money?
+        ask: Two shops grow equally fast. One puts back a third of its profit to do it, the other puts back all of it. Which earns more on its new money?
         kind: choice
         answer: third
         choices:
