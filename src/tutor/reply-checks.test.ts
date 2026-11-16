@@ -434,6 +434,24 @@ describe("V7: the right currency", () => {
     expect(rules(draft("Say you save ₹1,000."), ctx({ exampleCurrency: "USD", caseCurrencies: ["USD"] }))).toEqual(["V7"]);
     expect(rules(draft("Say you save ₹1,000."), ctx({ exampleCurrency: "USD", caseCurrencies: ["INR"] }))).toEqual([]);
   });
+
+  // G19: in the Assignment the one currency allowed is the Own Case's, yen, won and euros included.
+  it("in the Assignment, allows the Own Case's yen, won or euros and refuses the others", () => {
+    const own = (currency: string) => ctx({ step: "none", exampleCurrency: currency, caseCurrencies: [currency], assignment: { flagged: [] } });
+    expect(rules(draft("On ¥1,164,922 million of sales, what story does the margin assume?"), own("JPY"))).toEqual([]);
+    expect(rules(draft("On ₩300,870,903 million of revenue, what story does the margin assume?"), own("KRW"))).toEqual([]);
+    expect(rules(draft("On €84,683 million of revenue, what story does the margin assume?"), own("EUR"))).toEqual([]);
+    expect(rules(draft("On 84,683 € million of revenue, what story does the margin assume?"), own("EUR"))).toEqual([]);
+    expect(rules(draft("On ₹10,000 crore of sales, what story does the margin assume?"), own("JPY"))).toEqual(["V7"]);
+    expect(rules(draft("On ¥1,164,922 million of sales, what story does the margin assume?"), own("INR"))).toEqual(["V7"]);
+    expect(rules(draft("On €84,683 million of revenue, what story does the margin assume?"), own("KRW"))).toEqual(["V7"]);
+    expect(rules(draft("On ₩300,870,903 million of revenue, what story does the margin assume?"), own("EUR"))).toEqual(["V7"]);
+    expect(checkReply(fixReply(draft("On ₹10,000 crore of sales, what story does it assume?")), own("JPY"))[0].message).toContain("use yen (¥)");
+  });
+
+  it("outside the Assignment, leaves a Case's yen, won or euro figures alone (the annual-report Topic quotes them)", () => {
+    expect(rules(draft("Kikkoman's net sales were ¥1,164,922 million. Which line is operating profit?"), ctx())).toEqual([]);
+  });
 });
 
 /** D1a's first 12 sum-asking stems and first 12 story or lingo asks (src/teaching/no-sums.test.ts). */
@@ -680,11 +698,31 @@ describe("V9 and V10: the Assignment's voice", () => {
       "On that operating margin the company is overvalued. What story does it assume?",
       "Your operating margin is high, so I would not buy. What story does it assume?",
       "With that operating margin you should sell the shares. What story does it assume?",
+      "On that operating margin, is it a buy? What story does it assume?",
+      "Your operating margin is high; I'd sell. What story does it assume?",
+      "Should you buy at this operating margin? First ask what story it assumes.",
+      "Don't buy on that operating margin alone. What story does it assume?",
+      "The operating margin is no buy signal. What story does it assume?",
+      "Whether to buy, hold or sell is not the point: what story does your operating margin assume?",
+      "Buying the stock on that operating margin is your call. What story does it assume?",
+      "Is it worth buying at that operating margin? What story does it assume?",
     ])
       expect(rules(draft(verdict), assignment), verdict).toContain("V9");
   });
+  // G23: buy and sell as the business's own words are not advice, and the course's cards say "sells" so.
+  it("passes buying and selling as the business's own words", () => {
+    for (const business of [
+      "Tata Consumer sells tea and coffee, and your operating margin of 45% says it keeps 45 of every 100 it sells. What story does that assume?",
+      "The company buys tea leaves at auction; your operating margin of 45% assumes those costs stay low. What story does it assume?",
+      "Your operating margin of 45% assumes the company could sell more at a higher price. What story does it assume?",
+      "If shoppers buy less tea, what happens to your operating margin? What story does it assume?",
+      "Your operating margin of 45% means each pack sold keeps far more than the industry does. What story does it assume?",
+      "It makes tea and sells it in India and abroad. What story does your operating margin assume?",
+    ])
+      expect(rules(draft(business), assignment), business).toEqual([]);
+  });
   it("passes a reply that names the flagged input and asks what Story it assumes", () => {
-    const named = draft("Your operating margin of 45% is far above Food Processing's usual 3.63% to 14.52% in India.\nWhat story about this company does a 45% margin assume?");
+    const named = draft("Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it.\nWhat story about this company does a 45% margin assume?");
     expect(rules(named, assignment)).toEqual([]);
   });
   it("refuses a reply that names no flagged input (V10), and asks for none with no flags", () => {

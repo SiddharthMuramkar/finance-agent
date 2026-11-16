@@ -858,7 +858,7 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Your operating margin of 45% is far above Food Processing's usual range in India.\n\n" +
+            "Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it.\n\n" +
               "What story about the company does a 45% operating margin assume?",
           ),
         ],

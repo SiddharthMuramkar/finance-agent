@@ -51,4 +51,6 @@ test("the Tutor in the Assignment names the flagged input of the Learner's Own C
   await expect(reply).toContainText("operating margin", { timeout: 60_000 });
   await expect(reply).toContainText("What story");
   await expect(reply).not.toContainText(/cheap|dear|undervalued|overvalued|\bbuy\b|\bsell\b|right value|wrong value/i);
+  // A screen reader hears it (G25): the reply sits in the Tutor's polite log.
+  await expect(tutor.getByRole("log", { name: "The Tutor's replies" })).toContainText("What story");
 });

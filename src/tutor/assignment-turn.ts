@@ -7,8 +7,8 @@ import { assignmentOpen } from "@/learner/own-cases";
 import { rangeCheck, type RangeFlag } from "@/markets/range-check";
 import type { Effort, Message, ModelClient } from "./model";
 import { CAP_MESSAGES, checkQuota } from "./quota";
-import { checkReply, correctionText, fixReply, type ReplyCheckContext, type ReplyProblem } from "./reply-checks";
-import { openLog, readSettings, sessionForTurn } from "./session-log";
+import { checkReply, correctionText, currencyName, fixReply, type ReplyCheckContext, type ReplyProblem } from "./reply-checks";
+import { isOldModelSession, openLog, readSettings, refreezeIfChanged, retireOldModelSessions, sessionForTurn } from "./session-log";
 import { textOf } from "./transcript";
 import { BUSY_MESSAGE, startTurn, updateTurn } from "./turn-status";
 import { saveStepUsage, stepUsage } from "./usage";
@@ -37,13 +37,20 @@ const MAX_TOKENS = 4000;
 /** The context note: the Own Case as the Notebook shows it, each flag's sentence, and how to answer. */
 export function assignmentContext(facts: AssignmentFacts): string {
   if (!facts) return [ASSIGNMENT_CONTEXT_PREFIX, "The Learner has no Own Case saved yet. Help them pick a company and find its annual report's figures."].join("\n");
+  // The range check's words (src/markets/range-check.ts): the source prints one dated average per industry, not a range,
+  // so "far" is the course's rule and is said as such.
   const flags = facts.flags.length
-    ? ["Inputs far from the industry's usual range (the range check):", ...facts.flags.map((f) => `- ${f.sentence}`), "Name each flagged input in your reply and ask what story it assumes."]
-    : ["No input is far from the industry's usual range. Ask what story the Estimate assumes."];
+    ? [
+        "Inputs the range check flags, each far from its industry's dated figure (a margin or sales to capital under half or over double it, a cost of capital more than 3 points from it):",
+        ...facts.flags.map((f) => `- ${f.sentence}`),
+        "Name each flagged input in your reply and ask what story it assumes.",
+      ]
+    : ["The range check flags no input: none is far from its industry's dated figure. Ask what story the Estimate assumes."];
   return [
     ASSIGNMENT_CONTEXT_PREFIX,
     "The Learner's Own Case:",
     facts.note,
+    ...(facts.currency ? [`Write any amount in ${currencyName(facts.currency)}, the Own Case's currency.`] : []),
     ...flags,
     "Never call a value right or wrong, cheap or dear, undervalued or overvalued, and never say buy or sell: the Own Case is the Learner's story.",
   ].join("\n");
@@ -95,7 +102,16 @@ export async function runAssignmentTurn(deps: AssignmentTurnDeps, message: strin
   const turn = await startTurn(db, now(), message, learnerId);
   if (!turn) return { ok: false, status: 409, error: BUSY_MESSAGE };
 
-  const session = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  // The Session's frozen model and instructions, kept current as the Study Tutor's are (turn.ts, ADR 0007): a Session
+  // frozen for an older TUTOR_MODEL is closed (it stays readable as an older Session) and a fresh one made, and a deploy
+  // that changed the instructions refreezes them in place. The refreeze sends earlier rows rebuilt (openLog); with no
+  // tools here there is no summary step to run.
+  let target = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  if (isOldModelSession(target)) {
+    await retireOldModelSessions(db, learnerId, ASSIGNMENT_SESSION_TOPIC);
+    target = await sessionForTurn(db, now(), learnerId, ASSIGNMENT_SESSION_TOPIC);
+  }
+  const session = await refreezeIfChanged(db, target);
   const log = await openLog(db, session.id, now);
   const turnSeq = log.nextSeq;
   await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
