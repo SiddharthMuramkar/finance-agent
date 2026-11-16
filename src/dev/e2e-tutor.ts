@@ -1232,6 +1232,333 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  // ——— Spine Topics 10 to 16 for beginners (#96, e2e/spine-10-16.spec.ts): the first three turns of the one-share,
+  // survival, story-to-numbers, price-or-value, price-assumes, being-wrong and ready-Case valuation (spine-15-value-yourself:
+  // judge a published valuation, #92) Topics, for the critics' round. Every figure is its Topic file's Case. Code opens
+  // each Topic's explore Workbench, so the explore replies only point at it.
+  /** The one-share Topic's opener at Story: from Amazon's business to one share. */
+  "oneshare-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares cost $84. Aswath Damodaran, a valuation professor, has valued Amazon's business itself from his story of its future cash. " +
+              "One step is left before he can set it beside the price: one share. Amazon has $26 million of cash and owes $349 million of debt, " +
+              "and its staff hold options to buy shares cheaply, which he values at $2,892 million.\n\n" +
+              "Who gets paid out of the business before a shareholder sees anything?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The one-share Topic's Concept: the bridge from the business to a share. Code shows the Concept card. */
+  "oneshare-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A share is a claim on what is left. Start from the value of the business, add the cash it does not need, " +
+              "then take off every claim paid first: lenders' debt, and staff options that will turn into new shares at a low price. " +
+              "What remains is equity value, and dividing it by the number of shares gives the value of one.\n\n" +
+              "Which of Amazon's claims do you think takes the biggest bite?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The one-share Topic's Explore: the value bridge on Amazon's Case, opened by code. */
+  "oneshare-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is the bridge from Amazon's business to one share. Move the cash, the debt and the options, and watch what is left for shareholders.\n\n" +
+              "Which claim takes the biggest bite out of what Amazon's shareholders get?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The survival Topic's opener at Story: Coffee Day deep in debt in July 2019. */
+  "survive-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "July 2019. Coffee Day Enterprises runs Cafe Coffee Day, India's largest chain of coffee shops, and it is deep in debt: " +
+              "the group had borrowed about ₹7,200 crore, and its interest bill for the year was ₹456.32 crore. " +
+              "Its founder had pledged shares for group loans, which lenders could take and sell if those loans went bad. " +
+              "On 29 July its market value closed at ₹4,067.65 crore.\n\n" +
+              "What should a valuation do about the chance that it does not survive?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The survival Topic's Concept: a going concern, and the chance it fails. Code shows the Concept card. */
+  "survive-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A discounted cash flow values a going concern: it assumes the business keeps running for ever. " +
+              "For a company with heavy debt and thin interest cover there is a real chance it fails first, and then its assets are sold in a hurry for far less. " +
+              "The fix is expected value: weigh the value if it survives and the value if it fails by how likely each is.\n\n" +
+              "Why would a value that ignores failure be too high?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The survival Topic's Explore: Value levers with a chance of failure, opened by code. */
+  "survive-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is the survival story for Coffee Day, set so that, if it is sure to survive, it is worth about its price. " +
+              "Raise the chance it fails a step at a time and watch the value.\n\n" +
+              "What does that say about valuing it as if it will surely survive?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The story-to-numbers Topic's opener at Story: two stories for Uber in 2014. */
+  "numbers-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "December 2014. Uber is five years old and still private. In June Aswath Damodaran told its story as a city car service: " +
+              "a $100 billion market, a 10% share and 20% of each fare as revenue, about $6 billion in all. " +
+              "In July the investor Bill Gurley argued the market could be many times bigger. " +
+              "Run through the same spreadsheet, a $300 billion market and a 40% share gave $53.4 billion. Only the market and the share had changed.\n\n" +
+              "How can two careful people get such different values?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The story-to-numbers Topic's Concept: each part of a story sets one number. Code shows the Concept card. */
+  "numbers-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A young company has little history, so its value starts as a story about what it becomes. Each part of the story sets one number: " +
+              "how big the market is, what share the company wins and what slice of each sale it takes set how big it gets; its edge over rivals sets what it keeps. " +
+              "What growth costs and how risky it is set the rest.\n\n" +
+              "Which part of Gurley's story changed Uber's value most?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The story-to-numbers Topic's Explore: Value levers with two Uber stories, opened by code. */
+  "numbers-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are two stories for Uber side by side: Damodaran's June story, and a market that grows fast with Uber winning 40%. " +
+              "Push every lever to the end that makes Uber worth the most.\n\n" +
+              "Is what you built still a story about one company?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-or-value Topic's opener at Story: WeWork beside IWG in August 2019. */
+  "multiple-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "20 August 2019. WeWork rents desks in leased office buildings. In January SoftBank put in $2 billion more, most of it at a valuation of $47 billion, " +
+              "about 26 times WeWork's 2018 revenue. A newspaper sets it beside IWG, the owner of Regus, which has about the same number of desks " +
+              "and is worth $4.45 billion, about 1.4 times its 2018 revenue.\n\n" +
+              "Is $47 billion what WeWork is worth, or a price that needs a story?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-or-value Topic's Concept: a multiple is still a price. Code shows the Concept card. */
+  "multiple-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A multiple divides a price by a measure of the business, such as its revenue. It is quick, but it is still a price, set by what buyers pay, " +
+              "and a comparable helps only when it really is alike. Behind every multiple sits a view of the future: how fast sales grow, how much of each sale is kept, and how risky that cash is.\n\n" +
+              "What might make WeWork and IWG less alike than their desks suggest?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-or-value Topic's Explore: the multiple decoder on WeWork and IWG, opened by code. */
+  "multiple-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is the decoder with WeWork and IWG. Set it so it justifies WeWork's multiple, then IWG's.\n\n" +
+              "What did you have to believe each time?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-assumes Topic's opener at Story: what buyers at $84 had to believe about Amazon. */
+  "assumes-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon's shares trade at about $84. Aswath Damodaran sets his story as four levers: $39 billion of sales in ten years, " +
+              "with 10% of each sale kept as operating profit. It comes to about $35 a share. Then he turns the question round.\n\n" +
+              "What would buyers at $84 have to believe?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-assumes Topic's Concept: running a valuation backwards. Code shows the Concept card. */
+  "assumes-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A valuation usually runs forwards: set a story as levers and the engine works out a value. It also runs backwards: start from the price, " +
+              "hold what you trust, and move the levers until the value meets the price. A price can usually be met by more than one story.\n\n" +
+              "Which story would you have to believe for Amazon at $84?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The price-assumes Topic's Explore: Value levers matching the price, opened by code. */
+  "assumes-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Amazon, with the $84 price marked. Find a story worth the price, then a different one that also gets there.\n\n" +
+              "What would buyers at the price have to believe?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The being-wrong Topic's opener at Story: Tesla's range against its price. */
+  "wrong-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "30 January 2020. Aswath Damodaran puts Tesla's value at about $427 a share, and with the price at $640 he sells his own shares. " +
+              "He knows four of his guesses could be wrong, so he draws them 100,000 times from a spread of likely values. " +
+              "Eight times in ten the value lands between about $237 and $673. Within a week the price closes at $887.\n\n" +
+              "Was he wrong, or was the price?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The being-wrong Topic's Concept: a value is a range. Code shows the Concept card. */
+  "wrong-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "A value rests on guesses about the future, so it is a range, not one number. Move each lever across what is likely and rank the levers by how far they move the value: " +
+              "the top lever is the one to watch, and news that moves it is news that should change a mind. " +
+              "When a price sits outside the range, ask which lever the buyers set differently.\n\n" +
+              "Which of Tesla's levers would you watch?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The being-wrong Topic's Explore: Value levers with likely ranges, opened by code. */
+  "wrong-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are Damodaran's levers for Tesla, each with a band of likely settings. Set them to what you think is likely, then move one at a time.\n\n" +
+              "Which lever would change the value most?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The ready-Case valuation Topic's opener at Story: Amazon in February 2000, and one professor's published story to judge. */
+  "yourself-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "February 2000. Amazon sells books, music and more online, and its shares cost $84. In the twelve months to September 1999 it sold $1,117 million " +
+              "and lost $410 million on its operations. Specialty retailers keep about 10% of each sale. One professor has published his story of Amazon's future, " +
+              "for you to judge lever by lever.\n\n" +
+              "Which part of his story would you want to check first?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The ready-Case valuation Topic's Concept: fix the date, read the story as four levers, find the one it rests on. Code shows the Concept card. */
+  "yourself-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "To judge a published valuation, fix its date and use only what was known on it. Read the story as four levers: how big it gets, what it keeps, " +
+              "what growth costs and how risky it is. Find the lever its value rests on most, check the story holds together, and ask what the price of the day assumes instead.\n\n" +
+              "Which lever would you check first in the professor's Amazon story?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** The ready-Case valuation Topic's Explore: Value levers on the published story, a chip for each company, opened by code. */
+  "yourself-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are the levers, opening on one professor's published story for Amazon, with Coffee Day and Zomato to pick from too. " +
+              "Move one lever at a time and watch which one moves the value most; the readout names any lever that reaches the price alone.\n\n" +
+              "Which lever does his story rest on most?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;

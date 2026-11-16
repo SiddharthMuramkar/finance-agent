@@ -19,6 +19,7 @@ const OTHER_SWITCH: Record<string, string> = {
   "e2e/spine-statements.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
   "e2e/workspace-theme.spec.ts": "the Dark critics' screenshots are written only with DARK_SHOTS set, into that folder, on mbp14-dark (#80)",
   "e2e/spine-04-09.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
+  "e2e/spine-10-16.spec.ts": "the Spine critics' screenshots are written only with SPINE_CRITICS_OUT set, into that folder outside the repo",
   "e2e/spine-rate-split.spec.ts": "the Spine critics' screenshots go to CRITICS_OUT outside the repo, or else the git-ignored test-results/ folder, never docs/",
 };
 

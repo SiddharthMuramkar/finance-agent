@@ -41,7 +41,22 @@ const SPINE_OF = {
 const annualReport = map.topic("spine-annual-report")!;
 const isReport = (name: E2eScriptName) => name.startsWith("ar-");
 /** #95's three-turn plays of Spine Topics 4, 5, 6 and 9 (e2e/spine-04-09.spec.ts), by script prefix. */
-const BEGINNER_OF = { "growth-": "spine-04-growth", "margins-": "spine-05-margins", "gcost-": "spine-06-growth-cost", "far-": "spine-08-far-future" } as const;
+const BEGINNER_OF = {
+  "growth-": "spine-04-growth",
+  "margins-": "spine-05-margins",
+  "gcost-": "spine-06-growth-cost",
+  "far-": "spine-08-far-future",
+  // #96's three-turn plays of the next seven Spine Topics (e2e/spine-10-16.spec.ts).
+  "oneshare-": "spine-09-to-one-share",
+  "survive-": "spine-10-survival",
+  "numbers-": "spine-11-story-to-numbers",
+  "multiple-": "spine-12-price-or-value",
+  "assumes-": "spine-13-price-assumes",
+  "wrong-": "spine-14-being-wrong",
+  "yourself-": "spine-15-value-yourself",
+} as const;
+/** Coffee Day's Case is in rupees (#96). */
+const isRupeeCase = (name: E2eScriptName) => name.startsWith("survive-");
 const beginnerTopic = (name: E2eScriptName) => {
   const id = Object.entries(BEGINNER_OF).find(([prefix]) => name.startsWith(prefix))?.[1];
   return id ? map.topic(id) : undefined;
@@ -57,8 +72,8 @@ const context = (name: E2eScriptName): ReplyCheckContext => {
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
-    exampleCurrency: isSpine(name) || isReport(name) || splitTopic(name) ? "USD" : "INR",
-    caseCurrencies: ["USD"],
+    exampleCurrency: isRupeeCase(name) ? "INR" : isSpine(name) || isReport(name) || splitTopic(name) ? "USD" : "INR",
+    caseCurrencies: [isRupeeCase(name) ? "INR" : "USD"],
     openItems: name === "quiz-open" ? openItems : isSpine(name) && checkStep ? spineItems : [],
     internalWords: [t.id, ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)],
   };
@@ -71,6 +86,9 @@ describe("the scripted Tutor", () => {
       "ar-explore",
       "ar-story",
       "assignment-flag",
+      "assumes-concept",
+      "assumes-explore",
+      "assumes-story",
       "coc-concept",
       "coc-explore",
       "coc-story",
@@ -89,6 +107,15 @@ describe("the scripted Tutor", () => {
       "margins-concept",
       "margins-explore",
       "margins-story",
+      "multiple-concept",
+      "multiple-explore",
+      "multiple-story",
+      "numbers-concept",
+      "numbers-explore",
+      "numbers-story",
+      "oneshare-concept",
+      "oneshare-explore",
+      "oneshare-story",
       "persona-bank-cut",
       "persona-bps-short",
       "persona-one-hundred",
@@ -132,7 +159,16 @@ describe("the scripted Tutor", () => {
       "story-hike",
       "story-reply",
       "story-trader",
+      "survive-concept",
+      "survive-explore",
+      "survive-story",
+      "wrong-concept",
+      "wrong-explore",
+      "wrong-story",
       "your-turn-reply",
+      "yourself-concept",
+      "yourself-explore",
+      "yourself-story",
     ]);
     // rejected-draft's first draft is the one script the checks must reject (A1): its retry is what passes.
     for (const name of (Object.keys(E2E_SCRIPTS) as E2eScriptName[]).filter((n) => n !== "rejected-draft")) {
