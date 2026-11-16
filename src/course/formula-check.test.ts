@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calculate } from "@/finance/calculators";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
+import { rawFormulaHits } from "@/finance/raw-formula";
 import { formulaCheckErrors, typedFormulas } from "./formula-check";
 import { convertedTopic } from "./lesson-fixture";
 import { loadCourseMap, type Topic } from "./map";
@@ -39,6 +40,13 @@ describe("the typed-formula course check", () => {
     expect(formulaCheckErrors([inConcept]).join("\n")).toContain("concept");
     const inPrinciple = { ...behind, principle: "Keep this: PV = amount / (1 + r)^n." };
     expect(formulaCheckErrors([inPrinciple]).join("\n")).toContain("principle");
+  });
+
+  it("the bonds, derivatives and markets Topics keep their typed formulas only behind Go deeper (#99)", () => {
+    const behindGoDeeper = ["der-forwards", "der-option-pricing", "der-rates-fx", "der-hedging", "eq-history", "risk-portfolio", "risk-capm"];
+    const wordedOnly = ["mkt-efficiency", "mkt-behavioural", "mkt-ipo-float", "real-assets"];
+    for (const id of [...behindGoDeeper, ...wordedOnly]) expect(typedFormulas(map.topic(id)!), id).toEqual([]);
+    for (const id of behindGoDeeper) expect(rawFormulaHits(map.topic(id)!.goDeeper ?? ""), id).not.toEqual([]);
   });
 
   it("scans a Topic's teaching: card lines, Skills, Quick tries, templates, choice fixes and the Running example", () => {
