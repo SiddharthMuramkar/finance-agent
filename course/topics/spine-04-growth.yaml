@@ -26,9 +26,9 @@ cases:
     asOf: 2014-12-02
     valuationFrom: uber-vc-narrative-2014
     story: >
-      In June 2014 Uber, still a private company about five years old, raised $1.2 billion from
-      venture capital investors (who buy stakes in young private companies) at a price of $17 billion
-      for the whole company, before counting their new money. Days later Aswath Damodaran, a valuation
+      In June 2014 Uber, still a private company about five years old, raised $1.2 billion in a
+      venture round (investors buying stakes in a young private company), led by the fund manager
+      Fidelity, at a price of $17 billion for the whole company, before counting their new money. Days later Aswath Damodaran, a valuation
       professor at NYU Stern, valued it at about $5.9 billion as a car-service company, and published
       his spreadsheet so anyone could try their own story. His story: taxis and car services worldwide
       take about $100 billion of fares a year; Uber wins 10% of them within ten years; and it takes 20%
@@ -313,8 +313,8 @@ questions:
     kind: price_or_value
     skill: story-moves-value
     prompt: >
-      June 2014. Venture capital investors put $1.2 billion into Uber at what the press reported as a "$17
-      billion valuation". Is the $17 billion a price or a value?
+      June 2014. Investors led by the fund manager Fidelity put $1.2 billion into Uber at what the press
+      reported as a "$17 billion valuation". Is the $17 billion a price or a value?
     choices:
       - { id: price, text: "A price: what investors paid for their stake, scaled up to the whole company" }
       - id: value
@@ -355,7 +355,7 @@ checks:
     card:
       title: "How big can it get?"
       lines:
-        - "Revenue years from now is a story in three parts: the market, the share won, the slice kept."
+        - "Revenue years from now is a story in three parts: the market, the share won, the slice taken."
         - "A made-up example: a $50bn market, a 10% share and a 30% slice give $1.5bn of revenue."
         - "A young company is early in its life: most of its value is in what it might become."
         - "So each part of the size story is a claim to argue, not a fact to look up."
@@ -365,14 +365,14 @@ checks:
     quickTries:
       - id: ug-try-slice-half
         skill: market-story
-        ask: "Uber takes 20% of each fare it carries as its fee. Riders in its share of the market pay $1 billion of fares. Which is Uber's revenue?"
+        ask: "Uber takes 20% of each fare it carries as its fee. Which part of the fares riders pay is Uber's revenue?"
         halfDone: "First step, done for you: drivers keep the other 80% of each fare."
         kind: choice
         answer: slice
         choices:
-          - { id: slice, text: "$200 million: the slice it takes" }
-          - { id: fares, text: "$1 billion: every fare riders pay", mistake: { tag: gross_for_revenue, fix: "That is what riders pay in total. Uber's revenue is only the slice it takes." } }
-          - { id: drivers, text: "$800 million: the drivers' part", mistake: { tag: gross_for_revenue, fix: "The drivers keep that. Uber's revenue is the 20% it takes." } }
+          - { id: slice, text: "The slice it takes as its fee" }
+          - { id: fares, text: "Every fare riders pay", mistake: { tag: gross_for_revenue, fix: "That is what riders pay in total. Uber's revenue is only the slice it takes." } }
+          - { id: drivers, text: "The part the drivers keep", mistake: { tag: gross_for_revenue, fix: "The drivers keep that. Uber's revenue is the 20% it takes." } }
       - id: ug-try-three-parts
         skill: market-story
         ask: "Which three parts make Uber's revenue years from now?"
