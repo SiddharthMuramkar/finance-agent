@@ -63,6 +63,37 @@ test("[7.2.1, QA 1] Home opens on the finished jackpot conversation, its control
   expect(calls, "Home called the server").toEqual([]);
 });
 
+/**
+ * Spec #68, ticket #73: the first screen speaks to a beginner. On a 390 px phone the h1, "for beginners" and something to
+ * play (the demo's question chips, each of which plays a conversation) all show before any scroll, and the h1's accessible
+ * name is the sentence with its spaces.
+ */
+test("[7.2.1, #73] a phone shows the h1, for beginners and something to play without scrolling", async ({ page }, info) => {
+  test.skip(info.project.name !== "p390", "a 390 px phone");
+  await openHome(page);
+  const hero = page.locator('[data-site-section="hero"]');
+  const h1 = page.getByRole("heading", { level: 1 });
+  await expect(h1).toHaveAccessibleName("What is it really worth?");
+  await expect(h1).toBeInViewport({ ratio: 1 });
+  await expect(hero.getByText("Finance for beginners")).toBeInViewport({ ratio: 1 });
+  await expect(page.getByRole("group", { name: "Pick a question" })).toBeInViewport({ ratio: 1 });
+  expect(await page.evaluate(() => window.scrollY), "the page scrolled").toBe(0);
+});
+
+test("[7.2.1, #73] the hero's Try the jackpot opens the jackpot Example, and Join early access opens the waitlist", async ({ page }, info) => {
+  test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
+  await openHome(page);
+  const hero = page.locator('[data-site-section="hero"]');
+  await expect(hero.getByRole("link", { name: "Join early access", exact: true })).toHaveAttribute("href", "/join");
+  await hero.getByRole("link", { name: "Try the jackpot", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/examples/mega-millions-2018");
+  await expect(page.locator('[data-widget="jackpot"]')).toBeVisible();
+  await openHome(page);
+  await page.locator('[data-site-section="hero"]').getByRole("link", { name: "Join early access", exact: true }).click();
+  // Clerk is off in the test bed, so /join (Clerk's Waitlist) sends the visitor on to /sign-in.
+  await page.waitForURL((url) => url.pathname === "/sign-in");
+});
+
 test("[7.2.1, QA 5] a picked question plays the script: typing, the Tutor's lead and a skeleton, then the levers widget at $35", async ({ page }, info) => {
   test.skip(!["mbp14", "w1280"].includes(info.project.name), "1512 and 1280");
   await page.emulateMedia({ reducedMotion: "no-preference" });

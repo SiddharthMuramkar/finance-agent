@@ -53,7 +53,7 @@ describe("the public pages", () => {
       expect(html).toMatch(/<h1 class="page-h1[^"]*" tabindex="-1"/);
       return h1(html);
     });
-    expect(titles).toEqual(["Learn what things are worth.", "How a Topic works", "Real events. Move the numbers.", "Is $84 a fair price for Amazon?", "About Value It"]);
+    expect(titles).toEqual(["What is it really worth?", "How a Topic works", "Real events. Move the numbers.", "Is $84 a fair price for Amazon?", "About Value It"]);
   });
 
   it("are titled for the template %s · Value It", async () => {
@@ -75,11 +75,39 @@ describe("Home", () => {
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
-  it("offers a visitor Join early access and Play a real case, with the early-access note", async () => {
-    const text = words(renderToStaticMarkup(await HomePage()));
-    expect(text).toContain("Join early access");
-    expect(text).toContain("Play a real case");
-    expect(text).toContain("Free during early access. We let people in by hand and email you when you’re in.");
+  // Spec #68, ticket #73: the first screen speaks to a beginner, with headline numbers they have seen.
+  it("opens on a hero for beginners: What is it really worth?, three headline numbers, the Tutor and no sums", async () => {
+    const html = renderToStaticMarkup(await HomePage());
+    const hero = words(/data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0]);
+    expect(hero).toContain("Finance for beginners");
+    for (const number of ["$1.5B jackpot", "$3bn “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
+    expect(hero).toContain("An AI Tutor explains every money word");
+    expect(hero).toContain("No sums");
+  });
+
+  it("reads the hero h1 to a screen reader as words with spaces", async () => {
+    const html = renderToStaticMarkup(await HomePage());
+    // Tags dropped with nothing in their place, as an accessible name joins inline text.
+    const spoken = (/<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html)?.[1] ?? "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    expect(spoken).toBe("What is it really worth?");
+  });
+
+  it("offers a visitor Try the jackpot first, then Join early access, with the early-access note", async () => {
+    const html = renderToStaticMarkup(await HomePage());
+    const hero = /data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0];
+    const links = [...hero.matchAll(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => [words(m[2]).trim(), m[1]]);
+    expect(links.slice(0, 2)).toEqual([
+      ["Try the jackpot", "/examples/mega-millions-2018"],
+      ["Join early access", "/join"],
+    ]);
+    expect(words(html)).toContain("Free during early access. We let people in by hand and email you when you’re in.");
+  });
+
+  it("keeps the hero's jackpot figure the jackpot Example's own", async () => {
+    const { exampleBySlug } = await import("@/site/examples");
+    const { home } = await import("@/site/copy");
+    const chip = exampleBySlug("mega-millions-2018")!.chip; // "A $1.5B jackpot"
+    expect(home.hero.lede).toContain(chip.replace(/^A /, ""));
   });
 
   // QA rows 22 and 23 as #33 has them: Clerk owns sign-up, so the closing block has no email form of its own, and every
@@ -144,7 +172,7 @@ describe("the course counts", () => {
   it("read as today while the Spine is the fifteen Topics of the outline", async () => {
     const home = words(renderToStaticMarkup(await HomePage()));
     expect(home).toContain("110 Topics wait inside. 15 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
-    expect(home).toContain("110 Topics 10 to 15 minutes each No sums to type");
+    expect(home).toContain("110 Topics 10 to 15 minutes each");
     expect(home).toContain("One real event. Four moves. Ten to fifteen minutes.");
     expect(home).toContain("Five cases, open now");
 
