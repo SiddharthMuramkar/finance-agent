@@ -95,6 +95,12 @@ test.describe("printing in Dark", () => {
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     const printed = await page.evaluate(() => ({ paper: getComputedStyle(document.body).backgroundColor, ink: getComputedStyle(document.querySelector("h1")!).color }));
     expect(printed).toEqual({ paper: "rgb(255, 255, 255)", ink: "rgb(0, 0, 0)" });
+    // G22: the accent and status colours print as Light's too, not Dark's pale steps (2:1 on white paper).
+    const HUES = ["--blue", "--blue-tint", "--gain", "--gain-ink", "--loss", "--loss-ink", "--wait", "--wait-ink", "--on-blue", "--on-band"];
+    const tokens = () => page.evaluate((names) => names.map((n) => `${n}: ${getComputedStyle(document.documentElement).getPropertyValue(n).trim()}`), HUES);
+    const printedDark = await tokens();
+    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+    expect(printedDark).toEqual(await tokens());
   });
 });
 
