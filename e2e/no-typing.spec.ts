@@ -67,7 +67,8 @@ test("Spine Topic 1 settles its Insight by a tap, with nothing to type", async (
   expect((await pick.getByTestId("insight-pick-choice").allInnerTexts()).sort()).toEqual(["Far more sales, and more kept of each sale", "Only a lower cost of capital", "Only more sales for each dollar invested"]);
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
   await pick.getByTestId("insight-pick-choice").filter({ hasText: "Only a lower cost of capital" }).click();
-  await expect(page.getByTestId("insight-pick-result")).toHaveAttribute("data-released", "hint_1");
+  // The first tap can wait on the dev server compiling its route.
+  await expect(page.getByTestId("insight-pick-result")).toHaveAttribute("data-released", "hint_1", { timeout: 60_000 });
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
 });
 

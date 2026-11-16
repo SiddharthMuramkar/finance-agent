@@ -218,7 +218,7 @@ test("[Part C] Spine Topic 1 is played whole on the Test bed, and passed, in und
   const pick = page.getByTestId("insight-pick");
   await expect(pick).toContainText("Find a story worth the price");
   await pick.getByTestId("insight-pick-choice").filter({ hasText: "Only a lower cost of capital" }).click();
-  await expect(page.getByTestId("insight-pick-result")).toHaveAttribute("data-released", "hint_1");
+  await expect(page.getByTestId("insight-pick-result")).toHaveAttribute("data-released", "hint_1", { timeout: TURN_MS });
   await expect(page.getByTestId("insight-pick-result")).toContainText("A lower cost of capital alone");
   await pick.getByTestId("insight-pick-choice").filter({ hasText: "Far more sales, and more kept of each sale" }).click();
   await expect(page.getByTestId("insight-pick-result")).toHaveAttribute("data-released", "found");
