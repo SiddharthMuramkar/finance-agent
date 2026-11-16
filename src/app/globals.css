@@ -1021,9 +1021,11 @@ html[data-splitting] * {
 
 /* Printing (the Notebook page): white paper and darker ink, with the page margins left to the printer. Controls
    carry `print:hidden` in their markup. The :root here is the print token block: its literal colours are a print palette,
-   the third token block beside Light and Dark (src/dev/literal-colours.test.ts allows literals only in :root blocks). */
+   the third token block beside Light and Dark (src/dev/literal-colours.test.ts allows literals only in :root blocks).
+   It names the Dark selector too, so a page printed while Dark is on still prints on white paper (ADR 0019, #80). */
 @media print {
-  :root {
+  :root,
+  :root[data-theme="dark"] {
     color-scheme: light !important;
     --paper: #ffffff;
     --wash: #ffffff;

@@ -4,7 +4,7 @@ import { createTheme, defaultLightTheme, ThemeProvider, type Theme } from "@open
 import { useLayoutEffect, useMemo, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { markKeyFigures } from "./key-figure";
 
-// OpenUI's component kit (charts, tables, tabs) drawn in our design tokens, in the app's one Light theme (decision #17).
+// OpenUI's component kit (charts, tables, tabs) drawn in our design tokens, so it follows the page's theme, Light or Dark (ADR 0019).
 // Its colours read our CSS variables; its type is in our font; its chart colours are ours, one palette. The kit's
 // components see this theme only when they come from the same package entry, "@openuidev/react-ui": the "/genui-lib"
 // entry bundles a private copy of the theme context.
@@ -162,7 +162,8 @@ export function kitVariable(key: string): string {
 const COLOUR_STYLE = Object.fromEntries(Object.entries(COLOURS).map(([key, value]) => [kitVariable(key), value])) as CSSProperties;
 
 /**
- * Draws a widget's OpenUI kit parts in our tokens, in Light (never the computer's setting). The kit's variables are set on
+ * Draws a widget's OpenUI kit parts in our tokens. The kit runs in its "light" mode always, never the computer's setting:
+ * its "light" theme is our tokens, which are Dark when the page is (ADR 0019), so the page's theme is the only switch. The kit's variables are set on
  * this `.genui` element, and on any popover the kit opens outside it.
  */
 export function GenuiTheme({ children }: { children: ReactNode }) {

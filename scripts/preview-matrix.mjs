@@ -10,7 +10,7 @@ import { join } from "node:path";
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : fallback; };
-const projects = (flag("project", "mbp14,w1280,w1920,w1024,p390")).split(",");
+const projects = (flag("project", "mbp14,w1280,w1920,w1024,p390,mbp14-dark,w1280-dark,w1920-dark,w1024-dark,p390-dark")).split(",");
 const port = flag("port", process.env.E2E_PORT ?? "3100");
 const root = process.cwd();
 
