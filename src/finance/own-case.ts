@@ -1,5 +1,6 @@
 import { FORECAST_YEARS, valueStory, type DcfValue } from "./dcf-engine.ts";
 import { marginPath } from "./dcf-paths.ts";
+import { marketReading } from "../markets/readings.ts";
 import { toEngineInputs, valuationBlock, type ValuationBlock, type ValuationBlockInput } from "./valuation-case.ts";
 
 // An Own Case (GLOSSARY.md; spec #68, Assignments and Own Cases): a listed company the Learner picks, dated at its
@@ -13,22 +14,34 @@ import { toEngineInputs, valuationBlock, type ValuationBlock, type ValuationBloc
 export const OWN_CASE_MARKETS = ["IN"] as const;
 export type OwnCaseMarket = (typeof OWN_CASE_MARKETS)[number];
 
+/** The yardstick a Market reading (#105) gives, by industry and kind: `in-<industry>-<kind>`. */
+function yardstick(industry: string, kind: "margin" | "sales-to-capital" | "cost-of-capital"): number {
+  const reading = marketReading(`in-${industry}-${kind}`);
+  if (!reading) throw new Error(`No Market reading in-${industry}-${kind}`);
+  return reading.value;
+}
+
 /**
  * The industries a Learner picks from, each with the yardsticks its opening Estimate takes: the industry's operating
- * margin, sales for each rupee invested, and cost of capital in rupees. From Damodaran's India data of 5 Jan 2026
- * (the same rows #105's Market readings carry; ids match them).
+ * margin, sales for each rupee invested, and cost of capital in rupees, read from the dated Market readings for India
+ * (src/markets/readings.ts: Damodaran's India data, January 2026; ids match them).
  */
-export const INDIA_INDUSTRIES = [
-  { id: "auto", label: "Auto and truck makers", operatingMarginPercent: 9.69, salesToCapital: 1.03, costOfCapitalPercent: 13.9 },
-  { id: "food", label: "Food processors", operatingMarginPercent: 7.26, salesToCapital: 2.34, costOfCapitalPercent: 11.97 },
-  { id: "software", label: "Software makers", operatingMarginPercent: 16.73, salesToCapital: 1.85, costOfCapitalPercent: 12.67 },
-  { id: "market", label: "Any other firm (not a bank or insurer)", operatingMarginPercent: 11.2, salesToCapital: 1.25, costOfCapitalPercent: 11.45 },
-] as const;
+export const INDIA_INDUSTRIES = (
+  [
+    { id: "auto", label: "Auto and truck makers" },
+    { id: "food", label: "Food processors" },
+    { id: "software", label: "Software makers" },
+    { id: "market", label: "Any other firm (not a bank or insurer)" },
+  ] as const
+).map((i) => ({
+  ...i,
+  operatingMarginPercent: yardstick(i.id, "margin"),
+  salesToCapital: yardstick(i.id, "sales-to-capital"),
+  costOfCapitalPercent: yardstick(i.id, "cost-of-capital"),
+  /** The reading the yardsticks come from: its source, for the Own Case's sources when the Learner gives no report link. */
+  source: marketReading(`in-${i.id}-cost-of-capital`)!,
+}));
 export type OwnCaseIndustry = (typeof INDIA_INDUSTRIES)[number]["id"];
-export const INDUSTRY_SOURCE = {
-  title: "Damodaran, India industry averages, January 2026 update (margins, capital and cost of capital sheets)",
-  url: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/waccIndia.xls",
-};
 
 /** What the Learner types from the annual report. Money in rupees crore; shares as the plain count the report prints. */
 export type OwnCaseInputs = {
@@ -108,6 +121,12 @@ function typedProblem(inputs: OwnCaseInputs, now: Date): string | null {
   return null;
 }
 
+/** The industry's yardstick reading as a source line. */
+function industrySource(industry: OwnCaseIndustry) {
+  const r = (INDIA_INDUSTRIES.find((i) => i.id === industry) ?? INDIA_INDUSTRIES[INDIA_INDUSTRIES.length - 1]).source;
+  return { title: `${r.source} (${r.date})`, url: r.sourceUrl };
+}
+
 export type OwnCaseBlockResult = { ok: true; block: ValuationBlock } | { ok: false; error: string };
 
 /** The Own Case as a course valuation block (illustration, never reproducing a published value), or why it cannot be one. */
@@ -137,7 +156,7 @@ export function ownCaseBlock(inputs: OwnCaseInputs, estimate: OwnCaseEstimate, n
     price: { value: inputs.price, date: inputs.reportDate },
     illustration: true,
     published: { note: `An Own Case: ${inputs.company.trim()}, from its annual report of ${inputs.reportDate}.` },
-    sources: [inputs.reportUrl && URL.canParse(inputs.reportUrl) ? { title: `${inputs.company.trim()} annual report`, url: inputs.reportUrl } : INDUSTRY_SOURCE],
+    sources: [inputs.reportUrl && URL.canParse(inputs.reportUrl) ? { title: `${inputs.company.trim()} annual report`, url: inputs.reportUrl } : industrySource(inputs.industry)],
     reproduces: false,
   };
   // The engine's own sentences first (no shares, growth that never ends), then the shape the course's blocks keep.
