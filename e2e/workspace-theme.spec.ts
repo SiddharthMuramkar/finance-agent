@@ -84,6 +84,7 @@ const DARK_PAGES: { state: State; path: string; ready: string }[] = [
 
 test("[#80] on a dark device the Study Workspace, its Widgets, the Band and the Notebook draw in Dark, with no fixed light colour", async ({ page }, info) => {
   test.skip(!isDark(info.project.name), "a device set to dark (mbp14-dark)");
+  test.setTimeout(DARK_PAGES.length * 30_000);
   for (const { state, path, ready } of DARK_PAGES) {
     await seed(page, state);
     await page.goto(path);
@@ -101,6 +102,7 @@ const FIXTURES = readdirSync("src/widgets/fixtures/parts").map((file) => file.re
 
 test("[#80] every Widget draws in Dark with no fixed light colour", async ({ page }, info) => {
   test.skip(!isDark(info.project.name), "a device set to dark (mbp14-dark)");
+  test.setTimeout(FIXTURES.length * 15_000);
   for (const fixture of FIXTURES) {
     await page.goto(`/dev/widgets?fixture=${fixture}&width=860`);
     await expect(page.getByTestId("widget-card").locator("[data-testid]").first()).toBeVisible({ timeout: 15_000 });
@@ -116,6 +118,7 @@ test("[#80] every Widget draws in Dark with no fixed light colour", async ({ pag
 test("[#80] Dark shots at 1280 for the critics", async ({ page }, info) => {
   const dir = process.env.DARK_SHOTS;
   test.skip(!dir || !isDark(info.project.name), "only with DARK_SHOTS=<dir>, on mbp14-dark");
+  test.setTimeout(180_000);
   mkdirSync(dir!, { recursive: true });
   await page.setViewportSize({ width: 1280, height: 800 });
   const hideOverlay = () => page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });

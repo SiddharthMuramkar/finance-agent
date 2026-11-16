@@ -190,8 +190,10 @@ const PRESS = {
   dark: { fill: ["rgb(138, 164, 255)", "rgb(159, 181, 255)", "rgb(179, 196, 255)"], ink2: "rgb(211, 215, 223)" },
 } as const;
 
+const pressColours = (project: string) => PRESS[project.endsWith("-dark") ? "dark" : "light"];
+
 test("[ADR 0018] pressing is flat: a press changes colour, never position", async ({ page }, info) => {
-  const { fill: FILL, ink2: INK_2 } = PRESS[info.project.name.endsWith("-dark") ? "dark" : "light"];
+  const { fill: FILL, ink2: INK_2 } = pressColours(info.project.name);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seed(page, "many-topics");
   await page.goto("/settings");
@@ -310,7 +312,8 @@ const WIDGET_PRESS = [
 ] as const;
 
 for (const { fixture, selector, kind, width } of WIDGET_PRESS) {
-  test(`[A4] a press inside a Widget changes colour, never position (${fixture})`, async ({ page }) => {
+  test(`[A4] a press inside a Widget changes colour, never position (${fixture})`, async ({ page }, info) => {
+    const INK_2 = pressColours(info.project.name).ink2;
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/dev/widgets?fixture=${fixture}&width=${width}`);
     await expect(page.getByTestId("widget-card")).toBeVisible();
