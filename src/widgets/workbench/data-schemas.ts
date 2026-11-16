@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CURRENCIES } from "@/finance/money";
 import { isIconName } from "@/icons/names";
 
 // The figures a Workbench Widget takes from the Topic file beside its Valuation Case (spec 2026-11-12, B4; ADR 0010), each
@@ -24,7 +25,7 @@ export const costOfCapitalFiguresSchema = z
   })
   .strict();
 
-const currencySchema = z.enum(["USD", "INR"]);
+const currencySchema = z.enum(CURRENCIES);
 const unitSchema = z.enum(["millions", "crores", "billions"]);
 
 /** A company's year for the Cash waterfall when it has no Valuation Case: this year's revenue, its tax, and where the levers open. */

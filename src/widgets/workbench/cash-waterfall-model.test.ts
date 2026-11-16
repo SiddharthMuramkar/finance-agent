@@ -39,6 +39,13 @@ describe("Cash waterfall on Amazon's year 1 (B4, Appendix B.1)", () => {
     expect(levers[0].min).toBe(0);
   });
 
+  it("counts lever 3 in the Case's own currency: yen, won and euros as well as dollars (#112)", () => {
+    const lever3 = (currency: "JPY" | "KRW" | "EUR") => cashWaterfallLevers({ ...amazon, money: { ...amazon.money, currency } })[2];
+    expect([lever3("JPY").label, lever3("JPY").reading(3), lever3("JPY").spoken(1)]).toEqual(["Sales for each yen invested", "¥3.00", "1 yen"]);
+    expect([lever3("KRW").label, lever3("KRW").spoken(2)]).toEqual(["Sales for each won invested", "2 won"]);
+    expect([lever3("EUR").label, lever3("EUR").reading(3), lever3("EUR").spoken(2)]).toEqual(["Sales for each euro invested", "€3.00", "2 euros"]);
+  });
+
   it("costs nothing to grow at 0%: no reinvestment, so free cash flow is the operating income", () => {
     const model = cashWaterfallModel(amazon, { ...amazon.opening, growth: 0 });
     expect(model.numbers[1].text).toBe("$0");
