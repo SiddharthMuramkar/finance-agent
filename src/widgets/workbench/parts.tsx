@@ -106,6 +106,7 @@ export const waccStackProps = z.object({
   relativeRisk: lever("Relative risk (beta)"),
   debtShare: lever("Share of debt, in percent"),
   caseId: z.string().nullish().describe("The Valuation Case whose value a share the rate sets, if any"),
+  readings: z.array(z.string()).nullish().describe("Market readings shown beside the levers, by id"),
 });
 
 function WaccStackPart({ props }: ComponentRenderProps<z.infer<typeof waccStackProps>>) {
@@ -124,7 +125,7 @@ function WaccStackPart({ props }: ComponentRenderProps<z.infer<typeof waccStackP
   const levers = useMemo(() => ("data" in parsed ? waccStackLevers(parsed.data) : []), [parsed]);
   const { settings, set } = useLevers(fields, levers);
   if (!("data" in parsed)) return <Unavailable>{parsed.problem}</Unavailable>;
-  return <WaccStackView data={parsed.data} levers={settings} onLeversChange={set} ticked={saved?.ticked} onTicked={saved?.onTicked} />;
+  return <WaccStackView data={parsed.data} levers={settings} onLeversChange={set} ticked={saved?.ticked} onTicked={saved?.onTicked} readings={props.readings ?? []} />;
 }
 
 export const WaccStack = defineComponent({ name: "WaccStack", description: DRAWN_BY_CODE("wacc_stack"), props: waccStackProps, component: WaccStackPart });

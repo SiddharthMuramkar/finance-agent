@@ -42,6 +42,7 @@ export const valueLeversProps = z.object({
   mode: z.any().optional().describe("A Spine Topic's mode, {kind, ...}, checked by code"),
   market: optionalNumber("In market mode, which market lever 1 is a share of, a $variable starting at 0"),
   caseChoice: optionalNumber("In all open mode with a Case chip, which Case the Learner chose, a $variable starting on the Case named"),
+  readings: z.array(z.string()).nullish().describe("Market readings shown beside the levers, by id"),
 });
 
 type Props = z.infer<typeof valueLeversProps>;
@@ -109,6 +110,7 @@ function ValueLeversPart({ props }: ComponentRenderProps<Props>) {
       caseName={pickable[chosen]?.label}
       cases={pickable.map((c) => c.label)}
       caseChoice={chosen}
+      readings={props.readings ?? []}
       onChooseCase={(next) => {
         const target = pickable[next];
         if (!target || next === chosen) return;

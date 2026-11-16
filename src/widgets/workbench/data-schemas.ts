@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isIconName } from "@/icons/names";
+import { marketReading, marketReadingIds } from "@/markets/readings";
 
 // The figures a Workbench Widget takes from the Topic file beside its Valuation Case (spec 2026-11-12, B4; ADR 0010), each
 // with its source: the Widget part, the recipe and the Widget check parse them with these same schemas, so a figure that
@@ -23,6 +24,15 @@ export const costOfCapitalFiguresSchema = z
     taxRate: z.number().min(0).max(100),
   })
   .strict();
+
+/**
+ * Market readings shown beside a Workbench's Levers (ticket #105), by id (src/markets/readings.ts): each with its month,
+ * credit and link. An id the readings lack fails, so the course check's Workbench build catches it.
+ */
+export const marketReadingIdsSchema = z
+  .array(z.string().refine((id) => marketReading(id) !== undefined, { message: `is not a Market reading; one of: ${marketReadingIds().join(", ")}` }))
+  .min(1)
+  .max(8);
 
 const currencySchema = z.enum(["USD", "INR"]);
 const unitSchema = z.enum(["millions", "crores", "billions"]);
