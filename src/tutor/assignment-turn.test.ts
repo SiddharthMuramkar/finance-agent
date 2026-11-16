@@ -18,7 +18,7 @@ import { readSettings } from "./session-log";
 const map = loadCourseMap();
 const NOW = new Date("2026-11-16T10:00:00Z");
 
-/** A food company typed with an operating margin of 45%: far above Food Processing's usual range, so the range check flags it. */
+/** A food company typed with an operating margin of 45%: more than double Food Processing's 7.26%, so the range check flags it. */
 const WIDE_MARGIN: OwnCaseInputs = {
   company: "Tata Consumer Products",
   market: "IN",
@@ -34,7 +34,7 @@ const WIDE_MARGIN: OwnCaseInputs = {
 };
 
 const text = (t: string) => ({ content: [{ type: "text", text: t }] });
-const NAMES_MARGIN = "Your operating margin of 45% is far above Food Processing's usual range in India.\nWhat story about the company does a 45% margin assume?";
+const NAMES_MARGIN = "Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026).\nWhat story about the company does a 45% margin assume?";
 
 async function readyLearner(db: Db, inputs: OwnCaseInputs = WIDE_MARGIN) {
   for (const t of map.topics.filter((t) => t.stage === "spine")) await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: t.id, step: "principle", status: "passed" });
@@ -171,16 +171,48 @@ describe("the AI Tutor on a US Own Case (#113)", () => {
   });
 });
 
+// G19: the reply checks take the Own Case's currency, so a Japanese Own Case's reply may write yen and not rupees.
+describe("the AI Tutor on a Japanese Own Case (#114)", () => {
+  /** Kikkoman's figures (own-cases-japan-korea.test.ts) with its operating profit typed as 45% of sales, so the margin is flagged. */
+  const WIDE_KIKKOMAN: OwnCaseInputs = { company: "Kikkoman", market: "JP", reportDate: "2026-03-31", industry: "food", sales: 745_539, operatingProfit: 335_493, taxPercent: 30.5, debt: 18_217, cash: 111_770, shares: 927_741_900, price: 1_435 };
+
+  it("lets the Tutor write yen, refuses rupees, and is told to write yen", async () => {
+    const db = await testDb();
+    await readyLearner(db, WIDE_KIKKOMAN);
+    const yen = "Your operating margin of 45% on ¥745,539 million of sales is far above the food industry's figure in Japan.\nWhat story about Kikkoman does that margin assume?";
+    const rupees = "Your operating margin of 45% on ₹745,539 million of sales is far above the food industry's figure.\nWhat story about Kikkoman does that margin assume?";
+    const { client, requests } = scriptedClient([text(rupees), text(yen)]);
+    const result = await runAssignmentTurn(deps(db, client), "What do you make of my figures?");
+    expect(result).toMatchObject({ ok: true, reply: yen, failed: ["V7"], fallback: false });
+    expect(JSON.stringify(requests[0].messages)).toContain("Write any amount in yen (¥)");
+    expect(JSON.stringify(requests[1].messages)).toContain("use yen (¥)");
+  });
+});
+
 describe("assignmentContext", () => {
   it("lists the Own Case's figures and asks the Tutor to name each flagged input without a verdict", () => {
     const lines = assignmentContext({
       note: "Tata Consumer Products, India. Annual report of 31 Mar 2025.",
-      flags: [{ name: "operating margin", sentence: "Your operating margin of 45% is far above Food Processing's usual 3.63% to 14.52% in India." }],
+      flags: [{ name: "operating margin", sentence: "Your operating margin of 45% is far above Food Processing's 7.26% in India (Jan 2026): more than double it." }],
+      currency: "INR",
     });
     expect(lines).toContain("Tata Consumer Products, India.");
     expect(lines).toContain("Your operating margin of 45% is far above");
     expect(lines).toMatch(/name each flagged input/i);
     expect(lines).toMatch(/what story it assumes/i);
+    expect(lines).toContain("Write any amount in rupees (₹), the Own Case's currency.");
+  });
+
+  // The source prints one dated average per industry, not a range (range-check.ts): the context never calls the
+  // course's half-to-double band the industry's "usual range" (round-1 deferral of F08/F09).
+  it("words the range check as the flag sentences do: the industry's dated figure, not a usual range", () => {
+    const flagged = assignmentContext({ note: "Kikkoman, Japan.", flags: [{ name: "operating margin", sentence: "Your operating margin of 60% is far above x." }], currency: "JPY" });
+    const clean = assignmentContext({ note: "Kikkoman, Japan.", flags: [], currency: "JPY" });
+    for (const lines of [flagged, clean]) {
+      expect(lines).not.toMatch(/usual range/i);
+      expect(lines).toMatch(/industry's dated figure/);
+      expect(lines).toContain("Write any amount in yen (¥), the Own Case's currency.");
+    }
   });
 
   it("says when no Own Case is saved yet", () => {
