@@ -18,27 +18,24 @@ cases:
     # 3 February 2000: about $84 was that day's close, after the fourth-quarter results (verify-amazon-risk-erp.json).
     asOf: 2000-02-03
     story: >
-      February 2000. Amazon sells books and music online. In the twelve months to September 1999
-      it sold $1,117 million and lost $410 million on its operations. Its shares cost $84. A
+      February 2000. Amazon sells books and music online. A share is one small slice of the
+      company: whoever owns a share owns a slice of all its future cash. In the twelve months to
+      September 1999 Amazon sold about $1.1 billion of goods and lost about $400 million on its
+      operations. Its shares cost $84: that is the price, what buyers pay for one share that day. A
       professor in New York, Aswath Damodaran, writes down what he thinks its future looks like:
       how big it gets, what it keeps of each sale, what its growth costs and how risky it is.
       What is Amazon worth, and is $84 a fair price for it?
     reveal: >
-      His story came to $35.08 a share against the $84 price. The $84 was already below the year's
-      high: a month earlier, in early January 2000, the shares had traded as high as $91.50. The price
-      fell through 2000: by the fourth quarter the shares had been as low as $14.88. Neither number
+      His story came to about $35 a share against the $84 price. The $84 was already below the year's
+      high: a month earlier, in early January 2000, the shares had traded above $90. The price
+      fell through 2000: by the fourth quarter the shares had been below $15. Neither number
       proves the other wrong: a price is what buyers paid that day, and a value is what one story
       about the business is worth.
     # Damodaran's valuation, written once in val-dcf (spec Appendix B.1); the engine gives $35.04 against his $35.08.
     valuationFrom: amazon-dcf-2000
 
+# Four new words (spec #68): "share" and "price" are said in plain words in the Moment, before the Learner meets them.
 terms:
-  - term: price
-    means: What buyers pay for one share today.
-    pro: The shares closed at $84.
-    example: "A used bike sells for $200 on the day, whatever it is worth to you."
-    emoji: label
-    inStory: In the story, $84 is what buyers pay for an Amazon share.
   - term: value
     means: What the business's future cash is worth today, for one share, argued from a story.
     pro: On my story the shares are worth $35.
@@ -47,7 +44,7 @@ terms:
     inStory: In the story, the professor works out a value from what he thinks Amazon's future holds.
   - term: revenue
     means: What a company sells in a year, before any costs.
-    pro: Revenue for the twelve months to September 1999 was $1,117 million.
+    pro: Revenue for the twelve months to September 1999 was about $1.1 billion.
     example: "A lemonade stand that sells 300 cups a day at $1 a cup has $300 of revenue a day."
     emoji: money-bag
     inStory: In the story, revenue is how big Amazon gets.
@@ -59,7 +56,7 @@ terms:
     inStory: In the story, the margin is what Amazon keeps of each sale.
   - term: cost of capital
     means: The return investors need on their money, given the risk they take, used to turn future cash into today's.
-    pro: The cost of capital starts at 12.84% and falls as the company matures.
+    pro: The cost of capital starts near 13% and falls as the company matures.
     example: "Lending to a new shop needs a higher return than a bank deposit, because the shop may fail."
     emoji: balance-scale
     inStory: In the story, the cost of capital is how risky Amazon is.
@@ -72,19 +69,30 @@ skills:
     analogy: Four dials on one machine; the value is what the machine reads.
 
 insight:
-  question: Find a story worth the price, and say what you had to change to get there.
+  question: Find a story worth the price, then tap what you had to change to get there.
   written: The price needed a much bigger or richer Amazon than the professor's story, such as far more sales with a fatter margin; a cheaper cost of capital alone could not get there.
   foundWhen: The Learner reaches a story worth the price and names the levers they changed to get there.
   hints:
     - Move one lever at a time and watch which one moves the value most.
     - Try how big it gets and what it keeps together.
+  # Settled by a tap (ADR 0020): code marks it, as it marks a Quick try.
+  pick:
+    answer: bigger-richer
+    choices:
+      - { id: bigger-richer, text: "Far more sales, and more kept of each sale" }
+      - id: cheaper-money
+        text: Only a lower cost of capital
+        mistake: { fix: "A lower cost of capital alone moves the value too little to reach the price. Try how big it gets and what it keeps together." }
+      - id: leaner
+        text: Only more sales for each dollar invested
+        mistake: { fix: "Spending less on growth helps, but alone it falls far short of the price. Try how big it gets and what it keeps together." }
 
 explore:
   before: worth-check
   workbench:
     recipe: value_levers
     case: spine-01-amazon-2000
-    title: "Amazon, February 2000: your story"
+    title: "Amazon, February 2000: the four levers"
     inputs:
       caseStory: Damodaran's story
       priceStory: { revenue: 60, margin: 12.5 }
@@ -103,11 +111,14 @@ concept: >
   company gets, what it keeps of each sale, what its growth costs, and how risky it is. Each part
   of the story is one lever. Set the four levers and code works out a value. Damodaran's story for
   Amazon had about $39 billion of sales in ten years, a 10% operating margin (10 cents kept from each $1 of sales),
-  and $3 of sales for each $1 invested in warehouses and systems.
+  and $3 of sales for each $ invested in warehouses and systems.
 
 principle: >
-  A value is a story set as four levers. When a price and your value differ, ask what the price
+  A value is a story set as four levers. When a price and a value differ, ask what the price
   assumes before you call it wrong.
+
+# The daily-life line (spec #68): it ends the Principle step, on the Topic complete card and in the Topic Note.
+dailyLife: "A headline says a firm is worth $50bn. A price someone paid, or a value someone argued?"
 
 # You'll learn: shown on the Topic Start card and the Welcome.
 youllLearn:
@@ -126,9 +137,9 @@ questions:
       changes:
         - { id: margin, label: "Margin 10% to 12%", levers: { marginTarget: 12 } }
         - { id: revenue, label: "Sales in year 10 $39bn to $44bn", levers: { revenueYear10: 44000 } }
-        - { id: reinvest, label: "Sales to capital 3 to 4", levers: { salesToCapital: 4 } }
-        - { id: risk, label: "Cost of capital 12.84% to 11.84%", levers: { costOfCapitalGrowing: 11.84 } }
-        - { id: leaner, label: "Sales to capital 3 to 5", levers: { salesToCapital: 5 } }
+        - { id: reinvest, label: "Sales for each $ invested, $3 to $4", levers: { salesToCapital: 4 } }
+        - { id: risk, label: "Cost of capital one point lower", levers: { costOfCapitalGrowing: 11.84 } }
+        - { id: leaner, label: "Sales for each $ invested, $3 to $5", levers: { salesToCapital: 5 } }
   - id: worth-q-price
     kind: price_assumes
     prompt: The price is $84. Which story gets there?
@@ -137,9 +148,9 @@ questions:
     computed:
       case: spine-01-amazon-2000
       changes:
-        - { id: bigger-richer, label: "$60bn of sales and a 12.5% margin", levers: { revenueYear10: 60000, marginTarget: 12.5 } }
+        - { id: bigger-richer, label: "$65bn of sales and a 12% margin", levers: { revenueYear10: 65000, marginTarget: 12 } }
         - { id: cheaper-money, label: "$39bn, 10% and a 10% cost of capital", levers: { costOfCapitalGrowing: 10 } }
-        - { id: lean, label: "$39bn, 10% and sales to capital 5", levers: { salesToCapital: 5 } }
+        - { id: lean, label: "$39bn, 10% and $5 of sales for each $ invested", levers: { salesToCapital: 5 } }
         - { id: bigger, label: "$50bn of sales and a 10% margin", levers: { revenueYear10: 50000 } }
   - id: worth-q-predict
     kind: predict
@@ -197,6 +208,88 @@ questions:
     answer: price
     explanation: Ten times sales compares what buyers pay; it says nothing about the business's own future cash.
     source: "Illustrative statement, not from the paper; price against value as in Damodaran, valuation of Amazon, February 2000 (HighGrow.pdf)"
+  # The judging Check (worth-talk, ADR 0020): other people's Stories about Amazon, judged by tap. No own story.
+  - id: worth-q-judge-price
+    kind: price_assumes
+    prompt: A fan says $84 is a fair price. Which story must the fan believe?
+    skill: price-value
+    explanation: Only a much bigger Amazon that keeps more of each sale comes near the price; one lever alone falls short.
+    computed:
+      case: spine-01-amazon-2000
+      changes:
+        - { id: fan-big, label: "$70bn of sales and an 11% margin", levers: { revenueYear10: 70000, marginTarget: 11 } }
+        - { id: fan-margin, label: "$39bn of sales and a 15% margin", levers: { marginTarget: 15 } }
+        - { id: fan-size, label: "$50bn of sales and a 12% margin", levers: { revenueYear10: 50000, marginTarget: 12 } }
+        - { id: fan-money, label: "$39bn, 10% and an 8% cost of capital", levers: { costOfCapitalGrowing: 8 } }
+  - id: worth-q-judge-headline
+    kind: price_or_value
+    prompt: "A headline says \"Amazon is now a $30bn company\", counting every share at that day's price. A price someone paid, or a value someone argued?"
+    skill: price-value
+    choices:
+      - { id: price, text: "A price someone paid" }
+      - id: value
+        text: A value someone argued
+        mistake: { tag: price_for_value, fix: "It counts what buyers paid that day for every share: a price, however big it sounds. A value is argued from the business's future cash." }
+    answer: price
+    explanation: The headline adds up what buyers paid for each share that day; nobody argued from Amazon's future to get it.
+    source: "Illustrative headline, not from a newspaper; price against value as in Damodaran, valuation of Amazon, February 2000 (HighGrow.pdf)"
+  - id: worth-q-judge-analyst
+    kind: price_or_value
+    prompt: "An analyst writes: \"On my sales and margins, a share is worth $40.\" A price someone paid, or a value someone argued?"
+    skill: price-value
+    choices:
+      - { id: value, text: "A value someone argued" }
+      - id: price
+        text: A price someone paid
+        mistake: { tag: value_for_price, fix: "Nobody paid $40: she worked it out from a story about sales and margins, so it is a value." }
+    answer: value
+    explanation: The $40 comes from her story about the business, not from a trade, so it is a value.
+    source: "Illustrative statement, not from the paper; price against value as in Damodaran, valuation of Amazon, February 2000 (HighGrow.pdf)"
+  - id: worth-q-judge-founder
+    kind: cannot_hold
+    prompt: A founder pitches three stories for a shop that sells online. Which one contradicts itself?
+    skill: levers
+    choices:
+      - { id: free, text: "Sales grow ten times over and it builds no new warehouses" }
+      - id: spends
+        text: Sales grow fast and it spends on warehouses first
+        mistake: { tag: free_growth, fix: "Spending before the sales come is what fast growth costs: this story holds together." }
+      - id: dull
+        text: Sales grow slowly and it keeps a thin margin
+        mistake: { tag: dull_is_fine, fix: "A dull story can still hold together. Fast growth with no spending cannot." }
+    answer: free
+    explanation: Growth costs money. Selling ten times as much needs warehouses and systems first.
+    source: "Illustrative pitch, not from the paper; growth costs as in Damodaran, valuation of Amazon, February 2000 (HighGrow.pdf)"
+  - id: worth-q-judge-rivals
+    kind: direction
+    prompt: An analyst's story says rival shops will never cut their prices. If they do, which lever in her story moves, and which way?
+    skill: levers
+    choices:
+      - { id: margin-down, text: "What it keeps, down" }
+      - id: size-up
+        text: How big it gets, up
+        mistake: { tag: lever_mixup, fix: "Rivals cutting prices squeeze what Amazon keeps of each sale; they do not make Amazon bigger." }
+      - id: risk-down
+        text: How risky it is, down
+        mistake: { tag: lever_mixup, fix: "A price war makes the story less sure, not safer. What moves first is what Amazon keeps." }
+    answer: margin-down
+    explanation: To keep its buyers when rivals cut prices, Amazon must cut its own, so it keeps less of each sale.
+    source: "Illustrative story, not from the paper; the levers as in Damodaran, valuation of Amazon, February 2000 (HighGrow.pdf)"
+  - id: worth-q-judge-safer
+    kind: direction
+    prompt: A fan's story says investors will soon see Amazon as a safer bet. Which lever in the fan's story moves, and which way?
+    skill: levers
+    choices:
+      - { id: risk-down, text: "How risky it is, down" }
+      - id: size-up
+        text: How big it gets, up
+        mistake: { tag: lever_mixup, fix: "Feeling safer changes the return investors ask, not how much Amazon sells." }
+      - id: margin-up
+        text: What it keeps, up
+        mistake: { tag: lever_mixup, fix: "Feeling safer changes the return investors ask, not what Amazon keeps of each sale." }
+    answer: risk-down
+    explanation: A safer bet means investors ask a lower return, so the cost of capital, how risky it is, goes down.
+    source: "Illustrative story, not from the paper; the levers as in Damodaran, valuation of Amazon, February 2000 (HighGrow.pdf)"
 
 checks:
   - id: worth-check
@@ -274,8 +367,8 @@ checks:
           case: spine-01-amazon-2000
           changes:
             - { id: margin, label: "Margin 10% to 12%", levers: { marginTarget: 12 } }
-            - { id: reinvest, label: "Sales to capital 3 to 4", levers: { salesToCapital: 4 } }
-            - { id: risk, label: "Cost of capital 12.84% to 11.84%", levers: { costOfCapitalGrowing: 11.84 } }
+            - { id: reinvest, label: "Sales for each $ invested, $3 to $4", levers: { salesToCapital: 4 } }
+            - { id: risk, label: "Cost of capital one point lower", levers: { costOfCapitalGrowing: 11.84 } }
       - id: worth-try-hold
         skill: levers
         ask: Which story holds together?
@@ -286,8 +379,10 @@ checks:
           - id: free
             text: Sales grow 35 times in ten years and it invests almost nothing
             mistake: { tag: free_growth, fix: "Growth costs money: selling 35 times as much needs warehouses and systems first." }
+  # The judging Check by tap (ADR 0020): it was a conversation Check asking for the Learner's own story. The id is kept,
+  # so a Learner who passed it keeps the pass and owes no Due Check (it is not required).
   - id: worth-talk
-    kind: conversation
-    prompt: Tell Amazon's story in two or three sentences, as you would set the four levers. Which lever are you least sure of, and why?
-    passCriteria: Gives a size, a margin and either a cost of growth or a risk; ties the value to that story; names one lever as uncertain with a reason; and treats the gap to the price as a question, not proof that the price is wrong.
-    skills: [levers, price-value]
+    kind: quiz
+    questions: [worth-q-judge-price, worth-q-judge-headline, worth-q-judge-analyst, worth-q-judge-founder, worth-q-judge-rivals, worth-q-judge-safer]
+    perAttempt: 4
+    passRule: { correct: 3 }

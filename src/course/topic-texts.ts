@@ -32,6 +32,7 @@ export type TopicText = { where: string; text: string; group: TextGroup };
 /** What the walker reads. The Topic schema's own refinement passes a Topic file before its Connections get titles. */
 export type TextSource = Pick<Topic, "cases" | "concept" | "principle" | "insight" | "questions" | "checks" | "runningExample" | "terms" | "skills" | "templates" | "scenes" | "primers"> & {
   goDeeper?: string;
+  dailyLife?: string;
   connections?: readonly { text: string }[];
 };
 
@@ -66,11 +67,16 @@ export function topicTexts(topic: TextSource): TopicText[] {
   add("earlier", "concept", topic.concept);
   if (topic.goDeeper) add("earlier", "Go deeper", topic.goDeeper);
   add("earlier", "principle", topic.principle);
+  if (topic.dailyLife) add("earlier", "daily-life line", topic.dailyLife);
   if (topic.insight) {
     add("earlier", "insight question", topic.insight.question);
     add("earlier", "insight written", topic.insight.written);
     add("earlier", "insight foundWhen", topic.insight.foundWhen);
     topic.insight.hints.forEach((h, i) => add("earlier", `insight hint ${i + 1}`, h));
+    for (const c of topic.insight.pick?.choices ?? []) {
+      add("earlier", `insight choice "${c.id}"`, c.text);
+      if (c.mistake) add("earlier", `insight choice "${c.id}" fix`, c.mistake.fix);
+    }
   }
   (topic.connections ?? []).forEach((c, i) => add("earlier", `Connection ${i + 1}`, c.text));
   for (const q of topic.questions) {
