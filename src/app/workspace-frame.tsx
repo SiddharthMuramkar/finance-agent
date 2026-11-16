@@ -1,7 +1,11 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useRef, type ReactNode } from "react";
+import { useModalSheet } from "./modal-sheet";
 import { Button } from "./primitives/button";
 import { SplitHandle } from "./split-handle";
 import { SPLIT_DEFAULT, splitStyle } from "./split";
+import { useScreen } from "./widget-panel";
 
 /**
  * The Study Workspace's frame, under the header: first the Topic bar (`bar`), a Band across the whole width above both
@@ -16,7 +20,9 @@ import { SPLIT_DEFAULT, splitStyle } from "./split";
  * On a phone (below 768 px, CSS so the first paint is right; spec #68, #82) the conversation fills the screen and the right
  * column is a full-screen sheet that slides up while `open` (a Widget's chip opened it) and waits below the screen
  * otherwise. Both stay mounted, so the thread keeps its scroll and the Widget its state; the sheet's own Back button calls
- * `onClose`. Tablets and laptops ignore `open`: the two columns are as they were.
+ * `onClose`. While it is up the sheet is a modal dialog (useModalSheet): the conversation and the header behind it are
+ * inert, focus moves to its Back button, Escape closes it, and focus returns to the chip that opened it. Tablets and
+ * laptops ignore `open`: the two columns are as they were.
  */
 export function WorkspaceFrame({
   left,
@@ -46,6 +52,10 @@ export function WorkspaceFrame({
   const sheet = open
     ? "max-md:visible max-md:translate-y-0"
     : "max-md:invisible max-md:translate-y-full";
+  const column = useRef<HTMLDivElement>(null);
+  const phone = useScreen() === "phone";
+  const modal = open && phone;
+  useModalSheet(column, modal, onClose);
   return (
     <>
       {bar}
@@ -53,7 +63,11 @@ export function WorkspaceFrame({
         {left}
         <SplitHandle initial={split} />
         <div
+          ref={column}
           id="widget-column"
+          role={modal ? "dialog" : undefined}
+          aria-modal={modal || undefined}
+          aria-label={modal ? "Widget sheet" : undefined}
           data-testid="panel-column"
           data-open={open || undefined}
           data-view={view}
@@ -61,7 +75,7 @@ export function WorkspaceFrame({
         >
           {/* A phone's way back to the conversation (the browser's Back does the same); hidden on tablets and laptops. */}
           <div className="shrink-0 md:hidden">
-            <Button variant="tertiary" size="sm" onClick={onClose}>
+            <Button variant="tertiary" size="sm" onClick={onClose} data-sheet-start>
               <span aria-hidden="true">←</span> Back to the conversation
             </Button>
           </div>
