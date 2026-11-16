@@ -147,7 +147,7 @@ const F4_RULES: readonly F4Rule[] = ["readingLinks", "bandLinks", "bandButtons",
  */
 const F4_KNOWN: Record<string, { rule: F4Rule; why: string }> = {};
 
-/** Home signed out: the matrix shoots Home signed in, so the visitor's Home (its Join early access) is judged here. */
+/** Home signed out: the matrix shoots Home signed in, so the visitor's Home (its Join the waitlist) is judged here. */
 const HOME_SIGNED_OUT: MatrixPage = { id: "home-signed-out", path: "/", seed: null, kind: "reading", signedOut: true, public: true };
 
 test.describe("[F4] what can be pressed stays obvious on every page of the preview matrix", () => {

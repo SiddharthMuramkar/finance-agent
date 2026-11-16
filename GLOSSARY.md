@@ -29,6 +29,10 @@ The Owner's advance yes for one email address, so that person skips the wait.
 **Approve / Deny**:
 The Owner's decision, in Clerk's Waitlist, to let an Applicant in (invite) or keep them out (reject).
 
+**Waitlist**:
+The list on `/join` where a Visitor leaves their email to ask in; Clerk keeps it. On screen it has this one name: "Join the waitlist".
+_Avoid_: early access list, sign-up list, your place
+
 **Early access**:
 The free, invite-only access the site offers: the Owner lets each person in by hand.
 _Avoid_: beta
