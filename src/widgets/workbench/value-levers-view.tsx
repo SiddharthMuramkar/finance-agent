@@ -8,6 +8,7 @@ import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
 import { MarketReadingsView } from "../market-readings-view";
 import { SliderControl } from "../slider-control";
+import { fullSheet } from "./full-sheet";
 import {
   AFTER_YEAR_10_LABEL,
   CASH_FLOW_CAPTION,
@@ -24,6 +25,7 @@ import {
   type CashFlowBar,
   type LeverId,
   type LeverSettings,
+  type LeverSpec,
   type Moves,
   type MoveRun,
   type Story,
@@ -282,6 +284,7 @@ export function ValueLeversView({
           {more.map((s) => control(s.id))}
         </details>
       )}
+      <FullSheetDisclosure block={block} specs={specs} settings={settings} mode={mode} market={market} />
       <CashFlowBars bars={model.cashFlows} />
       {mode?.kind === "all_open" && onSaveStory && (
         <div className="mt-2 flex items-center gap-3">
@@ -306,6 +309,35 @@ export function ValueLeversView({
       <MarketReadingsView ids={readings} />
       {tasks.length > 0 && <GuidedTasksFigure tasks={[...tasks]} reached={now} />}
     </div>
+  );
+}
+
+/**
+ * Go deeper: the Full sheet, every input of the valuation on screen in plain words, read-only. Its rows are worked out only
+ * once it is opened, and a closed Go deeper adds nothing to the Workbench at rest.
+ */
+function FullSheetDisclosure({ block, specs, settings, mode, market }: { block: ValuationBlock; specs: readonly LeverSpec[]; settings: LeverSettings; mode?: ValueLeversMode; market: number }) {
+  const [open, setOpen] = useState(false);
+  const sheet = open ? fullSheet(block, specs, settings, mode, market) : null;
+  return (
+    <details className="group mt-1 border-t border-[var(--hairline)] pt-1" data-testid="value-levers-go-deeper" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-[var(--ink-2)] [&::-webkit-details-marker]:hidden">
+        <Chevron />
+        Go deeper: the Full sheet
+      </summary>
+      {sheet && !sheet.ok && <p className="text-sm text-[var(--muted)]">{sheet.error}</p>}
+      {sheet?.ok && (
+        <dl className="mb-2 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm" data-testid="full-sheet" aria-label="Every input of this valuation">
+          {sheet.rows.map((row) => (
+            <div key={row.input} className="contents" data-row={row.input}>
+              <dt className="text-[var(--muted)]">{row.words}</dt>
+              <dd className="text-right tabular-nums">{row.reading}</dd>
+              {row.years && <dd className="col-span-2 -mt-1 text-xs tabular-nums text-[var(--muted)]">Year by year: {row.years.join(", ")}</dd>}
+            </div>
+          ))}
+        </dl>
+      )}
+    </details>
   );
 }
 
