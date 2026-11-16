@@ -16,6 +16,7 @@ import { homeAnnuityCheckErrors, writtenAheadCheckErrors, writtenAheadCheckWarni
 import { goalCheckErrors } from "../src/course/goal-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
 import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
+import { REPORT_GUIDE_INPUTS, reportGuideErrors } from "../src/markets/report-guides.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 import { renderValuationCases, VALUATION_REGISTRY_PATH } from "../src/course/valuation-registry.ts";
 
@@ -69,6 +70,8 @@ if (goals.length) fail("Topic goals, why lines and found lines that break the ru
 // or current, and a premium reading's inputs give the premium it states.
 const readings = marketReadingErrors(MARKET_READING_INPUTS);
 if (readings.length) fail("Market readings that are not dated and sourced (spec #68)", readings);
+const guides = reportGuideErrors(REPORT_GUIDE_INPUTS);
+if (guides.length) fail("Annual-report guide lines with no source (spec #68)", guides);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 // The valuation Case registry (spec 2026-11-12 B1): what client and server code value a Case from, by its id.
