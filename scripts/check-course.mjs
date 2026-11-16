@@ -14,6 +14,7 @@ import { connectionsCheckErrors } from "../src/course/connections-check.ts";
 import { youllLearnCheckErrors } from "../src/course/youll-learn-check.ts";
 import { homeAnnuityCheckErrors, writtenAheadCheckErrors, writtenAheadCheckWarnings } from "../src/course/written-ahead-check.ts";
 import { goalCheckErrors } from "../src/course/goal-check.ts";
+import { fullSheetWordsErrors } from "../src/course/full-sheet-words-check.ts";
 import { HOME_WIDGET } from "../src/site/home-widget-spec.ts";
 import { MARKET_READING_INPUTS, marketReadingErrors } from "../src/markets/readings.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
@@ -69,6 +70,10 @@ if (goals.length) fail("Topic goals, why lines and found lines that break the ru
 // or current, and a premium reading's inputs give the premium it states.
 const readings = marketReadingErrors(MARKET_READING_INPUTS);
 if (readings.length) fail("Market readings that are not dated and sourced (spec #68)", readings);
+
+// The Full sheet's row words and each row's Lingo card (spec #68, #103): plain words, no typed formula, card word limits.
+const fullSheetWords = fullSheetWordsErrors();
+if (fullSheetWords.length) fail("Full sheet words that break the rules", fullSheetWords);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 // The valuation Case registry (spec 2026-11-12 B1): what client and server code value a Case from, by its id.
