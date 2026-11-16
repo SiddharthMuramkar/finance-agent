@@ -31,7 +31,7 @@ export function WritingIndicator({
 /**
  * Send, inside the field on the right: its title says why it is off while the box is empty. It is the view's one filled
  * primary only while the box has words; empty, it is off and drawn in the flat dim fill, so the Next chip is the one
- * primary (ADR 0013, #478).
+ * primary (ADR 0018, #478).
  */
 function SendButton() {
   const empty = useAuiState((st) => st.composer.isEmpty);
@@ -69,13 +69,13 @@ function Paperclip() {
 
 /**
  * The message box at the bottom of the Study Workspace's left column, pinned under the thread with a fade above it: one
- * 44px field (.field-shell, ADR 0013) holding Attach a passage on the left, the message box, and Send on the right; the
+ * 44px field (.field-shell) holding Attach a passage on the left, the message box, and Send on the right; the
  * field takes the accent edge and halo while the message box has focus.
  * It stays editable while a turn runs, so the Learner can draft the next message; Send stays off during a turn and
  * while the box is empty (assistant-ui's composer rules). Attach a passage opens a small box above it: the text is
  * saved privately with this Session and given to the Tutor with the message, never added to the Library. The one
  * Send sends the message and the passage together. While a reply runs, Send becomes Stop: code holds every reply
- * until it has checked it (ADR 0008), so Stop drops the held reply. The Learner's message stays, with a Stopped note.
+ * until it has checked it (ADR 0006), so Stop drops the held reply. The Learner's message stays, with a Stopped note.
  */
 export function MessageBox({
   phase,

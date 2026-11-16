@@ -5,8 +5,7 @@ import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { parkedSkills } from "@/learner/skill-state";
 import { topicSessions } from "@/tutor/session-log";
-import { accountFor } from "../account";
-import { readTheme } from "../theme-cookie";
+import { currentAccount } from "../account";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { CourseMapView } from "./course-map-view";
 
@@ -19,13 +18,13 @@ export default async function CourseMapPage() {
   const db = getDb();
   const learner = await signedInLearner();
   const learnerId = learner.id;
-  const [progress, sessions, theme] = await Promise.all([loadProgress(db, learnerId), topicSessions(db, learnerId), readTheme()]);
+  const [progress, sessions] = await Promise.all([loadProgress(db, learnerId), topicSessions(db, learnerId)]);
   // Only converted Topics have Skill state; with none, the skill_state table is never read.
   const parked = await parkedSkills(db, learnerId, map.topics.filter(isConverted).map((t) => t.id));
   const next = whatComesNext(map, progress);
   return (
     <SignedInFrame>
-      <ReadingPage current="course" theme={theme} account={await accountFor(db, learner)}>
+      <ReadingPage current="course" account={await currentAccount()}>
         <CourseMapView
           topics={courseOverview(map, progress, parked)}
           coming={map.coming}

@@ -8,6 +8,14 @@ import { describe, expect, it } from "vitest";
 const FAMILY = "(?:mint|coral|sun|violet|you|src)";
 /** A family colour as text: the base or its -ink. */
 const INK = `${FAMILY}(?:-ink)?`;
+/**
+ * A signal colour as text (spec 2.2 rule 5, "text does not wear data colour"): gain, loss and wait and their -ink, and the
+ * status names that now point at them (--success is gain-ink, --warning is wait-ink; decision #17). --danger stays allowed:
+ * it is the error text of a failed check or a nothing-left warning, always said in words.
+ */
+const SIGNAL_TEXT = "(?:gain|loss|wait|success|warning)(?:-ink)?";
+/** Any colour a Widget's text must not wear. */
+const TEXT = `(?:${INK}|${SIGNAL_TEXT})`;
 /** A family -tint or -tag token (and -tag-ink). */
 const TINT = `${FAMILY}-(?:tint|tag)`;
 /** Tailwind's colour utilities: each names a colour after its dash. */
@@ -21,7 +29,7 @@ const RULES: Record<string, RegExp> = {
   familyFill: new RegExp(`\\((?:color:)?--${TINT}|(?<![\\w-])${PAINT}-${TINT}(?:-ink)?(?![\\w-])`),
   // Text in HTML (`text-…`, `color:`) and in SVG (`fill` on `<text>`, `<tspan>` or `<textPath>`, as an attribute or a class).
   familyText: new RegExp(
-    `(?<![\\w-])text-${value(INK)}|color:\\s*${quoted(INK)}|<(?:text|tspan|textPath)\\b[^>]*(?:\\bfill=${quoted(INK)}|\\bfill-${value(INK)}|\\bfill:\\s*${quoted(INK)})`,
+    `(?<![\\w-])text-${value(TEXT)}|color:\\s*${quoted(TEXT)}|<(?:text|tspan|textPath)\\b[^>]*(?:\\bfill=${quoted(TEXT)}|\\bfill-${value(TEXT)}|\\bfill:\\s*${quoted(TEXT)})`,
   ),
   shadow: /shadow-\[|shadow-(?:sm|md|lg|xl|2xl|inner)\b|boxShadow:/,
   pill: /rounded-(?:2xl|3xl)\b|rounded[a-z-]*-\[(?:1[3-9]|[2-9]\d|[1-9]\d{2,})px\]|rounded[a-z-]*-\[(?:0?\.(?:7[6-9]|[89])\d*|0?\.75\d*[1-9]\d*|[1-9]\d*(?:\.\d+)?)rem\]/,
@@ -80,10 +88,11 @@ describe("the minimal Widget look", () => {
         "text-[var(--violet-ink)]", "text-[var(--sun)]", 'color: "var(--coral-ink)"', '<text x={4} fill="var(--sun-ink)">',
         "text-violet-ink", "hover:text-sun", "text-you", "text-src/80", "text-(--sun-ink)", "text-(color:--mint)", "text-[color:var(--coral)]", "color: 'var(--violet)'",
         '<text x={1} fill="var(--you)">', '<text fill="var(--src)">', '<text fill="var(--sun)">', '<tspan fill="var(--mint-ink)">', '<text className="fill-violet-ink">', '<text className="fill-(--coral)">',
+        "text-[var(--success)]", "text-success", "text-gain-ink", "text-(--loss)", 'color: "var(--wait-ink)"', '<text fill="var(--gain)">',
       ],
       miss: [
-        'stroke="var(--sun-ink)"', "border-[var(--sun)]", "text-[var(--success)]",
-        "border-sun", "border-(--sun-ink)", "stroke-violet-ink", "fill-[var(--you)]", '<rect fill="var(--sun)">', '<text fill="var(--ink)">', "text-success", "text-sm",
+        'stroke="var(--sun-ink)"', "border-[var(--sun)]", "text-[var(--danger)]", "text-gain-tint", 'color="var(--success)"',
+        "border-sun", "border-(--sun-ink)", "stroke-violet-ink", "fill-[var(--you)]", '<rect fill="var(--sun)">', '<text fill="var(--ink)">', "text-sm",
       ],
     },
     shadow: {

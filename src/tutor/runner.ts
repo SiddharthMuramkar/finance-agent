@@ -13,17 +13,27 @@ import { StepAborted, type ModelClient, type RunnableTool, type StepRequest, typ
  *   finishes, and its results are still appended before the loop throws.
  * - `return()` aborts the step still streaming, so nothing hangs on the request. A step the loop is still waiting on
  *   (a tool running) finishes first; the caller aborts the signal on a cut-off, so no request is left open.
+ * - The step limit (decision #13): with `stepsLeft`, the runner asks the turn's Step ledger before each step, since a
+ *   tool may save steps of its own (compose_widget). The last step left is sent with tool choice "none", so it writes
+ *   the reply; with none left, no request is sent, the loop ends and `stepLimitReached` is true.
  * Compaction is not the runner's: the Tutor Turn folds the Session once its reply has passed the checks (turn.ts).
  */
 
 export type RunnerParams = Omit<StepRequest, "tools"> & { tools: RunnableTool[] };
 
-export type ToolRunner = AsyncIterable<StepStream> & { params: RunnerParams };
+export type ToolRunner = AsyncIterable<StepStream> & { params: RunnerParams; stepLimitReached: boolean };
 
-export function runTools(client: ModelClient, params: RunnerParams, options?: { signal?: AbortSignal }): ToolRunner {
+export type RunnerOptions = {
+  signal?: AbortSignal;
+  /** How many more steps the turn may take (its Step ledger), asked before each step. Left out, there is no limit. */
+  stepsLeft?: () => Promise<number>;
+};
+
+export function runTools(client: ModelClient, params: RunnerParams, options?: RunnerOptions): ToolRunner {
   const outer = options?.signal;
-  return {
+  const runner: ToolRunner = {
     params,
+    stepLimitReached: false,
     async *[Symbol.asyncIterator]() {
       const model = client.forRun?.() ?? client;
       // The runner's own signal: aborted with the caller's, and when the loop is closed early (a cut-off).
@@ -38,7 +48,12 @@ export function runTools(client: ModelClient, params: RunnerParams, options?: { 
         for (;;) {
           // An aborted runner sends no new request.
           checkAbort();
-          const stream = once(model.step(stepRequest(params), { signal: own.signal }));
+          const left = options?.stepsLeft ? await options.stepsLeft() : Infinity;
+          if (left <= 0) {
+            runner.stepLimitReached = true;
+            return;
+          }
+          const stream = once(model.step(stepRequest(params, left === 1), { signal: own.signal }));
           yield stream;
           const final = await stream.final();
           if (final.stopReason !== "tool_use") return;
@@ -54,10 +69,11 @@ export function runTools(client: ModelClient, params: RunnerParams, options?: { 
       }
     },
   };
+  return runner;
 }
 
-/** What one step sends: the runner's history as it stands, and the tools without their code. */
-function stepRequest(params: RunnerParams): StepRequest {
+/** What one step sends: the runner's history as it stands, and the tools without their code; the last step may call none. */
+function stepRequest(params: RunnerParams, last: boolean): StepRequest {
   return {
     model: params.model,
     effort: params.effort,
@@ -65,6 +81,7 @@ function stepRequest(params: RunnerParams): StepRequest {
     tools: params.tools.map(({ type, name, description, parameters, strict }) => ({ type, name, description, parameters, strict })),
     messages: [...params.messages],
     maxOutputTokens: params.maxOutputTokens,
+    ...(last && { toolChoice: "none" as const }),
   };
 }
 

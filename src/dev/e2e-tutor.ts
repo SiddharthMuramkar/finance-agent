@@ -95,7 +95,7 @@ export const E2E_SCRIPTS = {
   },
   /**
    * E5's stage scripts: Concept replies like concept-reply-widget, each showing a Widget of a different recipe from the
-   * Concept card's rate_move and from each other, so a Session collects one tab per reply (B6, ADR 0019: a Widget that
+   * Concept card's rate_move and from each other, so a Session collects one tab per reply (B6, ADR 0008: a Widget that
    * opens the same slider recipe at new numbers takes its tab in place instead).
    */
   "stage-reply-2": {
@@ -289,7 +289,7 @@ export const E2E_SCRIPTS = {
   },
   /**
    * reveal-reply with a Widget the Tutor shows itself (a Lingo card for "quarter point"): the late opener of
-   * e2e/reply-landed.spec.ts, which needs an opener that brings a Widget now that code adds none to it (B6, ADR 0019).
+   * e2e/reply-landed.spec.ts, which needs an opener that brings a Widget now that code adds none to it (B6, ADR 0008).
    */
   "reveal-reply-widget": {
     step: "reveal",

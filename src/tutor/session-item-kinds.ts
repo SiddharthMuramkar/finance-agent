@@ -77,7 +77,7 @@ export type QuickTryResultData = { key: string; verdict: "right" | "known_mistak
 export const REPLY_CHOICES = "reply_choices";
 
 /**
- * A reply's Choices: what each button reads and the words its press posts, words only (ADR 0014). An item stored by an
+ * A reply's Choices: what each button reads and the words its press posts, words only (ADR 0008). An item stored by an
  * older Session may still carry an `emoji` registry name; nothing reads it, and code writes none.
  */
 export type ReplyChoicesData = { choices: { id: string; label: string; says: string; emoji?: string }[]; dropped?: string };

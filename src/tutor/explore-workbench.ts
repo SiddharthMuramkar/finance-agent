@@ -2,7 +2,7 @@ import { exploreWorkbenchParams } from "@/course/explore-widget";
 import type { Topic } from "@/course/map";
 
 /**
- * A Spine Topic's explore Workbench (spec 2026-11-12 B2, C2; ADR 0018) as a show_widget call. Code puts the Workbench in
+ * A Spine Topic's explore Workbench (spec 2026-11-12 B2, C2; ADR 0010) as a show_widget call. Code puts the Workbench in
  * the Widget panel at explore (exploreWidgetOf, src/course/explore-widget.ts), and the Tutor is told it is on screen;
  * the call is the same recipe and params, so show_widget can tell a call that would open it again (opensExploreWorkbench)
  * and point the Tutor at the "Explore" tab instead of drawing a second copy. Pure.

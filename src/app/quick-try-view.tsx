@@ -62,7 +62,7 @@ export function quickTryResultOf(
 
 /**
  * A Quick try in the conversation: its ask (with the first step shown done, for a half-done try) and the choices to tap,
- * never a box to type in (ADR 0009). A wrong tap shows its mix-up fix at once, in the result under the try. Locked while
+ * never a box to type in (ADR 0002). A wrong tap shows its mix-up fix at once, in the result under the try. Locked while
  * a Tutor turn runs and once the try has a result; read-only with no host. An older stored try (kind "number", no
  * choices) draws read-only too, with a line that a fresh one comes from the Tutor.
  */

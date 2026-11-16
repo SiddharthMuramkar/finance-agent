@@ -1,5 +1,5 @@
 /**
- * The Widget panel's tab list (spec 2026-11-12 B6, ADR 0019): at most six tabs. Pure, so the rule is tested on lists.
+ * The Widget panel's tab list (spec 2026-11-12 B6, ADR 0008): at most six tabs. Pure, so the rule is tested on lists.
  *
  * - A Widget that opens the same slider recipe as a tab at new numbers (same recipe id, both with slider presets), or the
  *   same written-ahead Widget (same id), takes that tab in place: its position stays, the tab shows the new numbers

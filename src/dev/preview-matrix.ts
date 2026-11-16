@@ -1,7 +1,8 @@
 /**
- * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 2 themes x 13 pages, plus one
- * `/login?error=INVALID_TOKEN` (expired sign-in link) shot per project; and (spec 2026-11-12 G9, F6) a phone, 390 px wide,
- * in both themes for the public pages only (Home, About and sign-in): the Study Workspace shows only its phone note there.
+ * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 16 pages in the one Light theme
+ * (decision #17), plus one `/sign-in?wrong=1` (the sign-in page with its error) shot per project; and (spec 2026-11-12 G9,
+ * F6) a phone, 390 px wide, for the public pages only (the Signal site's Home, How it works, Examples, a case page, About,
+ * and sign-in): the Study Workspace shows only its phone note there.
  * Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs both read it, and src/dev/preview-matrix.test.ts
  * checks its shape.
  */
@@ -13,14 +14,14 @@ export const MATRIX_VIEWPORTS: readonly MatrixViewport[] = [
   { id: "w1280", width: 1280, height: 800 },
   { id: "w1920", width: 1920, height: 1080 },
   { id: "w1024", width: 1024, height: 768 },
-  // G9: a phone, for the public pages only (playwright.config.ts's p390 and, with UI_MATRIX=1, p390-dark).
+  // G9: a phone, for the public pages only (playwright.config.ts's p390).
   { id: "p390", width: 390, height: 844, publicOnly: true },
 ];
 
-export const MATRIX_THEMES = ["light", "dark"] as const;
+export const MATRIX_THEMES = ["light"] as const;
 
 export type MatrixSeed = "story" | "story-scene" | "lingo" | "concept-widget" | "quiz-open" | "mix-up" | "topic-complete" | "many-topics";
-export type MatrixKind = "study" | "reading" | "login";
+export type MatrixKind = "study" | "reading" | "sign-in";
 
 /**
  * Running prose on a reading page (§2: "panels and Widgets span the width, running prose caps at 70ch"): `required`
@@ -31,13 +32,13 @@ export type MatrixProse = "required" | "if-any";
 
 export type MatrixPage = {
   id: string; path: string; seed: MatrixSeed | null; kind: MatrixKind; signedOut: boolean; prose?: MatrixProse;
-  /** A public page (Home, About, sign-in): shot at the phone width too (G9). */
+  /** A public page (the Signal site and sign-in): shot at the phone width too (G9). */
   public?: true;
   /** Each card of a multi-column grid is its own column: its paragraphs are measured inside it (measureLayout's `cardsAsColumns`). */
   cardsAsColumns?: true;
 };
 
-/** The thirteen pages and states of the spec, in the order they are shot. Login pages run last (they sign the Learner out). */
+/** The sixteen pages and states, in the order they are shot. Signed-out pages run last (they sign the Learner out). */
 export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "home", path: "/", seed: "story", kind: "reading", signedOut: false, public: true },
   // The About page (spec 2026-11-11, D1): public and static, Home's layout, so it has no reading column to measure.
@@ -56,13 +57,19 @@ export const MATRIX_PAGES: readonly MatrixPage[] = [
   // Settings (A5) is all cards in a card-grid of 2+ columns at every matrix viewport; A1: "Running paragraphs inside
   // cards use `measure`", so card text is running prose, measured per card (each card is its own column).
   { id: "settings", path: "/settings", seed: "story", kind: "reading", signedOut: false, prose: "required", cardsAsColumns: true },
-  { id: "login", path: "/login", seed: null, kind: "login", signedOut: true, public: true },
+  // The Signal site's other pages (spec 7.3 to 7.5), as a visitor sees them: one case page stands for the five.
+  { id: "how-it-works", path: "/how-it-works", seed: null, kind: "reading", signedOut: true, public: true },
+  { id: "examples", path: "/examples", seed: null, kind: "reading", signedOut: true, public: true },
+  { id: "case-amazon", path: "/examples/amazon-2000", seed: null, kind: "reading", signedOut: true, public: true },
+  // The sign-in page as the test bed draws it: Clerk is off there (issue #33), so it is the passcode door's form.
+  { id: "sign-in", path: "/sign-in", seed: null, kind: "sign-in", signedOut: true, public: true },
 ];
 
-export const LOGIN_LINK_EXPIRED: MatrixPage = { id: "login-link-expired", path: "/login?error=INVALID_TOKEN", seed: null, kind: "login", signedOut: true, public: true };
+/** The sign-in page with its error line (a wrong passcode), shot once per project beside the plain one. */
+export const SIGN_IN_WRONG: MatrixPage = { id: "sign-in-wrong", path: "/sign-in?wrong=1", seed: null, kind: "sign-in", signedOut: true, public: true };
 
 export type MatrixCell = {
-  /** Playwright project name: "mbp14", "mbp14-dark", ... */
+  /** Playwright project name: "mbp14", "w1280", ... */
   project: string;
   viewport: MatrixViewport;
   theme: (typeof MATRIX_THEMES)[number];
@@ -73,18 +80,15 @@ export type MatrixCell = {
 
 export const MATRIX_DIR = "evidence/preview-matrix";
 
-export const projectName = (viewportId: string, theme: string) => (theme === "dark" ? `${viewportId}-dark` : viewportId);
+export const projectName = (viewportId: string) => viewportId;
 
-/**
- * Every cell: 4 viewports x 2 themes x (13 pages + the expired-link login) = 112, plus the phone's 2 themes x (3 public
- * pages + the expired-link login) = 8: 120.
- */
+/** Every cell: 4 viewports x (16 pages + the sign-in error) = 68, plus the phone's 6 public pages + the sign-in error = 7: 75. */
 export function matrixCells(): MatrixCell[] {
   const cells: MatrixCell[] = [];
   for (const viewport of MATRIX_VIEWPORTS) {
     for (const theme of MATRIX_THEMES) {
-      const project = projectName(viewport.id, theme);
-      for (const page of [...MATRIX_PAGES, LOGIN_LINK_EXPIRED].filter((p) => !viewport.publicOnly || p.public)) {
+      const project = projectName(viewport.id);
+      for (const page of [...MATRIX_PAGES, SIGN_IN_WRONG].filter((p) => !viewport.publicOnly || p.public)) {
         cells.push({ project, viewport, theme, page, file: `${MATRIX_DIR}/${project}/${page.id}.png` });
       }
     }
@@ -100,13 +104,13 @@ export type MatrixThresholds = { gutterMax: number; headerMax: number; panelMinP
 /**
  * The §6.2 thresholds a project's cells are held to. Side gutter <= 32 px (§6.2 names 1280, 1512 and 1920 and no
  * looser bound at 1024, so 32 holds there too; A1's 17 px is its own /study test, not a §6 threshold). Prose line
- * length 45-80, 60-75 from 1440 up, and 50-75 at 1280 (ADR 0013's gates): the reply spans the reading block,
+ * length 45-80, 60-75 from 1440 up, and 50-75 at 1280: the reply spans the reading block,
  * min(544, conversation - 32) px (spec 2026-11-11, C1), about 63 characters of Inter at 1280 and 67 from 1512 up;
  * layout.spec holds the same bands. Header <= 56 px. Widget
  * panel >= 52 % of the viewport: the 45 / 55 default split gives it 52.4 % (spec 2026-11-11, C2a, R21).
  */
 export function matrixThresholds(project: string): MatrixThresholds {
-  const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id || project === `${v.id}-dark`);
+  const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id);
   if (!viewport) throw new Error(`unknown matrix project: ${project}`);
   const [lineMin, lineMax] = viewport.width >= 1440 ? [60, 75] : viewport.width >= 1280 ? [50, 75] : [45, 80];
   return { gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin, lineMax };

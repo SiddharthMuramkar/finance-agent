@@ -73,7 +73,7 @@ const RESET_MS = RESET_FRAMES * RESET_FRAME_MS;
  * A slider with −/+ buttons, the arrow keys and chips, so the Learner can reach every step and land on the values its
  * Guided Tasks name (spec 2026-11-12, B5): drawn by SliderControl, with the stops and chips the Widget's code gives this
  * slider's $variable (SliderLandingContext) beside any quick values the code writes. There is no box to type a value in
- * (ADR 0009: nothing is typed). The rules for what values it takes live in slider-steps.ts.
+ * (ADR 0002: nothing is typed). The rules for what values it takes live in slider-steps.ts.
  */
 function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>) {
   const field = useStateField(props.name, props.value);
@@ -421,7 +421,7 @@ const GuidedTasks = defineComponent({
 
 /**
  * Kit parts the Tutor may not use: images (it could invent links), code and markdown blocks (they show
- * typed formulas, which ADR 0002 forbids), forms, inputs, buttons, modals, carousels and the card building
+ * typed formulas, which ADR 0003 forbids), forms, inputs, buttons, modals, carousels and the card building
  * blocks. They go in one call: removing one at a time throws while a parent still names it. Icon stays,
  * as the only type a ChipItem's icon takes.
  */
@@ -703,7 +703,7 @@ const kit = openuiLibrary.extend({
       ...[...OUR_PARTS, ...NEW_PARTS].map((component) => ({ component, slots: ["Card.children", "TabItem.content", "AccordionItem.content"] })),
       GuidedTask,
       Step,
-      // A Workbench Widget's part stands alone in its Widget (ADR 0018), so no container lists it.
+      // A Workbench Widget's part stands alone in its Widget (ADR 0010), so no container lists it.
       ValueLevers,
       ...BENCH_PARTS,
     ],

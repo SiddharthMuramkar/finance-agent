@@ -68,7 +68,7 @@ questions:
     explanation: >
       The CAGR is the one steady yearly rate that, compounded, links the start value to the end value. When returns swing, a simple average of the yearly changes overstates what an investor actually earned, which is why long-run records quote compound rates.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (geometric mean for growth rates): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 13.1 Measures of Center (geometric mean for growth rates): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
   - id: eh-q-up-down
     prompt: >
@@ -82,7 +82,7 @@ questions:
     explanation: >
       Start with Rs 100: a gain of 50% takes it to Rs 150, and a loss of 50% on that bigger amount takes it to Rs 75. The plain average of +50% and -50% is zero, but the investor has lost 25%: the geometric average is about -13.4% a year.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (arithmetic and geometric mean): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 13.1 Measures of Center (arithmetic and geometric mean): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
   - id: eh-q-recover
     prompt: >
@@ -96,7 +96,7 @@ questions:
     explanation: >
       Starting at 100, a fall of 40% leaves 60. To get back to 100 the price must rise by 40 / 60 = 66.7%, more than the 40% it fell.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (working with growth factors): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 13.1 Measures of Center (working with growth factors): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
   - id: eh-q-real
     prompt: >
@@ -110,7 +110,7 @@ questions:
     explanation: >
       Real return allows for rising prices: (1.15 / 1.10) - 1 = 4.5%. Simply taking away the price rise (15 - 10 = 5%) is a rough approximation that overstates it when inflation is high.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 7.4 Applications of TVM in Finance (nominal versus real interest rates): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 7.4 Applications of TVM in Finance (nominal versus real interest rates): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
 
   - id: eh-q-risk-return
     prompt: >
@@ -124,7 +124,7 @@ questions:
     explanation: >
       In the long US record, large-company stocks earned well above Treasury bills on average, with much wider swings from year to year (a bigger standard deviation). More return came with more risk: that extra reward is the equity risk premium.
     source: >
-      OpenStax, Principles of Finance 2e (CC BY 4.0), 12.4 Historical Picture of Returns to Stocks: https://openstax.org/books/principles-finance-2e/pages/12-4-historical-picture-of-returns-to-stocks
+      OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 12.4 Historical Picture of Returns to Stocks: https://openstax.org/books/principles-finance-2e/pages/12-4-historical-picture-of-returns-to-stocks
 
 checks:
   - id: eh-quiz-returns

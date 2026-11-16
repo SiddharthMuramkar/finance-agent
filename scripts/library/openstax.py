@@ -1,8 +1,13 @@
 """Extracts an OpenStax book's text from its CNXML Git repository into Library source documents.
 
-Run from the laptop (Python 3 standard library only), on a clone kept OUTSIDE this repo:
-  git clone --depth 1 https://github.com/openstax/osbooks-principles-finance <scratch>/osbooks-principles-finance
-  python3 -I scripts/library/openstax.py <scratch>/osbooks-principles-finance principles-finance-2e <scratch>/principles-finance-2e.documents.json
+Run from the laptop (Python 3 standard library only), on a copy kept OUTSIDE this repo:
+  python3 -I scripts/library/openstax.py <repo copy> <book> <out.json> [<source url>]
+
+<book> is the collection's slug (collections/<book>.collection.xml). With <source url> (the repository
+at a fixed commit, such as https://github.com/openstax/osbooks-principles-finance/blob/<commit>),
+each document links to its module's CNXML file there, the text the Library actually holds; without it,
+each links to the book's page on openstax.org. Each source's exact command is its "fetch" line in
+scripts/library/sources.json.
 
 The output is a JSON list of documents ({ref, title, url, publishedOn, sections: [{heading, paragraphs}]})
 for `npm run library:load`, which cleans, cuts, checks for corrupted text and loads them. Exercises,
@@ -94,7 +99,14 @@ def blocks(container, heading, out):
     return out
 
 
-def main(repo, book, out_path):
+def module_url(book, page, mid, source_url=None):
+    """Where a document links: its CNXML file in the repository at a commit, or else its openstax.org page."""
+    if source_url:
+        return f"{source_url.rstrip('/')}/modules/{mid}/index.cnxml"
+    return f"https://openstax.org/books/{book}/pages/{page}"
+
+
+def main(repo, book, out_path, source_url=None):
     col = ET.parse(f"{repo}/collections/{book}.collection.xml").getroot()
     docs = []
     chapter = 0
@@ -111,7 +123,7 @@ def main(repo, book, out_path):
             label = f"{number.replace('-', '.')} {title}"
         sections = [s for s in blocks(content, "", []) if any(p.strip() for p in s["paragraphs"])]
         if sections:
-            docs.append({"ref": mid, "title": label, "url": f"https://openstax.org/books/{book}/pages/{page}", "publishedOn": None, "sections": sections})
+            docs.append({"ref": mid, "title": label, "url": module_url(book, page, mid, source_url), "publishedOn": None, "sections": sections})
 
     for el in col.find("col:content", NS):
         if el.tag.endswith("module"):
@@ -135,6 +147,6 @@ def main(repo, book, out_path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) not in (4, 5):
         sys.exit(__doc__)
     main(*sys.argv[1:])

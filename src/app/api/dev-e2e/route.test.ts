@@ -1,12 +1,9 @@
-import { betterAuth } from "better-auth";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { accessFor, approveAccess, denyAccess, peopleWithAccess, waitingRequests } from "@/auth/access";
-import { authOptions } from "@/auth/better-auth";
-import type { AuthUser } from "@/auth/google-learner";
 import { type Learner, signInAs } from "@/auth/learners";
-import { account, invites, learners, messages, noteItems, OWNER_LEARNER_ID, reviewCards, sessionItems, sessions, user } from "@/db/schema";
+import { learners, messages, noteItems, OWNER_LEARNER_ID, reviewCards, sessionItems, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { E2E_PEOPLE, E2E_PERSON_COOKIE, e2eIdentityFromCookie } from "@/dev/e2e-identity";
 import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { loadCourseMap } from "@/course/map";
@@ -16,16 +13,10 @@ import { STEP_DIVIDER } from "@/tutor/session-item-kinds";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 
-// The request's database, signed-in Learner and Better Auth instance; only those are swapped in. The route itself is real.
-const as = vi.hoisted(() => ({ db: undefined as unknown as Db, learner: null as Learner | null, auth: null as TestAuth | null }));
+// The request's database and signed-in Learner; only those are swapped in. The route itself is real.
+const as = vi.hoisted(() => ({ db: undefined as unknown as Db, learner: null as Learner | null }));
 vi.mock("@/db/client", () => ({ getDb: () => as.db }));
 vi.mock("@/auth/session", () => ({ currentLearner: async () => as.learner }));
-vi.mock("@/auth/better-auth", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/auth/better-auth")>()), getAuth: () => as.auth }));
-
-/** Better Auth as the test bed runs it (playwright.config.ts): test helpers mounted, email links into the outbox. */
-const TEST_BED = { E2E: "1", BETTER_AUTH_SECRET: "e2e-better-auth-secret-012345678", BETTER_AUTH_URL: "http://localhost:3100", GOOGLE_CLIENT_ID: "e2e-not-real", GOOGLE_CLIENT_SECRET: "e2e-not-real" };
-const testBedAuth = (db: Db) => betterAuth(authOptions(db, TEST_BED));
-type TestAuth = ReturnType<typeof testBedAuth>;
 
 const route = await import("./route");
 
@@ -198,127 +189,69 @@ describe("the fixture route", () => {
     });
   });
 
-  // ADR 0014's people, each signed in through a real Better Auth session (the test helpers), as the e2e specs use them.
-  describe("the sign-in fixtures", () => {
-    const FIXTURES = [{ googleOwner: true }, { waitingUser: true }, { invite: "mia@e2e.example" }, { emailLinkFor: "mia@e2e.example" }];
-
-    beforeEach(() => {
-      as.auth = testBedAuth(as.db);
-    });
-    afterEach(() => {
-      globalThis.__faE2eOutbox = undefined;
-      vi.unstubAllGlobals();
-    });
-
+  // The test bed's sign-in people (issue #33): Clerk is off in the test bed, so a signed `fa_e2e_person` cookie stands in
+  // for a Clerk session, and the person's Learner is linked to their (made-up) Clerk user id, as a first sign-in links it.
+  describe("the sign-in people", () => {
+    const SECRET = "e2e-secret-e2e-secret-e2e-secret!!";
     const openTestBed = () => {
       vi.stubEnv("E2E", "1");
-      vi.stubEnv("SESSION_SECRET", "e2e-secret-e2e-secret-e2e-secret!!");
+      vi.stubEnv("SESSION_SECRET", SECRET);
       globalThis.__faE2eIsPglite = true;
     };
 
-    /** The Better Auth user a fixture's response signed the browser in as, read back through the session cookie it set. */
-    async function sessionUser(res: Response): Promise<AuthUser | null> {
-      const cookie = res.headers
-        .getSetCookie()
-        .map((c) => c.split(";")[0])
-        .filter((c) => c.includes("session_token="))
-        .join("; ");
-      const found = await as.auth!.api.getSession({ headers: new Headers({ cookie }) });
-      return found && { id: found.user.id, email: found.user.email, name: found.user.name };
-    }
+    /** The `fa_e2e_person` cookie a response set, whole (value and attributes). */
+    const personCookie = (res: Response) => res.headers.getSetCookie().find((c) => c.startsWith(`${E2E_PERSON_COOKIE}=`));
+    const cookieValue = (res: Response) => decodeURIComponent(personCookie(res)!.split(";")[0].split("=")[1]);
+    const clerkLinked = () => as.db.select().from(learners).where(isNotNull(learners.clerkUserId));
 
-    it("the sign-in fixtures are closed outside the test bed, and to anyone but the tools Learner", async () => {
+    it("{person} is closed outside the test bed, and to anyone but the tools Learner", async () => {
       vi.stubEnv("E2E", undefined);
       globalThis.__faE2eIsPglite = true;
-      for (const body of FIXTURES) expect({ body, status: (await post(body)).status }).toEqual({ body, status: 404 });
+      expect((await post({ person: "owner" })).status).toBe(404);
 
       openTestBed();
       as.learner = await signInAs(as.db, "owner");
-      for (const body of FIXTURES) expect({ body, status: (await post(body)).status }).toEqual({ body, status: 403 });
-      expect(await as.db.select().from(user)).toEqual([]);
-      expect(await as.db.select().from(invites)).toEqual([]);
+      const refused = await post({ person: "owner" });
+      expect(refused.status).toBe(403);
+      expect(personCookie(refused)).toBeUndefined();
+      expect(await clerkLinked()).toEqual([]);
     });
 
-    it("googleOwner signs this browser in as the owner, a Google account linked to the owner Learner; again, the same one", async () => {
+    it("{person: owner} signs this browser in as the test bed's admin, with a Learner of their own; again, the same one", async () => {
       openTestBed();
-      const first = await post({ googleOwner: true });
+      const first = await post({ person: "owner" });
       expect(first.status, await first.clone().text()).toBe(200);
-      const body = (await first.json()) as { learnerId: number; email: string; waiting: number };
-      // The migrations' Learner 1, so the owner's progress is where they left it.
-      expect(body.learnerId).toBe(OWNER_LEARNER_ID);
-      const signedIn = await sessionUser(first);
-      expect(signedIn?.email).toBe(body.email);
-      expect(await accessFor(as.db, signedIn!)).toMatchObject({ state: "approved", learner: { id: OWNER_LEARNER_ID, name: "owner", authUserId: signedIn!.id } });
-      expect(await peopleWithAccess(as.db)).toEqual([expect.objectContaining({ email: body.email, isOwner: true, via: "google" })]);
-      expect(body.waiting).toBe(0);
+      const body = (await first.json()) as { person: string; email: string; learnerId: number };
+      expect(body).toEqual({ person: "owner", email: E2E_PEOPLE.owner.email, learnerId: expect.any(Number) });
+      // A fresh start (issue #33): an account never holds the migrations' owner Learner.
+      expect(body.learnerId).not.toBe(OWNER_LEARNER_ID);
+      expect(await clerkLinked()).toEqual([expect.objectContaining({ id: body.learnerId, clerkUserId: E2E_PEOPLE.owner.userId, archivedAt: null })]);
 
-      const again = await post({ googleOwner: true });
-      expect(again.status).toBe(200);
-      expect(((await again.json()) as { learnerId: number }).learnerId).toBe(OWNER_LEARNER_ID);
-      expect((await sessionUser(again))?.id).toBe(signedIn!.id);
-      expect(await as.db.select().from(user)).toHaveLength(1);
-      expect(await as.db.select().from(account)).toHaveLength(1);
-      expect(await as.db.select().from(invites)).toHaveLength(1);
+      const cookie = personCookie(first)!;
+      expect(cookie).toMatch(/HttpOnly/i);
+      expect(cookie).toMatch(/SameSite=lax/i);
+      expect(cookie).toMatch(/Path=\/(;|$)/);
+      expect(cookie).not.toMatch(/Domain=/i);
+      expect(await e2eIdentityFromCookie(cookieValue(first), SECRET, { E2E: "1" })).toEqual(E2E_PEOPLE.owner);
+
+      const again = await post({ person: "owner" });
+      expect(((await again.json()) as { learnerId: number }).learnerId).toBe(body.learnerId);
+      expect(await clerkLinked()).toHaveLength(1);
     });
 
-    it("waitingUser signs in a verified person nobody invited, who waits; after an approval or a denial, they wait again", async () => {
+    it("{person: asha} is a Learner who is not the admin; anyone else is refused with the people there are", async () => {
       openTestBed();
-      const first = await post({ waitingUser: true });
-      expect(first.status, await first.clone().text()).toBe(200);
-      const body = (await first.json()) as { email: string; waiting: number };
-      const noor = await sessionUser(first);
-      expect(noor?.email).toBe(body.email);
-      expect(await accessFor(as.db, noor!)).toEqual({ state: "waiting" });
-      expect((await waitingRequests(as.db)).map((r) => r.email)).toEqual([body.email]);
-      expect(body.waiting).toBe(1);
+      const asha = await post({ person: "asha" });
+      expect(asha.status).toBe(200);
+      expect(await e2eIdentityFromCookie(cookieValue(asha), SECRET, { E2E: "1" })).toEqual({ ...E2E_PEOPLE.asha, admin: false });
 
-      // An earlier test let her in: the fixture puts her back in Waiting.
-      expect(await approveAccess(as.db, noor!.id)).toMatchObject({ authUserId: noor!.id });
-      const afterApproval = await post({ waitingUser: true });
-      expect(((await afterApproval.json()) as { waiting: number }).waiting).toBe(1);
-      expect(await accessFor(as.db, noor!)).toEqual({ state: "waiting" });
-
-      // An earlier test denied her: the same.
-      expect(await denyAccess(as.db, noor!.id, { ownerUserId: "someone-else" })).toBe("denied");
-      const afterDenial = await post({ waitingUser: true });
-      expect((await sessionUser(afterDenial))?.id).toBe(noor!.id);
-      expect(await accessFor(as.db, noor!)).toEqual({ state: "waiting" });
-      expect(await as.db.select().from(user)).toHaveLength(1);
-    });
-
-    it("invite puts an email on the invite list once, and refuses a non-email", async () => {
-      openTestBed();
-      const first = await post({ invite: " Mia@E2E.example " });
-      expect(first.status).toBe(200);
-      expect(await first.json()).toEqual({ invite: "mia@e2e.example" });
-      expect((await post({ invite: "mia@e2e.example" })).status).toBe(200);
-      expect(await as.db.select().from(invites)).toEqual([expect.objectContaining({ email: "mia@e2e.example", learnerName: null })]);
-      expect((await post({ invite: "not an email" })).status).toBe(400);
-    });
-
-    it("emailLinkFor hands out the sign-in link the test bed kept instead of mailing it, once", async () => {
-      openTestBed();
-      const mail = vi.fn(async () => Response.json({ id: "never" }));
-      vi.stubGlobal("fetch", mail);
-      const asked = await as.auth!.handler(
-        new Request(`${TEST_BED.BETTER_AUTH_URL}/api/auth/sign-in/magic-link`, {
-          method: "POST",
-          headers: { "content-type": "application/json", origin: TEST_BED.BETTER_AUTH_URL },
-          body: JSON.stringify({ email: "Mia@e2e.example", callbackURL: "/study" }),
-        }),
-      );
-      expect(asked.status, await asked.clone().text()).toBe(200);
-      expect(mail).not.toHaveBeenCalled();
-
-      const res = await post({ emailLinkFor: "mia@E2E.example" });
-      expect(res.status).toBe(200);
-      const link = new URL(((await res.json()) as { link: string }).link);
-      expect(link.origin + link.pathname).toBe(`${TEST_BED.BETTER_AUTH_URL}/login`);
-      expect(link.searchParams.get("link")).toMatch(/\S{16,}/);
-      expect(link.searchParams.get("next")).toBe("/study");
-
-      // Handed out once: a second ask finds nothing until another link is sent.
-      expect((await post({ emailLinkFor: "mia@e2e.example" })).status).toBe(404);
+      for (const person of ["noor", "", 1, "__proto__"]) {
+        const refused = await post({ person });
+        expect({ person, status: refused.status }).toEqual({ person, status: 400 });
+        expect(await refused.json()).toMatchObject({ people: Object.keys(E2E_PEOPLE) });
+        expect(personCookie(refused)).toBeUndefined();
+      }
+      expect(await clerkLinked()).toHaveLength(1);
     });
   });
 });

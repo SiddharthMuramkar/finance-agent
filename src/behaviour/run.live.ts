@@ -80,7 +80,7 @@ async function ask(
   let cost = 0;
   for (const turn of q.turns) {
     let text = "";
-    for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId }, turn)) {
+    for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId, noLimits: true }, turn)) {
       if (e.type === "text") text += e.text;
       if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
       if (e.type === "refusal") text += `\n[REFUSAL: ${e.message}]`;
@@ -154,7 +154,7 @@ it("Tutor behaviour test set", { timeout: 3_600_000 }, async () => {
 });
 
 /**
- * One Session per Topic (ADR 0004, fix file B1 and B2): a live Tutor once said "The Sensex story stays
+ * One Session per Topic (ADR 0005, fix file B1 and B2): a live Tutor once said "The Sensex story stays
  * where we left it" in the middle of another Topic. The Learner talks about the lottery in Present
  * value, chooses a fresh Topic, and asks what they were just talking about: the answer must name
  * nothing of the other Topic, because the new Topic's Session holds none of it. Graded by code.
@@ -176,7 +176,7 @@ it(
     await saveJump(db, map, QUESTIONS_TOPIC, new Date(), learnerId);
     const run = async (message: string) => {
       let text = "";
-      for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId }, message)) {
+      for await (const e of runTutorTurn({ db, client: modelClient, map, learnerId, noLimits: true }, message)) {
         if (e.type === "text") text += e.text;
         if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
         if (e.type === "done") spent += e.usage.costUsd ?? 0;

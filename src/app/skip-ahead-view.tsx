@@ -36,7 +36,7 @@ async function post(body: object): Promise<Record<string, unknown>> {
 }
 
 /**
- * Skip ahead on the Topic Start card (spec 2026-11-12 A8, ADR 0020). "I know this: quiz me" opens one mixed quiz in the
+ * Skip ahead on the Topic Start card (spec 2026-11-12 A8, ADR 0004). "I know this: quiz me" opens one mixed quiz in the
  * card: one question for each idea of the Topic, picked and marked by code on the server, whose key the browser never
  * holds before the answers are in. Missing no more than one passes the whole Topic: the card says so, with What comes
  * next and the Course Map. Otherwise it shows the answers and fixes, and the Topic simply carries on from its story. One

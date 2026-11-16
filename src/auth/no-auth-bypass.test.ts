@@ -3,12 +3,12 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * `learnerForAuthUser` hands out a Learner without asking whether the owner denied the account. Only
- * `accessFor` (src/auth/access.ts) may call it, checking the denial first, plus the test bed's route,
- * which seeds fixtures it then signs in through the real checks. Anything else calling it directly
- * would let a denied person in (ADR 0014), so this scan fails on any other value import of it.
+ * `learnerForClerkUser` hands out the Learner of whatever Clerk user id it is given, without asking whether anyone signed
+ * in as them (issue #33). Only `currentSignIn` (src/auth/session.ts) may call it, with the identity Clerk verified (or,
+ * in the browser test bed, its signed stand-in), plus the test bed's route, which signs its test people in the same way.
+ * Anything else calling it could open another person's Learner, so this scan fails on any other value import of it.
  */
-const ALLOWED = new Set(["src/auth/access.ts", "src/app/api/dev-e2e/route.ts"]);
+const ALLOWED = new Set(["src/auth/session.ts", "src/app/api/dev-e2e/route.ts"]);
 const root = join(import.meta.dirname, "..", "..");
 
 function* sources(dir: string): Generator<string> {
@@ -19,34 +19,35 @@ function* sources(dir: string): Generator<string> {
   }
 }
 
-/** Every import or re-export of google-learner in this source, as written. */
-const fromGoogleLearner = (text: string) => [...text.matchAll(/\b(?:import|export)\b[^;]*?from\s*["'][^"']*google-learner(?:\.ts)?["']/g)].map((m) => m[0]);
-const dynamicImport = (text: string) => /import\(\s*["'][^"']*google-learner(?:\.ts)?["']\s*\)/.test(text);
+/** Every import or re-export of clerk-learner in this source, as written. */
+const fromClerkLearner = (text: string) => [...text.matchAll(/\b(?:import|export)\b[^;]*?from\s*["'][^"']*clerk-learner(?:\.ts)?["']/g)].map((m) => m[0]);
+const dynamicImport = (text: string) => /import\(\s*["'][^"']*clerk-learner(?:\.ts)?["']\s*\)/.test(text);
 
-/** True when the statement brings in learnerForAuthUser as a value (a type-only import never can). */
-function bringsInLearnerForAuthUser(statement: string): boolean {
+/** True when the statement brings in learnerForClerkUser as a value (a type-only import never can). */
+function bringsInLearnerForClerkUser(statement: string): boolean {
   if (/^import\s+type\b/.test(statement)) return false;
   if (/\*\s+as\b/.test(statement) || /^export\s*\*/.test(statement)) return true;
-  return /(?<!type\s)\blearnerForAuthUser\b/.test(statement);
+  return /(?<!type\s)\blearnerForClerkUser\b/.test(statement);
 }
 
-describe("no way around the denial check", () => {
-  it("only access.ts and the test bed's route import learnerForAuthUser", () => {
+describe("no way to a Learner around the sign-in", () => {
+  it("only session.ts and the test bed's route import learnerForClerkUser", () => {
     const offenders: string[] = [];
     for (const path of sources(join(root, "src"))) {
       const file = relative(root, path);
-      if (file === "src/auth/google-learner.ts" || ALLOWED.has(file)) continue;
+      if (file === "src/auth/clerk-learner.ts" || ALLOWED.has(file)) continue;
       const text = readFileSync(path, "utf8");
-      if (fromGoogleLearner(text).some(bringsInLearnerForAuthUser) || dynamicImport(text)) offenders.push(file);
+      if (fromClerkLearner(text).some(bringsInLearnerForClerkUser) || dynamicImport(text)) offenders.push(file);
     }
     expect(offenders).toEqual([]);
   });
 
-  it("access.ts does import it, so the scan above is looking at the right name", () => {
-    const text = readFileSync(join(root, "src/auth/access.ts"), "utf8");
-    expect(fromGoogleLearner(text).some(bringsInLearnerForAuthUser)).toBe(true);
-    expect(bringsInLearnerForAuthUser('import { type AuthUser } from "./google-learner"')).toBe(false);
-    expect(bringsInLearnerForAuthUser('import type { AuthUser } from "./google-learner"')).toBe(false);
-    expect(bringsInLearnerForAuthUser('import * as g from "./google-learner"')).toBe(true);
+  it("session.ts does import it, so the scan above is looking at the right name", () => {
+    const text = readFileSync(join(root, "src/auth/session.ts"), "utf8");
+    expect(fromClerkLearner(text).some(bringsInLearnerForClerkUser)).toBe(true);
+    expect(bringsInLearnerForClerkUser('import { type AccountLink } from "./clerk-learner"')).toBe(false);
+    expect(bringsInLearnerForClerkUser('import type { AccountLink } from "./clerk-learner"')).toBe(false);
+    expect(bringsInLearnerForClerkUser('import * as c from "./clerk-learner"')).toBe(true);
+    expect(bringsInLearnerForClerkUser('import { learnerForClerkUser as l } from "./clerk-learner"')).toBe(true);
   });
 });

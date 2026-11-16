@@ -3,8 +3,7 @@ import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadProfile } from "@/learner/profile";
 import { loadYourTopics } from "@/learner/your-topics";
-import { accountFor } from "../account";
-import { readTheme } from "../theme-cookie";
+import { currentAccount } from "../account";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { SettingsView } from "./settings-view";
 
@@ -13,20 +12,18 @@ export const dynamic = "force-dynamic";
 /** Settings: Account, Appearance, About you, Your Topics, Show developer details and Start over, for the signed-in Learner. No model call. */
 export default async function SettingsPage() {
   const learner = await signedInLearner();
-  const [p, theme, account, topics] = await Promise.all([
+  const [p, account, topics] = await Promise.all([
     loadProfile(getDb(), learner.id),
-    readTheme(),
-    accountFor(getDb(), learner),
+    currentAccount(),
     loadYourTopics(getDb(), loadCourseMap(), learner.id),
   ]);
   return (
     <SignedInFrame>
-      <ReadingPage current="settings" theme={theme} account={account}>
+      <ReadingPage current="settings" account={account}>
         <SettingsView
           profile={{ work: p.work ?? "", location: p.location ?? "", loan: p.loan ?? "", savingFor: p.savingFor ?? "" }}
           developerDetails={learner.showDeveloperDetails}
-          theme={theme}
-          account={account}
+          account={account ?? { name: learner.name }}
           topics={topics}
         />
       </ReadingPage>

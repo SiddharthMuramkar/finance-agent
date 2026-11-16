@@ -82,7 +82,7 @@ const SHORT_STEPS: ReadonlySet<StepKind> = new Set(["concept", "your_turn", "che
 const LONG_KINDS: ReadonlySet<ReplyKind> = new Set(["worked_example", "go_deeper"]);
 
 /**
- * Whether a reply needs no ask of its own: at Your turn the open Quick try is the ask (spec 2026-11-12, A7; ADR 0017).
+ * Whether a reply needs no ask of its own: at Your turn the open Quick try is the ask (spec 2026-11-12, A7; ADR 0006).
  * V2 asks for none there, and the retry is told to write none. A Your turn with no Quick try (a Topic not converted,
  * where the Tutor sets the practice itself) still ends on an ask.
  */
@@ -335,7 +335,7 @@ function asksWithContext(text: string): { ask: string; numbers: boolean }[] {
   );
 }
 
-/** V8's message: the phrase that asks for a sum, and what to ask instead (ADR 0009). */
+/** V8's message: the phrase that asks for a sum, and what to ask instead (ADR 0002). */
 export const sumAskMessage = (phrase: string) =>
   `Your reply asks the Learner to work out a sum ("${phrase}"). Ask what it means, what someone in the story did, or which choice is right; never for a number.`;
 
@@ -391,7 +391,7 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   if (words > cap) problems.push({ rule: "V1", message: `Your reply was ${words} words. The limit is ${cap}. Keep one idea and one ask.` });
 
   // V2: one question in the message, one short ask, no other task lines. At Your turn no ask is needed: the open Quick
-  // try is the ask (spec 2026-11-12, A7; ADR 0017), so a reply there that asks nothing passes and is never told to add one.
+  // try is the ask (spec 2026-11-12, A7; ADR 0006), so a reply there that asks nothing passes and is never told to add one.
   const questions = (prose(message).match(/\?/g) ?? []).length;
   if (questions > 1)
     problems.push({
@@ -427,7 +427,7 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   const bold = said.match(BOLD)?.length ?? 0;
   if (bold > 1) problems.push({ rule: "V3", message: `Your reply had ${bold} bold spans. The limit is one: the rule worth writing down.` });
 
-  // V4: a valid Widget, at most one a reply (B6, ADR 0019). A reply with none is not a fault: the Widget showing stays,
+  // V4: a valid Widget, at most one a reply (B6, ADR 0008). A reply with none is not a fault: the Widget showing stays,
   // or code adds the step's scene or a Lingo card after the checks (companion.ts). More than one is still refused.
   if (draft.widgets.length > 1)
     problems.push({ rule: "V4", message: `Your reply showed ${draft.widgets.length} Widgets. The limit is one.` });
@@ -467,7 +467,7 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
       message: `Your reply uses ${wrong.join(" and ")}. This Topic's examples and Widgets use ${currencyName(ctx.exampleCurrency)}.`,
     });
 
-  // V8: no sum asked of the Learner (ADR 0009). Only questions, instructions and the ask are read; one V8 a reply.
+  // V8: no sum asked of the Learner (ADR 0002). Only questions, instructions and the ask are read; one V8 a reply.
   const sum = sumAsked(draft.text);
   if (sum) problems.push({ rule: "V8", message: sumAskMessage(sum) });
 

@@ -1,5 +1,5 @@
 /**
- * The words a Learner reads when a turn fails with no wording of its own (spec 2026-11-12, A3; ADR 0016). No imports,
+ * The words a Learner reads when a turn fails with no wording of its own (spec 2026-11-12, A3; ADR 0007). No imports,
  * so the browser bundle can use them too: a Learner never reads provider or programmer text, from the server or the page.
  */
 

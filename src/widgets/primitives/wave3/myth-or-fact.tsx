@@ -70,8 +70,8 @@ export function MythOrFactView({
                 </div>
               ) : (
                 <div role="status" className={reduced ? "" : "story-step"}>
-                  <p className={`flex items-center gap-2 text-sm font-medium ${right ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
-                    {right ? <Check size={16} strokeWidth={1.75} aria-hidden /> : <X size={16} strokeWidth={1.75} aria-hidden />}
+                  <p className="flex items-center gap-2 text-sm font-medium text-[var(--ink)]">
+                    {right ? <Check size={16} strokeWidth={1.75} color="var(--success)" aria-hidden /> : <X size={16} strokeWidth={1.75} color="var(--danger)" aria-hidden />}
                     {right ? "Right" : "Not quite"}: it is {card.isFact ? "a fact" : "a myth"}.
                   </p>
                   <p className="mt-1 text-sm leading-5 text-[var(--ink)]">

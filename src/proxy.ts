@@ -1,23 +1,45 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
-import { accessFor } from "@/auth/access";
-import { betterAuthOn, getAuth } from "@/auth/better-auth";
-import { destinationOrDefault, safeDestination } from "@/auth/destination";
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse, type NextFetchEvent, type NextMiddleware, type NextRequest } from "next/server";
+import { SIGN_IN_PATH, destinationOrDefault, safeDestination } from "@/auth/destination";
+import { clerkOn, passcodeDoorOpen } from "@/auth/gates";
 import { learnerFromCookie } from "@/auth/learners";
 import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
+import { e2eEnabled } from "@/dev/e2e-mode";
+import { EXAMPLE_SLUGS, examplePath } from "@/site/examples";
 
-/** The only files a signed-out visitor may fetch besides Home: the link-preview image (site-metadata.ts). */
+/** The only files a signed-out visitor may fetch besides the public pages: the link-preview image (site-metadata.ts). */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
-/** The pages a signed-out visitor may read, matched exactly: Home and the About page. */
-const PUBLIC_PAGES = new Set(["/", "/about"]);
+/**
+ * The pages a signed-out visitor may read, matched exactly (decision #7): the Signal site's Home, How it works,
+ * Examples, About and the five case pages, and the Waitlist (/join, issue #33). The case pages come from the same list
+ * as the pages' generateStaticParams, so the gate and the pages always agree; an unknown slug still goes to /sign-in.
+ */
+const PUBLIC_PAGES = new Set(["/", "/how-it-works", "/examples", "/about", "/join", ...EXAMPLE_SLUGS.map(examplePath)]);
+
+/** The sign-in and sign-up pages, with every step under them (Clerk's catch-all routes, such as /sign-in/sso-callback). */
+const AUTH_ROOTS = [SIGN_IN_PATH, "/sign-up"];
 
 /** Developer pages, open without a sign-in outside production only. In production the page itself also answers 404. */
 const DEV_PAGE = /^\/dev(?:\/|$)/;
 
 /** Signing out works signed in or out, so a Learner already signed out in another tab still lands on Home. */
 const SIGN_OUT = "/api/logout";
+
+const under = (path: string, root: string) => path === root || path.startsWith(`${root}/`);
+const isAuthPage = (path: string) => AUTH_ROOTS.some((root) => under(path, root));
+const isPublicPage = (path: string) => PUBLIC_PAGES.has(path) || isAuthPage(path);
+
+/**
+ * A signed-out Server Action call that must get through: a POST to the sign-in or sign-up pages while Clerk runs.
+ * @clerk/nextjs's ClerkProvider calls its own Server Action (`invalidateCacheAction`, which only expires a throwaway
+ * cookie) inside clerk-js `setActive`, before the new session's cookie is written; refused, `setActive` would wait for
+ * it forever and a sign-in would never finish. The app defines no Server Actions of its own (proxy.test.ts checks), so
+ * only Clerk's can run here.
+ */
+const isClerkSignInAction = (request: NextRequest) =>
+  request.method === "POST" && request.headers.has("next-action") && isAuthPage(request.nextUrl.pathname) && clerkOn(process.env);
 
 /** Next.js's own query parameters (such as `_rsc`), never part of a page the Learner meant to open. */
 const isInternalParam = (key: string) => key === "_rsc" || key.startsWith("__next");
@@ -29,78 +51,87 @@ function rememberedPage(url: URL): string | null {
 }
 
 /**
- * How this request counts at the gate (C1b): "passcode" for a verified `fa_access` (the signature is
- * checked first, so only a correctly signed cookie costs a database read; an archived Learner, a name
- * taken off the passcode list or a denied account counts as signed out); "account" when Better Auth is
- * on (Google or email links) and its session cookie is merely present (optimistic: the page or route
- * still verifies through `currentLearner()` before it reads any data); null otherwise. While Better
- * Auth is off, it is skipped entirely and its cookie means nothing here.
+ * True for a verified passcode cookie while the passcode door is open (the signature is checked first, so only a
+ * correctly signed cookie costs a database read; an archived Learner, a name taken off the passcode list or a Learner
+ * that belongs to an account counts as signed out).
  */
-async function gate(request: NextRequest): Promise<"passcode" | "account" | null> {
+async function passcodeAtGate(request: NextRequest): Promise<boolean> {
+  if (!passcodeDoorOpen(process.env)) return false;
   const cookie = request.cookies.get(ACCESS_COOKIE)?.value;
-  if (cookie && (await learnerFromCookie(getDb(), cookie, process.env.SESSION_SECRET ?? "", passcodeList())) !== null) return "passcode";
-  if (betterAuthOn(process.env) && getSessionCookie(request)) return "account";
-  return null;
+  return cookie !== undefined && (await learnerFromCookie(getDb(), cookie, process.env.SESSION_SECRET ?? "", passcodeList())) !== null;
+}
+
+/** The browser test bed's stand-in for a Clerk session: a verified `fa_e2e_person` cookie. Never in a production build. */
+async function testBedPersonAtGate(request: NextRequest): Promise<boolean> {
+  if (process.env.NODE_ENV === "production" || !e2eEnabled(process.env)) return false;
+  const { E2E_PERSON_COOKIE, e2eIdentityFromCookie } = await import("@/dev/e2e-identity");
+  return (await e2eIdentityFromCookie(request.cookies.get(E2E_PERSON_COOKIE)?.value, process.env.SESSION_SECRET ?? "")) !== null;
 }
 
 /**
- * The full check behind the gate, for the login page only, in `currentSignIn()`'s order: a real
- * Better Auth session decides first, through the same `accessFor`, and its answer stands even when it
- * is waiting or denied; only with no Better Auth session does a verified `fa_access` count. Only an
- * approved answer may skip the login form, so neither a stale cookie, nor a waiting or denied session
- * (even one whose Learner is still active) beside a valid passcode cookie, can loop /study → /login → /study.
+ * Every page and API route needs a sign-in: a verified Clerk session (`account`, checked by clerkMiddleware before this
+ * runs), or a verified passcode cookie while the door is open. Signed out, only a GET or HEAD of a public page
+ * (PUBLIC_PAGES, matched exactly; /sign-in and /sign-up with every step under them), the link-preview image, a
+ * POST to the sign-out route, and while Clerk runs a Server Action call on /sign-in and /sign-up (Clerk's own, which
+ * finishes a sign-in: isClerkSignInAction), get through; any other write to a public page or Server Action call
+ * answers 401; an API route answers 401; other pages redirect to /sign-in, remembering a GET or HEAD's page as `next`.
+ * Signed in, a GET or HEAD of exactly /sign-in skips the form and goes to the safe `next` or /study: every sign-in here
+ * is fully verified and every account has a Learner (learnerForClerkUser), so /sign-in and /study can never send anyone
+ * back and forth.
  */
-async function signedInAtLogin(request: NextRequest, atGate: "passcode" | "account"): Promise<boolean> {
-  const auth = getAuth();
-  const found = auth ? await auth.api.getSession({ headers: request.headers }) : null;
-  if (found) return (await accessFor(getDb(), found.user)).state === "approved";
-  return atGate === "passcode";
-}
-
-/**
- * Every page and API route needs a sign-in: a verified passcode cookie, or (optimistically) a Better
- * Auth session cookie while Better Auth is on (Google or email links). Signed out, only a GET or HEAD of a public page
- * ("/" Home and "/about", matched exactly), the link-preview image and the login page, and a POST to the sign-out route,
- * get through; a write to a public page or any Server Action call answers 401; other pages redirect to the login, remembering a
- * GET or HEAD's page as `next`. Verified signed in, the login page skips its form and goes to the safe `next` or /study;
- * an optimistic Better Auth cookie alone never does (it is fully checked first), so a stale cookie, or a
- * waiting or denied person, sees the login page (which shows their status) and cannot loop.
- */
-export async function proxy(request: NextRequest) {
+async function gate(request: NextRequest, account: boolean): Promise<Response> {
   const { pathname } = request.nextUrl;
   const read = request.method === "GET" || request.method === "HEAD";
   // Developer tools (the Widget harness at /dev/widgets) need no sign-in, and exist only outside production.
   if (read && DEV_PAGE.test(pathname) && process.env.NODE_ENV !== "production") return NextResponse.next();
-  const atGate = await gate(request);
-  if (atGate) {
-    if (read && pathname === "/login") {
-      if (!(await signedInAtLogin(request, atGate))) return NextResponse.next();
+  if (account || (await passcodeAtGate(request))) {
+    if (read && pathname === SIGN_IN_PATH) {
       const next = destinationOrDefault(request.nextUrl.searchParams.get("next"));
       return NextResponse.redirect(new URL(next, request.url), 307);
     }
     return NextResponse.next();
   }
 
-  // A Server Action call or any write to a public page would run server code: refuse it outright.
-  if (request.headers.has("next-action") || (PUBLIC_PAGES.has(pathname) && !read)) {
-    return NextResponse.json({ error: "Passcode required" }, { status: 401 });
+  if (isClerkSignInAction(request)) return NextResponse.next();
+  // Any other Server Action call, or any write to a public page, would run server code: refuse it outright.
+  if (request.headers.has("next-action") || (isPublicPage(pathname) && !read)) {
+    return NextResponse.json({ error: "Sign-in required" }, { status: 401 });
   }
-  // The login page must match exactly: anything looser and the final redirect below would loop.
-  if (read && (PUBLIC_PAGES.has(pathname) || pathname === "/login" || LANDING_ASSET.test(pathname))) return NextResponse.next();
+  if (read && (isPublicPage(pathname) || LANDING_ASSET.test(pathname))) return NextResponse.next();
   if (request.method === "POST" && pathname === SIGN_OUT) return NextResponse.next();
   if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "Passcode required" }, { status: 401 });
+    return NextResponse.json({ error: "Sign-in required" }, { status: 401 });
   }
-  const login = new URL("/login", request.url);
+  const signIn = new URL(SIGN_IN_PATH, request.url);
   const next = read ? rememberedPage(request.nextUrl) : null;
-  if (next) login.searchParams.set("next", next);
-  return NextResponse.redirect(login);
+  if (next) signIn.searchParams.set("next", next);
+  return NextResponse.redirect(signIn);
+}
+
+/** The gate inside clerkMiddleware, built on the first request that needs it (only while Clerk is on). */
+let withClerk: NextMiddleware | undefined;
+
+/**
+ * The proxy: while Clerk is on (clerkOn), clerkMiddleware verifies the session and the gate asks it who is here;
+ * otherwise Clerk is never called, and the gate reads only the passcode cookie, or in the browser test bed its stand-in
+ * for a Clerk session.
+ */
+export async function proxy(request: NextRequest, event?: NextFetchEvent): Promise<Response> {
+  if (!clerkOn(process.env)) return gate(request, await testBedPersonAtGate(request));
+  withClerk ??= clerkMiddleware(async (auth, req) => gate(req, (await auth()).isAuthenticated));
+  // Next.js always passes the event; clerkMiddleware answers every request our gate answers.
+  const response = (await withClerk(request, event as NextFetchEvent)) as Response | null | undefined;
+  return response ?? NextResponse.next();
 }
 
 export const config = {
-  // `api/login` and `api/auth` (Better Auth's own routes, which must work signed out) skip the proxy only as whole
-  // path segments, so "/api/login-anything" is still checked.
-  // The login page itself goes through the proxy, so a signed-in visit can skip the form.
-  // `api/cron/library-refresh` (exactly) skips it too: Vercel Cron has no passcode cookie, and the route checks CRON_SECRET itself.
-  matcher: ["/((?!api/login(?:/|$)|api/auth(?:/|$)|api/cron/library-refresh$|_next/static|_next/image|favicon.ico|icon.svg).*)"],
+  // `api/login` (the passcode door's own route, which must work signed out and checks the door itself) skips the proxy
+  // only as a whole path segment, so "/api/login-anything" is still checked. The sign-in page itself goes through the
+  // proxy, so a signed-in visit can skip the form.
+  // `api/cron/library-refresh` and `api/cron/health` (#36) (exactly) skip it too: Vercel Cron and Schedules have no
+  // sign-in, and each route checks CRON_SECRET itself.
+  // BotID's challenge segment (withBotId's rewrites in next.config.ts) skips it as a whole segment: the visitor may be signed out.
+  matcher: [
+    "/((?!api/login(?:/|$)|api/cron/library-refresh$|api/cron/health$|149e9513-01fa-4fb0-aad4-566afd725d1b/|_next/static|_next/image|favicon.ico|icon.svg).*)",
+  ],
 };

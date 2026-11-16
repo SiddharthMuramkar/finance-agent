@@ -1,6 +1,6 @@
 import { formulaById } from "./formulas.ts";
 
-// Formula markers (ADR 0002): a Topic's text names a registry formula and its example inputs, and code
+// Formula markers (ADR 0003): a Topic's text names a registry formula and its example inputs, and code
 // does the rest. Written as {{formula:present-value amount=1100 ratePercent=10 years=1}}. The screens
 // draw a marker as a static Formula Card, and the Tutor is sent plain words plus the computed result
 // (see formula-text.ts), so a marker never reaches the Learner or the Tutor raw.

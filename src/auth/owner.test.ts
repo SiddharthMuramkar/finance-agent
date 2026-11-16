@@ -1,93 +1,60 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { learners, user } from "@/db/schema";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
-import { addInvite } from "./invites";
+import type { Identity } from "./identity";
 import { startOver } from "./learners";
 import { learnerToken } from "./passcode";
 
 /**
- * Who the owner is (ADR 0014): the Better Auth session whose active Learner is the `owner` Learner.
- * Better Auth is mocked at its seam, as in session.test.ts; the database and the Learner rules are real.
+ * Who the admin is (issue #33): an account sign-in whose session token says `role: "admin"`. The account is mocked at
+ * its seam (`currentIdentity`), as in session.test.ts; the database and the Learner rules are real.
  */
-const jar = vi.hoisted(() => ({ db: undefined as unknown as Db, cookie: undefined as string | undefined, account: null as null | { id: string; email: string; name: string } }));
+const jar = vi.hoisted(() => ({ db: undefined as unknown as Db, cookie: undefined as string | undefined, identity: null as Identity | null }));
 
 vi.mock("@/db/client", () => ({ getDb: () => jar.db }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: (name: string) => (name === "fa_access" && jar.cookie !== undefined ? { name, value: jar.cookie } : undefined) }),
-  headers: async () => new Headers(),
 }));
-vi.mock("@/auth/better-auth", () => {
-  const on = (env: Record<string, string | undefined> = process.env) => Boolean(env.BETTER_AUTH_SECRET?.trim() && env.GOOGLE_CLIENT_ID?.trim());
-  return {
-    googleSignInOn: on,
-    betterAuthOn: on,
-    getAuth: (env: Record<string, string | undefined> = process.env) =>
-      on(env) ? { api: { getSession: async () => (jar.account ? { session: { id: "s1" }, user: jar.account } : null) } } : null,
-  };
-});
+vi.mock("@/auth/identity", () => ({ currentIdentity: async () => jar.identity }));
 
-const { isOwnerLearner, signedInOwner } = await import("./owner");
+const { signedInAdmin } = await import("./owner");
 
 const SECRET = "test-secret";
-const owner = { id: "u-owner", email: "owner@x.com", name: "Siddharth" };
+const OWNER: Identity = { userId: "user_owner", email: "owner@x.com", firstName: "Siddharth", admin: true };
 
-/** The owner's account, linked to Learner 1 (named owner) as setup step 5 does. */
-async function linkOwner() {
-  await jar.db.insert(user).values({ ...owner, emailVerified: true });
-  await addInvite(jar.db, owner.email, { learnerName: "owner" });
-}
-
-describe("signedInOwner", () => {
+describe("signedInAdmin", () => {
   beforeEach(async () => {
     jar.db = await testDb();
     jar.cookie = undefined;
-    jar.account = null;
+    jar.identity = null;
     vi.stubEnv("SESSION_SECRET", SECRET);
     vi.stubEnv("PASSCODES", "owner:owner-pass, tools:tools-pass");
-    vi.stubEnv("BETTER_AUTH_SECRET", "a-test-secret-of-at-least-32-characters!");
-    vi.stubEnv("GOOGLE_CLIENT_ID", "test-client");
   });
   afterEach(() => vi.unstubAllEnvs());
 
-  it("is only the owner Learner through a Better Auth session", async () => {
-    await linkOwner();
-    jar.account = owner;
-    const found = await signedInOwner();
-    expect(found?.learner).toMatchObject({ id: 1, name: "owner", authUserId: owner.id });
-    expect(found?.user).toEqual(owner);
-    expect(isOwnerLearner(found!.learner)).toBe(true);
+  it("is the account whose session says admin, with its Learner and identity", async () => {
+    jar.identity = OWNER;
+    const found = await signedInAdmin();
+    expect(found?.identity).toEqual(OWNER);
+    expect(found?.learner).toMatchObject({ name: "Siddharth", clerkUserId: "user_owner" });
   });
 
-  it("the passcode for Learner 1, a Learner named 'owner (2)' and a waiting user are not the owner", async () => {
-    await linkOwner();
+  it("an account without the claim, the passcode for the owner Learner and nobody are not the admin", async () => {
+    jar.identity = { ...OWNER, userId: "user_asha", firstName: "Asha", admin: false };
+    expect(await signedInAdmin()).toBeNull();
+    jar.identity = null;
     // The owner's passcode opens Learner 1, but a passcode never counts.
-    jar.cookie = await learnerToken(1, SECRET);
-    expect(await signedInOwner()).toBeNull();
+    jar.cookie = await learnerToken(OWNER_LEARNER_ID, SECRET);
+    expect(await signedInAdmin()).toBeNull();
     jar.cookie = undefined;
-
-    await jar.db.insert(user).values({ id: "u2", email: "o2@x.com", name: "owner", emailVerified: true });
-    await jar.db.insert(learners).values({ name: "owner (2)", authUserId: "u2" });
-    jar.account = { id: "u2", email: "o2@x.com", name: "owner" };
-    expect(await signedInOwner()).toBeNull();
-
-    await jar.db.insert(user).values({ id: "u3", email: "w@x.com", name: "Waiting", emailVerified: true });
-    jar.account = { id: "u3", email: "w@x.com", name: "Waiting" };
-    expect(await signedInOwner()).toBeNull();
+    expect(await signedInAdmin()).toBeNull();
   });
 
-  it("Start over keeps the owner the owner", async () => {
-    await linkOwner();
-    jar.account = owner;
-    const before = await signedInOwner();
+  it("Start over keeps the admin the admin, under the fresh Learner", async () => {
+    jar.identity = OWNER;
+    const before = await signedInAdmin();
     const fresh = await startOver(jar.db, before!.learner.id);
-    expect((await signedInOwner())?.learner.id).toBe(fresh?.id);
-  });
-
-  it("nobody is the owner while sign-in is off", async () => {
-    await linkOwner();
-    jar.account = owner;
-    vi.stubEnv("BETTER_AUTH_SECRET", "");
-    expect(await signedInOwner()).toBeNull();
+    expect((await signedInAdmin())?.learner.id).toBe(fresh?.id);
   });
 });

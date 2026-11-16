@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const link = vi.hoisted(() => ({ pending: false }));
 vi.mock("next/link", async (importOriginal) => ({ ...(await importOriginal<typeof import("next/link")>()), useLinkStatus: () => ({ pending: link.pending }) }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/course" }));
-vi.mock("./theme-cookie", () => ({ readTheme: async () => "light" }));
 vi.mock("./split-cookie", () => ({ readSplit: async () => 45 }));
 
 import Loading from "./course/loading";
@@ -38,7 +37,7 @@ describe("Button", () => {
     expect(html).toContain('type="button"');
   });
 
-  it("gives the primary variant the one filled face (ADR 0013: flat, no lip)", () => {
+  it("gives the primary variant the one filled face (ADR 0018: flat, no lip)", () => {
     expect(renderToStaticMarkup(<Button>Go</Button>)).toContain("btn btn-primary");
   });
 
@@ -68,12 +67,12 @@ describe("IconButton", () => {
   it("shows its label as the tooltip, or the tip when one is given", () => {
     expect(renderToStaticMarkup(<IconButton label="Close">x</IconButton>)).toContain('title="Close"');
     const tipped = renderToStaticMarkup(
-      <IconButton label="Theme: Light" tip="Switch to dark theme">
+      <IconButton label="Settings" tip="Open your settings">
         x
       </IconButton>,
     );
-    expect(tipped).toContain('aria-label="Theme: Light"');
-    expect(tipped).toContain('title="Switch to dark theme"');
+    expect(tipped).toContain('aria-label="Settings"');
+    expect(tipped).toContain('title="Open your settings"');
   });
 });
 
@@ -157,7 +156,7 @@ describe("route skeletons", () => {
 });
 
 describe("Card and heading sizes (A2)", () => {
-  // ADR 0013's type scale: a page title is type-h1 (Inter Tight 28/34, 600), and a Card pads 20px.
+  // The type scale: a page title is type-h1 (Inter Tight 28/34, 600), and a Card pads 20px.
   it("Card pads with p-5 and the page h1 is type-h1", async () => {
     const { Card } = await import("./ui");
     expect(renderToStaticMarkup(<Card>x</Card>)).toMatch(/\bp-5\b/);

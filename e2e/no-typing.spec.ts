@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { seed, settled, type State } from "./support/app";
 
 /**
- * D1a: every question is a tap (ADR 0009). The Learner never types a number: a Quick try, an open Check tab and a due
+ * D1a: every question is a tap (ADR 0002). The Learner never types a number: a Quick try, an open Check tab and a due
  * Review show choices to tap, and a wrong tap shows its own mix-up fix. D1c adds the /dev/widgets sweep to this file.
  */
 
@@ -21,7 +21,7 @@ async function study(page: Page, state: State) {
 }
 
 test.beforeEach(async ({}, info) => {
-  test.skip(info.project.name !== "mbp14" && info.project.name !== "mbp14-dark", "one viewport per theme is enough here");
+  test.skip(info.project.name !== "mbp14", "one viewport is enough here");
 });
 
 test("the Learner at Percent's Your turn taps a wrong choice and sees its fix", async ({ page }) => {

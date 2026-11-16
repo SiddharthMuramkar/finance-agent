@@ -60,7 +60,7 @@ describe("the Companion Widget picker over the 50 stored replies", () => {
     expect(right.length / naming.length).toBeGreaterThanOrEqual(0.9);
   });
 
-  // Math police (§8.5, ADR 0009): no stored reply hands the Learner a sum. A worked example the Tutor does itself is fine;
+  // Math police (§8.5, ADR 0002): no stored reply hands the Learner a sum. A worked example the Tutor does itself is fine;
   // a choice told apart only by arithmetic ("80 bp or 8 bp"), a new figure to finish ("Next one: 3% to 3.5%"), or a
   // "how much" ask is not.
   it("holds no reply that asks the Learner for a figure", () => {

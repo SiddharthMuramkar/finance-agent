@@ -59,7 +59,7 @@ const PARTS: Part[] = [
   ...["value-bridge", "terminal-seesaw", "wacc-stack", "cash-waterfall", "multiple-decoder"].map((root) => ({ ticket: "B4", fixture: root, root })),
   { ticket: "B4", fixture: "cash-waterfall-company", root: "cash-waterfall" },
 ];
-const PROJECTS = ["mbp14", "mbp14-dark"];
+const PROJECTS = ["mbp14"];
 const NONE = { fills: [], text: [], shadows: [], tilted: [], heavy: [], semibold: [] };
 const SHOTS = join("docs", "specs", "img", "2026-11-11");
 
@@ -86,39 +86,37 @@ test("every fixture the table names exists, and every fixture has a row", () => 
 
 for (const seedName of ["story-scene", "lingo", "concept-widget", "mix-up"] as const) {
   test(`[A10b] /study ${seedName} Widgets are thin marks`, async ({ page }, info) => {
-    test.skip(!PROJECTS.includes(info.project.name), "1512, Light and Dark");
+    test.skip(!PROJECTS.includes(info.project.name), "1512");
     await seed(page, seedName);
     await page.goto("/study");
     await expect(page.getByTestId("widget-card")).toBeVisible();
     expect(await widgetLook(page, { within: WIDGET_CONTENT })).toEqual(NONE);
-    if (seedName === "story-scene" || seedName === "lingo") {
-      const families = (await accentFamilies(page, { within: WIDGET_CONTENT })).families;
-      expect(families).toContain(seedName === "story-scene" ? "sun" : "violet");
-    }
+    // Spec §2.2 rule 7: at most three signal colours per widget (blue and black are not signal colours). Story scenes and
+    // Lingo cards lost their sunflower and violet (no sixth colour, decision #17), so they are counted like any Widget.
+    expect((await accentFamilies(page, { within: WIDGET_CONTENT })).families.length).toBeLessThanOrEqual(3);
   });
 }
 
 for (const row of PARTS) {
   test(`[${row.ticket}] ${row.fixture} is a thin-mark Widget`, async ({ page }, info) => {
-    test.skip(!PROJECTS.includes(info.project.name), "1512, Light and Dark");
-    const theme = info.project.name.endsWith("-dark") ? "dark" : "light";
-    await page.goto(`/dev/widgets?fixture=${row.fixture}&width=860&theme=${theme}`);
+    test.skip(!PROJECTS.includes(info.project.name), "1512");
+    await page.goto(`/dev/widgets?fixture=${row.fixture}&width=860`);
     await expect(page.getByTestId("widget-card")).toBeVisible();
     const root = page.getByTestId("widget-card").getByTestId(row.root).first();
     // A part that never draws (its Case Data missing, say) fails its row: it must not pass on an empty card.
     await expect(root, `${row.fixture} draws its [data-testid="${row.root}"]`).toBeVisible({ timeout: 15_000 });
     await probe(page, row, "at rest");
     expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
-    if (process.env.SHOTS === row.ticket) await shoot(page, `${row.ticket}-${row.fixture}`, theme);
+    if (process.env.SHOTS === row.ticket) await shoot(page, `${row.ticket}-${row.fixture}`, "light");
     // A7a's screenshots: the dot-only family Tag on Stat and the Lingo card.
-    if (process.env.SHOTS === "A7a" && (row.fixture === "stat" || row.fixture === "lingo-card")) await shoot(page, `A7a-${row.fixture}`, theme);
+    if (process.env.SHOTS === "A7a" && (row.fixture === "stat" || row.fixture === "lingo-card")) await shoot(page, `A7a-${row.fixture}`, "light");
     const press = row.press ? root.locator(row.press).first() : root.locator("button:enabled").first();
     if (await press.count()) {
       await press.click();
       expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
       if (row.then) await root.locator(row.then).first().click();
       await probe(page, row, "after the press");
-      if (row.shot && process.env.SHOTS === row.ticket) await shoot(page, `${row.ticket}-${row.fixture}-${row.shot}`, theme);
+      if (row.shot && process.env.SHOTS === row.ticket) await shoot(page, `${row.ticket}-${row.fixture}-${row.shot}`, "light");
     }
   });
 }
@@ -135,9 +133,8 @@ const tokenColour = (page: import("@playwright/test").Page, token: string) =>
   }, token);
 
 test("[A8] a Rank row reached with Tab shows the 2 px --ring focus outline", async ({ page }, info) => {
-  test.skip(!PROJECTS.includes(info.project.name), "1512, Light and Dark");
-  const theme = info.project.name.endsWith("-dark") ? "dark" : "light";
-  await page.goto(`/dev/widgets?fixture=rank&width=860&theme=${theme}`);
+  test.skip(!PROJECTS.includes(info.project.name), "1512");
+  await page.goto(`/dev/widgets?fixture=rank&width=860`);
   const row = page.getByTestId("widget-card").getByTestId("rank-item").first();
   await expect(row).toBeVisible();
   for (let i = 0; i < 40 && !(await row.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press("Tab");
@@ -150,9 +147,8 @@ test("[A8] a Rank row reached with Tab shows the 2 px --ring focus outline", asy
 });
 
 test("[A7b] a picked QuickCheck poll row sits on --accent-tint", async ({ page }, info) => {
-  test.skip(!PROJECTS.includes(info.project.name), "1512, Light and Dark");
-  const theme = info.project.name.endsWith("-dark") ? "dark" : "light";
-  await page.goto(`/dev/widgets?fixture=quick-check-poll&width=860&theme=${theme}`);
+  test.skip(!PROJECTS.includes(info.project.name), "1512");
+  await page.goto(`/dev/widgets?fixture=quick-check-poll&width=860`);
   const row = page.getByTestId("widget-card").getByTestId("quick-check-option-1");
   await row.click();
   await expect(row).toHaveAttribute("data-state", "picked");

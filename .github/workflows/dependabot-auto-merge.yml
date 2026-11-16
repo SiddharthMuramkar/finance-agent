@@ -1,0 +1,34 @@
+name: Dependabot auto-merge
+
+# Turns on auto-merge (squash) for Dependabot's minor and patch PRs. GitHub merges such a PR only when the required
+# checks (check, build, ui) pass; a red check leaves it open for a person. A major update (Dependabot opens none, see
+# .github/dependabot.yml) or any PR not opened and last pushed by Dependabot is left alone.
+#
+# The merge is made with this run's GITHUB_TOKEN, and GitHub starts no workflow for a push that token makes. So CI does
+# not run on main after a Dependabot merge, and the Vercel Deployment Checks for that commit stay pending: production
+# picks the change up with the next merge that CI runs on. docs/ci.md says more.
+on: pull_request
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    permissions:
+      # Both are needed to turn on auto-merge. A Dependabot run's token is read-only unless the workflow asks for more.
+      contents: write
+      pull-requests: write
+    steps:
+      - id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      - name: Auto-merge a minor or patch update once the checks pass
+        if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          UPDATE: ${{ steps.metadata.outputs.update-type }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Dependabot $UPDATE: auto-merge (squash) is on; GitHub merges when check, build and ui pass."
+          gh pr merge --auto --squash "$PR_URL"

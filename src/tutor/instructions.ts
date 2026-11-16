@@ -34,7 +34,7 @@ export type TutorExample = {
   replyKind: ReplyKind;
 };
 
-/** An open quiz question for the examples: a move from 4.00% to 4.60%, and what a basis point is (ADR 0009: the idea separates the choices, not arithmetic). */
+/** An open quiz question for the examples: a move from 4.00% to 4.60%, and what a basis point is (ADR 0002: the idea separates the choices, not arithmetic). */
 const EXAMPLE_QUIZ: OpenItem[] = [
   {
     prompt: "A central bank moves its rate from 4.00% to 4.60%, and traders call it a 60 basis point move. What is one basis point?",
@@ -382,7 +382,7 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
 export type { ToolDefinition } from "./model";
 
 /**
- * The widget engine (ADR 0005, behind the `widget_engine` setting, off by default): the Tutor chooses a Widget recipe
+ * The widget engine (ADR 0009, behind the `widget_engine` setting, on by default): the Tutor chooses a Widget recipe
  * and its params with show_widget, and code draws it. Its instructions carry the recipe signatures instead of the
  * full Widget library prompt, and its tools add show_widget. A Session frozen with them keeps them (session-log.ts).
  */
@@ -497,8 +497,8 @@ const OPEN_WIDGET_ENGINE_TOOL: ToolDefinition = (() => {
   };
 })();
 
-/** The engine's tools (ADR 0007): open_widget with a preset, show_widget and update_widget. compose_widget is not offered. */
+/** The engine's tools (ADR 0009): open_widget with a preset, show_widget and update_widget. compose_widget is not offered. */
 export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [OPEN_WIDGET_ENGINE_TOOL, SHOW_WIDGET_TOOL, UPDATE_WIDGET_TOOL] : [t]));
 
-/** The engine's tools for a Session frozen while compose_widget was offered: it keeps the tools it was frozen with (ADR 0005). */
+/** The engine's tools for a Session frozen while compose_widget was offered: it keeps the tools it was frozen with (ADR 0009). */
 export const ENGINE_TOOLS_WITH_COMPOSE: ToolDefinition[] = ENGINE_TOOLS.flatMap((t) => (t.name === "show_widget" ? [t, COMPOSE_WIDGET_TOOL] : [t]));
