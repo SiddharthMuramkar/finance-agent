@@ -98,7 +98,7 @@ const india: GuideLineInput[] = [
   {
     field: "company",
     where:
-      "Type the name as the annual report's cover prints it. Inside, use the Consolidated Financial Statements (the second full set), not the Standalone ones; a company that owns no other company prints only standalone.",
+      "Type the name as the annual report's cover prints it. Inside, use the Consolidated Financial Statements, not the Standalone ones (a report may print either set first); a company that owns no other company prints only standalone.",
     ...MCA,
     lingo: {
       term: "Consolidated statements",
@@ -361,7 +361,8 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "sales",
-    where: "第5【経理の状況】 → 連結損益計算書: 売上高 (Japanese GAAP) or 売上収益 (IFRS). Read the unit line (単位：百万円) above the table.",
+    where:
+      "第5【経理の状況】 → 連結損益計算書: 売上高 (Japanese GAAP) or 売上収益 (IFRS). Read the unit line above the table: the Own Case takes 百万円 (millions of yen), so a table in 千円 (thousands) is divided by 1,000 and one in 円 by 1,000,000. Debt and cash go in the same 百万円.",
     ...FORM_JP,
     lingo: { term: "売上高 / 売上収益", means: "Sales: what customers paid for the year's goods and services.", pro: "the top line of the income statement", example: "A soy-sauce maker's bottles sold in a year.", emoji: "shopping-cart" },
   },
@@ -380,10 +381,11 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "debt",
-    where: "連結貸借対照表 (or 連結財政状態計算書): 短期借入金, 1年内返済予定の長期借入金, 社債, 長期借入金 (IFRS: 社債及び借入金). Leases under Japanese GAAP stay off the balance sheet until years from April 2027.",
-    source: "ASBJ Statement No. 34, Accounting Standard for Leases (2024)",
-    sourceUrl: "https://www.asb-j.jp/en/accounting_standards/y2024/2024-0913.html",
-    lingo: { term: "借入金 / 社債", means: "Borrowings and bonds: money the company owes lenders and must pay back with interest.", pro: "interest-bearing debt", example: "A bank loan for a new factory.", emoji: "bank" },
+    where:
+      "連結貸借対照表 (or 連結財政状態計算書), current and non-current: 短期借入金, 1年内返済予定の長期借入金, 社債, 長期借入金 and リース債務 (IFRS: 社債及び借入金 or 借入金, and リース負債). Japanese GAAP already shows finance leases as リース債務; operating leases join them from years starting on or after 1 April 2027.",
+    source: "ASBJ, 企業会計基準第34号 リースに関する会計基準 (2024), paragraph 58",
+    sourceUrl: "https://www.asb-j.jp/jp/wp-content/uploads/sites/4/lease_20240913_02.pdf",
+    lingo: { term: "リース負債 / リース債務", means: "Lease liabilities: rent the company has promised for future years, counted like a loan.", pro: "lease liabilities are debt in all but name", example: "A soy-sauce maker's rented warehouses show up as リース負債.", emoji: "bank" },
   },
   {
     field: "cash",
@@ -393,7 +395,8 @@ const japan: GuideLineInput[] = [
   },
   {
     field: "shares",
-    where: "第4【提出会社の状況】 1【株式等の状況】: 発行済株式 (shares issued), less 自己株式 (treasury shares) from 【自己株式等】. Shares are counted in 株, one by one.",
+    where:
+      "第4【提出会社の状況】 1【株式等の状況】: 発行済株式 (shares issued), less 自己株式 (treasury shares) from 【自己株式等】. Type the full count in 株, one by one; a table in 千株 counts thousands, so multiply it by 1,000.",
     ...FORM_JP,
     lingo: { term: "発行済株式 / 自己株式", means: "Shares issued, and the ones the company bought back and holds; only the rest are outstanding.", pro: "shares outstanding exclude treasury stock", example: "969 million issued, 42 million bought back: 927 million outstanding.", emoji: "coin" },
   },
@@ -425,7 +428,8 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "sales",
-    where: "III. 재무에 관한 사항 → 연결재무제표 → 연결손익계산서: 매출액 (or 영업수익). Read the unit line (단위 : 백만원) above the table.",
+    where:
+      "III. 재무에 관한 사항 → 연결재무제표 → 연결손익계산서: 매출액 (or 영업수익). Read the unit line above the table: the Own Case takes 백만원 (millions of won), so a table in 천원 (thousands) is divided by 1,000 and one in 원 by 1,000,000. Debt and cash go in the same 백만원.",
     ...FORM_KR,
     lingo: { term: "매출액", means: "Sales: what customers paid for the year's goods and services.", pro: "the top line of the income statement", example: "Phones, chips and TVs sold in a year.", emoji: "shopping-cart" },
   },
@@ -445,9 +449,10 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "debt",
-    where: "연결재무상태표: 단기차입금, 유동성장기부채, 사채, 장기차입금 (and 리스부채, lease liabilities, in the notes).",
+    where:
+      "연결재무상태표, current and non-current: 단기차입금, 유동성장기부채, 사채, 장기차입금 and 리스부채 (lease liabilities). Many firms put 리스부채 inside 유동성장기부채 and 장기차입금; the borrowings note (차입금) says so, and then it is in already.",
     ...FORM_KR,
-    lingo: { term: "차입금 / 사채", means: "Borrowings and bonds: money the company owes lenders and must pay back with interest.", pro: "interest-bearing debt", example: "A bank loan for a new chip plant.", emoji: "bank" },
+    lingo: { term: "리스부채", means: "Lease liabilities: rent the company has promised for future years, counted like a loan.", pro: "lease liabilities are debt in all but name", example: "Samsung's 2025 long-term borrowings of ₩6,479,517 million include ₩3,673,503 million of lease liabilities.", emoji: "bank" },
   },
   {
     field: "cash",
@@ -457,9 +462,10 @@ const korea: GuideLineInput[] = [
   },
   {
     field: "shares",
-    where: "I. 회사의 개요 → 주식의 총수 등: 발행주식의 총수 (shares issued) less 자기주식 (treasury shares). Copy the common shares (보통주); preferred shares (우선주) trade apart.",
+    where:
+      "I. 회사의 개요 → 주식의 총수 등: 유통주식수 (shares outstanding: issued less 자기주식, treasury shares), the 합계 column, common (보통주) and preferred (우선주) together. Korean preferred shares own part of the equity like common ones, without the vote. Type the full count in 주.",
     ...FORM_KR,
-    lingo: { term: "보통주 / 자기주식", means: "Common shares, and the ones the company bought back and holds; only the rest are outstanding.", pro: "shares outstanding exclude treasury stock", example: "5.92 billion issued, 92 million bought back: 5.83 billion outstanding.", emoji: "coin" },
+    lingo: { term: "우선주", means: "Preferred shares: in Korea they share the profits like common shares, with no vote and a slightly bigger dividend.", pro: "count preferred beside common shares", example: "Samsung at the end of 2025: 5.83 billion common and 0.80 billion preferred outstanding, 6.63 billion in all.", emoji: "coin" },
   },
   {
     field: "price",
