@@ -80,7 +80,7 @@ describe("Home", () => {
     const html = renderToStaticMarkup(await HomePage());
     const hero = words(/data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0]);
     expect(hero).toContain("Finance for beginners");
-    for (const number of ["$1.5B jackpot", "$3bn “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
+    for (const number of ["₹25 crore jackpot", "$3bn “run rate”", "Amazon at $84 a share"]) expect(hero).toContain(number);
     expect(hero).toContain("An AI Tutor explains every money word");
     expect(hero).toContain("No sums");
   });
@@ -97,16 +97,16 @@ describe("Home", () => {
     const hero = /data-site-section="hero"[\s\S]*?<\/section>/.exec(html)![0];
     const links = [...hero.matchAll(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => [words(m[2]).trim(), m[1]]);
     expect(links.slice(0, 2)).toEqual([
-      ["Try the jackpot", "/examples/mega-millions-2018"],
+      ["Try the jackpot", "/examples/kerala-bumper-2024"],
       ["Join early access", "/join"],
     ]);
     expect(words(html)).toContain("Free during early access. We let people in by hand and email you when you’re in.");
   });
 
   it("keeps the hero's jackpot figure the jackpot Example's own", async () => {
-    const { exampleBySlug } = await import("@/site/examples");
+    const { EXAMPLES } = await import("@/site/examples");
     const { home } = await import("@/site/copy");
-    const chip = exampleBySlug("mega-millions-2018")!.chip; // "A $1.5B jackpot"
+    const chip = EXAMPLES.find((e) => e.widget === "jackpot")!.chip; // "A ₹25 crore jackpot"
     expect(home.hero.lede).toContain(chip.replace(/^A /, ""));
   });
 

@@ -24,6 +24,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const viewer = await siteViewer();
   const course = courseStats();
+  const jackpot = EXAMPLES.find((e) => e.widget === "jackpot")!;
 
   return (
     <div data-page="home">
@@ -51,8 +52,8 @@ export default async function HomePage() {
               </>
             ) : (
               <>
-                <Link href={examplePath(home.hero.tryIt.slug)} className="v-btn v-btn-primary v-btn-lg" data-affordance="button">
-                  {home.hero.tryIt.label}
+                <Link href={examplePath(jackpot.slug)} className="v-btn v-btn-primary v-btn-lg" data-affordance="button">
+                  {home.hero.tryIt}
                 </Link>
                 <PrimaryCta viewer={viewer} tone="secondary" />
               </>

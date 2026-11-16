@@ -86,7 +86,7 @@ test("[7.2.1, #73] the hero's Try the jackpot opens the jackpot Example, and Joi
   const hero = page.locator('[data-site-section="hero"]');
   await expect(hero.getByRole("link", { name: "Join early access", exact: true })).toHaveAttribute("href", "/join");
   await hero.getByRole("link", { name: "Try the jackpot", exact: true }).click();
-  await page.waitForURL((url) => url.pathname === "/examples/mega-millions-2018");
+  await page.waitForURL((url) => url.pathname === "/examples/kerala-bumper-2024");
   await expect(page.locator('[data-widget="jackpot"]')).toBeVisible();
   await openHome(page);
   await page.locator('[data-site-section="hero"]').getByRole("link", { name: "Join early access", exact: true }).click();

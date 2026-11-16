@@ -56,9 +56,9 @@ export const home = {
     // Display lines; the page puts a space between them, so a screen reader reads one sentence.
     h1: ["What is it", "really worth?"],
     // Three headline numbers a beginner has seen. The jackpot's is the jackpot Example's chip (pages.test.tsx keeps them equal).
-    lede: "A **$1.5B jackpot**. A **$3bn “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums.",
-    // A visitor's first action plays the jackpot Example; Join early access comes second. A member keeps Continue.
-    tryIt: { label: "Try the jackpot", slug: "mega-millions-2018" },
+    lede: "A **₹25 crore jackpot**. A **$3bn “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums.",
+    // A visitor's first action opens the jackpot Example (the page finds it by its widget); Join early access comes second.
+    tryIt: "Try the jackpot",
     secondary: { member: "Course map" },
     facts: {
       topics: (c: CourseFacts) => `${c.topics} Topics`,

@@ -977,8 +977,8 @@ Left column, a grid with 20px gaps:
 |---|---|
 | Eyebrow | Finance for beginners |
 | H1 (display, two lines) | What is it / really worth? The lines are joined by a space, so a screen reader reads "What is it really worth?" |
-| Lede | Three headline numbers a beginner has seen, then the promise: A **$1.5B jackpot**. A **$3bn “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums. The jackpot's figure is the jackpot Example's chip. |
-| CTA row | Visitors: primary "Try the jackpot" → the jackpot Example (`/examples/mega-millions-2018`), then "Join early access" → `/join` (the Waitlist) as the second button. Members: Continue, then "Course map" → `/course` |
+| Lede | Three headline numbers a beginner has seen, then the promise: A **₹25 crore jackpot**. A **$3bn “run rate”**. **Amazon at $84 a share**. You have seen numbers like these. Here you work out what each one is really worth. An AI Tutor explains every money word, and you move the numbers yourself. No sums. The jackpot's figure is the jackpot Example's chip. |
+| CTA row | Visitors: primary "Try the jackpot" → the jackpot Example (`/examples/kerala-bumper-2024`), then "Join early access" → `/join` (the Waitlist) as the second button. Members: Continue, then "Course map" → `/course` |
 | Fine print | The CTA note for the state |
 | Facts (blue dot bullets) | {Topics} Topics · {low} to {high} minutes each, from the course's own facts |
 
