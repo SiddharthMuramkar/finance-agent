@@ -41,7 +41,7 @@ const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 const SEG = "flex h-6 w-full min-w-6 bg-center bg-no-repeat bg-[image:linear-gradient(var(--seg),var(--seg))]";
 const SEG_DONE = "bg-[length:100%_4px] [--seg:var(--on-band)] forced-colors:[--seg:CanvasText]";
 const SEG_NOW = "bg-[length:100%_6px] [--seg:var(--on-band)] forced-colors:[--seg:Highlight]";
-const SEG_TODO = "bg-[length:100%_4px] [--seg:rgb(255_255_255/0.35)] forced-colors:[--seg:GrayText]";
+const SEG_TODO = "bg-[length:100%_4px] [--seg:var(--band-todo)] forced-colors:[--seg:GrayText]";
 
 /** A small chevron that points down, and up once its button (class "group") is expanded. */
 function ChevronDown({ className = "" }: { className?: string }) {
@@ -261,7 +261,7 @@ function StepStrip({ strip, marked }: { strip: StepSequence; marked: ReadonlySet
           aria-label={`Back to ${labelOf(s)}`}
           title={`Back to ${labelOf(s)}`}
           onClick={() => scrollTo(target)}
-          className={`${SEG} ${SEG_DONE} cursor-pointer rounded-[4px] transition-colors duration-[var(--dur-ui)] hover:bg-white/15 ${FOCUS}`}
+          className={`${SEG} ${SEG_DONE} cursor-pointer rounded-[4px] transition-colors duration-[var(--dur-ui)] hover:bg-[var(--on-band-hover)] ${FOCUS}`}
         >
           {name}
         </Button>
