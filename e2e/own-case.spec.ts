@@ -27,7 +27,7 @@ test("a Spine-passed Learner values an Indian company from the Course Map to a n
   await page.goto("/course");
   await page.locator("[data-assignment-link]").click();
   await expect(page).toHaveURL(/\/assignment$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Assignment: value a company you pick");
+  await expect(page.getByRole("heading", { level: 1, name: "Assignment: value a company you pick" })).toBeVisible();
 
   const form = page.locator("[data-own-case-form]");
   await form.getByLabel("Company").fill("Coffee Day Enterprises");
