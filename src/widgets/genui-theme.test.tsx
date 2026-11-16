@@ -9,8 +9,8 @@ import { widgetLibrary } from "./library";
 
 const kitStylesheet = readFileSync(createRequire(import.meta.url).resolve("@openuidev/react-ui/layered/styles/index.css"), "utf8");
 
-/** Each series colour in a server-drawn kit chart, in series order. */
-const seriesColours = (html: string) => [...html.matchAll(/--color-[\w-]+:(#[0-9a-f]{6})/gi)].map((m) => m[1].toLowerCase());
+/** Each series colour in a server-drawn kit chart, in series order: the series token (the page resolves it, ADR 0019). */
+const seriesColours = (html: string) => [...html.matchAll(/--color-[\w-]+:(#[0-9a-f]{6}|var\(--[\w-]+\))/gi)].map((m) => m[1].toLowerCase());
 
 /** A LineChart from OpenUI's own library with these series, drawn inside GenuiTheme. */
 function kitChart(...series: string[]): string {
@@ -33,13 +33,13 @@ describe("OpenUI's kit drawn in our tokens", () => {
   // four-colour list: one series index 2 (blue), two series indexes 1 and 3 (ink, muted), three series indexes 1 to 3.
   it("draws one series in our blue, not the kit's", () => {
     const html = kitChart('Series("x", [1, 2])');
-    expect(seriesColours(html)).toEqual(["#1f3fae"]);
+    expect(seriesColours(html)).toEqual(["var(--blue)"]);
     expect(html).not.toMatch(/#42a5f5/i);
   });
 
   it("gives two and three series colours from our list, in its order", () => {
-    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])'))).toEqual(["#0b0d12", "#5f6571"]);
-    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])', 'Series("z", [3, 4])'))).toEqual(["#0b0d12", "#1f3fae", "#5f6571"]);
+    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])'))).toEqual(["var(--ink)", "var(--muted)"]);
+    expect(seriesColours(kitChart('Series("x", [1, 2])', 'Series("y", [2, 3])', 'Series("z", [3, 4])'))).toEqual(["var(--ink)", "var(--blue)", "var(--muted)"]);
   });
 
   it("is light on the server, with the kit's text in our ink and its type in our font", () => {
@@ -117,18 +117,20 @@ describe("OpenUI's kit drawn in our tokens", () => {
   // WCAG 2.2 SC 1.4.11: a chart series' mark is needed to read the chart, and a legend does not exempt it, so every series
   // reaches 3:1 against the surface the chart sits on.
   it("paints each chart series in its token, at least 3:1 against the chart surface", () => {
-    expect(CHART_PALETTE).toEqual(CHART_SERIES.map((token) => tokens(token)));
+    const light = CHART_PALETTE.map((series) => tokens(series.match(/^var\(--([\w-]+)\)$/)![1])!);
+    expect(light).toEqual(CHART_SERIES.map((token) => tokens(token)));
     for (const surface of CHART_SURFACES) {
       const under = tokens(surface)!;
-      for (const colour of CHART_PALETTE) expect(contrast(colour, under), `${colour} on --${surface}`).toBeGreaterThanOrEqual(3);
+      for (const colour of light) expect(contrast(colour, under), `${colour} on --${surface}`).toBeGreaterThanOrEqual(3);
     }
   });
 
-  // Decision #17, spec §2.1: one theme, one palette; blue in the middle (one series is yours), neutrals around it, and no
-  // green or red standing for a plain series.
-  it("kit follows the tokens: one theme, and the chart series run line-strong, ink, blue, muted", () => {
-    expect(GENUI_THEME.defaultChartPalette).toEqual(["#868c97", "#0b0d12", "#1f3fae", "#5f6571"]);
-    for (const token of ["gain", "loss", "wait", "mint", "coral"]) expect(CHART_PALETTE, token).not.toContain(tokens(token));
+  // Spec §2.1: one palette; blue in the middle (one series is yours), neutrals around it, and no green or red standing
+  // for a plain series. In Light the series are these hex values; each theme resolves its own (ADR 0019).
+  it("kit follows the tokens: the chart series run line-strong, ink, blue, muted", () => {
+    expect(GENUI_THEME.defaultChartPalette).toEqual(["var(--line-strong)", "var(--ink)", "var(--blue)", "var(--muted)"]);
+    expect(CHART_SERIES.map((token) => tokens(token))).toEqual(["#868c97", "#0b0d12", "#1f3fae", "#5f6571"]);
+    for (const token of ["gain", "loss", "wait", "mint", "coral"]) expect(CHART_PALETTE, token).not.toContain(`var(--${token})`);
   });
 
   it("sets Widgets in the app's Inter", () => {
@@ -167,6 +169,6 @@ describe("OpenUI's kit drawn in our tokens", () => {
         <Renderer response={code} library={widgetLibrary} />
       </GenuiTheme>,
     );
-    expect(seriesColours(html), 'import the kit from "@openuidev/react-ui", not "@openuidev/react-ui/genui-lib"').toEqual(["#1f3fae"]);
+    expect(seriesColours(html), 'import the kit from "@openuidev/react-ui", not "@openuidev/react-ui/genui-lib"').toEqual(["var(--blue)"]);
   });
 });
