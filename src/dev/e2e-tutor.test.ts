@@ -28,7 +28,14 @@ const isSpine = (name: E2eScriptName) => /^spine[123]-/.test(name);
 /** Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts) are checked against their own Topics. */
 const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")! } as const;
 /** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts). */
-const splitTopic = (name: E2eScriptName) => (name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : undefined);
+/** #95's three-turn plays of Spine Topics 4, 5, 6 and 9 (e2e/spine-04-09.spec.ts), by script prefix. */
+const BEGINNER_OF = { "growth-": "spine-04-growth", "margins-": "spine-05-margins", "gcost-": "spine-06-growth-cost", "far-": "spine-08-far-future" } as const;
+const beginnerTopic = (name: E2eScriptName) => {
+  const id = Object.entries(BEGINNER_OF).find(([prefix]) => name.startsWith(prefix))?.[1];
+  return id ? map.topic(id) : undefined;
+};
+const splitTopic = (name: E2eScriptName) =>
+  name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : beginnerTopic(name);
 const topicOf = (name: E2eScriptName) => splitTopic(name) ?? Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic);
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
@@ -52,6 +59,18 @@ describe("the scripted Tutor", () => {
       "concept-percent-change",
       "concept-reply-widget",
       "concept-two-ways",
+      "far-concept",
+      "far-explore",
+      "far-story",
+      "gcost-concept",
+      "gcost-explore",
+      "gcost-story",
+      "growth-concept",
+      "growth-explore",
+      "growth-story",
+      "margins-concept",
+      "margins-explore",
+      "margins-story",
       "persona-bank-cut",
       "persona-bps-short",
       "persona-one-hundred",
