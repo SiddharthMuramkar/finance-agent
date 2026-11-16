@@ -91,6 +91,17 @@ describe("formatAxis and formatValue", () => {
     expect(formatValue(1234.5)).toBe("1,234.5");
     expect(formatAxis(2193)).toBe("2,193");
   });
+
+  it("writes yen, won and euros in the short scale, yen and won with no decimals (#112)", () => {
+    expect(formatAxis(45_000_000_000_000, "jpy")).toBe("¥45 tn");
+    expect(formatAxis(1_500_000_000, "yen")).toBe("¥1.5 bn");
+    expect(formatValue(2450.4, "¥")).toBe("¥2,450");
+    expect(formatAxis(258_900_000_000_000, "krw")).toBe("₩258.9 tn");
+    expect(formatValue(71_000.6, "won")).toBe("₩71,001");
+    expect(formatAxis(50_000_000, "eur")).toBe("€50 m");
+    expect(formatValue(-8.4, "euros")).toBe("-€8.4");
+    expect(formatAxis(1_500_000_000, "usd")).toBe("$1.5 bn");
+  });
 });
 
 describe("the sticky domain", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AMAZON_2000 } from "@/finance/fixtures/amazon-2000.valuation";
 import { valuationBlock } from "@/finance/valuation-case";
-import { instantiateJudgement, judgementProblems, type ComputedQuestionInput, type JudgementInstance } from "./judgement";
+import { instantiateJudgement, judgementProblems, shareFigure, type ComputedQuestionInput, type JudgementInstance } from "./judgement";
 
 // Computed judgement questions (spec 2026-11-12, D1 to D3, D5). Every expected figure is from the spec: the table under
 // decision B3, the examples in D1 and D3, and Appendix B.2, all on Damodaran's Amazon of February 2000 ($84 price).
@@ -252,5 +252,16 @@ describe("a price that nobody paid (price.label)", () => {
     expect(shown).toContain("The talk is $84.");
     expect(shown).toContain("the $84 talk");
     expect(shown).not.toMatch(/\bprice\b/);
+  });
+});
+
+describe("a share's value in each currency (#112)", () => {
+  it("writes yen and won whole, euros to the cent, and dollars and rupees as before", () => {
+    expect(shareFigure(2450.4, "JPY")).toBe("¥2,450");
+    expect(shareFigure(71_000, "KRW")).toBe("₩71,000");
+    expect(shareFigure(48.5, "EUR")).toBe("€48.50");
+    expect(shareFigure(48.51, "USD")).toBe("$48.51");
+    expect(shareFigure(1234.5, "INR")).toBe("₹1,234.50");
+    expect(shareFigure(0, "JPY")).toBe("¥0");
   });
 });
