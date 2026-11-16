@@ -7,15 +7,16 @@ describe("preview matrix [S3]", () => {
     const desktop = cells.filter((c) => c.viewport.id !== "p390");
     const main = desktop.filter((c) => c.page.id !== SIGN_IN_WRONG.id);
     expect(MATRIX_PAGES).toHaveLength(16);
-    expect(main).toHaveLength(4 * 16); // 64
-    expect(desktop.filter((c) => c.page.id === SIGN_IN_WRONG.id)).toHaveLength(4); // one per desktop project
-    expect(desktop).toHaveLength(68);
-    expect(cells).toHaveLength(75); // and the phone's 7 (G9)
+    expect(main).toHaveLength(2 * 4 * 16); // 64 per theme
+    expect(desktop.filter((c) => c.page.id === SIGN_IN_WRONG.id)).toHaveLength(8); // one per desktop project, in each theme
+    expect(desktop).toHaveLength(136); // 68 per theme
+    expect(cells).toHaveLength(150); // and the phone's 7 per theme (G9)
     expect(MATRIX_PAGES.find((p) => p.id === "about")).toMatchObject({ path: "/about" });
-    expect(new Set(cells.map((c) => c.project)).size).toBe(5);
-    // Decision #17: one Light theme, so every cell is Light and no project is a dark twin.
-    expect(new Set(cells.map((c) => c.theme))).toEqual(new Set(["light"]));
-    for (const c of cells) expect(c.project, c.file).not.toMatch(/dark/);
+    // ADR 0019 (#80): Light and Dark, so every viewport has a dark twin, its own project and its own shots folder.
+    expect(new Set(cells.map((c) => c.project))).toEqual(new Set(["mbp14", "w1280", "w1920", "w1024", "p390", "mbp14-dark", "w1280-dark", "w1920-dark", "w1024-dark", "p390-dark"]));
+    expect(new Set(cells.map((c) => c.theme))).toEqual(new Set(["light", "dark"]));
+    for (const c of cells) expect(c.project.endsWith("-dark"), c.file).toBe(c.theme === "dark");
+    for (const c of cells) expect(c.file, c.file).toMatch(new RegExp(`/${c.project}/`));
     expect(new Set(cells.map((c) => c.file)).size).toBe(cells.length); // no duplicates
     for (const c of cells) expect(c.file, c.file).not.toMatch(/\s/);
   });
@@ -24,12 +25,14 @@ describe("preview matrix [S3]", () => {
   it("shoots the Signal site's pages and sign-in at 390 px wide, and no other page", () => {
     const phone = matrixCells().filter((c) => c.viewport.id === "p390");
     expect(MATRIX_VIEWPORTS.find((v) => v.id === "p390")).toMatchObject({ width: 390, height: 844 });
-    expect([...new Set(phone.map((c) => c.project))]).toEqual(["p390"]);
-    expect(phone.map((c) => c.page.path)).toEqual(["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/sign-in", "/sign-in?wrong=1"]);
+    expect([...new Set(phone.map((c) => c.project))]).toEqual(["p390", "p390-dark"]);
+    for (const project of ["p390", "p390-dark"]) {
+      expect(phone.filter((c) => c.project === project).map((c) => c.page.path)).toEqual(["/", "/about", "/how-it-works", "/examples", "/examples/amazon-2000", "/sign-in", "/sign-in?wrong=1"]);
+    }
   });
 
   // Spec §8.3 (colour-liveliness) "Inputs: screenshots of 6 states (reply with Story scene, Lingo card, Choices, Course
-  // Map, Notebook, a wrong-choice mix-up fix)" (#481): each state is a cell at every viewport, in the one Light theme.
+  // Map, Notebook, a wrong-choice mix-up fix)" (#481): each state is a cell at every viewport, in both themes (ADR 0019).
   it("shoots the 6 §8.3 states", () => {
     const states = {
       "reply with Story scene": { id: "study-story-scene", path: "/study", seed: "story-scene" },
@@ -44,7 +47,7 @@ describe("preview matrix [S3]", () => {
       expect(MATRIX_PAGES.find((p) => p.id === want.id), state).toMatchObject(want);
       for (const viewport of MATRIX_VIEWPORTS.filter((v) => !v.publicOnly)) {
         const themes = cells.filter((c) => c.viewport.id === viewport.id && c.page.id === want.id).map((c) => c.theme);
-        expect(themes, `${state} at ${viewport.id}`).toEqual(["light"]);
+        expect(themes, `${state} at ${viewport.id}`).toEqual(["light", "dark"]);
       }
     }
   });
@@ -53,7 +56,9 @@ describe("preview matrix [S3]", () => {
   // §6 names a looser bound" keeps 32 there (A1's 17 px is its own /study test, not a §6 threshold). Prose line length
   // 45-80, 60-75 from 1440 up and 50-75 at 1280 (the 16 px chat in the conversation column); header <= 56; Widget panel >= 52 % (spec 2026-11-11, C2a: the 45 / 55 default split, R21).
   it("the thresholds are §6.2's at every viewport, with the 1280 band", () => {
-    expect(() => matrixThresholds("mbp14-dark")).toThrow(/unknown matrix project/);
+    expect(() => matrixThresholds("mbp15")).toThrow(/unknown matrix project/);
+    // A dark twin is held to its viewport's numbers: the theme changes colours, never the layout.
+    expect(matrixThresholds("w1280-dark")).toEqual(matrixThresholds("w1280"));
     for (const project of ["mbp14", "w1920"]) {
       expect(matrixThresholds(project), project).toEqual({ gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin: 60, lineMax: 75 });
     }

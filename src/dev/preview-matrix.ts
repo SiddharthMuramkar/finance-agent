@@ -1,6 +1,6 @@
 /**
- * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 16 pages in the one Light theme
- * (decision #17), plus one `/sign-in?wrong=1` (the sign-in page with its error) shot per project; and (spec 2026-11-12 G9,
+ * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 16 pages in Light and in Dark
+ * (ADR 0019), plus one `/sign-in?wrong=1` (the sign-in page with its error) shot per project; and (spec 2026-11-12 G9,
  * F6) a phone, 390 px wide, for the public pages only (the Signal site's Home, How it works, Examples, a case page, About,
  * and sign-in): the Study Workspace shows only its phone note there.
  * Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs both read it, and src/dev/preview-matrix.test.ts
@@ -18,7 +18,8 @@ export const MATRIX_VIEWPORTS: readonly MatrixViewport[] = [
   { id: "p390", width: 390, height: 844, publicOnly: true },
 ];
 
-export const MATRIX_THEMES = ["light"] as const;
+/** Both themes (ADR 0019, #80): every viewport is shot again in Dark, as a device set to dark opens it. */
+export const MATRIX_THEMES = ["light", "dark"] as const;
 
 export type MatrixSeed = "story" | "story-scene" | "lingo" | "concept-widget" | "quiz-open" | "mix-up" | "topic-complete" | "many-topics";
 export type MatrixKind = "study" | "reading" | "sign-in";
@@ -80,14 +81,15 @@ export type MatrixCell = {
 
 export const MATRIX_DIR = "evidence/preview-matrix";
 
-export const projectName = (viewportId: string) => viewportId;
+/** A viewport's project in a theme: Light is the bare viewport id, Dark its `-dark` twin (playwright.config.ts). */
+export const projectName = (viewportId: string, theme: (typeof MATRIX_THEMES)[number] = "light") => (theme === "dark" ? `${viewportId}-dark` : viewportId);
 
-/** Every cell: 4 viewports x (16 pages + the sign-in error) = 68, plus the phone's 6 public pages + the sign-in error = 7: 75. */
+/** Every cell, per theme: 4 viewports x (16 pages + the sign-in error) = 68, plus the phone's 6 public pages + the sign-in error = 7: 75; 150 in both themes. */
 export function matrixCells(): MatrixCell[] {
   const cells: MatrixCell[] = [];
   for (const viewport of MATRIX_VIEWPORTS) {
     for (const theme of MATRIX_THEMES) {
-      const project = projectName(viewport.id);
+      const project = projectName(viewport.id, theme);
       for (const page of [...MATRIX_PAGES, SIGN_IN_WRONG].filter((p) => !viewport.publicOnly || p.public)) {
         cells.push({ project, viewport, theme, page, file: `${MATRIX_DIR}/${project}/${page.id}.png` });
       }
@@ -110,7 +112,7 @@ export type MatrixThresholds = { gutterMax: number; headerMax: number; panelMinP
  * panel >= 52 % of the viewport: the 45 / 55 default split gives it 52.4 % (spec 2026-11-11, C2a, R21).
  */
 export function matrixThresholds(project: string): MatrixThresholds {
-  const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id);
+  const viewport = MATRIX_VIEWPORTS.find((v) => project === v.id || project === `${v.id}-dark`);
   if (!viewport) throw new Error(`unknown matrix project: ${project}`);
   const [lineMin, lineMax] = viewport.width >= 1440 ? [60, 75] : viewport.width >= 1280 ? [50, 75] : [45, 80];
   return { gutterMax: 32, headerMax: 56, panelMinPct: 52, lineMin, lineMax };

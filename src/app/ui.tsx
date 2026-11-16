@@ -1,6 +1,6 @@
 // Shared look pieces of the design system (ADR 0015 for colour, ADR 0018 for the rest; issue #43). Colours come only from the tokens in
-// globals.css (one Light theme, decision #17). Server-safe: no "use client" here; the only client pieces rendered
-// are AccountMenu, NavLink and SignOutForm.
+// globals.css (Light and Dark, ADR 0019). Server-safe: no "use client" here; the only client pieces rendered
+// are AccountMenu, NavLink, SignOutForm and ThemeSwitch.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -9,6 +9,7 @@ import { SignOutForm } from "./sign-out";
 import { NavLink } from "./nav-link";
 import { Button, Tag } from "./primitives";
 import { RisingBars } from "./rising-bars";
+import { ThemeSwitch } from "./theme-switch";
 
 
 /**
@@ -123,8 +124,8 @@ function GearMark() {
 /**
  * App header (ADR 0018, ticket A5): 56px, on the paper, over a 1px --rule hairline. At the left the h1 wordmark (the still
  * bars and "Value It", no pill) linking to Home, then three ghost page links (Study, Course Map, Notebook; each with a dot
- * while its page loads). Pushed right, two 32px ghost icons with tooltips: a gear to Settings and the account
- * menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
+ * while its page loads). Pushed right, three 32px ghost icons with tooltips: the sun/moon theme switch (ADR 0019, the
+ * same one as the site nav), a gear to Settings and the account menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
  * accent bar on the hairline under it. current = the page showing; account names the signed-in
  * Learner (left out only by the loading skeleton and the signed-out 404). One line from 768px.
  */
@@ -151,6 +152,7 @@ export function AppHeader({ current, account, className = "" }: { current?: Head
         </ul>
       </nav>
       <div className="ml-auto flex items-center gap-1 self-stretch">
+        <ThemeSwitch className="btn btn-icon" />
         <span data-current={current === "settings" ? "true" : undefined} className={`${TAB} self-stretch after:inset-x-1.5`}>
           {/* On Settings the gear is ink with the bar, like a current page link, not the tinted face of a pressed icon. */}
           <Link
