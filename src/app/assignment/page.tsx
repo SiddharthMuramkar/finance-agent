@@ -11,7 +11,7 @@ import { OwnCaseForm } from "./own-case-form";
 export const dynamic = "force-dynamic";
 
 /**
- * The Assignment after the Spine (spec #68; ADR 0020): the Learner picks a listed Indian company, copies about eight
+ * The Assignment after the Spine (spec #68; ADR 0020): the Learner picks a listed company (India or the US), copies about eight
  * numbers from its annual report into an Own Case, sees the engine's value and saves a one-page note to the Notebook.
  */
 export default async function AssignmentPage() {
@@ -24,7 +24,7 @@ export default async function AssignmentPage() {
         {open ? (
           <>
             <p className="measure mb-8 mt-2 text-sm leading-5 text-[var(--muted)]">
-              Pick a listed Indian company and open its annual report. Copy eight numbers from it into your Own Case: this is the one place you type numbers.
+              Pick a listed company in India or the US and open its annual report. Copy eight numbers from it into your Own Case: this is the one place you type numbers.
               The Own Case is dated at the report, with the share price of that day; nothing is fetched live.
             </p>
             <OwnCaseForm />
