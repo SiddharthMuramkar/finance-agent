@@ -883,7 +883,7 @@ export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prereq
   /** Place in the outline; lower comes first. The default path is worked out from it and the Stage (navigator.ts defaultPath). */
   path: number;
   prerequisites: string[];
-  /** A Spine Topic's number, 1 to 15 (from the outline); none off the Spine. */
+  /** A Spine Topic's number, 1 to SPINE_LENGTH (from the outline, ADR 0020); none off the Spine. */
   spine?: number;
   /** The Topics a Spine Topic is built from (from the outline). Not prerequisites. */
   drawsOn?: string[];

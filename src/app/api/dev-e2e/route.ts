@@ -120,6 +120,9 @@ const STATES: Record<string, Build> = {
     if (navigate(map, await loadProgress(db, learnerId))?.check?.id !== "worth-talk") throw new Error(`${SPINE_ONE} is not at its judging Check.`);
     if (!(await openQuiz(db, map, now, learnerId))) throw new Error(`${SPINE_ONE}'s judging Check is not a quiz.`);
   },
+  /** Spine Topics 2 and 3 at their Story steps, for their first turns played through the page (#89, e2e/spine-02-03.spec.ts). */
+  "spine-02-start": storyOf("spine-02-money-later"),
+  "spine-03-start": storyOf("spine-03-cash"),
   /** The Topic at Concept, with one Widget shown by a scripted turn. */
   "concept-widget": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);
