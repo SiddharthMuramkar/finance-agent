@@ -9,7 +9,7 @@ describe("the levers story's power sentences", () => {
 
   it("come in the levers' display order with the spec's story sentences, in plain words and round numbers (#74)", () => {
     expect(steps.map((s) => s.name)).toEqual(["How big it gets", "What it keeps", "What growth costs", "How risky"]);
-    expect(plain(steps[0].story)).toBe("Sales in year 10: $39bn, against $1.1bn today.");
+    expect(plain(steps[0].story)).toBe("Sales in year 10: $39 billion, against $1.1 billion today.");
     expect(plain(steps[1].story)).toBe("Once grown, it keeps 10¢ of each $1 of sales. Today it loses 37¢.");
     expect(plain(steps[3].story)).toBe("While it grows, investors want 13% a year for the risk.");
   });

@@ -240,7 +240,7 @@ export const home = {
     eyebrow: "Where you end up",
     h2: "By the end, you value a company yourself.",
     body: "After the Topics that teach valuation in order, you pick a listed company and copy a few figures from its annual report. The site values it beside its price and keeps a one-page note. This is one.",
-    caption: "Kikkoman’s annual report for the year to 31 March 2026, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine.",
+    caption: "Kikkoman’s annual report for the year to 31 March 2026, valued on 19 June 2026, the day the report came out, on the starting numbers the site suggests. The value is worked out by the course’s tested valuation engine.",
   },
   faq: { eyebrow: "Questions", h2: "Before you ask.", link: "More questions", pick: [1, 2, 4, 5] },
   closing: {

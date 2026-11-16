@@ -37,9 +37,9 @@ const P = (lever: Lever, value: number) => 0.08 + 0.84 * ((value - lever.min) / 
 /** An effect under 50 cents shows no pill and no band. */
 const SMALL = 0.5;
 
-/** A lever's value as its slider shows it: `$39bn`, `12.5%`, `$3.00`, `12.84%`. */
+/** A lever's value as its slider shows it: `$39 billion`, `12.5%`, `$3.00`, `12.84%` (dollars in words, as the site writes them). */
 export function leverText(key: LeverKey, value: number): string {
-  if (key === "rev") return `$${trim(value, 0)}bn`;
+  if (key === "rev") return `$${trim(value, 0)} billion`;
   if (key === "margin") return `${trim(value, 1)}%`;
   if (key === "s2c") return `$${value.toFixed(2)}`;
   return `${value.toFixed(2)}%`;
