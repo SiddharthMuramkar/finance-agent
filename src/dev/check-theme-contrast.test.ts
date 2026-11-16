@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// The contrast guard guards (decision #17; spec §2.4, §3.1): the real stylesheet passes, and deliberate breakages each
+// The contrast guard guards (ADR 0019; spec §2.4, §3.1): the real stylesheet passes, and deliberate breakages each
 // fail on the rule that should catch them.
 
 const REAL = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
@@ -39,6 +39,12 @@ function change(css: string, token: string, value: string) {
 /** Adds one declaration at the top of the :root block. */
 const add = (css: string, declaration: string) => css.replace(OPEN, `${OPEN}\n  ${declaration}`);
 
+/** The Light block's declarations, copied whole: a Dark block that sets every colour (to the Light values). */
+const DARK_COPY = REAL.slice(REAL.indexOf(OPEN) + OPEN.length, REAL.indexOf("\n}", REAL.indexOf(OPEN))).replace(/\/\*[\s\S]*?\*\//g, "");
+
+/** The real stylesheet with a Dark block (ADR 0019) holding `declarations`. */
+const dark = (declarations: string) => `${REAL}\n:root[data-theme="dark"] {\n  color-scheme: dark;\n${declarations}\n}\n`;
+
 describe("the contrast guard", () => {
   const real = run(REAL);
 
@@ -47,23 +53,50 @@ describe("the contrast guard", () => {
     expect(real.status).toBe(0);
   });
 
-  // Decision #17: one Light theme. Any way back to a Dark theme fails by name.
-  it("fails any Dark theme: a .dark block, a dark variant, or the computer's dark setting", () => {
+  // ADR 0019: Light, and an optional Dark block in one selector shape. With Light only, nothing else is asked.
+  it("passes with Light only, and keeps one selector shape for Dark: no .dark class, no reading the device in CSS", () => {
+    expect(real.output).not.toContain("[Dark:");
+
     const block = run(`${REAL}\n:root.dark { --paper: #0b0b0b; }\n`);
     expect(block.status).toBe(1);
-    expect(block.output).toContain("FAIL no .dark selector (there is no Dark theme)");
-
-    const variant = run(`@custom-variant dark (&:where(.dark, .dark *));\n${REAL}`);
-    expect(variant.status).toBe(1);
-    expect(variant.output).toContain("FAIL no dark variant");
+    expect(block.output).toContain('FAIL no .dark selector (the Dark theme is :root[data-theme="dark"])');
 
     const media = run(`${REAL}\n@media (prefers-color-scheme: dark) { body { background: black; } }\n`);
     expect(media.status).toBe(1);
-    expect(media.output).toContain("FAIL no prefers-color-scheme: dark");
+    expect(media.output).toContain("FAIL no prefers-color-scheme: dark (the theme script reads the device, so a chosen theme wins)");
 
     const scheme = run(REAL.replace(OPEN, ":root {\n  color-scheme: light dark;"));
     expect(scheme.status).toBe(1);
     expect(scheme.output).toContain("FAIL color-scheme is light");
+  });
+
+  it("measures a whole Dark block on its own: every contrast, Band and colour-only pair, by name", () => {
+    const whole = run(dark(DARK_COPY));
+    expect(whole.output).toContain("[Dark: spec §2.4 contrast]");
+    expect(whole.output).toContain("ok   Dark: color-scheme is dark");
+    expect(whole.output).toMatch(/ok {3}Dark: --ink-2 on --paper \d+\.\d\d:1 \(min 7\): body text/);
+    expect(whole.output).toMatch(/ok {3}Dark: --gain and --loss \d+\.\d under deuteranopia \(target 8\)/);
+    expect(whole.output).toMatch(/ok {3}Dark: --on-band-2 on --band \d+\.\d\d:1 \(min 4\.5\)/);
+    expect(whole.output).toMatch(/ok {3}Dark: --blue on --frame \d+\.\d\d:1 \(min 3, colour alone carries the meaning\)/);
+    expect(whole.output).toContain("ok   Dark: surfaces and lines order away from --paper");
+    expect(whole.output).toContain("All checks pass.");
+    expect(whole.status).toBe(0);
+
+    // A faint that melts into the Dark paper fails in Dark, by name, while Light still passes.
+    const faint = run(dark(DARK_COPY.replace(/--faint: [^;]+;/, "--faint: #f2f2f2;")));
+    expect(faint.status).toBe(1);
+    expect(faint.output).toMatch(/FAIL Dark: --faint on --paper 1\.\d\d:1 \(min 3\)/);
+    expect(faint.output).toContain("ok   --faint on --paper 3.17:1");
+  });
+
+  it("fails a Dark block that is only half made, naming every colour with no dark value", () => {
+    const half = run(dark("  --paper: #0b0d12;\n  --ink: #ffffff;"));
+    expect(half.status).toBe(1);
+    expect(half.output).toContain('FAIL Dark: --blue has no dark value in :root[data-theme="dark"] (ADR 0019: each colour is re-stepped for Dark)');
+    expect(half.output).toContain("FAIL Dark: --on-band-2 has no dark value");
+    expect(half.output).toContain("FAIL Dark: --band-todo has no dark value");
+    expect(half.output).toContain("FAIL Dark: --check-tick has no dark value");
+    expect(half.output).not.toContain("--paper has no dark value");
   });
 
   it("freezes the spec §3.1 values", () => {
