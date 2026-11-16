@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Chip } from "@/app/primitives";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Chip, Tag } from "@/app/primitives";
 import { Chevron, SecondaryButton } from "@/app/ui";
 import type { ValuationBlock } from "@/finance/valuation-case";
 import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
 import { SliderControl } from "../slider-control";
-import { fullSheet, NO_ROW_CHANGES, rowSpecs, withRows, type RowId, type RowSettings } from "./full-sheet";
+import { LingoCardView } from "../primitives/wave3/lingo-card-view";
+import { fullSheet, NO_ROW_CHANGES, rowSpecs, withRows, type FullSheetRow, type RowId, type RowSettings } from "./full-sheet";
 import {
   AFTER_YEAR_10_LABEL,
   CASH_FLOW_CAPTION,
@@ -358,18 +359,43 @@ function FullSheetDisclosure({
       </summary>
       {sheet && !sheet.ok && <p className="text-sm text-[var(--muted)]">{sheet.error}</p>}
       {sheet?.ok && (
-        <dl className="mb-2 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm" data-testid="full-sheet" aria-label="Every input of this valuation">
+        <ul className="mb-2 text-sm" data-testid="full-sheet" aria-label="Every input of this valuation">
           {sheet.rows.map((row) => (
-            <div key={row.input} className="contents" data-row={row.input}>
-              <dt className="text-[var(--muted)]">{row.words}</dt>
-              <dd className="text-right tabular-nums">{row.reading}</dd>
-              {row.years && <dd className="col-span-2 -mt-1 text-xs tabular-nums text-[var(--muted)]">Year by year: {row.years.join(", ")}</dd>}
+            <FullSheetRowView key={row.input} row={row}>
               {sliders?.has(row.input) && <RowSlider spec={sliders.get(row.input)!} change={rows[row.input as RowId]} onChange={onRowChange} />}
-            </div>
+            </FullSheetRowView>
           ))}
-        </dl>
+        </ul>
       )}
     </details>
+  );
+}
+
+/**
+ * One Full sheet row: its words and figure, marked when the Levers moved it off the Case's own story (#103). Pressing the
+ * row opens its Lingo card inline, in the sheet, not as a Companion Widget, so it costs no Tutor Turn. Below it, its slider
+ * when the row can be changed (#104).
+ */
+function FullSheetRowView({ row, children }: { row: FullSheetRow; children?: ReactNode }) {
+  return (
+    <li className="border-b border-[var(--hairline)] last:border-b-0" data-row={row.input} data-moved={row.moved || undefined}>
+      <details className="group/row">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-x-3 py-1 [&::-webkit-details-marker]:hidden">
+          <span className="min-w-0 flex-1 text-[var(--muted)]">{row.words}</span>
+          {row.moved && (
+            <span data-testid="full-sheet-moved">
+              <Tag tone="you">Moved</Tag>
+            </span>
+          )}
+          <span className="text-right tabular-nums">{row.reading}</span>
+        </summary>
+        <div className="pb-2" data-testid="full-sheet-lingo">
+          <LingoCardView {...row.card} />
+        </div>
+      </details>
+      {row.years && <p className="-mt-1 pb-1 text-xs tabular-nums text-[var(--muted)]">Year by year: {row.years.join(", ")}</p>}
+      {children}
+    </li>
   );
 }
 
@@ -377,7 +403,7 @@ function FullSheetDisclosure({
 function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof rowSpecs>[number]; change: number; onChange: (id: RowId, change: number) => void }) {
   const figure = spec.opening + change;
   return (
-    <dd className="col-span-2 -mt-1">
+    <div className="-mt-1 pb-1">
       <SliderControl
         label={`Change: ${spec.label}`}
         value={figure}
@@ -387,7 +413,7 @@ function RowSlider({ spec, change, onChange }: { spec: ReturnType<typeof rowSpec
         onChange={(value) => onChange(spec.id, value - spec.opening)}
         stops={[spec.opening]}
       />
-    </dd>
+    </div>
   );
 }
 
