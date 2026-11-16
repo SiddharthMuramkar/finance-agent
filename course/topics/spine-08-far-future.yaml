@@ -1,4 +1,4 @@
-# Spine Topic 8 (spec 2026-11-12, C2, C4): what about the years you cannot forecast? Taught through Damodaran's February
+# Spine Topic 9 (spec 2026-11-12, C2, C4; Spine 9 since #91): what about the years you cannot forecast? Taught through Damodaran's February
 # 2000 valuation of Amazon.com, the course's running company, with the Terminal seesaw (B4) at explore.
 # The Case's valuation block is written once, in val-dcf (amazon-dcf-2000), and borrowed here with valuationFrom; every
 # figure the Widget and the computed questions show is worked out from it by the valuation engine (B1, D2).
@@ -9,6 +9,8 @@ title: "What about the years you cannot forecast?"
 goal: "Say how much of a value rests on the years after the forecast, and which two settings it hangs on"
 # Why it matters (spec 2026-11-12 A6): how this Topic helps value a company, for the Tutor to say in its own words.
 why: "A young company's value mostly sits in years nobody can forecast, so knowing what those years rest on tells you which assumptions to argue about."
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: "Buying a flat to rent out: most of what it is worth rests on the rent and price in the years after you can see."
 minutes: 12
 exampleCurrency: USD
 
@@ -28,8 +30,8 @@ cases:
       cash-positive in year 7, reaching about $1.8 billion in year 10. While it grows, investors want
       12.84% a year, easing to 9.61% by year 10 as Amazon matures. Nobody can forecast year 11, year
       30 or year 60 one by one. So for everything after year 10 he sets a few things once, and two
-      matter most: Amazon grows 6% a year for ever, and investors still want 9.61% a year. How much
-      of his value comes from the years he cannot forecast?
+      matter most: Amazon grows 6% a year for ever, and investors still want 9.61% a year. Where does most
+      of his value come from: the ten years he forecasts, or the years after?
     reveal: >
       Damodaran's published terminal value, for everything after year 10, was $52,148 million at
       year 10. Brought back to today and added to the ten years of cash, it gave the whole business a
@@ -44,8 +46,7 @@ cases:
 
 concept: >
   A forecast covers a few years, usually ten, but a business can run for decades. Terminal value
-  packs every year after the forecast into one lump at year 10: next year's cash flow divided by the
-  gap between the cost of capital and growth for ever. That lump is then discounted back to today
+  packs every year after the forecast into one lump at year 10. That lump is then discounted back to today
   like any other cash flow. Two settings drive it: growth after year 10, which cannot beat the
   economy for ever, and the cost of capital after year 10, usually lower than in the risky growth
   years. The closer growth comes to the cost of capital, the bigger the lump. The cost of capital
@@ -54,9 +55,13 @@ concept: >
   that loses cash in its early years, the forecast years can be worth less than nothing today, so
   the terminal value can hold more than all of the value. That is not a mistake in the model; it is
   where the story says the cash will come from. It means the far-future settings deserve the
-  hardest questions. One oddity: when the far future shrinks, the share of value after the forecast
-  can rise, because the losing early years weigh more against a smaller whole; read the money, not
-  the percentage.
+  hardest questions.
+
+# Go deeper (spec H1, #68): beyond the Checks, for the Tutor to give when the Learner presses Go deeper. Never quizzed.
+goDeeper: >
+  The lump is next year's cash flow divided by the gap between the cost of capital and growth for ever, which is why
+  a narrow gap makes it balloon. One oddity: when the far future shrinks, the share of value after the forecast can
+  rise, because the losing early years weigh more against a smaller whole; read the money, not the percentage.
 
 principle: >
   For a young company most of the value sits after the forecast. Before you trust a value, ask how
@@ -101,19 +106,19 @@ skills:
     rule: "The value after the forecast rests on growth for ever and the cost of capital then; the closer the two, the bigger it is, and each moves the value far more than the rate in the growth years."
 
 insight:
-  question: "On the seesaw, how much of Amazon's value sits after the tenth year? Then move the two far-future settings and watch the value a share and the side for after the tenth year."
+  question: "On the seesaw, which side holds Amazon's value: the first ten years, or the years after the tenth? Then move the two far-future settings and watch the value a share and both sides."
   written: "More than all of Amazon's value sat after the tenth year: the first ten years were worth less than nothing today, and everything rested on two far-future settings nobody can check."
   foundWhen: "The Learner says the years after the tenth year hold more than the whole value (the first ten years are worth less than nothing today), and that small moves in growth or the cost of capital after the tenth year move the value a lot."
   hints:
-    - "Look at the left side of the seesaw. Are the first ten years worth something or less than nothing today?"
-    - "Now lower growth after the tenth year a point, then put it back and raise the cost of capital after the tenth year. Watch the value a share and the money on each side, not the headline share: it can climb as the value falls, because the losing early years weigh more against a smaller whole."
+    - "Look at the left side of the seesaw, the first ten years. Are they worth something, or less than nothing today?"
+    - "Now lower growth after the tenth year a point, then put it back and raise the cost of capital after the tenth year. Watch the value a share, not the headline share: that can climb even as the value falls."
 
 explore:
   before: far-check
   workbench:
     recipe: terminal_seesaw
     case: spine-08-amazon-2000
-    title: "How much of Amazon's value sits after year 10?"
+    title: "Where does Amazon's value sit: years 1 to 10, or after year 10?"
     inputs: {}
 
 connections:

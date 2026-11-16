@@ -42,20 +42,25 @@ concept: >
   When a business earns fat margins, rivals come in, cut prices and copy what works, until margins drift towards what
   the industry earns. So the best guide to a mature margin is what similar companies keep: the median, the best of
   them, and the reason this company would sit above them. A margin above every rival's needs an edge rivals cannot
-  copy, such as a brand, a patent, software or a cost no one else can match. Underneath the margin sit the unit
-  economics: what one unit, here one car, sells for against what it costs to make and sell. The margin rises only
-  when the gap per car grows as a share of its price, and a cost cut every rival shares ends up in lower prices,
-  not in a fatter margin.
+  copy, such as a brand, a patent, software or a cost no one else can match. Per car, the margin is the gap between
+  what it sells for and what it costs to make and sell, as a share of its price. It rises only when that gap grows,
+  and a cost cut every rival shares ends up in lower prices, not in a fatter margin.
 
 principle: >
   A margin is a claim against rivals, not a wish. Set it against what similar companies keep, and go above all of
   them only when you can name what they cannot copy.
 
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: "A coffee shop that charges more than the cafes on its street: before you believe it lasts, ask what it has that they cannot copy, and set its margin against what the shops around it keep."
+
 goDeeper: >
   Damodaran's update a week before the post split his change in value into pieces: the base year, a lower cost of
   capital, faster growth, a higher margin, a lower chance of failure, net debt and options. The margin was the
   largest piece, about half of the whole change. A Learner who wants more can ask which pieces moved
-  the value up and which moved it down.
+  the value up and which moved it down. Analysts call a margin seen one sale at a time unit economics: what one unit,
+  here one car, sells for against what it costs to make and sell. A juice stall that sells a cup for $3 and spends $2
+  making it keeps $1 a cup. Damodaran warns that if costs fall for every carmaker alike, buyers get cheaper cars,
+  not makers fatter gaps per car.
 
 youllLearn:
   - "See why what a company keeps of each sale moves its value so far."
@@ -81,12 +86,6 @@ terms:
     pro: The median carmaker keeps about three percent.
     example: "Of five shops keeping 2, 4, 5, 7 and 9 cents a dollar, the median keeps 5 cents."
     inStory: The median global carmaker kept 3.01% of its sales in 2019.
-  - term: unit economics
-    means: What one unit sells for against what it costs to make and sell; the margin is that gap as a share of the price.
-    emoji: receipt
-    pro: The unit economics only work if each car sells for more than it costs.
-    example: "A juice stall sells a cup for $3, spends $2 making it, and keeps $1 a cup."
-    inStory: Damodaran warns that if costs fall for every maker alike, buyers get cheaper cars, not makers fatter gaps per car.
   - term: competitive edge
     means: Something a company has that rivals cannot copy, which lets it keep more of each sale than they do.
     emoji: crown
@@ -291,6 +290,6 @@ checks:
           - { id: same, text: "It stays the same, because it sells the same cars", mistake: { tag: units_not_gap, fix: "The margin is the gap per car as a share of its price; a cheaper car at the same price widens it." } }
   - id: margins-talk
     kind: conversation
-    prompt: Tell Tesla's margin story in two or three sentences. What will it keep once its fast growth is over, which rivals are you comparing it with, and why could it stay above them or not? Could that story explain the price of the day?
-    passCriteria: Names a mature margin or a range; compares it with carmakers, technology companies or both; gives a reason Tesla could keep more than its rivals, or doubts one; and treats the gap between that story and the price as a question, not a verdict.
+    prompt: A fund manager says Tesla will keep 15% of each sale once its fast growth is over, more than any large carmaker keeps. How would you judge that story? Say which rivals you would set it against, and what edge Tesla would need to stay above them.
+    passCriteria: Judges the fund manager's 15% against what rivals keep, carmakers, technology companies or both; and names an edge Tesla would need to stay above them, or doubts it has one. If it brings in the price of the day, it treats the gap between that story and the price as a question, not a verdict.
     skills: [rivals-cap]
