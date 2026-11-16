@@ -304,7 +304,7 @@ The widget engine is the only Widget lane, and every Session freezes it. #44 del
 - SEC filings: Amazon 1997 to 2000, Webvan 1999 to 2001, and the We Company S-1 of 2019.
 - Investor.gov explainers. This entry is in the list, but it is not loaded: the site refused the fetcher (403).
 
-Since the load on 2026-11-16, production holds no 2nd edition passages. Its entry is still in `sources.json`.
+Since the load on 2026-11-16, production holds no 2nd edition passages, and #41 removed its entry from `sources.json`, so no later load brings it back.
 
 **Ingest** runs by hand, not on deploy:
 
