@@ -891,3 +891,27 @@ export const skipAheadAttempts = pgTable(
   },
   (t) => [uniqueIndex("skip_ahead_attempts_one_a_day").on(t.learnerId, t.topicId, t.day)],
 );
+
+/**
+ * Own Cases (spec #68, Assignments): a listed company a Learner picked and valued from its annual report, one row per
+ * Own Case. `inputs` are the figures they typed (src/finance/own-case.ts `OwnCaseInputs`), `estimate` the story it is
+ * valued on (`OwnCaseEstimate`), and `note` the one-page note the Notebook shows once they save it. Added by an
+ * expand-only migration (ADR 0016): old code never reads it.
+ */
+export const ownCases = pgTable(
+  "own_cases",
+  {
+    id: serial("id").primaryKey(),
+    learnerId: learnerId(),
+    company: text("company").notNull(),
+    market: text("market").notNull(),
+    /** The annual report's date: the Own Case's As-of date. */
+    reportDate: date("report_date", { mode: "string" }).notNull(),
+    inputs: jsonb("inputs").notNull().$type<Record<string, unknown>>(),
+    estimate: jsonb("estimate").notNull().$type<Record<string, unknown>>(),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("own_cases_learner").on(t.learnerId)],
+);
