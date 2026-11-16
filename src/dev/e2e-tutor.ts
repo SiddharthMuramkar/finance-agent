@@ -636,6 +636,101 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
+  /**
+   * Spine Topics 2 and 3 for beginners (#89, e2e/spine-02-03.spec.ts): the first three Tutor Turns of each, Story, Concept
+   * and Explore, played for the critics' screenshots and transcript. Their figures are each Topic file's Case figures; code
+   * opens each Topic's explore Widget, so the explore replies only point at it.
+   */
+  "spine2-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "October 2018. One ticket sold in South Carolina matches all six numbers of the Mega Millions lottery. " +
+              "The advertised jackpot is $1.537 billion, paid as 30 yearly payments that grow a little each year. " +
+              "Or the winner can take one cash payment of about $877.8 million now. " +
+              "Nobody knows yet who holds the ticket, or which way they will choose.\n\n" +
+              "Why do you think the cash is so much smaller than the jackpot?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine2-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Money in your hand today can sit in the bank and grow, so money promised later is worth less today. " +
+              "That is its present value: what a later payment is worth in today's money. " +
+              "The longer the wait, or the higher the rate, the less a later payment is worth today.\n\n" +
+              "Which of the 30 payments do you think is worth least today?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine2-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here are the 30 payments, with a slider for the interest rate. At no interest at all they are worth the full advertised total. " +
+              "As you raise the rate, the later payments shrink, and the far-off ones shrink the most.\n\n" +
+              "Is there a rate where the payments are worth the same as the cash?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine3-story": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "April 2001. Webvan, an online grocer, files its report for 2000. " +
+              "Its sales grew from $13.3 million in 1999 to $178.5 million in 2000. " +
+              "Yet running the business used $263.1 million more cash than its sales brought in, and $259.8 million more went on warehouses and equipment. " +
+              "About $212 million is left.\n\n" +
+              "Where do you think all that cash went?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine3-concept": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "Operating income is what sales bring in after the running costs. " +
+              "Free cash flow takes off tax, then what growth costs: the warehouses, vans and groceries that more sales need, bought before those sales arrive. " +
+              "So a business can make a profit on each sale and still run short of cash.\n\n" +
+              "Which grocer would you expect to use more cash: one growing fast, or one standing still?",
+          ),
+        ],
+      },
+    ],
+  },
+  "spine3-explore": {
+    step: "explore",
+    replies: [
+      {
+        content: [
+          text(
+            "Here is Webvan's year as a waterfall, from sales down to free cash flow. " +
+              "It gives Webvan a small profit on each sale, and still free cash flow is far below zero.\n\n" +
+              "What happens to free cash flow when you move growth down?",
+          ),
+        ],
+      },
+    ],
+  },
 } satisfies Record<string, { step: StepKind; replies: ScriptedReply[]; retry?: ScriptedReply[] }>;
 
 export type E2eScriptName = keyof typeof E2E_SCRIPTS;

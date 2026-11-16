@@ -99,7 +99,7 @@ describe("show_widget and the widget engine", () => {
       revenue: 13.305,
       taxPercent: 35,
       lossesCarried: 470,
-      opening: { growth: 1241.3, margin: -179.2, salesToCapital: 0.7 },
+      opening: { growth: 1241.3, margin: 4, salesToCapital: 0.7 },
       source: { title: "Webvan Group, Form 10-K for 2000 (SEC EDGAR)", url: "https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt" },
     };
     const shownTitle = async (company: unknown) => {
