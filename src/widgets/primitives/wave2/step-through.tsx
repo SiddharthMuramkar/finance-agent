@@ -37,6 +37,7 @@ export const stepThroughProps = z.object({
     .array(z.object({ label: z.string(), emoji: z.string().optional() }))
     .nullish()
     .describe("Tiles drawn above every step; a step's light lights one"),
+  tilesLabel: z.string().nullish().describe("What the tiles are, read out by a screen reader, such as The three statements"),
 });
 
 export type StepData = z.infer<typeof stepProps>;
@@ -76,11 +77,19 @@ export function lit(body: string, tone: Tone | undefined): ReactNode {
 
 type Asked = { status: "idle" | "shown" };
 
-/** The tiles a StepThrough draws above its steps; a tile is lit once a step up to `at` has lit it. */
-function Tiles({ tiles, steps, at }: { tiles: StepTile[]; steps: StepData[]; at: number }) {
+/** One column per tile (2 to 4), written out so Tailwind keeps each class. */
+const TILE_COLUMNS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" };
+
+/**
+ * The tiles a StepThrough draws above its steps; a tile is lit once a step up to `at` has lit it. Unlit tiles keep full
+ * contrast (the muted ink token, a dashed border), and the lit state is read out: the tile this step lights is
+ * aria-current, and each lit tile says so to a screen reader (#90, review 3 L07).
+ */
+function Tiles({ tiles, steps, at, label }: { tiles: StepTile[]; steps: StepData[]; at: number; label?: string | null }) {
   const lit = new Set(steps.slice(0, at + 1).flatMap((s) => (typeof s.light === "number" ? [s.light] : [])));
+  const current = steps[at]?.light;
   return (
-    <ul data-testid="step-tiles" className="mt-2 grid grid-cols-3 gap-2" aria-label="The pages">
+    <ul data-testid="step-tiles" className={`mt-2 grid ${TILE_COLUMNS[tiles.length] ?? "grid-cols-4"} gap-2`} aria-label={label?.trim() || "What the steps move"}>
       {tiles.map((t, i) => {
         const on = lit.has(i);
         return (
@@ -88,10 +97,12 @@ function Tiles({ tiles, steps, at }: { tiles: StepTile[]; steps: StepData[]; at:
             key={`${i}-${t.label}`}
             data-testid="step-tile"
             data-lit={on ? "true" : "false"}
-            className={`flex flex-col items-center gap-1 rounded-md border px-2 py-2 text-center text-xs leading-4 ${on ? "border-[var(--line-strong)] font-medium text-[var(--ink)]" : "border-[var(--rule)] text-[var(--muted)] opacity-60"}`}
+            aria-current={current === i ? "step" : undefined}
+            className={`flex flex-col items-center gap-1 rounded-md border px-2 py-2 text-center text-xs leading-4 ${on ? "border-[var(--line-strong)] font-medium text-[var(--ink)]" : "border-dashed border-[var(--line-strong)] text-[var(--muted)]"}`}
           >
             {t.emoji && <Pic name={t.emoji} size={20} />}
             <span>{t.label}</span>
+            {on && <span className="sr-only">, lit</span>}
           </li>
         );
       })}
@@ -99,7 +110,7 @@ function Tiles({ tiles, steps, at }: { tiles: StepTile[]; steps: StepData[]; at:
   );
 }
 
-export function StepThroughView({ steps, tiles }: { steps: StepData[]; tiles?: StepTile[] | null }) {
+export function StepThroughView({ steps, tiles, tilesLabel }: { steps: StepData[]; tiles?: StepTile[] | null; tilesLabel?: string | null }) {
   const reduced = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
   const [asked, setAsked] = useState<Record<number, Asked>>({});
@@ -124,7 +135,7 @@ export function StepThroughView({ steps, tiles }: { steps: StepData[]; tiles?: S
         Step {at + 1} of {steps.length}
       </p>
       <div role="group" aria-label={`Step ${at + 1} of ${steps.length}: ${step.title}`} style={{ opacity: fresh ? 0.35 : 1, transition: reduced ? undefined : "opacity 160ms var(--ease-out, ease-out)" }}>
-        {tiles && tiles.length > 0 && <Tiles tiles={tiles} steps={steps} at={at} />}
+        {tiles && tiles.length > 0 && <Tiles tiles={tiles} steps={steps} at={at} label={tilesLabel} />}
         <h4 className="mt-2 flex items-center gap-2 text-base font-medium">
           {step.emoji && <Pic name={step.emoji} size={24} />}
           {step.title}
@@ -182,13 +193,13 @@ function StepThroughBound({ props }: ComponentRenderProps<z.infer<typeof stepThr
   const tiles = (Array.isArray(props.tiles) ? props.tiles : []).flatMap((t): StepTile[] =>
     t && typeof t.label === "string" ? [{ label: t.label, ...(typeof t.emoji === "string" && { emoji: t.emoji }) }] : [],
   );
-  return <StepThroughView steps={steps} tiles={tiles} />;
+  return <StepThroughView steps={steps} tiles={tiles} tilesLabel={typeof props.tilesLabel === "string" ? props.tilesLabel : null} />;
 }
 
 export const StepThrough = defineComponent({
   name: "StepThrough",
   description:
-    "A worked example with Back and Next: StepThrough([Step(title, body, highlight?, ask?, askUnit?, light?, emoji?)], tiles?). tiles [{label, emoji}] sit above the steps; a step's light lights one. highlight lights up the numbers in the body (you = teal, src = amber, neutral). A step with ask is a faded step: a Show the number button reveals the number; ask must come from a calculator. No formulas in symbols in a body: use a FormulaCard.",
+    "A worked example with Back and Next: StepThrough([Step(title, body, highlight?, ask?, askUnit?, light?, emoji?)], tiles?, tilesLabel?). tiles [{label, emoji}] sit above the steps; a step's light lights one; tilesLabel names them. highlight lights up the numbers in the body (you = teal, src = amber, neutral). A step with ask is a faded step: a Show the number button reveals the number; ask must come from a calculator. No formulas in symbols in a body: use a FormulaCard.",
   props: stepThroughProps,
   component: StepThroughBound,
 });
