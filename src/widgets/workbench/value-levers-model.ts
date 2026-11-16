@@ -62,6 +62,9 @@ const SYMBOL: Record<ValuationBlock["currency"], string> = { USD: "$", INR: "₹
 const CURRENCY_WORD: Record<ValuationBlock["currency"], [one: string, many: string]> = { USD: ["dollar", "dollars"], INR: ["rupee", "rupees"] };
 const LOCALE: Record<ValuationBlock["currency"], string> = { USD: "en-US", INR: "en-IN" };
 
+/** The currency's sign: "$", "₹". */
+export const currencySign = (block: Money): string => SYMBOL[block.currency];
+
 /** Up to `digits` decimals, none when the number is whole, grouped for the currency's locale. */
 const grouped = (n: number, block: Money, digits = 1) => n.toLocaleString(LOCALE[block.currency], { maximumFractionDigits: digits });
 
