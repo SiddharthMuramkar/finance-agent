@@ -16,7 +16,7 @@ title: "Growth: how big can it get?"
 goal: Turn a story about the market a young company can win into its future revenue, and weigh its effect on value.
 why: "A company's value starts with how big it can get, and for a young company that rests on a story about the market it can win."
 # The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
-dailyLife: "A food-delivery app says its market is huge: how big a slice of it can it really take?"
+dailyLife: "A food-delivery app says its market is huge: how big a share of it can it really win?"
 minutes: 12
 exampleCurrency: USD
 
@@ -233,7 +233,7 @@ questions:
         - { id: market-3x, label: "A market three times his, $300bn of fares", levers: { revenueYear10: 10745 } }
         - { id: no-failure, label: "No chance of failure, not 10%", levers: { failureChance: 0 } }
         - { id: rate-10, label: "Cost of capital 12% to 10% while it grows", levers: { costOfCapitalGrowing: 10 } }
-        - { id: lean, label: "Sales to capital 5 to 10", levers: { salesToCapital: 10 } }
+        - { id: lean, label: "Sales for each $1 invested, $5 to $10", levers: { salesToCapital: 10 } }
   # What the price assumes (D1), computed: which story is worth the $17bn venture price.
   - id: ug-q-price
     kind: price_assumes
