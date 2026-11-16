@@ -108,3 +108,15 @@ export function ArrowLink({ href, children, ink = false }: { href: string; child
     </Link>
   );
 }
+
+/** A source line (#74): a credit with its link. The one place a published author is named on Home and How it works. */
+export function SourceLine({ source }: { source: { lead: string; label: string; href: string } }) {
+  return (
+    <p className="v-fine v-source" data-source-line="">
+      {source.lead}{" "}
+      <a href={source.href} className="v-tlink" target="_blank" rel="noreferrer">
+        {source.label}
+      </a>
+    </p>
+  );
+}

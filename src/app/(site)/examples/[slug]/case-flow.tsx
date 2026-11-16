@@ -70,17 +70,17 @@ export function CaseFlow({ example }: { example: Example }) {
 
       <div className="v-case">
         <section className="story" aria-labelledby="case-story">
-          <p className="v-label" id="case-story">
+          <h2 className="v-label" id="case-story">
             {casePage.story}
-          </p>
+          </h2>
           <StoryText story={example.story} />
           <Facts facts={example.facts} />
         </section>
 
         <section className="question" aria-labelledby="case-question">
-          <p className="v-label" id="case-question">
+          <h2 className="v-label" id="case-question">
             {casePage.question}
-          </p>
+          </h2>
           <div className="thread">
             <p className="v-who">{casePage.you}</p>
             <p className="v-bubble you">{example.ask}</p>
@@ -96,9 +96,9 @@ export function CaseFlow({ example }: { example: Example }) {
         </div>
 
         <section className="answer" aria-labelledby="case-answer">
-          <p className="v-label" id="case-answer">
+          <h2 className="v-label" id="case-answer">
             {casePage.answer}
-          </p>
+          </h2>
           <div aria-live="polite">
             {answered ? (
               <p className="v-bubble tutor v-rise">
@@ -114,9 +114,9 @@ export function CaseFlow({ example }: { example: Example }) {
         </section>
 
         <section className="ending" aria-labelledby="case-ending">
-          <p className="v-label" id="case-ending">
+          <h2 className="v-label" id="case-ending">
             {casePage.ending}
-          </p>
+          </h2>
           {stage === "load" && (
             <div className="v-locked">
               <p className="v-small">
@@ -141,7 +141,7 @@ export function CaseFlow({ example }: { example: Example }) {
           )}
           {stage === "revealed" && (
             <div ref={reveal} tabIndex={-1} className="v-card v-stack v-rise" data-testid="case-reveal">
-              <h2 className="v-h3">{example.endingLabel}</h2>
+              <h3 className="v-h3">{example.endingLabel}</h3>
               <p>
                 <Rich>{example.ending}</Rich>
               </p>
