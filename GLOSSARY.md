@@ -1,6 +1,6 @@
 # Value It
 
-Value It teaches finance and valuation. A Learner studies with the Tutor, one Topic at a time, on real Cases and live Widgets.
+Value It teaches finance and valuation to beginners, until they can value a company on their own. A Learner studies with the Tutor, one Topic at a time, on real Cases and live Widgets.
 
 ## Language
 
@@ -30,7 +30,8 @@ The Owner's advance yes for one email address, so that person skips the wait.
 The Owner's decision, in Clerk's Waitlist, to let an Applicant in (invite) or keep them out (reject).
 
 **Early access**:
-The free, invite-only beta that the site offers.
+The free, invite-only access the site offers: the Owner lets each person in by hand.
+_Avoid_: beta
 
 ### Tutor and conversation
 
@@ -79,7 +80,7 @@ A group of related Topics on the Course Map.
 One lesson, built around one idea, its Running example and its Cases.
 
 **Spine**:
-The fifteen valuation Topics, in a fixed order, that are every new Learner's default path.
+The valuation Topics, in a fixed order, that are every new Learner's default path.
 
 **Elective**:
 A Topic off the Spine that a Learner opens by choice.
@@ -91,10 +92,10 @@ Short teaching inside a Spine Topic that covers one idea an Elective teaches in 
 A Topic whose teaching is written ahead, not invented by the Tutor in each Turn.
 
 **Teaching Step**:
-One stage of a Topic: story, concept, explore, your turn, check, reveal, principle.
+One stage of a Topic: moment, concept, explore, your turn, check, reveal, principle.
 
 **Running example**:
-The one story that a Topic's teaching is built around.
+The one real event that a Topic's teaching is built around.
 
 **Insight**:
 The one idea of a Topic that the Learner finds through play at the explore step, with hints if needed.
@@ -140,6 +141,9 @@ A question from a passed Topic that is shown again later and answered by tap.
 **Question Bank**:
 Human-written questions, kept private, that quizzes and Reviews draw from.
 
+**Assignment**:
+A task after the Spine: the Learner picks a listed company, finds its numbers and values it as an Own Case.
+
 ### Cases and hindsight
 
 **Case**:
@@ -158,9 +162,19 @@ Until the Reveal, nothing from after a Case's As-of date reaches the Learner.
 **Case Data**:
 A Case's checked figures as they stood at its As-of date.
 
+**Moment**:
+The event a Case or Example is about, told as people knew it on its As-of date.
+_Avoid_: story
+
+**Own Case**:
+A Case the Learner picks and fills: a listed company, its As-of date (the date of its annual report) and the numbers they found in that report.
+
+**Market reading**:
+A market-wide number, such as the premium investors ask over safe bonds, shown with the date it was measured.
+
 **Example**:
-A public page where a Visitor plays one Signal widget on a real story.
-_Avoid_: case page
+A public page where a Visitor plays one Signal widget on a real Moment.
+_Avoid_: case, case page
 
 ### Library
 
@@ -214,7 +228,7 @@ One of the five live Widgets the site shows: Jackpot, Four levers, Compounding, 
 The answer the Learner commits to in a Widget before the Widget shows its own. The controls unlock after it.
 
 **Verdict**:
-Whether a Call is right. It comes from the checked story data, never from the Tutor.
+Whether a Call is right. It comes from checked data, never from the Tutor.
 
 **Milestone**:
 A moment in a Widget worth naming, such as finding the break-even or reaching the Price.
@@ -222,11 +236,22 @@ A moment in a Widget worth naming, such as finding the break-even or reaching th
 **Lever**:
 One of the four drivers of a valuation: growth, margin, reinvestment and risk.
 
+**Story**:
+What someone claims about a company's future: a founder, an analyst, a headline or the Price itself. A Learner judges it against what happened.
+_Avoid_: your story
+
 **Valuation story**:
-A set of Lever settings for a company, which gives a value per share.
+A Story told as settings of the four Levers, which gives a value per share.
 
 **Reference story**:
 The published Valuation story a levers Widget starts from, such as Damodaran's Amazon of February 2000.
+
+**Estimate**:
+A Learner's own Lever settings for an Own Case, made in an Assignment.
+_Avoid_: your story
+
+**Full sheet**:
+Every input of a valuation in plain words, behind Go deeper. The four Levers are its front.
 
 **Price**:
 What the market paid on the As-of date. It is shown against value, never as right or wrong.
@@ -254,11 +279,15 @@ A short note of what the Tutor knows about a Learner across Topics.
 - Each **Check** has one **Concept card** and tests its **Skills**; **Quick tries** practise one **Skill** each.
 - A **Case** has one **As-of date**; its **Reveal** ends the **As-of rule** for it.
 - The **Library** holds **Sources**; a **Source** holds **Passages**; a **Citation** points at one **Passage**.
-- A **Valuation story** sets all four **Levers**; a **Reference story** is a published **Valuation story**.
+- A **Valuation story** is a **Story** told as all four **Levers**; a **Reference story** is a published **Valuation story**.
+- On the **Spine** the **Learner** judges other people's **Stories**. Their own **Estimate** comes only in an **Assignment**, which asks for one **Own Case**.
+- A **Case** and an **Example** each tell one **Moment**.
 - The **Notebook** holds one **Topic Note** per **Topic** the **Learner** studied.
 
 ## Flagged ambiguities
 
-- **Case** and **Example** are different things: a **Case** is studied in a **Topic**; an **Example** is a public page with one **Signal widget**. A **Running example** is the story inside one **Topic**, not an **Example**.
+- **Case** and **Example** are different things: a **Case** is studied in a **Topic**; an **Example** is a public page with one **Signal widget**. A **Running example** is the event inside one **Topic**, not an **Example**.
+- **Story** and **Moment** are different things: a **Story** is a claim about the future that the **Learner** judges; a **Moment** is the event itself. "The story" never labels the event.
+- **Estimate** and **Valuation story** both set the **Levers**: a **Valuation story** is someone else's, judged on the **Spine**; an **Estimate** is the **Learner**'s own, made only in an **Assignment**.
 - **Check**, **Quick try** and **Review** are all questions: only a **Check** must be passed to finish a **Topic**; a **Quick try** practises; a **Review** comes back after the **Topic** is passed.
 - **Learner**, **Applicant** and **Member** name one person at different times: an **Applicant** waits, a **Member** may study, and a **Learner** is someone who studies.
