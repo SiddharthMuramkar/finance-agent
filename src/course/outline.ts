@@ -13,9 +13,9 @@ export const STAGES = ["spine", "foundation", "follow", "judge", "analyse"] as c
 export type Stage = (typeof STAGES)[number];
 
 /** How many Topics the Spine may have (spec C4, ADR 0020), and the longest a Spine Topic may say it takes, in minutes (C2). */
-// 17 with #93's annual report Topic and #90's statements Topic; 18 once #91's split lands with them (ADR 0020). The mergers set
-// it to the number of Spine Topics in the merged outline; the course check then requires exactly that many.
-export const SPINE_LENGTH = 17;
+// 18 with #90's statements Topic, #91's cost-of-capital split and #93's annual report Topic (ADR 0020). The mergers set it
+// to the number of Spine Topics in the merged outline; the course check then requires exactly that many.
+export const SPINE_LENGTH = 18;
 export const SPINE_MAX_MINUTES = 15;
 
 /** The nine Subjects: the field a Foundation Topic belongs to. Later-Stage Topics have none. */

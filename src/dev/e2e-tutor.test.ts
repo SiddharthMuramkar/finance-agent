@@ -27,18 +27,20 @@ const spineItems: OpenItem[] = [
 const isSpine = (name: E2eScriptName) => /^(spine[123]|statements)-/.test(name);
 /** Spine Topics 2 and 3's first turns (#89, e2e/spine-02-03.spec.ts) are checked against their own Topics. */
 const SPINE_OF = { "spine2-": map.topic("spine-02-money-later")!, "spine3-": map.topic("spine-03-cash")!, "statements-": map.topic("spine-statements")! } as const;
+/** #91's three-turn plays of the risk Topic and the cost-of-capital Topic (e2e/spine-rate-split.spec.ts). */
+const splitTopic = (name: E2eScriptName) => (name.startsWith("rate-") ? map.topic("spine-07-risk") : name.startsWith("coc-") ? map.topic("spine-cost-of-capital") : undefined);
 /** #93's three-turn play of the annual report Topic (e2e/spine-annual-report.spec.ts). */
 const annualReport = map.topic("spine-annual-report")!;
 const isReport = (name: E2eScriptName) => name.startsWith("ar-");
 const topicOf = (name: E2eScriptName) =>
-  isReport(name) ? annualReport : (Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic));
+  splitTopic(name) ?? (isReport(name) ? annualReport : (Object.entries(SPINE_OF).find(([prefix]) => name.startsWith(prefix))?.[1] ?? (isSpine(name) ? spine : topic)));
 
 const context = (name: E2eScriptName): ReplyCheckContext => {
   const t = topicOf(name);
   const checkStep = E2E_SCRIPTS[name].step === "check";
   return {
     step: E2E_SCRIPTS[name].step,
-    exampleCurrency: isSpine(name) || isReport(name) ? "USD" : "INR",
+    exampleCurrency: isSpine(name) || splitTopic(name) || isReport(name) ? "USD" : "INR",
     caseCurrencies: ["USD"],
     openItems: name === "quiz-open" ? openItems : isSpine(name) && checkStep ? spineItems : [],
     internalWords: [t.id, ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)],
@@ -51,6 +53,9 @@ describe("the scripted Tutor", () => {
       "ar-concept",
       "ar-explore",
       "ar-story",
+      "coc-concept",
+      "coc-explore",
+      "coc-story",
       "concept-percent-change",
       "concept-reply-widget",
       "concept-two-ways",
@@ -61,6 +66,9 @@ describe("the scripted Tutor", () => {
       "persona-why-tiny",
       "plain-reply",
       "quiz-open",
+      "rate-concept",
+      "rate-explore",
+      "rate-story",
       "rejected-draft",
       "reveal-reply",
       "reveal-reply-widget",

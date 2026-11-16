@@ -385,6 +385,6 @@ describe("what the Tutor is told of each Workbench (readWidget)", () => {
     expect(read("multiple-decoder").readouts[1]).toMatch(/^WeWork trades at 26× revenue \(sourced: /);
     expect(read("value-levers-failure", { $failure: 30 }).readouts).toContain("If it survives: $35 a share");
     expect(read("value-levers-market").sliders[0]).toEqual({ label: "Share of the market in year 10 (how big it gets)", text: "1.74%" });
-    expect(read("wacc-stack").tasks.map((t) => t.text)).toEqual(["Raise relative risk to 2.0. How far does the rate move?", "Set the share of debt to 30%"]);
+    expect(read("wacc-stack").tasks.map((t) => t.text)).toEqual(["Raise relative risk to 2.0. Does the rate move a lot or a little?", "Set the share of debt to 30%"]);
   });
 });
