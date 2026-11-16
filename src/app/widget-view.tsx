@@ -9,6 +9,7 @@ import { answers, widgetProblems, widgetQueries, type WrittenQuery } from "@/wid
 import { GenuiTheme } from "@/widgets/genui-theme";
 import { StartingValuesContext, WidgetBorderContext, widgetLibrary } from "@/widgets/library";
 import { declaredSettings, settingsFrom } from "@/widgets/settings";
+import { OwnCasesContext } from "@/widgets/workbench/own-cases";
 import { SliderLandingContext } from "@/widgets/slider-control";
 import { lenientTaskCode, liveLandings, sliderLandings, sliderRanges, type Landings } from "@/widgets/slider-landing";
 import type { WidgetToolName } from "@/widgets/tool-specs";
@@ -258,7 +259,9 @@ export function WidgetView({
   const starting = useMemo(() => (complete ? declaredSettings(code) : {}), [code, complete]);
   // Where each slider stops and which chips it shows: the values its Guided Tasks name, and its opening value (B5).
   const landings = useMemo<Landings>(() => (complete ? sliderLandings(code) : {}), [code, complete]);
-  if (complete && widgetProblems(code).length) return <Fallback />;
+  // A Workbench on one of the Learner's Own Cases draws only where the page provides them.
+  const ownCases = useContext(OwnCasesContext);
+  if (complete && widgetProblems(code, ownCases).length) return <Fallback />;
   return (
     <Contain code={code}>
       <WidgetBorderContext.Provider value={!bare}>
