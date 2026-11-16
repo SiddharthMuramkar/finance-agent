@@ -44,8 +44,11 @@ concept: >
 
 principle: >
   Blend what shareholders and lenders each require by how much of the money each puts in, with debt counted after its
-  tax saving. Then put the mix in its place: it moves a value less than growth and margins. In daily life, a home
-  bought with a mortgage and your own savings costs a blend of the loan's interest and what your savings could have earned.
+  tax saving. Then put the mix in its place: it moves a value less than growth and margins.
+
+# The daily-life line (spec #68): shown at the Principle step and on the Topic complete card, and kept in the Topic Note.
+dailyLife: >
+  A home bought with a mortgage and your own savings costs a blend of the loan's interest and what your savings could have earned.
 
 goDeeper: >
   Damodaran weighted the two costs by what the market paid, not by the amounts in the accounts: at $84 a share,

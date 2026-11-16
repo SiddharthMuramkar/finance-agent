@@ -63,6 +63,11 @@ describe("Topic 7 split into the cost of equity and the cost of capital (#91)", 
     expect(words(RISK).filter((t) => /\bWACC\b/.test(t))).toEqual([]);
   });
 
+  it("ends each Topic's Principle on a daily-life line (spec #68)", () => {
+    expect(risk.dailyLife).toMatch(/savings account/);
+    expect(capital.dailyLife).toMatch(/mortgage/);
+  });
+
   it("asks for no own story in either Topic: the risk Topic's conversation judges Damodaran's choice", () => {
     for (const t of [risk, capital]) {
       for (const c of t.checks.filter((c) => c.kind === "conversation")) expect(c.prompt, `${t.id} ${c.id}`).not.toMatch(/how you would|your own|your story/i);
