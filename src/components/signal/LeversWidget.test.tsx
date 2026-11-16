@@ -35,8 +35,8 @@ describe("the levers widget renders", () => {
     expect(w.querySelector("h3")?.textContent).toBe("Four levers. What is Amazon worth?");
     expect(value(w)).toBe("$35");
     expect(sub(w)).toBe("42% of the $84 price.");
-    expect(reading(w)).toBe("This is his story: $35 a share, against a price of $84. Drag any lever to write your own.");
-    expect(textOf(w.querySelector(".sig-ruler"))).toContain("His story $35");
+    expect(reading(w)).toBe("This is one published valuation: $35 a share, against a price of $84. Drag any lever to test it.");
+    expect(textOf(w.querySelector(".sig-ruler"))).toContain("Published $35");
     expect(textOf(w.querySelector(".sig-ruler"))).toContain("Price paid, 3 Feb 2000");
     expect(pills(w)).toEqual([null, null, null, null]);
     expect(LEVERS.map((l) => textOf(lever(w, l.key).querySelector(".sig-lever-value")))).toEqual(["$39bn", "10%", "$3.00", "12.84%"]);
@@ -73,7 +73,7 @@ describe("call before reveal", () => {
       "Cash from years 1 to 10",
       "Everything after year 10",
       "What it owes others",
-      "Your story, a share",
+      "This Story, a share",
     ]);
     expect(textOf(deeper)).toContain("The thin black line is the $84 price.");
   });
@@ -94,7 +94,7 @@ describe("key numbers on the engine", () => {
     expect(value(container)).toBe("$84");
     expect(sub(container)).toBe("Worth the $84 price, on this story.");
     expect(pills(container)).toEqual(["+$27", "+$17", null, "+$5"]);
-    expect(reading(container)).toBe("You reached the price Your story needs $59bn of sales in year 10 and a margin of 12%. Would you have believed that in 2000?");
+    expect(reading(container)).toBe("You reached the price To reach the $84 price, Amazon needs $59bn of sales in year 10 and a margin of 12%. Would you have believed that in 2000?");
     expect(onEvent).toHaveBeenCalledWith({ type: "milestone", id: "reached_price", rev: 59, margin: 12 });
   });
 
@@ -104,7 +104,7 @@ describe("key numbers on the engine", () => {
     expect(value(container)).toBe("$1");
     expect(pills(container)).toEqual([null, "−$34", null, null]);
     expect(lever(container, "margin").querySelector(".sig-pill-loss")).not.toBeNull();
-    expect(reading(container)).toBe("Your story is worth $34 less than his. The pills under each lever show where that came from.");
+    expect(reading(container)).toBe("This Story is worth $34 less than the published one. The pills under each lever show where that came from.");
   });
 
   it("8: How risky at the top paints a red band and a red pill, and the value falls", () => {
@@ -154,7 +154,7 @@ describe("key numbers on the engine", () => {
     fire("pointerup", 58);
     expect(textOf(lever(container, "margin").querySelector(".sig-lever-value"))).toBe("15%");
     expect(widget(container).querySelector("[data-dragging]")).toBeNull();
-    expect(textOf(container.querySelector(".sig-lab p.sig-sr"))).toBe(`Your story is worth $${Math.round(leversModel({ ...PRESETS.damodaran.levers, margin: 15 }).perShare)} a share.`);
+    expect(textOf(container.querySelector(".sig-lab p.sig-sr"))).toBe(`This Story is worth $${Math.round(leversModel({ ...PRESETS.damodaran.levers, margin: 15 }).perShare)} a share.`);
   });
 });
 
@@ -178,7 +178,7 @@ describe("the lever lab's band mode (the home scroll story)", () => {
 describe("pure helpers", () => {
   it("speaks a lever's value and effect", () => {
     expect(leverSpoken(LEVERS[1], 12, 17.3)).toBe("Operating margin once mature 12 percent, adds 17 dollars a share");
-    expect(leverSpoken(LEVERS[3], 12.84, 0)).toBe("Cost of capital while it grows 12.84 percent, no change from his story");
+    expect(leverSpoken(LEVERS[3], 12.84, 0)).toBe("Cost of capital while it grows 12.84 percent, no change from the published Story");
   });
 
   it("writes the sub-line from the value", () => {

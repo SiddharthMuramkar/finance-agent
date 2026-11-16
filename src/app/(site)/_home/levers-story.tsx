@@ -4,12 +4,12 @@ import { useEffect, useMemo, useReducer, useRef } from "react";
 import Link from "next/link";
 import { LeverStage, leverText } from "@/components/signal";
 import { leversModel, PRESETS, PRICE, REFERENCE, type LeverKey, type Levers, type PresetKey } from "@/finance/signal/levers";
-import { home } from "@/site/copy";
+import { AMAZON_SOURCE, home } from "@/site/copy";
 import { examplePath } from "@/site/examples";
 import type { LeverStep } from "@/site/levers-story";
 import { Rich } from "@/site/rich";
 import { Button } from "../../primitives";
-import { Icon, Pill } from "../parts";
+import { Icon, Pill, SourceLine } from "../parts";
 
 // Home's levers scroll story (spec 7.2.3): six text steps on the left, the sticky lever lab on the right (a strip under the
 // nav at 900 px and below). The active step is the last one whose top is above 55% of the viewport (78% when narrower than
@@ -112,6 +112,7 @@ export function LeversStory({ steps }: { steps: LeverStep[] }) {
                 <Rich>{line}</Rich>
               </p>
             ))}
+            <SourceLine source={AMAZON_SOURCE} />
           </article>
           {steps.map((lever, i) => (
             <article key={lever.key} {...stepProps(i + 1)}>
