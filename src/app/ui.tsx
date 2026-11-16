@@ -128,12 +128,13 @@ function GearMark() {
  * same one as the site nav), a gear to Settings and the account menu. The page showing (a page link, or the gear on Settings) is marked three ways: aria-current, ink, and a 2px
  * accent bar on the hairline under it. current = the page showing; account names the signed-in
  * Learner (left out only by the loading skeleton and the signed-out 404). One line at every width down to a 360px phone
- * (spec #68, #84): below 768px the wordmark shows only its bars and the page links tighten.
+ * (spec #68, #84): below 768px the wordmark shows only its bars, the page links tighten and the gear steps aside for the
+ * account menu's Settings row.
  */
 export function AppHeader({ current, account, className = "" }: { current?: HeaderPage; account?: HeaderAccount; className?: string }) {
   return (
     // Above what follows it (relative z-30): the account menu drops over the Study Workspace's Topic bar, a positioned Band.
-    <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-2 border-b border-[var(--rule)] bg-[var(--paper)] md:gap-3 lg:gap-6 ${className}`}>
+    <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-1 border-b border-[var(--rule)] bg-[var(--paper)] md:gap-3 lg:gap-6 ${className}`}>
       <h1 className="flex shrink-0 items-center">
         <Link href="/" title="Home" data-affordance="nav" className={BRAND_LINK}>
           <RisingBars size={16} className="bars-still" />
@@ -144,9 +145,9 @@ export function AppHeader({ current, account, className = "" }: { current?: Head
       <nav aria-label="Pages" className="flex self-stretch">
         <ul className="flex items-stretch gap-0 md:gap-1">
           {HEADER_LINKS.map(({ page, href, label }) => (
-            <li key={href} data-current={page === current ? "true" : undefined} className={`${TAB} after:inset-x-1.5 md:after:inset-x-3`}>
+            <li key={href} data-current={page === current ? "true" : undefined} className={`${TAB} after:inset-x-1 md:after:inset-x-3`}>
               {/* The two pages a Learner returns to most are fetched ahead, so they open at once. Tighter below 768px. */}
-              <NavLink href={href} current={page === current} prefetch={page === "workspace" || page === "course" ? true : undefined} className="max-md:px-1.5">
+              <NavLink href={href} current={page === current} prefetch={page === "workspace" || page === "course" ? true : undefined} className="max-md:px-1">
                 {label}
               </NavLink>
             </li>
@@ -155,7 +156,9 @@ export function AppHeader({ current, account, className = "" }: { current?: Head
       </nav>
       <div className="ml-auto flex items-center gap-1 self-stretch">
         <ThemeSwitch className="btn btn-icon" />
-        <span data-current={current === "settings" ? "true" : undefined} className={`${TAB} self-stretch after:inset-x-1.5`}>
+        {/* Below 768px the gear steps aside when there is an account menu, whose Settings row is one tap away, so the
+            row fits a 360px phone with the theme switch still in the bar (ADR 0019). */}
+        <span data-current={current === "settings" ? "true" : undefined} className={`${TAB} self-stretch after:inset-x-1.5 ${account ? "max-md:hidden" : ""}`}>
           {/* On Settings the gear is ink with the bar, like a current page link, not the tinted face of a pressed icon. */}
           <Link
             href="/settings"

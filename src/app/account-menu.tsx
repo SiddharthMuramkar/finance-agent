@@ -17,7 +17,7 @@ export function AccountMenu({ name, email, admin }: { name: string; email?: stri
   const { open, setOpen, toggleRef, rootRef, menuRef, menuId, onMenuKeyDown, onToggleKeyDown } = useMenu();
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
   return (
-    <div ref={rootRef} className="relative ml-1 flex items-center">
+    <div ref={rootRef} className="relative flex items-center md:ml-1">
       <IconButton
         ref={toggleRef}
         label="Account menu"
