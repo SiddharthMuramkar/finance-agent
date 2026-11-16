@@ -66,11 +66,11 @@ describe("Home", () => {
   it("shows the jackpot conversation complete, the five questions and the course count", async () => {
     const html = renderToStaticMarkup(await HomePage());
     const text = words(html);
-    expect(text).toContain("Is a $1.537B jackpot really worth $1.537B?");
+    expect(text).toContain("Is ₹25 crore over 30 years worth ₹25 crore?");
     expect(text).toContain("The Tutor picked this widget. Tested code draws it.");
-    expect(html).toMatch(/data-widget="jackpot" data-case="mega-millions-2018"/);
+    expect(html).toMatch(/data-widget="jackpot" data-case="kerala-bumper-2024"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
-    for (const slug of ["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
+    for (const slug of ["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
     expect(text).toContain("110 Topics wait inside.");
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
@@ -108,8 +108,8 @@ describe("Home", () => {
 
 describe("a case page", () => {
   it("mounts its own widget and links the cases around it", async () => {
-    const html = renderToStaticMarkup(await casePage.default(params("rates-up-1")));
-    expect(html).toMatch(/data-widget="rates" data-case="rates-up-1"/);
+    const html = renderToStaticMarkup(await casePage.default(params("rbi-repo-cut-2025")));
+    expect(html).toMatch(/data-widget="rates" data-case="rbi-repo-cut-2025"/);
     expect(html).toContain('href="/examples/wework-2019"');
     expect(html).toContain('href="/examples/compounding-1000"');
     expect(words(html)).toContain("Make your call first. This step shows the rule the Topic leaves you with.");
@@ -125,7 +125,7 @@ describe("a case page", () => {
 
   it("lists exactly the five slugs for prerendering, and 404s any other", async () => {
     expect(casePage.dynamicParams).toBe(false);
-    expect(casePage.generateStaticParams().map((p) => p.slug)).toEqual(["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]);
+    expect(casePage.generateStaticParams().map((p) => p.slug)).toEqual(["kerala-bumper-2024", "amazon-2000", "wework-2019", "rbi-repo-cut-2025", "compounding-1000"]);
     await expect(casePage.default(params("nope"))).rejects.toThrow();
   });
 });
