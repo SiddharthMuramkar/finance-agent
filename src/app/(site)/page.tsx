@@ -8,7 +8,6 @@ import { siteViewer } from "@/site/viewer";
 import { ClosingBars } from "./_home/closing-bars";
 import { LeversStory } from "./_home/levers-story";
 import { TutorDemo } from "./_home/tutor-demo";
-import { ColourLanguage } from "./colour-language";
 import { CtaNote, PrimaryCta } from "./cta";
 import { FaqList } from "./faq";
 import { ArrowLink, Glyph, SectionHead } from "./parts";
@@ -76,8 +75,6 @@ export default async function HomePage() {
       </section>
 
       <LeversStory steps={leverSteps()} />
-
-      <ColourLanguage eyebrow={home.colours.eyebrow} title={home.colours.h2} body={home.colours.body} headingId="colours-h" />
 
       <section className="v-section" aria-labelledby="questions-h" data-site-section="questions">
         <div className="v-wrap">

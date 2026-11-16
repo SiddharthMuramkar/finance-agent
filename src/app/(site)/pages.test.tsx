@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { parse, stringify } from "yaml";
 import { parseOutline, type Outline } from "@/course/outline";
+import { EXAMPLES, EXAMPLE_SLUGS } from "@/site/examples";
 import type { Viewer } from "@/site/viewer";
 
 // Every page of the public site (decision #7, Signal spec 7.2 to 7.6), drawn on the server for each viewer state. The
@@ -67,7 +68,7 @@ describe("Home", () => {
     const html = renderToStaticMarkup(await HomePage());
     const text = words(html);
     expect(text).toContain("Is a $1.537B jackpot really worth $1.537B?");
-    expect(text).toContain("The Tutor picked this widget. Tested code draws it.");
+    expect(text).toContain("The AI Tutor picked this Example. Checked numbers draw it.");
     expect(html).toMatch(/data-widget="jackpot" data-case="mega-millions-2018"/);
     expect(html).toMatch(/data-widget="levers-story" data-case="amazon-2000"/); // the levers story stage (7.2.3)
     for (const slug of ["mega-millions-2018", "amazon-2000", "wework-2019", "rates-up-1", "compounding-1000"]) expect(html).toContain(`href="/examples/${slug}"`);
@@ -75,10 +76,10 @@ describe("Home", () => {
     expect(text).toContain("It is the only lever that reaches the $84 price by itself, at 17.5%.");
   });
 
-  it("offers a visitor Join early access and Play a real case, with the early-access note", async () => {
+  it("offers a visitor Join early access and Play a real Example, with the early-access note", async () => {
     const text = words(renderToStaticMarkup(await HomePage()));
     expect(text).toContain("Join early access");
-    expect(text).toContain("Play a real case");
+    expect(text).toContain("Play a real Example");
     expect(text).toContain("Free during early access. We let people in by hand and email you when you’re in.");
   });
 
@@ -133,7 +134,7 @@ describe("a case page", () => {
 describe("About", () => {
   it("says the valuations are Damodaran's published work and that Value It is not affiliated", async () => {
     const text = words(renderToStaticMarkup(await AboutPage()));
-    expect(text).toContain("The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.");
+    expect(text).toContain("The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.");
     expect(text).toContain("Topics 110");
     expect(text).toContain("Do you track me?");
   });
@@ -146,7 +147,7 @@ describe("the course counts", () => {
     expect(home).toContain("110 Topics wait inside. 15 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
     expect(home).toContain("110 Topics 10 to 15 minutes each No sums to type");
     expect(home).toContain("One real event. Four moves. Ten to fifteen minutes.");
-    expect(home).toContain("Five cases, open now");
+    expect(home).toContain("Five Examples, open now");
 
     const how = words(renderToStaticMarkup(await HowItWorksPage()));
     expect(how).toContain("taught in four moves , in 10–15 minutes.");
@@ -163,9 +164,9 @@ describe("the course counts", () => {
     expect(about).toContain("Judge · 8");
 
     const examples = words(renderToStaticMarkup(await ExamplesPage()));
-    expect(examples).toContain("Five cases from the course, playable here.");
+    expect(examples).toContain("Five Examples from the course, playable here.");
     expect(examples).toContain("110 Topics wait inside. 15 teach valuation in order, 72 go wider across 9 subjects, and 23 read real arguments.");
-    expect(examplesMeta.description).toBe("Five cases from the course, playable here.");
+    expect(examplesMeta.description).toBe("Five Examples from the course, playable here.");
   });
 
   it("change on every page when the Spine changes in the course", async () => {
@@ -201,5 +202,55 @@ describe("the course counts", () => {
 
     const examples = words(renderToStaticMarkup(await ExamplesPage()));
     expect(examples).toContain("14 teach valuation in order, 71 go wider across 9 subjects, and 24 read real arguments.");
+  });
+});
+
+// #74: Home's body in plain words. The glossary's words on screen: an Example is never a "case", a Story is a claim to
+// judge (never "your story"), and Damodaran is named only in a linked source line (and the About credit).
+describe("the plain words", () => {
+  const SOURCE_LINE = /<(p|span)[^>]*data-source-line[^>]*>[\s\S]*?<\/\1>/g;
+  const publicPages = async () => [
+    ["Home", await HomePage()],
+    ["How it works", await HowItWorksPage()],
+    ["Examples", await ExamplesPage()],
+    ...(await Promise.all(EXAMPLE_SLUGS.map(async (slug) => [slug, await casePage.default(params(slug))] as const))),
+    ["About", await AboutPage()],
+  ] as const;
+
+  it("no page says 'your story' or calls an Example a case", async () => {
+    for (const [name, page] of await publicPages()) {
+      const text = words(renderToStaticMarkup(page));
+      expect(text, name).not.toMatch(/your story/i);
+      expect(text, name).not.toMatch(/\bcases?\b/); // a course Case keeps its capital
+    }
+  });
+
+  it("Home and How it works name Damodaran only in a linked source line", async () => {
+    for (const page of [await HomePage(), await HowItWorksPage()]) {
+      const html = renderToStaticMarkup(page);
+      expect(words(html.replace(SOURCE_LINE, " "))).not.toContain("Damodaran");
+      const lines = html.match(SOURCE_LINE) ?? [];
+      expect(lines.some((line) => line.includes("Damodaran") && /<a [^>]*href="https:\/\//.test(line))).toBe(true);
+    }
+  });
+
+  it("ends the levers story on judging the $84 price, not on a story of your own", async () => {
+    const html = renderToStaticMarkup(await HomePage());
+    const last = words(/<article[^>]*data-step="5"[\s\S]*?<\/article>/.exec(html)![0]);
+    expect(last).toContain("What did the $84 price need?");
+    expect(words(/<article[^>]*data-step="5"[\s\S]*?<p class="v-story">([\s\S]*?)<\/p>/.exec(html)![1]).trim()).toMatch(/Would you have believed it in 2000\?$/);
+  });
+
+  it("draws the colour language on How it works, not on Home, and says tested code once on Home", async () => {
+    const home = renderToStaticMarkup(await HomePage());
+    expect(home).not.toContain('data-site-section="colours"');
+    expect(words(home).match(/tested code/gi)).toHaveLength(1);
+    const how = renderToStaticMarkup(await HowItWorksPage());
+    expect(how).toContain('data-site-section="colours"');
+    expect(words(how)).toContain("Every colour means one thing.");
+  });
+
+  it("gives no Example a stamp that repeats its category", () => {
+    for (const example of EXAMPLES) expect(example.stamp.toLowerCase(), example.slug).not.toBe(example.category.toLowerCase());
   });
 });

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { COURSE, home, howItWorks } from "@/site/copy";
+import { COURSE, howItWorks } from "@/site/copy";
 import { exampleBySlug } from "@/site/examples";
 import { Rich } from "@/site/rich";
 import { courseStats } from "@/site/stats";
@@ -132,7 +132,7 @@ export default async function HowItWorksPage() {
         </div>
       </section>
 
-      <ColourLanguage eyebrow={home.colours.eyebrow} title={home.colours.h2} body={howItWorks.colourBody} headingId="colours-h" />
+      <ColourLanguage eyebrow={howItWorks.colours.eyebrow} title={howItWorks.colours.h2} body={howItWorks.colourBody} headingId="colours-h" />
 
       <section className="v-section" aria-labelledby="reviews-h" data-site-section="reviews">
         <div className="v-wrap">

@@ -55,7 +55,7 @@ export const home = {
     eyebrow: "Finance, taught through real events",
     h1: ["Learn what", "things are", "worth."],
     lede: "Ask a money question. The Tutor answers with a live widget built from a real event, and **you move the numbers until it makes sense**.",
-    secondary: { visitor: "Play a real case", member: "Course map" },
+    secondary: { visitor: "Play a real Example", member: "Course map" },
     facts: {
       topics: (c: CourseFacts) => `${c.topics} Topics`,
       minutes: (c: CourseFacts) => `${c.minutes.low} to ${c.minutes.high} minutes each`,
@@ -63,14 +63,14 @@ export const home = {
     },
   },
   demo: {
-    title: "The Tutor",
-    sub: "A recorded conversation from the course. The widget is live.",
+    title: "The AI Tutor",
+    sub: "A recorded conversation from the course. The Example is live: move the numbers.",
     pick: "Pick a question",
     you: "You ask",
     tutor: "Tutor",
     typing: "The Tutor is typing",
     opening: "Opening a widget…",
-    caption: "The Tutor picked this widget. Tested code draws it.",
+    caption: "The AI Tutor picked this Example. Checked numbers draw it.",
   },
   moves: {
     eyebrow: "How a Topic works",
@@ -81,18 +81,18 @@ export const home = {
     eyebrow: "A worked example",
     h2: "Every value comes down to four levers.",
     intro: [
-      "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. A professor in New York, Aswath Damodaran, writes down his story about its future, and his story says **$35**.",
+      "February 2000. Amazon sells books online and loses money. Buyers pay **$84** a share. One published valuation tells a Story about its future, and that Story says **$35**.",
       "Four numbers make the difference.",
     ],
     leverOf: (n: number) => `Lever ${n} of 4`,
-    yourTurn: "Your turn",
-    yourTurnH2: "Now it’s your story.",
-    yourTurnBody: "**Drag any lever.** Green means your change adds value to his story. Red means it takes value away. *Find a story worth the $84 price.*",
-    fullCase: "Open the full case, with what happened next",
+    yourTurn: "Your turn: judge it",
+    yourTurnH2: "What did the $84 price need?",
+    yourTurnBody: "**Drag any lever** until the value reaches $84. Green adds value to the published Story. Red takes value away. *Would you have believed it in 2000?*",
+    fullCase: "Open the full Example, with what happened next",
     presets: "Try a story",
     win: {
       pill: "You reached the price",
-      line: (rev: string, margin: string) => `Your story needs ${rev} of sales in year 10 and a margin of ${margin}. Would you have believed that in 2000?`,
+      line: (rev: string, margin: string) => `To reach the $84 price, Amazon needs ${rev} of sales in year 10 and a margin of ${margin}. Would you have believed that in 2000?`,
     },
     hints: {
       intro: "Scroll to meet the four levers.",
@@ -100,13 +100,8 @@ export const home = {
       yourTurn: "Drag any lever. Arrow keys work too.",
     },
   },
-  colours: {
-    eyebrow: "Reading a widget",
-    h2: "Every colour means one thing.",
-    body: "Learn five colours and one pattern once and you can read any widget in the course at a glance. Each colour also carries a sign or a word, so it reads the same if you can’t tell red from green.",
-  },
   questions: {
-    eyebrow: (cases: number) => `${Say(cases)} cases, open now`,
+    eyebrow: (examples: number) => `${Say(examples)} Examples, open now`,
     h2: "Start with a question you already have.",
     body: "No finance background needed. **If you can read a headline, you can start.**",
     play: "Play",
@@ -131,10 +126,20 @@ export const home = {
   },
 } as const;
 
+/**
+ * The Amazon story's source (#74, spec §12 rule 11): the one line on Home and How it works that names Damodaran. Every
+ * other line calls his work "one published valuation".
+ */
+export const AMAZON_SOURCE = {
+  lead: "Source:",
+  label: "Aswath Damodaran, “Valuing Amazon.com”, February 2000",
+  href: "https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf",
+} as const;
+
 /** The four moves of every Topic (§7.2.2). */
 export const MOVES = [
-  { name: "Hear the story", line: "A true moment, and what people knew that day." },
-  { name: "Learn the lingo", line: "Each money word in plain English, when the story needs it." },
+  { name: "Meet the moment", line: "A true event, and what people knew that day." },
+  { name: "Learn the lingo", line: "The AI Tutor explains each money word in plain English, when you need it." },
   { name: "Try it", line: "Tap an answer or move a lever. No sums." },
   { name: "Value it", line: "Put your own number on it, then see what really happened." },
 ] as const;
@@ -154,9 +159,9 @@ export type ColourTile = (typeof COLOURS)[number]["tile"];
 /** Appendix B: the FAQ, in order (numbered from 1). */
 export const FAQ = [
   { q: "Is Value It investment advice?", a: "No. It teaches how finance works through past events. It never tells you what to buy or sell, and gives no tips." },
-  { q: "Do I need to be good at maths?", a: "No. You never type a number: every question is a tap, or a sentence in your own words. Widgets work out the sums with tested code, and the Tutor explains them in words." },
+  { q: "Do I need to be good at maths?", a: "No. You never type a number: every question is a tap, or a sentence in your own words. The site works out the sums, and the AI Tutor explains them in words." },
   { q: "Where do the facts come from?", a: "From real past events with known outcomes. Widget figures come from checked datasets, each stored with its public source and the date it was checked. When the Tutor quotes its Library, the answer links to the passage." },
-  { q: "Does the AI make up the charts?", a: "No. The Tutor chooses which widget to open and at which numbers; tested code draws it. Made-up numbers are labelled Illustration." },
+  { q: "Does the AI make up the charts?", a: "No. The AI Tutor chooses which chart to open and at which numbers; the chart is drawn from checked figures. Made-up numbers are labelled Illustration." },
   { q: "What does it cost?", a: "Nothing during early access. No price has been decided yet." },
   { q: "How do I get in?", a: "Join early access with an email link. We let people in by hand while the course grows, and email you when you’re in." },
   { q: "Can I start again?", a: "Yes. Start one Topic over and its earlier attempt stays in your Notebook, or start everything over in Settings. Your old record is archived, not deleted." },
@@ -175,14 +180,14 @@ export const howItWorks = {
     done: "**That’s one Topic.** The four bars make the logo.",
   },
   inside: "Inside this move:",
-  steps: [["Story"], ["The idea"], ["Your turn"], ["Wrap up", "Check", "Reveal", "Principle"]],
+  steps: [["The moment"], ["The idea"], ["Your turn"], ["Wrap up", "Check", "Reveal", "Principle"]],
   closingLine: "*15 short steps in all. Your place is saved after each one.* Moves 2 and 3 repeat for each idea in a Topic, usually four.",
   lingo: { pro: "Say it like a pro", example: "For example", inStory: "In the story" },
   tryIt: {
-    ask: "His story says $35 a share. Is that a price or a value?",
+    ask: "One published valuation says $35 a share. Is that a price or a value?",
     choices: [
-      { id: "value", label: "A value", right: true, fb: "It is what one story says a share is worth. The price is what buyers paid: $84." },
-      { id: "price", label: "A price", right: false, fb: "A price is what buyers pay on the day. $35 is what his story says a share is worth: a value." },
+      { id: "value", label: "A value", right: true, fb: "It is what one Story says a share is worth. The price is what buyers paid: $84." },
+      { id: "price", label: "A price", right: false, fb: "A price is what buyers pay on the day. $35 is what one published valuation says a share is worth: a value." },
     ],
     yourCall: "Your call",
     right: "Right",
@@ -194,7 +199,7 @@ export const howItWorks = {
     max: 150,
     start: 50,
     reveal: "Reveal what really happened",
-    facts: { yours: "Your value", his: "His value", price: "Price, 3 Feb 2000", low: "Low, late 2000" },
+    facts: { yours: "Your value", his: "Published value", price: "Price, 3 Feb 2000", low: "Low, late 2000" },
     figures: { his: 35.08, price: 84, low: 14.88 },
     key: "*A price is what buyers paid that day. A value is what one story about the business is worth.* Neither number proves the other wrong.",
   },
@@ -206,6 +211,8 @@ export const howItWorks = {
     saved: "Saved to your Notebook",
     legend: ["Ask anything, any time.", "The Tutor picks the widget; tested code draws it.", "The step bar shows where you are in the Topic’s 15 short steps.", "What you find lands in your Notebook."],
   },
+  // The colour language lives here, not on Home (#74).
+  colours: { eyebrow: "Reading a widget", h2: "Every colour means one thing." },
   colourBody: "The same five colours and one pattern mean the same thing in every widget. Each colour also carries a sign or a word, so no meaning rests on colour alone.",
   reviews: {
     h2: "It brings back what you missed.",
@@ -234,14 +241,14 @@ export const COURSE = {
     analyse: { name: "Analyse", line: "reach your own view from the numbers" },
   } satisfies Record<ReadingStage, { name: string; line: string }>,
   locked: [
-    { category: "Follow", title: "Damodaran, Tesla valuation (Feb 2020)" },
+    { category: "Follow", title: "Tesla, a valuation (Feb 2020)" },
     { category: "Judge", title: "Twitter's 2013 IPO valuation versus what happened" },
-    { category: "Follow", title: "Damodaran, crowd valuation of Uber (Dec 2014)" },
+    { category: "Follow", title: "Uber, a crowd valuation (Dec 2014)" },
     { category: "Banks, crises & the system", title: "Bank runs and interest-rate risk in banks" },
     { category: "Economics & policy", title: "India's economy and the 1991 reforms" },
     { category: "Judge", title: "Junk or BB+?" },
     { category: "Banks, crises & the system", title: "Securitisation, MBS and CDOs" },
-    { category: "Follow", title: "Zitron, The Subprime AI Crisis (Sep 2024)" },
+    { category: "Follow", title: "OpenAI’s cheap AI prices (Sep 2024)" },
     { category: "Analyse", title: "Transfer to India (G-sec, bank, rupee)" },
   ],
 } as const;
@@ -258,24 +265,24 @@ export const LINGO = [
   {
     term: "value",
     means: "What one story about the business says a share is worth.",
-    pro: "His story values the shares at $35.",
+    pro: "One published valuation puts the shares at $35.",
     example: "You think the bike is worth $150 to you, whatever it sells for.",
-    inStory: "In the story, $35 is what Damodaran’s story says a share is worth.",
+    inStory: "In the story, $35 is what one published valuation says a share is worth.",
   },
 ] as const;
 
 export const examplesPage = {
   h1: "Real events. Move the numbers.",
-  lede: (cases: number) => `${Say(cases)} cases from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last.`,
-  description: (cases: number) => `${Say(cases)} cases from the course, playable here.`,
-  filter: "Filter the cases",
+  lede: (examples: number) => `${Say(examples)} Examples from the course, playable here. **Each is a question, your call, a live widget and the Tutor’s answer**, with what really happened kept for last.`,
+  description: (examples: number) => `${Say(examples)} Examples from the course, playable here.`,
+  filter: "Filter the Examples",
   members: "Members",
 } as const;
 
 export const casePage = {
-  all: "All cases",
-  progress: ["The story", "Your call", "The answer", "The ending"],
-  story: "The story",
+  all: "All Examples",
+  progress: ["The moment", "Your call", "The answer", "The ending"],
+  story: "The moment",
   question: "Question",
   you: "You ask",
   tutor: "Tutor",
@@ -289,8 +296,8 @@ export const casePage = {
   sources: "Sources:",
   fromTopic: "From the Topic",
   footCta: { visitor: "Join to take the full Topic", member: "Open this Topic" },
-  previous: "Previous case",
-  next: "Next case",
+  previous: "Previous Example",
+  next: "Next Example",
 } as const;
 
 export const about = {
@@ -321,7 +328,7 @@ export const about = {
     { step: "Tested widget", body: "Code draws the chart from that data, from a tested design." },
     { step: "The Tutor explains", body: "Quotes from its Library carry a number that opens the passage." },
   ],
-  notAffiliated: "The valuations used as cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.",
+  notAffiliated: "The valuations used as Cases are published work by Aswath Damodaran and others, named and linked where they appear. Value It is not affiliated with them.",
   learnH2: "What you can learn",
   learnBody: (c: CourseFacts) =>
     `${Say(c.spine.length)} core Topics teach valuation in order. ${Say(c.bySubject.length)} subjects go wider, and ${say(c.byStage.length)} stages read real arguments.`,
