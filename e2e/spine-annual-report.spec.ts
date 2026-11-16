@@ -7,7 +7,8 @@ import { quietDevtools, replyLanded, script, settled, signIn } from "./support/a
 /**
  * The new last Spine Topic on the Test bed (#93, spec #68): a valuation's numbers in an annual report. It plays its first
  * three Tutor Turns in the page, Story, Concept and Explore, with the scripted Tutor (src/dev/e2e-tutor.ts, the `ar-*`
- * scripts), and opens the Value bridge on Amazon's Case at explore; the Course Map lists it last on the Spine. The run
+ * scripts), names the same two pages in Japan, Korea and Europe at Concept (#94), and opens the Value bridge on Amazon's
+ * Case at explore; the Course Map lists it last on the Spine. The run
  * writes what the critics read: each turn's Learner action, Tutor reply, Widget text and Choices, with a screenshot of each
  * turn at 1280 and 390 px. `CRITICS_OUT` names the folder to write it in (default: the test's output folder).
  */
@@ -111,6 +112,9 @@ for (const play of PLAYS) {
     // The six numbers at Story, the two pages at Concept, and the Value bridge on Amazon's Case at Explore.
     expect(turns[0].tutor).toContain("sales, operating profit, tax, debt, cash and shares");
     expect(turns[1].tutor).toMatch(/income statement[\s\S]*balance sheet/);
+    // #94: the same two pages in Japan, Korea and Europe, each named by the report its Case reads.
+    expect(turns[1].tutor).toMatch(/Japan, Korea and Europe/);
+    expect(turns[1].tutor).toMatch(/yuho[\s\S]*business report[\s\S]*IFRS/);
     expect(turns[2].widget).toMatch(/Business value/);
     expect(turns[2].widget).toMatch(/Left for shareholders/);
   });
