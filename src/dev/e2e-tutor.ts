@@ -912,9 +912,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "June 2014. Venture investors put $1.2 billion into Uber at a price of $17 billion for the whole company. " +
+            "June 2014. Investors led by the fund manager Fidelity put $1.2 billion into Uber at a price of $17 billion for the whole company. " +
               "Days later Aswath Damodaran, a valuation professor, valued it at about $5.9 billion as a car-service company. " +
-              "His story: taxis and car services take about $100 billion of fares a year, Uber wins 10% of them, and it keeps 20% of each fare. " +
+              "His story: taxis and car services take about $100 billion of fares a year, Uber wins 10% of them, and it takes 20% of each fare as its fee. " +
               "An investor answers that the market is far bigger once people give up owning cars.\n\n" +
               "Who do you think is right about how big Uber can get?",
           ),
@@ -929,7 +929,7 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Revenue years from now is a story in three parts: the total market, the market share the company wins, and its take rate, the slice of each sale it keeps. " +
+            "Revenue years from now is a story in three parts: the total market, the market share the company wins, and its take rate, the slice of each sale it takes as its fee. " +
               "A market can be taxis today, or every trip people take instead of driving. " +
               "A young company has small revenue now, so the market it can win moves its value most.\n\n" +
               "Which of the three parts would you argue about first?",
@@ -993,7 +993,7 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here are Damodaran's levers for Tesla, with marks on the margin lever for what others keep: the median carmaker, Toyota, the median technology company. " +
+            "Here are Damodaran's levers for Tesla, with marks on the margin lever for what others keep: the median carmaker, Toyota, the tech giants together. " +
               "Move what Tesla keeps from one mark to the next and watch the value against the price of the day.\n\n" +
               "What kind of company does that price ask Tesla to be?",
           ),
@@ -1088,7 +1088,7 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here is Amazon's value as a seesaw: the forecast years on one side, the years after the tenth on the other. " +
+            "Here is Amazon's value as a seesaw: the forecast years on one side, the years after year 10 on the other. " +
               "Look at where the weight sits, then move the two far-future settings and watch both sides.\n\n" +
               "Which side of the seesaw holds more of Amazon's value?",
           ),

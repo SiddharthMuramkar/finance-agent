@@ -264,3 +264,31 @@ describe("the annual report Topic's scripted Tutor (#93)", () => {
     expect(said).not.toMatch(/yuho|IFRS|kessan tanshin/);
   });
 });
+
+describe("Spine Topics 4 to 9's scripted Tutor after the critics round (#95)", () => {
+  const flat = (t: string) => t.replace(/\s+/g, " ");
+  const growth = map.topic("spine-04-growth")!;
+
+  it("says Uber takes its slice of each fare as its fee, as the Topic does, and leaves 'keeps' for the margin", () => {
+    for (const name of ["growth-story", "growth-concept"] as const) {
+      const said = draftOf(name).text;
+      expect(said).toMatch(/takes (20% )?of each (fare|sale) (it takes )?as its fee|slice of each sale it takes as its fee/);
+      expect(said).not.toMatch(/(slice|20%) of each (fare|sale) it keeps|keeps 20% of each fare/);
+    }
+    expect(flat(growth.concept ?? "")).toContain("takes as its fee");
+  });
+
+  it("names the margin lever's marks by their own labels at Explore", () => {
+    const marks = (map.topic("spine-05-margins")!.explore?.workbench?.inputs.mode as { marks: { label: string }[] }).marks;
+    const said = draftOf("margins-explore").text.toLowerCase();
+    expect(said).toContain("tech giants together");
+    expect(said).toContain("toyota");
+    expect(said).toContain("median carmaker");
+    expect(marks.map((m) => m.label)).toContain("Tech giants together");
+    expect(said).not.toContain("median technology company");
+  });
+
+  it("names the seesaw's far side as the seesaw labels it, after year 10", () => {
+    expect(draftOf("far-explore").text).toContain("after year 10");
+  });
+});
