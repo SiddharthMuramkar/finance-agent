@@ -1,5 +1,5 @@
 import { isConverted, loadCourseMap } from "@/course/map";
-import { courseOverview, whatComesNext } from "@/course/navigator";
+import { courseOverview, spinePassed, whatComesNext } from "@/course/navigator";
 import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
@@ -30,6 +30,7 @@ export default async function CourseMapPage() {
           coming={map.coming}
           recommended={next ? { topicId: next.topic.id, label: next.label } : null}
           sessions={sessions}
+          assignmentOpen={spinePassed(map, progress)}
         />
       </ReadingPage>
     </SignedInFrame>

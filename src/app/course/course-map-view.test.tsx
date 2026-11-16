@@ -246,8 +246,17 @@ describe("the Spine on the Course Map", () => {
   const html = renderToStaticMarkup(<CourseMapView topics={written} coming={coming} recommended={{ topicId: "spine-2", label: "Resume: Spine question 2" }} />);
   const spine = html.split('data-stage="spine"')[1].split("</section>")[0];
 
-  it("comes first, before the Electives, Follow, Judge and Analyse", () => {
-    expect([...html.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1])).toEqual(["Spine", "Electives", "Follow"]);
+  it("comes first, before the Assignment, the Electives, Follow, Judge and Analyse", () => {
+    expect([...html.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1])).toEqual(["Spine", "Assignment", "Electives", "Follow"]);
+  });
+
+  it("the Assignment after it opens only once the Spine is passed (spec #68)", () => {
+    const assignment = (open: boolean) =>
+      renderToStaticMarkup(<CourseMapView topics={written} coming={coming} recommended={null} assignmentOpen={open} />).split('data-stage="assignment"')[1].split("</section>")[0];
+    expect(assignment(false)).toContain("Opens once you pass every Spine Topic");
+    expect(assignment(false)).not.toContain('href="/assignment"');
+    expect(assignment(true)).toContain('href="/assignment"');
+    expect(assignment(true)).toContain("Value a company you pick");
   });
 
   it("lists all fifteen rows in order, written or coming, each numbered in the key-number blue", () => {

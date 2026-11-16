@@ -2,6 +2,7 @@ import { signedInLearner } from "@/auth/session";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadNotebook } from "@/learner/notebook";
+import { loadOwnCaseNotes } from "@/learner/own-cases";
 import { currentAccount } from "../account";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { NotebookView } from "./notebook-view";
@@ -13,11 +14,12 @@ export const dynamic = "force-dynamic";
 export default async function NotebookPage({ searchParams }: { searchParams: Promise<{ all?: string | string[] }> }) {
   const all = (await searchParams).all === "1";
   const learner = await signedInLearner();
-  const notebook = await loadNotebook(getDb(), loadCourseMap(), learner.id, { all });
+  const db = getDb();
+  const [notebook, ownCases] = await Promise.all([loadNotebook(db, loadCourseMap(), learner.id, { all }), loadOwnCaseNotes(db, learner.id)]);
   return (
     <SignedInFrame>
       <ReadingPage current="notebook" account={await currentAccount()}>
-        <NotebookView notebook={notebook} showAll={all} />
+        <NotebookView notebook={notebook} showAll={all} ownCases={ownCases} />
       </ReadingPage>
     </SignedInFrame>
   );
