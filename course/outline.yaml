@@ -328,6 +328,12 @@ topics:
           - https://economictimes.indiatimes.com/markets/stocks/news/zomato-delivers-a-full-spread-on-listing-day/articleshow/84695358.cms
           - https://aswathdamodaran.substack.com/p/a-zomato-2022-update-price-value
         # Verified 2026-11-13: docs/research/verify-zomato-2021.json reproduces Rs 40.79 to within 0.005%, every number re-opened at source, and dcf-engine-cases.test.ts covers it.
+        # Re-checked 2026-11-16 (Spine critics round 1 on #96): the Economic Times of 24 Jul 2021 gives the Rs 115 BSE listing,
+        # the Rs 125.85 close and the 65.6% rise over the Rs 76 issue price; Damodaran's 27 Jul 2022 update gives Rs 40.79 to
+        # Rs 35.32 at a Rs 41.65 close on 26 Jul 2022 and the Rs 169 peak. That update also says the stock "premiered at Rs 74":
+        # a slip near the Rs 72-76 price band, not the listing price, so the course keeps Rs 115 (BSE) and Rs 76 (offer). The
+        # Rs 16,600 crore of year-10 sales and the 35% margin are his spreadsheet's (ZomatoIPO.xlsx, the block in
+        # ana-build-valuation.yaml, which reproduces Rs 40.79); his post's text says margins "trend towards 30%", and the sheet's 35% is what gives his value.
         verified: true
   - id: spine-annual-report
     title: "Where are a valuation's numbers in an annual report?"

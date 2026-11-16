@@ -1203,9 +1203,9 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "July 2019. Coffee Day Enterprises runs Cafe Coffee Day, India's largest chain of coffee shops, and it is deep in debt: " +
-              "the group had borrowed about ₹7,200 crore, and its interest bill for the year was ₹456.32 crore. " +
+              "the group had borrowed about ₹7,200 crore, and its interest bill for the year was about ₹456 crore. " +
               "Its founder had pledged shares for group loans, which lenders could take and sell if those loans went bad. " +
-              "On 29 July its market value closed at ₹4,067.65 crore.\n\n" +
+              "On 29 July its market value closed at about ₹4,070 crore.\n\n" +
               "What should a valuation do about the chance that it does not survive?",
           ),
         ],
@@ -1219,9 +1219,9 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "A discounted cash flow values a going concern: it assumes the business keeps running for ever. " +
-              "For a company with heavy debt and thin interest cover there is a real chance it fails first, and then its assets are sold in a hurry for far less. " +
-              "The fix is expected value: weigh the value if it survives and the value if it fails by how likely each is.\n\n" +
+            "Our usual valuation treats the company as a going concern (a business that keeps running): it assumes it runs for ever. " +
+              "With heavy debt and thin interest cover (profit only a little above its interest bill), it may fail first and sell its assets in a hurry for far less. " +
+              "The fix is expected value: weigh the value if it survives and if it fails by how likely each is.\n\n" +
               "Why would a value that ignores failure be too high?",
           ),
         ],
@@ -1251,7 +1251,7 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "December 2014. Uber is five years old and still private. In June Aswath Damodaran told its story as a city car service: " +
-              "a $100 billion market, a 10% share and 20% of each fare as revenue, about $6 billion in all. " +
+              "a $100 billion market, a 10% share and 20% of each fare kept as revenue. He valued that Uber at about $6 billion. " +
               "In July the investor Bill Gurley argued the market could be many times bigger. " +
               "Run through the same spreadsheet, a $300 billion market and a 40% share gave $53.4 billion. Only the market and the share had changed.\n\n" +
               "How can two careful people get such different values?",
