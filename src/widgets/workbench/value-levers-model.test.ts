@@ -71,8 +71,8 @@ describe("the levers (B3)", () => {
 });
 
 describe("the headline, the bar and the numbers at rest (B3)", () => {
-  it('opens on the Case: "Your story is worth $35 a share", $35.04 from the engine', () => {
-    expect(headline()).toBe("Your story is worth $35 a share");
+  it('opens on the Case: "This story is worth $35 a share", $35.04 from the engine', () => {
+    expect(headline()).toBe("This story is worth $35 a share");
     expect(at({}).headline.key).toBe("$35");
     expect(at({}).value!.toFixed(2)).toBe("35.04");
   });
@@ -222,7 +222,7 @@ describe("money in the Case's own currency", () => {
   it("values a company counted whole (per: company) as one figure, with no 'a share'", () => {
     const whole = valuationBlock.parse({ ...AMAZON_2000, per: "company", shares: 1, price: { value: 30_000, date: "2000-02-01" } });
     const model = valueLeversModel(whole, leverSpecs(whole), openingSettings(leverSpecs(whole)));
-    expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe("Your story is worth $11.9bn");
+    expect(`${model.headline.before}${model.headline.key}${model.headline.after}`).toBe("This story is worth $11.9bn");
     expect(model.price.text).toBe("$30bn");
   });
 });

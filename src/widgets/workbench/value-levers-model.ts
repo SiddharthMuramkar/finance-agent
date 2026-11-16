@@ -328,7 +328,7 @@ export function barTop(price: number): number {
 export const AFTER_YEAR_10_LABEL = "Value from after year 10";
 
 /** The caption of the cash-flow bars. */
-export const CASH_FLOW_CAPTION = "Free cash flow by year, then after year 10";
+export const CASH_FLOW_CAPTION = "Cash it makes each year, then after year 10";
 
 export type CashFlowBar = { label: string; value: number; gain: boolean; text: string; afterYear10: boolean };
 
@@ -337,7 +337,7 @@ export type ValueLeversModel = {
   value: number | null;
   /** True when nothing is left for shareholders: the headline then says so in coral, never a negative price. */
   nothingLeft: boolean;
-  /** The headline in three parts, the middle one the key number: "Your story is worth " "$35" " a share". */
+  /** The headline in three parts, the middle one the key number: "This story is worth " "$35" " a share". */
   headline: { before: string; key: string; after: string };
   /** The headline's bar: its top, how full it is and where the price sits (0 to 1); full above the top, the number still shown. `span` shades the range (Topic 14). */
   bar: { top: number; topText: string; fill: number; marker: number; full: boolean; span?: { low: number; high: number } };
@@ -401,7 +401,7 @@ export function valueLeversModel(block: ValuationBlock, specs: readonly LeverSpe
     ? { before: "A range of values: ", key: range.text, after: "" }
     : nothingLeft
       ? { before: "", key: `${SYMBOL[block.currency]}0`, after: `: ${takers}` }
-      : { before: "Your story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
+      : { before: "This story is worth ", key: valueText(value, block), after: block.per === "company" ? "" : " a share" };
   const span = range ? { low: Math.min(1, Math.max(0, range.low) / top), high: Math.min(1, Math.max(0, range.high) / top) } : undefined;
   const cashFlows: CashFlowBar[] = [
     ...result.years.map((y) => ({ label: `Year ${y.year}`, value: y.fcf, gain: y.fcf >= 0, text: moneyText(y.fcf, block), afterYear10: false })),

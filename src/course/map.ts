@@ -413,6 +413,20 @@ const insightSchema = z.object({
   foundWhen: z.string().min(1),
   /** Hint 1, then hint 2, released one per not-yet attempt. */
   hints: z.array(z.string().min(1)).min(1).max(2),
+  /**
+   * The Insight settled by a tap (ADR 0020, narrowing ADR 0001 and keeping ADR 0002): two to four choices in words, one of
+   * them `answer`, each wrong one with a one-line fix. Code marks the tap: the right one finds the Insight, a wrong one
+   * releases the next hint, as a typed not-yet does. Without it, the Insight is found in the Learner's own words.
+   */
+  pick: z
+    .object({
+      choices: z
+        .array(z.object({ id, text: z.string().trim().min(1), mistake: z.object({ fix: z.string().trim().min(1) }).optional() }))
+        .min(2)
+        .max(MAX_JUDGEMENT_CHOICES),
+      answer: id,
+    })
+    .optional(),
 });
 
 /** Where explore sits: after the concept of the named Check, before that Check's your turn. */
@@ -1220,6 +1234,15 @@ function insightProblems(t: Topic): string[] {
     const fields: [string, string][] = [["question", question], ["written", written], ["foundWhen", foundWhen], ...hints.map((h, i): [string, string] => [`hints.${i}`, h])];
     for (const [field, text] of fields) {
       if (FIGURE.test(text)) problems.push(`Topic "${t.id}" has a figure in insight.${field}; write the Insight in words`);
+    }
+    const pick = t.insight.pick;
+    if (pick) {
+      const ids = pick.choices.map((c) => c.id);
+      if (new Set(ids).size !== ids.length) problems.push(`Topic "${t.id}" insight.pick repeats a choice id`);
+      if (!ids.includes(pick.answer)) problems.push(`Topic "${t.id}" insight.pick has answer "${pick.answer}", which is not one of its choices`);
+      for (const c of pick.choices) {
+        if (c.id !== pick.answer && !c.mistake) problems.push(`Topic "${t.id}" insight.pick choice "${c.id}" is wrong but has no fix; give it mistake.fix`);
+      }
     }
   }
   return problems;

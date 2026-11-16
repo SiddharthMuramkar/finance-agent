@@ -304,7 +304,7 @@ export function ValueLeversView({
   );
 }
 
-/** "Your story is worth $35 a share", its figure the one key number; "$0: lenders and option holders take everything" in coral. */
+/** "This story is worth $35 a share", its figure the one key number; "$0: lenders and option holders take everything" in coral. */
 function Headline({ model }: { model: ValueLeversModel }) {
   const { before, key, after } = model.headline;
   if (model.nothingLeft) {

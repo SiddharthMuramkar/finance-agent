@@ -3,7 +3,7 @@ import { loadCourseMap, writtenQuestions } from "@/course/map";
 import type { TeachingStep } from "@/course/navigator";
 import { pickCompanion } from "@/tutor/companion";
 import { checkReply, countWords, type OpenItem, type ReplyCheckContext, type StepKind } from "@/tutor/reply-checks";
-import { E2E_SCRIPTS, SPINE_ONE_SAYS, draftOf, freshScriptReplies, type E2eScriptName } from "./e2e-tutor";
+import { E2E_SCRIPTS, draftOf, freshScriptReplies, type E2eScriptName } from "./e2e-tutor";
 
 const map = loadCourseMap();
 const topic = map.topic("num-percent-bps")!;
@@ -61,13 +61,11 @@ describe("the scripted Tutor", () => {
       "spine1-concept",
       "spine1-explore",
       "spine1-go-deeper",
-      "spine1-insight",
       "spine1-principle",
       "spine1-quiz-open",
       "spine1-reveal",
       "spine1-story",
       "spine1-talk-concept",
-      "spine1-talk-pass",
       "spine1-talk-prompt",
       "spine1-talk-your-turn",
       "spine1-your-turn",
@@ -143,18 +141,12 @@ describe("Spine Topic 1's scripted Tutor", () => {
     expect(checkReply(draftOf("spine1-go-deeper"), { ...context("spine1-go-deeper"), replyKind: "go_deeper" })).toEqual([]);
   });
 
-  it("records the Insight in words the Learner typed, and passes the conversation Check by its id", () => {
-    const [insight] = toolUses("spine1-insight");
-    expect(insight.name).toBe("record_insight_attempt");
-    expect(insight.input.outcome).toBe("found");
-    expect(SPINE_ONE_SAYS.insight).toContain(String(insight.input.learner_words));
-    const [verdict] = toolUses("spine1-talk-pass");
-    expect(verdict.name).toBe("record_check_verdict");
-    const talk = spine.checks.find((c) => c.kind === "conversation")!;
-    expect(verdict.input).toMatchObject({ check_id: talk.id, verdict: "pass" });
-    // What the Learner types at each step is within a message's reach, and says the Topic's own figures.
-    expect(countWords(SPINE_ONE_SAYS.talk)).toBeLessThanOrEqual(120);
-    for (const figure of ["$60bn", "12.5%", "$84"]) expect(SPINE_ONE_SAYS.insight).toContain(figure);
+  it("asks the Learner to type nothing: no Insight words to record and no Check verdict, every answer a tap (#88)", () => {
+    for (const name of Object.keys(E2E_SCRIPTS).filter((n) => n.startsWith("spine1-")) as E2eScriptName[]) {
+      expect(toolUses(name).map((t) => t.name), name).not.toContain("record_insight_attempt");
+      expect(toolUses(name).map((t) => t.name), name).not.toContain("record_check_verdict");
+    }
+    expect(spine.checks.some((c) => c.kind === "conversation")).toBe(false);
   });
 });
 

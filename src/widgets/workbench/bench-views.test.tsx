@@ -170,7 +170,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     expect(atRest).toEqual(["Revenue in year 10", "Operating margin once mature", "Cost of capital while it grows", "Chance it fails"]);
     setRange(lever("Chance it fails"), 30);
     await settle();
-    expect(text("value-levers-headline")).toBe("Your story is worth $22 a share");
+    expect(text("value-levers-headline")).toBe("This story is worth $22 a share");
     expect(text("value-levers-readout")).toBe("$35 a share");
   });
 
@@ -264,7 +264,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     await settle();
     setRange(lever("Operating margin once mature"), 12.5);
     await settle();
-    expect(text("value-levers-headline")).toBe("Your story is worth $84 a share");
+    expect(text("value-levers-headline")).toBe("This story is worth $84 a share");
     expect(taskStates()).toEqual(["done", "done"]);
     await act(async () => host.querySelector('[data-case="2"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await settle();
@@ -333,7 +333,7 @@ describe("Value levers in its Spine Topic modes (Appendix D)", () => {
     await settle();
     expect(settings.at(-1)).toMatchObject({ $case: 2, $margin: 40, $moved: 2 });
     const told = readWidget(code, { values: settings.at(-1)!, ticked: [] }, () => undefined)!;
-    expect(told.readouts[0]).toBe(`Value: ${text("value-levers-headline").replace(/^Your story is worth /, "")}`);
+    expect(told.readouts[0]).toBe(`Value: ${text("value-levers-headline").replace(/^This story is worth /, "")}`);
     expect(told.tasks.map((t) => t.text)).toEqual(shownTasks());
     expect(shownTasks()).toEqual([MOVE_ONE, "Find a story worth the ₹76 price"]);
   });
