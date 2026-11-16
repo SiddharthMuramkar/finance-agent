@@ -26,7 +26,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const example = exampleBySlug((await params).slug);
-  return example ? pageMetadata({ title: example.question, description: plain(example.hook), path: examplePath(example.slug) }) : {};
+  return example ? pageMetadata({ title: example.question, description: plain(example.hook), path: examplePath(example.slug), image: example.slug }) : {};
 }
 
 /** Whether a member can open the example's Topic: it has a Topic file (else /api/open cannot open it). */

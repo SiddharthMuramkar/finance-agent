@@ -1,6 +1,8 @@
 import { Waitlist } from "@clerk/nextjs";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SIGN_IN_PATH } from "@/auth/destination";
+import { pageMetadata } from "@/app/site-metadata";
+import { JOIN_PATH, SIGN_IN_PATH } from "@/auth/destination";
 import { clerkOn } from "@/auth/gates";
 import { joining } from "@/site/copy";
 import { testBedCard } from "../sign-in/provider-card";
@@ -13,6 +15,8 @@ import { AuthPage, authNote } from "../sign-in/auth-page";
  * /sign-up. Public: the proxy lets it through signed out. On the test bed a plain stand-in takes the card's place
  * (testBedCard); anywhere else without Clerk nobody can join, so the page sends the person to /sign-in.
  */
+export const metadata: Metadata = pageMetadata({ title: joining.join.title, path: JOIN_PATH });
+
 export default async function JoinPage() {
   const card = clerkOn(process.env) ? <Waitlist /> : await testBedCard("waitlist");
   if (!card) redirect(SIGN_IN_PATH);

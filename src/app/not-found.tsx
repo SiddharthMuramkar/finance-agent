@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { currentAccount } from "./account";
 import { ReadingPage, primaryButtonClass, secondaryButtonClass } from "./ui";
@@ -7,6 +8,9 @@ import { ReadingPage, primaryButtonClass, secondaryButtonClass } from "./ui";
 // them to the sign-in first, so the account menu fits; it is still read here, so a signed-out 404 shows none. A 404 for
 // an address the proxy's matcher skips (a missing /_next/static file) never went through clerkMiddleware, so Clerk's
 // auth() throws there (issue #33): the page then draws with no account menu rather than fail.
+/** Its own title (issue #71), and no canonical link: a missing page has no address to stand for. */
+export const metadata: Metadata = { title: "Page not found" };
+
 export default async function NotFound() {
   const account = await currentAccount().catch(() => undefined);
   return (

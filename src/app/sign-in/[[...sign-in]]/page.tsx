@@ -1,5 +1,7 @@
 import { SignIn } from "@clerk/nextjs";
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import { pageMetadata } from "@/app/site-metadata";
 import { SIGN_IN_PATH, destinationOrDefault, safeDestination } from "@/auth/destination";
 import { clerkOn, passcodeDoorOpen } from "@/auth/gates";
 import { PrimaryButton, TextLink } from "../../ui";
@@ -19,6 +21,9 @@ type Params = { wrong?: string; locked?: string; passcode?: string; next?: strin
  *   posts to /api/login; a wrong passcode or a pause comes back here with `?wrong=1` or `?locked=1`.
  * - Neither (a deploy without Clerk keys, such as a preview): it says sign-in is off, with no form.
  */
+/** Every step under /sign-in is the one sign-in page to a search engine. */
+export const metadata: Metadata = pageMetadata({ title: "Sign in", path: SIGN_IN_PATH });
+
 export default async function SignInPage({ searchParams }: { searchParams: Promise<Params> }) {
   const { wrong, locked, passcode, next: requested } = await searchParams;
   // Only a safe destination is carried through, as its resolved path; anything else means the Study Workspace.

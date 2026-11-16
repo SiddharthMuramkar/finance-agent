@@ -31,9 +31,15 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   { path: JOIN_PATH, site: false, sitemap: true },
 ];
 
-/** The files: the link-preview images (src/app/site-metadata.ts) and the icons. */
+/** The share cards a shared link shows (issue #71): Home's and one per Example (src/site/share-card.ts). */
+export const SHARE_IMAGES: readonly string[] = ["home", ...EXAMPLE_SLUGS];
+
+/** A share card's address (src/app/share-image/[name]/route.tsx draws it). */
+export const shareImagePath = (name: string) => `/share-image/${name}.png`;
+
+/** The files: the share cards (src/app/site-metadata.ts), matched exactly, and the icons. */
 export const PUBLIC_FILES: readonly PublicFile[] = [
-  { id: "share-images", pattern: /^\/landing-assets\/[\w-]+\.(png|webp)$/, samples: ["/landing-assets/workspace-light.png"] },
+  { id: "share-images", pattern: new RegExp(`^/share-image/(?:${SHARE_IMAGES.join("|")})\\.png$`), samples: SHARE_IMAGES.map(shareImagePath) },
   { id: "icon", pattern: /^\/(icon\.svg|favicon\.ico)$/, samples: ["/icon.svg", "/favicon.ico"] },
 ];
 
