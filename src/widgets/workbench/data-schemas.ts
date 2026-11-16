@@ -54,6 +54,22 @@ export const companyYearSchema = z
     taxPercent: z.number().min(0).max(100),
     lossesCarried: z.number().min(0).optional(),
     opening: z.object({ growth: z.number().gt(-100), margin: z.number().gt(-1000).lt(100), salesToCapital: z.number().positive() }).strict(),
+    /**
+     * For a beginner (Spine critics round 1 on #89): the year the revenue is and the year the bench shows, as the Story
+     * names them ("1999", "2000"), so the bench never says "this year" of a year long past. With them, growth reads as a
+     * multiple ("13.4 times") and sales for each unit invested goes under More settings.
+     */
+    years: z.object({ from: z.string().trim().min(2).max(12), to: z.string().trim().min(2).max(12) }).strict().optional(),
+    /** One line saying what the bench makes up, in words (its figures are the engine's, so no digits). */
+    whatIf: z
+      .string()
+      .trim()
+      .min(10)
+      .max(140)
+      .refine((t) => !/\d/.test(t), { message: "must use words, not digits: the bench's figures are the engine's" })
+      .optional(),
+    /** The company's Icon, which puts a small scene on the bench that reacts as growth moves. */
+    icon: z.string().trim().refine(isIconName, { message: "is not an Icon name (src/icons/names.ts)" }).optional(),
     source: sourceSchema,
   })
   .strict();

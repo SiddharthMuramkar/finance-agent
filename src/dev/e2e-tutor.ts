@@ -656,8 +656,8 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Operating income is what sales bring in after the running costs. " +
-              "Free cash flow takes off tax, then what growth costs: the warehouses, vans and groceries that more sales need, bought before those sales arrive. " +
+            "Free cash flow is the cash left after paying for growth. " +
+              "Growth is paid for first: the warehouses, vans and groceries that more sales need are bought before those sales arrive. " +
               "So a business can make a profit on each sale and still run short of cash.\n\n" +
               "Which grocer would you expect to use more cash: one growing fast, or one standing still?",
           ),
@@ -671,8 +671,8 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "Here is Webvan's year as a waterfall, from sales down to free cash flow. " +
-              "It gives Webvan a small profit on each sale, and still free cash flow is far below zero.\n\n" +
+            "Here is Webvan's 2000 as a waterfall, from sales down to free cash flow. " +
+              "Suppose Webvan made a small profit on each sale (it really lost money on most): free cash flow is still far below zero.\n\n" +
               "What happens to free cash flow when you move growth down?",
           ),
         ],

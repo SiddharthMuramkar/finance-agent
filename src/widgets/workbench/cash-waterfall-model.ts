@@ -33,6 +33,14 @@ export type CashWaterfallData = {
   lossesCarried: number;
   /** Where the three levers open. */
   opening: WaterfallSettings;
+  /** The company's name, for the caption and the scene (a company from the Topic file). */
+  name?: string;
+  /** The years the bench joins, as the Story names them: the revenue's year and the year shown (a beginner's bench). */
+  years?: { from: string; to: string };
+  /** One line, in words, saying what the bench makes up. */
+  whatIf?: string;
+  /** The company's Icon: the bench then shows a small scene that reacts to the levers. */
+  icon?: string;
 };
 
 /** A Valuation Case's base year and year 1: Damodaran's Amazon opens at $1,117m growing 150%, a -13.36% margin and $3 of sales a dollar. */
@@ -58,16 +66,34 @@ export function cashWaterfallLevers(data: CashWaterfallData): BenchLever<Waterfa
   const { growth, margin, salesToCapital } = data.opening;
   const growthMax = niceUp(Math.max(growth * 2, 50));
   const [symbol, one, many] = data.money.currency === "INR" ? ["₹", "rupee", "rupees"] : ["$", "dollar", "dollars"];
+  const years = data.years;
+  const growthLever = percentLever({
+    id: "growth",
+    label: years ? `Sales growth, ${years.from} to ${years.to}` : "Revenue growth next year",
+    min: Math.min(0, floorTo(growth, 10)),
+    max: growthMax,
+    step: oneFigure(growthMax / 60),
+    opening: growth,
+    chips: [0],
+    caption: years ? `${years.from} sales: ${moneyText(data.lastRevenue, data.money)}` : `This year: ${moneyText(data.lastRevenue, data.money)}`,
+  });
   return [
-    percentLever({ id: "growth", label: "Revenue growth next year", min: Math.min(0, floorTo(growth, 10)), max: growthMax, step: oneFigure(growthMax / 60), opening: growth, chips: [0], caption: `This year: ${moneyText(data.lastRevenue, data.money)}` }),
+    // A beginner reads 1241.3% as noise; "13.4 times" the year before is the same growth said plainly.
+    years ? { ...growthLever, reading: timesText, spoken: (v: number) => (Math.abs(v) < 1e-9 ? "no growth" : `sales ${timesText(v)} the year before`) } : growthLever,
     percentLever({ id: "margin", label: "Operating margin", min: floorTo(Math.min(margin - 15, -20), 5), max: ceilTo(Math.max(margin + 25, 25), 5), step: 0.5, opening: margin }),
     {
-      ...percentLever({ id: "salesToCapital", label: "Sales for each dollar invested", min: 0.25, max: Math.max(5, ceilTo((salesToCapital * 5) / 3, 0.25)), step: 0.25, opening: salesToCapital }),
+      ...percentLever({ id: "salesToCapital", label: "Sales for each dollar invested", min: 0.25, max: Math.max(5, ceilTo((salesToCapital * 5) / 3, 0.25)), step: 0.25, opening: salesToCapital, more: !!years }),
       label: `Sales for each ${one} invested`,
       reading: (v) => `${symbol}${v.toFixed(2)}`,
       spoken: (v) => `${clean(v)} ${v === 1 ? one : many}`,
     },
   ];
+}
+
+/** Growth said as a multiple of the year before: 1241.3% is "13.4 times", 0% "No growth". */
+function timesText(growth: number): string {
+  if (Math.abs(growth) < 1e-9) return "No growth";
+  return `${clean(Math.round((1 + growth / 100) * 10) / 10)} times`;
 }
 
 /** The Things to try: growth at 0%, which every range reaches, and a free cash flow above zero, which margin alone reaches. */
@@ -76,6 +102,25 @@ export function cashWaterfallTasks(): string[] {
 }
 
 export const WATERFALL_CAPTION = "Next year, from revenue to free cash flow";
+
+/** The figure's caption: "Webvan 2000, from sales to free cash flow" on a bench with named years, else the next year's. */
+export function cashWaterfallCaption(data: CashWaterfallData): string {
+  return data.years ? `${data.name ?? ""} ${data.years.to}, from sales to free cash flow`.trim() : WATERFALL_CAPTION;
+}
+
+/** The bench's small scene (a company with an Icon): its line reacts to the levers, and the buildings grow with growth. */
+export type WaterfallScene = { icon: string; name: string; mood: "building" | "still" | "cash"; line: string; buildings: number };
+
+export function cashWaterfallScene(data: CashWaterfallData, settings: WaterfallSettings): WaterfallScene | null {
+  if (!data.icon) return null;
+  const name = data.name ?? "The company";
+  const model = cashWaterfallModel(data, settings);
+  const growthMax = cashWaterfallLevers(data)[0].max;
+  const buildings = settings.growth <= 0 ? 0 : Math.max(1, Math.min(5, Math.ceil((settings.growth / growthMax) * 5)));
+  if (Math.abs(settings.growth) < 1e-9) return { icon: data.icon, name, mood: "still", buildings, line: `No growth, so ${name} has nothing new to build or stock.` };
+  if (model.fcf !== null && model.fcf > 0) return { icon: data.icon, name, mood: "cash", buildings, line: `Cash comes back: ${name} makes more than its growth costs.` };
+  return { icon: data.icon, name, mood: "building", buildings, line: `More sales need warehouses, vans and stock first, so the cash goes out.` };
+}
 export const OPERATING_LABEL = "Operating income";
 export const REINVESTMENT_LABEL = "Reinvestment";
 
@@ -107,7 +152,7 @@ export function cashWaterfallModel(data: CashWaterfallData, settings: WaterfallS
   ];
   return {
     fcf: year.fcf,
-    headline: { before: "Free cash flow next year: ", key: money(year.fcf), after: "" },
+    headline: { before: data.years ? `Free cash flow in ${data.years.to}: ` : "Free cash flow next year: ", key: money(year.fcf), after: "" },
     numbers: [
       { label: OPERATING_LABEL, text: money(year.operatingIncome) },
       { label: REINVESTMENT_LABEL, text: money(year.reinvestment) },
@@ -120,7 +165,7 @@ export function cashWaterfallModel(data: CashWaterfallData, settings: WaterfallS
 export function cashWaterfallShape(data: CashWaterfallData): BenchShape {
   const levers = cashWaterfallLevers(data);
   const model = cashWaterfallModel(data, data.opening);
-  const prose = [`${model.headline.before}${model.headline.key}${model.headline.after}`, ...model.numbers.map((n) => n.label), WATERFALL_CAPTION, ...levers.flatMap((l) => (l.caption ? [l.caption] : []))];
+  const prose = [`${model.headline.before}${model.headline.key}${model.headline.after}`, ...model.numbers.map((n) => n.label), cashWaterfallCaption(data), ...levers.flatMap((l) => (l.caption ? [l.caption] : [])), data.whatIf ?? ""];
   return benchShape(levers, 1 + model.numbers.length, prose, cashWaterfallTasks().length);
 }
 
