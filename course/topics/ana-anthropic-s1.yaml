@@ -106,8 +106,8 @@ cases:
       The filing's own figures for the claims in Zitron's piece. Compare only with passages the
       Learner pasted; for any passage not pasted, say it was not seen rather than describe it.
       (1) His total of about $430 billion of non-cancellable compute commitments ties out: Google
-      $114.5bn + Amazon $110.0bn + Microsoft $44.9bn + Broadcom finance-lease rent $161.2bn =
-      $430.6bn. It is an undiscounted sum that mixes purchase commitments with lease rent and
+      $114.5bn, Amazon $110.0bn, Microsoft $44.9bn and Broadcom finance-lease rent $161.2bn add up
+      to $430.6bn. It is an undiscounted sum that mixes purchase commitments with lease rent and
       leaves out the SpaceXAI arrangement (up to $120.5bn, cancellable after early 2027) and the
       items the S-1 estimates outside its table. (2) He says the S-1 left out its third quarter.
       This largely holds: the S-1 has no Q3 financial statements (they stop at 30 June 2026), and
@@ -230,7 +230,9 @@ questions:
       - { id: d, text: "Neither, because commitments are not obligations", mistake: { tag: not_obligations, fix: "The payments are owed whatever the company uses, so they are obligations." } }
     answer: c
     explanation: >
-      100/1.1 + 100/1.1^2 + 100/1.1^3 = 90.9 + 82.6 + 75.1 = 248.7. The undiscounted total and the
+      In steps: the $100m due in one year, divided by 1.1 once, is worth about $90.9m today; the
+      $100m due in two years, divided by 1.1 twice, about $82.6m; the $100m due in three years,
+      divided by 1.1 three times, about $75.1m. Together that is about $248.7m. The undiscounted total and the
       present value describe the same payments; a fair comparison says which one it uses.
     source: >
       CFA Institute, Time Value of Money in Finance (refresher reading, 2024):

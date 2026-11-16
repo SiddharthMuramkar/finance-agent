@@ -61,6 +61,10 @@ principle: >
   A government's promise to pay is only as good as its ability and its willingness to pay. Country risk shows
   up first in what lenders charge and in what they let you take out.
 
+goDeeper: >
+  Written as a sum, the haircut on a swap at 40 cents per dollar: new value = 0.40 × $50,000 = $20,000,
+  so the haircut is 1 - 0.40 = 60% of face value.
+
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
   - "Measure a government's default risk by the extra yield lenders charge over a default-free bond."
@@ -106,7 +110,7 @@ questions:
       - { id: d, text: "A promise to keep the exchange rate fixed (a peg)", mistake: { tag: haircut_is_peg, fix: "A peg fixes an exchange rate. It has nothing to do with writing down debt." } }
     answer: c
     explanation: >
-      An investor holding old bonds with a face value of $50,000 gets new bonds worth 0.40 x 50,000 = $20,000, giving up 60% of face value. That 60% is the haircut: the part of the debt that the creditor gives up.
+      An investor holding old bonds with a face value of $50,000 gets new bonds worth 40 cents for each dollar, $20,000 in all, giving up 60% of face value. That 60% is the haircut: the part of the debt that the creditor gives up.
     source: >
       US State Department, 2006 Investment Climate Statement, Argentina (restructuring offer measured in cents per dollar of face value of old debt): https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm
 

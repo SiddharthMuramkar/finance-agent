@@ -14,6 +14,7 @@ const every: TextSource = {
   concept: "T-concept",
   goDeeper: "T-go-deeper",
   principle: "T-principle",
+  dailyLife: "T-daily-life",
   insight: { question: "T-insight-question", written: "T-insight-written", foundWhen: "T-insight-found-when", hints: ["T-insight-hint-1", "T-insight-hint-2"] },
   connections: [{ text: "T-connection-1" }, { text: "T-connection-2" }],
   questions: [
@@ -145,8 +146,9 @@ describe("a Topic's texts", () => {
       ["case", 'Case "case-a" story', "T-case-story"],
       ["case", 'Case "case-a" reveal', "T-case-reveal"],
       ["earlier", "concept", "T-concept"],
-      ["earlier", "Go deeper", "T-go-deeper"],
+      ["deeper", "Go deeper", "T-go-deeper"],
       ["earlier", "principle", "T-principle"],
+      ["earlier", "daily-life line", "T-daily-life"],
       ["earlier", "insight question", "T-insight-question"],
       ["earlier", "insight written", "T-insight-written"],
       ["earlier", "insight foundWhen", "T-insight-found-when"],

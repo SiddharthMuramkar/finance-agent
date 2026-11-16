@@ -39,6 +39,12 @@ export const CONCEPT_CARD = "concept_card";
 /** A Concept card's data, copied from the Topic file so a reload shows the same card. */
 export type ConceptCardData = { checkId: string; title: string; lines: string[]; writeDown: string };
 
+/** The kind of the daily-life line (spec #68): code stores it when the Learner enters a Topic's Principle step. */
+export const DAILY_LIFE = "daily_life";
+
+/** The daily-life line's data, copied from the Topic file so a reload shows the same line. */
+export type DailyLifeData = { topicId: string; line: string };
+
 /** The kind of a Quick try: one short question at a converted Your turn, answered by tapping a choice. */
 export const QUICK_TRY = "quick_try";
 

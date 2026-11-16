@@ -48,8 +48,8 @@ cases:
       noisy and not a basis for timing the market.
 
 concept: >
-  An equity risk premium is the price of risk for shares as a class: expected return on stocks =
-  risk-free rate + equity risk premium. It cannot be observed directly, so it is estimated, and the
+  An equity risk premium is the price of risk for shares as a class: the expected return on stocks is
+  the risk-free rate plus the equity risk premium. It cannot be observed directly, so it is estimated, and the
   method decides the number. A historical premium averages past returns over a chosen period (it is
   stable but noisy, and depends on the period and risk-free rate chosen). The Fed model subtracts
   the Treasury rate from the earnings yield (earnings divided by price); this is a fair measure of
@@ -169,7 +169,7 @@ checks:
     passCriteria: >
       The Learner explains the puzzle (published premiums that differ widely, from negative to
       about 5%) and that he aims to explain the differences, not to claim his is best. They give the
-      definition (expected return = risk-free rate + premium; the price of risk set by supply and
+      definition (the expected return is the risk-free rate plus the premium; the price of risk set by supply and
       demand, driven by fundamentals and by mood, with a very low premium as a symptom of a bubble)
       and why it matters (market timing, picking stocks, corporate finance through the cost of
       capital). They name the four measures in order and what each assumes: the historical average

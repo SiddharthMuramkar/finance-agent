@@ -39,19 +39,23 @@ cases:
       asked to redo a sum or to say what any share or index will do.
     reveal: >
       Recomputed from the post's own inputs (Damodaran, Musings on Markets, 18 Feb 2025), the
-      toy case ties out. A: 15/60 = 25%, value 15/0.10 = $150 million, price to book 150/60 = 2.5,
-      earnings yield 15/150 = 10%. B: 3/60 = 5%, value $30 million, price to book 0.5, earnings
-      yield 10%. The label point is also right: net income over market value is the earnings
+      toy case ties out. A: $15 million of net income on $60 million of book equity is an ROE of
+      25%; valued at a 10% cost of equity it is worth $150 million, which is 2.5 times book, and
+      $15 million on $150 million is an earnings yield of 10%. B: $3 million on $60 million is 5%,
+      value $30 million, price to book 0.5, earnings yield 10%. The label point is also right: net income over market value is the earnings
       yield, and it equals the cost of equity only because earnings are constant forever and the
-      price is fair. Marking to market gives 15/150 = 10% and 3/30 = 10%; ROE equals the cost of
+      price is fair. Marking to market gives $15 million on $150 million, or 10%, and $3 million on
+      $30 million, also 10%; ROE equals the cost of
       equity exactly when book value equals market value (price to book of 1).
       The R&D figure holds only with an assumption the post does not state. Reported ROE of 50.00%
-      is 15/30, which needs book equity to stay at $30 million: the $15 million of cash earned in
-      the loss year must be paid out. Retained, equity would be $60 million - $15 million = $45
-      million and later ROE 15/45 = 33.3%. The year-one figure is -15/60 = -25% on opening
-      equity. Capitalising the research gives 15/60 = 25%, so the distortion the post points to
+      is $15 million on $30 million, which needs book equity to stay at $30 million: the $15 million
+      of cash earned in the loss year must be paid out. Retained, equity would be $60 million less
+      the $15 million loss, leaving $45 million, and later ROE would be $15 million on $45 million,
+      or 33.3%. The year-one figure is a $15 million loss on $60 million of opening equity, or -25%.
+      Capitalising the research gives $15 million on $60 million, or 25%, so the distortion the post points to
       is real, but the size depends on payout and the post mentions no tax.
-      The growth sentence needs a qualifier. Net income of 3 x 1.5^10 = $173.0 million in year ten
+      The growth sentence needs a qualifier. Net income of $3 million grown by half again each
+      year for ten years, which multiplies it about 57.7 times, reaches $173.0 million in year ten and
       is not a value; the value depends on what the growth costs and earns. The Learner's
       recomputation, assuming growth stops after ten years and new capital is raised as needed
       (the course's reconstruction, not the post's): if growth needed no reinvestment, B would be worth
@@ -59,8 +63,8 @@ cases:
       million (0.64%); if new capital earned exactly the 10% cost of equity, $30.0 million, and
       the earnings yield stays at 10%. Growth by itself does not move the earnings yield off the
       cost of equity; growth that earns more than the cost of equity does. This follows the
-      relation growth = retention x ROE and the price formulas on Damodaran's own valuation
-      pages. Growth of 50% a year with a 5% ROE cannot be funded from retained earnings at all.
+      relation that growth is the share of earnings retained times the ROE, and the price
+      formulas on Damodaran's own valuation pages. Growth of 50% a year with a 5% ROE cannot be funded from retained earnings at all.
       The low price-to-book sentence is a statement about the toy world: there prices are fair, so
       a low price to book reflects a low ROE. The post itself says, a few paragraphs later, that
       either business can be a good, bad or neutral investment depending on its price relative to
