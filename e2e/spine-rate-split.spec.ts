@@ -203,7 +203,7 @@ for (const play of PLAYS) {
       await expect(stack.getByTestId("wacc-stack-headline")).toContainText(
         "The cost of capital is 9.61%",
       );
-      await expect(stack.getByText("No debt")).toBeVisible();
+      await expect(stack.getByRole("button", { name: "No debt" })).toBeVisible();
       expect(turns[1].tutor).toContain("Analysts call this blend the WACC");
       expect(turns[2].tutor).toContain("as risky as an average share");
       expect(turns[2].widget).toContain("Lenders: 15%, cost 4.55%");
@@ -211,7 +211,7 @@ for (const play of PLAYS) {
       await expect(stack.getByTestId("wacc-stack-headline")).toContainText(
         "The cost of equity is 12.9%",
       );
-      await expect(stack.getByText("2.29, his measure")).toBeVisible();
+      await expect(stack.getByRole("button", { name: "2.29, his measure" })).toBeVisible();
       expect(turns[1].tutor).toContain("he trusts the steadier 1.60");
       expect(turns.map((t) => t.tutor).join(" ")).not.toMatch(/\bWACC\b/);
     }
