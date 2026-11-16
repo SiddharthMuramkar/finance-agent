@@ -39,9 +39,20 @@ export function WorkspaceTopicBar({
 export function TopicHeader({ review, explore }: { review: ReviewState; explore: { code: string; id: string } | null }) {
   return (
     // Hairline rows, no gaps between them; 4 px of padding keeps room for focus rings inside this scroll box.
-    <div data-testid="above-widgets" className="relative flex max-h-[40%] shrink-0 flex-col overflow-y-auto p-1 empty:hidden">
-      {explore && <PinnedExplore item={exploreItem(explore.code, undefined, explore.id)} />}
-      <ReviewPanel review={review} />
+    // On a phone (#83) it is in the sheet: it shows only while the sheet holds the explore Widget or the Review, and then
+    // fills the sheet with that one; both stay mounted, so the sliders and a picked answer survive the sheet going away.
+    <div
+      data-testid="above-widgets"
+      className="relative flex max-h-[40%] shrink-0 flex-col overflow-y-auto p-1 empty:hidden max-md:hidden max-md:max-h-none max-md:min-h-0 max-md:flex-1 max-md:group-data-[view=explore]/sheet:flex max-md:group-data-[view=review]/sheet:flex"
+    >
+      {explore && (
+        <div className="max-md:group-data-[view=review]/sheet:hidden">
+          <PinnedExplore item={exploreItem(explore.code, undefined, explore.id)} />
+        </div>
+      )}
+      <div className="max-md:group-data-[view=explore]/sheet:hidden">
+        <ReviewPanel review={review} />
+      </div>
     </div>
   );
 }
