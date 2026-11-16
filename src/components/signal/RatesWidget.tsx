@@ -27,8 +27,8 @@ import {
   type SignalWidgetProps,
 } from "./parts";
 
-/** The rates widget's Case (spec A.4). */
-export const RATES_CASE = "rates-up-1";
+/** The rates widget's Example (spec A.4): the RBI's repo-rate cut of 6 June 2025. */
+export const RATES_CASE = "rbi-repo-cut-2025";
 
 /** §8.2 ranges: the old rate (Go deeper) 1 to 8 in 0.25 steps; the new rate 2 to 7 in 0.05 steps. */
 export const RATE_RANGES = {
@@ -36,20 +36,25 @@ export const RATE_RANGES = {
   new: { min: 2, max: 7, step: 0.05 },
 } as const;
 
-/** The Case's move and its call (§6.5.2), copy as the spec writes it. */
+/**
+ * The Example's move and its call (§6.5.2), copy as the spec writes it. Case Data, as of 6 June 2025: the RBI's Monetary
+ * Policy Committee cut the policy repo rate by 50 basis points, from 6.00% to 5.50%, with immediate effect (RBI,
+ * Monetary Policy Statement 2025-26, Resolution of the MPC, 6 June 2025; the link is in src/site/examples.ts).
+ */
 const CASE = {
-  old: 4,
-  new: 5,
+  asOf: "2025-06-06",
+  old: 6,
+  new: 5.5,
   question: "Which of these describe the move correctly? Tap each one you believe.",
   options: [
     {
       id: "literal",
-      label: "Up 1%",
+      label: "Down 0.5%",
       verdict: "careful",
-      feedback: "1% of 4% is only 0.04 points, which would make the new rate 4.04%. Writers often say “up 1%” when they mean 1 point.",
+      feedback: "0.5% of 6% is only 0.03 points, which would make the new rate 5.97%. Writers often say “down 0.5%” when they mean half a point.",
     },
-    { id: "points", label: "Up 1 percentage point", verdict: "right", feedback: "5 minus 4 is 1 point. Traders call the same move 100 basis points." },
-    { id: "relative", label: "Up 25%", verdict: "right", feedback: "1 point is a quarter of the old 4%, so the rate itself grew by 25%." },
+    { id: "points", label: "Down 0.5 percentage points", verdict: "right", feedback: "6 minus 5.5 is half a point. The RBI called the same cut 50 basis points." },
+    { id: "relative", label: "Down about 8%", verdict: "right", feedback: "Half a point is a twelfth of the old 6%, so the rate itself fell by about 8.33%." },
   ] satisfies SignalOption[],
 };
 
@@ -186,11 +191,11 @@ export function RatesWidget({ caseSlug, compact = false, onCall, onEvent }: Sign
     <WidgetShell kind="rates" caseSlug={RATES_CASE} compact={compact} label="One move, three sizes">
       {!compact && (
         <WidgetHead
-          right="The news"
+          right="Jun 2025"
           title="One move, three sizes"
           sub={
             <>
-              A rate goes from <b>{trim(CASE.old, 2)}%</b> to <b>{trim(CASE.new, 2)}%</b>.
+              On 6 June 2025 the RBI cut its repo rate from <b>{trim(CASE.old, 2)}%</b> to <b>{trim(CASE.new, 2)}%</b>.
             </>
           }
         />
@@ -244,9 +249,9 @@ export function RatesWidget({ caseSlug, compact = false, onCall, onEvent }: Sign
         keys={[
           { swatch: "blue", label: "The move you set" },
           { swatch: "ink", label: "The old rate" },
-          { swatch: "wait", label: "“Up 1%”, read literally" },
+          { swatch: "wait", label: `“${headline({ ...caseMove, o: CASE.old, n: CASE.new })}”, read literally` },
         ]}
-        source="Worked example from the Topic. No outside figures."
+        source="Source: Reserve Bank of India, Monetary Policy Statement, 6 June 2025."
         table={
           !compact && called ? (
             <TableView
