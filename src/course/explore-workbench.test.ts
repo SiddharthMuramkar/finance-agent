@@ -9,7 +9,9 @@ import { loadCourseMap } from "./map";
 // Node cannot load the recipes.
 
 const map = loadCourseMap();
-const SPINE = Array.from({ length: 15 }, (_, i) => `spine-${String(i + 1).padStart(2, "0")}-`);
+// The Spine Topics by the outline, not by an id prefix: a Topic id keeps its number prefix through a renumbering, and a new
+// Spine Topic (#91's spine-cost-of-capital) has none (ADR 0004).
+const SPINE = map.topics.filter((t) => t.stage === "spine").map((t) => t.id);
 
 describe("explore Workbenches build (C2, B2-B4)", () => {
   const benches = map.topics.filter((t) => t.explore?.workbench);
@@ -44,11 +46,12 @@ describe("explore Workbenches build (C2, B2-B4)", () => {
   });
 });
 
-describe("Spine Topics 1 to 15 each have their explore Widget (C2, Appendix D)", () => {
-  for (const prefix of SPINE) {
-    it(`${prefix}…`, () => {
-      const topic = map.topics.find((t) => t.id.startsWith(prefix));
-      expect(topic, `a Topic file ${prefix}*`).toBeDefined();
+describe("every Spine Topic has its explore Widget (C2, Appendix D)", () => {
+  it("finds the Spine Topics", () => expect(SPINE.length).toBeGreaterThanOrEqual(16));
+  for (const id of SPINE) {
+    it(id, () => {
+      const topic = map.topic(id);
+      expect(topic, `a Topic file ${id}`).toBeDefined();
       const widget = exploreWidgetOf(topic!);
       expect(widget, `${topic!.id} explore Widget`).not.toBeNull();
       if (topic!.explore?.workbench) {
