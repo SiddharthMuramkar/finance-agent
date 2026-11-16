@@ -5,6 +5,7 @@ import { assignmentOpen } from "@/learner/own-cases";
 import { currentAccount } from "../account";
 import { ButtonLink } from "../primitives";
 import { ReadingPage, SignedInFrame } from "../ui";
+import { AssignmentTutor } from "./assignment-tutor";
 import { OwnCaseForm } from "./own-case-form";
 
 // Reads saved progress on every visit. No model call, and nothing fetched live (ADR 0013).
@@ -28,6 +29,7 @@ export default async function AssignmentPage() {
               The Own Case is dated at the report, with the share price of that day; nothing is fetched live.
             </p>
             <OwnCaseForm />
+            <AssignmentTutor />
           </>
         ) : (
           <div data-assignment-closed className="mt-4 flex flex-col items-start gap-4">
