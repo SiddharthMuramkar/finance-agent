@@ -26,8 +26,7 @@ export async function readLane(pool, learnerId, promptSeq) {
   const base = { sessionId, toolsUsed, turn, companion };
   if (items.length) {
     const d = items[items.length - 1].data;
-    const source = typeof d.source === "string" ? d.source : "recipe";
-    return { ...base, lane: source === "compose" || source === "fallback" ? source : "recipe", code: d.code, title: d.title, recipe: d.recipe || null, params: d.params ?? null, widgetsShown: items.length };
+    return { ...base, lane: "recipe", code: d.code, title: d.title, recipe: d.recipe || null, params: d.params ?? null, widgetsShown: items.length };
   }
   const fences = after.filter((m) => m.role === "assistant").flatMap((m) => [...textOf(m).matchAll(/```openui-lang\n([\s\S]*?)\n```/g)].map((x) => x[1]));
   if (fences.length) return { ...base, lane: "fence", code: fences[fences.length - 1], widgetsShown: fences.length };

@@ -9,7 +9,6 @@
  * - TUTOR_EVAL_MODELS: the pairs, "model:effort,model:effort". Default: gpt-6.1-sol:low, gpt-6.1-sol:medium,
  *   gpt-6.1-sol:high.
  * - TUTOR_EVAL_BUDGET_USD: the spend cap for EACH pair, default 5. Tutor and grader spend both count.
- * - TUTOR_EVAL_WIDGET_ENGINE (on or off): default the production default (DEFAULT_SETTINGS).
  * - TUTOR_EVAL_ONLY=T1,T11, TUTOR_EVAL_OUT, TUTOR_EVAL_CONCURRENCY: as for `npm run tutor:eval`.
  */
 import OpenAI from "openai";
@@ -22,8 +21,8 @@ import { testDb } from "@/test/pglite";
 import { askModel } from "../ask-model";
 import { TUTOR_MODEL } from "@/tutor/model";
 import { tutorClient } from "@/tutor/tutor-client";
-import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
-import { DEFAULT_SETTINGS, fingerprint } from "@/tutor/session-log";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "@/tutor/instructions";
+import { fingerprint } from "@/tutor/session-log";
 import { budgetCap, requirePrice } from "./budget";
 import { CASES_DIR, loadCases } from "./case";
 import { renderSweep, runSweep, sweepFiles, sweepFoundSetting, parsePairs } from "./sweep";
@@ -34,7 +33,6 @@ const env = process.env;
 
 it("model sweep over the live Tutor tests", { timeout: 6 * 3_600_000 }, async () => {
   const pairs = parsePairs(env.TUTOR_EVAL_MODELS);
-  const widgetEngine = (env.TUTOR_EVAL_WIDGET_ENGINE || DEFAULT_SETTINGS.widget_engine) === "on" ? ("on" as const) : ("off" as const);
   for (const p of pairs) requirePrice(p.model);
   requirePrice(GRADER_MODEL);
   const cap = budgetCap(env);
@@ -47,16 +45,15 @@ it("model sweep over the live Tutor tests", { timeout: 6 * 3_600_000 }, async ()
 
   const openai = new OpenAI();
   const modelClient = tutorClient();
-  const engine = widgetEngine === "on";
   const map = loadCourseMap();
   const report = await runSweep(cases, pairs, {
     capUsd: cap,
     log: (line) => console.log(line),
     suiteDeps: (pair, budget) => ({
       map,
-      settings: { model: pair.model, effort: pair.effort, widgetEngine },
+      settings: { model: pair.model, effort: pair.effort },
       graderModel: GRADER_MODEL,
-      fingerprint: engine ? fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS) : fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS),
+      fingerprint: fingerprint(ENGINE_INSTRUCTIONS, ENGINE_TOOLS),
       budget,
       newDb: testDb,
       tutorClient: () => modelClient,

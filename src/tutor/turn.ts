@@ -8,9 +8,8 @@ import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { newReplyWidgetProblems } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
-import { coveredParts, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
+import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
@@ -32,11 +31,11 @@ import { type ToolDefinition } from "./instructions";
 import {
   currentTopicId,
   isCompaction,
-  isLegacySession,
+  isOldModelSession,
   openLog,
   readSettings,
   refreezeIfChanged,
-  retireLegacySessions,
+  retireOldModelSessions,
   withoutRejected,
   saveShownSession,
   sessionForTurn,
@@ -46,9 +45,8 @@ import {
   type Message,
   type Session,
   type Shown,
-  usesWidgetEngine,
 } from "./session-log";
-import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
+import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { FINISH_NOTE, OLD_CONTINUE_TEXT, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import type { NextName } from "./next";
@@ -246,8 +244,6 @@ export type TurnDeps = {
   notify?: (event: ProgressEvent) => void;
   /** Tells the route the id of the turn that holds the Learner's lock, once it does, so the browser can tie its Stop to that turn. */
   onTurn?: (turnId: number) => void;
-  /** compose_widget's model client (and a test's shorter limit); left out, the real OpenAI client, made on first use. */
-  composer?: Composer;
   /**
    * True for the evals: no Spend cap applies (decision #13). No daily cap or resume limit in turn admission, and the turn
    * keeps its steps in the no-limit Step ledger. Left out, every cap applies.
@@ -326,7 +322,6 @@ function watchForStop(db: Db, turnId: number) {
   return { signal: controller.signal, end: () => clearInterval(timer) };
 }
 
-const WIDGET_OPEN = "```openui-lang\n";
 export { withoutOpenWidget };
 
 /**
@@ -469,15 +464,15 @@ async function* runLockedTurn(
   const map = deps.map ?? loadCourseMap();
   const now = deps.now ?? (() => new Date());
   const runStart = performance.now();
-  const effects: ToolEffects = { saveFailed: false, items: [], notify: deps.notify, deadline, stop, pageWidgets: deps.widgets };
+  const effects: ToolEffects = { saveFailed: false, items: [], notify: deps.notify, pageWidgets: deps.widgets };
   const progress = (label: string) => deps.notify?.({ type: "progress", label });
 
   let session: Session;
   let log: Log;
   let turnSeq: number;
   let code: Record<string, ToolCode>;
-  // The turn's Step ledger (step-ledger.ts): its loop steps, numbered once across the Tutor's steps and the extra ones
-  // tools save (compose_widget's), and how many are left under the step limit. Made once the turn has its turn seq.
+  // The turn's Step ledger (step-ledger.ts): its model steps, numbered once across the Tutor's steps, a fold and a
+  // compaction, and how many are left under the step limit. Made once the turn has its turn seq.
   let ledger: StepLedger | undefined;
   let stepsReady = false;
   const ledgerNow = (): StepLedger => {
@@ -485,8 +480,6 @@ async function* runLockedTurn(
     return (ledger ??= deps.noLimits ? noLimitLedger(at) : stepLedger(at, stepLimit));
   };
   const saveStep = (model: string, make: (n: number) => StepUsage) => ledgerNow().save(model, make);
-  // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
-  effects.saveStep = (model, make) => (stepsReady ? saveStep(model, make) : Promise.resolve());
   // This turn's facts (turn-facts.ts), the place they were worked out for, and whether the turn closes a passed Topic.
   let facts: TurnFacts | undefined;
   let placeAtStart: Place | null = null;
@@ -495,9 +488,9 @@ async function* runLockedTurn(
   let resumed: { session: Session; log: Log; turnSeq: number } | undefined;
   if (typeof input === "object" && "resume" in input && turn.sessionId !== null && turn.turnSeq !== null) {
     const [saved] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
-    // A turn left unfinished in a Claude-era Session is run afresh, from its saved message, in the Topic's new Session.
+    // A turn left unfinished in an older model's Session is run afresh, from its saved message, in the Topic's new Session.
     const turnSeq = turn.turnSeq;
-    const savedLog = saved && !isLegacySession(saved) && (await openLog(db, saved.id, now, turnSeq));
+    const savedLog = saved && !isOldModelSession(saved) && (await openLog(db, saved.id, now, turnSeq));
     if (savedLog && savedLog.rows.some((r) => r.seq === turnSeq)) resumed = { session: saved, log: savedLog, turnSeq };
   }
   // Whether this is an own-question turn (A5): the Learner typed it, with no quiz Check open and no conversation Check
@@ -517,7 +510,7 @@ async function* runLockedTurn(
   if (resumed) {
     ({ session, log, turnSeq } = resumed);
     stepsReady = true;
-    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     const at = navigate(map, await loadProgress(db, learnerId));
     liveFacts = await turnFacts(db, map, learnerId, at, { learnerText: turn.input ?? undefined, now: now() });
     ownQ = await isOwnAt(at, liveFacts.quizOpen, turnSeq);
@@ -535,7 +528,7 @@ async function* runLockedTurn(
     const saved = turn.input === OLD_CONTINUE_TEXT ? null : turn.input;
     const learnerText = typeof input === "string" || "paste" in input ? learnerTextOf(input) : (saved ?? FINISH_NOTE);
     // Complete this Topic passed the Topic its Next pinned: the turn closes it in that Session, and starts nothing else.
-    // So does a Retry of a turn left unfinished in a Claude-era Session of a Topic since passed: it reruns in that
+    // So does a Retry of a turn left unfinished in an older model's Session of a Topic since passed: it reruns in that
     // Topic's new Session, never in the next Topic's.
     const completed = await completedSession(db, map, turn, now(), typeof input === "object" && "resume" in input);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
@@ -551,9 +544,9 @@ async function* runLockedTurn(
     const place = completed ? null : await ensureTopicStarted(db, map, now(), learnerId);
     // The live Session for the current Topic (made by its first turn), refrozen if a deploy changed the instructions.
     let target = completed ?? (await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));
-    // The turn moved to a Topic whose live Session is Claude-era (a Due Check reopening it): closed, and made afresh.
-    if (isLegacySession(target)) {
-      await retireLegacySessions(db, learnerId, target.topicId);
+    // The turn moved to a Topic whose live Session is an older model's (a Due Check reopening it): closed, and made afresh.
+    if (isOldModelSession(target)) {
+      await retireOldModelSessions(db, learnerId, target.topicId);
       target = await sessionForTurn(db, now(), learnerId, target.topicId);
     }
     session = await refreezeIfChanged(db, target);
@@ -583,7 +576,7 @@ async function* runLockedTurn(
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes, startFacts)
         : plainContext;
     const learnerBlocks: { type: "text"; text: string }[] = [{ type: "text", text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
-    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
     // The first turn after a refreeze folds the history from before it into a summary, before the reply.
@@ -974,7 +967,6 @@ async function* runLockedTurn(
   };
   await answerTruncated();
   const stoppedNow = () => stopReason === "stopped" || stop.aborted;
-  const engine = usesWidgetEngine(activeSession);
   const covering = activeSession.topicId ? map.topic(activeSession.topicId) : undefined;
   // The facts the reply is held to: worked out again when a tool moved the Learner's step during the draft, or on a resume.
   const moved = draftHeld.some((e) => e.type === "item" && e.item.kind === STEP_DIVIDER);
@@ -990,24 +982,12 @@ async function* runLockedTurn(
     // A resumed turn's record may already reject rows after `replyFrom` (a failed retry before its fallback): never judged again.
     const text = replyTextAfter(withoutRejected(log.rows, rejected), replyFrom);
     const items = await loadSessionItems(db, session.id, learnerId);
-    // Without the widget engine an openui-lang fence is checked as before: it draws, keeps the Widget rules, leaves written-ahead parts alone.
-    let fenceProblems: ReturnType<typeof newReplyWidgetProblems> = [];
-    if (!engine && text.includes(WIDGET_OPEN)) {
-      const heldBack = covering ? exploreHeldBack(covering, (await loadProgress(db, learnerId)).topics[covering.id]) : null;
-      const covered = covering ? coveredParts(covering).map((w) => (w.id === heldBack ? { ...w, held: true } : w)) : [];
-      const openBefore = drawnWidgets(replyTexts(log.rows.filter((r) => r.seq < turnSeq)), items);
-      // A Widget code showed in this reply (reply-items.ts) stays on screen, a rejected draft's included: a fence would be a second.
-      const shownInReply = itemsOfReply(items).some((i) => i.kind === WIDGET_SHOWN);
-      fenceProblems = newReplyWidgetProblems(text, openBefore.map((w) => w.code), covered, shownInReply);
-    }
     // A formula marker the Tutor wrote that cannot be drawn shows as nothing on screen: say so in the server log.
     if (hasMarkers(text)) {
       const problems = markerProblems(text);
       if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
     }
     const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, {
-      engine,
-      fenceProblems,
       savedRule: savedRuleOf(items.filter((i) => i.afterSeq >= turnSeq)),
       writtenAhead: covering ? writtenAheadWidgets(covering) : undefined,
     });
@@ -1062,7 +1042,7 @@ async function* runLockedTurn(
 
   /**
    * The turn's Widget and where it came from: the step's (code stored one: a card preset, the reveal or explore Widget,
-   * a re-teach's practice Widget), the Tutor's (its own show_widget, compose_widget, open_widget or update_widget), or a
+   * a re-teach's practice Widget), the Tutor's (its own show_widget, open_widget or update_widget), or a
    * Companion Widget code stores now. Called once, after every Widget code stores in the turn (the end of runLockedTurn).
    */
   const companionWidget = async (): Promise<{ source: string; item?: SessionItem }> => {
@@ -1290,15 +1270,12 @@ async function* runLockedTurn(
   // code opened one in a step-led turn, code may add the step's scene or, asked what a word means, a Lingo card. It is picked last, once every Widget code stores in the turn is stored (a Next's
   // step Widget, start_again's or a step's items, a re-teach's practice Widget), so the gate sees them all and a turn
   // never gets two. Only the Topic complete card, never a Widget, comes after it: the turn still ends at that card.
-  // Only in Sessions frozen with the widget engine on, and never after a Stop. The browser gets it before the reply's text.
-  let widgetSource: string | null = null;
-  if (engine) {
-    const companion = await companionWidget();
-    widgetSource = companion.source;
-    if (companion.item) {
-      const at = toSend.findIndex((e) => e.type === "text");
-      toSend.splice(at < 0 ? toSend.length : at, 0, { type: "item", item: companion.item });
-    }
+  // Never after a Stop. The browser gets it before the reply's text.
+  const companion = await companionWidget();
+  const widgetSource = companion.source;
+  if (companion.item) {
+    const at = toSend.findIndex((e) => e.type === "text");
+    toSend.splice(at < 0 ? toSend.length : at, 0, { type: "item", item: companion.item });
   }
   // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
   const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());
@@ -1343,20 +1320,20 @@ async function* runLockedTurn(
 
 /**
  * The Session a Next turn pinned when its Complete this Topic passed that Topic (it is no longer the current
- * Topic's), or undefined. Read from the turn, so a Retry finds it too. A Claude-era Session pinned before the
- * switch (ADR 0007) is closed, and the closing reply goes to a fresh Session of that Topic instead. A resumed turn
- * of any kind left in a Claude-era Session of a Topic that is no longer current is pinned the same way, so it is
- * answered in that Topic and starts nothing in the next one.
+ * Topic's), or undefined. Read from the turn, so a Retry finds it too. A Session pinned before a TUTOR_MODEL change
+ * (an older model's, ADR 0007) is closed, and the closing reply goes to a fresh Session of that Topic instead. A
+ * resumed turn of any kind left in an older model's Session of a Topic that is no longer current is pinned the same
+ * way, so it is answered in that Topic and starts nothing in the next one.
  */
 async function completedSession(db: Db, map: CourseMap, turn: Turn, now: Date, resuming = false): Promise<Session | undefined> {
   const next = turnKind(turn) === "next";
   if ((!next && !resuming) || turn.sessionId === null) return undefined;
   const [pinned] = await db.select().from(sessions).where(and(eq(sessions.id, turn.sessionId), eq(sessions.learnerId, turn.learnerId)));
   if (!pinned || pinned.topicId === (await currentTopicId(db, map, turn.learnerId))) return undefined;
-  // Any other resumed turn is rerun from its message where the Learner is now; only a Claude-era one is pinned to its Topic.
-  if (!next && !isLegacySession(pinned)) return undefined;
-  if (!isLegacySession(pinned)) return pinned;
-  await retireLegacySessions(db, turn.learnerId, pinned.topicId);
+  // Any other resumed turn is rerun from its message where the Learner is now; only an older model's is pinned to its Topic.
+  if (!next && !isOldModelSession(pinned)) return undefined;
+  if (!isOldModelSession(pinned)) return pinned;
+  await retireOldModelSessions(db, turn.learnerId, pinned.topicId);
   return sessionForTurn(db, now, turn.learnerId, pinned.topicId);
 }
 

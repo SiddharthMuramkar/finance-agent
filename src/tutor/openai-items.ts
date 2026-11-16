@@ -19,9 +19,10 @@ import type { Block, Message, ReplayBlock, SearchResultBlock, StepRequest, StepR
  * items. Requests are stateless (`store: false`): every step sends the whole history from the latest compaction on,
  * and a step the model wrote goes back exactly as it came (its `replay` block: encrypted reasoning, the message's
  * `phase`, ids and the function calls' exact arguments). A step code wrote or a filter edited has no replay block and
- * is sent rebuilt from its readable blocks, without reasoning. Blocks from before the switch (thinking, Anthropic's
- * server tools, a readable compaction) cannot be sent at all: Claude-era Sessions are retired before any request, so
- * one reaching here is a bug, and the request fails loudly rather than quietly dropping part of the history.
+ * is sent rebuilt from its readable blocks, without reasoning. A block this adapter has no OpenAI item for (from an
+ * older model, such as thinking, Anthropic's server tools or a readable compaction, or any other unknown type) cannot be
+ * sent at all: a Session frozen for an older model is retired before any request, so one reaching here is a bug, and
+ * the request fails loudly rather than quietly dropping part of the history.
  */
 
 /**
@@ -85,10 +86,13 @@ export function toInputItems(messages: Message[]): ResponseInputItem[] {
   return items;
 }
 
-/** A block the adapter cannot send: a Claude-era Session that was not retired. */
+/**
+ * A block the adapter cannot send: a type it has no OpenAI item for. The fallback of every block switch below; most
+ * likely an older model's Session that was not retired.
+ */
 function cannotSend(block: { type?: unknown } | null | undefined, row: number): Error {
   return new Error(
-    `Message ${row} holds a "${String(block?.type)}" block, which cannot be sent to OpenAI: it is from before the switch to gpt-6.1-sol (a Claude-era Session must be retired before its next turn).`,
+    `Message ${row} holds a "${String(block?.type)}" block, which cannot be sent to OpenAI: this adapter has no item for it. It may be from a model the Session used before (a Session frozen for an older model must be retired before its next turn).`,
   );
 }
 

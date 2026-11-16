@@ -21,7 +21,7 @@ const yesTo = (n: number) => JSON.stringify({ answers: Array.from({ length: n },
 function suiteDeps(pair: { model: string; effort: string }, budget: Budget, reply: string, graderCost: number): SuiteDeps {
   return {
     map,
-    settings: { model: pair.model, effort: pair.effort, widgetEngine: "off" },
+    settings: { model: pair.model, effort: pair.effort },
     graderModel: "gpt-6.1-sol",
     fingerprint: "test",
     budget,
@@ -122,7 +122,7 @@ describe("a sweep", () => {
     const base: EvalReport = {
       startedAt: "2026-11-04T10:00:00.000Z",
       finishedAt: "2026-11-04T10:05:00.000Z",
-      tutor: { model: "gpt-6.1-sol", effort: "low", widgetEngine: "off" },
+      tutor: { model: "gpt-6.1-sol", effort: "low" },
       graderModel: "gpt-6.1-sol",
       fingerprint: "x",
       capUsd: 5,
@@ -148,7 +148,7 @@ describe("a sweep", () => {
     const report: EvalReport = {
       startedAt: "2026-11-06T10:00:00.000Z",
       finishedAt: "2026-11-06T10:05:00.000Z",
-      tutor: { model: "gpt-6.1-sol", effort: "medium", widgetEngine: "on" },
+      tutor: { model: "gpt-6.1-sol", effort: "medium" },
       graderModel: "gpt-6.1-sol",
       fingerprint: "x",
       capUsd: 8,
@@ -178,7 +178,7 @@ describe("a sweep", () => {
     const report: EvalReport = {
       startedAt: "2026-11-06T10:00:00.000Z",
       finishedAt: "2026-11-06T10:05:00.000Z",
-      tutor: { model: "gpt-6.1-sol", effort: "medium", widgetEngine: "on" },
+      tutor: { model: "gpt-6.1-sol", effort: "medium" },
       graderModel: "gpt-6.1-sol",
       fingerprint: "x",
       capUsd: 8,

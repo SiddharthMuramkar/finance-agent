@@ -1,5 +1,5 @@
 import type OpenAI from "openai";
-import { composeMessageOf } from "@/tutor/compose";
+import type { Response } from "openai/resources/responses/responses";
 import type { Effort } from "@/tutor/model";
 import { TUTOR_MODEL } from "@/tutor/model";
 import { costUsd } from "@/tutor/pricing";
@@ -25,6 +25,15 @@ export function tokenCounts(usage: ApiUsage | undefined) {
 /** What a reply cost, in dollars; 0 when the model has no price (the harnesses check `requirePrice` first). */
 export const replyCost = (model: string, usage: ApiUsage | undefined): number => costUsd(model, tokenCounts(usage)) ?? 0;
 
+/** Why an OpenAI response stopped, in the app's words: end_turn, max_tokens or refusal. Output cut by the content filter is a refusal, as for the Tutor (openai-items.ts). */
+function stopReasonOf(response: Response): "end_turn" | "max_tokens" | "refusal" {
+  const refused =
+    (response.status === "incomplete" && response.incomplete_details?.reason === "content_filter") ||
+    response.output.some((item) => item.type === "message" && item.content.some((part) => part.type === "refusal"));
+  if (refused) return "refusal";
+  return response.status === "incomplete" && response.incomplete_details?.reason === "max_output_tokens" ? "max_tokens" : "end_turn";
+}
+
 export async function askModel(
   client: Asker,
   o: { system?: string; input: string; maxOutputTokens: number; model?: string; effort?: Effort },
@@ -39,6 +48,5 @@ export async function askModel(
     max_output_tokens: o.maxOutputTokens,
     store: false,
   });
-  const message = composeMessageOf(response);
-  return { text: message.content.map((b) => b.text ?? "").join(""), stopReason: message.stop_reason ?? "end_turn", usage: response.usage, costUsd: replyCost(model, response.usage) };
+  return { text: response.output_text, stopReason: stopReasonOf(response), usage: response.usage, costUsd: replyCost(model, response.usage) };
 }

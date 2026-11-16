@@ -9,7 +9,6 @@ import { restartTopic } from "@/learner/restart";
 import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
-import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { loadPastSession, loadPastSessions } from "./past-sessions";
 import { runTutorTurn } from "./turn";
 
@@ -56,7 +55,7 @@ async function turn(db: Db, text: string, reply: string, learnerId = OWNER_LEARN
 async function olderSession(db: Db, createdAt: Date, contents: { role: "user" | "assistant"; content: unknown }[], learnerId = OWNER_LEARNER_ID) {
   const [old] = await db
     .insert(sessions)
-    .values({ learnerId, instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", createdAt })
+    .values({ learnerId, instructions: "Old instructions.", tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", createdAt })
     .returning();
   await db.insert(messages).values(contents.map((c, seq) => ({ sessionId: old.id, seq, ...c })));
   return old.id;

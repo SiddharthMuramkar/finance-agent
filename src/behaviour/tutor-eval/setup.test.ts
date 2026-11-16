@@ -20,7 +20,7 @@ const map = loadCourseMap();
 const oldMap = oldPercentOnly(map);
 const cases = loadCases(CASES_DIR).cases;
 const live = (id: string) => cases.find((c) => c.id === id) as LiveCase;
-const settings = { model: "gpt-6.1-sol", effort: "low", widgetEngine: "off" as const };
+const settings = { model: "gpt-6.1-sol", effort: "low" };
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -40,7 +40,7 @@ describe("setting a case's state up", () => {
     expect(p.ctx.internalWords).toEqual(expect.arrayContaining(["num-percent-bps", "pb-quiz-language", "pb-q-bond-140", "rate-change-three-ways", "open_widget"]));
     expect(p.stateNote).toMatch(/quiz is open/);
     expect(p.stateNote).toMatch(/keep back: Six tenths of a percentage point/);
-    expect(await readSettings(db)).toMatchObject({ model: "gpt-6.1-sol", effort: "low", widgetEngine: "off" });
+    expect(await readSettings(db)).toMatchObject({ model: "gpt-6.1-sol", effort: "low" });
   });
 
   it("T2: the quiz was submitted with 0 of 3 and no attempt is open", async () => {

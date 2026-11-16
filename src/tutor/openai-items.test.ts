@@ -173,8 +173,8 @@ describe("a step's request", () => {
     expect(items).toEqual([...window, { type: "message", role: "user", content: "Go on." }]);
   });
 
-  it("fails loudly on a block from before the switch: thinking, Anthropic's server tools, a readable compaction", () => {
-    const legacy: Message[] = [
+  it("fails loudly on a block it has no item for, such as an older model's: thinking, Anthropic's server tools, a readable compaction", () => {
+    const unsendable: Message[] = [
       { role: "assistant", content: [{ type: "thinking", thinking: "Hmm", signature: "sig" }] as never },
       { role: "assistant", content: [{ type: "redacted_thinking", data: "x" }] as never },
       { role: "assistant", content: [{ type: "server_tool_use", id: "srv_1", name: "code_execution", input: {} }] as never },
@@ -183,7 +183,7 @@ describe("a step's request", () => {
       { role: "assistant", content: [{ type: "compaction", content: "Summary of the Session so far." }] },
       { role: "user", content: [{ type: "tool_result", tool_use_id: "call_1", content: [{ type: "image", source: {} }] as never }] },
     ];
-    for (const m of legacy) expect(() => toResponseCreateParams(request([m])), JSON.stringify(m.content)).toThrow(/cannot be sent to OpenAI/);
+    for (const m of unsendable) expect(() => toResponseCreateParams(request([m])), JSON.stringify(m.content)).toThrow(/cannot be sent to OpenAI/);
   });
 
   it("knows the passages the history's searches returned, from its latest compaction on", () => {

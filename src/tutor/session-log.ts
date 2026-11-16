@@ -5,7 +5,7 @@ import { navigate } from "@/course/navigator";
 import { learnerState, messages, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS } from "./instructions";
 import { rejectedSeqsOf } from "./reply-records";
 import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model";
 
@@ -17,14 +17,14 @@ import { DEFAULT_EFFORT, TUTOR_MODEL, type Effort, type Message } from "./model"
 export type { Effort, Message } from "./model";
 /**
  * The stored settings and their defaults, written the first time. There is no model setting: every Session runs on
- * TUTOR_MODEL (ADR 0007), so a `model` or `widget_compose_model` row left from before the switch is never read.
+ * TUTOR_MODEL (ADR 0007), so a `model` or `widget_compose_model` row left from before the switch is never read. There
+ * is no widget engine setting either: every Session freezes the engine (#19), so a `widget_engine` row is never read.
  */
 export const DEFAULT_SETTINGS = {
   effort: DEFAULT_EFFORT,
   session_idle_hours: "6",
   compact_at_tokens: "200000",
   review_cap: "10",
-  widget_engine: "on",
   // The Spend caps (decision #13, quota.ts), editable on /admin: a Learner's turns and dollars a day, everyone's dollars a
   // day, and each turn's steps (all its runs together) and resumes.
   turns_per_learner_day: "120",
@@ -53,8 +53,6 @@ export async function readSettings(db: Db) {
     compactAtTokens: Number(get("compact_at_tokens")),
     /** The most spaced reviews offered over the last 24 hours. */
     reviewCap: Number(get("review_cap")),
-    /** The widget engine (ADR 0009): "on" freezes new and refrozen Sessions with show_widget. Read only by frozenNow. */
-    widgetEngine: get("widget_engine") === "on" ? ("on" as const) : ("off" as const),
     /**
      * The Spend caps (quota.ts). Turn admission checks the daily ones before a new turn takes the Learner's lock, and the
      * resume limit before a resume; the step limit goes with the turn to its Step ledger (step-ledger.ts).
@@ -192,9 +190,9 @@ export async function sessionForTurn(db: Db, now: Date, learnerId: number, topic
  * "existing Sessions keep theirs"); a changed default reaches new Sessions only.
  */
 export async function refreezeIfChanged(db: Db, session: Session): Promise<Session> {
-  // A Claude-era Session is retired before any turn runs in it (retireLegacySessions), never refrozen.
-  if (isLegacySession(session)) throw new Error(`Session ${session.id} was frozen for ${session.model}, not ${TUTOR_MODEL}: it should have been retired.`);
-  const { instructions, tools, fingerprint } = await frozenNow(db, session);
+  // A Session frozen for an older model is retired before any turn runs in it (retireOldModelSessions), never refrozen.
+  if (isOldModelSession(session)) throw new Error(`Session ${session.id} was frozen for ${session.model}, not ${TUTOR_MODEL}: it should have been retired.`);
+  const { instructions, tools, fingerprint } = await frozenNow(db);
   if (session.fingerprint === fingerprint) return session;
   const [{ last }] = await db.select({ last: max(messages.seq) }).from(messages).where(eq(messages.sessionId, session.id));
   const [row] = await db
@@ -205,33 +203,37 @@ export async function refreezeIfChanged(db: Db, session: Session): Promise<Sessi
   return row;
 }
 
-/** Whether a Session was frozen for another model than TUTOR_MODEL: a Claude-era Session (ADR 0007), never sent to OpenAI. */
-export function isLegacySession(session: { model: string }): boolean {
+/**
+ * Whether a Session was frozen for another model than TUTOR_MODEL. After each TUTOR_MODEL change, every Session frozen
+ * before it is one (ADR 0007): a turn never runs in it, and nothing of it is sent to the new model.
+ */
+export function isOldModelSession(session: { model: string }): boolean {
   return session.model !== TUTOR_MODEL;
 }
 
 /**
- * Closes the Learner's live Claude-era Sessions for a Topic (null: the every-Topic-passed Session), ADR 0007. Each is
- * marked older, so it stays readable under Older sessions, and the Topic's next turn makes a fresh Session at the
+ * Closes the Learner's live Sessions for a Topic that were frozen for an older model (null: the every-Topic-passed
+ * Session), ADR 0007. It acts after every TUTOR_MODEL change, because a refreeze never changes a Session's model. Each
+ * is marked older, so it stays readable under Older sessions, and the Topic's next turn makes a fresh Session at the
  * Learner's saved step (their progress, misconceptions and profile reach it through code's context). One that holds
  * no message yet is simply refrozen in place, so no empty Older Session appears. Runs under the Learner's row lock,
  * which a Next and the study page's Widget step-finish also take, so none of them writes into a Session as it closes.
  * Never sets `restartedAt`: that marks a Learner's own Start a Topic over. Returns whether a Session was closed.
  */
-export async function retireLegacySessions(db: Db, learnerId: number, topicId: string | null): Promise<boolean> {
-  const liveLegacy = (q: Db) =>
+export async function retireOldModelSessions(db: Db, learnerId: number, topicId: string | null): Promise<boolean> {
+  const liveOld = (q: Db) =>
     q
       .select({ id: sessions.id })
       .from(sessions)
       .where(and(eq(sessions.learnerId, learnerId), eq(sessions.older, false), ne(sessions.model, TUTOR_MODEL), topicId === null ? isNull(sessions.topicId) : eq(sessions.topicId, topicId)));
   // Almost every turn finds none: no lock is taken then.
-  if (!(await liveLegacy(db)).length) return false;
+  if (!(await liveOld(db)).length) return false;
   return db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
     await tx.select({ id: learnerState.id }).from(learnerState).where(eq(learnerState.learnerId, learnerId)).for("update");
-    const legacy = await liveLegacy(tx);
+    const old = await liveOld(tx);
     const closed: number[] = [];
-    for (const { id } of legacy) {
+    for (const { id } of old) {
       const [used] = await tx.select({ seq: messages.seq }).from(messages).where(eq(messages.sessionId, id)).limit(1);
       if (used) {
         await tx.update(sessions).set({ older: true }).where(eq(sessions.id, id));
@@ -247,36 +249,27 @@ export async function retireLegacySessions(db: Db, learnerId: number, topicId: s
 }
 
 /**
- * Whether `shownId` is a Claude-era Session closed in favour of `liveId`: the same Learner and Topic. A tab still showing
- * the old Session may then resume the new Session's unfinished turn (its page learns of the new Session only on "done").
+ * Whether `shownId` is an older model's Session closed in favour of `liveId`: the same Learner and Topic. A tab still
+ * showing the old Session may then resume the new Session's unfinished turn (its page learns of the new Session only
+ * on "done").
  */
 export async function closedInFavourOf(db: Db, learnerId: number, shownId: number, liveId: number | null): Promise<boolean> {
   if (liveId === null || shownId === liveId) return false;
   const rows = await db.select().from(sessions).where(and(eq(sessions.learnerId, learnerId), inArray(sessions.id, [shownId, liveId])));
   const shown = rows.find((r) => r.id === shownId);
   const live = rows.find((r) => r.id === liveId);
-  return shown !== undefined && live !== undefined && shown.older && isLegacySession(shown) && !isLegacySession(live) && shown.topicId === live.topicId;
-}
-
-/** Whether a Session was frozen with the widget engine: its tools include show_widget. Engine-only behaviour reads this, never the setting. */
-export function usesWidgetEngine(session: { tools: unknown } | undefined): boolean {
-  return Array.isArray(session?.tools) && session.tools.some((t) => (t as { name?: unknown })?.name === "show_widget");
+  return shown !== undefined && live !== undefined && shown.older && isOldModelSession(shown) && !isOldModelSession(live) && shown.topicId === live.topicId;
 }
 
 /**
- * The instructions, tools, model and effort a Session freezes now, with their fingerprint. The widget engine's
- * (ADR 0009) when the `widget_engine` setting is "on", or when the Session already has show_widget: one way per
- * Session, so no history ever holds a show_widget call its tools no longer list. Off, today's exactly, so the
- * fingerprint of every Session without the engine is unchanged.
+ * The instructions, tools, model and effort a Session freezes now, with their fingerprint: the widget engine's (ADR
+ * 0009), the only Widget lane since #19.
  */
-export async function frozenNow(db: Db, session?: { tools: unknown }) {
-  const { effort, widgetEngine } = await readSettings(db);
+export async function frozenNow(db: Db) {
+  const { effort } = await readSettings(db);
   const model = TUTOR_MODEL;
-  const engine = widgetEngine === "on" || usesWidgetEngine(session);
-  const instructions = engine ? ENGINE_INSTRUCTIONS : TUTOR_INSTRUCTIONS;
-  // compose_widget is not offered to new Sessions (ADR 0009); a Session whose tools already list it keeps it.
-  const keepsCompose = Array.isArray(session?.tools) && session.tools.some((t) => (t as { name?: unknown })?.name === "compose_widget");
-  const tools: ToolDefinition[] = engine ? (keepsCompose ? ENGINE_TOOLS_WITH_COMPOSE : ENGINE_TOOLS) : TUTOR_TOOLS;
+  const instructions = ENGINE_INSTRUCTIONS;
+  const tools = ENGINE_TOOLS;
   return { instructions, tools, model, effort, fingerprint: fingerprint(instructions, tools) };
 }
 
@@ -406,7 +399,7 @@ async function turnStarts(db: Db, sessionId: number): Promise<number[]> {
   return rows.map((r) => r.seq!);
 }
 
-/** Assistant content without its reasoning: the raw `replay` output (and a Claude-era row's thinking blocks); anything else unchanged. */
+/** Assistant content without its reasoning: the raw `replay` output (and an older Claude row's thinking blocks); anything else unchanged. */
 function withoutReasoning(content: unknown): unknown {
   return Array.isArray(content) ? content.filter((b) => b?.type !== "replay" && b?.type !== "thinking" && b?.type !== "redacted_thinking") : content;
 }

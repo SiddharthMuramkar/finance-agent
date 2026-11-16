@@ -20,7 +20,7 @@ import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply } from 
 const map = loadCourseMap();
 const cases = loadCases(CASES_DIR).cases;
 const live = (id: string) => cases.find((c) => c.id === id) as LiveCase;
-const settings = { model: "gpt-6.1-sol", effort: "low", widgetEngine: "on" as const };
+const settings = { model: "gpt-6.1-sol", effort: "low" };
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
