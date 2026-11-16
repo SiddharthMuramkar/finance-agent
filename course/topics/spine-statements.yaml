@@ -108,7 +108,7 @@ scenes:
         - { id: investor, emoji: thinking-face, name: An investor, role: reads the report }
       beats:
         - { who: narrator, says: "Webvan's report for 2000 shows sales of $178.5 million and a loss of $453.3 million.", emoji: receipt }
-        - { who: webvan, says: "Our warehouses are built and our customers are growing.", emoji: package }
+        - { who: webvan, says: "Our report: $259.8 million spent on warehouses and equipment in 2000.", emoji: building-construction }
         - { who: investor, says: "The cash page says $263.1 million went on running the business.", emoji: thinking-face }
         - { who: narrator, says: "And about $212 million is left. Which page says how long that lasts?", emoji: hourglass-not-done }
       caption: 2 April 2001, the annual report for 2000
@@ -123,6 +123,17 @@ scenes:
       headline: Webvan shuts all seven markets and plans to file for bankruptcy
       deck: An imagined front page. The cash had run down, as the report's pages showed.
       source: https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+  # The Concept's own Widget (critics round 1, widget fit): one warehouse bought for cash, lighting each statement in turn.
+  - id: st-one-warehouse
+    step: concept
+    recipe: chain
+    title: One warehouse, three pages
+    inputs:
+      steps:
+        - { title: Webvan pays cash for a warehouse, body: "One event: a warehouse it will use for many years.", highlight: src }
+        - { title: The cash flow statement, body: "Shows the cash going out this year, as spending on things that last.", highlight: neutral }
+        - { title: The balance sheet, body: "Swaps cash for a warehouse: Webvan owns something else, not more.", highlight: neutral }
+        - { title: The income statement, body: "Takes only a slice of the warehouse's cost, each year it is used.", highlight: neutral }
 
 skills:
   - id: st-three-pages

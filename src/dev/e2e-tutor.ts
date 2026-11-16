@@ -676,11 +676,10 @@ export const E2E_SCRIPTS = {
       {
         content: [
           text(
-            "April 2001. Webvan, the online grocer, files its report for 2000, and three of its pages matter. " +
-              "The first shows sales of $178.5 million and a loss of $453.3 million. " +
-              "The second shows about $212 million left in cash and investments on the last day of the year. " +
-              "The third shows $263.1 million used in running the business, and $259.8 million spent on warehouses and equipment.\n\n" +
-              "Three pages, three different numbers. Which one would you read to see how long Webvan can keep going?",
+            "April 2001. Webvan, the online grocer, may run out of cash within the year. " +
+              "Its report for 2000 shows a loss of $453.3 million, and about $212 million left in cash and investments. " +
+              "Three pages of that report matter, and each tells a different part of it.\n\n" +
+              "Which page would you read to see how long Webvan can keep going?",
           ),
         ],
       },
@@ -708,7 +707,9 @@ export const E2E_SCRIPTS = {
         content: [
           text(
             "Here is Webvan's next year as a waterfall, with sales doubling and a small profit on each sale. " +
-              "Operating income is the income statement's line; free cash flow at the end is the cash flow statement's.\n\n" +
+              "Operating income, what sales bring in after the running costs, is above zero. " +
+              "Free cash flow, the cash left after paying to grow, is far below it. " +
+              "Reinvestment is that paying to grow: warehouses, vans and groceries bought before the new sales arrive.\n\n" +
               "Why do the two point opposite ways, and where did the cash go?",
           ),
         ],

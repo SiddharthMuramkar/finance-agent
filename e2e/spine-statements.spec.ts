@@ -116,8 +116,13 @@ test("[#90] the three financial statements play as a Spine Topic: Story, Concept
   writeFileSync(join(out, "transcript.json"), JSON.stringify({ topics: TOPICS.map((t) => t.id), turns: transcript }, null, 2));
 
   // Each statement is named by the Concept, and the reused Cash waterfall opens on a profit on each sale with sales doubling.
-  const [, concept, explore] = transcript;
+  const [story, concept, explore] = transcript;
   for (const name of ["income statement", "balance sheet", "cash flow statement"]) expect(concept.tutor).toContain(name);
+  // Critics round 1: the Concept shows its own Widget, one warehouse across the three pages, not the story again; and
+  // the explore turn offers no word Choice for a statement the Concept already taught.
+  expect(concept.widget).not.toBe(story.widget);
+  expect(concept.widget).toMatch(/One warehouse, three pages/i);
+  expect(explore.choices).not.toContain("What does 'income statement' mean?");
   expect(explore.widget).toMatch(/Operating margin/);
   expect(explore.widget).toMatch(/Free cash flow/);
   expect(explore.widget).not.toMatch(/-179|−179/);
