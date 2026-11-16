@@ -51,7 +51,7 @@ async function dragByTouch(page: Page, slider: ReturnType<Page["getByRole"]>, dx
   const x = box.x + ((value - min) / (max - min)) * box.width;
   const y = box.y + box.height / 2;
   const cdp = await page.context().newCDPSession(page);
-  const touch = (type: string, px: number) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: px, y }] });
+  const touch = (type: "touchStart" | "touchMove" | "touchEnd", px: number) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: px, y }] });
   await touch("touchStart", x);
   for (let step = 1; step <= 8; step++) await touch("touchMove", x + (dx * step) / 8);
   await touch("touchEnd", x + dx);
