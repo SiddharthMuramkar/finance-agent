@@ -37,7 +37,7 @@ export const runtime = "nodejs";
  * `POST {person: "owner" | "asha"}` (issue #33) signs this browser in as one of the test bed's people
  * (src/dev/e2e-identity.ts): Clerk is off in the test bed, so a signed `fa_e2e_person` cookie stands in for a Clerk
  * session, and the person's Learner is found or made as a first Clerk sign-in makes it. The owner is the admin.
- * Idempotent: the same person and Learner come back.
+ * Idempotent: the same person and Learner come back. `ravi` (spec #68) comes back with every Spine Topic passed.
  *
  * Closed (404) unless the test bed is on (`E2E=1`, never in production or on Vercel) AND the database is the in-memory
  * PGlite, so it can never write to Neon even if a flag leaks; 403 for any Learner but the tools Learner.
@@ -289,6 +289,14 @@ async function passTopic(db: Db, map: CourseMap, learnerId: number, now: Date, t
   await walk(db, map, learnerId, now, topicId, () => false);
 }
 
+/** Passes every Spine Topic not passed yet, walked as a Learner would (spec #68: the test bed's "Spine passed" person). */
+async function passSpine(db: Db, map: CourseMap, learnerId: number, now: Date) {
+  const progress = await loadProgress(db, learnerId);
+  for (const t of map.topics.filter((t) => t.stage === "spine").sort((a, b) => (a.spine ?? 0) - (b.spine ?? 0))) {
+    if (progress.topics[t.id]?.status !== "passed") await passTopic(db, map, learnerId, now, t.id);
+  }
+}
+
 function open(): boolean {
   return e2eEnabled(process.env) && globalThis.__faE2eIsPglite === true;
 }
@@ -311,6 +319,7 @@ async function signInPerson(person: unknown): Promise<NextResponse> {
   if (!isE2ePerson(person)) return NextResponse.json({ error: `No person "${String(person)}".`, people: Object.keys(E2E_PEOPLE) }, { status: 400 });
   const identity = E2E_PEOPLE[person];
   const learner = await learnerForClerkUser(getDb(), identity);
+  if (person === "ravi") await passSpine(getDb(), loadCourseMap(), learner.id, new Date());
   const response = NextResponse.json({ person, email: identity.email, learnerId: learner.id });
   response.cookies.set(E2E_PERSON_COOKIE, await e2ePersonToken(person, process.env.SESSION_SECRET ?? ""), E2E_PERSON_COOKIE_OPTIONS);
   return response;

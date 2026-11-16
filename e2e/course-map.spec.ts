@@ -73,7 +73,7 @@ test("Spine first, and every Topic still listed", async ({ page }) => {
   expect(await spine.locator("[data-spine-number]").allInnerTexts()).toEqual(Array.from({ length: 15 }, (_, i) => String(i + 1).padStart(2, "0")));
   await expect(spine.locator("[data-spine-progress]")).toContainText("of 15 passed");
   const stages = await page.locator("section[data-stage]").evaluateAll((els) => els.map((el) => el.getAttribute("data-stage")));
-  expect(stages).toEqual(["spine", "foundation", "follow", "judge", "analyse"]);
+  expect(stages).toEqual(["spine", "assignment", "foundation", "follow", "judge", "analyse"]);
   await expect(page.getByRole("heading", { level: 2, name: "Electives" })).toBeVisible();
   // The 95 Topics written before the Spine are all rows that open, folded groups included.
   expect(await page.locator("li[data-topic] [data-row-link]").count()).toBeGreaterThanOrEqual(95);

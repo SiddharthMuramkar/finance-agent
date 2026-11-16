@@ -1,6 +1,7 @@
 import type { TopicOverview } from "@/course/navigator";
 import { backAt } from "@/tutor/park-items";
 import { progressSummary } from "@/course/progress-summary";
+import { ButtonLink } from "../primitives";
 import { Card, Chevron, Eyebrow, Tag } from "../ui";
 import { BackToPathButton, DoFirstLink, TopicRow, WhatComesNextButton } from "./jump-button";
 
@@ -175,8 +176,11 @@ export function CourseMapView({
   coming = [],
   recommended,
   sessions = {},
+  assignmentOpen = false,
 }: {
   topics: TopicOverview[];
+  /** Whether the Learner has passed the Spine, which opens the Assignment (spec #68). */
+  assignmentOpen?: boolean;
   coming?: ComingTopic[];
   /** What comes next; null once every Topic is passed. */
   recommended: RecommendedNext | null;
@@ -252,6 +256,23 @@ export function CourseMapView({
               ),
             )}
           </ol>
+        </section>
+      )}
+      {spineRows.length > 0 && (
+        <section data-stage="assignment" aria-labelledby="stage-assignment" className="mt-12">
+          <h2 id="stage-assignment" className="type-h2">
+            Assignment
+          </h2>
+          {assignmentOpen ? (
+            <div className="mt-2 flex flex-col items-start gap-3">
+              <p className="text-sm leading-5 text-[var(--muted)]">Value a listed Indian company you pick, from its annual report: your Own Case.</p>
+              <ButtonLink href="/assignment" variant="secondary" size="sm" data-assignment-link>
+                Value a company you pick
+              </ButtonLink>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm leading-5 text-[var(--muted)]">Opens once you pass every Spine Topic: then you value a company you pick.</p>
+          )}
         </section>
       )}
       {foundation.length > 0 && (

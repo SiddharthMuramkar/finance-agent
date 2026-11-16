@@ -7,8 +7,8 @@ import { quietDevtools } from "./app";
  * called. That route serves only the tools Learner, so whoever calls it signs in with the tools passcode first.
  */
 
-/** The test bed's people: the owner (the admin, as in Clerk) and Asha (a Learner, not the admin). */
-export const PEOPLE = { owner: "owner@e2e.example", asha: "asha@e2e.example" } as const;
+/** The test bed's people: the owner (the admin, as in Clerk), Asha (a Learner, not the admin) and Ravi (a Learner who has passed the Spine). */
+export const PEOPLE = { owner: "owner@e2e.example", asha: "asha@e2e.example", ravi: "ravi@e2e.example" } as const;
 
 /** The fixture that signs a browser in as a person. */
 export type PersonFixture = { person: keyof typeof PEOPLE };

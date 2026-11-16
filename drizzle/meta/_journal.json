@@ -288,6 +288,13 @@
       "when": 1794759023465,
       "tag": "0040_clerk_contract",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794810180035,
+      "tag": "0041_own_cases",
+      "breakpoints": true
     }
   ]
 }
