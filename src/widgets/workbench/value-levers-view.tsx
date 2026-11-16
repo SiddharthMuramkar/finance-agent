@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Chip, Tag } from "@/app/primitives";
 import { Chevron, SecondaryButton } from "@/app/ui";
 import type { ValuationBlock } from "@/finance/valuation-case";
+import { Icon } from "@/icons/icon";
+import type { IconName } from "@/icons/names";
 import { advanceReached, savedReached } from "../guided-tasks";
 import { GuidedTasksFigure } from "../guided-tasks-view";
 import { MarketReadingsView } from "../market-readings-view";
@@ -38,6 +40,9 @@ import type { ValueLeversMode } from "./data-schemas";
 // draw it signed out (section 2) and the Widget library wraps it as the ValueLevers part. Four Levers and one more under
 // "More settings" feed one headline number on a bar with the price marked; story chips move every lever at once; ten bars
 // of free cash flow and one for everything after year 10; two Things to try that tick themselves.
+
+/** Each lever's line Icon, for its idea: how big it gets, what it keeps, what growth costs, how risky, the chance it fails. */
+const LEVER_ICONS: Record<LeverId, IconName> = { revenue: "chart-increasing", margin: "money-bag", salesToCapital: "factory", risk: "guard", failure: "warning" };
 
 export type ValueLeversViewProps = {
   block: ValuationBlock;
@@ -209,6 +214,7 @@ export function ValueLeversView({
     return (
       <SliderControl
         key={id}
+        tag={<Icon name={LEVER_ICONS[id]} size={16} className="mr-1.5 inline-block align-[-3px] text-[var(--ink-2)]" />}
         title={spec.title === spec.label ? undefined : spec.title}
         label={spec.label}
         caption={spec.caption}
@@ -235,7 +241,7 @@ export function ValueLeversView({
         </div>
       )}
       <Headline model={model} />
-      <ValueBar model={model} />
+      <ValueBar model={model} reached={nearPrice} />
       <dl className="mt-3 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm" data-testid="value-levers-numbers">
         <dt className="text-[var(--muted)]">{model.price.label}</dt>
         <dd className="text-right tabular-nums">{model.price.text}</dd>
@@ -446,12 +452,15 @@ function Headline({ model }: { model: ValueLeversModel }) {
   );
 }
 
+/** The bar's marks glide to a lever's new value, and stand still for a Learner who asks for reduced motion. */
+const GLIDE = "duration-300 ease-out motion-reduce:transition-none";
+
 /**
  * The value on a bar from nothing to barTop, with the price marked in sunflower (history); full above the top. In range mode
  * a shaded span shows the range, so the price marker reads as inside, left of, or right of it. The accessible name calls the
  * mark by the Case's own word for it, as the screen does: "the talk of $40bn" for Uber's 2014 talk, which nobody paid.
  */
-function ValueBar({ model }: { model: ValueLeversModel }) {
+function ValueBar({ model, reached = false }: { model: ValueLeversModel; reached?: boolean }) {
   const { bar, price, range } = model;
   const marked = `the ${price.word} of ${price.text}`;
   const label = range
@@ -467,10 +476,21 @@ function ValueBar({ model }: { model: ValueLeversModel }) {
           data-testid="value-levers-band"
         />
       ) : (
-        <div className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-[var(--ink-2)]" style={{ width: `${bar.fill * 100}%` }} data-testid="value-levers-fill" />
+        <div
+          className={`absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-[var(--ink-2)] ${GLIDE} transition-[width]`}
+          style={{ width: `${bar.fill * 100}%` }}
+          data-testid="value-levers-fill"
+        />
       )}
-      {bar.span && <div className="absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--ink)]" style={{ left: `${bar.fill * 100}%` }} title={`Your story: ${model.readout?.text ?? ""}`} data-testid="value-levers-point-marker" />}
-      <div className="absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--sun)]" style={{ left: `${bar.marker * 100}%` }} title={`${price.label}: ${price.text}`} data-testid="value-levers-price-marker" />
+      {bar.span && <div className={`absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--ink)] ${GLIDE} transition-[left]`} style={{ left: `${bar.fill * 100}%` }} title={`Your story: ${model.readout?.text ?? ""}`} data-testid="value-levers-point-marker" />}
+      {/* The verdict moment: when the Learner's story reaches the price, its mark grows and pulses once. */}
+      <div
+        className={`absolute top-0 h-3 w-0.5 -translate-x-1/2 rounded-sm bg-[var(--sun)] ${GLIDE} transition-transform ${reached ? "scale-x-[3] scale-y-150 motion-safe:animate-[pulse_0.6s_ease-out_1]" : ""}`}
+        style={{ left: `${bar.marker * 100}%` }}
+        title={`${price.label}: ${price.text}`}
+        data-testid="value-levers-price-marker"
+        data-reached={reached ? "" : undefined}
+      />
     </div>
   );
 }
