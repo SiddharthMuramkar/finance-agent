@@ -115,6 +115,66 @@ test.describe("affordance audit is clean", () => {
     await expect(page.getByTestId("restart-confirm")).toBeVisible();
     await clean(page, "/settings Your Topics confirm");
   });
+
+  // Audit batch 2, finding 9: Start over as a new learner asks in a native modal dialog, and its button stays in the page.
+  // Opened from the keyboard it is modal, with focus on Cancel, and passes the audit; Esc, a press on the backdrop and
+  // Cancel each close it with focus back on the button, and Cancel posts nothing. Yes posts the form, held at the network so
+  // the shared tools Learner is not started over. On a 360 px phone it sits inside the gutters and the page behind it does
+  // not scroll.
+  test("[audit 9] /settings Start over asks in a modal dialog", async ({ page }) => {
+    await visit(page, "many-topics", "/settings");
+    const trigger = page.getByRole("button", { name: "Start over as a new learner" });
+    const dialog = page.getByRole("dialog", { name: "Start over as a new learner?" });
+    const cancel = dialog.getByRole("button", { name: "Cancel" });
+    await expect(dialog).toBeHidden();
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
+    expect(await dialog.evaluate((d) => d.matches(":modal")), "opened with showModal()").toBe(true);
+    await expect(dialog).toHaveAccessibleDescription(/^You begin again at the Welcome/);
+    await expect(cancel).toBeFocused();
+    await clean(page, "/settings Start over dialog");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+
+    // A press on the dialog's own padding keeps it open; a press on the backdrop closes it.
+    await trigger.click();
+    const box = (await dialog.boundingBox())!;
+    await page.mouse.click(box.x + 14, box.y + 14); // inside the 20px padding, clear of the 12px corners
+    await expect(dialog).toBeVisible();
+    await page.mouse.click(box.x / 2, box.y / 2);
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+
+    const posts: (string | null)[] = [];
+    await page.route("**/api/start-over", async (route) => {
+      posts.push(route.request().postData());
+      await route.fulfill({ status: 204 }); // No Content: the page stays, and the server never sees the post
+    });
+    await trigger.click();
+    await cancel.click();
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await dialog.getByRole("button", { name: "Yes, start over" }).click();
+    await expect.poll(() => posts).toEqual(["confirm=start-over"]);
+
+    await page.setViewportSize({ width: 360, height: 800 });
+    const phone = (await dialog.boundingBox())!;
+    expect(phone.x, "a 12 px gutter on the left").toBeGreaterThanOrEqual(11.5);
+    expect(phone.x + phone.width, "and on the right").toBeLessThanOrEqual(348.5);
+    await page.evaluate(() => (document.scrollingElement!.scrollTop = 200));
+    await page.mouse.move(180, 8);
+    await page.mouse.wheel(0, 300);
+    await page.waitForTimeout(300); // a wheel scroll that went through would have landed
+    expect(await page.evaluate(() => document.scrollingElement!.scrollTop), "the page behind stays put").toBe(200);
+    // The same wheel scrolls the page once the dialog is closed.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await page.mouse.wheel(0, 300);
+    await expect.poll(() => page.evaluate(() => document.scrollingElement!.scrollTop)).toBeGreaterThan(200);
+  });
 });
 
 /**

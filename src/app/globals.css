@@ -1536,6 +1536,69 @@ html[data-splitting] * {
     }
   }
 
+  /* ---- Native modal dialog (audit batch 2, finding 9) ----
+     A .dialog is a <dialog> opened with showModal() (Start over in Settings: StartOverButton). The browser draws it in the
+     top layer over its ::backdrop, centres it, makes the page behind inert, keeps focus inside and closes it on Esc. Its
+     face is a floating layer's, the one place a shadow is allowed (ADR 0018): the raised surface, 12px corners and
+     --shadow-modal, whose 1px --rule ring is its edge. It is 28rem wide, or the window less a gutter on each side on a
+     phone (336px at 360), and never taller than the window less the gutters (it scrolls inside, as the UA's does). The
+     reset's margin: 0 would pin it to the top left, so margin: auto puts the UA's centring back. */
+  .dialog {
+    width: 28rem;
+    max-width: calc(100% - 2 * var(--gutter));
+    max-height: calc(100% - 2 * var(--gutter));
+    margin: auto;
+    border: 0;
+    border-radius: 12px;
+    padding: 20px;
+    background-color: var(--raised);
+    color: var(--ink);
+    box-shadow: var(--shadow-modal);
+  }
+  /* The page behind does not scroll (the prevent-page-scroll guide): a scroll over the dialog or its backdrop stops there
+     instead of running on to the page. ::backdrop is not a scroll container unless it has an overflow, and only a scroll
+     container takes overscroll-behavior. A browser that contains scroll only in a box that overflows still keeps the page
+     inert. Not overflow: hidden on <html>, which drops the scrollbar and shifts the page sideways. The scrim is the shadow
+     ink, so it darkens the page in both themes (Dark's --ink is light; its shadow ink is black). */
+  .dialog:modal {
+    overscroll-behavior: contain;
+  }
+  .dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background-color: color-mix(in srgb, var(--shadow-ink) 40%, transparent);
+  }
+  /* It and its scrim fade in and out, opacity only (ADR 0018: no slide, no scale), as the popovers above do: @starting-style
+     gives the opening frame, and display and overlay, allowed to step discretely, keep a closing dialog drawn and in the top
+     layer until its fade ends. A browser without them opens and closes at once, as it does for reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .dialog,
+    .dialog::backdrop {
+      opacity: 0;
+      transition-property: opacity, display, overlay;
+      transition-duration: var(--dur-exit);
+      transition-timing-function: var(--ease-out);
+      transition-behavior: allow-discrete;
+    }
+    .dialog[open],
+    .dialog[open]::backdrop {
+      opacity: 1;
+      transition-duration: var(--dur-enter);
+    }
+    @starting-style {
+      .dialog[open],
+      .dialog[open]::backdrop {
+        opacity: 0;
+      }
+    }
+  }
+  /* Forced colours drop the shadow, and with it the ring that is the dialog's edge. */
+  @media (forced-colors: active) {
+    .dialog {
+      border: 1px solid CanvasText;
+    }
+  }
+
   /* Static tags: flat, 6px (controls are 8px), no shadow, no pointer, a dot. */
   .tag {
     --tag-bg: var(--hairline);

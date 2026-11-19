@@ -134,11 +134,17 @@ describe("the Settings page", () => {
     expect(box(true)).toContain("checked");
   });
 
-  it("offers Start over as a button that asks for confirmation before anything is posted", () => {
+  // Audit batch 2, finding 9: the question is a native dialog, in the page but closed until the button opens it with
+  // showModal() (settings-controls.test.tsx), so the start-over form cannot be seen or pressed before the Learner asks.
+  it("offers Start over as a button that asks for confirmation, in a closed dialog, before anything is posted", () => {
     const html = view();
-    expect(html).toContain("Start over as a new learner");
-    expect(html).not.toContain("Yes, start over");
-    expect(html).not.toContain('action="/api/start-over"');
+    expect(html).toMatch(/<button type="button"[^>]*>Start over as a new learner<\/button>/);
+    const dialogs = html.match(/<dialog\b[^>]*>[\s\S]*?<\/dialog>/g) ?? [];
+    expect(dialogs).toHaveLength(1);
+    expect(dialogs[0]).not.toMatch(/^<dialog\b[^>]*\bopen\b/);
+    expect(dialogs[0]).toContain("Yes, start over");
+    expect(html.match(/action="\/api\/start-over"/g)).toHaveLength(1);
+    expect(dialogs[0]).toMatch(/<form[^>]*action="\/api\/start-over"[^>]*method="post"/);
   });
 
   it("credits Lucide at the foot of the page, under Start over", () => {
