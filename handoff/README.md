@@ -1,10 +1,10 @@
 # Handoff: paused work, 2026-11-19
 
-Two streams were paused on 2026-11-19 and landed on `main` in one squash PR so nothing is lost. This file says what is done, what is left, and where each piece lives. Read it before resuming either stream.
+Two streams were paused on 2026-11-19. Both are combined on branch `branch-1` (PR #121 into `main`) so nothing is lost. This file says what is done, what is left, and where each piece lives. Read it before resuming either stream.
 
 ## Resume on any machine
 
-1. `git pull` on `main`, then `npm ci`.
+1. Check out `branch-1` (or `main`, once PR #121 is merged), then `npm ci`.
 2. The workflow scripts in this folder hard-code a repo path (`REPO`, and `OUT` in `curriculum-workflow-v2.js`). Set them to your checkout and a scratch folder before running one.
 3. Every merge, migration or production change still needs the owner's yes (root `CLAUDE.md`).
 
@@ -12,7 +12,7 @@ Two streams were paused on 2026-11-19 and landed on `main` in one squash PR so n
 
 Was `feat/visual-polish-batch-1` (PR #120) and `branch-1`.
 
-### Done (on main now)
+### Done (on `branch-1`)
 
 - **Batch 1, visual polish**: all of it (commit `9dbec73`; the PR #120 body is the full list).
 - **Batch 2, native overlays**, slices 1, 3 and 4:
@@ -22,7 +22,11 @@ Was `feat/visual-polish-batch-1` (PR #120) and `branch-1`.
 
 ### Left
 
-1. **Slice 2, app menus: re-check it.** It was mid-run at the first pause (`6546115`) and committed partial: `src/app/primitives/menu.tsx`, `popover.ts`, `account-menu.tsx`, `topic-options.tsx`, `workspace-parts.tsx`. Unit tests and CI pass on main, but nobody has done a live check. Open the account menu, Topic options and the All steps list. Check keyboard (arrows, Home/End, Esc, focus return), position, light and dark, and the p360 phone layout. The brief is `SLICES[1]` in `batch2-workflow.js`.
+1. **Slice 2, app menus: fix it. It breaks the browser tests.** It was mid-run at the first pause (`6546115`) and committed partial: `src/app/primitives/menu.tsx`, `popover.ts`, `account-menu.tsx`, `topic-options.tsx`, `workspace-parts.tsx`. Unit tests pass. In CI on PR #121 (2026-11-19), 22 browser tests failed; batch 1 alone (#120) passed them all:
+   - `e2e/phone-pages.spec.ts` (8 tests) and `e2e/phone-workspace.spec.ts` (2 tests), at p360 and p390. "only the Settings gear steps aside" received `["Settings", "Settings", "Sign out"]`. The always-rendered account menu popover puts its hidden items in the header. Either the closed popover is not really hidden, or the `fitsThePhone` helper must skip closed popovers. Decide which is right. The same tests also report "no sideways scroll".
+   - `e2e/message-row.spec.ts:106` at mbp14: "horizontal scroll at 768×1024". This is probably the same menu, positioned off-screen while closed. Check that the menu CSS does not override the UA rule `[popover]:not(:popover-open) { display: none }`.
+
+   After the fix, open the account menu, Topic options and the All steps list by hand. Check keyboard (arrows, Home/End, Esc, focus return), position, light and dark, and the p360 phone layout. The brief is `SLICES[1]` in `batch2-workflow.js`.
 2. **Slice 5, Widget tab strip and scroll fades: not started.** Make the strip a `role="tablist"` with roving tabindex, manual activation and Home/End. Add a reusable `scroll-fade-x` utility driven by a scroll-driven animation, and apply it to the tab strip, `.md pre`, `.md table` and the phone How-it-works rail. The full brief is `SLICES[4]` in `batch2-workflow.js`.
 3. **Close out batch 2**: full `npm run check` and `ui:test`, the code-review skill, a live keyboard and visual pass in both themes and on phone, then one PR.
 
@@ -30,7 +34,7 @@ Was `feat/visual-polish-batch-1` (PR #120) and `branch-1`.
 
 Was `research-linear-course` and `branch-2`.
 
-### Done (on main now)
+### Done (on `branch-1`)
 
 - ADRs 0021 to 0024 (one fixed Course built bottom-up, Lessons teach in Beats, the learner builds two Anchor valuations, no commentator names), plus the GLOSSARY and the ADR updates. The owner answered round 4 Q1 to Q8 "yes to all".
 - The research, all in this folder:
