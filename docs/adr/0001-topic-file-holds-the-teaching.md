@@ -1,6 +1,6 @@
 # The Topic file holds the teaching; code holds the sequence and marks every answer
 
-Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADRs 0006 and 0001.
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADRs 0006 and 0001. Narrowed by ADR 0022 (2026-11-19): Beats are shown as written; the Tutor no longer words the main teaching.
 
 ## Context
 

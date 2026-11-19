@@ -1,6 +1,6 @@
 # Named formulas appear only as Formula Cards from a tested registry
 
-Status: accepted, 2026-11-14; amended 2026-11-16 by spec #68 (Go deeper may hold a typed formula; the not-yet-converted list is gone; the detector also catches formulas built from words or letters). Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADR 0002.
+Status: accepted, 2026-11-14; amended 2026-11-16 by spec #68 (Go deeper may hold a typed formula; the not-yet-converted list is gone; the detector also catches formulas built from words or letters). Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADR 0002. Amended by ADR 0022 (2026-11-19): a Formula Card may sit in a Beat.
 
 ## Context
 

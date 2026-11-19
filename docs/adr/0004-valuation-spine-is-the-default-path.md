@@ -1,6 +1,6 @@
 # A valuation Spine of fifteen Topics is the default path; the other Topics are Electives met through Primers
 
-Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADR 0020. Partly superseded by ADR 0020 (2026-11-16): the Spine has 18 Topics, and own valuations come after it, as Assignments.
+Status: accepted, 2026-11-14. Ticket: [#4](https://github.com/SiddharthMuramkar/finance-agent/issues/4) (Restore design docs from the archive?, start fresh: one new ADR for each decision the code still follows). Rewritten from archived ADR 0020. Partly superseded by ADR 0020 (2026-11-16): the Spine has 18 Topics, and own valuations come after it, as Assignments. Superseded by ADR 0021 (2026-11-19): one fixed Course built bottom-up replaces the Spine, Electives, Primers and "valuation first".
 
 ## Context
 
