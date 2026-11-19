@@ -13,7 +13,7 @@ Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
 
 ### Specs
 
-Product specs live in `docs/specs/`. Current: `docs/specs/value-it-signal-spec.md` (Value It Signal) and `docs/specs/linear-course-spec.md` (the linear Course; every Lesson in `docs/specs/linear-course-curriculum.md`).
+Product specs live in `docs/specs/`. Current: `docs/specs/value-it-signal-spec.md` (Value It Signal). In progress: the linear Course spec, drafted in `handoff/spec-draft.md`; when finished it moves to `docs/specs/linear-course-spec.md`, with every Lesson in `docs/specs/linear-course-curriculum.md`. Paused work and what is left: `handoff/README.md`.
 
 ## Auth
 
