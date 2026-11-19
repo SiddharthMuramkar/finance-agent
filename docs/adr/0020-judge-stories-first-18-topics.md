@@ -1,6 +1,6 @@
 # On the Spine a Learner judges other people's Stories, in 18 Topics; own valuations come after it
 
-Status: accepted, 2026-11-16 (owner grilling session). Supersedes two parts of ADR 0004: the Spine's length (fifteen) and its last Topic as the place where the Learner values a company of their choice. The rest of ADR 0004 holds: the Spine is the default path, the other Topics are Electives met through Primers, and Skip ahead stays. It also narrows ADR 0002: a Learner types numbers only when copying them into an Own Case.
+Status: accepted, 2026-11-16 (owner grilling session). Supersedes two parts of ADR 0004: the Spine's length (fifteen) and its last Topic as the place where the Learner values a company of their choice. The rest of ADR 0004 holds: the Spine is the default path, the other Topics are Electives met through Primers, and Skip ahead stays. It also narrows ADR 0002: a Learner types numbers only when copying them into an Own Case. Spine length superseded by ADR 0021 and the judge-only path by ADR 0023 (2026-11-19); the Own Case Assignment and "dated, never live" hold.
 
 ## Context
 
