@@ -1599,6 +1599,46 @@ html[data-splitting] * {
     }
   }
 
+  /* ---- Disclosures that slide (audit batch 2, finding 6) ----
+     Every <details> (a FoldedRow, a Course Map group, Under the hood, a reply's sources, More settings, the FAQ) slides its
+     content open and shut instead of snapping open while its chevron turns: motion with meaning (ADR 0018), it shows where
+     the content comes from and goes. The content is the ::details-content box (the accordion guide). Its block-size moves
+     between 0 and auto, which interpolate-size allows; content-visibility, allowed to step discretely, keeps closing content
+     drawn until the slide ends. The browser still hides closed content itself (content-visibility: hidden, not display: none),
+     so find-in-page and a link to a text fragment still find it and open the details, and print shows a details as it stands.
+     Only where the browser has both interpolate-size and ::details-content (Chromium today), and only without reduced motion
+     (the global kill above does not reach this pseudo-element): elsewhere a details opens and closes at once, as before. A
+     browser with ::details-content but no interpolate-size (Firefox, Safari) must not get the transition: block-size would
+     step discretely partway through, so the details would hold still and then jump. :where() keeps the rules at no
+     specificity, so a component's own ::details-content rule wins. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (interpolate-size: allow-keywords) and selector(::details-content) {
+      :where(details)::details-content {
+        interpolate-size: allow-keywords;
+        /* A block formatting context: a first or last child's margin stays inside the box, so the slide does not jump by
+           it when the browser's containment of closed content goes off and on (Under the hood, a reply's sources and Show
+           the numbers each start with one). The guide uses contain: layout, which e2e/support/measure.ts would read as
+           clipping. So an open details' last margin no longer merges with the next block's: 8px more under the Full sheet
+           that Go deeper opens in Value levers. */
+        display: flow-root;
+        block-size: 0;
+        /* Clipped while the box is shorter than its content; the block axis only, so nothing wide is cut. */
+        overflow-y: clip;
+        transition-property: block-size, content-visibility, overflow-y;
+        transition-duration: var(--dur-panel), var(--dur-panel), 0s;
+        transition-timing-function: var(--ease-out);
+        transition-behavior: allow-discrete;
+      }
+      :where(details[open])::details-content {
+        block-size: auto;
+        /* Unclipped once the slide has ended (the step waits --dur-panel), so the 2px focus ring at a 2px offset, or a
+           slider's thumb, at the content's top or bottom edge is drawn whole, as it was before. */
+        overflow-y: visible;
+        transition-delay: 0s, 0s, var(--dur-panel);
+      }
+    }
+  }
+
   /* Static tags: flat, 6px (controls are 8px), no shadow, no pointer, a dot. */
   .tag {
     --tag-bg: var(--hairline);
