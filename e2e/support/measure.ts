@@ -311,13 +311,13 @@ export type PressLook = {
  * and a button has a face; on a Band a button is white with an ink label and a link is white and underlined (in each
  * theme: the Band's --on-band and --on-band-button-ink, white and ink in Light, the other way round in Dark, ADR 0019);
  * and nothing that can be pressed uses the key-number style. Also F1's "two Bands never touch", by their drawn boxes. A Band is
- * `.band` or `.home-band`; a `.band-card` inside one is a reading area again. Colours are compared as the browser
+ * `.band`; a `.band-card` inside one is a reading area again. Colours are compared as the browser
  * computes them, the accent read from the token. Pressable means the affordance audit's controls, visible and enabled.
  */
 export function pressLook(page: Page, opts: LetOff = {}): Promise<PressLook> {
   return page.evaluate((letOffSelector) => {
     const INTERACTIVE = 'a[href], button, [role="button"], [role="menuitem"], [role="menuitemradio"], summary, [tabindex]:not([tabindex="-1"])';
-    const BANDS = ".band, .home-band";
+    const BANDS = ".band";
     const out: PressLook = { readingLinks: [], bandLinks: [], bandButtons: [], keyNumberLook: [], bareBlueWords: [], bandsTouching: [], counts: { pressable: 0, links: 0, bands: 0, letOff: 0 } };
     const visible = (el: Element) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && s.display !== "none" && el.checkVisibility(); };
     const name = (el: Element) => `${el.tagName.toLowerCase()} "${(el.getAttribute("aria-label") || el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40)}"`;

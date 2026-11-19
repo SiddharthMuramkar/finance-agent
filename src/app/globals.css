@@ -52,12 +52,15 @@
   --gutter: clamp(12px, 1.6vw, 32px);
   --gap: clamp(16px, 1.6vw, 28px);
   --page-max: 2200px;
-  /* Spec §3.3 shadows and §3.2 body type, shared by the site and the Signal widgets wherever they mount. A shadow's tint
-     is --shadow-ink (the ink in Light) and the blue at low alpha, as the spec writes it. */
+  /* Spec §3.3 shadows, shared by the site and the Signal widgets wherever they mount. A shadow's tint is --shadow-ink (the
+     ink in Light) and, under a live widget, --shadow-blue: the blue at low alpha, as the spec writes it. Dark re-points
+     --shadow-blue at its black shadow ink, since Dark's light blue would glow under a widget instead of shading it. The
+     body type (--font-body) is declared on body, where next/font's --font-text lives. */
+  --shadow-blue: var(--blue);
+  --page-scheme: light;
   --lift: 0 8px 24px color-mix(in srgb, var(--shadow-ink) 7%, transparent);
   --lift-w: 0 1px 2px color-mix(in srgb, var(--shadow-ink) 5%, transparent),
-    0 18px 44px -18px color-mix(in srgb, var(--blue) 28%, transparent);
-  --font-body: var(--font-text, "Inter"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    0 18px 44px -18px color-mix(in srgb, var(--shadow-blue) 28%, transparent);
 
   /* ---- Spec §3.1: the only literal colours ---- */
   /* canvas and ink: neutrals lean slightly toward the brand blue */
@@ -274,6 +277,8 @@
     --overlay: rgba(14, 17, 23, 0.9);
     --line-strong: #767e8b;
     --shadow-ink: #000000;
+    --shadow-blue: var(--shadow-ink);
+    --page-scheme: dark;
     --check-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%230b0d12' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
     --on-band: #0b0d12;
     --on-band-2: rgb(11 13 18 / 0.72);
@@ -501,11 +506,15 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-text, system-ui), -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-variant-numeric: tabular-nums;
+  /* The body type for the site, the Signal widgets and Clerk. Declared here, not on :root: next/font sets --font-text on
+     <body>, so only here does it resolve to the face and its metric-matched fallback, and text keeps its size when the
+     font arrives. */
+  --font-body: var(--font-text, "Inter"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* Figures in generated widgets stay in tabular numbers like the rest of the app: the kit's `font` shorthand
-   resets them, so a table's column of numbers would not line up. Widgets inherit the body's Inter. */
+/* Figures in generated widgets are tabular (spec §3.2: columns of numbers and chart text): the kit's `font` shorthand
+   resets them, so a table's column of numbers would not line up. Running text elsewhere keeps Inter's proportional
+   figures, whose hyphens and digits are not widened to a column's width. Widgets inherit the body's Inter. */
 .genui * {
   font-variant-numeric: tabular-nums;
 }
@@ -536,9 +545,6 @@ body {
   background: linear-gradient(to top, var(--bg), transparent);
 }
 
-/* Pressable: a press moves the control 1px down and in, and takes the pressed colour, within 90ms. It uses :active, not
-   :hover, so a finger on a touch screen gets it too. A control names its pressed colour with --pressed-bg (the primary
-   button sets --brand-pressed); without one the press goes to the quiet --hairline. */
 /* A readable line on a reading page: 34em is 544px at the 16 px chat font. The conversation uses reading-block. */
 @utility measure {
   max-width: 34em;
@@ -552,9 +558,11 @@ body {
   margin-inline: auto;
 }
 
-/* The type scale: Inter for text, Inter Tight for the three display sizes (spec §3.2), weights 400/500/600 only. */
+/* The type scale: Inter for text, Inter Tight for the three display sizes (spec §3.2), weights 400/500/600 only.
+   Headings balance their lines (spec §3.2), so a two-line heading never ends on one short word. */
 @utility type-display {
   font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  text-wrap: balance;
   font-size: 40px;
   line-height: 44px;
   font-weight: 600;
@@ -562,6 +570,7 @@ body {
 }
 @utility type-h1 {
   font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  text-wrap: balance;
   font-size: 28px;
   line-height: 34px;
   font-weight: 600;
@@ -569,12 +578,14 @@ body {
 }
 @utility type-h2 {
   font-family: var(--font-display, system-ui), system-ui, sans-serif;
+  text-wrap: balance;
   font-size: 22px;
   line-height: 28px;
   font-weight: 600;
   letter-spacing: -0.016em;
 }
 @utility type-h3 {
+  text-wrap: balance;
   font-size: 16px;
   line-height: 24px;
   font-weight: 600;
@@ -681,19 +692,6 @@ html[data-splitting] * {
   }
   .split-handle:focus-visible {
     outline-color: Highlight;
-  }
-}
-
-@utility pressable {
-  transition:
-    transform var(--dur-press) var(--ease-out),
-    background-color var(--dur-ui) var(--ease-out),
-    border-color var(--dur-ui) var(--ease-out),
-    color var(--dur-ui) var(--ease-out),
-    opacity var(--dur-ui) var(--ease-out);
-  &:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: translateY(1px) scale(0.98);
-    background-color: var(--pressed-bg, var(--hairline));
   }
 }
 
@@ -858,13 +856,12 @@ html[data-splitting] * {
   }
 }
 
-/* Thin, quiet scrollbars for the chat and the Widget panel (the thumb shows on hover, not at rest). */
+/* Thin, quiet scrollbars for the chat and the Widget panel. The thumb is the strong control line (3:1 or better on the
+   page in both themes), so a pane shows it scrolls before the pointer finds it, and the colour never changes on hover:
+   swapping scrollbar-color makes WebKit repaint, and the bar flickers. */
 @utility quiet-scroll {
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-  &:hover {
-    scrollbar-color: var(--border) transparent;
-  }
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -873,6 +870,12 @@ html[data-splitting] * {
   *::after {
     transition: none !important;
     animation: none !important;
+  }
+  /* A busy spinner still turns, slowly, with no movement across the page: stopped, it would read as a broken ring.
+     :root .animate-spin (0,2,0) outranks the * above and the site's and the Signal widgets' scoped .site * and .sig-w *
+     rules, whichever stylesheet loads last, so its !important wins. */
+  :root .animate-spin {
+    animation: spin 3s linear infinite !important;
   }
 }
 
@@ -896,6 +899,14 @@ html[data-splitting] * {
 .md :is(h1, h2, h3, h4, strong):not(:where(.genui *)) {
   color: var(--ink);
   font-weight: 600;
+}
+.md :is(h1, h2, h3, h4):not(:where(.genui *)) {
+  text-wrap: balance;
+}
+/* A settled reply's paragraphs avoid a one-word last line. Not while the reply streams (.md-streaming,
+   reply-markdown.tsx): the last lines would re-wrap as each word lands. */
+.md:not(.md-streaming) :is(p, li, blockquote):not(:where(.genui *)) {
+  text-wrap: pretty;
 }
 .md h1:not(:where(.genui *)) {
   font-size: 18px;
@@ -1191,7 +1202,7 @@ html[data-splitting] * {
   @media (hover: hover) {
     .btn:hover:not(:disabled):not([aria-disabled="true"]),
     .chip:hover:not(:disabled):not([aria-disabled="true"]) {
-      background-color: color-mix(in srgb, var(--face) 96%, var(--ink));
+      background-color: color-mix(in oklab, var(--face) 96%, var(--ink));
     }
     .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]):not([aria-pressed="true"]),
     .chip:not([aria-pressed="true"]):not([data-state="showing"]):hover:not(:disabled) {
@@ -1216,7 +1227,7 @@ html[data-splitting] * {
   }
   .btn:active:not(:disabled):not([aria-disabled="true"]),
   .chip:active:not(:disabled):not([aria-disabled="true"]) {
-    background-color: color-mix(in srgb, var(--face) 92%, var(--ink));
+    background-color: color-mix(in oklab, var(--face) 92%, var(--ink));
     transition-duration: var(--dur-press);
   }
   .btn-primary:active:not(:disabled):not([aria-disabled="true"]) {
@@ -1224,8 +1235,8 @@ html[data-splitting] * {
     border-color: var(--fill-active);
   }
   .btn-danger:active:not(:disabled):not([aria-disabled="true"]) {
-    background-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
-    border-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
+    background-color: color-mix(in oklab, var(--danger) 80%, var(--ink));
+    border-color: color-mix(in oklab, var(--danger) 80%, var(--ink));
   }
 
   /* Focus: a 2px ring at a 2px offset, on every control. */
@@ -1261,7 +1272,7 @@ html[data-splitting] * {
   /* The button sheet at /dev/widgets#buttons shows each state without a mouse: data-force pins the look. */
   .btn[data-force="hover"],
   .chip[data-force="hover"] {
-    background-color: color-mix(in srgb, var(--face) 96%, var(--ink));
+    background-color: color-mix(in oklab, var(--face) 96%, var(--ink));
   }
   .btn-secondary[data-force="hover"],
   .chip:not([data-state="showing"])[data-force="hover"] {
@@ -1281,15 +1292,15 @@ html[data-splitting] * {
   }
   .btn[data-force="pressed"],
   .chip[data-force="pressed"] {
-    background-color: color-mix(in srgb, var(--face) 92%, var(--ink));
+    background-color: color-mix(in oklab, var(--face) 92%, var(--ink));
   }
   .btn-primary[data-force="pressed"] {
     background-color: var(--fill-active);
     border-color: var(--fill-active);
   }
   .btn-danger[data-force="pressed"] {
-    background-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
-    border-color: color-mix(in srgb, var(--danger) 80%, var(--ink));
+    background-color: color-mix(in oklab, var(--danger) 80%, var(--ink));
+    border-color: color-mix(in oklab, var(--danger) 80%, var(--ink));
   }
   .btn[data-force="focus"],
   .chip[data-force="focus"] {
@@ -1475,6 +1486,159 @@ html[data-splitting] * {
     padding: 4px;
   }
 
+  /* ---- Native popover layers (audit batch 2, finding 5) ----
+     A .popover that is a native popover (popover="auto": the account menu, the Topic options menu and the All steps list;
+     usePopover in src/app/primitives/popover.ts). The browser draws an open one in the top layer, over everything, so it
+     needs no z-index, and keeps a closed one hidden (the UA's display: none, which nothing here sets). It drops the UA
+     popover's own look (Canvas colours, placed against the window) and hangs under its button, right edges lined up: by
+     anchor positioning where the browser has it (the button's anchor-name and this layer's position-anchor are set inline,
+     one name per instance), flipping above the button when there is no room below; elsewhere at the top and right that
+     usePopover works out from the button as it opens. --popover-gap is the room under the button (8px; 4px for All steps). */
+  .popover[popover] {
+    inset: auto;
+    margin: 0;
+    color: var(--ink);
+  }
+  @supports (position-area: block-end) {
+    .popover[popover] {
+      position-area: block-end span-inline-start;
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+      margin-block: var(--popover-gap, 8px);
+    }
+  }
+  @supports not (position-area: block-end) {
+    .popover[popover] {
+      top: var(--popover-top, auto);
+      right: var(--popover-right, auto);
+    }
+  }
+  /* It fades in and out, opacity only (ADR 0018: no slide, no scale), within the menu guide's 150ms. @starting-style
+     gives the opening frame; display and overlay, allowed to step discretely, keep a closing layer drawn and in the top
+     layer until its fade ends. A browser without them opens and closes at once, as it does for anyone who asks for
+     reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .popover[popover] {
+      opacity: 0;
+      transition-property: opacity, display, overlay;
+      transition-duration: var(--dur-exit);
+      transition-timing-function: var(--ease-out);
+      transition-behavior: allow-discrete;
+    }
+    .popover[popover]:popover-open {
+      opacity: 1;
+      /* --dur-enter is 200ms; a menu opens within 150ms. */
+      transition-duration: min(var(--dur-enter), 150ms);
+    }
+    @starting-style {
+      .popover[popover]:popover-open {
+        opacity: 0;
+      }
+    }
+  }
+
+  /* ---- Native modal dialog (audit batch 2, finding 9) ----
+     A .dialog is a <dialog> opened with showModal() (Start over in Settings: StartOverButton). The browser draws it in the
+     top layer over its ::backdrop, centres it, makes the page behind inert, keeps focus inside and closes it on Esc. Its
+     face is a floating layer's, the one place a shadow is allowed (ADR 0018): the raised surface, 12px corners and
+     --shadow-modal, whose 1px --rule ring is its edge. It is 28rem wide, or the window less a gutter on each side on a
+     phone (336px at 360), and never taller than the window less the gutters (it scrolls inside, as the UA's does). The
+     reset's margin: 0 would pin it to the top left, so margin: auto puts the UA's centring back. */
+  .dialog {
+    width: 28rem;
+    max-width: calc(100% - 2 * var(--gutter));
+    max-height: calc(100% - 2 * var(--gutter));
+    margin: auto;
+    border: 0;
+    border-radius: 12px;
+    padding: 20px;
+    background-color: var(--raised);
+    color: var(--ink);
+    box-shadow: var(--shadow-modal);
+  }
+  /* The page behind does not scroll (the prevent-page-scroll guide): a scroll over the dialog or its backdrop stops there
+     instead of running on to the page. ::backdrop is not a scroll container unless it has an overflow, and only a scroll
+     container takes overscroll-behavior. A browser that contains scroll only in a box that overflows still keeps the page
+     inert. Not overflow: hidden on <html>, which drops the scrollbar and shifts the page sideways. The scrim is the shadow
+     ink, so it darkens the page in both themes (Dark's --ink is light; its shadow ink is black). */
+  .dialog:modal {
+    overscroll-behavior: contain;
+  }
+  .dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background-color: color-mix(in srgb, var(--shadow-ink) 40%, transparent);
+  }
+  /* It and its scrim fade in and out, opacity only (ADR 0018: no slide, no scale), as the popovers above do: @starting-style
+     gives the opening frame, and display and overlay, allowed to step discretely, keep a closing dialog drawn and in the top
+     layer until its fade ends. A browser without them opens and closes at once, as it does for reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .dialog,
+    .dialog::backdrop {
+      opacity: 0;
+      transition-property: opacity, display, overlay;
+      transition-duration: var(--dur-exit);
+      transition-timing-function: var(--ease-out);
+      transition-behavior: allow-discrete;
+    }
+    .dialog[open],
+    .dialog[open]::backdrop {
+      opacity: 1;
+      transition-duration: var(--dur-enter);
+    }
+    @starting-style {
+      .dialog[open],
+      .dialog[open]::backdrop {
+        opacity: 0;
+      }
+    }
+  }
+  /* Forced colours drop the shadow, and with it the ring that is the dialog's edge. */
+  @media (forced-colors: active) {
+    .dialog {
+      border: 1px solid CanvasText;
+    }
+  }
+
+  /* ---- Disclosures that slide (audit batch 2, finding 6) ----
+     Every <details> (a FoldedRow, a Course Map group, Under the hood, a reply's sources, More settings, the FAQ) slides its
+     content open and shut instead of snapping open while its chevron turns: motion with meaning (ADR 0018), it shows where
+     the content comes from and goes. The content is the ::details-content box (the accordion guide). Its block-size moves
+     between 0 and auto, which interpolate-size allows; content-visibility, allowed to step discretely, keeps closing content
+     drawn until the slide ends. The browser still hides closed content itself (content-visibility: hidden, not display: none),
+     so find-in-page and a link to a text fragment still find it and open the details, and print shows a details as it stands.
+     Only where the browser has both interpolate-size and ::details-content (Chromium today), and only without reduced motion
+     (the global kill above does not reach this pseudo-element): elsewhere a details opens and closes at once, as before. A
+     browser with ::details-content but no interpolate-size (Firefox, Safari) must not get the transition: block-size would
+     step discretely partway through, so the details would hold still and then jump. :where() keeps the rules at no
+     specificity, so a component's own ::details-content rule wins. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (interpolate-size: allow-keywords) and selector(::details-content) {
+      :where(details)::details-content {
+        interpolate-size: allow-keywords;
+        /* A block formatting context: a first or last child's margin stays inside the box, so the slide does not jump by
+           it when the browser's containment of closed content goes off and on (Under the hood, a reply's sources and Show
+           the numbers each start with one). The guide uses contain: layout, which e2e/support/measure.ts would read as
+           clipping. So an open details' last margin no longer merges with the next block's: 8px more under the Full sheet
+           that Go deeper opens in Value levers. */
+        display: flow-root;
+        block-size: 0;
+        /* Clipped while the box is shorter than its content; the block axis only, so nothing wide is cut. */
+        overflow-y: clip;
+        transition-property: block-size, content-visibility, overflow-y;
+        transition-duration: var(--dur-panel), var(--dur-panel), 0s;
+        transition-timing-function: var(--ease-out);
+        transition-behavior: allow-discrete;
+      }
+      :where(details[open])::details-content {
+        block-size: auto;
+        /* Unclipped once the slide has ended (the step waits --dur-panel), so the 2px focus ring at a 2px offset, or a
+           slider's thumb, at the content's top or bottom edge is drawn whole, as it was before. */
+        overflow-y: visible;
+        transition-delay: 0s, 0s, var(--dur-panel);
+      }
+    }
+  }
+
   /* Static tags: flat, 6px (controls are 8px), no shadow, no pointer, a dot. */
   .tag {
     --tag-bg: var(--hairline);
@@ -1597,182 +1761,16 @@ html[data-splitting] * {
   outline-offset: 2px;
 }
 
-/* Home (src/app/_landing/landing.tsx): the public sales page, in enjoy.dev's editorial rhythm. A 12-column
-   grid, Inter for text and Inter Tight (--font-display) at 600 for display type, 1px hairlines between sections instead
-   of boxed cards (ADR 0018), a steady section rhythm and one royal-blue band. Built from the tokens above. */
-.home {
-  --home-section: 150px;
-  --home-gutter: 20px;
-  --home-header: 56px;
-  min-height: 100vh;
-  overflow-x: clip;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-text, system-ui), system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  letter-spacing: -0.006em;
-}
-@media (width < 1100px) {
-  .home { --home-section: 120px; }
-}
-@media (width < 760px) {
-  .home { --home-section: 88px; --home-gutter: 16px; }
-  .home-nav-page { display: none; }
-}
-.home [id] { scroll-margin-top: calc(var(--home-header) + 24px); }
-
-/* Layout */
-.home-wrap { width: min(1240px, 100% - 96px); margin-inline: auto; }
-@media (width < 760px) {
-  .home-wrap { width: calc(100% - 32px); }
-}
-.home-cols { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--home-gutter); }
-.home-section { padding-top: var(--home-section); }
-.home-rule { height: 1px; border: 0; margin: 0; background: var(--rule); }
-
-/* Type: Inter Tight at 600 for display, Inter for text; never heavier than 600. */
-.home-display { font-family: var(--font-display, system-ui), system-ui, sans-serif; font-weight: 600; }
-.home-statement {
-  font-family: var(--font-display, system-ui), system-ui, sans-serif;
-  font-size: clamp(32px, 3.4vw, 40px);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
-}
-.home-h2 {
-  font-family: var(--font-display, system-ui), system-ui, sans-serif;
-  font-size: 32px;
-  font-weight: 600;
-  line-height: 38px;
-  letter-spacing: -0.022em;
-  text-wrap: balance;
-}
-.home-h3 {
-  font-family: var(--font-display, system-ui), system-ui, sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 26px;
-  letter-spacing: -0.014em;
-}
-@media (width < 760px) {
-  .home-h2 { font-size: 28px; line-height: 34px; }
-}
-.home-statement > span,
-.home-h2 > span { display: block; }
-/* Faint is for display sizes only (3.2:1 in Light). */
-.home-faint { color: var(--faint); }
-.home-lede { font-size: 20px; line-height: 1.45; letter-spacing: -0.012em; color: var(--ink-2); text-wrap: pretty; }
-.home-body { font-size: 15px; line-height: 1.55; color: var(--muted); text-wrap: pretty; }
-@media (width < 760px) {
-  .home-lede { font-size: 18px; }
-}
-/* The eyebrow over a heading (Terrastack): small capitals in the key-number blue, one of the blue marks in a reading area
-   (spec 2026-11-12 F2); on a Band it is the Band's secondary white. */
-.home-eyebrow {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--key-number);
-}
-
-/* Header: sticky, solid page colour, 56px, a hairline the width of the content column */
-.home-header { position: sticky; top: 0; z-index: 20; background: var(--paper); }
-.home-header-row {
-  height: var(--home-header);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  border-bottom: 1px solid var(--rule);
-}
-.home-lockup {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-display, system-ui), system-ui, sans-serif;
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-}
-/* A header link: a ghost, as the app header's page links are (no underline, no surface at rest; a wash on hover). */
-.home-nav {
-  display: inline-flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 8px;
-  color: var(--ink-2);
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  text-decoration: none;
-  transition:
-    background-color var(--dur-ui) var(--ease-out),
-    color var(--dur-ui) var(--ease-out);
-}
-@media (hover: hover) {
-  .home-nav:hover { background: var(--wash); color: var(--ink); }
-}
-@media (width < 760px) {
-  .home-nav.home-nav-page { display: none; }
-}
-/* The public page showing (the About page): ink at 600 and a 2px accent bar laid on the header's bottom hairline, as the
-   app header marks its current page (ui.tsx's TAB). The link is 32px, centred in the 56px row over its 1px hairline, so
-   the bar drops by half the leftover height to cover the hairline. Highlight in forced colours. */
-.home-nav[aria-current="page"] { position: relative; color: var(--ink); font-weight: 600; }
-.home-nav[aria-current="page"]::after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset-inline: 12px;
-  bottom: calc((var(--home-header) - 1px - 32px) / -2 - 1px);
-  height: 2px;
-  background: var(--accent);
-}
-@media (forced-colors: active) {
-  .home-nav[aria-current="page"]::after { forced-color-adjust: none; background: Highlight; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-nav { transition: none; }
-}
-
-/* The bars inside a main button take the button's label colour. */
-.home .btn .bar { background: currentColor; }
-
-/* Motion with meaning on Home (spec 2026-11-12 E9, as ADR 0018 allows): the Explorable's match line arrives with a short
-   fade and rise when the visitor finds the rate. Nothing moves for a visitor who asked for reduced motion. */
-@keyframes home-arrive {
-  from { opacity: 0; transform: translateY(4px); }
-}
-.home-arrive { animation: home-arrive 240ms var(--ease-out) both; }
-@media (prefers-reduced-motion: reduce) {
-  .home-arrive { animation: none; }
-}
-
 /* A Band (spec F1): a full-width royal-blue brand surface, always light (Enjoy's closing
    band). Put .band on a block that spans the page; the Band tokens are in :root. On it, text is white (8.8:1) and
    .band-faint is white at 72% (5.4:1); a link is white and underlined; a .btn is white with an ink label, so no pad is
-   needed; a rule is white at 18%; the focus ring is white. A .band-card inside is white and reads like the page: none of the Band's rules reach into it. Home's closing band is .home-band, the same
-   rules under its first name (its faint line is .home-faint). The button's hover and press faces are the blue tints. */
-.band,
-.home-band { background: var(--band); color: var(--on-band); color-scheme: light; }
-.band .band-faint,
-.band .home-faint,
-.home-band .home-faint { color: var(--on-band-2); }
-.band a:not(.btn):not(.band-card):not(.band-card *),
-.home-band a:not(.btn) { color: var(--on-band); text-decoration-line: underline; text-underline-offset: 3px; }
-.band hr:not(.band-card *),
-.home-band hr { border-color: var(--band-rule); }
-.band .home-rule:not(.band-card *),
-.home-band .home-rule { background: var(--band-rule); }
-.band .btn:not(.band-card *),
-.home-band .btn {
+   needed; a rule is white at 18%; the focus ring is white. A .band-card inside is white and reads like the page: none of
+   the Band's rules reach into it. The button's hover and press faces are the blue tints. */
+.band { background: var(--band); color: var(--on-band); color-scheme: light; }
+.band .band-faint { color: var(--on-band-2); }
+.band a:not(.btn):not(.band-card):not(.band-card *) { color: var(--on-band); text-decoration-line: underline; text-underline-offset: 3px; }
+.band hr:not(.band-card *) { border-color: var(--band-rule); }
+.band .btn:not(.band-card *) {
   --face: var(--on-band);
   --rim: var(--on-band);
   --label: var(--on-band-button-ink);
@@ -1780,24 +1778,17 @@ html[data-splitting] * {
   border-color: var(--on-band);
   color: var(--on-band-button-ink);
 }
-.band .btn:not(.band-card *) .bar,
-.home-band .btn .bar { background: var(--band); }
+.band .btn:not(.band-card *) .bar { background: var(--band); }
 @media (hover: hover) {
-  .band .btn:not(.band-card *):hover,
-  .home-band .btn:hover { background-color: var(--blue-tint); border-color: var(--blue-tint); }
+  .band .btn:not(.band-card *):hover { background-color: var(--blue-tint); border-color: var(--blue-tint); }
 }
-.band .btn:not(.band-card *):active,
-.home-band .btn:active { background-color: var(--blue-tint-2); border-color: var(--blue-tint-2); }
-.band :focus-visible:not(.band-card *),
-.home-band :focus-visible { outline-color: var(--on-band); }
+.band .btn:not(.band-card *):active { background-color: var(--blue-tint-2); border-color: var(--blue-tint-2); }
+.band :focus-visible:not(.band-card *) { outline-color: var(--on-band); }
 /* A heading on a Band is the Band's white, even where a page's own defaults colour headings (the site chrome's ink headings
    around the sign-in strip). */
 .band :is(h1, h2, h3):not(.band-card *) { color: inherit; }
-.band-card { background: var(--band-card); color: var(--ink); }
+/* A card on a Band reads like the page, so it takes the page's colour scheme too: its scrollbars and native controls
+   follow the theme instead of the Band's light scheme (ADR 0019). */
+.band-card { background: var(--band-card); color: var(--ink); color-scheme: var(--page-scheme, light); }
 /* A floating layer that is a card on a Band (the Topic bar's menus and All steps list) keeps the popover's raised face. */
 .band-card.popover { background-color: var(--raised); }
-/* Home's type on a Band (About's opening, F1, E11): the lede is white, running text and the eyebrow the Band's 72% white. */
-.band .home-lede:not(.band-card *) { color: var(--on-band); }
-.band .home-body:not(.band-card *),
-.band .home-eyebrow:not(.band-card *),
-.home-band .home-eyebrow { color: var(--on-band-2); }

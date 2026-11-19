@@ -75,7 +75,7 @@ describe("Block 2 is gone, and the one control set is flat (ADR 0018)", () => {
     expect(rule(".btn-secondary:hover:not(:disabled)", block1)).toContain("border-color: var(--ink-2);");
     const press = rule(".btn:active:not(:disabled)", block1);
     expect(press).toContain("transition-duration: var(--dur-press);");
-    expect(press).toContain("color-mix(in srgb, var(--face) 92%, var(--ink))");
+    expect(press).toContain("color-mix(in oklab, var(--face) 92%, var(--ink))");
     expect(rule(".btn-primary:active:not(:disabled)", block1)).toContain("background-color: var(--fill-active);");
     expect(block1).not.toMatch(/transform/);
   });
@@ -159,6 +159,43 @@ describe("Block 2 is gone, and the one control set is flat (ADR 0018)", () => {
     const focus = rule(".genui .openui-accordion-trigger:focus-visible");
     expect(focus).toContain("outline: 2px solid var(--ring);");
     expect(focus).toContain("outline-offset: 2px;");
+  });
+});
+
+// Audit batch 2, finding 6: a <details> slides its content open and shut (the accordion guide), as a progressive
+// enhancement. A browser without interpolate-size or ::details-content, and anyone who asks for reduced motion, keeps the
+// snap, so every rule sits inside both gates. The browser's own content-visibility: hidden still hides closed content.
+describe("disclosures slide open and shut, only where the browser can and motion is welcome", () => {
+  const at = layer.indexOf("/* ---- Disclosures that slide");
+  const block = layer.slice(at, layer.indexOf("/* Static tags", at));
+  const rules = block.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("sits in the components layer inside the reduced-motion and feature gates, and is the only ::details-content rule", () => {
+    expect(at).toBeGreaterThan(-1);
+    expect(rules).toMatch(/^\s*@media \(prefers-reduced-motion: no-preference\) \{\s*@supports \(interpolate-size: allow-keywords\) and selector\(::details-content\) \{/);
+    const outside = (css.slice(0, LAYER_AT + at) + css.slice(LAYER_AT + at + block.length)).replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(outside).not.toContain("::details-content");
+  });
+
+  it("moves block-size from 0 to auto over --dur-panel, clipped only while it moves", () => {
+    expect(css).toMatch(/--dur-panel: \d+ms;/);
+    const content = rule(":where(details)::details-content {", rules);
+    for (const line of [
+      "interpolate-size: allow-keywords;",
+      "display: flow-root;",
+      "block-size: 0;",
+      "overflow-y: clip;",
+      "transition-property: block-size, content-visibility, overflow-y;",
+      "transition-duration: var(--dur-panel), var(--dur-panel), 0s;",
+      "transition-timing-function: var(--ease-out);",
+      "transition-behavior: allow-discrete;",
+    ]) expect(content).toContain(line);
+    const open = rule(":where(details[open])::details-content {", rules);
+    for (const line of ["block-size: auto;", "overflow-y: visible;", "transition-delay: 0s, 0s, var(--dur-panel);"]) expect(open).toContain(line);
+  });
+
+  it("never hides closed content from find-in-page, contains layout (measure.ts reads that as clipping) or moves sideways", () => {
+    for (const banned of ["display: none", "contain:", "overflow: clip", "overflow-x", "transform", "translate"]) expect(rules, banned).not.toContain(banned);
   });
 });
 

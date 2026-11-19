@@ -80,7 +80,7 @@ test.describe("signed in", () => {
     expect(await headers(page, "/")).toMatchObject({ public: 1, app: 0 });
     const header = page.locator(PUBLIC);
     await expect(header.getByRole("button", { name: /^Continue/ })).toBeVisible();
-    await header.locator("summary").click();
+    await header.getByRole("button", { name: "Account menu", exact: true }).click();
     for (const name of ["Course map", "Notebook", "Account settings"]) await expect(header.getByRole("link", { name, exact: true })).toBeVisible();
     await expect(header.getByRole("button", { name: "Sign out", exact: true })).toBeVisible();
     await expect(header.getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
@@ -88,11 +88,48 @@ test.describe("signed in", () => {
     await expect(header.locator("a[data-join]")).toHaveCount(0);
   });
 
+  // Audit batch 2: the account menu is a native popover (popover="auto"), so the browser closes it on Esc, handing focus
+  // back to the avatar, and on a press outside; its links stay in Tab order after the avatar.
+  test("[4.2] the account menu hangs under the avatar and closes on Esc and on a press outside", async ({ page }) => {
+    await seed(page, "story");
+    await page.goto("/");
+    await hydrated(page);
+    const header = page.locator(PUBLIC);
+    const avatar = header.getByRole("button", { name: "Account menu", exact: true });
+    const menu = header.locator(".v-account-menu");
+    await expect(avatar).toHaveAttribute("aria-expanded", "false");
+    await expect(menu).toBeHidden();
+    await avatar.focus();
+    await page.keyboard.press("Enter");
+    await expect(menu).toBeVisible();
+    await expect(avatar).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("Tab");
+    await expect(menu.getByRole("link", { name: "Course map", exact: true })).toBeFocused();
+    // Under the avatar: with anchor positioning 8 px below it, right edges flush; without, 8 px below the nav.
+    const anchored = await page.evaluate(() => CSS.supports("position-area", "block-end"));
+    const [a, m, nav] = [(await avatar.boundingBox())!, (await menu.boundingBox())!, (await header.boundingBox())!];
+    if (anchored) {
+      expect(Math.round(m.y - (a.y + a.height))).toBe(8);
+      expect(Math.abs(m.x + m.width - (a.x + a.width))).toBeLessThanOrEqual(1);
+    } else expect(Math.round(m.y - (nav.y + nav.height))).toBe(8);
+
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(avatar).toBeFocused();
+    await expect(avatar).toHaveAttribute("aria-expanded", "false");
+
+    await avatar.click();
+    await expect(menu).toBeVisible();
+    await page.locator("main h1").click();
+    await expect(menu).toBeHidden();
+    await expect(avatar).toHaveAttribute("aria-expanded", "false");
+  });
+
   test("[G1] Sign out in the account menu lands on Home, signed out, where the nav then offers Sign in", async ({ page }) => {
     await seed(page, "story");
     await page.goto("/");
     await hydrated(page);
-    await page.locator(PUBLIC).locator("summary").click();
+    await page.locator(PUBLIC).getByRole("button", { name: "Account menu", exact: true }).click();
     await page.locator(PUBLIC).getByRole("button", { name: "Sign out", exact: true }).click();
     await page.waitForURL((url) => url.pathname === "/");
     const header = page.locator(PUBLIC);

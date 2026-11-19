@@ -133,8 +133,9 @@ function GearMark() {
  */
 export function AppHeader({ current, account, className = "" }: { current?: HeaderPage; account?: HeaderAccount; className?: string }) {
   return (
-    // Above what follows it (relative z-30): the account menu drops over the Study Workspace's Topic bar, a positioned Band.
-    <header className={`relative z-30 flex h-[var(--header-h)] shrink-0 items-center gap-1 border-b border-[var(--rule)] bg-[var(--paper)] md:gap-3 lg:gap-6 ${className}`}>
+    // No z-index: the account menu is a native popover, so the top layer carries it over the Study Workspace's Topic bar
+    // (audit batch 2), and nothing else in the header reaches past its hairline.
+    <header className={`flex h-[var(--header-h)] shrink-0 items-center gap-1 border-b border-[var(--rule)] bg-[var(--paper)] md:gap-3 lg:gap-6 ${className}`}>
       <h1 className="flex shrink-0 items-center">
         <Link href="/" title="Home" data-affordance="nav" className={BRAND_LINK}>
           <RisingBars size={16} className="bars-still" />

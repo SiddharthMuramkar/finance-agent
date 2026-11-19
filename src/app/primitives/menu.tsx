@@ -2,10 +2,12 @@
 
 // The pop-up menus (the account menu and the Topic options menu): one row look and one lot of menu behaviour, so every
 // menu opens, moves and closes the same way. Rows are flat 32px `.menu-item` rows (ADR 0018): a wash on hover and focus,
-// the focus ring inset; the menu itself is a `.popover`. They carry role="menuitem", which the affordance audit judges.
+// the focus ring inset; the menu itself is a `.popover`, a native popover (usePopover). They carry role="menuitem", which
+// the affordance audit judges.
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type ComponentProps, type KeyboardEvent } from "react";
+import type { ComponentProps, KeyboardEvent, ToggleEvent } from "react";
+import { popoverOpen, usePopover } from "./popover";
 
 export function MenuItem({ className = "", type = "button", ...props }: ComponentProps<"button">) {
   return <button type={type} role="menuitem" data-affordance="button" className={`menu-item ${className}`.trim()} {...props} />;
@@ -17,63 +19,58 @@ export function MenuLink({ className = "", ...props }: ComponentProps<typeof Lin
 }
 
 /**
- * The shared menu behaviour of the header's menus, moved here in A5: open state; on open, focus the checked row (or the
- * first); a press outside closes; Enter, Space or ArrowDown on the toggle opens; the arrows, Home and End move;
- * Escape closes and returns focus to the toggle; Tab closes. The caller renders its own toggle and rows.
+ * The shared menu behaviour of the header's menus (A5), on a native popover since audit batch 2 (usePopover): the toggle
+ * opens and closes it with a press, Enter or Space (the browser's popovertarget), and ArrowDown opens it too; on open,
+ * focus goes to the checked row (or the first); the arrows, Home and End move and wrap; Escape closes and returns focus to
+ * the toggle; Tab, or a press outside, closes. Spread `toggleProps` on the caller's toggle and `menuProps` on the menu,
+ * right after the toggle; the caller draws its own rows.
  */
 export function useMenu(itemSelector = '[role^="menuitem"]') {
-  const [open, setOpen] = useState(false);
-  const toggleRef = useRef<HTMLButtonElement>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const menuId = useId();
+  const popover = usePopover();
+  const { popoverRef: menuRef, buttonRef: toggleRef } = popover;
 
   const items = () => [...(menuRef.current?.querySelectorAll<HTMLElement>(itemSelector) ?? [])];
-
-  useEffect(() => {
-    if (!open) return;
+  const enter = () => {
     const rows = items();
     (rows.find((r) => r.getAttribute("aria-checked") === "true") ?? rows[0])?.focus();
-    const away = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", away);
-    return () => document.removeEventListener("pointerdown", away);
-    // items() reads the rendered rows; it is not a dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const close = () => {
-    setOpen(false);
-    toggleRef.current?.focus();
   };
 
   const onMenuKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const rows = items();
     const i = rows.indexOf(document.activeElement as HTMLElement);
     const moves: Record<string, number> = { ArrowDown: (i + 1) % rows.length, ArrowUp: (i - 1 + rows.length) % rows.length, Home: 0, End: rows.length - 1 };
-    if (e.key === "Escape") {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    } else if (e.key in moves) {
+    if (e.key in moves) {
       e.preventDefault();
       rows[moves[e.key]]?.focus();
-    } else if (e.key === "Tab") {
-      setOpen(false);
+    } else {
+      popover.popoverProps.onKeyDown(e);
     }
   };
 
-  // Enter and Space toggle here (their native click is prevented, so the menu toggles once) and ArrowDown opens.
+  // Enter and Space are the toggle's own click, which its popovertarget turns into open or close; ArrowDown opens a closed
+  // menu and enters an open one. Focus moves in the toggle event, once the menu shows.
   const onToggleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === "ArrowDown" && !open) {
-      e.preventDefault();
-      setOpen(true);
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      setOpen((o) => !o);
-    }
+    if (e.key !== "ArrowDown") return;
+    e.preventDefault();
+    if (popoverOpen(menuRef.current)) enter();
+    else popover.show();
   };
 
-  return { open, setOpen, toggleRef, rootRef, menuRef, menuId, close, onMenuKeyDown, onToggleKeyDown };
+  const onToggle = (e: ToggleEvent<HTMLDivElement>) => {
+    popover.popoverProps.onToggle(e);
+    if (e.newState === "open") enter();
+  };
+
+  return {
+    open: popover.open,
+    menuId: popover.id,
+    toggleRef,
+    menuRef,
+    /** Closes the menu and returns focus to the toggle. */
+    close: () => popover.close(true),
+    /** Closes the menu and leaves focus to the caller (a row that opens something else moves it there). */
+    hide: () => popover.close(false),
+    toggleProps: { ...popover.buttonProps, "aria-haspopup": "menu" as const, onKeyDown: onToggleKeyDown },
+    menuProps: { ...popover.popoverProps, role: "menu", onKeyDown: onMenuKeyDown, onToggle },
+  };
 }

@@ -1,10 +1,11 @@
 // @vitest-environment happy-dom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadCourseMap } from "@/course/map";
 import { stepSequence, type StepSequence } from "@/course/navigator";
 import { topicStart } from "@/course/topic-start";
+import { installPopoverStandIn, isOpen } from "@/test/popover";
 import { Conversation, type Line } from "./conversation";
 import { TopicBar } from "./workspace-parts";
 
@@ -22,6 +23,13 @@ const start = topicStart(loadCourseMap(), { currentTopicId: null, topics: {} }, 
 
 let root: Root;
 let host: HTMLElement;
+// The All steps list and the Topic options menu are native popovers (audit batch 2); happy-dom has no Popover API, so
+// src/test/popover.ts stands in for it.
+let uninstall: () => void;
+beforeAll(() => {
+  uninstall = installPopoverStandIn();
+});
+afterAll(() => uninstall());
 
 function streamOf(events: object[]) {
   return new Response(events.map((e) => JSON.stringify(e)).join("\n") + "\n", { status: 200 });
@@ -158,13 +166,19 @@ describe("a finished step on the Topic bar", () => {
     });
     const bar = host.querySelector('[data-testid="topic-bar"]')!;
     const toggle = bar.querySelector<HTMLButtonElement>('[data-testid="all-steps-toggle"]')!;
+    const panel = bar.querySelector<HTMLElement>('[data-testid="all-steps"]')!;
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
-    expect(toggle.hasAttribute("aria-controls")).toBe(false);
-    expect(bar.querySelector('[data-testid="all-steps"]')).toBeNull();
-    await act(async () => toggle.click());
-    expect(toggle.getAttribute("aria-expanded")).toBe("true");
-    const panel = bar.querySelector('[data-testid="all-steps"]')!;
+    // A native popover, closed in the page right after its toggle (so Tab goes from All steps into it), still on the Band.
+    expect(panel.getAttribute("popover")).toBe("auto");
+    expect(isOpen(panel)).toBe(false);
+    expect(toggle.nextElementSibling).toBe(panel);
+    expect(toggle.getAttribute("popovertarget")).toBe(panel.id);
     expect(toggle.getAttribute("aria-controls")).toBe(panel.id);
+    expect(panel.className).toMatch(/\bpopover band-card\b/);
+    expect(panel.className).not.toMatch(/\b(absolute|relative|z-\d)/);
+    await act(async () => toggle.click());
+    expect(isOpen(panel)).toBe(true);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
     // Every step, once, by number and name; grouped as the Course Navigator groups them, with no Check named or numbered (#544).
     const items = [...panel.querySelectorAll("[data-list-step]")];
     expect(items.map((i) => i.getAttribute("data-list-step"))).toEqual(strip.steps.map((s) => String(s.number)));
@@ -184,17 +198,25 @@ describe("a finished step on the Topic bar", () => {
     await act(async () => panel.querySelector<HTMLButtonElement>('button[data-jump-to="step-2"]')!.click());
     expect(scrolled).toEqual(["step-divider"]);
     // The list floats over the workspace (spec 2026-11-12 F3), so going to a step closes it; the toggle opens and closes it.
-    expect(bar.querySelector('[data-testid="all-steps"]')).toBeNull();
+    expect(isOpen(panel)).toBe(false);
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     await act(async () => toggle.click());
-    expect(bar.querySelector('[data-testid="all-steps"]')).not.toBeNull();
+    expect(isOpen(panel)).toBe(true);
     // Escape closes it too, and hands focus back to the toggle.
-    await act(async () => bar.querySelector('[data-testid="all-steps"]')!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
-    expect(bar.querySelector('[data-testid="all-steps"]')).toBeNull();
+    await act(async () => panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    expect(isOpen(panel)).toBe(false);
     expect(document.activeElement).toBe(toggle);
     await act(async () => toggle.click());
     await act(async () => toggle.click());
-    expect(bar.querySelector('[data-testid="all-steps"]')).toBeNull();
+    expect(isOpen(panel)).toBe(false);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    // A press outside is the browser's light dismiss, not a listener of the bar's own: a press on the page leaves it open
+    // here, and when the browser hides it the toggle reads collapsed.
+    await act(async () => toggle.click());
+    await act(async () => void document.body.dispatchEvent(new Event("pointerdown", { bubbles: true })));
+    expect(isOpen(panel)).toBe(true);
+    await act(async () => panel.hidePopover());
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 
   it("draws the strip on one line that scrolls sideways, every Check in the one list, and brings the current step into view (#313)", async () => {
