@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className={`min-h-screen antialiased ${text.variable} ${display.variable}`}>
+      <body className={`min-h-dvh antialiased ${text.variable} ${display.variable}`}>
         <WithClerk>
           <RouteBar />
           <AnnouncerProvider>{children}</AnnouncerProvider>

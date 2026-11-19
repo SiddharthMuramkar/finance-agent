@@ -15,6 +15,8 @@
   font-size: 17px;
   line-height: 1.65;
   min-height: 100vh;
+  /* The dynamic viewport: a short page's footer is in view whether a phone's address bar is showing or not. */
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -25,10 +27,14 @@
 @layer base {
   .site h1, .site h2, .site h3 { font-family: var(--font-display); color: var(--ink); font-weight: 600; text-wrap: balance; margin: 0; }
   .site p { margin: 0; }
+  /* Running text avoids a one-word last line (a browser without text-wrap: pretty wraps as before). */
+  .site :is(p, li, dd, blockquote) { text-wrap: pretty; }
   .site strong, .site b { font-weight: 600; color: var(--ink); }
   .site a { color: inherit; text-decoration: none; }
   .site :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 }
+/* Figures are Inter's proportional ones (spec 3.2: "large standalone numbers use proportional figures"); a column of
+   numbers or a value that changes in place opts in to tabular figures. */
 .site .tabular { font-variant-numeric: tabular-nums; }
 
 /* Layout (3.3) */
@@ -81,7 +87,7 @@
 .v-icon { width: 1em; height: 1em; flex: none; }
 
 /* Buttons (5.1) */
-.v-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: var(--r-btn); font: inherit; font-weight: 600; font-size: 15px; line-height: 1; white-space: nowrap; border: none; cursor: pointer; transition: background-color 0.15s, color 0.15s; }
+.v-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: var(--r-btn); font: inherit; font-weight: 600; font-size: 15px; line-height: 1; white-space: nowrap; border: none; cursor: pointer; transition: background-color 0.15s, color 0.15s; }
 .v-btn-primary { background: var(--blue); color: var(--on-blue); }
 .v-btn-primary:hover { background: var(--blue-hover); }
 .v-btn-primary:active { background: var(--blue-pressed); }
@@ -91,8 +97,8 @@
 .v-btn-quiet:hover { background: var(--wash); }
 .v-btn[disabled] { background: var(--wash-2); color: var(--faint); cursor: not-allowed; }
 .v-btn-quiet[disabled] { background: var(--paper); }
-.v-btn-lg { height: 52px; padding: 0 22px; font-size: 16px; }
-.v-btn-sm { height: 36px; padding: 0 12px; font-size: 14px; }
+.v-btn-lg { min-height: 52px; padding: 0 22px; font-size: 16px; }
+.v-btn-sm { min-height: 36px; padding: 0 12px; font-size: 14px; }
 .v-continue { height: auto; min-height: 52px; padding-block: 8px; flex-direction: row; text-align: left; white-space: normal; }
 .v-continue .main { display: block; font-size: 16px; line-height: 1.2; }
 .v-continue .sub { display: block; font-size: 13px; line-height: 1.3; font-weight: 500; opacity: 0.86; max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -122,7 +128,7 @@
 .v-pill-plain { background: var(--wash); color: var(--muted); box-shadow: inset 0 0 0 1px var(--rule); }
 
 /* Stamp, facts, locked box, cards (5.17, 4.5) */
-.v-stamp { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: var(--wash); box-shadow: inset 0 0 0 1px var(--rule); color: var(--ink); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
+.v-stamp { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 6px; background: var(--wash); box-shadow: inset 0 0 0 1px var(--rule); color: var(--ink); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
 .v-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin: 0; }
 .v-facts > div { padding: 12px 14px; box-shadow: 1px 0 0 var(--rule), 0 1px 0 var(--rule); display: grid; gap: 2px; }
 .v-facts dt { font-size: 13px; line-height: 1.4; color: var(--muted); }
@@ -180,6 +186,9 @@
 .v-range { width: 100%; height: 28px; }
 
 /* Nav (4.2) */
+/* The sticky nav covers the top 64 px (--nav-h, which lives on .site, so it is written out here), so the page keeps a
+   focused element or a jumped-to heading clear of it, with 16 px of air (WCAG 2.4.11). */
+html:has(.site) { scroll-padding-top: calc(64px + env(safe-area-inset-top, 0px) + 16px); }
 .v-nav { position: sticky; top: env(safe-area-inset-top); z-index: 50; height: var(--nav-h); background: var(--overlay); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid transparent; transition: border-color 0.15s; }
 .v-nav.scrolled { border-bottom-color: var(--rule); }
 .v-nav-row { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -341,7 +350,7 @@
 .v-rail button { width: 100%; text-align: left; padding: 8px 10px; border-radius: 8px; border: 0; background: none; font: inherit; font-size: 15px; color: var(--ink-2); cursor: pointer; }
 .v-rail button:hover { background: var(--wash); }
 .v-rail li[aria-current="step"] button { background: var(--blue-tint); color: var(--blue); font-weight: 600; }
-.v-move { display: grid; gap: 18px; padding-bottom: clamp(48px, 6vw, 80px); scroll-margin-top: calc(var(--nav-h) + 24px); }
+.v-move { display: grid; gap: 18px; padding-bottom: clamp(48px, 6vw, 80px); scroll-margin-top: 8px; }
 .v-move + .v-move { border-top: 1px solid var(--rule); padding-top: clamp(32px, 4vw, 48px); }
 .v-move-n { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--blue); letter-spacing: 0.04em; }
 .v-inside { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
@@ -473,10 +482,18 @@
   .v-moves li { border-left: 0; padding-left: 0; }
 }
 @media (max-width: 420px) {
-  .v-nav-right .v-btn { height: 40px; padding: 0 12px; font-size: 14px; }
+  .v-nav-right .v-btn { min-height: 40px; padding: 0 12px; font-size: 14px; }
 }
 
 /* Reduced motion (9.9) */
 @media (prefers-reduced-motion: reduce) {
   .site *, .site *::before, .site *::after { animation-duration: 0.001ms !important; animation-delay: 0s !important; transition-duration: 0.001ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
+}
+
+/* Forced colours (Windows High Contrast) drop backgrounds and box-shadows, which draw these buttons' faces and the
+   quiet button's edge, and the current page's bar: give each a real border or a system colour so it stays visible. */
+@media (forced-colors: active) {
+  .v-btn { border: 1px solid ButtonText; }
+  .v-btn[disabled] { border-color: GrayText; }
+  .v-navlinks a[aria-current="page"]::after { forced-color-adjust: none; background: Highlight; }
 }

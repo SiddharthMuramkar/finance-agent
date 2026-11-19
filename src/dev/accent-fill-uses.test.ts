@@ -95,7 +95,7 @@ const INVENTORY: Record<string, Use> = {
 // Spec 2026-11-12 F1 and F5 (ADR 0015 replaces the royal Band): "the test that lists where an accent fill may appear gains the Bands". A Band is a
 // full-width royal surface (--band, which is --royal) with white text on it, and F1 names the only
 // places one may stand. This inventory holds every place src/ paints one: "band" (a Band surface, with the F1 place it is),
-// or "mapping" (globals.css: the Band tokens, their Tailwind names and the .band and .home-band rules that paint a Band
+// or "mapping" (globals.css: the Band tokens, their Tailwind names and the .band rules that paint a Band
 // and what sits on it, which paint nothing until a page puts the class on a block). A new Band changes its file's count, so
 // this test fails until someone names its place.
 type BandPlace =
@@ -112,18 +112,18 @@ const F1_PLACES: readonly BandPlace[] = ["Home's hero", "Home's How every Topic 
 
 const BAND_INVENTORY: Record<string, BandUse> = {
   "src/app/globals.css": {
-    uses: 33,
+    uses: 16,
     verdict: "mapping",
-    why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band and .home-band rules: the surface, its white and 72% text, its white headings, its 18% rules, its white buttons (whose bars take the Band's blue), its white focus ring and Home's type on it",
+    why: "The Band tokens (--band is --royal), the Tailwind name bg-band, and the .band rules: the surface, its white and 72% text, its white headings, its 18% rules, its white buttons (whose bars take the Band's blue) and its white focus ring",
   },
   "src/app/sign-in/auth-page.tsx": { uses: 1, verdict: "band", place: "the sign-in pages' top strip", why: "The strip under the public header that holds the heading of /sign-in, /sign-up and /join (issue #33)" },
   "src/app/workspace-parts.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar across the Study Workspace (F3): title, goal, step bar, All steps and Topic options, above both columns" },
   "src/app/route-skeleton.tsx": { uses: 1, verdict: "band", place: "the Topic bar", why: "The Topic bar's empty Band while /study loads, so the skeleton and the page draw the same rows" },
 };
 
-// A Band is painted with the --band or --royal token, the bg-band utility, or the band and home-band classes (in a
+// A Band is painted with the --band or --royal token, the bg-band utility, or the band class (in a
 // className, or as a CSS selector). band-card, band-faint, data-band and the like are other names, not a Band.
-const BAND = /var\(--(?:band|royal)\)|(?<![\w-])bg-(?:band|\(--band\))(?![\w-])|(?<=className=(?:"|\{`)[^"`]*)(?<![\w-])(?:home-)?band(?![\w-])|\.(?:home-)?band(?![\w-])/g;
+const BAND = /var\(--(?:band|royal)\)|(?<![\w-])bg-(?:band|\(--band\))(?![\w-])|(?<=className=(?:"|\{`)[^"`]*)(?<![\w-])band(?![\w-])|\.band(?![\w-])/g;
 
 /** How many times `text` paints a Band. */
 function bandUses(text: string): number {
@@ -220,8 +220,8 @@ describe("Bands: where the royal brand surface may appear (spec 2026-11-12 F1, F
   it("counts a Band however it is painted, and not the names that only sound like one", () => {
     expect(bandUses('<section className="band">')).toBe(1);
     expect(bandUses('<nav className={`band relative ${x}`}>')).toBe(1);
-    expect(bandUses('<section className="home-band home-section">')).toBe(1);
-    expect(bandUses('.band .btn, .home-band a { background: var(--band); border-color: var(--royal); } .x { @apply bg-band; }')).toBe(5);
+    expect(bandUses('<section className="home-band home-section">')).toBe(0);
+    expect(bandUses('.band .btn, .band a { background: var(--band); border-color: var(--royal); } .x { @apply bg-band; }')).toBe(5);
     expect(bandUses('<div className="band-card band-faint" data-band="x" />')).toBe(0);
     expect(bandUses("// the closing band, a fade band")).toBe(0);
     expect(bandUses('<p className="text-on-band border-band-rule bg-band-card">')).toBe(0);
