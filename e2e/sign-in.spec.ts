@@ -68,7 +68,10 @@ test("[G1, F1] the sign-in page has the site nav, Sign in as the page showing, a
   await page.goto("/sign-in");
   const nav = page.locator("header.v-nav");
   await expect(nav).toHaveCount(1);
-  await expect(nav.getByRole("link", { name: "Sign in", exact: true, includeHidden: true })).toHaveAttribute("aria-current", "page");
+  // The bar's Sign in and the Menu sheet's (always in the page, closed, since the sheet became a popover) both say so.
+  const signIns = nav.getByRole("link", { name: "Sign in", exact: true, includeHidden: true });
+  await expect(signIns).toHaveCount(2);
+  for (const signIn of await signIns.all()) await expect(signIn).toHaveAttribute("aria-current", "page");
   await expect(nav.getByText("Join the waitlist")).toHaveCount(0);
   await expect(page.locator("[data-join]")).toHaveCount(0);
   // At 860 px and below the nav's page links fold into its Menu (4.2); the footer carries About there.

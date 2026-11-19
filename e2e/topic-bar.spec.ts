@@ -143,8 +143,78 @@ test("[#313] All steps lists every step of the bar, in its groups, and a finishe
   const listTargets = await list.locator("button[data-jump-to]").evaluateAll((els) => els.map((el) => el.getAttribute("data-jump-to")));
   expect(listTargets).toEqual(barTargets);
   expect(listTargets.length).toBeGreaterThan(0);
+  // A native popover (audit batch 2): in the top layer, 4px under its toggle with the right edges lined up, still a card
+  // on the Band in the DOM.
+  const placed = await list.evaluate((el) => {
+    const t = document.querySelector('[data-testid="all-steps-toggle"]')!.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return { open: el.matches(":popover-open"), gap: r.top - t.bottom, right: r.right - t.right, onBand: !!el.closest(".band") };
+  });
+  expect(placed.open).toBe(true);
+  expect(placed.onBand).toBe(true);
+  expect(placed.gap).toBeCloseTo(4, 0);
+  expect(Math.abs(placed.right)).toBeLessThanOrEqual(1);
   await toggle.click();
-  await expect(list).toHaveCount(0);
+  await expect(list).toBeHidden();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  // Esc closes it and hands focus back to All steps; a press outside (the browser's light dismiss) closes it too.
+  await toggle.click();
+  await expect(list).toBeVisible();
+  await list.locator("button[data-jump-to]").first().focus();
+  await page.keyboard.press("Escape");
+  await expect(list).toBeHidden();
+  await expect(toggle).toBeFocused();
+  await toggle.click();
+  await expect(list).toBeVisible();
+  await page.getByTestId("topic-title").click();
+  await expect(list).toBeHidden();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+});
+
+/**
+ * Audit batch 2, finding 5: the ⋯ Topic options menu is a native popover. It opens in the top layer over the workspace
+ * under the bar, 8px under its button with the right edges lined up, and is still a card on the Band (band-card): the
+ * page's ink on the raised face, not the Band's white, and not the UA popover's Canvas colours.
+ */
+test("[audit 5] the Topic options menu is a native popover under its button, a card on the Band", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "one viewport is enough");
+  await seed(page, "your-turn");
+  await page.goto("/study");
+  await hydrated(page);
+  const bar = page.getByTestId("topic-bar");
+  const button = bar.getByRole("button", { name: "Topic options" });
+  const menu = bar.getByRole("menu", { name: "Topic options" });
+  await expect(menu).toBeHidden();
+  await button.click();
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Start this Topic over…" })).toBeFocused();
+  const m = await menu.evaluate((el) => {
+    const b = document.querySelector('[data-testid="topic-bar"] button[aria-label="Topic options"]')!.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const s = getComputedStyle(el);
+    const probe = (name: string) => {
+      const p = document.createElement("div");
+      p.style.color = `var(${name})`;
+      document.body.append(p);
+      const colour = getComputedStyle(p).color;
+      p.remove();
+      return colour;
+    };
+    // What the browser hits a little under the bar's bottom edge, inside the menu, is the menu: it floats over the workspace.
+    const bottom = document.querySelector('[data-testid="topic-bar"]')!.getBoundingClientRect().bottom;
+    const hit = el.contains(document.elementFromPoint(r.left + r.width / 2, Math.max(r.top, bottom) + 4));
+    return { open: el.matches(":popover-open"), gap: r.top - b.bottom, right: r.right - b.right, colour: s.color, face: s.backgroundColor, ink: probe("--ink"), raised: probe("--raised"), hit, zIndex: s.zIndex };
+  });
+  expect(m.open).toBe(true);
+  expect(m.gap).toBeCloseTo(8, 0);
+  expect(Math.abs(m.right)).toBeLessThanOrEqual(1);
+  expect(m.colour).toBe(m.ink);
+  expect(m.face).toBe(m.raised);
+  expect(m.hit).toBe(true);
+  expect(m.zIndex).toBe("auto");
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(button).toBeFocused();
 });
 
 test("[#313] a narrow bar never squeezes the goal away: it has its own line under the title and keeps 12rem", async ({ page }, info) => {

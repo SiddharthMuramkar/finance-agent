@@ -35,6 +35,81 @@ test("[D1] signed out, Home's About link opens the About page", async ({ page })
   expect(sideways, "the About page scrolls sideways").toBeLessThanOrEqual(0);
 });
 
+/**
+ * Spec 4.2 and audit batch 2: at 860 px and below Menu opens the sheet, a native popover (popover="auto") pinned full width
+ * under the sticky nav. Esc closes it, a press outside closes it, and a page link in it closes it as the route changes.
+ */
+test("[4.2] the phone Menu sheet opens under the nav and closes on Esc, a press outside and a route change", async ({ page }) => {
+  await page.goto("/about");
+  await siteReady(page);
+  test.skip(!narrowAt(page.viewportSize()!.width), "the Menu button shows at 860 px and below");
+  const nav = page.locator(NAV);
+  const menu = nav.locator(".v-menu-btn");
+  const sheet = page.getByRole("navigation", { name: "Menu", exact: true });
+  await expect(menu).toHaveText("Menu");
+  await expect(sheet).toBeHidden();
+
+  await menu.click();
+  await expect(sheet).toBeVisible();
+  await expect(menu).toHaveText("Close");
+  await expect(menu).toHaveAttribute("aria-expanded", "true");
+  const [bar, box] = [(await nav.boundingBox())!, (await sheet.boundingBox())!];
+  expect(Math.round(box.y)).toBe(Math.round(bar.y + bar.height));
+  expect({ x: box.x, width: box.width }).toEqual({ x: 0, width: await page.evaluate(() => document.documentElement.clientWidth) });
+  await expect(sheet.getByRole("link")).toHaveText(["Home", "How it works", "Examples", "About", "Sign in"]);
+
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
+  await expect(menu).toHaveText("Menu");
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+
+  await menu.click();
+  await expect(sheet).toBeVisible();
+  await page.mouse.click(8, page.viewportSize()!.height - 8);
+  await expect(sheet).toBeHidden();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+
+  await menu.click();
+  await sheet.getByRole("link", { name: "How it works", exact: true }).click();
+  await expect(page).toHaveURL(/\/how-it-works$/);
+  await expect(sheet).toBeHidden();
+  await expect(menu).toHaveText("Menu");
+  await expect(page.locator("main .page-h1")).toBeFocused();
+});
+
+// The test bed asks for reduced motion, so the sheet above opens and closes at once. With motion allowed it fades in and
+// out (@starting-style and a discrete display transition), by opacity alone (ADR 0018: no slide or scale).
+test("[9.9, ADR 0018] the phone Menu sheet fades by opacity alone, and only when motion is allowed", async ({ page }) => {
+  await page.goto("/about");
+  await siteReady(page);
+  test.skip(!narrowAt(page.viewportSize()!.width), "the Menu button shows at 860 px and below");
+  const menu = page.locator(NAV).locator(".v-menu-btn");
+  const sheet = page.locator("#site-menu");
+  await sheet.evaluate((el) => {
+    const runs: string[] = [];
+    (window as unknown as { sheetRuns: string[] }).sheetRuns = runs;
+    el.addEventListener("transitionrun", (event) => runs.push((event as TransitionEvent).propertyName));
+  });
+  const runs = () => page.evaluate(() => (window as unknown as { sheetRuns: string[] }).sheetRuns.splice(0));
+
+  await menu.click();
+  await expect(sheet).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
+  expect(await runs(), "reduced motion: no fade").toEqual([]);
+
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  for (const step of ["open", "close"] as const) {
+    const seen: string[] = [];
+    if (step === "open") await menu.click();
+    else await page.keyboard.press("Escape");
+    await expect.poll(async () => (seen.push(...(await runs())), seen), `${step}: an opacity fade`).toContain("opacity");
+    await expect(sheet)[step === "open" ? "toBeVisible" : "toBeHidden"]();
+    seen.push(...(await runs()));
+    expect(seen.filter((name) => !["opacity", "display", "overlay"].includes(name)), `${step}: nothing but opacity moves`).toEqual([]);
+  }
+});
+
 test("[7.6] the About page makes no request of its own", async ({ page }, info) => {
   test.skip(!["mbp14", "p390"].includes(info.project.name), "1512 and a phone");
   const calls: string[] = [];
@@ -62,7 +137,7 @@ test("[4.2, 7.1] signed in, About's nav offers Continue and the account menu, an
   expect(response?.headers()["cache-control"]).toMatch(/no-store/);
   const nav = page.locator(NAV);
   await expect(nav.getByRole("button", { name: /^Continue/ })).toBeVisible();
-  await expect(nav.locator("summary")).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Account menu", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Sign in", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Join the waitlist" })).toHaveCount(0);
   await expect(page.locator('[data-site-section="closing"]').getByRole("button", { name: /^Continue/ })).toBeVisible();

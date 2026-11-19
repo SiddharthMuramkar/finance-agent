@@ -222,4 +222,58 @@ test("[F3] on /study the account menu drops over the Topic bar's Band", async ({
     return { overlaps, hit: el.contains(document.elementFromPoint(x, y)) };
   });
   expect(onTop).toEqual({ overlaps: true, hit: true });
+  // The top layer carries it: neither the header nor the bar needs a z-index any more (audit batch 2).
+  expect(await page.locator("header").evaluate((el) => getComputedStyle(el).zIndex)).toBe("auto");
+});
+
+// Audit batch 2, finding 5: the account menu is a native popover (popover="auto"), opened by its button's popovertarget.
+// It opens in the top layer, 8px under its button with the right edges lined up, in the page's ink on the raised face
+// (never the UA popover's Canvas colours, in either theme); the browser closes it on a press outside or a second press
+// on its button; Esc closes it and hands focus back to the button; Tab past its last row closes it.
+test("[audit 5] the account menu is a native popover under its button, closed by Esc, a press outside, its button or Tab", async ({ page }) => {
+  await course(page);
+  const button = page.getByTestId("account-menu-button");
+  const menu = page.getByTestId("account-menu");
+  await expect(menu).toBeHidden();
+  await button.click();
+  await expect(menu).toBeVisible();
+  await expect(button).toHaveAttribute("aria-expanded", "true");
+  await expect(menu.getByRole("menuitem").first()).toBeFocused();
+  const [ink, raised] = [await token(page, "--ink"), await token(page, "--raised")];
+  const m = await menu.evaluate((el) => {
+    const b = document.querySelector('[data-testid="account-menu-button"]')!.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const s = getComputedStyle(el);
+    return { open: el.matches(":popover-open"), gap: r.top - b.bottom, right: r.right - b.right, colour: s.color, face: s.backgroundColor, border: s.borderTopWidth };
+  });
+  expect(m.open).toBe(true);
+  expect(m.gap).toBeCloseTo(8, 0);
+  expect(Math.abs(m.right)).toBeLessThanOrEqual(1);
+  expect({ colour: m.colour, face: m.face, border: m.border }).toEqual({ colour: ink, face: raised, border: "0px" });
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(button).toBeFocused();
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+
+  // ArrowDown on the button opens it too; a second press on the button closes it.
+  await page.keyboard.press("ArrowDown");
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("menuitem").first()).toBeFocused();
+  await button.click();
+  await expect(menu).toBeHidden();
+
+  // A press outside: the browser's light dismiss.
+  await button.click();
+  await expect(menu).toBeVisible();
+  await page.mouse.click(4, 400);
+  await expect(menu).toBeHidden();
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+
+  // Tab past the last row: focus moves on to the page, and the menu closes behind it.
+  await button.click();
+  await expect(menu).toBeVisible();
+  await menu.getByRole("menuitem").last().focus();
+  await page.keyboard.press("Tab");
+  await expect(menu).toBeHidden();
 });

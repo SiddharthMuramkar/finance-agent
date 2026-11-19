@@ -202,17 +202,39 @@ html:has(.site) { scroll-padding-top: calc(64px + env(safe-area-inset-top, 0px) 
 .v-nav-right { display: flex; align-items: center; gap: 16px; }
 .v-nav-right .v-signin[aria-current="page"] { font-weight: 600; }
 .v-menu-btn { display: none; }
-.v-sheet { position: absolute; left: 0; right: 0; top: 100%; background: var(--paper); border-bottom: 1px solid var(--rule); box-shadow: var(--lift); padding: 8px var(--gutter-x) 16px; display: grid; }
+/* The phone Menu sheet and the account menu are popovers (popover="auto"), so they sit in the top layer, placed against
+   the viewport rather than inside the nav. Each replaces the UA popover look (centred, a border, Canvas colours) and sets
+   its display only while open: the UA's display: none is what keeps a closed popover hidden. Their shadow is the site's
+   --lift, which spec 3.4 gives menus (ADR 0018: a floating layer may have a shadow). */
+/* The sheet is pinned full width under the sticky nav, and scrolls itself if a short screen cannot hold it. */
+.v-sheet { position: fixed; inset: calc(var(--nav-h) + env(safe-area-inset-top)) 0 auto; width: auto; height: auto; max-height: calc(100dvh - var(--nav-h) - env(safe-area-inset-top)); overflow: auto; margin: 0; background: var(--paper); color: var(--ink); border: 0; border-bottom: 1px solid var(--rule); box-shadow: var(--lift); padding: 8px var(--gutter-x) 16px; }
+.v-sheet:popover-open { display: grid; }
 .v-sheet a { padding: 12px 0; font-weight: 600; color: var(--ink); border-bottom: 1px solid var(--rule); }
 .v-sheet a:last-child { border-bottom: 0; }
 /* The theme switch (ADR 0019): an icon button beside Menu on a wide screen, a row with a word in the phone menu. */
 .v-theme-btn { width: 36px; padding: 0; justify-content: center; }
 .v-sheet-theme { display: flex; align-items: center; gap: 10px; padding: 12px 0; font: inherit; font-weight: 600; color: var(--ink); background: none; border: 0; border-top: 1px solid var(--rule); text-align: left; cursor: pointer; }
-.v-account { position: relative; }
-.v-account summary { list-style: none; cursor: pointer; }
-.v-account summary::-webkit-details-marker { display: none; }
+.v-account { display: flex; }
+.v-account-btn { display: flex; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; font: inherit; cursor: pointer; }
 .v-avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--wash); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font-weight: 600; font-size: 14px; }
-.v-account-menu { position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--lift); padding: 6px; display: grid; z-index: 60; }
+/* Without anchor positioning the account menu hangs 8 px under the nav, flush with the right edge of the nav's 1200 px
+   column (.v-wrap); with it, 8 px under the avatar itself, flipping above it when there is no room below. */
+.v-account-menu { position: fixed; inset: auto; top: calc(var(--nav-h) + env(safe-area-inset-top) + 8px); right: max(var(--gutter-x), (100% - 1200px) / 2 + var(--gutter-x)); margin: 0; min-width: 220px; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--lift); padding: 6px; }
+.v-account-menu:popover-open { display: grid; }
+@supports (position-area: block-end) {
+  .v-account-btn { anchor-name: var(--v-account-anchor); }
+  .v-account-menu { position-anchor: var(--v-account-anchor); top: auto; right: auto; margin-block-start: 8px; position-area: block-end span-inline-start; position-try-fallbacks: flip-block; }
+}
+/* Both fade in and out (opacity only: ADR 0018 has no slide or scale). @starting-style gives the opening frame; display and
+   overlay, allowed to step discretely, keep a closing popover drawn and in the top layer until its fade ends. A browser
+   without them opens and closes at once, and so does anyone who asks for reduced motion (9.9). */
+@media (prefers-reduced-motion: no-preference) {
+  .v-sheet, .v-account-menu { opacity: 0; transition: opacity 0.15s var(--ease), display 0.15s, overlay 0.15s; transition-behavior: allow-discrete; }
+  .v-sheet:popover-open, .v-account-menu:popover-open { opacity: 1; transition-duration: 0.1s; }
+  @starting-style {
+    .v-sheet:popover-open, .v-account-menu:popover-open { opacity: 0; }
+  }
+}
 .v-account-menu a, .v-account-menu button { display: block; width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; font: inherit; font-size: 15px; color: var(--ink); background: none; border: 0; cursor: pointer; }
 .v-account-menu a:hover, .v-account-menu button:hover { background: var(--wash); }
 .v-account-menu .name { padding: 6px 12px 8px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--rule); margin-bottom: 4px; }

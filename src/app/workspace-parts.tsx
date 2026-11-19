@@ -1,10 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Topic } from "@/course/map";
 import { BAR_STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from "@/course/navigator";
 import { JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
 import { TopicOptions } from "./topic-options";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
+import { usePopover } from "./primitives";
 import { Button, Chevron } from "./ui";
 
 // Small presentational pieces of the workspace's columns (issue #44): the Topic bar and its step bar, the Chips under a
@@ -97,7 +98,7 @@ export function OptionRow({ name, checked, onChange, children }: { name: string;
  */
 export function TopicBar({ topicId, title, goal, strip, marked }: { topicId?: string; title: string; goal?: string; strip: StepSequence | null; marked: ReadonlySet<number> }) {
   return (
-    <nav aria-label="Topic progress" data-testid="topic-bar" className="band @container/topic-bar relative z-20 -mx-[var(--gutter)] shrink-0 px-[var(--gutter)]">
+    <nav aria-label="Topic progress" data-testid="topic-bar" className="band @container/topic-bar -mx-[var(--gutter)] shrink-0 px-[var(--gutter)]">
       {/* A grid: narrow, the title with Topic options beside it and the step bar on a row of its own; from 44rem, the title,
           the step bar and Topic options side by side. The restart confirm (TopicOptions) takes a full row under them. */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-1 py-2 @[44rem]/topic-bar:grid-cols-[minmax(0,1fr)_min(28rem,42%)_auto]">
@@ -148,19 +149,9 @@ function scrollableAncestor(el: HTMLElement, deltaY: number): Element | null {
 function StepStrip({ strip, marked }: { strip: StepSequence; marked: ReadonlySet<number> }) {
   const list = useRef<HTMLOListElement>(null);
   const current = strip.current;
-  const [open, setOpen] = useState(false);
-  const listId = useId();
-  const wrap = useRef<HTMLDivElement>(null);
-  const toggle = useRef<HTMLButtonElement>(null);
-  // The All steps list floats over the workspace, so a press anywhere outside the step column closes it, as Escape does.
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: PointerEvent) => {
-      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", away);
-    return () => document.removeEventListener("pointerdown", away);
-  }, [open]);
+  // The All steps list is a native popover (audit batch 2, usePopover) 4px under its toggle: the top layer floats it over
+  // the workspace, and the browser closes it on a press outside or Esc, as Tab out of it and going to a step do.
+  const allSteps = usePopover({ gap: 4 });
   useEffect(() => {
     const ol = list.current;
     const here = ol?.querySelector<HTMLElement>('[aria-current="step"]');
@@ -294,7 +285,7 @@ function StepStrip({ strip, marked }: { strip: StepSequence; marked: ReadonlySet
           data-jump-to={target}
           title={`Back to ${labelOf(s)}`}
           onClick={() => {
-            setOpen(false);
+            allSteps.close();
             scrollTo(target);
           }}
           className="gap-1.5 px-2 text-[13px] leading-[18px] text-[var(--accent)] underline underline-offset-[3px]"
@@ -318,7 +309,7 @@ function StepStrip({ strip, marked }: { strip: StepSequence; marked: ReadonlySet
   return (
     // The step column of the Topic bar's Band: the line and All steps, then the strip; the All steps list floats under it
     // as a card on the Band (band-card, a .popover), so opening it never pushes the conversation or the Widget panel down.
-    <div ref={wrap} className="relative">
+    <div>
       <div className="flex min-h-7 items-center justify-between gap-3">
         <p data-testid="current-step" className="min-w-0 truncate text-[13px] leading-[18px]">
           {now ? (
@@ -330,19 +321,25 @@ function StepStrip({ strip, marked }: { strip: StepSequence; marked: ReadonlySet
             <span className="band-faint">All {total} steps done</span>
           )}
         </p>
-        <Button
-          ref={toggle}
-          variant="tertiary"
-          size="xs"
-          data-testid="all-steps-toggle"
-          aria-expanded={open}
-          aria-controls={open ? listId : undefined}
-          onClick={() => setOpen((o) => !o)}
-          className="group shrink-0"
-        >
+        <Button {...allSteps.buttonProps} variant="tertiary" size="xs" data-testid="all-steps-toggle" className="group shrink-0">
           All steps
           <ChevronDown className="group-aria-expanded:rotate-180" />
         </Button>
+        {/* Right after its toggle, so Tab goes from All steps into the list; while open it is in the top layer and takes no
+            room in this row. */}
+        <div {...allSteps.popoverProps} data-testid="all-steps" className="popover band-card w-[min(28rem,calc(100vw-2*var(--gutter)))] p-2">
+          <ol aria-label="All steps" className="flex flex-col gap-1">
+            {strip.groups.map((g) => (
+              <li key={g.steps[0].number} data-all-steps-group>
+                <ol className="flex flex-wrap gap-1">
+                  {g.steps.map((s) => (
+                    <li key={s.number}>{listed(s)}</li>
+                  ))}
+                </ol>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
       {/* A scroll box clips what sticks out of it, so the strip keeps 4 px of room inside itself all round for a
           segment's focus ring (a 2 px outline at a 2 px offset), reaching into the bar's padding; and it never scrolls
@@ -368,31 +365,6 @@ function StepStrip({ strip, marked }: { strip: StepSequence; marked: ReadonlySet
           </li>
         ))}
       </ol>
-      {open && (
-        <div
-          id={listId}
-          data-testid="all-steps"
-          onKeyDown={(e) => {
-            if (e.key !== "Escape") return;
-            e.stopPropagation();
-            setOpen(false);
-            toggle.current?.focus();
-          }}
-          className="popover band-card absolute right-0 top-full z-30 mt-1 w-[min(28rem,calc(100vw-2*var(--gutter)))] p-2"
-        >
-          <ol aria-label="All steps" className="flex flex-col gap-1">
-            {strip.groups.map((g) => (
-              <li key={g.steps[0].number} data-all-steps-group>
-                <ol className="flex flex-wrap gap-1">
-                  {g.steps.map((s) => (
-                    <li key={s.number}>{listed(s)}</li>
-                  ))}
-                </ol>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
     </div>
   );
 }

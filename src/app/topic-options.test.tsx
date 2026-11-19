@@ -2,18 +2,25 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { RESTART_CONFIRM } from "@/learner/restart";
+import { installPopoverStandIn, isOpen } from "@/test/popover";
 import { RestartConfirm } from "./restart-confirm";
 import { TopicBar } from "./workspace-parts";
 
 // The Topic bar's "⋯" menu (spec 2026-11-05 B3b): Start this Topic over… opens the confirm; Cancel closes it and posts nothing.
+// The menu is a native popover (audit batch 2); happy-dom has no Popover API, so src/test/popover.ts stands in for it.
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
 let root: Root;
 let host: HTMLElement;
+let uninstall: () => void;
+beforeAll(() => {
+  uninstall = installPopoverStandIn();
+});
+afterAll(() => uninstall());
 beforeEach(() => {
   host = document.createElement("div");
   document.body.append(host);
@@ -26,6 +33,7 @@ afterEach(async () => {
 
 const bar = () => host.querySelector<HTMLElement>('[data-testid="topic-bar"]')!;
 const options = () => host.querySelector<HTMLButtonElement>('button[aria-label="Topic options"]')!;
+const menu = () => host.querySelector<HTMLElement>('[role="menu"]')!;
 const click = (el: HTMLElement) => act(async () => el.click());
 const press = (el: Element, key: string) => act(async () => void el.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })));
 const mount = () => act(async () => root.render(<TopicBar topicId="percent" title="Percent" strip={null} marked={new Set()} />));
@@ -44,9 +52,21 @@ describe("the Topic bar's ⋯ menu", () => {
     expect(renderToStaticMarkup(<TopicBar title="Percent" strip={null} marked={new Set()} />)).not.toContain("Topic options");
   });
 
-  it("opens with Enter (A5's shared menu keyboard) and focuses Start this Topic over…", async () => {
+  it("is a native popover on the Band: closed in the page, right after its button, a card on the bar in the DOM", async () => {
     await mount();
-    await press(options(), "Enter");
+    expect(menu().getAttribute("popover")).toBe("auto");
+    expect(isOpen(menu())).toBe(false);
+    expect(options().nextElementSibling).toBe(menu());
+    expect(options().getAttribute("popovertarget")).toBe(menu().id);
+    // The top layer draws it, but its DOM parent is still the Band, so the band-card rules reach it; no z-index of its own.
+    expect(menu().closest(".band")).toBe(bar());
+    expect(menu().className).toMatch(/\bpopover band-card\b/);
+    expect(menu().className).not.toMatch(/\b(absolute|relative|z-\d)/);
+  });
+
+  it("opens with Enter (the button's own click: A5's shared menu keyboard) and focuses Start this Topic over…", async () => {
+    await mount();
+    await click(options());
     expect(options().getAttribute("aria-expanded")).toBe("true");
     const row = host.querySelector<HTMLElement>('[role="menu"] [role="menuitem"]')!;
     expect(row.textContent).toBe("Start this Topic over…");
@@ -66,7 +86,8 @@ describe("the Topic bar's ⋯ menu", () => {
     await mount();
     await click(options());
     await click(host.querySelector<HTMLElement>('[role="menuitem"]')!);
-    expect(host.querySelector('[role="menu"]')).toBeNull();
+    expect(isOpen(menu())).toBe(false);
+    expect(options().getAttribute("aria-expanded")).toBe("false");
     expect(bar().textContent).toContain("This clears your Checks and progress for this Topic. Your Notebook keeps the old conversation and your notes.");
     const form = host.querySelector<HTMLFormElement>("form")!;
     expect(form.getAttribute("action")).toBe("/api/topics/percent/restart");
@@ -91,7 +112,7 @@ describe("the Topic bar's ⋯ menu", () => {
 
   it("choosing the row with the keyboard moves focus into the confirm (its Cancel), not to the page", async () => {
     await mount();
-    await press(options(), "Enter");
+    await press(options(), "ArrowDown");
     await click(document.activeElement as HTMLElement);
     const cancel = [...host.querySelectorAll<HTMLElement>("button")].find((b) => b.textContent === "Cancel")!;
     expect(document.activeElement).toBe(cancel);
@@ -108,8 +129,8 @@ describe("the Topic bar's ⋯ menu", () => {
   it("Escape closes the menu and returns focus to the button", async () => {
     await mount();
     await click(options());
-    await press(host.querySelector('[role="menu"]')!, "Escape");
-    expect(host.querySelector('[role="menu"]')).toBeNull();
+    await press(menu(), "Escape");
+    expect(isOpen(menu())).toBe(false);
     expect(document.activeElement).toBe(options());
   });
 });

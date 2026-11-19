@@ -1486,6 +1486,56 @@ html[data-splitting] * {
     padding: 4px;
   }
 
+  /* ---- Native popover layers (audit batch 2, finding 5) ----
+     A .popover that is a native popover (popover="auto": the account menu, the Topic options menu and the All steps list;
+     usePopover in src/app/primitives/popover.ts). The browser draws an open one in the top layer, over everything, so it
+     needs no z-index, and keeps a closed one hidden (the UA's display: none, which nothing here sets). It drops the UA
+     popover's own look (Canvas colours, placed against the window) and hangs under its button, right edges lined up: by
+     anchor positioning where the browser has it (the button's anchor-name and this layer's position-anchor are set inline,
+     one name per instance), flipping above the button when there is no room below; elsewhere at the top and right that
+     usePopover works out from the button as it opens. --popover-gap is the room under the button (8px; 4px for All steps). */
+  .popover[popover] {
+    inset: auto;
+    margin: 0;
+    color: var(--ink);
+  }
+  @supports (position-area: block-end) {
+    .popover[popover] {
+      position-area: block-end span-inline-start;
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+      margin-block: var(--popover-gap, 8px);
+    }
+  }
+  @supports not (position-area: block-end) {
+    .popover[popover] {
+      top: var(--popover-top, auto);
+      right: var(--popover-right, auto);
+    }
+  }
+  /* It fades in and out, opacity only (ADR 0018: no slide, no scale), within the menu guide's 150ms. @starting-style
+     gives the opening frame; display and overlay, allowed to step discretely, keep a closing layer drawn and in the top
+     layer until its fade ends. A browser without them opens and closes at once, as it does for anyone who asks for
+     reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .popover[popover] {
+      opacity: 0;
+      transition-property: opacity, display, overlay;
+      transition-duration: var(--dur-exit);
+      transition-timing-function: var(--ease-out);
+      transition-behavior: allow-discrete;
+    }
+    .popover[popover]:popover-open {
+      opacity: 1;
+      /* --dur-enter is 200ms; a menu opens within 150ms. */
+      transition-duration: min(var(--dur-enter), 150ms);
+    }
+    @starting-style {
+      .popover[popover]:popover-open {
+        opacity: 0;
+      }
+    }
+  }
+
   /* Static tags: flat, 6px (controls are 8px), no shadow, no pointer, a dot. */
   .tag {
     --tag-bg: var(--hairline);

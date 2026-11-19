@@ -57,3 +57,59 @@ describe("the theme switch", () => {
     }
   });
 });
+
+// Audit batch 2: the phone Menu sheet and the account menu are native popovers (popover="auto"), so the browser closes
+// them on Esc or a press outside and draws them in the top layer. The sheet is always in the page, closed until Menu opens
+// it (4.2: Home, the page links, Sign in for a visitor, the theme row), and Menu says Menu, collapsed, until it does.
+const memberNav = (path: string) => {
+  at.path = path;
+  return renderToStaticMarkup(<SiteNav viewer={{ state: "member", name: "Asha Rao", button: { label: "Continue", href: "/study" } } as never} />);
+};
+const sheetOf = (html: string) => /<nav (?=[^>]*id="site-menu")[^>]*>.*?<\/nav>/.exec(html)?.[0] ?? "";
+const linksIn = (html: string) => [...html.matchAll(/<a [^>]*>([^<]*)<\/a>/g)].map((m) => m[1]);
+
+describe("the phone Menu sheet", () => {
+  it("is a closed popover nav named Menu, opened by the Menu button's popovertarget", () => {
+    const html = visitorNav("/about");
+    expect(html).toMatch(/<button (?=[^>]*class="[^"]*\bv-menu-btn\b)(?=[^>]*popoverTarget="site-menu")(?=[^>]*aria-controls="site-menu")(?=[^>]*aria-expanded="false")[^>]*>Menu<\/button>/);
+    expect(sheetOf(html)).toMatch(/^<nav (?=[^>]*aria-label="Menu")(?=[^>]*class="v-sheet")(?=[^>]*popover="auto")[^>]*>/);
+    // Esc and a press outside are the browser's own (popover="auto"): the page adds no key or document listener.
+    expect(html).not.toMatch(/<details|<summary/);
+  });
+
+  it("holds Home, the page links (the one showing marked) and Sign in for a visitor, then the theme row", () => {
+    const sheet = sheetOf(visitorNav("/about"));
+    expect(linksIn(sheet)).toEqual(["Home", "How it works", "Examples", "About", "Sign in"]);
+    expect(sheet).toMatch(/<a aria-current="page"[^>]*href="\/about">About<\/a>/);
+    expect(sheet).toMatch(/<button (?=[^>]*class="v-sheet-theme")(?=[^>]*data-testid="theme-switch")[^>]*>.*Dark theme/);
+  });
+
+  it("holds no Sign in for a member", () => {
+    expect(linksIn(sheetOf(memberNav("/")))).toEqual(["Home", "How it works", "Examples", "About"]);
+  });
+});
+
+describe("the account menu, for a member", () => {
+  it("is an avatar button that opens a popover of links and Sign out, not a <details>", () => {
+    const html = memberNav("/");
+    const button = /<button (?=[^>]*class="v-account-btn")[^>]*>/.exec(html)?.[0] ?? "";
+    expect(button).toMatch(/aria-label="Account menu"/);
+    expect(button).toMatch(/data-affordance="icon"/);
+    expect(button).toMatch(/aria-expanded="false"/);
+    expect(button).not.toMatch(/aria-haspopup/);
+    const id = /popoverTarget="([^"]+)"/.exec(button)?.[1];
+    expect(id).toBeTruthy();
+    expect(button).toContain(`aria-controls="${id}"`);
+    const menu = new RegExp(`<div (?=[^>]*id="${id}")(?=[^>]*popover="auto")(?=[^>]*class="v-account-menu")[^>]*>.*?</div>`).exec(html)?.[0] ?? "";
+    expect(menu).toContain('<p class="name">Asha Rao</p>');
+    expect(linksIn(menu)).toEqual(["Course map", "Notebook", "Account settings"]);
+    expect(menu).toMatch(/<button type="submit"[^>]*>Sign out<\/button>/);
+    // A list of links in Tab order: no arrow-key menu roles.
+    expect(menu).not.toMatch(/role="menu/);
+    expect(html).not.toMatch(/<details|<summary/);
+  });
+
+  it("names its own anchor for the menu to hang from (site.css reads --v-account-anchor)", () => {
+    expect(memberNav("/")).toMatch(/<div class="v-account" style="--v-account-anchor:--v-account[\w-]+">/);
+  });
+});

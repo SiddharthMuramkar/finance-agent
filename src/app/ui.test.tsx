@@ -70,7 +70,13 @@ describe("AppHeader", () => {
     expect(html.match(/aria-label="Settings"/g)).toHaveLength(1);
     expect(html).toMatch(/<a[^>]*aria-label="Settings"[^>]*href="\/settings"/);
     expect(html.match(/aria-label="Account menu"/g)).toHaveLength(1);
-    const visible = text(html);
+    // The account menu's rows are in the page from the start, inside its closed popover (audit batch 2), which the browser
+    // keeps hidden; the bar itself shows none of them.
+    const menu = html.match(/<div [^>]*role="menu"[^>]*>/)![0];
+    expect(menu).toContain('popover="auto"');
+    const bar = html.replace(/<div [^>]*role="menu"[\s\S]*?<\/form><\/div>/, "");
+    expect(bar).not.toContain('role="menu"');
+    const visible = text(bar);
     for (const word of ["Sign out", "Past Sessions", "Notes", "Progress", "Settings"]) expect(visible, word).not.toContain(word);
   });
 
