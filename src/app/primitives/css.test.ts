@@ -75,7 +75,7 @@ describe("Block 2 is gone, and the one control set is flat (ADR 0018)", () => {
     expect(rule(".btn-secondary:hover:not(:disabled)", block1)).toContain("border-color: var(--ink-2);");
     const press = rule(".btn:active:not(:disabled)", block1);
     expect(press).toContain("transition-duration: var(--dur-press);");
-    expect(press).toContain("color-mix(in srgb, var(--face) 92%, var(--ink))");
+    expect(press).toContain("color-mix(in oklab, var(--face) 92%, var(--ink))");
     expect(rule(".btn-primary:active:not(:disabled)", block1)).toContain("background-color: var(--fill-active);");
     expect(block1).not.toMatch(/transform/);
   });

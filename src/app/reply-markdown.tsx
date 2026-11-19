@@ -103,9 +103,11 @@ const BY_LANGUAGE = {
 export function ReplyMarkdown({ slot }: { slot: WidgetSlot }) {
   const streaming = useStreaming();
   const preprocess = useCallback((text: string) => markdownSource(text, { streaming }), [streaming]);
+  // md-streaming while the reply streams: settled paragraphs avoid a one-word last line (text-wrap: pretty, globals.css),
+  // but a streaming one wraps plainly, so its last lines do not re-flow as each word lands.
   return (
     <SlotContext.Provider value={slot}>
-      <MarkdownTextPrimitive className="md" remarkPlugins={[remarkGfm]} smooth={false} preprocess={preprocess} components={COMPONENTS} componentsByLanguage={BY_LANGUAGE} />
+      <MarkdownTextPrimitive className={streaming ? "md md-streaming" : "md"} remarkPlugins={[remarkGfm]} smooth={false} preprocess={preprocess} components={COMPONENTS} componentsByLanguage={BY_LANGUAGE} />
     </SlotContext.Provider>
   );
 }

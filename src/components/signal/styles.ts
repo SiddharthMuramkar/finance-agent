@@ -42,7 +42,7 @@ export const SIGNAL_CSS = `
 .sig-w .sig-pill-blue{background:var(--blue-tint);color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue-line)}
 .sig-w .sig-pill-plain{background:var(--wash);color:var(--muted);box-shadow:inset 0 0 0 1px var(--rule);letter-spacing:0;text-transform:none}
 .sig-w .sig-pill-ghost{visibility:hidden}
-.sig-w .sig-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;font:600 14px/1 var(--font-body,inherit);white-space:nowrap;cursor:pointer;border:0;transition:background-color .15s}
+.sig-w .sig-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 12px;border-radius:10px;font:600 14px/1 var(--font-body,inherit);white-space:nowrap;cursor:pointer;border:0;transition:background-color .15s}
 .sig-w .sig-btn-quiet{background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1px var(--rule)}
 .sig-w .sig-btn-quiet:hover{background:var(--wash)}
 .sig-w .sig-btn-secondary{background:var(--blue-tint);color:var(--blue)}
@@ -141,7 +141,7 @@ export const SIGNAL_CSS = `
 .sig-w .sig-lab-label{font-size:13px;color:var(--muted)}
 .sig-w .sig-lab-value{font-family:var(--font-display,inherit);font-size:clamp(40px,5vw,60px);line-height:1.05;font-weight:600;letter-spacing:-.02em;color:var(--blue)}
 .sig-w .sig-lab-sub{font-size:14px;color:var(--ink-2);text-align:right}
-.sig-w .sig-ruler{position:relative;height:10px;margin:40px 8px 30px;border-radius:5px;background:var(--wash-2)}
+.sig-w .sig-ruler{position:relative;height:10px;margin:40px 8px 30px;border-radius:5px;background:var(--wash-2);font-variant-numeric:tabular-nums}
 .sig-w .sig-ruler-pin{position:absolute;top:-6px;bottom:-6px;width:2px;margin-left:-1px;background:var(--ink)}
 .sig-w .sig-ruler-pin-label{position:absolute;bottom:22px;transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:12px;color:var(--muted);line-height:1.2}
 .sig-w .sig-ruler-pin-label b{display:block;font-family:var(--font-display,inherit);font-size:17px}
@@ -174,7 +174,7 @@ export const SIGNAL_CSS = `
 .sig-w .sig-lever-track:hover .sig-lever-knob{box-shadow:0 0 0 6px var(--blue-tint-2)}
 .sig-w.dragging .sig-lever-knob{transition:none}
 .sig-w .sig-lever-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3}
-.sig-w .sig-strip{display:block;width:100%;height:auto}
+.sig-w .sig-strip{display:block;width:100%;height:auto;font-variant-numeric:tabular-nums}
 .sig-w .sig-bridge{display:grid;gap:8px}
 .sig-w .sig-bridge-row{display:grid;grid-template-columns:11.5em minmax(0,1fr) 4.2em;align-items:center;gap:10px;font-size:13.5px}
 .sig-w .sig-bridge-row.is-total{padding-top:8px;border-top:1px solid var(--line);font-weight:600;color:var(--ink)}
@@ -206,4 +206,5 @@ export const SIGNAL_CSS = `
 @keyframes sig-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (max-width:560px){.sig-w .sig-bridge-row{grid-template-columns:minmax(0,1fr) 4.2em}.sig-w .sig-bridge-row .sig-bridge-bar{grid-column:1 / -1;grid-row:2}}
 @media (prefers-reduced-motion:reduce){.sig-w *,.sig-w{transition-duration:.001ms !important;animation-duration:.001ms !important}}
+@media (forced-colors:active){.sig-w .sig-btn{border:1px solid ButtonText}.sig-w .sig-btn:disabled{border-color:GrayText}}
 `;
